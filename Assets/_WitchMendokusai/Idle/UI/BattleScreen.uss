@@ -1222,6 +1222,48 @@
 	margin-top: 16px;
 }
 
+/* 던전 줄 (layout.md 표 3) */
+.idle-dungeon-row {
+	margin-bottom: 14px;
+	padding: 14px;
+	background-color: rgb(30, 30, 34);
+	border-width: 2px;
+	border-color: rgb(58, 58, 58);
+}
+
+.idle-dungeon-head {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.idle-dungeon-name {
+	font-size: 32px;
+	-unity-font-style: bold;
+	color: rgb(240, 240, 236);
+}
+
+.idle-dungeon-ticket {
+	font-size: 26px;
+	color: rgb(255, 229, 142);
+}
+
+.idle-dungeon-buttons {
+	flex-direction: row;
+	margin-top: 8px;
+}
+
+.idle-dungeon-button {
+	flex-grow: 1;
+	flex-shrink: 1;
+	flex-basis: 0;
+	min-height: 52px;
+}
+
+.idle-dungeon-button--second {
+	margin-left: 8px;
+}
+
 .idle-button {
 	height: 56px;
 	font-size: 28px;

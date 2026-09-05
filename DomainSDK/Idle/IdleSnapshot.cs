@@ -426,6 +426,24 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>무료 상자가 주는 뽑기 재화</summary>
         public long FreeBoxStones { get; }
 
+        /// <summary>던전 하나에 하루 몇 판인가 (입장권 상한)</summary>
+        public long TicketsPerDay { get; }
+
+        /// <summary>던전 보상 장비의 등급 (지금 갈 수 있는 최고 등급)</summary>
+        public int DungeonGearTier { get; }
+
+        /// <summary>재화 던전 한 판이 주는 골드</summary>
+        public double DungeonGold { get; }
+
+        /// <summary>보스 던전 한 판이 주는 환생 조각</summary>
+        public long DungeonBossShards { get; }
+
+        /// <summary>보스 던전 한 판이 주는 장비 수</summary>
+        public long DungeonBossGear { get; }
+
+        /// <summary>장비 던전 한 판이 주는 장비 수</summary>
+        public long DungeonGearCount { get; }
+
         /// <summary>
         /// 등급이 나올 확률 — 위에서부터 레전드·에픽·레어(나머지는 일반).
         ///
@@ -533,8 +551,16 @@ namespace WitchMendokusai.DomainSDK.Idle
             double speed, bool autoCast, double bagUpgradeCost, bool canBuyBag,
             int pullBatchCount, double pullBatchCost, long pullBatchStoneCost, bool canPullBatch,
             IdleHeroGrade pullBatchFloorGrade, int pickupHeroId, double pickupWeight, double pickupSecondsLeft,
-            bool freeBoxReady, double freeBoxSecondsLeft, long freeBoxStones)
+            bool freeBoxReady, double freeBoxSecondsLeft, long freeBoxStones,
+            long ticketsPerDay, int dungeonGearTier, double dungeonGold, long dungeonBossShards,
+            long dungeonBossGear, long dungeonGearCount)
         {
+            TicketsPerDay = ticketsPerDay;
+            DungeonGearTier = dungeonGearTier;
+            DungeonGold = dungeonGold;
+            DungeonBossShards = dungeonBossShards;
+            DungeonBossGear = dungeonBossGear;
+            DungeonGearCount = dungeonGearCount;
             PullBatchCount = pullBatchCount;
             PullBatchCost = pullBatchCost;
             PullBatchStoneCost = pullBatchStoneCost;

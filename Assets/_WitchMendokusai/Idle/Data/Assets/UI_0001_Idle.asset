@@ -44,7 +44,7 @@ MonoBehaviour:
     Visible: 0
   - Name: 던전
     Caption: DUNGEON
-    Visible: 0
+    Visible: 1
   - Name: 투자
     Caption: INVEST
     Visible: 0
@@ -122,6 +122,15 @@ MonoBehaviour:
   potentialFormat: '{0:P0}'
   gearPotentialFormat: '잠재 {0:P0}'
   dungeonRowFormat: '{0}  입장권 {1}  다시 참까지 {2}시간 {3}분'
+  dungeonTicketFormat: '입장권 {0}/{1}'
+  dungeonRefillFormat: '{0} 뒤 다시 참'
+  dungeonEnterText: 입장
+  dungeonSweepFormat: '소탕 {0}판'
+  dungeonClosedText: 아직 안 열림
+  dungeonGoldRewardFormat: '골드 {0}'
+  dungeonBossRewardFormat: '환생 조각 {0} + T{2} 장비 {1}'
+  dungeonGearRewardFormat: 'T{1} 장비 {0}'
+  dungeonFeedbackFormat: '{0} {1}판. {2}'
   awaySpanFormat: '{0} 동안 작전이 계속됐습니다'
   awayWarningFormat: 오프라인 상한 {0}. 넘긴 {1}은 보상에 포함되지 않았습니다.
   selectHeroBeforeGearText: 먼저 편성 칸에서 인형을 고른다

@@ -13,6 +13,28 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
     }
 
+    /// <summary>「이 던전에 한 판 들어간다」. 입장권 한 장</summary>
+    public readonly struct IdleEnterDungeonIntent : IGameIntent
+    {
+        public IdleDungeonKind Kind { get; }
+
+        public IdleEnterDungeonIntent(IdleDungeonKind kind)
+        {
+            Kind = kind;
+        }
+    }
+
+    /// <summary>「남은 입장권을 한 번에 쓴다」 (소탕)</summary>
+    public readonly struct IdleSweepDungeonIntent : IGameIntent
+    {
+        public IdleDungeonKind Kind { get; }
+
+        public IdleSweepDungeonIntent(IdleDungeonKind kind)
+        {
+            Kind = kind;
+        }
+    }
+
     /// <summary>「묶음으로 뽑는다」. 수와 값과 보장은 튜닝 (사용자 2026-09-05: 10회)</summary>
     public readonly struct IdlePullBatchIntent : IGameIntent
     {

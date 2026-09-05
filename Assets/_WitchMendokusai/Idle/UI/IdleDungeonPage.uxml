@@ -1,10 +1,9 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <!-- 던전 탭 (economy.md 4). 입장권은 실제 값, 던전 안 판은 알파 9번 -->
+    <!-- 던전 탭 (layout.md 표 3, economy.md 4). 4종 줄. 줄은 IdleDungeonRow 로 -->
     <Style src="BattleScreen.uss" />
     <ui:VisualElement name="page" class="idle-page">
-        <ui:Button name="dungeon-0" text="재화 던전" class="idle-row-button" />
-        <ui:Button name="dungeon-1" text="보스 던전" class="idle-row-button" />
-        <ui:Button name="dungeon-2" text="장비 던전" class="idle-row-button" />
-        <ui:Button name="dungeon-3" text="스킬 던전" class="idle-row-button" />
+        <ui:Label text="던전" class="idle-row-title" />
+        <ui:Label text="입장권은 날마다 다시 찬다. 안 쓴 날치는 안 쌓인다." class="idle-row-note" />
+        <ui:VisualElement name="dungeon-rows" />
     </ui:VisualElement>
 </ui:UXML>

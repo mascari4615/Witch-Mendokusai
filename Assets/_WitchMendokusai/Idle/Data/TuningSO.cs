@@ -147,6 +147,18 @@ namespace WitchMendokusai.Idle
 		[Tooltip("던전 하나에 하루 몇 번 들어가나 (economy.md 4)")]
 		[SerializeField] private long ticketsPerDay = 3L;
 
+		[Tooltip("재화 던전 한 판이 주는 골드 = 지금 초당 수입 x 이 초")]
+		[SerializeField] private double dungeonGoldSeconds = 900d;
+
+		[Tooltip("보스 던전 한 판이 주는 환생 조각")]
+		[SerializeField] private long dungeonBossShards = 3L;
+
+		[Tooltip("보스 던전 한 판이 주는 장비 수")]
+		[SerializeField] private long dungeonBossGear = 2L;
+
+		[Tooltip("장비 던전 한 판이 주는 장비 수")]
+		[SerializeField] private long dungeonGearCount = 5L;
+
 		[Tooltip("날 경계를 UTC 자정에서 미는 초. 20시간은 KST 05:00")]
 		[SerializeField] private long dayResetOffsetSeconds = 20L * 3600L;
 
@@ -473,6 +485,10 @@ namespace WitchMendokusai.Idle
 				BagUpgradeCostBase = bagUpgradeCostBase,
 				BagUpgradeCostRatio = bagUpgradeCostRatio,
 				TicketsPerDay = ticketsPerDay,
+				DungeonGoldSeconds = dungeonGoldSeconds,
+				DungeonBossShards = dungeonBossShards,
+				DungeonBossGear = dungeonBossGear,
+				DungeonGearCount = dungeonGearCount,
 				DayResetOffsetSeconds = dayResetOffsetSeconds,
 				StoneDropChance = stoneDropChance,
 				LegendChance = legendChance,

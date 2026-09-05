@@ -89,7 +89,8 @@ namespace WitchMendokusai.Idle.UI
 				Bind(sidePanel, root, ManagementPage.Lab, "lab-page-host"),
 				session, content, writeDown, requestRender, showNote, noteSeconds);
 			dungeonPage = new DungeonPageController(
-				Bind(sidePanel, root, ManagementPage.Dungeon, "dungeon-page-host"), content);
+				Bind(sidePanel, root, ManagementPage.Dungeon, "dungeon-page-host"),
+				session, content, viewAssets.DungeonRow, writeDown, requestRender, showNote, noteSeconds);
 			investPage = new InvestPageController(
 				Bind(sidePanel, root, ManagementPage.Invest, "invest-page-host"),
 				viewAssets.ProducerRow, session, content, requestRender);

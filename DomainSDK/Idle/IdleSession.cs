@@ -17,6 +17,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         IIntentSink<IdleBuyProducerIntent>, IIntentSink<IdleMergeIntent>, IIntentSink<IdleEquipIntent>,
         IIntentSink<IdleSalvageIntent>, IIntentSink<IdleLockItemIntent>, IIntentSink<IdleSortBagIntent>,
         IIntentSink<IdlePullBatchIntent>, IIntentSink<IdleOpenFreeBoxIntent>,
+        IIntentSink<IdleEnterDungeonIntent>, IIntentSink<IdleSweepDungeonIntent>,
         IIntentSink<IdleCastCardIntent>, IIntentSink<IdleNextStageIntent>
     {
         private readonly IdleState state;
@@ -291,6 +292,28 @@ namespace WitchMendokusai.DomainSDK.Idle
             return IdleGacha.TryPullBatch(state, tuning, PickupNow(), new System.Collections.Generic.List<IdleHeroPull>());
         }
 
+        /// <summary>던전 한 판. 받은 것을 돌려준다</summary>
+        public bool TryEnterDungeon(IdleDungeonKind kind, out IdleDungeonReward reward)
+        {
+            return IdleDungeons.TryEnter(state, tuning, kind, out reward);
+        }
+
+        /// <summary>남은 입장권을 한 번에 (소탕)</summary>
+        public bool TrySweepDungeon(IdleDungeonKind kind, out IdleDungeonReward reward)
+        {
+            return IdleDungeons.TrySweep(state, tuning, kind, out reward);
+        }
+
+        public bool Send(IdleEnterDungeonIntent intent)
+        {
+            return IdleDungeons.TryEnter(state, tuning, intent.Kind, out IdleDungeonReward _);
+        }
+
+        public bool Send(IdleSweepDungeonIntent intent)
+        {
+            return IdleDungeons.TrySweep(state, tuning, intent.Kind, out IdleDungeonReward _);
+        }
+
         /// <summary>무료 상자를 연다. 받은 뽑기 재화를 돌려준다</summary>
         public bool TryOpenFreeBox(out long stones)
         {
@@ -533,7 +556,13 @@ namespace WitchMendokusai.DomainSDK.Idle
                 IdleGacha.PickupSecondsLeft(tuning, Now()),
                 IdleFreeBox.IsReady(state, tuning, Now()),
                 IdleFreeBox.SecondsLeft(state, tuning, Now()),
-                tuning.FreeBoxStones);
+                tuning.FreeBoxStones,
+                tuning.TicketsPerDay,
+                IdleDrops.MaxTierAt(state.Stage, state.Ascensions, tuning),
+                IdleModel.IncomePerSecond(state, tuning) * tuning.DungeonGoldSeconds,
+                tuning.DungeonBossShards,
+                tuning.DungeonBossGear,
+                tuning.DungeonGearCount);
         }
 
         /// <summary>

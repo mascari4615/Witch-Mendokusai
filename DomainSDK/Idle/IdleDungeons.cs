@@ -116,5 +116,113 @@ namespace WitchMendokusai.DomainSDK.Idle
 			long nextBoundary = (today + 1L) * SECONDS_PER_DAY + tuning.DayResetOffsetSeconds;
 			return nextBoundary - nowUnixSeconds;
 		}
+
+		/// <summary>
+		/// 그 던전이 지금 열려 있나. 스킬 던전은 스킬 재료가 아직 없어 닫혀 있음 (economy.md 표 2)
+		///
+		/// ★ 화면이 이유를 말하려면 여닫힘과 입장권을 따로 물어야 함. 입장권이 0 인 것과
+		///   아직 안 만든 것은 사람에게 다른 말
+		/// </summary>
+		public static bool IsOpen(IdleDungeonKind kind)
+		{
+			return kind != IdleDungeonKind.Skill;
+		}
+
+		/// <summary>
+		/// 한 판 입장 (economy.md 표 2). 입장권 한 장을 쓰고 그 던전 보상을 줌
+		///
+		/// ★ 무작위 없음. 사람이 누를 때만 도는 자리지만 보상까지 굴리면 저장을 껐다 켜서
+		///   다시 뽑는 길이 생김. 던전은 <b>고정 보상</b>이고 재미는 어디를 갈지 고르는 데 둠
+		/// ★ 골드는 지금 초당 수입에 견줌. 단계가 오르면 던전도 같이 커져야 늘 갈 이유가 생김
+		/// </summary>
+		public static bool TryEnter(IdleState state, IdleTuning tuning, IdleDungeonKind kind, out IdleDungeonReward reward)
+		{
+			reward = default;
+
+			if (IsOpen(kind) == false || TrySpend(state, kind) == false)
+			{
+				return false;
+			}
+
+			double gold = 0d;
+			long shards = 0L;
+			int gear = 0;
+			int tier = IdleDrops.MaxTierAt(state.Stage, state.Ascensions, tuning);
+
+			switch (kind)
+			{
+				case IdleDungeonKind.Gold:
+					gold = IdleModel.IncomePerSecond(state, tuning) * tuning.DungeonGoldSeconds;
+					state.Resource += gold;
+					break;
+				case IdleDungeonKind.Boss:
+					shards = tuning.DungeonBossShards > 0L ? tuning.DungeonBossShards : 0L;
+					state.PrestigeShards += shards;
+					gear = IdleGear.Stow(state, tuning, tier, tuning.DungeonBossGear);
+					break;
+				case IdleDungeonKind.Gear:
+					gear = IdleGear.Stow(state, tuning, tier, tuning.DungeonGearCount);
+					break;
+			}
+
+			reward = new IdleDungeonReward(kind, 1, gold, shards, gear);
+			return true;
+		}
+
+		/// <summary>
+		/// 남은 입장권을 한 번에 쓴다 (소탕). 한 판씩 들어간 것과 결과가 같아야 함
+		///
+		/// ★ 가방이 차면 장비는 그만 들어오지만 골드와 조각은 계속 들어옴. 한 판씩 눌렀을 때와 같음
+		/// </summary>
+		public static bool TrySweep(IdleState state, IdleTuning tuning, IdleDungeonKind kind, out IdleDungeonReward reward)
+		{
+			reward = new IdleDungeonReward(kind, 0, 0d, 0L, 0);
+
+			int runs = 0;
+			double gold = 0d;
+			long shards = 0L;
+			int gear = 0;
+
+			while (TryEnter(state, tuning, kind, out IdleDungeonReward one))
+			{
+				runs++;
+				gold += one.Gold;
+				shards += one.Shards;
+				gear += one.Gear;
+			}
+
+			if (runs == 0)
+			{
+				return false;
+			}
+
+			reward = new IdleDungeonReward(kind, runs, gold, shards, gear);
+			return true;
+		}
+	}
+
+	/// <summary>던전 한 번(또는 소탕 한 번)이 준 것. 화면이 그대로 적는다</summary>
+	public readonly struct IdleDungeonReward
+	{
+		public IdleDungeonReward(IdleDungeonKind kind, int runs, double gold, long shards, int gear)
+		{
+			Kind = kind;
+			Runs = runs;
+			Gold = gold;
+			Shards = shards;
+			Gear = gear;
+		}
+
+		public IdleDungeonKind Kind { get; }
+
+		/// <summary>몇 판을 돌았나. 소탕이면 한 번에 여러 판</summary>
+		public int Runs { get; }
+
+		public double Gold { get; }
+
+		public long Shards { get; }
+
+		/// <summary>가방에 실제로 들어간 장비 수. 가방이 차면 준 것보다 적다</summary>
+		public int Gear { get; }
 	}
 }

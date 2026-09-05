@@ -65,6 +65,15 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string potentialFormat;
 		[SerializeField] private string gearPotentialFormat;
 		[SerializeField] private string dungeonRowFormat;
+		[SerializeField] private string dungeonTicketFormat;
+		[SerializeField] private string dungeonRefillFormat;
+		[SerializeField] private string dungeonEnterText;
+		[SerializeField] private string dungeonSweepFormat;
+		[SerializeField] private string dungeonClosedText;
+		[SerializeField] private string dungeonGoldRewardFormat;
+		[SerializeField] private string dungeonBossRewardFormat;
+		[SerializeField] private string dungeonGearRewardFormat;
+		[SerializeField] private string dungeonFeedbackFormat;
 		[SerializeField] private string awaySpanFormat;
 		[SerializeField] private string awayWarningFormat;
 		[SerializeField] private string selectHeroBeforeGearText;
@@ -212,6 +221,17 @@ namespace WitchMendokusai.Idle
 			: item.IsRaw ? rawEquippedGearText : appraisedEquippedGearText;
 		public string DungeonRowText(string name, long tickets, long hours, long minutes) =>
 			string.Format(dungeonRowFormat, name, tickets, hours, minutes);
+		public string DungeonTicketText(long left, long cap) => string.Format(dungeonTicketFormat, left, cap);
+		public string DungeonRefillText(string span) => string.Format(dungeonRefillFormat, span);
+		public string DungeonEnterText => dungeonEnterText;
+		public string DungeonSweepText(long left) => string.Format(dungeonSweepFormat, left);
+		public string DungeonClosedText => dungeonClosedText;
+		public string DungeonGoldRewardText(string gold) => string.Format(dungeonGoldRewardFormat, gold);
+		public string DungeonBossRewardText(long shards, long gear, int tier) =>
+			string.Format(dungeonBossRewardFormat, shards, gear, tier);
+		public string DungeonGearRewardText(long gear, int tier) => string.Format(dungeonGearRewardFormat, gear, tier);
+		public string DungeonFeedbackText(string name, int runs, string got) =>
+			string.Format(dungeonFeedbackFormat, name, runs, got);
 		public string AwaySpanText(double seconds) => string.Format(awaySpanFormat, DescribeSpan(seconds));
 		public string AwayWarningText(double capSeconds, double lostSeconds) =>
 			string.Format(awayWarningFormat, DescribeSpan(capSeconds), DescribeSpan(lostSeconds));
@@ -409,6 +429,8 @@ namespace WitchMendokusai.Idle
 				forgeSelectionFormat, forgeEmptyHintFormat, salvageTitleFormat, salvageCountFormat, salvageAllText,
 				salvageFeedbackFormat, lockedTipSuffix, noEquippedGearText, rawEquippedGearText,
 				appraisedEquippedGearText, potentialFormat, gearPotentialFormat, dungeonRowFormat, awaySpanFormat,
+				dungeonTicketFormat, dungeonRefillFormat, dungeonEnterText, dungeonSweepFormat, dungeonClosedText,
+				dungeonGoldRewardFormat, dungeonBossRewardFormat, dungeonGearRewardFormat, dungeonFeedbackFormat,
 				awayWarningFormat, selectHeroBeforeGearText, appraiseUnavailableFormat, appraiseAvailableFormat,
 				codexSummaryFormat, codexOwnedHeroFormat, codexHiddenHeroFormat, bagUpgradeFormat, bagUpgradeMaxText,
 				bagResetNoteFormat, pullAvailableFormat, pullNoStoneFormat, pullNoGoldFormat, pullOddsFormat,

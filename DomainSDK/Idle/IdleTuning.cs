@@ -122,6 +122,18 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>던전 하나에 하루 몇 번 들어가나 (economy.md 4). 수치는 판정 대기</summary>
         public long TicketsPerDay { get; set; } = 3L;
 
+        /// <summary>재화 던전 한 판이 주는 골드 = 지금 초당 수입의 이만큼 초 (수치는 판정 대기)</summary>
+        public double DungeonGoldSeconds { get; set; } = 900d;
+
+        /// <summary>보스 던전 한 판이 주는 환생 조각</summary>
+        public long DungeonBossShards { get; set; } = 3L;
+
+        /// <summary>보스 던전 한 판이 주는 장비 수 (지금 갈 수 있는 최고 등급)</summary>
+        public long DungeonBossGear { get; set; } = 2L;
+
+        /// <summary>장비 던전 한 판이 주는 장비 수</summary>
+        public long DungeonGearCount { get; set; } = 5L;
+
         /// <summary>
         /// 날 경계를 UTC 자정에서 얼마나 미나 (초).
         ///
