@@ -70,7 +70,10 @@
     <Compile Include="$(TestsRoot)Idle/BigNumberTextTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleTapTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleHeroTests.cs" />
-    <Compile Include="$(TestsRoot)Idle/IdlePartyTests.cs" />
+    <!-- 영웅 카탈로그 SetUpFixture. 유니티 러너는 SO 를 읽지만 여기는 이 고정 카탈로그로 조립한다.
+         IdlePartyTests 는 UXML 과 UnityEditor 를 봐서 못 데려온다. -->
+    <Compile Include="$(TestsRoot)Idle/IdleHeroCatalogFixture.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleHeroCatalogTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleGachaCurveTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleSurgeTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleAdviceTests.cs" />
