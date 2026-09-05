@@ -21,7 +21,7 @@ namespace WitchMendokusai.EditorTools
 	public static class VoxelResourcesMigration
 	{
 		private const string TAG = "[VoxelMigration]";
-		private const string SRC = "Assets/_WitchMendokusai/Domain/Voxel/Scripts/Resources";
+		private const string SRC = "Assets/_WitchMendokusai/Domain/Voxel/Resources";
 		private const string DST = "Assets/_WitchMendokusai/Domain/Voxel/Assets";
 		private const string CATALOG = DST + "/BlockCatalog.asset";
 		private const string LAB_PREFAB = "Assets/_WitchMendokusai/Domain/World/Stage/0004_Lab/[Stage] [4] Lab.prefab";

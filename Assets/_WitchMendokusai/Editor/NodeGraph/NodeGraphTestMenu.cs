@@ -10,7 +10,7 @@ namespace WitchMendokusai.NodeGraph
 	/// </summary>
 	public static class NodeGraphTestMenu
 	{
-		private const string TEST_GRAPH_FOLDER = "Assets/_WitchMendokusai/Core/Scripts/NodeGraph/Test";
+		private const string TEST_GRAPH_FOLDER = "Assets/_WitchMendokusai/Core/NodeGraph/Test";
 		private const string TEST_GRAPH_PATH = TEST_GRAPH_FOLDER + "/TestGraph.asset";
 
 		[MenuItem("WM/NodeGraph/Build Test Graph")]

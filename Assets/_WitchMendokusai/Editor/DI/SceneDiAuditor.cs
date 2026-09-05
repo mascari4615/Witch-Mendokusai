@@ -17,10 +17,10 @@ namespace WitchMendokusai.Editor.DI
 	public static class SceneDiAuditor
 	{
 		private const string SCENE_LIFETIME_SCOPE_PATH =
-			"Assets/_WitchMendokusai/Domain/Application/Scripts/DI/SceneLifetimeScope.cs";
+			"Assets/_WitchMendokusai/Domain/Application/DI/SceneLifetimeScope.cs";
 
 		private const string ROOT_LIFETIME_SCOPE_PATH =
-			"Assets/_WitchMendokusai/Domain/Application/Scripts/DI/RootLifetimeScope.cs";
+			"Assets/_WitchMendokusai/Domain/Application/DI/RootLifetimeScope.cs";
 
 		// 「scene-direct」 = 본 폴더 하위 모든 .unity. 패키지 / 외부 씬 제외.
 		public const string SCENES_ROOT = "Assets/_WitchMendokusai/Scenes";

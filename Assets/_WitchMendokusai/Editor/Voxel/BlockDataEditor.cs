@@ -13,7 +13,7 @@ namespace WitchMendokusai
 	[CustomEditor(typeof(BlockData))]
 	public class BlockDataEditor : UnityEditor.Editor
 	{
-		private const string VOXEL_MATERIAL_PATH = "Assets/_WitchMendokusai/Domain/Voxel/Scripts/Resources/VoxelMaterial.mat";
+		private const string VOXEL_MATERIAL_PATH = "Assets/_WitchMendokusai/Domain/Voxel/Resources/VoxelMaterial.mat";
 		private const string CONFIG_PATH = "Assets/_WitchMendokusai/Editor/Voxel/VoxelTextureConfig.asset";
 
 		// mesher 와 동일 — Dirs[d] 0=Up 1=Down 2=Left 3=Right 4=Forward 5=Back.

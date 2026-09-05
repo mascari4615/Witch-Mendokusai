@@ -21,7 +21,7 @@ namespace WitchMendokusai
 
 		// `[Inject]` 메서드는 base+자식 합쳐 1개만 코드생성된다 — 자식(UIDungeonEntranceToolkit)이 자기
 		// Construct 를 가지므로 base 는 필드 주입을 쓴다(필드는 개수 제한 없음). private 이면 같은 dll 에서
-		// set 불가로 또 폴백(VCON0007) → internal. 정본: Domain/Application/Scripts/DI/VCONTAINER-MECHANISM.md §3·§6
+		// set 불가로 또 폴백(VCON0007) → internal. 정본: Domain/Application/DI/VCONTAINER-MECHANISM.md §3·§6
 		[Inject] internal UIRoot uiRoot;
 		protected IUIPanelGroup PanelGroup { get; private set; }
 		protected VisualElement Root { get; private set; }

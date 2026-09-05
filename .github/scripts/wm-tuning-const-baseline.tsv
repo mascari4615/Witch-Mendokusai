@@ -1,10 +1,10 @@
 # wm-rule-gate TUNING-CONST 기준선 -- 이미 진 빚. 여기 없는 새 위반만 막는다.
 # 갱신: powershell -File .github/scripts/wm-rule-gate.ps1 -WriteBaseline
-Domain/Application/Scripts/Boot/DungeonBootScenario.cs	ENTER_TIMEOUT_SEC
-Domain/Application/Scripts/Boot/DungeonBootScenario.cs	EXIT_TIMEOUT_SEC
-Domain/Application/Scripts/InputStrategy/InputStrategyTowerDefense.cs	CLICK_COOLDOWN
-Domain/Building/Scripts/BuildManager.cs	BUILD_REACH_DISTANCE
-Domain/Building/Scripts/BuildManager.cs	CLICK_COOLDOWN
+Domain/Application/Boot/DungeonBootScenario.cs	ENTER_TIMEOUT_SEC
+Domain/Application/Boot/DungeonBootScenario.cs	EXIT_TIMEOUT_SEC
+Domain/Application/InputStrategy/InputStrategyTowerDefense.cs	CLICK_COOLDOWN
+Domain/Building/BuildManager.cs	BUILD_REACH_DISTANCE
+Domain/Building/BuildManager.cs	CLICK_COOLDOWN
 Domain/Component/Behavior/TransparentObject.cs	LERP_SPEED
 Domain/Component/Behavior/TransparentObject.cs	THRESHOLD_ALPHA
 Domain/Component/Behavior/TransparentObject.cs	THRESHOLD_MAX_TIMER
@@ -16,10 +16,10 @@ Domain/Item/UI/UItemEquipPopup.cs	ANIM_TIME
 Domain/Item/UI/UItemEquipPopup.cs	LIFE_TIME
 Domain/Item/UI/UItemEquipPopup.cs	WAIT_TIME
 Domain/Item/UI/UItemEquipPopup.cs	WHITE_TIME
-Domain/Narrative/Scripts/DialogueRunner.cs	DEFAULT_LINE_DURATION
-Domain/Terrain/Scripts/Nodes/FractalPerlinNode.cs	COORD_OFFSET
-Domain/Terrain/Scripts/Nodes/RidgedPerlinNode.cs	COORD_OFFSET
-Domain/Terrain/Scripts/TerrainGenerator.cs	COORD_OFFSET
+Domain/Narrative/DialogueRunner.cs	DEFAULT_LINE_DURATION
+Domain/Terrain/Nodes/FractalPerlinNode.cs	COORD_OFFSET
+Domain/Terrain/Nodes/RidgedPerlinNode.cs	COORD_OFFSET
+Domain/Terrain/TerrainGenerator.cs	COORD_OFFSET
 Domain/TowerDefense/TowerDefenseHudView.cs	TOOLTIP_MIN_HEIGHT
 Domain/TowerDefense/TowerDefenseMatch.cs	FRONT_PULL_DISTANCE
 Domain/TowerDefense/TowerDefenseMatch.cs	MIN_VERIFY_LOSS_DISTANCE

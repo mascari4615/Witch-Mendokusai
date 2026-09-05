@@ -33,7 +33,7 @@ namespace WitchMendokusai
 		// 합산): 자식 [Inject] Construct 1개를 단일 진입점으로 쓰려면 base 에 또 다른
 		// [Inject] 메서드를 둘 수 없다. (대안: base deps 를 [Inject] public/internal
 		// field/property 로 노출하면 개수 제한 없어 릴레이 불요 — 이건 설계 선택.)
-		// 정본: Assets/_WitchMendokusai/Domain/Application/Scripts/DI/VCONTAINER-MECHANISM.md
+		// 정본: Assets/_WitchMendokusai/Domain/Application/DI/VCONTAINER-MECHANISM.md
 		// 자식 concrete 클래스가 [Inject] Construct 에 base-deps 받아 SetBaseDeps 로 base 전달.
 		// TASK-WM-107 Slice 4 — SkillHandler(모든 UnitObject 균일 capability)→SkillContext 가
 		// objectPoolManager/playerProvider 필요 → 기존 base-deps 채널 확장(새 메커니즘 X).

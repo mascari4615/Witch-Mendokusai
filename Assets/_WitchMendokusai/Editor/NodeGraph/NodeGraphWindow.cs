@@ -19,7 +19,7 @@ namespace WitchMendokusai.NodeGraph
 		[MenuItem("WM/NodeGraph/Open Active Graph (Test)")]
 		public static void OpenActive()
 		{
-			NodeGraph asset = AssetDatabase.LoadAssetAtPath<NodeGraph>("Assets/_WitchMendokusai/Core/Scripts/NodeGraph/Test/TestGraph.asset");
+			NodeGraph asset = AssetDatabase.LoadAssetAtPath<NodeGraph>("Assets/_WitchMendokusai/Core/NodeGraph/Test/TestGraph.asset");
 			if (asset == null)
 			{
 				Debug.LogError("[NodeGraphWindow] TestGraph 자산 없음. Build Test Graph 메뉴 먼저.");

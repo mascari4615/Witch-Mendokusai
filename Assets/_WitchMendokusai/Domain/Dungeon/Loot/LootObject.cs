@@ -18,7 +18,7 @@ namespace WitchMendokusai
 		// 리플렉션 폴백 + "generics" 라고 원인을 잘못 말하는 VCON0010). 자식(ItemObject)이 자기 Construct 를
 		// 가져야 하므로 base 는 *필드 주입*을 쓴다 — 필드는 개수 제한이 없다.
 		// (private 이면 같은 dll 에서 set 이 안 돼 또 폴백 = VCON0007. internal 이 최소 가시성.)
-		// 정본: Domain/Application/Scripts/DI/VCONTAINER-MECHANISM.md §3·§6
+		// 정본: Domain/Application/DI/VCONTAINER-MECHANISM.md §3·§6
 		[Inject] internal PlayerProvider playerProvider;
 
 		private void OnEnable()

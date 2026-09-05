@@ -9,7 +9,7 @@ namespace WitchMendokusai.Tests
     // TASK-WM-109-A. 본 세션(WM-109)이 VContainer 동작을 *소스 정독 없이 가설로*
     // 4회+ fix 한 회귀를 막는 "재현 테스트 우선" 게이트. WM 타입이 아니라
     // *VContainer 메커니즘 자체*를 POCO 로 결정적(EditMode, RNG/Unity 0) 고정한다.
-    // 정본 해설: Assets/_WitchMendokusai/Domain/Application/Scripts/DI/VCONTAINER-MECHANISM.md
+    // 정본 해설: Assets/_WitchMendokusai/Domain/Application/DI/VCONTAINER-MECHANISM.md
 
     public interface IVcMechProbeDep { }
 

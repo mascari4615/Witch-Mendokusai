@@ -26,7 +26,7 @@ namespace WitchMendokusai.EditorTools
 		/// <summary>압축이 꺼져 있는데 큰 것들 — 인벤토리에서 확인된 것부터.</summary>
 		private static readonly string[] TARGETS = new string[]
 		{
-			"Assets/_WitchMendokusai/Core/Scripts/UI/Common/Sprites/UI_FadeCircle.png",
+			"Assets/_WitchMendokusai/Core/UI/Common/Sprites/UI_FadeCircle.png",
 		};
 
 		[MenuItem("WM/Migrate/Enable Texture Compression (TASK-WM-409 C)")]

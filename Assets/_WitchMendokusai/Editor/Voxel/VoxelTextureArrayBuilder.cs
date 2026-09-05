@@ -19,7 +19,7 @@ namespace WitchMendokusai
 	public static class VoxelTextureArrayBuilder
 	{
 		public const string CONFIG_PATH = "Assets/_WitchMendokusai/Editor/Voxel/VoxelTextureConfig.asset";
-		public const string ARRAY_ASSET_PATH = "Assets/_WitchMendokusai/Domain/Voxel/Scripts/Resources/VoxelTextureArray.asset";
+		public const string ARRAY_ASSET_PATH = "Assets/_WitchMendokusai/Domain/Voxel/Resources/VoxelTextureArray.asset";
 		public const string VOXEL_SHADER_NAME = "WM/VoxelVertexColor";
 		public const string MATERIAL_TEXTURE_PROPERTY = "_MainTex";
 

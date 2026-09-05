@@ -39,10 +39,10 @@
     <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/NodeGraph/NodeGraph.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/NodeGraph/NodeExecutionContext.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/Effect/Base/EffectInfo.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/Core/Scripts/NodeGraph/FlowSignal.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/Core/Scripts/NodeGraph/NodeConnection.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/Core/Scripts/NodeGraph/NodeDomain.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/Core/Scripts/NodeGraph/NodeGraphValidationResult.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Core/NodeGraph/FlowSignal.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Core/NodeGraph/NodeConnection.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Core/NodeGraph/NodeDomain.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Core/NodeGraph/NodeGraphValidationResult.cs" />
     <Compile Include="../../DomainSDK/Criteria/Criteria.cs" />
     <Compile Include="../../DomainSDK/Criteria/ICriteria.cs" />
     <Compile Include="../../DomainSDK/Effect/EffectType.cs" />
@@ -62,7 +62,7 @@
   <!-- MonoBehaviour·에디터 의존이라 유니티 밖에서 못 서는 것들 -->
   <ItemGroup>
 
-    <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/Scripts/DialogueSpeakerTag.cs" />
+    <Compile Remove="../../Assets/_WitchMendokusai/Domain/Narrative/DialogueSpeakerTag.cs" />
     <!-- 가방(Inventory)에 붙는 얇은 어댑터 — 게임 타입이라 유니티 밖에서는 못 선다(안쪽 조건은 시험됨). -->
     <!-- 퀘스트 관리자에 붙는 어댑터도 같은 이유로 제외(조건 자체는 시험된다 — 그래서 파일을 갈랐다). -->
     <!-- 에디터 자산 데이터베이스를 쓰는 시험 — 유니티 안에서만 뜻이 있다(거기선 CI 가 돌린다). -->

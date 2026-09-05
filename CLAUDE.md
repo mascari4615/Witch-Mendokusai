@@ -16,7 +16,7 @@
 WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Canceled} → RegisterInputEvent 콜백
 ```
 
-관련 파일: `Assets/_WitchMendokusai/Core/Scripts/Input/` (InputManager.cs / WMInput.inputactions / InputStrategy/)
+관련 파일: `Assets/_WitchMendokusai/Core/Input/` (InputManager.cs / WMInput.inputactions / InputStrategy/)
 
 ### 새 입력 이벤트 추가 — 3곳 동시 수정
 
@@ -53,7 +53,7 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 **위치**: DomainSDK 는 `WitchMendokusai/DomainSDK/` (레포 루트, `Packages/manifest.json` 의 `file:../DomainSDK` 로컬 UPM 패키지. 2026-09-05 이동). Assets 안이 아니다. 서버와 Portable 과 웹이 같은 폴더를 본다.
 
-**asmdef 단방향**: DomainSDK 조각 36개 전부 `noEngineReferences: true`, Unity 계열 참조 없음. 루트 asmdef 없음 (2026-09-05 제거. 소비자는 필요한 조각을 하나씩 참조). 조각별 참조 검증은 `python memo/dotfiles/scripts/wm-sdk-asmdef-build.py` (asmdef 참조를 csproj 참조로 옮겨 조각마다 따로 굽는다, 에디터 불필요). 소비자 asmdef (Core, Domain, Network, Editor, Tests, Mods) 는 실제 쓰는 조각만 참조한다 (2026-09-05 실측 Core 47 -> 22, Network 37 -> 10, Editor 50 -> 30, Mods.Sample 34 -> 5). 재기는 `python memo/dotfiles/scripts/wm-asmdef-refs-audit.py <project> minimize <asmdef>` (참조 DLL 만으로 소비자를 굽고 컴파일러가 빠졌다는 것만 되돌린다). 새 조각을 쓰기 시작하면 references 에 그 조각 하나만 추가. 엔진 다리는 Core 한 곳: `Core/Scripts/Numerics/NumericsUnityBridge.cs` 의 `ToUnity()`, `ToSim()` 확장과 `Domain/Application/Scripts/DI/MessagePipeEventTransport.cs` (RootLifetimeScope 가 `EventBusBridge.UseTransport` 로 꽂음). SDK 안 `#if UNITY` 분기 없음. Mods 의 references 는 DomainSDK 조각만. 모드와 DomainSDK .cs 가 Domain/Core 타입을 직접 호출하면 컴파일이 막으므로 런타임 체크가 필요 없다. (실 도메인 격상 현황과 입도 정책은 `memo/wm/design/vision/architecture.md` 의 측정표와 격상 입도 정책 절.)
+**asmdef 단방향**: DomainSDK 조각 36개 전부 `noEngineReferences: true`, Unity 계열 참조 없음. 루트 asmdef 없음 (2026-09-05 제거. 소비자는 필요한 조각을 하나씩 참조). 조각별 참조 검증은 `python memo/dotfiles/scripts/wm-sdk-asmdef-build.py` (asmdef 참조를 csproj 참조로 옮겨 조각마다 따로 굽는다, 에디터 불필요). 소비자 asmdef (Core, Domain, Network, Editor, Tests, Mods) 는 실제 쓰는 조각만 참조한다 (2026-09-05 실측 Core 47 -> 22, Network 37 -> 10, Editor 50 -> 30, Mods.Sample 34 -> 5). 재기는 `python memo/dotfiles/scripts/wm-asmdef-refs-audit.py <project> minimize <asmdef>` (참조 DLL 만으로 소비자를 굽고 컴파일러가 빠졌다는 것만 되돌린다). 새 조각을 쓰기 시작하면 references 에 그 조각 하나만 추가. 엔진 다리는 Core 한 곳: `Core/Numerics/NumericsUnityBridge.cs` 의 `ToUnity()`, `ToSim()` 확장과 `Domain/Application/DI/MessagePipeEventTransport.cs` (RootLifetimeScope 가 `EventBusBridge.UseTransport` 로 꽂음). SDK 안 `#if UNITY` 분기 없음. Mods 의 references 는 DomainSDK 조각만. 모드와 DomainSDK .cs 가 Domain/Core 타입을 직접 호출하면 컴파일이 막으므로 런타임 체크가 필요 없다. (실 도메인 격상 현황과 입도 정책은 `memo/wm/design/vision/architecture.md` 의 측정표와 격상 입도 정책 절.)
 
 **격상 순서**: `enum` → `SaveData`(POCO) → `InfoData`(POCO) → `RuntimeXxxSaveData` → `record XxxEvent : IEvent` → `RuntimeXxx` → asmdef split. RuntimeXxx 생성자 = `(RuntimeXxxSaveData)` 만, Domain factory(`FromXxxSO`/`FromXxxInfo`/`FromSaveData`)가 변환 책임.
 
@@ -62,6 +62,13 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 **Mods SDK 진입점**: `DomainSDK/Mods/IMod.cs` (Name/Version/Initialize, Unity 의존 0) + `Domain/Mods/ModLoader.cs` (AfterAssembliesLoaded reflection 발견 + Initialize).
 
 **격상 주의**: Unity 6.x csproj stale(신규 .cs 후 CS0246 지속 → Editor 재시작) / git mv + push race(옛 위치 재등장 → worktree 사용) / fsnotify 누락(신규 폴더 다중 파일 → Assets > Refresh).
+
+## 폴더 규약 (2026-09-05)
+
+- 코드는 Feature 폴더 바로 아래. 주제 하위 폴더 (`Quest/Objective/`) 는 허용, `Scripts` 층은 금지. 게이트 `FOLDER` (wm-rule-gate) 가 push 를 막는다
+- Core 도 같은 꼴: `Core/Input/`, `Core/UI/`. 옛 `Core/Scripts/` 는 없다
+- 자산과 코드를 가르는 건 폴더 이름이 아니라 확장자. Unity 가 뜻을 두는 폴더 이름 (`Resources`, `Editor`) 만 그 뜻으로 쓴다. UI 텍스처는 `Art/`
+- 자산 하위 폴더 이름 통일 (`Assets`, `Content`, `Prefabs` 혼재) 은 Domain 재편과 같이 (memo Change wm-code-structure 6단계)
 
 ## Editor 메뉴
 

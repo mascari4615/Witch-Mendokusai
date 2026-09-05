@@ -94,7 +94,7 @@ if (-not $commitScoped)
 $menuRootAllow = @('WM', 'Assets', 'GameObject', 'CONTEXT', 'Component', 'Window', 'Help', 'Edit', 'File', 'Tools')
 
 # Reading a device directly is allowed *inside* the input encapsulation boundary only.
-$deviceAllowedPathFragment = 'Core/Scripts/Input/'
+$deviceAllowedPathFragment = 'Core/Input/'
 
 $rules = @(
     @{
@@ -736,10 +736,42 @@ if ($metaMisses.Count -gt 0)
     $total = $total + $metaMisses.Count
 }
 
+# ── [FOLDER] 코드 폴더 규약 (2026-09-05) ──────────────────────────────────────
+# 왜: 코드는 Feature 폴더 바로 아래(주제 하위 폴더 허용). `Scripts` 층은 없다.
+#     43개 Feature 중 15개만 그 층을 갖고 있었고, 그 차이가 "어디 두나"를 매번 되묻게 했다.
+#     Assets 안 자산과 코드를 가르는 건 폴더 이름이 아니라 확장자다.
+$folderMisses = @()
+if ($metaScoped)
+{
+    foreach ($relative in $scopedPaths)
+    {
+        $norm = $relative.Replace('\', '/')
+        if ($norm -match '^Assets/_WitchMendokusai/.+/Scripts/') { $folderMisses += $norm }
+    }
+}
+else
+{
+    $folderRoot = Join-Path $repoRootForMeta 'Assets/_WitchMendokusai'
+    if (Test-Path -LiteralPath $folderRoot)
+    {
+        foreach ($folder in Get-ChildItem -Path $folderRoot -Directory -Recurse -Filter 'Scripts')
+        {
+            $folderMisses += $folder.FullName.Substring($repoRootForMeta.Length).Trim('\').Replace('\', '/')
+        }
+    }
+}
+if ($folderMisses.Count -gt 0)
+{
+    Write-Host ("  FAIL  [FOLDER] 'Scripts' 폴더 층은 없다 -- {0}건; fix: 그 안의 것을 부모 폴더로 올린다 (Feature 폴더 바로 아래, 주제 하위 폴더는 허용)" -f $folderMisses.Count)
+    foreach ($miss in ($folderMisses | Select-Object -Unique)) { Write-Host ("          " + $miss) }
+    $total = $total + $folderMisses.Count
+}
+
 Write-Host ''
 if ($total -eq 0)
 {
     Write-Host '  PASS  [META] 모든 .cs 에 .meta 가 있다'
+    Write-Host "  PASS  [FOLDER] 'Scripts' 폴더 층 0"
     Write-Host '  PASS  [ANCHOR] required wiring lines are still present'
     Write-Host ('  PASS  [RATCHET] 새 위반 없음 (기준선: enum {0}건 / asset {1}건 / tuning {2}건 -- 이미 진 빚)' -f $enumBaseline.Count, $assetBaseline.Count, $tuneBaseline.Count)
     Write-Host 'RESULT: PASS -- 0 rule violations.'

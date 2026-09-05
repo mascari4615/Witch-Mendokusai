@@ -440,7 +440,7 @@ namespace WitchMendokusai
 
 		private static BlockData LoadBlock(string fileName)
 		{
-			string path = $"Assets/_WitchMendokusai/Domain/Voxel/Scripts/Resources/Blocks/{fileName}.asset";
+			string path = $"Assets/_WitchMendokusai/Domain/Voxel/Resources/Blocks/{fileName}.asset";
 			return AssetDatabase.LoadAssetAtPath<BlockData>(path);
 		}
 
