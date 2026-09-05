@@ -260,7 +260,7 @@ namespace WitchMendokusai
 
 				IReadOnlyList<Vector3> teamSpawns = config.Map.GetSpawns(entry.TeamId);
 				Vector3 localSpawn = teamSpawns.Count > 0 ? teamSpawns[memberIndex % teamSpawns.Count] : Vector3.zero;
-				unitGameObject.transform.position = arenaRoot.TransformPoint(localSpawn);
+				unitGameObject.transform.position = arenaRoot.TransformPoint(localSpawn.ToUnity());
 
 				// Init → 트랩#1(자동시전 차단) → MatchCombatant 부여 = 개척과 공유하는 편입 절차.
 				MatchCombatant combatant = CombatUnitSpawner.Enlist(unitObject, entry.UnitData, entry.TeamId, combatantId);

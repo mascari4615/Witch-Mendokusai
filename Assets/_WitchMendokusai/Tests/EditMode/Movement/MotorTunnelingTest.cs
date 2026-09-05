@@ -31,15 +31,15 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void MovingAbsurdlyFastIntoWall_IsStopped_DoesNotTunnel()
 		{
-			using (MotorTestHarness harness = new(new Vector3(0f, GROUND_TOP_Y, -5f)))
+			using (MotorTestHarness harness = new(new Vector3(0f, GROUND_TOP_Y, -5f).ToUnity()))
 			{
-				harness.AddGround(new Vector3(0f, GROUND_TOP_Y - 0.5f, -5f), new Vector3(20f, 1f, 20f));
+				harness.AddGround(new Vector3(0f, GROUND_TOP_Y - 0.5f, -5f).ToUnity(), new Vector3(20f, 1f, 20f).ToUnity());
 				// z=0 에 두께 1m 벽. 한 tick 이동(10m)보다 훨씬 얇다.
-				harness.AddGround(new Vector3(0f, 1.5f, WALL_Z + 0.5f), new Vector3(20f, 3f, 1f));
+				harness.AddGround(new Vector3(0f, 1.5f, WALL_Z + 0.5f).ToUnity(), new Vector3(20f, 3f, 1f).ToUnity());
 				harness.AddContributor(new ConstantHorizontalContributor(harness));
 				harness.AddContributor(new GravityContributor());
 
-				harness.SetHorizontalIntent(Vector3.forward, ABSURD_SPEED);
+				harness.SetHorizontalIntent(Vector3.forward.ToUnity(), ABSURD_SPEED);
 				harness.Step();
 
 				Assert.That(harness.Position.z, Is.LessThan(WALL_Z),
@@ -55,9 +55,9 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void FallingAbsurdlyFast_LandsOnGround_DoesNotFallThrough()
 		{
-			using (MotorTestHarness harness = new(new Vector3(0f, 30f, 0f)))
+			using (MotorTestHarness harness = new(new Vector3(0f, 30f, 0f).ToUnity()))
 			{
-				harness.AddGround(new Vector3(0f, GROUND_TOP_Y - 0.5f, 0f), new Vector3(40f, 1f, 40f));
+				harness.AddGround(new Vector3(0f, GROUND_TOP_Y - 0.5f, 0f).ToUnity(), new Vector3(40f, 1f, 40f).ToUnity());
 				harness.AddContributor(new GravityContributor());
 
 				// 중력이 붙기 전에 이미 말도 안 되는 속도를 준다 = 한 tick 에 10m 낙하.

@@ -78,8 +78,8 @@ namespace WitchMendokusai
 			if (layout == null || finder == null || stageRoot == null)
 				return false;
 
-			Vector3 fromLocal = (Vector3)stageRoot.InverseTransformPoint(from);
-			Vector3 goalLocal = (Vector3)stageRoot.InverseTransformPoint(to);
+			Vector3 fromLocal = stageRoot.InverseTransformPoint(from.ToUnity()).ToSim();
+			Vector3 goalLocal = stageRoot.InverseTransformPoint(to.ToUnity()).ToSim();
 
 			// 목표가 코앞이면 칸 단위 안내보다 직선이 정확하다 — 마지막 한 칸에서 덜덜 떠는 것 방지.
 			if ((goalLocal - fromLocal).sqrMagnitude <= directGoalDistance * directGoalDistance)
@@ -142,7 +142,7 @@ namespace WitchMendokusai
 				nextLocal = Vector3.Lerp(nextLocal, layout.CellToWorld(follower.Path[follower.Index + 1]), cornerSmoothing);
 			}
 
-			Vector3 delta = (Vector3)stageRoot.TransformPoint(nextLocal) - from;
+			Vector3 delta = stageRoot.TransformPoint(nextLocal.ToUnity()).ToSim() - from;
 			delta.y = 0f;
 			if (delta.sqrMagnitude <= 0.0001f)
 				return false;

@@ -114,7 +114,7 @@ namespace WitchMendokusai
 			// 접근 룰은 안 돌므로, 마지막으로 향하던 곳을 여기서 다시 겨눠준다
 			// (안 그러면 옛 방향으로 계속 걸어가 판 밖으로 나간다 — 굳는 것만 피하고 새 사고를 만든다).
 			if (StopsToAttack == false && lastMoveTarget != null && lastMoveTarget.IsAlive)
-				unitObject.UnitMovement.SetMoveDirection(SteerToward(lastMoveTarget.Position));
+				unitObject.UnitMovement.SetMoveDirection(SteerToward(lastMoveTarget.Position).ToUnity());
 		}
 
 		// 마지막으로 *향하던* 목표 — 걸으면서 쏠 때 방향을 되찾는 데 쓴다.
@@ -157,7 +157,7 @@ namespace WitchMendokusai
 				return;
 
 			lastMoveTarget = target;
-			unitObject.UnitMovement.SetMoveDirection(SteerToward(target.Position));
+			unitObject.UnitMovement.SetMoveDirection(SteerToward(target.Position).ToUnity());
 		}
 
 		/// <summary>
@@ -187,7 +187,7 @@ namespace WitchMendokusai
 		{
 			if (target == null)
 			{
-				unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
+				unitObject.UnitMovement.SetMoveDirection(Vector3.zero.ToUnity());
 				return;
 			}
 
@@ -199,11 +199,11 @@ namespace WitchMendokusai
 			float effectiveStop = Mathf.Max(stopDistance, minStopDistance) + PerUnitRingOffset();
 			if (direction.sqrMagnitude <= effectiveStop * effectiveStop)
 			{
-				unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
+				unitObject.UnitMovement.SetMoveDirection(Vector3.zero.ToUnity());
 				return;
 			}
 
-			unitObject.UnitMovement.SetMoveDirection(SteerToward(target.Position));
+			unitObject.UnitMovement.SetMoveDirection(SteerToward(target.Position).ToUnity());
 		}
 
 		// 개체별 정지 거리 흔들기 — 같은 목표를 노리는 무리가 한 점에 겹쳐 서는 것 방지.
@@ -218,13 +218,13 @@ namespace WitchMendokusai
 		{
 			if (target == null)
 			{
-				unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
+				unitObject.UnitMovement.SetMoveDirection(Vector3.zero.ToUnity());
 				return;
 			}
 
 			Vector3 direction = self.Position - target.Position;
 			direction.y = 0f;
-			unitObject.UnitMovement.SetMoveDirection(direction.normalized);
+			unitObject.UnitMovement.SetMoveDirection(direction.normalized.ToUnity());
 		}
 
 		/// <summary>
@@ -235,7 +235,7 @@ namespace WitchMendokusai
 
 		public void Hold()
 		{
-			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
+			unitObject.UnitMovement.SetMoveDirection(Vector3.zero.ToUnity());
 		}
 	}
 }

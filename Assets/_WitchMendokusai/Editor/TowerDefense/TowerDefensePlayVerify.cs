@@ -706,7 +706,7 @@ namespace WitchMendokusai.EditorTools
 					Vector3 snapped = new Vector3(Mathf.Floor(local.x) + 0.5f, 0f, Mathf.Floor(local.z) + 0.5f);
 					if (spots.Contains(snapped))
 						continue;
-					if (match.IsCellOccupied((Vector3)stageRoot.TransformPoint(snapped)))
+					if (match.IsCellOccupied(stageRoot.TransformPoint(snapped.ToUnity()).ToSim()))
 						continue;
 					spots.Add(snapped);
 				}
@@ -760,7 +760,7 @@ namespace WitchMendokusai.EditorTools
 				int slot = slotPlan[index % slotPlan.Length];
 				placement.SelectSlot(slot);
 				int beforeTower = match.Resource;
-				placement.PlaceTowerAt(WorldToScreen(modeCamera, (Vector3)stageRoot.TransformPoint(spots[index])));
+				placement.PlaceTowerAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(spots[index].ToUnity()).ToSim()));
 				if (match.Resource < beforeTower)
 					towersPlaced++;
 			}
@@ -810,9 +810,9 @@ namespace WitchMendokusai.EditorTools
 			// ★ 이제 「보급이 닿는 곳에만」 지을 수 있다 — 먼 노드부터 노리면 전부 거절돼 채집이 0 이 되고,
 			//   그러면 정수·보급 확인이 통째로 무의미해진다(라이브 실증: 거절 로그만 쌓였다).
 			//   사람이 하는 순서대로 *코어에서 가까운 것부터* 잡는다.
-			Vector3 coreLocal = (Vector3)stageRoot.InverseTransformPoint(match.CoreCombatant != null
-				? match.CoreCombatant.Position
-				: stageRoot.position);
+			Vector3 coreLocal = stageRoot.InverseTransformPoint(match.CoreCombatant != null
+				? match.CoreCombatant.Position.ToUnity()
+				: stageRoot.position).ToSim();
 			nodeOrder.Sort((left, right) =>
 				(nodeLocals[left] - coreLocal).sqrMagnitude.CompareTo((nodeLocals[right] - coreLocal).sqrMagnitude));
 
@@ -828,7 +828,7 @@ namespace WitchMendokusai.EditorTools
 				if (harvestersPlaced == 1 && (nodeLocals[nodeIndex] - firstHarvesterLocal).sqrMagnitude < 400f)
 					continue;
 				int beforeHarvester = match.Resource;
-				placement.PlaceHarvesterAt(WorldToScreen(modeCamera, (Vector3)stageRoot.TransformPoint(local)));
+				placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(local.ToUnity()).ToSim()));
 				if (match.Resource < beforeHarvester)
 				{
 					if (harvestersPlaced == 0)
@@ -861,7 +861,7 @@ namespace WitchMendokusai.EditorTools
 					for (int step = 1; step <= 4 && match.Essence >= match.Stage.OutpostEssenceCost; step++)
 					{
 						Vector3 towardLocal = Vector3.Lerp(coreLocal, targetLocal, step / 5f);
-						match.TryPlaceOutpost((Vector3)stageRoot.TransformPoint(towardLocal));
+						match.TryPlaceOutpost(stageRoot.TransformPoint(towardLocal.ToUnity()).ToSim());
 					}
 
 					Debug.Log(TAG + " OUTPOST-REACH 바깥 광맥까지 보급 뻗기 · 전초기지 " + match.OutpostCount
@@ -869,7 +869,7 @@ namespace WitchMendokusai.EditorTools
 						+ " · 보급거리 " + match.EffectiveSupplyReach.ToString("F1"));
 
 					int beforeFar = match.Resource;
-					placement.PlaceHarvesterAt(WorldToScreen(modeCamera, (Vector3)stageRoot.TransformPoint(targetLocal)));
+					placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(targetLocal.ToUnity()).ToSim()));
 					bool outerPlaced = match.Resource < beforeFar;
 					Debug.Log(TAG + " OUTER-HARVEST 바깥 광맥 채집 "
 						+ (outerPlaced ? "성공" : "거절됨(보급 미도달)"));
@@ -880,10 +880,10 @@ namespace WitchMendokusai.EditorTools
 					{
 						int beforeGenerator = match.Resource;
 						Vector3 besideNode = targetLocal + new Vector3(match.Stage.GeneratorRadius * 0.4f, 0f, 0f);
-						match.TryPlaceGenerator((Vector3)stageRoot.TransformPoint(besideNode));
+						match.TryPlaceGenerator(stageRoot.TransformPoint(besideNode.ToUnity()).ToSim());
 						if (match.Resource == beforeGenerator)
-							match.TryPlaceGenerator((Vector3)stageRoot.TransformPoint(
-								targetLocal - new Vector3(match.Stage.GeneratorRadius * 0.4f, 0f, 0f)));
+							match.TryPlaceGenerator(stageRoot.TransformPoint(
+								(targetLocal - new Vector3(match.Stage.GeneratorRadius * 0.4f, 0f, 0f)).ToUnity()).ToSim());
 						Debug.Log(TAG + " OUTER-POWER 바깥 채집 옆에 발전 인형 "
 							+ (match.Resource < beforeGenerator ? "세움" : "못 세움")
 							+ " · 전기 반경 " + match.Stage.GeneratorRadius.ToString("F1"));
@@ -898,13 +898,13 @@ namespace WitchMendokusai.EditorTools
 			{
 				placement.SelectSlot(0);
 				Vector3 bridgeLocal = firstHarvesterLocal * 0.5f; // 코어(원점)와 노드의 중간.
-				placement.PlaceTowerAt(WorldToScreen(modeCamera, (Vector3)stageRoot.TransformPoint(bridgeLocal)));
+				placement.PlaceTowerAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(bridgeLocal.ToUnity()).ToSim()));
 				Debug.Log(TAG + " SUPPLY-BRIDGE 중간에 하나 세워 사슬 시도 local=" + bridgeLocal);
 			}
 
 			// 노드에서 먼 빈 땅에 채집 시도 = 거절돼야 정상(노드 결합 규칙 살아있음 확인).
 			int beforeOffNode = match.Resource;
-			placement.PlaceHarvesterAt(WorldToScreen(modeCamera, (Vector3)stageRoot.TransformPoint(new Vector3(0f, 0f, 2f))));
+			placement.PlaceHarvesterAt(WorldToScreen(modeCamera, stageRoot.TransformPoint(new Vector3(0f, 0f, 2f).ToUnity()).ToSim()));
 			bool offNodeRejected = match.Resource == beforeOffNode;
 
 			Debug.Log(TAG + " PLACE resourceBefore=" + before + " after=" + match.Resource
@@ -1435,7 +1435,7 @@ namespace WitchMendokusai.EditorTools
 			{
 				if (weapon == null || weapon.SlowFactorForVerification <= 0f)
 					continue;
-				if ((weapon.transform.position - adaptationAim).sqrMagnitude <= ADAPTATION_REACH * ADAPTATION_REACH)
+				if ((weapon.transform.position.ToSim() - adaptationAim).sqrMagnitude <= ADAPTATION_REACH * ADAPTATION_REACH)
 					slowTowersAlive++;
 			}
 
@@ -2306,8 +2306,8 @@ namespace WitchMendokusai.EditorTools
 				if (unit == null)
 					continue;
 
-				Vector3 world = (Vector3)unit.transform.position;
-				Vector3 local = stageRoot != null ? (Vector3)stageRoot.InverseTransformPoint(world) : world;
+				Vector3 world = unit.transform.position.ToSim();
+				Vector3 local = stageRoot != null ? stageRoot.InverseTransformPoint(world.ToUnity()).ToSim() : world;
 
 				int animatorsEnabled = 0;
 				foreach (Animator animator in unit.GetComponentsInChildren<Animator>(true))
@@ -2343,7 +2343,7 @@ namespace WitchMendokusai.EditorTools
 
 		private static Vector2 WorldToScreen(Camera camera, Vector3 worldPosition)
 		{
-			Vector3 screenPoint = (Vector3)camera.WorldToScreenPoint(worldPosition);
+			Vector3 screenPoint = camera.WorldToScreenPoint(worldPosition.ToUnity()).ToSim();
 			return new Vector2(screenPoint.x, screenPoint.y);
 		}
 
@@ -2684,7 +2684,7 @@ namespace WitchMendokusai.EditorTools
 			int before = match.OutpostCount;
 			foreach (Vector3 local in FindPlaceableSpots(stageRoot, 1))
 			{
-				match.TryPlaceOutpost((Vector3)stageRoot.TransformPoint(local));
+				match.TryPlaceOutpost(stageRoot.TransformPoint(local.ToUnity()).ToSim());
 				break;
 			}
 
@@ -2707,7 +2707,7 @@ namespace WitchMendokusai.EditorTools
 			//   치워버려 사슬의 시작점이 사라졌으므로, 코어 옆에 하나 세워 대조군을 만든다.
 			foreach (Vector3 local in FindPlaceableSpots(stageRoot, 1))
 			{
-				match.TryPlaceWall((Vector3)stageRoot.TransformPoint(local));
+				match.TryPlaceWall(stageRoot.TransformPoint(local.ToUnity()).ToSim());
 				break;
 			}
 
@@ -3052,7 +3052,7 @@ namespace WitchMendokusai.EditorTools
 
 			int before = match.Essence;
 			bool outpostRejected = match.TryPlaceOutpost(FindStageRoot() != null
-				? (Vector3)FindStageRoot().TransformPoint(new Vector3(6f, 0f, 6f))
+				? FindStageRoot().TransformPoint(new Vector3(6f, 0f, 6f).ToUnity()).ToSim()
 				: Vector3.zero) == false;
 
 			Debug.Log($"{TAG} 정수 안내 — 정수 {before} · 전초기지 거절 {outpostRejected}");
@@ -3086,7 +3086,7 @@ namespace WitchMendokusai.EditorTools
 
 			// ★ 새로 짓지 않고 *이미 세운* 포탑을 올린다 — 확인하려는 건 「같은 자리에 다시 지으면 자라는가」이지
 			//   「지을 돈이 있는가」가 아니다. 새로 지으면 그 값이 승급 예산을 먹어 기능이 아니라 잔고를 검사하게 된다.
-			Vector3 world = (Vector3)stageRoot.TransformPoint(sellProbeLocal);
+			Vector3 world = stageRoot.TransformPoint(sellProbeLocal.ToUnity()).ToSim();
 
 			// ★ 승급은 정수(강화 전용 재화)를 쓴다 — 정수는 웨이브 정산에서만 나오므로 첫 웨이브 전에는 못 올린다.
 			//   이건 의도된 설계(강화는 개척의 결과)라, 없으면 「확인 못 함」이지 실패가 아니다.
@@ -3137,7 +3137,7 @@ namespace WitchMendokusai.EditorTools
 			int before = match.Resource;
 			foreach (Vector3 local in FindPlaceableSpots(stageRoot, 2))
 			{
-				if (match.TryPlaceTrap((Vector3)stageRoot.TransformPoint(local)))
+				if (match.TryPlaceTrap(stageRoot.TransformPoint(local.ToUnity()).ToSim()))
 					placed++;
 			}
 
@@ -3167,7 +3167,7 @@ namespace WitchMendokusai.EditorTools
 			int placed = 0;
 			foreach (Vector3 local in FindPlaceableSpots(stageRoot, 3))
 			{
-				if (match.TryPlaceWall((Vector3)stageRoot.TransformPoint(local)))
+				if (match.TryPlaceWall(stageRoot.TransformPoint(local.ToUnity()).ToSim()))
 					placed++;
 			}
 
@@ -3181,7 +3181,7 @@ namespace WitchMendokusai.EditorTools
 					if (offsetX == 0 && offsetY == 0)
 						continue;
 					Vector3 local = new Vector3(offsetX + 0.5f, 0f, offsetY + 0.5f);
-					if (match.TryPlaceWall((Vector3)stageRoot.TransformPoint(local)))
+					if (match.TryPlaceWall(stageRoot.TransformPoint(local.ToUnity()).ToSim()))
 						accepted++;
 					else
 						rejected++;
@@ -3202,7 +3202,7 @@ namespace WitchMendokusai.EditorTools
 			if (sellProbeReady == false || match == null || stageRoot == null)
 				return;
 
-			Vector3 world = (Vector3)stageRoot.TransformPoint(sellProbeLocal);
+			Vector3 world = stageRoot.TransformPoint(sellProbeLocal.ToUnity()).ToSim();
 			int before = match.Resource;
 			bool sold = match.TrySell(world, match.Stage.SellRefundRatio);
 			bool freed = match.IsCellOccupied(world) == false;
@@ -3788,7 +3788,7 @@ namespace WitchMendokusai.EditorTools
 			{
 				if (combatant.TeamId != 1 || combatant.IsAlive == false)
 					continue;
-				if ((combatant.Position - stageRoot.position).sqrMagnitude < 100f * 100f)
+				if ((combatant.Position - stageRoot.position.ToSim()).sqrMagnitude < 100f * 100f)
 					count++;
 			}
 			return count;

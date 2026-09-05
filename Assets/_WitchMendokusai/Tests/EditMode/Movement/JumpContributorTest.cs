@@ -79,7 +79,7 @@ namespace WitchMendokusai.Tests
 		{
 			MotorContext context = new();
 			context.GroundState = groundState;
-			context.Velocity = new Vector3(0f, verticalVelocity, 0f);
+			context.Velocity = new Vector3(0f, verticalVelocity, 0f).ToUnity();
 			return context;
 		}
 

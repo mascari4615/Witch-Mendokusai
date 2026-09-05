@@ -31,7 +31,7 @@ namespace WitchMendokusai.Tests
 		/// <summary>윗면 y=0, z 는 -10 ~ 0 (z=0 이 절벽 끝) 인 지면판.</summary>
 		private static void AddCliffPlate(MotorTestHarness harness)
 		{
-			harness.AddGround(new Vector3(0f, GROUND_TOP_Y - 0.5f, CLIFF_EDGE_Z - 5f), new Vector3(20f, 1f, 10f));
+			harness.AddGround(new Vector3(0f, GROUND_TOP_Y - 0.5f, CLIFF_EDGE_Z - 5f).ToUnity(), new Vector3(20f, 1f, 10f).ToUnity());
 		}
 
 		/// <summary>
@@ -43,7 +43,7 @@ namespace WitchMendokusai.Tests
 		{
 			// 발은 절벽 안쪽 0.1m, 캡슐(r=0.5)은 절벽 밖으로 0.4m 삐져나간 자세.
 			Vector3 start = new(0f, GROUND_TOP_Y, CLIFF_EDGE_Z - 0.1f);
-			using (MotorTestHarness harness = new(start))
+			using (MotorTestHarness harness = new(start.ToUnity()))
 			{
 				AddCliffPlate(harness);
 				harness.AddContributor(new GravityContributor());
@@ -65,13 +65,13 @@ namespace WitchMendokusai.Tests
 		public void WalkingOffCliffEdge_Falls_DoesNotHover()
 		{
 			Vector3 start = new(0f, GROUND_TOP_Y, CLIFF_EDGE_Z - 2f);
-			using (MotorTestHarness harness = new(start))
+			using (MotorTestHarness harness = new(start.ToUnity()))
 			{
 				AddCliffPlate(harness);
 				harness.AddContributor(new ConstantHorizontalContributor(harness));
 				harness.AddContributor(new GravityContributor());
 
-				harness.SetHorizontalIntent(Vector3.forward, WALK_SPEED);
+				harness.SetHorizontalIntent(Vector3.forward.ToUnity(), WALK_SPEED);
 
 				// 절벽까지 2m + 낙하 관찰. 100 step = 2s.
 				harness.StepMany(100);
@@ -93,13 +93,13 @@ namespace WitchMendokusai.Tests
 		public void WalkingInlandOnFlatGround_NeverGoesAirborne()
 		{
 			Vector3 start = new(0f, GROUND_TOP_Y, CLIFF_EDGE_Z - 2f);
-			using (MotorTestHarness harness = new(start))
+			using (MotorTestHarness harness = new(start.ToUnity()))
 			{
 				AddCliffPlate(harness);
 				harness.AddContributor(new ConstantHorizontalContributor(harness));
 				harness.AddContributor(new GravityContributor());
 
-				harness.SetHorizontalIntent(Vector3.back, WALK_SPEED);
+				harness.SetHorizontalIntent(Vector3.back.ToUnity(), WALK_SPEED);
 
 				for (int step = 0; step < 100; step++)
 				{

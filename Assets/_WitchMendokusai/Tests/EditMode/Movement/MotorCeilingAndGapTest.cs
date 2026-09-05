@@ -29,7 +29,7 @@ namespace WitchMendokusai.Tests
 
 		private static void AddGroundPlate(MotorTestHarness harness)
 		{
-			harness.AddGround(new Vector3(0f, GROUND_TOP_Y - 0.5f, 0f), new Vector3(20f, 1f, 40f));
+			harness.AddGround(new Vector3(0f, GROUND_TOP_Y - 0.5f, 0f).ToUnity(), new Vector3(20f, 1f, 40f).ToUnity());
 		}
 
 		/// <summary>
@@ -41,10 +41,10 @@ namespace WitchMendokusai.Tests
 		{
 			float headroom = CEILING_BOTTOM_Y - MotorTestHarness.CAPSULE_HEIGHT;
 
-			using (MotorTestHarness harness = new(new Vector3(0f, GROUND_TOP_Y, 0f)))
+			using (MotorTestHarness harness = new(new Vector3(0f, GROUND_TOP_Y, 0f).ToUnity()))
 			{
 				AddGroundPlate(harness);
-				harness.AddGround(new Vector3(0f, CEILING_BOTTOM_Y + 0.5f, 0f), new Vector3(20f, 1f, 40f));
+				harness.AddGround(new Vector3(0f, CEILING_BOTTOM_Y + 0.5f, 0f).ToUnity(), new Vector3(20f, 1f, 40f).ToUnity());
 				harness.AddContributor(new GravityContributor());
 
 				// 첫 tick 에 접지 확정시킨 뒤 점프 — 공중에서 시작하면 무엇을 재는지 흐려진다.
@@ -77,16 +77,16 @@ namespace WitchMendokusai.Tests
 			const float WALL_THICKNESS = 1f;
 			float wallCenterX = (GAP_WIDTH * 0.5f) + (WALL_THICKNESS * 0.5f);
 
-			using (MotorTestHarness harness = new(new Vector3(0f, GROUND_TOP_Y, -3f)))
+			using (MotorTestHarness harness = new(new Vector3(0f, GROUND_TOP_Y, -3f).ToUnity()))
 			{
 				AddGroundPlate(harness);
 				// z 0~10 구간 양옆에 벽 — 캐릭터는 x=0 한가운데로 들어간다.
-				harness.AddGround(new Vector3(-wallCenterX, 1.5f, 5f), new Vector3(WALL_THICKNESS, 3f, 10f));
-				harness.AddGround(new Vector3(wallCenterX, 1.5f, 5f), new Vector3(WALL_THICKNESS, 3f, 10f));
+				harness.AddGround(new Vector3(-wallCenterX, 1.5f, 5f).ToUnity(), new Vector3(WALL_THICKNESS, 3f, 10f).ToUnity());
+				harness.AddGround(new Vector3(wallCenterX, 1.5f, 5f).ToUnity(), new Vector3(WALL_THICKNESS, 3f, 10f).ToUnity());
 				harness.AddContributor(new ConstantHorizontalContributor(harness));
 				harness.AddContributor(new GravityContributor());
 
-				harness.SetHorizontalIntent(Vector3.forward, WALK_SPEED);
+				harness.SetHorizontalIntent(Vector3.forward.ToUnity(), WALK_SPEED);
 				harness.StepMany(150);
 
 				Assert.That(harness.Position.z, Is.GreaterThan(2f),

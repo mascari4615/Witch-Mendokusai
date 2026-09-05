@@ -64,7 +64,7 @@ namespace WitchMendokusai
 			GameObject ground = CombatPrimitive.Create(PrimitiveType.Plane);
 			ground.name = "Ground";
 			ground.transform.SetParent(root, false);
-			ground.transform.localPosition = Vector3.zero;
+			ground.transform.localPosition = Vector3.zero.ToUnity();
 			ground.transform.localScale = GroundPlane.ScaleFor(Width, Length);
 
 			GameObject walls = new GameObject("Walls");
@@ -81,8 +81,8 @@ namespace WitchMendokusai
 			GameObject wall = CombatPrimitive.Create(PrimitiveType.Cube);
 			wall.name = wallName;
 			wall.transform.SetParent(parent, false);
-			wall.transform.localPosition = localPosition;
-			wall.transform.localScale = localScale;
+			wall.transform.localPosition = localPosition.ToUnity();
+			wall.transform.localScale = localScale.ToUnity();
 		}
 	}
 }

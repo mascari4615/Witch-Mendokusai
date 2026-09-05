@@ -1,10 +1,5 @@
-﻿using System;
+using System;
 using WitchMendokusai.Numerics;
-#if UNITY_5_3_OR_NEWER
-// 인스펙터 속성만 진짜 Unity 것으로 되돌린다 (디자이너 UX 보존, TASK-WM-214).
-using Header = UnityEngine.HeaderAttribute;
-using Tooltip = UnityEngine.TooltipAttribute;
-#endif
 
 namespace WitchMendokusai
 {

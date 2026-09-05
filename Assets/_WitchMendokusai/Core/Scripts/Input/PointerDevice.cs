@@ -107,7 +107,7 @@ namespace WitchMendokusai
 					continue;
 
 				// 여기서 엔진 값이 판정 세계로 들어간다 — 캐스트가 그 경계다 (TASK-WM-214).
-				touchPositions.Add((Numerics.Vector2)touch.position.ReadValue());
+				touchPositions.Add(touch.position.ReadValue().ToSim());
 				// 이름표를 같이 넘긴다 — 손가락이 바뀌었는데 수만 같은 프레임을 몸짓 계산이 알아채야 한다.
 				touchIds.Add(touch.touchId.ReadValue());
 			}
@@ -128,15 +128,15 @@ namespace WitchMendokusai
 
 		private void ReadFromTouch()
 		{
-			Position = gesture.PrimaryPosition;
+			Position = gesture.PrimaryPosition.ToUnity();
 			IsPressed = gesture.IsPressed;
 			IsSecondaryPressed = false;
 			TappedThisFrame = gesture.TappedThisFrame;
-			TapPosition = gesture.TapPosition;
+			TapPosition = gesture.TapPosition.ToUnity();
 			IsDragging = gesture.IsDragging;
-			DragDelta = gesture.TouchCount == 1 ? gesture.PrimaryDelta : Vector2.zero;
+			DragDelta = gesture.TouchCount == 1 ? gesture.PrimaryDelta.ToUnity() : Vector2.zero;
 			ZoomDelta = gesture.PinchDelta * PinchToZoomScale;
-			TwoFingerPanDelta = gesture.TwoFingerPanDelta;
+			TwoFingerPanDelta = gesture.TwoFingerPanDelta.ToUnity();
 			TwistDelta = gesture.TwistDelta;
 			LookDelta = DragDelta;
 		}

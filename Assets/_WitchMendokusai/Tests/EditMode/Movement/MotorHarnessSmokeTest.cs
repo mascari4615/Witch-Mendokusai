@@ -27,7 +27,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void NoGround_FallsFreelyAndStaysAirborne()
 		{
-			using (MotorTestHarness harness = new(new Vector3(0f, 5f, 0f)))
+			using (MotorTestHarness harness = new(new Vector3(0f, 5f, 0f).ToUnity()))
 			{
 				harness.AddContributor(new GravityContributor());
 
@@ -49,10 +49,10 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void FallingOntoFlatGround_LandsGroundedAtSurface()
 		{
-			using (MotorTestHarness harness = new(new Vector3(0f, 5f, 0f)))
+			using (MotorTestHarness harness = new(new Vector3(0f, 5f, 0f).ToUnity()))
 			{
 				// 윗면이 y=0 이 되도록 두께 1 상자를 y=-0.5 에 둔다.
-				harness.AddGround(new Vector3(0f, GROUND_TOP_Y - 0.5f, 0f), new Vector3(20f, 1f, 20f));
+				harness.AddGround(new Vector3(0f, GROUND_TOP_Y - 0.5f, 0f).ToUnity(), new Vector3(20f, 1f, 20f).ToUnity());
 				harness.AddContributor(new GravityContributor());
 
 				// 5m 자유낙하 = 약 1.0s. 넉넉히 2s(100 step) 굴려 착지 후 안정까지 본다.

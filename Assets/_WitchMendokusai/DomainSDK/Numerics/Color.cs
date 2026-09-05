@@ -119,13 +119,5 @@ namespace WitchMendokusai.Numerics
 
 		public override string ToString() => $"RGBA({r:F3}, {g:F3}, {b:F3}, {a:F3})";
 
-#if UNITY_5_3_OR_NEWER
-		public static implicit operator UnityEngine.Color(Color value) => new UnityEngine.Color(value.r, value.g, value.b, value.a);
-		// ★ 방향이 다르다 (TASK-WM-214): 판정 -> 엔진 은 암시적, 엔진 -> 판정 은 **명시적**.
-		//   양방향 암시로 두면 두 타입을 한 식에서 섞을 때 연산자가 모호해진다(CS0034).
-		//   더 큰 이유: 시뮬이 정본이고 엔진은 그 표현이다. 엔진 값이 시뮬로 들어오는 자리는
-		//   드물고 중요하므로 캐스트로 눈에 보이게 둔다 - 「여기서 판정 세계로 들어간다」.
-		public static explicit operator Color(UnityEngine.Color value) => new Color(value.r, value.g, value.b, value.a);
-#endif
 	}
 }

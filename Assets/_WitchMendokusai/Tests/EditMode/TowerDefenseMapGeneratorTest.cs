@@ -199,8 +199,8 @@ namespace WitchMendokusai.Tests
 				TowerDefenseMapLayout layout = TowerDefenseMapGenerator.Generate(parameters);
 				Assert.That(layout.ResourceNodes.Count, Is.EqualTo(2));
 
-				Vector2 first = layout.ResourceNodes[0].Cell - layout.CoreCell;
-				Vector2 second = layout.ResourceNodes[1].Cell - layout.CoreCell;
+				Vector2 first = (layout.ResourceNodes[0].Cell - layout.CoreCell).ToUnity();
+				Vector2 second = (layout.ResourceNodes[1].Cell - layout.CoreCell).ToUnity();
 				Assert.That(Vector2.Angle(first, second), Is.GreaterThanOrEqualTo(parameters.NodeAngularSpread - EPSILON),
 					$"seed={seed} 노드가 코어 한쪽으로 쏠렸다 — 넓힐 방향 선택이 사라진다.");
 			}

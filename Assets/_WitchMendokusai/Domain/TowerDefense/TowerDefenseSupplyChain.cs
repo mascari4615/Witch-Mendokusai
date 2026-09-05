@@ -62,7 +62,7 @@ namespace WitchMendokusai
 
 			positions.Clear();
 			foreach (Transform building in buildings)
-				positions.Add((Vector3)building.position);
+				positions.Add(building.position.ToSim());
 
 			seeds.Clear();
 			seeds.Add(corePosition);
@@ -71,7 +71,7 @@ namespace WitchMendokusai
 				foreach (Transform outpost in outposts)
 				{
 					if (outpost != null)
-						seeds.Add((Vector3)outpost.position);
+						seeds.Add(outpost.position.ToSim());
 				}
 			}
 
@@ -93,7 +93,7 @@ namespace WitchMendokusai
 			{
 				foreach (Transform outpost in outposts)
 				{
-					if (outpost != null && (worldPosition - outpost.position).sqrMagnitude <= reachSqr)
+					if (outpost != null && (worldPosition - outpost.position.ToSim()).sqrMagnitude <= reachSqr)
 						return true;
 				}
 			}
@@ -103,7 +103,7 @@ namespace WitchMendokusai
 				Transform building = buildings[index];
 				if (building == null || connected.Contains(index) == false)
 					continue;
-				if ((worldPosition - building.position).sqrMagnitude <= reachSqr)
+				if ((worldPosition - building.position.ToSim()).sqrMagnitude <= reachSqr)
 					return true;
 			}
 

@@ -176,7 +176,7 @@ namespace WitchMendokusai
 			hud?.Tick(match, stage);
 
 			// 커서가 얹힌 유닛 설명 — 배치가 찾은 대상을 그대로 쓴다(둘이 갈라지면 툴팁이 거짓말한다).
-			hud?.ShowUnitTooltip(match.DescribeUnit(placement.HoveredUnit), (Numerics.Vector2)placement.HoverScreenPosition);
+			hud?.ShowUnitTooltip(match.DescribeUnit(placement.HoveredUnit), placement.HoverScreenPosition.ToSim());
 
 			// 사거리는 묻는 순간에만 — 얹힌 그 건물 하나만 켠다(상시 표시는 노이즈).
 			match.HighlightRangeOf(placement.HoveredUnit != null ? placement.HoveredUnit.transform : null);
@@ -238,10 +238,10 @@ namespace WitchMendokusai
 				return;
 			}
 
-			Vector3 center = stageRoot != null ? (Vector3)stageRoot.position : Vector3.zero;
-			overhead.SetFocusBounds(center, stage.CameraPanLimit);
+			Vector3 center = stageRoot != null ? stageRoot.position.ToSim() : Vector3.zero;
+			overhead.SetFocusBounds(center.ToUnity(), stage.CameraPanLimit);
 			overhead.ConfigureZoom(stage.CameraMinHeight, stage.CameraMaxHeight, stage.CameraZoomSpeed);
-			overhead.ResetView(center, yaw: 0f, height: stage.CameraInitialHeight);
+			overhead.ResetView(center.ToUnity(), yaw: 0f, height: stage.CameraInitialHeight);
 		}
 
 		/// <summary>
@@ -447,7 +447,7 @@ namespace WitchMendokusai
 			// 카메라는 모드마다 다른 리그가 쥔다 — 개척 리그를 그때그때 찾는다(참조를 들고 있으면
 			// 모드를 나갔다 들어올 때 죽은 참조가 된다).
 			if (OverheadContentCameraController.TryGet(ContentCameraMode.TowerDefense, out OverheadContentCameraController rig))
-				rig.LookAt(focus);
+				rig.LookAt(focus.ToUnity());
 		}
 
 		/// <summary> X — 열린 창을 닫는다. 판을 나가지는 않는다(잘못 누르면 판이 통째로 끝난다). </summary>

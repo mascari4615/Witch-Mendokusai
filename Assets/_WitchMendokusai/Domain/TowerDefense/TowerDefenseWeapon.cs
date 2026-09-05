@@ -372,8 +372,8 @@ namespace WitchMendokusai
 			Color color = archetype.Tint;
 			tracer.startColor = color;
 			tracer.endColor = new Color(color.r, color.g, color.b, 0.2f);
-			tracer.SetPosition(0, from + Vector3.up * 0.6f);
-			tracer.SetPosition(1, to + Vector3.up * 0.4f);
+			tracer.SetPosition(0, (from + Vector3.up * 0.6f).ToUnity());
+			tracer.SetPosition(1, (to + Vector3.up * 0.4f).ToUnity());
 			tracer.enabled = true;
 			tracerRemaining = TRACER_SECONDS;
 		}

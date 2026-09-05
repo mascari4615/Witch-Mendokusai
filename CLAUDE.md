@@ -51,7 +51,7 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 비전 정본: `memo/wm/design/vision/architecture.md`. 본 § 는 코드 룰.
 
-**asmdef 단방향**: `WitchMendokusai.DomainSDK.asmdef` references=[UniTask, MessagePipe] (Foundation 유틸만, 게임 layer 0) / Mods references=[DomainSDK]만. 모드·DomainSDK .cs 가 Domain/Core 타입 직접 호출 시 컴파일 fail = 런타임 체크 0. (구 "references=[]" = stale. 실 도메인 격상 현황·입도 정책 = `memo/wm/design/vision/architecture.md` § 측정표·격상 입도 정책.)
+**asmdef 단방향**: DomainSDK 조각 전부 `noEngineReferences: true`, Unity 계열 참조 0 (루트 asmdef 는 조각 참조만, EventBus 조각은 참조 0). 엔진 다리는 Core 한 곳: `Core/Scripts/Numerics/NumericsUnityBridge.cs` 의 `ToUnity()`, `ToSim()` 확장과 `Domain/Application/Scripts/DI/MessagePipeEventTransport.cs` (RootLifetimeScope 가 `EventBusBridge.UseTransport` 로 꽂음). SDK 안 `#if UNITY` 분기 0. Mods references=[DomainSDK]만. 모드와 DomainSDK .cs 가 Domain/Core 타입을 직접 호출하면 컴파일 fail 이라 런타임 체크 0. (실 도메인 격상 현황과 입도 정책은 `memo/wm/design/vision/architecture.md` 의 측정표와 격상 입도 정책 절.)
 
 **격상 순서**: `enum` → `SaveData`(POCO) → `InfoData`(POCO) → `RuntimeXxxSaveData` → `record XxxEvent : IEvent` → `RuntimeXxx` → asmdef split. RuntimeXxx 생성자 = `(RuntimeXxxSaveData)` 만, Domain factory(`FromXxxSO`/`FromXxxInfo`/`FromSaveData`)가 변환 책임.
 

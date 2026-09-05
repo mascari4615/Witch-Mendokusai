@@ -59,7 +59,7 @@ namespace WitchMendokusai
 			{
 				if (candidate == null || candidate.IsAlive == false)
 					continue;
-				if ((candidate.Position - position).sqrMagnitude > radiusSqr)
+				if ((candidate.Position - position.ToSim()).sqrMagnitude > radiusSqr)
 					continue;
 
 				MatchCombatant combatant = candidate as MatchCombatant;

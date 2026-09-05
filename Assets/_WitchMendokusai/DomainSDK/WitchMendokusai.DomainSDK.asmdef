@@ -2,8 +2,6 @@
     "name": "WitchMendokusai.DomainSDK",
     "rootNamespace": "WitchMendokusai",
     "references": [
-        "UniTask",
-        "MessagePipe",
         "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.Care",
         "WitchMendokusai.DomainSDK.City",
@@ -40,5 +38,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": false
+    "noEngineReferences": true
 }

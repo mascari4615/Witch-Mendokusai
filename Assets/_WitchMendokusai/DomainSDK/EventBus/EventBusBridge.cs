@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-#if UNITY_5_3_OR_NEWER
-using MessagePipe;
-#endif
 
 namespace WitchMendokusai
 {
@@ -49,31 +46,8 @@ namespace WitchMendokusai
 
 		private static IEventTransport CreateDefaultTransport()
 		{
-#if UNITY_5_3_OR_NEWER
-			return new MessagePipeEventTransport();
-#else
 			return new InMemoryEventTransport();
-#endif
 		}
 
-#if UNITY_5_3_OR_NEWER
-		/// <summary>
-		/// Unity 호스트의 배달 통로 — VContainer 가 세운 <c>GlobalMessagePipe</c> 그대로.
-		/// (RootLifetimeScope 가 provider 를 심는다. 예전 EventBusBridge 가 하던 일과 동일.)
-		/// </summary>
-		private sealed class MessagePipeEventTransport : IEventTransport
-		{
-			public void Publish<T>(T evt)
-			{
-				GlobalMessagePipe.GetPublisher<T>().Publish(evt);
-			}
-
-			public IDisposable Subscribe<T>(Action<T> handler)
-			{
-				ISubscriber<T> subscriber = GlobalMessagePipe.GetSubscriber<T>();
-				return subscriber.Subscribe(handler);
-			}
-		}
-#endif
 	}
 }

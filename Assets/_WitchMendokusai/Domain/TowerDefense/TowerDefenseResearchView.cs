@@ -139,7 +139,7 @@ namespace WitchMendokusai
 				label.style.color = new Color(0.82f, 0.86f, 0.95f, 1f);
 				canvas.Add(label);
 				// 이름은 마디보다 *한 걸음 더 바깥*에 둔다 — 마디 위에 겹치면 둘 다 안 읽힌다.
-				branchLabels.Add((label, node.Position * 1.16f));
+				branchLabels.Add((label, (node.Position * 1.16f).ToUnity()));
 			}
 		}
 
@@ -287,7 +287,7 @@ namespace WitchMendokusai
 		private void PlaceNode(in TowerDefenseResearchGraph.Node node, VisualElement dot)
 		{
 			float size = (node.IsMajor ? NODE_MAJOR : NODE_MINOR) * zoom;
-			Vector2 center = ToScreen(node.Position);
+			Vector2 center = ToScreen(node.Position.ToUnity());
 			dot.style.width = size;
 			dot.style.height = size;
 			dot.style.left = center.x - size * 0.5f;
@@ -337,8 +337,8 @@ namespace WitchMendokusai
 						? new Color(1f, 0.8f, 0.4f, 0.95f)
 						: new Color(0.35f, 0.42f, 0.55f, 0.55f);
 					painter.BeginPath();
-					painter.MoveTo(ToScreen(from.Position));
-					painter.LineTo(ToScreen(node.Position));
+					painter.MoveTo(ToScreen(from.Position.ToUnity()));
+					painter.LineTo(ToScreen(node.Position.ToUnity()));
 					painter.Stroke();
 				}
 			}

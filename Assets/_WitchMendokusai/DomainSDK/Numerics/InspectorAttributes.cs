@@ -1,13 +1,11 @@
-#if !UNITY_5_3_OR_NEWER
 using System;
 
 namespace WitchMendokusai.Numerics
 {
 	/// <summary>
-	/// 엔진 밖 빌드에서만 존재하는 <b>무음 대역</b> (TASK-WM-214).
-	/// [Header]/[Tooltip] 은 Unity 인스펙터 UX 라 엔진 밖에선 의미가 없지만, 소스는 한 벌뿐이므로
-	/// 컴파일은 통과해야 한다. Unity 안에서는 이 파일이 통째로 꺼지고 각 파일의 using 별칭이
-	/// 진짜 UnityEngine 속성으로 되돌린다 — 즉 <b>디자이너가 보는 인스펙터는 그대로</b>다.
+	/// 판정 층의 인스펙터 표기 속성. 엔진 의존 0
+	/// Unity 안에서는 WM.Editor 의 drawer 가 Header, Tooltip 처럼 표시
+	/// 엔진 밖에서는 무동작
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Field, AllowMultiple = true, Inherited = true)]
 	public sealed class HeaderAttribute : Attribute
@@ -31,4 +29,3 @@ namespace WitchMendokusai.Numerics
 		}
 	}
 }
-#endif

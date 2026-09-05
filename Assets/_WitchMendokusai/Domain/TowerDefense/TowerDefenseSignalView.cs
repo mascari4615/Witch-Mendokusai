@@ -61,7 +61,7 @@ namespace WitchMendokusai
 
 				float radius = field.LiveRadiusAt(index);
 				float charge = field.ChargeAt(index);
-				Vector3 position = field.PositionAt(index);
+				Vector3 position = field.PositionAt(index).ToUnity();
 
 				DrawBoundary(visual, stage, position, radius, charge);
 				TickPulses(visual, stage, position, radius, charge, deltaTime);

@@ -26,13 +26,13 @@ namespace WitchMendokusai.Tests
 		/// <summary>z 가 -10~0 인 아래쪽 지면(윗면 y=0).</summary>
 		private static void AddLowerPlate(MotorTestHarness harness)
 		{
-			harness.AddGround(new Vector3(0f, LOWER_TOP_Y - 0.5f, SEAM_Z - 5f), new Vector3(20f, 1f, 10f));
+			harness.AddGround(new Vector3(0f, LOWER_TOP_Y - 0.5f, SEAM_Z - 5f).ToUnity(), new Vector3(20f, 1f, 10f).ToUnity());
 		}
 
 		/// <summary>z 가 0~10 이고 윗면이 <paramref name="topY"/> 인 판. 이음매 z=0 에 수직면이 선다.</summary>
 		private static void AddFarPlate(MotorTestHarness harness, float topY)
 		{
-			harness.AddGround(new Vector3(0f, topY - 0.5f, SEAM_Z + 5f), new Vector3(20f, 1f, 10f));
+			harness.AddGround(new Vector3(0f, topY - 0.5f, SEAM_Z + 5f).ToUnity(), new Vector3(20f, 1f, 10f).ToUnity());
 		}
 
 		/// <summary>STEP_OFFSET_HEIGHT(0.15) 보다 낮은 턱 = 걸어서 그냥 올라가야 한다.</summary>
@@ -41,14 +41,14 @@ namespace WitchMendokusai.Tests
 		{
 			const float STEP_TOP_Y = 0.1f;
 
-			using (MotorTestHarness harness = new(new Vector3(0f, LOWER_TOP_Y, SEAM_Z - 1f)))
+			using (MotorTestHarness harness = new(new Vector3(0f, LOWER_TOP_Y, SEAM_Z - 1f).ToUnity()))
 			{
 				AddLowerPlate(harness);
 				AddFarPlate(harness, STEP_TOP_Y);
 				harness.AddContributor(new ConstantHorizontalContributor(harness));
 				harness.AddContributor(new GravityContributor());
 
-				harness.SetHorizontalIntent(Vector3.forward, WALK_SPEED);
+				harness.SetHorizontalIntent(Vector3.forward.ToUnity(), WALK_SPEED);
 				harness.StepMany(120);
 
 				Assert.That(harness.Position.z, Is.GreaterThan(SEAM_Z),
@@ -65,14 +65,14 @@ namespace WitchMendokusai.Tests
 		{
 			const float WALL_TOP_Y = 0.5f;
 
-			using (MotorTestHarness harness = new(new Vector3(0f, LOWER_TOP_Y, SEAM_Z - 1f)))
+			using (MotorTestHarness harness = new(new Vector3(0f, LOWER_TOP_Y, SEAM_Z - 1f).ToUnity()))
 			{
 				AddLowerPlate(harness);
 				AddFarPlate(harness, WALL_TOP_Y);
 				harness.AddContributor(new ConstantHorizontalContributor(harness));
 				harness.AddContributor(new GravityContributor());
 
-				harness.SetHorizontalIntent(Vector3.forward, WALK_SPEED);
+				harness.SetHorizontalIntent(Vector3.forward.ToUnity(), WALK_SPEED);
 				harness.StepMany(120);
 
 				Assert.That(harness.Position.y, Is.EqualTo(LOWER_TOP_Y).Within(POSITION_TOLERANCE),
@@ -95,14 +95,14 @@ namespace WitchMendokusai.Tests
 		{
 			const float DROP_TOP_Y = -0.1f;
 
-			using (MotorTestHarness harness = new(new Vector3(0f, LOWER_TOP_Y, SEAM_Z - 1f)))
+			using (MotorTestHarness harness = new(new Vector3(0f, LOWER_TOP_Y, SEAM_Z - 1f).ToUnity()))
 			{
 				AddLowerPlate(harness);
 				AddFarPlate(harness, DROP_TOP_Y);
 				harness.AddContributor(new ConstantHorizontalContributor(harness));
 				harness.AddContributor(new GravityContributor());
 
-				harness.SetHorizontalIntent(Vector3.forward, WALK_SPEED);
+				harness.SetHorizontalIntent(Vector3.forward.ToUnity(), WALK_SPEED);
 				harness.StepMany(120);
 
 				Assert.That(harness.Position.z, Is.GreaterThan(SEAM_Z + 0.5f),

@@ -98,6 +98,8 @@ namespace WitchMendokusai
 			builder.RegisterBuildCallback(container =>
 			{
 				GlobalMessagePipe.SetProvider(container.AsServiceProvider());
+				// 판정 층의 이벤트 창구를 Unity 배달 통로로. provider 등록 직후, 첫 구독보다 앞 (엔진 밖 기본값은 InMemory)
+				EventBusBridge.UseTransport(new MessagePipeEventTransport());
 				// TASK-WM-118 I1 — 손-순서 eager 리스트를 BootGuard 경유: 순서가 진짜
 				// [Inject] 위상과 어긋나거나 dep 미해결/순환이면 *부팅 시점에 타입 귀속
 				// 명시 차단* (조용한 NRE 가 게임플레이까지 잠복 X). 성공 시 동작 무변경.

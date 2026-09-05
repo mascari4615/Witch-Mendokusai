@@ -48,7 +48,7 @@ namespace WitchMendokusai
 		{
 			if (damageInfo.knockbackDirectionOverride.HasValue)
 			{
-				Vector3 directionOverride = damageInfo.knockbackDirectionOverride.Value;
+				Vector3 directionOverride = damageInfo.knockbackDirectionOverride.Value.ToUnity();
 				directionOverride.y = 0f;
 				return directionOverride;
 			}

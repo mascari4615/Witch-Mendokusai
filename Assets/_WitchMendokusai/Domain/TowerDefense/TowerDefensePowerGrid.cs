@@ -111,7 +111,7 @@ namespace WitchMendokusai
 			foreach (Transform generator in generators)
 			{
 				fieldNodes.Add(new TowerDefenseSignalField.Node(
-					KeyOf(generator), (Vector3)generator.position, stage.GeneratorRadius, false));
+					KeyOf(generator), generator.position.ToSim(), stage.GeneratorRadius, false));
 			}
 
 			field.Configure(fieldNodes);
@@ -143,7 +143,7 @@ namespace WitchMendokusai
 				int demand = isHarvester != null && isHarvester(consumer)
 					? stage.HarvesterPowerDemand
 					: stage.TowerPowerDemand;
-				consumers.Add(new TowerDefensePower.Consumer((Vector3)consumer.position, demand));
+				consumers.Add(new TowerDefensePower.Consumer(consumer.position.ToSim(), demand));
 			}
 
 			TowerDefensePower.Compute(sources, consumers, powered);
@@ -172,7 +172,7 @@ namespace WitchMendokusai
 				{
 					label.Unpowered = hasPower == false;
 					// 신호장이 그 자리를 덮고 있느냐가 두 이유를 가른다 — 덮였는데 안 돌면 용량이 모자란 것.
-					label.OutOfSignal = hasPower == false && field.IsCovered((Vector3)consumer.position) == false;
+					label.OutOfSignal = hasPower == false && field.IsCovered(consumer.position.ToSim()) == false;
 				}
 			}
 		}

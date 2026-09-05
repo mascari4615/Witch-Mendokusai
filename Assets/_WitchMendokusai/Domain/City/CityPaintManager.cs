@@ -230,7 +230,7 @@ namespace WitchMendokusai
 
 			Vector3 groundPoint = ray.GetPoint(enter);
 			// 엔진이 고른 칸을 판정 세계로 들인다 — 여기가 경계다.
-			cell = (Vector3Int)grid.WorldToCell(groundPoint);
+			cell = grid.WorldToCell(groundPoint).ToSim();
 			return true;
 		}
 
@@ -373,8 +373,8 @@ namespace WitchMendokusai
 				agent.Follower.Advance(step);
 				agent.Follower.CurrentSegment(out Vector3Int fromCell, out Vector3Int toCell, out float t);
 
-				Vector3 fromPos = buildManager.GetWorldPosition(fromCell);
-				Vector3 toPos = buildManager.GetWorldPosition(toCell);
+				Vector3 fromPos = buildManager.GetWorldPosition(fromCell).ToUnity();
+				Vector3 toPos = buildManager.GetWorldPosition(toCell).ToUnity();
 				Vector3 pos = Vector3.Lerp(fromPos, toPos, t);
 				// TASK-WM-181 INC-1 — pos.y = 지면(GetWorldPosition 보간) → 시민도 지형 위로 떠 따라감(평탄 X).
 				agent.Visual.transform.position = new Vector3(pos.x, pos.y + citizenHeight, pos.z);
@@ -600,7 +600,7 @@ namespace WitchMendokusai
 			}
 
 			foreach (KeyValuePair<Vector3Int, float> entry in field)
-				SetOverlayVisual(entry.Key, heatmap.Evaluate(entry.Value));
+				SetOverlayVisual(entry.Key, heatmap.Evaluate(entry.Value).ToUnity());
 		}
 
 		// 선택 존타입의 전역 수요값 추출 (욕망도 공간 투영의 base).
@@ -743,7 +743,7 @@ namespace WitchMendokusai
 			if (cubeCollider != null)
 				Destroy(cubeCollider);
 
-			Vector3 buildPos = buildManager.GetWorldPosition(cell);
+			Vector3 buildPos = buildManager.GetWorldPosition(cell).ToUnity();
 			// TASK-WM-181 INC-1 — buildPos.y = 실제 지면(GroundProbe). 밑면을 지면에 올리고 height/2 만큼 띄움(평탄 0 폐기).
 			cube.transform.position = new Vector3(buildPos.x, buildPos.y + height * 0.5f, buildPos.z);
 			cube.transform.rotation = buildManager.Grid.transform.rotation; // 다이아몬드 칸 정합

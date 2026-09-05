@@ -145,18 +145,18 @@ namespace WitchMendokusai
 				return;
 
 			// 미리보기 마커 = 맞은 면 바깥 인접 셀 (복셀 동형 — 건물 위/옆/복셀 옆 어디든).
-			Vector3Int placeCell = Vector3Int.FloorToInt((Vector3)hit.point + (Vector3)hit.normal * 0.5f);
+			Vector3Int placeCell = Vector3Int.FloorToInt(hit.point.ToSim() + hit.normal.ToSim() * 0.5f);
 			Vector3 worldPos = BuildCellToWorld(placeCell);
-			if (marker.GetBool(MARKER_ENABLED) == true && marker.transform.position != worldPos)
+			if (marker.GetBool(MARKER_ENABLED) == true && marker.transform.position != worldPos.ToUnity())
 			{
-				marker.transform.position = worldPos;
+				marker.transform.position = worldPos.ToUnity();
 				marker.SetTrigger(MARKER_RESET_TRIGGER);
 			}
 		}
 
 		public Vector3 GetWorldPosition(Vector3Int gridPosition)
 		{
-			Vector3 worldPos = (Vector3)grid.GetCellCenterWorld(gridPosition);
+			Vector3 worldPos = grid.GetCellCenterWorld(gridPosition.ToUnity()).ToSim();
 			// TASK-WM-181 INC-2 — 셀 z(=world Y 레벨, swizzle XZY)가 0이면 평지/도시 → 지면 샘플(GroundProbe).
 			// z≠0 = 마크식 면-인접으로 높이 박힌 3D 셀 → 셀 자체 Y(GetCellCenterWorld) 그대로 (블록 위/옆 정합).
 			if (gridPosition.z == 0)
@@ -166,8 +166,8 @@ namespace WitchMendokusai
 
 		public Vector3 GetWorldPosition(Vector3Int gridPosition, Vector2Int size)
 		{
-			Vector3 pivotPos = (Vector3)grid.GetCellCenterWorld(gridPosition);
-			Vector3 endPos = (Vector3)grid.GetCellCenterWorld(gridPosition + new Vector3Int(-size.x + 1, size.y - 1, 0));
+			Vector3 pivotPos = grid.GetCellCenterWorld(gridPosition.ToUnity()).ToSim();
+			Vector3 endPos = grid.GetCellCenterWorld((gridPosition + new Vector3Int(-size.x + 1, size.y - 1, 0)).ToUnity()).ToSim();
 			Vector3 worldPos = Vector3.Lerp(pivotPos, endPos, 0.5f);
 			// TASK-WM-181 INC-2 — z=0(평지/도시) = 지면 샘플 / z≠0(면-인접 3D) = 셀 자체 Y.
 			if (gridPosition.z == 0)
@@ -215,7 +215,7 @@ namespace WitchMendokusai
 				return;
 
 			// 배치 셀 = 맞은 면 바깥 인접 (복셀 동형). 건물 윗면 클릭=위 적층, 옆면=옆, 복셀 옆=복셀 인접.
-			Vector3Int placeCell = Vector3Int.FloorToInt((Vector3)hit.point + (Vector3)hit.normal * 0.5f);
+			Vector3Int placeCell = Vector3Int.FloorToInt(hit.point.ToSim() + hit.normal.ToSim() * 0.5f);
 			List<Vector3Int> coords = GetBuildingCoords(placeCell, selectedBuilding.Size);
 			foreach (Vector3Int coord in coords)
 				if (BuildingObjectsByPos.ContainsKey(coord))
@@ -272,7 +272,7 @@ namespace WitchMendokusai
 			ChunkManager chunks = EnsureChunkManager();
 			if (chunks == null)
 				return;
-			Vector3 targetPos = (Vector3)hit.point - (Vector3)hit.normal * 0.1f;
+			Vector3 targetPos = hit.point.ToSim() - hit.normal.ToSim() * 0.1f;
 			int voxelX = Mathf.FloorToInt(targetPos.x);
 			int voxelY = Mathf.FloorToInt(targetPos.y + VoxelConstants.CHUNK_SIZE_Y / 2f);
 			int voxelZ = Mathf.FloorToInt(targetPos.z);
@@ -320,7 +320,7 @@ namespace WitchMendokusai
 			Building building = SOHelper.Get<Building>(data.BuildingID);
 
 			BuildingObject buildingObject = objectPoolManager.Spawn(BuildingObjectPrefab).GetComponent<BuildingObject>();
-			buildingObject.transform.position = BuildCellToWorld(pivot, building.Size);
+			buildingObject.transform.position = BuildCellToWorld(pivot, building.Size).ToUnity();
 			// TASK-WM-181 INC-2 — voxel-native 축정렬: 건물은 항상 정방향(복셀 블록과 동형). 풀 재사용 stale 회전 방어.
 			buildingObject.transform.rotation = Quaternion.identity;
 			buildingObject.gameObject.SetActive(true);

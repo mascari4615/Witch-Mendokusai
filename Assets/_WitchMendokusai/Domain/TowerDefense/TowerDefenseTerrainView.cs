@@ -43,7 +43,7 @@ namespace WitchMendokusai
 			GameObject ground = TowerDefenseVisuals.Primitive(PrimitiveType.Plane);
 			ground.name = "Ground";
 			ground.transform.SetParent(stageRoot, false);
-			ground.transform.localPosition = Vector3.zero;
+			ground.transform.localPosition = Vector3.zero.ToUnity();
 			ground.transform.localScale = GroundPlane.ScaleFor(groundWidth, groundLength);
 
 			ApplyGroundCheckerboard(ground, groundWidth, groundLength);
@@ -95,9 +95,9 @@ namespace WitchMendokusai
 				lane.name = "PathLane";
 				Object.Destroy(lane.GetComponent<Collider>()); // 표시용 — 배치 레이캐스트를 가로채면 안 된다.
 				lane.transform.SetParent(laneRoot, false);
-				lane.transform.localPosition = mapLayout.CellToWorld(cell) + new Vector3(0f, 0.03f, 0f);
+				lane.transform.localPosition = (mapLayout.CellToWorld(cell) + new Vector3(0f, 0.03f, 0f)).ToUnity();
 				lane.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-				lane.transform.localScale = Vector3.one * cellSize * 0.92f;
+				lane.transform.localScale = (Vector3.one * cellSize * 0.92f).ToUnity();
 
 				Renderer laneRenderer = lane.GetComponent<Renderer>();
 				if (laneRenderer == null)
@@ -148,8 +148,8 @@ namespace WitchMendokusai
 				rock.transform.SetParent(stageRoot, false);
 				// 높은 벽은 부감 시점에서 뒤쪽 바닥을 가려 길 표시를 통째로 먹는다(스크린샷 실증).
 				// 낮은 능선이면 「막힌 칸」은 그대로 읽히면서 길이 보인다.
-				rock.transform.localPosition = mapLayout.CellToWorld(obstacleCell) + new Vector3(0f, cell * 0.3f, 0f);
-				rock.transform.localScale = new Vector3(cell, cell * 0.6f, cell);
+				rock.transform.localPosition = (mapLayout.CellToWorld(obstacleCell) + new Vector3(0f, cell * 0.3f, 0f)).ToUnity();
+				rock.transform.localScale = new Vector3(cell, cell * 0.6f, cell).ToUnity();
 
 				// ★ 충돌 상자를 칸보다 작게 — 길찾기는 1칸 통로를 정상 경로로 주는데, 몸통이 칸을 꽉 채우면
 				//   그 통로에서 물리적으로 낀다(라이브: 마수 1기가 40초 가까이 도착 못 함). 보이는 크기는 그대로.
@@ -160,7 +160,7 @@ namespace WitchMendokusai
 				if (rockCollider != null)
 				{
 					float side = stage != null ? stage.ObstacleColliderScale : 0.82f;
-					rockCollider.size = new Vector3(side, 1f, side);
+					rockCollider.size = new Vector3(side, 1f, side).ToUnity();
 				}
 
 				Renderer rockRenderer = rock.GetComponent<Renderer>();
@@ -256,9 +256,9 @@ namespace WitchMendokusai
 					Object.Destroy(markerCollider);
 
 				marker.transform.SetParent(stageRoot, false);
-				marker.transform.localPosition = localPosition;
+				marker.transform.localPosition = localPosition.ToUnity();
 				// 납작한 원반 — 지면에 깔리되 유닛 시야를 안 가림.
-				marker.transform.localScale = new Vector3(stage.NodeCaptureRadius * 2f, 0.05f, stage.NodeCaptureRadius * 2f);
+				marker.transform.localScale = new Vector3(stage.NodeCaptureRadius * 2f, 0.05f, stage.NodeCaptureRadius * 2f).ToUnity();
 
 				// URP Lit 는 _BaseColor 가 정본 — material.color 만 세팅하면 셰이더에 따라 안 먹는다.
 				Renderer markerRenderer = marker.GetComponent<Renderer>();
@@ -284,9 +284,9 @@ namespace WitchMendokusai
 					Object.Destroy(markerCollider);
 
 				marker.transform.SetParent(stageRoot, false);
-				marker.transform.localPosition = localPosition;
+				marker.transform.localPosition = localPosition.ToUnity();
 				// 넓고 낮은 판 — 출현 "구역" 으로 읽히게(원반=자원과 형태로 구분).
-				marker.transform.localScale = new Vector3(3f, 0.06f, 1.2f);
+				marker.transform.localScale = new Vector3(3f, 0.06f, 1.2f).ToUnity();
 
 				Renderer markerRenderer = marker.GetComponent<Renderer>();
 				if (markerRenderer != null)

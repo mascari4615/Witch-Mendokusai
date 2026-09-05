@@ -28,7 +28,7 @@ namespace WitchMendokusai.Tests
 		{
 			context = new MotorContext();
 			ExternalImpulseContributor impulse = new();
-			impulse.Push(new Vector3(5f, 0f, 0f), duration);
+			impulse.Push(new Vector3(5f, 0f, 0f).ToUnity(), duration);
 			return impulse;
 		}
 
@@ -89,8 +89,8 @@ namespace WitchMendokusai.Tests
 			MotorContext context = new();
 			ExternalImpulseContributor impulse = new();
 
-			impulse.Push(new Vector3(5f, 0f, 0f), 10f);
-			impulse.Push(new Vector3(-2f, 0f, 0f), 10f);
+			impulse.Push(new Vector3(5f, 0f, 0f).ToUnity(), 10f);
+			impulse.Push(new Vector3(-2f, 0f, 0f).ToUnity(), 10f);
 			impulse.Contribute(context, DELTA_TIME);
 
 			Assert.That(context.Velocity.x, Is.EqualTo(-2f).Within(VELOCITY_TOLERANCE),
@@ -107,7 +107,7 @@ namespace WitchMendokusai.Tests
 			MotorContext context = new();
 			ExternalImpulseContributor impulse = new();
 
-			impulse.Push(new Vector3(3f, 99f, 0f), 10f);
+			impulse.Push(new Vector3(3f, 99f, 0f).ToUnity(), 10f);
 			impulse.Contribute(context, DELTA_TIME);
 
 			Assert.That(context.Velocity.y, Is.EqualTo(0f).Within(VELOCITY_TOLERANCE),
@@ -124,20 +124,20 @@ namespace WitchMendokusai.Tests
 			const int PUSH_TICKS = 5;
 			const float PUSH_SPEED = 5f;
 
-			using (MotorTestHarness harness = new(new Vector3(0f, 0f, 0f)))
+			using (MotorTestHarness harness = new(new Vector3(0f, 0f, 0f).ToUnity()))
 			{
-				harness.AddGround(new Vector3(0f, -0.5f, 0f), new Vector3(40f, 1f, 40f));
+				harness.AddGround(new Vector3(0f, -0.5f, 0f).ToUnity(), new Vector3(40f, 1f, 40f).ToUnity());
 
 				ExternalImpulseContributor impulse = new();
 				harness.AddContributor(impulse);                                  // 임펄스가 먼저
 				harness.AddContributor(new ConstantHorizontalContributor(harness)); // 입력이 나중 (실물 등록 순서)
 				harness.AddContributor(new GravityContributor());
-				harness.SetHorizontalIntent(Vector3.zero, 0f); // 입력 없음
+				harness.SetHorizontalIntent(Vector3.zero.ToUnity(), 0f); // 입력 없음
 
 				harness.Step(); // 접지 확정
 				float startX = harness.Position.x;
 
-				impulse.Push(new Vector3(PUSH_SPEED, 0f, 0f), DELTA_TIME * PUSH_TICKS);
+				impulse.Push(new Vector3(PUSH_SPEED, 0f, 0f).ToUnity(), DELTA_TIME * PUSH_TICKS);
 				harness.StepMany(PUSH_TICKS);
 
 				float pushedX = harness.Position.x;

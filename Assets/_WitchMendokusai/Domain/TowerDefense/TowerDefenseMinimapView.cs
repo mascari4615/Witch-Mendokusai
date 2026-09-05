@@ -106,7 +106,7 @@ namespace WitchMendokusai
 			foreach (Transform outpost in match.Outposts)
 			{
 				if (outpost != null)
-					PlaceDot(match, (Vector3)outpost.position, stage.OutpostTint, 6f, square: true, tip: "전초기지 — 새 보급 원점이자 새로 지켜야 할 곳.");
+					PlaceDot(match, outpost.position.ToSim(), stage.OutpostTint, 6f, square: true, tip: "전초기지 — 새 보급 원점이자 새로 지켜야 할 곳.");
 			}
 
 			// 내 인형들 — 이름표가 있는 것이 곧 내가 세운 것이다(같은 목록을 쓰니 화면과 안 갈라진다).
@@ -116,7 +116,7 @@ namespace WitchMendokusai
 					continue;
 
 				Color tint = doll.Working ? doll.Tint : new Color(0.45f, 0.47f, 0.52f, 1f);
-				PlaceDot(match, (Vector3)doll.Anchor.position, tint, 4f, tip: doll.Text);
+				PlaceDot(match, doll.Anchor.position.ToSim(), tint, 4f, tip: doll.Text);
 			}
 
 			// 마수 — 밝힌 곳만. 안 가본 자리를 미니맵이 알려주면 시야가 무의미해진다.
@@ -183,7 +183,7 @@ namespace WitchMendokusai
 				: camera.transform.position.y * 2f * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad) * camera.aspect;
 			float visibleLength = visibleWidth / Mathf.Max(0.01f, camera.aspect);
 
-			Vector2 center = ToNormalized(match, (Vector3)camera.transform.position);
+			Vector2 center = ToNormalized(match, camera.transform.position.ToSim());
 			float width = Mathf.Clamp01(visibleWidth / match.GroundWidth) * this.size;
 			float length = Mathf.Clamp01(visibleLength / match.GroundLength) * this.size;
 
@@ -267,7 +267,7 @@ namespace WitchMendokusai
 		/// <summary> 월드 좌표 → 판 안의 비율(0~1). 판이 자라도 이 식은 그대로다. </summary>
 		private static Vector2 ToNormalized(TowerDefenseMatch match, Vector3 worldPosition)
 		{
-			Vector3 local = (Vector3)match.StageRoot.InverseTransformPoint(worldPosition);
+			Vector3 local = match.StageRoot.InverseTransformPoint(worldPosition.ToUnity()).ToSim();
 			return new Vector2(
 				local.x / match.GroundWidth + 0.5f,
 				local.z / match.GroundLength + 0.5f);
@@ -283,7 +283,7 @@ namespace WitchMendokusai
 				(normalized.x - 0.5f) * match.GroundWidth,
 				0f,
 				(normalized.y - 0.5f) * match.GroundLength);
-			return (Vector3)match.StageRoot.TransformPoint(local);
+			return match.StageRoot.TransformPoint(local.ToUnity()).ToSim();
 		}
 
 		/// <summary> 지도를 눌렀다 — 그 자리의 월드 좌표를 알려준다(지도는 닫히지 않는다). </summary>

@@ -331,7 +331,7 @@ namespace WitchMendokusai
 			// 길 안내와 같은 병을 앓는다 — 불투명하면 깊이를 남겨 인형 몸을 자른다(MakeFloorDecal ★ 주석).
 			ApplyPreviewMarkerLayer();
 			previewMarker.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-			previewMarker.transform.localScale = Vector3.one * cellSize * 0.92f;
+			previewMarker.transform.localScale = (Vector3.one * cellSize * 0.92f).ToUnity();
 			previewMarker.SetActive(false);
 		}
 
@@ -465,7 +465,7 @@ namespace WitchMendokusai
 			//   앞선 세 번은 그리는 순서·깊이로만 풀려 했는데 안 됐다 — 안개는 바닥 위 얇게 떠 있는
 			//   판이고, 마커가 그보다 아래 있으면 무슨 수를 써도 아래에 깔린다. 높이로 푸는 게 확실하다.
 			float markerHeight = (stage != null ? stage.FogHeight : 0.06f) + 0.04f;
-			previewMarker.transform.position = snappedWorldPosition + new Vector3(0f, markerHeight, 0f);
+			previewMarker.transform.position = (snappedWorldPosition + new Vector3(0f, markerHeight, 0f)).ToUnity();
 			UpdatePreviewRing(snappedWorldPosition);
 			UpdateGhostBuilding(snappedWorldPosition);
 
@@ -520,7 +520,7 @@ namespace WitchMendokusai
 			}
 
 			ghostBuilding.SetActive(true);
-			ghostBuilding.transform.position = snappedWorldPosition;
+			ghostBuilding.transform.position = snappedWorldPosition.ToUnity();
 		}
 
 		/// <summary> 유령은 *보이기만* 한다 — 충돌·전투·이동이 살아 있으면 미리보기가 게임에 개입한다. </summary>
@@ -592,7 +592,7 @@ namespace WitchMendokusai
 			{
 				if (previewRing == null)
 					previewRing = TowerDefenseRing.Create(transform, "PlacementPreviewRing", Color.white, 0.12f, 0.06f);
-				previewRing.transform.position = snappedWorldPosition + new Vector3(0f, 0.06f, 0f);
+				previewRing.transform.position = (snappedWorldPosition + new Vector3(0f, 0.06f, 0f)).ToUnity();
 				previewRing.SetRadius(stage.TrapRadius);
 				previewRing.SetColor(new Color(1f, 0.45f, 0.32f, 0.9f));
 				previewRing.SetVisible(true);
@@ -618,7 +618,7 @@ namespace WitchMendokusai
 
 				if (previewRing == null)
 					previewRing = TowerDefenseRing.Create(transform, "PlacementPreviewRing", Color.white, 0.12f, 0.06f);
-				previewRing.transform.position = snappedWorldPosition + new Vector3(0f, 0.06f, 0f);
+				previewRing.transform.position = (snappedWorldPosition + new Vector3(0f, 0.06f, 0f)).ToUnity();
 				previewRing.SetRadius(stage.HeroArchetype.Range);
 				previewRing.SetColor(new Color(1f, 0.62f, 0.9f, 0.9f));
 				previewRing.SetVisible(true);
@@ -640,7 +640,7 @@ namespace WitchMendokusai
 			if (previewRing == null)
 				previewRing = TowerDefenseRing.Create(transform, "PlacementPreviewRing", Color.white, 0.12f, 0.06f);
 
-			previewRing.transform.position = snappedWorldPosition + new Vector3(0f, 0.06f, 0f);
+			previewRing.transform.position = (snappedWorldPosition + new Vector3(0f, 0.06f, 0f)).ToUnity();
 			previewRing.SetRadius(radius);
 			previewRing.SetColor(isGenerator
 				? new Color(1f, 0.82f, 0.3f, 0.9f)
@@ -818,7 +818,7 @@ namespace WitchMendokusai
 			if (Physics.Raycast(ray, out RaycastHit hit, raycastDistance, ~0, QueryTriggerInteraction.Ignore) == false)
 				return false;
 
-			groundPosition = (Vector3)hit.point;
+			groundPosition = hit.point.ToSim();
 			return true;
 		}
 

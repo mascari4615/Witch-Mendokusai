@@ -26,9 +26,9 @@ namespace WitchMendokusai
 			fogObject.name = "Fog";
 			Destroy(fogObject.GetComponent<Collider>()); // 표시용 — 배치 레이캐스트를 가로채면 안 된다.
 			fogObject.transform.SetParent(stageRoot, false);
-			fogObject.transform.localPosition = new Vector3(0f, height, 0f);
+			fogObject.transform.localPosition = new Vector3(0f, height, 0f).ToUnity();
 			fogObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-			fogObject.transform.localScale = new Vector3(groundWidth, groundLength, 1f);
+			fogObject.transform.localScale = new Vector3(groundWidth, groundLength, 1f).ToUnity();
 
 			TowerDefenseFogView fog = fogObject.AddComponent<TowerDefenseFogView>();
 			fog.Initialize(width, length, fogObject.GetComponent<Renderer>());
