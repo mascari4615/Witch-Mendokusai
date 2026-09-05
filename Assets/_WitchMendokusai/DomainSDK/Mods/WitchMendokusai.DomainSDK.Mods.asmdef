@@ -1,0 +1,22 @@
+{
+    "name": "WitchMendokusai.DomainSDK.Mods",
+    "rootNamespace": "",
+    "references": [
+        "WitchMendokusai.DomainSDK.Quest",
+        "WitchMendokusai.DomainSDK.Criteria",
+        "WitchMendokusai.DomainSDK.Effect",
+        "WitchMendokusai.DomainSDK.Reward",
+        "WitchMendokusai.DomainSDK.Contracts",
+        "WitchMendokusai.DomainSDK.Common",
+        "WitchMendokusai.DomainSDK.Compat"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

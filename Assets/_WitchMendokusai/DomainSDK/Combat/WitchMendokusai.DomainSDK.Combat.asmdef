@@ -1,14 +1,10 @@
 {
-    "name": "WitchMendokusai.DomainSDK.World",
+    "name": "WitchMendokusai.DomainSDK.Combat",
     "rootNamespace": "",
     "references": [
-        "WitchMendokusai.DomainSDK.Building",
-        "WitchMendokusai.DomainSDK.City",
-        "WitchMendokusai.DomainSDK.Farming",
         "WitchMendokusai.DomainSDK.Numerics",
-        "WitchMendokusai.DomainSDK.WorldSim",
-        "WitchMendokusai.DomainSDK.Item",
-        "WitchMendokusai.DomainSDK.Alchemy"
+        "WitchMendokusai.DomainSDK.Stat",
+        "WitchMendokusai.DomainSDK.Compat"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

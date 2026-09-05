@@ -1,14 +1,17 @@
 {
-    "name": "WitchMendokusai.DomainSDK.World",
+    "name": "WitchMendokusai.DomainSDK.WorldSim",
     "rootNamespace": "",
     "references": [
+        "WitchMendokusai.DomainSDK.Alchemy",
+        "WitchMendokusai.DomainSDK.Item",
         "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.City",
-        "WitchMendokusai.DomainSDK.Farming",
+        "WitchMendokusai.DomainSDK.Identity",
+        "WitchMendokusai.DomainSDK.Net",
         "WitchMendokusai.DomainSDK.Numerics",
-        "WitchMendokusai.DomainSDK.WorldSim",
-        "WitchMendokusai.DomainSDK.Item",
-        "WitchMendokusai.DomainSDK.Alchemy"
+        "WitchMendokusai.DomainSDK.Contracts",
+        "WitchMendokusai.DomainSDK.Diagnostics",
+        "WitchMendokusai.DomainSDK.Compat"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

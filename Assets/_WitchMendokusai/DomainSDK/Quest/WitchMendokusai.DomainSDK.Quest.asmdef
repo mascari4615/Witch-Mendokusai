@@ -1,0 +1,24 @@
+{
+    "name": "WitchMendokusai.DomainSDK.Quest",
+    "rootNamespace": "",
+    "references": [
+        "WitchMendokusai.DomainSDK.Common",
+        "WitchMendokusai.DomainSDK.Contracts",
+        "WitchMendokusai.DomainSDK.Criteria",
+        "WitchMendokusai.DomainSDK.Effect",
+        "WitchMendokusai.DomainSDK.EventBus",
+        "WitchMendokusai.DomainSDK.GameEvent",
+        "WitchMendokusai.DomainSDK.Reward",
+        "WitchMendokusai.DomainSDK.Numerics",
+        "WitchMendokusai.DomainSDK.Compat"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

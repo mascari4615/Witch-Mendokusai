@@ -1,14 +1,15 @@
 {
-    "name": "WitchMendokusai.DomainSDK.World",
+    "name": "WitchMendokusai.DomainSDK.Act",
     "rootNamespace": "",
     "references": [
-        "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.City",
         "WitchMendokusai.DomainSDK.Farming",
-        "WitchMendokusai.DomainSDK.Numerics",
+        "WitchMendokusai.DomainSDK.Life",
         "WitchMendokusai.DomainSDK.WorldSim",
-        "WitchMendokusai.DomainSDK.Item",
-        "WitchMendokusai.DomainSDK.Alchemy"
+        "WitchMendokusai.DomainSDK.Building",
+        "WitchMendokusai.DomainSDK.Numerics",
+        "WitchMendokusai.DomainSDK.Contracts",
+        "WitchMendokusai.DomainSDK.Compat"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -4,7 +4,7 @@ namespace WitchMendokusai.Mods.Sample
 {
 	/// <summary>
 	/// TASK-WM-083 Phase A+B — Mods Sample.
-	/// asmdef references = [WitchMendokusai.DomainSDK] 만 → DomainSDK type 만 호출 가능.
+	/// asmdef references 는 DomainSDK 조각만 -> DomainSDK type 만 호출 가능
 	/// IMod 구현 = ModLoader 가 reflection 으로 발견 + Initialize 호출.
 	/// </summary>
 	public class HelloMod : IMod

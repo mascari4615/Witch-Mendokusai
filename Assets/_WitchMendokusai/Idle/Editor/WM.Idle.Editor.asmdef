@@ -4,7 +4,6 @@
     "references": [
         "WM.Editor",
         "WM.Idle",
-        "WitchMendokusai.DomainSDK",
         "WitchMendokusai.DomainSDK.Contracts",
         "WitchMendokusai.DomainSDK.Idle",
         "WitchMendokusai.DomainSDK.Numerics",

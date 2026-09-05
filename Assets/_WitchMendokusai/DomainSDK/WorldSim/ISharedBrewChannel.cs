@@ -1,0 +1,104 @@
+using System.Collections.Generic;
+
+namespace WitchMendokusai.DomainSDK.Alchemy
+{
+    /// <summary>
+    /// TASK-WM-191 #4 step-4b — 공유 가마솥 채널 seam. Domain UI(CauldronMapElement)는 WM.Network 를
+    /// 직접 참조 못 함(asmdef 단방향: WM.Domain ↛ WM.Network, 둘 다 DomainSDK 만 참조) → 네트워크
+    /// 가마솥(CauldronNetworkBridge)을 DomainSDK 인터페이스로 추상화. LocalPlayerProbeBridge 동형:
+    /// Network layer 가 구현체 등록, Domain 이 인터페이스로 소비.
+    ///
+    /// 비네트워크(솔로) = 채널 미등록 → IsActive=false → UI 는 로컬 BrewSession 그대로(경로 0 변경).
+    /// 네트워크(co-op) = 양 피어가 자기 로컬 replica 등록 → AddStep 이 ServerRpc 로 서버 권위 brew 전진,
+    /// TryGetState 가 SyncVar 마커 read = "둘이 같은 솥". 폴링 소비(WorldClock 동기 패턴 — OnChange 불요).
+    /// </summary>
+    public interface ISharedBrewChannel
+    {
+        /// <summary>네트워크 가마솥 채널이 스폰·활성인가(= co-op 세션 진행 중). false 면 UI 는 로컬 경로.</summary>
+        bool IsActive { get; }
+
+        /// <summary>재료 한 step 투입 — 로컬(혼자) 경로에서만 뜻이 있다.</summary>
+        void AddStep(BrewStep step);
+
+        /// <summary>
+        /// 이 재료를 세계의 솥에 넣는다 (TASK-WM-217) — <b>가방에서 실제로 빠진다</b>.
+        /// 방향·세기는 세계가 재료에서 읽으므로 창은 번호만 말한다(우길 자리가 없다).
+        /// </summary>
+        void AddIngredient(int itemId);
+
+        /// <summary>
+        /// <b>가까운 솥</b>을 쓴다 (TASK-WM-217) — 세계에 솥이 여럿이라 「어느 솥」이 필요하다.
+        /// 창은 자리를 몰라도 된다: 내가 선 자리에서 가장 가까운 솥을 줄이 골라 준다.
+        /// 가까운 솥이 없으면 아무 일도 안 일어난다(짓거나 다가가야 한다).
+        /// </summary>
+        bool TryUseNearbyCauldron(int itemId);
+
+        /// <summary>
+        /// 세계의 마도서 — 어디까지 저으면 무엇이 나오나 (TASK-WM-217). 못 받았으면 빈 목록.
+        ///
+        /// ★ 왜 채널이 이걸 나르나: 완성 보상은 세계가 정하는데 화면은 목표·등급을 자기 자산으로
+        ///   그렸다. 둘이 어긋나면 표시대로 저은 사람이 딴 것을 받는다 — 화면은 「최상급」인데
+        ///   세계는 「조잡」인 상태도 만들어진다.
+        /// </summary>
+        IReadOnlyList<WitchMendokusai.RecipeCatalogEntry> Spellbook { get; }
+
+        /// <summary>같은 솥 비우고 다시(서버 권위 리셋). 이름 Reset X = NetworkBehaviour.Reset() magic 메서드 충돌 회피.</summary>
+        void ResetBrew();
+
+        /// <summary>현재 공유 마커 상태(서버 BrewEngine 누적 → SyncVar). 비활성이면 false.</summary>
+        bool TryGetState(out BrewVector position, out int stepCount, out float accruedSideEffect);
+
+        /// <summary>이 피어가 서버(host)인가 — 「완성」 보상은 host 권위(이중지급 방지) 분기 근거.</summary>
+        bool IsServerPeer { get; }
+
+        /// <summary>
+        /// 「이 솥을 완성으로 가져가겠다」 (TASK-WM-217). 줄지 말지는 <b>세계</b>가 정한다.
+        /// 옛 규칙(host 만 완성)은 호스트가 없는 세계에서 「아무도 못 누른다」가 되어 기능이 죽는다.
+        /// </summary>
+        void RequestCompletion();
+
+        /// <summary>세계가 나에게 완성을 내줬나. 내줬으면 <b>한 번만</b> true(두 번 채점 방지).</summary>
+        bool TryTakeCompletion(out BrewState taken);
+
+        /// <summary>
+        /// 세계가 내준 완성 — <b>무엇이 나왔는지까지</b> (TASK-WM-217).
+        ///
+        /// ★ 왜 따로 있나: 위의 것은 마커 상태만 준다. 그러면 게임이 <b>자기 레시피로 다시 채점하고
+        ///   또 인벤토리에 넣는다</b> — 세계가 이미 가방에 넣어 준 것 위에 한 번 더(이중지급).
+        ///   이 값이 오면 게임은 넣지 않고 <b>보여 주기만</b> 한다.
+        /// </summary>
+        bool TryTakeCompletionResult(out BrewCompletion completion);
+
+        /// <summary>동기된 전체 경로 step 을 buffer 에 복사(경로선 렌더용 — 마커뿐 아니라 경로까지 공유).</summary>
+        void ReadSteps(List<BrewStep> buffer);
+    }
+
+    /// <summary>
+    /// 공유 가마솥 채널 static accessor — LocalPlayerProbeBridge 동형. Network layer(CauldronNetworkBridge)가
+    /// OnStartClient 에 Register, OnStopClient 에 Clear. Domain UI 는 IsActive 로 로컬/공유 분기.
+    /// </summary>
+    public static class SharedBrewChannelBridge
+    {
+        private static ISharedBrewChannel channel;
+
+        public static void Register(ISharedBrewChannel sharedBrewChannel)
+        {
+            channel = sharedBrewChannel;
+        }
+
+        public static void Clear(ISharedBrewChannel sharedBrewChannel)
+        {
+            // 자기 자신만 해제(다른 인스턴스가 이미 갱신했으면 건드리지 X — race 안전).
+            if (channel == sharedBrewChannel)
+            {
+                channel = null;
+            }
+        }
+
+        /// <summary>네트워크 가마솥 채널 활성 여부(미등록 or 비활성 = false → UI 로컬 경로).</summary>
+        public static bool IsActive => channel != null && channel.IsActive;
+
+        /// <summary>활성 채널(IsActive 확인 후 사용). 비활성 시 null 가능.</summary>
+        public static ISharedBrewChannel Channel => channel;
+    }
+}

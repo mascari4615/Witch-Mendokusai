@@ -2,7 +2,6 @@
     "name": "WitchMendokusai.Mods.Sample",
     "rootNamespace": "WitchMendokusai.Mods.Sample",
     "references": [
-        "WitchMendokusai.DomainSDK",
         "WitchMendokusai.DomainSDK.Contracts",
         "WitchMendokusai.DomainSDK.Numerics",
         "WitchMendokusai.DomainSDK.Identity",
@@ -28,7 +27,15 @@
         "WitchMendokusai.DomainSDK.Stat",
         "WitchMendokusai.DomainSDK.TowerDefense",
         "WitchMendokusai.DomainSDK.Upgrade",
-        "WitchMendokusai.DomainSDK.World"
+        "WitchMendokusai.DomainSDK.World",
+        "WitchMendokusai.DomainSDK.Alchemy",
+        "WitchMendokusai.DomainSDK.Item",
+        "WitchMendokusai.DomainSDK.WorldSim",
+        "WitchMendokusai.DomainSDK.Act",
+        "WitchMendokusai.DomainSDK.Combat",
+        "WitchMendokusai.DomainSDK.Tactics",
+        "WitchMendokusai.DomainSDK.Quest",
+        "WitchMendokusai.DomainSDK.Mods"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -3,7 +3,6 @@
     "rootNamespace": "WitchMendokusai",
     "references": [
         "WM.Foundation",
-        "WitchMendokusai.DomainSDK",
         "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.Care",
         "WitchMendokusai.DomainSDK.City",
@@ -51,7 +50,15 @@
         "VContainer",
         "WM.Core",
         "WM.Presentation",
-        "WM.ViewModel"
+        "WM.ViewModel",
+        "WitchMendokusai.DomainSDK.Alchemy",
+        "WitchMendokusai.DomainSDK.Item",
+        "WitchMendokusai.DomainSDK.WorldSim",
+        "WitchMendokusai.DomainSDK.Act",
+        "WitchMendokusai.DomainSDK.Combat",
+        "WitchMendokusai.DomainSDK.Tactics",
+        "WitchMendokusai.DomainSDK.Quest",
+        "WitchMendokusai.DomainSDK.Mods"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

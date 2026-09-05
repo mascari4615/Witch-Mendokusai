@@ -19,7 +19,6 @@
         "DOTween.Modules",
         "PlayFab",
         "UniRx",
-        "WitchMendokusai.DomainSDK",
         "VContainer",
         "WitchMendokusai.DomainSDK.Upgrade",
         "WitchMendokusai.DomainSDK.Numerics",
@@ -44,7 +43,15 @@
         "WitchMendokusai.DomainSDK.Reward",
         "WitchMendokusai.DomainSDK.Stat",
         "WitchMendokusai.DomainSDK.TowerDefense",
-        "WitchMendokusai.DomainSDK.World"
+        "WitchMendokusai.DomainSDK.World",
+        "WitchMendokusai.DomainSDK.Alchemy",
+        "WitchMendokusai.DomainSDK.Item",
+        "WitchMendokusai.DomainSDK.WorldSim",
+        "WitchMendokusai.DomainSDK.Act",
+        "WitchMendokusai.DomainSDK.Combat",
+        "WitchMendokusai.DomainSDK.Tactics",
+        "WitchMendokusai.DomainSDK.Quest",
+        "WitchMendokusai.DomainSDK.Mods"
     ],
     "includePlatforms": [
         "Editor"

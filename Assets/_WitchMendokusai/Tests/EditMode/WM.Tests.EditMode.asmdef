@@ -3,7 +3,6 @@
     "rootNamespace": "WitchMendokusai.Tests",
     "references": [
         "WM.Foundation",
-        "WitchMendokusai.DomainSDK",
         "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.Care",
         "WitchMendokusai.DomainSDK.City",
@@ -39,7 +38,15 @@
         "WM.Domain",
         "WM.Editor",
         "WM.Presentation",
-        "WM.Idle"
+        "WM.Idle",
+        "WitchMendokusai.DomainSDK.Alchemy",
+        "WitchMendokusai.DomainSDK.Item",
+        "WitchMendokusai.DomainSDK.WorldSim",
+        "WitchMendokusai.DomainSDK.Act",
+        "WitchMendokusai.DomainSDK.Combat",
+        "WitchMendokusai.DomainSDK.Tactics",
+        "WitchMendokusai.DomainSDK.Quest",
+        "WitchMendokusai.DomainSDK.Mods"
     ],
     "includePlatforms": [
         "Editor"

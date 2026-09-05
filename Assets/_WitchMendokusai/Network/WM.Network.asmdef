@@ -2,7 +2,6 @@
     "name": "WM.Network",
     "rootNamespace": "WitchMendokusai",
     "references": [
-        "WitchMendokusai.DomainSDK",
         "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.Care",
         "WitchMendokusai.DomainSDK.City",
@@ -31,7 +30,15 @@
         "WitchMendokusai.DomainSDK.Workshop",
         "WitchMendokusai.DomainSDK.World",
         "Unity.InputSystem",
-        "WM.Core"
+        "WM.Core",
+        "WitchMendokusai.DomainSDK.Alchemy",
+        "WitchMendokusai.DomainSDK.Item",
+        "WitchMendokusai.DomainSDK.WorldSim",
+        "WitchMendokusai.DomainSDK.Act",
+        "WitchMendokusai.DomainSDK.Combat",
+        "WitchMendokusai.DomainSDK.Tactics",
+        "WitchMendokusai.DomainSDK.Quest",
+        "WitchMendokusai.DomainSDK.Mods"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
