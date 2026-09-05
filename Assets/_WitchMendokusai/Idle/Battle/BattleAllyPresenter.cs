@@ -44,6 +44,14 @@ namespace WitchMendokusai.Idle
 			AdvanceMotion(snapshot, delta);
 		}
 
+		public void SetTimeScale(float scale)
+		{
+			for (int seat = 0; seat < animators.Length; seat++)
+			{
+				animators[seat]?.SetSpeed(scale);
+			}
+		}
+
 		public void PlayAttack(int seat)
 		{
 			if (seat >= 0 && seat < attackLeft.Length)

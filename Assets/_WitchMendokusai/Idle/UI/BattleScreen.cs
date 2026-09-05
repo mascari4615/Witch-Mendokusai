@@ -14,7 +14,7 @@ namespace WitchMendokusai.Idle
 	///   HUD 는 전부 전투 창 안: 작전 코드, 웨이브, 스테퍼, 반복, 골드, 손패, 코스트, AUTO.
 	///   관리 열은 탭 7 + 판 하나. 한 번에 한 판.
 	/// ★ 분할 토글: 전투 창과 관리 열을 chevron 하나로 접고 펼침.
-	/// ★ 상점, 연구소 탭은 전투 창의 3D 씬 자리를 그 탭의 씬으로 바꾼다 (지금은 자리 표시만).
+	/// ★ 상점, 연구소 탭은 전투 창의 3D 씬 자리를 그 탭의 장면으로 바꾼다 (임시 장면. AltScenePresenter).
 	/// ★ 규칙은 한 줄도 없다. 사진을 그리고 의도를 보낸다. 판정은 전부 코어.
 	/// ★ 설정: 배속과 전투 기록. 골드 상세: HUD 골드 아이콘.
 	///
@@ -215,14 +215,18 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
+			// 조준 중이면 세상만 느려짐. 저장과 화면 갱신은 실시간
+			float worldDelta = delta * (view != null && view.Aiming ? runtimeSettingsAsset.AimTimeScale : 1f);
+
 			// 보고 있는 동안은 위험 진행. 적의 공격, 쓰러짐, 부활
-			session.AdvanceLive(delta);
-			session.AdvanceSurge(delta);
+			session.AdvanceLive(worldDelta);
+			session.AdvanceSurge(worldDelta);
 			IdleSnapshot snapshot = session.Capture();
 
 			if (stage != null)
 			{
-				stage.Render(snapshot, delta);
+				stage.SetTimeScale(worldDelta > 0f && delta > 0f ? worldDelta / delta : 1f);
+				stage.Render(snapshot, worldDelta);
 			}
 
 			view?.Tick(delta);

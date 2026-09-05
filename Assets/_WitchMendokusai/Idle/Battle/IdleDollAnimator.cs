@@ -37,6 +37,12 @@ namespace WitchMendokusai.Idle
 			animator.SetTrigger(HIT);
 		}
 
+		/// <summary>세상 시간 배율. 조준 중 느려짐</summary>
+		public void SetSpeed(float scale)
+		{
+			animator.speed = scale;
+		}
+
 		public void Tick(float delta)
 		{
 			if (Application.isPlaying == false)

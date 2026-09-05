@@ -96,6 +96,8 @@ namespace WitchMendokusai.Idle
 			foes.Render(snapshot, delta);
 		}
 
+		public void SetTimeScale(float scale) => allies.SetTimeScale(scale);
+
 		public void PlayAllyAttack(int seat) => allies.PlayAttack(seat);
 
 		public void PlayFoeHit(long index) => foes.PlayHit(index);

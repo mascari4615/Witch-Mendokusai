@@ -69,6 +69,9 @@ namespace WitchMendokusai.Idle.UI
 		/// <summary>지금 펼친 관리 판. 판을 다시 지을 때 이어받는다</summary>
 		public ManagementPage OpenedPage { get; private set; }
 
+		/// <summary>카드 조준 중. 무대 시간이 느려짐</summary>
+		public bool Aiming => cardHandController != null && cardHandController.IsAiming;
+
 		// ── 짓기 ──────────────────────────────────────────────────────────
 
 		public void Build(IdleAwayReport away)

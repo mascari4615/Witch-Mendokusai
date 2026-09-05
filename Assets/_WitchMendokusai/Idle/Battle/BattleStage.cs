@@ -67,6 +67,15 @@ namespace WitchMendokusai.Idle
 			BuildScenery();
 		}
 
+		/// <summary>세상의 시간 배율. 인형 애니메이터 속도에 반영 (조준 중 느려짐)</summary>
+		public void SetTimeScale(float scale)
+		{
+			if (built)
+			{
+				entities.SetTimeScale(scale);
+			}
+		}
+
 		/// <summary>전투 창에 보이는 장면. 전투 시뮬과 표시는 뒤에서 계속 돎</summary>
 		internal void ShowScene(StageScene scene)
 		{

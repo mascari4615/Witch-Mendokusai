@@ -24,6 +24,7 @@ MonoBehaviour:
   tooltipRootFallbackSize: {x: 1920, y: 1080}
   tooltipTipFallbackSize: {x: 300, y: 120}
   modalRepaintMilliseconds: 16
+  aimTimeScale: 0.2
   previewStage: 4
   previewResource: 500
   previewPartyHeroIds:

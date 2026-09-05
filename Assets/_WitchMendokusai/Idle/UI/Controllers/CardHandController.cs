@@ -91,6 +91,9 @@ namespace WitchMendokusai.Idle.UI
 			aim.BringToFront();
 		}
 
+		/// <summary>카드를 누른 채 대상을 고르는 중. 세상이 느려지는 구간</summary>
+		public bool IsAiming => aimedHand >= 0 && pointer >= 0;
+
 		public void CancelAim()
 		{
 			aimedHand = -1;
