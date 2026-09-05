@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- 뽑기 카드 한 장 (사용자 2026-09-05 연출 요구). 뒤집히기 전에는 뒷면 -->
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="gacha-card" class="idle-gacha-card">
+        <ui:VisualElement name="gacha-card-portrait" class="idle-gacha-card-portrait" />
+        <ui:Label name="gacha-card-grade" class="idle-gacha-card-grade" />
+        <ui:Label name="gacha-card-name" class="idle-gacha-card-name" />
+        <ui:Label name="gacha-card-badge" class="idle-gacha-card-badge" />
+    </ui:VisualElement>
+</ui:UXML>

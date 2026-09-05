@@ -17,6 +17,7 @@ namespace WitchMendokusai.Idle.UI
 		private readonly UIContentSO content;
 		private readonly HeroVisualPresenter heroVisualPresenter;
 		private readonly Action openOdds;
+		private readonly Action<IReadOnlyList<IdleHeroPull>> showGacha;
 		private readonly Action writeDown;
 		private readonly Action requestRender;
 		private readonly Action<string, float> showFeedback;
@@ -35,12 +36,14 @@ namespace WitchMendokusai.Idle.UI
 
 		public ShopPageController(VisualElement page, IdleSession session, UIContentSO content,
 			HeroVisualPresenter heroVisualPresenter, Action openOdds,
+			Action<IReadOnlyList<IdleHeroPull>> showGacha,
 			Action writeDown, Action requestRender, Action<string, float> showFeedback, float feedbackSeconds)
 		{
 			this.session = session;
 			this.content = content;
 			this.heroVisualPresenter = heroVisualPresenter;
 			this.openOdds = openOdds;
+			this.showGacha = showGacha;
 			this.writeDown = writeDown;
 			this.requestRender = requestRender;
 			this.showFeedback = showFeedback;
@@ -130,9 +133,10 @@ namespace WitchMendokusai.Idle.UI
 				return;
 			}
 
-			IdleHeroKind kind = IdleHeroes.KindOf(result.Id);
-			showFeedback(content.PullFeedbackText(
-				content.GradeName(result.Grade), kind.Name, result.IsNew, result.ByPity), feedbackSeconds * 2f);
+			// 한 번 뽑아도 연출을 탄다 (사용자 2026-09-05: 버튼 딸깍은 안 됨)
+			batchResult.Clear();
+			batchResult.Add(result);
+			showGacha(batchResult);
 			writeDown();
 			requestRender();
 		}
@@ -158,7 +162,7 @@ namespace WitchMendokusai.Idle.UI
 				newFaces += one.IsNew ? 1 : 0;
 			}
 
-			showFeedback(content.PullBatchFeedbackText(batchResult.Count, legend, epic, rare, newFaces), feedbackSeconds * 2f);
+			showGacha(batchResult);
 			writeDown();
 			requestRender();
 		}

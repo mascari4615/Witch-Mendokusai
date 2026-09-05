@@ -117,6 +117,12 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string volleyResolvedFeedback;
 		[SerializeField] private string volleyMissFeedback;
 		[SerializeField] private string volleyTapHint;
+		[SerializeField] private string gachaTitleFormat;
+		[SerializeField] private string gachaSummaryFormat;
+		[SerializeField] private string gachaSkipText;
+		[SerializeField] private string gachaCloseText;
+		[SerializeField] private string gachaNewBadge;
+		[SerializeField] private string gachaPityBadge;
 		[SerializeField] private string supplyFeedbackFormat;
 		[SerializeField] private string appraiseCardFeedbackFormat;
 		[SerializeField] private string appraiseReplacedSuffix;
@@ -328,6 +334,13 @@ namespace WitchMendokusai.Idle
 		public string StarsText(int count) => count <= 0 ? string.Empty : starPrefix + new string(starCharacter, count);
 		public string VolleyMissFeedback => volleyMissFeedback;
 		public string VolleyTapHint => volleyTapHint;
+		public string GachaTitleText(int count) => string.Format(gachaTitleFormat, count);
+		public string GachaSummaryText(int count, int legend, int epic, int newFaces) =>
+			string.Format(gachaSummaryFormat, count, legend, epic, newFaces);
+		public string GachaSkipText => gachaSkipText;
+		public string GachaCloseText => gachaCloseText;
+		public string GachaNewBadge => gachaNewBadge;
+		public string GachaPityBadge => gachaPityBadge;
 
 		public string DescribeSpan(double seconds)
 		{
@@ -443,7 +456,8 @@ namespace WitchMendokusai.Idle
 				producerRowFormat, mapStageFormat, mapCurrentSuffix, mapBestSuffix, shopScenePlaceholder,
 				labScenePlaceholder, volleyTargetFeedback, volleyDragHint, volleyResolvedFeedback,
 				supplyFeedbackFormat, appraiseCardFeedbackFormat, appraiseReplacedSuffix,
-				volleyMissFeedback, volleyTapHint, appraiseCardEmptyFeedback, nextStageFeedback, statRaisedFeedbackFormat, mergeFeedbackFormat,
+				volleyMissFeedback, volleyTapHint, gachaTitleFormat, gachaSummaryFormat, gachaSkipText,
+				gachaCloseText, gachaNewBadge, gachaPityBadge, appraiseCardEmptyFeedback, nextStageFeedback, statRaisedFeedbackFormat, mergeFeedbackFormat,
 				mergeAllFeedbackFormat, appraiseFeedbackFormat, pullFeedbackFormat, newHeroSuffix, pitySuffix,
 				partyFullFeedback, prestigeFeedback, statSelectHeroTip, statMaxTipFormat, statWaitTipFormat,
 				statTipFormat, bagTipFormat, noWornGearText, wornGearSummaryFormat, wornEmptyTipFormat,

@@ -10,6 +10,7 @@ namespace WitchMendokusai.Idle.UI
 		private readonly GoldDetailsController goldDetails;
 		private readonly SettingsPopupController settingsPopup;
 		private readonly OddsPopupController oddsPopup;
+		private readonly GachaRevealController gachaReveal;
 		private readonly UIContentSO content;
 		private readonly Action closeSelectionPopups;
 		private readonly Action requestRender;
@@ -19,7 +20,11 @@ namespace WitchMendokusai.Idle.UI
 			VisualElement goldPopup,
 			VisualElement settingsPopupElement,
 			VisualElement oddsPopupElement,
+			VisualElement gachaPopupElement,
 			VisualTreeAsset rowButtonAsset,
+			VisualTreeAsset gachaCardAsset,
+			HeroVisualPresenter heroVisualPresenter,
+			RuntimeSettingsSO runtimeSettings,
 			ModalController modalController,
 			IdleSession session,
 			UIContentSO content,
@@ -38,11 +43,26 @@ namespace WitchMendokusai.Idle.UI
 			settingsPopup = new SettingsPopupController(
 				settingsPopupElement, modalController, session, content, requestRender, wipeAndRestart);
 			oddsPopup = new OddsPopupController(oddsPopupElement, modalController, content);
+			gachaReveal = new GachaRevealController(
+				gachaPopupElement, modalController, content, heroVisualPresenter, gachaCardAsset, runtimeSettings);
 		}
 
 		public void Tick(float delta)
 		{
 			settingsPopup.Tick(delta);
+			gachaReveal.Tick(delta);
+		}
+
+		/// <summary>뽑기 연출. 결과는 이미 판이 정한 것이고 여기는 보여주기만</summary>
+		public void ShowGacha(System.Collections.Generic.IReadOnlyList<IdleHeroPull> result)
+		{
+			mapSelection.Close();
+			closeSelectionPopups();
+			goldDetails.Close();
+			settingsPopup.Close();
+			oddsPopup.Close();
+			gachaReveal.Show(result);
+			requestRender();
 		}
 
 		public void Render(IdleSnapshot snapshot)
@@ -122,6 +142,7 @@ namespace WitchMendokusai.Idle.UI
 			goldDetails.Close();
 			settingsPopup.Close();
 			oddsPopup.Close();
+			gachaReveal.Close();
 		}
 
 		public void ShowNote(string text, float seconds)

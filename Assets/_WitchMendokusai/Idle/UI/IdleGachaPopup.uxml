@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- 뽑기 연출 (사용자 2026-09-05). 모으기, 터짐, 한 장씩 공개, 요약 -->
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="popup" class="idle-modal-shade idle-gacha-popup idle-hidden">
+        <ui:VisualElement name="gacha-burst" class="idle-gacha-burst" picking-mode="Ignore" />
+        <ui:VisualElement class="idle-gacha-panel">
+            <ui:Label name="gacha-title" class="idle-gacha-title" />
+            <ui:VisualElement name="gacha-grid" class="idle-gacha-grid" />
+            <ui:Label name="gacha-summary" class="idle-gacha-summary" />
+            <ui:VisualElement class="idle-gacha-buttons">
+                <ui:Button name="gacha-skip" class="idle-row-button idle-gacha-button" />
+                <ui:Button name="gacha-close" class="idle-row-button idle-row-button--strong idle-gacha-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

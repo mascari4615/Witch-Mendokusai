@@ -17,6 +17,7 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private VisualTreeAsset rowButton;
 		[SerializeField] private VisualTreeAsset rowLabel;
 		[SerializeField] private VisualTreeAsset dungeonRow;
+		[SerializeField] private VisualTreeAsset gachaCard;
 
 		public VisualTreeAsset Screen => screen;
 		public VisualTreeAsset BagCell => bagCell;
@@ -29,6 +30,7 @@ namespace WitchMendokusai.Idle
 		public VisualTreeAsset RowButton => rowButton;
 		public VisualTreeAsset RowLabel => rowLabel;
 		public VisualTreeAsset DungeonRow => dungeonRow;
+		public VisualTreeAsset GachaCard => gachaCard;
 
 		public bool TryValidate(out string error)
 		{
@@ -43,6 +45,7 @@ namespace WitchMendokusai.Idle
 			if (rowButton == null) { error = nameof(rowButton); return false; }
 			if (rowLabel == null) { error = nameof(rowLabel); return false; }
 			if (dungeonRow == null) { error = nameof(dungeonRow); return false; }
+			if (gachaCard == null) { error = nameof(gachaCard); return false; }
 
 			error = string.Empty;
 			return true;

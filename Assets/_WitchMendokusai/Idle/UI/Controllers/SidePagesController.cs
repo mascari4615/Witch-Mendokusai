@@ -39,6 +39,7 @@ namespace WitchMendokusai.Idle.UI
 			Action<int> openHero,
 			Action<int> openGear,
 			Action openOdds,
+			Action<System.Collections.Generic.IReadOnlyList<IdleHeroPull>> showGacha,
 			Action<VisualElement, Func<string>> hookTooltip,
 			Action writeDown,
 			Action requestRender,
@@ -84,7 +85,7 @@ namespace WitchMendokusai.Idle.UI
 				content);
 			shopPage = new ShopPageController(
 				Bind(sidePanel, root, ManagementPage.Shop, "shop-page-host"),
-				session, content, heroVisualPresenter, openOdds, writeDown, requestRender, showNote, noteSeconds);
+				session, content, heroVisualPresenter, openOdds, showGacha, writeDown, requestRender, showNote, noteSeconds);
 			labPage = new LabPageController(
 				Bind(sidePanel, root, ManagementPage.Lab, "lab-page-host"),
 				session, content, writeDown, requestRender, showNote, noteSeconds);

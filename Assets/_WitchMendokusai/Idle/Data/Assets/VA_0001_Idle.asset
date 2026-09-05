@@ -23,3 +23,4 @@ MonoBehaviour:
   rowButton: {fileID: 9197481963319205126, guid: 53ca940fb97747ac85e031734f6b8cf6, type: 3}
   rowLabel: {fileID: 9197481963319205126, guid: e48a18b2844e4499bcda6955aeaa9c65, type: 3}
   dungeonRow: {fileID: 9197481963319205126, guid: b9045207f3a14906b0f227b035766f83, type: 3}
+  gachaCard: {fileID: 9197481963319205126, guid: 54dad7aafb544798841fbf17091ea278, type: 3}

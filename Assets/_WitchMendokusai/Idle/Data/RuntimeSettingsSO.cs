@@ -12,6 +12,16 @@ namespace WitchMendokusai.Idle
 
 		[Tooltip("구역이 바뀔 때 덮는 막이 떠 있는 시간 (초). 절반은 어두워지고 절반은 밝아진다")]
 		[SerializeField, Min(0.1f)] private float stageVeilSeconds = 0.7f;
+
+		[Header("뽑기 연출")]
+		[Tooltip("빛이 모이는 시간 (초)")]
+		[SerializeField, Min(0.05f)] private float gachaChargeSeconds = 0.8f;
+
+		[Tooltip("터지는 시간 (초). 이때 색이 그 판 최고 등급")]
+		[SerializeField, Min(0.05f)] private float gachaFlashSeconds = 0.35f;
+
+		[Tooltip("카드가 한 장씩 뒤집히는 간격 (초)")]
+		[SerializeField, Min(0.02f)] private float gachaCardStepSeconds = 0.12f;
 		[SerializeField, Min(0.05f)] private float uiRefreshSeconds = 0.1f;
 		[SerializeField, Range(0f, 1f)] private float soundVolume = 0.32f;
 		[SerializeField, Min(0f)] private float soundMinGapSeconds = 0.06f;
@@ -33,6 +43,9 @@ namespace WitchMendokusai.Idle
 		public float SaveIntervalSeconds => saveIntervalSeconds;
 		public float NoteSeconds => noteSeconds;
 		public float StageVeilSeconds => stageVeilSeconds;
+		public float GachaChargeSeconds => gachaChargeSeconds;
+		public float GachaFlashSeconds => gachaFlashSeconds;
+		public float GachaCardStepSeconds => gachaCardStepSeconds;
 		public float UIRefreshSeconds => uiRefreshSeconds;
 		public float SoundVolume => soundVolume;
 		public float SoundMinGapSeconds => soundMinGapSeconds;

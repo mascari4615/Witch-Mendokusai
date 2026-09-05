@@ -174,6 +174,12 @@ MonoBehaviour:
   volleyResolvedFeedback: 일제 사격. 모두 달려들었다
   volleyMissFeedback: '적을 눌러야 나간다. 적 위에서 놓거나 적을 한 번 더 눌러라'
   volleyTapHint: '겨눔. 이제 적을 눌러라 (다시 누르면 취소)'
+  gachaTitleFormat: '{0}회 뽑기'
+  gachaSummaryFormat: '{0}회. 레전드 {1}, 에픽 {2}, 새 얼굴 {3}'
+  gachaSkipText: 건너뛰기
+  gachaCloseText: 확인
+  gachaNewBadge: NEW
+  gachaPityBadge: 천장
   supplyFeedbackFormat: '긴급 보급. {0:0}초 동안 수입 ×{1:0.#}'
   appraiseCardFeedbackFormat: '비밀 감정. T{0} → {1:P1}{2}'
   appraiseReplacedSuffix: ' 갈아 끼움'
