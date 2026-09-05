@@ -352,18 +352,18 @@ $anchors = @(
     @{ File = 'Domain/TowerDefense/TowerDefensePlacement.cs'
        Needle = 'aboveFog: true'
        Why = 'the cursor marker hides under the fog -- cannot build on unexplored ground' },
-    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
+    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.Hero.cs'
        Needle = 'heroMovement.SetMoveDirection'
        Why = 'hero moves by raw transform again -- stutters, walks through walls, pushes monsters' },
     # Draft cards that were offered but wired to nothing (2026-08-06). The card text promised an
     # effect and the run changed nothing -- it silently burns one of the player's picks.
-    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
+    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.Lair.cs'
        Needle = 'boons.EssenceMultiplier'
        Why = 'the essence-gain card does nothing again' },
     @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
        Needle = 'boons.NestDamageMultiplier'
        Why = 'the nest-damage card does nothing again' },
-    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
+    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.Economy.cs'
        Needle = 'cost * boons.ResearchCostMultiplier'
        Why = 'the research-discount card does nothing again' },
     # NOTE: a needle must match the CALL SITE, not a bare name -- a bare name also appears in the
@@ -375,7 +375,7 @@ $anchors = @(
     @{ File = 'Domain/TowerDefense/TowerDefenseHudView.cs'
        Needle = 'ResearchPanelRequested()'
        Why = 'the research button stops opening the constellation -- the whole research screen becomes unreachable' },
-    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.cs'
+    @{ File = 'Domain/TowerDefense/TowerDefenseMatch.Build.cs'
        Needle = 'AddApproachRing(mapLayout.CoreCell)'
        Why = 'monsters converge on one cell again instead of surrounding the core' },
     @{ File = '../../DomainSDK/TowerDefense/TowerDefenseFlowField.cs'   # SDK lives at repo root (2026-09-05)
