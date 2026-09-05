@@ -131,7 +131,7 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string percentValueFormat;
 		[SerializeField] private string criticalDamageValueFormat;
 		[SerializeField] private string popupPageFormat;
-		[SerializeField, Min(1)] private int statUpgradeAmount = 1;
+		[SerializeField] private int[] statUpgradeAmounts = Array.Empty<int>();
 		[SerializeField, Min(1)] private int heroPopupSlotCount = 24;
 		[SerializeField, Min(1)] private int gearPopupSlotCount = 24;
 		[SerializeField, Min(1)] private int bagSlotCount = 40;
@@ -141,7 +141,7 @@ namespace WitchMendokusai.Idle
 		public int TabCount => tabs.Length;
 		public int StatCount => statNames.Length;
 		public int GearSlotCount => gearSlotNames.Length;
-		public int StatUpgradeAmount => statUpgradeAmount;
+		public int StatUpgradeAmountCount => statUpgradeAmounts.Length;
 		public int HeroPopupSlotCount => heroPopupSlotCount;
 		public int GearPopupSlotCount => gearPopupSlotCount;
 		public int BagSlotCount => bagSlotCount;
@@ -157,6 +157,8 @@ namespace WitchMendokusai.Idle
 		public string GradeName(IdleHeroGrade grade) => heroGradeNames[(int)grade];
 		public string CardName(IdleCardKind kind) => cardNames[(int)kind];
 		public string DungeonName(IdleDungeonKind kind) => dungeonNames[(int)kind];
+		public int StatUpgradeAmount(int index) => statUpgradeAmounts[index];
+		public int IndexOfStatUpgradeAmount(int amount) => Array.IndexOf(statUpgradeAmounts, amount);
 		public string BattleGradeText(int tier, int ceiling) => string.Format(battleGradeFormat, tier, ceiling);
 		public string StageText(int stage) => string.Format(stageFormat, stage);
 		public string RepeatText(bool enabled) => enabled ? repeatOnText : repeatOffText;
@@ -257,7 +259,7 @@ namespace WitchMendokusai.Idle
 		public string PartySeatText(string seat, string heroName) => string.Format(partySeatFormat, seat, heroName);
 		public string EmptyPartySeatText(string seat) => string.Format(emptyPartySeatFormat, seat);
 		public string LevelText(int level) => string.Format(levelFormat, level);
-		public string UpgradeButtonText(string cost) => string.Format(upgradeButtonFormat, cost);
+		public string UpgradeButtonText(int amount, string cost) => string.Format(upgradeButtonFormat, amount, cost);
 		public string GainText(string amount) => string.Format(gainFormat, amount);
 		public string HeroChoiceText(string name, int stars, int level, string axis) =>
 			string.Format(heroChoiceFormat, name, StarsText(stars), level, axis);
@@ -393,9 +395,9 @@ namespace WitchMendokusai.Idle
 				return false;
 			}
 
-			if (statUpgradeAmount <= 0)
+			if (statUpgradeAmounts.Length == 0 || Array.Exists(statUpgradeAmounts, amount => amount <= 0))
 			{
-				error = "statUpgradeAmount must be positive";
+				error = "statUpgradeAmounts must contain positive values";
 				return false;
 			}
 

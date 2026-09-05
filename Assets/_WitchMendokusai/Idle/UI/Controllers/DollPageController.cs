@@ -25,7 +25,7 @@ namespace WitchMendokusai.Idle.UI
 		private readonly Label dollName;
 		private readonly Label[] statValues;
 		private readonly Label[] statLevels;
-		private readonly Button[] statButtons;
+		private readonly Button[,] statButtons;
 		private readonly Label statFeedback;
 		private int statFeedbackVersion;
 
@@ -59,7 +59,7 @@ namespace WitchMendokusai.Idle.UI
 
 			statValues = new Label[content.StatCount];
 			statLevels = new Label[content.StatCount];
-			statButtons = new Button[content.StatCount];
+			statButtons = new Button[content.StatCount, content.StatUpgradeAmountCount];
 			for (int slot = 0; slot < IdleHeroes.PARTY_SLOTS; slot++)
 			{
 				int captured = slot;
@@ -79,10 +79,14 @@ namespace WitchMendokusai.Idle.UI
 				statLevels[stat] = page.Q<Label>("stat-level-" + stat);
 				name.text = content.StatName(stat);
 
-				Button button = page.Q<Button>("stat-" + stat + "-upgrade");
-				button.clicked += () => Raise((IdleUpgradeKind)capturedStat, content.StatUpgradeAmount);
-				hookTooltip(button, () => StatTip((IdleUpgradeKind)capturedStat, content.StatUpgradeAmount));
-				statButtons[stat] = button;
+				for (int amount = 0; amount < content.StatUpgradeAmountCount; amount++)
+				{
+					int capturedAmount = content.StatUpgradeAmount(amount);
+					Button button = page.Q<Button>("stat-" + stat + "-x" + capturedAmount);
+					button.clicked += () => Raise((IdleUpgradeKind)capturedStat, capturedAmount);
+					hookTooltip(button, () => StatTip((IdleUpgradeKind)capturedStat, capturedAmount));
+					statButtons[stat, amount] = button;
+				}
 			}
 
 			for (int slot = 0; slot < content.GearSlotCount; slot++)
@@ -141,15 +145,19 @@ namespace WitchMendokusai.Idle.UI
 				statValues[stat].text = content.StatValueText(kind, current.CurrentValue);
 				statLevels[stat].text = content.LevelText(current.Level);
 
-				IdleUpgradeView purchase = session.ViewHeroStat(heroId, kind, content.StatUpgradeAmount);
-				Button button = statButtons[stat];
-				button.text = purchase.IsMaxed
-					? content.MaxedText
-					: content.UpgradeButtonText(BigNumberText.Format(purchase.NextCost));
-				bool canAfford = heroId >= 0 && purchase.CanAfford;
-				button.EnableInClassList("idle-stat-buy--ready", canAfford);
-				button.EnableInClassList("idle-stat-buy--maxed", purchase.IsMaxed);
-				button.SetEnabled(canAfford);
+				for (int amount = 0; amount < content.StatUpgradeAmountCount; amount++)
+				{
+					int count = content.StatUpgradeAmount(amount);
+					IdleUpgradeView purchase = session.ViewHeroStat(heroId, kind, count);
+					Button button = statButtons[stat, amount];
+					button.text = purchase.IsMaxed
+						? content.MaxedText
+						: content.UpgradeButtonText(count, BigNumberText.Format(purchase.NextCost));
+					bool canAfford = heroId >= 0 && purchase.CanAfford;
+					button.EnableInClassList("idle-stat-buy--ready", canAfford);
+					button.EnableInClassList("idle-stat-buy--maxed", purchase.IsMaxed);
+					button.SetEnabled(canAfford);
+				}
 			}
 		}
 
@@ -212,7 +220,8 @@ namespace WitchMendokusai.Idle.UI
 		private void ShowStatRaised(IdleUpgradeKind kind, int amount, double before, double after, double spent)
 		{
 			int stat = (int)kind;
-			if (stat < 0 || stat >= statValues.Length)
+			int amountIndex = content.IndexOfStatUpgradeAmount(amount);
+			if (stat < 0 || stat >= statValues.Length || amountIndex < 0)
 			{
 				return;
 			}
@@ -226,14 +235,14 @@ namespace WitchMendokusai.Idle.UI
 			statFeedback.style.visibility = Visibility.Visible;
 			statFeedback.AddToClassList("idle-stat-feedback--shown");
 			statValues[stat].AddToClassList("idle-stat-label--raised");
-			statButtons[stat].AddToClassList("idle-stat-buy--raised");
+			statButtons[stat, amountIndex].AddToClassList("idle-stat-buy--raised");
 
 			statFeedback.schedule.Execute(() =>
 			{
 				if (version == statFeedbackVersion)
 				{
 					statValues[stat].RemoveFromClassList("idle-stat-label--raised");
-					statButtons[stat].RemoveFromClassList("idle-stat-buy--raised");
+					statButtons[stat, amountIndex].RemoveFromClassList("idle-stat-buy--raised");
 				}
 			}).StartingIn(350L);
 
