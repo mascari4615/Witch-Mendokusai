@@ -87,7 +87,7 @@ namespace WitchMendokusai
 			effectRunner.ApplyEffects(quest.RewardEffects);
 			foreach (RewardInfoData rewardData in quest.Rewards)
 			{
-				Reward.GetReward(rewardData);
+				Reward.GetReward(rewardData, soManager.ItemInventory, dataManager.GameStat);
 			}
 
 			Quests.Remove(quest);

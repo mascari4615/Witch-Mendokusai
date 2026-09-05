@@ -290,13 +290,13 @@ namespace WitchMendokusai
 				if (Random.Range(0, 100) > recipe.Percentage)
 				{
 					// Fail
-					Reward.GetReward(recipe.FailureRewards);
+					Reward.GetReward(recipe.FailureRewards, soManager.ItemInventory, dataManager.GameStat);
 					uiManager.PopText("제작 실패 !", TextType.Warning);
 				}
 				else
 				{
 					// Success
-					Reward.GetReward(recipe.SuccessRewards);
+					Reward.GetReward(recipe.SuccessRewards, soManager.ItemInventory, dataManager.GameStat);
 					uiManager.PopText("제작 성공 !", TextType.Heal);
 					soManager.ItemInventory.Add(itemData, 1);
 				}
@@ -332,13 +332,13 @@ namespace WitchMendokusai
 				if (Random.Range(0, 100) > recipe.Percentage)
 				{
 					// Fail
-					Reward.GetReward(recipe.FailureRewards);
+					Reward.GetReward(recipe.FailureRewards, soManager.ItemInventory, dataManager.GameStat);
 					uiManager.PopText("제작 실패 !", TextType.Warning);
 				}
 				else
 				{
 					// Success
-					Reward.GetReward(recipe.SuccessRewards);
+					Reward.GetReward(recipe.SuccessRewards, soManager.ItemInventory, dataManager.GameStat);
 					uiManager.PopText("제작 성공 !", TextType.Heal);
 
 					foreach (ItemInfo resultInfo in recipe.Items)
