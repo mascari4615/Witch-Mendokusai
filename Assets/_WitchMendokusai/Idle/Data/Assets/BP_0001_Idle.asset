@@ -142,3 +142,22 @@ MonoBehaviour:
   cameraTargetOffset: {x: 1.2, y: 0.4, z: 0}
   lightIntensity: 1.15
   lightEuler: {x: 52, y: -28, z: 0}
+  shopGroundColor: {r: 0.78, g: 0.66, b: 0.5, a: 1}
+  labGroundColor: {r: 0.56, g: 0.64, b: 0.7, a: 1}
+  shopPropColor: {r: 0.52, g: 0.36, b: 0.24, a: 1}
+  labPropColor: {r: 0.72, g: 0.82, b: 0.9, a: 1}
+  altGroundScale: {x: 6, y: 1, z: 4}
+  counterSize: {x: 3.2, y: 0.9, z: 0.9}
+  counterPosition: {x: 2.4, y: 0.45, z: 0.6}
+  crateSize: {x: 0.7, y: 0.7, z: 0.7}
+  crateStart: {x: 0.2, y: 0.35, z: -2.2}
+  crateSpacing: 1.1
+  crateCount: 3
+  deskSize: {x: 3.2, y: 0.8, z: 1.2}
+  deskPosition: {x: 2.4, y: 0.4, z: 0.6}
+  flaskRadius: 0.22
+  flaskStart: {x: 1.4, y: 1.02, z: 0.6}
+  flaskSpacing: 0.7
+  flaskCount: 3
+  altDollPosition: {x: 2.4, y: 0, z: 1.9}
+  altDollYaw: 200

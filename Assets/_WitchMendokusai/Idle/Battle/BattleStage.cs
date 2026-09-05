@@ -15,7 +15,9 @@ namespace WitchMendokusai.Idle
 		private readonly List<MeshFilter> sceneryMeshes = new List<MeshFilter>();
 		private Geometry.Shape sceneryShape = (Geometry.Shape)(-1);
 		private Transform holder;
+		private Transform battleRoot;
 		private Transform worldRoot;
+		private AltScenePresenter altScene;
 		private Material groundMaterial;
 		private Color groundRest;
 		private BattleEntityPresenter entities;
@@ -50,13 +52,31 @@ namespace WitchMendokusai.Idle
 			root.hideFlags = HideFlags.DontSave;
 			root.transform.SetParent(transform, false);
 			holder = root.transform;
+			// 전투 뿌리 하나에 바닥, 세계, 볼트. 상점과 연구실 장면은 옆 뿌리 (layout.md 2)
+			GameObject battle = new GameObject("Battle");
+			battle.transform.SetParent(holder, false);
+			battleRoot = battle.transform;
 			BuildGround();
 			GameObject world = new GameObject("World");
-			world.transform.SetParent(holder, false);
+			world.transform.SetParent(battleRoot, false);
 			worldRoot = world.transform;
 			entities = new BattleEntityPresenter(worldRoot, presentationAsset.CreateEntitySettings());
-			fx = new BattleFx(holder, presentationAsset.CreateFxSettings());
+			fx = new BattleFx(battleRoot, presentationAsset.CreateFxSettings());
+			altScene = new AltScenePresenter(
+				holder, presentationAsset.CreateEntitySettings(), presentationAsset.CreateAltSceneSettings());
 			BuildScenery();
+		}
+
+		/// <summary>전투 창에 보이는 장면. 전투 시뮬과 표시는 뒤에서 계속 돎</summary>
+		internal void ShowScene(StageScene scene)
+		{
+			if (built == false)
+			{
+				return;
+			}
+
+			altScene.Show(scene);
+			battleRoot.gameObject.SetActive(scene == StageScene.Battle);
 		}
 
 		public void Render(IdleSnapshot snapshot, float delta)
@@ -68,6 +88,7 @@ namespace WitchMendokusai.Idle
 			fx.Consume(snapshot.Hits, entities);
 			fx.Advance(delta, entities);
 			AdvanceSupply(delta);
+			altScene.Tick(delta);
 		}
 
 		public void SetFloatingTextRoot(VisualElement root)
@@ -119,7 +140,7 @@ namespace WitchMendokusai.Idle
 		{
 			if (presentationAsset.GroundPrefab != null)
 			{
-				GameObject made = Instantiate(presentationAsset.GroundPrefab, holder, false);
+				GameObject made = Instantiate(presentationAsset.GroundPrefab, battleRoot, false);
 				made.name = "Ground";
 				MeshRenderer floor = made.GetComponentInChildren<MeshRenderer>();
 				groundMaterial = floor != null ? floor.sharedMaterial : BattleVisualFactory.MakeMaterial(presentationAsset.GroundColor);
@@ -128,7 +149,7 @@ namespace WitchMendokusai.Idle
 			}
 			GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
 			ground.name = "Ground";
-			ground.transform.SetParent(holder, false);
+			ground.transform.SetParent(battleRoot, false);
 			ground.transform.localScale = new Vector3(6f, 1f, 4f);
 			groundMaterial = BattleVisualFactory.Paint(ground, presentationAsset.GroundColor);
 			groundRest = presentationAsset.GroundColor;
@@ -237,7 +258,9 @@ namespace WitchMendokusai.Idle
 		{
 			if (holder != null) { BattleVisualFactory.Kill(holder.gameObject); }
 			holder = null;
+			battleRoot = null;
 			worldRoot = null;
+			altScene = null;
 			entities = null;
 			fx = null;
 			scenery.Clear();

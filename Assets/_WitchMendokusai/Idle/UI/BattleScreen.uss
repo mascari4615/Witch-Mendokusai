@@ -24,22 +24,25 @@
 	width: 100%;
 }
 
+/* 상점, 연구소 장면 덮개. 3D 장면이 보이도록 투명. 좌하 돌아가기 버튼만 (layout.md 2) */
 .idle-scene-cover {
 	position: absolute;
-	left: 0;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	background-color: rgb(24, 20, 14);
-	align-items: center;
-	justify-content: center;
+	left: 20px;
+	bottom: 84px;
+	flex-direction: column;
+	align-items: flex-start;
 }
 
 .idle-scene-cover-label {
-	font-size: 38px;
-	color: rgb(160, 138, 106);
-	letter-spacing: 6px;
-	margin-bottom: 20px;
+	display: none;
+}
+
+.idle-battle--alt .idle-op,
+.idle-battle--alt .idle-step-row,
+.idle-battle--alt .idle-hand,
+.idle-battle--alt .idle-enemy,
+.idle-battle--alt .idle-skill-aim {
+	display: none;
 }
 
 .idle-box {

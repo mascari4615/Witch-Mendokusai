@@ -103,6 +103,7 @@ namespace WitchMendokusai.Idle.UI
 
 			built = true;
 			screenLayoutController.Apply((int)OpenedPage);
+			ApplyScene(OpenedPage);
 		}
 
 		public void Dispose()
@@ -257,13 +258,24 @@ namespace WitchMendokusai.Idle.UI
 			OpenedPage = page;
 			selectionPopupCoordinator.ClearHeroSelection();
 
-			// 상점, 연구소는 왼쪽 씬이 바뀐다 (layout.md §2). 지금은 덮개
+			ApplyScene(page);
+			screenLayoutController.OpenSide((int)OpenedPage);
+			RequestRender();
+		}
+
+		/// <summary>상점, 연구소는 왼쪽 3D 장면이 바뀜 (layout.md 2). 전투 HUD 는 숨고 돌아가기 버튼만</summary>
+		private void ApplyScene(ManagementPage page)
+		{
 			bool altScene = page == ManagementPage.Shop || page == ManagementPage.Lab;
 			battleHudController.SetAlternateScene(altScene,
 				content.ScenePlaceholderText(page == ManagementPage.Shop));
 
-			screenLayoutController.OpenSide((int)OpenedPage);
-			RequestRender();
+			if (stage != null)
+			{
+				stage.ShowScene(page == ManagementPage.Shop
+					? StageScene.Shop
+					: page == ManagementPage.Lab ? StageScene.Lab : StageScene.Battle);
+			}
 		}
 
 		private void ToggleSplit()

@@ -147,6 +147,27 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private float lightIntensity = 1.15f;
 		[SerializeField] private Vector3 lightEuler = new Vector3(52f, -28f, 0f);
 
+		[Header("Shop and lab scenes (temporary)")]
+		[SerializeField] private Color shopGroundColor = new Color(0.78f, 0.66f, 0.50f);
+		[SerializeField] private Color labGroundColor = new Color(0.56f, 0.64f, 0.70f);
+		[SerializeField] private Color shopPropColor = new Color(0.52f, 0.36f, 0.24f);
+		[SerializeField] private Color labPropColor = new Color(0.72f, 0.82f, 0.90f);
+		[SerializeField] private Vector3 altGroundScale = new Vector3(6f, 1f, 4f);
+		[SerializeField] private Vector3 counterSize = new Vector3(3.2f, 0.9f, 0.9f);
+		[SerializeField] private Vector3 counterPosition = new Vector3(2.4f, 0.45f, 0.6f);
+		[SerializeField] private Vector3 crateSize = new Vector3(0.7f, 0.7f, 0.7f);
+		[SerializeField] private Vector3 crateStart = new Vector3(0.2f, 0.35f, -2.2f);
+		[SerializeField] private float crateSpacing = 1.1f;
+		[SerializeField] private int crateCount = 3;
+		[SerializeField] private Vector3 deskSize = new Vector3(3.2f, 0.8f, 1.2f);
+		[SerializeField] private Vector3 deskPosition = new Vector3(2.4f, 0.4f, 0.6f);
+		[SerializeField] private float flaskRadius = 0.22f;
+		[SerializeField] private Vector3 flaskStart = new Vector3(1.4f, 1.02f, 0.6f);
+		[SerializeField] private float flaskSpacing = 0.7f;
+		[SerializeField] private int flaskCount = 3;
+		[SerializeField] private Vector3 altDollPosition = new Vector3(2.4f, 0f, 1.9f);
+		[SerializeField] private float altDollYaw = 200f;
+
 		public float PartyAnchorX => partyAnchorX;
 		public float FollowCatchUp => followCatchUp;
 		public float SnapJump => snapJump;
@@ -173,6 +194,32 @@ namespace WitchMendokusai.Idle
 		public Vector3 LightEuler => lightEuler;
 
 		internal GameObject GroundPrefab => groundPrefab;
+
+		internal AltScenePresenter.Settings CreateAltSceneSettings()
+		{
+			return new AltScenePresenter.Settings
+			{
+				ShopGroundColor = shopGroundColor,
+				LabGroundColor = labGroundColor,
+				ShopPropColor = shopPropColor,
+				LabPropColor = labPropColor,
+				GroundScale = altGroundScale,
+				CounterSize = counterSize,
+				CounterPosition = counterPosition,
+				CrateSize = crateSize,
+				CrateStart = crateStart,
+				CrateSpacing = crateSpacing,
+				CrateCount = crateCount,
+				DeskSize = deskSize,
+				DeskPosition = deskPosition,
+				FlaskRadius = flaskRadius,
+				FlaskStart = flaskStart,
+				FlaskSpacing = flaskSpacing,
+				FlaskCount = flaskCount,
+				DollPosition = altDollPosition,
+				DollYaw = altDollYaw,
+			};
+		}
 
 		internal BattleFx.Settings CreateFxSettings()
 		{
@@ -314,6 +361,7 @@ namespace WitchMendokusai.Idle
 				|| sceneryBaseSize <= 0f || sceneryStepSize < 0f || scenerySpacing <= 0f
 				|| sceneryLaneOffset < 0f || sceneryLaneStep < 0f || sceneryWrapMargin < 0f
 				|| allyWalkBobFrequency < 0f || foeBobFrequency < 0f
+				|| crateCount < 0 || flaskCount < 0 || flaskRadius <= 0f || crateSpacing < 0f || flaskSpacing < 0f
 				|| shakeFrequencyX < 0f || shakeFrequencyY < 0f)
 			{
 				error = "counts and stage thresholds must be valid";
