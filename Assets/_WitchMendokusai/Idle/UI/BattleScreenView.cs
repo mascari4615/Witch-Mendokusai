@@ -37,6 +37,9 @@ namespace WitchMendokusai.Idle.UI
 		private ModalController modalController;
 		private PointerTooltipController tooltipController;
 		private bool built;
+		/// <summary>Esc 를 받는 자리. 판의 맨 위 (초점이 없으면 이벤트가 거기로 감)</summary>
+		private VisualElement cancelTarget;
+		private EventCallback<NavigationCancelEvent> onCancel;
 
 		public BattleScreenView(
 			VisualElement root,
@@ -98,6 +101,7 @@ namespace WitchMendokusai.Idle.UI
 			BuildAuxiliaryPopups();
 			BuildSelectionPopups();
 			auxiliaryPopupCoordinator.ShowAway(UsePopup("away-popup-host"), away);
+			HookCancel();
 
 			if (stage != null)
 			{
@@ -112,8 +116,48 @@ namespace WitchMendokusai.Idle.UI
 		public void Dispose()
 		{
 			built = false;
+			if (cancelTarget != null && onCancel != null)
+			{
+				cancelTarget.UnregisterCallback(onCancel, TrickleDown.TrickleDown);
+			}
+
+			cancelTarget = null;
+			onCancel = null;
 			screenLayoutController?.Dispose();
 			modalController?.Dispose();
+		}
+
+		/// <summary>
+		/// Esc (layout.md 구현 순서 11, 사용자 2026-09-05). 장치는 안 읽고 UI Toolkit 의 취소 이벤트만
+		///
+		/// ★ 순서: 조준 중이면 조준 취소, 팝업이 떠 있으면 전부 닫기, 아니면 설정 열기.
+		///   취소 이벤트는 초점 요소가 없으면 판의 맨 위로 감. 거기서 TrickleDown 으로 받음
+		/// </summary>
+		private void HookCancel()
+		{
+			cancelTarget = root.panel != null ? root.panel.visualTree : root;
+			onCancel = OnCancel;
+			cancelTarget.RegisterCallback(onCancel, TrickleDown.TrickleDown);
+		}
+
+		private void OnCancel(NavigationCancelEvent moment)
+		{
+			moment.StopPropagation();
+			if (cardHandController != null && cardHandController.IsAiming)
+			{
+				cardHandController.CancelAim();
+				return;
+			}
+
+			if (modalController.IsAnyOpen)
+			{
+				auxiliaryPopupCoordinator.CloseAll();
+				selectionPopupCoordinator.CloseAll();
+				RequestRender();
+				return;
+			}
+
+			auxiliaryPopupCoordinator.OpenSettings();
 		}
 
 		private void BuildBattle(VisualElement shell)

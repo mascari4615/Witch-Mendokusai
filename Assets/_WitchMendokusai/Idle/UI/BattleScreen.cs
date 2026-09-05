@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
 using WitchMendokusai.DomainSDK.Contracts;
 using WitchMendokusai.DomainSDK.Idle;
@@ -236,6 +237,7 @@ namespace WitchMendokusai.Idle
 			{
 				untilUiRefresh = runtimeSettingsAsset.UIRefreshSeconds;
 				Render(snapshot);
+				EnsurePanelSelected();
 			}
 
 			if (preview)
@@ -249,6 +251,28 @@ namespace WitchMendokusai.Idle
 		private void WriteDown()
 		{
 			sessionLifecycle?.Save();
+		}
+
+		/// <summary>
+		/// EventSystem 이 판을 고르고 있게 한다. 사용 시점 lazy, 멱등
+		///
+		/// ★ Esc (취소) 는 EventSystem 이 고른 오브젝트에게만 감. 아무것도 안 고른 첫 판에서는
+		///   취소 이벤트가 판에 안 와서 Esc 가 죽어 있던 것 (실측 2026-09-05). 판 손잡이는 EventSystem 이
+		///   판 등록 뒤 알아서 만드는 것이라 첫 틱에는 없을 수 있음. 화면 갱신 주기마다 다시 봄
+		/// </summary>
+		private void EnsurePanelSelected()
+		{
+			EventSystem events = EventSystem.current;
+			if (events == null || events.currentSelectedGameObject != null)
+			{
+				return;
+			}
+
+			PanelEventHandler handler = FindAnyObjectByType<PanelEventHandler>();
+			if (handler != null)
+			{
+				events.SetSelectedGameObject(handler.gameObject);
+			}
 		}
 
 		// ── 짓기 ──────────────────────────────────────────────────────────

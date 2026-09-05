@@ -20,6 +20,9 @@ namespace WitchMendokusai.Idle.UI
 			this.repaintMilliseconds = repaintMilliseconds;
 		}
 
+		/// <summary>등록한 덮개 중 하나라도 떠 있나. Esc 가 닫을지 열지 가르는 자리</summary>
+		public bool IsAnyOpen => overlays.Exists(IsVisible);
+
 		public void Register(VisualElement overlay, Action close)
 		{
 			overlays.Add(overlay);

@@ -109,6 +109,13 @@ namespace WitchMendokusai.Idle.UI
 			mapSelection.Close();
 		}
 
+		/// <summary>맵, 골드, 설정, 확률표 전부 닫기. Esc 첫 번째 몫</summary>
+		public void CloseAll()
+		{
+			mapSelection.Close();
+			CloseGoldAndSettings();
+		}
+
 		public void CloseGoldAndSettings()
 		{
 			goldDetails.Close();
