@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
@@ -69,6 +69,10 @@ namespace WitchMendokusai
 			RegisterInHierarchyIfPresent<CameraManager>(builder);
 			RegisterInHierarchyIfPresent<BuildManager>(builder);
 			RegisterInHierarchyIfPresent<CityPaintManager>(builder); // TASK-WM-164 SimCity Phase1 step5
+			// 자유 카메라 셋 (World 씬 배치). FreeCameraControllerBase 의 Construct 를 자식이 받는다 (2026-09-05)
+			RegisterInHierarchyIfPresent<FreeFlyCameraController>(builder);
+			RegisterInHierarchyIfPresent<OverheadContentCameraController>(builder);
+			RegisterInHierarchyIfPresent<FreeFlyCrosshair>(builder);
 			RegisterInHierarchyIfPresent<ChatManager>(builder);
 			RegisterInHierarchyIfPresent<ToolTipPopupManager>(builder);
 			RegisterInHierarchyIfPresent<UIHoldingSlot>(builder);
@@ -162,6 +166,9 @@ namespace WitchMendokusai
 				if (towerDefenseModeControllerRegistered)
 					BootGuard.EagerResolve<TowerDefenseModeController>(container, "Scene"); // TASK-WM-194 증분4 — prefab 등록↔해소 짝
 				ResolveIfPresent<CityPaintManager>(container); // TASK-WM-164 step5 — 등록↔해소 짝
+				ResolveIfPresent<FreeFlyCameraController>(container);
+				ResolveIfPresent<OverheadContentCameraController>(container);
+				ResolveIfPresent<FreeFlyCrosshair>(container);
 				ResolveIfPresent<ChatManager>(container);
 				ResolveIfPresent<ToolTipPopupManager>(container);
 				ResolveIfPresent<UIHoldingSlot>(container);

@@ -12,6 +12,14 @@ namespace WitchMendokusai
 	{
 		public static bool Logged = false;
 
+		// DataManager 와 같은 GameObject (DataManager.prefab). 같은 오브젝트 의존은 Awake GetComponent (SettingView 정본 패턴)
+		private DataManager dataManager;
+
+		private void Awake()
+		{
+			dataManager = GetComponent<DataManager>();
+		}
+
 		private void Start()
 		{
 			if (Logged == true)
@@ -48,7 +56,7 @@ namespace WitchMendokusai
 
 				if (name != null)
 				{
-					DataManager.Instance.localDisplayName = name;
+					dataManager.localDisplayName = name;
 					SubmitNickname($"Temp_{SystemInfo.deviceUniqueIdentifier}"[0..10]);
 				}
 				else
@@ -75,11 +83,11 @@ namespace WitchMendokusai
 					GameData gameData = JsonConvert.DeserializeObject<GameData>(result.Data["Player"].Value);
 					if (gameData != null)
 					{
-						DataManager.Instance.SaveManager.LoadData(gameData);
+						dataManager.SaveManager.LoadData(gameData);
 						return;
 					}
 
-					DataManager.Instance.CreateNewGameData();
+					dataManager.CreateNewGameData();
 				}
 			}
 
@@ -127,7 +135,7 @@ namespace WitchMendokusai
 			PlayFabClientAPI.UpdateUserTitleDisplayName(request, result =>
 			{
 				Debug.Log("Updated display name!");
-				DataManager.Instance.localDisplayName = result.DisplayName;
+				dataManager.localDisplayName = result.DisplayName;
 			}, OnError);
 		}
 

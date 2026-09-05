@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -13,10 +14,17 @@ namespace WitchMendokusai
 		[Tooltip("중앙 조준점 비주얼 (Canvas 자식 Image). 자유비행 모드에서만 활성.")]
 		[SerializeField] private GameObject crosshairVisual;
 
+		private CameraManager cameraManager;
+
+		[Inject]
+		public void Construct(CameraManager cameraManager)
+		{
+			this.cameraManager = cameraManager;
+		}
+
 		private void Update()
 		{
-			bool show = CameraManager.Instance != null
-				&& CameraManager.Instance.CurrentContentMode == ContentCameraMode.FreeFly;
+			bool show = cameraManager.CurrentContentMode == ContentCameraMode.FreeFly;
 
 			if (crosshairVisual != null && crosshairVisual.activeSelf != show)
 				crosshairVisual.SetActive(show);

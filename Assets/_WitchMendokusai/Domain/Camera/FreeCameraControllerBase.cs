@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -25,12 +26,23 @@ namespace WitchMendokusai
 
 		protected ContentCameraMode ContentCameraMode => Camera.ContentCameraMode;
 
-		protected InputManager InputManager => WitchMendokusai.InputManager.Instance;
+		private InputManager inputManager;
+		private CameraManager cameraManager;
+
+		// 씬 스코프 주입. 자식 컨트롤러는 SceneLifetimeScope 에 등록 (2026-09-05, .Instance 제거)
+		[Inject]
+		public void Construct(InputManager inputManager, CameraManager cameraManager)
+		{
+			this.inputManager = inputManager;
+			this.cameraManager = cameraManager;
+		}
+
+		protected InputManager InputManager => inputManager;
 
 		/// <summary>이 컨트롤러의 모드가 현재 활성 content 카메라인지.</summary>
 		protected bool IsActiveMode =>
-			CameraManager.Instance != null
-			&& CameraManager.Instance.CurrentContentMode == ContentCameraMode;
+			cameraManager != null
+			&& cameraManager.CurrentContentMode == ContentCameraMode;
 
 		/// <summary>Ctrl 누름 시 boostMultiplier, 아니면 1. 이동 속도에 곱함.</summary>
 		protected float SpeedMultiplier => InputManager != null && InputManager.IsCameraBoost ? boostMultiplier : 1f;
