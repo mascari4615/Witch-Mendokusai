@@ -12,9 +12,7 @@ Domain/Narrative/Script/DialogueScriptParser.cs
 Domain/Terrain/UI/TerrainEditorView.cs
 Domain/TowerDefense/TowerDefenseHudView.cs
 Domain/TowerDefense/TowerDefenseMatch.Build.cs
-Domain/TowerDefense/TowerDefenseMatch.Economy.cs
 Domain/TowerDefense/TowerDefenseMatch.Lair.cs
-Domain/TowerDefense/TowerDefenseMatch.Spawn.cs
 Domain/TowerDefense/TowerDefenseMatch.cs
 Domain/TowerDefense/TowerDefenseModeController.cs
 Domain/TowerDefense/TowerDefensePlacement.cs
