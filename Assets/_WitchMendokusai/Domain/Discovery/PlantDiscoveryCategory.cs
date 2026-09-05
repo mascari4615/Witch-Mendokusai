@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using WitchMendokusai.DomainSDK.Discovery;
 
 namespace WitchMendokusai
 {
@@ -10,7 +11,8 @@ namespace WitchMendokusai
 	/// 「봐줘야 진짜가 된다」: 관찰→개화→수확된 식물만 영구 표본으로 도감에 남는다(수확해 사라져도 영원).
 	///
 	/// ItemDiscoveryCategory 패턴. 작물 .asset 미존재(Grey Box) 시 빈 목록(throw X — TryGetValue 가드).
-	/// 현재 Discovery 는 전체 노출(unlock 레이어 deferred) → 표본 여부는 BuildDetail 텍스트로 구분.
+	/// 해금은 `DiscoveryUnlocks` 에 묻는다. 표본을 출처로 꽂는 것은 다음 조각 — 지금은 출처가 없어 전부 열림이고,
+	/// 표본 여부는 BuildDetail 텍스트로 구분한다.
 	/// </summary>
 	public class PlantDiscoveryCategory : IEntryProvider
 	{
@@ -35,11 +37,14 @@ namespace WitchMendokusai
 						continue;
 					}
 
+					string entryId = $"P_{plant.ID}";
+
 					entries.Add(new EntryDescriptor(
-						id: $"P_{plant.ID}",
+						id: entryId,
 						displayName: plant.Name,
 						icon: plant.Sprite,
-						source: plant));
+						source: plant,
+						isUnlocked: DiscoveryUnlocks.IsUnlocked(Id, entryId)));
 				}
 			}
 

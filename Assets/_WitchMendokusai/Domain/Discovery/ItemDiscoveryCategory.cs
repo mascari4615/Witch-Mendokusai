@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using WitchMendokusai.DomainSDK.Discovery;
 
 namespace WitchMendokusai
 {
@@ -40,13 +41,16 @@ namespace WitchMendokusai
 
 				string subGroup = ITEM_TYPE_LABELS.TryGetValue(item.Type, out string label) ? label : null;
 
+				string entryId = $"I_{item.ID}";
+
 				entries.Add(new EntryDescriptor(
-					id: $"I_{item.ID}",
+					id: entryId,
 					displayName: item.Name,
 					icon: item.Sprite,
 					source: item,
 					gradeKey: item.Grade.ToString().ToLowerInvariant(),
-					subGroup: subGroup));
+					subGroup: subGroup,
+					isUnlocked: DiscoveryUnlocks.IsUnlocked(Id, entryId)));
 			});
 
 			entries.Sort((a, b) => string.CompareOrdinal(a.Id, b.Id));

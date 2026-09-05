@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using WitchMendokusai.DomainSDK.Discovery;
 
 namespace WitchMendokusai
 {
@@ -39,7 +40,8 @@ namespace WitchMendokusai
 					displayName: block.BlockName,
 					icon: icon,
 					source: block,
-					previewPrefab: previewPrefab));
+					previewPrefab: previewPrefab,
+					isUnlocked: DiscoveryUnlocks.IsUnlocked(Id, block.Identifier)));
 			}
 		}
 

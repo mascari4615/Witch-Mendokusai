@@ -37,12 +37,12 @@ namespace WitchMendokusai
 		public GameObject PreviewPrefab { get; }
 
 		/// <summary>
-		/// 골격 단계 = 항상 true. 후속 TASK 에서 unlock 레이어 도입 시
-		/// `IUnlockProvider` 같은 분리 인터페이스로 위임 예정.
+		/// 이 항목이 열렸나 — provider 가 채운다. 안 주면 열림 (에디터 도구는 잠금 개념이 없다).
+		/// 조건은 도감이 정하지 않는다: provider 가 `DiscoveryUnlocks` 에 물어 그 답을 여기 담는다.
 		/// </summary>
-		public bool IsUnlocked => true;
+		public bool IsUnlocked { get; }
 
-		public EntryDescriptor(string id, string displayName, Sprite icon, object source, string gradeKey = null, string subGroup = null, GameObject previewPrefab = null)
+		public EntryDescriptor(string id, string displayName, Sprite icon, object source, string gradeKey = null, string subGroup = null, GameObject previewPrefab = null, bool isUnlocked = true)
 		{
 			Id = id;
 			DisplayName = displayName;
@@ -51,6 +51,7 @@ namespace WitchMendokusai
 			GradeKey = gradeKey;
 			SubGroup = subGroup;
 			PreviewPrefab = previewPrefab;
+			IsUnlocked = isUnlocked;
 		}
 	}
 }

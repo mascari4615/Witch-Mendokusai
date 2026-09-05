@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using WitchMendokusai.DomainSDK.Discovery;
 
 namespace WitchMendokusai
 {
@@ -38,12 +39,15 @@ namespace WitchMendokusai
 
 				string subGroup = MONSTER_TYPE_LABELS.TryGetValue(monster.Type, out string label) ? label : null;
 
+				string entryId = $"M_{monster.ID}";
+
 				entries.Add(new EntryDescriptor(
-					id: $"M_{monster.ID}",
+					id: entryId,
 					displayName: monster.Name,
 					icon: monster.Sprite,
 					source: monster,
-					subGroup: subGroup));
+					subGroup: subGroup,
+					isUnlocked: DiscoveryUnlocks.IsUnlocked(Id, entryId)));
 			});
 
 			entries.Sort((a, b) => string.CompareOrdinal(a.Id, b.Id));

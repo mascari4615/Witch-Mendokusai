@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
+using WitchMendokusai.DomainSDK.Discovery;
 
 namespace WitchMendokusai
 {
@@ -22,6 +23,7 @@ namespace WitchMendokusai
 		public const string USS_BACK_BUTTON = "wm-discovery__back-button";
 		public const string USS_DETAIL = "wm-discovery__detail";
 		public const string USS_DETAIL_CONTENT = "wm-discovery__detail-content";
+		public const string USS_PROGRESS = "wm-discovery__progress";
 
 		public event Action<IEntryProvider> OnCategorySelected = delegate { };
 		public event Action<EntryDescriptor> OnEntrySelected = delegate { };
@@ -36,6 +38,7 @@ namespace WitchMendokusai
 		private readonly VisualElement rootArea;
 		private readonly VisualElement categoryArea;
 		private readonly DataExplorerView dataExplorerView;
+		private readonly Label progressLabel;
 		private readonly VisualElement detailArea;
 		private readonly VisualElement detailContent;
 
@@ -70,6 +73,10 @@ namespace WitchMendokusai
 			};
 			categoryBackButton.AddToClassList(USS_BACK_BUTTON);
 			categoryArea.Add(categoryBackButton);
+
+			progressLabel = new Label();
+			progressLabel.AddToClassList(USS_PROGRESS);
+			categoryArea.Add(progressLabel);
 
 			dataExplorerView = new DataExplorerView();
 			dataExplorerView.OnEntrySelected += entry => OnEntrySelected.Invoke(entry);
@@ -138,7 +145,29 @@ namespace WitchMendokusai
 				return;
 			}
 
+			RefreshProgress(category);
 			SetMode(DiscoveryMode.Category);
+		}
+
+		/// <summary>
+		/// 이 갈래를 얼마나 채웠나. 항목이 이미 들고 있는 답을 세므로 등록소에 다시 묻지 않는다
+		/// (카드에 보이는 잠금과 언제나 같은 수).
+		/// </summary>
+		private void RefreshProgress(IEntryProvider category)
+		{
+			IReadOnlyList<EntryDescriptor> entries = category.GetEntries();
+			int unlocked = 0;
+
+			for (int index = 0; index < entries.Count; index++)
+			{
+				if (entries[index].IsUnlocked)
+				{
+					unlocked++;
+				}
+			}
+
+			DiscoveryProgress progress = new(entries.Count, unlocked);
+			progressLabel.text = $"{progress.Unlocked} / {progress.Total} 발견";
 		}
 
 		public void SetActiveEntry(EntryDescriptor entry)

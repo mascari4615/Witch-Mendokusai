@@ -95,6 +95,13 @@
     background-color: rgba(255, 255, 255, 0.12);
 }
 
+.wm-discovery__progress {
+    align-self: flex-start;
+    color: rgb(150, 158, 178);
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
 .wm-discovery__detail-content {
     background-color: rgba(0, 0, 0, 0.25);
     padding: 16px;
