@@ -9,6 +9,7 @@ namespace WitchMendokusai
 	{
 		public const int ID_MAX = 100_000_000;
 
+		// 갈래 전용 SO 는 갈래가 담는다 (아래 static 생성자). 여기 목록은 어느 갈래에도 안 매인 것들
 		public static readonly Dictionary<Type, string> AssetPrefixes = new()
 		{
 			{ typeof(QuestSO), "Q" },
@@ -31,9 +32,16 @@ namespace WitchMendokusai
 			{ typeof(EntityData), "ENT" },
 			{ typeof(ChapterSO), "Chapter" },
 			{ typeof(WitchPlantSO), "PLANT" },
-			{ typeof(TowerDefenseStageSO), "TDS" }, // TASK-WM-194 증분4 — 미등록 시 DataSOAddressableSync 가 매 import 마다 LogError(무음 실패 트랩 회피).
 			{ typeof(MinigameEntrySO), "MGE" },    // TASK-WM-195 — 티메토 허브 엔트리. 미등록 시 DataLoader 순회 제외 → 허브가 무음으로 텅 빔.
 		};
+
+		static DataSODefine()
+		{
+			for (int index = 0; index < FeatureManifest.Installers.Count; index++)
+			{
+				FeatureManifest.Installers[index].RegisterDataTypes(AssetPrefixes);
+			}
+		}
 
 		public static readonly Dictionary<Type, string> AssetFolderOverride = new()
 		{

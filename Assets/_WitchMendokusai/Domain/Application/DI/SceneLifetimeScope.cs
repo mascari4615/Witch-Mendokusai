@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
@@ -27,14 +28,8 @@ namespace WitchMendokusai
 		// RegisterComponentInHierarchy 는 *이 scope 의 씬* 만 검색 (scene-local). FindAnyObjectByType 는 전 씬
 		// (DontDestroyOnLoad 포함) — UIRoot(DDOL)+AddComponent MagicBookView 같은 cross-scene 을 false-positive.
 		// 헬퍼의 scene-scope 의미를 VContainer 와 정확히 일치 = 이 scope 의 gameObject.scene 한정.
-		// TASK-WM-174 Phase 5b-2 — 솥 지도 prefab 등록 여부(미생성 시 eager resolve 스킵, cross-session build-red 회피).
-		private bool cauldronMapRegistered;
-
-		// TASK-WM-165 item9 — 투기장 모드 컨트롤러 prefab 등록 여부 (미생성 시 eager resolve 스킵, cross-session build-red 회피).
-		private bool arenaModeControllerRegistered;
-
-		// TASK-WM-194 증분4 — 특수시공 개척(TD) 모드 컨트롤러 prefab 등록 여부 (ArenaModeController 와 동형).
-		private bool towerDefenseModeControllerRegistered;
+		// 실제로 심긴 갈래만 (프리팹 미생성이면 안 심김). 깨우는 대상도 이것뿐
+		private readonly List<IFeatureInstaller> installedFeatures = new();
 
 		private bool IsInScene<T>() where T : Component
 		{
@@ -117,32 +112,15 @@ namespace WitchMendokusai
 			DiscoveryWindowController discoveryWindowControllerPrefab = catalog.Get<DiscoveryWindowController>();
 			builder.RegisterComponentInNewPrefab(discoveryWindowControllerPrefab, Lifetime.Scoped);
 
-			// TASK-WM-174 Phase 5b-2 — 솥 지도 제조 UI 인게임 진입점 (Discovery 와 같은 모양).
-			// prefab 미생성 윈도우(코드 먼저 push)에 World boot 안 깨지게 null-guard (cross-session build-red 회피).
-			CauldronMapController cauldronMapControllerPrefab = catalog.Get<CauldronMapController>();
-			if (cauldronMapControllerPrefab != null)
+			// 갈래는 자기가 심는다. 여기는 이름을 모른다 (목록은 FeatureManifest)
+			installedFeatures.Clear();
+			for (int index = 0; index < FeatureManifest.Installers.Count; index++)
 			{
-				builder.RegisterComponentInNewPrefab(cauldronMapControllerPrefab, Lifetime.Scoped);
-				cauldronMapRegistered = true;
-			}
-
-			// TASK-WM-165 item9 — 투기장 모드 컨트롤러 (Resources/Singletons prefab, CauldronMapController 미러).
-			// Lifetime.Scoped = GameModeManager 구독 라이프사이클 정합 + World.unity 미배치(다세션 씬 경합 면역).
-			// prefab 미생성(코드 먼저 push)에 World boot 안 깨지게 null-guard.
-			ArenaModeController arenaModeControllerPrefab = catalog.Get<ArenaModeController>();
-			if (arenaModeControllerPrefab != null)
-			{
-				builder.RegisterComponentInNewPrefab(arenaModeControllerPrefab, Lifetime.Scoped);
-				arenaModeControllerRegistered = true;
-			}
-
-			// TASK-WM-194 증분4 — 특수시공 개척(TD) 모드 컨트롤러 (Resources/Singletons prefab, ArenaModeController 미러).
-			// prefab 미생성(코드 먼저 push)에 World boot 안 깨지게 null-guard.
-			TowerDefenseModeController towerDefenseModeControllerPrefab = catalog.Get<TowerDefenseModeController>();
-			if (towerDefenseModeControllerPrefab != null)
-			{
-				builder.RegisterComponentInNewPrefab(towerDefenseModeControllerPrefab, Lifetime.Scoped);
-				towerDefenseModeControllerRegistered = true;
+				IFeatureInstaller feature = FeatureManifest.Installers[index];
+				if (feature.InstallScene(builder, catalog))
+				{
+					installedFeatures.Add(feature);
+				}
 			}
 
 			builder.RegisterComponentOnNewGameObject<GameModeManager>(Lifetime.Scoped, nameof(GameModeManager));
@@ -156,15 +134,11 @@ namespace WitchMendokusai
 				ResolveIfPresent<DungeonManager>(container);
 				BootGuard.EagerResolve<DevWindowController>(container, "Scene");
 				BootGuard.EagerResolve<DiscoveryWindowController>(container, "Scene");
-				if (cauldronMapRegistered)
-					BootGuard.EagerResolve<CauldronMapController>(container, "Scene");
+				for (int index = 0; index < installedFeatures.Count; index++)
+					installedFeatures[index].ResolveScene(container);
 				ResolveIfPresent<UIManager>(container);
 				ResolveIfPresent<CameraManager>(container);
 				ResolveIfPresent<BuildManager>(container);
-				if (arenaModeControllerRegistered)
-					BootGuard.EagerResolve<ArenaModeController>(container, "Scene"); // TASK-WM-165 item9 — prefab 등록↔해소 짝
-				if (towerDefenseModeControllerRegistered)
-					BootGuard.EagerResolve<TowerDefenseModeController>(container, "Scene"); // TASK-WM-194 증분4 — prefab 등록↔해소 짝
 				ResolveIfPresent<CityPaintManager>(container); // TASK-WM-164 step5 — 등록↔해소 짝
 				ResolveIfPresent<FreeFlyCameraController>(container);
 				ResolveIfPresent<OverheadContentCameraController>(container);
