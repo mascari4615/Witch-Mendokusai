@@ -39,7 +39,8 @@ namespace WitchMendokusai
 		private GameObject prefab;
 		private float sendCooldown;
 
-		private IWorldLink Link => WorldLinkProvider.Instance != null ? WorldLinkProvider.Instance.Current : null;
+		// 문은 통신 층이 세워 꽂아 둔다. 주울 것 바인더와 같은 seam (2026-09-05, .Instance 제거)
+		private IWorldLink Link => Net.WorldDoor.Current;
 
 		private void Update()
 		{
