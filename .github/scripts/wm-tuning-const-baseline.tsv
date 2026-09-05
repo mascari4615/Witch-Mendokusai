@@ -2,7 +2,7 @@
 # 갱신: powershell -File .github/scripts/wm-rule-gate.ps1 -WriteBaseline
 Domain/Application/Boot/DungeonBootScenario.cs	ENTER_TIMEOUT_SEC
 Domain/Application/Boot/DungeonBootScenario.cs	EXIT_TIMEOUT_SEC
-Domain/Application/InputStrategy/InputStrategyTowerDefense.cs	CLICK_COOLDOWN
+Domain/TowerDefense/InputStrategyTowerDefense.cs	CLICK_COOLDOWN
 Domain/Building/BuildManager.cs	BUILD_REACH_DISTANCE
 Domain/Building/BuildManager.cs	CLICK_COOLDOWN
 Domain/Behavior/TransparentObject.cs	LERP_SPEED
