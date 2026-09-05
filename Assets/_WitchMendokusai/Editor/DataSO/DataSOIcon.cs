@@ -15,14 +15,17 @@ namespace WitchMendokusai
 		private static void OnProjectWindowItemGUI(string guid, Rect rect)
 		{
 			string path = AssetDatabase.GUIDToAssetPath(guid);
-			Object obj = AssetDatabase.LoadAssetAtPath<Object>(path);
 
+			// 폴더와 방금 지워진 stale 항목은 건너뜀. File.GetAttributes 는 없는 경로에 던진다 (2026-09-05 Resource 폴더 이동 뒤 실측)
 			if (path == "" ||
 				Event.current.type != EventType.Repaint ||
-				File.GetAttributes(path).HasFlag(FileAttributes.Directory))
+				AssetDatabase.IsValidFolder(path) ||
+				File.Exists(path) == false)
 			{
 				return;
 			}
+
+			Object obj = AssetDatabase.LoadAssetAtPath<Object>(path);
 
 			if (obj is DataSO dataSO)
 			{
