@@ -1,20 +1,29 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <!-- 상점 탭 (layout.md §3). 인형 뽑기와 무료 상자 -->
+    <!-- 상점 탭 (layout.md 표 3, 구현 순서 10). 배너 (픽업, 천장), 1회와 묶음, 확률표, 무료 상자, 가방 -->
     <Style src="BattleScreen.uss" />
     <ui:VisualElement name="page" class="idle-page">
-        <ui:VisualElement class="idle-banner">
-            <ui:Label text="인형 뽑기" class="idle-banner-title" />
-            <ui:Label text="PICK UP" class="idle-cap" />
+        <ui:VisualElement class="idle-banner idle-shop-banner">
+            <ui:VisualElement name="pickup-portrait" class="idle-shop-pickup-portrait" />
+            <ui:VisualElement class="idle-shop-banner-text">
+                <ui:Label text="인형 뽑기" class="idle-banner-title" />
+                <ui:Label text="PICK UP" class="idle-cap" />
+                <ui:Label name="pickup-label" class="idle-shop-pickup-label" />
+                <ui:Label name="pity-label" class="idle-shop-pity-label" />
+            </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Button name="pull-button" class="idle-row-button idle-row-button--strong idle-row-button--tall" />
-        <ui:Label name="pull-odds" class="idle-row-note" />
-        <ui:Label text="현금 결제 없음. 뽑기 재화는 첫 클리어, 환생, 낮은 확률 드롭에서만." class="idle-row-note" />
-        <ui:VisualElement class="idle-banner">
-            <ui:Label text="가방 넓히기" class="idle-banner-title" />
-            <ui:Label text="BAG" class="idle-cap" />
+        <ui:VisualElement class="idle-shop-pull-row">
+            <ui:Button name="pull-button" class="idle-row-button idle-row-button--strong idle-row-button--tall idle-shop-pull" />
+            <ui:Button name="pull-batch-button" class="idle-row-button idle-row-button--strong idle-row-button--tall idle-shop-pull idle-shop-pull--second" />
         </ui:VisualElement>
+        <ui:VisualElement class="idle-shop-odds-row">
+            <ui:Label name="pull-odds" class="idle-row-note idle-shop-odds-note" />
+            <ui:Button name="odds-button" class="idle-row-button idle-shop-odds-button" />
+        </ui:VisualElement>
+        <ui:Label text="현금 결제 없음. 뽑기 재화는 첫 클리어, 환생, 낮은 확률 드롭, 무료 상자에서만." class="idle-row-note" />
+        <ui:Label text="FREE BOX" class="idle-cap idle-shop-section-cap" />
+        <ui:Button name="free-box-button" class="idle-row-button idle-row-button--strong" />
+        <ui:Label text="BAG" class="idle-cap idle-shop-section-cap" />
         <ui:Button name="bag-button" class="idle-row-button idle-row-button--strong" />
         <ui:Label name="bag-note" class="idle-row-note" />
-        <ui:Label text="무료 상자" class="idle-cap" />
     </ui:VisualElement>
 </ui:UXML>

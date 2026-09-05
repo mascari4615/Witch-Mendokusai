@@ -16,6 +16,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     public sealed class IdleSession : IIntentSink<IdleRaiseUpgradeIntent>, IIntentSink<IdlePrestigeIntent>, IIntentSink<IdleAppraiseIntent>, IIntentSink<IdleHoldStageIntent>, IIntentSink<IdleGoToStageIntent>,
         IIntentSink<IdleBuyProducerIntent>, IIntentSink<IdleMergeIntent>, IIntentSink<IdleEquipIntent>,
         IIntentSink<IdleSalvageIntent>, IIntentSink<IdleLockItemIntent>, IIntentSink<IdleSortBagIntent>,
+        IIntentSink<IdlePullBatchIntent>, IIntentSink<IdleOpenFreeBoxIntent>,
         IIntentSink<IdleCastCardIntent>, IIntentSink<IdleNextStageIntent>
     {
         private readonly IdleState state;
@@ -270,13 +271,41 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>영웅을 한 번 뽑는다. 자원이 모자라면 아무 일도 안 일어난다.</summary>
         public bool TryPull(out IdleHeroPull pull)
         {
-            return IdleGacha.TryPull(state, tuning, out pull);
+            return IdleGacha.TryPull(state, tuning, PickupNow(), out pull);
         }
 
         /// <summary>영웅을 한 번 뽑는다 (결과가 필요 없을 때).</summary>
         public bool Send(IdlePullHeroIntent intent)
         {
-            return IdleGacha.TryPull(state, tuning, out IdleHeroPull _);
+            return IdleGacha.TryPull(state, tuning, PickupNow(), out IdleHeroPull _);
+        }
+
+        /// <summary>묶음으로 뽑는다. 결과는 <paramref name="into"/> 에 순서대로</summary>
+        public bool TryPullBatch(System.Collections.Generic.List<IdleHeroPull> into)
+        {
+            return IdleGacha.TryPullBatch(state, tuning, PickupNow(), into);
+        }
+
+        public bool Send(IdlePullBatchIntent intent)
+        {
+            return IdleGacha.TryPullBatch(state, tuning, PickupNow(), new System.Collections.Generic.List<IdleHeroPull>());
+        }
+
+        /// <summary>무료 상자를 연다. 받은 뽑기 재화를 돌려준다</summary>
+        public bool TryOpenFreeBox(out long stones)
+        {
+            return IdleFreeBox.TryOpen(state, tuning, Now(), out stones);
+        }
+
+        public bool Send(IdleOpenFreeBoxIntent intent)
+        {
+            return IdleFreeBox.TryOpen(state, tuning, Now(), out long _);
+        }
+
+        /// <summary>지금 픽업인 인형. 시계가 정한다</summary>
+        private int PickupNow()
+        {
+            return IdleGacha.PickupHeroOf(tuning, Now());
         }
 
         /// <summary>
@@ -493,7 +522,18 @@ namespace WitchMendokusai.DomainSDK.Idle
                 SpeedNow,
                 state.AutoCast,
                 IdleShop.BagUpgradeCost(state, tuning),
-                IdleShop.CanBuyBag(state, tuning));
+                IdleShop.CanBuyBag(state, tuning),
+                tuning.PullBatchCount,
+                IdleGacha.BatchCostOf(state, tuning),
+                IdleGacha.BatchStoneCostOf(tuning),
+                IdleGacha.CanPullBatch(state, tuning),
+                (IdleHeroGrade)tuning.PullBatchFloorGrade,
+                PickupNow(),
+                tuning.PickupWeight,
+                IdleGacha.PickupSecondsLeft(tuning, Now()),
+                IdleFreeBox.IsReady(state, tuning, Now()),
+                IdleFreeBox.SecondsLeft(state, tuning, Now()),
+                tuning.FreeBoxStones);
         }
 
         /// <summary>

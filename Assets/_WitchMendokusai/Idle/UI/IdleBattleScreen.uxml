@@ -12,6 +12,7 @@
     <ui:Template name="HeroPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleHeroPopup.uxml?fileID=9197481963319205126&amp;guid=8c8e48cb63bf40ae959ec129ce3ba8e8&amp;type=3#IdleHeroPopup" />
     <ui:Template name="GoldPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleGoldPopup.uxml?fileID=9197481963319205126&amp;guid=370d95d8ed4243b29c6d37c2e1c0f921&amp;type=3#IdleGoldPopup" />
     <ui:Template name="SettingsPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleSettingsPopup.uxml?fileID=9197481963319205126&amp;guid=9760d6ea896f4970a80d4ca42ef0de89&amp;type=3#IdleSettingsPopup" />
+    <ui:Template name="OddsPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleOddsPopup.uxml?fileID=9197481963319205126&amp;guid=706f80df95354e4fb3f01bd395a5ecdb&amp;type=3#IdleOddsPopup" />
     <ui:Template name="AwayPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleAwayPopup.uxml?fileID=9197481963319205126&amp;guid=d07ad25fc4f843bab114d287fb838410&amp;type=3#IdleAwayPopup" />
     <Style src="BattleScreen.uss" />
     <ui:VisualElement name="shell" class="idle-root">
@@ -55,6 +56,7 @@
     <ui:Instance template="HeroPopup" name="hero-popup-host" class="idle-layer" picking-mode="Ignore" />
     <ui:Instance template="GoldPopup" name="gold-popup-host" class="idle-layer" picking-mode="Ignore" />
     <ui:Instance template="SettingsPopup" name="settings-popup-host" class="idle-layer" picking-mode="Ignore" />
+    <ui:Instance template="OddsPopup" name="odds-popup-host" class="idle-layer" picking-mode="Ignore" />
     <ui:Instance template="AwayPopup" name="away-popup-host" class="idle-layer" picking-mode="Ignore" />
     <ui:Label name="tooltip" class="idle-tooltip idle-hidden" picking-mode="Ignore" />
 </ui:UXML>

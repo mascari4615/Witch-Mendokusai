@@ -1,0 +1,22 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <!-- 확률표 (layout.md 구현 순서 10). 등급별 확률, 천장, 픽업, 묶음 보장 -->
+    <Style src="BattleScreen.uss" />
+    <ui:VisualElement name="popup" class="idle-modal-shade idle-odds-popup idle-hidden">
+        <ui:VisualElement class="idle-box idle-odds-panel">
+            <ui:VisualElement class="idle-panel-head">
+                <ui:Label text="확률표" class="idle-panel-title" />
+                <ui:Label text="ODDS" class="idle-cap" />
+                <ui:Button name="odds-close" text="×" class="idle-tab idle-tab--close" />
+            </ui:VisualElement>
+            <ui:VisualElement class="idle-odds-rows">
+                <ui:Label name="odds-row-3" class="idle-odds-row idle-odds-row--legend" />
+                <ui:Label name="odds-row-2" class="idle-odds-row idle-odds-row--epic" />
+                <ui:Label name="odds-row-1" class="idle-odds-row idle-odds-row--rare" />
+                <ui:Label name="odds-row-0" class="idle-odds-row" />
+            </ui:VisualElement>
+            <ui:Label name="odds-pity" class="idle-odds-note" />
+            <ui:Label name="odds-pickup" class="idle-odds-note" />
+            <ui:Label name="odds-batch" class="idle-odds-note" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

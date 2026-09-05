@@ -174,6 +174,21 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public int PityPulls { get; set; } = 60;
 
+        /// <summary>묶음 뽑기 수 (사용자 2026-09-05: 10회). 값은 1회의 이만큼 배, 할인 없음</summary>
+        public int PullBatchCount { get; set; } = 10;
+
+        /// <summary>묶음 뽑기가 보장하는 최저 등급 (<see cref="IdleHeroGrade"/> 값. 1 이 레어). 묶음 안에 이 등급 이상이 없으면 마지막 하나를 여기로</summary>
+        public int PullBatchFloorGrade { get; set; } = 1;
+
+        /// <summary>픽업 인형이 같은 등급 안에서 뽑히는 무게. 다른 인형은 1 (사용자 2026-09-05: 2배)</summary>
+        public double PickupWeight { get; set; } = 2d;
+
+        /// <summary>픽업 인형이 바뀌는 주기 (날). 7 이면 주마다</summary>
+        public long PickupDays { get; set; } = 7L;
+
+        /// <summary>무료 상자가 주는 뽑기 재화. 하루 1회 (economy.md 표 2 무료 상자 줄)</summary>
+        public long FreeBoxStones { get; set; } = 1L;
+
         /// <summary>★ 상한. 여기 닿아도 중복은 조각으로 남는다(꽝이 되면 안 된다).</summary>
         public int MaxStars { get; set; } = 5;
 

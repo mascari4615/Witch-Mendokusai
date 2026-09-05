@@ -210,7 +210,7 @@
 	width: 26px;
 	height: 26px;
 	margin-right: 8px;
-	background-image: url("../../Domain/Component/Item/_Common/Sprite/game-icons.net/ore.png");
+	background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/ore.png");
 	-unity-background-scale-mode: scale-to-fit;
 	-unity-background-image-tint-color: rgb(245, 188, 52);
 }
@@ -248,7 +248,7 @@
 .idle-settings-icon {
 	width: 24px;
 	height: 24px;
-	background-image: url("../../Domain/Component/Item/_Common/Sprite/game-icons.net/gears.png");
+	background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/gears.png");
 	-unity-background-scale-mode: scale-to-fit;
 	-unity-background-image-tint-color: rgb(224, 224, 216);
 }
@@ -426,9 +426,9 @@
 	color: rgb(255, 255, 255);
 }
 
-.idle-card-icon--volley { background-image: url("../../Domain/Component/Item/_Common/Sprite/game-icons.net/arrow-cluster.png"); }
-.idle-card-icon--supply { background-image: url("../../Domain/Component/Item/_Common/Sprite/game-icons.net/round-potion.png"); }
-.idle-card-icon--appraise { background-image: url("../../Domain/Component/Item/_Common/Sprite/game-icons.net/sparkles.png"); }
+.idle-card-icon--volley { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/arrow-cluster.png"); }
+.idle-card-icon--supply { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/round-potion.png"); }
+.idle-card-icon--appraise { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/sparkles.png"); }
 
 .idle-skill-aim {
 	position: absolute;
@@ -1116,6 +1116,82 @@
 	color: rgb(255, 255, 255);
 }
 
+/* 상점 배너. 왼쪽 픽업 초상, 오른쪽 글 (layout.md 구현 순서 10) */
+.idle-shop-banner {
+	flex-direction: row;
+	align-items: center;
+	height: auto;
+	min-height: 220px;
+}
+
+.idle-shop-pickup-portrait {
+	width: 160px;
+	height: 160px;
+	margin-right: 18px;
+	flex-shrink: 0;
+	background-color: rgba(0, 0, 0, 0.35);
+	border-width: 2px;
+	border-color: rgb(245, 188, 52);
+	-unity-background-scale-mode: scale-to-fit;
+}
+
+.idle-shop-banner-text {
+	flex-grow: 1;
+	flex-shrink: 1;
+}
+
+.idle-shop-pickup-label {
+	margin-top: 6px;
+	font-size: 24px;
+	color: rgb(255, 229, 142);
+	white-space: normal;
+}
+
+.idle-shop-pity-label {
+	margin-top: 4px;
+	font-size: 24px;
+	color: rgb(200, 200, 192);
+}
+
+.idle-shop-pull-row {
+	flex-direction: row;
+}
+
+.idle-shop-pull {
+	flex-grow: 1;
+	flex-shrink: 1;
+	flex-basis: 0;
+	height: auto;
+	min-height: 72px;
+	font-size: 24px;
+	white-space: normal;
+}
+
+.idle-shop-pull--second {
+	margin-left: 8px;
+}
+
+.idle-shop-odds-row {
+	flex-direction: row;
+	align-items: center;
+}
+
+.idle-shop-odds-note {
+	flex-grow: 1;
+	flex-shrink: 1;
+}
+
+.idle-shop-odds-button {
+	width: 120px;
+	min-height: 44px;
+	margin-left: 8px;
+	flex-shrink: 0;
+}
+
+.idle-shop-section-cap {
+	margin-top: 16px;
+}
+
 .idle-button {
 	height: 56px;
 	font-size: 28px;
@@ -1423,10 +1499,10 @@
 	color: rgb(238, 238, 238);
 }
 
-.idle-gear-icon--0 { background-image: url("../../Domain/Component/Item/_Common/Sprite/game-icons.net/suits.png"); }
-.idle-gear-icon--1 { background-image: url("../../Domain/Component/Item/_Common/Sprite/game-icons.net/warlock-eye.png"); }
-.idle-gear-icon--2 { background-image: url("../../Domain/Component/Item/_Common/Sprite/game-icons.net/winged-sword.png"); }
-.idle-gear-icon--3 { background-image: url("../../Domain/Component/Item/_Common/Sprite/game-icons.net/walking-boot.png"); }
+.idle-gear-icon--0 { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/suits.png"); }
+.idle-gear-icon--1 { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/warlock-eye.png"); }
+.idle-gear-icon--2 { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/winged-sword.png"); }
+.idle-gear-icon--3 { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/walking-boot.png"); }
 
 .idle-hero-grade-1 { background-color: rgb(29, 43, 49); }
 .idle-hero-grade-2 { background-color: rgb(28, 45, 70); }
@@ -1480,6 +1556,37 @@
 .idle-gold-amount { margin-top: 16px; font-size: 46px; -unity-font-style: bold; color: rgb(255, 229, 142); }
 .idle-gold-income { margin-top: 10px; font-size: 28px; color: rgb(182, 218, 151); }
 .idle-gold-close { margin-top: 28px; width: 220px; height: 58px; font-size: 24px; }
+
+.idle-odds-panel {
+	width: 720px;
+	padding: 22px 30px 30px 30px;
+	background-color: rgba(22, 22, 24, 0.98);
+	border-width: 2px;
+	border-color: rgb(245, 188, 52);
+}
+
+.idle-odds-rows {
+	margin-top: 18px;
+}
+
+.idle-odds-row {
+	font-size: 30px;
+	padding: 8px 12px;
+	color: rgb(224, 224, 216);
+	border-bottom-width: 1px;
+	border-bottom-color: rgb(58, 58, 58);
+}
+
+.idle-odds-row--legend { color: rgb(255, 229, 142); }
+.idle-odds-row--epic { color: rgb(214, 170, 255); }
+.idle-odds-row--rare { color: rgb(150, 205, 255); }
+
+.idle-odds-note {
+	margin-top: 14px;
+	font-size: 24px;
+	color: rgb(200, 200, 192);
+	white-space: normal;
+}
 
 .idle-settings-panel {
 	width: 820px;

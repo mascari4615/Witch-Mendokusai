@@ -394,6 +394,38 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>천장까지 남은 횟수 — 「언젠가는 온다」를 화면이 셀 수 있게.</summary>
         public int PullsToPity { get; }
 
+        /// <summary>묶음 뽑기 수 (사용자 2026-09-05: 10회)</summary>
+        public int PullBatchCount { get; }
+
+        /// <summary>묶음 뽑기 값 (자원). 1회의 묶음 수 배</summary>
+        public double PullBatchCost { get; }
+
+        /// <summary>묶음 뽑기에 드는 환생석</summary>
+        public long PullBatchStoneCost { get; }
+
+        public bool CanPullBatch { get; }
+
+        /// <summary>묶음이 보장하는 최저 등급 (묶음 안에 하나)</summary>
+        public IdleHeroGrade PullBatchFloorGrade { get; }
+
+        /// <summary>지금 픽업인 인형. 없으면 -1</summary>
+        public int PickupHeroId { get; }
+
+        /// <summary>픽업 인형이 같은 등급 안에서 뽑히는 무게 (다른 인형은 1)</summary>
+        public double PickupWeight { get; }
+
+        /// <summary>픽업이 바뀌기까지 남은 초</summary>
+        public double PickupSecondsLeft { get; }
+
+        /// <summary>무료 상자를 오늘 열 수 있나</summary>
+        public bool FreeBoxReady { get; }
+
+        /// <summary>다음 무료 상자까지 남은 초. 열 수 있으면 0</summary>
+        public double FreeBoxSecondsLeft { get; }
+
+        /// <summary>무료 상자가 주는 뽑기 재화</summary>
+        public long FreeBoxStones { get; }
+
         /// <summary>
         /// 등급이 나올 확률 — 위에서부터 레전드·에픽·레어(나머지는 일반).
         ///
@@ -498,8 +530,22 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleSeatView[] seats, bool repeating, int clearedStage, double enemyDamagePerSecond,
             long hitsOnTarget, IdleFighterView[] fighters, IdleFoeView[] foes, IdleHit[] hits,
             IdleCardKind[] queued, long[] tickets, double ticketRefillSeconds,
-            double speed, bool autoCast, double bagUpgradeCost, bool canBuyBag)
+            double speed, bool autoCast, double bagUpgradeCost, bool canBuyBag,
+            int pullBatchCount, double pullBatchCost, long pullBatchStoneCost, bool canPullBatch,
+            IdleHeroGrade pullBatchFloorGrade, int pickupHeroId, double pickupWeight, double pickupSecondsLeft,
+            bool freeBoxReady, double freeBoxSecondsLeft, long freeBoxStones)
         {
+            PullBatchCount = pullBatchCount;
+            PullBatchCost = pullBatchCost;
+            PullBatchStoneCost = pullBatchStoneCost;
+            CanPullBatch = canPullBatch;
+            PullBatchFloorGrade = pullBatchFloorGrade;
+            PickupHeroId = pickupHeroId;
+            PickupWeight = pickupWeight;
+            PickupSecondsLeft = pickupSecondsLeft;
+            FreeBoxReady = freeBoxReady;
+            FreeBoxSecondsLeft = freeBoxSecondsLeft;
+            FreeBoxStones = freeBoxStones;
             Speed = speed;
             AutoCast = autoCast;
             BagUpgradeCost = bagUpgradeCost;

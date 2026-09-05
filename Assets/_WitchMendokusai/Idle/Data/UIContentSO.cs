@@ -80,6 +80,19 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string pullNoStoneFormat;
 		[SerializeField] private string pullNoGoldFormat;
 		[SerializeField] private string pullOddsFormat;
+		[SerializeField] private string pullBatchFormat;
+		[SerializeField] private string pullBatchFeedbackFormat;
+		[SerializeField] private string pityCounterFormat;
+		[SerializeField] private string pickupFormat;
+		[SerializeField] private string pickupNoneText;
+		[SerializeField] private string freeBoxReadyFormat;
+		[SerializeField] private string freeBoxWaitFormat;
+		[SerializeField] private string freeBoxFeedbackFormat;
+		[SerializeField] private string oddsButtonText;
+		[SerializeField] private string oddsRowFormat;
+		[SerializeField] private string oddsPityFormat;
+		[SerializeField] private string oddsPickupFormat;
+		[SerializeField] private string oddsBatchFormat;
 		[SerializeField] private string prestigeSummaryFormat;
 		[SerializeField] private string prestigeAvailableFormat;
 		[SerializeField] private string prestigeLockedFormat;
@@ -219,6 +232,21 @@ namespace WitchMendokusai.Idle
 		public string PullNoGoldText(string cost) => string.Format(pullNoGoldFormat, cost);
 		public string PullOddsText(double legend, double epic, double rare, int pity) =>
 			string.Format(pullOddsFormat, legend, epic, rare, pity);
+		public string PullBatchText(int count, string cost, long stoneCost, string floorGrade) =>
+			string.Format(pullBatchFormat, count, cost, stoneCost, floorGrade);
+		public string PullBatchFeedbackText(int count, int legend, int epic, int rare, int newFaces) =>
+			string.Format(pullBatchFeedbackFormat, count, legend, epic, rare, newFaces);
+		public string PityCounterText(int pullsToPity) => string.Format(pityCounterFormat, pullsToPity);
+		public string PickupText(string name, double weight, string span) => string.Format(pickupFormat, name, weight, span);
+		public string PickupNoneText => pickupNoneText;
+		public string FreeBoxReadyText(long stones) => string.Format(freeBoxReadyFormat, stones);
+		public string FreeBoxWaitText(string span) => string.Format(freeBoxWaitFormat, span);
+		public string FreeBoxFeedbackText(long stones) => string.Format(freeBoxFeedbackFormat, stones);
+		public string OddsButtonText => oddsButtonText;
+		public string OddsRowText(string grade, double chance) => string.Format(oddsRowFormat, grade, chance);
+		public string OddsPityText(int pullsToPity) => string.Format(oddsPityFormat, pullsToPity);
+		public string OddsPickupText(string name, double weight) => string.Format(oddsPickupFormat, name, weight);
+		public string OddsBatchText(int count, string floorGrade) => string.Format(oddsBatchFormat, count, floorGrade);
 		public string PrestigeSummaryText(long points, long award, double multiplier) =>
 			string.Format(prestigeSummaryFormat, points, award, multiplier);
 		public string PrestigeButtonText(long award, int nextStage) => award > 0L
@@ -381,6 +409,9 @@ namespace WitchMendokusai.Idle
 				awayWarningFormat, selectHeroBeforeGearText, appraiseUnavailableFormat, appraiseAvailableFormat,
 				codexSummaryFormat, codexOwnedHeroFormat, codexHiddenHeroFormat, bagUpgradeFormat, bagUpgradeMaxText,
 				bagResetNoteFormat, pullAvailableFormat, pullNoStoneFormat, pullNoGoldFormat, pullOddsFormat,
+				pullBatchFormat, pullBatchFeedbackFormat, pityCounterFormat, pickupFormat, pickupNoneText,
+				freeBoxReadyFormat, freeBoxWaitFormat, freeBoxFeedbackFormat, oddsButtonText, oddsRowFormat,
+				oddsPityFormat, oddsPickupFormat, oddsBatchFormat,
 				prestigeSummaryFormat, prestigeAvailableFormat, prestigeLockedFormat, producerSummaryFormat,
 				producerRowFormat, mapStageFormat, mapCurrentSuffix, mapBestSuffix, shopScenePlaceholder,
 				labScenePlaceholder, volleyTargetFeedback, volleyDragHint, volleyResolvedFeedback,

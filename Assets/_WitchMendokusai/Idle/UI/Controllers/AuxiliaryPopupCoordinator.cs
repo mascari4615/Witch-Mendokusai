@@ -9,6 +9,7 @@ namespace WitchMendokusai.Idle.UI
 		private readonly MapSelectionController mapSelection;
 		private readonly GoldDetailsController goldDetails;
 		private readonly SettingsPopupController settingsPopup;
+		private readonly OddsPopupController oddsPopup;
 		private readonly UIContentSO content;
 		private readonly Action closeSelectionPopups;
 		private readonly Action requestRender;
@@ -17,6 +18,7 @@ namespace WitchMendokusai.Idle.UI
 			VisualElement mapPopup,
 			VisualElement goldPopup,
 			VisualElement settingsPopupElement,
+			VisualElement oddsPopupElement,
 			VisualTreeAsset rowButtonAsset,
 			ModalController modalController,
 			IdleSession session,
@@ -34,6 +36,7 @@ namespace WitchMendokusai.Idle.UI
 			goldDetails = new GoldDetailsController(goldPopup, modalController, content);
 			settingsPopup = new SettingsPopupController(
 				settingsPopupElement, modalController, session, content, requestRender);
+			oddsPopup = new OddsPopupController(oddsPopupElement, modalController, content);
 		}
 
 		public void Tick(float delta)
@@ -45,6 +48,7 @@ namespace WitchMendokusai.Idle.UI
 		{
 			goldDetails.Render(snapshot);
 			settingsPopup.Render(snapshot);
+			oddsPopup.Render(snapshot);
 			if (mapSelection.IsOpen)
 			{
 				mapSelection.Render(snapshot);
@@ -58,6 +62,7 @@ namespace WitchMendokusai.Idle.UI
 				mapSelection.Close();
 				closeSelectionPopups();
 				settingsPopup.Close();
+				oddsPopup.Close();
 			});
 			requestRender();
 		}
@@ -69,6 +74,20 @@ namespace WitchMendokusai.Idle.UI
 				mapSelection.Close();
 				closeSelectionPopups();
 				goldDetails.Close();
+				oddsPopup.Close();
+			});
+			requestRender();
+		}
+
+		/// <summary>확률표. 상점 페이지의 버튼이 연다</summary>
+		public void OpenOdds()
+		{
+			oddsPopup.Open(() =>
+			{
+				mapSelection.Close();
+				closeSelectionPopups();
+				goldDetails.Close();
+				settingsPopup.Close();
 			});
 			requestRender();
 		}
@@ -80,6 +99,7 @@ namespace WitchMendokusai.Idle.UI
 				closeSelectionPopups();
 				goldDetails.Close();
 				settingsPopup.Close();
+				oddsPopup.Close();
 			});
 			requestRender();
 		}
@@ -93,6 +113,7 @@ namespace WitchMendokusai.Idle.UI
 		{
 			goldDetails.Close();
 			settingsPopup.Close();
+			oddsPopup.Close();
 		}
 
 		public void ShowNote(string text, float seconds)

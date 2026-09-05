@@ -186,6 +186,7 @@ namespace WitchMendokusai.Tests
 			state.EnsureTicketRoom();
 			state.Tickets[0] = 2L;
 			state.TicketDay = 20123L;
+			state.FreeBoxDay = 20122L;
 			state.SpeedStep = 2;
 			state.BagUpgrades = 3;
 			state.AutoCast = true;

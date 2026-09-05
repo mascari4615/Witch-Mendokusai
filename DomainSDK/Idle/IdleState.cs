@@ -65,6 +65,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>입장권을 마지막으로 채운 날 번호. 날이 바뀌었나를 이걸로 안다</summary>
         public long TicketDay { get; set; }
 
+        /// <summary>무료 상자를 마지막으로 연 날 번호. 정본은 <see cref="IdleFreeBox"/></summary>
+        public long FreeBoxDay { get; set; }
+
         /// <summary>고른 배속의 자리 (gap-2026-08-23 P1-6). 0 이 1배</summary>
         public int SpeedStep { get; set; }
 
@@ -403,6 +406,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 PrestigeShards = PrestigeShards,
                 Tickets = (long[])Tickets.Clone(),
                 TicketDay = TicketDay,
+                FreeBoxDay = FreeBoxDay,
                 SpeedStep = SpeedStep,
                 AutoCast = AutoCast,
                 BagUpgrades = BagUpgrades,
@@ -612,6 +616,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             PrestigeShards = saveData.PrestigeShards > 0L ? saveData.PrestigeShards : 0L;
             Tickets = saveData.Tickets;
             TicketDay = saveData.TicketDay;
+            FreeBoxDay = saveData.FreeBoxDay;
             SpeedStep = NotBelowZero(saveData.SpeedStep);
             AutoCast = saveData.AutoCast;
             BagUpgrades = NotBelowZero(saveData.BagUpgrades);

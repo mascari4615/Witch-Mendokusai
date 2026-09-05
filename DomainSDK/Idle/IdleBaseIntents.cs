@@ -13,6 +13,16 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
     }
 
+    /// <summary>「묶음으로 뽑는다」. 수와 값과 보장은 튜닝 (사용자 2026-09-05: 10회)</summary>
+    public readonly struct IdlePullBatchIntent : IGameIntent
+    {
+    }
+
+    /// <summary>「무료 상자를 연다」. 하루 1회</summary>
+    public readonly struct IdleOpenFreeBoxIntent : IGameIntent
+    {
+    }
+
     /// <summary>「이 등급을 n개 분해한다」. 0 이하면 전부 (사용자 2026-09-05)</summary>
     public readonly struct IdleSalvageIntent : IGameIntent
     {

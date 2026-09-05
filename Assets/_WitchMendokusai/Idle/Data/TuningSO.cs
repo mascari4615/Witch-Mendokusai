@@ -165,6 +165,21 @@ namespace WitchMendokusai.Idle
 		[Tooltip("천장. 이 횟수 안에 레전드를 보장한다.")]
 		[SerializeField] private int pityPulls = 60;
 
+		[Tooltip("묶음 뽑기 수. 값은 1회의 이만큼 배, 할인 없음")]
+		[SerializeField] private int pullBatchCount = 10;
+
+		[Tooltip("묶음이 보장하는 최저 등급 (0 일반, 1 레어, 2 에픽, 3 레전드)")]
+		[SerializeField] private int pullBatchFloorGrade = 1;
+
+		[Tooltip("픽업 인형이 같은 등급 안에서 뽑히는 무게. 다른 인형은 1")]
+		[SerializeField] private double pickupWeight = 2d;
+
+		[Tooltip("픽업 인형이 바뀌는 주기 (날)")]
+		[SerializeField] private long pickupDays = 7L;
+
+		[Tooltip("무료 상자가 주는 뽑기 재화. 하루 1회")]
+		[SerializeField] private long freeBoxStones = 1L;
+
 		[Header("영웅, 중복, 보유, 도감")]
 		[Tooltip("★ 상한. 넘겨도 중복은 안 버린다.")]
 		[SerializeField] private int maxStars = 5;
@@ -464,6 +479,11 @@ namespace WitchMendokusai.Idle
 				EpicChance = epicChance,
 				RareChance = rareChance,
 				PityPulls = pityPulls,
+				PullBatchCount = pullBatchCount,
+				PullBatchFloorGrade = pullBatchFloorGrade,
+				PickupWeight = pickupWeight,
+				PickupDays = pickupDays,
+				FreeBoxStones = freeBoxStones,
 				MaxStars = maxStars,
 				CopiesPerStar = copiesPerStar,
 				HeroStarStep = heroStarStep,

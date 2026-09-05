@@ -65,6 +65,11 @@ MonoBehaviour:
   epicChance: 0.1
   rareChance: 0.28
   pityPulls: 60
+  pullBatchCount: 10
+  pullBatchFloorGrade: 1
+  pickupWeight: 2
+  pickupDays: 7
+  freeBoxStones: 1
   maxStars: 5
   copiesPerStar: 2
   heroStarStep: 0.1

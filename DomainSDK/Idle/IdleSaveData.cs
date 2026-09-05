@@ -96,6 +96,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>입장권을 마지막으로 채운 날 번호</summary>
         public long TicketDay;
 
+        /// <summary>무료 상자를 마지막으로 연 날 번호</summary>
+        public long FreeBoxDay;
+
         /// <summary>고른 배속의 자리 (gap-2026-08-23 P1-6)</summary>
         public int SpeedStep;
 
