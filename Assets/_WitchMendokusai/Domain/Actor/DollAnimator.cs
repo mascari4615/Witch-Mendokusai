@@ -11,11 +11,13 @@ namespace WitchMendokusai
 		[SerializeField] private Animator handAnimator;
 
 		private PlayerProvider playerProvider;
+		private InputManager inputManager;
 
 		[Inject]
-		public void Construct(PlayerProvider playerProvider)
+		public void Construct(PlayerProvider playerProvider, InputManager inputManager)
 		{
 			this.playerProvider = playerProvider;
+			this.inputManager = inputManager;
 		}
 
 		private void Update()
@@ -25,7 +27,7 @@ namespace WitchMendokusai
 			mainAnimator.SetBool("MOVE", isMoving);
 			animatorOf3DModel.SetBool("MOVE", isMoving);
 
-			handAnimator.SetBool("CHANNELING", InputManager.Instance.IsMouseLeftButtonPressed || InputManager.Instance.IsMouseRightButtonPressed);
+			handAnimator.SetBool("CHANNELING", inputManager.IsMouseLeftButtonPressed || inputManager.IsMouseRightButtonPressed);
 
 			Vector3 moveDirection = playerProvider.CurrentObject.UnitMovement.MoveDirectionLocal;
 			if (moveDirection.x == 0)

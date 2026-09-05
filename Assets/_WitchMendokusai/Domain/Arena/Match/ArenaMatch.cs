@@ -30,6 +30,8 @@ namespace WitchMendokusai
 		[SerializeField] private Color team0Tint = new(0.45f, 0.75f, 1f);
 		[SerializeField] private Color team1Tint = new(1f, 0.45f, 0.45f);
 
+		private ObjectPoolManager pool;
+		private TimeManager timeManager;
 		private TargetingSystem targeting;
 		private ArenaMatchCore core;
 		private List<MatchTeam> teams;
@@ -72,6 +74,13 @@ namespace WitchMendokusai
 		public int WinnerTeamId => core != null ? core.WinnerTeamId : ArenaModeSO.NO_WINNER;
 
 		/// <summary> 프로그래매틱 시작(런처/모드 진입용) — config·arenaRoot 주입 후 Begin. </summary>
+		/// <summary> 의존 배선. 이 컴포넌트는 모드 컨트롤러 프리팹의 자식이라 씬 스코프가 못 보므로 컨트롤러가 Construct 에서 넘긴다 (2026-09-05, .Instance 제거) </summary>
+		public void Construct(ObjectPoolManager pool, TimeManager timeManager)
+		{
+			this.pool = pool;
+			this.timeManager = timeManager;
+		}
+
 		public void Begin(ArenaMatchConfig matchConfig, Transform root)
 		{
 			config = matchConfig;
@@ -205,12 +214,10 @@ namespace WitchMendokusai
 
 		private IEnumerator BeginRoutine()
 		{
-			// init-order-ok: World 부팅 후 호출 보장(스코프 미배선 v1 — item 9 에서 [Inject] 전환). 진입부 1회 캡처(fail-fast).
-			ObjectPoolManager pool = ObjectPoolManager.Instance;
-			TimeManager timeManager = TimeManager.Instance;
+			// 의존은 ArenaModeController.Construct 가 넘긴다. 없으면 배선 누락 (fail-fast)
 			if (pool == null || timeManager == null)
 			{
-				Debug.LogError($"{nameof(ArenaMatch)}: ObjectPoolManager/TimeManager Instance null — World 부팅 후 호출 필요.");
+				Debug.LogError($"{nameof(ArenaMatch)}: ObjectPoolManager/TimeManager 미배선 . ArenaModeController.Construct 가 Construct 를 불러야 한다.");
 				started = false;
 				yield break;
 			}

@@ -43,10 +43,12 @@ namespace WitchMendokusai
 		private readonly ModeControllerEdgeTrigger modeEdge = new();
 
 		[Inject]
-		public void Construct(GameModeManager gameModeManager, InputManager inputManager)
+		public void Construct(GameModeManager gameModeManager, InputManager inputManager, ObjectPoolManager objectPoolManager, TimeManager timeManager)
 		{
 			this.gameModeManager = gameModeManager;
 			this.inputManager = inputManager;
+			// 매치는 이 프리팹의 자식이라 스코프가 직접 못 줌. 여기서 전달
+			arenaMatch.Construct(objectPoolManager, timeManager);
 		}
 
 		private void Awake()

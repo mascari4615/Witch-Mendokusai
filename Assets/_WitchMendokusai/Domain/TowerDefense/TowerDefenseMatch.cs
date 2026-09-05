@@ -102,6 +102,13 @@ namespace WitchMendokusai
 		public float PrepareRemaining => core != null ? core.PrepareRemaining : 0f;
 
 		/// <summary> 프로그래매틱 시작(런처/모드 진입용) — stage·stageRoot 주입 후 Begin. </summary>
+		/// <summary> 의존 배선. 모드 컨트롤러 프리팹의 자식이라 씬 스코프가 못 보므로 컨트롤러가 Construct 에서 넘긴다 (2026-09-05, .Instance 제거) </summary>
+		public void Construct(ObjectPoolManager objectPoolManager, TimeManager timeManagerDependency)
+		{
+			pool = objectPoolManager;
+			timeManager = timeManagerDependency;
+		}
+
 		public void Begin(TowerDefenseStageSO stageConfig, Transform root)
 		{
 			stage = stageConfig;
@@ -144,12 +151,10 @@ namespace WitchMendokusai
 
 		private IEnumerator BeginRoutine()
 		{
-			// init-order-ok: World 부팅 후 호출 보장(ArenaMatch 와 동형 — 스코프 미배선 v1). 진입부 1회 캡처(fail-fast).
-			pool = ObjectPoolManager.Instance;
-			timeManager = TimeManager.Instance;
+			// 의존은 TowerDefenseModeController.Construct 가 넘긴다. 없으면 배선 누락 (fail-fast)
 			if (pool == null || timeManager == null)
 			{
-				Debug.LogError($"{nameof(TowerDefenseMatch)}: ObjectPoolManager/TimeManager Instance null — World 부팅 후 호출 필요.");
+				Debug.LogError($"{nameof(TowerDefenseMatch)}: ObjectPoolManager/TimeManager 미배선 . TowerDefenseModeController.Construct 가 Construct 를 불러야 한다.");
 				started = false;
 				yield break;
 			}
@@ -877,8 +882,7 @@ namespace WitchMendokusai
 			core = null;
 			coreCombatant = null;
 			targeting = null;
-			pool = null;
-			timeManager = null;
+			// pool 과 timeManager 는 비우지 않는다. 컨트롤러가 한 번 넘긴 의존이고 다음 판 Begin 이 그대로 쓴다 (2026-09-05)
 			started = false;
 		}
 

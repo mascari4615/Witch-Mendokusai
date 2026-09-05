@@ -35,14 +35,16 @@ namespace WitchMendokusai
 		private SOManager soManager;
 		private TimeManager timeManager;
 		private QuestManager questManager;
+		private GameModeManager gameModeManager;
 
 		[Inject]
-		public void Construct(InputManager inputManager, SOManager soManager, TimeManager timeManager, QuestManager questManager)
+		public void Construct(InputManager inputManager, SOManager soManager, TimeManager timeManager, QuestManager questManager, GameModeManager gameModeManager)
 		{
 			this.inputManager = inputManager;
 			this.soManager = soManager;
 			this.timeManager = timeManager;
 			this.questManager = questManager;
+			this.gameModeManager = gameModeManager;
 		}
 
 		private void Awake()
@@ -186,7 +188,7 @@ namespace WitchMendokusai
 		private void EnterArena()
 		{
 			Close();
-			GameModeManager.Instance.SetMode(GameMode.Arena);
+			gameModeManager.SetMode(GameMode.Arena);
 		}
 
 		private void OpenChapter(ChapterSO chapter)

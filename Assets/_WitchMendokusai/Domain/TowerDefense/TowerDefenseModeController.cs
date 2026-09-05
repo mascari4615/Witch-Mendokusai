@@ -63,11 +63,13 @@ namespace WitchMendokusai
 
 
 		[Inject]
-		public void Construct(GameModeManager gameModeManager, InputManager inputManager, UIRoot uiRoot)
+		public void Construct(GameModeManager gameModeManager, InputManager inputManager, UIRoot uiRoot, ObjectPoolManager objectPoolManager, TimeManager timeManager)
 		{
 			this.gameModeManager = gameModeManager;
 			this.inputManager = inputManager;
 			this.uiRoot = uiRoot;
+			// 매치는 이 프리팹의 자식이라 스코프가 직접 못 줌. 여기서 전달
+			match.Construct(objectPoolManager, timeManager);
 		}
 
 		private void Awake()
@@ -861,7 +863,7 @@ namespace WitchMendokusai
 					view.LookAtRequested += LookAt;
 					view.ResearchPanelRequested += OpenResearch;
 					view.SellSelectedRequested += SellSelected;
-					view.ExitRequested += () => GameModeManager.Instance.SetMode(GameMode.Default);
+					view.ExitRequested += () => gameModeManager.SetMode(GameMode.Default);
 					view.SelectionCloseRequested += CloseSelection;
 					view.MenuResumeRequested += ResumeFromMenu;
 					view.MenuToggleRequested += ToggleMenu;

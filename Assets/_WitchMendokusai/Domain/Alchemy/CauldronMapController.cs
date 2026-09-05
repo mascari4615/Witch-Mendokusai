@@ -20,6 +20,7 @@ namespace WitchMendokusai
 
         private InputManager inputManager;
         private UIRoot uiRoot;
+        private SOManager soManager;
 
         private VisualElement container;
         private CauldronMapElement map;
@@ -39,10 +40,11 @@ namespace WitchMendokusai
         }
 
         [Inject]
-        public void Construct(InputManager inputManager, UIRoot uiRoot)
+        public void Construct(InputManager inputManager, UIRoot uiRoot, SOManager soManager)
         {
             this.inputManager = inputManager;
             this.uiRoot = uiRoot;
+            this.soManager = soManager;
         }
 
         private void Start()
@@ -142,7 +144,7 @@ namespace WitchMendokusai
 
             if (produced > 0 && recipeSO != null && recipeSO.ResultItem != null)
             {
-                SOManager.Instance.ItemInventory.Add(recipeSO.ResultItem, produced);
+                soManager.ItemInventory.Add(recipeSO.ResultItem, produced);
             }
 
             EventBusBridge.Publish(new PotionBrewedEvent(recipeId, outcome.Grade, outcome.Potency, outcome.SideEffect, resultId, produced));

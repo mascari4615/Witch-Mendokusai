@@ -102,14 +102,16 @@ namespace WitchMendokusai
 		private StageManager stageManager;
 		// BuildManager 의 런타임 Grid 재사용 — 도시 페인트가 건물 배치와 동일 셀 좌표계. 사용자 Grid 연결 불요.
 		private BuildManager buildManager;
+		private WorldClock worldClock;
 
 		[Inject]
-		public void Construct(InputManager inputManager, GameModeManager gameModeManager, StageManager stageManager, BuildManager buildManager)
+		public void Construct(InputManager inputManager, GameModeManager gameModeManager, StageManager stageManager, BuildManager buildManager, WorldClock worldClock)
 		{
 			this.inputManager = inputManager;
 			this.gameModeManager = gameModeManager;
 			this.stageManager = stageManager;
 			this.buildManager = buildManager;
+			this.worldClock = worldClock;
 		}
 
 		// 셀 → 시각 큐브 (ZoneGrid/RoadGraph 가 데이터 진실, 이건 그 투영 = 렌더 캐시).
@@ -173,17 +175,16 @@ namespace WitchMendokusai
 			gameModeManager.OnModeChanged += OnModeChanged;
 			ApplyMode(gameModeManager.CurrentMode);
 
-			// step6 — 매일 수요 평가 + 자동 성장. WorldClock(MonoBehaviour singleton)은 Bootstrap 후 존재.
-			if (WorldClock.Instance != null)
-				WorldClock.Instance.OnDayChanged += OnDayChanged;
+			// step6, 매일 수요 평가 + 자동 성장. WorldClock 은 Root 스코프에서 주입 (2026-09-05, .Instance 제거)
+			worldClock.OnDayChanged += OnDayChanged;
 		}
 
 		private void OnDestroy()
 		{
 			if (gameModeManager != null)
 				gameModeManager.OnModeChanged -= OnModeChanged;
-			if (WorldClock.Instance != null)
-				WorldClock.Instance.OnDayChanged -= OnDayChanged;
+			if (worldClock != null)
+				worldClock.OnDayChanged -= OnDayChanged;
 
 			// INC-8 — 진행 중 건물 성장/쇠퇴 연출 트윈 정리 (파괴된 transform 트윈 경고 방지).
 			foreach (GameObject visual in buildingVisuals.Values)
