@@ -42,6 +42,7 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 - 부정 조건 `== false` — `!` 금지
 - Allman 스타일 (중괄호 항상 새 줄), 단일 표현식은 `=>` expression body
 - 이벤트/델리게이트 초기값 `delegate { }` (null 방지)
+- 한 파일 500줄 상한. 넘으면 같은 클래스는 partial 로 관심사별 파일, 아니면 클래스를 나눈다. 규칙 게이트 `FILE-LENGTH` 가 새로 넘는 파일을 막고, 이미 넘은 40파일은 `wm-file-length-baseline.tsv` 의 빚 (줄어들기만 한다)
 
 ## 새 시스템 도입 시 — 기존 패턴 먼저
 

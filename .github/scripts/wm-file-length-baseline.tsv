@@ -1,0 +1,43 @@
+# wm-rule-gate FILE-LENGTH 기준선 -- 500줄 넘는 파일, 이미 진 빚. 여기 없는 새 위반만 막는다.
+# 갚으면(500줄 아래로 내리면) 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
+# 갱신: powershell -File .github/scripts/wm-rule-gate.ps1 -WriteBaseline
+Core/Diagnostics/DeviceLogRelay.cs
+Core/Input/InputManager.cs
+Domain/Actor/Movement/Motor.cs
+Domain/Alchemy/CauldronMapElement.cs
+Domain/City/CityPaintManager.cs
+Domain/Farming/WitchGreenhouseObject.cs
+Domain/Narrative/DialogueRunner.cs
+Domain/Narrative/Script/DialogueScriptParser.cs
+Domain/Terrain/UI/TerrainEditorView.cs
+Domain/TowerDefense/TowerDefenseHudView.cs
+Domain/TowerDefense/TowerDefenseMatch.Build.cs
+Domain/TowerDefense/TowerDefenseMatch.Economy.cs
+Domain/TowerDefense/TowerDefenseMatch.Lair.cs
+Domain/TowerDefense/TowerDefenseMatch.Spawn.cs
+Domain/TowerDefense/TowerDefenseMatch.cs
+Domain/TowerDefense/TowerDefenseModeController.cs
+Domain/TowerDefense/TowerDefensePlacement.cs
+Domain/TowerDefense/TowerDefenseStageSO.cs
+Domain/UI/Mobile/MobileControlsView.cs
+DomainSDK/Identity/WorldIdentity.cs
+DomainSDK/Idle/IdleBattleSim.cs
+DomainSDK/Idle/IdleHeroes.cs
+DomainSDK/Idle/IdleModel.cs
+DomainSDK/Idle/IdleSession.cs
+DomainSDK/Idle/IdleSnapshot.cs
+DomainSDK/Idle/IdleState.cs
+DomainSDK/Idle/IdleTuning.cs
+DomainSDK/Net/NetMessages.cs
+DomainSDK/Versus/VersusAuthority.cs
+DomainSDK/WorldSim/WorldSim.cs
+Editor/DataSO/DataSOWindow.cs
+Editor/Narrative/DialogueGraphPreviewWindow.cs
+Editor/TowerDefense/TowerDefensePlayVerify.cs
+Editor/Weather/WeatherSystemBootstrapMenu.cs
+Idle/Data/TuningSO.cs
+Network/LocalWorldLink.cs
+Network/WebWorldClient.cs
+Network/WorldSmokeSentinel.cs
+Tests/EditMode/Idle/IdleBaseTests.cs
+Tests/EditMode/Idle/IdleLongHaulTests.cs

@@ -454,6 +454,9 @@ $enumBaseline  = Read-Baseline $enumBaselinePath
 $assetBaseline = Read-Baseline $assetBaselinePath
 $tuneBaselinePath  = Join-Path $scriptDir 'wm-tuning-const-baseline.tsv'
 $tuneBaseline  = Read-Baseline $tuneBaselinePath
+$lengthBaselinePath = Join-Path $scriptDir 'wm-file-length-baseline.tsv'
+$lengthBaseline = Read-Baseline $lengthBaselinePath
+$FILE_LENGTH_LIMIT = 500
 
 $ratchetMisses = New-Object System.Collections.ArrayList
 
@@ -492,6 +495,17 @@ foreach ($key in $enumOffenders)
     if ($enumBaseline.Contains($key)) { continue }
     $parts = $key -split "`t"
     [void]$ratchetMisses.Add(("ENUM-VALUE  {0} -- enum '{1}' 의 항목에 명시적 값이 없다; fix: 각 항목에 = <정수> 를 적어라 (끝에 추가가 원칙)" -f $parts[0], $parts[1]))
+}
+
+# --- FILE-LENGTH --------------------------------------------------------------
+# 한 파일 500줄 상한 (2026-09-05). 5,804줄짜리 MonoBehaviour 하나가 판 하나의 규칙, 스폰, 저장,
+# 경제를 다 들고 있었다. 새로 넘는 파일만 막고, 이미 넘은 것은 기준선(빚)으로 둔다.
+# 갚는 법: 같은 클래스라면 partial 로 관심사별 파일, 아니면 클래스를 나눈다. 갚으면 기준선 줄을 지운다.
+foreach ($file in $subjects)
+{
+    if ($file.Lines.Length -le $FILE_LENGTH_LIMIT) { continue }
+    if ($lengthBaseline.Contains($file.Relative)) { continue }
+    [void]$ratchetMisses.Add(("FILE-LENGTH  {0} -- {1}줄, 상한 {2}; fix: partial 로 관심사별 파일로 나누거나 클래스를 쪼갠다" -f $file.Relative, $file.Lines.Length, $FILE_LENGTH_LIMIT))
 }
 
 # --- TUNING-CONST -------------------------------------------------------------
@@ -612,6 +626,18 @@ if ($WriteBaseline)
     }
     $tuneLines = @($tuneLines | Sort-Object -Unique)
     Write-BaselineFile -Path $tuneBaselinePath -Lines ($tuneHeader + $tuneLines)
+    $lengthHeader = @(
+        '# wm-rule-gate FILE-LENGTH 기준선 -- 500줄 넘는 파일, 이미 진 빚. 여기 없는 새 위반만 막는다.',
+        '# 갚으면(500줄 아래로 내리면) 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.',
+        '# 갱신: powershell -File .github/scripts/wm-rule-gate.ps1 -WriteBaseline'
+    )
+    $lengthLines = @()
+    foreach ($file in $subjects)
+    {
+        if ($file.Lines.Length -gt $FILE_LENGTH_LIMIT) { $lengthLines += $file.Relative }
+    }
+    $lengthLines = @($lengthLines | Sort-Object -Unique)
+    Write-BaselineFile -Path $lengthBaselinePath -Lines ($lengthHeader + $lengthLines)
 
     $enumLines = @($enumOffenders | Sort-Object -Unique)
     $assetLines = @()
@@ -773,7 +799,7 @@ if ($total -eq 0)
     Write-Host '  PASS  [META] 모든 .cs 에 .meta 가 있다'
     Write-Host "  PASS  [FOLDER] 'Scripts' 폴더 층 0"
     Write-Host '  PASS  [ANCHOR] required wiring lines are still present'
-    Write-Host ('  PASS  [RATCHET] 새 위반 없음 (기준선: enum {0}건 / asset {1}건 / tuning {2}건 -- 이미 진 빚)' -f $enumBaseline.Count, $assetBaseline.Count, $tuneBaseline.Count)
+    Write-Host ('  PASS  [RATCHET] 새 위반 없음 (기준선: enum {0}건 / asset {1}건 / tuning {2}건 / 길이 {3}건 -- 이미 진 빚)' -f $enumBaseline.Count, $assetBaseline.Count, $tuneBaseline.Count, $lengthBaseline.Count)
     Write-Host 'RESULT: PASS -- 0 rule violations.'
     exit 0
 }
