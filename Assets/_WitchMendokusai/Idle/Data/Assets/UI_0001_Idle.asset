@@ -90,8 +90,8 @@ MonoBehaviour:
   waitForCostAdvice: 모으는 중. 코스트가 차면 카드를 낸다
   battleGradeFormat: 등급 {0}/{1}
   stageFormat: '{0}구역'
-  repeatOnText: 반복 ●
-  repeatOffText: 반복 ○
+  repeatOnText: 반복
+  repeatOffText: 반복
   goldAmountFormat: 보유  {0}
   goldIncomeFormat: 초당  +{0}
   mainSeatText: 전투

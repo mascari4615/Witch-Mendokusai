@@ -56,45 +56,56 @@
 	letter-spacing: 2px;
 }
 
-/* 좌상. 작전 코드 */
+/* HUD 칩. 프레임 없는 반투명 검정 (사용자 2026-09-05 S2 선택. 목업 mock/hud-style-2026-09-05.html) */
+.idle-chip-dark {
+	background-color: rgba(0, 0, 0, 0.55);
+	border-width: 0;
+	border-radius: 0;
+	color: rgb(255, 255, 255);
+}
+
+/* 좌상. 작전 코드 + 웨이브 한 줄 */
 .idle-op {
 	position: absolute;
 	left: 20px;
 	top: 18px;
-	min-width: 330px;
-	padding: 10px 14px;
-}
-
-.idle-op-row {
+	height: 44px;
+	padding: 0 14px;
 	flex-direction: row;
 	align-items: center;
 }
 
 .idle-op-code {
-	font-size: 44px;
+	font-size: 26px;
 	-unity-font-style: bold;
 	color: rgb(255, 255, 255);
-	margin-right: 12px;
+	margin-right: 10px;
 }
 
 .idle-op-name {
-	font-size: 28px;
-	color: rgb(180, 180, 172);
+	font-size: 14px;
+	color: rgb(168, 168, 160);
+	letter-spacing: 2px;
+	margin-right: 16px;
+}
+
+.idle-op-cap {
+	font-size: 14px;
+	color: rgb(168, 168, 160);
+	letter-spacing: 2px;
+	margin-left: 10px;
 }
 
 .idle-wave {
 	flex-direction: row;
 	align-items: center;
-	margin-right: 8px;
 }
 
 .idle-wave-dot {
-	width: 34px;
-	height: 8px;
-	margin-right: 4px;
+	width: 22px;
+	height: 5px;
+	margin-right: 3px;
 	background-color: rgb(58, 58, 58);
-	border-width: 1px;
-	border-color: rgb(0, 0, 0);
 }
 
 .idle-wave-dot--done {
@@ -102,36 +113,39 @@
 }
 
 .idle-wave-dot--boss {
-	width: 14px;
-	height: 14px;
+	width: 9px;
+	height: 9px;
 	background-color: rgb(196, 82, 106);
 	rotate: 45deg;
-	margin-left: 4px;
+	margin-left: 6px;
+	margin-right: 0;
 }
 
 /* 좌상 둘째 줄. 스테퍼 + 반복 */
 .idle-step-row {
 	position: absolute;
 	left: 20px;
-	top: 112px;
+	top: 70px;
 	flex-direction: row;
 }
 
 .idle-stepper {
 	flex-direction: row;
 	align-items: center;
-	height: 56px;
+	height: 40px;
+	padding: 0 6px;
 	margin-right: 8px;
 }
 
 .idle-step-button {
-	width: 46px;
-	height: 56px;
+	width: 28px;
+	height: 40px;
 	background-color: rgba(0, 0, 0, 0);
 	border-width: 0;
-	color: rgb(255, 255, 255);
-	font-size: 32px;
+	color: rgb(204, 204, 204);
+	font-size: 15px;
 	margin: 0;
+	padding: 0;
 }
 
 .idle-step-button:disabled {
@@ -139,22 +153,32 @@
 }
 
 .idle-step-label {
-	font-size: 34px;
+	font-size: 20px;
 	-unity-font-style: bold;
 	color: rgb(255, 255, 255);
-	padding: 0 12px;
+	padding: 0 6px;
 }
 
 .idle-toggle {
-	height: 56px;
-	padding: 0 16px;
-	font-size: 32px;
-	-unity-font-style: bold;
+	height: 40px;
+	min-width: 88px;
+	padding: 0 12px 0 32px;
+	font-size: 15px;
 	margin: 0;
+	-unity-text-align: middle-left;
 }
 
-.idle-toggle--on {
-	color: rgb(245, 175, 16);
+.idle-toggle-lamp {
+	position: absolute;
+	left: 12px;
+	top: 14px;
+	width: 12px;
+	height: 12px;
+	background-color: rgb(58, 58, 58);
+}
+
+.idle-toggle--on .idle-toggle-lamp {
+	background-color: rgb(245, 175, 16);
 }
 
 /* 우상. 재화 + 분할 */
@@ -166,23 +190,22 @@
 }
 
 .idle-chip {
-	height: 56px;
-	padding: 0 12px;
+	height: 44px;
+	padding: 0 14px;
 	margin-left: 8px;
-	font-size: 28px;
+	font-size: 24px;
 	-unity-font-style: bold;
 	-unity-text-align: middle-left;
 }
 
 .idle-gold-chip {
-	min-width: 170px;
 	flex-direction: row;
 	align-items: center;
 }
 
 .idle-gold-icon {
-	width: 38px;
-	height: 38px;
+	width: 26px;
+	height: 26px;
 	margin-right: 8px;
 	background-image: url("../../Domain/Component/Item/_Common/Sprite/game-icons.net/ore.png");
 	-unity-background-scale-mode: scale-to-fit;
@@ -190,16 +213,16 @@
 }
 
 .idle-gold-value {
-	font-size: 28px;
+	font-size: 24px;
 	-unity-font-style: bold;
-	color: rgb(255, 229, 142);
+	color: rgb(245, 175, 16);
 }
 
 .idle-icon-button {
-	height: 56px;
-	padding: 0 12px;
+	height: 44px;
+	padding: 0 10px;
 	margin-left: 8px;
-	font-size: 24px;
+	font-size: 18px;
 	color: rgb(220, 220, 214);
 }
 
@@ -213,15 +236,15 @@
 
 .idle-settings-button,
 .idle-split-button {
-	width: 56px;
+	width: 44px;
 	padding: 0;
 	align-items: center;
 	justify-content: center;
 }
 
 .idle-settings-icon {
-	width: 34px;
-	height: 34px;
+	width: 24px;
+	height: 24px;
 	background-image: url("../../Domain/Component/Item/_Common/Sprite/game-icons.net/gears.png");
 	-unity-background-scale-mode: scale-to-fit;
 	-unity-background-image-tint-color: rgb(224, 224, 216);
@@ -229,15 +252,15 @@
 
 .idle-split-chevron {
 	position: relative;
-	width: 24px;
-	height: 34px;
+	width: 18px;
+	height: 26px;
 }
 
 .idle-split-chevron-line {
 	position: absolute;
-	left: 8px;
-	width: 4px;
-	height: 18px;
+	left: 6px;
+	width: 3px;
+	height: 14px;
 	background-color: rgb(232, 232, 224);
 }
 
@@ -330,15 +353,16 @@
 	right: -104px;
 	bottom: 0;
 	width: 92px;
-	height: 54px;
-	font-size: 22px;
+	height: 44px;
+	font-size: 18px;
 	-unity-font-style: bold;
 	color: rgb(190, 190, 184);
+	background-color: rgba(0, 0, 0, 0.55);
+	border-width: 0;
 }
 
 .idle-skill-auto.idle-icon-button--on {
 	color: rgb(245, 175, 16);
-	border-color: rgb(245, 175, 16);
 }
 
 #cards {
@@ -346,18 +370,19 @@
 	align-items: flex-end;
 }
 
+/* 손패 (사용자 2026-09-05): 프레임 없는 어두운 카드, 좌상 파란 원 코스트, 쓸 수 있으면 앰버 테두리 */
 .idle-card {
 	position: relative;
-	width: 190px;
+	width: 170px;
 	height: 166px;
 	margin-right: 10px;
 	font-size: 28px;
 	-unity-font-style: bold;
 	white-space: normal;
-	background-color: rgb(20, 20, 20);
+	background-color: rgba(18, 18, 18, 0.88);
 	color: rgb(255, 255, 255);
 	border-width: 2px;
-	border-color: rgb(255, 255, 255);
+	border-color: rgba(0, 0, 0, 0);
 	border-radius: 0;
 	-unity-text-align: lower-left;
 	padding: 8px;
@@ -365,34 +390,34 @@
 
 .idle-card-icon {
 	position: absolute;
-	left: 18px;
-	top: 14px;
-	width: 112px;
-	height: 92px;
+	left: 34px;
+	top: 26px;
+	width: 100px;
+	height: 84px;
 	-unity-background-scale-mode: scale-to-fit;
 	-unity-background-image-tint-color: rgb(245, 238, 211);
 }
 
 .idle-card-cost {
 	position: absolute;
-	right: 10px;
+	left: 8px;
 	top: 8px;
-	min-width: 44px;
-	height: 44px;
-	font-size: 28px;
+	min-width: 40px;
+	height: 40px;
+	font-size: 24px;
 	-unity-font-style: bold;
 	-unity-text-align: middle-center;
-	color: rgb(15, 25, 36);
-	background-color: rgb(116, 218, 255);
-	border-radius: 22px;
+	color: rgb(255, 255, 255);
+	background-color: rgb(52, 120, 246);
+	border-radius: 20px;
 }
 
 .idle-card-name {
 	position: absolute;
-	left: 10px;
-	right: 10px;
+	left: 8px;
+	right: 8px;
 	bottom: 8px;
-	font-size: 24px;
+	font-size: 20px;
 	-unity-font-style: bold;
 	-unity-text-align: middle-center;
 	color: rgb(255, 255, 255);
@@ -589,25 +614,23 @@
 }
 
 .idle-queue-cap {
-	font-size: 20px;
-	color: rgb(150, 150, 150);
-	margin-right: 6px;
-	letter-spacing: 1px;
+	font-size: 14px;
+	color: rgb(168, 168, 160);
+	margin-right: 8px;
+	letter-spacing: 2px;
 }
 
 .idle-queue-chip {
-	font-size: 20px;
-	color: rgb(190, 190, 190);
-	background-color: rgb(28, 28, 28);
-	border-width: 1px;
-	border-color: rgb(70, 70, 70);
-	padding: 2px 8px;
+	font-size: 16px;
+	color: rgb(200, 200, 192);
+	background-color: rgba(0, 0, 0, 0.55);
+	border-width: 0;
+	padding: 3px 10px;
 	margin-right: 5px;
 }
 
 .idle-queue-chip--next {
 	color: rgb(245, 175, 16);
-	border-color: rgb(245, 175, 16);
 }
 
 .idle-cost {
@@ -626,16 +649,24 @@
 
 .idle-cost-gauge {
 	flex-grow: 1;
-	height: 10px;
-	background-color: rgb(20, 20, 20);
-	border-width: 1px;
-	border-color: rgb(0, 0, 0);
+	height: 12px;
+	background-color: rgba(0, 0, 0, 0.55);
+	border-width: 0;
 	margin: 0 8px;
+}
+
+/* 10분절. 채움은 연속이고 눈금이 위에서 나눈다 (하늘색 10분절) */
+.idle-cost-tick {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 3px;
+	background-color: rgb(12, 12, 12);
 }
 
 .idle-cost-fill {
 	height: 100%;
-	background-color: rgb(245, 175, 16);
+	background-color: rgb(116, 218, 255);
 }
 
 .idle-debug {
