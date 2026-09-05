@@ -71,6 +71,18 @@ namespace WitchMendokusai.Idle.Editor
 			}
 			EditorGUILayout.EndHorizontal();
 
+			EditorGUILayout.BeginHorizontal();
+			if (GUILayout.Button("인형 프리팹 짓기"))
+			{
+				IdleDollBuilder.Build();
+			}
+
+			if (GUILayout.Button("인형 검사"))
+			{
+				Debug.Log("[IdleDev] 인형 검사: " + (IdleDollBuilder.Verify() ? "초록" : "빨강"));
+			}
+			EditorGUILayout.EndHorizontal();
+
 			if (GUILayout.Button("Playground 창"))
 			{
 				IdlePlaygroundWindow.Open();

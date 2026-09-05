@@ -12,6 +12,7 @@ namespace WitchMendokusai.Idle
 		private readonly Transform[] barAnchors;
 		private readonly Material[] skins;
 		private readonly HealthBar[] bars;
+		private readonly IdleDollAnimator[] animators;
 		private readonly float[] attackLeft;
 		private readonly float[] hurtLeft;
 		private float clock;
@@ -26,6 +27,7 @@ namespace WitchMendokusai.Idle
 			barAnchors = new Transform[seats];
 			skins = new Material[seats];
 			bars = new HealthBar[seats];
+			animators = new IdleDollAnimator[seats];
 			attackLeft = new float[seats];
 			hurtLeft = new float[seats];
 
@@ -47,6 +49,7 @@ namespace WitchMendokusai.Idle
 			if (seat >= 0 && seat < attackLeft.Length)
 			{
 				attackLeft[seat] = settings.LungeSeconds;
+				animators[seat]?.PlayAttack();
 			}
 		}
 
@@ -55,6 +58,7 @@ namespace WitchMendokusai.Idle
 			if (seat >= 0 && seat < hurtLeft.Length)
 			{
 				hurtLeft[seat] = settings.HurtSeconds;
+				animators[seat]?.PlayHit();
 			}
 		}
 
@@ -89,6 +93,7 @@ namespace WitchMendokusai.Idle
 			{
 				GameObject made = Object.Instantiate(settings.DollPrefab, doll.transform, false);
 				made.name = "Model";
+				animators[seat] = made.GetComponentInChildren<IdleDollAnimator>();
 				foreach (MeshRenderer part in made.GetComponentsInChildren<MeshRenderer>())
 				{
 					if (part.name == "Body" || part.name == "Head")
@@ -151,13 +156,22 @@ namespace WitchMendokusai.Idle
 					bars[seat].SetRatio((float)view.HealthRatio);
 					dolls[seat].localRotation = Quaternion.LookRotation(Vector3.right);
 					dolls[seat].localScale = Vector3.one;
+					animators[seat]?.SetDowned(false);
 				}
 				else
 				{
 					bars[seat].SetFillColor(settings.ReviveBarColor);
 					bars[seat].SetRatio((float)view.ReviveRatio);
-					dolls[seat].localRotation = Quaternion.Euler(settings.DownedEuler);
-					dolls[seat].localScale = settings.DownedScale;
+					if (animators[seat] != null)
+					{
+						// 쓰러짐은 클립이 맡음. 도형 인형만 넘어뜨림
+						animators[seat].SetDowned(true);
+					}
+					else
+					{
+						dolls[seat].localRotation = Quaternion.Euler(settings.DownedEuler);
+						dolls[seat].localScale = settings.DownedScale;
+					}
 				}
 
 				barAnchors[seat].position = dolls[seat].position;
@@ -181,6 +195,11 @@ namespace WitchMendokusai.Idle
 					: 0f;
 
 				bool walking = seat < snapshot.Fighters.Length && snapshot.Fighters[seat].Moving;
+				if (animators[seat] != null && dolls[seat].gameObject.activeSelf)
+				{
+					animators[seat].SetMoving(walking);
+					animators[seat].Tick(delta);
+				}
 				float x = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].X : 0f;
 				float y = seat < snapshot.Fighters.Length ? (float)snapshot.Fighters[seat].Y : 0f;
 				float bob = walking ? BattleMotion.WalkBob(
