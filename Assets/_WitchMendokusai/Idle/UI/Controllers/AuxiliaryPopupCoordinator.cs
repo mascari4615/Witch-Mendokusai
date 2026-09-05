@@ -25,7 +25,8 @@ namespace WitchMendokusai.Idle.UI
 			UIContentSO content,
 			Action closeSelectionPopups,
 			Action<int> goToStage,
-			Action requestRender)
+			Action requestRender,
+			Action wipeAndRestart)
 		{
 			this.closeSelectionPopups = closeSelectionPopups;
 			this.requestRender = requestRender;
@@ -35,7 +36,7 @@ namespace WitchMendokusai.Idle.UI
 				content, session.CanGoToStage, goToStage);
 			goldDetails = new GoldDetailsController(goldPopup, modalController, content);
 			settingsPopup = new SettingsPopupController(
-				settingsPopupElement, modalController, session, content, requestRender);
+				settingsPopupElement, modalController, session, content, requestRender, wipeAndRestart);
 			oddsPopup = new OddsPopupController(oddsPopupElement, modalController, content);
 		}
 

@@ -22,10 +22,12 @@ namespace WitchMendokusai.Idle
 		private Color groundRest;
 		private BattleEntityPresenter entities;
 		private BattleFx fx;
-		private float scroll;
-		private bool scrollReady;
+		private BattleCameraDirector cameraDirector;
+		private double originShown;
+		private bool originReady;
 		private float supplyGlowLeft;
 		private bool built;
+		private StageScene scene = StageScene.Battle;
 
 		public void Build()
 		{
@@ -64,6 +66,9 @@ namespace WitchMendokusai.Idle
 			fx = new BattleFx(battleRoot, presentationAsset.CreateFxSettings());
 			altScene = new AltScenePresenter(
 				holder, presentationAsset.CreateEntitySettings(), presentationAsset.CreateAltSceneSettings());
+			altScene.PlaceRooms(presentationAsset.ShopRoomPosition, presentationAsset.LabRoomPosition);
+			cameraDirector = new BattleCameraDirector(presentationAsset.CreateCameraSettings());
+			cameraDirector.Build(holder);
 			BuildScenery();
 		}
 
@@ -76,23 +81,30 @@ namespace WitchMendokusai.Idle
 			}
 		}
 
-		/// <summary>전투 창에 보이는 장면. 전투 시뮬과 표시는 뒤에서 계속 돎</summary>
-		internal void ShowScene(StageScene scene)
+		/// <summary>
+		/// 보여 줄 장면. 전투 마당과 방은 <b>같은 세상의 다른 자리</b>. 카메라가 옮겨 감
+		///
+		/// ★ 전에는 전투 뿌리를 끄고 방을 덮어씌움. 그래서 상점에서도 피해 숫자가 떴음
+		///   (사용자 2026-09-05). 지금은 전투가 제자리에서 계속 돌고 카메라만 자리를 옮김
+		/// </summary>
+		internal void ShowScene(StageScene wanted)
 		{
 			if (built == false)
 			{
 				return;
 			}
 
-			altScene.Show(scene);
-			battleRoot.gameObject.SetActive(scene == StageScene.Battle);
+			scene = wanted;
+			altScene.Show(wanted);
+			cameraDirector.Show(wanted);
+			fx?.SetTextShown(wanted == StageScene.Battle);
 		}
 
 		public void Render(IdleSnapshot snapshot, float delta)
 		{
 			if (built == false) { return; }
 			ReshapeScenery(Geometry.ShapeOfStage(snapshot.Stage, presentationAsset.ShapeStagesPerStep));
-			Follow(snapshot, delta);
+			Follow(snapshot);
 			entities.Render(snapshot, delta);
 			fx.Consume(snapshot.Hits, entities);
 			fx.Advance(delta, entities);
@@ -224,8 +236,25 @@ namespace WitchMendokusai.Idle
 			}
 		}
 
-		private void Follow(IdleSnapshot snapshot, float delta)
+		/// <summary>
+		/// 카메라가 볼 자리 (편성 한가운데) 와 판이 민 거리 (<see cref="IdleSnapshot.OriginX"/>) 맞추기
+		///
+		/// ★ 세상은 안 민다. 인형과 적은 판이 준 좌표 그대로 서고 카메라만 움직임
+		///   판이 좌표를 다시 깎은 프레임에는 카메라를 같은 만큼 워프시켜 화면을 붙잡음
+		/// </summary>
+		private void Follow(IdleSnapshot snapshot)
 		{
+			if (originReady == false)
+			{
+				originShown = snapshot.OriginX;
+				originReady = true;
+			}
+			else if (snapshot.OriginX != originShown)
+			{
+				cameraDirector.Warp((float)(snapshot.OriginX - originShown));
+				originShown = snapshot.OriginX;
+			}
+
 			float sum = 0f;
 			int count = 0;
 			for (int seat = 0; seat < snapshot.Fighters.Length && seat < snapshot.Seats.Length; seat++)
@@ -236,20 +265,26 @@ namespace WitchMendokusai.Idle
 					count++;
 				}
 			}
-			float wanted = presentationAsset.PartyAnchorX - (count > 0 ? sum / count : 0f);
-			if (scrollReady == false || Mathf.Abs(wanted - scroll) > presentationAsset.SnapJump)
-			{
-				scroll = wanted;
-				scrollReady = true;
-			}
-			else { scroll = Mathf.Lerp(scroll, wanted, BattleMotion.CatchUp(presentationAsset.FollowCatchUp, delta)); }
-			worldRoot.localPosition = new Vector3(scroll, 0f, 0f);
+
+			float middle = count > 0 ? sum / count : 0f;
+			cameraDirector.Aim(worldRoot.TransformPoint(new Vector3(middle, 0f, 0f)));
+			WrapScenery(middle);
+		}
+
+		/// <summary>배경 소품을 카메라 앞으로 돌려 놓는다. 끝없는 길처럼 보이게</summary>
+		private void WrapScenery(float middle)
+		{
 			float span = scenery.Count * presentationAsset.ScenerySpacing;
+			if (span <= 0f)
+			{
+				return;
+			}
+
 			float margin = presentationAsset.SceneryWrapMargin;
 			foreach (Transform prop in scenery)
 			{
-				while (prop.localPosition.x + scroll < -margin) { prop.localPosition += new Vector3(span, 0f, 0f); }
-				while (prop.localPosition.x + scroll > span - margin) { prop.localPosition -= new Vector3(span, 0f, 0f); }
+				while (prop.localPosition.x < middle - margin) { prop.localPosition += new Vector3(span, 0f, 0f); }
+				while (prop.localPosition.x > middle + span - margin) { prop.localPosition -= new Vector3(span, 0f, 0f); }
 			}
 		}
 
@@ -278,10 +313,11 @@ namespace WitchMendokusai.Idle
 			altScene = null;
 			entities = null;
 			fx = null;
+			cameraDirector = null;
 			scenery.Clear();
 			sceneryMeshes.Clear();
 			sceneryShape = (Geometry.Shape)(-1);
-			scrollReady = false;
+			originReady = false;
 			built = false;
 		}
 	}

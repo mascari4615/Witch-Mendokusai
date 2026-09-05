@@ -25,7 +25,6 @@
                 <ui:Label name="skill-aim-caption" text="일제 사격 범위" class="idle-skill-aim-caption" />
             </ui:VisualElement>
             <ui:Label name="battle-note" class="idle-battle-note idle-hidden" picking-mode="Ignore" />
-            <ui:Button name="wipe-button" text="데이터 초기화" class="idle-chip-dark idle-icon-button idle-debug" />
         </ui:VisualElement>
         <ui:VisualElement name="side" class="idle-side">
             <ui:VisualElement name="tabs" class="idle-tabs">
@@ -59,5 +58,6 @@
     <ui:Instance template="SettingsPopup" name="settings-popup-host" class="idle-layer" picking-mode="Ignore" />
     <ui:Instance template="OddsPopup" name="odds-popup-host" class="idle-layer" picking-mode="Ignore" />
     <ui:Instance template="AwayPopup" name="away-popup-host" class="idle-layer" picking-mode="Ignore" />
+    <ui:VisualElement name="stage-veil" class="idle-stage-veil" picking-mode="Ignore" />
     <ui:Label name="tooltip" class="idle-tooltip idle-hidden" picking-mode="Ignore" />
 </ui:UXML>

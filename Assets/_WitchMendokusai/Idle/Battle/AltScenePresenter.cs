@@ -49,6 +49,8 @@ namespace WitchMendokusai.Idle
 		private IdleDollAnimator shopDoll;
 		private IdleDollAnimator labDoll;
 		private StageScene shown = StageScene.Battle;
+		private Vector3 shopRoom;
+		private Vector3 labRoom;
 
 		public AltScenePresenter(Transform parent, BattleEntityPresenter.Settings entitySettings, Settings settings)
 		{
@@ -59,6 +61,21 @@ namespace WitchMendokusai.Idle
 
 		public StageScene Shown => shown;
 
+		/// <summary>방이 설 자리. 전투 마당과 겹치지 않게 떨어뜨린다 (카메라가 옮겨 감)</summary>
+		public void PlaceRooms(Vector3 shop, Vector3 lab)
+		{
+			shopRoom = shop;
+			labRoom = lab;
+
+			if (shopRoot != null) { shopRoot.localPosition = shopRoom; }
+			if (labRoot != null) { labRoot.localPosition = labRoom; }
+		}
+
+		/// <summary>
+		/// 보여 줄 장면. 방은 <b>끄지 않는다</b> (카메라가 그 자리로 가므로)
+		///
+		/// ★ 처음 볼 때만 지음. 안 볼 때도 켜 두는 편이 도로 켤 때 한 프레임 늦는 것보다 나음
+		/// </summary>
 		public void Show(StageScene scene)
 		{
 			shown = scene;
@@ -66,15 +83,14 @@ namespace WitchMendokusai.Idle
 			if (scene == StageScene.Shop && shopRoot == null)
 			{
 				shopRoot = BuildShop();
+				shopRoot.localPosition = shopRoom;
 			}
 
 			if (scene == StageScene.Lab && labRoot == null)
 			{
 				labRoot = BuildLab();
+				labRoot.localPosition = labRoom;
 			}
-
-			if (shopRoot != null) { shopRoot.gameObject.SetActive(scene == StageScene.Shop); }
-			if (labRoot != null) { labRoot.gameObject.SetActive(scene == StageScene.Lab); }
 		}
 
 		/// <summary>에디트 모드 미리보기용. Play 에서는 Animator 가 스스로 돎</summary>

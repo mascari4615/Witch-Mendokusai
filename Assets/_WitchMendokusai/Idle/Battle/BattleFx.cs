@@ -98,11 +98,31 @@ namespace WitchMendokusai.Idle
 		private float shakeLeft;
 		private float clock;
 		private VisualElement floatingTextRoot;
+		private bool textShown = true;
 
 		public BattleFx(Transform holder, Settings settings)
 		{
 			this.holder = holder;
 			this.settings = settings;
+		}
+
+		/// <summary>
+		/// 피해 숫자를 띄울까. 가게나 연구실을 보는 동안은 안 띄운다 (사용자 2026-09-05)
+		///
+		/// ★ 전투는 뒤에서 계속 돌지만 화면은 다른 자리를 보고 있음. 그 자리에 전투 숫자가
+		///   뜨면 카메라가 옮겨 간 뜻이 사라짐
+		/// </summary>
+		public void SetTextShown(bool shown)
+		{
+			textShown = shown;
+
+			if (shown == false)
+			{
+				for (int index = numbers.Count - 1; index >= 0; index--)
+				{
+					numbers[index].Text.style.display = DisplayStyle.None;
+				}
+			}
 		}
 
 		public void SetFloatingTextRoot(VisualElement root)
@@ -256,7 +276,7 @@ namespace WitchMendokusai.Idle
 
 		private void SpawnNumber(Vector3 position, string value, FloatingTextKind kind)
 		{
-			if (floatingTextRoot == null)
+			if (floatingTextRoot == null || textShown == false)
 			{
 				return;
 			}

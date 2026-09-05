@@ -8,7 +8,8 @@
         "WitchMendokusai.DomainSDK.Idle",
         "WitchMendokusai.DomainSDK.Numerics",
         "WitchMendokusai.DomainSDK.Upgrade",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "Unity.Cinemachine"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

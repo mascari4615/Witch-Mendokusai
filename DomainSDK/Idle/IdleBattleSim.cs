@@ -100,6 +100,22 @@ namespace WitchMendokusai.DomainSDK.Idle
         public static void Reset(IdleState state, IdleTuning tuning)
         {
             IdleBattle battle = state.Battle;
+
+            // 다시 세우기 전에 지금 서 있던 자리를 원점에 접음. 안 그러면 화면이 뒤로 튐
+            double standing = double.PositiveInfinity;
+            for (int seat = 0; seat < IdleSquad.SEAT_COUNT; seat++)
+            {
+                if (IdleSquad.SeatTaken(state, seat) && battle.X[seat] < standing)
+                {
+                    standing = battle.X[seat];
+                }
+            }
+
+            if (double.IsInfinity(standing) == false)
+            {
+                battle.OriginX += standing;
+            }
+
             battle.Foes.Clear();
             battle.Wave = 0;
             battle.Carry = 0d;
@@ -552,9 +568,20 @@ namespace WitchMendokusai.DomainSDK.Idle
                 front = 0d;
             }
 
-            for (int seat = 0; seat < IdleSquad.SEAT_COUNT; seat++)
+            // 자리와 적을 함께 앞으로 민다. 민 거리는 OriginX 에 쌓여 화면이 이어 붙임
+            if (rear != 0d)
             {
-                battle.X[seat] -= rear;
+                for (int seat = 0; seat < IdleSquad.SEAT_COUNT; seat++)
+                {
+                    battle.X[seat] -= rear;
+                }
+
+                for (int at = 0; at < battle.Foes.Count; at++)
+                {
+                    battle.Foes[at].X -= rear;
+                }
+
+                battle.OriginX += rear;
             }
 
             front -= rear;

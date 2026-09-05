@@ -13,6 +13,8 @@
                 <ui:Button name="speed-1" text="x2" class="idle-settings-speed" />
                 <ui:Button name="speed-2" text="x3" class="idle-settings-speed" />
             </ui:VisualElement>
+            <ui:Label text="디버그" class="idle-settings-section-title" />
+            <ui:Button name="wipe-button" text="데이터 초기화" class="idle-row-button idle-settings-wipe" />
             <ui:Label text="전투 기록" class="idle-settings-section-title" />
             <ui:VisualElement class="idle-settings-log">
                 <ui:Label name="log-label" class="idle-log-line" />

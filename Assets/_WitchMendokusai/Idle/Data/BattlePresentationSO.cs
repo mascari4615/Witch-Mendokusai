@@ -155,6 +155,25 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private Vector3 cameraEuler = new Vector3(42f, 30f, 0f);
 		[SerializeField] private float cameraDistance = 17f;
 		[SerializeField] private Vector3 cameraTargetOffset = new Vector3(1.2f, 0.4f, 0f);
+
+		[Header("카메라 (시네머신)")]
+		[Tooltip("편성을 따라갈 때 굼뜸 (x, y, z). 클수록 느리게 따라붙는다")]
+		[SerializeField] private Vector3 cameraFollowDamping = new Vector3(0.8f, 0.5f, 0.8f);
+
+		[Tooltip("탭을 바꿀 때 카메라가 옮겨 가는 시간 (초)")]
+		[SerializeField] private float cameraBlendSeconds = 0.6f;
+
+		[Tooltip("가게 방 자리. 전투 마당에서 이만큼 떨어져 있다")]
+		[SerializeField] private Vector3 shopRoomPosition = new Vector3(0f, 0f, -120f);
+
+		[Tooltip("연구실 방 자리")]
+		[SerializeField] private Vector3 labRoomPosition = new Vector3(0f, 0f, -240f);
+
+		[Tooltip("방을 볼 때 카메라 자리 (방 기준)")]
+		[SerializeField] private Vector3 roomCameraOffset = new Vector3(0f, 8f, -13f);
+
+		[Tooltip("방을 볼 때 카메라 각도")]
+		[SerializeField] private Vector3 roomCameraEuler = new Vector3(30f, 0f, 0f);
 		[SerializeField] private float lightIntensity = 1.15f;
 		[SerializeField] private Vector3 lightEuler = new Vector3(52f, -28f, 0f);
 
@@ -201,6 +220,30 @@ namespace WitchMendokusai.Idle
 		public Vector3 CameraEuler => cameraEuler;
 		public float CameraDistance => cameraDistance;
 		public Vector3 CameraTargetOffset => cameraTargetOffset;
+		public Vector3 CameraFollowDamping => cameraFollowDamping;
+		public float CameraBlendSeconds => cameraBlendSeconds;
+		public Vector3 ShopRoomPosition => shopRoomPosition;
+		public Vector3 LabRoomPosition => labRoomPosition;
+		public Vector3 RoomCameraOffset => roomCameraOffset;
+		public Vector3 RoomCameraEuler => roomCameraEuler;
+
+		/// <summary>카메라 감독이 쓸 값. 전투 자리는 옛 각도와 거리에서 그대로 뽑는다</summary>
+		internal BattleCameraDirector.Settings CreateCameraSettings()
+		{
+			Quaternion look = Quaternion.Euler(cameraEuler);
+			return new BattleCameraDirector.Settings
+			{
+				BattleOffset = look * new Vector3(0f, 0f, -cameraDistance) + cameraTargetOffset,
+				BattleEuler = cameraEuler,
+				FollowDamping = cameraFollowDamping,
+				FieldOfView = cameraFieldOfView,
+				BlendSeconds = cameraBlendSeconds,
+				ShopRoom = shopRoomPosition,
+				LabRoom = labRoomPosition,
+				RoomOffset = roomCameraOffset,
+				RoomEuler = roomCameraEuler,
+			};
+		}
 		public float LightIntensity => lightIntensity;
 		public Vector3 LightEuler => lightEuler;
 

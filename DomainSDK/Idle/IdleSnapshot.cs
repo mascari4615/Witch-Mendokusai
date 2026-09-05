@@ -524,6 +524,13 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 적에게 넣은 타격 수. 화면이 피해 숫자를 코어 박자에 맞추는 근거 (죽으면 0 부터)</summary>
         public long HitsOnTarget { get; }
 
+        /// <summary>
+        /// 판이 여태 앞으로 민 거리. 화면이 세상을 이어 붙이는 데 씀
+        ///
+        /// ★ 자리 좌표는 웨이브마다 0 기준으로 다시 깎임. 그 몫이 여기 쌓임
+        /// </summary>
+        public double OriginX { get; }
+
         /// <summary>인형 자리별 전장 위치 (combat.md 5). 무대의 유일한 근거</summary>
         public IdleFighterView[] Fighters { get; }
 
@@ -546,7 +553,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond,
             double cost, double costMax, double supplySecondsLeft, IdleCardView[] cards,
             IdleSeatView[] seats, bool repeating, int clearedStage, double enemyDamagePerSecond,
-            long hitsOnTarget, IdleFighterView[] fighters, IdleFoeView[] foes, IdleHit[] hits,
+            long hitsOnTarget, double originX, IdleFighterView[] fighters, IdleFoeView[] foes, IdleHit[] hits,
             IdleCardKind[] queued, long[] tickets, double ticketRefillSeconds,
             double speed, bool autoCast, double bagUpgradeCost, bool canBuyBag,
             int pullBatchCount, double pullBatchCost, long pullBatchStoneCost, bool canPullBatch,
@@ -579,6 +586,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             Queued = queued;
             Tickets = tickets;
             TicketRefillSeconds = ticketRefillSeconds;
+            OriginX = originX;
             Fighters = fighters;
             Foes = foes;
             Hits = hits;

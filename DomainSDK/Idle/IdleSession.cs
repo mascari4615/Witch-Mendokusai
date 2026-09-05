@@ -536,6 +536,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.ClearedStage,
                 IdleSquad.EnemyDamagePerSecond(state, tuning),
                 state.HitsOnTarget,
+                state.Battle.OriginX,
                 CaptureFighters(),
                 CaptureFoes(),
                 CaptureHits(),

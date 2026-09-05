@@ -127,6 +127,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>마지막으로 세운 구역. 구역이 바뀌면 다음 틱이 Reset</summary>
         public int StageSeen = -1;
 
+        /// <summary>
+        /// 여태 <b>앞으로 민 거리</b>. 자리 좌표를 0 기준으로 다시 깎을 때마다 그만큼 여기 쌓임
+        ///
+        /// ★ 판은 좌표를 작게 유지해야 오래 켜 둬도 수가 안 흔들림. 그런데 화면은 그 순간
+        ///   세상이 통째로 뒤로 밀린 것으로 보임 (사용자 2026-09-05 지적: 웨이브마다 뚝뚝 움직임)
+        ///   그래서 <b>얼마나 밀었는지</b>를 사진에 실어 보내고, 무대가 카메라를 같은 만큼 워프시킴
+        /// </summary>
+        public double OriginX;
+
         public IdleFoe FoeOf(long index)
         {
             for (int at = 0; at < Foes.Count; at++)

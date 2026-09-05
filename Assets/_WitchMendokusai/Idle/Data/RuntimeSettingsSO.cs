@@ -9,6 +9,9 @@ namespace WitchMendokusai.Idle
 	{
 		[SerializeField, Min(0.1f)] private float saveIntervalSeconds = 10f;
 		[SerializeField, Min(0.1f)] private float noteSeconds = 5f;
+
+		[Tooltip("구역이 바뀔 때 덮는 막이 떠 있는 시간 (초). 절반은 어두워지고 절반은 밝아진다")]
+		[SerializeField, Min(0.1f)] private float stageVeilSeconds = 0.7f;
 		[SerializeField, Min(0.05f)] private float uiRefreshSeconds = 0.1f;
 		[SerializeField, Range(0f, 1f)] private float soundVolume = 0.32f;
 		[SerializeField, Min(0f)] private float soundMinGapSeconds = 0.06f;
@@ -29,6 +32,7 @@ namespace WitchMendokusai.Idle
 
 		public float SaveIntervalSeconds => saveIntervalSeconds;
 		public float NoteSeconds => noteSeconds;
+		public float StageVeilSeconds => stageVeilSeconds;
 		public float UIRefreshSeconds => uiRefreshSeconds;
 		public float SoundVolume => soundVolume;
 		public float SoundMinGapSeconds => soundMinGapSeconds;

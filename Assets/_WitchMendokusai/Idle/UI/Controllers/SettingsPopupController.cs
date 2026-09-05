@@ -18,7 +18,7 @@ namespace WitchMendokusai.Idle.UI
 		private float noteSecondsLeft;
 
 		public SettingsPopupController(VisualElement popup, ModalController modalController,
-			IdleSession session, UIContentSO content, Action requestRender)
+			IdleSession session, UIContentSO content, Action requestRender, Action wipeAndRestart)
 		{
 			this.popup = popup;
 			this.modalController = modalController;
@@ -39,6 +39,13 @@ namespace WitchMendokusai.Idle.UI
 				button.clicked += () => SetSpeed(captured);
 				speedButtons.Add(button);
 			}
+
+			// 데이터 초기화는 설정 안으로 (사용자 2026-09-05). 전투 화면에 늘 떠 있을 것이 아님
+			Button wipe = popup.Q<Button>("wipe-button");
+			wipe.style.display = UnityEngine.Application.isEditor || UnityEngine.Debug.isDebugBuild
+				? DisplayStyle.Flex
+				: DisplayStyle.None;
+			wipe.clicked += wipeAndRestart;
 
 			logLabel = popup.Q<Label>("log-label");
 			noteLabel = popup.Q<Label>("note-label");

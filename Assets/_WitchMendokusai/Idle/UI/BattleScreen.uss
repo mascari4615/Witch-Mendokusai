@@ -1689,6 +1689,22 @@
 	border-color: rgb(84, 84, 84);
 }
 .idle-settings-speed--selected { color: rgb(18, 18, 18); background-color: rgb(245, 175, 16); border-color: rgb(255, 219, 126); }
+/* 구역이 바뀔 때 덮는 막. 이음새는 웨이브 쪽이고 구역은 연출로 끊는다 (사용자 2026-09-05) */
+.idle-stage-veil {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background-color: rgb(10, 10, 12);
+	opacity: 0;
+}
+
+.idle-settings-wipe {
+	margin-top: 8px;
+	min-height: 52px;
+}
+
 .idle-settings-log { flex-grow: 1; min-height: 180px; padding: 18px; background-color: rgb(14, 14, 16); border-width: 1px; border-color: rgb(58, 58, 58); }
 .idle-hidden {
 	display: none;
