@@ -35,16 +35,17 @@ namespace WitchMendokusai
 		private SOManager soManager;
 		private TimeManager timeManager;
 		private QuestManager questManager;
-		private GameModeManager gameModeManager;
 
+		// GameModeManager 주입 불가 -> 쓰는 자리에서 찾기
+		// 이유: UIRoot(DontDestroyOnLoad)가 AddComponent 뒤 뿌리 컨테이너로 Inject
+		//       GameModeManager 는 씬 스코프 -> 뿌리에 등록 없음 -> UIRoot.Construct 폭발 -> 부팅 정지 (2026-09-05 실측)
 		[Inject]
-		public void Construct(InputManager inputManager, SOManager soManager, TimeManager timeManager, QuestManager questManager, GameModeManager gameModeManager)
+		public void Construct(InputManager inputManager, SOManager soManager, TimeManager timeManager, QuestManager questManager)
 		{
 			this.inputManager = inputManager;
 			this.soManager = soManager;
 			this.timeManager = timeManager;
 			this.questManager = questManager;
-			this.gameModeManager = gameModeManager;
 		}
 
 		private void Awake()
@@ -188,7 +189,10 @@ namespace WitchMendokusai
 		private void EnterArena()
 		{
 			Close();
-			gameModeManager.SetMode(GameMode.Arena);
+			if (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager))
+			{
+				gameModeManager.SetMode(GameMode.Arena);
+			}
 		}
 
 		private void OpenChapter(ChapterSO chapter)
