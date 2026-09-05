@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: WM.Core::WitchMendokusai.BuildStampSettings
   <ShowInDevelopmentBuild>k__BackingField: 1
   <ShowInReleaseBuild>k__BackingField: 0
-  <ShowInEditor>k__BackingField: 1
+  <ShowInEditor>k__BackingField: 0
   <Corner>k__BackingField: 0
   <Margin>k__BackingField: 8
   <SafeAreaPadding>k__BackingField: 4
