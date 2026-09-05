@@ -5,9 +5,9 @@ Domain/Application/Boot/DungeonBootScenario.cs	EXIT_TIMEOUT_SEC
 Domain/Application/InputStrategy/InputStrategyTowerDefense.cs	CLICK_COOLDOWN
 Domain/Building/BuildManager.cs	BUILD_REACH_DISTANCE
 Domain/Building/BuildManager.cs	CLICK_COOLDOWN
-Domain/Component/Behavior/TransparentObject.cs	LERP_SPEED
-Domain/Component/Behavior/TransparentObject.cs	THRESHOLD_ALPHA
-Domain/Component/Behavior/TransparentObject.cs	THRESHOLD_MAX_TIMER
+Domain/Behavior/TransparentObject.cs	LERP_SPEED
+Domain/Behavior/TransparentObject.cs	THRESHOLD_ALPHA
+Domain/Behavior/TransparentObject.cs	THRESHOLD_MAX_TIMER
 Domain/Dev/DevWindow/Commands/SpawnMonsterCommand.cs	SPAWN_RADIUS
 Domain/Dev/DevWindow/Views/DevItemSlot.cs	RIGHT_CLICK_AMOUNT
 Domain/Item/UI/Toolkit/HoldingManager.cs	DOUBLE_CLICK_THRESHOLD

@@ -34,11 +34,11 @@
   <!-- 진짜 게임 소스 (복사 X) -->
   <ItemGroup>
     <Compile Include="../../Assets/_WitchMendokusai/Domain/Narrative/**/*.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/NodeGraph/NodeBase.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/NodeGraph/NodePort.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/NodeGraph/NodeGraph.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/NodeGraph/NodeExecutionContext.cs" />
-    <Compile Include="../../Assets/_WitchMendokusai/Domain/Data/Effect/Base/EffectInfo.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/NodeGraph/NodeBase.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/NodeGraph/NodePort.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/NodeGraph/NodeGraph.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/NodeGraph/NodeExecutionContext.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Effect/Base/EffectInfo.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Core/NodeGraph/FlowSignal.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Core/NodeGraph/NodeConnection.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Core/NodeGraph/NodeDomain.cs" />

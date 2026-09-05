@@ -68,7 +68,9 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 - 코드는 Feature 폴더 바로 아래. 주제 하위 폴더 (`Quest/Objective/`) 는 허용, `Scripts` 층은 금지. 게이트 `FOLDER` (wm-rule-gate) 가 push 를 막는다
 - Core 도 같은 꼴: `Core/Input/`, `Core/UI/`. 옛 `Core/Scripts/` 는 없다
 - 자산과 코드를 가르는 건 폴더 이름이 아니라 확장자. Unity 가 뜻을 두는 폴더 이름 (`Resources`, `Editor`) 만 그 뜻으로 쓴다. UI 텍스처는 `Art/`
-- 자산 하위 폴더 이름 통일 (`Assets`, `Content`, `Prefabs` 혼재) 은 Domain 재편과 같이 (memo Change wm-code-structure 6단계)
+- `Domain/` 은 한 축: Feature 폴더 (`TowerDefense`, `Quest` ...) 와 이름 붙은 공용 모듈 폴더 (`GameData` SO 저장소와 DataManager, `Actor` 유닛과 이동과 BT 와 피격 반응, `Effect`, `Criteria`, `NodeGraph`, `Save`, `UGC`, `Pool`, `Behavior` 범용 MonoBehaviour, `UI` 셸과 공용 위젯, `Codex`, `Hub`). 종류 이름 폴더 (`Data`, `Component`) 는 없다 (2026-09-05 해체). `Entry` 는 런타임 호출 0 인 삭제 후보
+- Feature 고유 UI 는 그 Feature 안 (`Item/UI`, `Quest/UI`). `Domain/UI` 에는 여러 Feature 가 쓰는 것만
+- 자산 하위 폴더 이름 통일 (`Assets`, `Content`, `Prefabs` 혼재) 은 남은 공백 (memo Change wm-code-structure)
 
 ## Editor 메뉴
 

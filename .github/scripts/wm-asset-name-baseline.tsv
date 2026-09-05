@@ -34,33 +34,33 @@ Domain/Arena/Map/RectangleArenaMap.asset
 Domain/Arena/Match/ArenaMatchConfig.asset
 Domain/Arena/Match/ArenaMatchConfig_Dolls.asset
 Domain/Arena/Mode/BrawlArenaMode.asset
-Domain/Component/Item/_DungeonItemBuffer.asset
-Domain/Component/Item/_ItemCraftInventory.asset
-Domain/Component/Item/_ItemInventory.asset
-Domain/Component/Item/_ItemUpgradeInventory.asset
-Domain/Component/Item/_ShopInventory.asset
-Domain/Component/Item/_ShopItemDataBuffer.asset
-Domain/Component/Item/Hotbar.asset
-Domain/Data/DataSO/Variable/Impl/CoolTime.asset
-Domain/Data/DataSO/Variable/Impl/InvincibleTime.asset
-Domain/Data/DataSO/Variable/Impl/JoystickX.asset
-Domain/Data/DataSO/Variable/Impl/JoystickY.asset
-Domain/Data/DataSO/Variable/Impl/LastEquippedItem.asset
-Domain/Data/DataSO/Variable/Impl/LastHitMonsterObject.asset
-Domain/Data/Entry/EventEntry/EventEntry.asset
-Domain/Data/Entry/FactEntry/FactEntry 1.asset
-Domain/Data/Entry/FactEntry/FactEntry 10.asset
-Domain/Data/Entry/FactEntry/FactEntry 11.asset
-Domain/Data/Entry/FactEntry/FactEntry 2.asset
-Domain/Data/Entry/FactEntry/FactEntry 3.asset
-Domain/Data/Entry/FactEntry/FactEntry 4.asset
-Domain/Data/Entry/FactEntry/FactEntry 5.asset
-Domain/Data/Entry/FactEntry/FactEntry 6.asset
-Domain/Data/Entry/FactEntry/FactEntry 7.asset
-Domain/Data/Entry/FactEntry/FactEntry 8.asset
-Domain/Data/Entry/FactEntry/FactEntry 9.asset
-Domain/Data/Entry/FactEntry/FactEntry.asset
-Domain/Data/Entry/RuleEntry/RuleEntry.asset
+Domain/Item/Assets/_DungeonItemBuffer.asset
+Domain/Item/Assets/_ItemCraftInventory.asset
+Domain/Item/Assets/_ItemInventory.asset
+Domain/Item/Assets/_ItemUpgradeInventory.asset
+Domain/Item/Assets/_ShopInventory.asset
+Domain/Item/Assets/_ShopItemDataBuffer.asset
+Domain/Item/Assets/Hotbar.asset
+Domain/GameData/Variable/Impl/CoolTime.asset
+Domain/GameData/Variable/Impl/InvincibleTime.asset
+Domain/GameData/Variable/Impl/JoystickX.asset
+Domain/GameData/Variable/Impl/JoystickY.asset
+Domain/GameData/Variable/Impl/LastEquippedItem.asset
+Domain/GameData/Variable/Impl/LastHitMonsterObject.asset
+Domain/Entry/EventEntry/EventEntry.asset
+Domain/Entry/FactEntry/FactEntry 1.asset
+Domain/Entry/FactEntry/FactEntry 10.asset
+Domain/Entry/FactEntry/FactEntry 11.asset
+Domain/Entry/FactEntry/FactEntry 2.asset
+Domain/Entry/FactEntry/FactEntry 3.asset
+Domain/Entry/FactEntry/FactEntry 4.asset
+Domain/Entry/FactEntry/FactEntry 5.asset
+Domain/Entry/FactEntry/FactEntry 6.asset
+Domain/Entry/FactEntry/FactEntry 7.asset
+Domain/Entry/FactEntry/FactEntry 8.asset
+Domain/Entry/FactEntry/FactEntry 9.asset
+Domain/Entry/FactEntry/FactEntry.asset
+Domain/Entry/RuleEntry/RuleEntry.asset
 Domain/Doll/Impl/_Dolls.asset
 Domain/Dungeon/Card/_Cards.asset
 Domain/Dungeon/Card/_SelectedCards.asset

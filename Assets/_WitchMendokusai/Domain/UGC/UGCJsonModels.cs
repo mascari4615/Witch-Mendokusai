@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	// 이 파일의 모델은 전부 UGC json 을 Json.NET 으로 읽고 쓰기 위한 것이다 — Unity 직렬화는 건드리지
 	// 않으므로 [Serializable] 을 달지 않는다(달면 JObject 같은 필드마다 "저장 안 된다"는 경고가 뜬다).
-	// 배경 정본 = Domain/Data/Save/GameData.cs 주석.
+	// 배경 정본 = Domain/Save/GameData.cs 주석.
 
 	public class UGCTargetRef
 	{
