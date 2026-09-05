@@ -30,9 +30,6 @@ namespace WitchMendokusai.Idle.Editor
 		private const string HIT_CLIP = "Armature|Hit_Chest";
 		private const string DOWN_CLIP = "Armature|Death01";
 
-		/// <summary>모델 원본 키 2.23m. 도형 인형(머리 1.3)과 적 반지름 0.62 에 맞춰 줄임</summary>
-		private const float MODEL_SCALE = 0.6f;
-
 		public static void Build()
 		{
 			GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH);
@@ -195,7 +192,6 @@ namespace WitchMendokusai.Idle.Editor
 			GameObject model = (GameObject)PrefabUtility.InstantiatePrefab(modelAsset);
 			model.name = "Model";
 			model.transform.SetParent(root.transform, false);
-			model.transform.localScale = Vector3.one * MODEL_SCALE;
 
 			Animator animator = model.GetComponent<Animator>();
 			if (animator == null)

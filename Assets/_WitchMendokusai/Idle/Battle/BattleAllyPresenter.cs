@@ -93,6 +93,7 @@ namespace WitchMendokusai.Idle
 			{
 				GameObject made = Object.Instantiate(settings.DollPrefab, doll.transform, false);
 				made.name = "Model";
+				made.transform.localScale = Vector3.one * settings.DollModelScale;
 				animators[seat] = made.GetComponentInChildren<IdleDollAnimator>();
 				foreach (MeshRenderer part in made.GetComponentsInChildren<MeshRenderer>())
 				{

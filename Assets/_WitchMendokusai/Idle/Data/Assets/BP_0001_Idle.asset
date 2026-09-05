@@ -48,6 +48,7 @@ MonoBehaviour:
   allyHurtSeconds: 0.15
   allyHeadHeight: 1.3
   dollFallbackRadius: 0.5
+  dollModelScale: 0.6
   dollBodyPosition: {x: 0, y: 0.42, z: 0}
   dollBodyScale: {x: 0.44, y: 0.9, z: 0.44}
   dollHeadPosition: {x: 0, y: 1, z: 0}

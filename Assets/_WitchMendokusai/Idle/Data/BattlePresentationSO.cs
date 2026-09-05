@@ -48,6 +48,7 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private float allyHurtSeconds = 0.15f;
 		[SerializeField] private float allyHeadHeight = 1.3f;
 		[SerializeField] private float dollFallbackRadius = 0.5f;
+		[SerializeField] private float dollModelScale = 0.6f;
 		[SerializeField] private Vector3 dollBodyPosition = new Vector3(0f, 0.42f, 0f);
 		[SerializeField] private Vector3 dollBodyScale = new Vector3(0.44f, 0.9f, 0.44f);
 		[SerializeField] private Vector3 dollHeadPosition = new Vector3(0f, 1f, 0f);
@@ -226,6 +227,7 @@ namespace WitchMendokusai.Idle
 				PositionCatchUp = positionCatchUp,
 				AllyHeadHeight = allyHeadHeight,
 				DollFallbackRadius = dollFallbackRadius,
+				DollModelScale = dollModelScale,
 				DollBodyPosition = dollBodyPosition,
 				DollBodyScale = dollBodyScale,
 				DollHeadPosition = dollHeadPosition,
@@ -295,7 +297,7 @@ namespace WitchMendokusai.Idle
 				|| cameraFieldOfView <= 0f || cameraDistance <= 0f || lightIntensity < 0f
 				|| boltSeconds <= 0f || shakeSeconds < 0f || numberSeconds <= 0f || impactSize <= 0f
 				|| impactSeconds <= 0f || impactSpeed < 0f || impactCount <= 0 || foeFlashSeconds <= 0f
-				|| allyHurtSeconds <= 0f || allyHeadHeight <= 0f || dollFallbackRadius <= 0f
+				|| allyHurtSeconds <= 0f || allyHeadHeight <= 0f || dollFallbackRadius <= 0f || dollModelScale <= 0f
 				|| dollBodyScale.x <= 0f || dollBodyScale.y <= 0f || dollBodyScale.z <= 0f
 				|| dollHeadScale.x <= 0f || dollHeadScale.y <= 0f || dollHeadScale.z <= 0f
 				|| downedScale.x <= 0f || downedScale.y <= 0f || downedScale.z <= 0f

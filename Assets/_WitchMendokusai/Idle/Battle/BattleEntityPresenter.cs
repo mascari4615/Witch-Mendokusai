@@ -17,6 +17,8 @@ namespace WitchMendokusai.Idle
 			public float PositionCatchUp { get; set; }
 			public float AllyHeadHeight { get; set; }
 			public float DollFallbackRadius { get; set; }
+			/// <summary>프리팹 모델 배율. Yawn2 원본 키 2.23 을 도형 인형(머리 1.3)에 맞춤</summary>
+			public float DollModelScale { get; set; }
 			public Vector3 DollBodyPosition { get; set; }
 			public Vector3 DollBodyScale { get; set; }
 			public Vector3 DollHeadPosition { get; set; }
