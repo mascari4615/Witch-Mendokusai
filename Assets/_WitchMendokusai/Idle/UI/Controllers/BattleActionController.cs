@@ -12,6 +12,8 @@ namespace WitchMendokusai.Idle.UI
 		private readonly UIContentSO content;
 		private readonly RuntimeSettingsSO settings;
 		private readonly Action cancelCardAim;
+		/// <summary>일제 사격을 누른 뒤 대상을 기다리는 손패 자리</summary>
+		private int armedHand = -1;
 		private readonly Action closeMap;
 		private readonly Action writeDown;
 		private readonly Action requestRender;
@@ -78,6 +80,8 @@ namespace WitchMendokusai.Idle.UI
 				return false;
 			}
 
+			armedHand = -1;
+
 			stage?.OnVolley(foeIndex);
 			showNote(content.VolleyTargetFeedback, settings.NoteSeconds);
 			writeDown();
@@ -85,6 +89,12 @@ namespace WitchMendokusai.Idle.UI
 			return true;
 		}
 
+		/// <summary>
+		/// 전투 창을 눌렀다. 일제 사격을 겨눈 상태면 <b>그 자리의 적</b>에게 쏘고, 아니면 응원 한 대
+		///
+		/// ★ 끌어 놓기만으로는 안 되는 자리가 있었다 (사용자 2026-09-05: 스킬 사용이 전혀 불가능).
+		///   그래서 카드를 누르면 겨눔 상태가 되고 다음 누름이 대상이 됨. 끌어 놓기도 그대로 둠
+		/// </summary>
 		public void OnBattleTapped(PointerDownEvent moment)
 		{
 			if (moment.target is Button ||
@@ -93,8 +103,38 @@ namespace WitchMendokusai.Idle.UI
 				return;
 			}
 
+			if (armedHand >= 0)
+			{
+				IPanel panel = moment.target is VisualElement spot ? spot.panel : null;
+				long? foe = panel != null ? PickFoe(panel, moment.position) : null;
+				int hand = armedHand;
+				Disarm();
+
+				if (foe.HasValue)
+				{
+					CastVolleyAt(hand, foe.Value);
+				}
+				else
+				{
+					showNote(content.VolleyMissFeedback, settings.NoteSeconds);
+				}
+
+				return;
+			}
+
 			session.Send(new IdleTapIntent());
 			stage?.OnTap();
+			requestRender();
+		}
+
+		/// <summary>지금 겨누고 있는 손패 자리. 없으면 -1</summary>
+		public int ArmedHand => armedHand;
+
+		/// <summary>겨눔 풀기. 조준을 끌어서 마쳤거나 Esc 를 눌렀을 때</summary>
+		public void Disarm()
+		{
+			armedHand = -1;
+			stage?.SetAimTarget(-1L);
 			requestRender();
 		}
 
@@ -110,7 +150,16 @@ namespace WitchMendokusai.Idle.UI
 			if (selected == IdleCardKind.Volley)
 			{
 				cancelCardAim();
-				showNote(content.VolleyDragHint, settings.NoteSeconds);
+
+				if (armedHand == handIndex)
+				{
+					Disarm();
+					return;
+				}
+
+				armedHand = beforeCast.Cards[handIndex].CanCast ? handIndex : -1;
+				showNote(armedHand >= 0 ? content.VolleyTapHint : content.VolleyDragHint, settings.NoteSeconds);
+				requestRender();
 				return;
 			}
 

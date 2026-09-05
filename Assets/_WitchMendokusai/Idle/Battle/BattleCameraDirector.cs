@@ -21,6 +21,9 @@ namespace WitchMendokusai.Idle
 
 			public Vector3 BattleEuler { get; set; }
 
+			/// <summary>카메라가 볼 점을 편성에서 이만큼 옮김. 전투가 화면 왼쪽에 앉게</summary>
+			public Vector3 AimOffset { get; set; }
+
 			/// <summary>따라가기 굼뜸 (x, y, z). 클수록 느리게 따라붙음</summary>
 			public Vector3 FollowDamping { get; set; }
 
@@ -83,7 +86,7 @@ namespace WitchMendokusai.Idle
 		{
 			if (target != null)
 			{
-				target.position = worldPosition;
+				target.position = worldPosition + settings.AimOffset;
 			}
 		}
 

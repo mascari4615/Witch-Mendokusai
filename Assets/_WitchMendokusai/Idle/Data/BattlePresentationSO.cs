@@ -160,6 +160,9 @@ namespace WitchMendokusai.Idle
 		[Tooltip("편성을 따라갈 때 굼뜸 (x, y, z). 클수록 느리게 따라붙는다")]
 		[SerializeField] private Vector3 cameraFollowDamping = new Vector3(0.8f, 0.5f, 0.8f);
 
+		[Tooltip("카메라가 볼 점을 편성에서 이만큼 앞으로. 전투 창이 화면 왼쪽 1200 뿐이라 오른쪽에 여백을 두면 적이 관리 열 뒤로 숨는다")]
+		[SerializeField] private Vector3 cameraAimOffset = new Vector3(2.8f, 0f, -1.5f);
+
 		[Tooltip("탭을 바꿀 때 카메라가 옮겨 가는 시간 (초)")]
 		[SerializeField] private float cameraBlendSeconds = 0.6f;
 
@@ -221,6 +224,7 @@ namespace WitchMendokusai.Idle
 		public float CameraDistance => cameraDistance;
 		public Vector3 CameraTargetOffset => cameraTargetOffset;
 		public Vector3 CameraFollowDamping => cameraFollowDamping;
+		public Vector3 CameraAimOffset => cameraAimOffset;
 		public float CameraBlendSeconds => cameraBlendSeconds;
 		public Vector3 ShopRoomPosition => shopRoomPosition;
 		public Vector3 LabRoomPosition => labRoomPosition;
@@ -234,6 +238,7 @@ namespace WitchMendokusai.Idle
 			return new BattleCameraDirector.Settings
 			{
 				BattleOffset = look * new Vector3(0f, 0f, -cameraDistance) + cameraTargetOffset,
+				AimOffset = cameraAimOffset,
 				BattleEuler = cameraEuler,
 				FollowDamping = cameraFollowDamping,
 				FieldOfView = cameraFieldOfView,

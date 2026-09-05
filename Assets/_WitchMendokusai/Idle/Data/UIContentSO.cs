@@ -116,6 +116,7 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string volleyDragHint;
 		[SerializeField] private string volleyResolvedFeedback;
 		[SerializeField] private string volleyMissFeedback;
+		[SerializeField] private string volleyTapHint;
 		[SerializeField] private string supplyFeedbackFormat;
 		[SerializeField] private string appraiseCardFeedbackFormat;
 		[SerializeField] private string appraiseReplacedSuffix;
@@ -326,6 +327,7 @@ namespace WitchMendokusai.Idle
 		public string TabButtonText(int index) => string.Format(tabButtonFormat, TabName(index), TabCaption(index));
 		public string StarsText(int count) => count <= 0 ? string.Empty : starPrefix + new string(starCharacter, count);
 		public string VolleyMissFeedback => volleyMissFeedback;
+		public string VolleyTapHint => volleyTapHint;
 
 		public string DescribeSpan(double seconds)
 		{
@@ -441,7 +443,7 @@ namespace WitchMendokusai.Idle
 				producerRowFormat, mapStageFormat, mapCurrentSuffix, mapBestSuffix, shopScenePlaceholder,
 				labScenePlaceholder, volleyTargetFeedback, volleyDragHint, volleyResolvedFeedback,
 				supplyFeedbackFormat, appraiseCardFeedbackFormat, appraiseReplacedSuffix,
-				volleyMissFeedback, appraiseCardEmptyFeedback, nextStageFeedback, statRaisedFeedbackFormat, mergeFeedbackFormat,
+				volleyMissFeedback, volleyTapHint, appraiseCardEmptyFeedback, nextStageFeedback, statRaisedFeedbackFormat, mergeFeedbackFormat,
 				mergeAllFeedbackFormat, appraiseFeedbackFormat, pullFeedbackFormat, newHeroSuffix, pitySuffix,
 				partyFullFeedback, prestigeFeedback, statSelectHeroTip, statMaxTipFormat, statWaitTipFormat,
 				statTipFormat, bagTipFormat, noWornGearText, wornGearSummaryFormat, wornEmptyTipFormat,
