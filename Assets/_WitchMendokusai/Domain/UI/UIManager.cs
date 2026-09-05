@@ -160,7 +160,18 @@ namespace WitchMendokusai
 				prefab.gameObject.SetActive(true);
 
 			foreach (MonoBehaviour mb in inst.GetComponentsInChildren<MonoBehaviour>(true))
+			{
+				// 스크립트 빠진 컴포넌트는 배열에 null 로 온다. 넘기면 VContainer 가 터지고
+				// 조립이 여기서 끊겨 뒤쪽 View 가 전부 null 로 남는다 (2026-09-05 실측)
+				// 데이터 문제 자체는 MissingScriptGuardTest 가 잡는다. 여기서는 이름만 남기고 계속
+				if (mb == null)
+				{
+					Debug.LogWarning($"{nameof(UIManager)}: 스크립트 빠진 컴포넌트 건너뜀 -- {prefab.name}");
+					continue;
+				}
+
 				container.Inject(mb);
+			}
 
 			if (activateAfter)
 				inst.gameObject.SetActive(true);
