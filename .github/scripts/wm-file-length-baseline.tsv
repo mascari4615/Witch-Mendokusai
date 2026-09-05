@@ -3,7 +3,7 @@
 # 갱신: powershell -File .github/scripts/wm-rule-gate.ps1 -WriteBaseline
 Core/Diagnostics/DeviceLogRelay.cs
 Core/Input/InputManager.cs
-Domain/Actor/Movement/Motor.cs
+Domain/Unit/Movement/Motor.cs
 Domain/Alchemy/CauldronMapElement.cs
 Domain/City/CityPaintManager.cs
 Domain/Farming/WitchGreenhouseObject.cs
