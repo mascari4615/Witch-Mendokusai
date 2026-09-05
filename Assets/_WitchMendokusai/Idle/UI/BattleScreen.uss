@@ -930,12 +930,14 @@
 	border-radius: 0;
 }
 
+/* 초상은 칸 가운데, 이름은 아래 한 줄 (사용자 2026-09-05: 왼쪽 정렬 여백과 이름 앞 꼬리표 제거) */
 .idle-party-portrait {
 	position: absolute;
-	left: 8px;
+	left: 50%;
 	top: 6px;
-	width: 78px;
+	width: 92px;
 	height: 92px;
+	translate: -50% 0;
 	-unity-background-scale-mode: scale-to-fit;
 }
 

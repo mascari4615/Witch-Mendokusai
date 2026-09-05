@@ -172,8 +172,8 @@ MonoBehaviour:
   costFormat: '{0:0}/{1:0}'
   bossHealthFormat: 'BOSS S-{0}  {1:P0}'
   waveFormat: 'WAVE {0}/{1}'
-  partySeatFormat: '{0}  {1}'
-  emptyPartySeatFormat: '{0}  +'
+  partySeatFormat: '{1}'
+  emptyPartySeatFormat: '+'
   levelFormat: 'Lv.{0}'
   upgradeButtonFormat: "+\n{0}"
   gainFormat: '+{0}'
