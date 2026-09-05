@@ -21,16 +21,16 @@ namespace WitchMendokusai
 
 		public void UpdateTurnUI()
 		{
-			foreach (var turnIcon in turnIcons)
+			foreach (UIJRPGTurnIcon turnIcon in turnIcons)
 			{
 				turnIcon.gameObject.SetActive(false);
 			}
 
-			var units = combatManager.UnitInstances;
-			var notReadyUnits = new List<JRPG_UnitInstance>();
-			var turnOrder = 0;
+			List<JRPG_UnitInstance> units = combatManager.UnitInstances;
+			List<JRPG_UnitInstance> notReadyUnits = new List<JRPG_UnitInstance>();
+			int turnOrder = 0;
 
-			foreach (var unit in units)
+			foreach (JRPG_UnitInstance unit in units)
 			{
 				if (unit.IsReady)
 				{
@@ -47,7 +47,7 @@ namespace WitchMendokusai
 
 			notReadyUnits = notReadyUnits.OrderByDescending(instance => instance.curActPoint).ToList();
 
-			foreach (var notReadyUnit in notReadyUnits)
+			foreach (JRPG_UnitInstance notReadyUnit in notReadyUnits)
 			{
 				turnIcons[notReadyUnit.UnitInstanceID].gameObject.SetActive(true);
 				turnIcons[notReadyUnit.UnitInstanceID].SetIconSprite(notReadyUnit.UnitSpirte);

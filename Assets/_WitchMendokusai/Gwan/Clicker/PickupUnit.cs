@@ -3,20 +3,21 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using WitchMendokusai;
 using Random = UnityEngine.Random;
 
 public class PickupUnit : MonoBehaviour
 {
     [SerializeField] private Vector3[] initPos;
     [SerializeField] private Camera _camera;
+    [SerializeField] private InputManager inputManager;
     private float pickTime;
     private bool nowPicking;
 
     private Vector3 GetMousePoint()
     {
-        Vector2 mouseScreen = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
-        var v = _camera.ScreenToWorldPoint(new Vector3(mouseScreen.x, mouseScreen.y, 0f));
+        Vector2 mouseScreen = inputManager.MouseScreenPosition;
+        Vector3 v = _camera.ScreenToWorldPoint(new Vector3(mouseScreen.x, mouseScreen.y, 0f));
         v.z = v.y;
         return v;
     }

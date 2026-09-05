@@ -9,9 +9,9 @@ namespace WitchMendokusai
 	{
 		public enum CombatStage
 		{
-			MyTurn, // 내 턴
-			EnemyTurn, // 상대 턴
-			WaitingAnime // 연출
+			MyTurn = 0, // 내 턴
+			EnemyTurn = 1, // 상대 턴
+			WaitingAnime = 2 // 연출
 		}
 
 		[SerializeField] private List<JRPG_UnitInstance> unitInstances;
@@ -67,7 +67,7 @@ namespace WitchMendokusai
 
 			while (true)
 			{
-				foreach (var unitInstance in unitInstances)
+				foreach (JRPG_UnitInstance unitInstance in unitInstances)
 				{
 					if (unitInstance.IsReady)
 					{
@@ -82,7 +82,7 @@ namespace WitchMendokusai
 				}
 				else
 				{
-					foreach (var unitInstance in unitInstances)
+					foreach (JRPG_UnitInstance unitInstance in unitInstances)
 					{
 						unitInstance.NextTick();
 					}
@@ -91,7 +91,7 @@ namespace WitchMendokusai
 
 			SetState(curTurnUnit.IsAlly ? CombatStage.MyTurn : CombatStage.EnemyTurn);
 			jrpgUIManager.UpdateTurnUI();
-			foreach (var unitInstance in unitInstances)
+			foreach (JRPG_UnitInstance unitInstance in unitInstances)
 			{
 				unitInstance.StartTurn(unitInstance == curTurnUnit);
 			}
