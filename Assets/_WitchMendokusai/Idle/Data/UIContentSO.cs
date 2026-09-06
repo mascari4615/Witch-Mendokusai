@@ -80,11 +80,11 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string selectHeroBeforeGearText;
 		[SerializeField] private string appraiseUnavailableFormat;
 		[SerializeField] private string appraiseAvailableFormat;
-		[FormerlySerializedAs("discoverySummaryFormat")]
+		[FormerlySerializedAs("codexSummaryFormat")]
 		[SerializeField] private string discoverySummaryFormat;
-		[FormerlySerializedAs("discoveryOwnedHeroFormat")]
+		[FormerlySerializedAs("codexOwnedHeroFormat")]
 		[SerializeField] private string discoveryOwnedHeroFormat;
-		[FormerlySerializedAs("discoveryHiddenHeroFormat")]
+		[FormerlySerializedAs("codexHiddenHeroFormat")]
 		[SerializeField] private string discoveryHiddenHeroFormat;
 		[SerializeField] private string bagUpgradeFormat;
 		[SerializeField] private string bagUpgradeMaxText;
