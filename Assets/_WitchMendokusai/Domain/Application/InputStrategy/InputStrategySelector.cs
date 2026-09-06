@@ -9,10 +9,41 @@ namespace WitchMendokusai
 	{
 		private InputManager inputManager;
 
+		// 씬이 넘겨 준 매니저. 선택기는 뿌리 스코프라 씬 것을 주입 못 받음. World 씬 스코프와 LobbyManager 가 꽂음
+		private CameraManager worldCameraManager;
+		private GameModeManager worldGameModeManager;
+		private UIManager worldUIManager;
+		private LobbyManager lobbyManager;
+
 		[Inject]
 		public void Construct(InputManager inputManager)
 		{
 			this.inputManager = inputManager;
+		}
+
+		/// <summary>World 씬 스코프의 build callback 이 부름. 씬이 다시 실리면 다시 꽂힘</summary>
+		public void BindWorld(CameraManager cameraManager, GameModeManager gameModeManager, UIManager uiManager)
+		{
+			worldCameraManager = cameraManager;
+			worldGameModeManager = gameModeManager;
+			worldUIManager = uiManager;
+		}
+
+		/// <summary>월드 조작으로. 씬 로드 때와 모드 (투기장, 개척) 이탈 때 부름. 월드 전략을 짓는 자리는 여기 하나</summary>
+		public void RestoreWorldStrategy()
+		{
+			if (worldGameModeManager == null || worldUIManager == null)
+			{
+				Debug.LogError("[InputStrategySelector] World 씬 매니저가 안 꽂힘. SceneLifetimeScope 가 BindWorld 를 불러야 함");
+				return;
+			}
+			inputManager.SetInputStrategy(new InputStrategyWorld(worldCameraManager, worldGameModeManager, worldUIManager));
+		}
+
+		/// <summary>LobbyManager 가 주입받는 자리에서 부름 (Lobby 씬은 스코프 없음)</summary>
+		public void BindLobby(LobbyManager lobbyManager)
+		{
+			this.lobbyManager = lobbyManager;
 		}
 
 		private void Awake()
@@ -47,10 +78,15 @@ namespace WitchMendokusai
 			switch (sceneName)
 			{
 				case "World":
-					inputManager.SetInputStrategy(new InputStrategyWorld());
+					RestoreWorldStrategy();
 					break;
 				case "Lobby":
-					inputManager.SetInputStrategy(new InputStrategyLobby());
+					if (lobbyManager == null)
+					{
+						Debug.LogError("[InputStrategySelector] LobbyManager 가 안 꽂힘. LobbyManager.Construct 가 BindLobby 를 불러야 함");
+						break;
+					}
+					inputManager.SetInputStrategy(new InputStrategyLobby(lobbyManager));
 					break;
 				case "Loading":
 					inputManager.SetInputStrategy(new InputStrategyLoading());

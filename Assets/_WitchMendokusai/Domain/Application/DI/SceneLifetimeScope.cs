@@ -226,6 +226,8 @@ namespace WitchMendokusai
 				UIManager uiManager = BootGuard.EagerResolve<UIManager>(container, "Scene");
 				container.TryResolve(out CameraManager cameraManager);
 				gameManager.BindSceneConditions(gameModeManager, uiManager, cameraManager);
+				// 입력 전략 선택기 (뿌리) 에 World 씬 매니저를 넘김. 전략이 static Instance 를 찾던 것의 대체
+				BootGuard.EagerResolve<InputStrategySelector>(container, "Scene").BindWorld(cameraManager, gameModeManager, uiManager);
 				// 뿌리 스코프의 효과 러너에 씬 서비스 (페이드, 대사) 바인딩. 전에는 효과가 static Instance 둘을 찾던 것
 				DialogueRunner dialogueRunner = BootGuard.EagerResolve<DialogueRunner>(container, "Scene");
 				BootGuard.EagerResolve<IEffectRunner>(container, "Scene").BindScene(uiManager, dialogueRunner);

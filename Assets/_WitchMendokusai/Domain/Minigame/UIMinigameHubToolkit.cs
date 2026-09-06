@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 using UnityEngine.UIElements;
 
 namespace WitchMendokusai
@@ -20,6 +21,9 @@ namespace WitchMendokusai
 	/// </summary>
 	public class UIMinigameHubToolkit : UIToolkitPanel
 	{
+		// 씬 스코프 매니저. base 가 필드 주입을 쓰므로 (Inject 메서드는 타입당 하나) 같은 꼴로 받음
+		[Inject] internal GameModeManager gameModeManager;
+
 		public override string Name => "시뮬레이션 콘솔";
 		public override bool IsFullscreen => true;
 
@@ -278,7 +282,7 @@ namespace WitchMendokusai
 
 			// 트리거만 — 카메라/입력/매치는 대상 모드 컨트롤러가 OnModeChanged 로 전담.
 			PanelGroup.ClosePanel();
-			GameModeManager.Instance.SetMode(entry.TargetGameMode);
+			gameModeManager.SetMode(entry.TargetGameMode);
 		}
 
 		private void EnsureButtonCount(int count)

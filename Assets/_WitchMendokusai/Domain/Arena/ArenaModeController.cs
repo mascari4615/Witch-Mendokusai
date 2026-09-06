@@ -41,12 +41,17 @@ namespace WitchMendokusai
 
 		// 전이 감지 — 초기 Default 재적용 no-op + enter/exit 1회 보장. 개척 컨트롤러와 같은 물건을 쓴다(WM-196 단계 7).
 		private readonly ModeControllerEdgeTrigger modeEdge = new();
+		// 관전 카메라는 씬에 있을 때만 (RegisterInHierarchyIfPresent). 전략을 만들 때 물어봄
+		private IObjectResolver resolver;
+		private InputStrategySelector inputStrategySelector;
 
 		[Inject]
-		public void Construct(GameModeManager gameModeManager, InputManager inputManager, ObjectPoolManager objectPoolManager, TimeManager timeManager)
+		public void Construct(GameModeManager gameModeManager, InputManager inputManager, ObjectPoolManager objectPoolManager, TimeManager timeManager, IObjectResolver resolver, InputStrategySelector inputStrategySelector)
 		{
 			this.gameModeManager = gameModeManager;
 			this.inputManager = inputManager;
+			this.resolver = resolver;
+			this.inputStrategySelector = inputStrategySelector;
 			// 매치는 이 프리팹의 자식이라 스코프가 직접 못 줌. 여기서 전달
 			arenaMatch.Construct(objectPoolManager, timeManager);
 		}
@@ -88,7 +93,8 @@ namespace WitchMendokusai
 			{
 				// 진입 — content 카메라 전환(투기장 vcam 승격)은 CameraManager 단일 권위자가 GameMode 를
 				// 보고 처리한다. 여기서는 입력·매치만.
-				inputManager.SetInputStrategy(new InputStrategyArena());
+				resolver.TryResolve(out CameraManager cameraManager);
+				inputManager.SetInputStrategy(new InputStrategyArena(cameraManager, gameModeManager));
 				arenaMatch.Begin();
 
 				// ★ `Begin` 은 검증(config 미할당 / 로스터 TeamId / 팀당 유닛 수 / 스폰 겹침)에 걸리면
@@ -109,7 +115,7 @@ namespace WitchMendokusai
 			{
 				// 이탈 — 매치 정리(멱등 Dispose) → 월드 입력 복귀(카메라 복귀는 단일 권위자 담당).
 				arenaMatch.Dispose();
-				inputManager.SetInputStrategy(new InputStrategyWorld());
+				inputStrategySelector.RestoreWorldStrategy();
 			}
 		}
 	}

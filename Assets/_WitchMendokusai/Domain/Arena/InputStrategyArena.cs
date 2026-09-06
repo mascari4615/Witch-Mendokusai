@@ -14,6 +14,16 @@ namespace WitchMendokusai
 	/// </summary>
 	public class InputStrategyArena : InputStrategyBase
 	{
+		// ArenaModeController 가 자기 스코프에서 받아 넘김. 카메라는 씬에 없기도 해서 null 허용 (그때 카메라 조작만 무시)
+		private readonly CameraManager cameraManager;
+		private readonly GameModeManager gameModeManager;
+
+		public InputStrategyArena(CameraManager cameraManager, GameModeManager gameModeManager)
+		{
+			this.cameraManager = cameraManager;
+			this.gameModeManager = gameModeManager;
+		}
+
 		private List<InputRegisterData> _inputRegisterDataList;
 		public override List<InputRegisterData> InputRegisterDataList
 		{
@@ -25,19 +35,19 @@ namespace WitchMendokusai
 						new(
 							InputEventType.Scroll,
 							InputEventResponseType.Performed,
-							() => CameraManager.Instance.Zoom(),
+							() => cameraManager?.Zoom(),
 							() => CanExecute(InputEventType.Scroll)
 						),
 						new(
 							InputEventType.CameraControlModeToggle,
 							InputEventResponseType.Performed,
-							() => CameraManager.Instance.ToggleControlMode(),
+							() => cameraManager?.ToggleControlMode(),
 							() => CanExecute(InputEventType.CameraControlModeToggle)
 						),
 						new(
 							InputEventType.CameraPerspectiveToggle,
 							InputEventResponseType.Performed,
-							() => CameraManager.Instance.TogglePerspective(),
+							() => cameraManager?.TogglePerspective(),
 							() => CanExecute(InputEventType.CameraPerspectiveToggle)
 						),
 						#endregion
@@ -48,7 +58,7 @@ namespace WitchMendokusai
 						new(
 							InputEventType.Cancel,
 							InputEventResponseType.Performed,
-							() => GameModeManager.Instance.SetMode(GameMode.Default),
+							() => gameModeManager.SetMode(GameMode.Default),
 							() => CanExecute(InputEventType.Cancel)
 						),
 						#endregion

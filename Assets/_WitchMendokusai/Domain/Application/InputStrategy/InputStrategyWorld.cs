@@ -4,6 +4,18 @@ namespace WitchMendokusai
 {
 	public class InputStrategyWorld : InputStrategyBase
 	{
+		// 씬 매니저 셋. World 씬 스코프가 InputStrategySelector.BindWorld 로 넘기고 선택기가 여기 꽂음 (static Instance 대신)
+		private readonly CameraManager cameraManager;
+		private readonly GameModeManager gameModeManager;
+		private readonly UIManager uiManager;
+
+		public InputStrategyWorld(CameraManager cameraManager, GameModeManager gameModeManager, UIManager uiManager)
+		{
+			this.cameraManager = cameraManager;
+			this.gameModeManager = gameModeManager;
+			this.uiManager = uiManager;
+		}
+
 		private List<InputRegisterData> _inputRegisterDataList;
 		public override List<InputRegisterData> InputRegisterDataList
 		{
@@ -77,14 +89,14 @@ namespace WitchMendokusai
 						new(
 							InputEventType.BuildModeToggle,
 							InputEventResponseType.Performed,
-							() => GameModeManager.Instance.ToggleBuildMode(),
+							() => gameModeManager.ToggleBuildMode(),
 							() => CanExecute(InputEventType.BuildModeToggle)
 						),
 
 						new(
 							InputEventType.Scroll,
 							InputEventResponseType.Performed,
-							() => CameraManager.Instance.Zoom(),
+							() => cameraManager.Zoom(),
 							() => CanExecute(InputEventType.Scroll)
 						),
 
@@ -92,20 +104,20 @@ namespace WitchMendokusai
 						new(
 							InputEventType.CameraControlModeToggle,
 							InputEventResponseType.Performed,
-							() => CameraManager.Instance.ToggleControlMode(),
+							() => cameraManager.ToggleControlMode(),
 							() => CanExecute(InputEventType.CameraControlModeToggle)
 						),
 						new(
 							InputEventType.CameraPerspectiveToggle,
 							InputEventResponseType.Performed,
-							() => CameraManager.Instance.TogglePerspective(),
+							() => cameraManager.TogglePerspective(),
 							() => CanExecute(InputEventType.CameraPerspectiveToggle)
 						),
 						// TASK-WM-193 — 마을 경영 시점 순환 (Normal/CityView/FreeFly).
 						new(
 							InputEventType.CameraViewCycle,
 							InputEventResponseType.Performed,
-							() => CameraManager.Instance.CycleContentView(),
+							() => cameraManager.CycleContentView(),
 							() => CanExecute(InputEventType.CameraViewCycle)
 						),
 						#endregion
@@ -120,7 +132,7 @@ namespace WitchMendokusai
 						new(
 							InputEventType.Cancel,
 							InputEventResponseType.Performed,
-							() => UIManager.Instance.OnCancelInput(),
+							() => uiManager.OnCancelInput(),
 							() => CanExecute(InputEventType.Cancel)
 						),
 						#endregion

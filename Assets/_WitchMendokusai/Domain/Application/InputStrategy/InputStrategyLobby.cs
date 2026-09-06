@@ -4,6 +4,14 @@ namespace WitchMendokusai
 {
 	public class InputStrategyLobby : InputStrategyBase
 	{
+		// LobbyManager 가 InputStrategySelector.BindLobby 로 자기를 넘기고 선택기가 여기 꽂음
+		private readonly LobbyManager lobbyManager;
+
+		public InputStrategyLobby(LobbyManager lobbyManager)
+		{
+			this.lobbyManager = lobbyManager;
+		}
+
 		private List<InputRegisterData> _inputRegisterDataList;
 		public override List<InputRegisterData> InputRegisterDataList
 		{
@@ -14,7 +22,7 @@ namespace WitchMendokusai
 						#region UI
 						new (InputEventType.Cancel,
 							InputEventResponseType.Performed,
-							() => LobbyManager.Instance.ToggleSettings(),
+							() => lobbyManager.ToggleSettings(),
 							() => CanExecute(InputEventType.Cancel)
 						)
 					#endregion

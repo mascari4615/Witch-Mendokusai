@@ -33,6 +33,8 @@ namespace WitchMendokusai
 
 		private GameModeManager gameModeManager;
 		private InputManager inputManager;
+		// 월드 조작 복귀는 선택기 몫 (월드 전략을 짓는 자리 하나)
+		private InputStrategySelector inputStrategySelector;
 		private UIRoot uiRoot;
 
 		// HUD = 평범한 클래스(MonoBehaviour X) — [Inject] 메서드 타입당 1개 제약 회피. 최초 진입 시 lazy 생성.
@@ -63,8 +65,9 @@ namespace WitchMendokusai
 
 
 		[Inject]
-		public void Construct(GameModeManager gameModeManager, InputManager inputManager, UIRoot uiRoot, ObjectPoolManager objectPoolManager, TimeManager timeManager)
+		public void Construct(GameModeManager gameModeManager, InputManager inputManager, UIRoot uiRoot, ObjectPoolManager objectPoolManager, TimeManager timeManager, InputStrategySelector inputStrategySelector)
 		{
+			this.inputStrategySelector = inputStrategySelector;
 			this.gameModeManager = gameModeManager;
 			this.inputManager = inputManager;
 			this.uiRoot = uiRoot;
@@ -410,7 +413,7 @@ namespace WitchMendokusai
 				}
 				placement.Deactivate();
 				hud?.Hide();
-				inputManager.SetInputStrategy(new InputStrategyWorld());
+				inputStrategySelector.RestoreWorldStrategy();
 			}
 		}
 	}

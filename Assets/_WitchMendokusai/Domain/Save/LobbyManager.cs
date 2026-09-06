@@ -22,10 +22,12 @@ namespace WitchMendokusai
 		private UIRoot uiRoot;
 
 		[Inject]
-		public void Construct(DataManager dataManager, UIRoot uiRoot)
+		public void Construct(DataManager dataManager, UIRoot uiRoot, InputStrategySelector inputStrategySelector)
 		{
 			this.dataManager = dataManager;
 			this.uiRoot = uiRoot;
+			// Lobby 씬은 스코프가 없어 선택기가 이 매니저를 못 받음. 여기서 넘김
+			inputStrategySelector.BindLobby(this);
 		}
 
 		private void Awake()
