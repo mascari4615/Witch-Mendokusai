@@ -8,4 +8,5 @@
 # 2026-08-20: 08-17 에 생긴 농사·막 시험 6개(38개)를 DomainSDK.Tests 로 데려왔다.
 #   그 전까지 이 관문이 25판 연속 빨갰다 — 새 시험이 여기 안 걸린 채 빚만 밀어 올렸다.
 #   못 데려온 것 추가: Diagnostics/ResourcesBudgetTests.cs(= WitchMendokusai.EditorTools 를 본다).
-512
+# 2026-09-06: 엔진 밖 시험 145 파일을 Tests/EditMode/Portable/ 로 옮기고 WM.Tests.Portable 어셈블리로. 서버 묶음 csproj 경로도 따라감. 자는 시험 512 -> 287
+287

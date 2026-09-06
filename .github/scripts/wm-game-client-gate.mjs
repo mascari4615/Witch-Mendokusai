@@ -227,13 +227,17 @@ for (const source of sources) {
 //   게임 창은 아무도 안 봤다. 유니티 게이트는 노트북 러너에 걸려 있고, 그 러너가 며칠씩
 //   못 도는 일이 실제로 있다(라이선스·점유). 그동안 게임 창은 <b>조용히 뒤처진다</b> —
 //   컴파일은 되고, 화면만 안 따라온다. 그건 유니티 없이도 잴 수 있다.
-const clientPath = resolve(repo, 'Assets/_WitchMendokusai/Network/WebWorldClient.cs');
+// 게임 창은 partial 여러 파일 (WebWorldClient.cs, .Message.cs, .Request.cs). 한 파일만 보면 다른 조각이 다루는 말을 안 다룬다고 잡는다 (2026-09-06 실측)
+const clientDir = resolve(repo, 'Assets/_WitchMendokusai/Network');
 const typesPath = resolve(repo, 'DomainSDK/Net/NetMessages.cs');
 
 let clientSource = '';
 let typesSource = '';
 try {
-  clientSource = readFileSync(clientPath, 'utf8');
+  clientSource = readdirSync(clientDir)
+    .filter((name) => name.startsWith('WebWorldClient') && name.endsWith('.cs'))
+    .map((name) => readFileSync(resolve(clientDir, name), 'utf8'))
+    .join(String.fromCharCode(10));
   typesSource = readFileSync(typesPath, 'utf8');
 } catch (error) {
   console.error(`[game-client] CANNOT-RUN: 게임 창·계약을 못 읽었다 — ${error.message}`);

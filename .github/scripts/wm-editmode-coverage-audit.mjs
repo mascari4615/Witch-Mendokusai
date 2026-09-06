@@ -59,6 +59,8 @@ const projectText = projects.map((one) => readFileSync(one, 'utf8')).join(String
 function linkedIn(path) {
 	const under = path.slice(editMode.length + 1).replace(/\\/g, '/');
 	if (projectText.includes(under)) return true;
+	// 엔진 밖 묶음 (Portable csproj) 은 $(TestsRoot) 가 Tests/EditMode/Portable/ 라 파일을 Portable/ 없이 적는다 (2026-09-06)
+	if (under.startsWith('Portable/') && projectText.includes(under.slice('Portable/'.length))) return true;
 
 	const folder = under.split('/').slice(0, -1).join('/');
 	return folder.length > 0 && projectText.includes(`Tests/EditMode/${folder}/**`);

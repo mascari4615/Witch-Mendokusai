@@ -34,60 +34,60 @@
       복사하지 않고 <b>같은 파일을 링크</b>한다 — 두 벌이 되면 곧 갈라진다.
   -->
   <ItemGroup>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Net/**/*.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/Net/**/*.cs">
       <Link>EditMode/%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Compile>
 
     <!-- 코어에 가까운 자리부터 한 파일씩 (TASK-WM-364 이어서) — 유니티를 안 쓰는 것만 -->
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Item/InventoryCanReceiveTests.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/Item/InventoryCanReceiveTests.cs">
       <Link>EditMode/Item/InventoryCanReceiveTests.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Item/InventoryCoreTests.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/Item/InventoryCoreTests.cs">
       <Link>EditMode/Item/InventoryCoreTests.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Item/RecipeKeyTests.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/Item/RecipeKeyTests.cs">
       <Link>EditMode/Item/RecipeKeyTests.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Combat/DamageCalculationTests.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/Combat/DamageCalculationTests.cs">
       <Link>EditMode/Combat/DamageCalculationTests.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Combat/HealthResolutionTests.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/Combat/HealthResolutionTests.cs">
       <Link>EditMode/Combat/HealthResolutionTests.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Combat/UnitStatEngineFreeTests.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/Combat/UnitStatEngineFreeTests.cs">
       <Link>EditMode/Combat/UnitStatEngineFreeTests.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Building/BuildingCensusTests.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/Building/BuildingCensusTests.cs">
       <Link>EditMode/Building/BuildingCensusTests.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Building/BuildingFootprintTests.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/Building/BuildingFootprintTests.cs">
       <Link>EditMode/Building/BuildingFootprintTests.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/BuildingProductionModelTest.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/BuildingProductionModelTest.cs">
       <Link>EditMode/BuildingProductionModelTest.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/CityEconomyTest.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/CityEconomyTest.cs">
       <Link>EditMode/CityEconomyTest.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/CitySimulationSystemTest.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/CitySimulationSystemTest.cs">
       <Link>EditMode/CitySimulationSystemTest.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/FreshnessTest.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/FreshnessTest.cs">
       <Link>EditMode/FreshnessTest.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/LeylineGraphTest.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/LeylineGraphTest.cs">
       <Link>EditMode/LeylineGraphTest.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/ManaFlowTest.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/ManaFlowTest.cs">
       <Link>EditMode/ManaFlowTest.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/ModeControllerEdgeTriggerTest.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/ModeControllerEdgeTriggerTest.cs">
       <Link>EditMode/ModeControllerEdgeTriggerTest.cs</Link>
     </Compile>
     <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/RciDemandModelTest.cs">
       <Link>EditMode/RciDemandModelTest.cs</Link>
     </Compile>
-    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/SimulationTickSchedulerTest.cs">
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/Portable/SimulationTickSchedulerTest.cs">
       <Link>EditMode/SimulationTickSchedulerTest.cs</Link>
     </Compile>
   </ItemGroup>

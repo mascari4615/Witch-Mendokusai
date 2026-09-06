@@ -60,6 +60,8 @@ while IFS= read -r source; do
 	[ -z "$name" ] && continue
 
 	grep -qE "abstract[[:space:]]+class[[:space:]]+$name\b" "$source" && continue
+	# partial 조각 파일 (TowerDefenseMatch.Clock.cs 처럼 클래스 이름과 다른 이름) 은 부품이 아님. 놓이는 것은 클래스 하나이고 그 guid 는 이름과 같은 파일의 것
+	if grep -qE "partial[[:space:]]+class[[:space:]]+$name\b" "$source" && [ "$(basename "$source")" != "$name.cs" ]; then continue; fi
 
 	guid=$(sed -n 's/^guid: //p' "$source.meta" | tr -d '\r' | head -1)
 	[ -z "$guid" ] && continue
