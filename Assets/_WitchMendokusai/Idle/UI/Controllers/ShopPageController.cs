@@ -48,22 +48,22 @@ namespace WitchMendokusai.Idle.UI
 			this.requestRender = requestRender;
 			this.showFeedback = showFeedback;
 			this.feedbackSeconds = feedbackSeconds;
-			pickupPortrait = page.Q<VisualElement>("pickup-portrait");
-			pickupLabel = page.Q<Label>("pickup-label");
-			pityLabel = page.Q<Label>("pity-label");
-			pullButton = page.Q<Button>("pull-button");
+			pickupPortrait = page.RequireQ<VisualElement>("pickup-portrait");
+			pickupLabel = page.RequireQ<Label>("pickup-label");
+			pityLabel = page.RequireQ<Label>("pity-label");
+			pullButton = page.RequireQ<Button>("pull-button");
 			pullButton.clicked += Pull;
-			pullBatchButton = page.Q<Button>("pull-batch-button");
+			pullBatchButton = page.RequireQ<Button>("pull-batch-button");
 			pullBatchButton.clicked += PullBatch;
-			pullOdds = page.Q<Label>("pull-odds");
-			oddsButton = page.Q<Button>("odds-button");
+			pullOdds = page.RequireQ<Label>("pull-odds");
+			oddsButton = page.RequireQ<Button>("odds-button");
 			oddsButton.clicked += () => this.openOdds();
 			oddsButton.text = content.OddsButtonText;
-			freeBoxButton = page.Q<Button>("free-box-button");
+			freeBoxButton = page.RequireQ<Button>("free-box-button");
 			freeBoxButton.clicked += OpenFreeBox;
-			bagButton = page.Q<Button>("bag-button");
+			bagButton = page.RequireQ<Button>("bag-button");
 			bagButton.clicked += BuyBag;
-			bagNote = page.Q<Label>("bag-note");
+			bagNote = page.RequireQ<Label>("bag-note");
 		}
 
 		public void Render(IdleSnapshot snapshot)

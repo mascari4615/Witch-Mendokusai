@@ -88,7 +88,7 @@ namespace WitchMendokusai.Idle.UI
 		{
 			modalController = new ModalController(root, settings.ModalRepaintMilliseconds);
 			tooltipController = new PointerTooltipController(
-				root.Q<Label>("tooltip"), settings.CreateTooltipLayout());
+				root.RequireQ<Label>("tooltip"), settings.CreateTooltipLayout());
 			battleActionController = new BattleActionController(
 				session,
 				stage,
@@ -100,9 +100,9 @@ namespace WitchMendokusai.Idle.UI
 				RequestRender,
 				SayOnce);
 
-			battleNote = root.Q<Label>("battle-note");
-			stageVeil = root.Q<VisualElement>("stage-veil");
-			VisualElement shell = root.Q<VisualElement>("shell");
+			battleNote = root.RequireQ<Label>("battle-note");
+			stageVeil = root.RequireQ<VisualElement>("stage-veil");
+			VisualElement shell = root.RequireQ<VisualElement>("shell");
 			BuildBattle(shell);
 			BuildSide(shell);
 			screenLayoutController = new ScreenLayoutController(
@@ -171,7 +171,7 @@ namespace WitchMendokusai.Idle.UI
 
 		private void BuildBattle(VisualElement shell)
 		{
-			battle = shell.Q<VisualElement>("battle");
+			battle = shell.RequireQ<VisualElement>("battle");
 
 			// 빈 곳 누르기는 응원 한 대. 무대 그 자체가 큰 버튼
 			battle.RegisterCallback<PointerDownEvent>(battleActionController.OnBattleTapped);
@@ -276,8 +276,8 @@ namespace WitchMendokusai.Idle.UI
 
 		private VisualElement UsePopup(string hostName)
 		{
-			VisualElement host = root.Q<VisualElement>(hostName);
-			VisualElement popup = host.Q<VisualElement>("popup");
+			VisualElement host = root.RequireQ<VisualElement>(hostName);
+			VisualElement popup = host.RequireQ<VisualElement>("popup");
 			popup.style.display = DisplayStyle.None;
 			return popup;
 		}

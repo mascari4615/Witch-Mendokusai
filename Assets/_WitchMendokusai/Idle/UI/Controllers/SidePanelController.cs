@@ -20,30 +20,30 @@ namespace WitchMendokusai.Idle.UI
 			Action<int> openTab)
 		{
 			this.content = content;
-			side = shell.Q<VisualElement>("side");
-			VisualElement tabs = side.Q<VisualElement>("tabs");
+			side = shell.RequireQ<VisualElement>("side");
+			VisualElement tabs = side.RequireQ<VisualElement>("tabs");
 			pages = new VisualElement[content.TabCount];
 
 			for (int index = 0; index < content.TabCount; index++)
 			{
 				int captured = index;
-				Button tab = tabs.Q<Button>("tab-" + index);
+				Button tab = tabs.RequireQ<Button>("tab-" + index);
 				tab.clicked += () => openTab(captured);
 				tab.text = content.TabButtonText(index);
 				tab.style.display = content.IsTabVisible(index) ? DisplayStyle.Flex : DisplayStyle.None;
 				tabButtons.Add(tab);
 			}
 
-			title = side.Q<Label>("panel-title");
-			caption = side.Q<Label>("panel-caption");
+			title = side.RequireQ<Label>("panel-title");
+			caption = side.RequireQ<Label>("panel-caption");
 		}
 
 		public float ResolvedWidth => side.resolvedStyle.width;
 
 		public VisualElement BindPage(int index, string hostName, VisualElement root)
 		{
-			VisualElement host = root.Q<VisualElement>(hostName);
-			VisualElement page = host.Q<VisualElement>("page");
+			VisualElement host = root.RequireQ<VisualElement>(hostName);
+			VisualElement page = host.RequireQ<VisualElement>("page");
 			page.style.display = DisplayStyle.None;
 			pages[index] = page;
 			return page;

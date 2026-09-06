@@ -21,8 +21,8 @@ namespace WitchMendokusai.Idle.UI
 		{
 			this.rowAsset = rowAsset;
 			this.content = content;
-			summary = page.Q<Label>("discovery-label");
-			rows = page.Q<VisualElement>("discovery-rows");
+			summary = page.RequireQ<Label>("discovery-label");
+			rows = page.RequireQ<VisualElement>("discovery-rows");
 		}
 
 		public void Render(IdleSnapshot snapshot)
@@ -57,7 +57,7 @@ namespace WitchMendokusai.Idle.UI
 			for (int heroId = 0; heroId < IdleHeroes.Count; heroId++)
 			{
 				TemplateContainer tree = rowAsset.Instantiate();
-				Label row = tree.Q<Label>("row");
+				Label row = tree.RequireQ<Label>("row");
 				row.RemoveFromHierarchy();
 				rows.Add(row);
 				labels.Add(row);

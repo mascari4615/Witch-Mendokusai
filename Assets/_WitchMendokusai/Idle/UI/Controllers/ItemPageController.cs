@@ -58,14 +58,14 @@ namespace WitchMendokusai.Idle.UI
 			this.hookTooltip = hookTooltip;
 			this.feedbackSeconds = feedbackSeconds;
 
-			subButtons[0] = page.Q<Button>("bag-subtab");
+			subButtons[0] = page.RequireQ<Button>("bag-subtab");
 			subButtons[0].clicked += () => OpenSubPage(0);
-			subButtons[1] = page.Q<Button>("forge-subtab");
+			subButtons[1] = page.RequireQ<Button>("forge-subtab");
 			subButtons[1].clicked += () => OpenSubPage(1);
 
-			bagView = page.Q<VisualElement>("bag-view");
-			gearSummary = page.Q<Label>("gear-summary");
-			VisualElement bagGrid = page.Q<VisualElement>("bag-grid");
+			bagView = page.RequireQ<VisualElement>("bag-view");
+			gearSummary = page.RequireQ<Label>("gear-summary");
+			VisualElement bagGrid = page.RequireQ<VisualElement>("bag-grid");
 			for (int index = 0; index < content.BagSlotCount; index++)
 			{
 				int captured = index;
@@ -75,17 +75,17 @@ namespace WitchMendokusai.Idle.UI
 				bagCells.Add(cell);
 			}
 
-			page.Q<Button>("sort-button").clicked += SortBag;
-			bulkMergeButton = page.Q<Button>("bulk-merge-button");
+			page.RequireQ<Button>("sort-button").clicked += SortBag;
+			bulkMergeButton = page.RequireQ<Button>("bulk-merge-button");
 			bulkMergeButton.clicked += MergeAll;
-			forgeView = page.Q<VisualElement>("forge-view");
+			forgeView = page.RequireQ<VisualElement>("forge-view");
 			forge = new ForgePanelController(
 				page, session, content, gearVisualPresenter, forgeKindAsset,
 				writeDown, requestRender, showFeedback, feedbackSeconds);
 
-			Label appraiseCap = page.Q<Label>("appraise-cap");
+			Label appraiseCap = page.RequireQ<Label>("appraise-cap");
 			appraiseCap.style.display = DisplayStyle.None;
-			appraiseRows = page.Q<VisualElement>("appraise-rows");
+			appraiseRows = page.RequireQ<VisualElement>("appraise-rows");
 			appraiseRows.style.display = DisplayStyle.None;
 			OpenSubPage(0, false);
 		}
@@ -169,8 +169,8 @@ namespace WitchMendokusai.Idle.UI
 			}
 
 			cell.style.display = DisplayStyle.Flex;
-			VisualElement icon = cell.Q<VisualElement>("bag-icon");
-			Label potential = cell.Q<Label>("bag-potential");
+			VisualElement icon = cell.RequireQ<VisualElement>("bag-icon");
+			Label potential = cell.RequireQ<Label>("bag-potential");
 			if (index >= snapshot.Bag.Length)
 			{
 				cell.text = string.Empty;
@@ -288,7 +288,7 @@ namespace WitchMendokusai.Idle.UI
 		private Button AddBagCell(VisualElement parent)
 		{
 			TemplateContainer tree = bagCellAsset.Instantiate();
-			Button cell = tree.Q<Button>("bag-cell");
+			Button cell = tree.RequireQ<Button>("bag-cell");
 			cell.RemoveFromHierarchy();
 			cell.text = string.Empty;
 			parent.Add(cell);
@@ -298,7 +298,7 @@ namespace WitchMendokusai.Idle.UI
 		private Button AddRowButton(Action clicked)
 		{
 			TemplateContainer tree = rowButtonAsset.Instantiate();
-			Button button = tree.Q<Button>("row");
+			Button button = tree.RequireQ<Button>("row");
 			button.RemoveFromHierarchy();
 			button.clicked += clicked;
 			appraiseRows.Add(button);

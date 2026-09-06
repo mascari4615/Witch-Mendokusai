@@ -24,8 +24,8 @@ namespace WitchMendokusai.Idle.UI
 			this.requestRender = requestRender;
 			this.showFeedback = showFeedback;
 			this.feedbackSeconds = feedbackSeconds;
-			summary = page.Q<Label>("prestige-summary");
-			button = page.Q<Button>("prestige-button");
+			summary = page.RequireQ<Label>("prestige-summary");
+			button = page.RequireQ<Button>("prestige-button");
 			button.clicked += Prestige;
 		}
 

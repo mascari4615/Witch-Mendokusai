@@ -23,8 +23,8 @@ namespace WitchMendokusai.Idle.UI
 			this.session = session;
 			this.content = content;
 			this.requestRender = requestRender;
-			summary = page.Q<Label>("base-summary");
-			host = page.Q<VisualElement>("producers");
+			summary = page.RequireQ<Label>("base-summary");
+			host = page.RequireQ<VisualElement>("producers");
 		}
 
 		public void Render(IdleSnapshot snapshot)
@@ -54,7 +54,7 @@ namespace WitchMendokusai.Idle.UI
 			{
 				int captured = kind;
 				TemplateContainer tree = rowAsset.Instantiate();
-				Button row = tree.Q<Button>("row");
+				Button row = tree.RequireQ<Button>("row");
 				row.RemoveFromHierarchy();
 				row.clicked += () => Buy(captured);
 				host.Add(row);

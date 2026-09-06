@@ -53,12 +53,12 @@ namespace WitchMendokusai.Idle.UI
 			this.cardAsset = cardAsset;
 			this.settings = settings;
 
-			burst = popup.Q<VisualElement>("gacha-burst");
-			grid = popup.Q<VisualElement>("gacha-grid");
-			title = popup.Q<Label>("gacha-title");
-			summary = popup.Q<Label>("gacha-summary");
-			skip = popup.Q<Button>("gacha-skip");
-			close = popup.Q<Button>("gacha-close");
+			burst = popup.RequireQ<VisualElement>("gacha-burst");
+			grid = popup.RequireQ<VisualElement>("gacha-grid");
+			title = popup.RequireQ<Label>("gacha-title");
+			summary = popup.RequireQ<Label>("gacha-summary");
+			skip = popup.RequireQ<Button>("gacha-skip");
+			close = popup.RequireQ<Button>("gacha-close");
 
 			skip.text = content.GachaSkipText;
 			skip.clicked += RevealAll;
@@ -202,7 +202,7 @@ namespace WitchMendokusai.Idle.UI
 			for (int index = 0; index < pulls.Count; index++)
 			{
 				TemplateContainer tree = cardAsset.Instantiate();
-				VisualElement card = tree.Q<VisualElement>("gacha-card");
+				VisualElement card = tree.RequireQ<VisualElement>("gacha-card");
 				card.RemoveFromHierarchy();
 				card.AddToClassList("idle-gacha-card--back");
 				grid.Add(card);
@@ -220,13 +220,13 @@ namespace WitchMendokusai.Idle.UI
 			card.RemoveFromClassList("idle-gacha-card--back");
 			card.AddToClassList(GradeClass(pull.Grade));
 
-			VisualElement portrait = card.Q<VisualElement>("gacha-card-portrait");
+			VisualElement portrait = card.RequireQ<VisualElement>("gacha-card-portrait");
 			heroVisualPresenter.SetPortrait(portrait, pull.Id);
 
-			card.Q<Label>("gacha-card-name").text = kind.Name;
-			card.Q<Label>("gacha-card-grade").text = content.GradeName(pull.Grade);
+			card.RequireQ<Label>("gacha-card-name").text = kind.Name;
+			card.RequireQ<Label>("gacha-card-grade").text = content.GradeName(pull.Grade);
 
-			Label badge = card.Q<Label>("gacha-card-badge");
+			Label badge = card.RequireQ<Label>("gacha-card-badge");
 			bool marked = pull.IsNew || pull.ByPity;
 			badge.text = pull.IsNew ? content.GachaNewBadge : content.GachaPityBadge;
 			badge.style.display = marked ? DisplayStyle.Flex : DisplayStyle.None;

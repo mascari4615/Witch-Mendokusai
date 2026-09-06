@@ -24,14 +24,14 @@ namespace WitchMendokusai.Idle.UI
 			rows = new Label[grades];
 			for (int grade = 0; grade < grades; grade++)
 			{
-				rows[grade] = popup.Q<Label>("odds-row-" + grade);
+				rows[grade] = popup.RequireQ<Label>("odds-row-" + grade);
 			}
 
-			pity = popup.Q<Label>("odds-pity");
-			pickup = popup.Q<Label>("odds-pickup");
-			batch = popup.Q<Label>("odds-batch");
+			pity = popup.RequireQ<Label>("odds-pity");
+			pickup = popup.RequireQ<Label>("odds-pickup");
+			batch = popup.RequireQ<Label>("odds-batch");
 			modalController.Register(popup, Close);
-			popup.Q<Button>("odds-close").clicked += Close;
+			popup.RequireQ<Button>("odds-close").clicked += Close;
 		}
 
 		public void Open(Action beforeOpen)

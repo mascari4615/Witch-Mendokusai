@@ -42,23 +42,23 @@ namespace WitchMendokusai.Idle.UI
 			this.showFeedback = showFeedback;
 			this.feedbackSeconds = feedbackSeconds;
 
-			VisualElement host = page.Q<VisualElement>("dungeon-rows");
+			VisualElement host = page.RequireQ<VisualElement>("dungeon-rows");
 			for (int index = 0; index < IdleDungeons.COUNT; index++)
 			{
 				IdleDungeonKind kind = (IdleDungeonKind)index;
 				TemplateContainer tree = rowAsset.Instantiate();
-				VisualElement made = tree.Q<VisualElement>("dungeon-row");
+				VisualElement made = tree.RequireQ<VisualElement>("dungeon-row");
 				made.RemoveFromHierarchy();
 				host.Add(made);
 
 				Row row = new Row
 				{
-					Name = made.Q<Label>("dungeon-name"),
-					Ticket = made.Q<Label>("dungeon-ticket"),
-					Reward = made.Q<Label>("dungeon-reward"),
-					Refill = made.Q<Label>("dungeon-refill"),
-					Enter = made.Q<Button>("dungeon-enter"),
-					Sweep = made.Q<Button>("dungeon-sweep"),
+					Name = made.RequireQ<Label>("dungeon-name"),
+					Ticket = made.RequireQ<Label>("dungeon-ticket"),
+					Reward = made.RequireQ<Label>("dungeon-reward"),
+					Refill = made.RequireQ<Label>("dungeon-refill"),
+					Enter = made.RequireQ<Button>("dungeon-enter"),
+					Sweep = made.RequireQ<Button>("dungeon-sweep"),
 				};
 				row.Enter.clicked += () => Enter(kind);
 				row.Sweep.clicked += () => Sweep(kind);

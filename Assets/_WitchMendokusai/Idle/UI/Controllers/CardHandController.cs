@@ -50,25 +50,25 @@ namespace WitchMendokusai.Idle.UI
 			this.castAt = castAt;
 			this.aimAt = aimAt;
 			this.aimMissed = aimMissed;
-			aim = battle.Q<VisualElement>("skill-aim");
-			aimOrigin = aim.Q<VisualElement>("skill-aim-origin");
-			aimLine = aim.Q<VisualElement>("skill-aim-line");
-			aimRange = aim.Q<VisualElement>("skill-aim-range");
-			aimCaption = aim.Q<Label>("skill-aim-caption");
+			aim = battle.RequireQ<VisualElement>("skill-aim");
+			aimOrigin = aim.RequireQ<VisualElement>("skill-aim-origin");
+			aimLine = aim.RequireQ<VisualElement>("skill-aim-line");
+			aimRange = aim.RequireQ<VisualElement>("skill-aim-range");
+			aimCaption = aim.RequireQ<Label>("skill-aim-caption");
 
 			buttons = new Button[IdleCards.HAND_SIZE];
 			icons = new VisualElement[IdleCards.HAND_SIZE];
 			costs = new Label[IdleCards.HAND_SIZE];
 			names = new Label[IdleCards.HAND_SIZE];
-			VisualElement cards = battle.Q<VisualElement>("cards");
+			VisualElement cards = battle.RequireQ<VisualElement>("cards");
 			for (int index = 0; index < buttons.Length; index++)
 			{
 				int captured = index;
 				TemplateContainer tree = cardAsset.Instantiate();
-				Button button = tree.Q<Button>("card");
-				icons[index] = button.Q<VisualElement>("card-icon");
-				costs[index] = button.Q<Label>("card-cost");
-				names[index] = button.Q<Label>("card-name");
+				Button button = tree.RequireQ<Button>("card");
+				icons[index] = button.RequireQ<VisualElement>("card-icon");
+				costs[index] = button.RequireQ<Label>("card-cost");
+				names[index] = button.RequireQ<Label>("card-name");
 				button.RemoveFromHierarchy();
 				cards.Add(button);
 				buttons[index] = button;
@@ -80,11 +80,11 @@ namespace WitchMendokusai.Idle.UI
 			}
 
 			queueChips = new Label[IdleCards.QUEUE_SIZE];
-			VisualElement queue = battle.Q<VisualElement>("card-queue");
+			VisualElement queue = battle.RequireQ<VisualElement>("card-queue");
 			for (int index = 0; index < queueChips.Length; index++)
 			{
 				TemplateContainer tree = queueChipAsset.Instantiate();
-				Label chip = tree.Q<Label>("chip");
+				Label chip = tree.RequireQ<Label>("chip");
 				chip.RemoveFromHierarchy();
 				chip.EnableInClassList("idle-queue-chip--next", index == 0);
 				queue.Add(chip);

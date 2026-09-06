@@ -36,11 +36,11 @@ namespace WitchMendokusai.Idle.UI
 			this.selected = selected;
 
 			modalController.Register(popup, Close);
-			popup.Q<Button>("hero-close").clicked += Close;
-			VisualElement grid = popup.Q<VisualElement>("hero-grid");
-			pageLabel = popup.Q<Label>("hero-page-label");
-			pageBack = popup.Q<Button>("hero-page-back");
-			pageForward = popup.Q<Button>("hero-page-forward");
+			popup.RequireQ<Button>("hero-close").clicked += Close;
+			VisualElement grid = popup.RequireQ<VisualElement>("hero-grid");
+			pageLabel = popup.RequireQ<Label>("hero-page-label");
+			pageBack = popup.RequireQ<Button>("hero-page-back");
+			pageForward = popup.RequireQ<Button>("hero-page-forward");
 			pageBack.clicked += () => ChangePage(-1);
 			pageForward.clicked += () => ChangePage(1);
 
@@ -48,9 +48,9 @@ namespace WitchMendokusai.Idle.UI
 			{
 				int captured = index;
 				TemplateContainer choiceTree = choiceCardAsset.Instantiate();
-				Button choice = choiceTree.Q<Button>("choice");
-				VisualElement icon = choice.Q<VisualElement>("choice-icon");
-				Label label = choice.Q<Label>("choice-label");
+				Button choice = choiceTree.RequireQ<Button>("choice");
+				VisualElement icon = choice.RequireQ<VisualElement>("choice-icon");
+				Label label = choice.RequireQ<Label>("choice-label");
 				choice.RemoveFromHierarchy();
 				choice.clicked += () => SelectAt(captured);
 				grid.Add(choice);

@@ -51,20 +51,20 @@ namespace WitchMendokusai.Idle.UI
 			this.showFeedback = showFeedback;
 			this.feedbackSeconds = feedbackSeconds;
 
-			kinds = page.Q<VisualElement>("forge-kinds");
+			kinds = page.RequireQ<VisualElement>("forge-kinds");
 			for (int index = 0; index < content.ForgeInputSlotCount; index++)
 			{
-				cells.Add(page.Q<Label>("forge-cell-" + index));
+				cells.Add(page.RequireQ<Label>("forge-cell-" + index));
 			}
 
-			result = page.Q<Label>("forge-result");
-			title = page.Q<Label>("forge-title");
-			mergeButton = page.Q<Button>("forge-button");
+			result = page.RequireQ<Label>("forge-result");
+			title = page.RequireQ<Label>("forge-title");
+			mergeButton = page.RequireQ<Button>("forge-button");
 			mergeButton.clicked += Merge;
 
-			salvageCounts[0] = page.Q<Button>("salvage-x1");
-			salvageCounts[1] = page.Q<Button>("salvage-x10");
-			salvageCounts[2] = page.Q<Button>("salvage-all");
+			salvageCounts[0] = page.RequireQ<Button>("salvage-x1");
+			salvageCounts[1] = page.RequireQ<Button>("salvage-x10");
+			salvageCounts[2] = page.RequireQ<Button>("salvage-all");
 			for (int index = 0; index < salvageCounts.Length; index++)
 			{
 				int captured = SALVAGE_COUNTS[index];
@@ -72,9 +72,9 @@ namespace WitchMendokusai.Idle.UI
 				salvageCounts[index].clicked += () => PickSalvageCount(captured);
 			}
 
-			salvageButton = page.Q<Button>("salvage-button");
+			salvageButton = page.RequireQ<Button>("salvage-button");
 			salvageButton.clicked += Salvage;
-			salvageTitle = page.Q<Label>("salvage-title");
+			salvageTitle = page.RequireQ<Label>("salvage-title");
 		}
 
 		public void Render(IdleSnapshot snapshot)
@@ -243,7 +243,7 @@ namespace WitchMendokusai.Idle.UI
 		private Button AddKind(Action clicked)
 		{
 			TemplateContainer tree = forgeKindAsset.Instantiate();
-			Button kind = tree.Q<Button>("forge-kind");
+			Button kind = tree.RequireQ<Button>("forge-kind");
 			kind.RemoveFromHierarchy();
 			kind.clicked += clicked;
 			kinds.Add(kind);

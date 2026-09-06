@@ -18,10 +18,10 @@ namespace WitchMendokusai.Idle.UI
 			this.popup = popup;
 			this.modalController = modalController;
 			this.content = content;
-			amount = popup.Q<Label>("gold-amount");
-			income = popup.Q<Label>("gold-income");
+			amount = popup.RequireQ<Label>("gold-amount");
+			income = popup.RequireQ<Label>("gold-income");
 			modalController.Register(popup, Close);
-			popup.Q<Button>("gold-close").clicked += Close;
+			popup.RequireQ<Button>("gold-close").clicked += Close;
 		}
 
 		public void Open(Action beforeOpen)

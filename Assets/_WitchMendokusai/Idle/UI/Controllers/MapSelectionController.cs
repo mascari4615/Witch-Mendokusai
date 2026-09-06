@@ -32,10 +32,10 @@ namespace WitchMendokusai.Idle.UI
 			this.content = content;
 			this.canGoToStage = canGoToStage;
 			this.selectStage = selectStage;
-			rows = popup.Q<VisualElement>("map-rows");
+			rows = popup.RequireQ<VisualElement>("map-rows");
 
 			modalController.Register(popup, Close);
-			popup.Q<Button>("map-close").clicked += Close;
+			popup.RequireQ<Button>("map-close").clicked += Close;
 		}
 
 		public bool IsOpen => popup.style.display == DisplayStyle.Flex;
@@ -91,7 +91,7 @@ namespace WitchMendokusai.Idle.UI
 			{
 				int target = top - index;
 				TemplateContainer tree = rowAsset.Instantiate();
-				Button button = tree.Q<Button>("row");
+				Button button = tree.RequireQ<Button>("row");
 				button.RemoveFromHierarchy();
 				button.clicked += () => selectStage(target);
 				rows.Add(button);

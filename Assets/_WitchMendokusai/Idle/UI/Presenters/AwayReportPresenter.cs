@@ -10,20 +10,20 @@ namespace WitchMendokusai.Idle.UI
 		{
 			popup.style.display = DisplayStyle.Flex;
 			popup.RegisterCallback<PointerDownEvent>(moment => moment.StopPropagation());
-			popup.Q<Label>("away-span").text = content.AwaySpanText(report.CreditedSeconds);
-			popup.Q<Label>("gold-value").text = content.GainText(BigNumberText.Format(report.ResourceGained));
-			popup.Q<Label>("kills-value").text = content.GainText(BigNumberText.Format(report.KillsGained));
-			popup.Q<Label>("stages-value").text = content.GainText(BigNumberText.Format(report.StagesGained));
-			popup.Q<Label>("items-value").text = content.GainText(BigNumberText.Format(report.ItemsGained));
+			popup.RequireQ<Label>("away-span").text = content.AwaySpanText(report.CreditedSeconds);
+			popup.RequireQ<Label>("gold-value").text = content.GainText(BigNumberText.Format(report.ResourceGained));
+			popup.RequireQ<Label>("kills-value").text = content.GainText(BigNumberText.Format(report.KillsGained));
+			popup.RequireQ<Label>("stages-value").text = content.GainText(BigNumberText.Format(report.StagesGained));
+			popup.RequireQ<Label>("items-value").text = content.GainText(BigNumberText.Format(report.ItemsGained));
 
-			Label warning = popup.Q<Label>("away-warning");
+			Label warning = popup.RequireQ<Label>("away-warning");
 			if (report.HitCap)
 			{
 				warning.text = content.AwayWarningText(report.CapSeconds, report.LostSeconds);
 				warning.style.display = DisplayStyle.Flex;
 			}
 
-			popup.Q<Button>("away-close").clicked += () => popup.style.display = DisplayStyle.None;
+			popup.RequireQ<Button>("away-close").clicked += () => popup.style.display = DisplayStyle.None;
 		}
 	}
 }

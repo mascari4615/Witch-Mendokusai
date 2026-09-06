@@ -26,7 +26,7 @@ namespace WitchMendokusai.Idle.UI
 			this.content = content;
 			this.requestRender = requestRender;
 			modalController.Register(popup, Close);
-			popup.Q<Button>("settings-close").clicked += Close;
+			popup.RequireQ<Button>("settings-close").clicked += Close;
 			for (int index = 0; ; index++)
 			{
 				Button button = popup.Q<Button>("speed-" + index);
@@ -41,14 +41,14 @@ namespace WitchMendokusai.Idle.UI
 			}
 
 			// 데이터 초기화는 설정 안으로 (사용자 2026-09-05). 전투 화면에 늘 떠 있을 것이 아님
-			Button wipe = popup.Q<Button>("wipe-button");
+			Button wipe = popup.RequireQ<Button>("wipe-button");
 			wipe.style.display = UnityEngine.Application.isEditor || UnityEngine.Debug.isDebugBuild
 				? DisplayStyle.Flex
 				: DisplayStyle.None;
 			wipe.clicked += wipeAndRestart;
 
-			logLabel = popup.Q<Label>("log-label");
-			noteLabel = popup.Q<Label>("note-label");
+			logLabel = popup.RequireQ<Label>("log-label");
+			noteLabel = popup.RequireQ<Label>("note-label");
 		}
 
 		public void Open(Action beforeOpen)

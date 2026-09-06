@@ -43,14 +43,14 @@ namespace WitchMendokusai.Idle.UI
 			this.content = content;
 			this.selected = selected;
 
-			title = popup.Q<Label>("gear-title");
-			worn = popup.Q<Label>("gear-worn");
-			rows = popup.Q<VisualElement>("gear-rows");
-			pageLabel = popup.Q<Label>("gear-page-label");
-			pageBack = popup.Q<Button>("gear-page-back");
-			pageForward = popup.Q<Button>("gear-page-forward");
+			title = popup.RequireQ<Label>("gear-title");
+			worn = popup.RequireQ<Label>("gear-worn");
+			rows = popup.RequireQ<VisualElement>("gear-rows");
+			pageLabel = popup.RequireQ<Label>("gear-page-label");
+			pageBack = popup.RequireQ<Button>("gear-page-back");
+			pageForward = popup.RequireQ<Button>("gear-page-forward");
 			modalController.Register(popup, Close);
-			popup.Q<Button>("gear-close").clicked += Close;
+			popup.RequireQ<Button>("gear-close").clicked += Close;
 			pageBack.clicked += () => ChangePage(-1);
 			pageForward.clicked += () => ChangePage(1);
 		}
@@ -153,9 +153,9 @@ namespace WitchMendokusai.Idle.UI
 			while (buttons.Count <= index)
 			{
 				TemplateContainer tree = choiceCardAsset.Instantiate();
-				Button made = tree.Q<Button>("choice");
-				VisualElement icon = made.Q<VisualElement>("choice-icon");
-				Label label = made.Q<Label>("choice-label");
+				Button made = tree.RequireQ<Button>("choice");
+				VisualElement icon = made.RequireQ<VisualElement>("choice-icon");
+				Label label = made.RequireQ<Label>("choice-label");
 				made.RemoveFromHierarchy();
 				made.AddToClassList("idle-gear-card");
 				rows.Add(made);

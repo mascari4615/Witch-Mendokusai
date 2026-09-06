@@ -63,26 +63,26 @@ namespace WitchMendokusai.Idle.UI
 			for (int slot = 0; slot < IdleHeroes.PARTY_SLOTS; slot++)
 			{
 				int captured = slot;
-				Button seat = page.Q<Button>("seat-" + slot);
+				Button seat = page.RequireQ<Button>("seat-" + slot);
 				seat.clicked += () => selectPartySeat(captured);
 				partyButtons.Add(seat);
 			}
 
-			dollName = page.Q<Label>("doll-name");
-			statFeedback = page.Q<Label>("stat-feedback");
+			dollName = page.RequireQ<Label>("doll-name");
+			statFeedback = page.RequireQ<Label>("stat-feedback");
 			statFeedback.style.visibility = Visibility.Hidden;
 			for (int stat = 0; stat < content.StatCount; stat++)
 			{
 				int capturedStat = stat;
-				Label name = page.Q<Label>("stat-name-" + stat);
-				statValues[stat] = page.Q<Label>("stat-value-" + stat);
-				statLevels[stat] = page.Q<Label>("stat-level-" + stat);
+				Label name = page.RequireQ<Label>("stat-name-" + stat);
+				statValues[stat] = page.RequireQ<Label>("stat-value-" + stat);
+				statLevels[stat] = page.RequireQ<Label>("stat-level-" + stat);
 				name.text = content.StatName(stat);
 
 				for (int amount = 0; amount < content.StatUpgradeAmountCount; amount++)
 				{
 					int capturedAmount = content.StatUpgradeAmount(amount);
-					Button button = page.Q<Button>("stat-" + stat + "-x" + capturedAmount);
+					Button button = page.RequireQ<Button>("stat-" + stat + "-x" + capturedAmount);
 					button.clicked += () => Raise((IdleUpgradeKind)capturedStat, capturedAmount);
 					hookTooltip(button, () => StatTip((IdleUpgradeKind)capturedStat, capturedAmount));
 					statButtons[stat, amount] = button;
@@ -92,7 +92,7 @@ namespace WitchMendokusai.Idle.UI
 			for (int slot = 0; slot < content.GearSlotCount; slot++)
 			{
 				int captured = slot;
-				Button cell = page.Q<Button>("worn-" + slot);
+				Button cell = page.RequireQ<Button>("worn-" + slot);
 				cell.clicked += () => openGear(captured);
 				hookTooltip(cell, () => wornTip(captured));
 				wornCells.Add(cell);
@@ -120,8 +120,8 @@ namespace WitchMendokusai.Idle.UI
 				string tag = content.SeatText(IdleHeroes.IsMainSlot(slot));
 				Button seat = partyButtons[slot];
 				seat.text = string.Empty;
-				VisualElement portrait = seat.Q<VisualElement>("seat-icon-" + slot);
-				Label label = seat.Q<Label>("seat-label-" + slot);
+				VisualElement portrait = seat.RequireQ<VisualElement>("seat-icon-" + slot);
+				Label label = seat.RequireQ<Label>("seat-label-" + slot);
 				portrait.style.display = heroId >= 0 ? DisplayStyle.Flex : DisplayStyle.None;
 				label.text = heroId >= 0
 					? content.PartySeatText(tag, IdleHeroes.KindOf(heroId).Name)
@@ -177,8 +177,8 @@ namespace WitchMendokusai.Idle.UI
 				IdleItem item = worn[slot];
 				Button cell = wornCells[slot];
 				cell.text = string.Empty;
-				VisualElement icon = cell.Q<VisualElement>("worn-icon-" + slot);
-				Label badge = cell.Q<Label>("worn-label-" + slot);
+				VisualElement icon = cell.RequireQ<VisualElement>("worn-icon-" + slot);
+				Label badge = cell.RequireQ<Label>("worn-label-" + slot);
 				icon.style.display = item.IsEmpty ? DisplayStyle.None : DisplayStyle.Flex;
 				badge.text = item.IsEmpty ? content.GearSlotName(slot) : string.Empty;
 				if (item.IsEmpty == false)
