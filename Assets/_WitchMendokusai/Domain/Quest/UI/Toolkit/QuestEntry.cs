@@ -20,8 +20,11 @@ namespace WitchMendokusai
 
 		public RuntimeQuest Quest { get; private set; }
 
-		public QuestEntry()
+		private readonly QuestManager questManager;
+
+		public QuestEntry(QuestManager questManager)
 		{
+			this.questManager = questManager;
 			AddToClassList(USS_CLASS);
 			focusable = true;
 			pickingMode = PickingMode.Position;
@@ -71,7 +74,7 @@ namespace WitchMendokusai
 			nameLabel.text = Quest.Name ?? "?";
 			typeLabel.text = Quest.Type.ToString();
 			stateLabel.text = Quest.State.ToString();
-			progressFill.style.width = new StyleLength(new Length(Quest.GetProgress() * 100f, LengthUnit.Percent));
+			progressFill.style.width = new StyleLength(new Length(questManager.ProgressOf(Quest) * 100f, LengthUnit.Percent));
 		}
 
 		public void SetSelected(bool selected)

@@ -22,7 +22,6 @@ namespace WitchMendokusai
 		}
 
 		public bool IsCountable => MaxAmount != 1;
-		public bool Unlocked => DataManager.Instance.IsRecipeUnlocked.TryGetValue(ID, out bool unlocked) && unlocked;
 
 		/// <summary>검증·에디터 도구가 값을 물린다 (WitchPlantSO.EditorSet* 선례).</summary>
 		public void EditorSetPrices(int purchasePrice, int salePrice)

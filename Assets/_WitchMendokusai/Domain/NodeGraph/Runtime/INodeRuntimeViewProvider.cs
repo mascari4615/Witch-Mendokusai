@@ -16,6 +16,9 @@ namespace WitchMendokusai.NodeGraph.Runtime
 		/// <summary>노드 body 안에 들어갈 VisualElement 생성. null 반환 시 body 비움 (라벨만).</summary>
 		VisualElement Build(NodeBase node);
 
+		/// <summary>host 가 필요한 도메인용. host 는 <see cref="NodeGraphRuntimeView.Host"/> 에 화면 주인이 꽂은 것 (예: QuestManager). default 는 host 무시</summary>
+		VisualElement Build(NodeBase node, object host) => Build(node);
+
 		/// <summary>노드 좌클릭 시 도메인 행동. default = no-op. 예: MagicBook QuestProvider 가 퀘스트 상세 패널 open.</summary>
 		void OnClicked(NodeBase node) { }
 

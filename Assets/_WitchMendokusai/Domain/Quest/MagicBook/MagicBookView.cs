@@ -121,7 +121,7 @@ namespace WitchMendokusai
 			btnClose.style.right = 12;
 			container.Add(btnClose);
 
-			questDetail = new QuestDetail();
+			questDetail = new QuestDetail(questManager);
 			questDetail.style.position = Position.Absolute;
 			questDetail.style.top = 60;
 			questDetail.style.right = 12;
@@ -206,6 +206,8 @@ namespace WitchMendokusai
 			if (chapterViewsByChapter.TryGetValue(chapter, out ChapterView view) == false)
 			{
 				view = new ChapterView();
+				// 노드 그림이 퀘스트 상태를 물을 자리. 그래프 틀은 퀘스트를 모르고 host 만 넘김
+				view.Host = questManager;
 				view.Bind(chapter);
 				chapterViewsByChapter[chapter] = view;
 			}

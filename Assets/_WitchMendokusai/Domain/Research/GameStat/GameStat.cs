@@ -55,11 +55,10 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void UpdateData()
+		public void UpdateData(DungeonStat dungeonStat)
 		{
 			// Dungeon
 			{
-				DungeonStat dungeonStat = DataManager.Instance.DungeonStat;
 
 				stats[GameStatType.TOTAL_MONSTER_KILL] += dungeonStat[DungeonStatType.MONSTER_KILL];
 				stats[GameStatType.TOTAL_MONSTER_KILL] += dungeonStat[DungeonStatType.BOSS_KILL];

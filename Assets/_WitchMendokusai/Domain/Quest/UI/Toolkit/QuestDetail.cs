@@ -28,8 +28,11 @@ namespace WitchMendokusai
 		private static readonly Color STATE_COLOR = new(0.85f, 0.95f, 1f, 1f);
 		private static readonly Color PROGRESS_COLOR = new(0.95f, 0.85f, 0.5f, 1f);
 
-		public QuestDetail()
+		private readonly QuestManager questManager;
+
+		public QuestDetail(QuestManager questManager)
 		{
+			this.questManager = questManager;
 			AddToClassList(USS_CLASS);
 
 			nameLabel = new Label();
@@ -102,7 +105,7 @@ namespace WitchMendokusai
 			nameLabel.text = quest?.Name ?? questSOFallback?.Name ?? "?";
 			descLabel.text = quest?.Description ?? questSOFallback?.Description ?? string.Empty;
 			stateLabel.text = quest != null ? quest.State.ToString() : "잠김";
-			progressLabel.text = quest != null ? quest.GetProgressText() : string.Empty;
+			progressLabel.text = quest != null ? questManager.ProgressTextOf(quest) : string.Empty;
 
 			criteriaContainer.Clear();
 			if (quest != null)

@@ -20,8 +20,11 @@ namespace WitchMendokusai
 		public TimeSpan InitialDungeonTime { get; private set; } = new(0, 0, 15, 0, 0);
 		public TimeSpan DungeonCurTime { get; private set; } = new(0, 0, 15, 0, 0);
 
-		public DungeonContext(TimeSpan initialDungeonTime, List<DungeonConstraint> constraints)
+		private readonly DungeonStat dungeonStat;
+
+		public DungeonContext(TimeSpan initialDungeonTime, List<DungeonConstraint> constraints, DungeonStat dungeonStat)
 		{
+			this.dungeonStat = dungeonStat;
 			Constraints = constraints;
 			InitialDungeonTime = initialDungeonTime;
 			DungeonCurTime = InitialDungeonTime;
@@ -30,7 +33,7 @@ namespace WitchMendokusai
 		public void UpdateTime()
 		{
 			DungeonCurTime -= TimeUpdateInterval;
-			DataManager.Instance.DungeonStat[DungeonStatType.DUNGEON_TIME] = (int)(InitialDungeonTime.TotalSeconds - DungeonCurTime.TotalSeconds);
+			dungeonStat[DungeonStatType.DUNGEON_TIME] = (int)(InitialDungeonTime.TotalSeconds - DungeonCurTime.TotalSeconds);
 		}
 
 		public void UpdateDifficulty()

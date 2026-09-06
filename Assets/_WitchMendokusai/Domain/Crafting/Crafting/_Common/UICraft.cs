@@ -113,7 +113,7 @@ namespace WitchMendokusai
 			// 모든 아이템 데이터 중에서 해당 아이템 타입과 레시피 타입이 일치하는 아이템 데이터만 필터링
 			ForEach<ItemData>(itemData =>
 			{
-				if (itemData.Unlocked)
+				if (dataManager.IsItemUnlocked(itemData.ID))
 					if ((itemData.Type == itemType) && (itemData.Recipes[0].Type == recipeType))
 						availableRecipes.Add(itemData);
 			});

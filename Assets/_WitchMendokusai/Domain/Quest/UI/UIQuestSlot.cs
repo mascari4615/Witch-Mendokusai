@@ -67,8 +67,8 @@ namespace WitchMendokusai
 				}
 			}
 
-			progress.fillAmount = quest.GetProgress();
-			progressText.text = quest.GetProgressText();
+			progress.fillAmount = questManager.ProgressOf(quest);
+			progressText.text = questManager.ProgressTextOf(quest);
 		}
 	}
 }

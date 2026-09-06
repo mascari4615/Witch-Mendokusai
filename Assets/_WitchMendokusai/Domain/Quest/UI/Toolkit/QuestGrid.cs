@@ -15,6 +15,7 @@ namespace WitchMendokusai
 		private QuestType filter = QuestType.None;
 		private QuestEntry selectedEntry;
 		private readonly List<QuestEntry> entries = new();
+		private QuestManager questManager;
 		private readonly ScrollView scrollView;
 
 		public QuestGrid()
@@ -30,8 +31,9 @@ namespace WitchMendokusai
 			Add(scrollView);
 		}
 
-		public void Bind(QuestBuffer questBuffer)
+		public void Bind(QuestBuffer questBuffer, QuestManager questManager)
 		{
+			this.questManager = questManager;
 			if (buffer != null)
 				buffer.OnDataChanged -= Refresh;
 
@@ -73,7 +75,7 @@ namespace WitchMendokusai
 
 			while (entries.Count < quests.Count)
 			{
-				QuestEntry entry = new();
+				QuestEntry entry = new(questManager);
 				entry.RegisterCallback<PointerDownEvent>(_ => Select(entry));
 				scrollView.Add(entry);
 				entries.Add(entry);

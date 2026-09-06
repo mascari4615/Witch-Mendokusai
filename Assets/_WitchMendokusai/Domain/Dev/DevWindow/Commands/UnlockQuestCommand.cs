@@ -42,7 +42,13 @@ namespace WitchMendokusai
 				return;
 			}
 
-			QuestManager.Instance.UnlockQuest(target);
+			if (DataManager.TryGetExistingInstance(out DataManager dataManager) == false)
+			{
+				context.LogError("DataManager 가 아직 없음. 부팅 뒤에 다시");
+				return;
+			}
+
+			dataManager.QuestManager.UnlockQuest(target);
 			context.LogSuccess($"{target.Name} 언락 (ID {target.ID})");
 		}
 

@@ -50,6 +50,9 @@ namespace WitchMendokusai.NodeGraph.Runtime
 		private Vector2 panStartPointer;
 		private Vector2 panStartOffset;
 
+		/// <summary>노드 그림 provider 에게 넘기는 주인 객체. 그래프 틀은 무엇인지 모름 (퀘스트 그래프면 QuestManager)</summary>
+		public object Host { get; set; }
+
 		public NodeGraphRuntimeView()
 		{
 			AddToClassList(USS_CLASS);
@@ -173,7 +176,7 @@ namespace WitchMendokusai.NodeGraph.Runtime
 					continue;
 
 				NodeRuntimeElement nodeElement = new();
-				nodeElement.Bind(node);
+				nodeElement.Bind(node, Host);
 				nodeElement.style.position = Position.Absolute;
 				nodeElement.style.left = node.EditorPosition.x;
 				nodeElement.style.top = node.EditorPosition.y;

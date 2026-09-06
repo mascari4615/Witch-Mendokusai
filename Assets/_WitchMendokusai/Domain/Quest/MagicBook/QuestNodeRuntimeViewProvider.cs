@@ -21,7 +21,9 @@ namespace WitchMendokusai
 		private const float OPACITY_LOCKED = 0.35f;
 		private const float OPACITY_COMPLETED = 0.55f;
 
-		public VisualElement Build(NodeBase node)
+		public VisualElement Build(NodeBase node) => Build(node, null);
+
+		public VisualElement Build(NodeBase node, object host)
 		{
 			if (node is QuestNode questNode == false)
 				return null;
@@ -30,8 +32,10 @@ namespace WitchMendokusai
 			if (target == null)
 				return null;
 
-			QuestState gateState = TryGetQuestState(target.ID);
-			RuntimeQuest runtimeQuest = TryGetRuntimeQuest(target);
+			// host 는 MagicBookView 가 ChapterView.Host 로 꽂은 QuestManager. 없으면 (미리보기, 시험) 전부 잠김
+			QuestManager questManager = host as QuestManager;
+			QuestState gateState = TryGetQuestState(questManager, target.ID);
+			RuntimeQuest runtimeQuest = TryGetRuntimeQuest(questManager, target);
 
 			bool isLocked = gateState == QuestState.Locked;
 			bool isCompleted = gateState == QuestState.Completed
@@ -74,11 +78,11 @@ namespace WitchMendokusai
 			return container;
 		}
 
-		private static QuestState TryGetQuestState(int questID)
+		private static QuestState TryGetQuestState(QuestManager questManager, int questID)
 		{
-			if (QuestManager.Instance == null)
+			if (questManager == null)
 				return QuestState.Locked;
-			Dictionary<int, QuestState> states = QuestManager.Instance.GetQuestStates();
+			Dictionary<int, QuestState> states = questManager.GetQuestStates();
 			if (states == null)
 				return QuestState.Locked;
 			if (states.TryGetValue(questID, out QuestState state))
@@ -86,11 +90,11 @@ namespace WitchMendokusai
 			return QuestState.Locked;
 		}
 
-		private static RuntimeQuest TryGetRuntimeQuest(QuestSO target)
+		private static RuntimeQuest TryGetRuntimeQuest(QuestManager questManager, QuestSO target)
 		{
-			if (QuestManager.Instance == null)
+			if (questManager == null)
 				return null;
-			return QuestManager.Instance.GetQuest(target);
+			return questManager.GetQuest(target);
 		}
 
 		public void OnClicked(NodeBase node)

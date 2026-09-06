@@ -21,14 +21,16 @@ namespace WitchMendokusai
 
 		private UIManager uiManager;
 		private SOManager soManager;
+		private DataManager dataManager;
 
 		public override bool IsFullscreen => true;
 
 		[Inject]
-		public void Construct(UIManager uiManager, SOManager soManager)
+		public void Construct(UIManager uiManager, SOManager soManager, DataManager dataManager)
 		{
 			this.uiManager = uiManager;
 			this.soManager = soManager;
+			this.dataManager = dataManager;
 		}
 
 		protected override void OnInit()
@@ -116,7 +118,7 @@ namespace WitchMendokusai
 		public void GetUpgrade(int upgradeID)
 		{
 			UpgradeData targetUpgrade = Get<UpgradeData>(upgradeID);
-			if (targetUpgrade.TryUpgrade(out UpgradeFailReason reason, out int upgradePrice))
+			if (targetUpgrade.TryUpgrade(dataManager.GameStat, out UpgradeFailReason reason, out int upgradePrice))
 			{
 				UpdateUI();
 				uiManager.PopText($"- {upgradePrice}", TextType.Warning);
@@ -139,7 +141,7 @@ namespace WitchMendokusai
 		public void ReturnUpgrade(int slotIndex)
 		{
 			UpgradeData targetUpgrade = Get<UpgradeData>(slotIndex);
-			if (targetUpgrade.TryDowngrade(out DowngradeFailReason reason, out int refundedNyang))
+			if (targetUpgrade.TryDowngrade(dataManager.GameStat, out DowngradeFailReason reason, out int refundedNyang))
 			{
 				UpdateUI();
 				uiManager.PopText($"+ {refundedNyang}", TextType.Warning);
@@ -159,7 +161,7 @@ namespace WitchMendokusai
 		public void ResetUpgrade(int slotIndex)
 		{
 			UpgradeData targetUpgrade = Get<UpgradeData>(slotIndex);
-			if (targetUpgrade.TryReset(out DowngradeFailReason reason, out int refundedNyang))
+			if (targetUpgrade.TryReset(dataManager.GameStat, out DowngradeFailReason reason, out int refundedNyang))
 			{
 				UpdateUI();
 				uiManager.PopText($"+ {refundedNyang}", TextType.Warning);
@@ -181,7 +183,7 @@ namespace WitchMendokusai
 			int totalRefund = 0;
 			ForEach<UpgradeData>(upgradeData =>
 			{
-				upgradeData.TryReset(out _, out int refundedNyang);
+				upgradeData.TryReset(dataManager.GameStat, out _, out int refundedNyang);
 				totalRefund += refundedNyang;
 			});
 

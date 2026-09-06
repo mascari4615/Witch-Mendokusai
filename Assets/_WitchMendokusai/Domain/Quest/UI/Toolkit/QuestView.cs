@@ -48,11 +48,11 @@ namespace WitchMendokusai
 			questGrid.OnQuestSelected += OnQuestSelected;
 			body.Add(questGrid);
 
-			questDetail = new QuestDetail();
+			questDetail = new QuestDetail(questManager);
 			questDetail.style.flexGrow = 1;
 			body.Add(questDetail);
 
-			questGrid.Bind(questManager.Quests);
+			questGrid.Bind(questManager.Quests, questManager);
 
 			inputManager.RegisterInputEvent(InputEventType.QuestToggle, InputEventResponseType.Performed, OnToggle);
 		}

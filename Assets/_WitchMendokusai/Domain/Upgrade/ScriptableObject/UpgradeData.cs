@@ -78,7 +78,7 @@ namespace WitchMendokusai
 			Value = TotalValue
 		};
 
-		public bool TryUpgrade(out UpgradeFailReason reason, out int upgradePrice)
+		public bool TryUpgrade(GameStat gameStat, out UpgradeFailReason reason, out int upgradePrice)
 		{
 			reason = UpgradeFailReason.None;
 			upgradePrice = 0;
@@ -90,18 +90,18 @@ namespace WitchMendokusai
 			}
 
 			upgradePrice = PricePerLevel[CurLevel];
-			if (upgradePrice > DataManager.Instance.GameStat[GameStatType.NYANG])
+			if (upgradePrice > gameStat[GameStatType.NYANG])
 			{
 				reason = UpgradeFailReason.InsufficientNyang;
 				return false;
 			}
 
-			DataManager.Instance.GameStat[GameStatType.NYANG] -= upgradePrice;
+			gameStat[GameStatType.NYANG] -= upgradePrice;
 			CurLevel++;
 			return true;
 		}
 
-		public bool TryDowngrade(out DowngradeFailReason reason, out int refundedNyang)
+		public bool TryDowngrade(GameStat gameStat, out DowngradeFailReason reason, out int refundedNyang)
 		{
 			reason = DowngradeFailReason.None;
 
@@ -114,11 +114,11 @@ namespace WitchMendokusai
 
 			CurLevel--;
 			refundedNyang = PricePerLevel[CurLevel];
-			DataManager.Instance.GameStat[GameStatType.NYANG] += refundedNyang;
+			gameStat[GameStatType.NYANG] += refundedNyang;
 			return true;
 		}
 
-		public bool TryReset(out DowngradeFailReason reason, out int refundedNyang)
+		public bool TryReset(GameStat gameStat, out DowngradeFailReason reason, out int refundedNyang)
 		{
 			reason = DowngradeFailReason.None;
 
@@ -130,7 +130,7 @@ namespace WitchMendokusai
 			}
 
 			refundedNyang = PricePerLevel.Take(CurLevel).Sum();
-			DataManager.Instance.GameStat[GameStatType.NYANG] += refundedNyang;
+			gameStat[GameStatType.NYANG] += refundedNyang;
 			CurLevel = 0;
 			return true;
 		}

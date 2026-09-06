@@ -22,6 +22,13 @@ namespace WitchMendokusai
 		public ChapterSO BoundChapter => boundChapter;
 		public NodeGraphRuntimeView GraphView => graphView;
 
+		/// <summary>노드 그림이 퀘스트 상태를 물을 주인. Bind 전에 꽂음</summary>
+		public object Host
+		{
+			get => graphView.Host;
+			set => graphView.Host = value;
+		}
+
 		public ChapterView()
 		{
 			AddToClassList(USS_CLASS);

@@ -77,7 +77,9 @@ namespace WitchMendokusai.NodeGraph.Runtime
 		}
 
 		/// <summary>노드 데이터 바인딩 — 타이틀 라벨 + Provider 로 body 채움. 호출마다 body 전체 재구성.</summary>
-		public void Bind(NodeBase node)
+		public void Bind(NodeBase node) => Bind(node, null);
+
+		public void Bind(NodeBase node, object host)
 		{
 			Node = node;
 			titleLabel.text = node == null ? "?" : node.GetType().Name;
@@ -87,7 +89,7 @@ namespace WitchMendokusai.NodeGraph.Runtime
 				return;
 
 			INodeRuntimeViewProvider provider = NodeRuntimeProviderRegistry.GetProvider(node.GetType());
-			VisualElement bodyView = provider.Build(node);
+			VisualElement bodyView = provider.Build(node, host);
 			if (bodyView != null)
 				body.Add(bodyView);
 		}

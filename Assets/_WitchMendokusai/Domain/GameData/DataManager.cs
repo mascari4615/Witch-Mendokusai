@@ -33,6 +33,8 @@ namespace WitchMendokusai
 		public int CurDollID { get; set; }
 		public int DummyDollCount { get; set; }
 		public Dictionary<int, bool> IsRecipeUnlocked { get; set; } = new();
+		/// <summary>레시피가 열린 아이템인가. 전에는 ItemData (SO) 가 DataManager.Instance 를 찾아 답하던 것</summary>
+		public bool IsItemUnlocked(int itemId) => IsRecipeUnlocked.TryGetValue(itemId, out bool unlocked) && unlocked;
 		// 마도 온실(TASK-WM-167) — 「봐줘야 진짜」 영구 표본 채집 기록(plantDataId → 채집됨). SaveManager 가
 		// hasSpecimen ↔ 이 dict 직렬화(IsRecipeUnlocked 와 동형). 도감(PlantDiscoveryCategory)이 read.
 		public Dictionary<int, bool> SpecimenCollected { get; set; } = new();

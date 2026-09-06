@@ -93,7 +93,7 @@ namespace WitchMendokusai
 			playerObject.Init(GetDoll(dataManager.CurDollID));
 
 			dataManager.QuestManager.RemoveQuests(QuestType.Dungeon);
-			dataManager.GameStat.UpdateData();
+			dataManager.GameStat.UpdateData(dataManager.DungeonStat);
 		}
 
 		public void InitEquipment()

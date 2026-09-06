@@ -8,8 +8,6 @@ namespace WitchMendokusai
 {
 	public class QuestManager : IQuestManager, IDisposable
 	{
-		public static QuestManager Instance => DataManager.Instance.QuestManager;
-
 		public QuestBuffer Quests => soManager.QuestBuffer;
 
 		private Dictionary<int, QuestState> questStates = new();
@@ -28,6 +26,53 @@ namespace WitchMendokusai
 		// TASK-WM-107 Slice 2C-3 — DataManager↔QuestManager 순환 회피: [Inject] pull 대신 소유자(DataManager.Construct) push.
 		private DataManager dataManager;
 		public void BindDataManager(DataManager dataManager) => this.dataManager = dataManager;
+
+		// 진행도 셈. 전에는 static 확장 (RuntimeQuestExtensions) 이 DataManager.Instance 를 찾던 것. 일하는 중이면 그 일의 진행, 아니면 조건의 평균
+		public float ProgressOf(RuntimeQuest quest)
+		{
+			if (quest.State == RuntimeQuestState.Working)
+			{
+				if (dataManager.WorkManager.TryGetWorkByQuestGuid(quest.Guid, out Work work))
+				{
+					return work.GetProgress();
+				}
+				return 0f;
+			}
+
+			if (quest.Criteria.Count == 0)
+				return 1f;
+
+			float progress = 0f;
+			foreach (RuntimeCriteria runtimeCriteria in quest.Criteria)
+			{
+				progress += runtimeCriteria.GetProgress();
+			}
+			return progress / quest.Criteria.Count;
+		}
+
+		public string ProgressTextOf(RuntimeQuest quest)
+		{
+			if (quest.State == RuntimeQuestState.Working)
+			{
+				if (dataManager.WorkManager.TryGetWorkByQuestGuid(quest.Guid, out Work work))
+				{
+					return work.GetProgress().ToString("P0");
+				}
+				return string.Empty;
+			}
+
+			if (quest.Criteria.Count == 0)
+				return "100%";
+
+			float curValue = 0f;
+			float targetValue = 0f;
+			foreach (RuntimeCriteria runtimeCriteria in quest.Criteria)
+			{
+				curValue += runtimeCriteria.GetCurValue();
+				targetValue += runtimeCriteria.GetTargetValue();
+			}
+			return $"{curValue} / {targetValue}";
+		}
 
 		[Inject]
 		public void Construct(IPublisher<QuestAddedEvent> questAddedPublisher, ISubscriber<QuestCompletedEvent> questCompletedSubscriber, ISubscriber<QuestAddRequestedEvent> questAddRequestedSubscriber, ISubscriber<QuestUnlockRequestedEvent> questUnlockRequestedSubscriber, SOManager soManager, IEffectRunner effectRunner, PlayerProvider playerProvider)
