@@ -71,6 +71,7 @@
     <Compile Include="$(TestsRoot)Idle/IdleHoldStageTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleLongHaulTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleLongHaulTests.Prints.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleStageWallProbe.cs" />
     <Compile Include="$(TestsRoot)Idle/IdlePotentialTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdlePrestigeTests.cs" />
     <Compile Include="$(TestsRoot)Idle/BigNumberTextTests.cs" />
