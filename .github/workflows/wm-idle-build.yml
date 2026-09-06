@@ -1,18 +1,18 @@
 name: Build (Idle / laptop)
 
-# TASK-WM-406 — 방치형만 노트북에서 굽는다.
+# TASK-WM-406 , 방치형만 노트북에서 굽는다.
 #
-# 왜 따로 있나: `build.yml` 은 **본편**을 굽는다(씬 다섯 · 수십 분 · 안드로이드 겸용).
-#   방치형은 씬 하나에 UI 뿐이라 7분이면 끝나고, 본편 빌드 파이프라인(진행 카드 · 리포트
-#   JSON · 야간 게이트 · 릴리스 첨부)에 끼워 넣으면 그 셈을 전부 갈아야 한다.
-#   그래서 같은 러너에 **별 워크플로**로 건다 — 본편 쪽을 한 줄도 안 건드린다.
+# 왜 따로 있나: `build.yml` 은 **본편**을 굽는다(씬 다섯 , 수십 분 , 안드로이드 겸용).
+#   방치형은 씬 하나에 UI 뿐이라 7분이면 끝나고, 본편 빌드 파이프라인(진행 카드 , 리포트
+#   JSON , 야간 게이트 , 릴리스 첨부)에 끼워 넣으면 그 셈을 전부 갈아야 한다.
+#   그래서 같은 러너에 **별 워크플로**로 건다 , 본편 쪽을 한 줄도 안 건드린다.
 #
 # 왜 노트북인가 (TASK-WM-195 와 같은 이유): 데스크톱에서 구우면 사용자 작업이 막히고
 #   성능을 다 먹는다. 게다가 사용자가 유니티를 켜 두면 프로젝트 폴더가 **잠겨서** 아예
-#   못 굽는다 — 실측 2026-08-16: 데스크톱 워크트리로 우회해 굽다가
+#   못 굽는다 , 실측 2026-08-16: 데스크톱 워크트리로 우회해 굽다가
 #   `BeeDriver connection terminated` 로 죽었다. 빌드는 빌드 기계가 하는 일이다.
 #
-# 산출물은 노트북에 남는다 (C:\wm-builds\idle\<시각>\Idle.exe). 올리는 건 명시할 때만 —
+# 산출물은 노트북에 남는다 (C:\wm-builds\idle\<시각>\Idle.exe). 올리는 건 명시할 때만 ,
 # 180MB 를 매번 가정용 회선으로 밀어 올릴 이유가 없다.
 #
 # 안드로이드 (2026-09-01, 사용자: 스팀이 메인이지만 서브컬쳐 게임처럼 모바일도 지원):
@@ -29,7 +29,7 @@ on:
         options: [windows, android]
         default: windows
       backend:
-        description: '방식 (il2cpp = 파는 판 · mono = 빨리 보기 1~2분, 검사 아님)'
+        description: '방식 (il2cpp = 파는 판 , mono = 빨리 보기 1~2분, 검사 아님)'
         type: choice
         options: [il2cpp, mono]
         default: il2cpp
@@ -70,7 +70,7 @@ jobs:
       BUILD_ROOT: 'C:\wm-builds'
 
     steps:
-      - name: Checkout (Library 캐시 보존 — clean:false)
+      - name: Checkout (Library 캐시 보존 , clean:false)
         uses: actions/checkout@v6
         with:
           # Library/ 를 지우면 매 빌드가 전체 임포트(수십 분)로 돌아간다. 반드시 false.
@@ -113,6 +113,22 @@ jobs:
 
       # ASCII only in run: blocks -- Actions writes them to a BOM-less temp .ps1 and
       # PS 5.1 decodes as cp949, which corrupts Korean and can break parsing outright.
+      # 본편과 같은 칸에 놓는다. 노트북 현황판과 폰 설치 링크 발급이 둘 다
+      # wm-builds 바로 아래만 보기 때문 (실측 2026-09-01: 안드로이드 APK 를 구워도
+      # 현황판에 안 뜨고 링크도 못 만들었다).
+      # 안드로이드는 IL2CPP 고정(구글이 요구)이라 backend 입력이 무의미하다
+      # -buildTarget 으로 <에디터가 뜰 때> 플랫폼을 맞춘다. 양쪽 다 준다.
+      # 없으면 BuildPlayer 를 부르는 순간 유니티가 그 자리에서 플랫폼을 전환하며 에셋을
+      # 통째로 다시 임포트하고, 그 와중에 BuildReport::BeginBuildStep 에서 Access Violation
+      # 으로 죽는다 (실측 2026-09-01, exit -1073741819).
+      # ★ windows 에도 필요하다. android 빌드가 죽으면 활성 타깃이 Android 로 남아,
+      # 다음 windows 빌드가 같은 자리에서 또 전환하다 죽는다 (실측: android 크래시 직후
+      # windows 가 연달아 크래시. 메모리는 24GB 여유였다).
+      # ★ 증거를 버리지 않는다. 전에는 tail 40 만 찍었는데 그 창이 하필 <시간이 어디로
+      # 갔는지 적힌 줄>을 잘라먹어서, "왜 13분인가"를 사후에 아무도 못 봤다.
+      # 빌더가 남긴 줄은 통째로 찍고, 로그 자체는 산출물 옆에 남긴다.
+      # 이제 본편 빌드와 같은 칸이라 아무거나 집으면 남의 빌드를 배달한다
+      # 로그를 빌드 폴더 옆에 둔다 -- RUNNER_TEMP is wiped between runs, so keeping it
       - name: Build Idle player
         id: build
         shell: powershell
@@ -120,9 +136,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
 
-          # 본편과 같은 칸에 놓는다. 노트북 현황판과 폰 설치 링크 발급이 둘 다
-          # wm-builds 바로 아래만 보기 때문 (실측 2026-09-01: 안드로이드 APK 를 구워도
-          # 현황판에 안 뜨고 링크도 못 만들었다).
+          # (why: see the note above this step. run blocks stay ASCII for PS 5.1)
           $root = $env:BUILD_ROOT
           $env:WM_IDLE_BUILD_DIR = $root
 
@@ -134,22 +148,14 @@ jobs:
           Write-Host "platform=$platform backend=$(if ($backend) { $backend } else { 'il2cpp' })"
           $log = Join-Path $env:RUNNER_TEMP 'idle-build.log'
 
-          # 안드로이드는 IL2CPP 고정(구글이 요구)이라 backend 입력이 무의미하다
           $method = if ($platform -eq 'android') {
             'WitchMendokusai.EditorTools.IdlePlayerBuild.BuildAndroid'
           } else {
             'WitchMendokusai.EditorTools.IdlePlayerBuild.Build'
           }
 
-          # -buildTarget 으로 <에디터가 뜰 때> 플랫폼을 맞춘다. 양쪽 다 준다.
           #
-          # 없으면 BuildPlayer 를 부르는 순간 유니티가 그 자리에서 플랫폼을 전환하며 에셋을
-          # 통째로 다시 임포트하고, 그 와중에 BuildReport::BeginBuildStep 에서 Access Violation
-          # 으로 죽는다 (실측 2026-09-01, exit -1073741819).
           #
-          # ★ windows 에도 필요하다. android 빌드가 죽으면 활성 타깃이 Android 로 남아,
-          #   다음 windows 빌드가 같은 자리에서 또 전환하다 죽는다 (실측: android 크래시 직후
-          #   windows 가 연달아 크래시. 메모리는 24GB 여유였다).
           $target = if ($platform -eq 'android') { 'Android' } else { 'Win64' }
 
           $arguments = @(
@@ -164,9 +170,6 @@ jobs:
           $process = Start-Process -FilePath '${{ steps.unity.outputs.exe }}' -ArgumentList $arguments -PassThru -Wait -WindowStyle Hidden
           Write-Host "Unity exit=$($process.ExitCode)"
 
-          # ★ 증거를 버리지 않는다. 전에는 tail 40 만 찍었는데 그 창이 하필 <시간이 어디로
-          #   갔는지 적힌 줄>을 잘라먹어서, 「왜 13분인가」를 사후에 아무도 못 봤다.
-          #   빌더가 남긴 줄은 통째로 찍고, 로그 자체는 산출물 옆에 남긴다.
           if (Test-Path $log) {
             Select-String -Path $log -Pattern '\[IdleBuild\]' | ForEach-Object { Write-Host $_.Line }
             Write-Host "---- last 40 ----"
@@ -186,14 +189,12 @@ jobs:
             $exe = (Get-Content $mark -Raw).Trim()
           } else {
             Write-Host "::warning title=no build mark::falling back to newest folder (this can pick the wrong build)"
-            # 이제 본편 빌드와 같은 칸이라 아무거나 집으면 남의 빌드를 배달한다
             $newest = Get-ChildItem $root -Directory -Filter '*-idle-*' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
             $exe = Join-Path $newest.FullName $leaf
           }
           if (-not (Test-Path $exe)) { throw "build reported success but no output: $exe" }
           $newest = Get-Item (Split-Path $exe -Parent)
 
-          # 로그를 빌드 폴더 옆에 둔다 -- RUNNER_TEMP is wiped between runs, so keeping it
           # only there means every post-mortem starts with "the evidence is gone".
           if (Test-Path $log) { Copy-Item $log (Join-Path $newest.FullName 'unity-build.log') -Force }
 
@@ -204,11 +205,11 @@ jobs:
       # ★ "구웠다" 는 "돈다" 가 아니다. 덜어내기(High)가 런타임을 조용히 깨뜨린 적이 있다.
       #   이 검사는 켜서 판이 실제로 흐르는지(저장 파일에 처치 수가 오르는지) 본다.
       #
-      #   exit 1 = 안 돈다 (빨강). exit 2 = 검사를 못 돌렸다 (경고 — 초록이되 침묵은 아님).
+      #   exit 1 이면 안 돎 (빨강). exit 2 면 검사를 못 돌린 것 (경고, 초록이되 침묵은 아님).
       #   이 러너가 LocalSystem 서비스로 돌면 붙을 데스크톱이 없어 플레이어가 창을 못 띄운다.
       #   그 경우까지 빨갛게 하면 <게임이 깨졌다>와 <검사를 못 했다>가 같은 색이 되어
       #   빨간불이 뜻을 잃는다. 대신 경고로 남겨 "안 봤다"가 눈에 보이게 한다.
-      # ★ Mono 판은 <파는 물건이 아니다> — 여기에 초록을 주면 「검사했다」가 거짓이 된다.
+      # ★ Mono 판은 <파는 물건이 아니다> , 여기에 초록을 주면 "검사했다"가 거짓이 된다.
       #   그래서 검사 자체를 건너뛰고, 건너뛴 사실을 경고로 남긴다.
       # 실패했을 때가 진짜 증거다. tail 40 은 종료 로그만 보여 준다 (실측 2026-09-01:
       # 20회 연속 실패인데 워크플로 로그만으로는 원인을 못 짚었다).
@@ -299,7 +300,10 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
-      # 사용자는 채널만 본다 — 실패도 성공도 여기로 온다.
+      # 사용자는 채널만 본다 , 실패도 성공도 여기로 온다.
+      # 게이트웨이는 body.text 를 요구한다. content 로 보내던 동안 알림이 400 으로
+      # 조용히 죽었고, 그래서 폰 설치 링크도 카드도 안 갔다 (실측 2026-09-01)
+      # 안드로이드는 파일 하나라 그대로 배달할 수 있다. 링크는 게이트웨이가 서명한다
       - name: Tell the channel
         if: always()
         shell: powershell
@@ -320,17 +324,15 @@ jobs:
           $where = '${{ steps.build.outputs.exe }}'
           $body = "[Idle $platform $mark] $where`n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           try {
-            # 게이트웨이는 body.text 를 요구한다. content 로 보내던 동안 알림이 400 으로
-            # 조용히 죽었고, 그래서 폰 설치 링크도 카드도 안 갔다 (실측 2026-09-01)
+            # (why: see the note above this step. run blocks stay ASCII for PS 5.1)
             $payload = @{ channel = 'build'; text = $body }
 
-            # 안드로이드는 파일 하나라 그대로 배달할 수 있다. 링크는 게이트웨이가 서명한다
             if ($platform -eq 'android' -and $ok) {
               try {
                 $folder = Split-Path $where -Parent | Split-Path -Leaf
                 $signed = Invoke-LaptopOpsJson -Path '/dl/sign' -Token $token `
                   -Payload @{ build = $folder; file = 'Idle.apk' }
-                if ($signed.url) { $payload.text = "$body`n폰에 깔기: $($signed.url)" }
+                if ($signed.url) { $payload.text = "$body`n$(Get-PhoneInstallText -Url $signed.url)" }
               } catch {
                 Write-Warning "sign failed: $($_.Exception.Message)"
               }

@@ -293,6 +293,12 @@ function Invoke-WmBuild {
 #   시간만 몇 배 든다.
 # ★ 묶는 파일을 묶는 폴더 *안* 에 바로 만들면 자기 자신을 삼키려다 실패한다. 밖에서 만들어
 #   다 된 뒤에 옮긴다.
+# 폰 설치 안내 한 줄. 한글은 워크플로 run 블록에 못 둔다 (PS 5.1 이 비ASCII 를 깨뜨림, 린트 게이트). BOM 있는 이 파일에서만
+function Get-PhoneInstallText {
+    param([string]$Url)
+    return "폰에 깔기: $Url"
+}
+
 function Get-BuildZip {
     param([string]$OutDir)
     $existing = Get-ChildItem $OutDir -File -Filter '*.zip' -ErrorAction SilentlyContinue | Select-Object -First 1
