@@ -1,43 +1,31 @@
 {
-    "name": "WM.Tests.EditMode",
+    "name": "WM.Tests.Portable",
     "rootNamespace": "WitchMendokusai.Tests",
     "references": [
-        "WM.Foundation",
         "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.Care",
         "WitchMendokusai.DomainSDK.City",
         "WitchMendokusai.DomainSDK.Common",
-        "WitchMendokusai.DomainSDK.Criteria",
-        "WitchMendokusai.DomainSDK.Effect",
-        "WitchMendokusai.DomainSDK.EventBus",
+        "WitchMendokusai.DomainSDK.Discovery",
         "WitchMendokusai.DomainSDK.Farming",
+        "WitchMendokusai.DomainSDK.Identity",
         "WitchMendokusai.DomainSDK.Idle",
-        "WitchMendokusai.DomainSDK.Input",
         "WitchMendokusai.DomainSDK.Life",
         "WitchMendokusai.DomainSDK.Logistics",
         "WitchMendokusai.DomainSDK.Net",
-        "WitchMendokusai.DomainSDK.Network",
         "WitchMendokusai.DomainSDK.Numerics",
         "WitchMendokusai.DomainSDK.Refining",
+        "WitchMendokusai.DomainSDK.Stat",
         "WitchMendokusai.DomainSDK.TowerDefense",
-        "WitchMendokusai.DomainSDK.Workshop",
-        "WitchMendokusai.DomainSDK.World",
-        "UnityEditor.TestRunner",
-        "UnityEngine.TestRunner",
-        "VContainer",
-        "WM.Core",
-        "WM.Domain",
-        "WM.Editor",
-        "WM.Presentation",
-        "WM.Idle",
+        "WitchMendokusai.DomainSDK.Upgrade",
+        "WitchMendokusai.DomainSDK.Versus",
         "WitchMendokusai.DomainSDK.Alchemy",
         "WitchMendokusai.DomainSDK.Item",
         "WitchMendokusai.DomainSDK.WorldSim",
         "WitchMendokusai.DomainSDK.Act",
         "WitchMendokusai.DomainSDK.Combat",
-        "WitchMendokusai.DomainSDK.Tactics",
-        "WitchMendokusai.DomainSDK.Quest",
-        "WitchMendokusai.DomainSDK.Mods"
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
     ],
     "includePlatforms": [
         "Editor"
@@ -46,13 +34,12 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll",
-        "Newtonsoft.Json.dll"
+        "nunit.framework.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
     "versionDefines": [],
-    "noEngineReferences": false
+    "noEngineReferences": true
 }

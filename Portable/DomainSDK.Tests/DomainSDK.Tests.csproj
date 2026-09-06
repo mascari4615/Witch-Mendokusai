@@ -20,7 +20,7 @@
     <!-- 서식 분석기는 이 게이트의 관심사가 아니다 (본체 csproj 와 같은 이유). -->
     <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
     <AnalysisLevel>none</AnalysisLevel>
-    <TestsRoot>$(MSBuildThisFileDirectory)../../Assets/_WitchMendokusai/Tests/EditMode/</TestsRoot>
+    <TestsRoot>$(MSBuildThisFileDirectory)../../Assets/_WitchMendokusai/Tests/EditMode/Portable/</TestsRoot>
   </PropertyGroup>
 
   <ItemGroup>
