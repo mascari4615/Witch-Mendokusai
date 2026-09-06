@@ -112,11 +112,11 @@ namespace WitchMendokusai
 			DiscoveryWindowController discoveryWindowControllerPrefab = catalog.Get<DiscoveryWindowController>();
 			builder.RegisterComponentInNewPrefab(discoveryWindowControllerPrefab, Lifetime.Scoped);
 
-			// 갈래는 자기가 심는다. 여기는 이름을 모른다 (목록은 FeatureManifest)
+			// 갈래는 자기가 심는다. 여기는 이름을 모른다 (목록은 WM.App 의 FeatureManifest 가 부팅 때 FeatureRegistry 에 채움)
 			installedFeatures.Clear();
-			for (int index = 0; index < FeatureManifest.Installers.Count; index++)
+			for (int index = 0; index < FeatureRegistry.Installers.Count; index++)
 			{
-				IFeatureInstaller feature = FeatureManifest.Installers[index];
+				IFeatureInstaller feature = FeatureRegistry.Installers[index];
 				if (feature.InstallScene(builder, catalog))
 				{
 					installedFeatures.Add(feature);

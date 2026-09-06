@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	///
 	/// 왜: 공용 코드 (씬 조립, SO 타입 표, 저장) 가 갈래 이름을 알면 갈래를 못 뗌
 	/// 뒤집기. 공용은 목록만 순회, 무엇을 심을지는 갈래가 앎
-	/// 목록 자리는 <see cref="FeatureManifest"/> 하나뿐
+	/// 목록 자리는 WM.App 의 FeatureManifest 하나뿐. Domain 은 <see cref="FeatureRegistry"/> 로 받음
 	/// </summary>
 	public interface IFeatureInstaller
 	{

@@ -5,7 +5,7 @@ namespace WitchMendokusai
 	///
 	/// 왜: 공용 저장 (GameData, SaveManager) 이 갈래 필드를 알면 갈래를 못 뗌
 	/// 뒤집기. 공용은 조각 목록을 돌며 글자 (json) 만 옮기고, 무엇을 남길지는 갈래가 앎
-	/// 자리는 GameData.featureSaves 의 Key 한 칸. 목록은 <see cref="FeatureManifest"/>
+	/// 자리는 GameData.featureSaves 의 Key 한 칸. 목록은 <see cref="FeatureRegistry"/>
 	/// </summary>
 	public interface IFeatureSaveSlice
 	{

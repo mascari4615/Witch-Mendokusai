@@ -37,9 +37,9 @@ namespace WitchMendokusai
 
 		static DataSODefine()
 		{
-			for (int index = 0; index < FeatureManifest.Installers.Count; index++)
+			for (int index = 0; index < FeatureRegistry.Installers.Count; index++)
 			{
-				FeatureManifest.Installers[index].RegisterDataTypes(AssetPrefixes);
+				FeatureRegistry.Installers[index].RegisterDataTypes(AssetPrefixes);
 			}
 		}
 

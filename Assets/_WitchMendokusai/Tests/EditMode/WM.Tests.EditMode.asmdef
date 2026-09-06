@@ -37,7 +37,9 @@
         "WitchMendokusai.DomainSDK.Combat",
         "WitchMendokusai.DomainSDK.Tactics",
         "WitchMendokusai.DomainSDK.Quest",
-        "WitchMendokusai.DomainSDK.Mods"
+        "WitchMendokusai.DomainSDK.Mods",
+        "WM.Domain.TowerDefense",
+        "WM.App"
     ],
     "includePlatforms": [
         "Editor"

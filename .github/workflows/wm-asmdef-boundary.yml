@@ -81,7 +81,8 @@ jobs:
               WitchMendokusai.Mods*)      echo "WM.Core WM.Domain WM.Network WM.ViewModel WM.Editor FishNet.Runtime" ;;
               WM.Core)                    echo "WM.Domain WM.Network FishNet.Runtime" ;;
               WM.ViewModel)               echo "WM.Domain WM.Network FishNet.Runtime" ;;
-              WM.Domain)                  echo "WM.Network FishNet.Runtime" ;;
+              WM.Domain)                  echo "WM.Network FishNet.Runtime WM.Domain.TowerDefense WM.App" ;;
+              WM.Domain.TowerDefense)     echo "WM.Network FishNet.Runtime WM.App" ;;
               *)                          echo "" ;;
             esac
           }

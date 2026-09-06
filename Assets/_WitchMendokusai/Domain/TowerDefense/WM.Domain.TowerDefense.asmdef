@@ -1,0 +1,31 @@
+{
+    "name": "WM.Domain.TowerDefense",
+    "rootNamespace": "WitchMendokusai",
+    "references": [
+        "Unity.InputSystem",
+        "VContainer",
+        "WM.Core",
+        "WM.Domain",
+        "WM.Foundation",
+        "WitchMendokusai.DomainSDK.Building",
+        "WitchMendokusai.DomainSDK.Combat",
+        "WitchMendokusai.DomainSDK.Common",
+        "WitchMendokusai.DomainSDK.Item",
+        "WitchMendokusai.DomainSDK.Net",
+        "WitchMendokusai.DomainSDK.Numerics",
+        "WitchMendokusai.DomainSDK.Stat",
+        "WitchMendokusai.DomainSDK.Tactics",
+        "WitchMendokusai.DomainSDK.TowerDefense"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "!WM_IDLE"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

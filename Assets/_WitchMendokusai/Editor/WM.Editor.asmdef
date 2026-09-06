@@ -31,7 +31,9 @@
         "WitchMendokusai.DomainSDK.Item",
         "WitchMendokusai.DomainSDK.WorldSim",
         "WitchMendokusai.DomainSDK.Combat",
-        "WitchMendokusai.DomainSDK.Tactics"
+        "WitchMendokusai.DomainSDK.Tactics",
+        "WM.Domain.TowerDefense",
+        "WM.App"
     ],
     "includePlatforms": [
         "Editor"

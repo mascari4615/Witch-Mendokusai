@@ -38,8 +38,8 @@ namespace WitchMendokusai
 		// 마도 온실(TASK-WM-167) — 「봐줘야 진짜」 영구 표본 채집 기록(plantDataId → 채집됨). SaveManager 가
 		// hasSpecimen ↔ 이 dict 직렬화(IsRecipeUnlocked 와 동형). 도감(PlantDiscoveryCategory)이 read.
 		public Dictionary<int, bool> SpecimenCollected { get; set; } = new();
-		// 갈래 저장 조각 (2026-09-06). 갈래 이름은 FeatureManifest 만 앎. 개척 기록과 유물은 TowerDefenseSaveSlice
-		private readonly List<IFeatureSaveSlice> featureSaves = FeatureManifest.CreateSaveSlices();
+		// 갈래 저장 조각 (2026-09-06). 갈래 이름은 WM.App 의 FeatureManifest 만 앎 (Domain 은 FeatureRegistry). 개척 기록과 유물은 TowerDefenseSaveSlice
+		private readonly List<IFeatureSaveSlice> featureSaves = FeatureRegistry.CreateSaveSlices();
 		public IReadOnlyList<IFeatureSaveSlice> FeatureSaves => featureSaves;
 
 		/// <summary>갈래가 자기 조각을 찾는 자리. 없으면 던짐. 목록에 안 실은 갈래는 저장도 안 되므로 조용히 넘기면 안 됨</summary>
@@ -52,7 +52,7 @@ namespace WitchMendokusai
 					return found;
 				}
 			}
-			throw new InvalidOperationException($"{typeof(T).Name} 저장 조각이 없다. FeatureManifest 의 갈래가 CreateSaveSlice 로 내놓아야 한다");
+			throw new InvalidOperationException($"{typeof(T).Name} 저장 조각이 없다. FeatureManifest 의 갈래가 CreateSaveSlice 로 내놓아야 함");
 		}
 
 		public string localDisplayName = "";

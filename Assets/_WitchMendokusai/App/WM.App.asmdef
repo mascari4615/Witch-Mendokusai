@@ -1,0 +1,19 @@
+{
+    "name": "WM.App",
+    "rootNamespace": "WitchMendokusai",
+    "references": [
+        "WM.Core",
+        "WM.Domain",
+        "WM.Domain.TowerDefense",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

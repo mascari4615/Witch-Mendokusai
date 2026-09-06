@@ -136,7 +136,7 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 - **Editor.log는 fallback only.** append-only 누적으로 옛 컴파일 결과 섞임. CLI 가용 시 절대 사용 X.
 - Warning = 미래 error 시그널. error 0 만 보고 통과 X. 보존 의도 warning은 `#pragma warning disable` + 사유 주석.
 
-**warning 0 은 이제 기계가 강제한다 (TASK-WM-204).** WM 자기 asmdef 8개 폴더마다 `csc.rsp` =
+**warning 0 은 이제 기계가 강제한다 (TASK-WM-204).** WM 자기 asmdef 폴더마다 (2026-09-06 에 Core, ViewModel, Domain, Domain.TowerDefense, App, Network, Presentation, Idle, Editor 아홉. Foundation 은 없음) `csc.rsp` 에
 `-warnaserror+`. 경고가 곧 컴파일 에러라 *다음 줄을 못 쓴다* → 미루는 것 자체가 불가능.
 패키지·서드파티는 각자 컴파일이라 무관(`Assets/csc.rsp` 는 만들지 X — predefined 어셈블리에 서드파티가 섞임).
 

@@ -93,7 +93,8 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Manifest_Slices_HaveDistinctKeys()
 		{
-			List<IFeatureSaveSlice> slices = FeatureManifest.CreateSaveSlices();
+			FeatureRegistry.Install(FeatureManifest.Installers);
+			List<IFeatureSaveSlice> slices = FeatureRegistry.CreateSaveSlices();
 			HashSet<string> keys = new();
 
 			foreach (IFeatureSaveSlice slice in slices)
