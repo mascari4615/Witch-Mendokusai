@@ -16,11 +16,13 @@ namespace WitchMendokusai
 	public class GameLogic
 	{
 		private readonly ObjectPoolManager objectPoolManager;
+		private readonly ResourceManager resourceManager;
 
 		[Inject]
-		public GameLogic(ObjectPoolManager objectPoolManager)
+		public GameLogic(ObjectPoolManager objectPoolManager, ResourceManager resourceManager)
 		{
 			this.objectPoolManager = objectPoolManager;
+			this.resourceManager = resourceManager;
 		}
 
 		public static Vector3 GetRandomSpawnPosOffset(Vector3 position, float offset = LOOT_ITEM_SPAWN_POS_OFFSET_XZ)
@@ -32,7 +34,7 @@ namespace WitchMendokusai
 		public void SpawnExpOrb(Vector3 position)
 		{
 			GameObject exp = objectPoolManager.Spawn(
-				ResourceManager.Instance.EXPPrefab,
+				resourceManager.EXPPrefab,
 				GetRandomSpawnPosOffset(position)
 			);
 			exp.SetActive(true);
@@ -59,7 +61,7 @@ namespace WitchMendokusai
 			}
 
 			GameObject lootItem = objectPoolManager.Spawn(
-				ResourceManager.Instance.LootItemPrefab,
+				resourceManager.LootItemPrefab,
 				GetRandomSpawnPosOffset(position)
 			);
 			lootItem.SetActive(true);
@@ -69,8 +71,8 @@ namespace WitchMendokusai
 		public void SpawnGameItem(Vector3 position)
 		{
 			Probability<GameItemObject> gameItemProbability = new(shouldFill100Percent: true);
-			gameItemProbability.Add(ResourceManager.Instance.HealObjectPrefab, HEAL_PERCENTAGE);
-			gameItemProbability.Add(ResourceManager.Instance.MagnetObjectPrefab, MAGNET_PERCENTAGE);
+			gameItemProbability.Add(resourceManager.HealObjectPrefab, HEAL_PERCENTAGE);
+			gameItemProbability.Add(resourceManager.MagnetObjectPrefab, MAGNET_PERCENTAGE);
 
 			GameItemObject gameItem = gameItemProbability.Get();
 

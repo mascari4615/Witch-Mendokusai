@@ -8,10 +8,10 @@ namespace WitchMendokusai
 	{
 		public void Apply(EffectInfo effectInfo, EffectContext context)
 		{
-			UIManager uiManager = UIManager.Instance;
+			UIManager uiManager = context.UIManager;
 			if (uiManager == null || uiManager.Transition == null)
 			{
-				Debug.LogWarning("[PlayFadeEffect] UIManager.Transition 미존재");
+				Debug.LogWarning("[PlayFadeEffect] UIManager.Transition 미존재 (씬 스코프가 아직 안 섰거나 없음)");
 				return;
 			}
 

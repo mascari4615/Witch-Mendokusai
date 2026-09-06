@@ -47,6 +47,15 @@ namespace WitchMendokusai
 		[field: SerializeField] public DollBuffer DollBuffer { get; private set; }
 		[field: SerializeField] public ItemDataBuffer DungeonItemBuffer { get; private set; }
 		[field: SerializeField] public Inventory ItemInventory { get; private set; }
+
+		/// <summary>플레이어 가방에 든 것이 곧 마지막 장착 아이템. RootLifetimeScope 가 한 번 이음. SO 는 Play 사이에도 살아 있어 구독을 먼저 뗌</summary>
+		public void WireInventory()
+		{
+			ItemInventory.ItemAdded -= RememberLastEquipped;
+			ItemInventory.ItemAdded += RememberLastEquipped;
+		}
+
+		private void RememberLastEquipped(ItemData itemData) => LastEquippedItem.RuntimeValue = itemData;
 		[field: SerializeField] public Hotbar Hotbar { get; private set; }
 		[field: SerializeField] public WindowLayoutData WindowLayoutData { get; private set; }
 		[field: SerializeField] public CardBuffer SelectedCardBuffer { get; private set; }

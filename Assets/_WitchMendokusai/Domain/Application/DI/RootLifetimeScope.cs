@@ -45,6 +45,11 @@ namespace WitchMendokusai
 			SOManager soManager = catalog.SOManager;
 			builder.RegisterInstance(soManager);
 			SOManagerBridge.Register(soManager);
+			// 세계 가방이 화면 가방으로 내려오는 길과, 가방에 든 것이 마지막 장착 아이템이 되는 길. 둘 다 SOManager 가 필요해 여기서 이음
+			WorldBagBridge.RegisterReceiver(new PlayerBagSync(soManager));
+			soManager.WireInventory();
+			// ResourceManager (프리팹 묶음 SO). SOManager 와 같은 RegisterInstance 꼴. Resources.Load 는 여기 한 곳
+			builder.RegisterInstance(ResourceManager.Instance);
 
 			// γ leaf 매니저 13 등록 (TASK-WM-078 P1, 2026-05-11)
 			RegisterLeaf<AudioManager>(builder);

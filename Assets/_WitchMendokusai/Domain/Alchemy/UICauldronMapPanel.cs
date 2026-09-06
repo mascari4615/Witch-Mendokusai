@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 using UnityEngine.UIElements;
 
 namespace WitchMendokusai
@@ -23,12 +24,21 @@ namespace WitchMendokusai
             root.Add(hint);
         }
 
+        private IObjectResolver resolver;
+
+        [Inject]
+        public void Construct(IObjectResolver resolver)
+        {
+            this.resolver = resolver;
+        }
+
         // 메뉴에서 이 항목 선택 → 실제 솥 지도(standalone, SO·보상 통합) 열기.
+        // 컨트롤러는 갈래가 심겼을 때만 씬에 있음 (AlchemyMapFeature). 그래서 열 때 물음
         protected override void OnOpen()
         {
-            if (CauldronMapController.Instance != null)
+            if (resolver != null && resolver.TryResolve(out CauldronMapController controller))
             {
-                CauldronMapController.Instance.Open();
+                controller.Open();
             }
         }
 

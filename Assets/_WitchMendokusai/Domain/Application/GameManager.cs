@@ -119,8 +119,8 @@ namespace WitchMendokusai
 		}
 
 		// θ — SceneLifetimeScope 에서 씬 의존 조건을 Root 스코프로 바인딩 (TASK-WM-078, 2026-05-13).
-		public void BindSceneConditions(GameModeManager gameModeManager, UIManager uiManager)
-			=> Conditions.BindSceneDependencies(gameModeManager, uiManager);
+		public void BindSceneConditions(GameModeManager gameModeManager, UIManager uiManager, CameraManager cameraManager)
+			=> Conditions.BindSceneDependencies(gameModeManager, uiManager, cameraManager);
 
 		public void ApplyUpgradeEffects()
 		{
@@ -158,8 +158,8 @@ namespace WitchMendokusai
 				{ GameConditionType.IsViewingUI, () => false },
 				// 씬 의존 — BindSceneDependencies 에서 gameModeManager 파생으로 교체 (IsBuilding 대칭, TASK-WM-165 item9).
 				{ GameConditionType.IsSpectating, () => false },
-				// TASK-WM-193 — 자유 위치 카메라 모드 = CameraManager 파생 (static Instance, 씬 독립). 명령형 setter 0.
-				{ GameConditionType.IsFreeCameraMode, () => CameraManager.Instance != null && CameraManager.Instance.IsFreePositionMode },
+				// TASK-WM-193. 자유 위치 카메라 모드는 CameraManager 파생. 씬 의존이라 BindSceneDependencies 에서 교체 (IsBuilding 대칭)
+				{ GameConditionType.IsFreeCameraMode, () => false },
 				// 씬 의존 — BindSceneDependencies 에서 gameModeManager 파생으로 교체 (IsSpectating 대칭, TASK-WM-194).
 				{ GameConditionType.IsTowerDefenseMode, () => false },
 			};
@@ -167,9 +167,11 @@ namespace WitchMendokusai
 
 		// θ — Root 스코프에서 static Instance 없이 Scene 의존 조건 수신 (TASK-WM-078, 2026-05-13).
 		// 호출자: SceneLifetimeScope.RegisterBuildCallback (child scope 가 parent GameManager 리졸브 후 바인딩).
-		public void BindSceneDependencies(GameModeManager gameModeManager, UIManager uiManager)
+		public void BindSceneDependencies(GameModeManager gameModeManager, UIManager uiManager, CameraManager cameraManager)
 		{
 			gameConditionActions[GameConditionType.IsBuilding] = () => gameModeManager.IsBuildMode;
+			// 카메라는 씬에 없기도 함 (ResolveIfPresent). 없으면 자유 카메라 모드도 없음
+			gameConditionActions[GameConditionType.IsFreeCameraMode] = () => cameraManager != null && cameraManager.IsFreePositionMode;
 			gameConditionActions[GameConditionType.IsViewingUI] = () => uiManager.IsAnyPanelFullscreenOpen;
 			// TASK-WM-165 item9 — 관전 = 투기장 모드 파생 (IsBuilding↔IsBuildMode 동형). 명령형 setter 0.
 			gameConditionActions[GameConditionType.IsSpectating] = () => gameModeManager.IsArenaMode;

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace WitchMendokusai
 {
@@ -15,29 +14,25 @@ namespace WitchMendokusai
 	/// </summary>
 	public sealed class PlayerBagSync : IWorldBagReceiver
 	{
-		/// <summary>스스로 꽂힌다 — 씬에 얹어야만 도는 구조면 조용히 안 맞춰진다.</summary>
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-		private static void Install()
+		// 꽂는 자리는 RootLifetimeScope (SOManager 를 등록하는 곳). 전에는 부팅 훅으로 스스로 꽂고 static 으로 SOManager 를 찾던 것
+		private readonly SOManager soManager;
+
+		public PlayerBagSync(SOManager soManager)
 		{
-			WorldBagBridge.RegisterReceiver(new PlayerBagSync());
+			this.soManager = soManager;
 		}
 
 		public void ApplyWorldBag(int[] itemIds, int[] amounts)
 		{
-			SOManager soManager = SOManager.Instance;
-			if (soManager == null || soManager.ItemInventory == null)
+			if (soManager.ItemInventory == null)
 				return;
 
 			soManager.ItemInventory.ApplyWorldCounts(itemIds, amounts, FindItemData);
 		}
 
 		/// <summary>번호로 게임의 아이템 정의를 찾는다 — 세계는 번호만 안다.</summary>
-		private static IItemData FindItemData(int itemId)
+		private IItemData FindItemData(int itemId)
 		{
-			SOManager soManager = SOManager.Instance;
-			if (soManager == null)
-				return null;
-
 			Dictionary<int, DataSO> byId = soManager[typeof(ItemData)];
 			if (byId == null)
 				return null;

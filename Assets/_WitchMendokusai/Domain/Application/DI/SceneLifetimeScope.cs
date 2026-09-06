@@ -224,7 +224,11 @@ namespace WitchMendokusai
 				GameManager gameManager = BootGuard.EagerResolve<GameManager>(container, "Scene");
 				GameModeManager gameModeManager = BootGuard.EagerResolve<GameModeManager>(container, "Scene");
 				UIManager uiManager = BootGuard.EagerResolve<UIManager>(container, "Scene");
-				gameManager.BindSceneConditions(gameModeManager, uiManager);
+				container.TryResolve(out CameraManager cameraManager);
+				gameManager.BindSceneConditions(gameModeManager, uiManager, cameraManager);
+				// 뿌리 스코프의 효과 러너에 씬 서비스 (페이드, 대사) 바인딩. 전에는 효과가 static Instance 둘을 찾던 것
+				DialogueRunner dialogueRunner = BootGuard.EagerResolve<DialogueRunner>(container, "Scene");
+				BootGuard.EagerResolve<IEffectRunner>(container, "Scene").BindScene(uiManager, dialogueRunner);
 				BootObserver.Enter(BootPhase.WorldReady); // TASK-WM-118 B1 — 부팅 완료 센티넬 (I5 회귀 판정점)
 			});
 		}

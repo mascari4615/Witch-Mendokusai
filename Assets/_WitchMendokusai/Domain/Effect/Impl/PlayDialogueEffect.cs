@@ -7,10 +7,10 @@ namespace WitchMendokusai
 	{
 		public void Apply(EffectInfo effectInfo, EffectContext context)
 		{
-			DialogueRunner runner = DialogueRunner.Instance;
+			DialogueRunner runner = context.DialogueRunner;
 			if (runner == null)
 			{
-				Debug.LogWarning($"[PlayDialogueEffect] DialogueRunner.Instance is null — UIManager.Awake 가 실행되었는지 확인");
+				Debug.LogWarning("[PlayDialogueEffect] DialogueRunner 가 맥락에 없음 (씬 스코프가 아직 안 섰거나 없음)");
 				return;
 			}
 

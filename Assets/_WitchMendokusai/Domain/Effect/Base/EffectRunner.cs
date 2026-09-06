@@ -13,6 +13,8 @@ namespace WitchMendokusai
 		void ApplyEffect(EffectInfo effectInfo);
 		// TASK-WM-107 Slice 3-2 — 사이클-브레이크 seam (QuestManager.BindDataManager 와 동일 패턴).
 		void BindDataManager(DataManager dataManager);
+		// 씬 스코프 (UIManager, DialogueRunner) 를 뿌리 스코프의 러너에 바인딩. SceneLifetimeScope 가 부른다 (GameManager.BindSceneConditions 와 같은 결)
+		void BindScene(UIManager uiManager, DialogueRunner dialogueRunner);
 	}
 
 	public class EffectRunner : IEffectRunner
@@ -21,6 +23,9 @@ namespace WitchMendokusai
 		private readonly PlayerProvider playerProvider;
 		private readonly ObjectPoolManager objectPoolManager;
 		private EffectContext context;
+		private DataManager dataManager;
+		private UIManager uiManager;
+		private DialogueRunner dialogueRunner;
 
 		[Inject]
 		public EffectRunner(SOManager soManager, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
@@ -38,7 +43,15 @@ namespace WitchMendokusai
 		// DataManager.Construct 가 IEffectRunner 주입(3-1 후 EffectRunner↛DataManager 라 비순환)받아 호출.
 		public void BindDataManager(DataManager dataManager)
 		{
-			context = new EffectContext(soManager, playerProvider, objectPoolManager, dataManager);
+			this.dataManager = dataManager;
+			context = new EffectContext(soManager, playerProvider, objectPoolManager, dataManager, uiManager, dialogueRunner);
+		}
+
+		public void BindScene(UIManager uiManager, DialogueRunner dialogueRunner)
+		{
+			this.uiManager = uiManager;
+			this.dialogueRunner = dialogueRunner;
+			context = new EffectContext(soManager, playerProvider, objectPoolManager, dataManager, uiManager, dialogueRunner);
 		}
 
 		public void ApplyEffects(List<EffectInfoData> effectInfoData)

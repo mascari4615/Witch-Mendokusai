@@ -10,13 +10,23 @@ namespace WitchMendokusai
 		public PlayerProvider PlayerProvider { get; }
 		public ObjectPoolManager ObjectPoolManager { get; }
 		public DataManager DataManager { get; }
+		/// <summary>씬 스코프. 씬이 없거나 아직 안 섰으면 null (효과는 그때 경고만)</summary>
+		public UIManager UIManager { get; }
+		public DialogueRunner DialogueRunner { get; }
 
 		public EffectContext(SOManager soManager, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager, DataManager dataManager)
+			: this(soManager, playerProvider, objectPoolManager, dataManager, null, null)
+		{
+		}
+
+		public EffectContext(SOManager soManager, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager, DataManager dataManager, UIManager uiManager, DialogueRunner dialogueRunner)
 		{
 			SOManager = soManager;
 			PlayerProvider = playerProvider;
 			ObjectPoolManager = objectPoolManager;
 			DataManager = dataManager;
+			UIManager = uiManager;
+			DialogueRunner = dialogueRunner;
 		}
 	}
 }

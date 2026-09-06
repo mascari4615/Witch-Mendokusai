@@ -127,11 +127,13 @@ namespace WitchMendokusai
 			}
 		}
 
-		// Add 직후 호출. 기본 = '마지막 장착 아이템' 전역 갱신(플레이어 인벤토리 용도).
-		// 보관 상자 등 비-플레이어 per-instance 인벤토리는 override 로 무력화 (TASK-WM-169).
+		/// <summary>아이템이 들어온 직후. 플레이어 가방은 SOManager 가 구독해 마지막 장착 아이템을 바꿈 (RootLifetimeScope 가 이음)</summary>
+		public event Action<ItemData> ItemAdded = delegate { };
+
+		// 보관 상자처럼 플레이어 것이 아닌 인벤토리는 override 로 무력화 (TASK-WM-169).
 		protected virtual void OnItemAdded(ItemData itemData)
 		{
-			SOManager.Instance.LastEquippedItem.RuntimeValue = itemData;
+			ItemAdded.Invoke(itemData);
 		}
 
 		public void Remove(int index, int amount = 1) => Core.Remove(index, amount);

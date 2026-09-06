@@ -29,6 +29,7 @@ namespace WitchMendokusai.Tests
 			public void ApplyEffects(List<EffectInfoData> effectInfoData) { }
 			public void ApplyEffect(EffectInfo effectInfo) { }
 			public void BindDataManager(DataManager dataManager) { }
+			public void BindScene(UIManager uiManager, DialogueRunner dialogueRunner) { }
 		}
 
 		private readonly List<GameObject> spawned = new List<GameObject>();
