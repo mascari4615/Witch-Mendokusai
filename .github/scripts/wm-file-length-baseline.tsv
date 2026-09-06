@@ -2,17 +2,3 @@
 # 갚으면(500줄 아래로 내리면) 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
 # 갱신: powershell -File .github/scripts/wm-rule-gate.ps1 -WriteBaseline
 Domain/TowerDefense/TowerDefenseStageSO.cs
-DomainSDK/Identity/WorldIdentity.cs
-DomainSDK/Idle/IdleBattleSim.cs
-DomainSDK/Idle/IdleHeroes.cs
-DomainSDK/Idle/IdleModel.cs
-DomainSDK/Idle/IdleSession.cs
-DomainSDK/Idle/IdleSnapshot.cs
-DomainSDK/Idle/IdleState.cs
-DomainSDK/Idle/IdleTuning.cs
-DomainSDK/Net/NetMessages.cs
-DomainSDK/Versus/VersusAuthority.cs
-DomainSDK/WorldSim/WorldSim.cs
-Idle/Data/TuningSO.cs
-Tests/EditMode/Idle/IdleBaseTests.cs
-Tests/EditMode/Idle/IdleLongHaulTests.cs

@@ -33,10 +33,8 @@ namespace WitchMendokusai.Tests
 		public void EveryKnob_IsOnTheInspector()
 		{
 			string root = FindProjectRoot();
-			string core = File.ReadAllText(Path.Combine(root,
-				"DomainSDK/Idle/IdleTuning.cs"));
-			string exposed = File.ReadAllText(Path.Combine(root,
-				"Assets/_WitchMendokusai/Idle/Data/TuningSO.cs"));
+			string core = ReadParts(root, "DomainSDK/Idle", "IdleTuning");
+			string exposed = ReadParts(root, "Assets/_WitchMendokusai/Idle/Data", "TuningSO");
 
 			MatchCollection knobs = Regex.Matches(core,
 				// ⚠ 스칼라만 보면 <b>경제의 뼈대</b>를 놓친다 (실측 2026-08-17): 이 시험을 세운
@@ -89,10 +87,8 @@ namespace WitchMendokusai.Tests
 		public void TheInspectorDefaults_MatchTheCore()
 		{
 			string root = FindProjectRoot();
-			string core = File.ReadAllText(Path.Combine(root,
-				"DomainSDK/Idle/IdleTuning.cs"));
-			string exposed = File.ReadAllText(Path.Combine(root,
-				"Assets/_WitchMendokusai/Idle/Data/TuningSO.cs"));
+			string core = ReadParts(root, "DomainSDK/Idle", "IdleTuning");
+			string exposed = ReadParts(root, "Assets/_WitchMendokusai/Idle/Data", "TuningSO");
 
 			Dictionary<string, string> coreDefaults = new Dictionary<string, string>();
 
@@ -156,6 +152,24 @@ namespace WitchMendokusai.Tests
 		/// 합치면 사람이 노는 판의 초반 전투가 시뮬보다 <b>열 배 가까이</b> 느리다.
 		/// </summary>
 		private static readonly string[] KnownDrift = { "TargetHealthByStage", "BaseAttackSpeed" };
+
+		/// <summary>
+		/// 한 클래스가 partial 여러 파일이라 (IdleTuning.cs, IdleTuning.Gacha.cs ...) 이름이 같은 파일을 전부 이어 읽는다.
+		/// 한 파일만 보면 다른 조각의 손잡이를 「빠졌다」로 잘못 잡는다 (실측 2026-09-06, 500줄 상한으로 가른 뒤).
+		/// </summary>
+		private static string ReadParts(string root, string folder, string className)
+		{
+			string[] parts = Directory.GetFiles(Path.Combine(root, folder), className + "*.cs");
+			Array.Sort(parts, StringComparer.Ordinal);
+			string joined = string.Empty;
+
+			foreach (string part in parts)
+			{
+				joined += File.ReadAllText(part) + Environment.NewLine;
+			}
+
+			return joined;
+		}
 
 		/// <summary>견주기 좋게 다듬는다 — 공백만 지운다(꼴은 그대로 봐야 진짜 차이가 보인다).</summary>
 		private static string Tidy(string text)

@@ -62,10 +62,13 @@
     <Compile Include="$(TestsRoot)Idle/IdleOfflineTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleStageTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleBaseTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleBaseTests.Snapshot.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleBaseTests.Intents.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleCurveTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleDropTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleHoldStageTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleLongHaulTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleLongHaulTests.Prints.cs" />
     <Compile Include="$(TestsRoot)Idle/IdlePotentialTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdlePrestigeTests.cs" />
     <Compile Include="$(TestsRoot)Idle/BigNumberTextTests.cs" />
