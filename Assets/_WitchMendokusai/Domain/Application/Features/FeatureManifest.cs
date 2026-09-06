@@ -18,5 +18,20 @@ namespace WitchMendokusai
 		};
 
 		public static IReadOnlyList<IFeatureInstaller> Installers => installers;
+
+		/// <summary>갈래마다 저장 조각 하나씩. 없는 갈래는 건너뜀. 공용 저장은 이 목록만 순회</summary>
+		public static List<IFeatureSaveSlice> CreateSaveSlices()
+		{
+			List<IFeatureSaveSlice> slices = new();
+			foreach (IFeatureInstaller installer in installers)
+			{
+				IFeatureSaveSlice slice = installer.CreateSaveSlice();
+				if (slice != null)
+				{
+					slices.Add(slice);
+				}
+			}
+			return slices;
+		}
 	}
 }

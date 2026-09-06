@@ -133,7 +133,7 @@ namespace WitchMendokusai
 			bool isNewRecord = false;
 			if (DataManager.TryGetExistingInstance(out DataManager dataManager))
 			{
-				isNewRecord = TowerDefenseRecord.Submit(dataManager.TowerDefenseBestWave, stage.ID, score, out best);
+				isNewRecord = TowerDefenseRecord.Submit(dataManager.FeatureSave<TowerDefenseSaveSlice>().BestWave, stage.ID, score, out best);
 				if (isNewRecord)
 					dataManager.SaveManager.SaveData();
 			}
@@ -143,14 +143,14 @@ namespace WitchMendokusai
 				match.SurvivedSeconds, match.NestsDestroyed, stage.RelicsPerMinute, stage.RelicsPerNest, stage.RelicsBaseReward);
 			if (DataManager.TryGetExistingInstance(out DataManager relicOwner))
 			{
-				relicOwner.TowerDefenseRelics += relicsGained;
+				relicOwner.FeatureSave<TowerDefenseSaveSlice>().Relics += relicsGained;
 				relicOwner.SaveManager.SaveData();
 			}
 
 			// 끝난 판의 저장은 버린다 — 남겨두면 다음 진입이 「끝난 판」으로 되살아난다.
 			if (DataManager.TryGetExistingInstance(out DataManager clearOwner))
 			{
-				clearOwner.TowerDefenseResume = null;
+				clearOwner.FeatureSave<TowerDefenseSaveSlice>().Resume = null;
 				clearOwner.SaveManager.SaveData();
 			}
 
@@ -163,7 +163,7 @@ namespace WitchMendokusai
 		{
 			if (DataManager.TryGetExistingInstance(out DataManager dataManager) == false)
 				return 0;
-			return TowerDefenseRecord.Best(dataManager.TowerDefenseBestWave, stage.ID);
+			return TowerDefenseRecord.Best(dataManager.FeatureSave<TowerDefenseSaveSlice>().BestWave, stage.ID);
 		}
 
 		// HUD 갱신 + 카메라 이동 — TD 모드 동안만.
@@ -328,10 +328,10 @@ namespace WitchMendokusai
 				// ★ 나갈 때 저장해 두고 *아무도 읽지 않던* 것을 여기서 읽는다 — 저장만 하고 이어하기가 없으면
 				//   「잠깐 접어둔다」가 그냥 「버린다」였다. 씨앗까지 넘겨야 같은 땅이 다시 나오므로 Begin 직전.
 				if (DataManager.TryGetExistingInstance(out DataManager resumeOwner)
-					&& resumeOwner.TowerDefenseResume != null
-					&& resumeOwner.TowerDefenseResume.IsResumable)
+					&& resumeOwner.FeatureSave<TowerDefenseSaveSlice>().Resume != null
+					&& resumeOwner.FeatureSave<TowerDefenseSaveSlice>().Resume.IsResumable)
 				{
-					match.RestoreSave(resumeOwner.TowerDefenseResume);
+					match.RestoreSave(resumeOwner.FeatureSave<TowerDefenseSaveSlice>().Resume);
 				}
 
 				match.Begin(stage, stageRoot);
@@ -373,7 +373,7 @@ namespace WitchMendokusai
 				//   끝난 판은 저장하지 않는다(CaptureSave 가 null 을 준다) — 끝난 것을 이어하면 거짓말이다.
 				if (DataManager.TryGetExistingInstance(out DataManager saveOwner))
 				{
-					saveOwner.TowerDefenseResume = match.CaptureSave();
+					saveOwner.FeatureSave<TowerDefenseSaveSlice>().Resume = match.CaptureSave();
 					saveOwner.SaveManager.SaveData();
 				}
 

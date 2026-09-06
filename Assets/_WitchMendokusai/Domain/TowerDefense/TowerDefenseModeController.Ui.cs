@@ -170,7 +170,7 @@ namespace WitchMendokusai
 
 		private int RelicBalance()
 		{
-			return DataManager.TryGetExistingInstance(out DataManager dataManager) ? dataManager.TowerDefenseRelics : 0;
+			return DataManager.TryGetExistingInstance(out DataManager dataManager) ? dataManager.FeatureSave<TowerDefenseSaveSlice>().Relics : 0;
 		}
 
 		private bool CanPull()
@@ -178,11 +178,11 @@ namespace WitchMendokusai
 			if (stage == null || DataManager.TryGetExistingInstance(out DataManager dataManager) == false)
 				return false;
 
-			return dataManager.TowerDefenseRelics >= stage.PullCost
+			return dataManager.FeatureSave<TowerDefenseSaveSlice>().Relics >= stage.PullCost
 				&& TowerDefenseMeta.HasLockedTower(
 					stage.TowerArchetypes != null ? stage.TowerArchetypes.Length : 0,
 					stage.DefaultUnlockedTowerCount,
-					dataManager.TowerDefenseUnlockedTowers);
+					dataManager.FeatureSave<TowerDefenseSaveSlice>().UnlockedTowers);
 		}
 
 		/// <summary>
@@ -194,11 +194,11 @@ namespace WitchMendokusai
 			if (stage == null || DataManager.TryGetExistingInstance(out DataManager dataManager) == false)
 				return;
 
-			int relics = dataManager.TowerDefenseRelics;
+			int relics = dataManager.FeatureSave<TowerDefenseSaveSlice>().Relics;
 			bool pulled = TowerDefenseMeta.TryPull(
 				stage.TowerArchetypes != null ? stage.TowerArchetypes.Length : 0,
 				stage.DefaultUnlockedTowerCount,
-				dataManager.TowerDefenseUnlockedTowers,
+				dataManager.FeatureSave<TowerDefenseSaveSlice>().UnlockedTowers,
 				ref relics,
 				stage.PullCost,
 				UnityEngine.Random.value,
@@ -207,7 +207,7 @@ namespace WitchMendokusai
 			if (pulled == false)
 				return;
 
-			dataManager.TowerDefenseRelics = relics;
+			dataManager.FeatureSave<TowerDefenseSaveSlice>().Relics = relics;
 			dataManager.SaveManager.SaveData();
 
 			TowerDefenseTowerArchetype pulledTower = match.TowerArchetypeAt(pulledIndex);

@@ -32,5 +32,8 @@ namespace WitchMendokusai
 		{
 			BootGuard.EagerResolve<ArenaModeController>(container, "Scene");
 		}
+
+		// 판 밖에 남기는 것 없음
+		public IFeatureSaveSlice CreateSaveSlice() => null;
 	}
 }

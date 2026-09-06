@@ -25,5 +25,8 @@ namespace WitchMendokusai
 
 		/// <summary>심은 것 깨우기. <see cref="InstallScene"/> 이 true 를 준 경우에만 불린다</summary>
 		void ResolveScene(IObjectResolver container);
+
+		/// <summary>세이브에 남길 조각. 남길 것이 없으면 null</summary>
+		IFeatureSaveSlice CreateSaveSlice();
 	}
 }

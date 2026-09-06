@@ -33,5 +33,7 @@ namespace WitchMendokusai
 		{
 			BootGuard.EagerResolve<TowerDefenseModeController>(container, "Scene");
 		}
+
+		public IFeatureSaveSlice CreateSaveSlice() => new TowerDefenseSaveSlice();
 	}
 }

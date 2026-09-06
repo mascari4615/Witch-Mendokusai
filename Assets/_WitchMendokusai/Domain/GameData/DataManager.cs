@@ -36,19 +36,22 @@ namespace WitchMendokusai
 		// 마도 온실(TASK-WM-167) — 「봐줘야 진짜」 영구 표본 채집 기록(plantDataId → 채집됨). SaveManager 가
 		// hasSpecimen ↔ 이 dict 직렬화(IsRecipeUnlocked 와 동형). 도감(PlantDiscoveryCategory)이 read.
 		public Dictionary<int, bool> SpecimenCollected { get; set; } = new();
-		// 특수시공 개척(TASK-WM-194) — 스테이지별 최고 도달 웨이브(stageID → wave). 무한 모드의 점수 그 자체.
-		// SaveManager 가 towerDefenseBestWave ↔ 이 dict 직렬화(SpecimenCollected 와 동형).
-		public Dictionary<int, int> TowerDefenseBestWave { get; set; } = new();
-		// 개척 메타 — 유물(재화)과 뽑아서 얻은 포탑 인형 목록.
-		public int TowerDefenseRelics { get; set; }
+		// 갈래 저장 조각 (2026-09-06). 갈래 이름은 FeatureManifest 만 앎. 개척 기록과 유물은 TowerDefenseSaveSlice
+		private readonly List<IFeatureSaveSlice> featureSaves = FeatureManifest.CreateSaveSlices();
+		public IReadOnlyList<IFeatureSaveSlice> FeatureSaves => featureSaves;
 
-		/// <summary>
-		/// 개척 이어하기 — 한 슬롯. 껐다 켜면 처음부터였다(개선 목록 15번).
-		/// 여러 슬롯을 두지 않는 이유: 판이 하나뿐인데 슬롯이 여럿이면 고르는 화면부터 만들어야 하고,
-		/// 그건 「이어하기」가 아니라 세이브 관리다.
-		/// </summary>
-		public TowerDefenseSaveData TowerDefenseResume { get; set; }
-		public List<int> TowerDefenseUnlockedTowers { get; set; } = new();
+		/// <summary>갈래가 자기 조각을 찾는 자리. 없으면 던짐. 목록에 안 실은 갈래는 저장도 안 되므로 조용히 넘기면 안 됨</summary>
+		public T FeatureSave<T>() where T : class, IFeatureSaveSlice
+		{
+			foreach (IFeatureSaveSlice slice in featureSaves)
+			{
+				if (slice is T found)
+				{
+					return found;
+				}
+			}
+			throw new InvalidOperationException($"{typeof(T).Name} 저장 조각이 없다. FeatureManifest 의 갈래가 CreateSaveSlice 로 내놓아야 한다");
+		}
 
 		public string localDisplayName = "";
 

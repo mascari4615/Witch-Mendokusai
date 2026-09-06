@@ -47,8 +47,6 @@ namespace WitchMendokusai
 				questStates = new(),
 				hasRecipe = new(),
 				hasSpecimen = new(),
-				towerDefenseBestWave = new(),
-				towerDefenseUnlockedTowers = new(),
 				runtimeQuests = new(),
 				gameStats = new(),
 				dungeons = new(),
@@ -103,10 +101,11 @@ namespace WitchMendokusai
 			// 마도 온실 표본(TASK-WM-167) 초기화 — 새 게임 = 채집 0(빈 dict, 봐준 게 없음). 작물 .asset 없어도 안전.
 			DataManager.SpecimenCollected = new();
 
-			// 개척 최고 기록(TASK-WM-194) 초기화 — 새 게임 = 기록 없음.
-			DataManager.TowerDefenseBestWave = new();
-			DataManager.TowerDefenseRelics = 0;
-			DataManager.TowerDefenseUnlockedTowers = new();
+			// 갈래 조각 초기화. 새 게임은 기록 없음
+			foreach (IFeatureSaveSlice slice in DataManager.FeatureSaves)
+			{
+				slice.Reset();
+			}
 
 			// 퀘스트 상태 초기화 이후 저장
 			Dictionary<int, QuestState> questStates = new();
@@ -183,10 +182,19 @@ namespace WitchMendokusai
 			// 마도 온실 표본(TASK-WM-167) — 옛 세이브엔 필드 부재 → null 가드(빈 dict).
 			DataManager.SpecimenCollected = saveData.hasSpecimen ?? new();
 
-			// 개척 최고 기록(TASK-WM-194) — 옛 세이브엔 필드 부재 → null 가드.
-			DataManager.TowerDefenseBestWave = saveData.towerDefenseBestWave ?? new();
-			DataManager.TowerDefenseRelics = saveData.towerDefenseRelics;
-			DataManager.TowerDefenseUnlockedTowers = saveData.towerDefenseUnlockedTowers ?? new();
+			// 갈래 조각. 조각이 없는 옛 세이브는 갈래가 옛 필드를 읽음
+			foreach (IFeatureSaveSlice slice in DataManager.FeatureSaves)
+			{
+				slice.Reset();
+				if (saveData.featureSaves != null && saveData.featureSaves.TryGetValue(slice.Key, out string json))
+				{
+					slice.Restore(json);
+				}
+				else
+				{
+					slice.RestoreLegacy(saveData);
+				}
+			}
 
 			// 작업 초기화
 			DataManager.WorkManager.Init(saveData.works);
@@ -224,6 +232,16 @@ namespace WitchMendokusai
 			IsDataLoaded = true;
 		}
 
+		private Dictionary<string, string> CaptureFeatureSaves()
+		{
+			Dictionary<string, string> captured = new();
+			foreach (IFeatureSaveSlice slice in DataManager.FeatureSaves)
+			{
+				captured[slice.Key] = slice.Capture();
+			}
+			return captured;
+		}
+
 		public void SaveData()
 		{
 			GameData gameData = new()
@@ -237,9 +255,7 @@ namespace WitchMendokusai
 				questStates = DataManager.QuestManager.GetQuestStates().ToDictionary(pair => pair.Key, pair => (int)pair.Value),
 				hasRecipe = DataManager.IsRecipeUnlocked,
 				hasSpecimen = DataManager.SpecimenCollected,
-				towerDefenseBestWave = DataManager.TowerDefenseBestWave,
-				towerDefenseRelics = DataManager.TowerDefenseRelics,
-				towerDefenseUnlockedTowers = DataManager.TowerDefenseUnlockedTowers,
+				featureSaves = CaptureFeatureSaves(),
 				runtimeQuests = DataManager.QuestManager.Quests.Data.Where(quest => quest.Type != QuestType.Dungeon).ToList().ConvertAll(quest => quest.Save()),
 				gameStats = DataManager.GameStat.Save(),
 				dungeons = new(),
