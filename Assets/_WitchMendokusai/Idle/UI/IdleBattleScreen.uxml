@@ -2,7 +2,7 @@
     <ui:Template name="BattleHud" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleBattleHud.uxml?fileID=9197481963319205126&amp;guid=6a8de5c0f8e744e9b88b3bbf1d8ee0c2&amp;type=3#IdleBattleHud" />
     <ui:Template name="DollPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleDollPage.uxml?fileID=9197481963319205126&amp;guid=9c82c0532a11918448f4bd19016a12ac&amp;type=3#IdleDollPage" />
     <ui:Template name="ItemPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleItemPage.uxml?fileID=9197481963319205126&amp;guid=ce07c192237564d47828fb180f4ebf1f&amp;type=3#IdleItemPage" />
-    <ui:Template name="CodexPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleCodexPage.uxml?fileID=9197481963319205126&amp;guid=634e8cf84b1b50147895a60533e5900f&amp;type=3#IdleCodexPage" />
+    <ui:Template name="DiscoveryPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleDiscoveryPage.uxml?fileID=9197481963319205126&amp;guid=634e8cf84b1b50147895a60533e5900f&amp;type=3#IdleDiscoveryPage" />
     <ui:Template name="ShopPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleShopPage.uxml?fileID=9197481963319205126&amp;guid=8a562d6bd76f1074ab0f1c23eca7d817&amp;type=3#IdleShopPage" />
     <ui:Template name="LabPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleLabPage.uxml?fileID=9197481963319205126&amp;guid=400b8b0544807484eb60c36a42c91121&amp;type=3#IdleLabPage" />
     <ui:Template name="DungeonPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleDungeonPage.uxml?fileID=9197481963319205126&amp;guid=283dcf5f880375f4cb3cc5a228db506b&amp;type=3#IdleDungeonPage" />
@@ -44,7 +44,7 @@
             <ui:ScrollView name="panel-body" class="idle-panel-body">
                 <ui:Instance template="DollPage" name="doll-page-host" />
                 <ui:Instance template="ItemPage" name="item-page-host" />
-                <ui:Instance template="CodexPage" name="codex-page-host" />
+                <ui:Instance template="DiscoveryPage" name="discovery-page-host" />
                 <ui:Instance template="ShopPage" name="shop-page-host" />
                 <ui:Instance template="LabPage" name="lab-page-host" />
                 <ui:Instance template="DungeonPage" name="dungeon-page-host" />

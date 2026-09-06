@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WitchMendokusai.DomainSDK.Discovery;
 using WitchMendokusai.DomainSDK.Upgrade;
 
 namespace WitchMendokusai.DomainSDK.Idle
@@ -30,7 +31,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>
         /// 도감 점수 — <b>모은 종류 + 올린 ★</b>. 「많이 모을수록」과 「깊이 키울수록」을 한 수로 묶는다.
         /// </summary>
-        public static int CodexScoreOf(IdleState state)
+        public static int DiscoveryScoreOf(IdleState state)
         {
             int score = 0;
 
@@ -48,15 +49,10 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// ★ 문턱마다 한 계단씩 오른다. 매끈하게 오르면 「채운 순간」이 안 느껴진다 —
         ///   느껴져야 채울 이유가 된다.
         /// </summary>
-        public static double CodexMultiplierOf(IdleState state, IdleTuning tuning)
+        public static double DiscoveryMultiplierOf(IdleState state, IdleTuning tuning)
         {
-            if (tuning.CodexStepScore <= 0)
-            {
-                return 1d;
-            }
-
-            int steps = CodexScoreOf(state) / tuning.CodexStepScore;
-            return 1d + steps * tuning.CodexStepBonus;
+            // 계단 셈은 판정 층 공용 (DiscoveryTiers). 본편 도감도 같은 계단
+            return DiscoveryTiers.MultiplierOf(DiscoveryScoreOf(state), tuning.DiscoveryStepScore, tuning.DiscoveryStepBonus);
         }
 
         /// <summary>

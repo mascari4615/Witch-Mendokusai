@@ -1,10 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine.UIElements;
+using WitchMendokusai.DomainSDK.Discovery;
 using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.Idle.UI
 {
-	public sealed class CodexPageController
+	/// <summary>
+	/// 인형 도감. 열렸나는 판정 층 등록소 (DiscoveryUnlocks, 출처 IdleHeroDiscovery) 에 묻고, 채운 정도는 DiscoveryProgress
+	/// 본편 도감과 같은 조각. 화면만 다름 (자리와 조작이 달라서)
+	/// </summary>
+	public sealed class DiscoveryPageController
 	{
 		private readonly UIContentSO content;
 		private readonly VisualTreeAsset rowAsset;
@@ -12,28 +17,30 @@ namespace WitchMendokusai.Idle.UI
 		private readonly VisualElement rows;
 		private readonly List<Label> labels = new List<Label>();
 
-		public CodexPageController(VisualElement page, VisualTreeAsset rowAsset, UIContentSO content)
+		public DiscoveryPageController(VisualElement page, VisualTreeAsset rowAsset, UIContentSO content)
 		{
 			this.rowAsset = rowAsset;
 			this.content = content;
-			summary = page.Q<Label>("codex-label");
-			rows = page.Q<VisualElement>("codex-rows");
+			summary = page.Q<Label>("discovery-label");
+			rows = page.Q<VisualElement>("discovery-rows");
 		}
 
 		public void Render(IdleSnapshot snapshot)
 		{
-			summary.text = content.CodexSummaryText(
-				snapshot.CodexScore, snapshot.CodexMultiplier, snapshot.Heroes.Length, IdleHeroes.Count);
+			DiscoveryProgress progress = new DiscoveryProgress(IdleHeroes.Count, snapshot.Heroes.Length);
+			summary.text = content.DiscoverySummaryText(
+				snapshot.DiscoveryScore, snapshot.DiscoveryMultiplier, progress.Unlocked, progress.Total);
 			EnsureRows();
 
 			for (int heroId = 0; heroId < labels.Count; heroId++)
 			{
 				IdleHeroKind kind = IdleHeroes.KindOf(heroId);
-				bool owned = TryFindHero(snapshot, heroId, out IdleHeroView hero);
+				bool held = TryFindHero(snapshot, heroId, out IdleHeroView hero);
+				bool owned = held && DiscoveryUnlocks.IsUnlocked(IdleHeroDiscovery.CATALOG_ID, IdleHeroDiscovery.EntryIdOf(heroId));
 				labels[heroId].text = owned
-					? content.CodexHeroText(kind.Name, content.StarsText(hero.Stars),
+					? content.DiscoveryHeroText(kind.Name, content.StarsText(hero.Stars),
 						content.GradeName(kind.Grade), content.AxisName(kind.Axis))
-					: content.CodexHiddenHeroText(content.GradeName(kind.Grade));
+					: content.DiscoveryHiddenHeroText(content.GradeName(kind.Grade));
 				labels[heroId].EnableInClassList("idle-row-title--dim", owned == false);
 			}
 		}

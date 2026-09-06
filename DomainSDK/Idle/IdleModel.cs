@@ -38,7 +38,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 * PotentialMultiplier(state)
                 * IdleGear.DamageMultiplier(state, tuning)
                 * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Damage)
-                * IdleHeroes.CodexMultiplierOf(state, tuning);
+                * IdleHeroes.DiscoveryMultiplierOf(state, tuning);
         }
 
         /// <summary>영웅 한 명의 한 방. 공격력과 치명타 기대값이 그 영웅의 성장에서 나옴</summary>

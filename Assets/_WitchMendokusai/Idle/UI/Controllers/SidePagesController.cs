@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.UIElements;
+using WitchMendokusai.DomainSDK.Discovery;
 using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.Idle.UI
@@ -8,7 +9,7 @@ namespace WitchMendokusai.Idle.UI
 	{
 		Doll = 0,
 		Item = 1,
-		Codex = 2,
+		Discovery = 2,
 		Shop = 3,
 		Lab = 4,
 		Dungeon = 5,
@@ -19,7 +20,7 @@ namespace WitchMendokusai.Idle.UI
 	{
 		private readonly DollPageController dollPage;
 		private readonly ItemPageController itemPage;
-		private readonly CodexPageController codexPage;
+		private readonly DiscoveryPageController discoveryPage;
 		private readonly ShopPageController shopPage;
 		private readonly LabPageController labPage;
 		private readonly DungeonPageController dungeonPage;
@@ -79,8 +80,10 @@ namespace WitchMendokusai.Idle.UI
 				writeDown,
 				requestRender,
 				playGood);
-			codexPage = new CodexPageController(
-				Bind(sidePanel, root, ManagementPage.Codex, "codex-page-host"),
+			// 인형 해금 출처를 판정 층 등록소에 꽂음. 도감 화면은 등록소에만 물음
+			DiscoveryUnlocks.Register(new IdleHeroDiscovery(session.State));
+			discoveryPage = new DiscoveryPageController(
+				Bind(sidePanel, root, ManagementPage.Discovery, "discovery-page-host"),
 				viewAssets.RowLabel,
 				content);
 			shopPage = new ShopPageController(
@@ -105,7 +108,7 @@ namespace WitchMendokusai.Idle.UI
 			{
 				case ManagementPage.Doll: dollPage.Render(snapshot); break;
 				case ManagementPage.Item: itemPage.Render(snapshot); break;
-				case ManagementPage.Codex: codexPage.Render(snapshot); break;
+				case ManagementPage.Discovery: discoveryPage.Render(snapshot); break;
 				case ManagementPage.Shop: shopPage.Render(snapshot); break;
 				case ManagementPage.Lab: labPage.Render(snapshot); break;
 				case ManagementPage.Dungeon: dungeonPage.Render(snapshot); break;

@@ -71,7 +71,7 @@ namespace WitchMendokusai.Tests
 
 			TestContext.WriteLine("[가챠곡선] 두 시간 — 안 뽑음: " + hoarding.BestStage + "단계 · 돌 "
 				+ hoarding.Stones + "  ||  뽑음: " + pulling.BestStage + "단계 · " + pulling.PullsDone
-				+ "번 뽑음 · 영웅 " + pulling.Heroes.Count + "종 · 도감 " + IdleHeroes.CodexScoreOf(pulling));
+				+ "번 뽑음, 영웅 " + pulling.Heroes.Count + "종, 도감 " + IdleHeroes.DiscoveryScoreOf(pulling));
 
 			Assert.Greater(pulling.BestStage, hoarding.BestStage,
 				"뽑아도 더 깊이 못 간다 — 환생석을 쓸 이유가 없다");
@@ -166,7 +166,7 @@ namespace WitchMendokusai.Tests
 				PlayFor(state, tuning, 24d * 3600d, true);
 
 				table.AppendLine(day + " | " + state.BestStage + " | " + state.Heroes.Count
-					+ " | " + IdleHeroes.CodexScoreOf(state) + " | " + state.Ascensions
+					+ " | " + IdleHeroes.DiscoveryScoreOf(state) + " | " + state.Ascensions
 					+ " | " + state.Stones + " | " + state.PullsDone);
 			}
 

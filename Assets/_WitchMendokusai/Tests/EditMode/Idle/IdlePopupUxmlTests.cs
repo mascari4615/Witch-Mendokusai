@@ -15,7 +15,7 @@ namespace WitchMendokusai.Tests.Idle
 				"skill-aim-line", "skill-aim-range", "skill-aim-caption", "wipe-button",
 				"side", "tabs", "tab-0", "tab-1", "tab-2", "tab-3",
 				"tab-4", "tab-5", "tab-6", "panel-title", "panel-caption", "panel-body",
-				"doll-page-host", "item-page-host", "codex-page-host", "shop-page-host", "lab-page-host",
+				"doll-page-host", "item-page-host", "discovery-page-host", "shop-page-host", "lab-page-host",
 				"dungeon-page-host", "invest-page-host", "map-popup-host", "gear-popup-host", "hero-popup-host",
 				"gold-popup-host", "settings-popup-host", "away-popup-host", "tooltip");
 		}

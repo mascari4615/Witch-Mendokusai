@@ -2,7 +2,7 @@
     <!-- 도감 탭 (layout.md §3). 값은 IdleBattleScreen 이 채운다 -->
     <Style src="BattleScreen.uss" />
     <ui:VisualElement name="page" class="idle-page">
-        <ui:Label name="codex-label" class="idle-row-title" />
-        <ui:VisualElement name="codex-rows" />
+        <ui:Label name="discovery-label" class="idle-row-title" />
+        <ui:VisualElement name="discovery-rows" />
     </ui:VisualElement>
 </ui:UXML>

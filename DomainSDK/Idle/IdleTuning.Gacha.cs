@@ -148,10 +148,10 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double HeroSupportShareByGrade { get; set; } = 0.06d;
 
         /// <summary>도감이 한 계단 오르는 데 필요한 점수(모은 종류 + 올린 ★).</summary>
-        public int CodexStepScore { get; set; } = 5;
+        public int DiscoveryStepScore { get; set; } = 5;
 
         /// <summary>도감 한 계단이 판 전체에 더해 주는 몫.</summary>
-        public double CodexStepBonus { get; set; } = 0.15d;
+        public double DiscoveryStepBonus { get; set; } = 0.15d;
     }
 }
 

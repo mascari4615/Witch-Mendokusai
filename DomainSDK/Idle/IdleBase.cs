@@ -80,7 +80,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             return total * IdleGear.BaseMultiplier(state, tuning)
                 * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Base)
                 // 도감은 <b>여기서 한 번</b> — 기지 쪽의 뿌리가 여기다 (싸움 쪽은 DamageOf).
-                * IdleHeroes.CodexMultiplierOf(state, tuning)
+                * IdleHeroes.DiscoveryMultiplierOf(state, tuning)
                 * IdleSurge.Multiplier(state, tuning)
                 // 긴급 보급 카드 — 스텝이 보급 경계에서 끊기므로 (IdleModel.Step) 이 배수는
                 // 스텝 안에서 상수다. 그래야 60초 한 번 == 0.1초 600번이 유지된다.

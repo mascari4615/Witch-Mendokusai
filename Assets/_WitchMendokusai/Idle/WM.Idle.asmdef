@@ -9,7 +9,8 @@
         "WitchMendokusai.DomainSDK.Numerics",
         "WitchMendokusai.DomainSDK.Upgrade",
         "UnityEngine.UI",
-        "Unity.Cinemachine"
+        "Unity.Cinemachine",
+        "WitchMendokusai.DomainSDK.Discovery"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

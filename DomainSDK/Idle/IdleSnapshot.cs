@@ -196,9 +196,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double RareChance { get; }
 
         /// <summary>도감 점수(모은 종류 + 올린 ★)와 그것이 주는 전체 배수.</summary>
-        public int CodexScore { get; }
+        public int DiscoveryScore { get; }
 
-        public double CodexMultiplier { get; }
+        public double DiscoveryMultiplier { get; }
 
         /// <summary>공격력 축.</summary>
         public IdleUpgradeView Damage { get; }
@@ -288,7 +288,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleHeroView[] heroes, int[] party, double pullCost, long pullStoneCost, long stones,
             double visitorSecondsLeft, IdleSurgeKind surgeKind, double surgeSecondsLeft, double surgeMultiplier,
             bool canPull, int pullsToPity, double legendChance, double epicChance, double rareChance,
-            int codexScore, double codexMultiplier,
+            int discoveryScore, double discoveryMultiplier,
             IdleUpgradeView damage, IdleUpgradeView attackSpeed, double attacksPerSecond,
             double cost, double costMax, double supplySecondsLeft, IdleCardView[] cards,
             IdleSeatView[] seats, bool repeating, int clearedStage, double enemyDamagePerSecond,
@@ -377,8 +377,8 @@ namespace WitchMendokusai.DomainSDK.Idle
             LegendChance = legendChance;
             EpicChance = epicChance;
             RareChance = rareChance;
-            CodexScore = codexScore;
-            CodexMultiplier = codexMultiplier;
+            DiscoveryScore = discoveryScore;
+            DiscoveryMultiplier = discoveryMultiplier;
             Damage = damage;
             AttackSpeed = attackSpeed;
             AttacksPerSecond = attacksPerSecond;

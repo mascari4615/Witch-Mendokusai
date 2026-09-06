@@ -36,6 +36,8 @@
   <!-- 진짜 시험 파일 (복사 X) -->
   <ItemGroup>
     <Compile Include="$(TestsRoot)DiscoveryUnlocksTest.cs" />
+    <Compile Include="$(TestsRoot)DiscoveryTiersTest.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleHeroDiscoveryTests.cs" />
     <Compile Include="$(TestsRoot)BuildingProductionModelTest.cs" />
     <Compile Include="$(TestsRoot)CityEconomyTest.cs" />
     <Compile Include="$(TestsRoot)CitySimulationSystemTest.cs" />

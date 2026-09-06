@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using WitchMendokusai.DomainSDK.Idle;
 using WitchMendokusai.DomainSDK.Upgrade;
 
@@ -221,10 +222,12 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private double heroSupportShareByGrade = 0.06d;
 
 		[Tooltip("도감 점수 몇마다 한 계단 오르나.")]
-		[SerializeField] private int codexStepScore = 5;
+		[FormerlySerializedAs("codexStepScore")]
+		[SerializeField] private int discoveryStepScore = 5;
 
 		[Tooltip("한 계단이 주는 판 전체 배수 (뿌리 둘에서 «한 번»만 걸린다).")]
-		[SerializeField] private double codexStepBonus = 0.15d;
+		[FormerlySerializedAs("codexStepBonus")]
+		[SerializeField] private double discoveryStepBonus = 0.15d;
 
 		[Header("기지")]
 		[Tooltip("생산자 종류 수.")]

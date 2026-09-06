@@ -146,7 +146,7 @@ namespace WitchMendokusai.Tests
 		/// ★ 같은 갈래는 <b>더하고</b>, 도감은 <b>곱한다</b> — 한 갈래에 몰아줄수록 수확이 체감한다.
 		/// </summary>
 		[Test]
-		public void SameAxisAdds_CodexMultiplies()
+		public void SameAxisAdds_DiscoveryMultiplies()
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
@@ -167,19 +167,19 @@ namespace WitchMendokusai.Tests
 
 		/// <summary>★ 도감은 <b>문턱마다 계단</b>으로 오른다 — 매끈하면 채운 순간이 안 느껴진다.</summary>
 		[Test]
-		public void Codex_RisesInSteps()
+		public void Discovery_RisesInSteps()
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
 
-			double before = IdleHeroes.CodexMultiplierOf(state, tuning);
+			double before = IdleHeroes.DiscoveryMultiplierOf(state, tuning);
 
-			for (int id = 0; id < tuning.CodexStepScore; id++)
+			for (int id = 0; id < tuning.DiscoveryStepScore; id++)
 			{
 				state.Heroes.Add(new IdleHeroOwned(id));
 			}
 
-			Assert.Greater(IdleHeroes.CodexMultiplierOf(state, tuning), before, "문턱을 넘었는데 안 올랐다");
+			Assert.Greater(IdleHeroes.DiscoveryMultiplierOf(state, tuning), before, "문턱을 넘었는데 안 올랐다");
 		}
 
 		/// <summary>
@@ -394,7 +394,7 @@ namespace WitchMendokusai.Tests
 		/// 숨은 지수는 곡선을 통째로 거짓말로 만든다.
 		/// </summary>
 		[Test]
-		public void TheCodexBonus_LandsExactlyOnce()
+		public void TheDiscoveryBonus_LandsExactlyOnce()
 		{
 			IdleTuning tuning = new IdleTuning();
 
@@ -402,13 +402,13 @@ namespace WitchMendokusai.Tests
 			IdleState read = Board(tuning);
 
 			// 도감 점수만 채운다 — 축 배수(보유·파티)는 양쪽 다 똑같이 없다.
-			for (int id = 0; id < tuning.CodexStepScore; id++)
+			for (int id = 0; id < tuning.DiscoveryStepScore; id++)
 			{
 				read.Heroes.Add(new IdleHeroOwned(id));
 			}
 
-			double codex = IdleHeroes.CodexMultiplierOf(read, tuning);
-			Assert.Greater(codex, 1d, "잴 것이 없다 — 도감이 아무 배수도 안 준다");
+			double discovery = IdleHeroes.DiscoveryMultiplierOf(read, tuning);
+			Assert.Greater(discovery, 1d, "잴 것이 없다, 도감이 아무 배수도 안 준다");
 
 			// ⚠ 견주는 쪽에 AxisMultiplierOf 를 쓰면 <b>눈뜬장님</b>이 된다 (실측 2026-08-17):
 			//   도감이 그 안에 도로 들어가면 양쪽이 같이 움직여 빨강-확인이 통과해 버렸다.
@@ -421,7 +421,7 @@ namespace WitchMendokusai.Tests
 
 			double ownedBase = IdleHeroes.OwnedMultiplierOf(read, tuning, IdleHeroAxis.Base)
 				* IdleHeroes.PartyMultiplierOf(read, tuning, IdleHeroAxis.Base);
-			Assert.AreEqual(IdleBase.OutputPerSecond(bare, tuning) * ownedBase * codex,
+			Assert.AreEqual(IdleBase.OutputPerSecond(bare, tuning) * ownedBase * discovery,
 				IdleBase.OutputPerSecond(read, tuning), 1e-6d,
 				"기지가 도감을 한 번 못 받거나 두 번 받는다");
 		}
