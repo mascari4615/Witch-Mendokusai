@@ -158,7 +158,7 @@ namespace WitchMendokusai.Idle.UI
 					: content.EmptyPartySeatText(tag);
 				if (heroId >= 0)
 				{
-					heroVisualPresenter.SetPortrait(portrait, heroId);
+					heroVisualPresenter.SetFace(portrait, heroId);
 				}
 
 				seat.EnableInClassList("idle-party-seat--picking", selectingSeat == slot);

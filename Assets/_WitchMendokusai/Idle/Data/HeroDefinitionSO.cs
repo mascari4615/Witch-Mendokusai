@@ -13,6 +13,9 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string displayName;
 		[FormerlySerializedAs("<Sprite>k__BackingField")]
 		[SerializeField] private Sprite portrait;
+
+		[Tooltip("카드와 편성 자리용 정사각 얼굴 (머리와 어깨). 비면 portrait 를 씀. 2026-09-21 Codex 일러")]
+		[SerializeField] private Sprite cardPortrait;
 		[SerializeField] private IdleHeroAxis axis;
 		[SerializeField] private IdleHeroGrade grade;
 		[SerializeField, Min(3)] private int sides = 3;
@@ -25,6 +28,9 @@ namespace WitchMendokusai.Idle
 		public int ID => id;
 		public string Name => displayName;
 		public Sprite Sprite => portrait;
+
+		/// <summary>카드, 자리 아이콘용 얼굴. 없으면 반신 초상</summary>
+		public Sprite Face => cardPortrait != null ? cardPortrait : portrait;
 		public IdleHeroAxis Axis => axis;
 		public IdleHeroGrade Grade => grade;
 		public int Sides => sides;

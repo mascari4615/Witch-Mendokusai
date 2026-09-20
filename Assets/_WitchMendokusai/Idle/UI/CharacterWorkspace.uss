@@ -177,23 +177,7 @@
 .idle-growth .idle-stat-label--raised { color: rgb(245, 175, 16); }
 .idle-growth .idle-stat-rows { margin-bottom: 0; }
 
-.idle-hand {
-    padding: 16px 20px;
-    background-color: rgba(22, 25, 28, 0.96);
-    border-radius: 8px;
-}
-
-.idle-hand .idle-cost {
-    width: 100%;
-}
-
-.idle-hand .idle-skill-auto {
-    position: relative;
-    right: auto;
-    bottom: auto;
-    margin-left: 12px;
-    flex-shrink: 0;
-}
+/* 손패 판은 2026-09-21 시안 C 로 삭제. 배치와 색은 BattleScreen.uss 의 .idle-hand 가 정본 */
 
 .idle-modal-panel .idle-tab--close {
     flex-basis: auto;

@@ -34,6 +34,12 @@ namespace WitchMendokusai.Idle
 			return id >= 0 && id < heroes.Count && heroes[id] != null ? heroes[id].Sprite : null;
 		}
 
+		/// <summary>카드와 자리 아이콘용 얼굴</summary>
+		public Sprite FaceOf(int id)
+		{
+			return id >= 0 && id < heroes.Count && heroes[id] != null ? heroes[id].Face : null;
+		}
+
 		public bool TryValidate(out string error)
 		{
 			if (heroes.Count == 0)

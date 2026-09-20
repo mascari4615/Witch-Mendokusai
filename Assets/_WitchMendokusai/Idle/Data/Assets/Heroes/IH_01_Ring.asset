@@ -15,7 +15,8 @@ MonoBehaviour:
   <ID>k__BackingField: 1
   <Name>k__BackingField: 링
   <Description>k__BackingField:
-  <Sprite>k__BackingField: {fileID: 21300000, guid: 3b5b0db8554696045ba299cd57fe2627, type: 3}
+  portrait: {fileID: 21300000, guid: 9250b358fd8c4573b7db8f26c00eb99f, type: 3}
+  cardPortrait: {fileID: 21300000, guid: 526d4f90a3424eb3ad4095c4988ce5cd, type: 3}
   <Sprites>k__BackingField: []
   axis: 0
   grade: 1

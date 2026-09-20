@@ -15,7 +15,8 @@ MonoBehaviour:
   <ID>k__BackingField: 5
   <Name>k__BackingField: 섬 소녀
   <Description>k__BackingField:
-  <Sprite>k__BackingField: {fileID: 21300000, guid: 3b5b0db8554696045ba299cd57fe2627, type: 3}
+  portrait: {fileID: 21300000, guid: 9b64c9d6310841f5a157cd0819444336, type: 3}
+  cardPortrait: {fileID: 21300000, guid: 53da8a5fd35f4d558f709ae503169d72, type: 3}
   <Sprites>k__BackingField: []
   axis: 3
   grade: 0

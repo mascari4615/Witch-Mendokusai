@@ -125,7 +125,7 @@ namespace WitchMendokusai.Idle.UI
 				if (shownOwners[index] != card.OwnerHeroId)
 				{
 					shownOwners[index] = card.OwnerHeroId;
-					heroVisualPresenter.SetPortrait(faces[index], card.OwnerHeroId);
+					heroVisualPresenter.SetFace(faces[index], card.OwnerHeroId);
 				}
 				buttons[index].SetEnabled(card.CanCast);
 				buttons[index].EnableInClassList("idle-card--ready", card.CanCast);

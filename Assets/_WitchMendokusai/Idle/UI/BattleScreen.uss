@@ -430,19 +430,19 @@
 
 .idle-card-face {
 	position: absolute;
-	left: 10px;
-	top: 2px;
-	width: 96px;
-	height: 96px;
-	-unity-background-scale-mode: scale-to-fit;
+	left: 0;
+	top: 0;
+	width: 122px;
+	height: 122px;
+	-unity-background-scale-mode: scale-and-crop;
 }
 
 .idle-card-icon {
 	position: absolute;
 	right: 4px;
-	top: 38px;
-	width: 38px;
-	height: 38px;
+	top: 40px;
+	width: 34px;
+	height: 34px;
 	padding: 5px;
 	background-color: rgba(0, 0, 0, 0.75);
 	-unity-background-scale-mode: scale-to-fit;
@@ -470,7 +470,7 @@
 .idle-card-slot {
 	position: absolute;
 	left: 9px;
-	bottom: 30px;
+	bottom: 78px;
 	width: 20px;
 	height: 20px;
 	font-size: 13px;

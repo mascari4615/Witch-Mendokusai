@@ -15,7 +15,8 @@ MonoBehaviour:
   <ID>k__BackingField: 2
   <Name>k__BackingField: 알리사
   <Description>k__BackingField:
-  <Sprite>k__BackingField: {fileID: 21300000, guid: 265c77f526eb504408310d9d51c65e69, type: 3}
+  portrait: {fileID: 21300000, guid: 9c300b7e122448b7a17263aaa4582f11, type: 3}
+  cardPortrait: {fileID: 21300000, guid: 988cb67987cd411d8f9e8f3ef79b8330, type: 3}
   <Sprites>k__BackingField: []
   axis: 2
   grade: 1
