@@ -47,6 +47,13 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleBattle battle = arena.Battle;
             battle.Hits.Clear();
 
+            if (arena.Dungeon && state.Dungeon.Finished)
+            {
+                // 끝난 판. 전장은 멈춘 채 결과까지의 초만 (Reset 이 적을 다시 세우면 안 됨)
+                IdleDungeons.TickRun(state, tuning, seconds);
+                return;
+            }
+
             if (battle.Ready == false || (arena.Dungeon == false && battle.StageSeen != state.Stage))
             {
                 Reset(state, tuning, arena);
@@ -81,9 +88,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                     CacheSeatStats(state, tuning, arena);
                 }
 
-                if (arena.Dungeon && state.Dungeon.Active == false)
+                if (arena.Dungeon && (state.Dungeon.Active == false || state.Dungeon.Finished))
                 {
-                    // 판이 끝남. 남은 틱은 본판만의 것
+                    // 판이 끝남. 남은 틱은 본판만의 것 (끝난 판의 결과 대기 초는 TickRun 이 셈)
+                    IdleDungeons.TickRun(state, tuning, (ticks - at - 1) * tick);
                     break;
                 }
             }
@@ -198,9 +206,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             long kills = ClearDead(state, tuning, arena);
 
-            if (arena.Dungeon && state.Dungeon.Active == false)
+            if (arena.Dungeon && state.Dungeon.Finished)
             {
-                // 던전 판이 처치로 끝남 (보스, 마지막 웨이브)
+                // 던전 판이 처치로 끝남 (보스, 마지막 웨이브). 전장은 멈추고 결과 대기
                 return kills;
             }
 

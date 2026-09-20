@@ -43,7 +43,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
             }
 
-            if (kills > 0L && arena.Dungeon && state.Dungeon.Active && battle.Foes.Count == 0)
+            if (kills > 0L && arena.Dungeon && state.Dungeon.Active && state.Dungeon.Finished == false && battle.Foes.Count == 0)
             {
                 // 던전 웨이브 하나를 다 잡음. 장비 던전은 여기서 장비, 마지막이면 끝
                 IdleDungeons.OnWaveCleared(state, tuning);

@@ -108,6 +108,7 @@ namespace WitchMendokusai.Idle
 			ApplyDungeonLook(snapshot);
 			ReshapeScenery(dungeonLook != null ? dungeonLook.SceneryShape : Geometry.ShapeOfStage(snapshot.Stage, presentationAsset.ShapeStagesPerStep));
 			Follow(snapshot);
+			entities.SetSpawnEdge(cameraDirector.GroundRightEdgeX(worldRoot));
 			entities.Render(snapshot, delta);
 			fx.Consume(snapshot.Hits, entities);
 			fx.Advance(delta, entities);

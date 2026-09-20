@@ -36,6 +36,14 @@ namespace WitchMendokusai.Idle
 			public float FoeEntranceDistance { get; set; }
 			public float FoeEntranceSpeed { get; set; }
 			public float FoeEntranceThreshold { get; set; }
+			/// <summary>새 적은 화면 오른쪽 가장자리에서 이만큼 더 밖에서 (사용자 2026-09-20: 생성이 보이면 안 됨)</summary>
+			public float FoeSpawnMargin { get; set; }
+			/// <summary>가장자리가 멀어도 이 초 안에는 제자리. 시뮬은 이미 싸우고 있음</summary>
+			public float FoeEntranceSeconds { get; set; }
+			/// <summary>등장 순간 커지는 시간. 0 이면 바로 제 크기</summary>
+			public float FoeSpawnPopSeconds { get; set; }
+			/// <summary>죽은 적이 쓰러져 사라지기까지. 한 방 보스도 이만큼은 보임</summary>
+			public float FoeFallSeconds { get; set; }
 			public float FoeSpinDegrees { get; set; }
 			public float FoeBobHeight { get; set; }
 			public float FoeBobFrequency { get; set; }
@@ -109,6 +117,9 @@ namespace WitchMendokusai.Idle
 
 		/// <summary>던전 그림. null 이면 본판 (구역 도형)</summary>
 		public void SetFoeLook(DungeonSO dungeon) => foes.SetLook(dungeon);
+
+		/// <summary>화면 오른쪽 가장자리의 세상 x. 새 적은 이 밖에서 들어온다. NaN 이면 모름</summary>
+		public void SetSpawnEdge(float worldX) => foes.SetSpawnEdge(worldX);
 
 		public void Render(IdleSnapshot snapshot, float delta)
 		{

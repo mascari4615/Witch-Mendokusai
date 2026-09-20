@@ -184,6 +184,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             // 던전 판이 살아 있는 채로 자리를 비웠으면 그 자리에서 끝냄. 얻은 것만 (changes/idle-dungeon-run)
             IdleDungeons.EndRun(state, tuning, false);
+            IdleDungeons.Dismiss(state);
             IdleModel.StepAway(state, tuning, away);
             return away;
         }

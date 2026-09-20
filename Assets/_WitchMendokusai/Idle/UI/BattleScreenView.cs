@@ -224,6 +224,7 @@ namespace WitchMendokusai.Idle.UI
 				() => selectionPopupCoordinator.HeroId,
 				() => selectionPopupCoordinator.GearSeat,
 				() => selectionPopupCoordinator.SelectingPartySeat,
+				slot => selectionPopupCoordinator.FocusHero(slot),
 				slot => selectionPopupCoordinator.OpenHero(slot),
 				slot => selectionPopupCoordinator.OpenGear(slot),
 				() => auxiliaryPopupCoordinator.OpenOdds(),
@@ -278,17 +279,24 @@ namespace WitchMendokusai.Idle.UI
 				settings.NoteSeconds);
 		}
 
-		/// <summary>HUD 나가기. 얻은 것 들고 즉시 복귀, 판은 실패 (사용자 2026-09-08)</summary>
+		/// <summary>
+		/// HUD 나가기. 싸우는 중이면 판을 실패로 끝내고 결과 (사용자 2026-09-08 얻은 것은 들고),
+		/// 결과를 보는 중이면 본판으로 (사용자 2026-09-20 던전 안에서 결과 보고 클릭해야 나옴)
+		/// </summary>
 		private void LeaveDungeon()
 		{
 			if (session.TryLeaveDungeon())
 			{
+				dungeonResultPopup.style.display = DisplayStyle.None;
 				writeDown();
 				RequestRender();
 			}
 		}
 
-		/// <summary>던전 판이 끝나면 (결과 번호가 바뀌면) 결과 팝업 한 번. 첫 사진은 기준만 잡음</summary>
+		/// <summary>
+		/// 던전 판이 끝나면 결과를 던전 안에서. 끝난 뒤 RESULT_DELAY 가 지나야 (ResultReady) 한 번 띄우고,
+		/// 나가기를 눌러야 판이 지워지고 본판. 첫 사진은 기준만 잡음
+		/// </summary>
 		private void WatchDungeonResult(IdleSnapshot snapshot)
 		{
 			if (shownDungeonResult < 0L)
@@ -297,13 +305,20 @@ namespace WitchMendokusai.Idle.UI
 				return;
 			}
 
-			if (snapshot.DungeonResultSequence == shownDungeonResult)
+			if (snapshot.DungeonRun.Active == false)
+			{
+				dungeonResultPopup.style.display = DisplayStyle.None;
+				shownDungeonResult = snapshot.DungeonResultSequence;
+				return;
+			}
+
+			if (snapshot.DungeonResultSequence == shownDungeonResult || snapshot.DungeonRun.ResultReady == false)
 			{
 				return;
 			}
 
 			shownDungeonResult = snapshot.DungeonResultSequence;
-			DungeonResultPresenter.Bind(dungeonResultPopup, snapshot.LastDungeonResult, content);
+			DungeonResultPresenter.Bind(dungeonResultPopup, snapshot.LastDungeonResult, content, LeaveDungeon);
 		}
 
 		private VisualElement UsePopup(string hostName)

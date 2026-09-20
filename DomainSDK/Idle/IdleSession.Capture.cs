@@ -128,7 +128,8 @@ namespace WitchMendokusai.DomainSDK.Idle
         {
             IdleDungeonRun run = state.Dungeon;
             return new IdleDungeonRunView(run.Active, run.Kind, run.Difficulty, run.Stage, run.SecondsLeft, run.TimeLimitSeconds,
-                run.WavesCleared, run.Waves, run.Kills, run.Gold, run.Shards, run.Gear);
+                run.WavesCleared, run.Waves, run.Kills, run.Gold, run.Shards, run.Gear,
+                run.Finished, run.Cleared, run.SecondsSinceFinish);
         }
 
         /// <summary>

@@ -6,7 +6,7 @@ using WitchMendokusai.DomainSDK.Idle;
 namespace WitchMendokusai.Idle
 {
 	/// <summary>적, 체력바, 도형과 보스 껍질 동작 표시</summary>
-	internal sealed class BattleFoePresenter
+	internal sealed partial class BattleFoePresenter
 	{
 		private sealed class Foe
 		{
@@ -27,6 +27,8 @@ namespace WitchMendokusai.Idle
 			public float FlashLeft;
 			public bool Aimed;
 			public bool Entering;
+			/// <summary>등장 뒤 흐른 초. 커지는 연출 (FoeSpawnPopSeconds)</summary>
+			public float Age;
 			public Color RestColor = Color.white;
 			public BossShell Shell;
 		}
@@ -35,6 +37,9 @@ namespace WitchMendokusai.Idle
 		private readonly BattleEntityPresenter.Settings settings;
 		private readonly List<Foe> foes = new List<Foe>();
 		private readonly Dictionary<long, Vector3> removedHeads = new Dictionary<long, Vector3>();
+		private readonly List<Fallen> fallen = new List<Fallen>();
+		/// <summary>화면 오른쪽 가장자리의 세상 x. NaN 이면 모름 (그러면 FoeEntranceDistance 만)</summary>
+		private float spawnEdge = float.NaN;
 		private float clock;
 		/// <summary>지금 조준선이 걸린 적. 없으면 -1</summary>
 		private long aimTarget = -1L;
@@ -54,7 +59,10 @@ namespace WitchMendokusai.Idle
 			Dress(snapshot, delta);
 			snapNext = false;
 			AdvanceMotion(delta);
+			AdvanceFallen(delta);
 		}
+
+		public void SetSpawnEdge(float worldX) => spawnEdge = worldX;
 
 		public void PlayHit(long index)
 		{
@@ -147,6 +155,10 @@ namespace WitchMendokusai.Idle
 			{
 				foe.Piece.localPosition += new Vector3(dx, 0f, 0f);
 			}
+			foreach (Fallen body in fallen)
+			{
+				if (body.Piece != null) { body.Piece.localPosition += new Vector3(dx, 0f, 0f); }
+			}
 		}
 
 		public void SnapNext()
@@ -164,6 +176,7 @@ namespace WitchMendokusai.Idle
 				BattleVisualFactory.Kill(foe.Piece.gameObject);
 			}
 			foes.Clear();
+			ClearFallen();
 			look = dungeon;
 		}
 
@@ -179,7 +192,7 @@ namespace WitchMendokusai.Idle
 				removedHeads[foes[at].Index] =
 					foes[at].Piece.position + Vector3.up * settings.FoeHeadHeight;
 				BattleVisualFactory.Kill(foes[at].BarAnchor.gameObject);
-				BattleVisualFactory.Kill(foes[at].Piece.gameObject);
+				Fall(foes[at]);
 				foes.RemoveAt(at);
 			}
 
@@ -217,8 +230,18 @@ namespace WitchMendokusai.Idle
 				Vector3 wanted = new Vector3((float)view.X, lift, (float)view.Y);
 				if (entering)
 				{
-					foe.Piece.localPosition = wanted + Vector3.right * settings.FoeEntranceDistance;
+					// 화면 밖에서 들어온다. 가장자리를 알면 그 밖, 모르면 정해진 거리만큼 오른쪽
+					float startX = wanted.x + settings.FoeEntranceDistance;
+					if (float.IsNaN(spawnEdge) == false)
+					{
+						startX = Mathf.Max(startX, spawnEdge + settings.FoeSpawnMargin);
+					}
+					foe.Piece.localPosition = new Vector3(startX, wanted.y, wanted.z);
+					foe.Age = 0f;
+					foe.FlashLeft = settings.FoeFlashSeconds;
 				}
+
+				foe.Age += delta;
 
 				if (snapNext)
 				{
@@ -227,8 +250,11 @@ namespace WitchMendokusai.Idle
 				}
 				else if (foe.Entering)
 				{
+					// 멀리서 시작해도 FoeEntranceSeconds 안에는 닿는다. 시뮬은 이미 싸우고 있으니
+					float gap = Vector3.Distance(foe.Piece.localPosition, wanted);
+					float speed = Mathf.Max(settings.FoeEntranceSpeed, gap / settings.FoeEntranceSeconds);
 					foe.Piece.localPosition = Vector3.MoveTowards(
-						foe.Piece.localPosition, wanted, settings.FoeEntranceSpeed * delta);
+						foe.Piece.localPosition, wanted, speed * delta);
 					foe.Entering = Vector3.Distance(foe.Piece.localPosition, wanted) >
 						settings.FoeEntranceThreshold;
 				}
@@ -256,7 +282,10 @@ namespace WitchMendokusai.Idle
 					Repaint(foe, stage);
 				}
 
-				foe.Model.localScale = new Vector3(health * bulk, bulk, health * bulk);
+				float pop = settings.FoeSpawnPopSeconds > 0f
+					? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(foe.Age / settings.FoeSpawnPopSeconds))
+					: 1f;
+				foe.Model.localScale = new Vector3(health * bulk, bulk, health * bulk) * pop;
 				foe.BarAnchor.position = foe.Piece.position;
 				foe.Bar.SetVisible(view.Boss == false);
 
@@ -402,41 +431,6 @@ namespace WitchMendokusai.Idle
 			return foe;
 		}
 
-		private void AdvanceMotion(float delta)
-		{
-			clock += delta;
-
-			for (int index = 0; index < foes.Count; index++)
-			{
-				Foe foe = foes[index];
-				foe.Model.Rotate(Vector3.up, settings.FoeSpinDegrees * delta, Space.Self);
-				AdvanceFlash(foe, delta);
-
-				Vector3 position = foe.Model.localPosition;
-				position.y = BattleMotion.FoeBob(
-					clock, index, settings.FoeBobHeight, settings.FoeBobFrequency, settings.FoeBobPhaseStep);
-				foe.Model.localPosition = position;
-			}
-		}
-
-		private void AdvanceFlash(Foe foe, float delta)
-		{
-			if (foe.FlashLeft <= 0f)
-			{
-				return;
-			}
-
-			foe.FlashLeft -= delta;
-			float share = Mathf.Clamp01(foe.FlashLeft / settings.FoeFlashSeconds);
-			Color made = Color.Lerp(foe.RestColor, Color.white, share * settings.FoeFlashWhiten);
-
-			foe.Skin.color = made;
-			if (foe.Skin.HasProperty("_BaseColor"))
-			{
-				foe.Skin.SetColor("_BaseColor", made);
-			}
-		}
-
 		private static int IndexOf(IdleFoeView[] views, long index)
 		{
 			for (int at = 0; at < views.Length; at++)
@@ -464,3 +458,4 @@ namespace WitchMendokusai.Idle
 		}
 	}
 }
+

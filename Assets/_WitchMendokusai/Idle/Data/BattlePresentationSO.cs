@@ -70,6 +70,10 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private float foeEntranceDistance = 6f;
 		[SerializeField] private float foeEntranceSpeed = 5f;
 		[SerializeField] private float foeEntranceThreshold = 0.05f;
+		[SerializeField] private float foeSpawnMargin = 2f;
+		[SerializeField] private float foeEntranceSeconds = 0.8f;
+		[SerializeField] private float foeSpawnPopSeconds = 0.25f;
+		[SerializeField] private float foeFallSeconds = 0.6f;
 		[SerializeField] private float foeSpinDegrees = 12f;
 		[SerializeField] private float foeBobHeight = 0.025f;
 		[SerializeField] private float foeBobFrequency = 2.4f;
@@ -355,6 +359,10 @@ namespace WitchMendokusai.Idle
 				FoeEntranceDistance = foeEntranceDistance,
 				FoeEntranceSpeed = foeEntranceSpeed,
 				FoeEntranceThreshold = foeEntranceThreshold,
+				FoeSpawnMargin = foeSpawnMargin,
+				FoeEntranceSeconds = foeEntranceSeconds,
+				FoeSpawnPopSeconds = foeSpawnPopSeconds,
+				FoeFallSeconds = foeFallSeconds,
 				FoeSpinDegrees = foeSpinDegrees,
 				FoeBobHeight = foeBobHeight,
 				FoeBobFrequency = foeBobFrequency,
@@ -417,6 +425,7 @@ namespace WitchMendokusai.Idle
 				|| allyBarHeight <= 0f || allyBarWidth <= 0f || allyBarThickness <= 0f
 				|| allyWalkBobHeight < 0f
 				|| allyLungeDistance < 0f || allyHurtDistance < 0f || foeEntranceThreshold < 0f
+				|| foeSpawnMargin < 0f || foeEntranceSeconds <= 0f || foeSpawnPopSeconds < 0f || foeFallSeconds < 0f
 				|| foeHeadHeight <= 0f || foePickRadius <= 0f || foeMinHealthScale <= 0f
 				|| foeMinHealthScale > 1f || foeBarHeight <= 0f || foeBarWidth <= 0f
 				|| foeBarThickness <= 0f

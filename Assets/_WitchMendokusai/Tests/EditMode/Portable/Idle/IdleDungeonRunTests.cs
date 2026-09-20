@@ -8,7 +8,8 @@ namespace WitchMendokusai.Tests
 	///
 	/// ★ 지키는 것: 입장권 한 장에 판 하나, 던전은 본판 위 두 번째 전장 (본판은 계속 돌고 체력은 따로),
 	///   칸은 난이도 x 스테이지 (앞 칸을 깨야 다음), 시간과 보스와 웨이브가 끝을 정함, 전멸과 나가기는 얻은 것만,
-	///   소탕은 깬 칸만, 규칙 값은 튜닝이 줌
+	///   소탕은 깬 칸만, 규칙 값은 튜닝이 줌.
+	///   끝난 판은 던전 안에서 멈춰 결과를 보이고 (Finished), 나가기를 눌러야 본판 (사용자 2026-09-20)
 	/// </summary>
 	public sealed class IdleDungeonRunTests
 	{
@@ -104,7 +105,9 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(IdleDungeons.TickRun(state, tuning, cell.TimeLimitSeconds * 0.5d));
 			Assert.IsTrue(IdleDungeons.TickRun(state, tuning, cell.TimeLimitSeconds * 0.5d), "시간이 다 됐는데 안 끝났다");
 
-			Assert.IsFalse(state.Dungeon.Active);
+			Assert.IsTrue(state.Dungeon.Active, "끝난 판이 결과도 안 보이고 사라졌다");
+			Assert.IsTrue(state.Dungeon.Finished);
+			Assert.IsTrue(state.Dungeon.Cleared);
 			Assert.IsTrue(state.LastDungeonResult.Cleared, "재화 던전은 시간을 버티면 클리어");
 			Assert.AreEqual(2L, state.LastDungeonResult.Kills);
 			Assert.AreEqual(2d * perKill, state.LastDungeonResult.Gold, 1e-6d);
@@ -130,6 +133,41 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(cell.Shards, state.LastDungeonResult.Shards);
 			Assert.AreEqual((int)cell.GearCount, state.LastDungeonResult.Gear);
 			Assert.AreEqual(0d, state.LastDungeonResult.Gold, 1e-9d, "보스 던전이 골드를 줬다");
+			Assert.IsTrue(IdleDungeons.IsCleared(state, IdleDungeonKind.Boss, 0, 0));
+		}
+
+		/// <summary>
+		/// ★ 끝난 판은 던전 안에 멈춰 있다 (사용자 2026-09-20 "던전 안에서 결과 보여주고 클릭하면 그때 나온다").
+		///   시계는 결과까지의 초만 세고, 결과는 RESULT_DELAY 뒤에, 나가기가 판을 지운다
+		/// </summary>
+		[Test]
+		public void FinishedRun_StaysInTheDungeon_UntilLeave()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = Ready(tuning);
+			Assert.IsTrue(IdleDungeons.TryStart(state, tuning, IdleDungeonKind.Boss, 0, 0));
+			Assert.IsTrue(IdleDungeons.OnKill(state, tuning, true));
+
+			Assert.IsTrue(state.Dungeon.Active, "보스를 잡자마자 본판으로 튕겼다");
+			Assert.IsTrue(state.Dungeon.Finished);
+			Assert.IsTrue(state.Dungeon.Cleared);
+			Assert.IsTrue(state.ActiveArena.Dungeon, "결과 보는 동안 보는 전장이 본판이다");
+			Assert.AreEqual(0, state.Dungeon.Battle.Foes.Count);
+			Assert.IsFalse(IdleDungeons.Dismiss(new IdleState()), "판이 없는데 나가졌다");
+
+			Assert.IsTrue(IdleDungeons.TickRun(state, tuning, IdleDungeons.RESULT_DELAY_SECONDS * 0.5d), "끝난 판의 시계가 돈다");
+			Assert.AreEqual(IdleDungeons.RESULT_DELAY_SECONDS * 0.5d, state.Dungeon.SecondsSinceFinish, 1e-9d);
+			Assert.IsTrue(IdleDungeons.OnKill(state, tuning, true) == false && state.DungeonResultSequence == 1L, "끝난 판에서 처치가 결과를 또 냈다");
+			IdleDungeons.EndRun(state, tuning, false);
+			Assert.IsTrue(state.Dungeon.Cleared, "끝난 판을 다시 끝내니 결과가 뒤집혔다");
+
+			IdleBattleSim.Advance(state, tuning, 1d);
+			Assert.AreEqual(0, state.Dungeon.Battle.Foes.Count, "멈춘 전장에 적이 또 섰다");
+			Assert.GreaterOrEqual(state.Dungeon.SecondsSinceFinish, IdleDungeons.RESULT_DELAY_SECONDS);
+
+			Assert.IsTrue(IdleDungeons.Leave(state, tuning));
+			Assert.IsFalse(state.Dungeon.Active);
+			Assert.IsFalse(state.Dungeon.Finished);
 			Assert.IsTrue(IdleDungeons.IsCleared(state, IdleDungeonKind.Boss, 0, 0));
 		}
 
@@ -306,6 +344,9 @@ namespace WitchMendokusai.Tests
 
 			IdleBattleSim.Advance(state, tuning, 0.1d);
 
+			Assert.IsTrue(state.Dungeon.Finished, "전멸했는데 판이 안 끝났다");
+			Assert.IsFalse(state.Dungeon.Cleared);
+			Assert.IsTrue(IdleDungeons.Leave(state, tuning), "결과를 보고 나가기가 안 됐다");
 			Assert.IsFalse(state.Dungeon.Active);
 			Assert.IsFalse(state.LastDungeonResult.Cleared);
 			Assert.AreEqual(loot, state.LastDungeonResult.Gold, 1e-9d);
@@ -351,6 +392,7 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(IdleDungeons.TryStart(state, tuning, IdleDungeonKind.Gold, 0, 0));
 			IdleDungeonStageSpec cell = IdleDungeons.CellOf(tuning, IdleDungeonKind.Gold, 0, 0);
 			IdleDungeons.TickRun(state, tuning, cell.TimeLimitSeconds);
+			Assert.IsTrue(IdleDungeons.Dismiss(state), "시간이 다 된 판의 결과를 못 닫았다");
 			double before = state.Resource;
 			double perRun = IdleDungeons.SweepGoldOf(state, tuning, IdleDungeonKind.Gold, cell);
 
@@ -375,6 +417,8 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(IdleDungeons.TryStart(state, tuning, IdleDungeonKind.Boss, 0, 0));
 			Assert.IsFalse(IdleDungeons.TrySweep(state, tuning, IdleDungeonKind.Boss, 0, 0, out IdleDungeonReward _), "판 안에서 소탕이 됐다");
 			IdleDungeons.EndRun(state, tuning, false);
+			Assert.IsFalse(IdleDungeons.TrySweep(state, tuning, IdleDungeonKind.Boss, 0, 0, out IdleDungeonReward _), "결과 보는 중에 소탕이 됐다");
+			Assert.IsTrue(IdleDungeons.Dismiss(state));
 
 			Assert.IsTrue(IdleDungeons.TrySweep(state, tuning, IdleDungeonKind.Boss, 0, 0, out IdleDungeonReward all));
 			Assert.AreEqual(tuning.TicketsPerDay - 1L, (long)all.Runs);
@@ -391,6 +435,8 @@ namespace WitchMendokusai.Tests
 			MarkCleared(state, IdleDungeonKind.Gear, 2, 4);
 			Assert.IsTrue(IdleDungeons.TryStart(state, tuning, IdleDungeonKind.Gold, 0, 0));
 			IdleDungeons.TickRun(state, tuning, 1e9d);
+			Assert.IsFalse(IdleDungeons.TryStart(state, tuning, IdleDungeonKind.Boss, 0, 0), "결과 보는 중에 다른 판이 열렸다");
+			Assert.IsTrue(IdleDungeons.Dismiss(state));
 			Assert.IsTrue(IdleDungeons.TryStart(state, tuning, IdleDungeonKind.Boss, 0, 0));
 
 			IdleState loaded = new IdleState();

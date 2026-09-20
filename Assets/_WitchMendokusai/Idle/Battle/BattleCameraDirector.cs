@@ -118,6 +118,37 @@ namespace WitchMendokusai.Idle
 		/// <summary>지금 카메라가 옮겨 가는 중인가. 화면이 그 사이 소리를 줄이는 데 씀</summary>
 		public bool Blending => brain != null && brain.IsBlending;
 
+		/// <summary>
+		/// 화면 오른쪽 가장자리가 바닥 (y=0) 과 만나는 곳의 <paramref name="worldRoot"/> 기준 x.
+		/// 위아래 모서리 중 더 먼 쪽. 카메라가 없거나 바닥을 못 보면 NaN
+		///
+		/// ★ 새 적을 이 밖에 세우려고. 화면 비율이 달라도 (에디터 넓은 Game 뷰, 세로 폰) 늘 밖
+		/// </summary>
+		public float GroundRightEdgeX(Transform worldRoot)
+		{
+			Camera camera = brain != null ? brain.OutputCamera : Camera.main;
+			if (camera == null)
+			{
+				return float.NaN;
+			}
+
+			Plane ground = new Plane(Vector3.up, worldRoot.position);
+			float edge = float.NaN;
+			for (int corner = 0; corner < 2; corner++)
+			{
+				Ray ray = camera.ViewportPointToRay(new Vector3(1f, corner, 0f));
+				if (ground.Raycast(ray, out float distance) == false)
+				{
+					continue;
+				}
+
+				float x = worldRoot.InverseTransformPoint(ray.GetPoint(distance)).x;
+				edge = float.IsNaN(edge) ? x : Mathf.Max(edge, x);
+			}
+
+			return edge;
+		}
+
 		private static void SetPriority(CinemachineCamera camera, bool shown)
 		{
 			if (camera != null)

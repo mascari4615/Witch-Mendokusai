@@ -129,6 +129,19 @@ namespace WitchMendokusai.DomainSDK.Idle
     {
         public bool Active { get; set; }
 
+        /// <summary>
+        /// 판이 끝났으나 아직 던전 안. 결과는 던전 안에서 보이고 사람이 나가기를 눌러야 본판 (사용자 2026-09-20)
+        ///
+        /// ★ Finished 동안 전장과 시계는 멈춤. 던전 배경과 쓰러진 자리는 그대로
+        /// </summary>
+        public bool Finished { get; set; }
+
+        /// <summary>끝난 판이 클리어였나. Finished 일 때만 뜻이 있음</summary>
+        public bool Cleared { get; set; }
+
+        /// <summary>끝난 뒤 흐른 초. 결과는 이만큼 지난 뒤 보임 (보스 한 방이라도 쓰러지는 것을 보게)</summary>
+        public double SecondsSinceFinish { get; set; }
+
         public IdleDungeonKind Kind { get; set; }
 
         public int Difficulty { get; set; }
@@ -154,7 +167,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>던전 전장. 본판 전장과 따로 (사용자 2026-09-08: 본판은 뒤에서 계속)</summary>
         public IdleBattle Battle { get; } = new IdleBattle();
 
-        /// <summary>던전 안 인형 체력. 입장 때 만렙, 본판 체력과 무관</summary>
+        /// <summary>던전 안 인형 체력. 입장 때 성장한 최대치까지 가득 (사용자 2026-09-20), 본판 체력과 무관</summary>
         public double[] SeatHealth { get; } = new double[IdleSquad.SEAT_COUNT];
 
         public double[] SeatReviveSeconds { get; } = new double[IdleSquad.SEAT_COUNT];
@@ -164,6 +177,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         public void Clear()
         {
             Active = false;
+            Finished = false;
+            Cleared = false;
+            SecondsSinceFinish = 0d;
             Difficulty = 0;
             Stage = 0;
             TimeLimitSeconds = 0d;
@@ -225,9 +241,13 @@ namespace WitchMendokusai.DomainSDK.Idle
     public readonly struct IdleDungeonRunView
     {
         public IdleDungeonRunView(bool active, IdleDungeonKind kind, int difficulty, int stage, double secondsLeft,
-            double timeLimitSeconds, int wavesCleared, int waves, long kills, double gold, long shards, int gear)
+            double timeLimitSeconds, int wavesCleared, int waves, long kills, double gold, long shards, int gear,
+            bool finished = false, bool cleared = false, double secondsSinceFinish = 0d)
         {
             Active = active;
+            Finished = finished;
+            Cleared = cleared;
+            SecondsSinceFinish = secondsSinceFinish;
             Kind = kind;
             Difficulty = difficulty;
             Stage = stage;
@@ -242,6 +262,16 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         public bool Active { get; }
+
+        /// <summary>판은 끝났고 던전 안에서 결과를 기다리는 중</summary>
+        public bool Finished { get; }
+
+        public bool Cleared { get; }
+
+        public double SecondsSinceFinish { get; }
+
+        /// <summary>결과를 보일 때. 끝난 뒤 RESULT_DELAY_SECONDS 가 지났나</summary>
+        public bool ResultReady => Finished && SecondsSinceFinish >= IdleDungeons.RESULT_DELAY_SECONDS;
 
         public IdleDungeonKind Kind { get; }
 
