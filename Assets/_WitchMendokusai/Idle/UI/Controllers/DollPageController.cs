@@ -41,6 +41,7 @@ namespace WitchMendokusai.Idle.UI
 			Func<int> selectedGearSeat,
 			Func<int> selectingPartySeat,
 			Action<int> selectPartySeat,
+			Action<int> openHero,
 			Action<int> openGear,
 			Func<int, string> wornTip,
 			Action<VisualElement, Func<string>> hookTooltip,
@@ -74,6 +75,8 @@ namespace WitchMendokusai.Idle.UI
 
 			dollName = page.RequireQ<Label>("doll-name");
 			dollPortrait = page.RequireQ<VisualElement>("doll-portrait");
+			// 자리 칸은 강화 대상 고르기, 인형 바꾸기는 큰 초상화 (사용자 2026-09-20)
+			dollPortrait.RegisterCallback<ClickEvent>(_ => openHero(selectedGearSeat()));
 			statFeedback = page.RequireQ<Label>("stat-feedback");
 			statFeedback.style.visibility = Visibility.Hidden;
 			for (int stat = 0; stat < content.StatCount; stat++)

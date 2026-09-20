@@ -54,6 +54,30 @@ namespace WitchMendokusai.Idle.UI
 
 		public int SelectingPartySeat => heroSelection.SelectedSeat;
 
+		/// <summary>
+		/// 자리 하나를 누름. 그 인형이 강화 대상 (사용자 2026-09-20: 아이콘을 누르면 선택 창이 떠서 강화를 못 함).
+		/// 빈 자리만 선택 창. 인형 바꾸기는 큰 초상화 (OpenHero)
+		/// </summary>
+		public void FocusHero(int slot)
+		{
+			IdleSnapshot snapshot = session.Capture();
+			if (slot < 0 || slot >= snapshot.Party.Length)
+			{
+				slot = 0;
+			}
+
+			if (snapshot.Party[slot] < 0)
+			{
+				OpenHero(slot);
+				return;
+			}
+
+			gearSeat = slot;
+			heroSelection.Close();
+			gearSelection.Close();
+			requestRender();
+		}
+
 		public void OpenHero(int slot)
 		{
 			IdleSnapshot snapshot = session.Capture();

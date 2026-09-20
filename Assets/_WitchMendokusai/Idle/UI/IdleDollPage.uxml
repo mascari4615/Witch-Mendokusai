@@ -3,7 +3,7 @@
     <Style src="CharacterWorkspace.uss" />
     <ui:VisualElement name="page" class="idle-page idle-doll-page">
         <ui:VisualElement class="idle-profile idle-surface">
-            <ui:VisualElement name="doll-portrait" class="idle-doll-portrait" picking-mode="Ignore" />
+            <ui:VisualElement name="doll-portrait" class="idle-doll-portrait" />
             <ui:VisualElement class="idle-profile-controls">
                 <ui:Label name="doll-name" class="idle-doll-name" />
                 <ui:VisualElement name="party" class="idle-party">
