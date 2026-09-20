@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 49056f69a8cc421fa2b2e20b7f16f099, type: 3}
-  m_Name: IH_15_Lightning
+  m_Name: IH_05_IslandGirl
   m_EditorClassIdentifier: WM.Idle::WitchMendokusai.Idle.HeroDefinitionSO
-  <ID>k__BackingField: 15
-  <Name>k__BackingField: 번개
+  <ID>k__BackingField: 5
+  <Name>k__BackingField: 섬 소녀
   <Description>k__BackingField:
-  <Sprite>k__BackingField: {fileID: 21300000, guid: 824b9eac07ee3e340b3a148cbd1b11d5, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 3b5b0db8554696045ba299cd57fe2627, type: 3}
   <Sprites>k__BackingField: []
-  axis: 1
-  grade: 3
-  sides: 12
+  axis: 3
+  grade: 0
+  sides: 8

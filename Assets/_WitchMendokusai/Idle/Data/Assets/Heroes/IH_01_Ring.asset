@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 49056f69a8cc421fa2b2e20b7f16f099, type: 3}
-  m_Name: IH_06_Star
+  m_Name: IH_01_Ring
   m_EditorClassIdentifier: WM.Idle::WitchMendokusai.Idle.HeroDefinitionSO
-  <ID>k__BackingField: 6
-  <Name>k__BackingField: 별모
+  <ID>k__BackingField: 1
+  <Name>k__BackingField: 링
   <Description>k__BackingField:
-  <Sprite>k__BackingField: {fileID: 21300000, guid: 265c77f526eb504408310d9d51c65e69, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 3b5b0db8554696045ba299cd57fe2627, type: 3}
   <Sprites>k__BackingField: []
-  axis: 3
+  axis: 0
   grade: 1
-  sides: 5
+  sides: 4

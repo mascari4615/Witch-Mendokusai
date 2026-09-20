@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 49056f69a8cc421fa2b2e20b7f16f099, type: 3}
-  m_Name: IH_14_Stream
+  m_Name: IH_00_Fourth
   m_EditorClassIdentifier: WM.Idle::WitchMendokusai.Idle.HeroDefinitionSO
-  <ID>k__BackingField: 14
-  <Name>k__BackingField: 여울
+  <ID>k__BackingField: 0
+  <Name>k__BackingField: 네 번째
   <Description>k__BackingField:
-  <Sprite>k__BackingField: {fileID: 21300000, guid: 265c77f526eb504408310d9d51c65e69, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: cd6bddf795a0b2b48a2ac2db750952d6, type: 3}
   <Sprites>k__BackingField: []
-  axis: 3
-  grade: 3
-  sides: 11
+  axis: 0
+  grade: 0
+  sides: 3
