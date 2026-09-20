@@ -37,12 +37,18 @@ namespace WitchMendokusai.DomainSDK.Idle
     public readonly struct IdleHeroKind
     {
         public IdleHeroKind(int id, string name, IdleHeroAxis axis, IdleHeroGrade grade, int sides)
+            : this(id, name, axis, grade, sides, IdleCards.SkillForAxis(axis))
+        {
+        }
+
+        public IdleHeroKind(int id, string name, IdleHeroAxis axis, IdleHeroGrade grade, int sides, IdleCardKind skill)
         {
             Id = id;
             Name = name;
             Axis = axis;
             Grade = grade;
             Sides = sides;
+            Skill = skill;
         }
 
         public int Id { get; }
@@ -57,6 +63,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 
         /// <summary>몇 각형으로 그리나 — 화면이 이 수만 알면 된다.</summary>
         public int Sides { get; }
+
+        /// <summary>이 인형의 스킬 카드. 임시 배정 (2026-09-21). 인형 컨셉이 서면 SO 에서 갈아끼운다</summary>
+        public IdleCardKind Skill { get; }
     }
 
     /// <summary>

@@ -218,10 +218,12 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             for (int index = 0; index < made.Length; index++)
             {
+                int owner = IdleCards.OwnerAt(state, index);
                 IdleCardKind kind = IdleCards.HandAt(state, index);
                 made[index] = new IdleCardView(kind,
                     IdleCards.CostOf(kind, tuning),
-                    IdleCards.CanCast(state, tuning, kind));
+                    owner >= 0 && IdleCards.CanCast(state, tuning, kind),
+                    owner);
             }
 
             return made;

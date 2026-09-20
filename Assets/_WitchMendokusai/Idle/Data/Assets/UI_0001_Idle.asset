@@ -75,6 +75,7 @@ MonoBehaviour:
   - 일제 사격
   - 긴급 보급
   - 비밀 감정
+  - 가속
   dungeonNames:
   - 재화 던전
   - 보스 던전

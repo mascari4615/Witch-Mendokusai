@@ -32,6 +32,7 @@ namespace WitchMendokusai.Idle.UI
 		private readonly Label enemyLabel;
 		private readonly Button autoCastButton;
 		private readonly Label costLabel;
+		private readonly Button speedButton;
 		private readonly VisualElement costFill;
 		private readonly List<VisualElement> waveDotList = new List<VisualElement>();
 
@@ -48,6 +49,7 @@ namespace WitchMendokusai.Idle.UI
 			Action toggleSplit,
 			Action openSettings,
 			Action toggleAutoCast,
+			Action cycleSpeed,
 			Action leaveDungeon,
 			Action<VisualElement, Func<string>> hookTooltip)
 		{
@@ -80,6 +82,8 @@ namespace WitchMendokusai.Idle.UI
 			enemyFill = battle.RequireQ<VisualElement>("enemy-fill");
 			enemyLabel = battle.RequireQ<Label>("enemy-label");
 			autoCastButton = battle.RequireQ<Button>("auto-cast-button");
+			speedButton = battle.RequireQ<Button>("speed-button");
+			speedButton.clicked += cycleSpeed;
 			costLabel = battle.RequireQ<Label>("cost-label");
 			costFill = battle.RequireQ<VisualElement>("cost-fill");
 
@@ -110,6 +114,7 @@ namespace WitchMendokusai.Idle.UI
 			goldValue.text = BigNumberText.Format(snapshot.Resource);
 			lastIncomePerSecond = snapshot.IncomePerSecond;
 			autoCastButton.EnableInClassList("idle-icon-button--on", snapshot.AutoCast);
+			speedButton.text = content.SpeedChipText(snapshot.Speed);
 			costLabel.text = content.CostText(snapshot.Cost, snapshot.CostMax);
 			costFill.style.width = new StyleLength(new Length(
 				snapshot.CostMax > 0d ? (float)(snapshot.Cost / snapshot.CostMax * 100d) : 0f,

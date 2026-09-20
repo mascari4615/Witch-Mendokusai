@@ -33,6 +33,13 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>일제 사격 값 — 코스트.</summary>
         public double VolleyCost { get; set; } = 3d;
 
+        /// <summary>가속 — 코스트, 걸리는 초, 공격 속도 배수 (속도 축 인형의 임시 스킬).</summary>
+        public double HasteCost { get; set; } = 4d;
+
+        public double HasteSeconds { get; set; } = 8d;
+
+        public double HasteMultiplier { get; set; } = 2d;
+
         /// <summary>
         /// 일제 사격이 즉시 몰아치는 <b>자동 공격 몇 초치</b>인가.
         ///

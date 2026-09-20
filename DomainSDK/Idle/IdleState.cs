@@ -271,12 +271,21 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>긴급 보급이 남은 시간(초) — 걸려 있는 동안 기지 수입이 몇 배가 된다.</summary>
         public double SupplySecondsLeft { get; set; }
 
+        /// <summary>가속이 남은 시간(초) — 걸려 있는 동안 공격 속도가 몇 배가 된다.</summary>
+        public double HasteSecondsLeft { get; set; }
+
         public int[] CardDeck { get; private set; } = new int[0];
 
         /// <summary>새 판은 기본 덱으로 선다. 빈 덱을 적고 불러오며 채우면 저장 왕복이 갈린다</summary>
         public IdleState()
         {
             IdleCards.EnsureDeck(this);
+        }
+
+        /// <summary>덱은 편성 인형 id 의 순서 (2026-09-21, 전에는 카드 종류)</summary>
+        public void SetCardDeck(int[] deck)
+        {
+            CardDeck = (int[])deck.Clone();
         }
 
         public void SetCardDeck(IdleCardKind[] deck)

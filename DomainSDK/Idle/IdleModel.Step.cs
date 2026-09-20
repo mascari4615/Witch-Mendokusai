@@ -153,6 +153,15 @@ namespace WitchMendokusai.DomainSDK.Idle
                     state.SupplySecondsLeft = 0d;
                 }
             }
+
+            if (state.HasteSecondsLeft > 0d)
+            {
+                state.HasteSecondsLeft -= seconds;
+                if (state.HasteSecondsLeft < 1e-12d)
+                {
+                    state.HasteSecondsLeft = 0d;
+                }
+            }
         }
 
         /// <summary>

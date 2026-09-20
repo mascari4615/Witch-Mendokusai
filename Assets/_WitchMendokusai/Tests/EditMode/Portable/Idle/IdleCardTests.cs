@@ -182,49 +182,88 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(12d, back.SupplySecondsLeft, 1e-12d, "보급 남은 시간이 저장을 못 건넜다");
 		}
 
+		/// <summary>편성 셋: 세모(힘), 네모(기지), 다섯모(떨구기). 덱은 이 셋의 스킬</summary>
+		private static IdleState PartyOfThree()
+		{
+			IdleState state = new IdleState();
+			IdleHeroes.EnsureStarter(state);
+			foreach (int heroId in new[] { 1, 2 })
+			{
+				state.Heroes.Add(new IdleHeroOwned(heroId));
+			}
+			state.Party[1] = 1;
+			state.Party[2] = 2;
+			IdleCards.EnsureDeck(state);
+			return state;
+		}
+
+		/// <summary>
+		/// ★ 카드는 편성 인형의 스킬이다 (decisions-2026-08-30 C4, 2-c. 2026-09-21 구현).
+		///   덱은 인형 id 순서, 스킬은 축이 정한다 (임시 배정, SO 로 갈아끼움)
+		/// </summary>
+		[Test]
+		public void TheDeck_IsThePartysSkills_InSeatOrder()
+		{
+			IdleState state = PartyOfThree();
+
+			Assert.AreEqual(3, state.CardDeck.Length);
+			Assert.AreEqual(0, IdleCards.OwnerAt(state, 0));
+			Assert.AreEqual(IdleCardKind.Volley, IdleCards.HandAt(state, 0), "힘 축은 일제 사격");
+			Assert.AreEqual(IdleCardKind.Supply, IdleCards.HandAt(state, 1), "기지 축은 긴급 보급");
+			Assert.AreEqual(IdleCardKind.Appraise, IdleCards.HandAt(state, 2), "떨구기 축은 비밀 감정");
+			Assert.AreEqual(IdleCardKind.Haste, IdleCards.SkillOf(3), "속도 축은 가속");
+
+			IdleState alone = new IdleState();
+			IdleHeroes.EnsureStarter(alone);
+			IdleCards.EnsureDeck(alone);
+			Assert.AreEqual(1, alone.CardDeck.Length, "인형 하나면 카드 하나");
+			Assert.AreEqual(-1, IdleCards.OwnerAt(alone, 1), "빈 자리는 주인이 없다");
+			Assert.IsFalse(IdleCards.TryCastHand(alone, new IdleTuning(), 1, out IdleCardResult _), "빈 자리를 냈다");
+		}
+
+		/// <summary>★ 편성을 바꾸면 남은 인형은 순서를 지키고 새 인형은 뒤에 붙는다</summary>
+		[Test]
+		public void ChangingTheParty_KeepsSurvivorsOrder_AppendsNewcomers()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = PartyOfThree();
+			state.Cost = tuning.VolleyCost;
+			Assert.IsTrue(IdleCards.TryCastHand(state, tuning, 0, out IdleCardResult _));
+			CollectionAssert.AreEqual(new[] { 1, 2, 0 }, state.CardDeck, "낸 카드가 뒤로 안 갔다");
+
+			state.Heroes.Add(new IdleHeroOwned(3));
+			state.Party[1] = 3;
+			IdleCards.EnsureDeck(state);
+
+			CollectionAssert.AreEqual(new[] { 2, 0, 3 }, state.CardDeck, "남은 둘의 순서가 깨지거나 새 인형이 뒤에 안 붙었다");
+			Assert.AreEqual(IdleCardKind.Haste, IdleCards.HandAt(state, 2));
+		}
+
 		/// <summary>★ 사진에 실린다 — 화면이 손패를 자기 눈으로 세지 않게.</summary>
 		[Test]
 		public void CastingFromTheHand_MovesOnlyTheUsedCardToTheBack()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState state = new IdleState();
-			IdleCards.EnsureDeck(state);
+			IdleState state = PartyOfThree();
 			state.Cost = tuning.VolleyCost;
 
 			Assert.IsTrue(IdleCards.TryCastHand(state, tuning, 0, out IdleCardResult result));
 			Assert.AreEqual(IdleCardKind.Volley, result.Kind);
 			Assert.AreEqual(IdleCardKind.Supply, IdleCards.HandAt(state, 0));
 			Assert.AreEqual(IdleCardKind.Appraise, IdleCards.HandAt(state, 1));
-			Assert.AreEqual(IdleCardKind.Volley, (IdleCardKind)state.CardDeck[IdleCards.DECK_SIZE - 1]);
+			Assert.AreEqual(IdleCardKind.Volley, IdleCards.HandAt(state, 2));
+			Assert.AreEqual(0, state.CardDeck[state.CardDeck.Length - 1], "낸 카드의 주인이 맨 뒤가 아니다");
 		}
 
-		/// <summary>★ 예고가 순환을 따라온다 - 안 그러면 화면이 거짓말을 한다 (gap-2026-08-23 P1)</summary>
+		/// <summary>★ 줄은 손패 밖 카드. 편성 셋이면 줄이 비고, 사진은 길이만 지킨다 (보조 3 이 생기면 찬다)</summary>
 		[Test]
-		public void TheQueue_ShowsWhatComesNext()
+		public void TheQueue_IsEmpty_UntilTheDeckOutgrowsTheHand()
 		{
-			IdleTuning tuning = new IdleTuning();
-			IdleState state = new IdleState();
-			IdleCards.EnsureDeck(state);
+			IdleState state = PartyOfThree();
+			Assert.AreEqual(IdleCardKind.Volley, IdleCards.QueuedAt(state, 0), "줄이 비면 기본값");
 
-			IdleCardKind wasFirstInLine = IdleCards.QueuedAt(state, 0);
-			Assert.AreEqual((IdleCardKind)state.CardDeck[IdleCards.HAND_SIZE], wasFirstInLine);
-
-			state.Cost = tuning.VolleyCost;
-			Assert.IsTrue(IdleCards.TryCastHand(state, tuning, 0, out IdleCardResult _));
-
-			Assert.AreEqual(wasFirstInLine, IdleCards.HandAt(state, IdleCards.HAND_SIZE - 1),
-				"줄 서 있던 첫 카드가 손패 맨 뒤로 안 올라왔다");
-			Assert.AreEqual(IdleCardKind.Volley, IdleCards.QueuedAt(state, IdleCards.QUEUE_SIZE - 1),
-				"낸 카드가 줄 맨 뒤에 안 붙었다");
-		}
-
-		/// <summary>★ 사진이 줄을 싣는다 - 화면이 덱을 직접 뒤지지 않게</summary>
-		[Test]
-		public void TheSnapshot_CarriesTheQueue()
-		{
 			IdleSession session = new IdleSession(new IdleTuning());
 			IdleSnapshot snapshot = session.Capture();
-
 			Assert.AreEqual(IdleCards.QUEUE_SIZE, snapshot.Queued.Length, "줄이 사진에 안 실렸다");
 		}
 
@@ -232,18 +271,44 @@ namespace WitchMendokusai.Tests
 		public void DeckOrder_SurvivesTheSave()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState state = new IdleState();
+			IdleState state = PartyOfThree();
 			state.Cost = tuning.VolleyCost;
 			Assert.IsTrue(IdleCards.TryCastHand(state, tuning, 0, out IdleCardResult _));
 
 			IdleState back = new IdleState();
 			back.Load(state.Save());
 
-			Assert.AreEqual(IdleCards.DECK_SIZE, back.CardDeck.Length);
-			for (int index = 0; index < IdleCards.DECK_SIZE; index++)
-			{
-				Assert.AreEqual(state.CardDeck[index], back.CardDeck[index]);
-			}
+			CollectionAssert.AreEqual(state.CardDeck, back.CardDeck);
+		}
+
+		/// <summary>★ 옛 저장의 덱은 카드 종류였다. 편성과 안 맞으면 다시 짠다</summary>
+		[Test]
+		public void OldKindDeck_IsRebuiltFromTheParty()
+		{
+			IdleState state = PartyOfThree();
+			state.SetCardDeck(new[] { IdleCardKind.Volley, IdleCardKind.Supply, IdleCardKind.Appraise, IdleCardKind.Volley, IdleCardKind.Supply, IdleCardKind.Volley });
+			IdleCards.EnsureDeck(state);
+			CollectionAssert.AreEqual(new[] { 0, 1, 2 }, state.CardDeck);
+		}
+
+		/// <summary>★ 가속: 코스트를 쓰고, 걸린 동안 공격 속도가 배수, 시간이 지나면 풀린다</summary>
+		[Test]
+		public void Haste_MultipliesAttackSpeed_WhileItLasts()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			IdleHeroes.EnsureStarter(state);
+			double plain = IdleModel.AttackSpeedOf(state, tuning);
+			state.Cost = tuning.HasteCost;
+
+			Assert.IsTrue(IdleCards.TryCast(state, tuning, IdleCardKind.Haste, out IdleCardResult result));
+			Assert.AreEqual(IdleCardKind.Haste, result.Kind);
+			Assert.AreEqual(0d, state.Cost, 1e-12d);
+			Assert.AreEqual(plain * tuning.HasteMultiplier, IdleModel.AttackSpeedOf(state, tuning), 1e-9d);
+
+			IdleModel.Step(state, tuning, tuning.HasteSeconds + 1d);
+			Assert.AreEqual(0d, state.HasteSecondsLeft, 1e-12d);
+			Assert.AreEqual(plain, IdleModel.AttackSpeedOf(state, tuning), 1e-9d);
 		}
 
 		[Test]

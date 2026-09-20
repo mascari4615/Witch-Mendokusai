@@ -342,30 +342,46 @@
 }
 
 /* 하단 중앙. 손패 + 코스트 */
+/* 손패 묶음 (사용자 2026-09-21, 시안 C. refs/feedback-2026-09-20/mock/skillbar.html):
+   판 없음, "다음" 줄 없음, 카드 3장 + 우측 배속/AUTO 2단, 아래 COST 배지 + 게이지. 묶음 높이 16% */
 .idle-hand {
 	position: absolute;
 	left: 50%;
-	bottom: 30px;
+	bottom: 24px;
 	translate: -50% 0;
 	flex-direction: column;
 	align-items: center;
 }
 
-.idle-skill-auto {
-	position: absolute;
-	right: -104px;
-	bottom: 0;
-	width: 92px;
-	height: 44px;
+.idle-hand-row {
+	flex-direction: row;
+	align-items: flex-end;
+}
+
+.idle-hand-side {
+	flex-direction: column;
+	margin-left: 12px;
+	margin-bottom: 4px;
+}
+
+.idle-hand-chip {
+	width: 120px;
+	height: 40px;
+	margin: 0;
+	margin-top: 6px;
 	font-size: 18px;
 	-unity-font-style: bold;
-	color: rgb(190, 190, 184);
+	-unity-text-align: middle-center;
+	color: rgb(255, 255, 255);
 	background-color: rgba(0, 0, 0, 0.55);
 	border-width: 0;
+	border-radius: 0;
+	padding: 0;
 }
 
 .idle-skill-auto.idle-icon-button--on {
-	color: rgb(245, 175, 16);
+	color: rgb(24, 18, 6);
+	background-color: rgb(245, 175, 16);
 }
 
 #cards {
@@ -373,62 +389,137 @@
 	align-items: flex-end;
 }
 
-/* 손패 (사용자 2026-09-05): 프레임 없는 어두운 카드, 좌상 파란 원 코스트, 쓸 수 있으면 앰버 테두리 */
+/* 카드 (시안 C): 주인 인형의 픽셀 초상이 얼굴, 종류 색은 왼쪽 띠와 이름 색, 스킬 아이콘은 우측 작은 칸,
+   코스트는 우상 사각, 자리 번호는 좌하. 쓸 수 있으면 앰버 테두리, 못 쓰면 어둡게 */
 .idle-card {
 	position: relative;
-	width: 170px;
-	height: 166px;
-	margin-right: 10px;
-	font-size: 28px;
-	-unity-font-style: bold;
-	white-space: normal;
-	background-color: rgba(18, 18, 18, 0.88);
+	width: 126px;
+	height: 126px;
+	margin: 0;
+	margin-right: 6px;
+	padding: 0;
+	background-color: rgb(20, 24, 31);
 	color: rgb(255, 255, 255);
 	border-width: 2px;
-	border-color: rgba(0, 0, 0, 0);
+	border-color: rgba(255, 255, 255, 0.55);
 	border-radius: 0;
-	-unity-text-align: lower-left;
-	padding: 8px;
+	overflow: hidden;
+}
+
+.idle-card--ready {
+	border-color: rgb(245, 175, 16);
+}
+
+.idle-card--empty {
+	display: none;
+}
+
+.idle-card-stripe {
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 7px;
+	background-color: rgb(120, 120, 120);
+}
+
+.idle-card--volley .idle-card-stripe { background-color: rgb(194, 64, 47); }
+.idle-card--supply .idle-card-stripe { background-color: rgb(47, 127, 194); }
+.idle-card--appraise .idle-card-stripe { background-color: rgb(139, 74, 168); }
+.idle-card--haste .idle-card-stripe { background-color: rgb(58, 168, 120); }
+
+.idle-card-face {
+	position: absolute;
+	left: 10px;
+	top: 2px;
+	width: 96px;
+	height: 96px;
+	-unity-background-scale-mode: scale-to-fit;
 }
 
 .idle-card-icon {
 	position: absolute;
-	left: 34px;
-	top: 26px;
-	width: 100px;
-	height: 84px;
+	right: 4px;
+	top: 38px;
+	width: 38px;
+	height: 38px;
+	padding: 5px;
+	background-color: rgba(0, 0, 0, 0.75);
 	-unity-background-scale-mode: scale-to-fit;
 	-unity-background-image-tint-color: rgb(245, 238, 211);
 }
 
 .idle-card-cost {
 	position: absolute;
-	left: 8px;
-	top: 8px;
-	min-width: 40px;
-	height: 40px;
-	font-size: 24px;
+	right: 4px;
+	top: 4px;
+	width: 30px;
+	height: 30px;
+	font-size: 18px;
 	-unity-font-style: bold;
 	-unity-text-align: middle-center;
 	color: rgb(255, 255, 255);
-	background-color: rgb(52, 120, 246);
-	border-radius: 20px;
+	background-color: rgba(0, 0, 0, 0.8);
+	border-width: 1px;
+	border-color: rgba(255, 255, 255, 0.6);
+	border-radius: 0;
+	margin: 0;
+	padding: 0;
+}
+
+.idle-card-slot {
+	position: absolute;
+	left: 9px;
+	bottom: 30px;
+	width: 20px;
+	height: 20px;
+	font-size: 13px;
+	-unity-font-style: bold;
+	-unity-text-align: middle-center;
+	color: rgb(20, 24, 31);
+	background-color: rgba(255, 255, 255, 0.85);
+	margin: 0;
+	padding: 0;
 }
 
 .idle-card-name {
 	position: absolute;
-	left: 8px;
-	right: 8px;
-	bottom: 8px;
-	font-size: 20px;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 27px;
+	font-size: 15px;
 	-unity-font-style: bold;
 	-unity-text-align: middle-center;
 	color: rgb(255, 255, 255);
+	background-color: rgba(0, 0, 0, 0.72);
+	margin: 0;
+	padding: 0;
+}
+
+.idle-card--volley .idle-card-name { color: rgb(255, 179, 168); }
+.idle-card--supply .idle-card-name { color: rgb(169, 211, 255); }
+.idle-card--appraise .idle-card-name { color: rgb(220, 184, 240); }
+.idle-card--haste .idle-card-name { color: rgb(170, 235, 200); }
+
+.idle-card-dim {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background-color: rgba(10, 12, 18, 0.7);
+	display: none;
+}
+
+.idle-card:disabled .idle-card-dim {
+	display: flex;
 }
 
 .idle-card-icon--volley { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/arrow-cluster.png"); }
 .idle-card-icon--supply { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/round-potion.png"); }
 .idle-card-icon--appraise { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/sparkles.png"); }
+.idle-card-icon--haste { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/arrow-cluster.png"); }
 
 /* 화면 알림. 전에는 설정 팝업 안 로그에만 적혀 아무 반응이 없어 보였다 (사용자 2026-09-05) */
 .idle-battle-note {
@@ -667,23 +758,43 @@
 }
 
 .idle-cost {
-	width: 412px;
+	width: 528px;
 	margin-top: 8px;
 	flex-direction: row;
 	align-items: center;
 }
 
-.idle-cost-label {
+.idle-cost-badge {
 	width: 96px;
-	font-size: 32px;
+	height: 44px;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba(0, 0, 0, 0.6);
+	border-width: 1px;
+	border-color: rgb(245, 175, 16);
+}
+
+.idle-cost-cap {
+	font-size: 10px;
+	letter-spacing: 2px;
+	color: rgb(190, 190, 184);
+	margin: 0;
+	padding: 0;
+}
+
+.idle-cost-label {
+	font-size: 20px;
 	-unity-font-style: bold;
-	color: rgb(255, 255, 255);
+	color: rgb(245, 175, 16);
+	margin: 0;
+	padding: 0;
 }
 
 .idle-cost-gauge {
 	flex-grow: 1;
-	height: 12px;
-	background-color: rgba(0, 0, 0, 0.55);
+	height: 14px;
+	background-color: rgba(0, 0, 0, 0.6);
 	border-width: 0;
 	margin: 0 8px;
 }
@@ -699,7 +810,7 @@
 
 .idle-cost-fill {
 	height: 100%;
-	background-color: rgb(116, 218, 255);
+	background-color: rgb(245, 175, 16);
 }
 
 .idle-debug {

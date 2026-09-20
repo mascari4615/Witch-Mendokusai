@@ -76,7 +76,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 + IdleHeroes.StatValueOf(state, tuning, heroId, IdleUpgradeKind.AttackSpeed))
                 * IdleGear.SpeedMultiplier(state, tuning)
                 * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Speed)
-                * IdleSurge.Multiplier(state, tuning);
+                * IdleSurge.Multiplier(state, tuning)
+                * IdleCards.HasteMultiplier(state, tuning);
         }
 
         /// <summary>부대 평균 초당 타격 횟수. 오프라인과 요약 화면용</summary>

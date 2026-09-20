@@ -191,12 +191,13 @@ namespace WitchMendokusai.Idle.UI
 				ToggleSplit,
 				() => auxiliaryPopupCoordinator.OpenSettings(),
 				battleActionController.ToggleAutoCast,
+				battleActionController.CycleSpeed,
 				LeaveDungeon,
 				tooltipController.Bind);
 			cardHandController = new CardHandController(
 				battle,
 				viewAssets.Card,
-				viewAssets.QueueChip,
+				heroVisualPresenter,
 				content,
 				battleActionController.CanAimCard,
 				battleActionController.Cast,

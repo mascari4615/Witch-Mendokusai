@@ -45,6 +45,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 LastSeenUnixSeconds = LastSeenUnixSeconds,
                 Cost = Cost,
                 SupplySecondsLeft = SupplySecondsLeft,
+                HasteSecondsLeft = HasteSecondsLeft,
                 CardDeck = (int[])CardDeck.Clone(),
                 SeatHealth = (double[])SeatHealth.Clone(),
                 SeatReviveSeconds = (double[])SeatReviveSeconds.Clone(),
@@ -254,6 +255,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             // 코스트·보급도 저장에서 온 수다 — NaN·음수는 0. 넘친 코스트는 다음 스텝이 상한으로 누른다.
             Cost = Sane(saveData.Cost);
             SupplySecondsLeft = Sane(saveData.SupplySecondsLeft);
+            HasteSecondsLeft = Sane(saveData.HasteSecondsLeft);
             LoadCardDeck(saveData.CardDeck);
             IdleCards.EnsureDeck(this);
             // 옛 저장에는 자리 칸이 없어 null 로 온다 — 빈 칸으로 받고, EnsureSeatRoom 이 세운다.

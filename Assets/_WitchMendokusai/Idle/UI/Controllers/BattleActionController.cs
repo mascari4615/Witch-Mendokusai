@@ -222,6 +222,13 @@ namespace WitchMendokusai.Idle.UI
 			requestRender();
 		}
 
+		/// <summary>HUD 배속 칩. 누를 때마다 다음 단계, 끝에서 처음으로 (설정 팝업의 단계 버튼과 같은 상태)</summary>
+		public void CycleSpeed()
+		{
+			session.CycleSpeed();
+			requestRender();
+		}
+
 		private static bool IsInsideBox(VisualElement element)
 		{
 			for (VisualElement at = element; at != null; at = at.parent)

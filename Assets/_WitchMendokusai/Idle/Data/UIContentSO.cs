@@ -82,6 +82,7 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string dungeonLevelFormat;
 		[SerializeField] private string dungeonLockedText;
 		[SerializeField] private string dungeonLeaveText;
+		[SerializeField] private string speedChipFormat = "▶▶ {0:0.#}x";
 		[SerializeField] private string dungeonResultClearedText;
 		[SerializeField] private string dungeonResultFailedText;
 		[SerializeField] private string awaySpanFormat;

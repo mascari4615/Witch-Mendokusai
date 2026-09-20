@@ -88,6 +88,9 @@ namespace WitchMendokusai.Idle
 
 		public string DungeonLeaveText => dungeonLeaveText;
 
+		/// <summary>HUD 배속 칩. 숫자만 (문구 규칙: 값은 값으로)</summary>
+		public string SpeedChipText(double speed) => string.Format(speedChipFormat, speed);
+
 		public string DungeonResultStatusText(bool cleared) => cleared ? dungeonResultClearedText : dungeonResultFailedText;
 
 		public string AwaySpanText(double seconds) => string.Format(awaySpanFormat, DescribeSpan(seconds));

@@ -11,6 +11,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 
 		/// <summary>비밀 감정 — 감정 하나를 자원 없이 굴린다 (개수는 쓴다).</summary>
 		Appraise = 2,
+
+		/// <summary>가속 — 한동안 부대 공격 속도가 몇 배가 된다 (속도 축 인형의 임시 스킬, 2026-09-21).</summary>
+		Haste = 3,
 	}
 
 	/// <summary>한 카드가 화면에 보이는 모습.</summary>
@@ -24,11 +27,18 @@ namespace WitchMendokusai.DomainSDK.Idle
 		/// <summary>지금 낼 수 있나 — 판정은 코어가 한다 (버튼 흐리기는 친절이지 규칙이 아니다).</summary>
 		public bool CanCast { get; }
 
-		public IdleCardView(IdleCardKind kind, double cost, bool canCast)
+		/// <summary>이 카드의 주인 인형. 카드는 편성 인형의 스킬이다 (C4, 2-c). 자리가 비면 -1</summary>
+		public int OwnerHeroId { get; }
+
+		/// <summary>자리가 비어 카드가 없다 (편성이 셋 미만)</summary>
+		public bool Empty => OwnerHeroId < 0;
+
+		public IdleCardView(IdleCardKind kind, double cost, bool canCast, int ownerHeroId = -1)
 		{
 			Kind = kind;
 			Cost = cost;
 			CanCast = canCast;
+			OwnerHeroId = ownerHeroId;
 		}
 	}
 
@@ -82,30 +92,118 @@ namespace WitchMendokusai.DomainSDK.Idle
 		/// <summary>손패 뒤에 <b>줄 서 있는</b> 카드 수 (gap-2026-08-23 P1 순환 손패)</summary>
 		public const int QUEUE_SIZE = DECK_SIZE - HAND_SIZE;
 
-		private static readonly IdleCardKind[] DEFAULT_DECK =
+		/// <summary>
+		/// 인형 축이 정하는 임시 스킬 (사용자 2026-09-21: 인형 컨셉이 서면 다시 만든다. 지금은 할당만, 갈아끼우기 쉽게).
+		/// 정본 배정은 HeroDefinitionSO 의 skill 필드. 이건 SO 가 "축대로" 일 때의 기본값
+		/// </summary>
+		public static IdleCardKind SkillForAxis(IdleHeroAxis axis)
 		{
-			IdleCardKind.Volley,
-			IdleCardKind.Supply,
-			IdleCardKind.Appraise,
-			IdleCardKind.Volley,
-			IdleCardKind.Supply,
-			IdleCardKind.Volley,
-		};
+			switch (axis)
+			{
+				case IdleHeroAxis.Speed: return IdleCardKind.Haste;
+				case IdleHeroAxis.Base: return IdleCardKind.Supply;
+				case IdleHeroAxis.Drop: return IdleCardKind.Appraise;
+				default: return IdleCardKind.Volley;
+			}
+		}
 
+		/// <summary>
+		/// 덱은 <b>편성 메인 자리 인형들</b>. CardDeck 은 인형 id 의 순서 (순환하면 뒤로).
+		/// 편성이 바뀌면 남은 인형은 순서를 지키고 새 인형은 뒤에 붙는다. 보조 3 은 보조 스킬이 생길 때 (C4)
+		///
+		/// ★ 옛 저장의 CardDeck 은 카드 종류 (0~2) 였다. 편성 인형 집합과 안 맞으면 그냥 다시 짠다
+		/// </summary>
 		public static void EnsureDeck(IdleState state)
 		{
-			if (state.CardDeck.Length == DECK_SIZE && HasKnownKinds(state.CardDeck))
+			int[] wanted = new int[IdleHeroes.MAIN_SLOTS];
+			int count = 0;
+			for (int slot = 0; slot < IdleHeroes.MAIN_SLOTS && slot < state.Party.Length; slot++)
+			{
+				int heroId = state.Party[slot];
+				if (heroId >= 0 && state.IndexOfHero(heroId) >= 0 && IndexIn(wanted, count, heroId) < 0)
+				{
+					wanted[count++] = heroId;
+				}
+			}
+
+			if (SameSet(state.CardDeck, wanted, count))
 			{
 				return;
 			}
 
-			state.SetCardDeck(DEFAULT_DECK);
+			int[] made = new int[count];
+			int filled = 0;
+			for (int index = 0; index < state.CardDeck.Length; index++)
+			{
+				int heroId = state.CardDeck[index];
+				if (IndexIn(wanted, count, heroId) >= 0 && IndexIn(made, filled, heroId) < 0)
+				{
+					made[filled++] = heroId;
+				}
+			}
+
+			for (int index = 0; index < count; index++)
+			{
+				if (IndexIn(made, filled, wanted[index]) < 0)
+				{
+					made[filled++] = wanted[index];
+				}
+			}
+
+			state.SetCardDeck(made);
 		}
 
-		public static IdleCardKind HandAt(IdleState state, int handIndex)
+		private static int IndexIn(int[] values, int count, int value)
+		{
+			for (int index = 0; index < count; index++)
+			{
+				if (values[index] == value)
+				{
+					return index;
+				}
+			}
+
+			return -1;
+		}
+
+		private static bool SameSet(int[] deck, int[] wanted, int count)
+		{
+			if (deck.Length != count)
+			{
+				return false;
+			}
+
+			for (int index = 0; index < deck.Length; index++)
+			{
+				if (IndexIn(wanted, count, deck[index]) < 0 || IndexIn(deck, deck.Length, deck[index]) != index)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		/// <summary>손패 자리의 주인 인형. 자리가 비면 -1</summary>
+		public static int OwnerAt(IdleState state, int handIndex)
 		{
 			EnsureDeck(state);
-			return handIndex >= 0 && handIndex < HAND_SIZE ? (IdleCardKind)state.CardDeck[handIndex] : IdleCardKind.Volley;
+			return handIndex >= 0 && handIndex < HAND_SIZE && handIndex < state.CardDeck.Length
+				? state.CardDeck[handIndex]
+				: -1;
+		}
+
+		/// <summary>인형의 스킬. SO 배정이 정본, 없으면 축대로</summary>
+		public static IdleCardKind SkillOf(int heroId)
+		{
+			return IdleHeroes.KindOf(heroId).Skill;
+		}
+
+		/// <summary>손패 자리의 카드 종류. 자리가 비면 일제 사격 (화면은 Empty 를 먼저 본다)</summary>
+		public static IdleCardKind HandAt(IdleState state, int handIndex)
+		{
+			int owner = OwnerAt(state, handIndex);
+			return owner >= 0 ? SkillOf(owner) : IdleCardKind.Volley;
 		}
 
 		/// <summary>
@@ -118,12 +216,13 @@ namespace WitchMendokusai.DomainSDK.Idle
 		{
 			EnsureDeck(state);
 
-			if (queueIndex < 0 || queueIndex >= QUEUE_SIZE)
+			int at = HAND_SIZE + queueIndex;
+			if (queueIndex < 0 || queueIndex >= QUEUE_SIZE || at >= state.CardDeck.Length)
 			{
 				return IdleCardKind.Volley;
 			}
 
-			return (IdleCardKind)state.CardDeck[HAND_SIZE + queueIndex];
+			return SkillOf(state.CardDeck[at]);
 		}
 
 		/// <summary>낸 카드를 맨 뒤로 보낸다 (순환). 앞의 것들이 한 칸씩 당겨진다</summary>
@@ -143,7 +242,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 			out IdleCardResult result)
 		{
 			result = default;
-			if (handIndex < 0 || handIndex >= HAND_SIZE)
+			if (handIndex < 0 || handIndex >= HAND_SIZE || OwnerAt(state, handIndex) < 0)
 			{
 				return false;
 			}
@@ -162,7 +261,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 			out IdleCardResult result)
 		{
 			result = default;
-			if (handIndex < 0 || handIndex >= HAND_SIZE || HandAt(state, handIndex) != IdleCardKind.Volley)
+			if (handIndex < 0 || handIndex >= HAND_SIZE || OwnerAt(state, handIndex) < 0
+				|| HandAt(state, handIndex) != IdleCardKind.Volley)
 			{
 				return false;
 			}
@@ -176,19 +276,6 @@ namespace WitchMendokusai.DomainSDK.Idle
 			state.Cost -= CostOf(IdleCardKind.Volley, tuning);
 			SendToTheBack(state, handIndex);
 			result = new IdleCardResult(IdleCardKind.Volley, default, false);
-			return true;
-		}
-
-		private static bool HasKnownKinds(int[] deck)
-		{
-			for (int index = 0; index < deck.Length; index++)
-			{
-				if (deck[index] < (int)IdleCardKind.Volley || deck[index] > (int)IdleCardKind.Appraise)
-				{
-					return false;
-				}
-			}
-
 			return true;
 		}
 
@@ -209,7 +296,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 
 			for (int handIndex = 0; handIndex < HAND_SIZE; handIndex++)
 			{
-				if (CanCast(state, tuning, HandAt(state, handIndex))
+				if (OwnerAt(state, handIndex) >= 0
+					&& CanCast(state, tuning, HandAt(state, handIndex))
 					&& TryCastHand(state, tuning, handIndex, out result))
 				{
 					return true;
@@ -226,6 +314,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 			{
 				case IdleCardKind.Volley: return tuning.VolleyCost;
 				case IdleCardKind.Supply: return tuning.SupplyCost;
+				case IdleCardKind.Haste: return tuning.HasteCost;
 				default: return tuning.AppraiseCardCost;
 			}
 		}
@@ -238,6 +327,12 @@ namespace WitchMendokusai.DomainSDK.Idle
 		public static double SupplyMultiplier(IdleState state, IdleTuning tuning)
 		{
 			return state.SupplySecondsLeft > 0d ? tuning.SupplyMultiplier : 1d;
+		}
+
+		/// <summary>가속이 지금 공격 속도에 곱하는 배수 — 안 걸려 있으면 1</summary>
+		public static double HasteMultiplier(IdleState state, IdleTuning tuning)
+		{
+			return state.HasteSecondsLeft > 0d ? tuning.HasteMultiplier : 1d;
 		}
 
 		/// <summary>
@@ -305,6 +400,12 @@ namespace WitchMendokusai.DomainSDK.Idle
 					state.SupplySecondsLeft = tuning.SupplySeconds;
 					result = new IdleCardResult(kind, default, false,
 						tuning.SupplySeconds, tuning.SupplyMultiplier);
+					return true;
+
+				case IdleCardKind.Haste:
+					state.HasteSecondsLeft = tuning.HasteSeconds;
+					result = new IdleCardResult(kind, default, false,
+						tuning.HasteSeconds, tuning.HasteMultiplier);
 					return true;
 
 				default:

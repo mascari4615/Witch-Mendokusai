@@ -43,14 +43,19 @@
             <ui:VisualElement class="idle-enemy-gauge"><ui:VisualElement name="enemy-fill" class="idle-enemy-fill" /></ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement class="idle-hand">
-            <ui:VisualElement name="cards" />
-            <ui:VisualElement name="card-queue" class="idle-queue">
-                <ui:Label text="다음" class="idle-queue-cap" />
+            <ui:VisualElement class="idle-hand-row">
+                <ui:VisualElement name="cards" />
+                <ui:VisualElement class="idle-hand-side">
+                    <ui:Button name="speed-button" class="idle-hand-chip idle-speed-button" />
+                    <ui:Button name="auto-cast-button" class="idle-hand-chip idle-skill-auto" text="AUTO" />
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement class="idle-cost">
-                <ui:Label name="cost-label" class="idle-cost-label" />
+                <ui:VisualElement class="idle-cost-badge">
+                    <ui:Label text="COST" class="idle-cost-cap" />
+                    <ui:Label name="cost-label" class="idle-cost-label" />
+                </ui:VisualElement>
                 <ui:VisualElement class="idle-cost-gauge"><ui:VisualElement name="cost-fill" class="idle-cost-fill" /><ui:VisualElement class="idle-cost-tick" style="left: 10%;" /><ui:VisualElement class="idle-cost-tick" style="left: 20%;" /><ui:VisualElement class="idle-cost-tick" style="left: 30%;" /><ui:VisualElement class="idle-cost-tick" style="left: 40%;" /><ui:VisualElement class="idle-cost-tick" style="left: 50%;" /><ui:VisualElement class="idle-cost-tick" style="left: 60%;" /><ui:VisualElement class="idle-cost-tick" style="left: 70%;" /><ui:VisualElement class="idle-cost-tick" style="left: 80%;" /><ui:VisualElement class="idle-cost-tick" style="left: 90%;" /></ui:VisualElement>
-                <ui:Button name="auto-cast-button" class="idle-box idle-skill-auto" text="AUTO" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

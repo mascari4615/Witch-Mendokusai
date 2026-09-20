@@ -325,6 +325,15 @@ namespace WitchMendokusai.Idle
 		[Tooltip("비밀 감정의 코스트. 자원 대신 코스트로 한 번 굴린다.")]
 		[SerializeField] private double appraiseCardCost = 5d;
 
+		[Tooltip("가속의 코스트 (속도 축 인형의 임시 스킬).")]
+		[SerializeField] private double hasteCost = 4d;
+
+		[Tooltip("가속이 걸려 있는 시간 (초).")]
+		[SerializeField] private double hasteSeconds = 8d;
+
+		[Tooltip("걸려 있는 동안 공격 속도에 곱하는 배수.")]
+		[SerializeField] private double hasteMultiplier = 2d;
+
 		[Header("부대, 피격, 쓰러짐, 회복 (V2)")]
 		[Tooltip("한 자리의 기본 체력 (장비, 환생, 영웅 등급 적용).")]
 		[SerializeField] private double seatBaseHealth = 400d;
