@@ -16,6 +16,9 @@ MonoBehaviour:
   foePrefab: {fileID: 0}
   bossPrefab: {fileID: 0}
   groundPrefab: {fileID: 0}
+  groundTexture: {fileID: 2800000, guid: 01b419f0cd2651541b7afac826ab2035, type: 3}
+  groundTilesPerMeter: 0.25
+  sceneryMaterial: {fileID: 2100000, guid: 47f88bd1bf324c07a644574566d2fcbd, type: 2}
   partyAnchorX: -2.5
   followCatchUp: 4
   snapJump: 3
@@ -114,7 +117,7 @@ MonoBehaviour:
   bossGlow: 0.55
   meleeHeightShare: 0.85
   rangedHeightShare: 1.3
-  groundColor: {r: 0.62, g: 0.73, b: 0.55, a: 1}
+  groundColor: {r: 0.92, g: 0.96, b: 0.86, a: 1}
   enemyColor: {r: 0.55, g: 0.5, b: 0.63, a: 1}
   rangedEnemyColor: {r: 0.66, g: 0.54, b: 0.5, a: 1}
   bossColor: {r: 0.3, g: 0.26, b: 0.38, a: 1}

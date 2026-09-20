@@ -10,6 +10,12 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private GameObject foePrefab;
 		[SerializeField] private GameObject bossPrefab;
 		[SerializeField] private GameObject groundPrefab;
+
+		[Header("Ground and scenery surface")]
+		// 단색은 사용자가 싫다 (2026-09-20). 바닥은 타일 텍스처, 소품은 트라이플레이너 (생성 도형이라 UV 없음). 손그림은 안 함, 있는 텍스처만
+		[SerializeField] private Texture2D groundTexture;
+		[SerializeField] private float groundTilesPerMeter = 0.25f;
+		[SerializeField] private Material sceneryMaterial;
 		[SerializeField] private float partyAnchorX = -2.5f;
 		[SerializeField] private float followCatchUp = 4f;
 		[SerializeField] private float snapJump = 3f;
@@ -261,6 +267,9 @@ namespace WitchMendokusai.Idle
 		public Vector3 LightEuler => lightEuler;
 
 		internal GameObject GroundPrefab => groundPrefab;
+		internal Texture2D GroundTexture => groundTexture;
+		internal float GroundTilesPerMeter => groundTilesPerMeter;
+		internal Material SceneryMaterial => sceneryMaterial;
 
 		internal AltScenePresenter.Settings CreateAltSceneSettings()
 		{

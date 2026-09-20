@@ -186,6 +186,53 @@ namespace WitchMendokusai.Idle
 			ground.transform.localScale = new Vector3(6f, 1f, 4f);
 			groundMaterial = BattleVisualFactory.Paint(ground, presentationAsset.GroundColor);
 			groundRest = presentationAsset.GroundColor;
+			DressGround(ground);
+		}
+
+		/// <summary>
+		/// 바닥 판은 부대를 따라가지만 텍스처는 세상에 못 박는다. 안 하면 땅이 부대와 같이 미끄러져 보임 (사용자 2026-09-20)
+		///
+		/// ★ Unity Plane 은 u 가 +x 로 갈수록 줄어든다 (minX 에서 u=1. 2026-09-20 실측). 텍셀은 (worldX - 점 x) * 타일수 + 오프셋,
+		///   오프셋을 -worldX * 타일수로 두면 점 x 만 남음. 부호를 반대로 넣으면 땅이 두 배 속도로 미끄러진다
+		/// ★ 시뮬 원점 이동 (OriginX) 도 더한다. 안 그러면 원점이 옮겨질 때마다 땅이 한 번 튐
+		/// </summary>
+		private void PinGroundTexture(float worldX)
+		{
+			if (presentationAsset.GroundTexture == null)
+			{
+				return;
+			}
+
+			Vector2 offset = new Vector2(-worldX * presentationAsset.GroundTilesPerMeter, 0f);
+			groundMaterial.mainTextureOffset = offset;
+			if (groundMaterial.HasProperty("_BaseMap"))
+			{
+				groundMaterial.SetTextureOffset("_BaseMap", offset);
+			}
+		}
+
+		/// <summary>
+		/// 바닥에 타일 텍스처. 색은 그대로 곱해져 던전 바닥 색과 보급 번쩍이 텍스처 위에 얹힘
+		///
+		/// ★ Plane 기본 메시는 10m, 스케일 6 x 4 라 60 x 40m. 타일 수는 미터당 값으로 SO 가 정함
+		/// </summary>
+		private void DressGround(GameObject ground)
+		{
+			Texture2D texture = presentationAsset.GroundTexture;
+			if (texture == null)
+			{
+				return;
+			}
+
+			Vector3 scale = ground.transform.localScale;
+			Vector2 tiles = new Vector2(scale.x * 10f, scale.z * 10f) * presentationAsset.GroundTilesPerMeter;
+			groundMaterial.mainTexture = texture;
+			groundMaterial.mainTextureScale = tiles;
+			if (groundMaterial.HasProperty("_BaseMap"))
+			{
+				groundMaterial.SetTexture("_BaseMap", texture);
+				groundMaterial.SetTextureScale("_BaseMap", tiles);
+			}
 		}
 
 		/// <summary>
@@ -207,7 +254,10 @@ namespace WitchMendokusai.Idle
 
 				MeshFilter mesh = prop.AddComponent<MeshFilter>();
 				MeshRenderer renderer = prop.AddComponent<MeshRenderer>();
-				renderer.sharedMaterial = BattleVisualFactory.MakeMaterial(presentationAsset.SceneryColor);
+				// 생성 도형은 UV 가 없어 트라이플레이너 재질. 없으면 단색
+				renderer.sharedMaterial = presentationAsset.SceneryMaterial != null
+					? presentationAsset.SceneryMaterial
+					: BattleVisualFactory.MakeMaterial(presentationAsset.SceneryColor);
 
 				float side = at % 2 == 0 ? 1f : -1f;
 				float size = presentationAsset.SceneryBaseSize + presentationAsset.SceneryStepSize * (at % 4);
@@ -279,6 +329,7 @@ namespace WitchMendokusai.Idle
 			if (snapCamera) { cameraDirector.Warp(middleShown - middle); snapCamera = false; }
 			middleShown = middle;
 			groundRoot.localPosition = new Vector3(middle, groundRoot.localPosition.y, groundRoot.localPosition.z);
+			PinGroundTexture((float)snapshot.OriginX + middle);
 			cameraDirector.Aim(worldRoot.TransformPoint(new Vector3(middle, 0f, 0f)));
 			WrapScenery(middle);
 		}
