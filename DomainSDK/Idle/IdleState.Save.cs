@@ -162,7 +162,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             {
                 // 옛 저장은 4칸(판 공용). 그 시절 장비는 시작 인형 것으로 (2026-08-31 인형별 장비)
                 int startAt = saveData.WornItems.Length == IdleGear.SLOT_COUNT
-                    ? IdleGear.WornAt(IdleHeroes.STARTER_ID, 0)
+                    ? IdleGear.WornAt(IdleHeroes.LEGACY_STARTER_ID, 0)
                     : 0;
 
                 for (int at = 0; at < saveData.WornItems.Length && startAt + at < Worn.Length; at++)
@@ -289,7 +289,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleHeroes.EnsureStarter(this);
 
             // 옛 판의 공용 공격력과 공격속도는 시작 인형에게 한 번 이관
-            int starter = IndexOfHero(IdleHeroes.STARTER_ID);
+            int starter = IndexOfHero(IdleHeroes.LEGACY_STARTER_ID);
             if (starter >= 0 && (saveData.DamageLevel > 0 || saveData.AttackSpeedLevel > 0))
             {
                 IdleHeroOwned owned = Heroes[starter];

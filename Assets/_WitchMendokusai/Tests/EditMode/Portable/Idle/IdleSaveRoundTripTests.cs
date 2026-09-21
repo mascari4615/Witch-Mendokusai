@@ -278,7 +278,7 @@ namespace WitchMendokusai.Tests
 
 			state.Resource = 1e9d;
 			IdleHeroes.EnsureStarter(state);
-			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID, IdleUpgradeKind.Damage, 1));
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId, IdleUpgradeKind.Damage, 1));
 
 			Assert.Greater(IdleModel.DamageOf(state, tuning), before, "올렸는데 약해졌다");
 		}
@@ -292,7 +292,7 @@ namespace WitchMendokusai.Tests
 
 			IdleState state = new IdleState();
 			state.Load(saved);
-			IdleHeroOwned starter = state.Heroes[state.IndexOfHero(IdleHeroes.STARTER_ID)];
+			IdleHeroOwned starter = state.Heroes[state.IndexOfHero(IdleHeroes.StarterId)];
 
 			Assert.AreEqual(6, starter.DamageLevel);
 			Assert.AreEqual(4, starter.AttackSpeedLevel);

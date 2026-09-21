@@ -200,7 +200,9 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(IdleAdvice.HasSomethingToDo(Look(state), IdleTab.Hero),
 				"영웅이 있는데 자리가 비었는데도 조용하다");
 
+			// 시작 인형이 0번 칸. 나머지 둘을 세우면 할 일이 없다
 			state.Party[1] = 5;
+			state.Party[2] = 4;
 
 			Assert.IsFalse(IdleAdvice.HasSomethingToDo(Look(state), IdleTab.Hero),
 				"세울 영웅이 더 없는데도 점이 남는다");
@@ -265,7 +267,7 @@ namespace WitchMendokusai.Tests
 			state.Resource = IdleBase.CostOf(0, state.Owned[0], tuning);
 			state.Bag.Add(new IdleItem(3, IdleItemSlot.Head));
 
-			Assert.IsTrue(IdleGear.TryEquip(state, IdleHeroes.STARTER_ID, 0));
+			Assert.IsTrue(IdleGear.TryEquip(state, IdleHeroes.StarterId, 0));
 
 			Assert.AreEqual(IdleStep.BuyProducer, IdleAdvice.NextStep(Look(state)).Step,
 				"찼는데도 계속 차라고 한다");
@@ -287,7 +289,7 @@ namespace WitchMendokusai.Tests
 			//   눈뜬장님이었다. 여기서는 공격력을 12까지 올려 <b>속도가 가장 이른</b> 판을 만든다
 			//   (공격력 36초 · 속도 8.3초 · 기지 11.6초).
 			IdleHeroes.EnsureStarter(state);
-			int starter = state.IndexOfHero(IdleHeroes.STARTER_ID);
+			int starter = state.IndexOfHero(IdleHeroes.StarterId);
 			IdleHeroOwned owned = state.Heroes[starter];
 			owned.DamageLevel = 12;
 			state.Heroes[starter] = owned;
@@ -478,8 +480,9 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(IdleStep.Seat, IdleAdvice.NextStep(Look(state)).Step);
 
 			// 그리고 앉히고 나면 <b>다음 걸음</b>으로 넘어간다 — 같은 말을 영영 반복하지 않는다.
-			// (자리 0 은 첫 영웅 자동. 둘째 칸에 착석)
+			// (0번 칸은 시작 인형. 나머지 둘을 세운다)
 			state.Party[1] = 5;
+			state.Party[2] = 4;
 
 			Assert.AreEqual(IdleStep.BuyProducer, IdleAdvice.NextStep(Look(state)).Step,
 				"앉혔는데도 계속 앉히라고 한다");

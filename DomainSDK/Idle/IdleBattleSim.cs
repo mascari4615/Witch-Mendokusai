@@ -79,6 +79,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             CacheSeatStats(state, tuning, arena);
+            PlaceNewcomers(state, tuning, arena);
 
             for (long at = 0; at < ticks; at++)
             {
@@ -125,6 +126,51 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
         }
 
+        /// <summary>
+        /// 편성이 바뀐 자리를 다른 편성 인형 중 가장 뒤의 한 걸음 뒤에. 좌표는 옛 값을 못 믿는다
+        ///
+        /// ★ 전투 중 편성을 바꾸든, 시작 인형이 새로 오든, 저장을 불러오든 여기 한 곳이 받는다
+        /// </summary>
+        private static void PlaceNewcomers(IdleState state, IdleTuning tuning, in IdleArena arena)
+        {
+            IdleBattle battle = arena.Battle;
+
+            for (int seat = 0; seat < IdleSquad.SEAT_COUNT; seat++)
+            {
+                int heroId = IdleSquad.SeatTaken(state, seat) ? state.Party[seat] : -1;
+                if (battle.SeatHero[seat] == heroId)
+                {
+                    continue;
+                }
+
+                battle.SeatHero[seat] = heroId;
+                if (heroId < 0)
+                {
+                    continue;
+                }
+
+                double rear = double.PositiveInfinity;
+                for (int other = 0; other < IdleSquad.SEAT_COUNT; other++)
+                {
+                    if (other != seat && IdleSquad.SeatTaken(state, other) && battle.SeatHero[other] == state.Party[other]
+                        && battle.X[other] < rear)
+                    {
+                        rear = battle.X[other];
+                    }
+                }
+
+                if (double.IsInfinity(rear) == false)
+                {
+                    battle.X[seat] = rear - tuning.SeatBackStep;
+                }
+
+                battle.Y[seat] = LaneOf(tuning, seat);
+                battle.Cooldown[seat] = 0d;
+                battle.Target[seat] = -1L;
+                battle.Moving[seat] = false;
+            }
+        }
+
         /// <summary>본판 전장 새로 세우기</summary>
         public static void Reset(IdleState state, IdleTuning tuning)
         {
@@ -165,6 +211,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 battle.Cooldown[seat] = 0d;
                 battle.Target[seat] = -1L;
                 battle.Moving[seat] = false;
+                battle.SeatHero[seat] = IdleSquad.SeatTaken(state, seat) ? state.Party[seat] : -1;
             }
 
             SpawnWave(state, tuning, arena);

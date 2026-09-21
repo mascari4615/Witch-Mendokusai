@@ -128,6 +128,25 @@ namespace WitchMendokusai.DomainSDK.Idle
         public int StageSeen = -1;
 
         /// <summary>
+        /// 자리마다 마지막으로 본 인형 id. 편성이 바뀐 자리를 알아채는 표
+        ///
+        /// ★ 편성만 바꾸면 좌표는 옛 값 그대로라, 새 인형이 몇천 m 뒤에서 걷기 시작하고 카메라가
+        ///   그 가운데를 봐 아무도 안 보였다 (2026-09-21 실측: 자리 1 x 660, 자리 2 x 4388)
+        /// </summary>
+        public readonly int[] SeatHero = NoSeatHero();
+
+        private static int[] NoSeatHero()
+        {
+            int[] seats = new int[IdleSquad.SEAT_COUNT];
+            for (int seat = 0; seat < seats.Length; seat++)
+            {
+                seats[seat] = -1;
+            }
+
+            return seats;
+        }
+
+        /// <summary>
         /// 재배치 번호. <see cref="IdleBattleSim.Reset"/> 마다 +1
         ///
         /// ★ 무대가 자리를 단숨에 바꿔도 되는 유일한 열쇠. 구역 클리어, 전멸, 던전 입장은 짧은 전환 막 뒤에

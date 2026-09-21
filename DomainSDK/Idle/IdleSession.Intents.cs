@@ -128,7 +128,8 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>
-        /// 자리에 영웅을 앉힌다. 그 영웅이 이미 <b>다른 자리</b>에 있으면 둘을 맞바꾼다 —
+        /// 편성 칸에 인형을 넣는다. 그 인형이 이미 <b>다른 칸</b>에 있으면 둘을 맞바꾼다 —
+        /// 전투 좌표는 다음 틱에 <c>IdleBattleSim.PlaceNewcomers</c> 가 맨 뒤로 다시 놓는다.
         /// 같은 얼굴이 두 자리를 먹으면 셋을 고르는 뜻이 사라진다.
         /// </summary>
         public bool Send(IdleSetPartyIntent intent)

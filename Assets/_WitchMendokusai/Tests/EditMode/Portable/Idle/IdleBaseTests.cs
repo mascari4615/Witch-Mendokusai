@@ -234,9 +234,9 @@ namespace WitchMendokusai.Tests
 				state.EnsureProducerRoom(tuning.ProducerCount);
 				state.Resource = purse;
 
-				bool said = IdleModel.TryGetCost(state, tuning, IdleHeroes.STARTER_ID,
+				bool said = IdleModel.TryGetCost(state, tuning, IdleHeroes.StarterId,
 					IdleUpgradeKind.Damage, 1, out double cost) && state.Resource >= cost;
-				bool raised = IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID,
+				bool raised = IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId,
 					IdleUpgradeKind.Damage, 1);
 
 				Assert.AreEqual(said, raised, "자원 " + purse + ", 말과 실제가 다르다");

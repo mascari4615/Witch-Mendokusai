@@ -66,7 +66,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 count++;
             }
 
-            return count > 0 ? total / count : DamageOfHero(state, tuning, IdleHeroes.STARTER_ID);
+            return count > 0 ? total / count : DamageOfHero(state, tuning, IdleHeroes.StarterId);
         }
 
         /// <summary>영웅 한 명의 초당 타격 횟수</summary>
@@ -99,7 +99,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             double average = count > 0
                 ? total / count
-                : AttackSpeedOfHero(state, tuning, IdleHeroes.STARTER_ID);
+                : AttackSpeedOfHero(state, tuning, IdleHeroes.StarterId);
             return average * IdleSquad.FightingShare(state);
         }
 

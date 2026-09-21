@@ -362,7 +362,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                     continue;
                 }
 
-                // 처음 세우는 판, 또는 <b>새로 앉힌 자리</b>(체력도 게이지도 0)는 만렙으로.
+                // 처음 세우는 판, 또는 <b>새로 편성된 칸</b>(체력도 게이지도 0)은 만렙으로.
                 if (first || (SeatHealth[seat] <= 0d && SeatReviveSeconds[seat] <= 0d))
                 {
                     SeatHealth[seat] = IdleSquad.MaxHealthOf(this, tuning, seat);

@@ -55,28 +55,47 @@ namespace WitchMendokusai.DomainSDK.Idle
         public const int PARTY_SLOTS = MAIN_SLOTS + SUPPORT_SLOTS;
 
         /// <summary>
-        /// 시작 인형. 플레이어 인형(자리 0, 늘 있던 나)을 뺀 자리의 대체
-        /// (사용자 결정 C10, 2026-08-30. 정본 <c>memo/wm/design/idle/decisions-2026-08-30.md</c>)
-        ///
-        /// ★ 뽑기 전에도 전장에 하나 필수. 아무도 없으면 처치 0 → 골드 0 → 뽑기 재화 0. 첫 인형은 게임 지급
+        /// 옛 저장 (자리 0 시절) 의 공용 공격력과 공격속도를 넘겨받는 인형. 그때의 시작 인형 id 0
         /// </summary>
-        public const int STARTER_ID = 0;
+        public const int LEGACY_STARTER_ID = 0;
 
         /// <summary>
-        /// 시작 인형 보장. 인형 0명이면 <see cref="STARTER_ID"/> 지급,
-        /// 메인 칸 전부 비면 첫 메인 칸에 착석. 바뀐 것이 있으면 참
+        /// 대표 시작 인형. 편성이 비었을 때 수치의 임자. 카탈로그 시작 목록의 첫 번째
+        /// (사용자 결정 C10 2026-08-30 시작 인형 지급. 2026-09-21 셋으로: 욘, 링, 알리사)
+        ///
+        /// ★ 뽑기 전에도 전장에 하나 필수. 아무도 없으면 처치 0 → 골드 0 → 뽑기 재화 0. 시작 인형은 게임 지급
+        /// </summary>
+        public static int StarterId => Catalog.Starters[0];
+
+        /// <summary>
+        /// 시작 인형 보장. 카탈로그의 시작 인형을 안 가졌으면 지급하고 빈 메인 칸에 편성.
+        /// 메인 칸 전부 비면 첫 인형을 첫 메인 칸에 편성. 바뀐 것이 있으면 참
         ///
         /// ★ 새 판, 옛 저장(자리 0 시절), 환생 뒤 어디서 와도 전장에 최소 하나
-        /// ★ 사람이 메인 칸을 다 비워도 하나는 착석. 빈 전장은 놀 수 없는 판
+        /// ★ 사람이 메인 칸을 다 비워도 하나는 편성. 빈 전장은 놀 수 없는 판
+        /// ★ 이미 가진 시작 인형을 사람이 편성에서 뺀 것은 그대로. 새로 받는 순간에만 빈 칸에 넣는다
         /// </summary>
         public static bool EnsureStarter(IdleState state)
         {
             bool changed = false;
 
-            if (state.Heroes.Count == 0)
+            IReadOnlyList<int> starters = Catalog.Starters;
+            for (int index = 0; index < starters.Count; index++)
             {
-                state.Heroes.Add(new IdleHeroOwned(STARTER_ID));
+                int id = starters[index];
+                if (state.IndexOfHero(id) >= 0)
+                {
+                    continue;
+                }
+
+                state.Heroes.Add(new IdleHeroOwned(id));
                 changed = true;
+
+                int empty = EmptyMainSlot(state);
+                if (empty >= 0)
+                {
+                    state.Party[empty] = id;
+                }
             }
 
             for (int slot = 0; slot < MAIN_SLOTS; slot++)
@@ -98,6 +117,20 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             state.Party[0] = first;
             return true;
+        }
+
+        /// <summary>비어 있거나 없는 인형이 적힌 첫 메인 칸. 없으면 -1</summary>
+        private static int EmptyMainSlot(IdleState state)
+        {
+            for (int slot = 0; slot < MAIN_SLOTS && slot < state.Party.Length; slot++)
+            {
+                if (state.Party[slot] < 0 || state.IndexOfHero(state.Party[slot]) < 0)
+                {
+                    return slot;
+                }
+            }
+
+            return -1;
         }
 
         /// <summary>이 칸이 메인(전장에 서는) 칸인가.</summary>

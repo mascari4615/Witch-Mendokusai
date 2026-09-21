@@ -252,7 +252,7 @@ namespace WitchMendokusai.Tests
 
 			Assert.AreEqual(IdleSquad.SEAT_COUNT, snapshot.Seats.Length, "자리가 사진에 안 실렸다");
 			Assert.IsTrue(snapshot.Seats[0].Taken, "시작 인형(0번)이 사진에서 빠졌다");
-			Assert.AreEqual(IdleHeroes.STARTER_ID, snapshot.Seats[0].HeroId, "0번 자리가 시작 인형이 아니다");
+			Assert.AreEqual(IdleHeroes.StarterId, snapshot.Seats[0].HeroId, "0번 자리가 시작 인형이 아니다");
 			Assert.IsTrue(snapshot.Seats[0].Standing, "새 판인데 시작 인형이 쓰러져 있다");
 			Assert.IsFalse(snapshot.Seats[1].Taken, "안 앉힌 자리가 «있다»로 실렸다");
 			Assert.Greater(snapshot.EnemyDamagePerSecond, 0d, "적 피해가 사진에 안 실렸다");

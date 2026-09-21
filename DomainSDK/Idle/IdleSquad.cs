@@ -11,7 +11,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 	///
 	/// ★ 자리(seat) 셋. 편성의 <b>메인 칸</b> 그대로 (seat == 메인 칸 번호).
 	///   플레이어 인형(자리 0, 늘 있던 나)은 2026-08-30 삭제 (C10). 대신 시작 인형 하나 지급
-	///   (<see cref="IdleHeroes.EnsureStarter"/>). 빈 자리: 싸우지도 맞지도 않음.
+	///   (<see cref="IdleHeroes.EnsureStarter"/>). 빈 칸: 싸우지도 맞지도 않음.
 	///   편성의 <b>보조 칸</b>(<see cref="IdleHeroes.SUPPORT_SLOTS"/>)은 여기 자리가 <b>없다</b> -
 	///   전장에 안 서니 맞지도, 쓰러지지도, 일어나지도 않는다 (사용자 결정 2026-08-30).
 	///

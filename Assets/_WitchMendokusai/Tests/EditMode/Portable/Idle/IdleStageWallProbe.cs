@@ -105,7 +105,7 @@ namespace WitchMendokusai.Tests
 				IdleUpgradeKind best = IdleUpgradeKind.Damage;
 				for (int index = 0; index < kinds.Length; index++)
 				{
-					if (IdleModel.TryGetCost(state, tuning, IdleHeroes.STARTER_ID, kinds[index], 1, out double cost) && cost < bestCost)
+					if (IdleModel.TryGetCost(state, tuning, IdleHeroes.StarterId, kinds[index], 1, out double cost) && cost < bestCost)
 					{
 						bestCost = cost;
 						best = kinds[index];
@@ -117,7 +117,7 @@ namespace WitchMendokusai.Tests
 					return;
 				}
 
-				if (IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID, best, 1) == false)
+				if (IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId, best, 1) == false)
 				{
 					return;
 				}
@@ -139,8 +139,8 @@ namespace WitchMendokusai.Tests
 			for (int bag = 0; bag < state.Bag.Count; bag++)
 			{
 				IdleItem item = state.Bag[bag];
-				IdleItem worn = state.Worn[IdleGear.WornAt(IdleHeroes.STARTER_ID, (int)item.Slot)];
-				if (worn.Tier < item.Tier && IdleGear.TryEquip(state, IdleHeroes.STARTER_ID, bag))
+				IdleItem worn = state.Worn[IdleGear.WornAt(IdleHeroes.StarterId, (int)item.Slot)];
+				if (worn.Tier < item.Tier && IdleGear.TryEquip(state, IdleHeroes.StarterId, bag))
 				{
 					bag = -1;
 				}

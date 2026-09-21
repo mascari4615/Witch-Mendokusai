@@ -234,6 +234,8 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
+			// 불러오기가 시작 인형을 채우니 저장 쪽도 같은 출발선에서 (2026-09-21 시작 인형은 없으면 늘 지급)
+			IdleHeroes.EnsureStarter(state);
 			Afford(state, tuning, 5);
 
 			for (int one = 0; one < 5; one++)
@@ -258,7 +260,7 @@ namespace WitchMendokusai.Tests
 
 			Assert.IsNotNull(fromOld.Heroes);
 			Assert.AreEqual(1, fromOld.Heroes.Count, "옛 저장에 시작 인형을 안 줬다");
-			Assert.AreEqual(IdleHeroes.STARTER_ID, fromOld.Party[0]);
+			Assert.AreEqual(IdleHeroes.StarterId, fromOld.Party[0]);
 			Assert.AreEqual(IdleHeroes.PARTY_SLOTS, fromOld.Party.Length);
 		}
 
@@ -354,16 +356,12 @@ namespace WitchMendokusai.Tests
 			IdleSession session = new IdleSession(tuning, state);
 			Assert.IsTrue(session.Send(new IdleSetPartyIntent(0, -1)));
 
-			int standing = 0;
+			// 시작 인형 (세션이 지급) 은 제 칸에 남는다. 비운 인형 5 가 어디에도 없어야 한다
+			Assert.AreEqual(-1, state.Party[0], "비운 칸이 안 비었다");
 			for (int slot = 0; slot < state.Party.Length; slot++)
 			{
-				if (state.Party[slot] >= 0)
-				{
-					standing++;
-				}
+				Assert.AreNotEqual(5, state.Party[slot], "비웠는데 5 가 " + slot + "번 칸에 서 있다 — 빈 자리로 복제됐다");
 			}
-
-			Assert.AreEqual(0, standing, "비웠는데 누군가 서 있다 — 빈 자리로 복제됐다");
 		}
 
 		/// <summary>★ 이미 선 영웅을 다른 자리에 앉히면 <b>맞바꾼다</b> — 같은 얼굴이 두 자리를 못 먹는다.</summary>
@@ -479,7 +477,7 @@ namespace WitchMendokusai.Tests
 			state.Load(saved);
 
 			// 안 가진 3 은 내려가고, 빈 전장은 시작 인형이 채움
-			Assert.AreEqual(IdleHeroes.STARTER_ID, state.Party[0], "빈 자리를 시작 인형이 안 채웠다");
+			Assert.AreEqual(IdleHeroes.StarterId, state.Party[0], "빈 자리를 시작 인형이 안 채웠다");
 			Assert.Less(state.IndexOfHero(3), 0, "안 가진 영웅이 도감에 생겼다");
 			for (int slot = 0; slot < state.Party.Length; slot++)
 			{

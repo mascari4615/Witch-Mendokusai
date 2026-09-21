@@ -62,11 +62,11 @@ namespace WitchMendokusai.Tests
 			IdleState state = new IdleState();
 			IdleHeroes.EnsureStarter(state);
 
-			Assert.IsTrue(IdleModel.TryGetCost(state, tuning, IdleHeroes.STARTER_ID,
+			Assert.IsTrue(IdleModel.TryGetCost(state, tuning, IdleHeroes.StarterId,
 				IdleUpgradeKind.Damage, 1, out double cost));
 
 			state.Resource = cost;
-			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID,
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId,
 				IdleUpgradeKind.Damage, 1));
 			Assert.AreEqual(0d, state.Resource, TOLERANCE, "값을 더 쓰거나 덜 썼다");
 			Assert.AreEqual(1, state.Heroes[0].DamageLevel);
@@ -81,7 +81,7 @@ namespace WitchMendokusai.Tests
 			IdleHeroes.EnsureStarter(state);
 			state.Resource = 0d;
 
-			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID,
+			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId,
 				IdleUpgradeKind.Damage, 1));
 			Assert.AreEqual(0, state.Heroes[0].DamageLevel);
 			Assert.AreEqual(0d, state.Resource, TOLERANCE);
@@ -175,11 +175,11 @@ namespace WitchMendokusai.Tests
 
 			for (int step = 0; step < amount; step++)
 			{
-				Assert.IsTrue(IdleModel.TryRaise(oneByOne, tuning, IdleHeroes.STARTER_ID,
+				Assert.IsTrue(IdleModel.TryRaise(oneByOne, tuning, IdleHeroes.StarterId,
 					IdleUpgradeKind.Damage, 1));
 			}
 
-			Assert.IsTrue(IdleModel.TryRaise(manyAtOnce, tuning, IdleHeroes.STARTER_ID,
+			Assert.IsTrue(IdleModel.TryRaise(manyAtOnce, tuning, IdleHeroes.StarterId,
 				IdleUpgradeKind.Damage, amount));
 
 			Assert.AreEqual(oneByOne.Heroes[0].DamageLevel, manyAtOnce.Heroes[0].DamageLevel);
@@ -196,7 +196,7 @@ namespace WitchMendokusai.Tests
 			IdleHeroes.EnsureStarter(state);
 			state.Resource = 1e12d;
 
-			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleHeroes.STARTER_ID,
+			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId,
 				IdleUpgradeKind.Damage, 4));
 			Assert.AreEqual(0, state.Heroes[0].DamageLevel);
 		}

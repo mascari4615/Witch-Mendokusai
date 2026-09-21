@@ -217,7 +217,7 @@ namespace WitchMendokusai.Tests
 
 			IdleSession fresh = new IdleSession(tuning);
 			Assert.AreEqual(1, fresh.State.Heroes.Count, "새 판인데 시작 인형이 없다");
-			Assert.AreEqual(IdleHeroes.STARTER_ID, fresh.State.Party[0], "시작 인형이 첫 메인 칸에 없다");
+			Assert.AreEqual(IdleHeroes.StarterId, fresh.State.Party[0], "시작 인형이 첫 메인 칸에 없다");
 			Assert.AreEqual(1, IdleSquad.TakenCount(fresh.State));
 
 			// 자리 0 시절 저장: 인형 0, 자리 넷

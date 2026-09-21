@@ -27,7 +27,7 @@ namespace WitchMendokusai.Tests
 		{
 			IdleSession first = NewSession();
 			first.Advance(37.5d);
-			first.Send(new IdleRaiseUpgradeIntent(IdleHeroes.STARTER_ID, IdleUpgradeKind.Damage, 1));
+			first.Send(new IdleRaiseUpgradeIntent(IdleHeroes.StarterId, IdleUpgradeKind.Damage, 1));
 			first.MarkSeen(NOON);
 
 			IdleSaveData saved = first.State.Save();

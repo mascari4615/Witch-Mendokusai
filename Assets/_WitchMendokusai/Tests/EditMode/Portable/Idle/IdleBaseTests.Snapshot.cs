@@ -20,7 +20,7 @@ namespace WitchMendokusai.Tests
 			Assert.Greater(before, 0d, "안 때리는 걸로 보인다");
 
 			state.Resource = 1e12d;
-			session.Send(new IdleRaiseUpgradeIntent(IdleHeroes.STARTER_ID, IdleUpgradeKind.AttackSpeed, 1));
+			session.Send(new IdleRaiseUpgradeIntent(IdleHeroes.StarterId, IdleUpgradeKind.AttackSpeed, 1));
 
 			Assert.Greater(session.Capture().AttacksPerSecond, before, "속도를 올렸는데 장단이 그대로다");
 		}

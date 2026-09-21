@@ -50,7 +50,7 @@ namespace WitchMendokusai.Tests
 
 			for (int level = 0; level < 12; level++)
 			{
-				IdleModel.TryRaise(strong, tuning, IdleHeroes.STARTER_ID,
+				IdleModel.TryRaise(strong, tuning, IdleHeroes.StarterId,
 					IdleUpgradeKind.AttackSpeed, 1);
 			}
 
