@@ -234,7 +234,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>여기 머물지 정한다. 언제든 뒤집을 수 있다 — 되돌릴 수 없는 선택이면 아무도 안 누른다.</summary>
         public bool Send(IdleHoldStageIntent intent)
         {
-            state.HoldingStage = intent.Hold;
+            IdleSquad.SetHold(state, intent.Hold);
             return true;
         }
 

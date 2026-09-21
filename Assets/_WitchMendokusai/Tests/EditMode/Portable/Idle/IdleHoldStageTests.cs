@@ -29,6 +29,31 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(1, staying.Stage, "머무르기로 했는데 내려갔다");
 		}
 
+		/// <summary>
+		/// 전멸로 반복에 걸린 뒤 토글을 끄면 반복도 풀리고 구역이 다시 넘어간다 (피드백 7, 8).
+		/// 토글이 HoldingStage 만 만지면 불은 켜진 채, 보스를 잡아도 제자리였다.
+		/// </summary>
+		[Test]
+		public void TurningHoldOff_ClearsRepeating_AndStageAdvancesAgain()
+		{
+			IdleTuning tuning = new IdleTuning();
+			IdleState state = new IdleState();
+			IdleModel.Step(state, tuning, 600d);
+			int reached = state.Stage;
+			IdleSquad.FallBack(state, tuning);
+			Assert.IsTrue(state.Repeating, "전멸 뒤 반복이 안 걸렸다 — 시험 전제가 틀렸다");
+
+			IdleSquad.SetHold(state, true);
+			IdleSquad.SetHold(state, false);
+
+			Assert.IsFalse(state.Repeating, "토글을 껐는데 반복이 남았다");
+			Assert.IsFalse(state.HoldingStage);
+			int before = state.Stage;
+			IdleModel.Step(state, tuning, 600d);
+			Assert.Greater(state.Stage, before, "반복을 풀었는데 구역이 안 넘어간다");
+			Assert.GreaterOrEqual(reached, before, "물러난 자리가 도달 구역보다 깊다");
+		}
+
 		/// <summary>머무는 동안에도 <b>계속 잡는다</b> — 멈추는 게 아니라 같은 자리에서 버는 것이다.</summary>
 		[Test]
 		public void Holding_KeepsKilling_NotPausing()

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace WitchMendokusai.DomainSDK.Idle
 {
@@ -327,6 +327,19 @@ namespace WitchMendokusai.DomainSDK.Idle
 			state.Repeating = true;
 
 			HealAll(state, tuning);
+		}
+
+		/// <summary>
+		/// 반복 토글. 끄면 전멸로 걸린 <c>Repeating</c> 도 같이 푼다 — 화면은 둘을 한 불로 보여 주는데
+		/// 토글이 <c>HoldingStage</c> 만 뒤집으면 불이 안 꺼지고 구역도 안 넘어간다 (피드백 7, 8. 2026-09-21)
+		/// </summary>
+		public static void SetHold(IdleState state, bool hold)
+		{
+			state.HoldingStage = hold;
+			if (hold == false)
+			{
+				state.Repeating = false;
+			}
 		}
 
 		/// <summary>
