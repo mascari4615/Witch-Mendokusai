@@ -44,25 +44,15 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 - 이벤트/델리게이트 초기값 `delegate { }` (null 방지)
 - 한 파일 500줄 상한. 넘으면 상황을 보고 판단한다 (사용자 2026-09-06). 관심사가 여럿이면 같은 클래스는 partial 로 관심사별 파일, 아니면 클래스를 나눈다. 직렬화 자료 정의처럼 한 덩어리로 읽어야 하는 것은 기준선에 사유를 적고 둔다 (`TowerDefenseStageSO`). 규칙 게이트 `FILE-LENGTH` 가 새로 넘는 파일을 막고, 이미 넘은 것은 `wm-file-length-baseline.tsv` 의 빚 (줄어들기만 한다. 2026-09-06 에 1 파일, `TowerDefenseStageSO` 직렬화 자료). 가르기는 `python memo/dotfiles/scripts/wm-split-partial.py <file> --list` 로 멤버를 보고 `--plan` 으로 (같은 클래스 partial, .meta 포함), 한 파일에 타입이 여럿이면 `--extract`. 소스 경로를 글자로 읽는 시험이 있으면 `이름*.cs` 로 이어 읽게 한다
 
-## 새 시스템 도입 시 — 기존 패턴 먼저
+## DomainSDK / Mods SDK
 
-새 매니저/시스템 전에 `Singleton<T>` 상속·`OnXxxChanged` 이벤트·`SOManager.DataSOs`·`GameModeManager.OnModeChanged` 구독 패턴 확인. 다른 모양이면 TASK 시드에 이유 명시.
+절차 (격상 순서, Bridge 패턴, 참조 최소화 명령, 함정) 는 Skill `wm-domain-sdk`. 비전은 `memo/wm/design/vision/architecture.md`. 여기는 계약.
 
-## DomainSDK / Mods SDK — 6 동기 first-use 패턴
-
-비전 정본: `memo/wm/design/vision/architecture.md`. 본 § 는 코드 룰.
-
-**위치**: DomainSDK 는 `WitchMendokusai/DomainSDK/` (레포 루트, `Packages/manifest.json` 의 `file:../DomainSDK` 로컬 UPM 패키지. 2026-09-05 이동). Assets 안이 아니다. 서버와 Portable 과 웹이 같은 폴더를 본다.
-
-**asmdef 단방향**: DomainSDK 조각 36개 전부 `noEngineReferences: true`, Unity 계열 참조 없음. 루트 asmdef 없음 (2026-09-05 제거. 소비자는 필요한 조각을 하나씩 참조). 조각별 참조 검증은 `python memo/dotfiles/scripts/wm-sdk-asmdef-build.py` (asmdef 참조를 csproj 참조로 옮겨 조각마다 따로 굽는다, 에디터 불필요). 소비자 asmdef (Core, Domain, Network, Editor, Tests, Mods) 는 실제 쓰는 조각만 참조한다 (2026-09-05 실측 Core 47 -> 22, Network 37 -> 10, Editor 50 -> 30, Mods.Sample 34 -> 5). 재기는 `python memo/dotfiles/scripts/wm-asmdef-refs-audit.py <project> minimize <asmdef>` (참조 DLL 만으로 소비자를 굽고 컴파일러가 빠졌다는 것만 되돌린다). 새 조각을 쓰기 시작하면 references 에 그 조각 하나만 추가. 엔진 다리는 Core 한 곳: `Core/Numerics/NumericsUnityBridge.cs` 의 `ToUnity()`, `ToSim()` 확장과 `Domain/Application/DI/MessagePipeEventTransport.cs` (RootLifetimeScope 가 `EventBusBridge.UseTransport` 로 꽂음). SDK 안 `#if UNITY` 분기 없음. Mods 의 references 는 DomainSDK 조각만. 모드와 DomainSDK .cs 가 Domain/Core 타입을 직접 호출하면 컴파일이 막으므로 런타임 체크가 필요 없다. (실 도메인 격상 현황과 입도 정책은 `memo/wm/design/vision/architecture.md` 의 측정표와 격상 입도 정책 절.)
-
-**격상 순서**: `enum` → `SaveData`(POCO) → `InfoData`(POCO) → `RuntimeXxxSaveData` → `record XxxEvent : IEvent` → `RuntimeXxx` → asmdef split. RuntimeXxx 생성자 = `(RuntimeXxxSaveData)` 만, Domain factory(`FromXxxSO`/`FromXxxInfo`/`FromSaveData`)가 변환 책임.
-
-**Bridge 패턴** (DomainSDK → Core Singleton 호출 금지): DomainSDK 안 `IXxxBridge` interface + `XxxBridge` static accessor, Core 매니저가 `Awake` 에 `XxxBridge.Register(this)`. null check 제거(FastFail — Bootstrap 후 호출 보장).
-
-**Mods SDK 진입점**: `DomainSDK/Mods/IMod.cs` (Name/Version/Initialize, Unity 의존 0) + `Domain/Mods/ModLoader.cs` (AfterAssembliesLoaded reflection 발견 + Initialize).
-
-**격상 주의**: Unity 6.x csproj stale(신규 .cs 후 CS0246 지속 → Editor 재시작) / git mv + push race(옛 위치 재등장 → worktree 사용) / fsnotify 누락(신규 폴더 다중 파일 → Assets > Refresh).
+- DomainSDK 는 `WitchMendokusai/DomainSDK/` (루트, 로컬 UPM). 조각 전부 `noEngineReferences: true`, 루트 asmdef 없음. 소비자는 실제 쓰는 조각만 참조
+- 엔진 다리는 Core 한 곳 (`NumericsUnityBridge`, `MessagePipeEventTransport`). SDK 안 `#if UNITY` 금지
+- DomainSDK 에서 Core Singleton 직접 호출 금지. `IXxxBridge` + `XxxBridge.Register`
+- Mods 의 references 는 DomainSDK 조각만
+- 새 매니저나 시스템 전에 기존 패턴 (`Singleton<T>`, `OnXxxChanged`, `SOManager.DataSOs`) 먼저. 다른 모양이면 TASK 시드에 이유
 
 ## 폴더 규약 (2026-09-05)
 
