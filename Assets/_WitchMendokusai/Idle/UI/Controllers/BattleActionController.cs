@@ -209,9 +209,16 @@ namespace WitchMendokusai.Idle.UI
 			requestRender();
 		}
 
+		/// <summary>
+		/// 램프가 켜져 있으면 끄고, 꺼져 있으면 켠다. 램프는 머무르기 또는 전멸 반복 (HUD 와 같은 식)
+		///
+		/// ★ HoldingStage 만 뒤집으면 전멸로 켜진 램프는 첫 누름에 머무르기까지 켜져 그대로 켜진 채. 사용자 2026-09-20 "반복 토글이 안 눌림" (피드백 8)
+		/// </summary>
 		public void ToggleHold()
 		{
-			session.Send(new IdleHoldStageIntent(session.Capture().HoldingStage == false));
+			IdleSnapshot now = session.Capture();
+			bool lit = now.HoldingStage || now.Repeating;
+			session.Send(new IdleHoldStageIntent(lit == false));
 			writeDown();
 			requestRender();
 		}
