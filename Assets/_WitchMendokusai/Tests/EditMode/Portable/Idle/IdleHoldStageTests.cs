@@ -54,6 +54,39 @@ namespace WitchMendokusai.Tests
 			Assert.GreaterOrEqual(reached, before, "물러난 자리가 도달 구역보다 깊다");
 		}
 
+		/// <summary>
+		/// 배속은 같은 판을 빨리 보는 것이지 다른 판이 아니다 (피드백 10). 같은 시뮬 시간을 1배 프레임과 3배 프레임으로 밟아
+		/// 처치와 구역이 같아야 한다. 자동 시전은 프레임마다 한 장이라 배속에서 갈릴 수 있다
+		/// </summary>
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Speed_DoesNotChangeTheOutcome(bool autoCast)
+		{
+			const double SIM_SECONDS = 300d;
+			const double FRAME = 1d / 60d;
+
+			IdleSession slow = new IdleSession(new IdleTuning(), new IdleState { AutoCast = autoCast });
+			IdleSession fast = new IdleSession(new IdleTuning(), new IdleState { AutoCast = autoCast });
+			fast.CycleSpeed();
+			fast.CycleSpeed();
+			Assert.AreEqual(3d, fast.SpeedNow, "3배가 아니다 — 시험 전제");
+
+			for (double t = 0d; t < SIM_SECONDS; t += FRAME)
+			{
+				slow.AdvanceLive(FRAME);
+			}
+
+			for (double t = 0d; t < SIM_SECONDS; t += FRAME * 3d)
+			{
+				fast.AdvanceLive(FRAME);
+			}
+
+			IdleSnapshot a = slow.Capture();
+			IdleSnapshot b = fast.Capture();
+			Assert.AreEqual(a.Stage, b.Stage, "배속에서 구역이 다르다 (auto=" + autoCast + ")");
+			Assert.AreEqual(a.Kills, b.Kills, "배속에서 처치가 다르다 (auto=" + autoCast + ")");
+		}
+
 		/// <summary>머무는 동안에도 <b>계속 잡는다</b> — 멈추는 게 아니라 같은 자리에서 버는 것이다.</summary>
 		[Test]
 		public void Holding_KeepsKilling_NotPausing()
