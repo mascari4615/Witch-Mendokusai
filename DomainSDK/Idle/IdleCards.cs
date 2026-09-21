@@ -29,17 +29,17 @@ namespace WitchMendokusai.DomainSDK.Idle
 		public bool CanCast { get; }
 
 		/// <summary>이 카드의 주인 인형. 카드는 편성 인형의 스킬이다 (C4, 2-c). 자리가 비면 -1</summary>
-		public int OwnerHeroId { get; }
+		public int OwnerDollId { get; }
 
 		/// <summary>자리가 비어 카드가 없다 (편성이 셋 미만)</summary>
-		public bool Empty => OwnerHeroId < 0;
+		public bool Empty => OwnerDollId < 0;
 
-		public IdleCardView(IdleCardKind kind, double cost, bool canCast, int ownerHeroId = -1)
+		public IdleCardView(IdleCardKind kind, double cost, bool canCast, int ownerDollId = -1)
 		{
 			Kind = kind;
 			Cost = cost;
 			CanCast = canCast;
-			OwnerHeroId = ownerHeroId;
+			OwnerDollId = ownerDollId;
 		}
 	}
 
@@ -95,15 +95,15 @@ namespace WitchMendokusai.DomainSDK.Idle
 
 		/// <summary>
 		/// 인형 축이 정하는 임시 스킬 (사용자 2026-09-21: 인형 컨셉이 서면 다시 만든다. 지금은 할당만, 갈아끼우기 쉽게).
-		/// 정본 배정은 HeroDefinitionSO 의 skill 필드. 이건 SO 가 "축대로" 일 때의 기본값
+		/// 정본 배정은 DollDefinitionSO 의 skill 필드. 이건 SO 가 "축대로" 일 때의 기본값
 		/// </summary>
-		public static IdleCardKind SkillForAxis(IdleHeroAxis axis)
+		public static IdleCardKind SkillForAxis(IdleDollAxis axis)
 		{
 			switch (axis)
 			{
-				case IdleHeroAxis.Speed: return IdleCardKind.Haste;
-				case IdleHeroAxis.Base: return IdleCardKind.Supply;
-				case IdleHeroAxis.Drop: return IdleCardKind.Appraise;
+				case IdleDollAxis.Speed: return IdleCardKind.Haste;
+				case IdleDollAxis.Base: return IdleCardKind.Supply;
+				case IdleDollAxis.Drop: return IdleCardKind.Appraise;
 				default: return IdleCardKind.Volley;
 			}
 		}
@@ -117,14 +117,14 @@ namespace WitchMendokusai.DomainSDK.Idle
 		public static void EnsureDeck(IdleState state)
 		{
 			// 사진 한 장에 여섯 번 불린다. 힙 배열이면 한 장에 360 바이트 (시험 TakingThePicture_MakesNoGarbage)
-			Span<int> wanted = stackalloc int[IdleHeroes.MAIN_SLOTS];
+			Span<int> wanted = stackalloc int[IdleDolls.MAIN_SLOTS];
 			int count = 0;
-			for (int slot = 0; slot < IdleHeroes.MAIN_SLOTS && slot < state.Party.Length; slot++)
+			for (int slot = 0; slot < IdleDolls.MAIN_SLOTS && slot < state.Party.Length; slot++)
 			{
-				int heroId = state.Party[slot];
-				if (heroId >= 0 && state.IndexOfHero(heroId) >= 0 && IndexIn(wanted, count, heroId) < 0)
+				int dollId = state.Party[slot];
+				if (dollId >= 0 && state.IndexOfDoll(dollId) >= 0 && IndexIn(wanted, count, dollId) < 0)
 				{
-					wanted[count++] = heroId;
+					wanted[count++] = dollId;
 				}
 			}
 
@@ -137,10 +137,10 @@ namespace WitchMendokusai.DomainSDK.Idle
 			int filled = 0;
 			for (int index = 0; index < state.CardDeck.Length; index++)
 			{
-				int heroId = state.CardDeck[index];
-				if (IndexIn(wanted, count, heroId) >= 0 && IndexIn(made, filled, heroId) < 0)
+				int dollId = state.CardDeck[index];
+				if (IndexIn(wanted, count, dollId) >= 0 && IndexIn(made, filled, dollId) < 0)
 				{
-					made[filled++] = heroId;
+					made[filled++] = dollId;
 				}
 			}
 
@@ -196,9 +196,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 		}
 
 		/// <summary>인형의 스킬. SO 배정이 정본, 없으면 축대로</summary>
-		public static IdleCardKind SkillOf(int heroId)
+		public static IdleCardKind SkillOf(int dollId)
 		{
-			return IdleHeroes.KindOf(heroId).Skill;
+			return IdleDolls.KindOf(dollId).Skill;
 		}
 
 		/// <summary>손패 자리의 카드 종류. 자리가 비면 일제 사격 (화면은 Empty 를 먼저 본다)</summary>

@@ -172,7 +172,7 @@ namespace WitchMendokusai.Idle
 					continue;
 				}
 
-				if (view.HeroId >= 0)
+				if (view.DollId >= 0)
 				{
 					int grade = Mathf.Clamp((int)view.Grade, 0, settings.GradeColors.Length - 1);
 					skins[seat].color = settings.GradeColors[grade];

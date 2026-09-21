@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49056f69a8cc421fa2b2e20b7f16f099, type: 3}
+  m_Name: ID_00_Fourth
+  m_EditorClassIdentifier: WM.Idle::WitchMendokusai.Idle.DollDefinitionSO
+  <ID>k__BackingField: 0
+  <Name>k__BackingField: 네 번째
+  <Description>k__BackingField:
+  portrait: {fileID: 21300000, guid: ca8539a6c872499487edff963b68e9cf, type: 3}
+  cardPortrait: {fileID: 21300000, guid: adea2f71909b48139d8b2be5cc6b8f49, type: 3}
+  <Sprites>k__BackingField: []
+  axis: 0
+  grade: 0
+  sides: 3

@@ -27,7 +27,7 @@ namespace WitchMendokusai.Tests
 
 			for (int index = 0; index < ids.Length; index++)
 			{
-				state.Heroes.Add(new IdleHeroOwned(ids[index]));
+				state.Dolls.Add(new IdleDollOwned(ids[index]));
 			}
 
 			return state;
@@ -40,8 +40,8 @@ namespace WitchMendokusai.Tests
 
 			// 보조 칸은 0 (사용자 판정 2026-09-01: 셋만. 보조 능동 스킬이 생기면 그때)
 			Assert.AreEqual(3, state.Party.Length);
-			Assert.AreEqual(3, IdleHeroes.MAIN_SLOTS);
-			Assert.AreEqual(0, IdleHeroes.SUPPORT_SLOTS);
+			Assert.AreEqual(3, IdleDolls.MAIN_SLOTS);
+			Assert.AreEqual(0, IdleDolls.SUPPORT_SLOTS);
 
 			for (int slot = 0; slot < state.Party.Length; slot++)
 			{
@@ -56,12 +56,12 @@ namespace WitchMendokusai.Tests
 			Assert.IsNotNull(asset, "인형 화면 UXML 없음");
 			TemplateContainer tree = asset.Instantiate();
 
-			for (int slot = 0; slot < IdleHeroes.PARTY_SLOTS; slot++)
+			for (int slot = 0; slot < IdleDolls.PARTY_SLOTS; slot++)
 			{
 				Assert.IsNotNull(tree.Q<Button>("seat-" + slot), "현재 편성 칸 없음: " + slot);
 			}
 
-			Assert.AreEqual(IdleHeroes.PARTY_SLOTS, tree.Query<Button>(className: "idle-party-seat").ToList().Count,
+			Assert.AreEqual(IdleDolls.PARTY_SLOTS, tree.Query<Button>(className: "idle-party-seat").ToList().Count,
 				"폐기한 보조 편성 칸이 화면에 남음");
 			Assert.AreEqual(21, tree.Query<Button>(className: "idle-stat-buy").ToList().Count,
 				"7수치마다 x1, x10, x100 버튼 필요");
@@ -152,14 +152,14 @@ namespace WitchMendokusai.Tests
 		{
 			IdleSaveData old = new IdleSaveData
 			{
-				Heroes = new[] { new IdleHeroOwned(4), new IdleHeroOwned(5), new IdleHeroOwned(6) },
+				Dolls = new[] { new IdleDollOwned(4), new IdleDollOwned(5), new IdleDollOwned(6) },
 				Party = new[] { 6, 4, 5 },
 			};
 
 			IdleState state = new IdleState();
 			state.Load(old);
 
-			Assert.AreEqual(IdleHeroes.PARTY_SLOTS, state.Party.Length);
+			Assert.AreEqual(IdleDolls.PARTY_SLOTS, state.Party.Length);
 			Assert.AreEqual(6, state.Party[0]);
 			Assert.AreEqual(4, state.Party[1]);
 			Assert.AreEqual(5, state.Party[2]);
@@ -167,13 +167,13 @@ namespace WitchMendokusai.Tests
 
 			IdleSaveData tooLong = new IdleSaveData
 			{
-				Heroes = new[] { new IdleHeroOwned(0) },
+				Dolls = new[] { new IdleDollOwned(0) },
 				Party = new[] { 0, -1, -1, -1, -1, -1, -1, -1 },
 			};
 
 			IdleState fromLong = new IdleState();
 			fromLong.Load(tooLong);
-			Assert.AreEqual(IdleHeroes.PARTY_SLOTS, fromLong.Party.Length);
+			Assert.AreEqual(IdleDolls.PARTY_SLOTS, fromLong.Party.Length);
 			Assert.AreEqual(0, fromLong.Party[0]);
 		}
 
@@ -199,11 +199,11 @@ namespace WitchMendokusai.Tests
 			}
 
 			Assert.AreEqual(IdleSquad.TakenCount(state), IdleSquad.TakenCount(restored));
-			Assert.AreEqual(IdleHeroes.MAIN_SLOTS, IdleSquad.TakenCount(restored),
+			Assert.AreEqual(IdleDolls.MAIN_SLOTS, IdleSquad.TakenCount(restored),
 				"여섯 다 앉혔는데 출전 수가 메인 셋이 아니다");
 			Assert.AreEqual(
-				IdleHeroes.PartyMultiplierOf(state, tuning, IdleHeroAxis.Damage),
-				IdleHeroes.PartyMultiplierOf(restored, tuning, IdleHeroAxis.Damage), 1e-9d);
+				IdleDolls.PartyMultiplierOf(state, tuning, IdleDollAxis.Damage),
+				IdleDolls.PartyMultiplierOf(restored, tuning, IdleDollAxis.Damage), 1e-9d);
 		}
 
 		/// <summary>
@@ -216,15 +216,15 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 
 			IdleSession fresh = new IdleSession(tuning);
-			Assert.AreEqual(1, fresh.State.Heroes.Count, "새 판인데 시작 인형이 없다");
-			Assert.AreEqual(IdleHeroes.StarterId, fresh.State.Party[0], "시작 인형이 첫 메인 칸에 없다");
+			Assert.AreEqual(1, fresh.State.Dolls.Count, "새 판인데 시작 인형이 없다");
+			Assert.AreEqual(IdleDolls.StarterId, fresh.State.Party[0], "시작 인형이 첫 메인 칸에 없다");
 			Assert.AreEqual(1, IdleSquad.TakenCount(fresh.State));
 
 			// 자리 0 시절 저장: 인형 0, 자리 넷
 			IdleSaveData old = new IdleSaveData { SeatHealth = new[] { 5d, 0d, 0d, 0d }, SeatsReady = true };
 			IdleState loaded = new IdleState();
 			loaded.Load(old);
-			Assert.AreEqual(1, loaded.Heroes.Count, "옛 저장에 시작 인형을 안 줬다");
+			Assert.AreEqual(1, loaded.Dolls.Count, "옛 저장에 시작 인형을 안 줬다");
 			Assert.AreEqual(IdleSquad.SEAT_COUNT, loaded.SeatHealth.Length, "옛 자리 넷이 셋으로 안 줄었다");
 			Assert.AreEqual(0d, loaded.SeatHealth[0], 1e-12d, "옛 자리 0(나)의 체력이 새 자리 0 으로 새어 들어왔다");
 
@@ -236,9 +236,9 @@ namespace WitchMendokusai.Tests
 				emptied.Party[slot] = -1;
 			}
 
-			Assert.IsTrue(IdleHeroes.EnsureStarter(emptied));
+			Assert.IsTrue(IdleDolls.EnsureStarter(emptied));
 			Assert.AreEqual(0, emptied.Party[0], "빈 전장을 그대로 뒀다");
-			Assert.IsFalse(IdleHeroes.EnsureStarter(emptied), "이미 선 판을 또 바꿨다");
+			Assert.IsFalse(IdleDolls.EnsureStarter(emptied), "이미 선 판을 또 바꿨다");
 		}
 	}
 }

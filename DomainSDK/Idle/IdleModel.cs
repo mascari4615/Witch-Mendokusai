@@ -37,16 +37,16 @@ namespace WitchMendokusai.DomainSDK.Idle
                 * PrestigeMultiplier(state, tuning)
                 * PotentialMultiplier(state)
                 * IdleGear.DamageMultiplier(state, tuning)
-                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Damage)
-                * IdleHeroes.DiscoveryMultiplierOf(state, tuning);
+                * IdleDolls.AxisMultiplierOf(state, tuning, IdleDollAxis.Damage)
+                * IdleDolls.DiscoveryMultiplierOf(state, tuning);
         }
 
-        /// <summary>영웅 한 명의 한 방. 공격력과 치명타 기대값이 그 영웅의 성장에서 나옴</summary>
-        public static double DamageOfHero(IdleState state, IdleTuning tuning, int heroId)
+        /// <summary>인형 한 명의 한 방. 공격력과 치명타 기대값이 그 인형의 성장에서 나옴</summary>
+        public static double DamageOfDoll(IdleState state, IdleTuning tuning, int dollId)
         {
-            double stat = IdleHeroes.StatValueOf(state, tuning, heroId, IdleUpgradeKind.Damage);
+            double stat = IdleDolls.StatValueOf(state, tuning, dollId, IdleUpgradeKind.Damage);
             return (DamageRoot(state, tuning) + stat)
-                * IdleHeroes.ExpectedCriticalMultiplierOf(state, tuning, heroId);
+                * IdleDolls.ExpectedCriticalMultiplierOf(state, tuning, dollId);
         }
 
         /// <summary>부대 평균 한 방. 오프라인과 요약 화면용</summary>
@@ -55,27 +55,27 @@ namespace WitchMendokusai.DomainSDK.Idle
             double total = 0d;
             int count = 0;
 
-            for (int seat = 0; seat < state.Party.Length && seat < IdleHeroes.MAIN_SLOTS; seat++)
+            for (int seat = 0; seat < state.Party.Length && seat < IdleDolls.MAIN_SLOTS; seat++)
             {
                 if (state.Party[seat] < 0)
                 {
                     continue;
                 }
 
-                total += DamageOfHero(state, tuning, state.Party[seat]);
+                total += DamageOfDoll(state, tuning, state.Party[seat]);
                 count++;
             }
 
-            return count > 0 ? total / count : DamageOfHero(state, tuning, IdleHeroes.StarterId);
+            return count > 0 ? total / count : DamageOfDoll(state, tuning, IdleDolls.StarterId);
         }
 
-        /// <summary>영웅 한 명의 초당 타격 횟수</summary>
-        public static double AttackSpeedOfHero(IdleState state, IdleTuning tuning, int heroId)
+        /// <summary>인형 한 명의 초당 타격 횟수</summary>
+        public static double AttackSpeedOfDoll(IdleState state, IdleTuning tuning, int dollId)
         {
             return (tuning.BaseAttackSpeed
-                + IdleHeroes.StatValueOf(state, tuning, heroId, IdleUpgradeKind.AttackSpeed))
+                + IdleDolls.StatValueOf(state, tuning, dollId, IdleUpgradeKind.AttackSpeed))
                 * IdleGear.SpeedMultiplier(state, tuning)
-                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Speed)
+                * IdleDolls.AxisMultiplierOf(state, tuning, IdleDollAxis.Speed)
                 * IdleSurge.Multiplier(state, tuning)
                 * IdleCards.HasteMultiplier(state, tuning);
         }
@@ -86,20 +86,20 @@ namespace WitchMendokusai.DomainSDK.Idle
             double total = 0d;
             int count = 0;
 
-            for (int seat = 0; seat < state.Party.Length && seat < IdleHeroes.MAIN_SLOTS; seat++)
+            for (int seat = 0; seat < state.Party.Length && seat < IdleDolls.MAIN_SLOTS; seat++)
             {
                 if (state.Party[seat] < 0)
                 {
                     continue;
                 }
 
-                total += AttackSpeedOfHero(state, tuning, state.Party[seat]);
+                total += AttackSpeedOfDoll(state, tuning, state.Party[seat]);
                 count++;
             }
 
             double average = count > 0
                 ? total / count
-                : AttackSpeedOfHero(state, tuning, IdleHeroes.StarterId);
+                : AttackSpeedOfDoll(state, tuning, IdleDolls.StarterId);
             return average * IdleSquad.FightingShare(state);
         }
 

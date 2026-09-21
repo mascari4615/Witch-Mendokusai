@@ -27,7 +27,8 @@ namespace WitchMendokusai.Idle
 	{
 		[Header("수치 자산")]
 		[SerializeField] private TuningSO tuningAsset;
-		[SerializeField] private HeroCatalogSO heroCatalogAsset;
+		[UnityEngine.Serialization.FormerlySerializedAs("heroCatalogAsset")]
+		[SerializeField] private DollCatalogSO dollCatalogAsset;
 		[SerializeField] private UIContentSO uiContentAsset;
 		[SerializeField] private GearPresentationSO gearPresentationAsset;
 		[SerializeField] private RuntimeSettingsSO runtimeSettingsAsset;
@@ -47,7 +48,7 @@ namespace WitchMendokusai.Idle
 		private ScreenRootController screenRootController;
 		private VisualElement panelRoot;
 		private BattleScreenView view;
-		private HeroVisualPresenter heroVisualPresenter;
+		private DollVisualPresenter dollVisualPresenter;
 		private GearVisualPresenter gearVisualPresenter;
 
 		// 에디트 모드 미리보기 (사용자 2026-08-30: UI 수정은 Play 없이). 저장 읽기와 쓰기 없음. 임시 판 위 시뮬만
@@ -77,8 +78,8 @@ namespace WitchMendokusai.Idle
 			}
 
 			broken = false;
-			IdleHeroes.Configure(heroCatalogAsset.ToDomain());
-			heroVisualPresenter = new HeroVisualPresenter(heroCatalogAsset);
+			IdleDolls.Configure(dollCatalogAsset.ToDomain());
+			dollVisualPresenter = new DollVisualPresenter(dollCatalogAsset);
 			gearVisualPresenter = new GearVisualPresenter(gearPresentationAsset);
 
 			// 배치 빌드에서는 아무것도 안 세운다 (실측 2026-09-01: 20회 연속 빌드 실패).
@@ -132,10 +133,10 @@ namespace WitchMendokusai.Idle
 			what = string.Empty;
 
 			if (tuningAsset == null) { what = "tuningAsset"; }
-			else if (heroCatalogAsset == null) { what = "heroCatalogAsset"; }
-			else if (heroCatalogAsset.TryValidate(out string heroError) == false)
+			else if (dollCatalogAsset == null) { what = "dollCatalogAsset"; }
+			else if (dollCatalogAsset.TryValidate(out string dollError) == false)
 			{
-				what = "heroCatalogAsset: " + heroError;
+				what = "dollCatalogAsset: " + dollError;
 			}
 			else if (uiContentAsset == null) { what = "uiContentAsset"; }
 			else if (gearPresentationAsset == null) { what = "gearPresentationAsset"; }
@@ -302,7 +303,7 @@ namespace WitchMendokusai.Idle
 				uiContentAsset,
 				runtimeSettingsAsset,
 				viewAssets,
-				heroVisualPresenter,
+				dollVisualPresenter,
 				gearVisualPresenter,
 				openPage,
 				WriteDown,

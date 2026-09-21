@@ -20,7 +20,7 @@ namespace WitchMendokusai.Idle.UI
 			this.popup = popup;
 			this.modalController = modalController;
 			this.content = content;
-			int grades = Enum.GetValues(typeof(IdleHeroGrade)).Length;
+			int grades = Enum.GetValues(typeof(IdleDollGrade)).Length;
 			rows = new Label[grades];
 			for (int grade = 0; grade < grades; grade++)
 			{
@@ -48,19 +48,19 @@ namespace WitchMendokusai.Idle.UI
 		public void Render(IdleSnapshot snapshot)
 		{
 			double common = 1d - snapshot.LegendChance - snapshot.EpicChance - snapshot.RareChance;
-			SetRow(IdleHeroGrade.Legend, snapshot.LegendChance);
-			SetRow(IdleHeroGrade.Epic, snapshot.EpicChance);
-			SetRow(IdleHeroGrade.Rare, snapshot.RareChance);
-			SetRow(IdleHeroGrade.Common, common > 0d ? common : 0d);
+			SetRow(IdleDollGrade.Legend, snapshot.LegendChance);
+			SetRow(IdleDollGrade.Epic, snapshot.EpicChance);
+			SetRow(IdleDollGrade.Rare, snapshot.RareChance);
+			SetRow(IdleDollGrade.Common, common > 0d ? common : 0d);
 
 			pity.text = content.OddsPityText(snapshot.PullsToPity);
-			pickup.text = snapshot.PickupHeroId >= 0
-				? content.OddsPickupText(IdleHeroes.KindOf(snapshot.PickupHeroId).Name, snapshot.PickupWeight)
+			pickup.text = snapshot.PickupDollId >= 0
+				? content.OddsPickupText(IdleDolls.KindOf(snapshot.PickupDollId).Name, snapshot.PickupWeight)
 				: content.PickupNoneText;
 			batch.text = content.OddsBatchText(snapshot.PullBatchCount, content.GradeName(snapshot.PullBatchFloorGrade));
 		}
 
-		private void SetRow(IdleHeroGrade grade, double chance)
+		private void SetRow(IdleDollGrade grade, double chance)
 		{
 			Label row = rows[(int)grade];
 			if (row != null)

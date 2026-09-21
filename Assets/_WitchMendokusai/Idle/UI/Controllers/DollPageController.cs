@@ -11,9 +11,9 @@ namespace WitchMendokusai.Idle.UI
 	{
 		private readonly IdleSession session;
 		private readonly UIContentSO content;
-		private readonly HeroVisualPresenter heroVisualPresenter;
+		private readonly DollVisualPresenter dollVisualPresenter;
 		private readonly GearVisualPresenter gearVisualPresenter;
-		private readonly Func<int> selectedHeroId;
+		private readonly Func<int> selectedDollId;
 		private readonly Func<int> selectedGearSeat;
 		private readonly Func<int> selectingPartySeat;
 		private readonly Action writeDown;
@@ -37,13 +37,13 @@ namespace WitchMendokusai.Idle.UI
 			VisualElement page,
 			IdleSession session,
 			UIContentSO content,
-			HeroVisualPresenter heroVisualPresenter,
+			DollVisualPresenter dollVisualPresenter,
 			GearVisualPresenter gearVisualPresenter,
-			Func<int> selectedHeroId,
+			Func<int> selectedDollId,
 			Func<int> selectedGearSeat,
 			Func<int> selectingPartySeat,
 			Action<int> selectPartySeat,
-			Action<int> openHero,
+			Action<int> openDoll,
 			Action<int> openGear,
 			Func<int, string> wornTip,
 			Action<VisualElement, Func<string>> hookTooltip,
@@ -53,9 +53,9 @@ namespace WitchMendokusai.Idle.UI
 		{
 			this.session = session;
 			this.content = content;
-			this.heroVisualPresenter = heroVisualPresenter;
+			this.dollVisualPresenter = dollVisualPresenter;
 			this.gearVisualPresenter = gearVisualPresenter;
-			this.selectedHeroId = selectedHeroId;
+			this.selectedDollId = selectedDollId;
 			this.selectedGearSeat = selectedGearSeat;
 			this.selectingPartySeat = selectingPartySeat;
 			this.writeDown = writeDown;
@@ -65,7 +65,7 @@ namespace WitchMendokusai.Idle.UI
 			statValues = new Label[content.StatCount];
 			statLevels = new Label[content.StatCount];
 			statButtons = new Button[content.StatCount, content.StatUpgradeAmountCount];
-			for (int slot = 0; slot < IdleHeroes.PARTY_SLOTS; slot++)
+			for (int slot = 0; slot < IdleDolls.PARTY_SLOTS; slot++)
 			{
 				int captured = slot;
 				Button seat = page.RequireQ<Button>("seat-" + slot);
@@ -78,7 +78,7 @@ namespace WitchMendokusai.Idle.UI
 			dollName = page.RequireQ<Label>("doll-name");
 			dollPortrait = page.RequireQ<VisualElement>("doll-portrait");
 			// 자리 칸은 강화 대상 고르기, 인형 바꾸기는 큰 초상화 (사용자 2026-09-20)
-			dollPortrait.RegisterCallback<ClickEvent>(_ => openHero(selectedGearSeat()));
+			dollPortrait.RegisterCallback<ClickEvent>(_ => openDoll(selectedGearSeat()));
 			statCosts = new Label[content.StatCount];
 			statRows = new VisualElement[content.StatCount];
 			statFeedback = page.RequireQ<Label>("stat-feedback");
@@ -116,13 +116,13 @@ namespace WitchMendokusai.Idle.UI
 		public void Render(IdleSnapshot snapshot)
 		{
 			RenderParty(snapshot);
-			int heroId = selectedHeroId();
-			dollName.text = heroId >= 0
-				? IdleHeroes.KindOf(heroId).Name
+			int dollId = selectedDollId();
+			dollName.text = dollId >= 0
+				? IdleDolls.KindOf(dollId).Name
 				: content.EmptySeatText;
-			heroVisualPresenter.SetPortrait(dollPortrait, heroId);
-			RenderStats(heroId);
-			RenderWorn(heroId);
+			dollVisualPresenter.SetPortrait(dollPortrait, dollId);
+			RenderStats(dollId);
+			RenderWorn(dollId);
 		}
 
 		private string SeatTip(int slot)
@@ -132,13 +132,13 @@ namespace WitchMendokusai.Idle.UI
 				return content.EmptySeatText;
 			}
 
-			int heroId = lastSnapshot.Party[slot];
-			for (int index = 0; index < lastSnapshot.Heroes.Length; index++)
+			int dollId = lastSnapshot.Party[slot];
+			for (int index = 0; index < lastSnapshot.Dolls.Length; index++)
 			{
-				IdleHeroView hero = lastSnapshot.Heroes[index];
-				if (hero.Id == heroId)
+				IdleDollView doll = lastSnapshot.Dolls[index];
+				if (doll.Id == dollId)
 				{
-					return content.HeroChoiceText(hero.Name, hero.Stars, hero.Level, content.AxisName(hero.Axis));
+					return content.DollChoiceText(doll.Name, doll.Stars, doll.Level, content.AxisName(doll.Axis));
 				}
 			}
 
@@ -152,20 +152,20 @@ namespace WitchMendokusai.Idle.UI
 			int gearSeat = selectedGearSeat();
 			for (int slot = 0; slot < partyButtons.Count; slot++)
 			{
-				int heroId = slot < snapshot.Party.Length ? snapshot.Party[slot] : -1;
-				string tag = content.SeatText(IdleHeroes.IsMainSlot(slot));
+				int dollId = slot < snapshot.Party.Length ? snapshot.Party[slot] : -1;
+				string tag = content.SeatText(IdleDolls.IsMainSlot(slot));
 				Button seat = partyButtons[slot];
-				seat.text = heroId >= 0 ? string.Empty : "+";
-				seat.EnableInClassList("idle-party-seat--empty", heroId < 0);
+				seat.text = dollId >= 0 ? string.Empty : "+";
+				seat.EnableInClassList("idle-party-seat--empty", dollId < 0);
 				VisualElement portrait = seat.RequireQ<VisualElement>("seat-icon-" + slot);
 				Label label = seat.RequireQ<Label>("seat-label-" + slot);
-				portrait.style.display = heroId >= 0 ? DisplayStyle.Flex : DisplayStyle.None;
-				label.text = heroId >= 0
-					? content.PartySeatText(tag, IdleHeroes.KindOf(heroId).Name)
+				portrait.style.display = dollId >= 0 ? DisplayStyle.Flex : DisplayStyle.None;
+				label.text = dollId >= 0
+					? content.PartySeatText(tag, IdleDolls.KindOf(dollId).Name)
 					: content.EmptyPartySeatText(tag);
-				if (heroId >= 0)
+				if (dollId >= 0)
 				{
-					heroVisualPresenter.SetFace(portrait, heroId);
+					dollVisualPresenter.SetFace(portrait, dollId);
 				}
 
 				seat.EnableInClassList("idle-party-seat--picking", selectingSeat == slot);
@@ -173,21 +173,21 @@ namespace WitchMendokusai.Idle.UI
 			}
 		}
 
-		private void RenderStats(int heroId)
+		private void RenderStats(int dollId)
 		{
 			for (int stat = 0; stat < content.StatCount; stat++)
 			{
 				IdleUpgradeKind kind = (IdleUpgradeKind)stat;
-				IdleUpgradeView current = session.ViewHeroStat(heroId, kind, 1);
+				IdleUpgradeView current = session.ViewDollStat(dollId, kind, 1);
 				statValues[stat].text = content.StatValueText(kind, current.CurrentValue);
 				statLevels[stat].text = content.LevelText(current.Level);
 
 				for (int amount = 0; amount < content.StatUpgradeAmountCount; amount++)
 				{
 					int count = content.StatUpgradeAmount(amount);
-					IdleUpgradeView purchase = session.ViewHeroStat(heroId, kind, count);
+					IdleUpgradeView purchase = session.ViewDollStat(dollId, kind, count);
 					Button button = statButtons[stat, amount];
-					bool canAfford = heroId >= 0 && purchase.CanAfford;
+					bool canAfford = dollId >= 0 && purchase.CanAfford;
 					if (amount == 0)
 					{
 						// 시안 3a: 행마다 `+` 하나, 금액은 옆 주황 라벨 (memo ui-grammar.md)
@@ -208,11 +208,11 @@ namespace WitchMendokusai.Idle.UI
 			}
 		}
 
-		private void RenderWorn(int heroId)
+		private void RenderWorn(int dollId)
 		{
-			if (heroId >= 0)
+			if (dollId >= 0)
 			{
-				session.CopyWornOf(heroId, worn);
+				session.CopyWornOf(dollId, worn);
 			}
 			else
 			{
@@ -234,22 +234,22 @@ namespace WitchMendokusai.Idle.UI
 				}
 
 				cell.EnableInClassList("idle-worn-cell--empty", item.IsEmpty);
-				cell.SetEnabled(heroId >= 0);
+				cell.SetEnabled(dollId >= 0);
 				gearVisualPresenter.SetTierOutline(cell, item.IsEmpty ? 0 : item.Tier);
 			}
 		}
 
 		private void Raise(IdleUpgradeKind kind, int amount)
 		{
-			int heroId = selectedHeroId();
-			if (heroId < 0)
+			int dollId = selectedDollId();
+			if (dollId < 0)
 			{
 				return;
 			}
 
-			IdleUpgradeView before = session.ViewHeroStat(heroId, kind, amount);
+			IdleUpgradeView before = session.ViewDollStat(dollId, kind, amount);
 			double resourceBefore = session.Capture().Resource;
-			bool raised = session.Send(new IdleRaiseUpgradeIntent(heroId, kind, amount));
+			bool raised = session.Send(new IdleRaiseUpgradeIntent(dollId, kind, amount));
 			if (raised)
 			{
 				writeDown();
@@ -258,7 +258,7 @@ namespace WitchMendokusai.Idle.UI
 			requestRender();
 			if (raised)
 			{
-				IdleUpgradeView after = session.ViewHeroStat(heroId, kind, 1);
+				IdleUpgradeView after = session.ViewDollStat(dollId, kind, 1);
 				ShowStatRaised(kind, amount, before.CurrentValue, after.CurrentValue,
 					resourceBefore - session.Capture().Resource);
 			}
@@ -305,13 +305,13 @@ namespace WitchMendokusai.Idle.UI
 
 		private string StatTip(IdleUpgradeKind kind, int amount)
 		{
-			int heroId = selectedHeroId();
-			if (heroId < 0)
+			int dollId = selectedDollId();
+			if (dollId < 0)
 			{
-				return content.StatSelectHeroTip;
+				return content.StatSelectDollTip;
 			}
 
-			IdleUpgradeView view = session.ViewHeroStat(heroId, kind, amount);
+			IdleUpgradeView view = session.ViewDollStat(dollId, kind, amount);
 			if (view.IsMaxed)
 			{
 				return content.StatMaxTipText(content.StatName((int)kind));

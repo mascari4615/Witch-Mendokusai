@@ -9,7 +9,7 @@
     <ui:Template name="InvestPage" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleInvestPage.uxml?fileID=9197481963319205126&amp;guid=ad855fcefc42f4f4d8a4c9f65338d0e5&amp;type=3#IdleInvestPage" />
     <ui:Template name="MapPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleMapPopup.uxml?fileID=9197481963319205126&amp;guid=70c246d1dde54d85af618947868da47e&amp;type=3#IdleMapPopup" />
     <ui:Template name="GearPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleGearPopup.uxml?fileID=9197481963319205126&amp;guid=94e0467bc9b89d6419a8cb2c774208fc&amp;type=3#IdleGearPopup" />
-    <ui:Template name="HeroPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleHeroPopup.uxml?fileID=9197481963319205126&amp;guid=8c8e48cb63bf40ae959ec129ce3ba8e8&amp;type=3#IdleHeroPopup" />
+    <ui:Template name="DollPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleDollPopup.uxml?fileID=9197481963319205126&amp;guid=8c8e48cb63bf40ae959ec129ce3ba8e8&amp;type=3#IdleDollPopup" />
     <ui:Template name="GoldPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleGoldPopup.uxml?fileID=9197481963319205126&amp;guid=370d95d8ed4243b29c6d37c2e1c0f921&amp;type=3#IdleGoldPopup" />
     <ui:Template name="SettingsPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleSettingsPopup.uxml?fileID=9197481963319205126&amp;guid=9760d6ea896f4970a80d4ca42ef0de89&amp;type=3#IdleSettingsPopup" />
     <ui:Template name="OddsPopup" src="project://database/Assets/_WitchMendokusai/Idle/UI/IdleOddsPopup.uxml?fileID=9197481963319205126&amp;guid=706f80df95354e4fb3f01bd395a5ecdb&amp;type=3#IdleOddsPopup" />
@@ -58,7 +58,7 @@
     </ui:VisualElement>
     <ui:Instance template="MapPopup" name="map-popup-host" class="idle-layer" picking-mode="Ignore" />
     <ui:Instance template="GearPopup" name="gear-popup-host" class="idle-layer" picking-mode="Ignore" />
-    <ui:Instance template="HeroPopup" name="hero-popup-host" class="idle-layer" picking-mode="Ignore" />
+    <ui:Instance template="DollPopup" name="doll-popup-host" class="idle-layer" picking-mode="Ignore" />
     <ui:Instance template="GoldPopup" name="gold-popup-host" class="idle-layer" picking-mode="Ignore" />
     <ui:Instance template="SettingsPopup" name="settings-popup-host" class="idle-layer" picking-mode="Ignore" />
     <ui:Instance template="OddsPopup" name="odds-popup-host" class="idle-layer" picking-mode="Ignore" />

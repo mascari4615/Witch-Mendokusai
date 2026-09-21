@@ -301,9 +301,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// 가방의 것을 그 부위에 <b>찬다</b>. 차고 있던 것은 가방으로 돌아온다 —
         /// 갈아 끼우다 잃으면 아무도 안 갈아 끼운다.
         /// </summary>
-        public static bool TryEquip(IdleState state, int heroId, int bagIndex)
+        public static bool TryEquip(IdleState state, int dollId, int bagIndex)
         {
-            if (bagIndex < 0 || bagIndex >= state.Bag.Count || IdleHeroes.Knows(heroId) == false)
+            if (bagIndex < 0 || bagIndex >= state.Bag.Count || IdleDolls.Knows(dollId) == false)
             {
                 return false;
             }
@@ -314,7 +314,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return false;
             }
 
-            int at = WornAt(heroId, (int)taking.Slot);
+            int at = WornAt(dollId, (int)taking.Slot);
             if (at < 0 || at >= state.Worn.Length)
             {
                 return false;
@@ -334,29 +334,29 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>인형별 장비 칸의 자리</summary>
-        public static int WornAt(int heroId, int slot)
+        public static int WornAt(int dollId, int slot)
         {
-            if (heroId < 0 || slot < 0 || slot >= SLOT_COUNT)
+            if (dollId < 0 || slot < 0 || slot >= SLOT_COUNT)
             {
                 return -1;
             }
 
-            return heroId * SLOT_COUNT + slot;
+            return dollId * SLOT_COUNT + slot;
         }
 
         /// <summary>이 인형이 그 부위에 낀 것</summary>
-        public static IdleItem WornOf(IdleState state, int heroId, int slot)
+        public static IdleItem WornOf(IdleState state, int dollId, int slot)
         {
-            int at = WornAt(heroId, slot);
+            int at = WornAt(dollId, slot);
             return at >= 0 && at < state.Worn.Length ? state.Worn[at] : default;
         }
 
         /// <summary>이 인형이 낀 것 넷. 화면이 한 인형의 장비를 그릴 때</summary>
-        public static void CopyWornOf(IdleState state, int heroId, IdleItem[] into)
+        public static void CopyWornOf(IdleState state, int dollId, IdleItem[] into)
         {
             for (int slot = 0; slot < SLOT_COUNT && slot < into.Length; slot++)
             {
-                into[slot] = WornOf(state, heroId, slot);
+                into[slot] = WornOf(state, dollId, slot);
             }
         }
 
@@ -375,15 +375,15 @@ namespace WitchMendokusai.DomainSDK.Idle
             // 전장에 선 인형(메인 칸)의 장비만. 그래야 누구에게 끼우나가 실제 선택
             double made = 1d;
 
-            for (int seat = 0; seat < IdleHeroes.MAIN_SLOTS && seat < state.Party.Length; seat++)
+            for (int seat = 0; seat < IdleDolls.MAIN_SLOTS && seat < state.Party.Length; seat++)
             {
-                int heroId = state.Party[seat];
-                if (heroId < 0)
+                int dollId = state.Party[seat];
+                if (dollId < 0)
                 {
                     continue;
                 }
 
-                made *= MultiplierOfItem(WornOf(state, heroId, (int)slot), tuning);
+                made *= MultiplierOfItem(WornOf(state, dollId, (int)slot), tuning);
             }
 
             return made;

@@ -16,7 +16,7 @@ namespace WitchMendokusai.Tests.Idle
 				"side", "tabs", "tab-0", "tab-1", "tab-2", "tab-3",
 				"tab-4", "tab-5", "tab-6", "panel-title", "panel-caption", "panel-body",
 				"doll-page-host", "item-page-host", "discovery-page-host", "shop-page-host", "lab-page-host",
-				"dungeon-page-host", "invest-page-host", "map-popup-host", "gear-popup-host", "hero-popup-host",
+				"dungeon-page-host", "invest-page-host", "map-popup-host", "gear-popup-host", "doll-popup-host",
 				"gold-popup-host", "settings-popup-host", "away-popup-host", "dungeon-popup-host", "tooltip");
 		}
 
@@ -85,10 +85,10 @@ namespace WitchMendokusai.Tests.Idle
 		}
 
 		[Test]
-		public void HeroPopupExposesBindingPoints()
+		public void DollPopupExposesBindingPoints()
 		{
-			AssertElements("IdleHeroPopup.uxml", "popup", "hero-close", "hero-grid",
-				"hero-page-back", "hero-page-label", "hero-page-forward");
+			AssertElements("IdleDollPopup.uxml", "popup", "doll-close", "doll-grid",
+				"doll-page-back", "doll-page-label", "doll-page-forward");
 		}
 
 		[Test]

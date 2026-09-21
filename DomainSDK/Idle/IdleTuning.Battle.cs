@@ -61,7 +61,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public double AppraiseCardCost { get; set; } = 5d;
 
         /// <summary>
-        /// 한 자리의 <b>기본</b> 체력 — 장비·환생·영웅 등급이 여기에 곱해진다.
+        /// 한 자리의 <b>기본</b> 체력 — 장비·환생·인형 등급이 여기에 곱해진다.
         ///
         /// ★ 적 피해(단계 지수)와 맞물려 「몇 구역까지 버티나」를 정하는 자리다.
         /// </summary>
@@ -92,11 +92,11 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public double HealPerKillShare { get; set; } = 0.08d;
 
-        /// <summary>영웅 등급 한 계단이 체력에 더해 주는 몫 — 뽑기의 값어치가 생존으로도 보이게.</summary>
-        public double HeroGradeHealthStep { get; set; } = 0.35d;
+        /// <summary>인형 등급 한 계단이 체력에 더해 주는 몫 — 뽑기의 값어치가 생존으로도 보이게.</summary>
+        public double DollGradeHealthStep { get; set; } = 0.35d;
 
-        /// <summary>인형 사거리. 축 번호(<see cref="IdleHeroAxis"/>) 순. Damage 근, Speed 중, Base/Drop 원</summary>
-        public double[] HeroRangeByAxis { get; set; } = new double[] { 2d, 5d, 8d, 8d };
+        /// <summary>인형 사거리. 축 번호(<see cref="IdleDollAxis"/>) 순. Damage 근, Speed 중, Base/Drop 원</summary>
+        public double[] DollRangeByAxis { get; set; } = new double[] { 2d, 5d, 8d, 8d };
 
         /// <summary>인형 걷는 속도 (m/s)</summary>
         public double DollMoveSpeed { get; set; } = 2.5d;

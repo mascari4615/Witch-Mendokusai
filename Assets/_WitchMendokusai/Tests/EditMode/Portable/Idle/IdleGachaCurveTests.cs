@@ -7,7 +7,7 @@ namespace WitchMendokusai.Tests
 	/// <summary>
 	/// 가챠가 <b>곡선을 어떻게 바꿨나</b> (TASK-WM-406).
 	///
-	/// ★ 영웅 배수를 공격·속도·기지·떨구기 넷에 물렸다. 그 순간 <b>기존 밸런스는 옛 것</b>이 됐다.
+	/// ★ 인형 배수를 공격·속도·기지·떨구기 넷에 물렸다. 그 순간 <b>기존 밸런스는 옛 것</b>이 됐다.
 	///   재미가 늘었는지는 사람이 켜 봐야 알지만, <b>망가졌는지</b>는 여기서 잰다.
 	///
 	/// ★ 여기서 지키는 셋:
@@ -31,7 +31,7 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 
 			IdleModel.Step(state, tuning, 600d);
 
@@ -71,7 +71,7 @@ namespace WitchMendokusai.Tests
 
 			TestContext.WriteLine("[가챠곡선] 두 시간 — 안 뽑음: " + hoarding.BestStage + "단계 · 돌 "
 				+ hoarding.Stones + "  ||  뽑음: " + pulling.BestStage + "단계 · " + pulling.PullsDone
-				+ "번 뽑음, 영웅 " + pulling.Heroes.Count + "종, 도감 " + IdleHeroes.DiscoveryScoreOf(pulling));
+				+ "번 뽑음, 인형 " + pulling.Dolls.Count + "종, 도감 " + IdleDolls.DiscoveryScoreOf(pulling));
 
 			Assert.Greater(pulling.BestStage, hoarding.BestStage,
 				"뽑아도 더 깊이 못 간다 — 환생석을 쓸 이유가 없다");
@@ -122,7 +122,7 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 			StringBuilder table = new StringBuilder();
 			table.AppendLine("[가챠곡선] 이른 시간 — 같은 시각의 깊이");
-			table.AppendLine("시간 | 안뽑음 | 뽑음 | 뽑은횟수 | 영웅종류");
+			table.AppendLine("시간 | 안뽑음 | 뽑음 | 뽑은횟수 | 인형종류");
 
 			IdleState hoarding = new IdleState();
 			hoarding.EnsureProducerRoom(tuning.ProducerCount);
@@ -142,7 +142,7 @@ namespace WitchMendokusai.Tests
 				PlayFor(pulling, tuning, span, true);
 
 				table.AppendLine(marks[index] + "h | " + hoarding.BestStage + " | " + pulling.BestStage
-					+ " | " + pulling.PullsDone + " | " + pulling.Heroes.Count);
+					+ " | " + pulling.PullsDone + " | " + pulling.Dolls.Count);
 			}
 
 			TestContext.WriteLine(table.ToString());
@@ -156,7 +156,7 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 			StringBuilder table = new StringBuilder();
 			table.AppendLine("[가챠곡선] 하루별 — 뽑는 판");
-			table.AppendLine("일 | 최고단계 | 영웅종류 | 도감점수 | 환생 | 남은돌 | 뽑은횟수");
+			table.AppendLine("일 | 최고단계 | 인형종류 | 도감점수 | 환생 | 남은돌 | 뽑은횟수");
 
 			IdleState state = new IdleState();
 			state.EnsureProducerRoom(tuning.ProducerCount);
@@ -165,8 +165,8 @@ namespace WitchMendokusai.Tests
 			{
 				PlayFor(state, tuning, 24d * 3600d, true);
 
-				table.AppendLine(day + " | " + state.BestStage + " | " + state.Heroes.Count
-					+ " | " + IdleHeroes.DiscoveryScoreOf(state) + " | " + state.Ascensions
+				table.AppendLine(day + " | " + state.BestStage + " | " + state.Dolls.Count
+					+ " | " + IdleDolls.DiscoveryScoreOf(state) + " | " + state.Ascensions
 					+ " | " + state.Stones + " | " + state.PullsDone);
 			}
 
@@ -212,7 +212,7 @@ namespace WitchMendokusai.Tests
 
 				while (IdleGacha.CanPull(state, tuning))
 				{
-					IdleGacha.TryPull(state, tuning, out IdleHeroPull _);
+					IdleGacha.TryPull(state, tuning, out IdleDollPull _);
 				}
 			}
 		}

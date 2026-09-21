@@ -8,14 +8,14 @@ namespace WitchMendokusai.DomainSDK.Idle
     public readonly struct IdleSeatView
     {
         public IdleSeatView(int seat, bool taken, bool standing, double healthRatio, double reviveRatio,
-            int heroId, IdleHeroGrade grade)
+            int dollId, IdleDollGrade grade)
         {
             Seat = seat;
             Taken = taken;
             Standing = standing;
             HealthRatio = healthRatio;
             ReviveRatio = reviveRatio;
-            HeroId = heroId;
+            DollId = dollId;
             Grade = grade;
         }
 
@@ -33,11 +33,11 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>부활까지 찬 비율(0~1) — 쓰러졌을 때만 뜻이 있다.</summary>
         public double ReviveRatio { get; }
 
-        /// <summary>앉은 영웅 번호 — 나(0번)이거나 빈 자리면 -1.</summary>
-        public int HeroId { get; }
+        /// <summary>앉은 인형 번호 — 나(0번)이거나 빈 자리면 -1.</summary>
+        public int DollId { get; }
 
-        /// <summary>그 영웅의 등급 — 화면이 색으로 옮긴다.</summary>
-        public IdleHeroGrade Grade { get; }
+        /// <summary>그 인형의 등급 — 화면이 색으로 옮긴다.</summary>
+        public IdleDollGrade Grade { get; }
     }
 }
 

@@ -12,20 +12,20 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public sealed class IdleBattleSimTests
 	{
-		private const int MELEE_HERO = 0;   // 세모, Damage 축, 사거리 2
-		private const int MID_HERO = 3;     // 여섯모, Speed 축, 사거리 5
-		private const int RANGED_HERO = 1;  // 네모, Base 축, 사거리 8
+		private const int MELEE_DOLL = 0;   // 세모, Damage 축, 사거리 2
+		private const int MID_DOLL = 3;     // 여섯모, Speed 축, 사거리 5
+		private const int RANGED_DOLL = 1;  // 네모, Base 축, 사거리 8
 
 		private static IdleState Fresh(IdleTuning tuning, params int[] party)
 		{
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 
 			for (int seat = 0; seat < party.Length; seat++)
 			{
-				if (state.IndexOfHero(party[seat]) < 0)
+				if (state.IndexOfDoll(party[seat]) < 0)
 				{
-					state.Heroes.Add(new IdleHeroOwned(party[seat]));
+					state.Dolls.Add(new IdleDollOwned(party[seat]));
 				}
 
 				state.Party[seat] = party[seat];
@@ -65,8 +65,8 @@ namespace WitchMendokusai.Tests
 		public void SameSeed_SameResult()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState one = Fresh(tuning, MELEE_HERO, RANGED_HERO);
-			IdleState two = Fresh(tuning, MELEE_HERO, RANGED_HERO);
+			IdleState one = Fresh(tuning, MELEE_DOLL, RANGED_DOLL);
+			IdleState two = Fresh(tuning, MELEE_DOLL, RANGED_DOLL);
 
 			IdleModel.StepLive(one, tuning, 60d);
 			IdleModel.StepLive(two, tuning, 60d);
@@ -84,8 +84,8 @@ namespace WitchMendokusai.Tests
 		public void FrameLength_DoesNotChangeTheBattle()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState once = Fresh(tuning, MELEE_HERO, RANGED_HERO);
-			IdleState split = Fresh(tuning, MELEE_HERO, RANGED_HERO);
+			IdleState once = Fresh(tuning, MELEE_DOLL, RANGED_DOLL);
+			IdleState split = Fresh(tuning, MELEE_DOLL, RANGED_DOLL);
 
 			IdleModel.StepLive(once, tuning, 60d);
 			for (int beat = 0; beat < 600; beat++)
@@ -102,7 +102,7 @@ namespace WitchMendokusai.Tests
 		public void Range_DecidesTheFrontLine()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState state = Fresh(tuning, RANGED_HERO, MELEE_HERO);
+			IdleState state = Fresh(tuning, RANGED_DOLL, MELEE_DOLL);
 			OneFoe(state, 12d);
 
 			IdleBattleSim.Advance(state, tuning, 10d);
@@ -116,7 +116,7 @@ namespace WitchMendokusai.Tests
 		public void OutOfRange_Walks_InRange_Stops()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState state = Fresh(tuning, RANGED_HERO);
+			IdleState state = Fresh(tuning, RANGED_DOLL);
 			IdleFoe foe = OneFoe(state, 12d);
 			foe.Speed = 0d;
 			double start = state.Battle.X[0];
@@ -137,7 +137,7 @@ namespace WitchMendokusai.Tests
 		public void Foes_HitTheFrontmostOnly()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState state = Fresh(tuning, RANGED_HERO, MELEE_HERO, MID_HERO);
+			IdleState state = Fresh(tuning, RANGED_DOLL, MELEE_DOLL, MID_DOLL);
 			state.Stage = 30;
 			state.Battle.StageSeen = 30;
 			OneFoe(state, 4d);
@@ -157,7 +157,7 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 			// 인형이 걸으면 간격이 인형 사거리로 축소. 적의 정지 거리만 보려고 인형 정지
 			tuning.DollMoveSpeed = 0d;
-			IdleState state = Fresh(tuning, MELEE_HERO);
+			IdleState state = Fresh(tuning, MELEE_DOLL);
 			state.Stage = 30;
 			state.Battle.StageSeen = 30;
 			IdleFoe foe = OneFoe(state, 14d, IdleFoeKind.Ranged);
@@ -175,7 +175,7 @@ namespace WitchMendokusai.Tests
 		public void TenKills_AdvanceTheStage()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState state = Fresh(tuning, MELEE_HERO);
+			IdleState state = Fresh(tuning, MELEE_DOLL);
 
 			for (int guard = 0; guard < 600 && state.Stage == 1; guard++)
 			{
@@ -197,7 +197,7 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
             // 원거리의 빠른 처치로 구역이 바뀌지 않도록 클리어 조건 분리
 			tuning.KillsPerStage = 100000;
-			IdleState state = Fresh(tuning, MELEE_HERO, RANGED_HERO, MID_HERO);
+			IdleState state = Fresh(tuning, MELEE_DOLL, RANGED_DOLL, MID_DOLL);
 			long epoch = state.Battle.Epoch;
 			double[] last = (double[])state.Battle.X.Clone();
 			int wavesSeen = state.Battle.Wave;
@@ -227,7 +227,7 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 			tuning.KillsPerStage = 100000;
 			tuning.BattleRebaseDistance = 30d;
-			IdleState state = Fresh(tuning, MELEE_HERO);
+			IdleState state = Fresh(tuning, MELEE_DOLL);
 			long epoch = state.Battle.Epoch;
 
 			for (int tick = 0; tick < 3000 && state.Battle.OriginX <= 0d; tick++)
@@ -245,7 +245,7 @@ namespace WitchMendokusai.Tests
 		public void StageClear_Resets_WithANewEpoch()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState state = Fresh(tuning, MELEE_HERO, RANGED_HERO, MID_HERO);
+			IdleState state = Fresh(tuning, MELEE_DOLL, RANGED_DOLL, MID_DOLL);
 			long epoch = state.Battle.Epoch;
 			int stage = state.Stage;
 
@@ -263,7 +263,7 @@ namespace WitchMendokusai.Tests
 		public void Wipe_FallsBack()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState state = Fresh(tuning, MELEE_HERO);
+			IdleState state = Fresh(tuning, MELEE_DOLL);
 			state.Stage = 40;
 			state.BestStage = 40;
 			state.ClearedStage = 39;
@@ -280,7 +280,7 @@ namespace WitchMendokusai.Tests
 		public void OneHour_UnderTwoHundredMilliseconds()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState state = Fresh(tuning, MELEE_HERO, RANGED_HERO, MID_HERO);
+			IdleState state = Fresh(tuning, MELEE_DOLL, RANGED_DOLL, MID_DOLL);
 
 			Stopwatch clock = Stopwatch.StartNew();
 			for (int minute = 0; minute < 60; minute++)
@@ -297,7 +297,7 @@ namespace WitchMendokusai.Tests
 		public void Away_WithMeasurement_IsLinear()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState state = Fresh(tuning, MELEE_HERO);
+			IdleState state = Fresh(tuning, MELEE_DOLL);
 			state.MeasuredStage = 1;
 			state.MeasuredKillsPerSecond = 0.5d;
 			long before = state.Kills;
@@ -313,8 +313,8 @@ namespace WitchMendokusai.Tests
 		public void Away_WithoutMeasurement_UsesTheOldFormula()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState away = Fresh(tuning, MELEE_HERO);
-			IdleState old = Fresh(tuning, MELEE_HERO);
+			IdleState away = Fresh(tuning, MELEE_DOLL);
+			IdleState old = Fresh(tuning, MELEE_DOLL);
 
 			IdleModel.StepAway(away, tuning, 600d);
 			IdleModel.Step(old, tuning, 600d);
@@ -328,7 +328,7 @@ namespace WitchMendokusai.Tests
 		public void Live_ProducesAMeasurement()
 		{
 			IdleTuning tuning = new IdleTuning();
-			IdleState state = Fresh(tuning, MELEE_HERO);
+			IdleState state = Fresh(tuning, MELEE_DOLL);
 			state.HoldingStage = true;
 
 			IdleModel.StepLive(state, tuning, 61d);

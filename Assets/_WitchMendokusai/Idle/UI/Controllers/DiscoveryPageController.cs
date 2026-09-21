@@ -6,7 +6,7 @@ using WitchMendokusai.DomainSDK.Idle;
 namespace WitchMendokusai.Idle.UI
 {
 	/// <summary>
-	/// 인형 도감. 열렸나는 판정 층 등록소 (DiscoveryUnlocks, 출처 IdleHeroDiscovery) 에 묻고, 채운 정도는 DiscoveryProgress
+	/// 인형 도감. 열렸나는 판정 층 등록소 (DiscoveryUnlocks, 출처 IdleDollDiscovery) 에 묻고, 채운 정도는 DiscoveryProgress
 	/// 본편 도감과 같은 조각. 화면만 다름 (자리와 조작이 달라서)
 	/// </summary>
 	public sealed class DiscoveryPageController
@@ -27,34 +27,34 @@ namespace WitchMendokusai.Idle.UI
 
 		public void Render(IdleSnapshot snapshot)
 		{
-			DiscoveryProgress progress = new DiscoveryProgress(IdleHeroes.Count, snapshot.Heroes.Length);
+			DiscoveryProgress progress = new DiscoveryProgress(IdleDolls.Count, snapshot.Dolls.Length);
 			summary.text = content.DiscoverySummaryText(
 				snapshot.DiscoveryScore, snapshot.DiscoveryMultiplier, progress.Unlocked, progress.Total);
 			EnsureRows();
 
-			for (int heroId = 0; heroId < labels.Count; heroId++)
+			for (int dollId = 0; dollId < labels.Count; dollId++)
 			{
-				IdleHeroKind kind = IdleHeroes.KindOf(heroId);
-				bool held = TryFindHero(snapshot, heroId, out IdleHeroView hero);
-				bool owned = held && DiscoveryUnlocks.IsUnlocked(IdleHeroDiscovery.CATALOG_ID, IdleHeroDiscovery.EntryIdOf(heroId));
-				labels[heroId].text = owned
-					? content.DiscoveryHeroText(kind.Name, content.StarsText(hero.Stars),
+				IdleDollKind kind = IdleDolls.KindOf(dollId);
+				bool held = TryFindDoll(snapshot, dollId, out IdleDollView doll);
+				bool owned = held && DiscoveryUnlocks.IsUnlocked(IdleDollDiscovery.CATALOG_ID, IdleDollDiscovery.EntryIdOf(dollId));
+				labels[dollId].text = owned
+					? content.DiscoveryDollText(kind.Name, content.StarsText(doll.Stars),
 						content.GradeName(kind.Grade), content.AxisName(kind.Axis))
-					: content.DiscoveryHiddenHeroText(content.GradeName(kind.Grade));
-				labels[heroId].EnableInClassList("idle-row-title--dim", owned == false);
+					: content.DiscoveryHiddenDollText(content.GradeName(kind.Grade));
+				labels[dollId].EnableInClassList("idle-row-title--dim", owned == false);
 			}
 		}
 
 		private void EnsureRows()
 		{
-			if (labels.Count == IdleHeroes.Count)
+			if (labels.Count == IdleDolls.Count)
 			{
 				return;
 			}
 
 			rows.Clear();
 			labels.Clear();
-			for (int heroId = 0; heroId < IdleHeroes.Count; heroId++)
+			for (int dollId = 0; dollId < IdleDolls.Count; dollId++)
 			{
 				TemplateContainer tree = rowAsset.Instantiate();
 				Label row = tree.RequireQ<Label>("row");
@@ -64,18 +64,18 @@ namespace WitchMendokusai.Idle.UI
 			}
 		}
 
-		private static bool TryFindHero(IdleSnapshot snapshot, int heroId, out IdleHeroView hero)
+		private static bool TryFindDoll(IdleSnapshot snapshot, int dollId, out IdleDollView doll)
 		{
-			for (int index = 0; index < snapshot.Heroes.Length; index++)
+			for (int index = 0; index < snapshot.Dolls.Length; index++)
 			{
-				if (snapshot.Heroes[index].Id == heroId)
+				if (snapshot.Dolls[index].Id == dollId)
 				{
-					hero = snapshot.Heroes[index];
+					doll = snapshot.Dolls[index];
 					return true;
 				}
 			}
 
-			hero = default;
+			doll = default;
 			return false;
 		}
 	}

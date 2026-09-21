@@ -8,7 +8,7 @@ namespace WitchMendokusai.Tests.Idle
     {
         private const string UI_CONTENT_PATH =
             "Assets/_WitchMendokusai/Idle/Data/Assets/UI_0001_Idle.asset";
-        private const string HERO_CATALOG_PATH =
+        private const string DOLL_CATALOG_PATH =
             "Assets/_WitchMendokusai/Idle/Data/Assets/HC_0001_Idle.asset";
         private const string GEAR_PRESENTATION_PATH =
             "Assets/_WitchMendokusai/Idle/Data/Assets/GP_0001_Idle.asset";
@@ -38,9 +38,9 @@ namespace WitchMendokusai.Tests.Idle
         }
 
         [Test]
-        public void HeroCatalogHasEveryPortrait()
+        public void DollCatalogHasEveryPortrait()
         {
-            HeroCatalogSO catalog = AssetDatabase.LoadAssetAtPath<HeroCatalogSO>(HERO_CATALOG_PATH);
+            DollCatalogSO catalog = AssetDatabase.LoadAssetAtPath<DollCatalogSO>(DOLL_CATALOG_PATH);
             Assert.NotNull(catalog);
             Assert.IsTrue(catalog.TryValidate(out string error), error);
         }

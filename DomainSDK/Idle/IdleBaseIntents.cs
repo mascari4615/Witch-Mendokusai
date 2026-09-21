@@ -110,13 +110,13 @@ namespace WitchMendokusai.DomainSDK.Idle
     public readonly struct IdleEquipIntent : IGameIntent
     {
         /// <summary>끼울 인형 번호 (사용자 2026-08-31: 장비는 인형별)</summary>
-        public int HeroId { get; }
+        public int DollId { get; }
 
         public int BagIndex { get; }
 
-        public IdleEquipIntent(int heroId, int bagIndex)
+        public IdleEquipIntent(int dollId, int bagIndex)
         {
-            HeroId = heroId;
+            DollId = dollId;
             BagIndex = bagIndex;
         }
     }
@@ -131,8 +131,8 @@ namespace WitchMendokusai.DomainSDK.Idle
     {
     }
 
-    /// <summary>「영웅을 한 번 뽑는다」 — 환생석을 치른다 (TASK-WM-406).</summary>
-    public readonly struct IdlePullHeroIntent : IGameIntent
+    /// <summary>「인형을 한 번 뽑는다」 — 환생석을 치른다 (TASK-WM-406).</summary>
+    public readonly struct IdlePullDollIntent : IGameIntent
     {
     }
 
@@ -154,16 +154,16 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
     }
 
-    /// <summary>「이 자리에 이 영웅을 앉힌다」 — 같은 영웅이 다른 자리에 있으면 자리를 맞바꾼다.</summary>
+    /// <summary>「이 자리에 이 인형을 앉힌다」 — 같은 인형이 다른 자리에 있으면 자리를 맞바꾼다.</summary>
     public readonly struct IdleSetPartyIntent : IGameIntent
     {
         public int Slot { get; }
-        public int HeroId { get; }
+        public int DollId { get; }
 
-        public IdleSetPartyIntent(int slot, int heroId)
+        public IdleSetPartyIntent(int slot, int dollId)
         {
             Slot = slot;
-            HeroId = heroId;
+            DollId = dollId;
         }
     }
 }

@@ -98,7 +98,7 @@ namespace WitchMendokusai.Idle
 		public string AwayWarningText(double capSeconds, double lostSeconds) =>
 			string.Format(awayWarningFormat, DescribeSpan(capSeconds), DescribeSpan(lostSeconds));
 
-		public string SelectHeroBeforeGearText => selectHeroBeforeGearText;
+		public string SelectDollBeforeGearText => selectDollBeforeGearText;
 
 		public string AppraiseRowText(int tier, string count, string cost, bool available) => available
 			? string.Format(appraiseAvailableFormat, tier, count, cost)
@@ -107,10 +107,10 @@ namespace WitchMendokusai.Idle
 		public string DiscoverySummaryText(int score, double multiplier, int owned, int total) =>
 			string.Format(discoverySummaryFormat, score, multiplier, owned, total);
 
-		public string DiscoveryHeroText(string name, string stars, string grade, string axis) =>
-			string.Format(discoveryOwnedHeroFormat, name, stars, grade, axis);
+		public string DiscoveryDollText(string name, string stars, string grade, string axis) =>
+			string.Format(discoveryOwnedDollFormat, name, stars, grade, axis);
 
-		public string DiscoveryHiddenHeroText(string grade) => string.Format(discoveryHiddenHeroFormat, grade);
+		public string DiscoveryHiddenDollText(string grade) => string.Format(discoveryHiddenDollFormat, grade);
 
 		public string BagUpgradeText(int slots, string cost) => string.Format(bagUpgradeFormat, slots, cost);
 
@@ -200,13 +200,13 @@ namespace WitchMendokusai.Idle
 			string.Format(appraiseFeedbackFormat, tier, value, replaced ? appraiseReplacedSuffix : string.Empty);
 
 		public string PullFeedbackText(string grade, string name, bool isNew, bool byPity) =>
-			string.Format(pullFeedbackFormat, grade, name, isNew ? newHeroSuffix : string.Empty, byPity ? pitySuffix : string.Empty);
+			string.Format(pullFeedbackFormat, grade, name, isNew ? newDollSuffix : string.Empty, byPity ? pitySuffix : string.Empty);
 
 		public string PartyFullFeedback => partyFullFeedback;
 
 		public string PrestigeFeedback => prestigeFeedback;
 
-		public string StatSelectHeroTip => statSelectHeroTip;
+		public string StatSelectDollTip => statSelectDollTip;
 
 		public string StatMaxTipText(string name) => string.Format(statMaxTipFormat, name);
 
@@ -236,7 +236,7 @@ namespace WitchMendokusai.Idle
 
 		public string WaveText(int current, int total) => string.Format(waveFormat, current, total);
 
-		public string PartySeatText(string seat, string heroName) => string.Format(partySeatFormat, seat, heroName);
+		public string PartySeatText(string seat, string dollName) => string.Format(partySeatFormat, seat, dollName);
 
 		public string EmptyPartySeatText(string seat) => string.Format(emptyPartySeatFormat, seat);
 
@@ -246,8 +246,8 @@ namespace WitchMendokusai.Idle
 
 		public string GainText(string amount) => string.Format(gainFormat, amount);
 
-		public string HeroChoiceText(string name, int stars, int level, string axis) =>
-			string.Format(heroChoiceFormat, name, StarsText(stars), level, axis);
+		public string DollChoiceText(string name, int stars, int level, string axis) =>
+			string.Format(dollChoiceFormat, name, StarsText(stars), level, axis);
 
 		public string PopupPageText(int page, int pageCount) => string.Format(popupPageFormat, page, pageCount);
 

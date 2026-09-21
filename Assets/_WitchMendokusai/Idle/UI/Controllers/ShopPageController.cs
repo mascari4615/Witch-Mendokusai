@@ -15,9 +15,9 @@ namespace WitchMendokusai.Idle.UI
 	{
 		private readonly IdleSession session;
 		private readonly UIContentSO content;
-		private readonly HeroVisualPresenter heroVisualPresenter;
+		private readonly DollVisualPresenter dollVisualPresenter;
 		private readonly Action openOdds;
-		private readonly Action<IReadOnlyList<IdleHeroPull>> showGacha;
+		private readonly Action<IReadOnlyList<IdleDollPull>> showGacha;
 		private readonly Action writeDown;
 		private readonly Action requestRender;
 		private readonly Action<string, float> showFeedback;
@@ -32,16 +32,16 @@ namespace WitchMendokusai.Idle.UI
 		private readonly Button freeBoxButton;
 		private readonly Button bagButton;
 		private readonly Label bagNote;
-		private readonly List<IdleHeroPull> batchResult = new List<IdleHeroPull>();
+		private readonly List<IdleDollPull> batchResult = new List<IdleDollPull>();
 
 		public ShopPageController(VisualElement page, IdleSession session, UIContentSO content,
-			HeroVisualPresenter heroVisualPresenter, Action openOdds,
-			Action<IReadOnlyList<IdleHeroPull>> showGacha,
+			DollVisualPresenter dollVisualPresenter, Action openOdds,
+			Action<IReadOnlyList<IdleDollPull>> showGacha,
 			Action writeDown, Action requestRender, Action<string, float> showFeedback, float feedbackSeconds)
 		{
 			this.session = session;
 			this.content = content;
-			this.heroVisualPresenter = heroVisualPresenter;
+			this.dollVisualPresenter = dollVisualPresenter;
 			this.openOdds = openOdds;
 			this.showGacha = showGacha;
 			this.writeDown = writeDown;
@@ -102,12 +102,12 @@ namespace WitchMendokusai.Idle.UI
 		/// <summary>배너. 픽업 초상과 이름, 교체까지 남은 시간, 천장 카운터</summary>
 		private void RenderBanner(IdleSnapshot snapshot)
 		{
-			bool hasPickup = snapshot.PickupHeroId >= 0 && IdleHeroes.Knows(snapshot.PickupHeroId);
+			bool hasPickup = snapshot.PickupDollId >= 0 && IdleDolls.Knows(snapshot.PickupDollId);
 			if (hasPickup)
 			{
-				heroVisualPresenter.SetPortrait(pickupPortrait, snapshot.PickupHeroId);
+				dollVisualPresenter.SetPortrait(pickupPortrait, snapshot.PickupDollId);
 				pickupLabel.text = content.PickupText(
-					IdleHeroes.KindOf(snapshot.PickupHeroId).Name,
+					IdleDolls.KindOf(snapshot.PickupDollId).Name,
 					snapshot.PickupWeight,
 					content.DescribeSpan(snapshot.PickupSecondsLeft));
 			}
@@ -128,7 +128,7 @@ namespace WitchMendokusai.Idle.UI
 
 		private void Pull()
 		{
-			if (session.TryPull(out IdleHeroPull result) == false)
+			if (session.TryPull(out IdleDollPull result) == false)
 			{
 				return;
 			}
@@ -155,10 +155,10 @@ namespace WitchMendokusai.Idle.UI
 			int newFaces = 0;
 			for (int index = 0; index < batchResult.Count; index++)
 			{
-				IdleHeroPull one = batchResult[index];
-				legend += one.Grade == IdleHeroGrade.Legend ? 1 : 0;
-				epic += one.Grade == IdleHeroGrade.Epic ? 1 : 0;
-				rare += one.Grade == IdleHeroGrade.Rare ? 1 : 0;
+				IdleDollPull one = batchResult[index];
+				legend += one.Grade == IdleDollGrade.Legend ? 1 : 0;
+				epic += one.Grade == IdleDollGrade.Epic ? 1 : 0;
+				rare += one.Grade == IdleDollGrade.Rare ? 1 : 0;
 				newFaces += one.IsNew ? 1 : 0;
 			}
 

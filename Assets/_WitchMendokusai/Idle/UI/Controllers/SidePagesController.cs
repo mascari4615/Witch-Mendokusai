@@ -32,16 +32,16 @@ namespace WitchMendokusai.Idle.UI
 			IdleSession session,
 			UIContentSO content,
 			IdleViewAssetsSO viewAssets,
-			HeroVisualPresenter heroVisualPresenter,
+			DollVisualPresenter dollVisualPresenter,
 			GearVisualPresenter gearVisualPresenter,
-			Func<int> selectedHeroId,
+			Func<int> selectedDollId,
 			Func<int> selectedGearSeat,
 			Func<int> selectingPartySeat,
-			Action<int> focusHero,
-			Action<int> openHero,
+			Action<int> focusDoll,
+			Action<int> openDoll,
 			Action<int> openGear,
 			Action openOdds,
-			Action<System.Collections.Generic.IReadOnlyList<IdleHeroPull>> showGacha,
+			Action<System.Collections.Generic.IReadOnlyList<IdleDollPull>> showGacha,
 			Action<VisualElement, Func<string>> hookTooltip,
 			Action writeDown,
 			Action requestRender,
@@ -58,7 +58,7 @@ namespace WitchMendokusai.Idle.UI
 				viewAssets.BagCell,
 				viewAssets.ForgeKind,
 				viewAssets.RowButton,
-				selectedHeroId,
+				selectedDollId,
 				writeDown,
 				requestRender,
 				showNote,
@@ -69,13 +69,13 @@ namespace WitchMendokusai.Idle.UI
 				Bind(sidePanel, root, ManagementPage.Doll, "doll-page-host"),
 				session,
 				content,
-				heroVisualPresenter,
+				dollVisualPresenter,
 				gearVisualPresenter,
-				selectedHeroId,
+				selectedDollId,
 				selectedGearSeat,
 				selectingPartySeat,
-				focusHero,
-				openHero,
+				focusDoll,
+				openDoll,
 				openGear,
 				itemPage.WornTip,
 				hookTooltip,
@@ -83,14 +83,14 @@ namespace WitchMendokusai.Idle.UI
 				requestRender,
 				playGood);
 			// 인형 해금 출처를 판정 층 등록소에 꽂음. 도감 화면은 등록소에만 물음
-			DiscoveryUnlocks.Register(new IdleHeroDiscovery(session.State));
+			DiscoveryUnlocks.Register(new IdleDollDiscovery(session.State));
 			discoveryPage = new DiscoveryPageController(
 				Bind(sidePanel, root, ManagementPage.Discovery, "discovery-page-host"),
 				viewAssets.RowLabel,
 				content);
 			shopPage = new ShopPageController(
 				Bind(sidePanel, root, ManagementPage.Shop, "shop-page-host"),
-				session, content, heroVisualPresenter, openOdds, showGacha, writeDown, requestRender, showNote, noteSeconds);
+				session, content, dollVisualPresenter, openOdds, showGacha, writeDown, requestRender, showNote, noteSeconds);
 			labPage = new LabPageController(
 				Bind(sidePanel, root, ManagementPage.Lab, "lab-page-host"),
 				session, content, writeDown, requestRender, showNote, noteSeconds);

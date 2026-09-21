@@ -1,7 +1,7 @@
 namespace WitchMendokusai.DomainSDK.Idle
 {
     /// <summary>
-    /// 영웅별로 올리는 전투 수치.
+    /// 인형별로 올리는 전투 수치.
     /// 전투 판정 이름. 표시 이름은 표현 계층 소유.
     /// </summary>
     public enum IdleUpgradeKind

@@ -95,10 +95,10 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public int MergeCount { get; }
 
-        /// <summary>가진 영웅들 (도감).</summary>
-        public IdleHeroView[] Heroes { get; }
+        /// <summary>가진 인형들 (도감).</summary>
+        public IdleDollView[] Dolls { get; }
 
-        /// <summary>내보낸 셋 — 영웅 id, 빈 자리는 -1.</summary>
+        /// <summary>내보낸 셋 — 인형 id, 빈 자리는 -1.</summary>
         public int[] Party { get; }
 
         /// <summary>한 번 뽑는 값 (자원) — 뽑을수록 오른다.</summary>
@@ -145,10 +145,10 @@ namespace WitchMendokusai.DomainSDK.Idle
         public bool CanPullBatch { get; }
 
         /// <summary>묶음이 보장하는 최저 등급 (묶음 안에 하나)</summary>
-        public IdleHeroGrade PullBatchFloorGrade { get; }
+        public IdleDollGrade PullBatchFloorGrade { get; }
 
         /// <summary>지금 픽업인 인형. 없으면 -1</summary>
-        public int PickupHeroId { get; }
+        public int PickupDollId { get; }
 
         /// <summary>픽업 인형이 같은 등급 안에서 뽑히는 무게 (다른 인형은 1)</summary>
         public double PickupWeight { get; }
@@ -290,7 +290,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             long[] droppedByTier, int maxTierNow, int tierCeiling,
             IdleProducerView[] producers, IdleItem[] bag, IdleItem[] worn, int bagCapacity, int mergeCount,
             double bestPotentialValue, PotentialGrade bestPotentialGrade, double maxOfflineSeconds, bool holdingStage, int bestStage, int bestFarmingStage,
-            IdleHeroView[] heroes, int[] party, double pullCost, long pullStoneCost, long stones,
+            IdleDollView[] dolls, int[] party, double pullCost, long pullStoneCost, long stones,
             double visitorSecondsLeft, IdleSurgeKind surgeKind, double surgeSecondsLeft, double surgeMultiplier,
             bool canPull, int pullsToPity, double legendChance, double epicChance, double rareChance,
             int discoveryScore, double discoveryMultiplier,
@@ -301,7 +301,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleCardKind[] queued, long[] tickets, double ticketRefillSeconds,
             double speed, bool autoCast, double bagUpgradeCost, bool canBuyBag,
             int pullBatchCount, double pullBatchCost, long pullBatchStoneCost, bool canPullBatch,
-            IdleHeroGrade pullBatchFloorGrade, int pickupHeroId, double pickupWeight, double pickupSecondsLeft,
+            IdleDollGrade pullBatchFloorGrade, int pickupDollId, double pickupWeight, double pickupSecondsLeft,
             bool freeBoxReady, double freeBoxSecondsLeft, long freeBoxStones,
             long ticketsPerDay, int dungeonGearTier, IdleDungeonCellView[] dungeonCells, IdleDungeonRunView dungeonRun,
             IdleDungeonResult lastDungeonResult, long dungeonResultSequence, long battleEpoch)
@@ -318,7 +318,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             PullBatchStoneCost = pullBatchStoneCost;
             CanPullBatch = canPullBatch;
             PullBatchFloorGrade = pullBatchFloorGrade;
-            PickupHeroId = pickupHeroId;
+            PickupDollId = pickupDollId;
             PickupWeight = pickupWeight;
             PickupSecondsLeft = pickupSecondsLeft;
             FreeBoxReady = freeBoxReady;
@@ -369,7 +369,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             HoldingStage = holdingStage;
             BestStage = bestStage;
             BestFarmingStage = bestFarmingStage;
-            Heroes = heroes;
+            Dolls = dolls;
             Party = party;
             PullCost = pullCost;
             PullStoneCost = pullStoneCost;

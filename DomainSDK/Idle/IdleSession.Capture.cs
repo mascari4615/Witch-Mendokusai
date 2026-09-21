@@ -34,7 +34,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 state.HoldingStage,
                 state.BestStage,
                 IdleModel.BestFarmingStage(state, tuning),
-                CaptureHeroes(),
+                CaptureDolls(),
                 CaptureParty(),
                 IdleGacha.CostOf(state, tuning),
                 IdleGacha.StoneCostOf(tuning),
@@ -48,10 +48,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                 tuning.LegendChance,
                 tuning.EpicChance,
                 tuning.RareChance,
-                IdleHeroes.DiscoveryScoreOf(state),
-                IdleHeroes.DiscoveryMultiplierOf(state, tuning),
-                ViewHeroStat(IdleHeroes.StarterId, IdleUpgradeKind.Damage, 1),
-                ViewHeroStat(IdleHeroes.StarterId, IdleUpgradeKind.AttackSpeed, 1),
+                IdleDolls.DiscoveryScoreOf(state),
+                IdleDolls.DiscoveryMultiplierOf(state, tuning),
+                ViewDollStat(IdleDolls.StarterId, IdleUpgradeKind.Damage, 1),
+                ViewDollStat(IdleDolls.StarterId, IdleUpgradeKind.AttackSpeed, 1),
                 IdleModel.AttackSpeedOf(state, tuning),
                 state.Cost,
                 tuning.CostMax,
@@ -77,7 +77,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 IdleGacha.BatchCostOf(state, tuning),
                 IdleGacha.BatchStoneCostOf(tuning),
                 IdleGacha.CanPullBatch(state, tuning),
-                (IdleHeroGrade)tuning.PullBatchFloorGrade,
+                (IdleDollGrade)tuning.PullBatchFloorGrade,
                 PickupNow(),
                 tuning.PickupWeight,
                 IdleGacha.PickupSecondsLeft(tuning, Now()),
@@ -148,9 +148,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             {
                 bool taken = IdleSquad.SeatTaken(state, seat);
                 int id = taken ? state.Party[seat] : -1;
-                IdleHeroGrade grade = id >= 0 && IdleHeroes.Knows(id)
-                    ? IdleHeroes.KindOf(id).Grade
-                    : IdleHeroGrade.Common;
+                IdleDollGrade grade = id >= 0 && IdleDolls.Knows(id)
+                    ? IdleDolls.KindOf(id).Grade
+                    : IdleDollGrade.Common;
 
                 made[seat] = new IdleSeatView(
                     seat,
@@ -176,7 +176,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                     seat,
                     battle.Ready ? battle.X[seat] : 0d,
                     battle.Ready ? battle.Y[seat] : IdleBattleSim.LaneOf(tuning, seat),
-                    IdleHeroes.RangeOf(state, tuning, seat),
+                    IdleDolls.RangeOf(state, tuning, seat),
                     battle.Ready && battle.Moving[seat],
                     battle.Ready ? battle.Target[seat] : -1L);
             }
@@ -253,14 +253,14 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>도감을 사진에 담는다 — 화면이 등급표·별 셈을 다시 하지 않게.</summary>
-        private IdleHeroView[] CaptureHeroes()
+        private IdleDollView[] CaptureDolls()
         {
-            IdleHeroView[] made = Room(ref heroBuffer, state.Heroes.Count);
+            IdleDollView[] made = Room(ref dollBuffer, state.Dolls.Count);
 
-            for (int index = 0; index < state.Heroes.Count; index++)
+            for (int index = 0; index < state.Dolls.Count; index++)
             {
-                IdleHeroOwned owned = state.Heroes[index];
-                IdleHeroKind kind = IdleHeroes.KindOf(owned.Id);
+                IdleDollOwned owned = state.Dolls[index];
+                IdleDollKind kind = IdleDolls.KindOf(owned.Id);
 
                 bool inParty = false;
                 for (int slot = 0; slot < state.Party.Length; slot++)
@@ -272,7 +272,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                     }
                 }
 
-                made[index] = new IdleHeroView(
+                made[index] = new IdleDollView(
                     owned.Id,
                     kind.Name,
                     kind.Grade,
@@ -282,10 +282,10 @@ namespace WitchMendokusai.DomainSDK.Idle
                     owned.Copies,
                     IdleGacha.CopiesForNextStar(owned.Stars, tuning),
                     inParty,
-                    IdleHeroes.OwnedShareOf(owned, tuning),
+                    IdleDolls.OwnedShareOf(owned, tuning),
                     owned.Level,
-                    IdleHeroes.LevelCostOf(owned, tuning),
-                    state.Resource >= IdleHeroes.LevelCostOf(owned, tuning),
+                    IdleDolls.LevelCostOf(owned, tuning),
+                    state.Resource >= IdleDolls.LevelCostOf(owned, tuning),
                     CanRaiseAnyStat(owned.Id));
             }
 
@@ -295,7 +295,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         // ── 사진에 쓰는 판들 ─────────────────────────────────────────────────
         //
         // ★ <b>왜 돌려 쓰나</b> — 사진은 <b>매 프레임</b> 찍힌다. 전에는 찍을 때마다 배열 다섯을
-        //   새로 만들었고, 실측 <b>한 번에 2472 바이트</b>였다(가방 40칸·영웅 16 기준).
+        //   새로 만들었고, 실측 <b>한 번에 2472 바이트</b>였다(가방 40칸·인형 16 기준).
         //   60프레임 x 8시간이면 <b>4 GB</b>어치 쓰레기다 — 방치형은 밤새 켜 두는 게 기본값이라
         //   그게 그대로 쌓인다. 추측이 아니라 재고 고쳤다
         //   (GC.GetAllocatedBytesForCurrentThread 로 엔진 밖에서 잰 값).
@@ -305,7 +305,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         //   시험 한 줄). 들고 있어야 하면 그때는 <b>복사해서</b> 들어라.
         private IdleProducerView[] producerBuffer;
 
-        private IdleHeroView[] heroBuffer;
+        private IdleDollView[] dollBuffer;
 
         private IdleItem[] bagBuffer;
 
@@ -358,15 +358,15 @@ namespace WitchMendokusai.DomainSDK.Idle
             {
                 made[slot] = default;
 
-                for (int seat = 0; seat < IdleHeroes.MAIN_SLOTS && seat < state.Party.Length; seat++)
+                for (int seat = 0; seat < IdleDolls.MAIN_SLOTS && seat < state.Party.Length; seat++)
                 {
-                    int heroId = state.Party[seat];
-                    if (heroId < 0)
+                    int dollId = state.Party[seat];
+                    if (dollId < 0)
                     {
                         continue;
                     }
 
-                    IdleItem one = IdleGear.WornOf(state, heroId, slot);
+                    IdleItem one = IdleGear.WornOf(state, dollId, slot);
                     if (one.IsEmpty == false)
                     {
                         made[slot] = one;

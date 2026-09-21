@@ -45,12 +45,12 @@ namespace WitchMendokusai.Tests
 
 			IdleState weak = new IdleState();
 			IdleState strong = new IdleState();
-			IdleHeroes.EnsureStarter(strong);
+			IdleDolls.EnsureStarter(strong);
 			strong.Resource = 1e9d;
 
 			for (int level = 0; level < 12; level++)
 			{
-				IdleModel.TryRaise(strong, tuning, IdleHeroes.StarterId,
+				IdleModel.TryRaise(strong, tuning, IdleDolls.StarterId,
 					IdleUpgradeKind.AttackSpeed, 1);
 			}
 

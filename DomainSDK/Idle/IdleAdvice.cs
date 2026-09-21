@@ -15,7 +15,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>환생할 때다 — 더 내려가도 등급이 안 열린다.</summary>
         Prestige = 3,
 
-        /// <summary>영웅을 뽑을 수 있다.</summary>
+        /// <summary>인형을 뽑을 수 있다.</summary>
         Pull = 4,
 
         /// <summary>같은 것 셋을 합칠 수 있다.</summary>
@@ -33,7 +33,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>손으로 때려라 — 아직 아무것도 안 도는 첫 1분.</summary>
         Tap = 8,
 
-        /// <summary>가진 영웅이 자리에 안 앉아 있다 — 앉히는 데는 아무것도 안 든다.</summary>
+        /// <summary>가진 인형이 자리에 안 앉아 있다 — 앉히는 데는 아무것도 안 든다.</summary>
         Seat = 10,
     }
 
@@ -43,7 +43,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         Base = 0,
         Upgrade = 1,
         Gear = 2,
-        Hero = 3,
+        Doll = 3,
         Prestige = 4,
     }
 
@@ -117,7 +117,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             // ⑤ 앉히는 것도 <b>공짜로 세지는 것</b>이다 — 파티 자리의 배수는 자리에 앉아야 붙는다.
-            //    ⚠ 여기가 비어 있었다 (실측 2026-08-17): 영웅 칸의 <b>점</b>은 빈 자리에도 찍히는데
+            //    ⚠ 여기가 비어 있었다 (실측 2026-08-17): 인형 칸의 <b>점</b>은 빈 자리에도 찍히는데
             //      「지금 할 한 걸음」은 그 말을 영영 안 했다. 규칙이 두 벌이면 사람은 점을 보고
             //      칸을 열었다가 <b>왜 점이 찍혔는지</b>를 스스로 알아내야 한다 — 안내가 아니다.
             //      차는 것(Wear)을 말하면서 앉히는 것을 안 말한 것은 같은 빚을 반만 갚은 셈이다.
@@ -144,7 +144,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                     snapshot.Producers[cheapest].IncomeGain);
             }
 
-            if (HasAffordableHeroStat(snapshot))
+            if (HasAffordableDollStat(snapshot))
             {
                 return new IdleAdviceResult(IdleStep.Raise, -1, 0d);
             }
@@ -179,14 +179,14 @@ namespace WitchMendokusai.DomainSDK.Idle
                     return CheapestAffordableProducer(snapshot) >= 0;
 
                 case IdleTab.Upgrade:
-                    return HasAffordableHeroStat(snapshot);
+                    return HasAffordableDollStat(snapshot);
 
                 case IdleTab.Gear:
                     return snapshot.Bag.Length >= snapshot.BagCapacity
                         || MergeableCount(snapshot) > 0
                         || HasBetterUnworn(snapshot);
 
-                case IdleTab.Hero:
+                case IdleTab.Doll:
                     return snapshot.CanPull || HasEmptyPartySeat(snapshot);
 
                 case IdleTab.Prestige:
@@ -234,10 +234,10 @@ namespace WitchMendokusai.DomainSDK.Idle
             return false;
         }
 
-        /// <summary>영웅이 있는데 파티 자리가 비었나 — 안 세우면 배수가 그냥 놀고 있다.</summary>
+        /// <summary>인형이 있는데 파티 자리가 비었나 — 안 세우면 배수가 그냥 놀고 있다.</summary>
         public static bool HasEmptyPartySeat(IdleSnapshot snapshot)
         {
-            if (snapshot.Heroes.Length <= 0)
+            if (snapshot.Dolls.Length <= 0)
             {
                 return false;
             }
@@ -251,14 +251,14 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
             }
 
-            return seated < snapshot.Party.Length && seated < snapshot.Heroes.Length;
+            return seated < snapshot.Party.Length && seated < snapshot.Dolls.Length;
         }
 
-        private static bool HasAffordableHeroStat(IdleSnapshot snapshot)
+        private static bool HasAffordableDollStat(IdleSnapshot snapshot)
         {
-            for (int index = 0; index < snapshot.Heroes.Length; index++)
+            for (int index = 0; index < snapshot.Dolls.Length; index++)
             {
-                if (snapshot.Heroes[index].CanRaiseStat)
+                if (snapshot.Dolls[index].CanRaiseStat)
                 {
                     return true;
                 }

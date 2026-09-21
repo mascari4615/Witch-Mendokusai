@@ -15,7 +15,7 @@ namespace WitchMendokusai.Idle.UI
 		private readonly Func<int, long, bool> castAt;
 		private readonly Action<long?> aimAt;
 		private readonly Action aimMissed;
-		private readonly HeroVisualPresenter heroVisualPresenter;
+		private readonly DollVisualPresenter dollVisualPresenter;
 		private readonly Button[] buttons;
 		private readonly VisualElement[] icons;
 		private readonly VisualElement[] faces;
@@ -35,7 +35,7 @@ namespace WitchMendokusai.Idle.UI
 		public CardHandController(
 			VisualElement battle,
 			VisualTreeAsset cardAsset,
-			HeroVisualPresenter heroVisualPresenter,
+			DollVisualPresenter dollVisualPresenter,
 			UIContentSO content,
 			Func<int, bool> canAim,
 			Action<int> clicked,
@@ -45,7 +45,7 @@ namespace WitchMendokusai.Idle.UI
 			Action aimMissed)
 		{
 			this.battle = battle;
-			this.heroVisualPresenter = heroVisualPresenter;
+			this.dollVisualPresenter = dollVisualPresenter;
 			this.content = content;
 			this.canAim = canAim;
 			this.clicked = clicked;
@@ -122,10 +122,10 @@ namespace WitchMendokusai.Idle.UI
 				names[index].text = content.CardName(card.Kind);
 				SetIconClass(icons[index], card.Kind);
 				SetKindClass(buttons[index], card.Kind);
-				if (shownOwners[index] != card.OwnerHeroId)
+				if (shownOwners[index] != card.OwnerDollId)
 				{
-					shownOwners[index] = card.OwnerHeroId;
-					heroVisualPresenter.SetFace(faces[index], card.OwnerHeroId);
+					shownOwners[index] = card.OwnerDollId;
+					dollVisualPresenter.SetFace(faces[index], card.OwnerDollId);
 				}
 				buttons[index].SetEnabled(card.CanCast);
 				buttons[index].EnableInClassList("idle-card--ready", card.CanCast);

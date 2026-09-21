@@ -150,7 +150,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: WM.Idle::WitchMendokusai.Idle.BattleScreen
   tuningAsset: {fileID: 11400000, guid: 946381831e6beaa4f94c9952cca3a3b6, type: 2}
-  heroCatalogAsset: {fileID: 11400000, guid: 39160233eae84ad5a87beef5884f58a4, type: 2}
+  dollCatalogAsset: {fileID: 11400000, guid: 39160233eae84ad5a87beef5884f58a4, type: 2}
   uiContentAsset: {fileID: 11400000, guid: b7f48f0fcf6449218a366d2f9b6bdb19, type: 2}
   gearPresentationAsset: {fileID: 11400000, guid: 9128322b7f804cdeb022fc36a9bb9fcc, type: 2}
   runtimeSettingsAsset: {fileID: 11400000, guid: 1202b3b113384e7c84862acf236604ad, type: 2}

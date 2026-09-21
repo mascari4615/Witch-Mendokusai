@@ -132,17 +132,17 @@ namespace WitchMendokusai.DomainSDK.Idle
             return true;
         }
 
-        /// <summary>한 영웅의 한 수치를 정해진 클릭 묶음만큼 올림</summary>
-        public static bool TryRaise(IdleState state, IdleTuning tuning, int heroId,
+        /// <summary>한 인형의 한 수치를 정해진 클릭 묶음만큼 올림</summary>
+        public static bool TryRaise(IdleState state, IdleTuning tuning, int dollId,
             IdleUpgradeKind kind, int amount)
         {
-            return IdleHeroes.TryRaiseStat(state, tuning, heroId, kind, amount);
+            return IdleDolls.TryRaiseStat(state, tuning, dollId, kind, amount);
         }
 
-        public static bool TryGetCost(IdleState state, IdleTuning tuning, int heroId,
+        public static bool TryGetCost(IdleState state, IdleTuning tuning, int dollId,
             IdleUpgradeKind kind, int amount, out double cost)
         {
-            return IdleHeroes.TryGetStatCost(state, tuning, heroId, kind, amount, out cost);
+            return IdleDolls.TryGetStatCost(state, tuning, dollId, kind, amount, out cost);
         }
     }
 }

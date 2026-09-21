@@ -186,26 +186,26 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// ★ 영웅이 있는데 <b>자리가 비면</b> 영웅 칸에 점 — 안 세운 영웅의 배수는 그냥 논다.
+		/// ★ 인형이 있는데 <b>자리가 비면</b> 인형 칸에 점 — 안 세운 인형의 배수는 그냥 논다.
 		///   자리를 채우면 꺼진다(할 일이 없어졌으니).
 		/// </summary>
 		[Test]
-		public void AnEmptyPartySeat_LightsTheHeroTab()
+		public void AnEmptyPartySeat_LightsTheDollTab()
 		{
 			IdleState state = Fresh(out IdleTuning tuning);
-			// 빈 전장은 첫 영웅이 자동 착석 (C10). 둘째 영웅이 안 세운 채로 남음
-			state.Heroes.Add(new IdleHeroOwned(4));
-			state.Heroes.Add(new IdleHeroOwned(5));
+			// 빈 전장은 첫 인형이 자동 착석 (C10). 둘째 인형이 안 세운 채로 남음
+			state.Dolls.Add(new IdleDollOwned(4));
+			state.Dolls.Add(new IdleDollOwned(5));
 
-			Assert.IsTrue(IdleAdvice.HasSomethingToDo(Look(state), IdleTab.Hero),
-				"영웅이 있는데 자리가 비었는데도 조용하다");
+			Assert.IsTrue(IdleAdvice.HasSomethingToDo(Look(state), IdleTab.Doll),
+				"인형이 있는데 자리가 비었는데도 조용하다");
 
 			// 시작 인형이 0번 칸. 나머지 둘을 세우면 할 일이 없다
 			state.Party[1] = 5;
 			state.Party[2] = 4;
 
-			Assert.IsFalse(IdleAdvice.HasSomethingToDo(Look(state), IdleTab.Hero),
-				"세울 영웅이 더 없는데도 점이 남는다");
+			Assert.IsFalse(IdleAdvice.HasSomethingToDo(Look(state), IdleTab.Doll),
+				"세울 인형이 더 없는데도 점이 남는다");
 		}
 
 		/// <summary>
@@ -267,7 +267,7 @@ namespace WitchMendokusai.Tests
 			state.Resource = IdleBase.CostOf(0, state.Owned[0], tuning);
 			state.Bag.Add(new IdleItem(3, IdleItemSlot.Head));
 
-			Assert.IsTrue(IdleGear.TryEquip(state, IdleHeroes.StarterId, 0));
+			Assert.IsTrue(IdleGear.TryEquip(state, IdleDolls.StarterId, 0));
 
 			Assert.AreEqual(IdleStep.BuyProducer, IdleAdvice.NextStep(Look(state)).Step,
 				"찼는데도 계속 차라고 한다");
@@ -288,11 +288,11 @@ namespace WitchMendokusai.Tests
 			//   이르러서(20초 vs 50초) 속도를 빼먹어도 답이 안 바뀌었다 — 처음 쓴 시험이
 			//   눈뜬장님이었다. 여기서는 공격력을 12까지 올려 <b>속도가 가장 이른</b> 판을 만든다
 			//   (공격력 36초 · 속도 8.3초 · 기지 11.6초).
-			IdleHeroes.EnsureStarter(state);
-			int starter = state.IndexOfHero(IdleHeroes.StarterId);
-			IdleHeroOwned owned = state.Heroes[starter];
+			IdleDolls.EnsureStarter(state);
+			int starter = state.IndexOfDoll(IdleDolls.StarterId);
+			IdleDollOwned owned = state.Dolls[starter];
 			owned.DamageLevel = 12;
-			state.Heroes[starter] = owned;
+			state.Dolls[starter] = owned;
 			state.Owned[0] = 6L;
 
 			IdleSnapshot now = Look(state);
@@ -460,22 +460,22 @@ namespace WitchMendokusai.Tests
 
 
 		/// <summary>
-		/// ★ <b>앉히는 것</b>도 공짜다 — 가진 영웅이 자리에 안 앉아 있으면 그걸 먼저 말한다.
+		/// ★ <b>앉히는 것</b>도 공짜다 — 가진 인형이 자리에 안 앉아 있으면 그걸 먼저 말한다.
 		///
-		/// ⚠ 여기가 비어 있었다 (실측 2026-08-17): 영웅 칸의 <b>점</b>은 빈 자리에도 찍히는데
+		/// ⚠ 여기가 비어 있었다 (실측 2026-08-17): 인형 칸의 <b>점</b>은 빈 자리에도 찍히는데
 		///   「지금 할 한 걸음」은 그 말을 안 했다. 점을 보고 칸을 연 사람이 <b>왜 찍혔는지</b>를
 		///   스스로 알아내야 했다 — 규칙이 두 벌이면 안내가 안내를 배신한다.
 		/// </summary>
 		[Test]
-		public void AnUnseatedHero_IsToldBeforeSpending()
+		public void AnUnseatedDoll_IsToldBeforeSpending()
 		{
 			IdleState state = Fresh(out IdleTuning tuning);
 
 			// 살 수도 있는 판 — 그래도 공짜인 쪽(앉히기)을 먼저 말해야 한다.
 			state.Resource = IdleBase.CostOf(0, state.Owned[0], tuning);
-			// 첫 영웅은 자동 착석 (C10). 둘째가 안 세운 채로 남음
-			state.Heroes.Add(new IdleHeroOwned(4));
-			state.Heroes.Add(new IdleHeroOwned(5));
+			// 첫 인형은 자동 착석 (C10). 둘째가 안 세운 채로 남음
+			state.Dolls.Add(new IdleDollOwned(4));
+			state.Dolls.Add(new IdleDollOwned(5));
 
 			Assert.AreEqual(IdleStep.Seat, IdleAdvice.NextStep(Look(state)).Step);
 

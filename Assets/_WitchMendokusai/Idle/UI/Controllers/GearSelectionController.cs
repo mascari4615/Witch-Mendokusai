@@ -81,7 +81,7 @@ namespace WitchMendokusai.Idle.UI
 			this.equipped = equipped;
 			this.wearer = wearer;
 			title.text = wearer >= 0
-				? IdleHeroes.KindOf(wearer).Name + " " + content.GearSlotName(SelectedSlot)
+				? IdleDolls.KindOf(wearer).Name + " " + content.GearSlotName(SelectedSlot)
 				: content.GearSlotName(SelectedSlot);
 
 			worn.text = content.EquippedGearText(equipped);

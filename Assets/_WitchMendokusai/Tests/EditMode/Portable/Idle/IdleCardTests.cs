@@ -186,10 +186,10 @@ namespace WitchMendokusai.Tests
 		private static IdleState PartyOfThree()
 		{
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
-			foreach (int heroId in new[] { 1, 2 })
+			IdleDolls.EnsureStarter(state);
+			foreach (int dollId in new[] { 1, 2 })
 			{
-				state.Heroes.Add(new IdleHeroOwned(heroId));
+				state.Dolls.Add(new IdleDollOwned(dollId));
 			}
 			state.Party[1] = 1;
 			state.Party[2] = 2;
@@ -214,7 +214,7 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(IdleCardKind.Haste, IdleCards.SkillOf(3), "속도 축은 가속");
 
 			IdleState alone = new IdleState();
-			IdleHeroes.EnsureStarter(alone);
+			IdleDolls.EnsureStarter(alone);
 			IdleCards.EnsureDeck(alone);
 			Assert.AreEqual(1, alone.CardDeck.Length, "인형 하나면 카드 하나");
 			Assert.AreEqual(-1, IdleCards.OwnerAt(alone, 1), "빈 자리는 주인이 없다");
@@ -231,7 +231,7 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(IdleCards.TryCastHand(state, tuning, 0, out IdleCardResult _));
 			CollectionAssert.AreEqual(new[] { 1, 2, 0 }, state.CardDeck, "낸 카드가 뒤로 안 갔다");
 
-			state.Heroes.Add(new IdleHeroOwned(3));
+			state.Dolls.Add(new IdleDollOwned(3));
 			state.Party[1] = 3;
 			IdleCards.EnsureDeck(state);
 
@@ -297,7 +297,7 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 			double plain = IdleModel.AttackSpeedOf(state, tuning);
 			state.Cost = tuning.HasteCost;
 

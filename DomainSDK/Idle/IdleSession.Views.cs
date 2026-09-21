@@ -13,11 +13,11 @@ namespace WitchMendokusai.DomainSDK.Idle
                 IdlePotentials.WhyNot(state, tuning, tier));
         }
 
-        private bool CanRaiseAnyStat(int heroId)
+        private bool CanRaiseAnyStat(int dollId)
         {
             for (int stat = 0; stat <= (int)IdleUpgradeKind.Recovery; stat++)
             {
-                if (IdleModel.TryGetCost(state, tuning, heroId, (IdleUpgradeKind)stat, 1, out double cost)
+                if (IdleModel.TryGetCost(state, tuning, dollId, (IdleUpgradeKind)stat, 1, out double cost)
                     && state.Resource >= cost)
                 {
                     return true;
@@ -27,26 +27,26 @@ namespace WitchMendokusai.DomainSDK.Idle
             return false;
         }
 
-        public IdleUpgradeView ViewHeroStat(int heroId, IdleUpgradeKind kind, int amount)
+        public IdleUpgradeView ViewDollStat(int dollId, IdleUpgradeKind kind, int amount)
         {
-            int index = state.IndexOfHero(heroId);
+            int index = state.IndexOfDoll(dollId);
             if (index < 0)
             {
                 return new IdleUpgradeView(kind, 0, 0d, 0d, true, false, 0d, 0d);
             }
 
-            IdleHeroOwned owned = state.Heroes[index];
+            IdleDollOwned owned = state.Dolls[index];
             int level = owned.StatLevel(kind);
-            bool hasNext = IdleModel.TryGetCost(state, tuning, heroId, kind, amount, out double nextCost);
+            bool hasNext = IdleModel.TryGetCost(state, tuning, dollId, kind, amount, out double nextCost);
 
             return new IdleUpgradeView(
                 kind,
                 level,
-                HeroStatValue(heroId, kind),
+                DollStatValue(dollId, kind),
                 nextCost,
                 hasNext == false,
                 hasNext && state.Resource >= nextCost,
-                ValueAfterRaising(heroId, kind, amount),
+                ValueAfterRaising(dollId, kind, amount),
                 SecondsToAfford(nextCost, hasNext));
         }
 
@@ -56,43 +56,43 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// ★ 공식을 화면이나 여기서 다시 쓰지 않는다. 두 번 쓰면 언젠가 갈리고,
         ///   그러면 <b>버튼이 거짓말</b>을 한다(사면 다른 값이 나온다).
         /// </summary>
-        private double ValueAfterRaising(int heroId, IdleUpgradeKind kind, int amount)
+        private double ValueAfterRaising(int dollId, IdleUpgradeKind kind, int amount)
         {
-            int index = state.IndexOfHero(heroId);
+            int index = state.IndexOfDoll(dollId);
             if (index < 0)
             {
                 return 0d;
             }
 
-            IdleHeroOwned before = state.Heroes[index];
-            IdleHeroOwned afterOwned = before;
+            IdleDollOwned before = state.Dolls[index];
+            IdleDollOwned afterOwned = before;
             afterOwned.SetStatLevel(kind, before.StatLevel(kind) + amount);
-            state.Heroes[index] = afterOwned;
-            double after = HeroStatValue(heroId, kind);
-            state.Heroes[index] = before;
+            state.Dolls[index] = afterOwned;
+            double after = DollStatValue(dollId, kind);
+            state.Dolls[index] = before;
 
             return after;
         }
 
-        private double HeroStatValue(int heroId, IdleUpgradeKind kind)
+        private double DollStatValue(int dollId, IdleUpgradeKind kind)
         {
             switch (kind)
             {
                 case IdleUpgradeKind.Damage:
-                    return IdleModel.DamageOfHero(state, tuning, heroId);
+                    return IdleModel.DamageOfDoll(state, tuning, dollId);
                 case IdleUpgradeKind.AttackSpeed:
-                    return IdleModel.AttackSpeedOfHero(state, tuning, heroId);
+                    return IdleModel.AttackSpeedOfDoll(state, tuning, dollId);
                 case IdleUpgradeKind.MaxHealth:
-                    return IdleSquad.MaxHealthOfHero(state, tuning, heroId);
+                    return IdleSquad.MaxHealthOfDoll(state, tuning, dollId);
                 case IdleUpgradeKind.Defense:
-                    double defense = IdleHeroes.DefenseOf(state, tuning, heroId);
+                    double defense = IdleDolls.DefenseOf(state, tuning, dollId);
                     return 1d - 1d / (1d + defense);
                 case IdleUpgradeKind.CriticalChance:
-                    return IdleHeroes.CriticalChanceOf(state, tuning, heroId);
+                    return IdleDolls.CriticalChanceOf(state, tuning, dollId);
                 case IdleUpgradeKind.CriticalDamage:
-                    return IdleHeroes.CriticalDamageOf(state, tuning, heroId);
+                    return IdleDolls.CriticalDamageOf(state, tuning, dollId);
                 default:
-                    return IdleHeroes.HealPerKillShareOf(state, tuning, heroId);
+                    return IdleDolls.HealPerKillShareOf(state, tuning, dollId);
             }
         }
 
@@ -101,7 +101,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///
         /// ★ 공식을 화면이 다시 쓰지 않게. 두 번 쓰면 언젠가 갈리고 버튼이 거짓말을 한다.
         ///
-        /// ★ 배수(장비·영웅·도감·폭주)는 사도 안 사도 <b>똑같이</b> 곱해져 비율에서 지워진다 —
+        /// ★ 배수(장비·인형·도감·폭주)는 사도 안 사도 <b>똑같이</b> 곱해져 비율에서 지워진다 —
         ///   그래서 바닥(<see cref="IdleBase.RawOutputPerSecond"/>)만으로 잰다. 값은 전과 같다.
         ///
         /// ⚠ 전에는 <b>생산자를 하나 얹었다 되돌리며</b> 쟀다. 조회하는 자리가 판을 건드리면,

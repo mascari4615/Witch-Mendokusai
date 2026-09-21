@@ -23,7 +23,7 @@ namespace WitchMendokusai.Idle.UI
 			VisualElement gachaPopupElement,
 			VisualTreeAsset rowButtonAsset,
 			VisualTreeAsset gachaCardAsset,
-			HeroVisualPresenter heroVisualPresenter,
+			DollVisualPresenter dollVisualPresenter,
 			RuntimeSettingsSO runtimeSettings,
 			ModalController modalController,
 			IdleSession session,
@@ -44,7 +44,7 @@ namespace WitchMendokusai.Idle.UI
 				settingsPopupElement, modalController, session, content, requestRender, wipeAndRestart);
 			oddsPopup = new OddsPopupController(oddsPopupElement, modalController, content);
 			gachaReveal = new GachaRevealController(
-				gachaPopupElement, modalController, content, heroVisualPresenter, gachaCardAsset, runtimeSettings);
+				gachaPopupElement, modalController, content, dollVisualPresenter, gachaCardAsset, runtimeSettings);
 		}
 
 		public void Tick(float delta)
@@ -54,7 +54,7 @@ namespace WitchMendokusai.Idle.UI
 		}
 
 		/// <summary>뽑기 연출. 결과는 이미 판이 정한 것이고 여기는 보여주기만</summary>
-		public void ShowGacha(System.Collections.Generic.IReadOnlyList<IdleHeroPull> result)
+		public void ShowGacha(System.Collections.Generic.IReadOnlyList<IdleDollPull> result)
 		{
 			mapSelection.Close();
 			closeSelectionPopups();

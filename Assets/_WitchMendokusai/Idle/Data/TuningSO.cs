@@ -187,7 +187,7 @@ namespace WitchMendokusai.Idle
 		[Tooltip("무료 상자가 주는 뽑기 재화. 하루 1회")]
 		[SerializeField] private long freeBoxStones = 1L;
 
-		[Header("영웅, 중복, 보유, 도감")]
+		[Header("인형, 중복, 보유, 도감")]
 		[Tooltip("★ 상한. 넘겨도 중복은 안 버린다.")]
 		[SerializeField] private int maxStars = 5;
 
@@ -195,25 +195,25 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private int copiesPerStar = 2;
 
 		[Tooltip("★ 하나가 더하는 몫.")]
-		[SerializeField] private double heroStarStep = 0.10d;
+		[SerializeField] private double dollStarStep = 0.10d;
 
 		[Tooltip("인형 레벨 한 칸이 더해 주는 몫 (economy.md 표 3). ★ 의 1/10")]
-		[SerializeField] private double heroLevelStep = 0.01d;
+		[SerializeField] private double dollLevelStep = 0.01d;
 
 		[Tooltip("인형 레벨 0 에서 1 로 올리는 골드")]
-		[SerializeField] private double heroLevelCostBase = 20d;
+		[SerializeField] private double dollLevelCostBase = 20d;
 
 		[Tooltip("레벨마다 값이 오르는 비율. 뽑기(1.15)보다 완만하게")]
-		[SerializeField] private double heroLevelCostRatio = 1.09d;
+		[SerializeField] private double dollLevelCostRatio = 1.09d;
 
 		[Tooltip("«가지고만 있어도» 붙는 몫 (등급 무게에 곱해진다).")]
-		[SerializeField] private double heroOwnedShareByGrade = 0.03d;
+		[SerializeField] private double dollOwnedShareByGrade = 0.03d;
 
 		[Tooltip("메인 칸에 «내보내야» 붙는 몫. 보유보다 커야 누구를 낼지가 결정이 된다.")]
-		[SerializeField] private double heroPartyShareByGrade = 0.12d;
+		[SerializeField] private double dollPartyShareByGrade = 0.12d;
 
 		[Tooltip("보조 칸(전장 불참)에 넣었을 때 붙는 몫. 메인보다 작고 보유보다 커야 한다.")]
-		[SerializeField] private double heroSupportShareByGrade = 0.06d;
+		[SerializeField] private double dollSupportShareByGrade = 0.06d;
 
 		[Tooltip("도감 점수 몇마다 한 계단 오르나.")]
 		[FormerlySerializedAs("codexStepScore")]
@@ -335,7 +335,7 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private double hasteMultiplier = 2d;
 
 		[Header("부대, 피격, 쓰러짐, 회복 (V2)")]
-		[Tooltip("한 자리의 기본 체력 (장비, 환생, 영웅 등급 적용).")]
+		[Tooltip("한 자리의 기본 체력 (장비, 환생, 인형 등급 적용).")]
 		[SerializeField] private double seatBaseHealth = 400d;
 
 		[Tooltip("1구역 적이 초당 넣는 피해.")]
@@ -350,12 +350,12 @@ namespace WitchMendokusai.Idle
 		[Tooltip("적 하나를 잡을 때 회복하는 최대 체력 비율. 난이도 벽 위치 조정.")]
 		[SerializeField] private double healPerKillShare = 0.08d;
 
-		[Tooltip("영웅 등급 한 계단이 체력에 더하는 몫.")]
-		[SerializeField] private double heroGradeHealthStep = 0.35d;
+		[Tooltip("인형 등급 한 계단이 체력에 더하는 몫.")]
+		[SerializeField] private double dollGradeHealthStep = 0.35d;
 
 		[Header("사거리 전투 (combat.md). 단위 m, s")]
 		[Tooltip("인형 사거리. 축 순서 Damage, Speed, Base, Drop")]
-		[SerializeField] private double[] heroRangeByAxis = { 2d, 5d, 8d, 8d };
+		[SerializeField] private double[] dollRangeByAxis = { 2d, 5d, 8d, 8d };
 
 		[Tooltip("인형 걷는 속도 (m/s)")]
 		[SerializeField] private double dollMoveSpeed = 2.5d;

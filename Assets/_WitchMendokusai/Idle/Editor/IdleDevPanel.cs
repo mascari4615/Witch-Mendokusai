@@ -149,7 +149,7 @@ namespace WitchMendokusai.Idle.Editor
 			}
 
 			IdleSaveData data = loaded.Value;
-			int heroes = data.Heroes != null ? data.Heroes.Length : 0;
+			int dolls = data.Dolls != null ? data.Dolls.Length : 0;
 			int bag = data.BagItems != null ? data.BagItems.Length : 0;
 			string party = data.Party != null ? string.Join(",", data.Party) : "-";
 			System.DateTimeOffset seen = System.DateTimeOffset.FromUnixTimeSeconds(data.LastSeenUnixSeconds).ToLocalTime();
@@ -160,7 +160,7 @@ namespace WitchMendokusai.Idle.Editor
 			EditorGUILayout.LabelField("강화", string.Format("공격 Lv{0} / 속도 Lv{1}", data.DamageLevel, data.AttackSpeedLevel));
 			EditorGUILayout.LabelField("환생", string.Format("{0}회, 조각 {1}", data.Ascensions, data.PrestigePoints));
 			EditorGUILayout.LabelField("뽑기", string.Format("재화 {0}, 누적 {1}회, 천장까지 {2}", data.Stones, data.PullsDone, data.PullsSincePity));
-			EditorGUILayout.LabelField("인형", string.Format("{0}종, 편성 [{1}]", heroes, party));
+			EditorGUILayout.LabelField("인형", string.Format("{0}종, 편성 [{1}]", dolls, party));
 			EditorGUILayout.LabelField("가방", string.Format("{0}개", bag));
 			EditorGUILayout.LabelField("마지막 접속", seen.ToString("yyyy-MM-dd HH:mm:ss"));
 

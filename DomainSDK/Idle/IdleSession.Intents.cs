@@ -8,7 +8,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>의도를 받는다 — 받아들여졌으면 true. 자원이 모자라거나 상한이면 아무 일도 없다.</summary>
         public bool Send(IdleRaiseUpgradeIntent intent)
         {
-            return IdleModel.TryRaise(state, tuning, intent.HeroId, intent.Kind, intent.Amount);
+            return IdleModel.TryRaise(state, tuning, intent.DollId, intent.Kind, intent.Amount);
         }
 
         /// <summary>배속을 다음 자리로. 끝에서 처음으로</summary>
@@ -40,9 +40,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>인형 레벨을 한 칸 올린다 (economy.md 표 3). 골드가 모자라면 아무 일도 없다</summary>
-        public bool RaiseHeroLevel(int heroId)
+        public bool RaiseDollLevel(int dollId)
         {
-            return IdleHeroes.TryRaiseLevel(state, tuning, heroId);
+            return IdleDolls.TryRaiseLevel(state, tuning, dollId);
         }
 
         /// <summary>
@@ -54,27 +54,27 @@ namespace WitchMendokusai.DomainSDK.Idle
             return true;
         }
 
-        /// <summary>영웅을 한 번 뽑는다. 자원이 모자라면 아무 일도 안 일어난다.</summary>
-        public bool TryPull(out IdleHeroPull pull)
+        /// <summary>인형을 한 번 뽑는다. 자원이 모자라면 아무 일도 안 일어난다.</summary>
+        public bool TryPull(out IdleDollPull pull)
         {
             return IdleGacha.TryPull(state, tuning, PickupNow(), out pull);
         }
 
-        /// <summary>영웅을 한 번 뽑는다 (결과가 필요 없을 때).</summary>
-        public bool Send(IdlePullHeroIntent intent)
+        /// <summary>인형을 한 번 뽑는다 (결과가 필요 없을 때).</summary>
+        public bool Send(IdlePullDollIntent intent)
         {
-            return IdleGacha.TryPull(state, tuning, PickupNow(), out IdleHeroPull _);
+            return IdleGacha.TryPull(state, tuning, PickupNow(), out IdleDollPull _);
         }
 
         /// <summary>묶음으로 뽑는다. 결과는 <paramref name="into"/> 에 순서대로</summary>
-        public bool TryPullBatch(System.Collections.Generic.List<IdleHeroPull> into)
+        public bool TryPullBatch(System.Collections.Generic.List<IdleDollPull> into)
         {
             return IdleGacha.TryPullBatch(state, tuning, PickupNow(), into);
         }
 
         public bool Send(IdlePullBatchIntent intent)
         {
-            return IdleGacha.TryPullBatch(state, tuning, PickupNow(), new System.Collections.Generic.List<IdleHeroPull>());
+            return IdleGacha.TryPullBatch(state, tuning, PickupNow(), new System.Collections.Generic.List<IdleDollPull>());
         }
 
         /// <summary>던전 한 판 시작 (changes/idle-dungeon-run). 보상은 안에서 싸워 얻고 결과는 사진의 LastDungeonResult</summary>
@@ -124,7 +124,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>지금 픽업인 인형. 시계가 정한다</summary>
         private int PickupNow()
         {
-            return IdleGacha.PickupHeroOf(tuning, Now());
+            return IdleGacha.PickupDollOf(tuning, Now());
         }
 
         /// <summary>
@@ -139,26 +139,26 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return false;
             }
 
-            if (intent.HeroId >= 0 && state.IndexOfHero(intent.HeroId) < 0)
+            if (intent.DollId >= 0 && state.IndexOfDoll(intent.DollId) < 0)
             {
                 return false;
             }
 
             // ⚠ 빈 자리는 -1 로 적힌다. 그래서 <b>빼는</b> 요청(-1)에 이 맞바꿈을 그대로 태우면
-            //   다른 빈 자리들이 전부 「같은 영웅」으로 잡혀 <b>빼려던 영웅이 두 자리에 복제</b>된다
-            //   ([5,-1,-1] 에서 0번을 비우면 [-1,5,5]). 맞바꿈은 <b>진짜 영웅일 때만</b>이다.
-            if (intent.HeroId >= 0)
+            //   다른 빈 자리들이 전부 「같은 인형」으로 잡혀 <b>빼려던 인형이 두 자리에 복제</b>된다
+            //   ([5,-1,-1] 에서 0번을 비우면 [-1,5,5]). 맞바꿈은 <b>진짜 인형일 때만</b>이다.
+            if (intent.DollId >= 0)
             {
                 for (int slot = 0; slot < state.Party.Length; slot++)
                 {
-                    if (slot != intent.Slot && state.Party[slot] == intent.HeroId)
+                    if (slot != intent.Slot && state.Party[slot] == intent.DollId)
                     {
                         state.Party[slot] = state.Party[intent.Slot];
                     }
                 }
             }
 
-            state.Party[intent.Slot] = intent.HeroId;
+            state.Party[intent.Slot] = intent.DollId;
             return true;
         }
 
@@ -207,7 +207,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>가방의 것을 찬다.</summary>
         public bool Send(IdleEquipIntent intent)
         {
-            return IdleGear.TryEquip(state, intent.HeroId, intent.BagIndex);
+            return IdleGear.TryEquip(state, intent.DollId, intent.BagIndex);
         }
 
         /// <summary>

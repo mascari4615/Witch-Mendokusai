@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49056f69a8cc421fa2b2e20b7f16f099, type: 3}
+  m_Name: ID_05_IslandGirl
+  m_EditorClassIdentifier: WM.Idle::WitchMendokusai.Idle.DollDefinitionSO
+  <ID>k__BackingField: 5
+  <Name>k__BackingField: 섬 소녀
+  <Description>k__BackingField:
+  portrait: {fileID: 21300000, guid: 9b64c9d6310841f5a157cd0819444336, type: 3}
+  cardPortrait: {fileID: 21300000, guid: 53da8a5fd35f4d558f709ae503169d72, type: 3}
+  <Sprites>k__BackingField: []
+  axis: 3
+  grade: 0
+  sides: 8

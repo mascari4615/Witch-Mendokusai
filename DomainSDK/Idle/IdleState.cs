@@ -134,23 +134,23 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// 인형별 장비 (사용자 2026-08-31: 유닛이 여럿인데 가방에서 바로 끼우는 건 기획 오류).
         /// 자리는 <c>인형 번호 * SLOT_COUNT + 부위</c>. 옛 판 공용 4칸은 시작 인형 것으로 이관
         /// </summary>
-        public IdleItem[] Worn { get; private set; } = new IdleItem[IdleHeroes.Count * IdleGear.SLOT_COUNT];
+        public IdleItem[] Worn { get; private set; } = new IdleItem[IdleDolls.Count * IdleGear.SLOT_COUNT];
 
         /// <summary>떨어진 순번 — 부위를 돌려 주는 데 쓴다(무작위 X, 결정적).</summary>
         public long DropSequence { get; set; }
 
-        /// <summary>뽑아서 가진 영웅들 (TASK-WM-406).</summary>
-        public System.Collections.Generic.List<IdleHeroOwned> Heroes { get; private set; }
-            = new System.Collections.Generic.List<IdleHeroOwned>();
+        /// <summary>뽑아서 가진 인형들 (TASK-WM-406).</summary>
+        public System.Collections.Generic.List<IdleDollOwned> Dolls { get; private set; }
+            = new System.Collections.Generic.List<IdleDollOwned>();
 
         /// <summary>
-        /// 편성. 각 칸에 영웅 <see cref="IdleHeroKind.Id"/>, 빈 칸은 -1.
-        /// 앞 <see cref="IdleHeroes.MAIN_SLOTS"/> 칸이 메인(출전), 뒤가 보조(전장 불참).
+        /// 편성. 각 칸에 인형 <see cref="IdleDollKind.Id"/>, 빈 칸은 -1.
+        /// 앞 <see cref="IdleDolls.MAIN_SLOTS"/> 칸이 메인(출전), 뒤가 보조(전장 불참).
         ///
         /// ★ <b>보유</b>와 <b>출전</b>을 나눈 자리다. 안 나눴으면 전원 참전이 늘 정답이라
         ///   「누구를 내보낼까」가 결정이 아니게 된다.
         /// </summary>
-        public int[] Party { get; private set; } = IdleHeroes.EmptyParty();
+        public int[] Party { get; private set; } = IdleDolls.EmptyParty();
 
         /// <summary>천장까지 남은 셈 — 마지막 최고등급 이후 몇 번 뽑았나.</summary>
         public int PullsSincePity { get; set; }
@@ -185,12 +185,12 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public long PullsDone { get; set; }
 
-        /// <summary>가진 영웅이 목록의 몇 번째인가. 없으면 -1.</summary>
-        public int IndexOfHero(int id)
+        /// <summary>가진 인형이 목록의 몇 번째인가. 없으면 -1.</summary>
+        public int IndexOfDoll(int id)
         {
-            for (int index = 0; index < Heroes.Count; index++)
+            for (int index = 0; index < Dolls.Count; index++)
             {
-                if (Heroes[index].Id == id)
+                if (Dolls[index].Id == id)
                 {
                     return index;
                 }
@@ -337,7 +337,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         ///
         /// ★ 옛 저장·새 판은 체력이 0 이라 그대로 두면 <b>시작하자마자 전멸</b>이다.
         /// ★ 쓰러진 자리(부활 게이지가 돌고 있다)와 <b>새로 앉은 자리</b>를 갈라 본다 —
-        ///   안 가르면 부활 대기 중인 영웅이 매 프레임 공짜로 일어난다.
+        ///   안 가르면 부활 대기 중인 인형이 매 프레임 공짜로 일어난다.
         /// </summary>
         public void EnsureSeatRoom(IdleTuning tuning)
         {
@@ -348,7 +348,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             // 전장에 하나 필수. 자리 0(나) 삭제 뒤로는 시작 인형이 그 몫
-            IdleHeroes.EnsureStarter(this);
+            IdleDolls.EnsureStarter(this);
 
             bool first = SeatsReady == false;
             SeatsReady = true;

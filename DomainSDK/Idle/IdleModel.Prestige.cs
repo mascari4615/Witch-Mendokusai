@@ -157,7 +157,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             state.Damage.Level = 0;
             state.AttackSpeed.Level = 0;
             // 인형 레벨도 지움 (U4). 보유와 ★ 과 도감은 그대로
-            IdleHeroes.ForgetLevels(state);
+            IdleDolls.ForgetLevels(state);
 
             // 상점에서 산 것도 지움 (사용자 판정 2026-09-01. 골드로 산 것은 그 판의 것)
             IdleShop.ForgetPurchases(state);

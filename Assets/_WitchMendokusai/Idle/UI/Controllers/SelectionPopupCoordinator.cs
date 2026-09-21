@@ -8,7 +8,7 @@ namespace WitchMendokusai.Idle.UI
 	{
 		private readonly IdleSession session;
 		private readonly UIContentSO content;
-		private readonly HeroSelectionController heroSelection;
+		private readonly DollSelectionController dollSelection;
 		private readonly GearSelectionController gearSelection;
 		private readonly Action closeAuxiliaryPopups;
 		private readonly Action writeDown;
@@ -18,11 +18,11 @@ namespace WitchMendokusai.Idle.UI
 		private int gearSeat;
 
 		public SelectionPopupCoordinator(
-			VisualElement heroPopup,
+			VisualElement dollPopup,
 			VisualElement gearPopup,
 			VisualTreeAsset choiceCardAsset,
 			ModalController modalController,
-			HeroVisualPresenter heroVisualPresenter,
+			DollVisualPresenter dollVisualPresenter,
 			GearVisualPresenter gearVisualPresenter,
 			IdleSession session,
 			UIContentSO content,
@@ -40,9 +40,9 @@ namespace WitchMendokusai.Idle.UI
 			this.requestRender = requestRender;
 			this.showNote = showNote;
 			this.noteSeconds = noteSeconds;
-			heroSelection = new HeroSelectionController(
-				heroPopup, choiceCardAsset, modalController,
-				heroVisualPresenter, content, ChooseHero);
+			dollSelection = new DollSelectionController(
+				dollPopup, choiceCardAsset, modalController,
+				dollVisualPresenter, content, ChooseDoll);
 			gearSelection = new GearSelectionController(
 				gearPopup, choiceCardAsset, modalController,
 				gearVisualPresenter, content, itemPage.Equip);
@@ -50,15 +50,15 @@ namespace WitchMendokusai.Idle.UI
 
 		public int GearSeat => gearSeat;
 
-		public int HeroId => session.HeroAtPartySlot(gearSeat);
+		public int DollId => session.DollAtPartySlot(gearSeat);
 
-		public int SelectingPartySeat => heroSelection.SelectedSeat;
+		public int SelectingPartySeat => dollSelection.SelectedSeat;
 
 		/// <summary>
 		/// 자리 하나를 누름. 그 인형이 강화 대상 (사용자 2026-09-20: 아이콘을 누르면 선택 창이 떠서 강화를 못 함).
-		/// 빈 자리만 선택 창. 인형 바꾸기는 큰 초상화 (OpenHero)
+		/// 빈 자리만 선택 창. 인형 바꾸기는 큰 초상화 (OpenDoll)
 		/// </summary>
-		public void FocusHero(int slot)
+		public void FocusDoll(int slot)
 		{
 			IdleSnapshot snapshot = session.Capture();
 			if (slot < 0 || slot >= snapshot.Party.Length)
@@ -68,17 +68,17 @@ namespace WitchMendokusai.Idle.UI
 
 			if (snapshot.Party[slot] < 0)
 			{
-				OpenHero(slot);
+				OpenDoll(slot);
 				return;
 			}
 
 			gearSeat = slot;
-			heroSelection.Close();
+			dollSelection.Close();
 			gearSelection.Close();
 			requestRender();
 		}
 
-		public void OpenHero(int slot)
+		public void OpenDoll(int slot)
 		{
 			IdleSnapshot snapshot = session.Capture();
 			if (slot < 0 || slot >= snapshot.Party.Length)
@@ -89,19 +89,19 @@ namespace WitchMendokusai.Idle.UI
 			gearSeat = slot;
 			gearSelection.Close();
 			closeAuxiliaryPopups();
-			heroSelection.Open(slot);
+			dollSelection.Open(slot);
 			requestRender();
 		}
 
 		public void OpenGear(int slot)
 		{
-			if (HeroId < 0)
+			if (DollId < 0)
 			{
-				showNote(content.SelectHeroBeforeGearText, noteSeconds);
+				showNote(content.SelectDollBeforeGearText, noteSeconds);
 				return;
 			}
 
-			heroSelection.Close();
+			dollSelection.Close();
 			closeAuxiliaryPopups();
 			gearSelection.Open(slot);
 			requestRender();
@@ -109,28 +109,28 @@ namespace WitchMendokusai.Idle.UI
 
 		public void CloseAll()
 		{
-			heroSelection.Close();
+			dollSelection.Close();
 			gearSelection.Close();
 		}
 
-		public void ClearHeroSelection()
+		public void ClearDollSelection()
 		{
-			heroSelection.ClearSelection();
+			dollSelection.ClearSelection();
 		}
 
 		public void Render(IdleSnapshot snapshot)
 		{
-			heroSelection.Render(snapshot);
-			int heroId = HeroId;
-			IdleItem equipped = heroId >= 0 && gearSelection.SelectedSlot >= 0
-				? session.WornOf(heroId, gearSelection.SelectedSlot)
+			dollSelection.Render(snapshot);
+			int dollId = DollId;
+			IdleItem equipped = dollId >= 0 && gearSelection.SelectedSlot >= 0
+				? session.WornOf(dollId, gearSelection.SelectedSlot)
 				: default;
-			gearSelection.Render(snapshot, equipped, heroId);
+			gearSelection.Render(snapshot, equipped, dollId);
 		}
 
-		private void ChooseHero(int heroId)
+		private void ChooseDoll(int dollId)
 		{
-			int slot = heroSelection.SelectedSeat;
+			int slot = dollSelection.SelectedSeat;
 			if (slot < 0)
 			{
 				slot = FirstEmptySeat();
@@ -143,9 +143,9 @@ namespace WitchMendokusai.Idle.UI
 				return;
 			}
 
-			session.Send(new IdleSetPartyIntent(slot, heroId));
+			session.Send(new IdleSetPartyIntent(slot, dollId));
 			gearSeat = slot;
-			heroSelection.Close();
+			dollSelection.Close();
 			writeDown();
 			requestRender();
 		}

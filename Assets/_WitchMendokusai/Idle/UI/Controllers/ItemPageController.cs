@@ -14,7 +14,7 @@ namespace WitchMendokusai.Idle.UI
 		private readonly GearVisualPresenter gearVisualPresenter;
 		private readonly VisualTreeAsset bagCellAsset;
 		private readonly VisualTreeAsset rowButtonAsset;
-		private readonly Func<int> selectedHeroId;
+		private readonly Func<int> selectedDollId;
 		private readonly Action writeDown;
 		private readonly Action requestRender;
 		private readonly Action<string, float> showFeedback;
@@ -38,7 +38,7 @@ namespace WitchMendokusai.Idle.UI
 			VisualTreeAsset bagCellAsset,
 			VisualTreeAsset forgeKindAsset,
 			VisualTreeAsset rowButtonAsset,
-			Func<int> selectedHeroId,
+			Func<int> selectedDollId,
 			Action writeDown,
 			Action requestRender,
 			Action<string, float> showFeedback,
@@ -51,7 +51,7 @@ namespace WitchMendokusai.Idle.UI
 			this.gearVisualPresenter = gearVisualPresenter;
 			this.bagCellAsset = bagCellAsset;
 			this.rowButtonAsset = rowButtonAsset;
-			this.selectedHeroId = selectedHeroId;
+			this.selectedDollId = selectedDollId;
 			this.writeDown = writeDown;
 			this.requestRender = requestRender;
 			this.showFeedback = showFeedback;
@@ -109,7 +109,7 @@ namespace WitchMendokusai.Idle.UI
 
 		public void Equip(int bagIndex)
 		{
-			session.Send(new IdleEquipIntent(selectedHeroId(), bagIndex));
+			session.Send(new IdleEquipIntent(selectedDollId(), bagIndex));
 			writeDown();
 			requestRender();
 		}
@@ -123,8 +123,8 @@ namespace WitchMendokusai.Idle.UI
 			}
 
 			IdleItem item = snapshot.Bag[index];
-			int heroId = selectedHeroId();
-			IdleItem worn = heroId >= 0 ? session.WornOf(heroId, (int)item.Slot) : default;
+			int dollId = selectedDollId();
+			IdleItem worn = dollId >= 0 ? session.WornOf(dollId, (int)item.Slot) : default;
 			string wornText = worn.IsEmpty
 				? content.NoWornGearText
 				: content.WornGearSummaryText(session.GearMultiplierOf(worn));
@@ -136,8 +136,8 @@ namespace WitchMendokusai.Idle.UI
 
 		public string WornTip(int slot)
 		{
-			int heroId = selectedHeroId();
-			IdleItem item = heroId >= 0 ? session.WornOf(heroId, slot) : default;
+			int dollId = selectedDollId();
+			IdleItem item = dollId >= 0 ? session.WornOf(dollId, slot) : default;
 			return item.IsEmpty
 				? content.WornEmptyTipText(content.GearSlotName(slot))
 				: content.WornTipText(content.GearSlotName(slot),

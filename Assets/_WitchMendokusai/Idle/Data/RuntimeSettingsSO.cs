@@ -38,7 +38,7 @@ namespace WitchMendokusai.Idle
 		[SerializeField, Min(0.1f)] private float bagLockHoldSeconds = 0.5f;
 		[SerializeField, Min(1)] private int previewStage = 4;
 		[SerializeField, Min(0f)] private double previewResource = 500d;
-		[SerializeField] private int[] previewPartyHeroIds = { 0, 3, 1 };
+		[SerializeField] private int[] previewPartyDollIds = { 0, 3, 1 };
 
 		public float SaveIntervalSeconds => saveIntervalSeconds;
 		public float NoteSeconds => noteSeconds;
@@ -69,15 +69,15 @@ namespace WitchMendokusai.Idle
 		public IdleState CreatePreviewState(IdleTuning tuning)
 		{
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
-			for (int seat = 0; seat < previewPartyHeroIds.Length && seat < state.Party.Length; seat++)
+			IdleDolls.EnsureStarter(state);
+			for (int seat = 0; seat < previewPartyDollIds.Length && seat < state.Party.Length; seat++)
 			{
-				int heroId = previewPartyHeroIds[seat];
-				if (state.IndexOfHero(heroId) < 0)
+				int dollId = previewPartyDollIds[seat];
+				if (state.IndexOfDoll(dollId) < 0)
 				{
-					state.Heroes.Add(new IdleHeroOwned(heroId));
+					state.Dolls.Add(new IdleDollOwned(dollId));
 				}
-				state.Party[seat] = heroId;
+				state.Party[seat] = dollId;
 			}
 
 			state.Stage = previewStage;
@@ -97,7 +97,7 @@ namespace WitchMendokusai.Idle
 				|| tooltipTipFallbackSize.x <= 0f || tooltipTipFallbackSize.y <= 0f
 				|| modalRepaintMilliseconds <= 0 || aimTimeScale <= 0f || aimTimeScale > 1f || bagLockHoldSeconds <= 0f
 				|| previewStage <= 0
-				|| previewResource < 0d || previewPartyHeroIds == null || previewPartyHeroIds.Length == 0)
+				|| previewResource < 0d || previewPartyDollIds == null || previewPartyDollIds.Length == 0)
 			{
 				error = "runtime timings and sound values must be in range";
 				return false;

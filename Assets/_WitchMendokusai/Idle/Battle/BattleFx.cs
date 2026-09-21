@@ -221,7 +221,7 @@ namespace WitchMendokusai.Idle
 				return;
 			}
 
-			for (int seat = 0; seat < IdleHeroes.PARTY_SLOTS; seat++)
+			for (int seat = 0; seat < IdleDolls.PARTY_SLOTS; seat++)
 			{
 				if (entities.TryGetAllyHead(seat, out Vector3 from))
 				{
@@ -237,7 +237,7 @@ namespace WitchMendokusai.Idle
 
 		public void PlaySupply(BattleEntityPresenter entities)
 		{
-			for (int seat = 0; seat < IdleHeroes.PARTY_SLOTS; seat++)
+			for (int seat = 0; seat < IdleDolls.PARTY_SLOTS; seat++)
 			{
 				if (entities.TryGetAllyHead(seat, out Vector3 head))
 				{
@@ -249,7 +249,7 @@ namespace WitchMendokusai.Idle
 
 		public void PlayAppraise(BattleEntityPresenter entities)
 		{
-			for (int seat = 0; seat < IdleHeroes.PARTY_SLOTS; seat++)
+			for (int seat = 0; seat < IdleDolls.PARTY_SLOTS; seat++)
 			{
 				if (entities.TryGetAllyHead(seat, out Vector3 head))
 				{

@@ -33,7 +33,7 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(IdleGacha.CanPullBatch(state, tuning), "골드가 1 모자란데 묶음이 됐다");
 
 			state.Resource = one * count;
-			List<IdleHeroPull> pulls = new List<IdleHeroPull>();
+			List<IdleDollPull> pulls = new List<IdleDollPull>();
 			Assert.IsTrue(IdleGacha.TryPullBatch(state, tuning, -1, pulls));
 
 			Assert.AreEqual(count, pulls.Count);
@@ -51,22 +51,22 @@ namespace WitchMendokusai.Tests
 			tuning.EpicChance = 0d;
 			tuning.RareChance = 0d;
 			tuning.PityPulls = 100000;
-			tuning.PullBatchFloorGrade = (int)IdleHeroGrade.Epic;
+			tuning.PullBatchFloorGrade = (int)IdleDollGrade.Epic;
 			IdleState state = new IdleState();
 			state.Stones = IdleGacha.BatchStoneCostOf(tuning);
 			state.Resource = IdleGacha.BatchCostOf(state, tuning);
 
-			List<IdleHeroPull> pulls = new List<IdleHeroPull>();
+			List<IdleDollPull> pulls = new List<IdleDollPull>();
 			Assert.IsTrue(IdleGacha.TryPullBatch(state, tuning, -1, pulls));
 
 			int atFloor = 0;
 			for (int index = 0; index < pulls.Count; index++)
 			{
-				atFloor += pulls[index].Grade >= IdleHeroGrade.Epic ? 1 : 0;
+				atFloor += pulls[index].Grade >= IdleDollGrade.Epic ? 1 : 0;
 			}
 
 			Assert.AreEqual(1, atFloor, "보장이 하나가 아니다");
-			Assert.AreEqual(IdleHeroGrade.Epic, pulls[pulls.Count - 1].Grade, "보장이 마지막 자리가 아니다");
+			Assert.AreEqual(IdleDollGrade.Epic, pulls[pulls.Count - 1].Grade, "보장이 마지막 자리가 아니다");
 		}
 
 		/// <summary>★ 하루 한 번. 같은 날 다시 못 열고, 날이 바뀌면 다시</summary>
@@ -109,14 +109,14 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 			long days = tuning.PickupDays;
 
-			int first = IdleGacha.PickupHeroOf(tuning, At(tuning, 0L, 10L));
-			int stillFirst = IdleGacha.PickupHeroOf(tuning, At(tuning, days - 1L, 10L));
-			int second = IdleGacha.PickupHeroOf(tuning, At(tuning, days, 10L));
+			int first = IdleGacha.PickupDollOf(tuning, At(tuning, 0L, 10L));
+			int stillFirst = IdleGacha.PickupDollOf(tuning, At(tuning, days - 1L, 10L));
+			int second = IdleGacha.PickupDollOf(tuning, At(tuning, days, 10L));
 
 			Assert.GreaterOrEqual(first, 0, "픽업이 없다");
 			Assert.AreEqual(first, stillFirst, "같은 주기인데 픽업이 바뀌었다");
 			Assert.AreNotEqual(first, second, "주기가 바뀌었는데 픽업이 그대로다");
-			Assert.AreEqual(IdleHeroGrade.Legend, IdleHeroes.KindOf(first).Grade);
+			Assert.AreEqual(IdleDollGrade.Legend, IdleDolls.KindOf(first).Grade);
 			Assert.AreEqual(days * SECONDS_PER_DAY - 10L, IdleGacha.PickupSecondsLeft(tuning, At(tuning, 0L, 10L)), 1e-9d);
 		}
 
@@ -133,7 +133,7 @@ namespace WitchMendokusai.Tests
 			IdleState state = new IdleState();
 
 			List<int> legends = new List<int>();
-			IdleHeroes.IdsOfGrade(IdleHeroGrade.Legend, legends);
+			IdleDolls.IdsOfGrade(IdleDollGrade.Legend, legends);
 			Assert.AreEqual(4, legends.Count, "이 시험은 최고 등급 넷을 전제한다");
 			int pickup = legends[0];
 
@@ -144,7 +144,7 @@ namespace WitchMendokusai.Tests
 			int hits = 0;
 			for (int one = 0; one < PULLS; one++)
 			{
-				Assert.IsTrue(IdleGacha.TryPull(state, tuning, pickup, out IdleHeroPull got));
+				Assert.IsTrue(IdleGacha.TryPull(state, tuning, pickup, out IdleDollPull got));
 				hits += got.Id == pickup ? 1 : 0;
 			}
 
@@ -169,8 +169,8 @@ namespace WitchMendokusai.Tests
 
 			for (int pull = 0; pull < 5; pull++)
 			{
-				Assert.IsTrue(IdleGacha.TryPull(one, tuning, out IdleHeroPull a));
-				Assert.IsTrue(IdleGacha.TryPull(other, tuning, -1, out IdleHeroPull b));
+				Assert.IsTrue(IdleGacha.TryPull(one, tuning, out IdleDollPull a));
+				Assert.IsTrue(IdleGacha.TryPull(other, tuning, -1, out IdleDollPull b));
 				Assert.AreEqual(a.Id, b.Id);
 			}
 		}

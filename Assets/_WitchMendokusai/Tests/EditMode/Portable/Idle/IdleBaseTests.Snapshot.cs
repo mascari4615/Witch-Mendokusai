@@ -20,7 +20,7 @@ namespace WitchMendokusai.Tests
 			Assert.Greater(before, 0d, "안 때리는 걸로 보인다");
 
 			state.Resource = 1e12d;
-			session.Send(new IdleRaiseUpgradeIntent(IdleHeroes.StarterId, IdleUpgradeKind.AttackSpeed, 1));
+			session.Send(new IdleRaiseUpgradeIntent(IdleDolls.StarterId, IdleUpgradeKind.AttackSpeed, 1));
 
 			Assert.Greater(session.Capture().AttacksPerSecond, before, "속도를 올렸는데 장단이 그대로다");
 		}
@@ -28,7 +28,7 @@ namespace WitchMendokusai.Tests
 		/// <summary>
 		/// ★ 사진 찍기가 <b>쓰레기를 안 만든다</b> — 방치형은 밤새 켜 두는 게 기본값이다.
 		///
-		/// 실측(2026-08-17): 고치기 전엔 <b>한 번에 2472 바이트</b>였다(가방 40칸·영웅 16).
+		/// 실측(2026-08-17): 고치기 전엔 <b>한 번에 2472 바이트</b>였다(가방 40칸·인형 16).
 		/// 60프레임 x 8시간이면 <b>4 GB</b>어치다. 지금은 판을 돌려 써서 0 이다.
 		///
 		/// ⚠ 그 대가로 <b>사진은 다음 사진을 찍을 때까지만 살아 있다</b>. 들고 있다가 나중에
@@ -78,7 +78,7 @@ namespace WitchMendokusai.Tests
 				"들고 있던 사진이 옛 판을 보여준다 — 판을 돌려 쓰는 성질이 사라졌다면 이 시험을 지워라");
 		}
 
-		/// <summary>가방·영웅이 들어찬 판 — 사진이 제일 커지는 자리.</summary>
+		/// <summary>가방·인형이 들어찬 판 — 사진이 제일 커지는 자리.</summary>
 		private static IdleSession Loaded(out IdleTuning tuning)
 		{
 			tuning = new IdleTuning();
@@ -93,7 +93,7 @@ namespace WitchMendokusai.Tests
 
 			for (int id = 0; id < 16; id++)
 			{
-				state.Heroes.Add(new IdleHeroOwned(id));
+				state.Dolls.Add(new IdleDollOwned(id));
 			}
 
 			return new IdleSession(tuning, state);
@@ -117,7 +117,7 @@ namespace WitchMendokusai.Tests
 
 			state.Stage = 6;
 			state.BestStage = 25;
-			state.Heroes.Add(new IdleHeroOwned(1));
+			state.Dolls.Add(new IdleDollOwned(1));
 			state.Bag.Add(new IdleItem(2, IdleItemSlot.Feet));
 
 			// 세션 생성은 사진이 아님 (시작 인형 착석). 사진은 Capture

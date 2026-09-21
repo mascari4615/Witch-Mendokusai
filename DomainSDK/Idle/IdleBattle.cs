@@ -93,7 +93,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>자리별 이번 틱 이동 여부. 무대의 걷기 연출용</summary>
         public bool[] Moving = new bool[IdleSquad.SEAT_COUNT];
 
-        // 자리별 영웅 스탯 캐시. 저장 안 함 (internal). 채우기는 IdleBattleSim.CacheSeatStats
+        // 자리별 인형 스탯 캐시. 저장 안 함 (internal). 채우기는 IdleBattleSim.CacheSeatStats
         internal readonly double[] StatDamage = new double[IdleSquad.SEAT_COUNT];
         internal readonly double[] StatInterval = new double[IdleSquad.SEAT_COUNT];
         internal readonly double[] StatRange = new double[IdleSquad.SEAT_COUNT];
@@ -133,9 +133,9 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// ★ 편성만 바꾸면 좌표는 옛 값 그대로라, 새 인형이 몇천 m 뒤에서 걷기 시작하고 카메라가
         ///   그 가운데를 봐 아무도 안 보였다 (2026-09-21 실측: 자리 1 x 660, 자리 2 x 4388)
         /// </summary>
-        public readonly int[] SeatHero = NoSeatHero();
+        public readonly int[] SeatDoll = NoSeatDoll();
 
-        private static int[] NoSeatHero()
+        private static int[] NoSeatDoll()
         {
             int[] seats = new int[IdleSquad.SEAT_COUNT];
             for (int seat = 0; seat < seats.Length; seat++)

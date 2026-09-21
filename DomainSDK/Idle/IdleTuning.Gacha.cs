@@ -2,7 +2,7 @@ using WitchMendokusai.DomainSDK.Upgrade;
 
 namespace WitchMendokusai.DomainSDK.Idle
 {
-    // IdleTuning.cs 의 Gacha 조각. 같은 클래스의 partial. 상태(필드)는 원본 파일을 본다. 뽑기, 재화, 별똥, 영웅 성장.
+    // IdleTuning.cs 의 Gacha 조각. 같은 클래스의 partial. 상태(필드)는 원본 파일을 본다. 뽑기, 재화, 별똥, 인형 성장.
     public sealed partial class IdleTuning
     {
         /// <summary>
@@ -89,7 +89,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>묶음 뽑기 수 (사용자 2026-09-05: 10회). 값은 1회의 이만큼 배, 할인 없음</summary>
         public int PullBatchCount { get; set; } = 10;
 
-        /// <summary>묶음 뽑기가 보장하는 최저 등급 (<see cref="IdleHeroGrade"/> 값. 1 이 레어). 묶음 안에 이 등급 이상이 없으면 마지막 하나를 여기로</summary>
+        /// <summary>묶음 뽑기가 보장하는 최저 등급 (<see cref="IdleDollGrade"/> 값. 1 이 레어). 묶음 안에 이 등급 이상이 없으면 마지막 하나를 여기로</summary>
         public int PullBatchFloorGrade { get; set; } = 1;
 
         /// <summary>픽업 인형이 같은 등급 안에서 뽑히는 무게. 다른 인형은 1 (사용자 2026-09-05: 2배)</summary>
@@ -108,7 +108,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public int CopiesPerStar { get; set; } = 2;
 
         /// <summary>★ 한 단계가 더해 주는 몫 (업계 관측 약 10%).</summary>
-        public double HeroStarStep { get; set; } = 0.10d;
+        public double DollStarStep { get; set; } = 0.10d;
 
         /// <summary>
         /// 인형 레벨 한 칸이 더해 주는 몫 (economy.md 표 3).
@@ -116,17 +116,17 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// ★ ★ 의 1/10. 레벨은 수백까지 올리는 것이고 ★ 은 다섯이 끝이라, 레벨 열 칸이
         ///   ★ 하나와 맞먹게. 그래야 둘 다 올릴 이유가 남음
         /// </summary>
-        public double HeroLevelStep { get; set; } = 0.01d;
+        public double DollLevelStep { get; set; } = 0.01d;
 
         /// <summary>인형 레벨 0 에서 1 로 올리는 골드</summary>
-        public double HeroLevelCostBase { get; set; } = 20d;
+        public double DollLevelCostBase { get; set; } = 20d;
 
         /// <summary>
         /// 레벨마다 값이 오르는 비율.
         ///
         /// ★ 뽑기(1.15)보다 완만하게. 레벨은 자주 누르는 것이라 같은 비율이면 금세 벽
         /// </summary>
-        public double HeroLevelCostRatio { get; set; } = 1.09d;
+        public double DollLevelCostRatio { get; set; } = 1.09d;
 
         /// <summary>
         /// <b>들고만 있어도</b> 붙는 몫 (일반 등급 기준, 등급 무게가 곱해진다).
@@ -134,18 +134,18 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// ★ 절대 크기는 어떤 상용작도 공개하지 않는다 — 우리 시뮬로 정한다.
         ///   시작값은 「일반 하나 = 3%」. 같은 갈래끼리 더해지므로 열 마리면 +30%.
         /// </summary>
-        public double HeroOwnedShareByGrade { get; set; } = 0.03d;
+        public double DollOwnedShareByGrade { get; set; } = 0.03d;
 
         /// <summary>메인 칸에 내보냈을 때 <b>더</b> 붙는 몫. 보유보다 커야 내보낸다가 뜻을 가진다.</summary>
-        public double HeroPartyShareByGrade { get; set; } = 0.12d;
+        public double DollPartyShareByGrade { get; set; } = 0.12d;
 
         /// <summary>
         /// 보조 칸에 넣었을 때 붙는 몫. 시작값은 메인의 절반.
         ///
         /// ★ 메인보다 작게: 보조는 전장에 안 서서 안 맞으므로, 몫이 같으면 늘 보조가 정답.
-        ///   보유(<see cref="HeroOwnedShareByGrade"/>)보다는 크게: 그래야 보조 칸에 넣는다가 결정.
+        ///   보유(<see cref="DollOwnedShareByGrade"/>)보다는 크게: 그래야 보조 칸에 넣는다가 결정.
         /// </summary>
-        public double HeroSupportShareByGrade { get; set; } = 0.06d;
+        public double DollSupportShareByGrade { get; set; } = 0.06d;
 
         /// <summary>도감이 한 계단 오르는 데 필요한 점수(모은 종류 + 올린 ★).</summary>
         public int DiscoveryStepScore { get; set; } = 5;

@@ -30,7 +30,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 BagItems = Bag.ToArray(),
                 WornItems = (IdleItem[])Worn.Clone(),
                 DropSequence = DropSequence,
-                Heroes = Heroes.ToArray(),
+                Dolls = Dolls.ToArray(),
                 Party = (int[])Party.Clone(),
                 PullsSincePity = PullsSincePity,
                 PullsDone = PullsDone,
@@ -142,7 +142,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
             // ⚠ 장비의 <b>부위 번호</b>도 저장에서 그대로 온다. 범위를 벗어난 값이 섞이면
             //   차는 순간 Worn[그 번호] 가 배열 밖을 짚어 터지고, 화면도 이름표를 짚다 터진다.
-            //   영웅 번호와 같은 자리의 같은 병이라 같은 곳에서 거른다 — <b>문 앞</b>.
+            //   인형 번호와 같은 자리의 같은 병이라 같은 곳에서 거른다 — <b>문 앞</b>.
             Bag = new System.Collections.Generic.List<IdleItem>();
 
             if (saveData.BagItems != null)
@@ -156,13 +156,13 @@ namespace WitchMendokusai.DomainSDK.Idle
                 }
             }
 
-            Worn = new IdleItem[IdleHeroes.Count * IdleGear.SLOT_COUNT];
+            Worn = new IdleItem[IdleDolls.Count * IdleGear.SLOT_COUNT];
 
             if (saveData.WornItems != null)
             {
                 // 옛 저장은 4칸(판 공용). 그 시절 장비는 시작 인형 것으로 (2026-08-31 인형별 장비)
                 int startAt = saveData.WornItems.Length == IdleGear.SLOT_COUNT
-                    ? IdleGear.WornAt(IdleHeroes.LEGACY_STARTER_ID, 0)
+                    ? IdleGear.WornAt(IdleDolls.LEGACY_STARTER_ID, 0)
                     : 0;
 
                 for (int at = 0; at < saveData.WornItems.Length && startAt + at < Worn.Length; at++)
@@ -176,21 +176,26 @@ namespace WitchMendokusai.DomainSDK.Idle
             }
 
             DropSequence = saveData.DropSequence;
-            // 옛 저장에는 영웅이 없다 — 빈 도감·빈 파티로 받는다(터지지 않는다).
+            // 옛 저장에는 인형이 없다 — 빈 도감·빈 파티로 받는다(터지지 않는다).
             //
             // ⚠ <b>모르는 번호는 버린다</b>. 저장은 <b>바깥에서 온 글자</b>다 — 사람이 고칠 수도
             //   있고, 명단이 바뀌면 옛 저장에 없는 얼굴이 남는다. 그대로 받으면
-            //   IdleHeroes.KindOf 가 배열 밖을 짚어 <b>매 프레임</b> 터진다(화면이 통째로 죽는다).
+            //   IdleDolls.KindOf 가 배열 밖을 짚어 <b>매 프레임</b> 터진다(화면이 통째로 죽는다).
             //   경계에서 거르는 것은 증상 덮기가 아니라 바깥 입력을 다루는 자리의 일이다.
-            Heroes = new System.Collections.Generic.List<IdleHeroOwned>();
+            Dolls = new System.Collections.Generic.List<IdleDollOwned>();
 
-            if (saveData.Heroes != null)
+            // 옛 저장은 Heroes 칸에 있다. Dolls 가 비었을 때만 (JsonUtility 는 없는 칸을 빈 배열로 준다)
+            IdleDollOwned[] savedDolls = saveData.Dolls != null && saveData.Dolls.Length > 0
+                ? saveData.Dolls
+                : saveData.Heroes;
+
+            if (savedDolls != null)
             {
-                for (int index = 0; index < saveData.Heroes.Length; index++)
+                for (int index = 0; index < savedDolls.Length; index++)
                 {
-                    if (IdleHeroes.Knows(saveData.Heroes[index].Id))
+                    if (IdleDolls.Knows(savedDolls[index].Id))
                     {
-                        IdleHeroOwned owned = saveData.Heroes[index];
+                        IdleDollOwned owned = savedDolls[index];
                         owned.Level = NotBelowZero(owned.Level);
                         owned.DamageLevel = NotBelowZero(owned.DamageLevel);
                         owned.AttackSpeedLevel = NotBelowZero(owned.AttackSpeedLevel);
@@ -199,12 +204,12 @@ namespace WitchMendokusai.DomainSDK.Idle
                         owned.CriticalChanceLevel = NotBelowZero(owned.CriticalChanceLevel);
                         owned.CriticalDamageLevel = NotBelowZero(owned.CriticalDamageLevel);
                         owned.RecoveryLevel = NotBelowZero(owned.RecoveryLevel);
-                        Heroes.Add(owned);
+                        Dolls.Add(owned);
                     }
                 }
             }
 
-            Party = IdleHeroes.EmptyParty();
+            Party = IdleDolls.EmptyParty();
 
             if (saveData.Party != null)
             {
@@ -217,8 +222,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 {
                     int id = saveData.Party[slot];
 
-                    // 자리에 앉은 얼굴도 <b>가진 얼굴</b>이어야 한다 — 버린 영웅이 서 있으면 안 된다.
-                    Party[slot] = IdleHeroes.Knows(id) && IndexOfHero(id) >= 0 ? id : -1;
+                    // 자리에 앉은 얼굴도 <b>가진 얼굴</b>이어야 한다 — 버린 인형이 서 있으면 안 된다.
+                    Party[slot] = IdleDolls.Knows(id) && IndexOfDoll(id) >= 0 ? id : -1;
                 }
             }
             PullsSincePity = saveData.PullsSincePity;
@@ -286,16 +291,16 @@ namespace WitchMendokusai.DomainSDK.Idle
             DungeonCleared = saveData.DungeonCleared;
 
             // 자리 0 시절 저장은 인형 0명 가능. 시작 인형 지급
-            IdleHeroes.EnsureStarter(this);
+            IdleDolls.EnsureStarter(this);
 
             // 옛 판의 공용 공격력과 공격속도는 시작 인형에게 한 번 이관
-            int starter = IndexOfHero(IdleHeroes.LEGACY_STARTER_ID);
+            int starter = IndexOfDoll(IdleDolls.LEGACY_STARTER_ID);
             if (starter >= 0 && (saveData.DamageLevel > 0 || saveData.AttackSpeedLevel > 0))
             {
-                IdleHeroOwned owned = Heroes[starter];
+                IdleDollOwned owned = Dolls[starter];
                 owned.DamageLevel += NotBelowZero(saveData.DamageLevel);
                 owned.AttackSpeedLevel += NotBelowZero(saveData.AttackSpeedLevel);
-                Heroes[starter] = owned;
+                Dolls[starter] = owned;
             }
         }
     }

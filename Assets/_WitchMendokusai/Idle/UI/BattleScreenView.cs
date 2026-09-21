@@ -19,7 +19,7 @@ namespace WitchMendokusai.Idle.UI
 		private readonly UIContentSO content;
 		private readonly RuntimeSettingsSO settings;
 		private readonly IdleViewAssetsSO viewAssets;
-		private readonly HeroVisualPresenter heroVisualPresenter;
+		private readonly DollVisualPresenter dollVisualPresenter;
 		private readonly GearVisualPresenter gearVisualPresenter;
 		private readonly Action writeDown;
 		private readonly Action wipeAndRestart;
@@ -55,7 +55,7 @@ namespace WitchMendokusai.Idle.UI
 			UIContentSO content,
 			RuntimeSettingsSO settings,
 			IdleViewAssetsSO viewAssets,
-			HeroVisualPresenter heroVisualPresenter,
+			DollVisualPresenter dollVisualPresenter,
 			GearVisualPresenter gearVisualPresenter,
 			ManagementPage openPage,
 			Action writeDown,
@@ -68,7 +68,7 @@ namespace WitchMendokusai.Idle.UI
 			this.content = content;
 			this.settings = settings;
 			this.viewAssets = viewAssets;
-			this.heroVisualPresenter = heroVisualPresenter;
+			this.dollVisualPresenter = dollVisualPresenter;
 			this.gearVisualPresenter = gearVisualPresenter;
 			this.writeDown = writeDown;
 			this.wipeAndRestart = wipeAndRestart;
@@ -197,7 +197,7 @@ namespace WitchMendokusai.Idle.UI
 			cardHandController = new CardHandController(
 				battle,
 				viewAssets.Card,
-				heroVisualPresenter,
+				dollVisualPresenter,
 				content,
 				battleActionController.CanAimCard,
 				battleActionController.Cast,
@@ -220,13 +220,13 @@ namespace WitchMendokusai.Idle.UI
 				session,
 				content,
 				viewAssets,
-				heroVisualPresenter,
+				dollVisualPresenter,
 				gearVisualPresenter,
-				() => selectionPopupCoordinator.HeroId,
+				() => selectionPopupCoordinator.DollId,
 				() => selectionPopupCoordinator.GearSeat,
 				() => selectionPopupCoordinator.SelectingPartySeat,
-				slot => selectionPopupCoordinator.FocusHero(slot),
-				slot => selectionPopupCoordinator.OpenHero(slot),
+				slot => selectionPopupCoordinator.FocusDoll(slot),
+				slot => selectionPopupCoordinator.OpenDoll(slot),
 				slot => selectionPopupCoordinator.OpenGear(slot),
 				() => auxiliaryPopupCoordinator.OpenOdds(),
 				result => auxiliaryPopupCoordinator.ShowGacha(result),
@@ -249,7 +249,7 @@ namespace WitchMendokusai.Idle.UI
 				UsePopup("gacha-popup-host"),
 				viewAssets.RowButton,
 				viewAssets.GachaCard,
-				heroVisualPresenter,
+				dollVisualPresenter,
 				settings,
 				modalController,
 				session,
@@ -264,11 +264,11 @@ namespace WitchMendokusai.Idle.UI
 		private void BuildSelectionPopups()
 		{
 			selectionPopupCoordinator = new SelectionPopupCoordinator(
-				UsePopup("hero-popup-host"),
+				UsePopup("doll-popup-host"),
 				UsePopup("gear-popup-host"),
 				viewAssets.ChoiceCard,
 				modalController,
-				heroVisualPresenter,
+				dollVisualPresenter,
 				gearVisualPresenter,
 				session,
 				content,
@@ -386,7 +386,7 @@ namespace WitchMendokusai.Idle.UI
 		private void OpenPage(ManagementPage page)
 		{
 			OpenedPage = page;
-			selectionPopupCoordinator.ClearHeroSelection();
+			selectionPopupCoordinator.ClearDollSelection();
 
 			ApplyScene(page);
 			screenLayoutController.OpenSide((int)OpenedPage);

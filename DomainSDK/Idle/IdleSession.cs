@@ -29,7 +29,7 @@ namespace WitchMendokusai.DomainSDK.Idle
             this.state = state ?? new IdleState();
 
             // 새 판이든 불러온 판이든 전장에 하나 (C10 시작 인형)
-            IdleHeroes.EnsureStarter(this.state);
+            IdleDolls.EnsureStarter(this.state);
             IdleCards.EnsureDeck(this.state);
         }
 
@@ -40,7 +40,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         public IdleTuning Tuning => tuning;
 
         /// <summary>편성 칸의 인형. 범위 밖이거나 빈 칸이면 -1.</summary>
-        public int HeroAtPartySlot(int slot)
+        public int DollAtPartySlot(int slot)
         {
             return slot >= 0 && slot < state.Party.Length ? state.Party[slot] : -1;
         }
@@ -52,15 +52,15 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>한 인형이 해당 부위에 낀 장비.</summary>
-        public IdleItem WornOf(int heroId, int slot)
+        public IdleItem WornOf(int dollId, int slot)
         {
-            return IdleGear.WornOf(state, heroId, slot);
+            return IdleGear.WornOf(state, dollId, slot);
         }
 
         /// <summary>한 인형이 낀 장비를 호출자가 준 배열에 복사.</summary>
-        public void CopyWornOf(int heroId, IdleItem[] destination)
+        public void CopyWornOf(int dollId, IdleItem[] destination)
         {
-            IdleGear.CopyWornOf(state, heroId, destination);
+            IdleGear.CopyWornOf(state, dollId, destination);
         }
 
         /// <summary>장비 하나의 최종 효과 배수.</summary>

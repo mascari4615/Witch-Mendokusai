@@ -41,10 +41,16 @@ namespace WitchMendokusai.DomainSDK.Idle
         public IdleItem[] WornItems;
         public long DropSequence;
 
-        /// <summary>뽑아서 가진 영웅들 (TASK-WM-406).</summary>
-        public IdleHeroOwned[] Heroes;
+        /// <summary>뽑아서 가진 인형들 (TASK-WM-406).</summary>
+        public IdleDollOwned[] Dolls;
 
-        /// <summary>내보낸 셋 — 영웅 id, 빈 자리는 -1.</summary>
+        /// <summary>
+        /// 옛 저장의 인형 칸 (2026-09-22 까지 이름이 Heroes). 읽기 전용 이관. 새 저장은 <see cref="Dolls"/> 만 쓴다
+        /// (사용자 2026-09-21: "얘네는 Hero 가 아니야, 욘의 인형들이지")
+        /// </summary>
+        public IdleDollOwned[] Heroes;
+
+        /// <summary>내보낸 셋 — 인형 id, 빈 자리는 -1.</summary>
         public int[] Party;
 
         /// <summary>마지막 최고등급 이후 뽑은 횟수 — 천장.</summary>

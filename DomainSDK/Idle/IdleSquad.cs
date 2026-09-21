@@ -11,8 +11,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 	///
 	/// ★ 자리(seat) 셋. 편성의 <b>메인 칸</b> 그대로 (seat == 메인 칸 번호).
 	///   플레이어 인형(자리 0, 늘 있던 나)은 2026-08-30 삭제 (C10). 대신 시작 인형 하나 지급
-	///   (<see cref="IdleHeroes.EnsureStarter"/>). 빈 칸: 싸우지도 맞지도 않음.
-	///   편성의 <b>보조 칸</b>(<see cref="IdleHeroes.SUPPORT_SLOTS"/>)은 여기 자리가 <b>없다</b> -
+	///   (<see cref="IdleDolls.EnsureStarter"/>). 빈 칸: 싸우지도 맞지도 않음.
+	///   편성의 <b>보조 칸</b>(<see cref="IdleDolls.SUPPORT_SLOTS"/>)은 여기 자리가 <b>없다</b> -
 	///   전장에 안 서니 맞지도, 쓰러지지도, 일어나지도 않는다 (사용자 결정 2026-08-30).
 	///
 	/// ★ <b>맨 앞이 맞는다</b> — 서 있는 자리 중 가장 앞이 피해를 받는다. 흩뿌리면
@@ -28,12 +28,12 @@ namespace WitchMendokusai.DomainSDK.Idle
 	public static class IdleSquad
 	{
 		/// <summary>자리 수. 메인 칸 수와 동일</summary>
-		public const int SEAT_COUNT = IdleHeroes.MAIN_SLOTS;
+		public const int SEAT_COUNT = IdleDolls.MAIN_SLOTS;
 
 		/// <summary>이 자리에 누군가 있나. 자리는 메인 칸, 앉힌 인형 필수</summary>
 		public static bool SeatTaken(IdleState state, int seat)
 		{
-			return IdleHeroes.IsMainSlot(seat) && seat < state.Party.Length && state.Party[seat] >= 0;
+			return IdleDolls.IsMainSlot(seat) && seat < state.Party.Length && state.Party[seat] >= 0;
 		}
 
 		/// <summary>
@@ -41,7 +41,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 		///
 		/// ★ 체력도 <b>키운 만큼</b> 는다 — 장비·환생이 공격만 올리고 체력은 안 올리면
 		///   깊이가 늘수록 반드시 전멸한다(적 피해는 단계 지수라서). 같은 재료가 둘 다 민다.
-		/// ★ 영웅은 <b>등급·★</b> 만큼 더 단단하다 — 뽑기의 값어치가 생존으로도 보이게.
+		/// ★ 인형은 <b>등급·★</b> 만큼 더 단단하다 — 뽑기의 값어치가 생존으로도 보이게.
 		/// </summary>
 		public static double MaxHealthOf(IdleState state, IdleTuning tuning, int seat)
 		{
@@ -51,29 +51,29 @@ namespace WitchMendokusai.DomainSDK.Idle
 			}
 
 			int id = state.Party[seat];
-			return MaxHealthOfHero(state, tuning, id);
+			return MaxHealthOfDoll(state, tuning, id);
 		}
 
-		public static double MaxHealthOfHero(IdleState state, IdleTuning tuning, int heroId)
+		public static double MaxHealthOfDoll(IdleState state, IdleTuning tuning, int dollId)
 		{
 			double health = tuning.SeatBaseHealth
 				* IdleGear.BaseMultiplier(state, tuning)
 				* IdleModel.PrestigeMultiplier(state, tuning)
-				* (1d + IdleHeroes.StatValueOf(state, tuning, heroId, IdleUpgradeKind.MaxHealth));
+				* (1d + IdleDolls.StatValueOf(state, tuning, dollId, IdleUpgradeKind.MaxHealth));
 
-			int index = state.IndexOfHero(heroId);
+			int index = state.IndexOfDoll(dollId);
 
 			if (index < 0)
 			{
 				return health;
 			}
 
-			IdleHeroOwned owned = state.Heroes[index];
-			IdleHeroKind kind = IdleHeroes.KindOf(heroId);
+			IdleDollOwned owned = state.Dolls[index];
+			IdleDollKind kind = IdleDolls.KindOf(dollId);
 
 			// 등급 무게 × ★ 계단 — 도감 쪽 규칙과 같은 꼴이라 새로 배울 것이 없다.
-			double grade = 1d + (int)kind.Grade * tuning.HeroGradeHealthStep;
-			double stars = 1d + owned.Stars * tuning.HeroStarStep;
+			double grade = 1d + (int)kind.Grade * tuning.DollGradeHealthStep;
+			double stars = 1d + owned.Stars * tuning.DollStarStep;
 			return health * grade * stars;
 		}
 
@@ -84,8 +84,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 				return rawDamage;
 			}
 
-			int heroId = state.Party[seat];
-			double defense = IdleHeroes.DefenseOf(state, tuning, heroId);
+			int dollId = state.Party[seat];
+			double defense = IdleDolls.DefenseOf(state, tuning, dollId);
 			return rawDamage / (1d + defense);
 		}
 
@@ -307,7 +307,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 		/// <summary>
 		/// 전멸했다 — <b>이 구역은 실패</b>. 클리어했던 구역으로 물러나 <b>반복</b>에 들어간다 (방향 5·6).
 		///
-		/// ★ 잃는 것은 <b>이번 구역의 진행</b>뿐이다. 자원·장비·영웅은 그대로 —
+		/// ★ 잃는 것은 <b>이번 구역의 진행</b>뿐이다. 자원·장비·인형은 그대로 —
 		///   실패가 벌이 되면 아무도 깊이 안 내려간다. 실패는 <b>브레이크</b>지 손실이 아니다.
 		/// </summary>
 		public static void FallBack(IdleState state, IdleTuning tuning)
@@ -411,8 +411,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 				}
 
 				double max = MaxHealthOf(state, tuning, seat);
-				int heroId = state.Party[seat];
-				double share = IdleHeroes.HealPerKillShareOf(state, tuning, heroId);
+				int dollId = state.Party[seat];
+				double share = IdleDolls.HealPerKillShareOf(state, tuning, dollId);
 				double healed = arena.SeatHealth[seat] + max * share * kills;
 				arena.SeatHealth[seat] = healed > max ? max : healed;
 			}

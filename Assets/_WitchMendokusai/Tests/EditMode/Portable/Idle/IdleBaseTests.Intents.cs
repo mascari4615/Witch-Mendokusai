@@ -59,7 +59,7 @@ namespace WitchMendokusai.Tests
 
 			IdleSession session = new IdleSession(tuning, state);
 
-			Assert.IsTrue(session.Send(new IdleEquipIntent(IdleHeroes.StarterId, 0)));
+			Assert.IsTrue(session.Send(new IdleEquipIntent(IdleDolls.StarterId, 0)));
 			Assert.AreEqual(0, state.Bag.Count, "가방에서 안 빠졌다");
 			Assert.AreEqual(5, state.Worn[(int)IdleItemSlot.Feet].Tier, "엉뚱한 부위에 찼다");
 		}
@@ -99,13 +99,13 @@ namespace WitchMendokusai.Tests
 
 			IdleSession session = new IdleSession(tuning, state);
 
-			Assert.IsTrue(session.Send(new IdlePullHeroIntent()), "뽑았다는 답이 안 온다");
+			Assert.IsTrue(session.Send(new IdlePullDollIntent()), "뽑았다는 답이 안 온다");
 
 			// 시작 인형 하나 있음. 뽑은 것이 새 얼굴이면 둘, 시작 인형과 겹치면 하나 + 중복 1
 			int faces = 0;
-			for (int index = 0; index < state.Heroes.Count; index++)
+			for (int index = 0; index < state.Dolls.Count; index++)
 			{
-				faces += 1 + state.Heroes[index].Copies;
+				faces += 1 + state.Dolls[index].Copies;
 			}
 
 			Assert.AreEqual(2, faces, "뽑았는데 아무도 안 왔다 (시작 인형 1 + 뽑은 것 1)");

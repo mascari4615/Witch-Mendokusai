@@ -64,13 +64,13 @@ namespace WitchMendokusai.Tests
 		/// </summary>
 		public static void BuyUpgrades(IdleState state, IdleTuning tuning)
 		{
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 
 			while (true)
 			{
-				bool hasDamage = IdleModel.TryGetCost(state, tuning, IdleHeroes.StarterId,
+				bool hasDamage = IdleModel.TryGetCost(state, tuning, IdleDolls.StarterId,
 					IdleUpgradeKind.Damage, 1, out double damageCost);
-				bool hasSpeed = IdleModel.TryGetCost(state, tuning, IdleHeroes.StarterId,
+				bool hasSpeed = IdleModel.TryGetCost(state, tuning, IdleDolls.StarterId,
 					IdleUpgradeKind.AttackSpeed, 1, out double speedCost);
 				bool canDamage = hasDamage && state.Resource >= damageCost;
 				bool canSpeed = hasSpeed && state.Resource >= speedCost;
@@ -83,7 +83,7 @@ namespace WitchMendokusai.Tests
 				IdleUpgradeKind kind = canDamage && (canSpeed == false || damageCost <= speedCost)
 					? IdleUpgradeKind.Damage
 					: IdleUpgradeKind.AttackSpeed;
-				IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId, kind, 1);
+				IdleModel.TryRaise(state, tuning, IdleDolls.StarterId, kind, 1);
 			}
 		}
 

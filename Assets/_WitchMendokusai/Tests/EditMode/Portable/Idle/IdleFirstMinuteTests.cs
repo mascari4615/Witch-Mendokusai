@@ -92,12 +92,12 @@ namespace WitchMendokusai.Tests
 
 		/// <summary>★ 첫 판은 <b>시작 인형 하나</b>뿐 (C10). 그래도 판정 성립. 곱하는 자리가 0 이나 NaN 아님</summary>
 		[Test]
-		public void WithNoHeroes_TheNumbersStayReal()
+		public void WithNoDolls_TheNumbersStayReal()
 		{
 			IdleSession session = New(out IdleTuning tuning);
 			IdleSnapshot now = session.Capture();
 
-			Assert.AreEqual(1, now.Heroes.Length, "첫 판은 시작 인형 하나여야 한다");
+			Assert.AreEqual(1, now.Dolls.Length, "첫 판은 시작 인형 하나여야 한다");
 			Assert.Greater(IdleModel.DamageOf(session.State, tuning), 0d, "때리는 힘이 0 이다");
 			Assert.Greater(IdleModel.AttackSpeedOf(session.State, tuning), 0d, "때리는 속도가 0 이다");
 			Assert.IsFalse(double.IsNaN(now.IncomePerSecond), "수입이 NaN 이다");

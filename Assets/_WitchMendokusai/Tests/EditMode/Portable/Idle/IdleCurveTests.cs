@@ -60,16 +60,16 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = DefaultTuning();
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 
-			Assert.IsTrue(IdleModel.TryGetCost(state, tuning, IdleHeroes.StarterId,
+			Assert.IsTrue(IdleModel.TryGetCost(state, tuning, IdleDolls.StarterId,
 				IdleUpgradeKind.Damage, 1, out double cost));
 
 			state.Resource = cost;
-			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId,
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleDolls.StarterId,
 				IdleUpgradeKind.Damage, 1));
 			Assert.AreEqual(0d, state.Resource, TOLERANCE, "값을 더 쓰거나 덜 썼다");
-			Assert.AreEqual(1, state.Heroes[0].DamageLevel);
+			Assert.AreEqual(1, state.Dolls[0].DamageLevel);
 		}
 
 		/// <summary>④ 자원이 모자라면 레벨도 자원도 그대로다.</summary>
@@ -78,12 +78,12 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = DefaultTuning();
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 			state.Resource = 0d;
 
-			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId,
+			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleDolls.StarterId,
 				IdleUpgradeKind.Damage, 1));
-			Assert.AreEqual(0, state.Heroes[0].DamageLevel);
+			Assert.AreEqual(0, state.Dolls[0].DamageLevel);
 			Assert.AreEqual(0d, state.Resource, TOLERANCE);
 		}
 
@@ -138,8 +138,8 @@ namespace WitchMendokusai.Tests
 			return string.Format(
 				"[IdleCurve] {0,6} | {1,4} | {2,6} | {3,12:N0} | {4,10:N2} | {5,12:N0}",
 				Elapsed(atSeconds),
-				state.Heroes[0].DamageLevel,
-				state.Heroes[0].AttackSpeedLevel,
+				state.Dolls[0].DamageLevel,
+				state.Dolls[0].AttackSpeedLevel,
 				state.Resource,
 				IdleModel.IncomePerSecond(state, tuning),
 				state.Kills);
@@ -156,7 +156,7 @@ namespace WitchMendokusai.Tests
 		}
 
 		/// <summary>
-		/// ×10과 ×100은 같은 영웅, 같은 수치를 그 횟수만큼 누른 것과 같은 비용
+		/// ×10과 ×100은 같은 인형, 같은 수치를 그 횟수만큼 누른 것과 같은 비용
 		/// </summary>
 		[TestCase(10)]
 		[TestCase(100)]
@@ -166,23 +166,23 @@ namespace WitchMendokusai.Tests
 			const double purse = 1e12d;
 
 			IdleState oneByOne = new IdleState();
-			IdleHeroes.EnsureStarter(oneByOne);
+			IdleDolls.EnsureStarter(oneByOne);
 			oneByOne.Resource = purse;
 
 			IdleState manyAtOnce = new IdleState();
-			IdleHeroes.EnsureStarter(manyAtOnce);
+			IdleDolls.EnsureStarter(manyAtOnce);
 			manyAtOnce.Resource = purse;
 
 			for (int step = 0; step < amount; step++)
 			{
-				Assert.IsTrue(IdleModel.TryRaise(oneByOne, tuning, IdleHeroes.StarterId,
+				Assert.IsTrue(IdleModel.TryRaise(oneByOne, tuning, IdleDolls.StarterId,
 					IdleUpgradeKind.Damage, 1));
 			}
 
-			Assert.IsTrue(IdleModel.TryRaise(manyAtOnce, tuning, IdleHeroes.StarterId,
+			Assert.IsTrue(IdleModel.TryRaise(manyAtOnce, tuning, IdleDolls.StarterId,
 				IdleUpgradeKind.Damage, amount));
 
-			Assert.AreEqual(oneByOne.Heroes[0].DamageLevel, manyAtOnce.Heroes[0].DamageLevel);
+			Assert.AreEqual(oneByOne.Dolls[0].DamageLevel, manyAtOnce.Dolls[0].DamageLevel);
 			Assert.AreEqual(oneByOne.Resource, manyAtOnce.Resource, 0.01d,
 				"쓴 자원이 부동소수점 한 칸보다 크게 다르다");
 		}
@@ -193,12 +193,12 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 			state.Resource = 1e12d;
 
-			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId,
+			Assert.IsFalse(IdleModel.TryRaise(state, tuning, IdleDolls.StarterId,
 				IdleUpgradeKind.Damage, 4));
-			Assert.AreEqual(0, state.Heroes[0].DamageLevel);
+			Assert.AreEqual(0, state.Dolls[0].DamageLevel);
 		}
 	}
 }

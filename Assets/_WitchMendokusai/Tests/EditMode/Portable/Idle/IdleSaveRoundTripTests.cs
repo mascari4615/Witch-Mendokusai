@@ -9,7 +9,7 @@ namespace WitchMendokusai.Tests
 	///
 	/// ★ 왜 이 시험이 필요한가 — 기능을 얹을 때마다 상태가 늘어나는데, <see cref="IdleState.Save"/> 에
 	///   한 줄 빼먹어도 <b>아무도 안 죽는다</b>. 게임은 멀쩡히 돌고, 껐다 켠 다음에야
-	///   「내 영웅 어디 갔지」가 된다. 그때는 이미 사용자 저장이 상한 뒤다.
+	///   「내 인형 어디 갔지」가 된다. 그때는 이미 사용자 저장이 상한 뒤다.
 	///
 	/// ★ 그래서 <b>기계가 센다</b>: 저장 꼴에 있는 칸이 실제로 왕복하는지 하나씩.
 	///   새 칸을 더하면 이 시험이 저절로 그 칸도 본다 — 사람이 목록을 갱신할 필요가 없다.
@@ -19,6 +19,23 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public sealed class IdleSaveRoundTripTests
 	{
+		/// <summary>2026-09-22 전 저장은 인형이 Heroes 칸에 있다. 그대로 읽히고, 다시 적으면 Dolls 로 간다</summary>
+		[Test]
+		public void OldHeroesField_LoadsIntoDolls()
+		{
+			IdleSaveData old = new IdleState().Save();
+			old.Dolls = null;
+			old.Heroes = new[] { new IdleDollOwned(2), new IdleDollOwned(3) };
+
+			IdleState loaded = new IdleState();
+			loaded.Load(old);
+
+			Assert.IsTrue(loaded.IndexOfDoll(2) >= 0 && loaded.IndexOfDoll(3) >= 0, "옛 Heroes 칸의 인형을 못 읽었다");
+			IdleSaveData again = loaded.Save();
+			Assert.IsTrue(again.Dolls.Length >= 2, "다시 적을 때 Dolls 로 안 갔다");
+			Assert.IsTrue(again.Heroes == null || again.Heroes.Length == 0, "새 저장에 옛 칸을 또 적는다");
+		}
+
 		/// <summary>
 		/// ★ 저장 꼴의 <b>모든 칸</b>이 실제로 적히고 다시 읽힌다.
 		///
@@ -45,9 +62,11 @@ namespace WitchMendokusai.Tests
 
 			foreach (FieldInfo field in fields)
 			{
-				// 옛 전역 강화 두 칸은 읽기 전용 이관 포맷. 새 저장은 영웅 배열만 사용
+				// 옛 전역 강화 두 칸은 읽기 전용 이관 포맷. 새 저장은 인형 배열만 사용
+				// 옛 인형 칸 Heroes 도 같은 읽기 전용 이관 (2026-09-22 Dolls 로 개명)
 				if (field.Name == nameof(IdleSaveData.DamageLevel)
-					|| field.Name == nameof(IdleSaveData.AttackSpeedLevel))
+					|| field.Name == nameof(IdleSaveData.AttackSpeedLevel)
+					|| field.Name == nameof(IdleSaveData.Heroes))
 				{
 					continue;
 				}
@@ -59,7 +78,7 @@ namespace WitchMendokusai.Tests
 				if (before is System.Array first)
 				{
 					// ⚠ 전에는 <b>길이만</b> 봤다 (실측 2026-08-17). 그러면 안이 통째로 뒤바뀌어도
-					//   통과한다 — 가방·착용·파티·영웅·생산자가 <b>전부 배열</b>인데.
+					//   통과한다 — 가방·착용·파티·인형·생산자가 <b>전부 배열</b>인데.
 					//   「빠뜨린 칸을 잡겠다」고 세운 감시가 정작 제일 큰 칸들을 안 보고 있었다.
 					System.Array second = (System.Array)after;
 					Assert.IsNotNull(second, field.Name + " 가 왕복하며 사라졌다");
@@ -129,8 +148,8 @@ namespace WitchMendokusai.Tests
 			fromNothing.Load(new IdleSaveData());
 
 			Assert.AreEqual(1, fromNothing.Stage, "단계가 0 이 됐다 — 판이 어긋난다");
-			Assert.IsNotNull(fromNothing.Heroes);
-			Assert.AreEqual(IdleHeroes.PARTY_SLOTS, fromNothing.Party.Length);
+			Assert.IsNotNull(fromNothing.Dolls);
+			Assert.AreEqual(IdleDolls.PARTY_SLOTS, fromNothing.Party.Length);
 			Assert.IsNotNull(fromNothing.Owned);
 		}
 
@@ -198,14 +217,14 @@ namespace WitchMendokusai.Tests
 			state.Bag.Add(locked);
 			state.Worn[0] = new IdleItem(2, IdleItemSlot.Head);
 
-			IdleHeroOwned hero = new IdleHeroOwned(4);
-			hero.DamageLevel = 6;
-			hero.AttackSpeedLevel = 4;
-			hero.MaxHealthLevel = 3;
-			hero.DefenseLevel = 2;
-			hero.CriticalChanceLevel = 1;
-			hero.CriticalDamageLevel = 5;
-			state.Heroes.Add(hero);
+			IdleDollOwned doll = new IdleDollOwned(4);
+			doll.DamageLevel = 6;
+			doll.AttackSpeedLevel = 4;
+			doll.MaxHealthLevel = 3;
+			doll.DefenseLevel = 2;
+			doll.CriticalChanceLevel = 1;
+			doll.CriticalDamageLevel = 5;
+			state.Dolls.Add(doll);
 			state.Party[0] = 4;
 			// 덱은 편성에서 나온다. 편성 뒤에 짜 둬야 불러오기가 짠 것과 같다
 			IdleCards.EnsureDeck(state);
@@ -280,14 +299,14 @@ namespace WitchMendokusai.Tests
 			double before = IdleModel.DamageOf(state, tuning);
 
 			state.Resource = 1e9d;
-			IdleHeroes.EnsureStarter(state);
-			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId, IdleUpgradeKind.Damage, 1));
+			IdleDolls.EnsureStarter(state);
+			Assert.IsTrue(IdleModel.TryRaise(state, tuning, IdleDolls.StarterId, IdleUpgradeKind.Damage, 1));
 
 			Assert.Greater(IdleModel.DamageOf(state, tuning), before, "올렸는데 약해졌다");
 		}
 
 		[Test]
-		public void LegacyGlobalStats_MoveToTheStarterHero()
+		public void LegacyGlobalStats_MoveToTheStarterDoll()
 		{
 			IdleSaveData saved = new IdleState().Save();
 			saved.DamageLevel = 6;
@@ -295,7 +314,7 @@ namespace WitchMendokusai.Tests
 
 			IdleState state = new IdleState();
 			state.Load(saved);
-			IdleHeroOwned starter = state.Heroes[state.IndexOfHero(IdleHeroes.StarterId)];
+			IdleDollOwned starter = state.Dolls[state.IndexOfDoll(IdleDolls.StarterId)];
 
 			Assert.AreEqual(6, starter.DamageLevel);
 			Assert.AreEqual(4, starter.AttackSpeedLevel);

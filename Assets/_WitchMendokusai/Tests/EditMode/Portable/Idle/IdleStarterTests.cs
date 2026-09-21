@@ -12,25 +12,25 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public sealed class IdleStarterTests
 	{
-		private static readonly IdleHeroKind[] KINDS =
+		private static readonly IdleDollKind[] KINDS =
 		{
-			new IdleHeroKind(0, "세모", IdleHeroAxis.Damage, IdleHeroGrade.Common, 3),
-			new IdleHeroKind(1, "네모", IdleHeroAxis.Base, IdleHeroGrade.Common, 4),
-			new IdleHeroKind(2, "다섯모", IdleHeroAxis.Drop, IdleHeroGrade.Common, 5),
-			new IdleHeroKind(3, "여섯모", IdleHeroAxis.Speed, IdleHeroGrade.Common, 6),
+			new IdleDollKind(0, "세모", IdleDollAxis.Damage, IdleDollGrade.Common, 3),
+			new IdleDollKind(1, "네모", IdleDollAxis.Base, IdleDollGrade.Common, 4),
+			new IdleDollKind(2, "다섯모", IdleDollAxis.Drop, IdleDollGrade.Common, 5),
+			new IdleDollKind(3, "여섯모", IdleDollAxis.Speed, IdleDollGrade.Common, 6),
 		};
 
 		/// <summary>시작 셋을 든 카탈로그로 바꿔 돌리고, 끝나면 시험 공용 카탈로그로 되돌린다</summary>
 		private static void WithStarters(int[] starters, Action<IdleTuning> body)
 		{
-			IdleHeroes.Configure(new IdleHeroCatalog(KINDS, starters));
+			IdleDolls.Configure(new IdleDollCatalog(KINDS, starters));
 			try
 			{
 				body(new IdleTuning());
 			}
 			finally
 			{
-				new IdleHeroCatalogFixture().ConfigureCatalog();
+				new IdleDollCatalogFixture().ConfigureCatalog();
 			}
 		}
 
@@ -40,13 +40,13 @@ namespace WitchMendokusai.Tests
 			WithStarters(new[] { 3, 1, 2 }, tuning =>
 			{
 				IdleState state = new IdleState();
-				IdleHeroes.EnsureStarter(state);
+				IdleDolls.EnsureStarter(state);
 
-				Assert.AreEqual(3, state.Heroes.Count, "시작 인형 셋을 다 안 줬다");
+				Assert.AreEqual(3, state.Dolls.Count, "시작 인형 셋을 다 안 줬다");
 				Assert.AreEqual(3, state.Party[0], "첫 칸이 대표 시작 인형이 아니다");
 				Assert.AreEqual(1, state.Party[1]);
 				Assert.AreEqual(2, state.Party[2]);
-				Assert.AreEqual(3, IdleHeroes.StarterId);
+				Assert.AreEqual(3, IdleDolls.StarterId);
 			});
 		}
 
@@ -57,19 +57,19 @@ namespace WitchMendokusai.Tests
 			WithStarters(new[] { 3, 1, 2 }, tuning =>
 			{
 				IdleState state = new IdleState();
-				state.Heroes.Add(new IdleHeroOwned(0));
-				state.Heroes.Add(new IdleHeroOwned(2));
+				state.Dolls.Add(new IdleDollOwned(0));
+				state.Dolls.Add(new IdleDollOwned(2));
 				state.Party[0] = -1;
 				state.Party[1] = 2;
 				state.Party[2] = 0;
 
-				Assert.IsTrue(IdleHeroes.EnsureStarter(state));
+				Assert.IsTrue(IdleDolls.EnsureStarter(state));
 
-				Assert.AreEqual(4, state.Heroes.Count, "없던 시작 인형 둘 (3, 1) 이 안 왔다");
+				Assert.AreEqual(4, state.Dolls.Count, "없던 시작 인형 둘 (3, 1) 이 안 왔다");
 				Assert.AreEqual(3, state.Party[0], "빈 칸에 대표 시작 인형이 안 들어갔다");
 				Assert.AreEqual(2, state.Party[1], "사람이 짠 칸을 건드렸다");
 				Assert.AreEqual(0, state.Party[2], "사람이 짠 칸을 건드렸다");
-				Assert.IsFalse(IdleHeroes.EnsureStarter(state), "두 번째는 바꿀 게 없어야 한다");
+				Assert.IsFalse(IdleDolls.EnsureStarter(state), "두 번째는 바꿀 게 없어야 한다");
 			});
 		}
 
@@ -78,10 +78,10 @@ namespace WitchMendokusai.Tests
 		{
 			WithStarters(null, tuning =>
 			{
-				Assert.AreEqual(0, IdleHeroes.StarterId);
+				Assert.AreEqual(0, IdleDolls.StarterId);
 				IdleState state = new IdleState();
-				IdleHeroes.EnsureStarter(state);
-				Assert.AreEqual(1, state.Heroes.Count);
+				IdleDolls.EnsureStarter(state);
+				Assert.AreEqual(1, state.Dolls.Count);
 				Assert.AreEqual(0, state.Party[0]);
 			});
 		}
@@ -89,7 +89,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Catalog_RejectsUnknownStarter()
 		{
-			Assert.Throws<ArgumentException>(() => new IdleHeroCatalog(KINDS, new[] { 9 }));
+			Assert.Throws<ArgumentException>(() => new IdleDollCatalog(KINDS, new[] { 9 }));
 		}
 
 		/// <summary>
@@ -101,8 +101,8 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
-			state.Heroes.Add(new IdleHeroOwned(1));
+			IdleDolls.EnsureStarter(state);
+			state.Dolls.Add(new IdleDollOwned(1));
 			state.Party[1] = -1;
 			state.Party[2] = -1;
 			state.EnsureSeatRoom(tuning);

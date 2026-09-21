@@ -28,7 +28,7 @@ namespace WitchMendokusai.Idle.UI
 		private readonly VisualElement popup;
 		private readonly ModalController modalController;
 		private readonly UIContentSO content;
-		private readonly HeroVisualPresenter heroVisualPresenter;
+		private readonly DollVisualPresenter dollVisualPresenter;
 		private readonly VisualTreeAsset cardAsset;
 		private readonly RuntimeSettingsSO settings;
 		private readonly VisualElement burst;
@@ -37,19 +37,19 @@ namespace WitchMendokusai.Idle.UI
 		private readonly Label summary;
 		private readonly Button skip;
 		private readonly Button close;
-		private readonly List<IdleHeroPull> pulls = new List<IdleHeroPull>();
+		private readonly List<IdleDollPull> pulls = new List<IdleDollPull>();
 		private readonly List<VisualElement> cards = new List<VisualElement>();
 		private Beat beat = Beat.Idle;
 		private float beatLeft;
 		private int shown;
 
 		public GachaRevealController(VisualElement popup, ModalController modalController, UIContentSO content,
-			HeroVisualPresenter heroVisualPresenter, VisualTreeAsset cardAsset, RuntimeSettingsSO settings)
+			DollVisualPresenter dollVisualPresenter, VisualTreeAsset cardAsset, RuntimeSettingsSO settings)
 		{
 			this.popup = popup;
 			this.modalController = modalController;
 			this.content = content;
-			this.heroVisualPresenter = heroVisualPresenter;
+			this.dollVisualPresenter = dollVisualPresenter;
 			this.cardAsset = cardAsset;
 			this.settings = settings;
 
@@ -70,7 +70,7 @@ namespace WitchMendokusai.Idle.UI
 		public bool IsOpen => beat != Beat.Idle;
 
 		/// <summary>그 판 결과를 연출로. 목록은 뽑힌 차례대로</summary>
-		public void Show(IReadOnlyList<IdleHeroPull> result)
+		public void Show(IReadOnlyList<IdleDollPull> result)
 		{
 			if (result == null || result.Count == 0)
 			{
@@ -179,8 +179,8 @@ namespace WitchMendokusai.Idle.UI
 			int newFaces = 0;
 			for (int index = 0; index < pulls.Count; index++)
 			{
-				legend += pulls[index].Grade == IdleHeroGrade.Legend ? 1 : 0;
-				epic += pulls[index].Grade == IdleHeroGrade.Epic ? 1 : 0;
+				legend += pulls[index].Grade == IdleDollGrade.Legend ? 1 : 0;
+				epic += pulls[index].Grade == IdleDollGrade.Epic ? 1 : 0;
 				newFaces += pulls[index].IsNew ? 1 : 0;
 			}
 
@@ -213,15 +213,15 @@ namespace WitchMendokusai.Idle.UI
 		/// <summary>한 장 뒤집기. 등급 색과 이름, 처음 본 얼굴 표시</summary>
 		private void RevealOne(int index)
 		{
-			IdleHeroPull pull = pulls[index];
+			IdleDollPull pull = pulls[index];
 			VisualElement card = cards[index];
-			IdleHeroKind kind = IdleHeroes.KindOf(pull.Id);
+			IdleDollKind kind = IdleDolls.KindOf(pull.Id);
 
 			card.RemoveFromClassList("idle-gacha-card--back");
 			card.AddToClassList(GradeClass(pull.Grade));
 
 			VisualElement portrait = card.RequireQ<VisualElement>("gacha-card-portrait");
-			heroVisualPresenter.SetPortrait(portrait, pull.Id);
+			dollVisualPresenter.SetPortrait(portrait, pull.Id);
 
 			card.RequireQ<Label>("gacha-card-name").text = kind.Name;
 			card.RequireQ<Label>("gacha-card-grade").text = content.GradeName(pull.Grade);
@@ -233,9 +233,9 @@ namespace WitchMendokusai.Idle.UI
 		}
 
 		/// <summary>그 판 최고 등급. 터지는 빛 색이 이것</summary>
-		private IdleHeroGrade BestGrade()
+		private IdleDollGrade BestGrade()
 		{
-			IdleHeroGrade best = IdleHeroGrade.Common;
+			IdleDollGrade best = IdleDollGrade.Common;
 			for (int index = 0; index < pulls.Count; index++)
 			{
 				if (pulls[index].Grade > best)
@@ -247,7 +247,7 @@ namespace WitchMendokusai.Idle.UI
 			return best;
 		}
 
-		private void SetBurstGrade(IdleHeroGrade grade)
+		private void SetBurstGrade(IdleDollGrade grade)
 		{
 			burst.RemoveFromClassList("idle-gacha-burst--legend");
 			burst.RemoveFromClassList("idle-gacha-burst--epic");
@@ -255,24 +255,24 @@ namespace WitchMendokusai.Idle.UI
 			burst.AddToClassList(BurstClass(grade));
 		}
 
-		private static string GradeClass(IdleHeroGrade grade)
+		private static string GradeClass(IdleDollGrade grade)
 		{
 			switch (grade)
 			{
-				case IdleHeroGrade.Legend: return "idle-gacha-card--legend";
-				case IdleHeroGrade.Epic: return "idle-gacha-card--epic";
-				case IdleHeroGrade.Rare: return "idle-gacha-card--rare";
+				case IdleDollGrade.Legend: return "idle-gacha-card--legend";
+				case IdleDollGrade.Epic: return "idle-gacha-card--epic";
+				case IdleDollGrade.Rare: return "idle-gacha-card--rare";
 				default: return "idle-gacha-card--common";
 			}
 		}
 
-		private static string BurstClass(IdleHeroGrade grade)
+		private static string BurstClass(IdleDollGrade grade)
 		{
 			switch (grade)
 			{
-				case IdleHeroGrade.Legend: return "idle-gacha-burst--legend";
-				case IdleHeroGrade.Epic: return "idle-gacha-burst--epic";
-				case IdleHeroGrade.Rare: return "idle-gacha-burst--rare";
+				case IdleDollGrade.Legend: return "idle-gacha-burst--legend";
+				case IdleDollGrade.Epic: return "idle-gacha-burst--epic";
+				case IdleDollGrade.Rare: return "idle-gacha-burst--rare";
 				default: return "idle-gacha-burst--common";
 			}
 		}

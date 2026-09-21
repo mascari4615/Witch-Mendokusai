@@ -37,7 +37,7 @@
   <ItemGroup>
     <Compile Include="$(TestsRoot)DiscoveryUnlocksTest.cs" />
     <Compile Include="$(TestsRoot)DiscoveryTiersTest.cs" />
-    <Compile Include="$(TestsRoot)Idle/IdleHeroDiscoveryTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleDollDiscoveryTests.cs" />
     <Compile Include="$(TestsRoot)BuildingProductionModelTest.cs" />
     <Compile Include="$(TestsRoot)CityEconomyTest.cs" />
     <Compile Include="$(TestsRoot)CitySimulationSystemTest.cs" />
@@ -77,11 +77,11 @@
     <Compile Include="$(TestsRoot)Idle/IdlePrestigeTests.cs" />
     <Compile Include="$(TestsRoot)Idle/BigNumberTextTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleTapTests.cs" />
-    <Compile Include="$(TestsRoot)Idle/IdleHeroTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleDollTests.cs" />
     <!-- 영웅 카탈로그 SetUpFixture. 유니티 러너는 SO 를 읽지만 여기는 이 고정 카탈로그로 조립한다.
          IdlePartyTests 는 UXML 과 UnityEditor 를 봐서 못 데려온다. -->
-    <Compile Include="$(TestsRoot)Idle/IdleHeroCatalogFixture.cs" />
-    <Compile Include="$(TestsRoot)Idle/IdleHeroCatalogTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleDollCatalogFixture.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleDollCatalogTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleGachaCurveTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleGachaShopTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleSurgeTests.cs" />
@@ -97,7 +97,7 @@
     <Compile Include="$(TestsRoot)Idle/IdleCardTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleDungeonTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleDungeonRunTests.cs" />
-    <Compile Include="$(TestsRoot)Idle/IdleHeroLevelTests.cs" />
+    <Compile Include="$(TestsRoot)Idle/IdleDollLevelTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleSpeedAutoTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleShopTests.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleSquadTests.cs" />

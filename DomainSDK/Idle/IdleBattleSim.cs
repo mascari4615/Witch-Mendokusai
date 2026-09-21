@@ -30,7 +30,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 return;
             }
 
-            IdleHeroes.EnsureStarter(state);
+            IdleDolls.EnsureStarter(state);
             state.EnsureSeatRoom(tuning);
 
             AdvanceArena(state, tuning, state.MainArena, seconds);
@@ -118,11 +118,11 @@ namespace WitchMendokusai.DomainSDK.Idle
                     continue;
                 }
 
-                int heroId = state.Party[seat];
-                double perSecond = IdleModel.AttackSpeedOfHero(state, tuning, heroId);
-                battle.StatDamage[seat] = IdleModel.DamageOfHero(state, tuning, heroId);
+                int dollId = state.Party[seat];
+                double perSecond = IdleModel.AttackSpeedOfDoll(state, tuning, dollId);
+                battle.StatDamage[seat] = IdleModel.DamageOfDoll(state, tuning, dollId);
                 battle.StatInterval[seat] = perSecond > 0d ? 1d / perSecond : double.PositiveInfinity;
-                battle.StatRange[seat] = IdleHeroes.RangeOf(state, tuning, seat);
+                battle.StatRange[seat] = IdleDolls.RangeOf(state, tuning, seat);
             }
         }
 
@@ -137,14 +137,14 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             for (int seat = 0; seat < IdleSquad.SEAT_COUNT; seat++)
             {
-                int heroId = IdleSquad.SeatTaken(state, seat) ? state.Party[seat] : -1;
-                if (battle.SeatHero[seat] == heroId)
+                int dollId = IdleSquad.SeatTaken(state, seat) ? state.Party[seat] : -1;
+                if (battle.SeatDoll[seat] == dollId)
                 {
                     continue;
                 }
 
-                battle.SeatHero[seat] = heroId;
-                if (heroId < 0)
+                battle.SeatDoll[seat] = dollId;
+                if (dollId < 0)
                 {
                     continue;
                 }
@@ -152,7 +152,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 double rear = double.PositiveInfinity;
                 for (int other = 0; other < IdleSquad.SEAT_COUNT; other++)
                 {
-                    if (other != seat && IdleSquad.SeatTaken(state, other) && battle.SeatHero[other] == state.Party[other]
+                    if (other != seat && IdleSquad.SeatTaken(state, other) && battle.SeatDoll[other] == state.Party[other]
                         && battle.X[other] < rear)
                     {
                         rear = battle.X[other];
@@ -211,7 +211,7 @@ namespace WitchMendokusai.DomainSDK.Idle
                 battle.Cooldown[seat] = 0d;
                 battle.Target[seat] = -1L;
                 battle.Moving[seat] = false;
-                battle.SeatHero[seat] = IdleSquad.SeatTaken(state, seat) ? state.Party[seat] : -1;
+                battle.SeatDoll[seat] = IdleSquad.SeatTaken(state, seat) ? state.Party[seat] : -1;
             }
 
             SpawnWave(state, tuning, arena);

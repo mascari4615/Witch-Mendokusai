@@ -52,7 +52,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>
         /// 배수를 <b>안 곱한</b> 기지 산출 — 「하나 더 사면 몇 배가 되나」를 재는 바닥.
         ///
-        /// ★ 배수(장비·영웅·도감·폭주)는 사도 안 사도 똑같이 곱해지므로 <b>비율에서 지워진다</b>.
+        /// ★ 배수(장비·인형·도감·폭주)는 사도 안 사도 똑같이 곱해지므로 <b>비율에서 지워진다</b>.
         ///   그래서 그 비율은 이 바닥만으로 잰다 — 전에는 그걸 재려고 <b>생산자를 넣었다 뺐다</b> 했다.
         ///   조회하는 자리가 판을 건드리면, 그 사이에 무슨 일이 나는 순간 공짜 생산자가 남는다.
         /// </summary>
@@ -78,9 +78,9 @@ namespace WitchMendokusai.DomainSDK.Idle
             //   변동성이 봉우리를 만들라고 넣은 것인데 봉우리가 평지였던 셈이다.
             //   (자리를 비운 동안에는 폭주가 안 걸린다 — CatchUp 이 지우므로 방치 판정은 그대로 결정적이다.)
             return total * IdleGear.BaseMultiplier(state, tuning)
-                * IdleHeroes.AxisMultiplierOf(state, tuning, IdleHeroAxis.Base)
+                * IdleDolls.AxisMultiplierOf(state, tuning, IdleDollAxis.Base)
                 // 도감은 <b>여기서 한 번</b> — 기지 쪽의 뿌리가 여기다 (싸움 쪽은 DamageOf).
-                * IdleHeroes.DiscoveryMultiplierOf(state, tuning)
+                * IdleDolls.DiscoveryMultiplierOf(state, tuning)
                 * IdleSurge.Multiplier(state, tuning)
                 // 긴급 보급 카드 — 스텝이 보급 경계에서 끊기므로 (IdleModel.Step) 이 배수는
                 // 스텝 안에서 상수다. 그래야 60초 한 번 == 0.1초 600번이 유지된다.

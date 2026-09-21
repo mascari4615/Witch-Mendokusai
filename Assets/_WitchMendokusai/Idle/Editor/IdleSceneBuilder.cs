@@ -23,7 +23,7 @@ namespace WitchMendokusai.Idle.Editor
 		private const string SCENE_PATH = "Assets/_WitchMendokusai/Scenes/Idle/Idle.unity";
 		private const string PANEL_PATH = "Assets/_WitchMendokusai/Scenes/Idle/PS_0001_Idle.asset";
 		private const string TUNING_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/TU_0001_Idle.asset";
-		private const string HERO_CATALOG_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/HC_0001_Idle.asset";
+		private const string DOLL_CATALOG_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/HC_0001_Idle.asset";
 		private const string UI_CONTENT_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/UI_0001_Idle.asset";
 		private const string GEAR_PRESENTATION_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/GP_0001_Idle.asset";
 		private const string BATTLE_PRESENTATION_PATH = "Assets/_WitchMendokusai/Idle/Data/Assets/BP_0001_Idle.asset";
@@ -67,17 +67,17 @@ namespace WitchMendokusai.Idle.Editor
 
 			PanelSettings panel = AssetDatabase.LoadAssetAtPath<PanelSettings>(PANEL_PATH);
 			TuningSO tuning = AssetDatabase.LoadAssetAtPath<TuningSO>(TUNING_PATH);
-			HeroCatalogSO heroCatalog = AssetDatabase.LoadAssetAtPath<HeroCatalogSO>(HERO_CATALOG_PATH);
+			DollCatalogSO dollCatalog = AssetDatabase.LoadAssetAtPath<DollCatalogSO>(DOLL_CATALOG_PATH);
 			UIContentSO uiContent = AssetDatabase.LoadAssetAtPath<UIContentSO>(UI_CONTENT_PATH);
 			GearPresentationSO gearPresentation = AssetDatabase.LoadAssetAtPath<GearPresentationSO>(GEAR_PRESENTATION_PATH);
 			BattlePresentationSO battlePresentation = AssetDatabase.LoadAssetAtPath<BattlePresentationSO>(BATTLE_PRESENTATION_PATH);
 			RuntimeSettingsSO runtimeSettings = AssetDatabase.LoadAssetAtPath<RuntimeSettingsSO>(RUNTIME_SETTINGS_PATH);
 			IdleViewAssetsSO viewAssets = AssetDatabase.LoadAssetAtPath<IdleViewAssetsSO>(VIEW_ASSETS_PATH);
-			if (panel == null || tuning == null || heroCatalog == null || uiContent == null || gearPresentation == null
+			if (panel == null || tuning == null || dollCatalog == null || uiContent == null || gearPresentation == null
 				|| battlePresentation == null || runtimeSettings == null || viewAssets == null)
 			{
-				Debug.LogError(TAG + " 붙일 것을 못 읽었다. panel/tuning/heroes/views = "
-					+ (panel != null) + "/" + (tuning != null) + "/" + (heroCatalog != null) + "/" + (viewAssets != null)
+				Debug.LogError(TAG + " 붙일 것을 못 읽었다. panel/tuning/dolls/views = "
+					+ (panel != null) + "/" + (tuning != null) + "/" + (dollCatalog != null) + "/" + (viewAssets != null)
 					+ " (panel·tuning 은 WM/Idle/씬 짓기가 만든다)");
 				return;
 			}
@@ -115,7 +115,7 @@ namespace WitchMendokusai.Idle.Editor
 
 			BattleScreen screen = screenObject.AddComponent<BattleScreen>();
 			AssignPrivateField(screen, "tuningAsset", tuning);
-			AssignPrivateField(screen, "heroCatalogAsset", heroCatalog);
+			AssignPrivateField(screen, "dollCatalogAsset", dollCatalog);
 			AssignPrivateField(screen, "uiContentAsset", uiContent);
 			AssignPrivateField(screen, "gearPresentationAsset", gearPresentation);
 			AssignPrivateField(screen, "runtimeSettingsAsset", runtimeSettings);
@@ -180,9 +180,9 @@ namespace WitchMendokusai.Idle.Editor
 				{
 					missing.Add("BattleScreen.tuningAsset");
 				}
-				if (serialized.FindProperty("heroCatalogAsset").objectReferenceValue == null)
+				if (serialized.FindProperty("dollCatalogAsset").objectReferenceValue == null)
 				{
-					missing.Add("BattleScreen.heroCatalogAsset");
+					missing.Add("BattleScreen.dollCatalogAsset");
 				}
 				if (serialized.FindProperty("uiContentAsset").objectReferenceValue == null)
 				{

@@ -28,7 +28,7 @@ MonoBehaviour:
   bagLockHoldSeconds: 0.5
   previewStage: 4
   previewResource: 500
-  previewPartyHeroIds:
+  previewPartyDollIds:
   - 0
   - 3
   - 1

@@ -621,12 +621,12 @@
 	color: rgb(245, 175, 16);
 }
 
-.idle-hero-row {
+.idle-doll-row {
 	flex-direction: row;
 	align-items: center;
 }
 
-.idle-hero-level {
+.idle-doll-level {
 	width: 150px;
 	margin-left: 8px;
 	font-size: 24px;
@@ -638,7 +638,7 @@
 	padding: 6px;
 }
 
-.idle-hero-level:disabled {
+.idle-doll-level:disabled {
 	opacity: 0.4;
 }
 
@@ -1687,10 +1687,10 @@
 .idle-gear-icon--2 { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/winged-sword.png"); }
 .idle-gear-icon--3 { background-image: url("../../Domain/Item/Assets/_Common/Sprite/game-icons.net/walking-boot.png"); }
 
-.idle-hero-grade-1 { background-color: rgb(29, 43, 49); }
-.idle-hero-grade-2 { background-color: rgb(28, 45, 70); }
-.idle-hero-grade-3 { background-color: rgb(54, 36, 72); }
-.idle-hero-grade-4 { background-color: rgb(74, 50, 24); }
+.idle-doll-grade-1 { background-color: rgb(29, 43, 49); }
+.idle-doll-grade-2 { background-color: rgb(28, 45, 70); }
+.idle-doll-grade-3 { background-color: rgb(54, 36, 72); }
+.idle-doll-grade-4 { background-color: rgb(74, 50, 24); }
 
 .idle-choice-card:hover {
 	background-color: rgba(245, 175, 16, 0.16);

@@ -32,11 +32,11 @@ namespace WitchMendokusai.Idle.Editor
 			"Assets/_WitchMendokusai/Idle/Editor/IdlePlaygroundDropRow.uxml";
 		private const string TUNING_PATH =
 			"Assets/_WitchMendokusai/Idle/Data/Assets/TU_0001_Idle.asset";
-		private const string HERO_CATALOG_PATH =
+		private const string DOLL_CATALOG_PATH =
 			"Assets/_WitchMendokusai/Idle/Data/Assets/HC_0001_Idle.asset";
 
 		[SerializeField] private TuningSO tuningAsset;
-		[SerializeField] private HeroCatalogSO heroCatalogAsset;
+		[SerializeField] private DollCatalogSO dollCatalogAsset;
 
 		private IdleSession session;
 		private double lastTickTime;
@@ -86,15 +86,15 @@ namespace WitchMendokusai.Idle.Editor
 		private void RebuildSession()
 		{
 			tuningAsset ??= AssetDatabase.LoadAssetAtPath<TuningSO>(TUNING_PATH);
-			heroCatalogAsset ??= AssetDatabase.LoadAssetAtPath<HeroCatalogSO>(HERO_CATALOG_PATH);
-			if (tuningAsset == null || heroCatalogAsset == null)
+			dollCatalogAsset ??= AssetDatabase.LoadAssetAtPath<DollCatalogSO>(DOLL_CATALOG_PATH);
+			if (tuningAsset == null || dollCatalogAsset == null)
 			{
 				Debug.LogError("[Idle] Playground 데이터 에셋이 없다.");
 				session = null;
 				return;
 			}
 
-			IdleHeroes.Configure(heroCatalogAsset.ToDomain());
+			IdleDolls.Configure(dollCatalogAsset.ToDomain());
 			IdleTuning tuning = tuningAsset.ToTuning();
 			session = new IdleSession(tuning);
 		}
@@ -154,7 +154,7 @@ namespace WitchMendokusai.Idle.Editor
 		/// <summary>버튼이 하는 일은 이것뿐 — 의도를 보낸다. 받아들일지는 코어가 정한다.</summary>
 		private void Send(IdleUpgradeKind kind)
 		{
-			session.Send(new IdleRaiseUpgradeIntent(IdleHeroes.StarterId, kind, 1));
+			session.Send(new IdleRaiseUpgradeIntent(IdleDolls.StarterId, kind, 1));
 			Render(session.Capture());
 		}
 

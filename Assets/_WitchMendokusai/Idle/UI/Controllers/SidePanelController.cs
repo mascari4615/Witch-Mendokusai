@@ -71,7 +71,7 @@ namespace WitchMendokusai.Idle.UI
 
 		public void RenderBadges(IdleSnapshot snapshot, int openIndex, bool panelShown)
 		{
-			SetBadge(0, IdleAdvice.HasSomethingToDo(snapshot, IdleTab.Hero)
+			SetBadge(0, IdleAdvice.HasSomethingToDo(snapshot, IdleTab.Doll)
 				|| IdleAdvice.HasSomethingToDo(snapshot, IdleTab.Upgrade));
 			SetBadge(1, IdleAdvice.HasSomethingToDo(snapshot, IdleTab.Gear));
 			SetBadge(3, snapshot.CanPull);

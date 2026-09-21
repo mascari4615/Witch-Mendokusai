@@ -24,7 +24,7 @@ namespace WitchMendokusai.Tests
 			// 되감기는 이제 멀리 갔을 때만 (이음새). 40m 걸으면 되감기게 문턱을 낮춤
 			tuning.BattleRebaseDistance = 10d;
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 			IdleBattleSim.Reset(state, tuning);
 
 			double before = AbsoluteOf(state, 0);
@@ -46,7 +46,7 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 			IdleBattleSim.Reset(state, tuning);
 
 			for (int step = 0; step < 400; step++)
@@ -73,7 +73,7 @@ namespace WitchMendokusai.Tests
 		{
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 			IdleSession session = new IdleSession(tuning, state);
 
 			IdleSnapshot first = session.Capture();

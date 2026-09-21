@@ -72,10 +72,10 @@ MonoBehaviour:
   freeBoxStones: 1
   maxStars: 5
   copiesPerStar: 2
-  heroStarStep: 0.1
-  heroOwnedShareByGrade: 0.03
-  heroPartyShareByGrade: 0.12
-  heroSupportShareByGrade: 0.06
+  dollStarStep: 0.1
+  dollOwnedShareByGrade: 0.03
+  dollPartyShareByGrade: 0.12
+  dollSupportShareByGrade: 0.06
   codexStepScore: 5
   codexStepBonus: 0.15
   producerCount: 8
@@ -117,7 +117,7 @@ MonoBehaviour:
   enemyDamageRatio: 1.18
   reviveSeconds: 12
   healPerKillShare: 0.08
-  heroGradeHealthStep: 0.35
+  dollGradeHealthStep: 0.35
   baseMaxOfflineSeconds: 28800
   offlineSecondsPerAscension: 7200
   maxOfflineCapSeconds: 86400

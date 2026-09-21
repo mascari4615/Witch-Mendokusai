@@ -20,8 +20,8 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private TabDefinition[] tabs = Array.Empty<TabDefinition>();
 		[SerializeField] private string[] gearSlotNames = Array.Empty<string>();
 		[SerializeField] private string[] statNames = Array.Empty<string>();
-		[SerializeField] private string[] heroAxisNames = Array.Empty<string>();
-		[SerializeField] private string[] heroGradeNames = Array.Empty<string>();
+		[SerializeField] private string[] dollAxisNames = Array.Empty<string>();
+		[SerializeField] private string[] dollGradeNames = Array.Empty<string>();
 		[SerializeField] private string[] cardNames = Array.Empty<string>();
 		[SerializeField] private string[] dungeonNames = Array.Empty<string>();
 		[SerializeField] private string[] dungeonDifficultyNames = Array.Empty<string>();
@@ -87,15 +87,15 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string dungeonResultFailedText;
 		[SerializeField] private string awaySpanFormat;
 		[SerializeField] private string awayWarningFormat;
-		[SerializeField] private string selectHeroBeforeGearText;
+		[SerializeField] private string selectDollBeforeGearText;
 		[SerializeField] private string appraiseUnavailableFormat;
 		[SerializeField] private string appraiseAvailableFormat;
 		[FormerlySerializedAs("codexSummaryFormat")]
 		[SerializeField] private string discoverySummaryFormat;
-		[FormerlySerializedAs("codexOwnedHeroFormat")]
-		[SerializeField] private string discoveryOwnedHeroFormat;
-		[FormerlySerializedAs("codexHiddenHeroFormat")]
-		[SerializeField] private string discoveryHiddenHeroFormat;
+		[FormerlySerializedAs("codexOwnedDollFormat")]
+		[SerializeField] private string discoveryOwnedDollFormat;
+		[FormerlySerializedAs("codexHiddenDollFormat")]
+		[SerializeField] private string discoveryHiddenDollFormat;
 		[SerializeField] private string bagUpgradeFormat;
 		[SerializeField] private string bagUpgradeMaxText;
 		[SerializeField] private string bagResetNoteFormat;
@@ -147,11 +147,11 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string mergeAllFeedbackFormat;
 		[SerializeField] private string appraiseFeedbackFormat;
 		[SerializeField] private string pullFeedbackFormat;
-		[SerializeField] private string newHeroSuffix;
+		[SerializeField] private string newDollSuffix;
 		[SerializeField] private string pitySuffix;
 		[SerializeField] private string partyFullFeedback;
 		[SerializeField] private string prestigeFeedback;
-		[SerializeField] private string statSelectHeroTip;
+		[SerializeField] private string statSelectDollTip;
 		[SerializeField] private string statMaxTipFormat;
 		[SerializeField] private string statWaitTipFormat;
 		[SerializeField] private string statTipFormat;
@@ -172,7 +172,7 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string levelFormat;
 		[SerializeField] private string upgradeButtonFormat;
 		[SerializeField] private string gainFormat;
-		[SerializeField] private string heroChoiceFormat;
+		[SerializeField] private string dollChoiceFormat;
 		[SerializeField] private string starPrefix;
 		[SerializeField] private char starCharacter;
 		[SerializeField] private string tabButtonFormat;
@@ -181,7 +181,7 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string criticalDamageValueFormat;
 		[SerializeField] private string popupPageFormat;
 		[SerializeField] private int[] statUpgradeAmounts = Array.Empty<int>();
-		[SerializeField, Min(1)] private int heroPopupSlotCount = 24;
+		[SerializeField, Min(1)] private int dollPopupSlotCount = 24;
 		[SerializeField, Min(1)] private int gearPopupSlotCount = 24;
 		[SerializeField, Min(1)] private int bagSlotCount = 40;
 		[SerializeField, Min(1)] private int forgeInputSlotCount = 9;
@@ -191,7 +191,7 @@ namespace WitchMendokusai.Idle
 		public int StatCount => statNames.Length;
 		public int GearSlotCount => gearSlotNames.Length;
 		public int StatUpgradeAmountCount => statUpgradeAmounts.Length;
-		public int HeroPopupSlotCount => heroPopupSlotCount;
+		public int DollPopupSlotCount => dollPopupSlotCount;
 		public int GearPopupSlotCount => gearPopupSlotCount;
 		public int BagSlotCount => bagSlotCount;
 		public int ForgeInputSlotCount => forgeInputSlotCount;
@@ -202,8 +202,8 @@ namespace WitchMendokusai.Idle
 		public bool IsTabVisible(int index) => tabs[index].Visible;
 		public string GearSlotName(int index) => gearSlotNames[index];
 		public string StatName(int index) => statNames[index];
-		public string AxisName(IdleHeroAxis axis) => heroAxisNames[(int)axis];
-		public string GradeName(IdleHeroGrade grade) => heroGradeNames[(int)grade];
+		public string AxisName(IdleDollAxis axis) => dollAxisNames[(int)axis];
+		public string GradeName(IdleDollGrade grade) => dollGradeNames[(int)grade];
 		public string CardName(IdleCardKind kind) => cardNames[(int)kind];
 		public string DungeonName(IdleDungeonKind kind) => dungeonNames[(int)kind];
 
@@ -216,7 +216,7 @@ namespace WitchMendokusai.Idle
 		public string GoldAmountText(string amount) => string.Format(goldAmountFormat, amount);
 		public string GoldIncomeText(string income) => string.Format(goldIncomeFormat, income);
 		public string SeatText(bool main) => main ? mainSeatText : supportSeatText;
-		public string GrowthTitle(string heroName) => heroName + growthSuffix;
+		public string GrowthTitle(string dollName) => dollName + growthSuffix;
 		public string EmptySeatText => emptySeatText;
 		public string MaxedText => maxedText;
 
@@ -241,15 +241,15 @@ namespace WitchMendokusai.Idle
 				return false;
 			}
 
-			if (heroAxisNames.Length != Enum.GetValues(typeof(IdleHeroAxis)).Length)
+			if (dollAxisNames.Length != Enum.GetValues(typeof(IdleDollAxis)).Length)
 			{
-				error = "heroAxisNames does not match IdleHeroAxis";
+				error = "dollAxisNames does not match IdleDollAxis";
 				return false;
 			}
 
-			if (heroGradeNames.Length != Enum.GetValues(typeof(IdleHeroGrade)).Length)
+			if (dollGradeNames.Length != Enum.GetValues(typeof(IdleDollGrade)).Length)
 			{
-				error = "heroGradeNames does not match IdleHeroGrade";
+				error = "dollGradeNames does not match IdleDollGrade";
 				return false;
 			}
 
@@ -285,8 +285,8 @@ namespace WitchMendokusai.Idle
 				dungeonGoldRewardFormat, dungeonBossRewardFormat, dungeonGearRewardFormat, dungeonFeedbackFormat,
 				dungeonRunFormat, dungeonResultClearedText, dungeonResultFailedText,
 				dungeonStageFormat, dungeonCellFormat, dungeonLevelFormat, dungeonLockedText, dungeonLeaveText,
-				awayWarningFormat, selectHeroBeforeGearText, appraiseUnavailableFormat, appraiseAvailableFormat,
-				discoverySummaryFormat, discoveryOwnedHeroFormat, discoveryHiddenHeroFormat, bagUpgradeFormat, bagUpgradeMaxText,
+				awayWarningFormat, selectDollBeforeGearText, appraiseUnavailableFormat, appraiseAvailableFormat,
+				discoverySummaryFormat, discoveryOwnedDollFormat, discoveryHiddenDollFormat, bagUpgradeFormat, bagUpgradeMaxText,
 				bagResetNoteFormat, pullAvailableFormat, pullNoStoneFormat, pullNoGoldFormat, pullOddsFormat,
 				pullBatchFormat, pullBatchFeedbackFormat, pityCounterFormat, pickupFormat, pickupNoneText,
 				freeBoxReadyFormat, freeBoxWaitFormat, freeBoxFeedbackFormat, oddsButtonText, oddsRowFormat,
@@ -297,12 +297,12 @@ namespace WitchMendokusai.Idle
 				supplyFeedbackFormat, appraiseCardFeedbackFormat, appraiseReplacedSuffix,
 				volleyMissFeedback, volleyTapHint, gachaTitleFormat, gachaSummaryFormat, gachaSkipText,
 				gachaCloseText, gachaNewBadge, gachaPityBadge, appraiseCardEmptyFeedback, nextStageFeedback, statRaisedFeedbackFormat, mergeFeedbackFormat,
-				mergeAllFeedbackFormat, appraiseFeedbackFormat, pullFeedbackFormat, newHeroSuffix, pitySuffix,
-				partyFullFeedback, prestigeFeedback, statSelectHeroTip, statMaxTipFormat, statWaitTipFormat,
+				mergeAllFeedbackFormat, appraiseFeedbackFormat, pullFeedbackFormat, newDollSuffix, pitySuffix,
+				partyFullFeedback, prestigeFeedback, statSelectDollTip, statMaxTipFormat, statWaitTipFormat,
 				statTipFormat, bagTipFormat, noWornGearText, wornGearSummaryFormat, wornEmptyTipFormat,
 				wornTipFormat, secondsSpanFormat, minutesSpanFormat, hoursSpanFormat, operationCodeFormat,
 				costFormat, bossHealthFormat, waveFormat, partySeatFormat, emptyPartySeatFormat, levelFormat,
-				upgradeButtonFormat, gainFormat, heroChoiceFormat, starPrefix, tabButtonFormat,
+				upgradeButtonFormat, gainFormat, dollChoiceFormat, starPrefix, tabButtonFormat,
 				attackSpeedValueFormat, percentValueFormat, criticalDamageValueFormat, popupPageFormat,
 			};
 			if (Array.Exists(requiredText, string.IsNullOrEmpty))
@@ -323,7 +323,7 @@ namespace WitchMendokusai.Idle
 				return false;
 			}
 
-			if (heroPopupSlotCount <= 0 || gearPopupSlotCount <= 0 || bagSlotCount <= 0 || forgeInputSlotCount <= 0
+			if (dollPopupSlotCount <= 0 || gearPopupSlotCount <= 0 || bagSlotCount <= 0 || forgeInputSlotCount <= 0
 				|| battleWidthShare <= 0f || battleWidthShare >= 1f)
 			{
 				error = "popup count and battle width share must be in range";

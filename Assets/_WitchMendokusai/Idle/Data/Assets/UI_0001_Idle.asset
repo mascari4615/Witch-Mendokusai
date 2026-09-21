@@ -21,7 +21,7 @@ MonoBehaviour:
   - 1
   - 10
   - 100
-  heroPopupSlotCount: 24
+  dollPopupSlotCount: 24
   gearPopupSlotCount: 24
   bagSlotCount: 40
   forgeInputSlotCount: 9
@@ -61,12 +61,12 @@ MonoBehaviour:
   - CRIT
   - CRIT DMG
   - REGEN
-  heroAxisNames:
+  dollAxisNames:
   - ATK
   - SPEED
   - WIT
   - LOOT
-  heroGradeNames:
+  dollGradeNames:
   - COMMON
   - RARE
   - EPIC
@@ -146,12 +146,12 @@ MonoBehaviour:
   dungeonResultFailedText: 실패
   awaySpanFormat: '{0} 동안 작전이 계속됐습니다'
   awayWarningFormat: 오프라인 상한 {0}. 넘긴 {1}은 보상에 포함되지 않았습니다.
-  selectHeroBeforeGearText: 먼저 편성 칸에서 인형을 고른다
+  selectDollBeforeGearText: 먼저 편성 칸에서 인형을 고른다
   appraiseUnavailableFormat: 'T{0} {1}개. 잠재 없음'
   appraiseAvailableFormat: 'T{0} {1}개. 감정 {2}'
   codexSummaryFormat: 'CODEX {0} PT   GLOBAL x{1:0.00}   OWNED {2}/{3}'
-  codexOwnedHeroFormat: '{0}{1}  {2} / {3}'
-  codexHiddenHeroFormat: '???  {0}'
+  codexOwnedDollFormat: '{0}{1}  {2} / {3}'
+  codexHiddenDollFormat: '???  {0}'
   bagUpgradeFormat: 'EXPAND BAG +{0}  GOLD {1}'
   bagUpgradeMaxText: BAG MAXED
   bagResetNoteFormat: '지금 {0}칸. 환생하면 처음으로 돌아간다'
@@ -203,11 +203,11 @@ MonoBehaviour:
   mergeAllFeedbackFormat: '{0}번 합쳤다'
   appraiseFeedbackFormat: 'T{0} 감정 → {1:P1}{2}'
   pullFeedbackFormat: '{0} {1}{2}{3}'
-  newHeroSuffix: '. 처음 본 얼굴'
+  newDollSuffix: '. 처음 본 얼굴'
   pitySuffix: ' (천장)'
   partyFullFeedback: 자리가 다 찼다. 바꿀 칸을 먼저 누른다
   prestigeFeedback: 환생. 새 종이. 코스트는 그대로다
-  statSelectHeroTip: 인형을 먼저 선택
+  statSelectDollTip: 인형을 먼저 선택
   statMaxTipFormat: "{0}\n최대 성장"
   statWaitTipFormat: "\n약 {0:0}초 뒤 구매"
   statTipFormat: "{0} ×{1}\n{2} → {3}\n골드 {4}{5}"
@@ -228,7 +228,7 @@ MonoBehaviour:
   levelFormat: 'Lv.{0}'
   upgradeButtonFormat: "×{0}\n{1}"
   gainFormat: '+{0}'
-  heroChoiceFormat: "{0}{1}\nLv.{2}  {3}"
+  dollChoiceFormat: "{0}{1}\nLv.{2}  {3}"
   starPrefix: ' '
   starCharacter: 9733
   tabButtonFormat: '{1}'

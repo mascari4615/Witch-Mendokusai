@@ -115,7 +115,7 @@ namespace WitchMendokusai.Tests
 			IdleTuning tuning = new IdleTuning();
 			IdleState state = new IdleState();
 			// 카드는 편성 인형의 스킬. 시작 인형이 있어야 손패가 생긴다
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 			IdleCards.EnsureDeck(state);
 			state.AutoCast = true;
 			state.Cost = tuning.CostMax;

@@ -52,7 +52,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// </summary>
         public double TapSecondsOfAttack { get; set; } = 0.2d;
 
-        // ── 영웅 뽑기 (TASK-WM-406) ─────────────────────────────────────────
+        // ── 인형 뽑기 (TASK-WM-406) ─────────────────────────────────────────
         //
         // ★ 사용자가 정한 것은 <b>인심</b>이다 (2026-08-17: 「관대 — 많이 뽑는 맛」).
         //   아래 숫자는 그 결정을 인디 관측 범위 안에서 옮긴 것이다:

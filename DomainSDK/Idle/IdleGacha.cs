@@ -3,9 +3,9 @@ using System.Collections.Generic;
 namespace WitchMendokusai.DomainSDK.Idle
 {
     /// <summary>한 번 뽑은 결과 — 화면이 보여줄 것.</summary>
-    public readonly struct IdleHeroPull
+    public readonly struct IdleDollPull
     {
-        public IdleHeroPull(int id, IdleHeroGrade grade, bool isNew, bool starredUp, int stars, bool byPity)
+        public IdleDollPull(int id, IdleDollGrade grade, bool isNew, bool starredUp, int stars, bool byPity)
         {
             Id = id;
             Grade = grade;
@@ -16,7 +16,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         public int Id { get; }
-        public IdleHeroGrade Grade { get; }
+        public IdleDollGrade Grade { get; }
 
         /// <summary>처음 본 얼굴.</summary>
         public bool IsNew { get; }
@@ -31,7 +31,7 @@ namespace WitchMendokusai.DomainSDK.Idle
     }
 
     /// <summary>
-    /// 영웅 뽑기 (TASK-WM-406).
+    /// 인형 뽑기 (TASK-WM-406).
     ///
     /// ★ 사용자 결정 2026-08-17 = <b>관대한 판</b>. 한 번 환생하면 여러 번 뽑고,
     ///   최고 등급도 가끔 나온다. 재미를 「모으는 맛」이 아니라 <b>「짜는 맛」</b>에 둔다.
@@ -92,13 +92,13 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>
         /// 한 번 뽑는다. 자원이나 환생석이 모자라면 아무 일도 안 일어난다.
         /// </summary>
-        public static bool TryPull(IdleState state, IdleTuning tuning, out IdleHeroPull pull)
+        public static bool TryPull(IdleState state, IdleTuning tuning, out IdleDollPull pull)
         {
             return TryPull(state, tuning, -1, out pull);
         }
 
         /// <summary>한 번 뽑는다. <paramref name="pickupId"/> 가 같은 등급에 있으면 그 얼굴이 더 잘 나온다 (픽업)</summary>
-        public static bool TryPull(IdleState state, IdleTuning tuning, int pickupId, out IdleHeroPull pull)
+        public static bool TryPull(IdleState state, IdleTuning tuning, int pickupId, out IdleDollPull pull)
         {
             pull = default;
 
@@ -109,7 +109,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 
             state.Resource -= CostOf(state, tuning);
             state.Stones -= StoneCostOf(tuning);
-            pull = RollOne(state, tuning, pickupId, IdleHeroGrade.Common);
+            pull = RollOne(state, tuning, pickupId, IdleDollGrade.Common);
             return true;
         }
 
@@ -117,7 +117,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// 묶음으로 뽑는다 (사용자 2026-09-05: 10회). 값은 1회의 묶음 수 배, 할인 없음.
         /// 묶음 안에 <see cref="IdleTuning.PullBatchFloorGrade"/> 이상이 하나도 없으면 마지막 하나를 그 등급으로
         /// </summary>
-        public static bool TryPullBatch(IdleState state, IdleTuning tuning, int pickupId, List<IdleHeroPull> into)
+        public static bool TryPullBatch(IdleState state, IdleTuning tuning, int pickupId, List<IdleDollPull> into)
         {
             if (CanPullBatch(state, tuning) == false)
             {
@@ -127,13 +127,13 @@ namespace WitchMendokusai.DomainSDK.Idle
             state.Resource -= BatchCostOf(state, tuning);
             state.Stones -= BatchStoneCostOf(tuning);
 
-            IdleHeroGrade floor = (IdleHeroGrade)tuning.PullBatchFloorGrade;
+            IdleDollGrade floor = (IdleDollGrade)tuning.PullBatchFloorGrade;
             bool floorSeen = false;
             for (int index = 0; index < tuning.PullBatchCount; index++)
             {
                 bool last = index == tuning.PullBatchCount - 1;
-                IdleHeroGrade least = last && floorSeen == false ? floor : IdleHeroGrade.Common;
-                IdleHeroPull pull = RollOne(state, tuning, pickupId, least);
+                IdleDollGrade least = last && floorSeen == false ? floor : IdleDollGrade.Common;
+                IdleDollPull pull = RollOne(state, tuning, pickupId, least);
                 floorSeen = floorSeen || pull.Grade >= floor;
                 into.Add(pull);
             }
@@ -142,7 +142,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>값을 이미 낸 뒤 하나를 굴린다. 천장과 최저 등급을 여기서 맞춘다</summary>
-        private static IdleHeroPull RollOne(IdleState state, IdleTuning tuning, int pickupId, IdleHeroGrade least)
+        private static IdleDollPull RollOne(IdleState state, IdleTuning tuning, int pickupId, IdleDollGrade least)
         {
             state.PullsDone += 1L;
             state.PullsSincePity += 1;
@@ -151,13 +151,13 @@ namespace WitchMendokusai.DomainSDK.Idle
             IdleRandom dice = new IdleRandom(state.RandomState);
 
             bool byPity = state.PullsSincePity >= tuning.PityPulls;
-            IdleHeroGrade grade = byPity ? IdleHeroGrade.Legend : RollGrade(ref dice, tuning);
+            IdleDollGrade grade = byPity ? IdleDollGrade.Legend : RollGrade(ref dice, tuning);
             if (grade < least)
             {
                 grade = least;
             }
 
-            if (grade == IdleHeroGrade.Legend)
+            if (grade == IdleDollGrade.Legend)
             {
                 state.PullsSincePity = 0;
             }
@@ -179,13 +179,13 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// 지금 픽업인 인형 (사용자 2026-09-05: 특정 인형 확률 2배, 주마다 교체).
         /// 얼굴이 있는 가장 높은 등급에서 주기 번호 순으로. 명단이 비면 -1
         /// </summary>
-        public static int PickupHeroOf(IdleTuning tuning, long nowUnixSeconds)
+        public static int PickupDollOf(IdleTuning tuning, long nowUnixSeconds)
         {
             List<int> pool = pickupPool;
             pool.Clear();
-            for (IdleHeroGrade grade = IdleHeroGrade.Legend; grade >= IdleHeroGrade.Common; grade--)
+            for (IdleDollGrade grade = IdleDollGrade.Legend; grade >= IdleDollGrade.Common; grade--)
             {
-                IdleHeroes.IdsOfGrade(grade, pool);
+                IdleDolls.IdsOfGrade(grade, pool);
                 if (pool.Count > 0)
                 {
                     break;
@@ -232,33 +232,33 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>등급을 굴린다 — 위에서부터 훑어 내려간다.</summary>
-        private static IdleHeroGrade RollGrade(ref IdleRandom dice, IdleTuning tuning)
+        private static IdleDollGrade RollGrade(ref IdleRandom dice, IdleTuning tuning)
         {
             double roll = dice.NextDouble();
 
             if (roll < tuning.LegendChance)
             {
-                return IdleHeroGrade.Legend;
+                return IdleDollGrade.Legend;
             }
 
             if (roll < tuning.LegendChance + tuning.EpicChance)
             {
-                return IdleHeroGrade.Epic;
+                return IdleDollGrade.Epic;
             }
 
             if (roll < tuning.LegendChance + tuning.EpicChance + tuning.RareChance)
             {
-                return IdleHeroGrade.Rare;
+                return IdleDollGrade.Rare;
             }
 
-            return IdleHeroGrade.Common;
+            return IdleDollGrade.Common;
         }
 
         /// <summary>등급 안에서 하나. 픽업이 그 등급에 있으면 무게 <paramref name="pickupWeight"/>, 나머지는 1</summary>
-        private static int PickOfGrade(ref IdleRandom dice, IdleHeroGrade grade, int pickupId, double pickupWeight)
+        private static int PickOfGrade(ref IdleRandom dice, IdleDollGrade grade, int pickupId, double pickupWeight)
         {
             List<int> pool = new List<int>();
-            IdleHeroes.IdsOfGrade(grade, pool);
+            IdleDolls.IdsOfGrade(grade, pool);
 
             if (pool.Count == 0)
             {
@@ -294,24 +294,24 @@ namespace WitchMendokusai.DomainSDK.Idle
         }
 
         /// <summary>
-        /// 뽑힌 영웅을 넣는다 — 처음이면 새 얼굴, 아니면 중복이 쌓여 ★ 이 오른다.
+        /// 뽑힌 인형을 넣는다 — 처음이면 새 얼굴, 아니면 중복이 쌓여 ★ 이 오른다.
         ///
         /// ★ ★ 이 상한에 닿아도 <b>버리지 않는다</b> — 조각으로 남는다.
         ///   중복이 완전히 꽝이 되는 순간이 수집형이 죽는 자리다.
         /// </summary>
-        private static IdleHeroPull Give(IdleState state, IdleTuning tuning, int id,
-            IdleHeroGrade grade, bool byPity)
+        private static IdleDollPull Give(IdleState state, IdleTuning tuning, int id,
+            IdleDollGrade grade, bool byPity)
         {
-            int at = state.IndexOfHero(id);
+            int at = state.IndexOfDoll(id);
 
             if (at < 0)
             {
-                state.Heroes.Add(new IdleHeroOwned(id));
+                state.Dolls.Add(new IdleDollOwned(id));
                 AutoFillParty(state, id);
-                return new IdleHeroPull(id, grade, true, false, 0, byPity);
+                return new IdleDollPull(id, grade, true, false, 0, byPity);
             }
 
-            IdleHeroOwned owned = state.Heroes[at];
+            IdleDollOwned owned = state.Dolls[at];
             owned.Copies += 1;
 
             bool starredUp = false;
@@ -324,8 +324,8 @@ namespace WitchMendokusai.DomainSDK.Idle
                 starredUp = true;
             }
 
-            state.Heroes[at] = owned;
-            return new IdleHeroPull(id, grade, false, starredUp, owned.Stars, byPity);
+            state.Dolls[at] = owned;
+            return new IdleDollPull(id, grade, false, starredUp, owned.Stars, byPity);
         }
 
         /// <summary>다음 ★ 까지 필요한 중복 수 — 위로 갈수록 는다.</summary>
@@ -337,7 +337,7 @@ namespace WitchMendokusai.DomainSDK.Idle
         /// <summary>
         /// 파티에 빈 자리가 있으면 새 얼굴을 <b>자동으로</b> 앉힌다.
         ///
-        /// ★ 처음 뽑은 영웅이 아무 일도 안 하면 「뽑아도 그대로네」가 된다.
+        /// ★ 처음 뽑은 인형이 아무 일도 안 하면 「뽑아도 그대로네」가 된다.
         ///   빈 자리를 채우는 건 결정이 아니라 잡일이라 기계가 한다 — 결정은 <b>자리가 찼을 때</b>부터다.
         /// </summary>
         private static void AutoFillParty(IdleState state, int id)

@@ -230,13 +230,13 @@ namespace WitchMendokusai.Tests
 			foreach (double purse in purses)
 			{
 				IdleState state = new IdleState();
-				IdleHeroes.EnsureStarter(state);
+				IdleDolls.EnsureStarter(state);
 				state.EnsureProducerRoom(tuning.ProducerCount);
 				state.Resource = purse;
 
-				bool said = IdleModel.TryGetCost(state, tuning, IdleHeroes.StarterId,
+				bool said = IdleModel.TryGetCost(state, tuning, IdleDolls.StarterId,
 					IdleUpgradeKind.Damage, 1, out double cost) && state.Resource >= cost;
-				bool raised = IdleModel.TryRaise(state, tuning, IdleHeroes.StarterId,
+				bool raised = IdleModel.TryRaise(state, tuning, IdleDolls.StarterId,
 					IdleUpgradeKind.Damage, 1);
 
 				Assert.AreEqual(said, raised, "자원 " + purse + ", 말과 실제가 다르다");

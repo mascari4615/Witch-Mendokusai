@@ -16,7 +16,7 @@ namespace WitchMendokusai.Tests
 		private static IdleState Ready(IdleTuning tuning)
 		{
 			IdleState state = new IdleState();
-			IdleHeroes.EnsureStarter(state);
+			IdleDolls.EnsureStarter(state);
 			state.EnsureSeatRoom(tuning);
 			IdleDungeons.Refill(state, tuning, 0L);
 			return state;
