@@ -1,3 +1,4 @@
+using System;
 namespace WitchMendokusai.DomainSDK.Idle
 {
 	/// <summary>손패의 카드 — 무엇을 하는 카드인가 (V2, concept-v2).</summary>
@@ -115,7 +116,8 @@ namespace WitchMendokusai.DomainSDK.Idle
 		/// </summary>
 		public static void EnsureDeck(IdleState state)
 		{
-			int[] wanted = new int[IdleHeroes.MAIN_SLOTS];
+			// 사진 한 장에 여섯 번 불린다. 힙 배열이면 한 장에 360 바이트 (시험 TakingThePicture_MakesNoGarbage)
+			Span<int> wanted = stackalloc int[IdleHeroes.MAIN_SLOTS];
 			int count = 0;
 			for (int slot = 0; slot < IdleHeroes.MAIN_SLOTS && slot < state.Party.Length; slot++)
 			{
@@ -153,7 +155,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 			state.SetCardDeck(made);
 		}
 
-		private static int IndexIn(int[] values, int count, int value)
+		private static int IndexIn(ReadOnlySpan<int> values, int count, int value)
 		{
 			for (int index = 0; index < count; index++)
 			{
@@ -166,7 +168,7 @@ namespace WitchMendokusai.DomainSDK.Idle
 			return -1;
 		}
 
-		private static bool SameSet(int[] deck, int[] wanted, int count)
+		private static bool SameSet(int[] deck, ReadOnlySpan<int> wanted, int count)
 		{
 			if (deck.Length != count)
 			{

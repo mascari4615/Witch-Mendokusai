@@ -175,6 +175,7 @@ namespace WitchMendokusai.Tests
 			state.LastSeenUnixSeconds = 1700000000L;
 			state.Cost = 4.5d;
 			state.SupplySecondsLeft = 12d;
+			state.HasteSecondsLeft = 9d;
 			state.EnsureSeatRoom(tuning);
 			state.SeatHealth[0] = 33d;
 			state.SeatReviveSeconds[1] = 2.5d;
@@ -206,6 +207,8 @@ namespace WitchMendokusai.Tests
 			hero.CriticalDamageLevel = 5;
 			state.Heroes.Add(hero);
 			state.Party[0] = 4;
+			// 덱은 편성에서 나온다. 편성 뒤에 짜 둬야 불러오기가 짠 것과 같다
+			IdleCards.EnsureDeck(state);
 
 			return state;
 		}
