@@ -788,3 +788,148 @@
 	margin: 0;
 	overflow: visible;
 }
+
+/* ── 다른 탭 (ITEM SHOP DUNGEON LAB ...). 같은 문법: 챔퍼 판, 파랑 선택, 주황 값, 금색 없음 ── */
+.idle-side .idle-workspace-page,
+.idle-page {
+	padding: 0 40px 0 0;
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.idle-section {
+	padding: 20px 22px;
+	margin-bottom: 14px;
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/frame-panel-22.png");
+	-unity-slice-left: 27;
+	-unity-slice-right: 27;
+	-unity-slice-top: 27;
+	-unity-slice-bottom: 27;
+	border-radius: 0;
+}
+
+.idle-section .idle-cap,
+.idle-cap {
+	color: rgb(154, 160, 162);
+	font-size: 19px;
+	letter-spacing: 1px;
+}
+
+.idle-section .idle-row-title,
+.idle-row-title {
+	font-size: 30px;
+	-unity-font-style: normal;
+	color: rgb(240, 240, 240);
+}
+
+.idle-section .idle-row-note,
+.idle-row-note {
+	color: rgb(154, 160, 162);
+	font-size: 22px;
+}
+
+.idle-side .idle-row-button,
+.idle-row-button,
+.idle-button,
+.idle-dungeon-button {
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/frame-ctl-10.png");
+	-unity-slice-left: 15;
+	-unity-slice-right: 15;
+	-unity-slice-top: 15;
+	-unity-slice-bottom: 15;
+	border-width: 0;
+	border-radius: 0;
+	color: rgb(240, 240, 240);
+	font-size: 24px;
+	-unity-font-style: normal;
+	min-height: 56px;
+}
+
+.idle-side .idle-row-button:hover,
+.idle-row-button:hover,
+.idle-button:hover {
+	background-color: rgba(255, 255, 255, 0.06);
+}
+
+.idle-side .idle-row-button--strong,
+.idle-row-button--strong,
+.idle-button--strong {
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/frame-plus.png");
+	-unity-slice-left: 9;
+	-unity-slice-right: 9;
+	-unity-slice-top: 9;
+	-unity-slice-bottom: 9;
+	color: rgb(63, 169, 245);
+	-unity-font-style: normal;
+}
+
+.idle-side .idle-row-button--strong:hover,
+.idle-button--strong:hover {
+	background-color: rgba(63, 169, 245, 0.16);
+}
+
+.idle-side .idle-subtabs {
+	margin-bottom: 14px;
+	padding: 0;
+	background-color: rgba(0, 0, 0, 0);
+	border-bottom-width: 1px;
+	border-bottom-color: rgba(255, 255, 255, 0.35);
+}
+
+.idle-side .idle-subtab {
+	color: rgb(154, 160, 162);
+	font-size: 24px;
+	border-bottom-width: 3px;
+	margin-bottom: -1px;
+}
+
+.idle-side .idle-subtab--on {
+	color: rgb(63, 169, 245);
+	border-bottom-color: rgb(63, 169, 245);
+}
+
+.idle-dungeon-tab {
+	background-color: rgba(0, 0, 0, 0);
+	border-width: 1px;
+	border-color: rgba(255, 255, 255, 0.35);
+	color: rgb(240, 240, 240);
+	font-size: 20px;
+}
+
+.idle-dungeon-tab--on {
+	color: rgb(63, 169, 245);
+	background-color: rgba(63, 169, 245, 0.12);
+	border-color: rgb(63, 169, 245);
+}
+
+.idle-dungeon-tab--cleared {
+	border-color: rgb(255, 120, 47);
+}
+
+.idle-forge-cell,
+.idle-section .idle-forge-cell {
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/frame-gear-3.png");
+	-unity-slice-left: 8;
+	-unity-slice-right: 8;
+	-unity-slice-top: 8;
+	-unity-slice-bottom: 8;
+	border-width: 0;
+	color: rgb(240, 240, 240);
+}
+
+.idle-section .idle-shop-pickup-label {
+	color: rgb(240, 240, 240);
+}
+
+.idle-section .idle-banner-title,
+.idle-banner-title {
+	-unity-font-style: normal;
+	font-size: 34px;
+}
+
+.idle-side .idle-dungeon-tab { border-radius: 0; }
+.idle-side .idle-dungeon-tab--on { background-color: rgba(63, 169, 245, 0.12); color: rgb(63, 169, 245); border-color: rgb(63, 169, 245); }
+.idle-side .idle-dungeon-ticket, .idle-dungeon-ticket { color: rgb(255, 120, 47); }
