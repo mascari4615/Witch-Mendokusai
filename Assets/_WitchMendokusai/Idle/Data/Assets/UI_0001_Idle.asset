@@ -96,7 +96,7 @@ MonoBehaviour:
   tapAdvice: 무대를 눌러 응원한다
   waitAdviceFormat: 모으는 중. {0} 뒤에 살 것이 생긴다
   waitForCostAdvice: 모으는 중. 코스트가 차면 카드를 낸다
-  battleGradeFormat: 'TIER {0}/{1}'
+  battleGradeFormat: '{0}/{1}'
   stageFormat: 'ZONE {0}'
   repeatOnText: REPEAT
   repeatOffText: REPEAT
@@ -222,7 +222,7 @@ MonoBehaviour:
   operationCodeFormat: 'S-{0}'
   costFormat: '{0:0}/{1:0}'
   bossHealthFormat: 'BOSS S-{0}  {1:P0}'
-  waveFormat: 'WAVE {0}/{1}'
+  waveFormat: '{0}/{1}'
   partySeatFormat: '{1}'
   emptyPartySeatFormat: '+'
   levelFormat: 'Lv.{0}'

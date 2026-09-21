@@ -9,9 +9,8 @@
         <ui:VisualElement name="hud-band" class="idle-hud-band" picking-mode="Ignore" />
         <ui:VisualElement name="op" class="idle-chip-dark idle-op">
             <ui:Label name="op-code" class="idle-op-code" />
-            <ui:Label name="op-name" class="idle-op-name" />
-            <ui:VisualElement name="wave-dots" class="idle-wave" />
-            <ui:Label name="wave-label" class="idle-op-cap" />
+            <ui:VisualElement class="idle-op-kv"><ui:Label text="TIER" class="idle-op-tiny" /><ui:Label name="op-name" class="idle-op-name" /></ui:VisualElement>
+            <ui:VisualElement class="idle-op-kv"><ui:Label text="WAVE" class="idle-op-tiny" /><ui:VisualElement class="idle-op-row"><ui:Label name="wave-label" class="idle-op-cap" /><ui:VisualElement name="wave-dots" class="idle-wave" /></ui:VisualElement></ui:VisualElement>
             <ui:Label name="dungeon-timer" class="idle-op-cap idle-dungeon-timer" />
         </ui:VisualElement>
         <ui:VisualElement class="idle-step-row">

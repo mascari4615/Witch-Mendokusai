@@ -720,3 +720,71 @@
 .idle-panel-body .unity-scroller--horizontal {
 	display: none;
 }
+
+/* 헤더: 라벨 작게 위, 값 아래 (시안) */
+.idle-op-kv {
+	flex-direction: column;
+	justify-content: center;
+	height: 54px;
+	margin-left: 34px;
+	padding-left: 34px;
+	border-left-width: 1px;
+	border-left-color: rgba(255, 255, 255, 0.35);
+}
+
+.idle-op-tiny {
+	font-size: 18px;
+	color: rgb(154, 160, 162);
+	letter-spacing: 1px;
+	margin: 0;
+	padding: 0;
+}
+
+.idle-op-name {
+	display: flex;
+	font-size: 30px;
+	-unity-font-style: normal;
+	color: rgb(240, 240, 240);
+	margin: 0;
+	padding: 0;
+}
+
+.idle-op-row {
+	flex-direction: row;
+	align-items: center;
+}
+
+.idle-op-cap {
+	margin: 0;
+	padding: 0;
+	border-left-width: 0;
+	height: auto;
+}
+
+.idle-wave {
+	margin-left: 16px;
+	height: auto;
+}
+
+/* 탭 바: 오른쪽 40 안쪽, 495 폭, 46 높이, 글자 28 (시안 실측) */
+.idle-tabs {
+	width: 495px;
+	margin: 0 40px 0 185px;
+	flex-shrink: 0;
+}
+
+.idle-tab {
+	font-size: 28px;
+}
+
+.idle-tab--on {
+	border-bottom-width: 4px;
+	margin-bottom: -4px;
+}
+
+/* 메뉴 판과 강화 카드 사이 (사용자: 줄여라) */
+.idle-profile {
+	height: 380px;
+	margin: 0;
+	overflow: visible;
+}
