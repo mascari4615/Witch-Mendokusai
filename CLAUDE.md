@@ -118,64 +118,15 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 
 **`Singleton<T>` dontDestroyOnLoad** = prefab SerializeField 정본(코드 `DontDestroyOnLoad()` 강제 호출 X).
 
-## 컴파일 검증 1순위: `wm-compile-check.ps1` (에디터와 통로 무관)
+## 컴파일 검증과 Unity 통로
 
-**정본은 `powershell -File memo/dotfiles/scripts/wm-compile-check.ps1 -ProjectPath <검사할 checkout>`** (lane 이면 lane 경로 필수. 인자 이름이 틀리면 조용히 기본값인 공유 checkout 을 검사한다. 2026-08-30 실측: `-Repo` 로 여섯 번 초록을 받았는데 전부 다른 폴더였다). 진짜 Unity 어셈블리
-(`Editor/Data/Managed/UnityEngine/*.dll` + `UnityEditor.dll` + `Library/ScriptAssemblies` + PackageCache/Assets 의
-미리 컴파일된 DLL, 총 ~500 참조)를 걸고 우리 `.cs` 1400여 개를 한 번에 굽는다. **5초. 에디터가 프로젝트를
-잠그고 있어도 돈다.** exit 0/1/2(2는 못 돌렸음, 에러 0과 다름).
+절차 (검사 순서, 명령, 켜기, 캡처, 녹화) 는 Skill `unity` 의 WM 절. 룰 계약은 `memo/rules/unity.md`. 여기는 WM 계약만.
 
-- **왜 바뀌었나 (2026-08-16)**: 정본이 라이브 콘솔 하나였는데, 에디터 잠금 + 통로 변경이
-  겹치자 검증 경로가 통째로 사라져 사람에게 "유니티 창 눌러 주세요"로 떠넘겨야 했다. 검증이 외부 통로
-  하나에 묶여 있던 것 = 단일 실패점. 「`dotnet build` 폐기」의 근거는 *Mono ≠ .NET8 로 API 표면이 다르다*
-  였는데, **엔진 DLL 자체를 참조하면 API 표면은 진짜다** — 그래서 이 경로만 예외로 승격한다.
-- **못 잡는 것 (그래서 아래가 여전히 필요)**: asmdef 경계 위반(한 덩어리로 구움), 플랫폼/IL2CPP,
-  에셋·직렬화·PlayMode 동작. 맨 소스만 참조하는 검사라 **에디터 실컴파일이 최종 확인**이다.
-- **2순위: `unity command console --project-path <WM>`**, 서비스 가능할 때 warning 0까지 확인.
-- **`dotnet build` 직접 호출은 여전히 폐기** — 위 스크립트/wrapper 경유만.
-- **Editor.log는 fallback only.** append-only 누적으로 옛 컴파일 결과 섞임. CLI 가용 시 절대 사용 X.
-- Warning = 미래 error 시그널. error 0 만 보고 통과 X. 보존 의도 warning은 `#pragma warning disable` + 사유 주석.
-
-**warning 0 은 이제 기계가 강제한다 (TASK-WM-204).** WM 자기 asmdef 폴더마다 (2026-09-06 에 Core, ViewModel, Domain, Domain.TowerDefense, App, Network, Presentation, Idle, Editor 아홉. Foundation 은 없음) `csc.rsp` 에
-`-warnaserror+`. 경고가 곧 컴파일 에러라 *다음 줄을 못 쓴다* → 미루는 것 자체가 불가능.
-패키지·서드파티는 각자 컴파일이라 무관(`Assets/csc.rsp` 는 만들지 X — predefined 어셈블리에 서드파티가 섞임).
-
-- **탈출구**: 보존 의도 = `#pragma warning disable <ID>` + 사유 주석. 유니티 업그레이드가 새 폐기
-  경고를 쏟아 전면 RED 면 해당 `csc.rsp` 한 줄 주석 처리로 즉시 원복(비가역 0) 후 TASK 로 소화.
-- **`csc.rsp` 는 ASCII·플래그만.** 주석·한글 넣으면 PS/cp949 경로에서 깨져 인자로 먹혀 `CS2001`
-  (실측 2026-08-05). 근거는 본 문서에 적고 파일엔 플래그만.
-
-**컴파일 트리거**: `refresh_unity(mode="force", scope="all", compile="request", wait_for_ready=true)` 또는 fallback `unity-refresh.ps1`.
-
-## Unity 통로 — 공식 Unity CLI (Pipeline)
-
-**룰 정본 = `memo/rules/unity.md § Unity 통로`.** 본 § = WM 레포 포인터.
-
-공식 `unity` CLI + `com.unity.pipeline` 을 쓴다. 실측 근거는 `memo/notes/2026-08-20-unity-cli.md`에 있다.
-
-```bash
-unity status                          # 붙은 에디터 — 단, ready 를 믿지 마라(아래)
-unity command eval "return 1;" --project-path <WM>    # ← 서비스 가능 판정은 이것으로만
-unity command console --project-path <WM>             # 콘솔 읽기
-unity command recompile / recompile_status
-unity command editor_play / editor_stop / capture_game_view
-unity command run_tests -- --mode editor --async_tests true --filter <이름조각>
-```
-
-**꼭 지킬 것 넷** (자세한 근거는 룰 정본):
-
-1. `unity status` 의 `ready` ≠ 명령 받을 수 있음. WM 은 ready 뒤 **+20초** 503 을 냈다.
-2. 무거운 순간(Play 부팅·도메인 리로드) 400/503 은 정상 — 재시도 5–10초, 최대 60초.
-3. **메인 스레드 하드캡 5000ms** — 무거운 `eval` 금지, 쪼개거나 `--detach`.
-4. **`run_tests` 는 반드시 `--async_tests true`.** 안 켜면 동기 모드가 메인 스레드를 잡고
-   대기하다 타임아웃 취소와 데드락 → **에디터 강제 종료 + 재임포트**가 유일한 복구다.
-   **WM 전체 스위트(1898개)는 살아있는 에디터에서 완주 못 한다** — 일상은 `--filter`.
-
-**컴파일 검증 1순위는 그대로 `wm-compile-check.ps1`** (5초, 에디터 잠금과 CLI 상태 무관). CLI는
-필수 경로가 아니다 — 그게 2026-08-16 에 배운 것이고 통로가 바뀌어도 유지된다.
-
-**Editor 꺼져있으면 자동 기동** — 사용자에게 "켜주세요" 푸시백 X. `unity open <WM> --args "-automated"`
-후 위 1번 방식으로 서비스 가능해질 때까지 폴링.
+- **컴파일 검증 1순위는 `wm-compile-check.ps1 -ProjectPath <검사할 checkout>`** (5초, 에디터와 CLI 무관). 에디터 실컴파일이 최종. `dotnet build` 직접 호출 폐기, Editor.log 는 fallback only
+- **warning 0 은 기계가 강제** (TASK-WM-204). 자기 asmdef 폴더의 `csc.rsp` 에 `-warnaserror+`. 보존 의도만 `#pragma warning disable` + 사유 주석. `Assets/csc.rsp` 는 만들지 않는다 (서드파티가 섞임)
+- `csc.rsp` 는 ASCII 플래그만
+- `run_tests` 는 `--async_tests true` 필수. 전체 스위트는 살아있는 에디터에서 완주 못 한다
+- 에디터 꺼져 있으면 자동 기동. 사용자에게 "켜주세요" 안 한다
 
 ## Git Workflow
 
