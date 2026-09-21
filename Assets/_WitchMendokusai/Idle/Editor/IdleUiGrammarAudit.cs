@@ -34,7 +34,7 @@ namespace WitchMendokusai.Idle.Editor
 		private static float ScreenHeight => EditorPrefs.GetFloat("WM.Idle.UiAudit.ScreenHeight", 1080f);
 
 		/// <summary>한글이어도 되는 요소 이름 조각. 고유명사와 본문</summary>
-		private static readonly string[] KOREAN_ALLOWED = { "doll-name", "tooltip", "note", "feedback", "hero-", "codex", "row-", "appraise", "advice", "battle-note", "scene-cover" };
+		private static readonly string[] KOREAN_ALLOWED = { "doll-name", "tooltip", "note", "feedback", "hero-", "codex", "discovery", "pickup", "row-", "appraise", "advice", "battle-note", "scene-cover" };
 
 		[MenuItem("WM/Idle/UI Grammar Audit (current state)")]
 		public static void AuditCurrent()

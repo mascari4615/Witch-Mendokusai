@@ -62,10 +62,10 @@ MonoBehaviour:
   - CRIT DMG
   - REGEN
   heroAxisNames:
-  - 공격
-  - 속도
-  - 기지
-  - 장비 획득
+  - ATK
+  - SPEED
+  - WIT
+  - LOOT
   heroGradeNames:
   - COMMON
   - RARE
@@ -149,7 +149,7 @@ MonoBehaviour:
   selectHeroBeforeGearText: 먼저 편성 칸에서 인형을 고른다
   appraiseUnavailableFormat: 'T{0} {1}개. 잠재 없음'
   appraiseAvailableFormat: 'T{0} {1}개. 감정 {2}'
-  codexSummaryFormat: '도감 {0}점. 판 전체 ×{1:0.00}. 보유 {2}/{3}'
+  codexSummaryFormat: 'CODEX {0} PT   GLOBAL x{1:0.00}   OWNED {2}/{3}'
   codexOwnedHeroFormat: '{0}{1}  {2} / {3}'
   codexHiddenHeroFormat: '???  {0}'
   bagUpgradeFormat: 'EXPAND BAG +{0}  GOLD {1}'
@@ -172,10 +172,10 @@ MonoBehaviour:
   oddsPityFormat: '{0}번 안에 레전드 보장 (천장)'
   oddsPickupFormat: '픽업 {0}. 같은 등급 안에서 x{1:0.#}'
   oddsBatchFormat: '{0}회 뽑기는 {1} 이상 1 보장. 값은 1회의 {0}배, 할인 없음'
-  prestigeSummaryFormat: '환생 조각 {0}. 지금 환생하면 +{1}. 배수 ×{2:0.00}'
-  prestigeAvailableFormat: '페이지를 넘긴다. +{0}'
-  prestigeLockedFormat: '{0}구역부터 환생할 수 있다'
-  producerSummaryFormat: 생산자가 초당 {0} 를 낸다
+  prestigeSummaryFormat: 'REBIRTH SHARDS {0}   REBIRTH NOW +{1}   MULTIPLIER x{2:0.00}'
+  prestigeAvailableFormat: 'TURN THE PAGE  +{0}'
+  prestigeLockedFormat: 'REBIRTH FROM ZONE {0}'
+  producerSummaryFormat: 'PRODUCERS YIELD {0} PER SECOND'
   producerRowFormat: '{0}번 ×{1}. 초당 {2}. 다음 {3}'
   mapStageFormat: 'S-{0}{1}{2}'
   mapCurrentSuffix: '  지금 여기'
