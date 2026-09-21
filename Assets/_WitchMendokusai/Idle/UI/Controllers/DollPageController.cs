@@ -28,6 +28,8 @@ namespace WitchMendokusai.Idle.UI
 		private readonly Label[] statValues;
 		private readonly Label[] statLevels;
 		private readonly Button[,] statButtons;
+		private readonly Label[] statCosts;
+		private readonly VisualElement[] statRows;
 		private readonly Label statFeedback;
 		private int statFeedbackVersion;
 
@@ -77,6 +79,8 @@ namespace WitchMendokusai.Idle.UI
 			dollPortrait = page.RequireQ<VisualElement>("doll-portrait");
 			// 자리 칸은 강화 대상 고르기, 인형 바꾸기는 큰 초상화 (사용자 2026-09-20)
 			dollPortrait.RegisterCallback<ClickEvent>(_ => openHero(selectedGearSeat()));
+			statCosts = new Label[content.StatCount];
+			statRows = new VisualElement[content.StatCount];
 			statFeedback = page.RequireQ<Label>("stat-feedback");
 			statFeedback.style.visibility = Visibility.Hidden;
 			for (int stat = 0; stat < content.StatCount; stat++)
@@ -85,6 +89,8 @@ namespace WitchMendokusai.Idle.UI
 				Label name = page.RequireQ<Label>("stat-name-" + stat);
 				statValues[stat] = page.RequireQ<Label>("stat-value-" + stat);
 				statLevels[stat] = page.RequireQ<Label>("stat-level-" + stat);
+				statCosts[stat] = page.RequireQ<Label>("stat-cost-" + stat);
+				statRows[stat] = page.RequireQ<VisualElement>("stat-row-" + stat);
 				name.text = content.StatName(stat);
 
 				for (int amount = 0; amount < content.StatUpgradeAmountCount; amount++)
@@ -180,10 +186,20 @@ namespace WitchMendokusai.Idle.UI
 					int count = content.StatUpgradeAmount(amount);
 					IdleUpgradeView purchase = session.ViewHeroStat(heroId, kind, count);
 					Button button = statButtons[stat, amount];
-					button.text = purchase.IsMaxed
-						? content.MaxedText
-						: content.UpgradeButtonText(count, BigNumberText.Format(purchase.NextCost));
 					bool canAfford = heroId >= 0 && purchase.CanAfford;
+					if (amount == 0)
+					{
+						// 시안 3a: 행마다 `+` 하나, 금액은 옆 주황 라벨 (memo ui-grammar.md)
+						button.text = purchase.IsMaxed ? content.MaxedText : "+";
+						statCosts[stat].text = purchase.IsMaxed ? string.Empty : BigNumberText.Format(purchase.NextCost);
+						statRows[stat].EnableInClassList("idle-stat-row--dim", canAfford == false);
+					}
+					else
+					{
+						button.text = purchase.IsMaxed
+							? content.MaxedText
+							: content.UpgradeButtonText(count, BigNumberText.Format(purchase.NextCost));
+					}
 					button.EnableInClassList("idle-stat-buy--ready", canAfford);
 					button.EnableInClassList("idle-stat-buy--maxed", purchase.IsMaxed);
 					button.SetEnabled(canAfford);

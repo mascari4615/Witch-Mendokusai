@@ -1,5 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="BattleScreen.uss" />
+    <Style src="IdleGrammar.uss" />
     <ui:Button name="card" class="idle-card">
         <ui:VisualElement name="card-stripe" class="idle-card-stripe" />
         <ui:VisualElement name="card-face" class="idle-card-face" />

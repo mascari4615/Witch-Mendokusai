@@ -1,10 +1,12 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="BattleScreen.uss" />
+    <Style src="IdleGrammar.uss" />
     <ui:VisualElement name="hud" class="idle-layer" picking-mode="Ignore">
         <ui:VisualElement name="scene-cover" class="idle-scene-cover">
             <ui:Label name="scene-cover-label" class="idle-scene-cover-label" />
             <ui:Button name="scene-cover-button" class="idle-button" text="전투로" />
         </ui:VisualElement>
+        <ui:VisualElement name="hud-band" class="idle-hud-band" picking-mode="Ignore" />
         <ui:VisualElement name="op" class="idle-chip-dark idle-op">
             <ui:Label name="op-code" class="idle-op-code" />
             <ui:Label name="op-name" class="idle-op-name" />

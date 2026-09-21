@@ -1,0 +1,730 @@
+/* 시안 3a 문법 (memo wm/design/idle/refs/feedback-2026-09-20/ui-grammar.md).
+   BattleScreen.uss 뒤에 붙어 덮어쓴다. 수치는 mock/ui-grammar-3a.html 실측.
+   색: 판 rgba(18,34,32,.8), 글자 #f0f0f0, 라벨 #9aa0a2, 주황 #ff782f, 파랑 #3fa9f5 */
+
+.idle-grammar-font {
+	-unity-font-definition: url("../Data/Assets/UI/Fonts/BarlowCondensed-SemiBold.ttf");
+}
+
+/* ── 전투 층 ── */
+.idle-battle {
+	overflow: visible;
+}
+
+.idle-field-vignette {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 1920px;
+	height: 1080px;
+	background-image: url("../Data/Assets/UI/vignette.png");
+	-unity-background-scale-mode: stretch-to-fill;
+}
+
+/* 헤더 띠. 양 끝 진하고 가운데 투명, 위아래 흰 선도 같은 분포 (그림에 구움) */
+.idle-hud-band {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 1920px;
+	height: 92px;
+	background-image: url("../Data/Assets/UI/header-band.png");
+	-unity-background-scale-mode: stretch-to-fill;
+}
+
+.idle-chip-dark {
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.idle-op {
+	left: 40px;
+	top: 0;
+	height: 92px;
+	padding: 0;
+	border-left-width: 1px;
+	border-left-color: rgba(255, 255, 255, 0.5);
+	padding-left: 22px;
+}
+
+.idle-op-code {
+	font-size: 60px;
+	-unity-font-style: normal;
+	color: rgb(240, 240, 240);
+	margin-right: 34px;
+}
+
+.idle-op-name {
+	display: none;
+}
+
+.idle-op-cap {
+	font-size: 30px;
+	-unity-font-style: normal;
+	color: rgb(240, 240, 240);
+	margin-left: 34px;
+	padding-left: 34px;
+	border-left-width: 1px;
+	border-left-color: rgba(255, 255, 255, 0.35);
+	height: 54px;
+	-unity-text-align: middle-left;
+}
+
+.idle-wave {
+	margin-left: 16px;
+	height: 54px;
+	align-items: center;
+	flex-direction: row;
+}
+
+.idle-wave-dot {
+	width: 11px;
+	height: 21px;
+	margin-right: 8px;
+	border-radius: 0;
+	background-color: rgba(255, 255, 255, 0.25);
+}
+
+.idle-wave-dot--done {
+	background-color: rgb(240, 240, 240);
+}
+
+.idle-wave-dot--boss {
+	background-color: rgb(240, 240, 240);
+}
+
+/* 구역 걸음과 반복은 띠 오른쪽 (시안에는 없는 요소. 위치만 맞춤) */
+.idle-step-row {
+	left: 700px;
+	top: 19px;
+	height: 54px;
+	border-left-width: 1px;
+	border-left-color: rgba(255, 255, 255, 0.35);
+	padding-left: 24px;
+}
+
+.idle-stepper,
+.idle-toggle {
+	background-color: rgba(0, 0, 0, 0);
+	height: 54px;
+}
+
+.idle-step-label {
+	font-size: 22px;
+	color: rgb(240, 240, 240);
+}
+
+.idle-chips {
+	left: 1690px;
+	right: auto;
+	top: 0;
+	height: 92px;
+	align-items: center;
+}
+
+.idle-gold-chip {
+	background-color: rgba(0, 0, 0, 0);
+	height: 92px;
+}
+
+.idle-gold-icon {
+	width: 48px;
+	height: 48px;
+	background-image: url("../Data/Assets/UI/hex-orange.png");
+	background-color: rgba(0, 0, 0, 0);
+	border-width: 0;
+	border-radius: 0;
+	-unity-background-scale-mode: scale-to-fit;
+}
+
+.idle-gold-value {
+	font-size: 34px;
+	-unity-font-style: normal;
+	color: rgb(240, 240, 240);
+}
+
+.idle-icon-button {
+	background-color: rgba(0, 0, 0, 0);
+}
+
+/* 보스 바. 왼쪽 위, 라벨 위 작게, 주황 바 800x18 흰 1px 선 */
+.idle-enemy {
+	left: 56px;
+	top: 138px;
+	translate: 0 0;
+	align-items: flex-start;
+	padding: 0;
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.idle-enemy-label {
+	font-size: 19px;
+	-unity-font-style: normal;
+	letter-spacing: 1px;
+}
+
+.idle-enemy-gauge {
+	width: 800px;
+	height: 18px;
+	margin-top: 8px;
+	padding: 2px;
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/frame-bar.png");
+	border-width: 0;
+}
+
+.idle-enemy-fill {
+	background-color: rgb(255, 120, 47);
+}
+
+/* 손패. 카드 132x178 챔퍼 8, 1X AUTO 상자 하나 */
+.idle-hand {
+	bottom: 58px;
+}
+
+.idle-hand-side {
+	flex-direction: row;
+	height: 72px;
+	margin-left: 14px;
+	margin-bottom: 0;
+	background-image: url("../Data/Assets/UI/frame-ctl-10.png");
+	-unity-slice-left: 15;
+	-unity-slice-right: 15;
+	-unity-slice-top: 15;
+	-unity-slice-bottom: 15;
+	align-items: center;
+}
+
+.idle-hand-chip {
+	width: 100px;
+	height: 72px;
+	margin: 0;
+	font-size: 30px;
+	-unity-font-style: normal;
+	background-color: rgba(0, 0, 0, 0);
+	color: rgb(240, 240, 240);
+}
+
+.idle-skill-auto {
+	border-left-width: 1px;
+	border-left-color: rgba(255, 255, 255, 0.16);
+}
+
+.idle-skill-auto.idle-icon-button--on {
+	color: rgb(63, 169, 245);
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.idle-card {
+	width: 132px;
+	height: 178px;
+	margin-right: 14px;
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/frame-card-8.png");
+	-unity-slice-left: 13;
+	-unity-slice-right: 13;
+	-unity-slice-top: 13;
+	-unity-slice-bottom: 13;
+	border-width: 0;
+}
+
+.idle-card--ready {
+	border-width: 0;
+}
+
+.idle-card-stripe {
+	display: none;
+}
+
+.idle-card-face {
+	left: 3px;
+	right: 3px;
+	top: 26px;
+	height: 112px;
+	width: auto;
+}
+
+/* 우상 코스트 사각을 버리고 아래 육각 + 숫자 */
+.idle-card-icon {
+	left: 12px;
+	top: auto;
+	bottom: 8px;
+	width: 28px;
+	height: 28px;
+	background-image: url("../Data/Assets/UI/hex-orange.png");
+	background-color: rgba(0, 0, 0, 0);
+	border-width: 0;
+	-unity-background-scale-mode: scale-to-fit;
+}
+
+.idle-card-icon--volley,
+.idle-card-icon--supply,
+.idle-card-icon--appraise,
+.idle-card-icon--haste {
+	background-image: url("../Data/Assets/UI/hex-orange.png");
+}
+
+.idle-card-cost {
+	left: 50px;
+	right: auto;
+	top: auto;
+	bottom: 4px;
+	width: auto;
+	height: 36px;
+	font-size: 26px;
+	-unity-font-style: normal;
+	background-color: rgba(0, 0, 0, 0);
+	color: rgb(240, 240, 240);
+	-unity-text-align: middle-left;
+	border-width: 0;
+}
+
+.idle-card-slot {
+	left: 10px;
+	top: 4px;
+	bottom: auto;
+	font-size: 15px;
+	-unity-font-style: normal;
+	color: rgb(154, 160, 162);
+	background-color: rgba(0, 0, 0, 0);
+	letter-spacing: 1px;
+}
+
+.idle-card-name {
+	display: none;
+}
+
+/* 코스트. COST 10/10 + 주황 칸 10 */
+.idle-cost {
+	width: 500px;
+	margin-top: 14px;
+}
+
+.idle-cost-badge {
+	width: auto;
+	height: 30px;
+	flex-direction: row;
+	background-color: rgba(0, 0, 0, 0);
+	border-width: 0;
+	margin-right: 14px;
+}
+
+.idle-cost-cap {
+	font-size: 22px;
+	letter-spacing: 1px;
+	color: rgb(240, 240, 240);
+	margin-right: 14px;
+}
+
+.idle-cost-label {
+	font-size: 24px;
+	-unity-font-style: normal;
+	color: rgb(240, 240, 240);
+}
+
+.idle-cost-gauge {
+	height: 19px;
+	background-color: rgba(0, 0, 0, 0.45);
+	margin: 0;
+}
+
+.idle-cost-tick {
+	width: 5px;
+	background-color: rgba(0, 0, 0, 0.8);
+}
+
+.idle-cost-fill {
+	background-color: rgb(255, 120, 47);
+}
+
+/* ── 오른쪽. 판 없음, 탭 바 평행사변형, 메뉴 판, 강화 카드 ── */
+.idle-side {
+	width: 720px;
+	margin-top: 100px;
+	background-color: rgba(0, 0, 0, 0);
+	border-left-width: 0;
+}
+
+.idle-tabs {
+	height: 46px;
+	margin: 0 40px 0 20px;
+	padding: 0;
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/tab-bar.png");
+	-unity-background-scale-mode: stretch-to-fill;
+	border-bottom-width: 0;
+}
+
+.idle-tab {
+	height: 46px;
+	margin: 0;
+	padding: 0;
+	background-color: rgba(0, 0, 0, 0);
+	color: rgb(240, 240, 240);
+	font-size: 24px;
+	-unity-font-style: normal;
+	letter-spacing: 0.5px;
+	white-space: nowrap;
+}
+
+.idle-tab:hover {
+	background-color: rgba(255, 255, 255, 0.06);
+}
+
+.idle-tab--on {
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/tab-hatch.png");
+	-unity-background-scale-mode: stretch-to-fill;
+	color: rgb(63, 169, 245);
+	-unity-font-style: normal;
+	border-bottom-width: 4px;
+	border-bottom-color: rgb(63, 169, 245);
+}
+
+.idle-panel-head {
+	display: none;
+}
+
+.idle-page {
+	padding: 16px 40px 16px 20px;
+	background-color: rgba(18, 34, 32, 0.8);
+}
+
+.idle-doll-page {
+	background-color: rgba(0, 0, 0, 0);
+	padding: 0 40px 0 0;
+}
+
+/* 메뉴 판: 탭부터 초상까지. 왼쪽 사선, 아래로 투명 (그림) */
+.idle-surface {
+	border-radius: 0;
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.idle-profile {
+	height: 422px;
+	margin: 0 0 20px 0;
+	padding: 0;
+	background-image: url("../Data/Assets/UI/menu-panel.png");
+	-unity-background-scale-mode: stretch-to-fill;
+}
+
+.idle-doll-portrait {
+	left: 30px;
+	top: 20px;
+	width: 380px;
+	height: 412px;
+	-unity-background-scale-mode: scale-and-crop;
+}
+
+.idle-profile-controls {
+	margin-left: 320px;
+	margin-top: 60px;
+	flex-grow: 0;
+	align-items: flex-end;
+}
+
+.idle-doll-name {
+	font-size: 50px;
+	-unity-font-style: bold;
+	color: rgb(240, 240, 240);
+	margin: 0 0 22px 0;
+	letter-spacing: 2px;
+	text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.idle-profile .idle-party {
+	margin: 0 0 14px 0;
+	justify-content: flex-end;
+}
+
+.idle-profile .idle-party-seat {
+	width: 78px;
+	height: 106px;
+	flex-grow: 0;
+	flex-basis: auto;
+	margin: 0 0 0 10px;
+	border-width: 0;
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/frame-seat-2.png");
+	-unity-slice-left: 7;
+	-unity-slice-right: 7;
+	-unity-slice-top: 7;
+	-unity-slice-bottom: 7;
+	font-size: 44px;
+	color: rgb(240, 240, 240);
+}
+
+.idle-profile .idle-party-seat--geared,
+.idle-profile .idle-party-seat--picking {
+	background-image: url("../Data/Assets/UI/frame-seat-on.png");
+	-unity-slice-left: 8;
+	-unity-slice-right: 8;
+	-unity-slice-top: 8;
+	-unity-slice-bottom: 8;
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.idle-profile .idle-party-portrait {
+	left: 3px;
+	top: 3px;
+	right: 3px;
+	bottom: 3px;
+	width: auto;
+	height: auto;
+	translate: 0 0;
+	-unity-background-scale-mode: scale-and-crop;
+}
+
+.idle-profile .idle-party-label {
+	display: none;
+}
+
+.idle-profile .idle-worn {
+	margin: 0;
+	justify-content: flex-end;
+}
+
+.idle-worn-cell {
+	width: 76px;
+	height: 76px;
+	margin: 0 0 0 12px;
+	border-width: 0;
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/frame-gear-3.png");
+	-unity-slice-left: 8;
+	-unity-slice-right: 8;
+	-unity-slice-top: 8;
+	-unity-slice-bottom: 8;
+}
+
+/* 강화 카드. 챔퍼 22, 제목 30 + 왼쪽 흰 막대, 열 라벨, 행 52 */
+.idle-growth {
+	background-image: url("../Data/Assets/UI/frame-panel-22.png");
+	-unity-slice-left: 27;
+	-unity-slice-right: 27;
+	-unity-slice-top: 27;
+	-unity-slice-bottom: 27;
+	padding: 16px 20px 12px 20px;
+}
+
+.idle-growth-title {
+	font-size: 30px;
+	-unity-font-style: normal;
+	color: rgb(240, 240, 240);
+	border-left-width: 3px;
+	border-left-color: rgb(240, 240, 240);
+	padding-left: 12px;
+	margin: 0 0 12px 0;
+	letter-spacing: 1px;
+}
+
+.idle-stat-cols {
+	flex-direction: row;
+	align-items: center;
+	height: 30px;
+	border-bottom-width: 1px;
+	border-bottom-color: rgba(255, 255, 255, 0.16);
+	margin-bottom: 2px;
+}
+
+.idle-stat-col {
+	font-size: 19px;
+	color: rgb(154, 160, 162);
+	letter-spacing: 0.5px;
+}
+
+.idle-stat-row {
+	height: 52px;
+	align-items: center;
+	border-bottom-width: 1px;
+	border-bottom-color: rgba(255, 255, 255, 0.16);
+	margin: 0;
+	padding: 0;
+}
+
+.idle-stat-icon {
+	width: 30px;
+	height: 30px;
+	margin-right: 10px;
+	-unity-background-scale-mode: scale-to-fit;
+}
+
+.idle-stat-icon--0 { background-image: url("../Data/Assets/UI/stat-atk.png"); }
+.idle-stat-icon--1 { background-image: url("../Data/Assets/UI/stat-spd.png"); }
+.idle-stat-icon--2 { background-image: url("../Data/Assets/UI/stat-hp.png"); }
+.idle-stat-icon--3 { background-image: url("../Data/Assets/UI/stat-def.png"); }
+.idle-stat-icon--4 { background-image: url("../Data/Assets/UI/stat-crit.png"); }
+.idle-stat-icon--5 { background-image: url("../Data/Assets/UI/stat-critdmg.png"); }
+.idle-stat-icon--6 { background-image: url("../Data/Assets/UI/stat-regen.png"); }
+
+.idle-stat-name {
+	width: 130px;
+	font-size: 26px;
+	-unity-font-style: normal;
+	color: rgb(240, 240, 240);
+	letter-spacing: 0.5px;
+}
+
+.idle-stat-value {
+	width: 140px;
+	font-size: 32px;
+	-unity-font-style: normal;
+	-unity-text-align: middle-left;
+	color: rgb(240, 240, 240);
+}
+
+.idle-stat-level {
+	display: none;
+}
+
+/* 강화 버튼: x1 만 `+` 상자, x10 x100 은 숨김 (배수는 뒤에 설정으로) */
+.idle-stat-buy {
+	width: 38px;
+	height: 38px;
+	margin: 0 16px 0 10px;
+	padding: 0;
+	font-size: 30px;
+	-unity-font-style: normal;
+	color: rgb(92, 100, 102);
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/frame-plus-dim.png");
+	-unity-slice-left: 9;
+	-unity-slice-right: 9;
+	-unity-slice-top: 9;
+	-unity-slice-bottom: 9;
+	border-width: 0;
+	-unity-text-align: middle-center;
+}
+
+.idle-stat-buy--ready {
+	color: rgb(63, 169, 245);
+	background-image: url("../Data/Assets/UI/frame-plus.png");
+	background-color: rgba(0, 0, 0, 0);
+	border-width: 0;
+}
+
+.idle-stat-buy--ready:active {
+	background-color: rgba(63, 169, 245, 0.25);
+}
+
+.idle-stat-buy:disabled,
+.idle-stat-buy--maxed:disabled {
+	background-color: rgba(0, 0, 0, 0);
+	opacity: 1;
+	color: rgb(92, 100, 102);
+}
+
+.idle-stat-buy--x10,
+.idle-stat-buy--x100 {
+	display: none;
+}
+
+.idle-stat-hex {
+	width: 30px;
+	height: 30px;
+	margin-right: 8px;
+	background-image: url("../Data/Assets/UI/hex-orange.png");
+	-unity-background-scale-mode: scale-to-fit;
+}
+
+.idle-stat-cost {
+	font-size: 27px;
+	-unity-font-style: normal;
+	color: rgb(255, 120, 47);
+	margin: 0;
+	padding: 0;
+	white-space: nowrap;
+}
+
+.idle-stat-row--dim .idle-stat-hex {
+	background-image: url("../Data/Assets/UI/hex-dim.png");
+}
+
+.idle-stat-row--dim .idle-stat-cost {
+	color: rgb(92, 100, 102);
+}
+
+.idle-stat-feedback {
+	display: none;
+}
+
+/* ── 특이도 2 인 기존 규칙 (CharacterWorkspace.uss) 을 같은 무게로 덮는다 ── */
+.idle-tabs .idle-tab--on {
+	color: rgb(63, 169, 245);
+	border-bottom-color: rgb(63, 169, 245);
+}
+
+.idle-side .idle-doll-page {
+	padding: 0 40px 0 0;
+}
+
+.idle-side--doll .idle-page,
+.idle-panel-head,
+.idle-page {
+	background-color: rgba(18, 34, 32, 0.8);
+}
+
+.idle-side .idle-doll-page,
+.idle-side--doll .idle-doll-page {
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.idle-panel-body .unity-scroll-view__vertical-scroller,
+.idle-panel-body .unity-scroll-view__horizontal-scroller {
+	display: none;
+}
+
+.idle-profile {
+	height: 400px;
+}
+
+.idle-profile .idle-worn-cell {
+	width: 76px;
+	height: 76px;
+	flex-grow: 0;
+	flex-basis: auto;
+	min-width: 76px;
+	margin: 0 0 0 12px;
+	background-color: rgba(0, 0, 0, 0);
+	font-size: 18px;
+}
+
+.idle-growth .idle-stat-row {
+	min-height: 52px;
+	height: 52px;
+	border-bottom-color: rgba(255, 255, 255, 0.16);
+}
+
+.idle-growth .idle-stat-name { width: 130px; }
+.idle-growth .idle-stat-value { width: 140px; color: rgb(240, 240, 240); }
+
+.idle-growth .idle-stat-buy {
+	flex-grow: 0;
+	flex-basis: auto;
+	width: 38px;
+	min-width: 38px;
+	min-height: 38px;
+	height: 38px;
+	margin: 0 16px 0 10px;
+}
+
+.idle-growth .idle-stat-buy--ready,
+.idle-growth .idle-stat-buy--ready:hover {
+	background-color: rgba(0, 0, 0, 0);
+	border-width: 0;
+	color: rgb(63, 169, 245);
+}
+
+.idle-growth .idle-stat-buy--raised {
+	background-color: rgba(63, 169, 245, 0.25);
+	color: rgb(240, 240, 240);
+}
+
+.idle-growth .idle-stat-label--raised { color: rgb(63, 169, 245); }
+
+/* 오른쪽 판 스크롤바 숨김 (내용은 1080 안에 맞춘다) */
+.idle-panel-body .unity-scroller,
+.idle-panel-body .unity-scroller--vertical,
+.idle-panel-body .unity-scroller--horizontal {
+	display: none;
+}

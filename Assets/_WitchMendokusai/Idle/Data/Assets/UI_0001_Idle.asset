@@ -27,25 +27,25 @@ MonoBehaviour:
   forgeInputSlotCount: 9
   battleWidthShare: 0.625
   tabs:
-  - Name: 인형
+  - Name: DOLL
     Caption: DOLLS
     Visible: 1
-  - Name: 아이템
+  - Name: ITEM
     Caption: ITEMS
     Visible: 1
-  - Name: 도감
+  - Name: CODEX
     Caption: CODEX
     Visible: 0
-  - Name: 상점
+  - Name: SHOP
     Caption: SHOP
     Visible: 1
-  - Name: 연구소
+  - Name: LAB
     Caption: LAB
     Visible: 0
-  - Name: 던전
+  - Name: DUNGEON
     Caption: DUNGEON
     Visible: 1
-  - Name: 투자
+  - Name: INVEST
     Caption: INVEST
     Visible: 0
   gearSlotNames:
@@ -54,13 +54,13 @@ MonoBehaviour:
   - 손
   - 발
   statNames:
-  - 공격력
-  - 공격 속도
-  - 최대 체력
-  - 방어력
-  - 치명타 확률
-  - 치명타 피해
-  - 회복
+  - ATK
+  - ATK SPD
+  - HP
+  - DEF
+  - CRIT
+  - CRIT DMG
+  - REGEN
   heroAxisNames:
   - 공격
   - 속도
@@ -96,17 +96,17 @@ MonoBehaviour:
   tapAdvice: 무대를 눌러 응원한다
   waitAdviceFormat: 모으는 중. {0} 뒤에 살 것이 생긴다
   waitForCostAdvice: 모으는 중. 코스트가 차면 카드를 낸다
-  battleGradeFormat: 등급 {0}/{1}
-  stageFormat: '{0}구역'
-  repeatOnText: 반복
-  repeatOffText: 반복
+  battleGradeFormat: 'TIER {0}/{1}'
+  stageFormat: 'ZONE {0}'
+  repeatOnText: REPEAT
+  repeatOffText: REPEAT
   goldAmountFormat: 보유  {0}
   goldIncomeFormat: 초당  +{0}
   mainSeatText: 전투
   supportSeatText: 지원
   growthSuffix: ' 성장'
   emptySeatText: 빈 자리
-  maxedText: 최대
+  maxedText: MAX
   bagSummaryFormat: 가방 {0}/{1}{2}
   bagFullSuffix: '  꽉 찼다. 합치거나 차야 새 장비가 들어온다'
   unidentifiedText: 미감정
@@ -231,8 +231,8 @@ MonoBehaviour:
   heroChoiceFormat: "{0}{1}\nLv.{2}  {3}"
   starPrefix: ' '
   starCharacter: 9733
-  tabButtonFormat: "{0}\n{1}"
-  attackSpeedValueFormat: '{0:0.##}/초'
+  tabButtonFormat: '{1}'
+  attackSpeedValueFormat: '{0:0.##}/s'
   percentValueFormat: '{0:P1}'
   criticalDamageValueFormat: '×{0:0.00}'
   popupPageFormat: '{0}/{1}'
