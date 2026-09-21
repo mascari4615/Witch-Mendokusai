@@ -22,7 +22,6 @@
     <Style src="IdleGrammar.uss" />
     <ui:VisualElement name="shell" class="idle-root idle-grammar-font">
         <ui:VisualElement name="battle" class="idle-battle">
-            <ui:VisualElement name="field-vignette" class="idle-field-vignette" picking-mode="Ignore" />
             <ui:Instance template="BattleHud" name="battle-hud" class="idle-layer" picking-mode="Ignore" />
             <ui:VisualElement name="skill-aim" class="idle-skill-aim idle-hidden" picking-mode="Ignore">
                 <ui:VisualElement name="skill-aim-origin" class="idle-skill-aim-origin" />

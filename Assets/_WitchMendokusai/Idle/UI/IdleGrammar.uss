@@ -11,15 +11,7 @@
 	overflow: visible;
 }
 
-.idle-field-vignette {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 1920px;
-	height: 1080px;
-	background-image: url("../Data/Assets/UI/vignette.png");
-	-unity-background-scale-mode: stretch-to-fill;
-}
+/* 비네트와 원경 블러는 포스트 프로세싱 (VP_0001_Idle, 씬 IdlePostVolume) */
 
 /* 헤더 띠. 양 끝 진하고 가운데 투명, 위아래 흰 선도 같은 분포 (그림에 구움) */
 .idle-hud-band {
