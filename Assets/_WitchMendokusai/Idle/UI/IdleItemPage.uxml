@@ -1,21 +1,22 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <!-- 아이템 탭. 값과 동적 칸은 IdleBattleScreen 이 이름으로 채운다. -->
     <Style src="BattleScreen.uss" />
+    <Style src="IdleGrammar.uss" />
     <ui:VisualElement name="page" class="idle-page idle-workspace-page">
         <ui:VisualElement class="idle-subtabs idle-section">
-            <ui:Button name="bag-subtab" text="가방" class="idle-subtab" />
-            <ui:Button name="forge-subtab" text="공방" class="idle-subtab" />
+            <ui:Button name="bag-subtab" text="BAG" class="idle-subtab" />
+            <ui:Button name="forge-subtab" text="FORGE" class="idle-subtab" />
         </ui:VisualElement>
         <ui:VisualElement name="bag-view" class="idle-section">
             <ui:VisualElement class="idle-bag-head">
                 <ui:Label name="gear-summary" class="idle-row-title" />
-                <ui:Button name="sort-button" text="정렬" class="idle-row-button idle-bag-sort" />
+                <ui:Button name="sort-button" text="SORT" class="idle-row-button idle-row-button--strong idle-bag-sort" />
             </ui:VisualElement>
             <ui:VisualElement name="bag-grid" class="idle-bag" />
             <ui:Button name="bulk-merge-button" class="idle-row-button idle-row-button--strong" />
         </ui:VisualElement>
         <ui:VisualElement name="forge-view" class="idle-section">
-            <ui:Label text="합성 재료" class="idle-cap" />
+            <ui:Label text="FORGE MATERIALS" class="idle-cap" />
             <ui:VisualElement name="forge-kinds" class="idle-forge-kinds" />
             <ui:VisualElement class="idle-forge-bench">
                 <ui:VisualElement class="idle-forge-grid">
@@ -35,16 +36,16 @@
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:Label name="forge-title" class="idle-row-title" />
-            <ui:Button name="forge-button" text="합치기" class="idle-row-button idle-row-button--strong idle-row-button--tall" />
+            <ui:Button name="forge-button" text="FORGE" class="idle-row-button idle-row-button--strong idle-row-button--tall" />
             <ui:VisualElement class="idle-salvage-row">
                 <ui:Button name="salvage-x1" class="idle-stat-buy idle-salvage-count" />
                 <ui:Button name="salvage-x10" class="idle-stat-buy idle-salvage-count" />
                 <ui:Button name="salvage-all" class="idle-stat-buy idle-salvage-count" />
-                <ui:Button name="salvage-button" text="분해" class="idle-row-button idle-salvage-button" />
+                <ui:Button name="salvage-button" text="SALVAGE" class="idle-row-button idle-salvage-button" />
             </ui:VisualElement>
             <ui:Label name="salvage-title" class="idle-row-title" />
         </ui:VisualElement>
-        <ui:Label name="appraise-cap" text="감정" class="idle-cap" />
+        <ui:Label name="appraise-cap" text="APPRAISE" class="idle-cap" />
         <ui:VisualElement name="appraise-rows" />
     </ui:VisualElement>
 </ui:UXML>

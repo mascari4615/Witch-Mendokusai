@@ -1,7 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <!-- 던전 한 줄 (layout.md 표 3). 이름, 보상, 입장권, 입장과 소탕 -->
     <Style src="BattleScreen.uss" />
-    <ui:VisualElement name="dungeon-row" class="idle-dungeon-row">
+    <Style src="IdleGrammar.uss" />
+    <ui:VisualElement name="dungeon-row" class="idle-dungeon-row idle-section">
         <ui:VisualElement class="idle-dungeon-head">
             <ui:Label name="dungeon-name" class="idle-dungeon-name" />
             <ui:Label name="dungeon-ticket" class="idle-dungeon-ticket" />

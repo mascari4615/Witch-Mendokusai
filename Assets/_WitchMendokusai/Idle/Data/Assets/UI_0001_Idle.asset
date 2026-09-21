@@ -67,24 +67,24 @@ MonoBehaviour:
   - 기지
   - 장비 획득
   heroGradeNames:
-  - 일반
-  - 레어
-  - 에픽
-  - 레전드
+  - COMMON
+  - RARE
+  - EPIC
+  - LEGEND
   cardNames:
   - 일제 사격
   - 긴급 보급
   - 비밀 감정
   - 가속
   dungeonNames:
-  - 재화 던전
-  - 보스 던전
-  - 장비 던전
-  - 스킬 던전
+  - GOLD DUNGEON
+  - BOSS DUNGEON
+  - GEAR DUNGEON
+  - SKILL DUNGEON
   dungeonDifficultyNames:
-  - 보통
-  - 어려움
-  - 지옥
+  - NORMAL
+  - HARD
+  - HELL
   prestigeAdviceFormat: 연구소. 환생할 때다 (+{0})
   buyProducerAdvice: 투자. 살 것이 있다
   raiseAdvice: 인형. 올릴 것이 있다
@@ -107,10 +107,10 @@ MonoBehaviour:
   growthSuffix: ' 성장'
   emptySeatText: 빈 자리
   maxedText: MAX
-  bagSummaryFormat: 가방 {0}/{1}{2}
-  bagFullSuffix: '  꽉 찼다. 합치거나 차야 새 장비가 들어온다'
-  unidentifiedText: 미감정
-  bulkMergeFormat: '{0}개씩 전부 합치기'
+  bagSummaryFormat: 'BAG {0}/{1}{2}'
+  bagFullSuffix: '  FULL. MERGE OR EQUIP TO MAKE ROOM'
+  unidentifiedText: UNIDENTIFIED
+  bulkMergeFormat: 'MERGE ALL ({0} PER MERGE)'
   forgeKindFormat: '{0}단계 ×{1}'
   forgeCellFormat: '{0}단계'
   forgeResultFormat: "랜덤\n{0}단계"
@@ -127,20 +127,20 @@ MonoBehaviour:
   potentialFormat: '{0:P0}'
   gearPotentialFormat: '잠재 {0:P0}'
   dungeonRowFormat: '{0}  입장권 {1}  다시 참까지 {2}시간 {3}분'
-  dungeonTicketFormat: '입장권 {0}/{1}'
-  dungeonRefillFormat: '{0} 뒤 다시 참'
-  dungeonEnterText: 입장
-  dungeonSweepFormat: '소탕 {0}판'
-  dungeonClosedText: 아직 안 열림
-  dungeonGoldRewardFormat: '골드 {0}'
-  dungeonBossRewardFormat: '환생 조각 {0} + T{2} 장비 {1}'
-  dungeonGearRewardFormat: 'T{1} 장비 {0}'
+  dungeonTicketFormat: 'TICKETS {0}/{1}'
+  dungeonRefillFormat: 'REFILL IN {0}'
+  dungeonEnterText: ENTER
+  dungeonSweepFormat: 'SWEEP x{0}'
+  dungeonClosedText: NOT OPEN YET
+  dungeonGoldRewardFormat: 'GOLD {0}'
+  dungeonBossRewardFormat: 'REBIRTH SHARDS {0} + T{2} GEAR {1}'
+  dungeonGearRewardFormat: 'T{1} GEAR {0}'
   dungeonFeedbackFormat: '{0} {1}판. {2}'
   dungeonRunFormat: '{0}  {1} 남음'
-  dungeonStageFormat: '{0}단계'
+  dungeonStageFormat: '{0}'
   dungeonCellFormat: '{0} {1} {2}'
-  dungeonLevelFormat: '적 세기 {0}구역'
-  dungeonLockedText: 앞 단계를 먼저
+  dungeonLevelFormat: 'ENEMY POWER {0}'
+  dungeonLockedText: CLEAR PREVIOUS STAGE
   dungeonLeaveText: 나가기
   dungeonResultClearedText: 클리어
   dungeonResultFailedText: 실패
@@ -152,22 +152,22 @@ MonoBehaviour:
   codexSummaryFormat: '도감 {0}점. 판 전체 ×{1:0.00}. 보유 {2}/{3}'
   codexOwnedHeroFormat: '{0}{1}  {2} / {3}'
   codexHiddenHeroFormat: '???  {0}'
-  bagUpgradeFormat: '가방 +{0}칸. 골드 {1}'
-  bagUpgradeMaxText: 더 못 넓힌다
+  bagUpgradeFormat: 'EXPAND BAG +{0}  GOLD {1}'
+  bagUpgradeMaxText: BAG MAXED
   bagResetNoteFormat: '지금 {0}칸. 환생하면 처음으로 돌아간다'
-  pullAvailableFormat: '1회 뽑기. 골드 {0} + 뽑기 재화 {1} (가진 것 {2})'
+  pullAvailableFormat: "PULL x1\nGOLD {0} + STONE {1}  (OWNED {2})"
   pullNoStoneFormat: '뽑기 재화가 없다 (가진 것 {0})'
   pullNoGoldFormat: '골드 {0} 이 모자란다'
-  pullOddsFormat: '레전드 {0:P1} / 에픽 {1:P0} / 레어 {2:P0}. {3}번 안에 레전드 보장'
-  pullBatchFormat: '{0}회 뽑기. 골드 {1} + 뽑기 재화 {2}. {3} 이상 1 보장'
+  pullOddsFormat: 'LEGEND {0:P1} / EPIC {1:P0} / RARE {2:P0}   LEGEND GUARANTEED IN {3}'
+  pullBatchFormat: "PULL x{0}\nGOLD {1} + STONE {2}  {3}+ GUARANTEED"
   pullBatchFeedbackFormat: '{0}회 뽑기. 레전드 {1}, 에픽 {2}, 레어 {3}. 새 얼굴 {4}'
-  pityCounterFormat: '천장까지 {0}회'
-  pickupFormat: '픽업 {0}. 같은 등급 안에서 x{1:0.#}. {2} 뒤 교체'
+  pityCounterFormat: 'PITY {0} PULLS'
+  pickupFormat: "{0}\nRATE UP x{1:0.#}   ENDS IN {2}"
   pickupNoneText: 픽업 없음
-  freeBoxReadyFormat: '무료 상자 열기. 뽑기 재화 +{0}'
-  freeBoxWaitFormat: '무료 상자. {0} 뒤 다시'
+  freeBoxReadyFormat: 'FREE BOX  STONE +{0}'
+  freeBoxWaitFormat: 'FREE BOX  IN {0}'
   freeBoxFeedbackFormat: '무료 상자. 뽑기 재화 +{0}'
-  oddsButtonText: 확률표
+  oddsButtonText: ODDS
   oddsRowFormat: '{0}  {1:P1}'
   oddsPityFormat: '{0}번 안에 레전드 보장 (천장)'
   oddsPickupFormat: '픽업 {0}. 같은 등급 안에서 x{1:0.#}'
@@ -218,7 +218,7 @@ MonoBehaviour:
   wornTipFormat: "{0}\n효과 ×{1:0.00}"
   secondsSpanFormat: '{0:N0}초'
   minutesSpanFormat: '{0:N0}분'
-  hoursSpanFormat: '{0:N1}시간'
+  hoursSpanFormat: '{0:N1}H'
   operationCodeFormat: 'S-{0}'
   costFormat: '{0:0}/{1:0}'
   bossHealthFormat: 'BOSS S-{0}  {1:P0}'

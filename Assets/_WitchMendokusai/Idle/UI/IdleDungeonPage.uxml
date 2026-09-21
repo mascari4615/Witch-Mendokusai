@@ -1,8 +1,9 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <!-- 던전 탭 (layout.md 표 3, economy.md 4). 4종 줄. 줄은 IdleDungeonRow 로 -->
     <Style src="BattleScreen.uss" />
+    <Style src="IdleGrammar.uss" />
     <ui:VisualElement name="page" class="idle-page idle-workspace-page">
-        <ui:Label text="입장권은 매일 충전. 남은 입장권은 이월되지 않음." class="idle-row-note idle-section" />
+        <ui:Label text="TICKETS RESET DAILY. UNUSED TICKETS DO NOT CARRY OVER." class="idle-row-note idle-section idle-dungeon-note" />
         <ui:VisualElement name="dungeon-rows" />
     </ui:VisualElement>
 </ui:UXML>

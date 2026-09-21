@@ -933,3 +933,227 @@
 .idle-side .idle-dungeon-tab { border-radius: 0; }
 .idle-side .idle-dungeon-tab--on { background-color: rgba(63, 169, 245, 0.12); color: rgb(63, 169, 245); border-color: rgb(63, 169, 245); }
 .idle-side .idle-dungeon-ticket, .idle-dungeon-ticket { color: rgb(255, 120, 47); }
+
+/* ── ITEM: 서브탭 평행사변형 바, 가방 격자, MERGE ALL ── */
+.idle-side .idle-subtabs.idle-section,
+.idle-subtabs.idle-section {
+	height: 46px;
+	padding: 0;
+	margin: 0 0 14px 0;
+	flex-direction: row;
+	background-image: url("../Data/Assets/UI/tab-bar.png");
+	-unity-background-scale-mode: stretch-to-fill;
+	border-bottom-width: 0;
+}
+
+.idle-side .idle-subtab {
+	flex-grow: 1;
+	height: 46px;
+	margin: 0;
+	padding: 0;
+	font-size: 26px;
+	color: rgb(240, 240, 240);
+	border-bottom-width: 0;
+	background-color: rgba(0, 0, 0, 0);
+}
+
+.idle-side .idle-subtab--on {
+	color: rgb(63, 169, 245);
+	background-image: url("../Data/Assets/UI/tab-hatch.png");
+	-unity-background-scale-mode: stretch-to-fill;
+	border-bottom-width: 4px;
+	border-bottom-color: rgb(63, 169, 245);
+	margin-bottom: -4px;
+}
+
+.idle-bag-head {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 8px;
+}
+
+.idle-side .idle-bag-sort,
+.idle-bag-sort {
+	width: 120px;
+	min-height: 44px;
+	height: 44px;
+	font-size: 22px;
+	-unity-text-align: middle-center;
+}
+
+.idle-section .idle-bag-cell {
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/frame-gear-3.png");
+	-unity-slice-left: 8;
+	-unity-slice-right: 8;
+	-unity-slice-top: 8;
+	-unity-slice-bottom: 8;
+	border-width: 0;
+}
+
+.idle-gear-potential,
+.idle-section .idle-gear-potential {
+	font-size: 11px;
+	letter-spacing: 0;
+	color: rgb(154, 160, 162);
+}
+
+.idle-bag-lock {
+	font-size: 12px;
+	color: rgb(255, 120, 47);
+}
+
+/* ── SHOP ── */
+.idle-section .idle-shop-banner,
+.idle-shop-banner {
+	flex-direction: row;
+	align-items: flex-start;
+	padding: 0 0 12px 0;
+}
+
+.idle-shop-pickup-portrait {
+	width: 220px;
+	height: 220px;
+	margin-right: 18px;
+	background-color: rgba(0, 0, 0, 0);
+	background-image: url("../Data/Assets/UI/frame-card-8.png");
+	-unity-slice-left: 13;
+	-unity-slice-right: 13;
+	-unity-slice-top: 13;
+	-unity-slice-bottom: 13;
+	border-width: 0;
+}
+
+.idle-shop-banner-text {
+	flex-grow: 1;
+	padding-top: 6px;
+}
+
+.idle-section .idle-shop-pickup-label,
+.idle-shop-pickup-label {
+	font-size: 34px;
+	color: rgb(240, 240, 240);
+	white-space: normal;
+	margin: 4px 0 10px 0;
+}
+
+.idle-section .idle-shop-pity-label,
+.idle-shop-pity-label {
+	font-size: 24px;
+	color: rgb(63, 169, 245);
+	border-top-width: 1px;
+	border-top-color: rgba(255, 255, 255, 0.16);
+	padding-top: 8px;
+}
+
+.idle-shop-pull-row {
+	flex-direction: row;
+	margin: 6px 0 8px 0;
+}
+
+.idle-shop-pull,
+.idle-side .idle-shop-pull {
+	flex-grow: 1;
+	flex-basis: 0;
+	min-height: 84px;
+	height: 84px;
+	font-size: 22px;
+	-unity-text-align: middle-center;
+	white-space: normal;
+}
+
+.idle-shop-pull--second {
+	margin-left: 10px;
+}
+
+.idle-shop-odds-row {
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 6px;
+}
+
+.idle-shop-odds-note {
+	flex-grow: 1;
+	font-size: 18px;
+}
+
+.idle-side .idle-shop-odds-button,
+.idle-shop-odds-button {
+	width: 96px;
+	min-height: 40px;
+	height: 40px;
+	font-size: 20px;
+	-unity-text-align: middle-center;
+	background-image: url("../Data/Assets/UI/frame-plus.png");
+	-unity-slice-left: 9;
+	-unity-slice-right: 9;
+	-unity-slice-top: 9;
+	-unity-slice-bottom: 9;
+	color: rgb(63, 169, 245);
+}
+
+.idle-section .idle-shop-section-cap {
+	margin: 0 0 8px 0;
+}
+
+/* ── DUNGEON ── */
+.idle-dungeon-note {
+	background-image: url("../Data/Assets/UI/frame-ctl-10.png");
+	-unity-slice-left: 15;
+	-unity-slice-right: 15;
+	-unity-slice-top: 15;
+	-unity-slice-bottom: 15;
+	padding: 10px 20px;
+	font-size: 18px;
+	letter-spacing: 1px;
+	color: rgb(240, 240, 240);
+	-unity-text-align: middle-center;
+}
+
+.idle-dungeon-row {
+	margin-bottom: 14px;
+}
+
+.idle-dungeon-head {
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom-width: 1px;
+	border-bottom-color: rgba(255, 255, 255, 0.16);
+	padding-bottom: 8px;
+	margin-bottom: 10px;
+}
+
+.idle-dungeon-name {
+	font-size: 30px;
+	-unity-font-style: normal;
+	color: rgb(240, 240, 240);
+}
+
+.idle-dungeon-tabs {
+	flex-direction: row;
+	flex-wrap: nowrap;
+}
+
+.idle-dungeon-tab,
+.idle-side .idle-dungeon-tab {
+	min-width: 0;
+	flex-grow: 1;
+	flex-basis: 0;
+	height: 42px;
+	margin: 0 6px 6px 0;
+	font-size: 20px;
+	padding: 0;
+}
+
+.idle-dungeon-buttons {
+	margin-top: 4px;
+}
+
+.idle-dungeon-button,
+.idle-side .idle-dungeon-button {
+	min-height: 56px;
+	font-size: 26px;
+	-unity-text-align: middle-center;
+}
