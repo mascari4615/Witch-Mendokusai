@@ -1157,3 +1157,24 @@
 	font-size: 26px;
 	-unity-text-align: middle-center;
 }
+
+/* 빈 자리와 빈 장비 칸, MAX (2026-09-21 사용자 "레이아웃 깨진다") */
+.idle-profile .idle-party-seat--empty {
+	font-size: 44px;
+	color: rgb(240, 240, 240);
+	-unity-text-align: middle-center;
+}
+
+.idle-worn-cell--empty,
+.idle-profile .idle-worn-cell--empty {
+	font-size: 14px;
+	color: rgb(154, 160, 162);
+	letter-spacing: 1px;
+	-unity-text-align: middle-center;
+}
+
+.idle-growth .idle-stat-buy--maxed,
+.idle-stat-buy--maxed {
+	font-size: 13px;
+	letter-spacing: 0;
+}

@@ -49,10 +49,10 @@ MonoBehaviour:
     Caption: INVEST
     Visible: 0
   gearSlotNames:
-  - 머리
-  - 몸
-  - 손
-  - 발
+  - HEAD
+  - BODY
+  - HAND
+  - FOOT
   statNames:
   - ATK
   - ATK SPD
@@ -105,7 +105,7 @@ MonoBehaviour:
   mainSeatText: 전투
   supportSeatText: 지원
   growthSuffix: ' 성장'
-  emptySeatText: 빈 자리
+  emptySeatText: EMPTY
   maxedText: MAX
   bagSummaryFormat: 'BAG {0}/{1}{2}'
   bagFullSuffix: '  FULL. MERGE OR EQUIP TO MAKE ROOM'

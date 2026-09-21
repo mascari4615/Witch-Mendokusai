@@ -155,7 +155,8 @@ namespace WitchMendokusai.Idle.UI
 				int heroId = slot < snapshot.Party.Length ? snapshot.Party[slot] : -1;
 				string tag = content.SeatText(IdleHeroes.IsMainSlot(slot));
 				Button seat = partyButtons[slot];
-				seat.text = string.Empty;
+				seat.text = heroId >= 0 ? string.Empty : "+";
+				seat.EnableInClassList("idle-party-seat--empty", heroId < 0);
 				VisualElement portrait = seat.RequireQ<VisualElement>("seat-icon-" + slot);
 				Label label = seat.RequireQ<Label>("seat-label-" + slot);
 				portrait.style.display = heroId >= 0 ? DisplayStyle.Flex : DisplayStyle.None;
