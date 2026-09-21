@@ -1178,3 +1178,24 @@
 	font-size: 13px;
 	letter-spacing: 0;
 }
+
+/* 검사기 (IdleUiGrammarAudit) 가 잡은 것: 칩이 화면 밖, 반복 램프와 장비 배지 금색 */
+.idle-chips {
+	left: auto;
+	right: -680px;
+}
+
+.idle-toggle--on .idle-toggle-lamp {
+	background-color: rgb(63, 169, 245);
+}
+
+.idle-gear-tier-badge,
+.idle-profile .idle-gear-tier-badge {
+	color: rgb(240, 240, 240);
+	-unity-font-style: normal;
+}
+
+.idle-bag-lock {
+	background-color: rgb(255, 120, 47);
+	color: rgb(17, 17, 17);
+}
