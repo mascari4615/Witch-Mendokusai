@@ -143,10 +143,10 @@ MonoBehaviour:
   appraiseText: "\uAC10\uC815"
   cameraBackgroundColor: {r: 0.75, g: 0.88, b: 0.96, a: 1}
   cameraFieldOfView: 32
-  cameraEuler: {x: 42, y: 30, z: 0}
+  cameraEuler: {x: 42, y: 0, z: 0}
   cameraDistance: 20
   cameraTargetOffset: {x: 1.2, y: 0.4, z: 0}
-  cameraAimOffset: {x: -1.5, y: 0, z: -1.5}
+  cameraAimOffset: {x: 0, y: 0, z: 2}
   lightIntensity: 1.15
   lightEuler: {x: 52, y: -28, z: 0}
   shopGroundColor: {r: 0.78, g: 0.66, b: 0.5, a: 1}

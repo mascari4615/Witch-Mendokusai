@@ -22,6 +22,10 @@
             <ui:Button name="repeat-button" class="idle-chip-dark idle-toggle">
                 <ui:VisualElement class="idle-toggle-lamp" />
             </ui:Button>
+            <ui:VisualElement class="idle-hand-side">
+                <ui:Button name="speed-button" class="idle-hand-chip idle-speed-button" />
+                <ui:Button name="auto-cast-button" class="idle-hand-chip idle-skill-auto" text="AUTO" />
+            </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement class="idle-chips">
             <ui:Button name="gold-chip" class="idle-chip-dark idle-chip idle-gold-chip">
@@ -46,10 +50,6 @@
         <ui:VisualElement class="idle-hand">
             <ui:VisualElement class="idle-hand-row">
                 <ui:VisualElement name="cards" />
-                <ui:VisualElement class="idle-hand-side">
-                    <ui:Button name="speed-button" class="idle-hand-chip idle-speed-button" />
-                    <ui:Button name="auto-cast-button" class="idle-hand-chip idle-skill-auto" text="AUTO" />
-                </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement class="idle-cost">
                 <ui:VisualElement class="idle-cost-badge">
