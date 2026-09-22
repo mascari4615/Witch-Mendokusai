@@ -41,7 +41,9 @@
         "WitchMendokusai.DomainSDK.Quest",
         "WitchMendokusai.DomainSDK.Mods",
         "WM.Domain.TowerDefense",
-        "WM.App"
+        "WM.App",
+        "Unity.Timeline",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [
         "Editor"
