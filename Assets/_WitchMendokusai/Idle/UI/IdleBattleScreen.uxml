@@ -52,6 +52,7 @@
                 <ui:Instance template="DungeonPage" name="dungeon-page-host" />
                 <ui:Instance template="InvestPage" name="invest-page-host" />
             </ui:ScrollView>
+            <ui:VisualElement name="side-dim" class="idle-side-dim idle-hidden" picking-mode="Ignore" />
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:Instance template="MapPopup" name="map-popup-host" class="idle-layer" picking-mode="Ignore" />

@@ -32,6 +32,7 @@ namespace WitchMendokusai.Idle.UI
 		private readonly VisualElement dimLayer;
 		private readonly AimHoleElement hole;
 		private readonly VisualElement briefLayer;
+		private readonly VisualElement sideDim;
 		private readonly Label brief;
 		private int aimedHand = -1;
 		private int pointer = -1;
@@ -64,6 +65,8 @@ namespace WitchMendokusai.Idle.UI
 			dimLayer.Add(hole);
 			briefLayer = battle.RequireQ<VisualElement>("skill-aim");
 			brief = briefLayer.RequireQ<Label>("skill-brief");
+			// 오른쪽 메뉴 판도 같이 어둡게 (사용자 2026-09-22). 판은 전투 창 밖이라 따로 덮는다
+			sideDim = battle.parent.RequireQ<VisualElement>("side-dim");
 
 			buttons = new Button[IdleCards.HAND_SIZE];
 			icons = new VisualElement[IdleCards.HAND_SIZE];
@@ -243,6 +246,7 @@ namespace WitchMendokusai.Idle.UI
 			buttons[handIndex].AddToClassList("idle-card--aiming");
 			brief.text = content.VolleyBrief;
 			dimLayer.style.display = DisplayStyle.Flex;
+			sideDim.style.display = DisplayStyle.Flex;
 			briefLayer.style.display = DisplayStyle.Flex;
 		}
 
@@ -255,6 +259,7 @@ namespace WitchMendokusai.Idle.UI
 
 			ShownHand = -1;
 			dimLayer.style.display = DisplayStyle.None;
+			sideDim.style.display = DisplayStyle.None;
 			briefLayer.style.display = DisplayStyle.None;
 			hole.SetReady(false);
 		}

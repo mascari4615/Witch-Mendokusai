@@ -1210,6 +1210,16 @@
 	background-color: rgba(0, 0, 0, 0.5);
 }
 
+/* 메뉴 판 위 덮개. 전투 창의 밖 (0.5 x 0.5) 과 같은 어둡기 */
+.idle-side-dim {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.75);
+}
+
 .idle-skill-hole {
 	position: absolute;
 	left: 0;
