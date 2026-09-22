@@ -116,6 +116,7 @@ MonoBehaviour:
   enemyDamage: 0.35
   enemyDamageRatio: 1.18
   reviveSeconds: 12
+  waveSpawnDistance: 7
   healPerKillShare: 0.08
   dollGradeHealthStep: 0.35
   baseMaxOfflineSeconds: 28800

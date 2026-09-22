@@ -259,6 +259,8 @@ namespace WitchMendokusai.Idle
 
 		public string VolleyTapHint => volleyTapHint;
 
+		public string VolleyBrief => volleyBrief;
+
 		public string GachaTitleText(int count) => string.Format(gachaTitleFormat, count);
 
 		public string GachaSummaryText(int count, int legend, int epic, int newFaces) =>

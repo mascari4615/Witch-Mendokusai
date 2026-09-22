@@ -9,5 +9,6 @@
         <ui:Label name="card-slot" class="idle-card-slot" />
         <ui:Label name="card-name" class="idle-card-name" />
         <ui:VisualElement name="card-dim" class="idle-card-dim" />
+        <ui:Label name="card-cancel" text="CANCEL" class="idle-card-cancel" />
     </ui:Button>
 </ui:UXML>

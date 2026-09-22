@@ -22,12 +22,10 @@
     <Style src="IdleGrammar.uss" />
     <ui:VisualElement name="shell" class="idle-root idle-grammar-font">
         <ui:VisualElement name="battle" class="idle-battle">
+            <ui:VisualElement name="skill-dim" class="idle-skill-dim idle-hidden" picking-mode="Ignore" />
             <ui:Instance template="BattleHud" name="battle-hud" class="idle-layer" picking-mode="Ignore" />
             <ui:VisualElement name="skill-aim" class="idle-skill-aim idle-hidden" picking-mode="Ignore">
-                <ui:VisualElement name="skill-aim-origin" class="idle-skill-aim-origin" />
-                <ui:VisualElement name="skill-aim-line" class="idle-skill-aim-line" />
-                <ui:VisualElement name="skill-aim-range" class="idle-skill-aim-range" />
-                <ui:Label name="skill-aim-caption" text="일제 사격 범위" class="idle-skill-aim-caption" />
+                <ui:Label name="skill-brief" class="idle-skill-brief" />
             </ui:VisualElement>
             <ui:Label name="battle-note" class="idle-battle-note idle-hidden" picking-mode="Ignore" />
         </ui:VisualElement>

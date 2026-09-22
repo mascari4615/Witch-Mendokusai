@@ -5,6 +5,13 @@ using WitchMendokusai.DomainSDK.Idle;
 
 namespace WitchMendokusai.Idle.UI
 {
+	/// <summary>
+	/// 손패 카드 셋과 대상 지정 표시.
+	///
+	/// ★ 대상 지정은 두 길이 하나의 표시를 쓴다. 카드를 끌든 (여기서 포인터를 잡음), 카드를 탭한 뒤 적을 탭하든
+	///   (<see cref="ShowAimFor"/> 와 <see cref="MoveAimTo"/> 를 밖에서 부름). 표시는 참고 실측 (2026-09-22) 대로:
+	///   화면 어둡게 + 커서 아래 바닥 타원만 밝게, 고른 카드 들림 + CANCEL 탭, 좌상단 한 줄 설명. 카드와 바닥 사이 선 없음
+	/// </summary>
 	internal sealed class CardHandController
 	{
 		private readonly VisualElement battle;
@@ -22,15 +29,13 @@ namespace WitchMendokusai.Idle.UI
 		private readonly Label[] costs;
 		private readonly Label[] names;
 		private readonly int[] shownOwners;
-		private readonly VisualElement aim;
-		private readonly VisualElement aimOrigin;
-		private readonly VisualElement aimLine;
-		private readonly VisualElement aimRange;
-		private readonly Label aimCaption;
+		private readonly VisualElement dimLayer;
+		private readonly AimHoleElement hole;
+		private readonly VisualElement briefLayer;
+		private readonly Label brief;
 		private int aimedHand = -1;
 		private int pointer = -1;
 		private int suppressedClick = -1;
-		private Vector2 dragOrigin;
 
 		public CardHandController(
 			VisualElement battle,
@@ -53,11 +58,12 @@ namespace WitchMendokusai.Idle.UI
 			this.castAt = castAt;
 			this.aimAt = aimAt;
 			this.aimMissed = aimMissed;
-			aim = battle.RequireQ<VisualElement>("skill-aim");
-			aimOrigin = aim.RequireQ<VisualElement>("skill-aim-origin");
-			aimLine = aim.RequireQ<VisualElement>("skill-aim-line");
-			aimRange = aim.RequireQ<VisualElement>("skill-aim-range");
-			aimCaption = aim.RequireQ<Label>("skill-aim-caption");
+			dimLayer = battle.RequireQ<VisualElement>("skill-dim");
+			hole = new AimHoleElement { name = "skill-hole" };
+			hole.AddToClassList("idle-skill-hole");
+			dimLayer.Add(hole);
+			briefLayer = battle.RequireQ<VisualElement>("skill-aim");
+			brief = briefLayer.RequireQ<Label>("skill-brief");
 
 			buttons = new Button[IdleCards.HAND_SIZE];
 			icons = new VisualElement[IdleCards.HAND_SIZE];
@@ -91,19 +97,45 @@ namespace WitchMendokusai.Idle.UI
 
 		public void BringAimToFront()
 		{
-			aim.BringToFront();
+			briefLayer.BringToFront();
 		}
 
-		/// <summary>카드를 누른 채 대상을 고르는 중. 세상이 느려지는 구간</summary>
+		/// <summary>카드를 누른 채 대상을 고르는 중 (끌기). 탭 조준은 <see cref="ShownHand"/> 로 본다</summary>
 		public bool IsAiming => aimedHand >= 0 && pointer >= 0;
+
+		/// <summary>지정 표시가 켜진 손패 자리. 끌기든 탭이든. 없으면 -1</summary>
+		public int ShownHand { get; private set; } = -1;
 
 		public void CancelAim()
 		{
 			aimedHand = -1;
 			pointer = -1;
-			aim.style.display = DisplayStyle.None;
+			HideAim();
 			aimAt(null);
-			MarkAimReady(false);
+		}
+
+		/// <summary>탭 조준 시작. 카드를 들고 설명을 띄우고 화면을 어둡게. 타원은 전투 창 가운데에서 시작</summary>
+		public void ShowAimFor(int handIndex)
+		{
+			if (handIndex < 0 || handIndex >= buttons.Length)
+			{
+				return;
+			}
+
+			ShowAim(handIndex);
+			Rect box = battle.contentRect;
+			PlaceHole(new Vector2(box.center.x, box.center.y), false);
+		}
+
+		/// <summary>탭 조준 중 포인터가 전투 창 위를 지난다. 타원과 대상 강조를 따라가게</summary>
+		public void MoveAimTo(Vector2 panelPosition)
+		{
+			if (ShownHand < 0)
+			{
+				return;
+			}
+
+			TrackTarget(panelPosition);
 		}
 
 		public void Render(IdleSnapshot snapshot)
@@ -150,10 +182,8 @@ namespace WitchMendokusai.Idle.UI
 			}
 			aimedHand = handIndex;
 			pointer = moment.pointerId;
-			dragOrigin = moment.position;
-			aim.style.display = DisplayStyle.Flex;
+			ShowAim(handIndex);
 			buttons[handIndex].CapturePointer(moment.pointerId);
-			UpdateAim(moment.position);
 			TrackTarget(moment.position);
 			moment.StopImmediatePropagation();
 		}
@@ -161,7 +191,6 @@ namespace WitchMendokusai.Idle.UI
 		private void MoveAim(PointerMoveEvent moment)
 		{
 			if (moment.pointerId != pointer) { return; }
-			UpdateAim(moment.position);
 			TrackTarget(moment.position);
 			moment.StopImmediatePropagation();
 		}
@@ -187,7 +216,7 @@ namespace WitchMendokusai.Idle.UI
 			}
 			suppressedClick = commit ? handIndex : -1;
 			pointer = -1;
-			aim.style.display = DisplayStyle.None;
+			HideAim();
 			long? foe = commit ? pickFoe(battle.panel, position) : null;
 			if (foe.HasValue)
 			{
@@ -199,42 +228,49 @@ namespace WitchMendokusai.Idle.UI
 			}
 
 			aimAt(null);
-			MarkAimReady(false);
 			aimedHand = -1;
 		}
 
-		/// <summary>커서 아래 적을 무대와 조준선에 알린다</summary>
+		/// <summary>지정 표시 켜기. 카드 들림 + CANCEL, 설명 한 줄, 덮개</summary>
+		private void ShowAim(int handIndex)
+		{
+			if (ShownHand >= 0 && ShownHand != handIndex)
+			{
+				buttons[ShownHand].RemoveFromClassList("idle-card--aiming");
+			}
+
+			ShownHand = handIndex;
+			buttons[handIndex].AddToClassList("idle-card--aiming");
+			brief.text = content.VolleyBrief;
+			dimLayer.style.display = DisplayStyle.Flex;
+			briefLayer.style.display = DisplayStyle.Flex;
+		}
+
+		private void HideAim()
+		{
+			if (ShownHand >= 0)
+			{
+				buttons[ShownHand].RemoveFromClassList("idle-card--aiming");
+			}
+
+			ShownHand = -1;
+			dimLayer.style.display = DisplayStyle.None;
+			briefLayer.style.display = DisplayStyle.None;
+			hole.SetReady(false);
+		}
+
+		/// <summary>커서 아래 적을 무대와 타원에 알린다</summary>
 		private void TrackTarget(Vector2 panelPosition)
 		{
 			long? foe = pickFoe(battle.panel, panelPosition);
 			aimAt(foe);
-			MarkAimReady(foe.HasValue);
+			PlaceHole(dimLayer.WorldToLocal(panelPosition), foe.HasValue);
 		}
 
-		/// <summary>지금 놓으면 나가나. 조준 고리와 설명이 색으로 답한다</summary>
-		private void MarkAimReady(bool ready)
+		private void PlaceHole(Vector2 local, bool ready)
 		{
-			aimRange.EnableInClassList("idle-skill-aim-range--on", ready);
-			aimCaption.EnableInClassList("idle-skill-aim-caption--on", ready);
-			aimCaption.text = ready ? content.VolleyTargetFeedback : content.VolleyDragHint;
-		}
-
-		private void UpdateAim(Vector2 panelPosition)
-		{
-			Vector2 origin = battle.WorldToLocal(dragOrigin);
-			Vector2 target = battle.WorldToLocal(panelPosition);
-			Vector2 delta = target - origin;
-			// 중심 맞춤과 설명 띄우기는 USS (translate, margin). 코드는 점 찍기만
-			aimOrigin.style.left = origin.x;
-			aimOrigin.style.top = origin.y;
-			aimRange.style.left = target.x;
-			aimRange.style.top = target.y;
-			aimLine.style.left = Mathf.Min(origin.x, target.x);
-			aimLine.style.top = Mathf.Min(origin.y, target.y);
-			aimLine.style.width = Mathf.Abs(delta.x);
-			aimLine.style.height = Mathf.Abs(delta.y);
-			aimCaption.style.left = target.x;
-			aimCaption.style.top = target.y;
+			hole.SetCenter(local);
+			hole.SetReady(ready);
 		}
 
 		private static void SetIconClass(VisualElement element, IdleCardKind kind)

@@ -79,8 +79,8 @@ namespace WitchMendokusai.Idle.UI
 		/// <summary>지금 펼친 관리 판. 판을 다시 지을 때 이어받는다</summary>
 		public ManagementPage OpenedPage { get; private set; }
 
-		/// <summary>카드 조준 중. 무대 시간이 느려짐</summary>
-		public bool Aiming => cardHandController != null && cardHandController.IsAiming;
+		/// <summary>대상 지정 중 (끌기든 탭이든). 무대 시간이 느려짐</summary>
+		public bool Aiming => cardHandController != null && cardHandController.ShownHand >= 0;
 
 		// ── 짓기 ──────────────────────────────────────────────────────────
 
@@ -95,6 +95,7 @@ namespace WitchMendokusai.Idle.UI
 				content,
 				settings,
 				() => cardHandController.CancelAim(),
+				handIndex => cardHandController.ShowAimFor(handIndex),
 				() => auxiliaryPopupCoordinator.CloseMap(),
 				writeDown,
 				RequestRender,
@@ -154,9 +155,9 @@ namespace WitchMendokusai.Idle.UI
 		private void OnCancel(NavigationCancelEvent moment)
 		{
 			moment.StopPropagation();
-			if (cardHandController != null && cardHandController.IsAiming)
+			if (cardHandController != null && cardHandController.ShownHand >= 0)
 			{
-				cardHandController.CancelAim();
+				battleActionController.Disarm();
 				return;
 			}
 
@@ -177,6 +178,8 @@ namespace WitchMendokusai.Idle.UI
 
 			// 빈 곳 누르기는 응원 한 대. 무대 그 자체가 큰 버튼
 			battle.RegisterCallback<PointerDownEvent>(battleActionController.OnBattleTapped);
+			// 탭 조준 중엔 타원이 포인터를 따라간다
+			battle.RegisterCallback<PointerMoveEvent>(moment => cardHandController.MoveAimTo(moment.position));
 
 			battleHudController = new BattleHudController(
 				battle,

@@ -131,6 +131,8 @@ namespace WitchMendokusai.Idle
 		[SerializeField] private string volleyResolvedFeedback;
 		[SerializeField] private string volleyMissFeedback;
 		[SerializeField] private string volleyTapHint;
+		[Tooltip("대상 지정 중 좌상단 한 줄. 스킬 이름과 무엇을 하는지")]
+		[SerializeField] private string volleyBrief = "VOLLEY  8s of attacks on one target";
 		[SerializeField] private string gachaTitleFormat;
 		[SerializeField] private string gachaSummaryFormat;
 		[SerializeField] private string gachaSkipText;

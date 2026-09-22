@@ -12,6 +12,7 @@ namespace WitchMendokusai.Idle.UI
 		private readonly UIContentSO content;
 		private readonly RuntimeSettingsSO settings;
 		private readonly Action cancelCardAim;
+		private readonly Action<int> showAimFor;
 		/// <summary>일제 사격을 누른 뒤 대상을 기다리는 손패 자리</summary>
 		private int armedHand = -1;
 		private readonly Action closeMap;
@@ -25,6 +26,7 @@ namespace WitchMendokusai.Idle.UI
 			UIContentSO content,
 			RuntimeSettingsSO settings,
 			Action cancelCardAim,
+			Action<int> showAimFor,
 			Action closeMap,
 			Action writeDown,
 			Action requestRender,
@@ -35,6 +37,7 @@ namespace WitchMendokusai.Idle.UI
 			this.content = content;
 			this.settings = settings;
 			this.cancelCardAim = cancelCardAim;
+			this.showAimFor = showAimFor;
 			this.closeMap = closeMap;
 			this.writeDown = writeDown;
 			this.requestRender = requestRender;
@@ -114,11 +117,8 @@ namespace WitchMendokusai.Idle.UI
 				{
 					CastVolleyAt(hand, foe.Value);
 				}
-				else
-				{
-					showNote(content.VolleyMissFeedback, settings.NoteSeconds);
-				}
 
+				// 빈 곳을 누르면 조용히 접는다. 참고 실측: 야단치는 안내 없음
 				return;
 			}
 
@@ -135,6 +135,7 @@ namespace WitchMendokusai.Idle.UI
 		{
 			armedHand = -1;
 			stage?.SetAimTarget(-1L);
+			cancelCardAim();
 			requestRender();
 		}
 
@@ -158,7 +159,11 @@ namespace WitchMendokusai.Idle.UI
 				}
 
 				armedHand = beforeCast.Cards[handIndex].CanCast ? handIndex : -1;
-				showNote(armedHand >= 0 ? content.VolleyTapHint : content.VolleyDragHint, settings.NoteSeconds);
+				if (armedHand >= 0)
+				{
+					showAimFor(armedHand);
+				}
+
 				requestRender();
 				return;
 			}

@@ -182,11 +182,12 @@ MonoBehaviour:
   mapBestSuffix: '  (가장 잘 벌리는 곳)'
   shopScenePlaceholder: SHOP 3D SCENE 자리
   labScenePlaceholder: LAB 3D SCENE 자리
-  volleyTargetFeedback: 일제 사격. 표시한 범위에 집중 포화.
-  volleyDragHint: 일제 사격 카드를 끌어 적에게 놓으세요
-  volleyResolvedFeedback: 일제 사격. 모두 달려들었다
-  volleyMissFeedback: '적을 눌러야 나간다. 적 위에서 놓거나 적을 한 번 더 눌러라'
-  volleyTapHint: '겨눔. 이제 적을 눌러라 (다시 누르면 취소)'
+  volleyTargetFeedback: VOLLEY
+  volleyDragHint: Drop the card on an enemy
+  volleyResolvedFeedback: VOLLEY
+  volleyMissFeedback: No enemy there
+  volleyTapHint: Tap an enemy
+  volleyBrief: VOLLEY  8s of attacks on one target
   gachaTitleFormat: '{0}회 뽑기'
   gachaSummaryFormat: '{0}회. 레전드 {1}, 에픽 {2}, 새 얼굴 {3}'
   gachaSkipText: 건너뛰기

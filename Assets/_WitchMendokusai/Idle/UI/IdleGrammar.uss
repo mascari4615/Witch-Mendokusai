@@ -1199,3 +1199,72 @@
 	background-color: rgb(255, 120, 47);
 	color: rgb(17, 17, 17);
 }
+
+/* 대상 지정 (피드백 11). 참고 실측: 밖 24% = 0.5 x 0.5, 타원 안 50% = 아래 층 0.5 하나, 바닥 타원, 테두리 한 줄 */
+.idle-skill-dim {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+.idle-skill-hole {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	--aim-dim-color: rgba(0, 0, 0, 0.5);
+	--aim-ring-color: rgba(255, 255, 255, 0.6);
+	--aim-ring-ready-color: rgb(255, 120, 47);
+	--aim-ring-width: 3;
+	--aim-radius: 92;
+	--aim-squash: 0.6;
+}
+
+.idle-skill-aim {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+}
+
+.idle-skill-brief {
+	position: absolute;
+	left: 60px;
+	top: 212px;
+	height: 40px;
+	padding-left: 16px;
+	padding-right: 16px;
+	font-size: 22px;
+	-unity-text-align: middle-left;
+	color: rgb(17, 17, 17);
+	background-color: rgb(255, 120, 47);
+	letter-spacing: 1px;
+}
+
+.idle-card--aiming {
+	translate: 0 -12px;
+	scale: 1.08 1.08;
+}
+
+.idle-card-cancel {
+	display: none;
+	position: absolute;
+	left: 4px;
+	right: 4px;
+	bottom: 4px;
+	height: 30px;
+	font-size: 16px;
+	-unity-text-align: middle-center;
+	color: rgb(17, 17, 17);
+	background-color: rgb(255, 120, 47);
+	letter-spacing: 1px;
+}
+
+.idle-card--aiming .idle-card-cancel {
+	display: flex;
+}
