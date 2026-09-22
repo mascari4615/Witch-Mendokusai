@@ -1,24 +1,10 @@
-using TMPro;
-using UnityEngine;
 using UnityEngine.Playables;
 
 namespace WitchMendokusai
 {
+	// 클립 데이터만. 화면 쓰기는 SubtitleTackMixer 하나 (같은 프레임에 둘이 쓰면 마지막 것이 우선)
 	public class SubtitleBehaviour : PlayableBehaviour
 	{
 		public string subtitleText;
-
-		public override void ProcessFrame(Playable playable, FrameData info, object playerData)
-		{
-			// TextMeshProUGUI text = playerData as TextMeshProUGUI;
-#if UNITY_EDITOR
-			TextMeshProUGUI text = Object.FindAnyObjectByType<UIManager>().CutSceneModule.Subtitle;
-#else
-			TextMeshProUGUI text = UIManager.Instance.CutSceneModule.Subtitle;
-#endif
-
-			text.text = subtitleText;
-			text.color = new Color(1, 1, 1, info.weight);
-		}
 	}
 }

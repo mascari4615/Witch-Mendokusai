@@ -1,13 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Timeline;
-using TMPro;
 using UnityEngine.Playables;
 
 namespace WitchMendokusai
 {
-	// [TrackBindingType(typeof(TextMeshProUGUI))]
+	[TrackBindingType(typeof(CanvasGroup))]
 	[TrackClipType(typeof(FadeClip))]
 	public class FadeTrack : TrackAsset
 	{

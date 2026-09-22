@@ -8,12 +8,8 @@ namespace WitchMendokusai
 	{
 		public override void ProcessFrame(Playable playable, FrameData info, object playerData)
 		{
-			// TextMeshProUGUI text = playerData as TextMeshProUGUI;
-#if UNITY_EDITOR
-			TextMeshProUGUI text = Object.FindAnyObjectByType<UIManager>().CutSceneModule.Subtitle;
-#else
-        TextMeshProUGUI text = UIManager.Instance.CutSceneModule.Subtitle;
-#endif
+			// 트랙 바인딩 (SubtitleTrack 의 TrackBindingType). 디렉터가 프리팹에서 묶은 자막 글자
+			TextMeshProUGUI text = playerData as TextMeshProUGUI;
 
 			string currentText = string.Empty;
 			float currentAlpha = 0f;

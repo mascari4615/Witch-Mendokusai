@@ -7,11 +7,8 @@ namespace WitchMendokusai
 	{
 		public override void ProcessFrame(Playable playable, FrameData info, object playerData)
 		{
-#if UNITY_EDITOR
-			CanvasGroup canvasGroup = Object.FindAnyObjectByType<UIManager>().CutSceneModule.FadeCanvasGroup;
-#else
-        CanvasGroup canvasGroup = UIManager.Instance.CutSceneModule.FadeCanvasGroup;
-#endif
+			// 트랙 바인딩 (FadeTrack 의 TrackBindingType). 디렉터가 프리팹에서 묶은 암전 CanvasGroup
+			CanvasGroup canvasGroup = playerData as CanvasGroup;
 
 			float currentAlpha = 0f;
 
@@ -25,11 +22,6 @@ namespace WitchMendokusai
 
 				if (inputWeight > 0f)
 				{
-					ScriptPlayable<FadeBehaviour> inputPlayable =
-						(ScriptPlayable<FadeBehaviour>)playable.GetInput(i);
-
-					FadeBehaviour input = inputPlayable.GetBehaviour();
-					// currentAlpha = input.alpha;
 					currentAlpha = inputWeight;
 				}
 			}
