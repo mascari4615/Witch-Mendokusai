@@ -52,7 +52,7 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 - 엔진 다리는 Core 한 곳 (`NumericsUnityBridge`, `MessagePipeEventTransport`). SDK 안 `#if UNITY` 금지
 - DomainSDK 에서 Core Singleton 직접 호출 금지. `IXxxBridge` + `XxxBridge.Register`
 - Mods 의 references 는 DomainSDK 조각만
-- 새 매니저나 시스템 전에 기존 패턴 (`Singleton<T>`, `OnXxxChanged`, `SOManager.DataSOs`) 먼저. 다른 모양이면 TASK 시드에 이유
+- 새 매니저나 시스템 전에 기존 패턴 (`Singleton<T>`, `OnXxxChanged`, `SOManager.DataSOs`) 먼저. 다른 모양이면 소유 Feature/System 또는 활성 Change에 이유
 
 ## 폴더 규약 (2026-09-05)
 
