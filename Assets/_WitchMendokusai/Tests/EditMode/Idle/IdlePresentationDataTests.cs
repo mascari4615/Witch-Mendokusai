@@ -9,7 +9,7 @@ namespace WitchMendokusai.Tests.Idle
         private const string UI_CONTENT_PATH =
             "Assets/_WitchMendokusai/Idle/Data/Assets/UI_0001_Idle.asset";
         private const string DOLL_CATALOG_PATH =
-            "Assets/_WitchMendokusai/Idle/Data/Assets/HC_0001_Idle.asset";
+            "Assets/_WitchMendokusai/Idle/Data/Assets/IDC_0001_Idle.asset";
         private const string GEAR_PRESENTATION_PATH =
             "Assets/_WitchMendokusai/Idle/Data/Assets/GP_0001_Idle.asset";
         private const string BATTLE_PRESENTATION_PATH =

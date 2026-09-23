@@ -20,6 +20,7 @@ namespace WitchMendokusai.Tests
 		[SetUp]
 		public void SetUp()
 		{
+			new IdleDollCatalogFixture().ConfigureCatalog();
 			owner = new GameObject("ContinuityTest");
 			stage = owner.AddComponent<BattleStage>();
 			typeof(BattleStage).GetField("presentationAsset", BindingFlags.Instance | BindingFlags.NonPublic)

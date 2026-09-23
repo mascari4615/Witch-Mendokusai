@@ -188,7 +188,11 @@ await page.evaluate((id) => {
 	requestAnimationFrame(watch);
 }, walkerId);
 
-await wait(15000);
+// 기계 속도에 따른 표본 누락 방지, 같은 품질 기준에 최소 15초와 300프레임 확보
+await page.waitForFunction(() => {
+	const frames = window.__frames;
+	return frames.length >= 300 && frames[frames.length - 1].at - frames[0].at >= 15000;
+}, null, { timeout: 60000, polling: 100 }).catch(() => { /* 아래의 실제 표본 수로 판정 */ });
 clearInterval(walking);
 const frames = await page.evaluate(() => window.__frames);
 await browser.close();

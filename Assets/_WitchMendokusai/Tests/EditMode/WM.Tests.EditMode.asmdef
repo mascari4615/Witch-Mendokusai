@@ -2,6 +2,7 @@
     "name": "WM.Tests.EditMode",
     "rootNamespace": "WitchMendokusai.Tests",
     "references": [
+        "WM.Tests.Portable",
         "Unity.Cinemachine",
         "WM.Foundation",
         "WitchMendokusai.DomainSDK.Building",

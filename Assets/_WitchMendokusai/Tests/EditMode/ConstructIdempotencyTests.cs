@@ -113,8 +113,8 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void 이중_주입_전제가_아직_유효하다()
 		{
-			string player = File.ReadAllText(Path.GetFullPath(ROOT + "/Domain/Doll/_Common/Scripts/Player.cs"));
-			string scope = File.ReadAllText(Path.GetFullPath(ROOT + "/Domain/Application/Scripts/DI/SceneLifetimeScope.cs"));
+			string player = File.ReadAllText(Path.GetFullPath(ROOT + "/Domain/Doll/_Common/Player.cs"));
+			string scope = File.ReadAllText(Path.GetFullPath(ROOT + "/Domain/Application/DI/SceneLifetimeScope.cs"));
 
 			bool playerCascades = player.Contains("InjectGameObjectExcludingSelf");
 			bool scopeInjectsPlayerTree = scope.Contains("InjectGameObject(player.gameObject)");

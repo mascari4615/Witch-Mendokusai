@@ -11,8 +11,7 @@ namespace WitchMendokusai.Tests.Idle
 		[Test]
 		public void BattleScreenExposesStaticBindingPoints()
 		{
-			AssertElements("IdleBattleScreen.uxml", "shell", "battle", "skill-aim", "skill-aim-origin",
-				"skill-aim-line", "skill-aim-range", "skill-aim-caption", "wipe-button",
+			AssertElements("IdleBattleScreen.uxml", "shell", "battle", "skill-aim", "skill-brief", "skill-dim", "wipe-button",
 				"side", "tabs", "tab-0", "tab-1", "tab-2", "tab-3",
 				"tab-4", "tab-5", "tab-6", "panel-title", "panel-caption", "panel-body",
 				"doll-page-host", "item-page-host", "discovery-page-host", "shop-page-host", "lab-page-host",
@@ -46,7 +45,8 @@ namespace WitchMendokusai.Tests.Idle
 			Assert.Null(tree.Q("speed-2"));
 			Button autoCast = tree.Q<Button>("auto-cast-button");
 			Assert.NotNull(autoCast);
-			Assert.IsTrue(autoCast.parent.ClassListContains("idle-hand"));
+			Assert.IsTrue(autoCast.parent.ClassListContains("idle-hand-side"));
+			Assert.AreSame(autoCast.parent, tree.Q<Button>("speed-button").parent);
 		}
 
 		[Test]

@@ -37,6 +37,8 @@ const westPort = eastPort + 1;
 const linePort = eastPort + 2;   // 서쪽이 동쪽에게 말할 때 지나는 <b>얼릴 수 있는</b> 길
 
 const SECRET = '두 세계만 아는 말';
+// 작은 알림이 커널 버퍼에 흡수되는 Linux의 미측정 방지, 1MB 메시지 한도 안의 실제 국경 알림
+const westName = `서-${'w'.repeat(16384)}`;
 
 function cannotRun(message) {
 	console.error(`[언이웃] CANNOT-RUN: ${message}`);
@@ -81,8 +83,8 @@ function killWorlds() {
 const badLine = openBadLine({ listenPort: linePort, targetPort: eastPort, queueBytes: 2048 });
 await badLine.listen();
 
-startWorld(eastPort, '동:0,-40,40,40', `서:-40,-40,0,40=ws://127.0.0.1:${westPort}/ws`);
-startWorld(westPort, '서:-40,-40,0,40', `동:0,-40,40,40=ws://127.0.0.1:${linePort}/ws`);
+startWorld(eastPort, '동:0,-40,40,40', `${westName}:-40,-40,0,40=ws://127.0.0.1:${westPort}/ws`);
+startWorld(westPort, `${westName}:-40,-40,0,40`, `동:0,-40,40,40=ws://127.0.0.1:${linePort}/ws`);
 
 for (const port of [eastPort, westPort]) {
 	let up = false;

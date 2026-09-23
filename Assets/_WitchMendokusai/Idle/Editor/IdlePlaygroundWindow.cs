@@ -33,7 +33,7 @@ namespace WitchMendokusai.Idle.Editor
 		private const string TUNING_PATH =
 			"Assets/_WitchMendokusai/Idle/Data/Assets/TU_0001_Idle.asset";
 		private const string DOLL_CATALOG_PATH =
-			"Assets/_WitchMendokusai/Idle/Data/Assets/HC_0001_Idle.asset";
+			"Assets/_WitchMendokusai/Idle/Data/Assets/IDC_0001_Idle.asset";
 
 		[SerializeField] private TuningSO tuningAsset;
 		[SerializeField] private DollCatalogSO dollCatalogAsset;

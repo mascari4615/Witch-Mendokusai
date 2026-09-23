@@ -21,6 +21,9 @@ namespace WitchMendokusai.Tests
 		private const string CARD_PATH = "Assets/_WitchMendokusai/Idle/UI/IdleCard.uxml";
 		private const string IDLE_STYLE_PATH = "Assets/_WitchMendokusai/Idle/UI/BattleScreen.uss";
 
+		[SetUp]
+		public void ConfigureCatalog() => new IdleDollCatalogFixture().ConfigureCatalog();
+
 		private static IdleState Owning(params int[] ids)
 		{
 			IdleState state = new IdleState();
