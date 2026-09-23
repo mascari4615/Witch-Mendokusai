@@ -26,6 +26,13 @@ on:
   push:
     branches: [main]
     paths:
+      - '**/*.asmdef'
+      - '**/*.asmdef.meta'
+      - 'ProjectSettings/ProjectVersion.txt'
+      - '.github/workflows/wm-idle-build.yml'
+      - '.github/workflows/build.yml'
+      - '.github/scripts/wm-idle-config-audit.mjs'
+      - '.github/scripts/wm-idle-config-test.mjs'
       - 'Assets/_WitchMendokusai/**'
       - 'DomainSDK/**'
       - '.github/scripts/wm-rule-gate.ps1'
@@ -99,6 +106,13 @@ on:
       - '.github/workflows/wm-quality-gate.yml'
   pull_request:
     paths:
+      - '**/*.asmdef'
+      - '**/*.asmdef.meta'
+      - 'ProjectSettings/ProjectVersion.txt'
+      - '.github/workflows/wm-idle-build.yml'
+      - '.github/workflows/build.yml'
+      - '.github/scripts/wm-idle-config-audit.mjs'
+      - '.github/scripts/wm-idle-config-test.mjs'
       - 'Assets/_WitchMendokusai/**'
       - 'DomainSDK/**'
       - '.github/scripts/wm-rule-gate.ps1'
@@ -196,6 +210,16 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Test Idle configuration audit
+        run: node --test .github/scripts/wm-idle-config-test.mjs
+
+      - name: Check Idle build configuration
+        run: node .github/scripts/wm-idle-config-audit.mjs
 
       # ★ 안 도는 시험은 <크게 적는다> (TASK-WM-286). EditMode 잡은 지금 손으로 부를 때만 돈다 --
       #   그런데 깃허브는 건너뛴 잡이 있어도 실행을 success 라 부른다. 그 초록을 "유니티도 봤다"로

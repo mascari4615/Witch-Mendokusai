@@ -51,6 +51,8 @@ on:
       - 'Assets/_WitchMendokusai/Scenes/Idle/**'
       - '.github/workflows/wm-idle-build.yml'
       - '.github/scripts/wm-idle-smoke.ps1'
+      - '.github/scripts/wm-idle-config-audit.mjs'
+      - '.github/scripts/wm-idle-config-test.mjs'
 
 permissions:
   contents: read
@@ -77,6 +79,13 @@ jobs:
           # Library/ 를 지우면 매 빌드가 전체 임포트(수십 분)로 돌아간다. 반드시 false.
           clean: false
           fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check Idle build configuration
+        run: node .github/scripts/wm-idle-config-audit.mjs
 
       - name: Resolve Unity editor (auto-install when missing)
         id: unity
