@@ -75,12 +75,18 @@ function startWorld() {
 	});
 }
 
-function killWorld() {
+async function killWorld() {
 	if (world === null) return;
+	const stopped = world;
+	const exited = new Promise((done) => {
+		if (stopped.exitCode !== null || stopped.signalCode !== null) done();
+		else stopped.once('exit', done);
+	});
 	try {
-		if (process.platform === 'win32') execSync(`taskkill /PID ${world.pid} /F /T`, { stdio: 'ignore' });
-		else world.kill('SIGKILL');
+		if (process.platform === 'win32') execSync(`taskkill /PID ${stopped.pid} /F /T`, { stdio: 'ignore' });
+		else stopped.kill('SIGKILL');
 	} catch { /* 이미 죽었다 */ }
+	await exited;
 	world = null;
 }
 
@@ -101,7 +107,7 @@ async function waitHealthy(milliseconds) {
 
 startWorld();
 if (await waitHealthy(120000) === false) {
-	killWorld();
+	await killWorld();
 	cannotRun('세계가 안 떴다');
 }
 
@@ -123,7 +129,7 @@ check('창이 세계에 들어갔다', before.gatherables > 0, JSON.stringify(be
 
 if (before.gatherables === 0) {
 	await browser.close();
-	killWorld();
+	await killWorld();
 	cannotRun('창이 세계를 못 받았다 — 이 상태로는 「돌아오나」를 잴 수 없다');
 }
 
@@ -151,7 +157,12 @@ await page.evaluate(() => {
 });
 
 // ── 세계를 한참 죽여 둔다 ─────────────────────────────────────────────
-killWorld();
+await killWorld();
+// 종료 직전 송신된 판은 장애 중 소식이 아님. 기존 연결 종료 뒤부터 관측
+await page.waitForFunction(() => {
+	const socket = window.__wmView.socket();
+	return !socket || socket.readyState === WebSocket.CLOSED;
+}, null, { timeout: 10000 });
 const wentDownAt = Date.now();
 await page.evaluate(() => { window.__wmBack = { at: -1, plates: 0 }; });
 await wait(OUTAGE_MS);
@@ -199,7 +210,7 @@ check('돌아온 뒤 세계가 통째로 다시 보인다', after.gatherables >=
 check('창이 조용히 안 터졌다', pageErrors.length === 0, pageErrors.join(' | ') || '오류 없음');
 
 await browser.close();
-killWorld();
+await killWorld();
 
 if (failures === 0) {
 	console.log(`[long-outage] ✅ 세계가 ${Math.round(OUTAGE_MS / 1000)}초 없어도 창은 스스로 돌아온다`);
