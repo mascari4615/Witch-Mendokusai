@@ -43,6 +43,7 @@ on:
     # 방치형이 실제로 쓰는 것만. 본편만 고친 push 로 굽지 않는다.
     paths:
       - 'Assets/_WitchMendokusai/Idle/**'
+      - 'Assets/_WitchMendokusai/App/WM.App.asmdef'
       - 'Assets/_WitchMendokusai/Presentation/**'
       - 'DomainSDK/Idle/**'
       - 'DomainSDK/Numerics/**'
