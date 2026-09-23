@@ -149,9 +149,9 @@ jobs:
           $log = Join-Path $env:RUNNER_TEMP 'idle-build.log'
 
           $method = if ($platform -eq 'android') {
-            'WitchMendokusai.EditorTools.IdlePlayerBuild.BuildAndroid'
+            'WitchMendokusai.Idle.Editor.IdlePlayerBuild.BuildAndroid'
           } else {
-            'WitchMendokusai.EditorTools.IdlePlayerBuild.Build'
+            'WitchMendokusai.Idle.Editor.IdlePlayerBuild.Build'
           }
 
           #
