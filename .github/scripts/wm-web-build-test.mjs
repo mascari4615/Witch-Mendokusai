@@ -106,6 +106,20 @@ const browser = await chromium.launch();
 const page = await browser.newPage();
 const pageErrors = [];
 page.on('pageerror', (error) => pageErrors.push(String(error)));
+let watchedBuildings = -1;
+let receivedBuild = false;
+page.on('websocket', (socket) => socket.on('framereceived', ({ payload }) => {
+	try {
+		const message = JSON.parse(String(payload));
+		if (watchedBuildings >= 0 && message.type === 'world'
+			&& message.buildings?.length > watchedBuildings) receivedBuild = true;
+	} catch { /* 다른 프로토콜 프레임 */ }
+}));
+await page.addInitScript(() => {
+	window.__wmRenderFrames = 0;
+	const count = () => { window.__wmRenderFrames += 1; requestAnimationFrame(count); };
+	requestAnimationFrame(count);
+});
 
 await page.goto(`http://127.0.0.1:${linePort}/`);
 await page.waitForFunction(() => typeof window.__wmView === 'object', null, { timeout: 40000 })
@@ -199,9 +213,7 @@ if (ready === false) {
 
 const bagBefore = await page.evaluate(() => (document.getElementById('bag').textContent || '').trim());
 const builtBefore = await page.evaluate(() => window.__wmView.world().buildings);
-// 세계가 <b>실제로</b> 지었는지의 기준선 — 창이 늦는 것과 세계가 안 지은 것을 가르는 자리.
-const buildingsBeforePress = await fetch(`http://127.0.0.1:${port}/health`, { headers: { connection: 'close' } })
-	.then((r) => r.json()).then((one) => one.buildings).catch(() => -1);
+watchedBuildings = builtBefore;
 
 // ── 땅을 눌러 짓는다 — 사람이 하는 그대로 ──────────────────────────────
 await page.evaluate(() => {
@@ -255,16 +267,12 @@ const saidInMs = said.at < 0 ? -1 : said.at - said.pressedAt;
 let built = builtBefore;
 let worldAnsweredInMs = -1;
 {
-	// ⚠ 벽시계로 자르지 않는다 (2026-08-20). 15초로 잘랐더니 2코어 CI 에서만 빨개졌다 —
-	//   그 판에서 <b>재료는 빠졌고</b>(= 세계는 지었다) 조금 뒤 창에도 떴다. 즉 결함이 아니라
-	//   느린 기계였다. 절대 밀리초는 환경 주장이다(domain-wm.md § 관문 규율 ②).
-	//   대신 <b>일어났나를 기다린다</b>: 세계가 지은 뒤에도 창이 새 소식(sequence)을
-	//   여러 번 받고서 여전히 못 그렸을 때만 빨갛다. 이 자는 기계를 안 탄다.
-	const NEWS_AFTER_WORLD_HAS_IT = 5;
-	let worldHadItAtSequence = -1;
+	// 받은 소식 번호와 그린 프레임은 별개. 건물 소식 수신 뒤 실제 렌더 5회로 판정
+	const FRAMES_AFTER_BUILD_ARRIVES = 5;
+	let buildArrivedAtFrame = -1;
 	const until = Date.now() + 120000;
 	while (Date.now() < until) {
-		const view = await page.evaluate(() => window.__wmView.world());
+		const view = await page.evaluate(() => ({ ...window.__wmView.world(), frame: window.__wmRenderFrames }));
 		built = view.buildings;
 		if (built > builtBefore) {
 			// ⚠ 두 시각은 <b>같은 시계</b>여야 한다: 누른 때는 Date.now() 로 적혀 있다.
@@ -273,12 +281,8 @@ let worldAnsweredInMs = -1;
 			break;
 		}
 
-		if (worldHadItAtSequence < 0) {
-			const now = await fetch(`http://127.0.0.1:${port}/health`, { headers: { connection: 'close' } })
-				.then((r) => r.json()).then((one) => one.buildings).catch(() => -1);
-			if (now > 0 && now > buildingsBeforePress) worldHadItAtSequence = view.sequence;
-		}
-		else if (view.sequence - worldHadItAtSequence >= NEWS_AFTER_WORLD_HAS_IT) break;
+		if (receivedBuild && buildArrivedAtFrame < 0) buildArrivedAtFrame = view.frame;
+		else if (buildArrivedAtFrame >= 0 && view.frame - buildArrivedAtFrame >= FRAMES_AFTER_BUILD_ARRIVES) break;
 
 		await wait(200);
 	}

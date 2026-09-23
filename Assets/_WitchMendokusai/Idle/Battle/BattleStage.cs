@@ -38,6 +38,12 @@ namespace WitchMendokusai.Idle
 			{
 				return;
 			}
+			BuildPreview();
+		}
+
+		// 명시적 미리보기 구성. 배치 씬 로드의 자동 생성 차단과 분리
+		internal void BuildPreview()
+		{
 			if (presentationAsset == null)
 			{
 				Debug.LogError("[Idle] BattlePresentationSO is missing");

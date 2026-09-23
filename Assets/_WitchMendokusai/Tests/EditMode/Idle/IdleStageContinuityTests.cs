@@ -25,7 +25,9 @@ namespace WitchMendokusai.Tests
 			stage = owner.AddComponent<BattleStage>();
 			typeof(BattleStage).GetField("presentationAsset", BindingFlags.Instance | BindingFlags.NonPublic)
 				.SetValue(stage, AssetDatabase.LoadAssetAtPath<BattlePresentationSO>(DATA + "BP_0001_Idle.asset"));
-			stage.Build();
+			typeof(BattleStage).GetMethod("BuildPreview", BindingFlags.Instance | BindingFlags.NonPublic)
+				.Invoke(stage, null);
+			Assert.IsNotNull(owner.transform.Find("Preview/Battle/Ground"), "명시적 시험 무대 생성");
 			stage.SetDungeonCatalog(AssetDatabase.LoadAssetAtPath<DungeonCatalogSO>(DATA + "DC_0001_Idle.asset"));
 			veil = new VisualElement();
 			stage.SetTransitionVeil(veil, 1f);
