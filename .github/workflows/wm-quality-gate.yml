@@ -197,7 +197,8 @@ on:
 #   러너를 나눠 쓰니 새 판이 늦어지고, 이미 고친 자리의 빨강을 다시 읽게 된다(오늘 세 번 그랬다).
 #   가지마다 한 판만 둔다. 사람이 기다리는 것은 <b>가장 새 판</b>이다.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # 예약 검사와 push가 수동 EditMode 검증을 취소하지 않도록 실행 목적별 분리
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 permissions:
