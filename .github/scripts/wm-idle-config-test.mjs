@@ -1,3 +1,4 @@
+// [빨강-확인] 임시 checkout의 WM.App 제외 조건 제거 시 실제 CLI exit 1 및 asmdef-reference FAIL 검출 (2026-09-23)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
