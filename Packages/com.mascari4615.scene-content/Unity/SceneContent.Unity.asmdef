@@ -1,0 +1,1 @@
+{ "name": "SceneContent.Unity", "references": ["SceneContent.Core", "Geometry.Core", "Geometry.Binary", "Geometry.Unity"] }

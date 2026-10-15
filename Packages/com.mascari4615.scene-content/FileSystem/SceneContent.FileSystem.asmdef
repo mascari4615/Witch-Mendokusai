@@ -1,0 +1,1 @@
+{ "name": "SceneContent.FileSystem", "references": ["SceneContent.Core"], "noEngineReferences": true }

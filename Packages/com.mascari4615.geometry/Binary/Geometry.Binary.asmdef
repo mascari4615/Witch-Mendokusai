@@ -1,0 +1,1 @@
+{ "name": "Geometry.Binary", "references": ["Geometry.Core"], "noEngineReferences": true }

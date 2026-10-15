@@ -1,0 +1,1 @@
+{ "name": "com.mascari4615.geometry", "version": "0.1.0", "displayName": "Geometry", "description": "Engine independent skinned geometry and a bounded binary codec.", "unity": "6000.3" }

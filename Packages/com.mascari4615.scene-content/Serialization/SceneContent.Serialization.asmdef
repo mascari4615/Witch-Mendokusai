@@ -1,0 +1,4 @@
+{
+  "name": "SceneContent.Serialization", "references": ["SceneContent.Core"],
+  "overrideReferences": true, "precompiledReferences": ["Newtonsoft.Json.dll"], "noEngineReferences": true
+}
