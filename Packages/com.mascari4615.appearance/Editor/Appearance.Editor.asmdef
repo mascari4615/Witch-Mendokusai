@@ -1,0 +1,1 @@
+{ "name": "Appearance.Editor", "references": ["Appearance.Core", "Appearance.Json"], "includePlatforms": ["Editor"] }

@@ -1,0 +1,7 @@
+{
+  "name": "Appearance.Json",
+  "references": ["Appearance.Core"],
+  "overrideReferences": true,
+  "precompiledReferences": ["Newtonsoft.Json.dll"],
+  "noEngineReferences": true
+}
