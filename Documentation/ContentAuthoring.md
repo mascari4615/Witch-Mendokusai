@@ -16,7 +16,13 @@ Working scene and motion drafts are checkpointed every ten seconds when changed,
 
 Expand **Tracks and keys** to remove a key at the current time or remove a whole track. **Undo key edit** and **Redo key edit** restore up to 100 draft edits. This history is separate from Unity transform editing.
 
-The reusable packages are `Appearance`, `Geometry`, `Scene Content`, `Motion`, `Rigging` and `Scene Sequence`. Their cores have no engine or game dependencies. Unity adapters own generated assets and bind transforms, rendering and playback. `WM.ContentRuntime` composes scene data with motion property ports; `WM.ContentAuthoring.Editor` provides the authoring host.
+Click a key time or use **Previous key** / **Next key** for exact navigation. The first eight keys of each track are shown; navigation visits all keys. Scrubbing can reach the final key of a looping clip; preview playback still loops normally.
+
+Expand **Surfaces** to choose a material recipe, change its color, lighting, alpha mode, roughness, metallic value, emission or texture coordinates, then choose **Apply surface**. The slot count shows how widely the recipe is shared; **Select surface users** selects the meshes that use it. Unapplied values are temporary and Reset discards them. Existing textures remain referenced by resource identity.
+
+**Undo scene change** / **Redo scene change** restore camera, light and surface changes through document snapshots, including the pose at the change. Scene and key histories use the same engine-independent history module, with 100 total states and a shared character budget per history. Opening a scene or adding an actor starts a new scene history. A change that would remove a motion target is rejected while its keys remain; remove those keys or start a new clip first.
+
+The reusable packages are `Appearance`, `Geometry`, `Scene Content`, `Motion`, `Rigging`, `Scene Sequence` and `Snapshot History`. Their cores have no engine or game dependencies. Unity adapters own generated assets and bind transforms, rendering and playback. `WM.ContentRuntime` composes scene data with motion property ports; `WM.ContentAuthoring.Editor` provides the authoring host.
 
 At runtime, add `ContentScenePlayer` to a host GameObject and initialize it with a scene document, an `IContentSource`, an `ISurfaceFactory` and motion clips. The content stays inactive until construction and clip binding succeed. Call `Play`, `Pause`, `Seek` or `Unload`. Clips that write the same pose or numerical property are rejected; deliberate blending requires a separate mixer. The host owns the scene context, clock policy and camera/UI integration.
 
@@ -26,4 +32,4 @@ Alternatively, read an exported sequence with `SequenceFiles.Read(path)`, then p
 
 [Module boundaries](ContentArchitecture.md) describes data ownership, host ports and adapter composition.
 
-This release covers scene snapshots, pose/value clips, basic surfaces, punctual lights, cameras and two-segment limb goals. Secondary dynamics, persistent constraints, semantic body customization, events, audio, external motion import and final game UI integration remain incomplete. Structural preview rebuilds currently reset prior Unity object Undo references; save or recover the scene before such changes. The native document and recovery data remain independent of that preview lifecycle.
+This release covers scene snapshots, pose/value clips, basic surfaces, punctual lights, cameras and two-segment limb goals. Secondary dynamics, persistent constraints, semantic body customization, events, audio, external motion import and final game UI integration remain incomplete. Use the dedicated scene buttons for structural changes. Unity transform Undo references from before a preview rebuild do not survive it. The native document and recovery data remain independent of that preview lifecycle.

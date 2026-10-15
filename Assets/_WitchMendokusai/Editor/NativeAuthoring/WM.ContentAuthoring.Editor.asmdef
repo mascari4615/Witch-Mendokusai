@@ -1,6 +1,6 @@
 {
   "name": "WM.ContentAuthoring.Editor",
   "rootNamespace": "WitchMendokusai.ContentAuthoring",
-  "references": ["SceneContent.Core", "SceneContent.Serialization", "SceneContent.FileSystem", "SceneContent.Unity", "Motion.Core", "Motion.Serialization", "Motion.Unity", "Rigging.Core", "Rigging.Serialization", "Rigging.Unity", "WM.ContentRuntime", "SceneSequence.Core", "SceneSequence.FileSystem"],
+  "references": ["SceneContent.Core", "SceneContent.Serialization", "SceneContent.FileSystem", "SceneContent.Unity", "Motion.Core", "Motion.Serialization", "Motion.Unity", "Rigging.Core", "Rigging.Serialization", "Rigging.Unity", "WM.ContentRuntime", "SceneSequence.Core", "SceneSequence.FileSystem", "History.Core"],
   "includePlatforms": ["Editor"]
 }

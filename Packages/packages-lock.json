@@ -804,6 +804,12 @@
       "depth": 0,
       "source": "builtin",
       "dependencies": {}
+    },
+    "com.mascari4615.history": {
+      "version": "file:com.mascari4615.history",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     }
   }
 }

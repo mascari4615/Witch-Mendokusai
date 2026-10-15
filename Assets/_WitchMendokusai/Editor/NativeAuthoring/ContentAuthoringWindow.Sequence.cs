@@ -15,6 +15,7 @@ namespace WitchMendokusai.ContentAuthoring
     {
         public void SaveSequence(string file)
         {
+            motion.ValidateDraft();
             SceneDocument snapshot = SceneSnapshot.Capture(workspace.Document, workspace.Instance);
             SequenceDocument sequence = new SequenceDocument { Id = "sequence-" + snapshot.Id, Scene = snapshot, Clips = new[] { motion.Clip } };
             string rig = RigFiles.Read(workspace.FilePath, snapshot);

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using History;
 using Motion;
 using Motion.Serialization;
 using Motion.Unity;
@@ -25,7 +26,7 @@ namespace WitchMendokusai.ContentAuthoring
         public PoseClip Clip { get { return clip; } }
         private string savedClip;
         public bool HasChanges { get { return PoseClipJson.Write(clip) != savedClip; } }
-        private readonly MotionDraftHistory history = new MotionDraftHistory();
+        private readonly SnapshotHistory<PoseClip> history = new SnapshotHistory<PoseClip>(PoseClipJson.Write, PoseClipJson.Read);
         private bool showTracks;
         private Vector2 trackScroll;
 
@@ -57,6 +58,11 @@ namespace WitchMendokusai.ContentAuthoring
         public string ExportDraft()
         {
             return PoseClipJson.Write(clip);
+        }
+
+        public void ValidateDraft()
+        {
+            sampler.ValidateTargets(target, values);
         }
 
         public void RestoreDraft(string json, float seconds, bool changed)
@@ -141,9 +147,19 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void Seek(float seconds)
         {
-            sampler.Apply(seconds, target, values);
-            Time = ClipTime.Normalize(seconds, clip.Duration, clip.Loop);
+            sampler.Apply(seconds, target, values, loopOverride: false);
+            Time = ClipTime.Normalize(seconds, clip.Duration, false);
             SceneView.RepaintAll();
+        }
+
+        public void MoveToAdjacentKey(bool forward)
+        {
+            playing = false;
+            float? seconds = ClipKeyNavigation.Adjacent(clip, Time, forward);
+            if (seconds.HasValue)
+            {
+                Seek(seconds.Value);
+            }
         }
 
         public void Draw(string selectedNode)
@@ -191,6 +207,16 @@ namespace WitchMendokusai.ContentAuthoring
                     playing = playing == false;
                     lastTick = EditorApplication.timeSinceStartup;
                 }
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Previous key"))
+            {
+                Run(delegate { MoveToAdjacentKey(false); });
+            }
+            if (GUILayout.Button("Next key"))
+            {
+                Run(delegate { MoveToAdjacentKey(true); });
             }
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
@@ -258,7 +284,7 @@ namespace WitchMendokusai.ContentAuthoring
             double now = EditorApplication.timeSinceStartup;
             float next = Time + (float)(now - lastTick);
             lastTick = now;
-            Run(delegate { Seek(next); });
+            Run(delegate { Seek(ClipTime.Normalize(next, clip.Duration, clip.Loop)); });
             if (clip.Loop == false && Time >= clip.Duration)
             {
                 playing = false;
@@ -270,22 +296,57 @@ namespace WitchMendokusai.ContentAuthoring
         {
             EditorGUILayout.BeginHorizontal();
             using (new EditorGUI.DisabledScope(history.CanUndo == false))
+            {
                 if (GUILayout.Button("Undo key edit")) UndoEdit();
+            }
             using (new EditorGUI.DisabledScope(history.CanRedo == false))
+            {
                 if (GUILayout.Button("Redo key edit")) RedoEdit();
+            }
             EditorGUILayout.EndHorizontal();
             showTracks = EditorGUILayout.Foldout(showTracks, "Tracks and keys", true);
-            if (showTracks == false) return;
+            if (showTracks == false)
+            {
+                return;
+            }
             trackScroll = EditorGUILayout.BeginScrollView(trackScroll, GUILayout.Height(150));
-            foreach (PoseTrack track in clip.Tracks) TrackRow(track.Node, TrackKind.Pose, track.Keys.Length);
-            foreach (ScalarTrack track in clip.Values) TrackRow(track.Target, TrackKind.Value, track.Keys.Length);
+            foreach (PoseTrack track in clip.Tracks)
+            {
+                TrackRow(track.Node, TrackKind.Pose, track.Keys.Length);
+                EditorGUILayout.BeginHorizontal();
+                for (int index = 0; index < Mathf.Min(8, track.Keys.Length); index++)
+                {
+                    KeyButton(track.Keys[index].Time);
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+            foreach (ScalarTrack track in clip.Values)
+            {
+                TrackRow(track.Target, TrackKind.Value, track.Keys.Length);
+                EditorGUILayout.BeginHorizontal();
+                for (int index = 0; index < Mathf.Min(8, track.Keys.Length); index++)
+                {
+                    KeyButton(track.Keys[index].Time);
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+            EditorGUILayout.LabelField("First 8 keys per track shown. Previous/Next visits every key.", EditorStyles.wordWrappedLabel);
             EditorGUILayout.EndScrollView();
+        }
+
+        private void KeyButton(float seconds)
+        {
+            if (GUILayout.Button(new GUIContent(seconds.ToString("G6") + "s", seconds.ToString("R") + " seconds")))
+            {
+                playing = false;
+                Run(delegate { Seek(seconds); });
+            }
         }
 
         private void TrackRow(string id, TrackKind kind, int count)
         {
             EditorGUILayout.BeginHorizontal();
-            GUILayout.Label(new GUIContent(id + " (" + count + ")", id), GUILayout.MinWidth(70));
+            GUILayout.Label(new GUIContent(id + " (" + count + ")", id), GUILayout.MinWidth(70), GUILayout.MaxWidth(Mathf.Max(70, EditorGUIUtility.currentViewWidth - 210)));
             if (GUILayout.Button("Delete key", GUILayout.Width(70))) RemoveKey(id, kind, Time);
             if (GUILayout.Button("Delete track", GUILayout.Width(78))) RemoveKey(id, kind);
             EditorGUILayout.EndHorizontal();

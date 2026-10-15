@@ -5,11 +5,10 @@ namespace Motion
 {
     public static class PoseClipEditing
     {
-        private const float KEY_TIME_TOLERANCE = 0.00001f;
-
         public static PoseClip Record(PoseClip clip, string node, float time, PoseValue pose)
         {
             new PoseClipSampler(clip);
+            KeyTimes.Ensure(time, clip.Duration);
             PoseKey key = new PoseKey
             {
                 Time = time,
@@ -27,11 +26,13 @@ namespace Motion
                     continue;
                 }
                 List<PoseKey> keys = new List<PoseKey>();
-                foreach (PoseKey existing in track.Keys)
+                int replace = KeyTimes.Closest(track.Keys, existing => existing.Time, time);
+                if (replace >= 0) key.Time = track.Keys[replace].Time;
+                for (int index = 0; index < track.Keys.Length; index++)
                 {
-                    if (Math.Abs(existing.Time - time) > KEY_TIME_TOLERANCE)
+                    if (index != replace)
                     {
-                        keys.Add(existing);
+                        keys.Add(track.Keys[index]);
                     }
                 }
                 keys.Add(key);
@@ -54,6 +55,7 @@ namespace Motion
         public static PoseClip RecordValue(PoseClip clip, string target, float time, float value)
         {
             new PoseClipSampler(clip);
+            KeyTimes.Ensure(time, clip.Duration);
             List<ScalarTrack> tracks = new List<ScalarTrack>();
             bool found = false;
             foreach (ScalarTrack track in clip.Values)
@@ -64,14 +66,16 @@ namespace Motion
                     continue;
                 }
                 List<ScalarKey> keys = new List<ScalarKey>();
-                foreach (ScalarKey existing in track.Keys)
+                int replace = KeyTimes.Closest(track.Keys, existing => existing.Time, time);
+                float keyTime = replace < 0 ? time : track.Keys[replace].Time;
+                for (int index = 0; index < track.Keys.Length; index++)
                 {
-                    if (Math.Abs(existing.Time - time) > KEY_TIME_TOLERANCE)
+                    if (index != replace)
                     {
-                        keys.Add(existing);
+                        keys.Add(track.Keys[index]);
                     }
                 }
-                keys.Add(new ScalarKey { Time = time, Value = value });
+                keys.Add(new ScalarKey { Time = keyTime, Value = value });
                 keys.Sort((left, right) => left.Time.CompareTo(right.Time));
                 tracks.Add(new ScalarTrack { Target = target, Keys = keys.ToArray() });
                 found = true;

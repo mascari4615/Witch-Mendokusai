@@ -6,19 +6,6 @@ namespace Motion.Tests
     public sealed class TrackEditingTests
     {
         [Test]
-        public void DraftHistorySnapshotsMutableInputAndSupportsRedo()
-        {
-            PoseClip clip = new PoseClip { Id = "history", Duration = 2, Tracks = new PoseTrack[0] };
-            clip = PoseClipEditing.RecordValue(clip, "value", 0, 4);
-            MotionDraftHistory history = new MotionDraftHistory();
-            history.Record(clip);
-            clip.Values[0].Keys[0].Value = 8;
-            PoseClip previous = history.Undo(clip);
-            Assert.That(previous.Values[0].Keys[0].Value, Is.EqualTo(4));
-            Assert.That(history.Redo(previous).Values[0].Keys[0].Value, Is.EqualTo(8));
-        }
-
-        [Test]
         public void RemovesOnlyChosenKeyAndDropsEmptyTracksWithoutChangingSource()
         {
             PoseClip clip = new PoseClip { Id = "edit", Duration = 2, Tracks = new PoseTrack[0] };

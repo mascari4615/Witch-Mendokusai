@@ -1,0 +1,4 @@
+{
+  "name": "com.mascari4615.history", "version": "0.1.0", "displayName": "Snapshot History",
+  "description": "Bounded host-serialized undo history with transactional application.", "unity": "6000.3"
+}

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using History;
 using SceneContent;
 using SceneContent.Storage;
 using SceneContent.Unity;
@@ -19,6 +20,9 @@ namespace WitchMendokusai.ContentAuthoring
         public Scene PreviewScene { get; private set; }
         public bool IsLoaded { get { return Instance != null; } }
         private string baseline;
+        private readonly SnapshotHistory<SceneDocument> history = new SnapshotHistory<SceneDocument>(SceneJson.Write, SceneJson.Read);
+        public bool CanUndoChange { get { return history.CanUndo; } }
+        public bool CanRedoChange { get { return history.CanRedo; } }
 
         public bool HasChanges
         {
@@ -30,6 +34,7 @@ namespace WitchMendokusai.ContentAuthoring
             SceneDocument document = SceneFiles.Read(file);
             Build(document, file);
             baseline = SceneJson.Write(SceneSnapshot.Capture(Document, Instance));
+            history.Clear();
         }
 
         public void Restore(string file, SceneDocument document)
@@ -37,17 +42,32 @@ namespace WitchMendokusai.ContentAuthoring
             string sourceBaseline = SceneJson.Write(SceneFiles.Read(file));
             Build(document, file);
             baseline = sourceBaseline;
+            history.Clear();
         }
 
-        public void Change(Action<SceneDocument> action)
+        public void Change(Action<SceneDocument> action, Action<SceneDocument, SceneInstance> validate = null)
         {
-            SceneDocument next = SceneSnapshot.Capture(Document, Instance);
+            SceneDocument previous = SceneSnapshot.Capture(Document, Instance);
+            SceneDocument next = SceneCloning.Copy(previous);
             action(next);
             SceneValidation.Ensure(next);
-            Build(next, FilePath);
+            string file = FilePath;
+            history.Execute(previous, () => Build(next, file, validate));
         }
 
-        private void Build(SceneDocument document, string file)
+        public void UndoChange(Action<SceneDocument, SceneInstance> validate = null)
+        {
+            string file = FilePath;
+            history.Undo(SceneSnapshot.Capture(Document, Instance), document => Build(document, file, validate));
+        }
+
+        public void RedoChange(Action<SceneDocument, SceneInstance> validate = null)
+        {
+            string file = FilePath;
+            history.Redo(SceneSnapshot.Capture(Document, Instance), document => Build(document, file, validate));
+        }
+
+        private void Build(SceneDocument document, string file, Action<SceneDocument, SceneInstance> validate = null)
         {
             DirectoryContentSource source = new DirectoryContentSource(Path.GetDirectoryName(Path.GetFullPath(file)));
             Scene scene = EditorSceneManager.NewPreviewScene();
@@ -58,6 +78,10 @@ namespace WitchMendokusai.ContentAuthoring
                 SceneManager.MoveGameObjectToScene(anchor, scene);
                 StandardSurfaceFactory surfaces = new StandardSurfaceFactory(Shader.Find("Universal Render Pipeline/Unlit"), Shader.Find("Universal Render Pipeline/Lit"));
                 instance = SceneContentLoader.LoadWithSurfaces(document, source, surfaces, anchor.transform, activateCameras: false);
+                if (validate != null)
+                {
+                    validate(document, instance);
+                }
                 Dispose();
                 PreviewScene = scene;
                 Document = document;

@@ -44,9 +44,15 @@ SceneDocument scene = new SceneDocument
 SceneDocument combined = SceneComposition.Append(scene, scene, "second", new[] { 2f, 0f, 0f });
 if (combined.Nodes.Length != 3 || scene.Nodes.Length != 1) throw new Exception("Scene composition modified its source");
 SceneSequence.SequenceValidation.Ensure(new SceneSequence.SequenceDocument { Id = "portable-sequence", Scene = combined, Clips = new PoseClip[0] });
+System.Text.Json.JsonSerializerOptions json = new System.Text.Json.JsonSerializerOptions { IncludeFields = true };
+History.SnapshotHistory<SceneDocument> history = new History.SnapshotHistory<SceneDocument>(
+    value => System.Text.Json.JsonSerializer.Serialize(value, json), text => System.Text.Json.JsonSerializer.Deserialize<SceneDocument>(text, json));
+history.Record(scene);
+scene.Nodes[0].Position[0] = 7;
+if (history.Undo(scene).Nodes[0].Position[0] != 0) throw new Exception("History did not snapshot mutable scene data");
 foreach (System.Reflection.AssemblyName reference in typeof(PoseClipSampler).Assembly.GetReferencedAssemblies())
     if (reference.Name.StartsWith("Unity", StringComparison.Ordinal)) throw new Exception("Engine dependency in portable core");
-Console.WriteLine("PASS: six common cores compile without Unity; motion, whole-frame rejection, limb solving, scene composition and sequence validation execute through host ports.");
+Console.WriteLine("PASS: seven common cores compile without Unity; motion, whole-frame rejection, limb solving, scene composition, sequence validation and history execute through host ports.");
 
 internal sealed class Model : IPoseTarget
 {

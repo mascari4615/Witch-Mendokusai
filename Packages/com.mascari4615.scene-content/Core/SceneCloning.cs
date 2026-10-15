@@ -31,14 +31,7 @@ namespace SceneContent
             }
             for (int index = 0; index < source.Materials.Length; index++)
             {
-                SurfaceMaterial value = source.Materials[index];
-                result.Materials[index] = new SurfaceMaterial
-                {
-                    BaseColor = (float[])value.BaseColor.Clone(), BaseColorTexture = value.BaseColorTexture,
-                    AlphaMode = value.AlphaMode, DoubleSided = value.DoubleSided,
-                    TextureScale = (float[])value.TextureScale.Clone(), TextureOffset = (float[])value.TextureOffset.Clone(),
-                    LightingModel = value.LightingModel, Roughness = value.Roughness, Metallic = value.Metallic, Emission = (float[])value.Emission.Clone()
-                };
+                result.Materials[index] = CopySurface(source.Materials[index]);
             }
             for (int index = 0; index < source.Resources.Length; index++)
             {
@@ -64,6 +57,17 @@ namespace SceneContent
                 };
             }
             return result;
+        }
+
+        public static SurfaceMaterial CopySurface(SurfaceMaterial value)
+        {
+            return new SurfaceMaterial
+            {
+                BaseColor = (float[])value.BaseColor.Clone(), BaseColorTexture = value.BaseColorTexture,
+                AlphaMode = value.AlphaMode, DoubleSided = value.DoubleSided,
+                TextureScale = (float[])value.TextureScale.Clone(), TextureOffset = (float[])value.TextureOffset.Clone(),
+                LightingModel = value.LightingModel, Roughness = value.Roughness, Metallic = value.Metallic, Emission = (float[])value.Emission.Clone()
+            };
         }
     }
 }

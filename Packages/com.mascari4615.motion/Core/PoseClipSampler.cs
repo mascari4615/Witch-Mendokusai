@@ -68,13 +68,13 @@ namespace Motion
             scalar = new ScalarClipSampler(clip, 1000000 - keyCount);
         }
 
-        public PoseSample[] Sample(float time)
+        public PoseSample[] Sample(float time, bool? loopOverride = null)
         {
             if (Finite(time) == false)
             {
                 throw new ArgumentException("Sample time must be finite");
             }
-            float local = ClipTime.Normalize(time, Duration, Loop);
+            float local = ClipTime.Normalize(time, Duration, loopOverride ?? Loop);
             PoseSample[] samples = new PoseSample[nodes.Length];
             for (int track = 0; track < nodes.Length; track++)
             {
@@ -107,13 +107,13 @@ namespace Motion
             return samples;
         }
 
-        public ValueSample[] SampleValues(float time)
+        public ValueSample[] SampleValues(float time, bool? loopOverride = null)
         {
             if (Finite(time) == false)
             {
                 throw new ArgumentException("Sample time must be finite");
             }
-            float local = ClipTime.Normalize(time, Duration, Loop);
+            float local = ClipTime.Normalize(time, Duration, loopOverride ?? Loop);
             return scalar.Sample(local);
         }
 
@@ -130,10 +130,10 @@ namespace Motion
             scalar.ValidateTargets(valueTarget);
         }
 
-        public void Apply(float time, IPoseTarget target, IValueTarget valueTarget = null)
+        public void Apply(float time, IPoseTarget target, IValueTarget valueTarget = null, bool? loopOverride = null)
         {
-            PoseSample[] samples = Sample(time);
-            ValueSample[] properties = SampleValues(time);
+            PoseSample[] samples = Sample(time, loopOverride);
+            ValueSample[] properties = SampleValues(time, loopOverride);
             if ((samples.Length > 0 && target == null) || (properties.Length > 0 && valueTarget == null))
             {
                 throw new ArgumentException("Motion clip requires bound pose and value ports");

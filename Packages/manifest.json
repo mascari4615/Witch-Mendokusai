@@ -62,7 +62,8 @@
     "com.unity.modules.unitywebrequesttexture": "1.0.0",
     "com.unity.modules.unitywebrequestwww": "1.0.0",
     "com.unity.modules.vectorgraphics": "1.0.0",
-    "com.unity.modules.wind": "1.0.0"
+    "com.unity.modules.wind": "1.0.0",
+    "com.mascari4615.history": "file:com.mascari4615.history"
   },
   "scopedRegistries": [
     {
@@ -78,6 +79,7 @@
     "com.mascari4615.motion",
     "com.mascari4615.rigging",
     "com.mascari4615.scene-content",
-    "com.mascari4615.sequence"
+    "com.mascari4615.sequence",
+    "com.mascari4615.history"
   ]
 }

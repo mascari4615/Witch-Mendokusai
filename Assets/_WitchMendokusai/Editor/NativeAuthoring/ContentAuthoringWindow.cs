@@ -24,9 +24,11 @@ namespace WitchMendokusai.ContentAuthoring
         private CameraLightPanel cameras;
         private LibraryPanel library;
         private double nextRecovery;
+        private SurfacePanel surfaces;
 
         public ContentWorkspace Workspace { get { return workspace; } }
         public MotionClipPanel Motion { get { return motion; } }
+        public SurfacePanel Surfaces { get { return surfaces; } }
 
         [MenuItem("WM/Authoring/Scene workspace")]
         public static ContentAuthoringWindow Open()
@@ -43,6 +45,7 @@ namespace WitchMendokusai.ContentAuthoring
             limbs = new LimbPanel(motion.RecordNodes);
             cameras = new CameraLightPanel(motion.RecordValues);
             library = new LibraryPanel();
+            surfaces = new SurfacePanel();
             Undo.undoRedoPerformed += Repaint;
             EditorApplication.delayCall += RestoreLastScene;
             EditorApplication.update += CheckpointRecovery;
@@ -93,6 +96,7 @@ namespace WitchMendokusai.ContentAuthoring
             expressions.Bind(workspace);
             limbs.Bind(workspace);
             cameras.Bind(workspace, ApplyChange, () => stage);
+            surfaces.Bind(workspace, ApplyChange);
             labeledOnly = Array.Exists(workspace.Document.Nodes, node => string.IsNullOrEmpty(node.Label) == false);
             selected = -1;
             failure = false;
@@ -245,6 +249,7 @@ namespace WitchMendokusai.ContentAuthoring
             }
             EditorGUILayout.EndHorizontal();
             DrawSequenceFiles();
+            DrawSceneHistory();
             EditorGUILayout.HelpBox(message, failure ? MessageType.Error : MessageType.Info);
             library.Draw(LoadFromLibrary);
             if (workspace.IsLoaded == false)
@@ -255,16 +260,16 @@ namespace WitchMendokusai.ContentAuthoring
             }
             bodyScroll = EditorGUILayout.BeginScrollView(bodyScroll);
             filter = EditorGUILayout.TextField("Find node", filter);
-            labeledOnly = EditorGUILayout.Toggle("Named controls only", labeledOnly);
+            labeledOnly = EditorGUILayout.Toggle("Named controls and roots", labeledOnly);
             scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.MaxHeight(position.height * 0.38f));
             for (int index = 0; index < workspace.Document.Nodes.Length; index++)
             {
                 SceneNode node = workspace.Document.Nodes[index];
-                if (labeledOnly && string.IsNullOrEmpty(node.Label))
+                if (labeledOnly && string.IsNullOrEmpty(node.Label) && node.Parent >= 0)
                 {
                     continue;
                 }
-                string label = string.IsNullOrEmpty(node.Label) ? node.Id : node.Label;
+                string label = string.IsNullOrEmpty(node.Label) ? (node.Parent < 0 ? "Root " + index : node.Id) : node.Label;
                 if (label.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0 && node.Id.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0)
                 {
                     continue;
@@ -284,6 +289,7 @@ namespace WitchMendokusai.ContentAuthoring
             limbs.Draw();
             expressions.Draw();
             cameras.Draw();
+            surfaces.Draw();
             EditorGUILayout.EndScrollView();
         }
 
@@ -291,13 +297,27 @@ namespace WitchMendokusai.ContentAuthoring
         {
             Run(delegate
             {
-                workspace.Change(change);
-                motion.RefreshValues();
-                stage.ShowPreview(workspace.PreviewScene);
-                expressions.Bind(workspace);
-                limbs.Bind(workspace);
-                Repaint();
+                ChangeScene(change);
             });
+        }
+
+        public void ChangeScene(Action<SceneDocument> change)
+        {
+            workspace.Change(change, ValidateMotionTargets);
+            RefreshPreview();
+        }
+
+        private void RefreshPreview()
+        {
+            motion.RefreshValues();
+            stage.ShowPreview(workspace.PreviewScene);
+            stage.sceneLighting = workspace.Document.Lights.Length > 0;
+            expressions.Bind(workspace);
+            limbs.Bind(workspace);
+            surfaces.Bind(workspace, ApplyChange);
+            if (selected >= workspace.Document.Nodes.Length) selected = -1;
+            if (selected >= 0) Selection.activeTransform = workspace.Instance.FindNode(workspace.Document.Nodes[selected].Id);
+            Repaint();
         }
 
         private void LoadFromLibrary(string file)
