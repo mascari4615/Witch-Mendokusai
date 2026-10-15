@@ -117,6 +117,19 @@ namespace Motion
             return scalar.Sample(local);
         }
 
+        public void ValidateTargets(IPoseTarget target, IValueTarget valueTarget = null)
+        {
+            if (nodes.Length > 0 && target == null)
+            {
+                throw new ArgumentException("Pose motion requires a pose port");
+            }
+            foreach (string node in nodes)
+            {
+                target.Read(node);
+            }
+            scalar.ValidateTargets(valueTarget);
+        }
+
         public void Apply(float time, IPoseTarget target, IValueTarget valueTarget = null)
         {
             PoseSample[] samples = Sample(time);

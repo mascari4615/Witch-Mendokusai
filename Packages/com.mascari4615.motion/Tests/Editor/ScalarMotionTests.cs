@@ -52,6 +52,19 @@ namespace Motion.Tests
             Assert.That(ClipTime.Normalize(-.5f, 2, true), Is.EqualTo(1.5f));
         }
 
+        [Test]
+        public void TargetPreflightRejectsFutureInvalidKeyWithoutWriting()
+        {
+            PoseClip clip = PoseClipEditing.RecordValue(Empty(), "lens", 0, 30);
+            clip = PoseClipEditing.RecordValue(clip, "lens", 2, 200);
+            float lens = 30;
+            FloatPropertyTarget target = new FloatPropertyTarget();
+            target.Bind("lens", () => lens, value => lens = value, 1, 179);
+            PoseClipSampler sampler = new PoseClipSampler(clip);
+            Assert.Throws<ArgumentException>(() => sampler.ValidateTargets(null, target));
+            Assert.That(lens, Is.EqualTo(30));
+        }
+
         private static PoseClip Empty()
         {
             return new PoseClip { Id = "values", Duration = 2, Tracks = new PoseTrack[0] };

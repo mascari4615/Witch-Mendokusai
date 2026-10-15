@@ -1,5 +1,5 @@
 {
-  "name": "WM.ContentRuntime.Tests", "references": ["WM.ContentRuntime", "SceneContent.Core", "SceneContent.Unity", "Motion.Core"],
+  "name": "WM.ContentRuntime.Tests", "references": ["WM.ContentRuntime", "SceneContent.Core", "SceneContent.Unity", "Motion.Core", "SceneSequence.Core"],
   "includePlatforms": ["Editor"], "overrideReferences": true,
   "precompiledReferences": ["nunit.framework.dll"], "optionalUnityReferences": ["TestAssemblies"]
 }

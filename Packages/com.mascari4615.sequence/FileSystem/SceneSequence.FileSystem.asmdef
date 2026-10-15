@@ -1,0 +1,3 @@
+{
+  "name": "SceneSequence.FileSystem", "references": ["SceneSequence.Core", "SceneSequence.Serialization", "SceneContent.Core", "SceneContent.FileSystem", "Motion.Core"], "noEngineReferences": true
+}

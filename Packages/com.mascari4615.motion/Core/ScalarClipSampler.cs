@@ -50,6 +50,21 @@ namespace Motion
             }
         }
 
+        public void ValidateTargets(IValueTarget target)
+        {
+            if (targets.Length > 0 && target == null)
+            {
+                throw new ArgumentException("Scalar motion requires a value port");
+            }
+            for (int track = 0; track < targets.Length; track++)
+            {
+                foreach (float value in values[track])
+                {
+                    target.Validate(targets[track], value);
+                }
+            }
+        }
+
         public ValueSample[] Sample(float time)
         {
             ValueSample[] samples = new ValueSample[targets.Length];

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace WitchMendokusai.ContentAuthoring
 {
-    public sealed class ContentAuthoringWindow : EditorWindow
+    public sealed partial class ContentAuthoringWindow : EditorWindow
     {
         private ContentWorkspace workspace;
         private ContentStageView stage;
@@ -244,6 +244,7 @@ namespace WitchMendokusai.ContentAuthoring
                 }
             }
             EditorGUILayout.EndHorizontal();
+            DrawSequenceFiles();
             EditorGUILayout.HelpBox(message, failure ? MessageType.Error : MessageType.Info);
             library.Draw(LoadFromLibrary);
             if (workspace.IsLoaded == false)

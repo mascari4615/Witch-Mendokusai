@@ -63,6 +63,7 @@ namespace WitchMendokusai.ContentAuthoring
         {
             PoseClip restored = PoseClipJson.Read(json);
             PoseClipSampler restoredSampler = new PoseClipSampler(restored);
+            restoredSampler.ValidateTargets(target, values);
             if (float.IsNaN(seconds) || float.IsInfinity(seconds))
             {
                 throw new ArgumentException("Draft time must be finite");
@@ -206,6 +207,7 @@ namespace WitchMendokusai.ContentAuthoring
                     {
                         PoseClip candidate = PoseClipJson.Read(File.ReadAllText(file));
                         PoseClipSampler next = new PoseClipSampler(candidate);
+                        next.ValidateTargets(target, values);
                         next.Apply(0, target, values);
                         clip = candidate;
                         sampler = next;

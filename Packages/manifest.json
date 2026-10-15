@@ -6,9 +6,15 @@
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.firstgeargames.fishnet": "file:com.firstgeargames.fishnet",
     "com.firstgeargames.fishyfacepunch": "file:com.firstgeargames.fishyfacepunch",
+    "com.mascari4615.appearance": "file:com.mascari4615.appearance",
+    "com.mascari4615.geometry": "file:com.mascari4615.geometry",
     "com.mascari4615.karmo-editor": "file:com.mascari4615.karmo-editor",
+    "com.mascari4615.motion": "file:com.mascari4615.motion",
+    "com.mascari4615.rigging": "file:com.mascari4615.rigging",
+    "com.mascari4615.scene-content": "file:com.mascari4615.scene-content",
+    "com.mascari4615.sequence": "file:com.mascari4615.sequence",
     "com.mascari4615.wm-domainsdk": "file:../DomainSDK",
-    "com.unity.2d.animation": "16.0.0",
+    "com.unity.2d.animation": "16.0.1",
     "com.unity.addressables": "2.11.2",
     "com.unity.ai.assistant": "2.19.0-pre.2",
     "com.unity.ai.navigation": "2.0.14",
@@ -18,7 +24,7 @@
     "com.unity.feature.2d": "2.0.2",
     "com.unity.ide.visualstudio": "2.0.27",
     "com.unity.inputsystem": "1.20.0",
-    "com.unity.localization": "1.5.12",
+    "com.unity.localization": "1.5.13",
     "com.unity.memoryprofiler": "1.1.12",
     "com.unity.multiplayer.playmode": "3.0.0",
     "com.unity.nuget.newtonsoft-json": "3.2.2",
@@ -56,12 +62,7 @@
     "com.unity.modules.unitywebrequesttexture": "1.0.0",
     "com.unity.modules.unitywebrequestwww": "1.0.0",
     "com.unity.modules.vectorgraphics": "1.0.0",
-    "com.unity.modules.wind": "1.0.0",
-    "com.mascari4615.appearance": "file:com.mascari4615.appearance",
-    "com.mascari4615.geometry": "file:com.mascari4615.geometry",
-    "com.mascari4615.motion": "file:com.mascari4615.motion",
-    "com.mascari4615.rigging": "file:com.mascari4615.rigging",
-    "com.mascari4615.scene-content": "file:com.mascari4615.scene-content"
+    "com.unity.modules.wind": "1.0.0"
   },
   "scopedRegistries": [
     {
@@ -76,6 +77,7 @@
     "com.mascari4615.appearance",
     "com.mascari4615.motion",
     "com.mascari4615.rigging",
-    "com.mascari4615.scene-content"
+    "com.mascari4615.scene-content",
+    "com.mascari4615.sequence"
   ]
 }

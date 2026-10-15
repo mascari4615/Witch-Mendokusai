@@ -1,5 +1,5 @@
 {
   "name": "WM.ContentRuntime",
   "rootNamespace": "WitchMendokusai.ContentRuntime",
-  "references": ["Motion.Core", "Motion.Unity", "SceneContent.Core", "SceneContent.Unity"]
+  "references": ["Motion.Core", "Motion.Unity", "SceneContent.Core", "SceneContent.Unity", "SceneSequence.Core"]
 }

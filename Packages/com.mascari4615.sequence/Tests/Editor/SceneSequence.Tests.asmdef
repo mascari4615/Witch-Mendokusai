@@ -1,0 +1,5 @@
+{
+  "name": "SceneSequence.Tests", "references": ["SceneSequence.Core", "SceneSequence.Serialization", "SceneSequence.FileSystem", "SceneContent.Core", "Motion.Core"],
+  "includePlatforms": ["Editor"], "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll", "Newtonsoft.Json.dll"], "optionalUnityReferences": ["TestAssemblies"]
+}

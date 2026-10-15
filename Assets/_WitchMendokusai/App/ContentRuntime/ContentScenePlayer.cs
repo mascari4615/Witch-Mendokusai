@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using Motion;
 using Motion.Unity;
 using SceneContent;
 using SceneContent.Unity;
+using SceneSequence;
 using UnityEngine;
 
 namespace WitchMendokusai.ContentRuntime
@@ -15,11 +15,17 @@ namespace WitchMendokusai.ContentRuntime
         public SceneInstance Instance { get; private set; }
         public bool IsLoaded { get { return Instance != null; } }
 
+        public void Initialize(SequenceDocument sequence, IContentSource source, ISurfaceFactory surfaces)
+        {
+            SequenceValidation.Ensure(sequence);
+            Initialize(sequence.Scene, source, surfaces, sequence.Clips);
+        }
+
         public void Initialize(SceneDocument document, IContentSource source, ISurfaceFactory surfaces, PoseClip[] clips)
         {
             if (IsLoaded) throw new InvalidOperationException("Unload the current content scene before loading another");
             if (clips == null) throw new ArgumentNullException("clips");
-            ValidateClips(clips);
+            SequenceValidation.Ensure(new SequenceDocument { Id = "runtime", Scene = document, Clips = clips });
             GameObject staged = new GameObject("Content scene");
             staged.SetActive(false);
             staged.transform.SetParent(transform, false);
@@ -77,20 +83,6 @@ namespace WitchMendokusai.ContentRuntime
             loadedRoot = null;
             Instance = null;
             players = new PoseClipPlayer[0];
-        }
-
-        private static void ValidateClips(PoseClip[] clips)
-        {
-            HashSet<string> poses = new HashSet<string>(StringComparer.Ordinal);
-            HashSet<string> values = new HashSet<string>(StringComparer.Ordinal);
-            foreach (PoseClip clip in clips)
-            {
-                new PoseClipSampler(clip);
-                foreach (PoseTrack track in clip.Tracks)
-                    if (poses.Add(track.Node) == false) throw new ArgumentException("Clips overlap pose targets; compose them or use a layer mixer");
-                foreach (ScalarTrack track in clip.Values)
-                    if (values.Add(track.Target) == false) throw new ArgumentException("Clips overlap property targets; compose them or use a layer mixer");
-            }
         }
 
         private void EnsureLoaded()

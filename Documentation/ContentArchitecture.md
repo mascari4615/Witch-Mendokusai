@@ -8,6 +8,9 @@ flowchart TD
     Editor --> Storage[Scene file and library adapters]
     Runtime --> SceneUnity[Scene Unity adapter]
     Runtime --> MotionUnity[Motion Unity adapter]
+    Runtime --> SequenceCore[Scene Sequence core]
+    SequenceCore --> SceneCore
+    SequenceCore --> MotionCore
     Editor --> RigUnity[Rigging Unity adapter]
     SceneUnity --> SceneCore[Scene Content core]
     SceneUnity --> GeometryUnity[Geometry Unity adapter]
@@ -24,6 +27,7 @@ flowchart TD
 | Scene Content | Node graph, surface recipes, resource identities, camera/light data, cloning/composition/pruning | Resource source, surface factory and rendering policy |
 | Motion | Pose/value keys, deterministic sampling, recording/removal and draft history | Pose/value targets, stable property identities and clock |
 | Rigging | Role bindings and analytic limb geometry | Joint data, bend goals and hierarchy policy |
+| Scene Sequence | Scene and motion composition, binding conflicts and export manifest | Resource source, playback host and semantic property validation |
 
 The cores do not reference Unity, WM or editor assemblies. Serialization, file storage and Unity construction are separate assemblies. The portable example compiles the same core files into a normal .NET program. Rendering and asset-lifetime tests remain Unity tests.
 
@@ -36,5 +40,7 @@ Stable IDs identify nodes independently of display names. Composition gives adde
 Loaded scene instances own generated assets. Runtime composition stages content inactive and exposes it after construction and clip binding succeed. Failed construction disposes staged content. Unloading hides content immediately, then Unity releases its owned objects. Imported data never changes project quality silently; skin influence requirements are checked against host policy.
 
 The authoring preview is separate from the game's active scene. Working drafts and motion state are checkpointed locally without copying model blobs. Export uses validated resources and atomic manifest replacement. Rig sidecars are composed by the WM host and are kept separate from the common scene module.
+
+Sequence export embeds the native scene and motion documents, then uses the content library adapter to share hash-addressed resources. A sequence owns no renderer or clock. Pose targets must exist in its scene and clips cannot compete for a target. Numerical property meaning remains a host contract; the runtime stages the scene and validates property bindings before activation. Runtime supports multiple clips starting together; the authoring host currently exports one combined clip. This does not imply a general timeline scheduler or mixer.
 
 These are building contracts, not a frozen interchange standard. The current design does not yet include a general constraint graph, secondary dynamics, event/audio scheduling, rig retargeting, semantic body parameters or a general shader graph. Add those as explicit capabilities with data ownership and execution order; do not route them through untyped compatibility payloads.

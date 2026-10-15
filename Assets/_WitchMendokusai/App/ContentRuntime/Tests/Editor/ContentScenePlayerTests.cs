@@ -41,13 +41,47 @@ namespace WitchMendokusai.ContentRuntime.Tests
         }
 
         [Test]
-        public void MissingTargetDisposesStagedSceneAndKeepsPlayerUnloaded()
+        public void MissingPoseTargetIsRejectedBeforeSceneAllocation()
         {
             GameObject host = new GameObject("content-player-test");
             try
             {
                 ContentScenePlayer player = host.AddComponent<ContentScenePlayer>();
-                Assert.Throws<KeyNotFoundException>(() => player.Initialize(Document(), new EmptySource(), Surfaces(), new[] { Clip("missing") }));
+                Assert.Throws<ArgumentException>(() => player.Initialize(Document(), new EmptySource(), Surfaces(), new[] { Clip("missing") }));
+                Assert.That(player.IsLoaded, Is.False);
+                Assert.That(host.transform.childCount, Is.EqualTo(0));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(host); }
+        }
+
+        [Test]
+        public void MissingPropertyDisposesStagedSceneAndKeepsPlayerUnloaded()
+        {
+            GameObject host = new GameObject("content-player-test");
+            try
+            {
+                ContentScenePlayer player = host.AddComponent<ContentScenePlayer>();
+                PoseClip clip = PoseClipEditing.RecordValue(new PoseClip { Id = "values", Duration = 1, Tracks = new PoseTrack[0] }, "missing", 0, 1);
+                Assert.Throws<KeyNotFoundException>(() => player.Initialize(Document(), new EmptySource(), Surfaces(), new[] { clip }));
+                Assert.That(player.IsLoaded, Is.False);
+                Assert.That(host.transform.childCount, Is.EqualTo(0));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(host); }
+        }
+
+        [Test]
+        public void FutureOutOfRangeLensKeyRejectsWholeSequenceBeforeActivation()
+        {
+            GameObject host = new GameObject("content-player-test");
+            try
+            {
+                ContentScenePlayer player = host.AddComponent<ContentScenePlayer>();
+                SceneDocument document = Document();
+                document.Cameras = new[] { new SceneCamera { Node = 0 } };
+                string property = SceneMotionBindings.CameraField("node", "fov");
+                PoseClip clip = PoseClipEditing.RecordValue(new PoseClip { Id = "lens", Duration = 1, Tracks = new PoseTrack[0] }, property, 0, 45);
+                clip = PoseClipEditing.RecordValue(clip, property, 1, 200);
+                Assert.Throws<ArgumentException>(() => player.Initialize(document, new EmptySource(), Surfaces(), new[] { clip }));
                 Assert.That(player.IsLoaded, Is.False);
                 Assert.That(host.transform.childCount, Is.EqualTo(0));
             }

@@ -15,6 +15,7 @@ namespace Motion.Unity
         public void Initialize(PoseClip clip, IPoseTarget poseTarget, IValueTarget valueTarget = null)
         {
             PoseClipSampler next = new PoseClipSampler(clip);
+            next.ValidateTargets(poseTarget, valueTarget);
             next.Apply(0, poseTarget, valueTarget);
             sampler = next;
             target = poseTarget;

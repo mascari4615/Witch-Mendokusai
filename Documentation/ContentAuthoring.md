@@ -10,14 +10,17 @@ Open **WM > Authoring > Scene workspace** in Unity. This early authoring tool ed
 6. **Camera from view** adds a camera using the stage viewpoint. Select its node to record camera movement, or use **Record lens key** for lens changes. Add a light and record intensity or color keys. **Use lit surfaces** switches the basic surface model to use scene lighting.
 7. **Add actor** imports another native scene as a separate actor. Its node identities, rig roles and resource references are separated from existing actors. The existing motion draft is preserved. Imported actor cameras and lights are excluded so the current shot remains in control.
 8. **Save as** writes the current scene snapshot and verified resources. Rig sidecars are preserved. A scene snapshot stores the current pose; a motion clip stores changes over time.
+9. **Export sequence** saves the scene and current motion draft together as a `.sequence.json` document with shared resource files. **Open sequence** restores both. Move the entire export folder when transferring it. Optional rig sidecars preserve editor limb controls.
 
 Working scene and motion drafts are checkpointed every ten seconds when changed, and before closing or script reload. Recovery is stored in the local project Library and references existing resources. It does not replace source files or duplicate model files. Keep source resources available until the scene has been saved or imported into the shared library.
 
 Expand **Tracks and keys** to remove a key at the current time or remove a whole track. **Undo key edit** and **Redo key edit** restore up to 100 draft edits. This history is separate from Unity transform editing.
 
-The reusable packages are `Appearance`, `Geometry`, `Scene Content`, `Motion` and `Rigging`. Their cores have no engine or game dependencies. Unity adapters own generated assets and bind transforms, rendering and playback. `WM.ContentRuntime` composes scene data with motion property ports; `WM.ContentAuthoring.Editor` provides the authoring host.
+The reusable packages are `Appearance`, `Geometry`, `Scene Content`, `Motion`, `Rigging` and `Scene Sequence`. Their cores have no engine or game dependencies. Unity adapters own generated assets and bind transforms, rendering and playback. `WM.ContentRuntime` composes scene data with motion property ports; `WM.ContentAuthoring.Editor` provides the authoring host.
 
 At runtime, add `ContentScenePlayer` to a host GameObject and initialize it with a scene document, an `IContentSource`, an `ISurfaceFactory` and motion clips. The content stays inactive until construction and clip binding succeed. Call `Play`, `Pause`, `Seek` or `Unload`. Clips that write the same pose or numerical property are rejected; deliberate blending requires a separate mixer. The host owns the scene context, clock policy and camera/UI integration.
+
+Alternatively, read an exported sequence with `SequenceFiles.Read(path)`, then pass it to `ContentScenePlayer.Initialize(sequence, source, surfaces)`. Supply a `DirectoryContentSource` rooted at the export directory. The sequence supports multiple non-overlapping clips; this editor currently edits one combined motion draft. Loading a multi-clip sequence into this editor is rejected explicitly. Event/audio scheduling and clip layering are separate unfinished capabilities.
 
 [Portable core example](../Portable/ContentCore/README.md) compiles and runs the common core sources outside Unity.
 

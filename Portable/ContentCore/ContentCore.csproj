@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="../../Packages/com.mascari4615.sequence/Core/*.cs" Link="SceneSequence/%(Filename)%(Extension)" />
     <Compile Include="../../Packages/com.mascari4615.appearance/Core/*.cs" Link="Appearance/%(Filename)%(Extension)" />
     <Compile Include="../../Packages/com.mascari4615.geometry/Core/*.cs" Link="Geometry/%(Filename)%(Extension)" />
     <Compile Include="../../Packages/com.mascari4615.geometry/Binary/*.cs" Link="GeometryBinary/%(Filename)%(Extension)" />

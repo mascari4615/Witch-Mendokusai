@@ -43,9 +43,10 @@ SceneDocument scene = new SceneDocument
 };
 SceneDocument combined = SceneComposition.Append(scene, scene, "second", new[] { 2f, 0f, 0f });
 if (combined.Nodes.Length != 3 || scene.Nodes.Length != 1) throw new Exception("Scene composition modified its source");
+SceneSequence.SequenceValidation.Ensure(new SceneSequence.SequenceDocument { Id = "portable-sequence", Scene = combined, Clips = new PoseClip[0] });
 foreach (System.Reflection.AssemblyName reference in typeof(PoseClipSampler).Assembly.GetReferencedAssemblies())
     if (reference.Name.StartsWith("Unity", StringComparison.Ordinal)) throw new Exception("Engine dependency in portable core");
-Console.WriteLine("PASS: five common cores compile without Unity; pose/property motion, whole-frame rejection, limb solving and scene composition execute through host ports.");
+Console.WriteLine("PASS: six common cores compile without Unity; motion, whole-frame rejection, limb solving, scene composition and sequence validation execute through host ports.");
 
 internal sealed class Model : IPoseTarget
 {

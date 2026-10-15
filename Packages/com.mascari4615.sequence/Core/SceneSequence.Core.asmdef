@@ -1,0 +1,3 @@
+{
+  "name": "SceneSequence.Core", "references": ["SceneContent.Core", "Motion.Core"], "noEngineReferences": true
+}
