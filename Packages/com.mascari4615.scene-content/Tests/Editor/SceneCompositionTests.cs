@@ -8,6 +8,19 @@ namespace SceneContent.Tests
     public sealed class SceneCompositionTests
     {
         [Test]
+        public void ImportedRootNameCannotCollideWithActorContainer()
+        {
+            SceneDocument source = new SceneDocument
+            {
+                Id = "root-only", Nodes = new[] { new SceneNode { Id = "root", Position = new float[3], Rotation = new[] { 0f, 0f, 0f, 1f }, Scale = new[] { 1f, 1f, 1f } } },
+                Meshes = new MeshInstance[0], Materials = new SurfaceMaterial[0], Resources = new ContentResource[0]
+            };
+            SceneDocument combined = SceneComposition.Append(source, source, "second", new float[3]);
+            Assert.That(combined.Nodes[1].Id, Is.EqualTo("second"));
+            Assert.That(combined.Nodes[2].Id, Is.EqualTo("second:root"));
+        }
+
+        [Test]
         public void NamespacesAndRemapsEveryBindingWithoutMutatingInputs()
         {
             SceneDocument first = SceneFixtures.Document(SceneFixtures.Bytes());

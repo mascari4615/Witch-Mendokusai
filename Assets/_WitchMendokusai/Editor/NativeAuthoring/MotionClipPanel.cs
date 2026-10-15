@@ -25,6 +25,34 @@ namespace WitchMendokusai.ContentAuthoring
         public PoseClip Clip { get { return clip; } }
         private string savedClip;
         public bool HasChanges { get { return PoseClipJson.Write(clip) != savedClip; } }
+        private readonly MotionDraftHistory history = new MotionDraftHistory();
+        private bool showTracks;
+        private Vector2 trackScroll;
+
+        public void RemoveKey(string targetId, TrackKind kind, float? seconds = null)
+        {
+            playing = false;
+            PoseClip next = TrackEditing.Remove(clip, targetId, kind, seconds);
+            history.Record(clip);
+            clip = next;
+            sampler = new PoseClipSampler(clip);
+        }
+
+        public void UndoEdit()
+        {
+            playing = false;
+            clip = history.Undo(clip);
+            sampler = new PoseClipSampler(clip);
+            Time = Mathf.Min(Time, clip.Duration);
+        }
+
+        public void RedoEdit()
+        {
+            playing = false;
+            clip = history.Redo(clip);
+            sampler = new PoseClipSampler(clip);
+            Time = Mathf.Min(Time, clip.Duration);
+        }
 
         public string ExportDraft()
         {
@@ -44,6 +72,7 @@ namespace WitchMendokusai.ContentAuthoring
             Time = Mathf.Clamp(seconds, 0, clip.Duration);
             savedClip = changed ? null : PoseClipJson.Write(clip);
             playing = false;
+            history.Clear();
         }
 
         public MotionClipPanel()
@@ -59,6 +88,7 @@ namespace WitchMendokusai.ContentAuthoring
             clip = new PoseClip { Id = Guid.NewGuid().ToString("N"), Duration = 3, Tracks = new PoseTrack[0] };
             sampler = new PoseClipSampler(clip);
             savedClip = PoseClipJson.Write(clip);
+            history.Clear();
             error = null;
         }
 
@@ -83,13 +113,16 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 next = PoseClipEditing.RecordValue(next, property, Time, values.Read(property));
             }
+            history.Record(clip);
             clip = next;
             sampler = new PoseClipSampler(clip);
         }
 
         public void Record(string node)
         {
-            clip = PoseClipEditing.Record(clip, node, Time, target.Read(node));
+            PoseClip next = PoseClipEditing.Record(clip, node, Time, target.Read(node));
+            history.Record(clip);
+            clip = next;
             sampler = new PoseClipSampler(clip);
         }
 
@@ -100,6 +133,7 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 next = PoseClipEditing.Record(next, node, Time, target.Read(node));
             }
+            history.Record(clip);
             clip = next;
             sampler = new PoseClipSampler(clip);
         }
@@ -124,6 +158,7 @@ namespace WitchMendokusai.ContentAuthoring
                 {
                     PoseClip candidate = new PoseClip { Id = clip.Id, Duration = duration, Loop = loop, Tracks = clip.Tracks, Values = clip.Values };
                     PoseClipSampler next = new PoseClipSampler(candidate);
+                    history.Record(clip);
                     clip = candidate;
                     sampler = next;
                     Time = Mathf.Min(Time, duration);
@@ -177,6 +212,7 @@ namespace WitchMendokusai.ContentAuthoring
                         playing = false;
                         Time = 0;
                         savedClip = PoseClipJson.Write(clip);
+                        history.Clear();
                     });
                 }
             }
@@ -204,6 +240,7 @@ namespace WitchMendokusai.ContentAuthoring
                 keys += track.Keys.Length;
             }
             EditorGUILayout.LabelField(clip.Tracks.Length + " pose tracks, " + clip.Values.Length + " value tracks, " + keys + " keys");
+            DrawTrackEdits();
             if (string.IsNullOrEmpty(error) == false)
             {
                 EditorGUILayout.HelpBox(error, MessageType.Error);
@@ -225,6 +262,31 @@ namespace WitchMendokusai.ContentAuthoring
                 playing = false;
             }
             repaint();
+        }
+
+        private void DrawTrackEdits()
+        {
+            EditorGUILayout.BeginHorizontal();
+            using (new EditorGUI.DisabledScope(history.CanUndo == false))
+                if (GUILayout.Button("Undo key edit")) UndoEdit();
+            using (new EditorGUI.DisabledScope(history.CanRedo == false))
+                if (GUILayout.Button("Redo key edit")) RedoEdit();
+            EditorGUILayout.EndHorizontal();
+            showTracks = EditorGUILayout.Foldout(showTracks, "Tracks and keys", true);
+            if (showTracks == false) return;
+            trackScroll = EditorGUILayout.BeginScrollView(trackScroll, GUILayout.Height(150));
+            foreach (PoseTrack track in clip.Tracks) TrackRow(track.Node, TrackKind.Pose, track.Keys.Length);
+            foreach (ScalarTrack track in clip.Values) TrackRow(track.Target, TrackKind.Value, track.Keys.Length);
+            EditorGUILayout.EndScrollView();
+        }
+
+        private void TrackRow(string id, TrackKind kind, int count)
+        {
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label(new GUIContent(id + " (" + count + ")", id), GUILayout.MinWidth(70));
+            if (GUILayout.Button("Delete key", GUILayout.Width(70))) RemoveKey(id, kind, Time);
+            if (GUILayout.Button("Delete track", GUILayout.Width(78))) RemoveKey(id, kind);
+            EditorGUILayout.EndHorizontal();
         }
 
         private bool ConfirmDiscard()

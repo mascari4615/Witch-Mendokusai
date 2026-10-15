@@ -18,7 +18,7 @@ namespace SceneContent
             List<SceneNode> nodes = new List<SceneNode>(left.Nodes);
             nodes.Add(new SceneNode
             {
-                Id = prefix + ":root", Label = "Actor " + prefix, Parent = -1,
+                Id = prefix, Label = "Actor " + prefix, Parent = -1,
                 Position = (float[])position.Clone(), Rotation = new[] { 0f, 0f, 0f, 1f }, Scale = new[] { 1f, 1f, 1f }
             });
             foreach (SceneNode node in right.Nodes)

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="../../Packages/com.mascari4615.appearance/Core/*.cs" Link="Appearance/%(Filename)%(Extension)" />
+    <Compile Include="../../Packages/com.mascari4615.geometry/Core/*.cs" Link="Geometry/%(Filename)%(Extension)" />
+    <Compile Include="../../Packages/com.mascari4615.geometry/Binary/*.cs" Link="GeometryBinary/%(Filename)%(Extension)" />
+    <Compile Include="../../Packages/com.mascari4615.scene-content/Core/*.cs" Link="SceneContent/%(Filename)%(Extension)" />
+    <Compile Include="../../Packages/com.mascari4615.motion/Core/*.cs" Link="Motion/%(Filename)%(Extension)" />
+    <Compile Include="../../Packages/com.mascari4615.rigging/Core/*.cs" Link="Rigging/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

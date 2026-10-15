@@ -13,8 +13,6 @@ git push origin v0.0.5
 
 [`.github/workflows/release.yml`](.github/workflows/release.yml) 가 자동으로 [`CHANGELOG.md`](CHANGELOG.md) 갱신 + `ProjectSettings/ProjectSettings.asset` 의 `bundleVersion` sync + [GitHub Release](https://github.com/mascari4615/Witch-Mendokusai/releases) 생성. 자세한 흐름·결정 배경·revert 는 [`CLAUDE.md` § Git Workflow → Release flow](CLAUDE.md).
 
-## 사용한 리소스/에셋
-
 ## Content authoring
 
 Unity의 **WM > Authoring > Scene workspace**에서 독립 장면과 동작을 제작합니다. 자세, 표정, 카메라, 조명과 여러 캐릭터를 편집하고 같은 데이터를 게임에서 재생합니다. [사용법과 현재 범위](Documentation/ContentAuthoring.md).
