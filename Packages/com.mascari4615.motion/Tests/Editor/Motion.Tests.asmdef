@@ -1,0 +1,5 @@
+{
+  "name": "Motion.Tests", "references": ["Motion.Core", "Motion.Serialization", "Motion.Unity"],
+  "includePlatforms": ["Editor"], "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll"], "optionalUnityReferences": ["TestAssemblies"]
+}

@@ -1,0 +1,4 @@
+{
+  "name": "Motion.Serialization", "references": ["Motion.Core"],
+  "overrideReferences": true, "precompiledReferences": ["Newtonsoft.Json.dll"], "noEngineReferences": true
+}

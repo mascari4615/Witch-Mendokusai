@@ -19,6 +19,7 @@ namespace SceneContent
     public sealed class SceneNode
     {
         public string Id;
+        public string Label;
         public int Parent = -1;
         public float[] Position;
         public float[] Rotation;

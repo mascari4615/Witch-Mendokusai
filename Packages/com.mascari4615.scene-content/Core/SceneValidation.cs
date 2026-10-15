@@ -19,7 +19,7 @@ namespace SceneContent
             {
                 SceneNode node = scene.Nodes[index];
                 if (node == null || string.IsNullOrEmpty(node.Id) || nodeIds.Add(node.Id) == false ||
-                    node.Parent < -1 || node.Parent >= scene.Nodes.Length || node.Parent == index)
+                    node.Parent < -1 || node.Parent >= scene.Nodes.Length || node.Parent == index || (node.Label != null && node.Label.Length > 1024))
                     throw new ArgumentException("Invalid scene node or parent");
                 Vector(node.Position, 3);
                 Vector(node.Rotation, 4);

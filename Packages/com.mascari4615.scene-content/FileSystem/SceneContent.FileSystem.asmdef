@@ -1,1 +1,1 @@
-{ "name": "SceneContent.FileSystem", "references": ["SceneContent.Core"], "noEngineReferences": true }
+{ "name": "SceneContent.FileSystem", "references": ["SceneContent.Core", "SceneContent.Serialization"], "noEngineReferences": true }
