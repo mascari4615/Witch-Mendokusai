@@ -13,6 +13,8 @@ namespace SceneContent
         public MeshInstance[] Meshes;
         public SurfaceMaterial[] Materials;
         public ContentResource[] Resources;
+        public SceneCamera[] Cameras = new SceneCamera[0];
+        public SceneLight[] Lights = new SceneLight[0];
     }
 
     [Serializable]
@@ -47,6 +49,10 @@ namespace SceneContent
         public bool DoubleSided;
         public float[] TextureScale = new[] { 1f, 1f };
         public float[] TextureOffset = new[] { 0f, 0f };
+        public string LightingModel = "unlit";
+        public float Roughness = .7f;
+        public float Metallic;
+        public float[] Emission = new float[3];
     }
 
     [Serializable]

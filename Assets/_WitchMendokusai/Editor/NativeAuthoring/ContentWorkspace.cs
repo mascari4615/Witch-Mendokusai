@@ -21,6 +21,19 @@ namespace WitchMendokusai.ContentAuthoring
         public void Load(string file)
         {
             SceneDocument document = SceneFiles.Read(file);
+            Build(document, file);
+        }
+
+        public void Change(Action<SceneDocument> action)
+        {
+            SceneDocument next = SceneSnapshot.Capture(Document, Instance);
+            action(next);
+            SceneValidation.Ensure(next);
+            Build(next, FilePath);
+        }
+
+        private void Build(SceneDocument document, string file)
+        {
             DirectoryContentSource source = new DirectoryContentSource(Path.GetDirectoryName(Path.GetFullPath(file)));
             Scene scene = EditorSceneManager.NewPreviewScene();
             SceneInstance instance = null;
@@ -28,7 +41,8 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 GameObject anchor = new GameObject("Content workspace");
                 SceneManager.MoveGameObjectToScene(anchor, scene);
-                instance = SceneContentLoader.Load(document, source, Shader.Find("Universal Render Pipeline/Unlit"), anchor.transform);
+                StandardSurfaceFactory surfaces = new StandardSurfaceFactory(Shader.Find("Universal Render Pipeline/Unlit"), Shader.Find("Universal Render Pipeline/Lit"));
+                instance = SceneContentLoader.LoadWithSurfaces(document, source, surfaces, anchor.transform, activateCameras: false);
                 Dispose();
                 PreviewScene = scene;
                 Document = document;

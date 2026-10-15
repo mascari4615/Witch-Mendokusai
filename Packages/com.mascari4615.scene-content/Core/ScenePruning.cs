@@ -36,6 +36,14 @@ namespace SceneContent
                     Keep(source, retained, bone);
                 }
             }
+            foreach (SceneCamera camera in source.Cameras)
+            {
+                Keep(source, retained, camera.Node);
+            }
+            foreach (SceneLight light in source.Lights)
+            {
+                Keep(source, retained, light.Node);
+            }
             int[] remap = new int[retained.Length];
             List<SceneNode> nodes = new List<SceneNode>();
             for (int index = 0; index < retained.Length; index++)
@@ -75,10 +83,17 @@ namespace SceneContent
                     ShadowOnly = original.ShadowOnly, MorphWeights = (float[])original.MorphWeights.Clone()
                 };
             }
-            SceneDocument result = new SceneDocument
+            SceneDocument result = SceneCloning.Copy(source);
+            result.Nodes = nodes.ToArray();
+            result.Meshes = meshes;
+            foreach (SceneCamera camera in result.Cameras)
             {
-                Id = source.Id, Nodes = nodes.ToArray(), Meshes = meshes, Materials = source.Materials, Resources = source.Resources
-            };
+                camera.Node = remap[camera.Node];
+            }
+            foreach (SceneLight light in result.Lights)
+            {
+                light.Node = remap[light.Node];
+            }
             SceneValidation.Ensure(result);
             return result;
         }

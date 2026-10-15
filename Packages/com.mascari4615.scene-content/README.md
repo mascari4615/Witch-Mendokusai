@@ -8,6 +8,12 @@ The Unity loader stages a scene inactive, validates geometry bindings, shares re
 
 Skinning fidelity is a host rendering policy. The loader rejects a host influence limit below the geometry requirement, unless reduced fidelity is explicitly requested. Set an appropriate host skin-weight quality before loading; per-renderer quality alone does not guarantee full influence evaluation. The module does not silently change project quality settings.
 
-This initial contract describes a scene snapshot with editable transforms and morphs. Behavior controllers, simulation, animation clips, camera/lights and material graphs are separate capabilities; no opaque compatibility payload is stored here.
+The contract describes scene snapshots with editable transforms and morphs, perspective/orthographic cameras, punctual lights and basic surface recipes. Behavior controllers, simulation, animation clips and material graphs are separate capabilities; no opaque compatibility payload is stored here.
 
 `SceneSnapshot.Capture` copies current local poses and expression weights without changing the source document. `SceneFiles.Save` verifies every resource, stages new blobs and atomically replaces the manifest after all resources are present. Existing corrupt resources cause a failure before the saved manifest changes. Saving to another folder produces a self-contained native scene without private provenance data. Optional node labels help authoring while persistent IDs remain the binding contract.
+
+Camera data includes projection, vertical field of view, orthographic half-height, near/far clips, clear color and authored activation. Hosts can suppress camera activation when loading an editor preview; snapshots preserve the authored activation policy. Lights use explicit relative intensity and support directional, point and spot types. Physical-unit calibration and environment lighting remain separate host policies.
+
+`LoadWithSurfaces` takes an `ISurfaceFactory`. `SingleShaderSurfaceFactory` forces a caller-selected shader; `StandardSurfaceFactory` selects caller-provided unlit or lit shaders using each surface's lighting model. Roughness maps to one minus smoothness, with metallic and linear emission values. Generated materials belong to the scene instance. A custom factory must return a new owned material for each request, not borrowed shared assets.
+
+`ScenePruning.Snapshot` is an explicit optimization operation. It retains mesh nodes, skin bones, roots, camera/light nodes, caller-pinned nodes and all ancestors, then remaps indices while preserving stable IDs. It never runs implicitly during loading. `SceneCloning.Copy` gives an independent editable copy, including nested mutable arrays.

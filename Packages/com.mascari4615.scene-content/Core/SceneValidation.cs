@@ -29,6 +29,7 @@ namespace SceneContent
                 if (Math.Abs(norm - 1) > 0.01f) throw new ArgumentException("Quaternion must be normalized");
             }
             int[] states = new int[scene.Nodes.Length];
+            ComponentValidation.Ensure(scene);
             for (int start = 0; start < states.Length; start++)
             {
                 int node = start;
@@ -63,6 +64,12 @@ namespace SceneContent
                 Vector(material.BaseColor, 4);
                 Vector(material.TextureScale, 2);
                 Vector(material.TextureOffset, 2);
+                Vector(material.Emission, 3);
+                if ((material.LightingModel != "unlit" && material.LightingModel != "lit") || material.Roughness < 0 || material.Roughness > 1 ||
+                    float.IsNaN(material.Roughness) || material.Metallic < 0 || material.Metallic > 1 || float.IsNaN(material.Metallic))
+                    throw new ArgumentException("Invalid surface lighting model or physical properties");
+                foreach (float emission in material.Emission)
+                    if (emission < 0) throw new ArgumentException("Emission must be nonnegative");
                 if (material.AlphaMode != "opaque" && material.AlphaMode != "mask" && material.AlphaMode != "blend")
                     throw new ArgumentException("Unsupported alpha mode");
                 if (string.IsNullOrEmpty(material.BaseColorTexture) == false)

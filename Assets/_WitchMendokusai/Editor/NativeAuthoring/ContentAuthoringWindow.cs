@@ -20,6 +20,7 @@ namespace WitchMendokusai.ContentAuthoring
         private bool labeledOnly;
         private LimbPanel limbs;
         private Vector2 bodyScroll;
+        private CameraLightPanel cameras;
 
         public ContentWorkspace Workspace { get { return workspace; } }
 
@@ -36,6 +37,7 @@ namespace WitchMendokusai.ContentAuthoring
             motion = new MotionClipPanel();
             expressions = new ExpressionPanel();
             limbs = new LimbPanel(motion.RecordNodes);
+            cameras = new CameraLightPanel();
             Undo.undoRedoPerformed += Repaint;
             EditorApplication.delayCall += RestoreLastScene;
         }
@@ -62,6 +64,7 @@ namespace WitchMendokusai.ContentAuthoring
             motion.Bind(workspace, Repaint);
             expressions.Bind(workspace);
             limbs.Bind(workspace);
+            cameras.Bind(workspace, ApplyChange, () => stage);
             labeledOnly = Array.Exists(workspace.Document.Nodes, node => string.IsNullOrEmpty(node.Label) == false);
             selected = -1;
             failure = false;
@@ -74,7 +77,7 @@ namespace WitchMendokusai.ContentAuthoring
                 stage.Show();
             }
             stage.ShowPreview(workspace.PreviewScene);
-            stage.sceneLighting = false;
+            stage.sceneLighting = workspace.Document.Lights.Length > 0;
             stage.Frame(workspace.GetBounds(), true);
             Repaint();
         }
@@ -85,6 +88,28 @@ namespace WitchMendokusai.ContentAuthoring
             if (workspace.IsLoaded == false && File.Exists(file))
             {
                 Run(delegate { LoadFile(file); });
+            }
+        }
+
+        private void OnSelectionChange()
+        {
+            if (workspace == null || workspace.IsLoaded == false)
+            {
+                return;
+            }
+            Transform candidate = Selection.activeTransform;
+            while (candidate != null && candidate != workspace.Instance.transform)
+            {
+                for (int index = 0; index < workspace.Document.Nodes.Length; index++)
+                {
+                    if (workspace.Instance.FindNode(workspace.Document.Nodes[index].Id) == candidate)
+                    {
+                        selected = index;
+                        Repaint();
+                        return;
+                    }
+                }
+                candidate = candidate.parent;
             }
         }
 
@@ -152,7 +177,20 @@ namespace WitchMendokusai.ContentAuthoring
             DrawSelected();
             limbs.Draw();
             expressions.Draw();
+            cameras.Draw();
             EditorGUILayout.EndScrollView();
+        }
+
+        private void ApplyChange(Action<SceneDocument> change)
+        {
+            Run(delegate
+            {
+                workspace.Change(change);
+                stage.ShowPreview(workspace.PreviewScene);
+                expressions.Bind(workspace);
+                limbs.Bind(workspace);
+                Repaint();
+            });
         }
 
         private void DrawSelected()

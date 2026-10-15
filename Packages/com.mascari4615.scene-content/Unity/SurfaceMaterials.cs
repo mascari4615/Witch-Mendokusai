@@ -14,6 +14,13 @@ namespace SceneContent.Unity
             material.SetTextureScale("_BaseMap", new Vector2(surface.TextureScale[0], surface.TextureScale[1]));
             material.SetTextureOffset("_BaseMap", new Vector2(surface.TextureOffset[0], surface.TextureOffset[1]));
             material.SetFloat("_Cull", surface.DoubleSided ? 0 : 2);
+            if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", surface.Metallic);
+            if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", 1 - surface.Roughness);
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.SetColor("_EmissionColor", new Color(surface.Emission[0], surface.Emission[1], surface.Emission[2]));
+                if (surface.Emission[0] + surface.Emission[1] + surface.Emission[2] > 0) material.EnableKeyword("_EMISSION");
+            }
             bool blend = surface.AlphaMode == "blend";
             bool mask = surface.AlphaMode == "mask";
             material.SetFloat("_Surface", blend ? 1 : 0);

@@ -10,10 +10,15 @@ namespace SceneContent.Unity
 {
     public static class SceneContentLoader
     {
-        public static SceneInstance Load(SceneDocument document, IContentSource source, Shader shader, Transform parent = null, bool allowReducedSkinning = false)
+        public static SceneInstance Load(SceneDocument document, IContentSource source, Shader shader, Transform parent = null, bool allowReducedSkinning = false, bool activateCameras = true)
+        {
+            return LoadWithSurfaces(document, source, new SingleShaderSurfaceFactory(shader), parent, allowReducedSkinning, activateCameras);
+        }
+
+        public static SceneInstance LoadWithSurfaces(SceneDocument document, IContentSource source, ISurfaceFactory surfaces, Transform parent = null, bool allowReducedSkinning = false, bool activateCameras = true)
         {
             SceneValidation.Ensure(document);
-            if (source == null || shader == null) throw new ArgumentException("Content source and shader are required");
+            if (source == null || surfaces == null) throw new ArgumentException("Content source and surface factory are required");
             GameObject root = new GameObject(document.Id);
             root.SetActive(false);
             root.transform.SetParent(parent, false);
@@ -52,7 +57,8 @@ namespace SceneContent.Unity
                             throw new ArgumentException("Invalid texture image");
                         textures.Add(surface.BaseColorTexture, texture);
                     }
-                    materials[index] = SurfaceMaterials.Create(surface, shader, texture);
+                    materials[index] = surfaces.Create(surface, texture);
+                    if (materials[index] == null) throw new ArgumentException("Surface factory returned no material");
                     instance.Own(materials[index]);
                 }
                 Dictionary<string, Mesh> geometries = new Dictionary<string, Mesh>();
@@ -101,11 +107,12 @@ namespace SceneContent.Unity
                         meshObject.AddComponent<MeshFilter>().sharedMesh = mesh;
                         renderer = meshObject.AddComponent<MeshRenderer>();
                     }
-                    Material[] surfaces = new Material[binding.Materials.Length];
-                    for (int surface = 0; surface < surfaces.Length; surface++) surfaces[surface] = materials[binding.Materials[surface]];
-                    renderer.sharedMaterials = surfaces;
+                    Material[] boundSurfaces = new Material[binding.Materials.Length];
+                    for (int surface = 0; surface < boundSurfaces.Length; surface++) boundSurfaces[surface] = materials[binding.Materials[surface]];
+                    renderer.sharedMaterials = boundSurfaces;
                     renderer.shadowCastingMode = binding.ShadowOnly ? ShadowCastingMode.ShadowsOnly : ShadowCastingMode.On;
                 }
+                SceneComponents.Attach(document, nodes, activateCameras);
                 instance.Initialize(byId);
                 root.SetActive(true);
                 return instance;

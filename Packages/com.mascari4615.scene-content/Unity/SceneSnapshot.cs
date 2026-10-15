@@ -51,11 +51,36 @@ namespace SceneContent.Unity
                     RootBone = original.RootBone, MorphWeights = weights
                 };
             }
-            SceneDocument snapshot = new SceneDocument
+            SceneDocument snapshot = SceneCloning.Copy(source);
+            snapshot.Nodes = nodes;
+            snapshot.Meshes = meshes;
+            foreach (SceneCamera binding in snapshot.Cameras)
             {
-                Id = source.Id, Nodes = nodes, Meshes = meshes,
-                Materials = source.Materials, Resources = source.Resources
-            };
+                Camera camera = instance.FindNode(snapshot.Nodes[binding.Node].Id).GetComponent<Camera>();
+                binding.Projection = camera.orthographic ? "orthographic" : "perspective";
+                binding.FieldOfView = camera.fieldOfView;
+                binding.OrthographicSize = camera.orthographicSize;
+                binding.Near = camera.nearClipPlane;
+                binding.Far = camera.farClipPlane;
+                Color color = camera.backgroundColor;
+                binding.ClearColor = new[] { color.r, color.g, color.b, color.a };
+            }
+            foreach (SceneLight binding in snapshot.Lights)
+            {
+                Light light = instance.FindNode(snapshot.Nodes[binding.Node].Id).GetComponent<Light>();
+                if (light.type != LightType.Directional && light.type != LightType.Point && light.type != LightType.Spot)
+                {
+                    throw new NotSupportedException("Scene snapshots support directional, point and spot lights");
+                }
+                binding.Kind = light.type == LightType.Directional ? "directional" : (light.type == LightType.Point ? "point" : "spot");
+                Color color = light.color;
+                binding.Color = new[] { color.r, color.g, color.b };
+                binding.Intensity = light.intensity;
+                binding.Range = light.range;
+                binding.SpotAngle = light.spotAngle;
+                binding.Shadows = light.shadows != LightShadows.None;
+                binding.Enabled = light.enabled;
+            }
             SceneValidation.Ensure(snapshot);
             return snapshot;
         }
