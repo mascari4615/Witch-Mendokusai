@@ -8,6 +8,7 @@ namespace WitchMendokusai.ContentAuthoring
     {
         private bool poseExpanded;
         private bool sceneLighting;
+        private bool sceneIcons;
         private static readonly string[] LANGUAGES = { "한국어", "English" };
 
         private void DrawWelcome()
@@ -27,10 +28,27 @@ namespace WitchMendokusai.ContentAuthoring
                 Repaint();
             }
             EditorGUILayout.EndHorizontal();
+            if (GUILayout.Button(AuthoringText.Get("Open greeting example"), GUILayout.Height(32)))
+            {
+                if (workspace.IsLoaded == false || (workspace.HasChanges == false && motion.HasChanges == false) ||
+                    EditorUtility.DisplayDialog(AuthoringText.Get("Unsaved workspace"), AuthoringText.Get("Discard current scene and motion edits?"), AuthoringText.Get("Discard"), AuthoringText.Get("Cancel")))
+                {
+                    Run(OpenExample);
+                }
+            }
+            if (workspace.IsLoaded == false)
+            {
+                EditorGUILayout.LabelField(AuthoringText.Get("Two block figures wave. Open the example, then press Play in the character view."), EditorStyles.wordWrappedLabel);
+            }
             using (new EditorGUI.DisabledScope(workspace.IsLoaded == false))
             {
                 if (GUILayout.Button(AuthoringText.Get("Show character view"), GUILayout.Height(32))) ShowCharacterView();
             }
+        }
+
+        public void OpenExample()
+        {
+            LoadSequence(AuthoringExample.Create());
         }
 
         public void ShowCharacterView()
@@ -44,6 +62,7 @@ namespace WitchMendokusai.ContentAuthoring
             stage.titleContent = new GUIContent(AuthoringText.Get("Content stage"));
             stage.ShowPreview(workspace.PreviewScene);
             stage.sceneLighting = sceneLighting;
+            stage.drawGizmos = sceneIcons;
             Rect main = EditorGUIUtility.GetMainWindowPosition();
             stage.position = new Rect(main.x + 16, main.y + 64, Mathf.Max(420, main.width * .65f - 24), Mathf.Max(320, main.height - 100));
             stage.Focus();
@@ -69,11 +88,13 @@ namespace WitchMendokusai.ContentAuthoring
         {
             if (view != stage || workspace == null || workspace.IsLoaded == false) return;
             Handles.BeginGUI();
-            GUILayout.BeginArea(new Rect(12, 44, Mathf.Min(350, view.position.width - 24), 155), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(12, 44, Mathf.Min(350, view.position.width - 24), 180), GUI.skin.box);
             GUILayout.Label(AuthoringText.Get("Content stage"), EditorStyles.boldLabel);
             motion.DrawTransport();
             sceneLighting = EditorGUILayout.Toggle(AuthoringText.Get("Use scene lighting"), sceneLighting);
             stage.sceneLighting = sceneLighting;
+            sceneIcons = EditorGUILayout.Toggle(AuthoringText.Get("Show scene icons"), sceneIcons);
+            stage.drawGizmos = sceneIcons;
             if (GUILayout.Button(AuthoringText.Get("Edit details"))) Focus();
             GUILayout.EndArea();
             Handles.EndGUI();

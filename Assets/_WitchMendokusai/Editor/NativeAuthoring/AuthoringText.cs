@@ -9,6 +9,9 @@ namespace WitchMendokusai.ContentAuthoring
     {
         private static readonly Dictionary<string, string> KOREAN = new Dictionary<string, string>(StringComparer.Ordinal)
         {
+            { "Open greeting example", "손 흔들기 예제 열기" },
+            { "Two block figures wave. Open the example, then press Play in the character view.", "블록 인형 둘이 손을 흔드는 예제예요. 열고 캐릭터 화면에서 재생을 누르세요." },
+            { "Show scene icons", "조명과 카메라 아이콘 표시" },
             { "Use scene lighting", "장면 조명 사용" },
             { "Edit details", "자세히 편집" },
             { "Hips", "골반" },

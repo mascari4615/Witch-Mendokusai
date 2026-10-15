@@ -2,6 +2,10 @@
 
 Open **WM > Authoring > Scene workspace** in Unity. This early authoring tool edits native scene documents in an isolated preview scene and uses the same data and motion core as runtime playback.
 
+For a first session, choose **Open greeting example**. Two block figures appear in the character view with a two-second waving motion. Press **Play**, or move **Time** to inspect the arm poses. The example needs no external model files. Use **Export sequence** to keep a separate copy with its resources, then **Open sequence** to resume it. This example teaches scene and motion controls; it is not a detailed character model.
+
+The workspace language selector offers Korean and English without changing saved identifiers. **Show character view** brings the preview back. Light and camera icons start hidden in this preview; enable **Show scene icons** when you need them. Other scene views retain their own display settings.
+
 1. **Open scene** selects a native scene JSON file. Keep its resource files with it. The shared library can import a scene and store identical resource bytes once across multiple variants.
 2. Find a named control and edit its local position, rotation or scale. Unity selection also follows camera or mesh selections back to the document node. Stable IDs remain independent of visible GameObject names.
 3. Expand **Limb goals** and load rig bindings when needed. Move a goal and bend pole, then apply it. **Record limb key** records both controlled joints at the current motion time. The first limb solver supports rigid chains with positive uniform world scale.
