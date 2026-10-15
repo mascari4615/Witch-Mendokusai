@@ -38,7 +38,7 @@ namespace SceneContent.Unity
                     SceneNode node = document.Nodes[index];
                     nodes[index].SetParent(node.Parent < 0 ? root.transform : nodes[node.Parent], false);
                     nodes[index].localPosition = new Vector3(node.Position[0], node.Position[1], -node.Position[2]);
-                    nodes[index].localRotation = new Quaternion(-node.Rotation[0], -node.Rotation[1], node.Rotation[2], node.Rotation[3]);
+                    nodes[index].localRotation = new Quaternion(-node.Rotation[0], -node.Rotation[1], node.Rotation[2], node.Rotation[3]).normalized;
                     nodes[index].localScale = new Vector3(node.Scale[0], node.Scale[1], node.Scale[2]);
                 }
                 Dictionary<string, ContentResource> descriptors = new Dictionary<string, ContentResource>(StringComparer.Ordinal);
@@ -119,7 +119,7 @@ namespace SceneContent.Unity
                     renderers[index] = renderer;
                 }
                 SceneComponents.Attach(document, nodes, activateCameras);
-                instance.Initialize(byId, renderers);
+                instance.Initialize(byId, renderers, document);
                 root.SetActive(true);
                 return instance;
             }

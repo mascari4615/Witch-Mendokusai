@@ -10,6 +10,36 @@ namespace SceneContent.Tests
     public sealed class ScenePersistenceTests
     {
         [Test]
+        public void UneditedRotationsRetainSourceValuesWhileSmallEditsAndResetAreCaptured()
+        {
+            SkinWeights previous = QualitySettings.skinWeights;
+            SceneInstance instance = null;
+            try
+            {
+                QualitySettings.skinWeights = SkinWeights.FourBones;
+                byte[] bytes = SceneFixtures.Bytes();
+                SceneDocument document = SceneFixtures.Document(bytes);
+                Quaternion rotation = Quaternion.Euler(12, 23, 34);
+                document.Nodes[1].Rotation = new[] { -rotation.x * .999f, -rotation.y * .999f, rotation.z * .999f, rotation.w * .999f };
+                float[] original = (float[])document.Nodes[1].Rotation.Clone();
+                instance = SceneContentLoader.Load(document, new MemorySource { Bytes = bytes }, Shader.Find("Universal Render Pipeline/Unlit"));
+                Transform joint = instance.FindNode("node-1");
+                Quaternion baseline = joint.localRotation;
+                Assert.That(SceneSnapshot.Capture(document, instance).Nodes[1].Rotation, Is.EqualTo(original));
+                joint.localRotation = baseline * Quaternion.AngleAxis(.001f, Vector3.up);
+                SceneDocument edited = SceneSnapshot.Capture(document, instance);
+                Assert.That(edited.Nodes[1].Rotation, Is.Not.EqualTo(original), "Small deliberate edits must not be hidden by angular tolerance");
+                joint.localRotation = baseline;
+                Assert.That(SceneSnapshot.Capture(edited, instance).Nodes[1].Rotation, Is.EqualTo(original), "Reset must recover the loaded source rather than the last edited document");
+            }
+            finally
+            {
+                if (instance != null) UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                QualitySettings.skinWeights = previous;
+            }
+        }
+
+        [Test]
         public void PoseAndMorphSnapshotRoundTripWithoutChangingSource()
         {
             SkinWeights previous = QualitySettings.skinWeights;

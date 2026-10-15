@@ -16,7 +16,7 @@ namespace SceneContent.Unity
             {
                 Transform transform = instance.FindNode(source.Nodes[index].Id);
                 Vector3 position = transform.localPosition;
-                Quaternion rotation = transform.localRotation;
+                Quaternion rotation = instance.CaptureRotation(source.Nodes[index].Id);
                 Vector3 scale = transform.localScale;
                 nodes[index] = new SceneNode
                 {

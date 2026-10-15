@@ -9,13 +9,24 @@ namespace SceneContent.Unity
         [SerializeField] private string[] nodeIds;
         [SerializeField] private Transform[] nodeTransforms;
         [SerializeField] private Renderer[] meshRenderers;
-        private Dictionary<string, Transform> nodes = new Dictionary<string, Transform>();
+        [SerializeField] private Quaternion[] initialRotations;
+        [SerializeField] private Quaternion[] sourceRotations;
+        private Dictionary<string, int> nodes = new Dictionary<string, int>();
 
         public Transform FindNode(string id)
         {
             if (nodes.Count == 0 && nodeIds != null)
-                for (int index = 0; index < nodeIds.Length; index++) nodes.Add(nodeIds[index], nodeTransforms[index]);
-            return nodes[id];
+                for (int index = 0; index < nodeIds.Length; index++) nodes.Add(nodeIds[index], index);
+            return nodeTransforms[nodes[id]];
+        }
+
+        internal Quaternion CaptureRotation(string id)
+        {
+            Quaternion current = FindNode(id).localRotation;
+            int index = nodes[id];
+            Quaternion initial = initialRotations[index];
+            return current.x == initial.x && current.y == initial.y && current.z == initial.z && current.w == initial.w
+                ? sourceRotations[index] : current;
         }
 
         public Renderer FindMesh(int index)
@@ -23,18 +34,22 @@ namespace SceneContent.Unity
             return meshRenderers[index];
         }
 
-        internal void Initialize(Dictionary<string, Transform> values, Renderer[] renderers)
+        internal void Initialize(Dictionary<string, Transform> values, Renderer[] renderers, SceneDocument document)
         {
             meshRenderers = renderers;
-            nodes = values;
+            nodes.Clear();
             nodeIds = new string[values.Count];
             nodeTransforms = new Transform[values.Count];
-            int index = 0;
-            foreach (KeyValuePair<string, Transform> value in values)
+            initialRotations = new Quaternion[values.Count];
+            sourceRotations = new Quaternion[values.Count];
+            for (int index = 0; index < document.Nodes.Length; index++)
             {
-                nodeIds[index] = value.Key;
-                nodeTransforms[index] = value.Value;
-                index++;
+                SceneNode node = document.Nodes[index];
+                nodes.Add(node.Id, index);
+                nodeIds[index] = node.Id;
+                nodeTransforms[index] = values[node.Id];
+                initialRotations[index] = nodeTransforms[index].localRotation;
+                sourceRotations[index] = new Quaternion(-node.Rotation[0], -node.Rotation[1], node.Rotation[2], node.Rotation[3]);
             }
         }
         internal void Own(UnityEngine.Object asset) { assets.Add(asset); }
