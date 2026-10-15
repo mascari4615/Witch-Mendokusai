@@ -9,6 +9,23 @@ namespace WitchMendokusai.ContentAuthoring
     {
         private static readonly Dictionary<string, string> KOREAN = new Dictionary<string, string>(StringComparer.Ordinal)
         {
+            { "Body and face controls", "체형과 얼굴 조절" },
+            { "Create a named control for a selected part, or open a scene with calibrated controls.", "부위를 선택해 이름 있는 조절값을 만들거나, 조절값이 든 장면을 여세요." },
+            { "Apply body controls", "조절값 적용" },
+            { "Reset body controls", "기준값으로 되돌리기" },
+            { "Unapplied control values. Apply to update the preview.", "아직 적용하지 않은 값이에요. 적용을 누르면 미리보기가 바뀌어요." },
+            { "Create scale control", "크기 조절값 만들기" },
+            { "Select a part in Pose controls. The new control keeps its current scale as the reference.", "자세 편집에서 부위를 선택하세요. 지금 크기를 기준으로 조절값을 만들어요." },
+            { "Control name", "조절값 이름" },
+            { "Dimension", "조절 방향" },
+            { "Overall size", "전체 크기" },
+            { "Width", "너비" },
+            { "Height", "높이" },
+            { "Depth", "깊이" },
+            { "Minimum", "최솟값" },
+            { "Maximum", "최댓값" },
+            { "Add control for selected part", "선택한 부위의 조절값 추가" },
+            { "Size", "크기" },
             { "Open greeting example", "손 흔들기 예제 열기" },
             { "Two block figures wave. Open the example, then press Play in the character view.", "블록 인형 둘이 손을 흔드는 예제예요. 열고 캐릭터 화면에서 재생을 누르세요." },
             { "Show scene icons", "조명과 카메라 아이콘 표시" },

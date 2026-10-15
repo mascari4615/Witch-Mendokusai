@@ -13,6 +13,7 @@ namespace SceneContent
         public MeshInstance[] Meshes;
         public SurfaceMaterial[] Materials;
         public ContentResource[] Resources;
+        public SceneParameterProfile Parameters;
         public SceneCamera[] Cameras = new SceneCamera[0];
         public SceneLight[] Lights = new SceneLight[0];
     }

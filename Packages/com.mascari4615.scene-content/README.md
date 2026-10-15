@@ -10,6 +10,10 @@ Skinning fidelity is a host rendering policy. The loader rejects a host influenc
 
 The contract describes scene snapshots with editable transforms and morphs, perspective/orthographic cameras, punctual lights and basic surface recipes. Behavior controllers, simulation, animation clips and material graphs are separate capabilities; no opaque compatibility payload is stored here.
 
+Optional `Parameters` embeds an Appearance parameter profile with explicit bindings to node scale, node position or mesh morph components. `SceneParameters.WithValues` returns an edited copy; `SetValues` validates a complete candidate before changing its endpoints. Each property binds exactly once and competing bindings are rejected. `SceneParameterAuthoring.AddScaleControl` creates a named control calibrated to a node's current scale. Cloning, composition and pruning preserve these controls and their stable targets. Existing documents may omit the profile.
+
+Controls are explicit editing actions. Loading preserves the current scene snapshot without recomputing its pose. An absolute motion track may subsequently overwrite an endpoint; persistent constraints and motion retargeting require separate composition policies.
+
 `SceneSnapshot.Capture` copies current local poses and expression weights without changing the source document. `SceneFiles.Save` verifies every resource, stages new blobs and atomically replaces the manifest after all resources are present. Existing corrupt resources cause a failure before the saved manifest changes. Saving to another folder produces a self-contained native scene without private provenance data. Optional node labels help authoring while persistent IDs remain the binding contract.
 
 The Unity adapter normalizes rotations for execution and retains their original document values. Snapshots preserve an unedited rotation exactly, including across repeated saves, while recording even small deliberate edits. Resetting a node to its loaded rotation recovers the original document value; comparison uses exact runtime components rather than an angular tolerance.

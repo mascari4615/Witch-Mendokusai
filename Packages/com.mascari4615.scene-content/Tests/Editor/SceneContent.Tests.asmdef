@@ -1,6 +1,6 @@
 {
   "name": "SceneContent.Tests",
-  "references": ["SceneContent.Core", "SceneContent.Serialization", "SceneContent.FileSystem", "SceneContent.Unity", "Geometry.Core", "Geometry.Binary", "Geometry.Unity"],
+  "references": ["SceneContent.Core", "SceneContent.Serialization", "SceneContent.FileSystem", "SceneContent.Unity", "Geometry.Core", "Geometry.Binary", "Geometry.Unity", "Appearance.Core"],
   "includePlatforms": ["Editor"],
   "overrideReferences": true,
   "precompiledReferences": ["nunit.framework.dll"],

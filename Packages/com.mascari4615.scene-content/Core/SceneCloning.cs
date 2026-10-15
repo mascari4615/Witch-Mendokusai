@@ -9,7 +9,7 @@ namespace SceneContent
             {
                 Id = source.Id, Nodes = new SceneNode[source.Nodes.Length], Meshes = new MeshInstance[source.Meshes.Length],
                 Materials = new SurfaceMaterial[source.Materials.Length], Resources = new ContentResource[source.Resources.Length],
-                Cameras = new SceneCamera[source.Cameras.Length], Lights = new SceneLight[source.Lights.Length]
+                Cameras = new SceneCamera[source.Cameras.Length], Lights = new SceneLight[source.Lights.Length], Parameters = SceneParameters.Copy(source.Parameters)
             };
             for (int index = 0; index < source.Nodes.Length; index++)
             {

@@ -44,6 +44,11 @@ namespace SceneContent
             {
                 Keep(source, retained, light.Node);
             }
+            if (source.Parameters != null)
+            {
+                foreach (SceneParameterBinding binding in source.Parameters.Bindings)
+                    if (binding.Kind != "morph") Keep(source, retained, indices[binding.Node]);
+            }
             int[] remap = new int[retained.Length];
             List<SceneNode> nodes = new List<SceneNode>();
             for (int index = 0; index < retained.Length; index++)

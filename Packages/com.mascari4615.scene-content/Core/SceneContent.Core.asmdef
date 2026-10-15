@@ -1,1 +1,1 @@
-{ "name": "SceneContent.Core", "noEngineReferences": true }
+{ "name": "SceneContent.Core", "references": ["Appearance.Core"], "noEngineReferences": true }

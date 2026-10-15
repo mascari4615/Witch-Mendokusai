@@ -25,6 +25,7 @@ namespace WitchMendokusai.ContentAuthoring
         private LibraryPanel library;
         private double nextRecovery;
         private SurfacePanel surfaces;
+        private ParameterPanel parameters;
 
         public ContentWorkspace Workspace { get { return workspace; } }
         public MotionClipPanel Motion { get { return motion; } }
@@ -46,6 +47,7 @@ namespace WitchMendokusai.ContentAuthoring
             cameras = new CameraLightPanel(motion.RecordValues);
             library = new LibraryPanel();
             surfaces = new SurfacePanel();
+            parameters = new ParameterPanel();
             Undo.undoRedoPerformed += Repaint;
             SceneView.duringSceneGui += DrawStageControls;
             SceneView.beforeSceneGui += PrepareStage;
@@ -97,6 +99,7 @@ namespace WitchMendokusai.ContentAuthoring
             limbs.Bind(workspace);
             cameras.Bind(workspace, ApplyChange, () => stage);
             surfaces.Bind(workspace, ApplyChange);
+            parameters.Bind(workspace, ApplyChange);
             labeledOnly = Array.Exists(workspace.Document.Nodes, node => string.IsNullOrEmpty(node.Label) == false);
             selected = -1;
             failure = false;
@@ -266,6 +269,7 @@ namespace WitchMendokusai.ContentAuthoring
                 return;
             }
             bodyScroll = EditorGUILayout.BeginScrollView(bodyScroll);
+            parameters.Draw(selected);
             DrawPoseSelection();
             motion.Draw(selected < 0 ? null : workspace.Document.Nodes[selected].Id);
             limbs.Draw();
@@ -327,6 +331,7 @@ namespace WitchMendokusai.ContentAuthoring
             expressions.Bind(workspace);
             limbs.Bind(workspace);
             surfaces.Bind(workspace, ApplyChange);
+            parameters.Bind(workspace, ApplyChange);
             if (selected >= workspace.Document.Nodes.Length) selected = -1;
             if (selected >= 0) Selection.activeTransform = workspace.Instance.FindNode(workspace.Document.Nodes[selected].Id);
             Repaint();

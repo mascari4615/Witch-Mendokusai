@@ -67,6 +67,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.mascari4615.history": {
+      "version": "file:com.mascari4615.history",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.mascari4615.karmo-editor": {
       "version": "file:com.mascari4615.karmo-editor",
       "depth": 0,
@@ -95,6 +101,7 @@
       "source": "embedded",
       "dependencies": {
         "com.mascari4615.geometry": "0.1.0",
+        "com.mascari4615.appearance": "0.1.0",
         "com.unity.nuget.newtonsoft-json": "3.2.2"
       }
     },
@@ -803,12 +810,6 @@
       "version": "1.0.0",
       "depth": 0,
       "source": "builtin",
-      "dependencies": {}
-    },
-    "com.mascari4615.history": {
-      "version": "file:com.mascari4615.history",
-      "depth": 0,
-      "source": "embedded",
       "dependencies": {}
     }
   }

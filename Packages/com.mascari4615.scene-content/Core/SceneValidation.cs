@@ -89,6 +89,7 @@ namespace SceneContent
                 foreach (int material in mesh.Materials)
                     if (material < 0 || material >= scene.Materials.Length) throw new ArgumentException("Material out of range");
             }
+            SceneParameters.Ensure(scene);
         }
 
         private static void RequireResource(Dictionary<string, ContentResource> resources, string id, string type)

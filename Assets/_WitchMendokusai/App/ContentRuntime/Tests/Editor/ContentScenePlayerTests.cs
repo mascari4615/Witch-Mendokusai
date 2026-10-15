@@ -11,6 +11,25 @@ namespace WitchMendokusai.ContentRuntime.Tests
     public sealed class ContentScenePlayerTests
     {
         [Test]
+        public void CalibratedParameterValuesUseTheSameSceneCoreBeforeRuntimeLoading()
+        {
+            SceneDocument source = Document();
+            SceneParameterAuthoring.AddScaleControl(source, "node", "size", "Size", -1, .5f, 2);
+            SceneDocument changed = SceneParameters.WithValues(source, new Dictionary<string, float> { { "size", 1.3f } });
+            GameObject host = new GameObject("parameter-player-test");
+            try
+            {
+                ContentScenePlayer player = host.AddComponent<ContentScenePlayer>();
+                player.Initialize(changed, new EmptySource(), Surfaces(), new PoseClip[0]);
+                Assert.That(player.Instance.FindNode("node").localScale.x, Is.EqualTo(1.3f));
+                Assert.That(source.Nodes[0].Scale[0], Is.EqualTo(1));
+                player.Unload();
+                Assert.That(host.transform.childCount, Is.EqualTo(0));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(host); }
+        }
+
+        [Test]
         public void LoadsSeeksAndUnloadsOwnedScene()
         {
             GameObject host = new GameObject("content-player-test");

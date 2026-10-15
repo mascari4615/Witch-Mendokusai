@@ -65,7 +65,8 @@ namespace SceneContent
             SceneDocument result = new SceneDocument
             {
                 Id = left.Id, Nodes = nodes.ToArray(), Meshes = meshes.ToArray(), Materials = materials.ToArray(),
-                Resources = resources.ToArray(), Cameras = cameras.ToArray(), Lights = lights.ToArray()
+                Resources = resources.ToArray(), Cameras = cameras.ToArray(), Lights = lights.ToArray(),
+                Parameters = SceneParameters.Compose(left.Parameters, right.Parameters, prefix, left.Meshes.Length)
             };
             SceneValidation.Ensure(result);
             return result;

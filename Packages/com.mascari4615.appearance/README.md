@@ -8,4 +8,6 @@ Open `WM/Authoring/Appearance` to inspect a document. `AppearancePalette.Load` u
 
 Future document versions require explicit migration; unknown fields and unsupported versions are rejected. No opaque extension payload is carried by this format.
 
+`ParameterProfile` is a separate engine-independent contract for named numerical controls. Properties declare calibrated baselines and bounds; controls declare their default, current value, range and weighted property influences. `ParameterProfiles.Evaluate` calculates each property from its baseline plus the weighted differences from control defaults. Invalid or out-of-range results are rejected. `WithValues` evaluates an independent copy, so repeated edits do not compound previous results. Scene bindings belong to Scene Content rather than this core.
+
 To run the package's editor tests, add `com.mascari4615.appearance` to the host manifest's `testables` array and select the `Appearance.Tests` assembly. The tests verify validation before side effects, rejected contract changes, serialization and isolated runtime snapshots.
