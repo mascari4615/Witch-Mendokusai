@@ -16,17 +16,8 @@ namespace SceneContent.Storage
 
         public byte[] Read(ContentResource resource)
         {
-            if (resource == null || string.IsNullOrEmpty(resource.Path) || Path.IsPathRooted(resource.Path))
-                throw new ArgumentException("Resource path must be relative");
-            string path = Path.GetFullPath(Path.Combine(root, resource.Path));
-            if (path.StartsWith(root, StringComparison.Ordinal) == false) throw new ArgumentException("Resource escaped content directory");
-            string current = Path.GetPathRoot(path);
-            foreach (string component in path.Substring(current.Length).Split(Path.DirectorySeparatorChar))
-            {
-                current = Path.Combine(current, component);
-                if ((File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
-                    throw new IOException("Linked content paths are not supported");
-            }
+            if (resource == null) throw new ArgumentNullException("resource");
+            string path = ContentPaths.Resolve(root, resource.Path);
             using (FileStream stream = File.OpenRead(path))
             {
                 if (stream.Length > MAX_RESOURCE_BYTES) throw new IOException("Resource exceeds size limit");

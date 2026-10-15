@@ -3,6 +3,7 @@ using System.IO;
 using Motion;
 using Motion.Serialization;
 using Motion.Unity;
+using SceneContent.Storage;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,6 +21,28 @@ namespace WitchMendokusai.ContentAuthoring
         private string error;
         public float Time { get; private set; }
         public PoseClip Clip { get { return clip; } }
+        private string savedClip;
+        public bool HasChanges { get { return PoseClipJson.Write(clip) != savedClip; } }
+
+        public string ExportDraft()
+        {
+            return PoseClipJson.Write(clip);
+        }
+
+        public void RestoreDraft(string json, float seconds, bool changed)
+        {
+            PoseClip restored = PoseClipJson.Read(json);
+            PoseClipSampler restoredSampler = new PoseClipSampler(restored);
+            if (float.IsNaN(seconds) || float.IsInfinity(seconds))
+            {
+                throw new ArgumentException("Draft time must be finite");
+            }
+            clip = restored;
+            sampler = restoredSampler;
+            Time = Mathf.Clamp(seconds, 0, clip.Duration);
+            savedClip = changed ? null : PoseClipJson.Write(clip);
+            playing = false;
+        }
 
         public MotionClipPanel()
         {
@@ -33,6 +56,7 @@ namespace WitchMendokusai.ContentAuthoring
             Time = 0;
             clip = new PoseClip { Id = Guid.NewGuid().ToString("N"), Duration = 3, Tracks = new PoseTrack[0] };
             sampler = new PoseClipSampler(clip);
+            savedClip = PoseClipJson.Write(clip);
             error = null;
         }
 
@@ -117,9 +141,9 @@ namespace WitchMendokusai.ContentAuthoring
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("New clip"))
             {
-                Reset();
+                if (ConfirmDiscard()) Reset();
             }
-            if (GUILayout.Button("Open clip..."))
+            if (GUILayout.Button("Open clip...") && ConfirmDiscard())
             {
                 string file = EditorUtility.OpenFilePanel("Open motion clip", "", "json");
                 if (string.IsNullOrEmpty(file) == false)
@@ -133,6 +157,7 @@ namespace WitchMendokusai.ContentAuthoring
                         sampler = next;
                         playing = false;
                         Time = 0;
+                        savedClip = PoseClipJson.Write(clip);
                     });
                 }
             }
@@ -141,7 +166,12 @@ namespace WitchMendokusai.ContentAuthoring
                 string file = EditorUtility.SaveFilePanel("Save reusable motion clip", "", "motion-clip", "json");
                 if (string.IsNullOrEmpty(file) == false)
                 {
-                    Run(delegate { File.WriteAllText(file, PoseClipJson.Write(clip)); });
+                    Run(delegate
+                    {
+                        string json = PoseClipJson.Write(clip);
+                        AtomicFiles.WriteText(file, json);
+                        savedClip = json;
+                    });
                 }
             }
             EditorGUILayout.EndHorizontal();
@@ -172,6 +202,11 @@ namespace WitchMendokusai.ContentAuthoring
                 playing = false;
             }
             repaint();
+        }
+
+        private bool ConfirmDiscard()
+        {
+            return HasChanges == false || EditorUtility.DisplayDialog("Unsaved motion clip", "Discard the current motion draft? Save the clip first to keep it.", "Discard", "Cancel");
         }
 
         private void Run(Action action)

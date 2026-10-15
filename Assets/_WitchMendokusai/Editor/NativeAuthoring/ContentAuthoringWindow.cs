@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using SceneContent;
+using SceneContent.Serialization;
 using UnityEditor;
 using UnityEngine;
 
@@ -21,8 +22,10 @@ namespace WitchMendokusai.ContentAuthoring
         private LimbPanel limbs;
         private Vector2 bodyScroll;
         private CameraLightPanel cameras;
+        private LibraryPanel library;
 
         public ContentWorkspace Workspace { get { return workspace; } }
+        public MotionClipPanel Motion { get { return motion; } }
 
         [MenuItem("WM/Authoring/Scene workspace")]
         public static ContentAuthoringWindow Open()
@@ -38,6 +41,7 @@ namespace WitchMendokusai.ContentAuthoring
             expressions = new ExpressionPanel();
             limbs = new LimbPanel(motion.RecordNodes);
             cameras = new CameraLightPanel();
+            library = new LibraryPanel();
             Undo.undoRedoPerformed += Repaint;
             EditorApplication.delayCall += RestoreLastScene;
         }
@@ -46,6 +50,17 @@ namespace WitchMendokusai.ContentAuthoring
         {
             Undo.undoRedoPerformed -= Repaint;
             EditorApplication.delayCall -= RestoreLastScene;
+            try
+            {
+                if (workspace != null && workspace.IsLoaded && (workspace.HasChanges || motion.HasChanges))
+                {
+                    WorkspaceRecovery.Write(workspace, motion);
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("Workspace recovery could not be updated: " + exception.Message);
+            }
             motion.Dispose();
             limbs.Dispose();
             if (stage != null)
@@ -61,6 +76,12 @@ namespace WitchMendokusai.ContentAuthoring
         public void LoadFile(string file)
         {
             workspace.Load(file);
+            ShowLoaded();
+            WorkspaceRecovery.Clear();
+        }
+
+        private void ShowLoaded()
+        {
             motion.Bind(workspace, Repaint);
             expressions.Bind(workspace);
             limbs.Bind(workspace);
@@ -84,11 +105,34 @@ namespace WitchMendokusai.ContentAuthoring
 
         private void RestoreLastScene()
         {
+            if (workspace.IsLoaded)
+            {
+                return;
+            }
+            if (WorkspaceRecovery.Exists)
+            {
+                Run(RestoreRecovery);
+                return;
+            }
             string file = EditorPrefs.GetString(Application.dataPath + "/ContentWorkspace/LastScene", "");
             if (workspace.IsLoaded == false && File.Exists(file))
             {
                 Run(delegate { LoadFile(file); });
             }
+        }
+
+        public void SaveRecovery()
+        {
+            WorkspaceRecovery.Write(workspace, motion);
+        }
+
+        public void RestoreRecovery()
+        {
+            WorkspaceDraft draft = WorkspaceRecovery.Read();
+            workspace.Restore(draft.SourceFile, SceneJson.Read(draft.Scene));
+            ShowLoaded();
+            motion.RestoreDraft(draft.Clip, draft.Time, draft.ClipChanged);
+            message = "Recovered the working scene and motion draft. Source files were not changed.";
         }
 
         private void OnSelectionChange()
@@ -121,7 +165,13 @@ namespace WitchMendokusai.ContentAuthoring
                 string file = EditorUtility.OpenFilePanel("Open scene document", "", "json");
                 if (string.IsNullOrEmpty(file) == false)
                 {
-                    Run(delegate { LoadFile(file); });
+                    bool changed;
+                    try { changed = workspace.IsLoaded && (workspace.HasChanges || motion.HasChanges); }
+                    catch { changed = true; }
+                    if (changed == false || EditorUtility.DisplayDialog("Unsaved workspace", "Discard current scene and motion edits? Save a copy first to keep them.", "Discard", "Cancel"))
+                    {
+                        Run(delegate { LoadFile(file); });
+                    }
                 }
             }
             using (new EditorGUI.DisabledScope(workspace.IsLoaded == false))
@@ -131,7 +181,13 @@ namespace WitchMendokusai.ContentAuthoring
                     string file = EditorUtility.SaveFilePanel("Save scene and resources", Path.GetDirectoryName(workspace.FilePath), "scene-edited", "json");
                     if (string.IsNullOrEmpty(file) == false)
                     {
-                        Run(delegate { workspace.Save(file); message = "Saved scene and verified resources."; });
+                        Run(delegate
+                        {
+                            workspace.Save(file);
+                            if (motion.HasChanges) WorkspaceRecovery.Write(workspace, motion);
+                            else WorkspaceRecovery.Clear();
+                            message = "Saved scene and verified resources.";
+                        });
                     }
                 }
                 if (GUILayout.Button("Frame", EditorStyles.toolbarButton) && stage != null)
@@ -141,6 +197,7 @@ namespace WitchMendokusai.ContentAuthoring
             }
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.HelpBox(message, failure ? MessageType.Error : MessageType.Info);
+            library.Draw(LoadFromLibrary);
             if (workspace.IsLoaded == false)
             {
                 EditorGUILayout.LabelField("Pose and expression editing", EditorStyles.boldLabel);
@@ -191,6 +248,16 @@ namespace WitchMendokusai.ContentAuthoring
                 limbs.Bind(workspace);
                 Repaint();
             });
+        }
+
+        private void LoadFromLibrary(string file)
+        {
+            if (workspace.IsLoaded && (workspace.HasChanges || motion.HasChanges) &&
+                EditorUtility.DisplayDialog("Unsaved workspace", "Discard current edits and open the library scene?", "Discard", "Cancel") == false)
+            {
+                return;
+            }
+            LoadFile(file);
         }
 
         private void DrawSelected()

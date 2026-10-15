@@ -3,6 +3,7 @@ using System.IO;
 using SceneContent;
 using SceneContent.Storage;
 using SceneContent.Unity;
+using SceneContent.Serialization;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -17,11 +18,25 @@ namespace WitchMendokusai.ContentAuthoring
         public string FilePath { get; private set; }
         public Scene PreviewScene { get; private set; }
         public bool IsLoaded { get { return Instance != null; } }
+        private string baseline;
+
+        public bool HasChanges
+        {
+            get { return IsLoaded && SceneJson.Write(SceneSnapshot.Capture(Document, Instance)) != baseline; }
+        }
 
         public void Load(string file)
         {
             SceneDocument document = SceneFiles.Read(file);
             Build(document, file);
+            baseline = SceneJson.Write(SceneSnapshot.Capture(Document, Instance));
+        }
+
+        public void Restore(string file, SceneDocument document)
+        {
+            string sourceBaseline = SceneJson.Write(SceneFiles.Read(file));
+            Build(document, file);
+            baseline = sourceBaseline;
         }
 
         public void Change(Action<SceneDocument> action)
@@ -63,10 +78,13 @@ namespace WitchMendokusai.ContentAuthoring
                 throw new InvalidOperationException("Load a scene before saving");
             }
             SceneDocument snapshot = SceneSnapshot.Capture(Document, Instance);
+            string rig = RigFiles.Read(FilePath, snapshot);
+            RigFiles.Save(Path.GetFullPath(file), rig);
             DirectoryContentSource source = new DirectoryContentSource(Path.GetDirectoryName(FilePath));
             SceneFiles.Save(file, snapshot, source);
             Document = snapshot;
             FilePath = Path.GetFullPath(file);
+            baseline = SceneJson.Write(snapshot);
         }
 
         public Bounds GetBounds()

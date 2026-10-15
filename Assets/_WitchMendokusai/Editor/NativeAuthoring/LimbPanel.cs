@@ -33,7 +33,7 @@ namespace WitchMendokusai.ContentAuthoring
             rig = null;
             handles = false;
             selected = 0;
-            string file = Path.Combine(Path.GetDirectoryName(value.FilePath), "rig.json");
+            string file = RigFiles.Find(value.FilePath);
             if (File.Exists(file))
             {
                 try

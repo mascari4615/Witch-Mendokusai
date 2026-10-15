@@ -29,10 +29,9 @@ namespace SceneContent.Storage
             }
             foreach (ContentResource resource in document.Resources)
             {
-                if (Path.GetFileName(resource.Path) != resource.Path)
-                {
-                    throw new IOException("Saving requires flat content-addressed resources");
-                }
+                string resourcePath = ContentPaths.Resolve(directory, resource.Path);
+                StringComparison comparison = Path.DirectorySeparatorChar == '\\' ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+                if (string.Equals(destination, resourcePath, comparison)) throw new IOException("Resource collides with scene manifest");
                 byte[] data = source.Read(resource);
                 string hash;
                 using (SHA256 algorithm = SHA256.Create())
@@ -43,12 +42,12 @@ namespace SceneContent.Storage
                 {
                     throw new IOException("Source resource checksum mismatch");
                 }
-                string resourcePath = Path.Combine(directory, resource.Path);
                 if (File.Exists(resourcePath))
                 {
                     new DirectoryContentSource(directory).Read(resource);
                     continue;
                 }
+                Directory.CreateDirectory(Path.GetDirectoryName(resourcePath));
                 string staged = resourcePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
                 try
                 {
@@ -63,26 +62,7 @@ namespace SceneContent.Storage
                     }
                 }
             }
-            string temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
-            try
-            {
-                File.WriteAllText(temporary, json, new UTF8Encoding(false));
-                if (File.Exists(destination))
-                {
-                    File.Replace(temporary, destination, null);
-                }
-                else
-                {
-                    File.Move(temporary, destination);
-                }
-            }
-            finally
-            {
-                if (File.Exists(temporary))
-                {
-                    File.Delete(temporary);
-                }
-            }
+            AtomicFiles.WriteText(destination, json);
         }
     }
 }
