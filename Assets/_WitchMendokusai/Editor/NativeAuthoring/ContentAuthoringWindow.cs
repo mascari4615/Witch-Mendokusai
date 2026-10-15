@@ -33,7 +33,7 @@ namespace WitchMendokusai.ContentAuthoring
         [MenuItem("WM/Authoring/Scene workspace")]
         public static ContentAuthoringWindow Open()
         {
-            return GetWindow<ContentAuthoringWindow>("Scene workspace");
+            return GetWindow<ContentAuthoringWindow>(AuthoringText.Get("Scene workspace"));
         }
 
         private void OnEnable()
@@ -47,6 +47,8 @@ namespace WitchMendokusai.ContentAuthoring
             library = new LibraryPanel();
             surfaces = new SurfacePanel();
             Undo.undoRedoPerformed += Repaint;
+            SceneView.duringSceneGui += DrawStageControls;
+            SceneView.beforeSceneGui += PrepareStage;
             EditorApplication.delayCall += RestoreLastScene;
             EditorApplication.update += CheckpointRecovery;
         }
@@ -54,17 +56,15 @@ namespace WitchMendokusai.ContentAuthoring
         private void OnDisable()
         {
             Undo.undoRedoPerformed -= Repaint;
+            SceneView.duringSceneGui -= DrawStageControls;
+            SceneView.beforeSceneGui -= PrepareStage;
             EditorApplication.delayCall -= RestoreLastScene;
             EditorApplication.update -= CheckpointRecovery;
             try
             {
-                if (workspace != null && workspace.IsLoaded && (workspace.HasChanges || motion.HasChanges))
+                if (workspace != null && workspace.IsLoaded)
                 {
                     WorkspaceRecovery.Write(workspace, motion);
-                }
-                else if (workspace != null && workspace.IsLoaded)
-                {
-                    WorkspaceRecovery.Clear();
                 }
             }
             catch (Exception exception)
@@ -100,17 +100,18 @@ namespace WitchMendokusai.ContentAuthoring
             labeledOnly = Array.Exists(workspace.Document.Nodes, node => string.IsNullOrEmpty(node.Label) == false);
             selected = -1;
             failure = false;
-            message = workspace.Document.Nodes.Length + " nodes, " + workspace.Document.Meshes.Length + " meshes. Select a node to pose it.";
+            message = null;
             EditorPrefs.SetString(Application.dataPath + "/ContentWorkspace/LastScene", workspace.FilePath);
             if (stage == null)
             {
                 stage = CreateInstance<ContentStageView>();
-                stage.titleContent = new GUIContent("Content stage");
-                stage.Show();
+                stage.titleContent = new GUIContent(AuthoringText.Get("Content stage"));
+                stage.ShowUtility();
             }
             stage.ShowPreview(workspace.PreviewScene);
-            stage.sceneLighting = workspace.Document.Lights.Length > 0;
+            stage.sceneLighting = sceneLighting;
             stage.Frame(workspace.GetBounds(), true);
+            ShowCharacterView();
             Repaint();
         }
 
@@ -206,16 +207,21 @@ namespace WitchMendokusai.ContentAuthoring
 
         private void OnGUI()
         {
-            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            if (GUILayout.Button("Open scene...", EditorStyles.toolbarButton))
+            DrawWelcome();
+            if (workspace.IsLoaded)
             {
-                string file = EditorUtility.OpenFilePanel("Open scene document", "", "json");
+                motion.DrawTransport();
+            }
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+            if (GUILayout.Button(AuthoringText.Get("Open scene..."), EditorStyles.toolbarButton))
+            {
+                string file = EditorUtility.OpenFilePanel(AuthoringText.Get("Open scene document"), "", "json");
                 if (string.IsNullOrEmpty(file) == false)
                 {
                     bool changed;
                     try { changed = workspace.IsLoaded && (workspace.HasChanges || motion.HasChanges); }
                     catch { changed = true; }
-                    if (changed == false || EditorUtility.DisplayDialog("Unsaved workspace", "Discard current scene and motion edits? Save a copy first to keep them.", "Discard", "Cancel"))
+                    if (changed == false || EditorUtility.DisplayDialog(AuthoringText.Get("Unsaved workspace"), AuthoringText.Get("Discard current scene and motion edits? Save a copy first to keep them."), AuthoringText.Get("Discard"), AuthoringText.Get("Cancel")))
                     {
                         Run(delegate { LoadFile(file); });
                     }
@@ -223,14 +229,14 @@ namespace WitchMendokusai.ContentAuthoring
             }
             using (new EditorGUI.DisabledScope(workspace.IsLoaded == false))
             {
-                if (GUILayout.Button("Add actor...", EditorStyles.toolbarButton))
+                if (GUILayout.Button(AuthoringText.Get("Add actor..."), EditorStyles.toolbarButton))
                 {
-                    string file = EditorUtility.OpenFilePanel("Add an actor from a native scene", "", "json");
+                    string file = EditorUtility.OpenFilePanel(AuthoringText.Get("Add an actor from a native scene"), "", "json");
                     if (string.IsNullOrEmpty(file) == false) Run(delegate { AddActor(file); });
                 }
-                if (GUILayout.Button("Save as...", EditorStyles.toolbarButton))
+                if (GUILayout.Button(AuthoringText.Get("Save as..."), EditorStyles.toolbarButton))
                 {
-                    string file = EditorUtility.SaveFilePanel("Save scene and resources", Path.GetDirectoryName(workspace.FilePath), "scene-edited", "json");
+                    string file = EditorUtility.SaveFilePanel(AuthoringText.Get("Save scene and resources"), Path.GetDirectoryName(workspace.FilePath), "scene-edited", "json");
                     if (string.IsNullOrEmpty(file) == false)
                     {
                         Run(delegate
@@ -242,7 +248,7 @@ namespace WitchMendokusai.ContentAuthoring
                         });
                     }
                 }
-                if (GUILayout.Button("Frame", EditorStyles.toolbarButton) && stage != null)
+                if (GUILayout.Button(AuthoringText.Get("Frame"), EditorStyles.toolbarButton) && stage != null)
                 {
                     stage.Frame(workspace.GetBounds(), true);
                 }
@@ -250,18 +256,30 @@ namespace WitchMendokusai.ContentAuthoring
             EditorGUILayout.EndHorizontal();
             DrawSequenceFiles();
             DrawSceneHistory();
-            EditorGUILayout.HelpBox(message, failure ? MessageType.Error : MessageType.Info);
+            string status = message == null ? AuthoringText.Format("{0} nodes, {1} meshes. Select a node to pose it.", workspace.Document.Nodes.Length, workspace.Document.Meshes.Length) : AuthoringText.Get(message);
+            EditorGUILayout.HelpBox(failure ? AuthoringText.Format("Action failed. Details: {0}", status) : status, failure ? MessageType.Error : MessageType.Info);
             library.Draw(LoadFromLibrary);
             if (workspace.IsLoaded == false)
             {
-                EditorGUILayout.LabelField("Pose and expression editing", EditorStyles.boldLabel);
-                EditorGUILayout.LabelField("Open a native scene, select a node, and use the stage handles or the fields below. Save a separate copy for your game.", EditorStyles.wordWrappedLabel);
+                EditorGUILayout.LabelField(AuthoringText.Get("Pose and expression editing"), EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(AuthoringText.Get("Open a native scene, select a node, and use the stage handles or the fields below. Save a separate copy for your game."), EditorStyles.wordWrappedLabel);
                 return;
             }
             bodyScroll = EditorGUILayout.BeginScrollView(bodyScroll);
-            filter = EditorGUILayout.TextField("Find node", filter);
-            labeledOnly = EditorGUILayout.Toggle("Named controls and roots", labeledOnly);
-            scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.MaxHeight(position.height * 0.38f));
+            DrawPoseSelection();
+            motion.Draw(selected < 0 ? null : workspace.Document.Nodes[selected].Id);
+            limbs.Draw();
+            expressions.Draw();
+            cameras.Draw();
+            surfaces.Draw();
+            EditorGUILayout.EndScrollView();
+        }
+
+        private void DrawNodeList()
+        {
+            filter = EditorGUILayout.TextField(AuthoringText.Get("Find node"), filter);
+            labeledOnly = EditorGUILayout.Toggle(AuthoringText.Get("Named controls and roots"), labeledOnly);
+            scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.MaxHeight(200));
             for (int index = 0; index < workspace.Document.Nodes.Length; index++)
             {
                 SceneNode node = workspace.Document.Nodes[index];
@@ -269,7 +287,7 @@ namespace WitchMendokusai.ContentAuthoring
                 {
                     continue;
                 }
-                string label = string.IsNullOrEmpty(node.Label) ? (node.Parent < 0 ? "Root " + index : node.Id) : node.Label;
+                string label = string.IsNullOrEmpty(node.Label) ? (node.Parent < 0 ? AuthoringText.Get("Root ") + index : node.Id) : AuthoringText.NodeLabel(node.Label);
                 if (label.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0 && node.Id.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0)
                 {
                     continue;
@@ -284,13 +302,7 @@ namespace WitchMendokusai.ContentAuthoring
                 }
             }
             EditorGUILayout.EndScrollView();
-            motion.Draw(selected < 0 ? null : workspace.Document.Nodes[selected].Id);
             DrawSelected();
-            limbs.Draw();
-            expressions.Draw();
-            cameras.Draw();
-            surfaces.Draw();
-            EditorGUILayout.EndScrollView();
         }
 
         private void ApplyChange(Action<SceneDocument> change)
@@ -311,7 +323,7 @@ namespace WitchMendokusai.ContentAuthoring
         {
             motion.RefreshValues();
             stage.ShowPreview(workspace.PreviewScene);
-            stage.sceneLighting = workspace.Document.Lights.Length > 0;
+            stage.sceneLighting = sceneLighting;
             expressions.Bind(workspace);
             limbs.Bind(workspace);
             surfaces.Bind(workspace, ApplyChange);
@@ -323,7 +335,7 @@ namespace WitchMendokusai.ContentAuthoring
         private void LoadFromLibrary(string file)
         {
             if (workspace.IsLoaded && (workspace.HasChanges || motion.HasChanges) &&
-                EditorUtility.DisplayDialog("Unsaved workspace", "Discard current edits and open the library scene?", "Discard", "Cancel") == false)
+                EditorUtility.DisplayDialog(AuthoringText.Get("Unsaved workspace"), AuthoringText.Get("Discard current edits and open the library scene?"), AuthoringText.Get("Discard"), AuthoringText.Get("Cancel")) == false)
             {
                 return;
             }
@@ -337,14 +349,14 @@ namespace WitchMendokusai.ContentAuthoring
                 return;
             }
             Transform target = workspace.Instance.FindNode(workspace.Document.Nodes[selected].Id);
-            EditorGUILayout.LabelField("Local pose", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(AuthoringText.Get("Local pose"), EditorStyles.boldLabel);
             EditorGUI.BeginChangeCheck();
-            Vector3 positionValue = EditorGUILayout.Vector3Field("Position", target.localPosition);
-            Vector3 euler = EditorGUILayout.Vector3Field("Rotation", target.localEulerAngles);
-            Vector3 scale = EditorGUILayout.Vector3Field("Scale", target.localScale);
+            Vector3 positionValue = EditorGUILayout.Vector3Field(AuthoringText.Get("Position"), target.localPosition);
+            Vector3 euler = EditorGUILayout.Vector3Field(AuthoringText.Get("Rotation"), target.localEulerAngles);
+            Vector3 scale = EditorGUILayout.Vector3Field(AuthoringText.Get("Scale"), target.localScale);
             if (EditorGUI.EndChangeCheck())
             {
-                Undo.RecordObject(target, "Change node pose");
+                Undo.RecordObject(target, AuthoringText.Get("Change node pose"));
                 target.localPosition = positionValue;
                 target.localRotation = Quaternion.Euler(euler);
                 target.localScale = scale;

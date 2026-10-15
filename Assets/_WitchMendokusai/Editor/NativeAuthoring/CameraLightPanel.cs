@@ -33,22 +33,22 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void Draw()
         {
-            expanded = EditorGUILayout.Foldout(expanded, "Cameras and lights", true);
+            expanded = EditorGUILayout.Foldout(expanded, AuthoringText.Get("Cameras and lights"), true);
             if (expanded == false)
             {
                 return;
             }
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Camera from view"))
+            if (GUILayout.Button(AuthoringText.Get("Camera from view")))
             {
                 AddCamera();
             }
-            if (GUILayout.Button("Add key light"))
+            if (GUILayout.Button(AuthoringText.Get("Add key light")))
             {
                 AddLight();
             }
             EditorGUILayout.EndHorizontal();
-            if (GUILayout.Button("Use lit surfaces"))
+            if (GUILayout.Button(AuthoringText.Get("Use lit surfaces")))
             {
                 change(document =>
                 {
@@ -109,16 +109,16 @@ namespace WitchMendokusai.ContentAuthoring
                 return;
             }
             cameraIndex = Mathf.Clamp(cameraIndex, 0, cameras.Length - 1);
-            cameraIndex = EditorGUILayout.Popup("Camera", cameraIndex, Names(cameras));
+            cameraIndex = EditorGUILayout.Popup(AuthoringText.Get("Camera"), cameraIndex, Names(cameras));
             SceneCamera binding = cameras[cameraIndex];
             Transform node = workspace.Instance.FindNode(workspace.Document.Nodes[binding.Node].Id);
             Camera camera = node.GetComponent<Camera>();
             EditorGUI.BeginChangeCheck();
-            bool orthographic = EditorGUILayout.Toggle("Orthographic", camera.orthographic);
-            float field = EditorGUILayout.Slider("Field of view", camera.fieldOfView, 1, 179);
-            float size = Mathf.Clamp(EditorGUILayout.FloatField("View size", camera.orthographicSize), .001f, 1000000);
-            float near = Mathf.Clamp(EditorGUILayout.FloatField("Near clip", camera.nearClipPlane), .00001f, 999999);
-            float far = Mathf.Clamp(EditorGUILayout.FloatField("Far clip", camera.farClipPlane), near + .00001f, 10000000);
+            bool orthographic = EditorGUILayout.Toggle(AuthoringText.Get("Orthographic"), camera.orthographic);
+            float field = EditorGUILayout.Slider(AuthoringText.Get("Field of view"), camera.fieldOfView, 1, 179);
+            float size = Mathf.Clamp(EditorGUILayout.FloatField(AuthoringText.Get("View size"), camera.orthographicSize), .001f, 1000000);
+            float near = Mathf.Clamp(EditorGUILayout.FloatField(AuthoringText.Get("Near clip"), camera.nearClipPlane), .00001f, 999999);
+            float far = Mathf.Clamp(EditorGUILayout.FloatField(AuthoringText.Get("Far clip"), camera.farClipPlane), near + .00001f, 10000000);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(camera, "Change camera lens");
@@ -128,18 +128,18 @@ namespace WitchMendokusai.ContentAuthoring
                 camera.nearClipPlane = near;
                 camera.farClipPlane = far;
             }
-            if (GUILayout.Button("Select camera node"))
+            if (GUILayout.Button(AuthoringText.Get("Select camera node")))
             {
                 Selection.activeTransform = node;
             }
-            if (GUILayout.Button("Use this camera in game"))
+            if (GUILayout.Button(AuthoringText.Get("Use this camera in game")))
             {
                 foreach (SceneCamera candidate in cameras)
                 {
                     candidate.Enabled = candidate == binding;
                 }
             }
-            if (GUILayout.Button("Record lens key"))
+            if (GUILayout.Button(AuthoringText.Get("Record lens key")))
             {
                 string id = workspace.Document.Nodes[binding.Node].Id;
                 record(new[] { SceneMotionBindings.CameraField(id, "fov"), SceneMotionBindings.CameraField(id, "size") });
@@ -159,11 +159,11 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 names[index] = workspace.Document.Nodes[lights[index].Node].Label;
             }
-            lightIndex = EditorGUILayout.Popup("Light", lightIndex, names);
+            lightIndex = EditorGUILayout.Popup(AuthoringText.Get("Light"), lightIndex, names);
             Light light = workspace.Instance.FindNode(workspace.Document.Nodes[lights[lightIndex].Node].Id).GetComponent<Light>();
             EditorGUI.BeginChangeCheck();
-            Color color = EditorGUILayout.ColorField("Color", light.color);
-            float intensity = Mathf.Clamp(EditorGUILayout.FloatField("Intensity (relative)", light.intensity), 0, 1000000);
+            Color color = EditorGUILayout.ColorField(AuthoringText.Get("Color"), light.color);
+            float intensity = Mathf.Clamp(EditorGUILayout.FloatField(AuthoringText.Get("Intensity (relative)"), light.intensity), 0, 1000000);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(light, "Change scene light");
@@ -171,7 +171,7 @@ namespace WitchMendokusai.ContentAuthoring
                 light.intensity = intensity;
                 SceneView.RepaintAll();
             }
-            if (GUILayout.Button("Record light key"))
+            if (GUILayout.Button(AuthoringText.Get("Record light key")))
             {
                 string id = workspace.Document.Nodes[lights[lightIndex].Node].Id;
                 record(new[] { SceneMotionBindings.LightField(id, "intensity"), SceneMotionBindings.LightField(id, "color-0"), SceneMotionBindings.LightField(id, "color-1"), SceneMotionBindings.LightField(id, "color-2") });

@@ -27,24 +27,24 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void Draw(Action<string> open)
         {
-            expanded = EditorGUILayout.Foldout(expanded, "Shared content library", true);
+            expanded = EditorGUILayout.Foldout(expanded, AuthoringText.Get("Shared content library"), true);
             if (expanded == false)
             {
                 return;
             }
-            EditorGUILayout.LabelField("Same resource bytes are stored once, across scene variants.", EditorStyles.wordWrappedLabel);
+            EditorGUILayout.LabelField(AuthoringText.Get("Same resource bytes are stored once, across scene variants."), EditorStyles.wordWrappedLabel);
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Import scene..."))
+            if (GUILayout.Button(AuthoringText.Get("Import scene...")))
             {
-                string file = EditorUtility.OpenFilePanel("Import a native scene", "", "json");
+                string file = EditorUtility.OpenFilePanel(AuthoringText.Get("Import a native scene"), "", "json");
                 if (string.IsNullOrEmpty(file) == false)
                 {
                     Run(delegate { Import(file); });
                 }
             }
-            if (GUILayout.Button("Choose library..."))
+            if (GUILayout.Button(AuthoringText.Get("Choose library...")))
             {
-                string directory = EditorUtility.OpenFolderPanel("Content library", library.Root, "");
+                string directory = EditorUtility.OpenFolderPanel(AuthoringText.Get("Content library"), library.Root, "");
                 if (string.IsNullOrEmpty(directory) == false)
                 {
                     library = new ContentLibrary(directory);
@@ -53,11 +53,11 @@ namespace WitchMendokusai.ContentAuthoring
                 }
             }
             EditorGUILayout.EndHorizontal();
-            if (GUILayout.Button("Refresh library"))
+            if (GUILayout.Button(AuthoringText.Get("Refresh library")))
             {
                 Run(Refresh);
             }
-            EditorGUILayout.LabelField(usage.Documents + " scenes, " + usage.Objects + " unique resources, " + (usage.ResourceBytes / 1048576d).ToString("F2") + " MiB");
+            EditorGUILayout.LabelField(AuthoringText.Format("{0} scenes, {1} unique resources, {2:F2} MiB", usage.Documents, usage.Objects, usage.ResourceBytes / 1048576d));
             scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.Height(130));
             for (int index = 0; index < entries.Length; index++)
             {
@@ -70,7 +70,7 @@ namespace WitchMendokusai.ContentAuthoring
             EditorGUILayout.EndScrollView();
             if (string.IsNullOrEmpty(error) == false)
             {
-                EditorGUILayout.HelpBox(error, MessageType.Error);
+                EditorGUILayout.HelpBox(AuthoringText.Format("Action failed. Details: {0}", error), MessageType.Error);
             }
         }
 

@@ -49,21 +49,21 @@ namespace WitchMendokusai.ContentAuthoring
         private void DrawSequenceFiles()
         {
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Open sequence..."))
+            if (GUILayout.Button(AuthoringText.Get("Open sequence...")))
             {
-                string file = EditorUtility.OpenFilePanel("Open scene sequence", "", "json");
+                string file = EditorUtility.OpenFilePanel(AuthoringText.Get("Open scene sequence"), "", "json");
                 if (string.IsNullOrEmpty(file) == false &&
                     (workspace.IsLoaded == false || (workspace.HasChanges == false && motion.HasChanges == false) ||
-                    EditorUtility.DisplayDialog("Unsaved workspace", "Discard current scene and motion edits?", "Discard", "Cancel")))
+                    EditorUtility.DisplayDialog(AuthoringText.Get("Unsaved workspace"), AuthoringText.Get("Discard current scene and motion edits?"), AuthoringText.Get("Discard"), AuthoringText.Get("Cancel"))))
                 {
                     Run(delegate { LoadSequence(file); });
                 }
             }
             using (new EditorGUI.DisabledScope(workspace.IsLoaded == false))
             {
-                if (GUILayout.Button("Export sequence..."))
+                if (GUILayout.Button(AuthoringText.Get("Export sequence...")))
                 {
-                    string file = EditorUtility.SaveFilePanel("Export scene sequence and resources", "", "scene.sequence", "json");
+                    string file = EditorUtility.SaveFilePanel(AuthoringText.Get("Export scene sequence and resources"), "", "scene.sequence", "json");
                     if (string.IsNullOrEmpty(file) == false)
                     {
                         Run(delegate { SaveSequence(file); });

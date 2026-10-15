@@ -11,7 +11,7 @@ using WitchMendokusai.ContentRuntime;
 
 namespace WitchMendokusai.ContentAuthoring
 {
-    public sealed class MotionClipPanel : IDisposable
+    public sealed partial class MotionClipPanel : IDisposable
     {
         private PoseClip clip;
         private PoseClipSampler sampler;
@@ -165,10 +165,11 @@ namespace WitchMendokusai.ContentAuthoring
         public void Draw(string selectedNode)
         {
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Motion clip", EditorStyles.boldLabel);
+            expanded = EditorGUILayout.Foldout(expanded, AuthoringText.Get("Motion clip"), true);
+            if (expanded == false) return;
             EditorGUI.BeginChangeCheck();
-            float duration = EditorGUILayout.FloatField("Duration (seconds)", clip.Duration);
-            bool loop = EditorGUILayout.Toggle("Loop", clip.Loop);
+            float duration = EditorGUILayout.FloatField(AuthoringText.Get("Duration (seconds)"), clip.Duration);
+            bool loop = EditorGUILayout.Toggle(AuthoringText.Get("Loop"), clip.Loop);
             if (EditorGUI.EndChangeCheck())
             {
                 Run(delegate
@@ -182,7 +183,7 @@ namespace WitchMendokusai.ContentAuthoring
                 });
             }
             EditorGUI.BeginChangeCheck();
-            float seconds = EditorGUILayout.Slider("Time", Time, 0, clip.Duration);
+            float seconds = EditorGUILayout.Slider(AuthoringText.Get("Time"), Time, 0, clip.Duration);
             if (EditorGUI.EndChangeCheck())
             {
                 playing = false;
@@ -191,42 +192,37 @@ namespace WitchMendokusai.ContentAuthoring
             EditorGUILayout.BeginHorizontal();
             using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(selectedNode)))
             {
-                if (GUILayout.Button("Record node key"))
+                if (GUILayout.Button(AuthoringText.Get("Record node key")))
                 {
                     Run(delegate { Record(selectedNode); });
                 }
             }
             using (new EditorGUI.DisabledScope(clip.Tracks.Length == 0 && clip.Values.Length == 0))
             {
-                if (GUILayout.Button(playing ? "Pause" : "Play"))
+                if (GUILayout.Button(playing ? AuthoringText.Get("Pause") : AuthoringText.Get("Play")))
                 {
-                    if (playing == false && Time >= clip.Duration)
-                    {
-                        Run(delegate { Seek(0); });
-                    }
-                    playing = playing == false;
-                    lastTick = EditorApplication.timeSinceStartup;
+                    Run(TogglePlayback);
                 }
             }
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Previous key"))
+            if (GUILayout.Button(AuthoringText.Get("Previous key")))
             {
                 Run(delegate { MoveToAdjacentKey(false); });
             }
-            if (GUILayout.Button("Next key"))
+            if (GUILayout.Button(AuthoringText.Get("Next key")))
             {
                 Run(delegate { MoveToAdjacentKey(true); });
             }
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("New clip"))
+            if (GUILayout.Button(AuthoringText.Get("New clip")))
             {
                 if (ConfirmDiscard()) Reset();
             }
-            if (GUILayout.Button("Open clip...") && ConfirmDiscard())
+            if (GUILayout.Button(AuthoringText.Get("Open clip...")) && ConfirmDiscard())
             {
-                string file = EditorUtility.OpenFilePanel("Open motion clip", "", "json");
+                string file = EditorUtility.OpenFilePanel(AuthoringText.Get("Open motion clip"), "", "json");
                 if (string.IsNullOrEmpty(file) == false)
                 {
                     Run(delegate
@@ -244,9 +240,9 @@ namespace WitchMendokusai.ContentAuthoring
                     });
                 }
             }
-            if (GUILayout.Button("Save clip..."))
+            if (GUILayout.Button(AuthoringText.Get("Save clip...")))
             {
-                string file = EditorUtility.SaveFilePanel("Save reusable motion clip", "", "motion-clip", "json");
+                string file = EditorUtility.SaveFilePanel(AuthoringText.Get("Save reusable motion clip"), "", "motion-clip", "json");
                 if (string.IsNullOrEmpty(file) == false)
                 {
                     Run(delegate
@@ -267,11 +263,11 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 keys += track.Keys.Length;
             }
-            EditorGUILayout.LabelField(clip.Tracks.Length + " pose tracks, " + clip.Values.Length + " value tracks, " + keys + " keys");
+            EditorGUILayout.LabelField(AuthoringText.Format("{0} pose tracks, {1} value tracks, {2} keys", clip.Tracks.Length, clip.Values.Length, keys));
             DrawTrackEdits();
             if (string.IsNullOrEmpty(error) == false)
             {
-                EditorGUILayout.HelpBox(error, MessageType.Error);
+                EditorGUILayout.HelpBox(AuthoringText.Format("Action failed. Details: {0}", error), MessageType.Error);
             }
         }
 
@@ -297,14 +293,14 @@ namespace WitchMendokusai.ContentAuthoring
             EditorGUILayout.BeginHorizontal();
             using (new EditorGUI.DisabledScope(history.CanUndo == false))
             {
-                if (GUILayout.Button("Undo key edit")) UndoEdit();
+                if (GUILayout.Button(AuthoringText.Get("Undo key edit"))) UndoEdit();
             }
             using (new EditorGUI.DisabledScope(history.CanRedo == false))
             {
-                if (GUILayout.Button("Redo key edit")) RedoEdit();
+                if (GUILayout.Button(AuthoringText.Get("Redo key edit"))) RedoEdit();
             }
             EditorGUILayout.EndHorizontal();
-            showTracks = EditorGUILayout.Foldout(showTracks, "Tracks and keys", true);
+            showTracks = EditorGUILayout.Foldout(showTracks, AuthoringText.Get("Tracks and keys"), true);
             if (showTracks == false)
             {
                 return;
@@ -330,7 +326,7 @@ namespace WitchMendokusai.ContentAuthoring
                 }
                 EditorGUILayout.EndHorizontal();
             }
-            EditorGUILayout.LabelField("First 8 keys per track shown. Previous/Next visits every key.", EditorStyles.wordWrappedLabel);
+            EditorGUILayout.LabelField(AuthoringText.Get("First 8 keys per track shown. Previous/Next visits every key."), EditorStyles.wordWrappedLabel);
             EditorGUILayout.EndScrollView();
         }
 
@@ -347,14 +343,14 @@ namespace WitchMendokusai.ContentAuthoring
         {
             EditorGUILayout.BeginHorizontal();
             GUILayout.Label(new GUIContent(id + " (" + count + ")", id), GUILayout.MinWidth(70), GUILayout.MaxWidth(Mathf.Max(70, EditorGUIUtility.currentViewWidth - 210)));
-            if (GUILayout.Button("Delete key", GUILayout.Width(70))) RemoveKey(id, kind, Time);
-            if (GUILayout.Button("Delete track", GUILayout.Width(78))) RemoveKey(id, kind);
+            if (GUILayout.Button(AuthoringText.Get("Delete key"), GUILayout.Width(70))) RemoveKey(id, kind, Time);
+            if (GUILayout.Button(AuthoringText.Get("Delete track"), GUILayout.Width(78))) RemoveKey(id, kind);
             EditorGUILayout.EndHorizontal();
         }
 
         private bool ConfirmDiscard()
         {
-            return HasChanges == false || EditorUtility.DisplayDialog("Unsaved motion clip", "Discard the current motion draft? Save the clip first to keep it.", "Discard", "Cancel");
+            return HasChanges == false || EditorUtility.DisplayDialog(AuthoringText.Get("Unsaved motion clip"), AuthoringText.Get("Discard the current motion draft? Save the clip first to keep it."), AuthoringText.Get("Discard"), AuthoringText.Get("Cancel"));
         }
 
         private void Run(Action action)

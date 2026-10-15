@@ -14,6 +14,7 @@ namespace WitchMendokusai.ContentAuthoring
         private int selected;
         private bool expanded;
         private string[] labels = new string[0];
+        private int[] usesPerSurface = new int[0];
         private static readonly string[] LIGHTING = { "unlit", "lit" };
         private static readonly string[] ALPHA = { "opaque", "mask", "blend" };
 
@@ -22,6 +23,7 @@ namespace WitchMendokusai.ContentAuthoring
             workspace = value;
             apply = applyChange;
             labels = new string[workspace.Document.Materials.Length];
+            usesPerSurface = new int[labels.Length];
             for (int index = 0; index < labels.Length; index++)
             {
                 int uses = 0;
@@ -35,7 +37,7 @@ namespace WitchMendokusai.ContentAuthoring
                         }
                     }
                 }
-                labels[index] = "Surface " + index + " (" + uses + " slots)";
+                usesPerSurface[index] = uses;
             }
             selected = Mathf.Clamp(selected, 0, Mathf.Max(0, labels.Length - 1));
             ResetDraft();
@@ -75,50 +77,54 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void Draw()
         {
-            expanded = EditorGUILayout.Foldout(expanded, "Surfaces", true);
+            expanded = EditorGUILayout.Foldout(expanded, AuthoringText.Get("Surfaces"), true);
             if (expanded == false)
             {
                 return;
             }
             if (draft == null)
             {
-                EditorGUILayout.LabelField("This scene has no surfaces.");
+                EditorGUILayout.LabelField(AuthoringText.Get("This scene has no surfaces."));
                 return;
             }
-            EditorGUILayout.LabelField("Adjust values, then Apply. Reset discards unapplied values.", EditorStyles.wordWrappedLabel);
-            int next = EditorGUILayout.Popup("Surface", selected, labels);
+            EditorGUILayout.LabelField(AuthoringText.Get("Adjust values, then Apply. Reset discards unapplied values."), EditorStyles.wordWrappedLabel);
+            for (int index = 0; index < labels.Length; index++)
+            {
+                labels[index] = AuthoringText.Format("Surface {0} ({1} slots)", index, usesPerSurface[index]);
+            }
+            int next = EditorGUILayout.Popup(AuthoringText.Get("Surface"), selected, labels);
             if (next != selected)
             {
                 selected = next;
                 ResetDraft();
             }
-            if (GUILayout.Button("Select surface users"))
+            if (GUILayout.Button(AuthoringText.Get("Select surface users")))
             {
                 SelectUsers(selected);
             }
-            Color color = EditorGUILayout.ColorField("Base color", new Color(draft.BaseColor[0], draft.BaseColor[1], draft.BaseColor[2], draft.BaseColor[3]));
+            Color color = EditorGUILayout.ColorField(AuthoringText.Get("Base color"), new Color(draft.BaseColor[0], draft.BaseColor[1], draft.BaseColor[2], draft.BaseColor[3]));
             draft.BaseColor = new[] { color.r, color.g, color.b, color.a };
-            draft.LightingModel = LIGHTING[EditorGUILayout.Popup("Lighting", Array.IndexOf(LIGHTING, draft.LightingModel), LIGHTING)];
-            draft.AlphaMode = ALPHA[EditorGUILayout.Popup("Alpha", Array.IndexOf(ALPHA, draft.AlphaMode), ALPHA)];
-            draft.DoubleSided = EditorGUILayout.Toggle("Double sided", draft.DoubleSided);
+            draft.LightingModel = LIGHTING[EditorGUILayout.Popup(AuthoringText.Get("Lighting"), Array.IndexOf(LIGHTING, draft.LightingModel), AuthoringText.Labels(LIGHTING))];
+            draft.AlphaMode = ALPHA[EditorGUILayout.Popup(AuthoringText.Get("Alpha"), Array.IndexOf(ALPHA, draft.AlphaMode), AuthoringText.Labels(ALPHA))];
+            draft.DoubleSided = EditorGUILayout.Toggle(AuthoringText.Get("Double sided"), draft.DoubleSided);
             using (new EditorGUI.DisabledScope(draft.LightingModel != "lit"))
             {
-                draft.Roughness = EditorGUILayout.Slider("Roughness", draft.Roughness, 0, 1);
-                draft.Metallic = EditorGUILayout.Slider("Metallic", draft.Metallic, 0, 1);
-                Color emission = EditorGUILayout.ColorField(new GUIContent("Emission"), new Color(draft.Emission[0], draft.Emission[1], draft.Emission[2]), true, false, true);
+                draft.Roughness = EditorGUILayout.Slider(AuthoringText.Get("Roughness"), draft.Roughness, 0, 1);
+                draft.Metallic = EditorGUILayout.Slider(AuthoringText.Get("Metallic"), draft.Metallic, 0, 1);
+                Color emission = EditorGUILayout.ColorField(new GUIContent(AuthoringText.Get("Emission")), new Color(draft.Emission[0], draft.Emission[1], draft.Emission[2]), true, false, true);
                 draft.Emission = new[] { emission.r, emission.g, emission.b };
             }
-            Vector2 scale = EditorGUILayout.Vector2Field("Texture scale", new Vector2(draft.TextureScale[0], draft.TextureScale[1]));
-            Vector2 offset = EditorGUILayout.Vector2Field("Texture offset", new Vector2(draft.TextureOffset[0], draft.TextureOffset[1]));
+            Vector2 scale = EditorGUILayout.Vector2Field(AuthoringText.Get("Texture scale"), new Vector2(draft.TextureScale[0], draft.TextureScale[1]));
+            Vector2 offset = EditorGUILayout.Vector2Field(AuthoringText.Get("Texture offset"), new Vector2(draft.TextureOffset[0], draft.TextureOffset[1]));
             draft.TextureScale = new[] { scale.x, scale.y };
             draft.TextureOffset = new[] { offset.x, offset.y };
-            EditorGUILayout.LabelField("Texture", string.IsNullOrEmpty(draft.BaseColorTexture) ? "None" : draft.BaseColorTexture);
+            EditorGUILayout.LabelField(AuthoringText.Get("Texture"), string.IsNullOrEmpty(draft.BaseColorTexture) ? AuthoringText.Get("None") : draft.BaseColorTexture);
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Apply surface"))
+            if (GUILayout.Button(AuthoringText.Get("Apply surface")))
             {
                 Apply(selected, draft);
             }
-            if (GUILayout.Button("Reset surface"))
+            if (GUILayout.Button(AuthoringText.Get("Reset surface")))
             {
                 ResetDraft();
             }

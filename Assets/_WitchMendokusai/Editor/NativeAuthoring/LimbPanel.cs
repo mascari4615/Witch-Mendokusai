@@ -67,14 +67,14 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void Draw()
         {
-            expanded = EditorGUILayout.Foldout(expanded, "Limb goals", true);
+            expanded = EditorGUILayout.Foldout(expanded, AuthoringText.Get("Limb goals"), true);
             if (expanded == false)
             {
                 return;
             }
-            if (GUILayout.Button("Open rig bindings..."))
+            if (GUILayout.Button(AuthoringText.Get("Open rig bindings...")))
             {
-                string file = EditorUtility.OpenFilePanel("Open rig bindings", "", "json");
+                string file = EditorUtility.OpenFilePanel(AuthoringText.Get("Open rig bindings"), "", "json");
                 if (string.IsNullOrEmpty(file) == false)
                 {
                     try { Load(file); }
@@ -83,29 +83,29 @@ namespace WitchMendokusai.ContentAuthoring
             }
             if (rig == null || rig.Limbs.Length == 0)
             {
-                EditorGUILayout.HelpBox(message ?? "Open rig bindings to move hands or feet by their goals.", MessageType.Info);
+                EditorGUILayout.HelpBox(AuthoringText.Get(message ?? "Open rig bindings to move hands or feet by their goals."), MessageType.Info);
                 return;
             }
-            int next = EditorGUILayout.Popup("Limb", selected, labels);
+            int next = EditorGUILayout.Popup(AuthoringText.Get("Limb"), selected, AuthoringText.Labels(labels));
             if (next != selected)
             {
                 selected = next;
                 ResetGoal();
             }
-            handles = EditorGUILayout.Toggle("Show stage handles", handles);
-            goal = EditorGUILayout.Vector3Field("Goal (world)", goal);
-            pole = EditorGUILayout.Vector3Field("Bend pole (world)", pole);
+            handles = EditorGUILayout.Toggle(AuthoringText.Get("Show stage handles"), handles);
+            goal = EditorGUILayout.Vector3Field(AuthoringText.Get("Goal (world)"), goal);
+            pole = EditorGUILayout.Vector3Field(AuthoringText.Get("Bend pole (world)"), pole);
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Apply goal"))
+            if (GUILayout.Button(AuthoringText.Get("Apply goal")))
             {
                 ApplyGoal();
             }
-            if (GUILayout.Button("Use current end"))
+            if (GUILayout.Button(AuthoringText.Get("Use current end")))
             {
                 ResetGoal();
             }
             EditorGUILayout.EndHorizontal();
-            if (GUILayout.Button("Record limb key"))
+            if (GUILayout.Button(AuthoringText.Get("Record limb key")))
             {
                 RigLimb limb = rig.Limbs[selected];
                 record(new[] { rig.Resolve(limb.Upper), rig.Resolve(limb.Lower) });
@@ -113,7 +113,7 @@ namespace WitchMendokusai.ContentAuthoring
             }
             if (string.IsNullOrEmpty(message) == false)
             {
-                EditorGUILayout.HelpBox(message, MessageType.Info);
+                EditorGUILayout.HelpBox(AuthoringText.Get(message), MessageType.Info);
             }
         }
 

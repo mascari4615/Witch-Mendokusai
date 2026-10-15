@@ -42,14 +42,14 @@ namespace WitchMendokusai.ContentAuthoring
             EditorGUILayout.BeginHorizontal();
             using (new EditorGUI.DisabledScope(workspace.IsLoaded == false || workspace.CanUndoChange == false))
             {
-                if (GUILayout.Button(new GUIContent("Undo scene change", TOOLTIP)))
+                if (GUILayout.Button(new GUIContent(AuthoringText.Get("Undo scene change"), AuthoringText.Get(TOOLTIP))))
                 {
                     Run(UndoSceneChange);
                 }
             }
             using (new EditorGUI.DisabledScope(workspace.IsLoaded == false || workspace.CanRedoChange == false))
             {
-                if (GUILayout.Button(new GUIContent("Redo scene change", TOOLTIP)))
+                if (GUILayout.Button(new GUIContent(AuthoringText.Get("Redo scene change"), AuthoringText.Get(TOOLTIP))))
                 {
                     Run(RedoSceneChange);
                 }

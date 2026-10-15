@@ -57,18 +57,22 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void Draw()
         {
-            expanded = EditorGUILayout.Foldout(expanded, "Expressions", true);
+            expanded = EditorGUILayout.Foldout(expanded, AuthoringText.Get("Expressions"), true);
             if (expanded == false)
             {
                 return;
             }
             if (skins.Length == 0)
             {
-                EditorGUILayout.LabelField("This scene has no expression controls.");
+                EditorGUILayout.LabelField(AuthoringText.Get("This scene has no expression controls."));
                 return;
             }
-            selected = EditorGUILayout.Popup("Surface", selected, labels);
-            filter = EditorGUILayout.TextField("Find expression", filter);
+            for (int index = 0; index < labels.Length; index++)
+            {
+                labels[index] = AuthoringText.Format("{0}, {1} controls", skins[index].name, skins[index].sharedMesh.blendShapeCount);
+            }
+            selected = EditorGUILayout.Popup(AuthoringText.Get("Surface"), selected, labels);
+            filter = EditorGUILayout.TextField(AuthoringText.Get("Find expression"), filter);
             SkinnedMeshRenderer skin = skins[selected];
             scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.Height(180));
             for (int index = 0; index < skin.sharedMesh.blendShapeCount; index++)
@@ -83,11 +87,11 @@ namespace WitchMendokusai.ContentAuthoring
                 float weight = EditorGUILayout.Slider(label, skin.GetBlendShapeWeight(index), 0, 100);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    Undo.RecordObject(skin, "Change expression");
+                    Undo.RecordObject(skin, AuthoringText.Get("Change expression"));
                     skin.SetBlendShapeWeight(index, weight);
                     SceneView.RepaintAll();
                 }
-                if (GUILayout.Button("Key", GUILayout.Width(38)))
+                if (GUILayout.Button(AuthoringText.Get("Key"), GUILayout.Width(38)))
                 {
                     int mesh = meshIndices[selected];
                     string node = workspace.Document.Nodes[workspace.Document.Meshes[mesh].Node].Id;
