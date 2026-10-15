@@ -18,6 +18,8 @@ namespace WitchMendokusai.ContentAuthoring
         private MotionClipPanel motion;
         private ExpressionPanel expressions;
         private bool labeledOnly;
+        private LimbPanel limbs;
+        private Vector2 bodyScroll;
 
         public ContentWorkspace Workspace { get { return workspace; } }
 
@@ -30,8 +32,10 @@ namespace WitchMendokusai.ContentAuthoring
         private void OnEnable()
         {
             workspace = new ContentWorkspace();
+            minSize = new Vector2(380, 480);
             motion = new MotionClipPanel();
             expressions = new ExpressionPanel();
+            limbs = new LimbPanel(motion.RecordNodes);
             Undo.undoRedoPerformed += Repaint;
             EditorApplication.delayCall += RestoreLastScene;
         }
@@ -41,6 +45,7 @@ namespace WitchMendokusai.ContentAuthoring
             Undo.undoRedoPerformed -= Repaint;
             EditorApplication.delayCall -= RestoreLastScene;
             motion.Dispose();
+            limbs.Dispose();
             if (stage != null)
             {
                 stage.Close();
@@ -56,6 +61,7 @@ namespace WitchMendokusai.ContentAuthoring
             workspace.Load(file);
             motion.Bind(workspace, Repaint);
             expressions.Bind(workspace);
+            limbs.Bind(workspace);
             labeledOnly = Array.Exists(workspace.Document.Nodes, node => string.IsNullOrEmpty(node.Label) == false);
             selected = -1;
             failure = false;
@@ -116,6 +122,7 @@ namespace WitchMendokusai.ContentAuthoring
                 EditorGUILayout.LabelField("Open a native scene, select a node, and use the stage handles or the fields below. Save a separate copy for your game.", EditorStyles.wordWrappedLabel);
                 return;
             }
+            bodyScroll = EditorGUILayout.BeginScrollView(bodyScroll);
             filter = EditorGUILayout.TextField("Find node", filter);
             labeledOnly = EditorGUILayout.Toggle("Named controls only", labeledOnly);
             scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.MaxHeight(position.height * 0.38f));
@@ -143,7 +150,9 @@ namespace WitchMendokusai.ContentAuthoring
             EditorGUILayout.EndScrollView();
             motion.Draw(selected < 0 ? null : workspace.Document.Nodes[selected].Id);
             DrawSelected();
+            limbs.Draw();
             expressions.Draw();
+            EditorGUILayout.EndScrollView();
         }
 
         private void DrawSelected()

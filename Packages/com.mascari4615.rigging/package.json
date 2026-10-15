@@ -1,0 +1,5 @@
+{
+  "name": "com.mascari4615.rigging", "version": "0.1.0", "displayName": "Rigging",
+  "description": "Portable rig bindings and analytic limb solving, with optional Unity adapters.",
+  "unity": "6000.3", "dependencies": { "com.unity.nuget.newtonsoft-json": "3.2.2" }
+}

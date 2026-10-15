@@ -50,6 +50,17 @@ namespace WitchMendokusai.ContentAuthoring
             sampler = new PoseClipSampler(clip);
         }
 
+        public void RecordNodes(string[] nodes)
+        {
+            PoseClip next = clip;
+            foreach (string node in nodes)
+            {
+                next = PoseClipEditing.Record(next, node, Time, target.Read(node));
+            }
+            clip = next;
+            sampler = new PoseClipSampler(clip);
+        }
+
         public void Seek(float seconds)
         {
             sampler.Apply(seconds, target);

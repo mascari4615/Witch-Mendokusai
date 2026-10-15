@@ -1,0 +1,4 @@
+{
+  "name": "Rigging.Serialization", "references": ["Rigging.Core"], "noEngineReferences": true,
+  "overrideReferences": true, "precompiledReferences": ["Newtonsoft.Json.dll"]
+}

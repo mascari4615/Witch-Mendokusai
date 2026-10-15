@@ -1,0 +1,5 @@
+{
+  "name": "Rigging.Tests", "references": ["Rigging.Core", "Rigging.Unity"],
+  "includePlatforms": ["Editor"], "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll"], "optionalUnityReferences": ["TestAssemblies"]
+}
