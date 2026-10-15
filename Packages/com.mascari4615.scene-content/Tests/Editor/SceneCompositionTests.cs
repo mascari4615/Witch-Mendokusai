@@ -1,0 +1,54 @@
+using System;
+using NUnit.Framework;
+using SceneContent.Unity;
+using UnityEngine;
+
+namespace SceneContent.Tests
+{
+    public sealed class SceneCompositionTests
+    {
+        [Test]
+        public void NamespacesAndRemapsEveryBindingWithoutMutatingInputs()
+        {
+            SceneDocument first = SceneFixtures.Document(SceneFixtures.Bytes());
+            SceneDocument second = SceneFixtures.Document(SceneFixtures.Bytes());
+            second.Cameras = new[] { new SceneCamera { Node = 2 } };
+            second.Lights = new[] { new SceneLight { Node = 3 } };
+            SceneDocument combined = SceneComposition.Append(first, second, "other", new[] { 2f, 0f, 0f });
+            Assert.That(combined.Nodes.Length, Is.EqualTo(11));
+            Assert.That(combined.Nodes[6].Id, Is.EqualTo("other:node-0"));
+            Assert.That(combined.Nodes[6].Parent, Is.EqualTo(5));
+            Assert.That(combined.Meshes[1].Node, Is.EqualTo(6));
+            Assert.That(combined.Meshes[1].RootBone, Is.EqualTo(7));
+            Assert.That(combined.Meshes[1].Materials[0], Is.EqualTo(1));
+            Assert.That(combined.Cameras[0].Node, Is.EqualTo(8));
+            Assert.That(combined.Lights[0].Node, Is.EqualTo(9));
+            Assert.That(second.Nodes[0].Id, Is.EqualTo("node-0"));
+            Assert.That(second.Meshes[0].Bones[0], Is.EqualTo(1));
+            Assert.Throws<ArgumentException>(() => SceneComposition.Append(combined, second, "other", new float[3]));
+        }
+
+        [Test]
+        public void DuplicateResourceAliasesShareOneRuntimeMesh()
+        {
+            SkinWeights previous = QualitySettings.skinWeights;
+            SceneInstance instance = null;
+            try
+            {
+                QualitySettings.skinWeights = SkinWeights.FourBones;
+                byte[] bytes = SceneFixtures.Bytes();
+                SceneDocument combined = SceneComposition.Append(SceneFixtures.Document(bytes), SceneFixtures.Document(bytes), "other", new float[3]);
+                instance = SceneContentLoader.Load(combined, new MemorySource { Bytes = bytes }, Shader.Find("Universal Render Pipeline/Unlit"));
+                Mesh first = ((SkinnedMeshRenderer)instance.FindMesh(0)).sharedMesh;
+                Mesh second = ((SkinnedMeshRenderer)instance.FindMesh(1)).sharedMesh;
+                Assert.That(first, Is.SameAs(second));
+                Assert.That(instance.FindNode("other:node-0"), Is.Not.SameAs(instance.FindNode("node-0")));
+            }
+            finally
+            {
+                if (instance != null) UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                QualitySettings.skinWeights = previous;
+            }
+        }
+    }
+}

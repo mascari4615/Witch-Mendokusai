@@ -15,6 +15,12 @@ git push origin v0.0.5
 
 ## 사용한 리소스/에셋
 
+## Content authoring
+
+Unity의 **WM > Authoring > Scene workspace**에서 독립 장면과 동작을 제작합니다. 자세, 표정, 카메라, 조명과 여러 캐릭터를 편집하고 같은 데이터를 게임에서 재생합니다. [사용법과 현재 범위](Documentation/ContentAuthoring.md).
+
+## 사용한 리소스/에셋
+
 - [Galmuri (Font)](https://galmuri.quiple.dev/), [(Github)](https://github.com/quiple/galmuri)
 - [Game-icons.net (Icon)](https://game-icons.net/), [(Github)](https://github.com/game-icons/icons)
 - [Newtonsoft.JSON](https://github.com/applejag/Newtonsoft.Json-for-Unity)

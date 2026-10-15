@@ -49,7 +49,8 @@ namespace SceneContent.Unity
                 {
                     SurfaceMaterial surface = document.Materials[index];
                     Texture2D texture = null;
-                    if (string.IsNullOrEmpty(surface.BaseColorTexture) == false && textures.TryGetValue(surface.BaseColorTexture, out texture) == false)
+                    string textureHash = string.IsNullOrEmpty(surface.BaseColorTexture) ? null : descriptors[surface.BaseColorTexture].Sha256;
+                    if (textureHash != null && textures.TryGetValue(textureHash, out texture) == false)
                     {
                         byte[] image = source.Read(descriptors[surface.BaseColorTexture]);
                         PngHeader.ValidateDimensions(image);
@@ -57,7 +58,7 @@ namespace SceneContent.Unity
                         instance.Own(texture);
                         if (ImageConversion.LoadImage(texture, image, true) == false)
                             throw new ArgumentException("Invalid texture image");
-                        textures.Add(surface.BaseColorTexture, texture);
+                        textures.Add(textureHash, texture);
                     }
                     materials[index] = surfaces.Create(surface, texture);
                     if (materials[index] == null) throw new ArgumentException("Surface factory returned no material");
@@ -69,7 +70,8 @@ namespace SceneContent.Unity
                 {
                     MeshInstance binding = document.Meshes[index];
                     Mesh mesh;
-                    if (geometries.TryGetValue(binding.Geometry, out mesh) == false)
+                    string geometryHash = descriptors[binding.Geometry].Sha256;
+                    if (geometries.TryGetValue(geometryHash, out mesh) == false)
                     {
                         MeshGeometry geometry = GeometryBinary.Read(source.Read(descriptors[binding.Geometry]));
                         int influences = 0;
@@ -84,7 +86,7 @@ namespace SceneContent.Unity
                             throw new InvalidOperationException("Geometry requires " + influences + " skin influences, host supports " + (int)QualitySettings.skinWeights + ". Configure host skin-weight quality before loading.");
                         mesh = UnityGeometry.Create(geometry);
                         instance.Own(mesh);
-                        geometries.Add(binding.Geometry, mesh);
+                        geometries.Add(geometryHash, mesh);
                     }
                     if (binding.Materials.Length != mesh.subMeshCount || binding.MorphWeights.Length != mesh.blendShapeCount || (mesh.boneWeights.Length > 0 && binding.Bones.Length != mesh.bindposes.Length))
                         throw new ArgumentException("Geometry binding count mismatch");

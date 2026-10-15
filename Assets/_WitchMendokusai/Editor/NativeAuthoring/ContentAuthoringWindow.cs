@@ -187,6 +187,19 @@ namespace WitchMendokusai.ContentAuthoring
             }
         }
 
+        public void AddActor(string file)
+        {
+            string draft = motion.ExportDraft();
+            float seconds = motion.Time;
+            bool changed = motion.HasChanges;
+            string combined = WorkspaceComposition.AddActor(workspace, file);
+            workspace.Load(combined);
+            ShowLoaded();
+            motion.RestoreDraft(draft, seconds, changed);
+            message = "Added actor with separate node identities and shared resources.";
+            WorkspaceRecovery.Write(workspace, motion);
+        }
+
         private void OnGUI()
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -206,6 +219,11 @@ namespace WitchMendokusai.ContentAuthoring
             }
             using (new EditorGUI.DisabledScope(workspace.IsLoaded == false))
             {
+                if (GUILayout.Button("Add actor...", EditorStyles.toolbarButton))
+                {
+                    string file = EditorUtility.OpenFilePanel("Add an actor from a native scene", "", "json");
+                    if (string.IsNullOrEmpty(file) == false) Run(delegate { AddActor(file); });
+                }
                 if (GUILayout.Button("Save as...", EditorStyles.toolbarButton))
                 {
                     string file = EditorUtility.SaveFilePanel("Save scene and resources", Path.GetDirectoryName(workspace.FilePath), "scene-edited", "json");

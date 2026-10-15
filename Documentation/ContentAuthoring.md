@@ -1,0 +1,18 @@
+# Native content authoring
+
+Open **WM > Authoring > Scene workspace** in Unity. This early authoring tool edits native scene documents in an isolated preview scene and uses the same data and motion core as runtime playback.
+
+1. **Open scene** selects a native scene JSON file. Keep its resource files with it. The shared library can import a scene and store identical resource bytes once across multiple variants.
+2. Find a named control and edit its local position, rotation or scale. Unity selection also follows camera or mesh selections back to the document node. Stable IDs remain independent of visible GameObject names.
+3. Expand **Limb goals** and load rig bindings when needed. Move a goal and bend pole, then apply it. **Record limb key** records both controlled joints at the current motion time. The first limb solver supports rigid chains with positive uniform world scale.
+4. Expand **Expressions** to choose a mesh and search its morph controls. **Key** records that value. Imported low-level morph IDs may still need semantic labels.
+5. In **Motion clip**, set a duration, move the time slider, pose a node and choose **Record node key**. Record another key at another time. Playback interpolates poses and numerical properties. Save the motion clip separately from the current scene snapshot.
+6. **Camera from view** adds a camera using the stage viewpoint. Select its node to record camera movement, or use **Record lens key** for lens changes. Add a light and record intensity or color keys. **Use lit surfaces** switches the basic surface model to use scene lighting.
+7. **Add actor** imports another native scene as a separate actor. Its node identities, rig roles and resource references are separated from existing actors. The existing motion draft is preserved. Imported actor cameras and lights are excluded so the current shot remains in control.
+8. **Save as** writes the current scene snapshot and verified resources. Rig sidecars are preserved. A scene snapshot stores the current pose; a motion clip stores changes over time.
+
+Working scene and motion drafts are checkpointed every ten seconds when changed, and before closing or script reload. Recovery is stored in the local project Library and references existing resources. It does not replace source files or duplicate model files. Keep source resources available until the scene has been saved or imported into the shared library.
+
+The reusable packages are `Appearance`, `Geometry`, `Scene Content`, `Motion` and `Rigging`. Their cores have no engine or game dependencies. Unity adapters own generated assets and bind transforms, rendering and playback. `WM.ContentRuntime` composes scene data with motion property ports; `WM.ContentAuthoring.Editor` provides the authoring host.
+
+This release covers scene snapshots, pose/value clips, basic surfaces, punctual lights, cameras and two-segment limb goals. Secondary dynamics, persistent constraints, semantic body customization, events, audio, external motion import and final game UI integration remain incomplete. Structural preview rebuilds currently reset prior Unity object Undo references; save or recover the scene before such changes. The native document and recovery data remain independent of that preview lifecycle.
