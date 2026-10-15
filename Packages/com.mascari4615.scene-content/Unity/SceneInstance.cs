@@ -8,6 +8,7 @@ namespace SceneContent.Unity
         [SerializeField] private List<UnityEngine.Object> assets = new List<UnityEngine.Object>();
         [SerializeField] private string[] nodeIds;
         [SerializeField] private Transform[] nodeTransforms;
+        [SerializeField] private Renderer[] meshRenderers;
         private Dictionary<string, Transform> nodes = new Dictionary<string, Transform>();
 
         public Transform FindNode(string id)
@@ -17,8 +18,14 @@ namespace SceneContent.Unity
             return nodes[id];
         }
 
-        internal void Initialize(Dictionary<string, Transform> values)
+        public Renderer FindMesh(int index)
         {
+            return meshRenderers[index];
+        }
+
+        internal void Initialize(Dictionary<string, Transform> values, Renderer[] renderers)
+        {
+            meshRenderers = renderers;
             nodes = values;
             nodeIds = new string[values.Count];
             nodeTransforms = new Transform[values.Count];

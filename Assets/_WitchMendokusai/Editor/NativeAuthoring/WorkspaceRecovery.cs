@@ -44,6 +44,15 @@ namespace WitchMendokusai.ContentAuthoring
             };
             string directory = Path.GetDirectoryName(DraftFile);
             Directory.CreateDirectory(directory);
+            if (File.Exists(DraftFile) && new FileInfo(DraftFile).Length <= MAX_DRAFT_BYTES)
+            {
+                WorkspaceDraft previous = JsonUtility.FromJson<WorkspaceDraft>(File.ReadAllText(DraftFile));
+                if (previous != null && previous.SourceFile == draft.SourceFile && previous.Scene == draft.Scene && previous.Clip == draft.Clip &&
+                    previous.Time == draft.Time && previous.ClipChanged == draft.ClipChanged)
+                {
+                    return;
+                }
+            }
             string json = JsonUtility.ToJson(draft, true);
             if (System.Text.Encoding.UTF8.GetByteCount(json) > MAX_DRAFT_BYTES)
             {

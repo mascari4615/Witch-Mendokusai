@@ -11,6 +11,7 @@ namespace Motion
         public float Duration;
         public bool Loop;
         public PoseTrack[] Tracks;
+        public ScalarTrack[] Values = new ScalarTrack[0];
     }
 
     [Serializable]

@@ -7,16 +7,18 @@ namespace Motion.Unity
     {
         private PoseClipSampler sampler;
         private IPoseTarget target;
+        private IValueTarget values;
         private float time;
         public bool IsPlaying { get; private set; }
         public float Time { get { return time; } }
 
-        public void Initialize(PoseClip clip, IPoseTarget poseTarget)
+        public void Initialize(PoseClip clip, IPoseTarget poseTarget, IValueTarget valueTarget = null)
         {
             PoseClipSampler next = new PoseClipSampler(clip);
-            next.Apply(0, poseTarget);
+            next.Apply(0, poseTarget, valueTarget);
             sampler = next;
             target = poseTarget;
+            values = valueTarget;
             time = 0;
             IsPlaying = false;
         }
@@ -41,8 +43,8 @@ namespace Motion.Unity
             {
                 throw new InvalidOperationException("Initialize a clip before seeking");
             }
-            sampler.Apply(seconds, target);
-            time = sampler.Loop ? ((seconds % sampler.Duration) + sampler.Duration) % sampler.Duration : Mathf.Clamp(seconds, 0, sampler.Duration);
+            sampler.Apply(seconds, target, values);
+            time = ClipTime.Normalize(seconds, sampler.Duration, sampler.Loop);
         }
 
         private void Update()

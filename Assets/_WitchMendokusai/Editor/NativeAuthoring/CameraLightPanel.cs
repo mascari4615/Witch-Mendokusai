@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SceneContent;
 using UnityEditor;
 using UnityEngine;
+using WitchMendokusai.ContentRuntime;
 
 namespace WitchMendokusai.ContentAuthoring
 {
@@ -14,6 +15,12 @@ namespace WitchMendokusai.ContentAuthoring
         private bool expanded;
         private int cameraIndex;
         private int lightIndex;
+        private readonly Action<string[]> record;
+
+        public CameraLightPanel(Action<string[]> recordValues)
+        {
+            record = recordValues;
+        }
 
         public void Bind(ContentWorkspace value, Action<Action<SceneDocument>> changeDocument, Func<ContentStageView> getStage)
         {
@@ -132,6 +139,11 @@ namespace WitchMendokusai.ContentAuthoring
                     candidate.Enabled = candidate == binding;
                 }
             }
+            if (GUILayout.Button("Record lens key"))
+            {
+                string id = workspace.Document.Nodes[binding.Node].Id;
+                record(new[] { SceneMotionBindings.CameraField(id, "fov"), SceneMotionBindings.CameraField(id, "size") });
+            }
         }
 
         private void DrawLight()
@@ -158,6 +170,11 @@ namespace WitchMendokusai.ContentAuthoring
                 light.color = color;
                 light.intensity = intensity;
                 SceneView.RepaintAll();
+            }
+            if (GUILayout.Button("Record light key"))
+            {
+                string id = workspace.Document.Nodes[lights[lightIndex].Node].Id;
+                record(new[] { SceneMotionBindings.LightField(id, "intensity"), SceneMotionBindings.LightField(id, "color-0"), SceneMotionBindings.LightField(id, "color-1"), SceneMotionBindings.LightField(id, "color-2") });
             }
         }
 

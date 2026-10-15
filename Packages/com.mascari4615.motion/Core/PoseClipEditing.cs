@@ -45,8 +45,42 @@ namespace Motion
             }
             PoseClip result = new PoseClip
             {
-                Id = clip.Id, Duration = clip.Duration, Loop = clip.Loop, Tracks = tracks.ToArray()
+                Id = clip.Id, Duration = clip.Duration, Loop = clip.Loop, Tracks = tracks.ToArray(), Values = clip.Values
             };
+            new PoseClipSampler(result);
+            return result;
+        }
+
+        public static PoseClip RecordValue(PoseClip clip, string target, float time, float value)
+        {
+            new PoseClipSampler(clip);
+            List<ScalarTrack> tracks = new List<ScalarTrack>();
+            bool found = false;
+            foreach (ScalarTrack track in clip.Values)
+            {
+                if (track.Target != target)
+                {
+                    tracks.Add(track);
+                    continue;
+                }
+                List<ScalarKey> keys = new List<ScalarKey>();
+                foreach (ScalarKey existing in track.Keys)
+                {
+                    if (Math.Abs(existing.Time - time) > KEY_TIME_TOLERANCE)
+                    {
+                        keys.Add(existing);
+                    }
+                }
+                keys.Add(new ScalarKey { Time = time, Value = value });
+                keys.Sort((left, right) => left.Time.CompareTo(right.Time));
+                tracks.Add(new ScalarTrack { Target = target, Keys = keys.ToArray() });
+                found = true;
+            }
+            if (found == false)
+            {
+                tracks.Add(new ScalarTrack { Target = target, Keys = new[] { new ScalarKey { Time = time, Value = value } } });
+            }
+            PoseClip result = new PoseClip { Id = clip.Id, Duration = clip.Duration, Loop = clip.Loop, Tracks = clip.Tracks, Values = tracks.ToArray() };
             new PoseClipSampler(result);
             return result;
         }

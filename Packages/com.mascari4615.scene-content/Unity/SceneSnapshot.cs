@@ -32,13 +32,12 @@ namespace SceneContent.Unity
             for (int index = 0; index < meshes.Length; index++)
             {
                 MeshInstance original = source.Meshes[index];
-                Transform node = instance.FindNode(source.Nodes[original.Node].Id);
-                Transform meshTransform = node.Find("mesh-" + index);
-                if (meshTransform == null)
+                Renderer renderer = instance.FindMesh(index);
+                if (renderer == null)
                 {
                     throw new InvalidOperationException("Missing mesh instance: " + index);
                 }
-                SkinnedMeshRenderer skin = meshTransform.GetComponent<SkinnedMeshRenderer>();
+                SkinnedMeshRenderer skin = renderer as SkinnedMeshRenderer;
                 float[] weights = new float[original.MorphWeights.Length];
                 for (int morph = 0; morph < weights.Length; morph++)
                 {

@@ -23,6 +23,7 @@ namespace WitchMendokusai.ContentAuthoring
         private Vector2 bodyScroll;
         private CameraLightPanel cameras;
         private LibraryPanel library;
+        private double nextRecovery;
 
         public ContentWorkspace Workspace { get { return workspace; } }
         public MotionClipPanel Motion { get { return motion; } }
@@ -38,23 +39,29 @@ namespace WitchMendokusai.ContentAuthoring
             workspace = new ContentWorkspace();
             minSize = new Vector2(380, 480);
             motion = new MotionClipPanel();
-            expressions = new ExpressionPanel();
+            expressions = new ExpressionPanel(motion.RecordValues);
             limbs = new LimbPanel(motion.RecordNodes);
-            cameras = new CameraLightPanel();
+            cameras = new CameraLightPanel(motion.RecordValues);
             library = new LibraryPanel();
             Undo.undoRedoPerformed += Repaint;
             EditorApplication.delayCall += RestoreLastScene;
+            EditorApplication.update += CheckpointRecovery;
         }
 
         private void OnDisable()
         {
             Undo.undoRedoPerformed -= Repaint;
             EditorApplication.delayCall -= RestoreLastScene;
+            EditorApplication.update -= CheckpointRecovery;
             try
             {
                 if (workspace != null && workspace.IsLoaded && (workspace.HasChanges || motion.HasChanges))
                 {
                     WorkspaceRecovery.Write(workspace, motion);
+                }
+                else if (workspace != null && workspace.IsLoaded)
+                {
+                    WorkspaceRecovery.Clear();
                 }
             }
             catch (Exception exception)
@@ -124,6 +131,29 @@ namespace WitchMendokusai.ContentAuthoring
         public void SaveRecovery()
         {
             WorkspaceRecovery.Write(workspace, motion);
+        }
+
+        private void CheckpointRecovery()
+        {
+            if (EditorApplication.timeSinceStartup < nextRecovery)
+            {
+                return;
+            }
+            nextRecovery = EditorApplication.timeSinceStartup + 10;
+            if (EditorApplication.isPlayingOrWillChangePlaymode || workspace.IsLoaded == false)
+            {
+                return;
+            }
+            try
+            {
+                if (workspace.HasChanges || motion.HasChanges) WorkspaceRecovery.Write(workspace, motion);
+                else WorkspaceRecovery.Clear();
+            }
+            catch (Exception exception)
+            {
+                message = "Recovery could not be updated: " + exception.Message;
+                failure = true;
+            }
         }
 
         public void RestoreRecovery()
@@ -243,6 +273,7 @@ namespace WitchMendokusai.ContentAuthoring
             Run(delegate
             {
                 workspace.Change(change);
+                motion.RefreshValues();
                 stage.ShowPreview(workspace.PreviewScene);
                 expressions.Bind(workspace);
                 limbs.Bind(workspace);

@@ -10,4 +10,6 @@ The sampler snapshots input. Editing a clip after constructing a sampler does no
 
 Initialize `PoseClipPlayer` with a clip and a `TransformPoseTarget`, call `Play`, `Pause` or `Seek`. The player advances using scaled Unity game time and stops at the end of a nonlooping clip. Hosts can drive `PoseClipSampler` directly for a different clock, sequencer, network synchronization or offline evaluation.
 
-This first version handles local transforms. Camera optical properties, expression channels, constraints, events and audio are separate pending capabilities; they are not encoded as opaque payloads.
+Optional scalar tracks animate named numerical properties through `IValueTarget`. Bindings validate both availability and semantic bounds before any pose or property in a frame is written. The engine-free `FloatPropertyTarget` adapts host read/write delegates. The WM host binds expression weights, lens values, light intensity and color; the core knows none of these concepts. Older transform-only files remain readable.
+
+Constraints, events, audio and external motion import remain separate pending capabilities. Property identities are host contracts and must remain stable when reusing clips. A host may use a different binding map for another compatible rig or scene.

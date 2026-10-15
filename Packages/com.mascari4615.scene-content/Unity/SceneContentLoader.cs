@@ -51,9 +51,11 @@ namespace SceneContent.Unity
                     Texture2D texture = null;
                     if (string.IsNullOrEmpty(surface.BaseColorTexture) == false && textures.TryGetValue(surface.BaseColorTexture, out texture) == false)
                     {
+                        byte[] image = source.Read(descriptors[surface.BaseColorTexture]);
+                        PngHeader.ValidateDimensions(image);
                         texture = new Texture2D(2, 2, TextureFormat.RGBA32, true);
                         instance.Own(texture);
-                        if (ImageConversion.LoadImage(texture, source.Read(descriptors[surface.BaseColorTexture]), true) == false)
+                        if (ImageConversion.LoadImage(texture, image, true) == false)
                             throw new ArgumentException("Invalid texture image");
                         textures.Add(surface.BaseColorTexture, texture);
                     }
@@ -62,6 +64,7 @@ namespace SceneContent.Unity
                     instance.Own(materials[index]);
                 }
                 Dictionary<string, Mesh> geometries = new Dictionary<string, Mesh>();
+                Renderer[] renderers = new Renderer[document.Meshes.Length];
                 for (int index = 0; index < document.Meshes.Length; index++)
                 {
                     MeshInstance binding = document.Meshes[index];
@@ -111,9 +114,10 @@ namespace SceneContent.Unity
                     for (int surface = 0; surface < boundSurfaces.Length; surface++) boundSurfaces[surface] = materials[binding.Materials[surface]];
                     renderer.sharedMaterials = boundSurfaces;
                     renderer.shadowCastingMode = binding.ShadowOnly ? ShadowCastingMode.ShadowsOnly : ShadowCastingMode.On;
+                    renderers[index] = renderer;
                 }
                 SceneComponents.Attach(document, nodes, activateCameras);
-                instance.Initialize(byId);
+                instance.Initialize(byId, renderers);
                 root.SetActive(true);
                 return instance;
             }

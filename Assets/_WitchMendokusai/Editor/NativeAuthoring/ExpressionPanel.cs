@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using WitchMendokusai.ContentRuntime;
 
 namespace WitchMendokusai.ContentAuthoring
 {
@@ -13,15 +14,27 @@ namespace WitchMendokusai.ContentAuthoring
         private string filter = "";
         private Vector2 scroll;
         private bool expanded;
+        private readonly Action<string[]> record;
+        private ContentWorkspace workspace;
+        private int[] meshIndices;
+
+        public ExpressionPanel(Action<string[]> recordValues)
+        {
+            record = recordValues;
+        }
 
         public void Bind(ContentWorkspace workspace)
         {
+            this.workspace = workspace;
             List<SkinnedMeshRenderer> available = new List<SkinnedMeshRenderer>();
             List<string> names = new List<string>();
+            List<int> indices = new List<int>();
             selected = 0;
             int largest = 0;
-            foreach (SkinnedMeshRenderer skin in workspace.Instance.GetComponentsInChildren<SkinnedMeshRenderer>())
+            for (int mesh = 0; mesh < workspace.Document.Meshes.Length; mesh++)
             {
+                SkinnedMeshRenderer skin = workspace.Instance.FindMesh(mesh) as SkinnedMeshRenderer;
+                if (skin == null) continue;
                 int count = skin.sharedMesh.blendShapeCount;
                 if (count == 0)
                 {
@@ -33,10 +46,12 @@ namespace WitchMendokusai.ContentAuthoring
                     selected = available.Count;
                 }
                 available.Add(skin);
+                indices.Add(mesh);
                 names.Add(skin.name + ", " + count + " controls");
             }
             skins = available.ToArray();
             labels = names.ToArray();
+            meshIndices = indices.ToArray();
             filter = "";
         }
 
@@ -64,6 +79,7 @@ namespace WitchMendokusai.ContentAuthoring
                     continue;
                 }
                 EditorGUI.BeginChangeCheck();
+                EditorGUILayout.BeginHorizontal();
                 float weight = EditorGUILayout.Slider(label, skin.GetBlendShapeWeight(index), 0, 100);
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -71,6 +87,13 @@ namespace WitchMendokusai.ContentAuthoring
                     skin.SetBlendShapeWeight(index, weight);
                     SceneView.RepaintAll();
                 }
+                if (GUILayout.Button("Key", GUILayout.Width(38)))
+                {
+                    int mesh = meshIndices[selected];
+                    string node = workspace.Document.Nodes[workspace.Document.Meshes[mesh].Node].Id;
+                    record(new[] { SceneMotionBindings.Expression(node, mesh, label) });
+                }
+                EditorGUILayout.EndHorizontal();
             }
             EditorGUILayout.EndScrollView();
         }

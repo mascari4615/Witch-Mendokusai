@@ -26,6 +26,7 @@ namespace SceneContent.Tests
                 instance = SceneContentLoader.Load(original, source, Shader.Find("Universal Render Pipeline/Unlit"));
                 instance.FindNode("node-1").localPosition = new Vector3(1, 2, 3);
                 instance.FindNode("node-1").localRotation = Quaternion.Euler(12, 30, 40);
+                instance.FindMesh(0).name = "Renamed visible mesh";
                 instance.GetComponentInChildren<SkinnedMeshRenderer>().SetBlendShapeWeight(0, 37);
                 SceneDocument snapshot = SceneSnapshot.Capture(original, instance);
                 string file = Path.Combine(directory, "scene.json");

@@ -6,6 +6,7 @@ using Motion.Unity;
 using SceneContent.Storage;
 using UnityEditor;
 using UnityEngine;
+using WitchMendokusai.ContentRuntime;
 
 namespace WitchMendokusai.ContentAuthoring
 {
@@ -15,6 +16,7 @@ namespace WitchMendokusai.ContentAuthoring
         private PoseClipSampler sampler;
         private ContentWorkspace workspace;
         private TransformPoseTarget target;
+        private FloatPropertyTarget values;
         private Action repaint;
         private double lastTick;
         private bool playing;
@@ -64,8 +66,25 @@ namespace WitchMendokusai.ContentAuthoring
         {
             workspace = value;
             target = new TransformPoseTarget(id => workspace.Instance.FindNode(id));
+            RefreshValues();
             repaint = repaintAction;
             Reset();
+        }
+
+        public void RefreshValues()
+        {
+            values = SceneMotionBindings.Create(workspace.Document, () => workspace.Instance);
+        }
+
+        public void RecordValues(string[] properties)
+        {
+            PoseClip next = clip;
+            foreach (string property in properties)
+            {
+                next = PoseClipEditing.RecordValue(next, property, Time, values.Read(property));
+            }
+            clip = next;
+            sampler = new PoseClipSampler(clip);
         }
 
         public void Record(string node)
@@ -87,8 +106,8 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void Seek(float seconds)
         {
-            sampler.Apply(seconds, target);
-            Time = clip.Loop ? ((seconds % clip.Duration) + clip.Duration) % clip.Duration : Mathf.Clamp(seconds, 0, clip.Duration);
+            sampler.Apply(seconds, target, values);
+            Time = ClipTime.Normalize(seconds, clip.Duration, clip.Loop);
             SceneView.RepaintAll();
         }
 
@@ -103,7 +122,7 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 Run(delegate
                 {
-                    PoseClip candidate = new PoseClip { Id = clip.Id, Duration = duration, Loop = loop, Tracks = clip.Tracks };
+                    PoseClip candidate = new PoseClip { Id = clip.Id, Duration = duration, Loop = loop, Tracks = clip.Tracks, Values = clip.Values };
                     PoseClipSampler next = new PoseClipSampler(candidate);
                     clip = candidate;
                     sampler = next;
@@ -125,7 +144,7 @@ namespace WitchMendokusai.ContentAuthoring
                     Run(delegate { Record(selectedNode); });
                 }
             }
-            using (new EditorGUI.DisabledScope(clip.Tracks.Length == 0))
+            using (new EditorGUI.DisabledScope(clip.Tracks.Length == 0 && clip.Values.Length == 0))
             {
                 if (GUILayout.Button(playing ? "Pause" : "Play"))
                 {
@@ -152,7 +171,7 @@ namespace WitchMendokusai.ContentAuthoring
                     {
                         PoseClip candidate = PoseClipJson.Read(File.ReadAllText(file));
                         PoseClipSampler next = new PoseClipSampler(candidate);
-                        next.Apply(0, target);
+                        next.Apply(0, target, values);
                         clip = candidate;
                         sampler = next;
                         playing = false;
@@ -180,7 +199,11 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 keys += track.Keys.Length;
             }
-            EditorGUILayout.LabelField(clip.Tracks.Length + " tracks, " + keys + " keys");
+            foreach (ScalarTrack track in clip.Values)
+            {
+                keys += track.Keys.Length;
+            }
+            EditorGUILayout.LabelField(clip.Tracks.Length + " pose tracks, " + clip.Values.Length + " value tracks, " + keys + " keys");
             if (string.IsNullOrEmpty(error) == false)
             {
                 EditorGUILayout.HelpBox(error, MessageType.Error);

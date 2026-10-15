@@ -9,6 +9,7 @@ namespace Motion
         private readonly string[] nodes;
         private readonly float[][] times;
         private readonly PoseValue[][] poses;
+        private readonly ScalarClipSampler scalar;
         public float Duration { get; private set; }
         public bool Loop { get; private set; }
 
@@ -64,6 +65,7 @@ namespace Motion
                         Quaternion.Normalize(rotation), new Vector3(value.Scale[0], value.Scale[1], value.Scale[2]));
                 }
             }
+            scalar = new ScalarClipSampler(clip, 1000000 - keyCount);
         }
 
         public PoseSample[] Sample(float time)
@@ -72,7 +74,7 @@ namespace Motion
             {
                 throw new ArgumentException("Sample time must be finite");
             }
-            float local = Loop ? ((time % Duration) + Duration) % Duration : Math.Max(0, Math.Min(Duration, time));
+            float local = ClipTime.Normalize(time, Duration, Loop);
             PoseSample[] samples = new PoseSample[nodes.Length];
             for (int track = 0; track < nodes.Length; track++)
             {
@@ -96,29 +98,48 @@ namespace Motion
                     PoseValue leftValue = poses[track][right - 1];
                     PoseValue rightValue = poses[track][right];
                     float amount = (local - keys[right - 1]) / (keys[right] - keys[right - 1]);
-                    value = new PoseValue(Vector3.Lerp(leftValue.Position, rightValue.Position, amount),
+                    value = new PoseValue(Interpolate(leftValue.Position, rightValue.Position, amount),
                         Quaternion.Normalize(Quaternion.Slerp(leftValue.Rotation, rightValue.Rotation, amount)),
-                        Vector3.Lerp(leftValue.Scale, rightValue.Scale, amount));
+                        Interpolate(leftValue.Scale, rightValue.Scale, amount));
                 }
                 samples[track] = new PoseSample(nodes[track], value);
             }
             return samples;
         }
 
-        public void Apply(float time, IPoseTarget target)
+        public ValueSample[] SampleValues(float time)
         {
-            if (target == null)
+            if (Finite(time) == false)
             {
-                throw new ArgumentNullException("target");
+                throw new ArgumentException("Sample time must be finite");
             }
+            float local = ClipTime.Normalize(time, Duration, Loop);
+            return scalar.Sample(local);
+        }
+
+        public void Apply(float time, IPoseTarget target, IValueTarget valueTarget = null)
+        {
             PoseSample[] samples = Sample(time);
+            ValueSample[] properties = SampleValues(time);
+            if ((samples.Length > 0 && target == null) || (properties.Length > 0 && valueTarget == null))
+            {
+                throw new ArgumentException("Motion clip requires bound pose and value ports");
+            }
             foreach (PoseSample sample in samples)
             {
                 target.Read(sample.Node);
             }
+            foreach (ValueSample sample in properties)
+            {
+                valueTarget.Validate(sample.Target, sample.Value);
+            }
             foreach (PoseSample sample in samples)
             {
                 target.Write(sample.Node, sample.Pose);
+            }
+            foreach (ValueSample sample in properties)
+            {
+                valueTarget.Write(sample.Target, sample.Value);
             }
         }
 
@@ -135,6 +156,13 @@ namespace Motion
                     throw new ArgumentException("Pose components must be finite");
                 }
             }
+        }
+
+        private static Vector3 Interpolate(Vector3 left, Vector3 right, float amount)
+        {
+            double weight = amount;
+            return new Vector3((float)(left.X * (1 - weight) + right.X * weight),
+                (float)(left.Y * (1 - weight) + right.Y * weight), (float)(left.Z * (1 - weight) + right.Z * weight));
         }
 
         private static bool Finite(float value)
