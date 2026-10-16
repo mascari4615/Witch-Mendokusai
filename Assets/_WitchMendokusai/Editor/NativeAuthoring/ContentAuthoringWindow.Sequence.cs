@@ -15,6 +15,26 @@ namespace WitchMendokusai.ContentAuthoring
 {
     public sealed partial class ContentAuthoringWindow
     {
+        [SerializeField] private string libraryTitle = AuthoringText.Get("New sequence");
+
+        public string SaveToGameLibrary(string title = null)
+        {
+            string name = (title ?? libraryTitle).Trim();
+            if (name.Length == 0 || name.Length > 80 || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || name == "." || name == "..")
+                throw new ArgumentException("Choose a library name with 1 to 80 valid file-name characters");
+            string directory = SequenceLibraryLocation.Directory;
+            Directory.CreateDirectory(directory);
+            string file = Path.Combine(directory, name + ".sequence.json");
+            int suffix = 2;
+            while (File.Exists(file))
+            {
+                if (suffix > 10000) throw new IOException("Too many library variants with this name");
+                file = Path.Combine(directory, name + " (" + suffix++ + ").sequence.json");
+            }
+            SaveSequence(file);
+            message = "Exported to the game library. Open Sequence library from the game lobby.";
+            return file;
+        }
         public void SaveParameterSequence(string file, IDictionary<string, float> values)
         {
             motion.ValidateDraft();
@@ -97,6 +117,11 @@ namespace WitchMendokusai.ContentAuthoring
                 }
             }
             EditorGUILayout.EndHorizontal();
+            using (new EditorGUI.DisabledScope(workspace.IsLoaded == false))
+            {
+                libraryTitle = EditorGUILayout.TextField(AuthoringText.Get("Library name"), libraryTitle);
+                if (GUILayout.Button(AuthoringText.Get("Export to game library"))) Run(delegate { SaveToGameLibrary(); });
+            }
         }
     }
 }

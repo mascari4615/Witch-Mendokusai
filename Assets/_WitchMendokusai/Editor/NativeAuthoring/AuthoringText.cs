@@ -9,6 +9,10 @@ namespace WitchMendokusai.ContentAuthoring
     {
         private static readonly Dictionary<string, string> KOREAN = new Dictionary<string, string>(StringComparer.Ordinal)
         {
+            { "Library name", "보관함 이름" },
+            { "New sequence", "새 연출" },
+            { "Export to game library", "게임 보관함에 내보내기" },
+            { "Exported to the game library. Open Sequence library from the game lobby.", "게임 보관함에 내보냈어요. 게임 로비에서 연출 보관함을 여세요." },
             { "Export controls with fitted motion...", "동작도 맞춘 변형 내보내기..." },
             { "Export fits motion keys to these pending values and keeps the current workspace. Open the exported sequence to preview it.", "내보내면 입력한 값에 동작 키도 맞춰요. 현재 작업은 유지돼요. 내보낸 연출을 열어 확인하세요." },
             { "Export control variant", "조절값을 맞춘 연출 내보내기" },

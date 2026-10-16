@@ -9,10 +9,11 @@ namespace Motion.Unity
         private IPoseTarget target;
         private IValueTarget values;
         private float time;
+        private bool useUnscaledTime;
         public bool IsPlaying { get; private set; }
         public float Time { get { return time; } }
 
-        public void Initialize(PoseClip clip, IPoseTarget poseTarget, IValueTarget valueTarget = null)
+        public void Initialize(PoseClip clip, IPoseTarget poseTarget, IValueTarget valueTarget = null, bool useUnscaledTime = false)
         {
             PoseClipSampler next = new PoseClipSampler(clip);
             next.ValidateTargets(poseTarget, valueTarget);
@@ -22,6 +23,7 @@ namespace Motion.Unity
             values = valueTarget;
             time = 0;
             IsPlaying = false;
+            this.useUnscaledTime = useUnscaledTime;
         }
 
         public void Play()
@@ -54,7 +56,7 @@ namespace Motion.Unity
             {
                 return;
             }
-            Seek(time + UnityEngine.Time.deltaTime);
+            Seek(time + (useUnscaledTime ? UnityEngine.Time.unscaledDeltaTime : UnityEngine.Time.deltaTime));
             if (sampler.Loop == false && time >= sampler.Duration)
             {
                 IsPlaying = false;

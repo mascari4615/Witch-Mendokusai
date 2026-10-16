@@ -40,6 +40,12 @@ At runtime, add `ContentScenePlayer` to a host GameObject and initialize it with
 
 Alternatively, read an exported sequence with `SequenceFiles.Read(path)`, then pass it to `ContentScenePlayer.Initialize(sequence, source, surfaces)`. Supply a `DirectoryContentSource` rooted at the export directory. The sequence supports multiple non-overlapping clips; this editor currently edits one combined motion draft. Loading a multi-clip sequence into this editor is rejected explicitly. Event/audio scheduling and clip layering are separate unfinished capabilities.
 
+To play a draft from the normal game menu, enter a **Library name** and choose **Export to game library**. Existing names receive a numbered variant rather than being overwritten. Start the game normally, open **연출 보관함** in the lobby and choose the exported name. Use the playback button or time slider to inspect it, **목록으로** to choose another sequence, or **로비로 돌아가기** to return. The configured Cancel input also returns to the lobby. Invalid documents keep the library open with an error message.
+
+The editor and game share `SequenceLibraryLocation.Directory` under this product's persistent data folder. Exports contain ordinary sequences and shared resource blobs; keep those resources when moving them. The library is local to this installation. It does not upload files or synchronize playback between players.
+
+`WM.SequenceLibrary` owns the lobby presentation and restores the original lobby cameras, canvases and input strategy after playback or failure. It uses the existing `ContentScenePlayer` with an explicit unscaled clock. The player exposes `IsPlaying` and the greatest current clip `Time` for transport controls. Authored cameras remain available; a scene without an active authored camera receives a host framing camera. This lobby viewer does not implement story triggers or a general gameplay cutscene scheduler.
+
 [Portable core example](../Portable/ContentCore/README.md) compiles and runs the common core sources outside Unity.
 
 [Module boundaries](ContentArchitecture.md) describes data ownership, host ports and adapter composition.

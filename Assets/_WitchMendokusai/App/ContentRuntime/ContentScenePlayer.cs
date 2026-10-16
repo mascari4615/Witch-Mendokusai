@@ -14,14 +14,24 @@ namespace WitchMendokusai.ContentRuntime
         private PoseClipPlayer[] players = new PoseClipPlayer[0];
         public SceneInstance Instance { get; private set; }
         public bool IsLoaded { get { return Instance != null; } }
-
-        public void Initialize(SequenceDocument sequence, IContentSource source, ISurfaceFactory surfaces)
+        public bool IsPlaying { get { return Array.Exists(players, player => player != null && player.IsPlaying); } }
+        public float Time
         {
-            SequenceValidation.Ensure(sequence);
-            Initialize(sequence.Scene, source, surfaces, sequence.Clips);
+            get
+            {
+                float seconds = 0;
+                foreach (PoseClipPlayer player in players) if (player != null) seconds = Mathf.Max(seconds, player.Time);
+                return seconds;
+            }
         }
 
-        public void Initialize(SceneDocument document, IContentSource source, ISurfaceFactory surfaces, PoseClip[] clips)
+        public void Initialize(SequenceDocument sequence, IContentSource source, ISurfaceFactory surfaces, bool useUnscaledTime = false)
+        {
+            SequenceValidation.Ensure(sequence);
+            Initialize(sequence.Scene, source, surfaces, sequence.Clips, useUnscaledTime);
+        }
+
+        public void Initialize(SceneDocument document, IContentSource source, ISurfaceFactory surfaces, PoseClip[] clips, bool useUnscaledTime = false)
         {
             if (IsLoaded) throw new InvalidOperationException("Unload the current content scene before loading another");
             if (clips == null) throw new ArgumentNullException("clips");
@@ -38,7 +48,7 @@ namespace WitchMendokusai.ContentRuntime
                 for (int index = 0; index < clips.Length; index++)
                 {
                     next[index] = staged.AddComponent<PoseClipPlayer>();
-                    next[index].Initialize(clips[index], poses, values);
+                    next[index].Initialize(clips[index], poses, values, useUnscaledTime);
                 }
                 loadedRoot = staged;
                 players = next;

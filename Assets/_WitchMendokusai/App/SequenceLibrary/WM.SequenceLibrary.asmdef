@@ -1,0 +1,6 @@
+{
+  "name": "WM.SequenceLibrary",
+  "rootNamespace": "WitchMendokusai.SequenceLibrary",
+  "references": ["WM.Core", "WM.Domain", "WM.ContentRuntime", "SceneSequence.Core", "SceneSequence.FileSystem", "SceneContent.Core", "SceneContent.FileSystem", "SceneContent.Unity", "Motion.Core", "VContainer"],
+  "defineConstraints": ["!WM_IDLE"]
+}
