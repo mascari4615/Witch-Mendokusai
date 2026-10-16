@@ -9,13 +9,14 @@ namespace WitchMendokusai.Editor
 {
 	public static class RootLifetimeScopeBootstrapMenu
 	{
-		private const string PREFAB_PATH = "Assets/_WitchMendokusai/Core/Resources/Singletons/RootLifetimeScope.prefab";
+		private const string PREFAB_PATH = "Assets/_WitchMendokusai/Core/Assets/Singletons/RootLifetimeScope.prefab";
 		private const string SETTINGS_PATH = "Assets/_WitchMendokusai/Core/VContainer/VContainerSettings.asset";
 
 		[InitializeOnLoadMethod]
 		private static void EnsureWiring()
 		{
 			GameObject prefab = EnsurePrefab();
+			if (prefab == null) return;
 			VContainerSettings settings = EnsureSettings(prefab);
 			EnsurePreloaded(settings);
 		}
@@ -35,15 +36,8 @@ namespace WitchMendokusai.Editor
 				return existing;
 			}
 
-			string directory = Path.GetDirectoryName(PREFAB_PATH);
-			EnsureFolder(directory);
-
-			GameObject temp = new GameObject(nameof(RootLifetimeScope));
-			temp.AddComponent<RootLifetimeScope>();
-
-			GameObject prefab = PrefabUtility.SaveAsPrefabAsset(temp, PREFAB_PATH);
-			Object.DestroyImmediate(temp);
-			return prefab;
+			Debug.LogError("[RootLifetimeScopeBootstrap] Configured root prefab is missing or invalid: " + PREFAB_PATH);
+			return null;
 		}
 
 		private static VContainerSettings EnsureSettings(GameObject prefab)
@@ -53,7 +47,7 @@ namespace WitchMendokusai.Editor
 			VContainerSettings existing = AssetDatabase.LoadAssetAtPath<VContainerSettings>(SETTINGS_PATH);
 			if (existing != null)
 			{
-				if (existing.RootLifetimeScope == null && prefabScope != null)
+				if (existing.RootLifetimeScope != prefabScope && prefabScope != null)
 				{
 					existing.RootLifetimeScope = prefabScope;
 					EditorUtility.SetDirty(existing);

@@ -19,7 +19,7 @@ namespace WitchMendokusai.EditorTools
 		private const string TAG = "[BootConfig]";
 		private const string DIR = "Assets/_WitchMendokusai/Domain/Application/Assets";
 		private const string CONFIG = DIR + "/BootConfig.asset";
-		private const string ROOT_PREFAB = "Assets/_WitchMendokusai/Core/Resources/Singletons/RootLifetimeScope.prefab";
+		private const string ROOT_PREFAB = "Assets/_WitchMendokusai/Core/Assets/Singletons/RootLifetimeScope.prefab";
 
 		[MenuItem("WM/Migrate/Boot Root to Reference (TASK-WM-409 B)")]
 		public static void Run()
