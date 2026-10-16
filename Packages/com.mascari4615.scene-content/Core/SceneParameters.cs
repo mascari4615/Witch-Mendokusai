@@ -70,11 +70,12 @@ namespace SceneContent
             if (document.Parameters == null) throw new ArgumentException("Scene has no parameter controls");
             SceneParameterProfile candidate = Copy(document.Parameters);
             candidate.Profile = ParameterProfiles.WithValues(candidate.Profile, values);
+            Dictionary<string, float> evaluated = ParameterProfiles.Evaluate(candidate.Profile);
+            EnsureConstraintScales(document, candidate, evaluated);
             SceneParameterProfile previous = document.Parameters;
             document.Parameters = candidate;
             try { Ensure(document); }
             catch { document.Parameters = previous; throw; }
-            Dictionary<string, float> evaluated = ParameterProfiles.Evaluate(candidate.Profile);
             Dictionary<string, SceneNode> nodes = new Dictionary<string, SceneNode>(StringComparer.Ordinal);
             foreach (SceneNode node in document.Nodes) nodes.Add(node.Id, node);
             foreach (SceneParameterBinding binding in candidate.Bindings)
@@ -88,6 +89,20 @@ namespace SceneContent
                     else node.Position[binding.Component] = value;
                 }
             }
+        }
+
+        private static void EnsureConstraintScales(SceneDocument document, SceneParameterProfile candidate, Dictionary<string, float> evaluated)
+        {
+            HashSet<string> rigid = SceneConstraints.RigidNodes(document);
+            if (rigid.Count == 0) return;
+            Dictionary<string, float[]> scales = new Dictionary<string, float[]>(StringComparer.Ordinal);
+            foreach (SceneNode node in document.Nodes) if (rigid.Contains(node.Id)) scales.Add(node.Id, (float[])node.Scale.Clone());
+            foreach (SceneParameterBinding binding in candidate.Bindings)
+            {
+                float[] scale;
+                if (binding.Kind == "scale" && scales.TryGetValue(binding.Node, out scale)) scale[binding.Component] = evaluated[binding.Property];
+            }
+            foreach (float[] scale in scales.Values) SceneConstraints.EnsureScale(scale);
         }
 
         public static SceneParameterProfile Copy(SceneParameterProfile source)

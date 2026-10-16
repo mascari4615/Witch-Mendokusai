@@ -14,6 +14,7 @@ namespace SceneContent
         public SurfaceMaterial[] Materials;
         public ContentResource[] Resources;
         public SceneParameterProfile Parameters;
+        public SceneLimbConstraint[] LimbConstraints = new SceneLimbConstraint[0];
         public SceneCamera[] Cameras = new SceneCamera[0];
         public SceneLight[] Lights = new SceneLight[0];
     }

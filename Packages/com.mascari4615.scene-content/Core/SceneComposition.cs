@@ -66,10 +66,18 @@ namespace SceneContent
             {
                 Id = left.Id, Nodes = nodes.ToArray(), Meshes = meshes.ToArray(), Materials = materials.ToArray(),
                 Resources = resources.ToArray(), Cameras = cameras.ToArray(), Lights = lights.ToArray(),
-                Parameters = SceneParameters.Compose(left.Parameters, right.Parameters, prefix, left.Meshes.Length)
+                Parameters = SceneParameters.Compose(left.Parameters, right.Parameters, prefix, left.Meshes.Length),
+                LimbConstraints = ComposeConstraints(left, right, prefix)
             };
             SceneValidation.Ensure(result);
             return result;
+        }
+
+        private static SceneLimbConstraint[] ComposeConstraints(SceneDocument left, SceneDocument right, string prefix)
+        {
+            List<SceneLimbConstraint> constraints = new List<SceneLimbConstraint>(SceneConstraints.Copy(left.LimbConstraints));
+            constraints.AddRange(SceneConstraints.Copy(right.LimbConstraints, prefix));
+            return constraints.ToArray();
         }
     }
 }

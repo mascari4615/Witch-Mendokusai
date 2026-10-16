@@ -39,6 +39,7 @@ namespace WitchMendokusai.ContentAuthoring
 
         private void OnEnable()
         {
+            if (string.IsNullOrEmpty(libraryTitle)) libraryTitle = AuthoringText.Get("New sequence");
             workspace = new ContentWorkspace();
             minSize = new Vector2(380, 480);
             motion = new MotionClipPanel();
@@ -96,7 +97,7 @@ namespace WitchMendokusai.ContentAuthoring
         {
             motion.Bind(workspace, Repaint);
             expressions.Bind(workspace);
-            limbs.Bind(workspace);
+            limbs.Bind(workspace, ApplyChange);
             cameras.Bind(workspace, ApplyChange, () => stage);
             surfaces.Bind(workspace, ApplyChange);
             parameters.Bind(workspace, ApplyChange, ExportParameterSequence);
@@ -329,7 +330,7 @@ namespace WitchMendokusai.ContentAuthoring
             stage.ShowPreview(workspace.PreviewScene);
             stage.sceneLighting = sceneLighting;
             expressions.Bind(workspace);
-            limbs.Bind(workspace);
+            limbs.Bind(workspace, ApplyChange);
             surfaces.Bind(workspace, ApplyChange);
             parameters.Bind(workspace, ApplyChange, ExportParameterSequence);
             if (selected >= workspace.Document.Nodes.Length) selected = -1;

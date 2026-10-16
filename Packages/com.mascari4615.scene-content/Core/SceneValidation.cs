@@ -90,6 +90,9 @@ namespace SceneContent
                     if (material < 0 || material >= scene.Materials.Length) throw new ArgumentException("Material out of range");
             }
             SceneParameters.Ensure(scene);
+            SceneConstraints.Order(scene);
+            HashSet<string> rigid = SceneConstraints.RigidNodes(scene);
+            foreach (SceneNode node in scene.Nodes) if (rigid.Contains(node.Id)) SceneConstraints.EnsureScale(node.Scale);
         }
 
         private static void RequireResource(Dictionary<string, ContentResource> resources, string id, string type)

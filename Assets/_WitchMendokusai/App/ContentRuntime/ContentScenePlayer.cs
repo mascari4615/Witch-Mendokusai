@@ -12,6 +12,8 @@ namespace WitchMendokusai.ContentRuntime
     {
         private GameObject loadedRoot;
         private PoseClipPlayer[] players = new PoseClipPlayer[0];
+        private SceneConstraintPlan constraints;
+        private TransformPoseTarget poses;
         public SceneInstance Instance { get; private set; }
         public bool IsLoaded { get { return Instance != null; } }
         public bool IsPlaying { get { return Array.Exists(players, player => player != null && player.IsPlaying); } }
@@ -43,6 +45,7 @@ namespace WitchMendokusai.ContentRuntime
             {
                 SceneInstance scene = SceneContentLoader.LoadWithSurfaces(document, source, surfaces, staged.transform);
                 TransformPoseTarget poses = new TransformPoseTarget(scene.FindNode);
+                SceneConstraintPlan plan = new SceneConstraintPlan(document);
                 FloatPropertyTarget values = SceneMotionBindings.Create(document, () => scene);
                 PoseClipPlayer[] next = new PoseClipPlayer[clips.Length];
                 for (int index = 0; index < clips.Length; index++)
@@ -50,7 +53,10 @@ namespace WitchMendokusai.ContentRuntime
                     next[index] = staged.AddComponent<PoseClipPlayer>();
                     next[index].Initialize(clips[index], poses, values, useUnscaledTime);
                 }
+                plan.Apply(poses);
                 loadedRoot = staged;
+                constraints = plan;
+                this.poses = poses;
                 players = next;
                 Instance = scene;
                 staged.SetActive(true);
@@ -79,6 +85,12 @@ namespace WitchMendokusai.ContentRuntime
         {
             EnsureLoaded();
             foreach (PoseClipPlayer player in players) player.Seek(time);
+            constraints.Apply(poses);
+        }
+
+        private void LateUpdate()
+        {
+            if (IsLoaded && constraints.Count > 0) constraints.Apply(poses);
         }
 
         public void Unload()
@@ -93,6 +105,8 @@ namespace WitchMendokusai.ContentRuntime
             loadedRoot = null;
             Instance = null;
             players = new PoseClipPlayer[0];
+            constraints = null;
+            poses = null;
         }
 
         private void EnsureLoaded()

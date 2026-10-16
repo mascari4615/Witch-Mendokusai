@@ -9,6 +9,10 @@ namespace WitchMendokusai.ContentAuthoring
     {
         private static readonly Dictionary<string, string> KOREAN = new Dictionary<string, string>(StringComparer.Ordinal)
         {
+            { "Keep goal during playback", "재생 중에도 목표 유지" },
+            { "This goal stays active after motion. Recording stores the goal and bend pole.", "동작 뒤에도 이 목표를 유지해요. 키 기록에는 목표와 굽힘 방향을 저장해요." },
+            { "Record goal key", "목표 키 기록" },
+            { "Recorded goal and bend pole at the current clip time.", "현재 시간에 목표와 굽힘 방향을 기록했어요." },
             { "Library name", "보관함 이름" },
             { "New sequence", "새 연출" },
             { "Export to game library", "게임 보관함에 내보내기" },

@@ -29,6 +29,8 @@ namespace WitchMendokusai.ContentAuthoring
             try
             {
                 new PoseClipSampler(motion.Clip).ValidateTargets(new TransformPoseTarget(instance.FindNode), SceneMotionBindings.Create(document, () => instance));
+                SceneSequence.SequenceValidation.Ensure(new SceneSequence.SequenceDocument { Id = "workspace", Scene = document, Clips = new[] { motion.Clip } });
+                new SceneSequence.SceneConstraintPlan(document).Apply(new TransformPoseTarget(instance.FindNode));
             }
             catch (KeyNotFoundException exception)
             {

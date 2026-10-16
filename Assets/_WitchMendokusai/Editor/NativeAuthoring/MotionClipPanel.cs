@@ -18,6 +18,7 @@ namespace WitchMendokusai.ContentAuthoring
         private ContentWorkspace workspace;
         private TransformPoseTarget target;
         private FloatPropertyTarget values;
+        private SceneSequence.SceneConstraintPlan constraints;
         private Action repaint;
         private double lastTick;
         private bool playing;
@@ -34,6 +35,7 @@ namespace WitchMendokusai.ContentAuthoring
         {
             playing = false;
             PoseClip next = TrackEditing.Remove(clip, targetId, kind, seconds);
+            EnsureClip(next);
             history.Record(clip);
             clip = next;
             sampler = new PoseClipSampler(clip);
@@ -42,7 +44,7 @@ namespace WitchMendokusai.ContentAuthoring
         public void UndoEdit()
         {
             playing = false;
-            clip = history.Undo(clip);
+            clip = history.Undo(clip, EnsureClip);
             sampler = new PoseClipSampler(clip);
             Time = Mathf.Min(Time, clip.Duration);
         }
@@ -50,7 +52,7 @@ namespace WitchMendokusai.ContentAuthoring
         public void RedoEdit()
         {
             playing = false;
-            clip = history.Redo(clip);
+            clip = history.Redo(clip, EnsureClip);
             sampler = new PoseClipSampler(clip);
             Time = Mathf.Min(Time, clip.Duration);
         }
@@ -62,12 +64,20 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void ValidateDraft()
         {
+            EnsureClip(clip);
             sampler.ValidateTargets(target, values);
+        }
+
+        private void EnsureClip(PoseClip candidate)
+        {
+            if (workspace != null && workspace.IsLoaded)
+                SceneSequence.SequenceValidation.Ensure(new SceneSequence.SequenceDocument { Id = "draft", Scene = workspace.Document, Clips = new[] { candidate } });
         }
 
         public void RestoreDraft(string json, float seconds, bool changed)
         {
             PoseClip restored = PoseClipJson.Read(json);
+            EnsureClip(restored);
             PoseClipSampler restoredSampler = new PoseClipSampler(restored);
             restoredSampler.ValidateTargets(target, values);
             if (float.IsNaN(seconds) || float.IsInfinity(seconds))
@@ -111,6 +121,7 @@ namespace WitchMendokusai.ContentAuthoring
         public void RefreshValues()
         {
             values = SceneMotionBindings.Create(workspace.Document, () => workspace.Instance);
+            constraints = new SceneSequence.SceneConstraintPlan(workspace.Document);
         }
 
         public void RecordValues(string[] properties)
@@ -120,6 +131,7 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 next = PoseClipEditing.RecordValue(next, property, Time, values.Read(property));
             }
+            EnsureClip(next);
             history.Record(clip);
             clip = next;
             sampler = new PoseClipSampler(clip);
@@ -128,6 +140,7 @@ namespace WitchMendokusai.ContentAuthoring
         public void Record(string node)
         {
             PoseClip next = PoseClipEditing.Record(clip, node, Time, target.Read(node));
+            EnsureClip(next);
             history.Record(clip);
             clip = next;
             sampler = new PoseClipSampler(clip);
@@ -140,6 +153,7 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 next = PoseClipEditing.Record(next, node, Time, target.Read(node));
             }
+            EnsureClip(next);
             history.Record(clip);
             clip = next;
             sampler = new PoseClipSampler(clip);
@@ -148,6 +162,7 @@ namespace WitchMendokusai.ContentAuthoring
         public void Seek(float seconds)
         {
             sampler.Apply(seconds, target, values, loopOverride: false);
+            constraints.Apply(target);
             Time = ClipTime.Normalize(seconds, clip.Duration, false);
             SceneView.RepaintAll();
         }
@@ -228,6 +243,7 @@ namespace WitchMendokusai.ContentAuthoring
                     Run(delegate
                     {
                         PoseClip candidate = PoseClipJson.Read(File.ReadAllText(file));
+                        EnsureClip(candidate);
                         PoseClipSampler next = new PoseClipSampler(candidate);
                         next.ValidateTargets(target, values);
                         next.Apply(0, target, values);
@@ -273,8 +289,13 @@ namespace WitchMendokusai.ContentAuthoring
 
         private void Tick()
         {
-            if (playing == false || workspace == null || workspace.IsLoaded == false)
+            if (workspace == null || workspace.IsLoaded == false)
             {
+                return;
+            }
+            if (playing == false)
+            {
+                if (constraints != null && constraints.Count > 0) Run(delegate { constraints.Apply(target); });
                 return;
             }
             double now = EditorApplication.timeSinceStartup;

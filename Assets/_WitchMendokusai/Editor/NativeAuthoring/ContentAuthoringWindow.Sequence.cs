@@ -15,7 +15,7 @@ namespace WitchMendokusai.ContentAuthoring
 {
     public sealed partial class ContentAuthoringWindow
     {
-        [SerializeField] private string libraryTitle = AuthoringText.Get("New sequence");
+        [SerializeField] private string libraryTitle;
 
         public string SaveToGameLibrary(string title = null)
         {

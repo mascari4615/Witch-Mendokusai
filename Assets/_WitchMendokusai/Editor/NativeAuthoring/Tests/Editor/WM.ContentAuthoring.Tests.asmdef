@@ -1,0 +1,6 @@
+{
+  "name": "WM.ContentAuthoring.Tests",
+  "references": ["WM.ContentAuthoring.Editor"],
+  "includePlatforms": ["Editor"], "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll"], "optionalUnityReferences": ["TestAssemblies"]
+}

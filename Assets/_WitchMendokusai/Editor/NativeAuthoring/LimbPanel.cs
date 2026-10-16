@@ -3,6 +3,7 @@ using System.IO;
 using Rigging;
 using Rigging.Serialization;
 using Rigging.Unity;
+using SceneContent;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,6 +21,7 @@ namespace WitchMendokusai.ContentAuthoring
         private bool handles;
         private string message;
         private readonly Action<string[]> record;
+        private Action<Action<SceneDocument>> change;
 
         public LimbPanel(Action<string[]> recordNodes)
         {
@@ -27,8 +29,10 @@ namespace WitchMendokusai.ContentAuthoring
             SceneView.duringSceneGui += DrawHandles;
         }
 
-        public void Bind(ContentWorkspace value)
+        public void Bind(ContentWorkspace value, Action<Action<SceneDocument>> change = null)
         {
+            string previous = rig != null && selected < rig.Limbs.Length ? rig.Limbs[selected].Id : null;
+            this.change = change;
             workspace = value;
             rig = null;
             handles = false;
@@ -39,6 +43,8 @@ namespace WitchMendokusai.ContentAuthoring
                 try
                 {
                     Load(file);
+                    int preserved = Array.FindIndex(rig.Limbs, limb => limb.Id == previous);
+                    if (preserved >= 0) { selected = preserved; ResetGoal(); }
                 }
                 catch (Exception exception)
                 {
@@ -93,8 +99,16 @@ namespace WitchMendokusai.ContentAuthoring
                 ResetGoal();
             }
             handles = EditorGUILayout.Toggle(AuthoringText.Get("Show stage handles"), handles);
+            SceneLimbConstraint current = FindConstraint();
+            if (current != null && current.Enabled && EditorGUIUtility.editingTextField == false)
+            {
+                goal = workspace.Instance.FindNode(current.Goal).position;
+                pole = workspace.Instance.FindNode(current.Pole).position;
+            }
+            EditorGUI.BeginChangeCheck();
             goal = EditorGUILayout.Vector3Field(AuthoringText.Get("Goal (world)"), goal);
             pole = EditorGUILayout.Vector3Field(AuthoringText.Get("Bend pole (world)"), pole);
+            if (EditorGUI.EndChangeCheck() && current != null && current.Enabled) ApplyGoal();
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button(AuthoringText.Get("Apply goal")))
             {
@@ -105,11 +119,16 @@ namespace WitchMendokusai.ContentAuthoring
                 ResetGoal();
             }
             EditorGUILayout.EndHorizontal();
-            if (GUILayout.Button(AuthoringText.Get("Record limb key")))
+            SceneLimbConstraint persistent = FindConstraint();
+            bool maintained = persistent != null && persistent.Enabled;
+            bool nextMaintained = EditorGUILayout.Toggle(AuthoringText.Get("Keep goal during playback"), maintained);
+            if (nextMaintained != maintained) SetPersistentGoal(nextMaintained);
+            if (maintained) EditorGUILayout.LabelField(AuthoringText.Get("This goal stays active after motion. Recording stores the goal and bend pole."), EditorStyles.wordWrappedLabel);
+            if (GUILayout.Button(AuthoringText.Get(maintained ? "Record goal key" : "Record limb key")))
             {
                 RigLimb limb = rig.Limbs[selected];
-                record(new[] { rig.Resolve(limb.Upper), rig.Resolve(limb.Lower) });
-                message = "Recorded both joint poses at the current clip time.";
+                record(maintained ? new[] { persistent.Goal, persistent.Pole } : new[] { rig.Resolve(limb.Upper), rig.Resolve(limb.Lower) });
+                message = maintained ? "Recorded goal and bend pole at the current clip time." : "Recorded both joint poses at the current clip time.";
             }
             if (string.IsNullOrEmpty(message) == false)
             {
@@ -122,6 +141,32 @@ namespace WitchMendokusai.ContentAuthoring
             return workspace.Instance.FindNode(rig.Resolve(role));
         }
 
+        private SceneLimbConstraint FindConstraint()
+        {
+            if (rig == null || rig.Limbs.Length == 0) return null;
+            RigLimb limb = rig.Limbs[selected];
+            return Array.Find(workspace.Document.LimbConstraints, value => value.Upper == rig.Resolve(limb.Upper) && value.Lower == rig.Resolve(limb.Lower) && value.End == rig.Resolve(limb.End));
+        }
+
+        public void SetPersistentGoal(bool enabled)
+        {
+            if (change == null || rig == null || rig.Limbs.Length == 0) throw new InvalidOperationException("A loaded editable limb is required");
+            SceneLimbConstraint constraint = FindConstraint();
+            if (constraint != null)
+            {
+                string id = constraint.Id;
+                change(document => Array.Find(document.LimbConstraints, value => value.Id == id).Enabled = enabled);
+                return;
+            }
+            if (enabled == false) return;
+            RigLimb limb = rig.Limbs[selected];
+            string identity = "limb-" + Guid.NewGuid().ToString("N");
+            Vector3 localGoal = workspace.Instance.transform.InverseTransformPoint(goal);
+            Vector3 localPole = workspace.Instance.transform.InverseTransformPoint(pole);
+            change(document => SceneConstraints.Pin(document, identity, limb.Id, rig.Resolve(limb.Upper), rig.Resolve(limb.Lower), rig.Resolve(limb.End),
+                new[] { localGoal.x, localGoal.y, -localGoal.z }, new[] { localPole.x, localPole.y, -localPole.z }));
+        }
+
         private void ResetGoal()
         {
             if (rig.Limbs.Length == 0)
@@ -129,6 +174,13 @@ namespace WitchMendokusai.ContentAuthoring
                 return;
             }
             RigLimb limb = rig.Limbs[selected];
+            SceneLimbConstraint persistent = FindConstraint();
+            if (persistent != null)
+            {
+                goal = workspace.Instance.FindNode(persistent.Goal).position;
+                pole = workspace.Instance.FindNode(persistent.Pole).position;
+                return;
+            }
             Vector3 upper = Joint(limb.Upper).position;
             Vector3 lower = Joint(limb.Lower).position;
             goal = Joint(limb.End).position;
@@ -147,10 +199,14 @@ namespace WitchMendokusai.ContentAuthoring
             RigLimb limb = rig.Limbs[selected];
             Transform upper = Joint(limb.Upper);
             Transform lower = Joint(limb.Lower);
-            Undo.RecordObjects(new UnityEngine.Object[] { upper, lower }, "Move limb goal");
+            SceneLimbConstraint persistent = FindConstraint();
+            Transform goalNode = persistent == null ? null : workspace.Instance.FindNode(persistent.Goal);
+            Transform poleNode = persistent == null ? null : workspace.Instance.FindNode(persistent.Pole);
+            Undo.RecordObjects(persistent == null ? new UnityEngine.Object[] { upper, lower } : new UnityEngine.Object[] { upper, lower, goalNode, poleNode }, "Move limb goal");
             try
             {
                 LimbSolution solution = TransformLimbIk.Apply(upper, lower, Joint(limb.End), goal, pole);
+                if (persistent != null) { goalNode.position = goal; poleNode.position = pole; }
                 message = solution.Reachable ? "Goal reached." : "Goal is outside limb reach; stopped at the closest reachable point.";
                 SceneView.RepaintAll();
             }
@@ -165,6 +221,12 @@ namespace WitchMendokusai.ContentAuthoring
             if (handles == false || rig == null || workspace == null || workspace.IsLoaded == false || view is ContentStageView == false)
             {
                 return;
+            }
+            SceneLimbConstraint persistent = FindConstraint();
+            if (persistent != null && persistent.Enabled)
+            {
+                goal = workspace.Instance.FindNode(persistent.Goal).position;
+                pole = workspace.Instance.FindNode(persistent.Pole).position;
             }
             EditorGUI.BeginChangeCheck();
             Vector3 nextGoal = Handles.PositionHandle(goal, Quaternion.identity);

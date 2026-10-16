@@ -11,6 +11,7 @@ flowchart TD
     Runtime --> SequenceCore[Scene Sequence core]
     SequenceCore --> SceneCore
     SequenceCore --> MotionCore
+    SequenceCore --> RigCore
     Editor --> RigUnity[Rigging Unity adapter]
     SceneUnity --> SceneCore[Scene Content core]
     SceneUnity --> GeometryUnity[Geometry Unity adapter]
@@ -50,4 +51,6 @@ The optional Appearance parameter profile calibrates named controls. Scene Conte
 
 `WM.SequenceLibrary` is an application presentation assembly above the existing engine adapters and runtime composition. It installs a lobby menu after normal boot, reads the same ordinary sequence exports and chooses an unscaled playback clock. It owns temporary content, framing and lobby visibility/input restoration. The editor exports to the same product data location through `SequenceLibraryLocation`; the pure scene, motion and sequence cores do not depend on this menu.
 
-These are building contracts, not a frozen interchange standard. The current design does not yet include a general constraint graph, secondary dynamics, event/audio scheduling, rig retargeting or a general shader graph. Add those as explicit capabilities with data ownership and execution order; do not route them through untyped compatibility payloads.
+Scene Content stores persistent limb constraints with stable joint and target node IDs. Scene Sequence orders their dependencies and applies the existing analytic Rigging solver through the Motion pose port after sampling. It stages the entire solution before writing affected joints; final port writes must be synchronous and nonthrowing. Positive uniform joint ancestor scale is required. Disabled constraints retain their target nodes and keys. Clone, composition and pruning preserve these references. Runtime also evaluates goals while paused, after ordinary motion updates.
+
+These are building contracts, not a frozen interchange standard. The current design does not yet include general constraints beyond analytic limbs, secondary dynamics, event/audio scheduling, rig retargeting or a general shader graph. Add those as explicit capabilities with data ownership and execution order; do not route them through untyped compatibility payloads.

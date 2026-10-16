@@ -30,6 +30,7 @@ namespace SceneSequence
                 nodes.Add(node.Id);
             }
             HashSet<string> poses = new HashSet<string>(StringComparer.Ordinal);
+            HashSet<string> rigid = SceneConstraints.RigidNodes(document.Scene);
             HashSet<string> values = new HashSet<string>(StringComparer.Ordinal);
             foreach (PoseClip clip in document.Clips)
             {
@@ -40,6 +41,7 @@ namespace SceneSequence
                     {
                         throw new ArgumentException("Sequence pose targets must exist and cannot overlap between clips");
                     }
+                    if (rigid.Contains(track.Node)) foreach (PoseKey key in track.Keys) SceneConstraints.EnsureScale(key.Scale);
                 }
                 foreach (ScalarTrack track in clip.Values)
                 {
