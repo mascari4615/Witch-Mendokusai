@@ -99,7 +99,7 @@ namespace WitchMendokusai.ContentAuthoring
             limbs.Bind(workspace);
             cameras.Bind(workspace, ApplyChange, () => stage);
             surfaces.Bind(workspace, ApplyChange);
-            parameters.Bind(workspace, ApplyChange);
+            parameters.Bind(workspace, ApplyChange, ExportParameterSequence);
             labeledOnly = Array.Exists(workspace.Document.Nodes, node => string.IsNullOrEmpty(node.Label) == false);
             selected = -1;
             failure = false;
@@ -331,7 +331,7 @@ namespace WitchMendokusai.ContentAuthoring
             expressions.Bind(workspace);
             limbs.Bind(workspace);
             surfaces.Bind(workspace, ApplyChange);
-            parameters.Bind(workspace, ApplyChange);
+            parameters.Bind(workspace, ApplyChange, ExportParameterSequence);
             if (selected >= workspace.Document.Nodes.Length) selected = -1;
             if (selected >= 0) Selection.activeTransform = workspace.Instance.FindNode(workspace.Document.Nodes[selected].Id);
             Repaint();

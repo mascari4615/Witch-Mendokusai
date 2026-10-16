@@ -11,6 +11,7 @@ namespace WitchMendokusai.ContentAuthoring
     {
         private ContentWorkspace workspace;
         private Action<Action<SceneDocument>> apply;
+        private Action<IDictionary<string, float>> export;
         private readonly Dictionary<string, float> pending = new Dictionary<string, float>(StringComparer.Ordinal);
         private bool expanded = true;
         private bool createExpanded;
@@ -20,10 +21,11 @@ namespace WitchMendokusai.ContentAuthoring
         private float maximum = 1.5f;
         private static readonly string[] AXES = { "Overall size", "Width", "Height", "Depth" };
 
-        public void Bind(ContentWorkspace workspace, Action<Action<SceneDocument>> apply)
+        public void Bind(ContentWorkspace workspace, Action<Action<SceneDocument>> apply, Action<IDictionary<string, float>> export = null)
         {
             this.workspace = workspace;
             this.apply = apply;
+            this.export = export;
             pending.Clear();
             if (workspace.Document.Parameters == null) return;
             foreach (ParameterControl control in workspace.Document.Parameters.Profile.Controls) pending.Add(control.Id, control.Value);
@@ -50,7 +52,9 @@ namespace WitchMendokusai.ContentAuthoring
                 using (new EditorGUI.DisabledScope(changed == false))
                 {
                     if (GUILayout.Button(AuthoringText.Get("Apply body controls"))) ApplyValues(new Dictionary<string, float>(pending));
+                    if (export != null && GUILayout.Button(AuthoringText.Get("Export controls with fitted motion..."))) export(new Dictionary<string, float>(pending));
                 }
+                if (export != null) EditorGUILayout.LabelField(AuthoringText.Get("Export fits motion keys to these pending values and keeps the current workspace. Open the exported sequence to preview it."), EditorStyles.wordWrappedLabel);
                 if (changed) EditorGUILayout.LabelField(AuthoringText.Get("Unapplied control values. Apply to update the preview."), EditorStyles.wordWrappedLabel);
                 if (GUILayout.Button(AuthoringText.Get("Reset body controls")))
                 {

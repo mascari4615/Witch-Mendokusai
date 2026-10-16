@@ -9,6 +9,10 @@ namespace WitchMendokusai.ContentAuthoring
     {
         private static readonly Dictionary<string, string> KOREAN = new Dictionary<string, string>(StringComparer.Ordinal)
         {
+            { "Export controls with fitted motion...", "동작도 맞춘 변형 내보내기..." },
+            { "Export fits motion keys to these pending values and keeps the current workspace. Open the exported sequence to preview it.", "내보내면 입력한 값에 동작 키도 맞춰요. 현재 작업은 유지돼요. 내보낸 연출을 열어 확인하세요." },
+            { "Export control variant", "조절값을 맞춘 연출 내보내기" },
+            { "Exported control variant with fitted motion. Open the sequence to preview it.", "조절값과 동작을 맞춘 연출을 내보냈어요. 연출 열기로 확인하세요." },
             { "Body and face controls", "체형과 얼굴 조절" },
             { "Create a named control for a selected part, or open a scene with calibrated controls.", "부위를 선택해 이름 있는 조절값을 만들거나, 조절값이 든 장면을 여세요." },
             { "Apply body controls", "조절값 적용" },

@@ -111,7 +111,8 @@
       "source": "embedded",
       "dependencies": {
         "com.mascari4615.scene-content": "0.1.0",
-        "com.mascari4615.motion": "0.1.0"
+        "com.mascari4615.motion": "0.1.0",
+        "com.mascari4615.appearance": "0.1.0"
       }
     },
     "com.mascari4615.wm-domainsdk": {

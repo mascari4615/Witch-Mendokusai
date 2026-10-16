@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Motion.Serialization;
 using SceneContent;
@@ -8,11 +9,36 @@ using SceneSequence;
 using SceneSequence.Storage;
 using UnityEditor;
 using UnityEngine;
+using WitchMendokusai.ContentRuntime;
 
 namespace WitchMendokusai.ContentAuthoring
 {
     public sealed partial class ContentAuthoringWindow
     {
+        public void SaveParameterSequence(string file, IDictionary<string, float> values)
+        {
+            motion.ValidateDraft();
+            SceneDocument snapshot = SceneSnapshot.Capture(workspace.Document, workspace.Instance);
+            SequenceDocument source = new SequenceDocument { Id = "sequence-" + snapshot.Id, Scene = snapshot, Clips = new[] { motion.Clip } };
+            SequenceDocument sequence = SequenceParameters.WithValues(source, values, (mesh, component) =>
+            {
+                SkinnedMeshRenderer renderer = workspace.Instance.FindMesh(mesh) as SkinnedMeshRenderer;
+                if (renderer == null || component >= renderer.sharedMesh.blendShapeCount) throw new ArgumentException("Morph motion requires a bound shape");
+                string node = snapshot.Nodes[snapshot.Meshes[mesh].Node].Id;
+                return SceneMotionBindings.Expression(node, mesh, renderer.sharedMesh.GetBlendShapeName(component));
+            });
+            string rig = RigFiles.Read(workspace.FilePath, snapshot);
+            RigFiles.Save(Path.GetFullPath(file), rig);
+            SequenceFiles.Save(file, sequence, new DirectoryContentSource(Path.GetDirectoryName(workspace.FilePath)));
+            message = "Exported control variant with fitted motion. Open the sequence to preview it.";
+        }
+
+        private void ExportParameterSequence(IDictionary<string, float> values)
+        {
+            string file = EditorUtility.SaveFilePanel(AuthoringText.Get("Export control variant"), "", "variant.sequence", "json");
+            if (string.IsNullOrEmpty(file) == false) Run(delegate { SaveParameterSequence(file, values); });
+        }
+
         public void SaveSequence(string file)
         {
             motion.ValidateDraft();
