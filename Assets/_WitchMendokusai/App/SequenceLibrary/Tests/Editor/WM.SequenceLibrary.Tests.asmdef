@@ -1,0 +1,6 @@
+{
+  "name": "WM.SequenceLibrary.Tests",
+  "references": ["WM.SequenceLibrary", "WM.Domain", "SceneContent.Core", "SceneContent.Unity"],
+  "includePlatforms": ["Editor"], "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll"], "optionalUnityReferences": ["TestAssemblies"]
+}

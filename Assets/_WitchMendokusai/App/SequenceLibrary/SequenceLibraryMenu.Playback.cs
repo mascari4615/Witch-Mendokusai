@@ -22,6 +22,8 @@ namespace WitchMendokusai.SequenceLibrary
         private ContentScenePlayer player;
         private readonly Dictionary<Camera, bool> cameras = new Dictionary<Camera, bool>();
         private readonly Dictionary<Canvas, bool> canvases = new Dictionary<Canvas, bool>();
+        private SkyDirector lobbySky;
+        private bool lobbySkyEnabled;
 
         public void LoadSequence(string file)
         {
@@ -69,6 +71,7 @@ namespace WitchMendokusai.SequenceLibrary
         private void PrepareCamera(GameObject owner, SceneInstance scene)
         {
             foreach (Transform part in scene.GetComponentsInChildren<Transform>(true)) part.gameObject.layer = contentLayer;
+            foreach (Light authoredLight in scene.GetComponentsInChildren<Light>(true)) authoredLight.cullingMask = 1 << contentLayer;
             bool authored = false;
             foreach (Camera camera in scene.GetComponentsInChildren<Camera>(true))
             {
@@ -107,6 +110,11 @@ namespace WitchMendokusai.SequenceLibrary
 
         private void CaptureLobby()
         {
+            if (SkyDirector.TryGetExistingInstance(out lobbySky))
+            {
+                lobbySkyEnabled = lobbySky.enabled;
+                lobbySky.enabled = false;
+            }
             foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
             {
                 foreach (Camera camera in root.GetComponentsInChildren<Camera>(true)) { cameras.Add(camera, camera.enabled); camera.enabled = false; }
@@ -124,6 +132,8 @@ namespace WitchMendokusai.SequenceLibrary
             foreach (KeyValuePair<Canvas, bool> entry in canvases) if (entry.Key != null) entry.Key.enabled = entry.Value;
             cameras.Clear();
             canvases.Clear();
+            if (lobbySky != null) lobbySky.enabled = lobbySkyEnabled;
+            lobbySky = null;
         }
 
         private void TogglePlayback()

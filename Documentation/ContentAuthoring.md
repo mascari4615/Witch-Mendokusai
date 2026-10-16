@@ -2,6 +2,8 @@
 
 Open **WM > Authoring > Scene workspace** in Unity. This early authoring tool edits native scene documents in an isolated preview scene and uses the same data and motion core as runtime playback.
 
+During lobby sequence viewing, authored lights keep their enabled state, color, direction and intensity. They illuminate the content layer, and the lobby sky controller is suspended until returning. Its previous enabled state is restored. Scenes without authored lights receive a fallback light; a deliberately disabled authored light stays disabled.
+
 For a first session, choose **Open greeting example**. Two block figures appear in the character view with a two-second waving motion. Press **Play**, or move **Time** to inspect the arm poses. The example needs no external model files. Use **Export sequence** to keep a separate copy with its resources, then **Open sequence** to resume it. This example teaches scene and motion controls; it is not a detailed character model.
 
 The workspace language selector offers Korean and English without changing saved identifiers. **Show character view** brings the preview back. Light and camera icons start hidden in this preview; enable **Show scene icons** when you need them. Other scene views retain their own display settings.
