@@ -147,7 +147,17 @@ namespace WitchMendokusai.SequenceLibrary
         {
             if (player == null || player.IsLoaded == false) return;
             timeline.SetValueWithoutNotify(player.Time);
+            if (player.Failure != null) status.text = PlaybackFailure(player.Failure);
             play.text = player.IsPlaying ? "일시 정지" : "재생";
+        }
+
+        private static string PlaybackFailure(string detail)
+        {
+            if (detail == "Dynamics seek exceeds the step budget; advance in smaller intervals")
+                return "한 번에 옮기기엔 시간이 너무 멀어요. 가까운 시간부터 나눠 이동하세요.";
+            if (detail == "Obstacle encloses the particle reach" || detail == "Length and collision constraints could not be satisfied")
+                return "충돌 모양과 연결 길이가 맞지 않아요. 편집기에서 반경이나 배치를 고쳐 다시 내보내세요.";
+            return "연출 설정을 계산하지 못했어요. 편집기에서 확인하고 다시 내보내세요.";
         }
     }
 }

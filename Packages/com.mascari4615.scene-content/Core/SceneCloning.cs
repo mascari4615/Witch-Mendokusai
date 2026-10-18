@@ -10,7 +10,8 @@ namespace SceneContent
                 Id = source.Id, Nodes = new SceneNode[source.Nodes.Length], Meshes = new MeshInstance[source.Meshes.Length],
                 Materials = new SurfaceMaterial[source.Materials.Length], Resources = new ContentResource[source.Resources.Length],
                 Cameras = new SceneCamera[source.Cameras.Length], Lights = new SceneLight[source.Lights.Length], Parameters = SceneParameters.Copy(source.Parameters),
-                LimbConstraints = SceneConstraints.Copy(source.LimbConstraints)
+                LimbConstraints = SceneConstraints.Copy(source.LimbConstraints),
+                Springs = SceneDynamics.Copy(source.Springs), Colliders = SceneDynamics.Copy(source.Colliders)
             };
             for (int index = 0; index < source.Nodes.Length; index++)
             {

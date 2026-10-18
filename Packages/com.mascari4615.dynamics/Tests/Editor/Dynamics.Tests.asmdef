@@ -1,0 +1,4 @@
+{
+  "name": "Dynamics.Tests", "references": ["Dynamics.Core"], "includePlatforms": ["Editor"],
+  "overrideReferences": true, "precompiledReferences": ["nunit.framework.dll"], "optionalUnityReferences": ["TestAssemblies"]
+}

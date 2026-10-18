@@ -40,6 +40,11 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 EditorGUILayout.LabelField(AuthoringText.Get("Two block figures wave. Open the example, then press Play in the character view."), EditorStyles.wordWrappedLabel);
             }
+            if (GUILayout.Button(AuthoringText.Get("Open secondary motion example")))
+            {
+                if (workspace.IsLoaded == false || (workspace.HasChanges == false && motion.HasChanges == false) ||
+                    EditorUtility.DisplayDialog(AuthoringText.Get("Unsaved workspace"), AuthoringText.Get("Discard current scene and motion edits?"), AuthoringText.Get("Discard"), AuthoringText.Get("Cancel"))) Run(OpenDynamicsExample);
+            }
             using (new EditorGUI.DisabledScope(workspace.IsLoaded == false))
             {
                 if (GUILayout.Button(AuthoringText.Get("Show character view"), GUILayout.Height(32))) ShowCharacterView();
@@ -49,6 +54,14 @@ namespace WitchMendokusai.ContentAuthoring
         public void OpenExample()
         {
             LoadSequence(AuthoringExample.Create());
+        }
+
+        public void OpenDynamicsExample()
+        {
+            LoadSequence(DynamicsExample.Create());
+            selected = System.Array.FindIndex(workspace.Document.Nodes, node => node.Id == "spring-joint");
+            dynamics.Reveal();
+            message = "Left: spring motion and collision. Right: direct motion. Press Play or move Time to compare.";
         }
 
         public void ShowCharacterView()

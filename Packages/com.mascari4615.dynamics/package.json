@@ -1,0 +1,4 @@
+{
+  "name": "com.mascari4615.dynamics", "version": "0.1.0", "displayName": "Secondary Dynamics",
+  "description": "Portable damped motion and constrained particle collision.", "unity": "6000.3"
+}

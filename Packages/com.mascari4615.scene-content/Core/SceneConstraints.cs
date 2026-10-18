@@ -76,12 +76,12 @@ namespace SceneContent
             return order.ToArray();
         }
 
-        private static bool Ancestor(int[][] intervals, int ancestor, int node)
+        internal static bool Ancestor(int[][] intervals, int ancestor, int node)
         {
             return intervals[0][ancestor] <= intervals[0][node] && intervals[1][node] <= intervals[1][ancestor];
         }
 
-        private static int[][] Intervals(SceneDocument scene)
+        internal static int[][] Intervals(SceneDocument scene)
         {
             int[] enter = new int[scene.Nodes.Length];
             int[] exit = new int[scene.Nodes.Length];
@@ -127,6 +127,7 @@ namespace SceneContent
         public static HashSet<string> RigidNodes(SceneDocument scene)
         {
             HashSet<string> result = new HashSet<string>(StringComparer.Ordinal);
+            SceneDynamics.AddRigidNodes(scene, result);
             if (scene.LimbConstraints.Length == 0) return result;
             Dictionary<string, int> nodes = new Dictionary<string, int>(StringComparer.Ordinal);
             for (int index = 0; index < scene.Nodes.Length; index++) nodes.Add(scene.Nodes[index].Id, index);

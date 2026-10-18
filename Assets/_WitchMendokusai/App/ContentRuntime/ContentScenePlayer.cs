@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Motion;
 using Motion.Unity;
 using SceneContent;
@@ -11,18 +12,24 @@ namespace WitchMendokusai.ContentRuntime
     public sealed class ContentScenePlayer : MonoBehaviour
     {
         private GameObject loadedRoot;
-        private PoseClipPlayer[] players = new PoseClipPlayer[0];
+        private PoseClipSampler[] samplers = new PoseClipSampler[0];
         private SceneConstraintPlan constraints;
         private TransformPoseTarget poses;
+        private SceneDynamicsClock dynamics;
+        private Action<float> sampleFrame;
+        private float elapsed;
+        private bool unscaled;
+        public string Failure { get; private set; }
         public SceneInstance Instance { get; private set; }
         public bool IsLoaded { get { return Instance != null; } }
-        public bool IsPlaying { get { return Array.Exists(players, player => player != null && player.IsPlaying); } }
+        public bool IsPlaying { get; private set; }
         public float Time
         {
             get
             {
                 float seconds = 0;
-                foreach (PoseClipPlayer player in players) if (player != null) seconds = Mathf.Max(seconds, player.Time);
+                if (samplers.Length == 0) return elapsed;
+                foreach (PoseClipSampler sampler in samplers) seconds = Mathf.Max(seconds, ClipTime.Normalize(elapsed, sampler.Duration, sampler.Loop));
                 return seconds;
             }
         }
@@ -47,17 +54,26 @@ namespace WitchMendokusai.ContentRuntime
                 TransformPoseTarget poses = new TransformPoseTarget(scene.FindNode);
                 SceneConstraintPlan plan = new SceneConstraintPlan(document);
                 FloatPropertyTarget values = SceneMotionBindings.Create(document, () => scene);
-                PoseClipPlayer[] next = new PoseClipPlayer[clips.Length];
+                PoseClipSampler[] next = new PoseClipSampler[clips.Length];
                 for (int index = 0; index < clips.Length; index++)
                 {
-                    next[index] = staged.AddComponent<PoseClipPlayer>();
-                    next[index].Initialize(clips[index], poses, values, useUnscaledTime);
+                    next[index] = new PoseClipSampler(clips[index]);
+                    next[index].ValidateTargets(poses, values);
                 }
-                plan.Apply(poses);
+                Action<float> sample = seconds => { foreach (PoseClipSampler sampler in next) sampler.Apply(seconds, poses, values); plan.Apply(poses); };
+                List<string> properties = new List<string>();
+                foreach (PoseClip clip in clips) foreach (ScalarTrack track in clip.Values) properties.Add(track.Target);
+                SceneDynamicsClock clock = new SceneDynamicsClock(document, poses, values, properties);
+                clock.Evaluate(0, sample);
                 loadedRoot = staged;
                 constraints = plan;
                 this.poses = poses;
-                players = next;
+                samplers = next;
+                dynamics = clock;
+                sampleFrame = sample;
+                elapsed = 0;
+                unscaled = useUnscaledTime;
+                Failure = null;
                 Instance = scene;
                 staged.SetActive(true);
             }
@@ -72,25 +88,45 @@ namespace WitchMendokusai.ContentRuntime
         public void Play()
         {
             EnsureLoaded();
-            foreach (PoseClipPlayer player in players) player.Play();
+            Failure = null;
+            IsPlaying = samplers.Length > 0 || dynamics.Count > 0;
         }
 
         public void Pause()
         {
-            foreach (PoseClipPlayer player in players)
-                if (player != null) player.Pause();
+            IsPlaying = false;
         }
 
         public void Seek(float time)
         {
             EnsureLoaded();
-            foreach (PoseClipPlayer player in players) player.Seek(time);
-            constraints.Apply(poses);
+            if (float.IsNaN(time) || float.IsInfinity(time)) throw new ArgumentException("Playback time must be finite");
+            float seconds = dynamics.Count > 0 ? Mathf.Max(0, time) : time;
+            if (samplers.Length > 0 && Array.Exists(samplers, sampler => sampler.Loop) == false)
+            {
+                float duration = 0;
+                foreach (PoseClipSampler sampler in samplers) duration = Mathf.Max(duration, sampler.Duration);
+                seconds = ClipTime.Normalize(seconds, duration, false);
+            }
+            dynamics.Evaluate(seconds, sampleFrame);
+            elapsed = seconds;
+            Failure = null;
         }
 
         private void LateUpdate()
         {
-            if (IsLoaded && constraints.Count > 0) constraints.Apply(poses);
+            if (IsLoaded == false || Failure != null) return;
+            try
+            {
+                if (IsPlaying)
+                {
+                    Seek(elapsed + (unscaled ? UnityEngine.Time.unscaledDeltaTime : UnityEngine.Time.deltaTime));
+                    IsPlaying = samplers.Length == 0 ? dynamics.Count > 0 : Array.Exists(samplers, sampler => sampler.Loop || elapsed < sampler.Duration);
+                }
+                else if (dynamics.Count > 0) dynamics.Refresh(sampleFrame, () => constraints.Apply(poses));
+                else if (constraints.Count > 0) constraints.Apply(poses);
+            }
+            catch (Exception exception) { IsPlaying = false; Failure = exception.Message; Debug.LogException(exception); }
         }
 
         public void Unload()
@@ -104,9 +140,12 @@ namespace WitchMendokusai.ContentRuntime
             }
             loadedRoot = null;
             Instance = null;
-            players = new PoseClipPlayer[0];
+            samplers = new PoseClipSampler[0];
             constraints = null;
             poses = null;
+            dynamics = null;
+            sampleFrame = null;
+            Failure = null;
         }
 
         private void EnsureLoaded()

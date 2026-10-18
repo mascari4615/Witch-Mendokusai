@@ -11,6 +11,53 @@ namespace WitchMendokusai.ContentRuntime.Tests
     public sealed class ContentScenePlayerTests
     {
         [Test]
+        public void DynamicsWithoutPoseClipsCanPlayAndSnapshotsKeepTheAuthoredRotation()
+        {
+            SceneDocument document = Document();
+            document.Nodes = new[] { document.Nodes[0], new SceneNode { Id = "tip", Parent = 0, Position = new[] { .5f, -.5f, 0f }, Rotation = new[] { 0f, 0f, 0f, 1f }, Scale = new[] { 1f, 1f, 1f } } };
+            document.Springs = new[] { new SceneSpring { Id = "spring", Joint = "node", Tip = "tip" } };
+            GameObject host = new GameObject("spring-player-test");
+            try
+            {
+                ContentScenePlayer player = host.AddComponent<ContentScenePlayer>();
+                player.Initialize(document, new EmptySource(), Surfaces(), new PoseClip[0]);
+                player.Play();
+                Assert.That(player.IsPlaying, Is.True);
+                player.Seek(.5f);
+                Assert.That(player.Time, Is.EqualTo(.5f));
+                Quaternion displayed = player.Instance.FindNode("node").localRotation;
+                Assert.That(Quaternion.Angle(displayed, Quaternion.identity), Is.GreaterThan(.1f));
+                SceneDocument snapshot = SceneSnapshot.Capture(document, player.Instance);
+                Assert.That(snapshot.Nodes[0].Rotation, Is.EqualTo(document.Nodes[0].Rotation));
+                Assert.Throws<ArgumentException>(() => player.Seek(1000));
+                Assert.That(player.Time, Is.EqualTo(.5f));
+                Assert.That(player.Instance.FindNode("node").localRotation, Is.EqualTo(displayed));
+                player.Pause();
+                Assert.That(player.IsPlaying, Is.False);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(host); }
+        }
+
+        [Test]
+        public void LoopingClipsStillSupportNegativeAndMultipleCycleSeeks()
+        {
+            GameObject host = new GameObject("loop-player-test");
+            try
+            {
+                PoseClip clip = Clip("node"); clip.Loop = true;
+                ContentScenePlayer player = host.AddComponent<ContentScenePlayer>();
+                player.Initialize(Document(), new EmptySource(), Surfaces(), new[] { clip });
+                player.Seek(-.25f);
+                Assert.That(player.Time, Is.EqualTo(.75f));
+                Assert.That(player.Instance.FindNode("node").localPosition.x, Is.EqualTo(.75f).Within(.00001f));
+                player.Seek(2.5f);
+                Assert.That(player.Time, Is.EqualTo(.5f));
+                Assert.That(player.Instance.FindNode("node").localPosition.x, Is.EqualTo(.5f).Within(.00001f));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(host); }
+        }
+
+        [Test]
         public void CalibratedParameterValuesUseTheSameSceneCoreBeforeRuntimeLoading()
         {
             SceneDocument source = Document();

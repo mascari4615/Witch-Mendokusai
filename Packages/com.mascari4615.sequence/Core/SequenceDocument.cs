@@ -42,6 +42,8 @@ namespace SceneSequence
                         throw new ArgumentException("Sequence pose targets must exist and cannot overlap between clips");
                     }
                     if (rigid.Contains(track.Node)) foreach (PoseKey key in track.Keys) SceneConstraints.EnsureScale(key.Scale);
+                    if (Array.Exists(document.Scene.Springs, spring => spring.Enabled && spring.Tip == track.Node))
+                        for (int index = 0; index < track.Keys.Length; index++) SceneDynamics.EnsureTipSpan(track.Keys[index].Position, track.Keys[Math.Min(index + 1, track.Keys.Length - 1)].Position);
                 }
                 foreach (ScalarTrack track in clip.Values)
                 {

@@ -67,10 +67,19 @@ namespace SceneContent
                 Id = left.Id, Nodes = nodes.ToArray(), Meshes = meshes.ToArray(), Materials = materials.ToArray(),
                 Resources = resources.ToArray(), Cameras = cameras.ToArray(), Lights = lights.ToArray(),
                 Parameters = SceneParameters.Compose(left.Parameters, right.Parameters, prefix, left.Meshes.Length),
-                LimbConstraints = ComposeConstraints(left, right, prefix)
+                LimbConstraints = ComposeConstraints(left, right, prefix),
+                Springs = Combine(left.Springs, SceneDynamics.Copy(right.Springs, prefix + ":")),
+                Colliders = Combine(left.Colliders, SceneDynamics.Copy(right.Colliders, prefix + ":"))
             };
             SceneValidation.Ensure(result);
             return result;
+        }
+
+        private static T[] Combine<T>(T[] left, T[] right)
+        {
+            List<T> values = new List<T>(left);
+            values.AddRange(right);
+            return values.ToArray();
         }
 
         private static SceneLimbConstraint[] ComposeConstraints(SceneDocument left, SceneDocument right, string prefix)

@@ -10,7 +10,7 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void TogglePlayback()
         {
-            if (clip.Tracks.Length == 0 && clip.Values.Length == 0) return;
+            if (clip.Tracks.Length == 0 && clip.Values.Length == 0 && (dynamics == null || dynamics.Count == 0)) return;
             if (playing == false && Time >= clip.Duration) Seek(0);
             playing = playing == false;
             lastTick = EditorApplication.timeSinceStartup;
@@ -19,7 +19,7 @@ namespace WitchMendokusai.ContentAuthoring
         public void DrawTransport()
         {
             EditorGUILayout.BeginHorizontal();
-            using (new EditorGUI.DisabledScope(clip.Tracks.Length == 0 && clip.Values.Length == 0))
+            using (new EditorGUI.DisabledScope(clip.Tracks.Length == 0 && clip.Values.Length == 0 && (dynamics == null || dynamics.Count == 0)))
             {
                 if (GUILayout.Button(AuthoringText.Get(playing ? "Pause" : "Play"), GUILayout.Height(32))) Run(TogglePlayback);
             }
@@ -36,6 +36,7 @@ namespace WitchMendokusai.ContentAuthoring
                 playing = false;
                 Run(delegate { Seek(seconds); });
             }
+            if (string.IsNullOrEmpty(error) == false) EditorGUILayout.HelpBox(AuthoringText.Format("Action failed. Details: {0}", error), MessageType.Error);
         }
     }
 }

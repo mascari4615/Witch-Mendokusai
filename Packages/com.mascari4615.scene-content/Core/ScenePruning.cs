@@ -50,6 +50,12 @@ namespace SceneContent
                     if (binding.Kind != "morph") Keep(source, retained, indices[binding.Node]);
             }
             int[] remap = new int[retained.Length];
+            foreach (SceneSpring spring in source.Springs)
+            {
+                Keep(source, retained, indices[spring.Joint]);
+                Keep(source, retained, indices[spring.Tip]);
+            }
+            foreach (SceneCollider collider in source.Colliders) Keep(source, retained, indices[collider.Node]);
             foreach (SceneLimbConstraint constraint in source.LimbConstraints)
                 foreach (string node in new[] { constraint.Upper, constraint.Lower, constraint.End, constraint.Goal, constraint.Pole }) Keep(source, retained, indices[node]);
             List<SceneNode> nodes = new List<SceneNode>();

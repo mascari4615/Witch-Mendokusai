@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace SceneContent.Unity
@@ -12,6 +13,8 @@ namespace SceneContent.Unity
                 throw new ArgumentNullException("Scene source and instance are required");
             }
             SceneNode[] nodes = new SceneNode[source.Nodes.Length];
+            HashSet<string> simulated = new HashSet<string>(StringComparer.Ordinal);
+            foreach (SceneSpring spring in source.Springs) if (spring.Enabled) simulated.Add(spring.Joint);
             for (int index = 0; index < nodes.Length; index++)
             {
                 Transform transform = instance.FindNode(source.Nodes[index].Id);
@@ -27,6 +30,7 @@ namespace SceneContent.Unity
                     Rotation = new[] { -rotation.x, -rotation.y, rotation.z, rotation.w },
                     Scale = new[] { scale.x, scale.y, scale.z }
                 };
+                if (simulated.Contains(nodes[index].Id)) nodes[index].Rotation = (float[])source.Nodes[index].Rotation.Clone();
             }
             MeshInstance[] meshes = new MeshInstance[source.Meshes.Length];
             for (int index = 0; index < meshes.Length; index++)

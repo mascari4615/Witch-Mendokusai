@@ -91,6 +91,7 @@ namespace SceneContent
             }
             SceneParameters.Ensure(scene);
             SceneConstraints.Order(scene);
+            SceneDynamics.Order(scene);
             HashSet<string> rigid = SceneConstraints.RigidNodes(scene);
             foreach (SceneNode node in scene.Nodes) if (rigid.Contains(node.Id)) SceneConstraints.EnsureScale(node.Scale);
         }

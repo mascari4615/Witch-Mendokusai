@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using History;
 using Motion;
@@ -19,8 +20,11 @@ namespace WitchMendokusai.ContentAuthoring
         private TransformPoseTarget target;
         private FloatPropertyTarget values;
         private SceneSequence.SceneConstraintPlan constraints;
+        private SceneSequence.SceneDynamicsClock dynamics;
+        private PoseClipSampler dynamicsSampler;
         private Action repaint;
         private double lastTick;
+        private float playbackElapsed;
         private bool playing;
         private string error;
         public float Time { get; private set; }
@@ -74,6 +78,13 @@ namespace WitchMendokusai.ContentAuthoring
                 SceneSequence.SequenceValidation.Ensure(new SceneSequence.SequenceDocument { Id = "draft", Scene = workspace.Document, Clips = new[] { candidate } });
         }
 
+        private void EnsureAuthoredPose(string[] nodes)
+        {
+            foreach (string node in nodes)
+                if (Array.Exists(workspace.Document.Springs, spring => spring.Enabled && spring.Joint == node))
+                    throw new InvalidOperationException(AuthoringText.Get("Disable the spring before recording its authored pose."));
+        }
+
         public void RestoreDraft(string json, float seconds, bool changed)
         {
             PoseClip restored = PoseClipJson.Read(json);
@@ -87,6 +98,7 @@ namespace WitchMendokusai.ContentAuthoring
             clip = restored;
             sampler = restoredSampler;
             Time = Mathf.Clamp(seconds, 0, clip.Duration);
+            playbackElapsed = Time;
             savedClip = changed ? null : PoseClipJson.Write(clip);
             playing = false;
             history.Clear();
@@ -102,6 +114,7 @@ namespace WitchMendokusai.ContentAuthoring
         {
             playing = false;
             Time = 0;
+            playbackElapsed = 0;
             clip = new PoseClip { Id = Guid.NewGuid().ToString("N"), Duration = 3, Tracks = new PoseTrack[0] };
             sampler = new PoseClipSampler(clip);
             savedClip = PoseClipJson.Write(clip);
@@ -122,6 +135,15 @@ namespace WitchMendokusai.ContentAuthoring
         {
             values = SceneMotionBindings.Create(workspace.Document, () => workspace.Instance);
             constraints = new SceneSequence.SceneConstraintPlan(workspace.Document);
+            dynamics = new SceneSequence.SceneDynamicsClock(workspace.Document, target);
+            dynamicsSampler = null;
+        }
+
+        private SceneSequence.SceneDynamicsClock CreateDynamicsClock()
+        {
+            List<string> properties = new List<string>();
+            foreach (ScalarTrack track in clip.Values) properties.Add(track.Target);
+            return new SceneSequence.SceneDynamicsClock(workspace.Document, target, values, properties);
         }
 
         public void RecordValues(string[] properties)
@@ -139,6 +161,7 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void Record(string node)
         {
+            EnsureAuthoredPose(new[] { node });
             PoseClip next = PoseClipEditing.Record(clip, node, Time, target.Read(node));
             EnsureClip(next);
             history.Record(clip);
@@ -148,6 +171,7 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void RecordNodes(string[] nodes)
         {
+            EnsureAuthoredPose(nodes);
             PoseClip next = clip;
             foreach (string node in nodes)
             {
@@ -161,10 +185,35 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void Seek(float seconds)
         {
+            if (dynamicsSampler != sampler) { dynamics = CreateDynamicsClock(); dynamicsSampler = sampler; }
+            dynamics.Evaluate(ClipTime.Normalize(seconds, clip.Duration, false), SampleFrame);
+            Time = ClipTime.Normalize(seconds, clip.Duration, false);
+            playbackElapsed = Time;
+            SceneView.RepaintAll();
+        }
+
+        public void Advance(float seconds)
+        {
+            if (float.IsNaN(seconds) || float.IsInfinity(seconds) || seconds < 0) throw new ArgumentException("Playback delta must be finite and nonnegative");
+            if (dynamicsSampler != sampler) Seek(Time);
+            float next = playbackElapsed + seconds;
+            if (clip.Loop == false) next = ClipTime.Normalize(next, clip.Duration, false);
+            dynamics.Evaluate(next, SamplePlaybackFrame);
+            playbackElapsed = next;
+            Time = ClipTime.Normalize(next, clip.Duration, clip.Loop);
+            SceneView.RepaintAll();
+        }
+
+        private void SamplePlaybackFrame(float seconds)
+        {
+            sampler.Apply(seconds, target, values, loopOverride: clip.Loop);
+            constraints.Apply(target);
+        }
+
+        private void SampleFrame(float seconds)
+        {
             sampler.Apply(seconds, target, values, loopOverride: false);
             constraints.Apply(target);
-            Time = ClipTime.Normalize(seconds, clip.Duration, false);
-            SceneView.RepaintAll();
         }
 
         public void MoveToAdjacentKey(bool forward)
@@ -281,10 +330,6 @@ namespace WitchMendokusai.ContentAuthoring
             }
             EditorGUILayout.LabelField(AuthoringText.Format("{0} pose tracks, {1} value tracks, {2} keys", clip.Tracks.Length, clip.Values.Length, keys));
             DrawTrackEdits();
-            if (string.IsNullOrEmpty(error) == false)
-            {
-                EditorGUILayout.HelpBox(AuthoringText.Format("Action failed. Details: {0}", error), MessageType.Error);
-            }
         }
 
         private void Tick()
@@ -295,13 +340,18 @@ namespace WitchMendokusai.ContentAuthoring
             }
             if (playing == false)
             {
-                if (constraints != null && constraints.Count > 0) Run(delegate { constraints.Apply(target); });
+                if (dynamics != null && dynamics.Count > 0)
+                {
+                    if (dynamicsSampler != sampler) Run(delegate { Seek(Time); });
+                    else Run(delegate { dynamics.Refresh(SampleFrame, () => constraints.Apply(target)); });
+                }
+                else if (constraints != null && constraints.Count > 0) Run(delegate { constraints.Apply(target); });
                 return;
             }
             double now = EditorApplication.timeSinceStartup;
-            float next = Time + (float)(now - lastTick);
+            float delta = (float)(now - lastTick);
             lastTick = now;
-            Run(delegate { Seek(ClipTime.Normalize(next, clip.Duration, clip.Loop)); });
+            Run(delegate { Advance(delta); });
             if (clip.Loop == false && Time >= clip.Duration)
             {
                 playing = false;
@@ -383,7 +433,7 @@ namespace WitchMendokusai.ContentAuthoring
             }
             catch (Exception exception)
             {
-                error = exception.Message;
+                error = AuthoringText.Get(exception.Message);
                 playing = false;
             }
         }

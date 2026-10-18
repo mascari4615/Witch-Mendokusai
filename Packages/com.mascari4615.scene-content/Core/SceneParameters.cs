@@ -71,7 +71,7 @@ namespace SceneContent
             SceneParameterProfile candidate = Copy(document.Parameters);
             candidate.Profile = ParameterProfiles.WithValues(candidate.Profile, values);
             Dictionary<string, float> evaluated = ParameterProfiles.Evaluate(candidate.Profile);
-            EnsureConstraintScales(document, candidate, evaluated);
+            EnsureConstraintGeometry(document, candidate, evaluated);
             SceneParameterProfile previous = document.Parameters;
             document.Parameters = candidate;
             try { Ensure(document); }
@@ -91,18 +91,25 @@ namespace SceneContent
             }
         }
 
-        private static void EnsureConstraintScales(SceneDocument document, SceneParameterProfile candidate, Dictionary<string, float> evaluated)
+        private static void EnsureConstraintGeometry(SceneDocument document, SceneParameterProfile candidate, Dictionary<string, float> evaluated)
         {
             HashSet<string> rigid = SceneConstraints.RigidNodes(document);
             if (rigid.Count == 0) return;
             Dictionary<string, float[]> scales = new Dictionary<string, float[]>(StringComparer.Ordinal);
+            HashSet<string> tips = new HashSet<string>(StringComparer.Ordinal);
+            foreach (SceneSpring spring in document.Springs) if (spring.Enabled) tips.Add(spring.Tip);
+            Dictionary<string, float[]> positions = new Dictionary<string, float[]>(StringComparer.Ordinal);
             foreach (SceneNode node in document.Nodes) if (rigid.Contains(node.Id)) scales.Add(node.Id, (float[])node.Scale.Clone());
+            foreach (SceneNode node in document.Nodes) if (tips.Contains(node.Id)) positions.Add(node.Id, (float[])node.Position.Clone());
             foreach (SceneParameterBinding binding in candidate.Bindings)
             {
                 float[] scale;
                 if (binding.Kind == "scale" && scales.TryGetValue(binding.Node, out scale)) scale[binding.Component] = evaluated[binding.Property];
+                float[] position;
+                if (binding.Kind == "position" && positions.TryGetValue(binding.Node, out position)) position[binding.Component] = evaluated[binding.Property];
             }
             foreach (float[] scale in scales.Values) SceneConstraints.EnsureScale(scale);
+            foreach (float[] position in positions.Values) SceneDynamics.EnsureTipSpan(position, position);
         }
 
         public static SceneParameterProfile Copy(SceneParameterProfile source)

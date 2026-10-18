@@ -26,6 +26,7 @@ namespace WitchMendokusai.ContentAuthoring
         private double nextRecovery;
         private SurfacePanel surfaces;
         private ParameterPanel parameters;
+        private DynamicsPanel dynamics;
 
         public ContentWorkspace Workspace { get { return workspace; } }
         public MotionClipPanel Motion { get { return motion; } }
@@ -49,6 +50,7 @@ namespace WitchMendokusai.ContentAuthoring
             library = new LibraryPanel();
             surfaces = new SurfacePanel();
             parameters = new ParameterPanel();
+            dynamics = new DynamicsPanel();
             Undo.undoRedoPerformed += Repaint;
             SceneView.duringSceneGui += DrawStageControls;
             SceneView.beforeSceneGui += PrepareStage;
@@ -76,6 +78,7 @@ namespace WitchMendokusai.ContentAuthoring
             }
             motion.Dispose();
             limbs.Dispose();
+            dynamics.Dispose();
             if (stage != null)
             {
                 stage.Close();
@@ -98,6 +101,7 @@ namespace WitchMendokusai.ContentAuthoring
             motion.Bind(workspace, Repaint);
             expressions.Bind(workspace);
             limbs.Bind(workspace, ApplyChange);
+            dynamics.Bind(workspace, ApplyChange);
             cameras.Bind(workspace, ApplyChange, () => stage);
             surfaces.Bind(workspace, ApplyChange);
             parameters.Bind(workspace, ApplyChange, ExportParameterSequence);
@@ -274,6 +278,7 @@ namespace WitchMendokusai.ContentAuthoring
             DrawPoseSelection();
             motion.Draw(selected < 0 ? null : workspace.Document.Nodes[selected].Id);
             limbs.Draw();
+            dynamics.Draw(selected);
             expressions.Draw();
             cameras.Draw();
             surfaces.Draw();
@@ -331,6 +336,7 @@ namespace WitchMendokusai.ContentAuthoring
             stage.sceneLighting = sceneLighting;
             expressions.Bind(workspace);
             limbs.Bind(workspace, ApplyChange);
+            dynamics.Bind(workspace, ApplyChange);
             surfaces.Bind(workspace, ApplyChange);
             parameters.Bind(workspace, ApplyChange, ExportParameterSequence);
             if (selected >= workspace.Document.Nodes.Length) selected = -1;
@@ -356,12 +362,23 @@ namespace WitchMendokusai.ContentAuthoring
             }
             Transform target = workspace.Instance.FindNode(workspace.Document.Nodes[selected].Id);
             EditorGUILayout.LabelField(AuthoringText.Get("Local pose"), EditorStyles.boldLabel);
+            bool simulated = Array.Exists(workspace.Document.Springs, spring => spring.Enabled && spring.Joint == workspace.Document.Nodes[selected].Id);
+            if (simulated) EditorGUILayout.HelpBox(AuthoringText.Get("Disable the spring before editing or recording its authored rotation."), MessageType.Info);
             EditorGUI.BeginChangeCheck();
             Vector3 positionValue = EditorGUILayout.Vector3Field(AuthoringText.Get("Position"), target.localPosition);
-            Vector3 euler = EditorGUILayout.Vector3Field(AuthoringText.Get("Rotation"), target.localEulerAngles);
+            Vector3 euler;
+            using (new EditorGUI.DisabledScope(simulated))
+            {
+                euler = EditorGUILayout.Vector3Field(AuthoringText.Get("Rotation"), target.localEulerAngles);
+            }
             Vector3 scale = EditorGUILayout.Vector3Field(AuthoringText.Get("Scale"), target.localScale);
             if (EditorGUI.EndChangeCheck())
             {
+                if (SceneConstraints.RigidNodes(workspace.Document).Contains(workspace.Document.Nodes[selected].Id))
+                {
+                    try { SceneConstraints.EnsureScale(new[] { scale.x, scale.y, scale.z }); }
+                    catch (ArgumentException exception) { failure = true; message = exception.Message; return; }
+                }
                 Undo.RecordObject(target, AuthoringText.Get("Change node pose"));
                 target.localPosition = positionValue;
                 target.localRotation = Quaternion.Euler(euler);

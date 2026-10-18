@@ -95,7 +95,13 @@ namespace WitchMendokusai.SequenceLibrary
             transport.Add(play);
             timeline = new Slider(0, 1) { name = "sequence-time" };
             timeline.style.flexGrow = 1;
-            timeline.RegisterValueChangedCallback(change => { if (player != null && player.IsLoaded) { player.Pause(); player.Seek(change.newValue); } });
+            timeline.RegisterValueChangedCallback(change =>
+            {
+                if (player == null || player.IsLoaded == false) return;
+                player.Pause();
+                try { player.Seek(change.newValue); }
+                catch (Exception exception) { status.text = PlaybackFailure(exception.Message); timeline.SetValueWithoutNotify(player.Time); }
+            });
             transport.Add(timeline);
             transport.Add(new Button(ShowEntries) { text = "목록으로", name = "sequence-list" });
             panel.Add(transport);
