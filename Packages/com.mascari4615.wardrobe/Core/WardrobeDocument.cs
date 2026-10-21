@@ -37,6 +37,7 @@ namespace Wardrobe
                 if (part == null || string.IsNullOrEmpty(part.Id) || parts.Add(part.Id) == false || slots.Contains(part.Slot) == false ||
                     string.IsNullOrEmpty(part.Anchor) || part.Scene == null || part.Bindings == null || part.HiddenRegions == null || part.Variants == null)
                     throw new ArgumentException("Parts need a unique id, an existing slot, an anchor role and a scene");
+                if (part.AnchorOffset != null) part.AnchorOffset.Validate();
                 SceneValidation.Ensure(part.Scene);
                 HashSet<string> nodes = new HashSet<string>(StringComparer.Ordinal);
                 foreach (SceneNode node in part.Scene.Nodes) nodes.Add(node.Id);
@@ -97,10 +98,32 @@ namespace Wardrobe
         public string Label;
         public string Slot;
         public string Anchor;
+        public AnchorOffset AnchorOffset;
         public PartBinding[] Bindings = new PartBinding[0];
         public string[] HiddenRegions = new string[0];
         public PartVariant[] Variants = new PartVariant[0];
         public SceneDocument Scene;
+    }
+
+    // Where the part's roots sit relative to the anchor role's node (right-handed, Y up, Z back, quaternion x y z w).
+    [Serializable]
+    public sealed class AnchorOffset
+    {
+        public float[] Position = new float[3];
+        public float[] Rotation = new[] { 0f, 0f, 0f, 1f };
+
+        public void Validate()
+        {
+            if (Position == null || Position.Length != 3 || Rotation == null || Rotation.Length != 4) throw new ArgumentException("Anchor offset needs 3 position and 4 rotation values");
+            float norm = 0;
+            foreach (float value in Position) if (float.IsNaN(value) || float.IsInfinity(value)) throw new ArgumentException("Anchor offset must be finite");
+            foreach (float value in Rotation)
+            {
+                if (float.IsNaN(value) || float.IsInfinity(value)) throw new ArgumentException("Anchor offset must be finite");
+                norm += value * value;
+            }
+            if (Math.Abs(norm - 1) > .01f) throw new ArgumentException("Anchor offset rotation must be a unit quaternion");
+        }
     }
 
     [Serializable]

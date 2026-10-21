@@ -36,6 +36,7 @@ namespace Wardrobe
             foreach (Worn item in worn)
             {
                 SceneDocument piece = SceneCloning.Copy(item.Part.Scene);
+                if (item.Part.AnchorOffset != null) piece = WithAnchorOffset(piece, item.Part);
                 if (item.Variant != null)
                     foreach (MaterialOverride change in item.Variant.Materials) piece.Materials[change.Material].BaseColor = (float[])change.BaseColor.Clone();
                 Dictionary<string, string> shared = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -43,6 +44,25 @@ namespace Wardrobe
                 result = SceneComposition.Attach(result, piece, item.Part.Id, rig.Resolve(item.Part.Anchor), shared);
             }
             return result;
+        }
+
+        // Hangs every root of the part under one new node carrying the offset, so the part sits where the anchor point is, not at the role node.
+        private static SceneDocument WithAnchorOffset(SceneDocument piece, WardrobePart part)
+        {
+            int offsetNode = piece.Nodes.Length;
+            List<SceneNode> nodes = new List<SceneNode>(piece.Nodes);
+            foreach (SceneNode node in nodes)
+                if (node.Parent < 0) node.Parent = offsetNode;
+            nodes.Add(new SceneNode
+            {
+                Id = "anchor-offset", Parent = -1, Position = (float[])part.AnchorOffset.Position.Clone(),
+                Rotation = (float[])part.AnchorOffset.Rotation.Clone(), Scale = new[] { 1f, 1f, 1f }
+            });
+            piece.Nodes = nodes.ToArray();
+            foreach (PartBinding binding in part.Bindings)
+                if (Array.Exists(piece.Nodes, node => node.Id == binding.PartNode && node.Parent == offsetNode))
+                    throw new ArgumentException("A bound part node cannot be a root when an anchor offset is set: " + binding.PartNode);
+            return piece;
         }
 
         // Removes every part this wardrobe could have attached (nodes, meshes, materials and resources under the part's namespace)
