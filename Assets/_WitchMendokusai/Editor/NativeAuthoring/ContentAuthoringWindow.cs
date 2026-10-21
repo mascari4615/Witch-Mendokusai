@@ -299,7 +299,7 @@ namespace WitchMendokusai.ContentAuthoring
             expressions.Draw();
             cameras.Draw();
             surfaces.Draw();
-            wardrobe.Draw(WorkspaceWardrobe.Actors(workspace), file => Run(delegate { wardrobe.Open(file); }), (id, actor) => Run(delegate { WearOutfit(id, actor); }), actor => Run(delegate { WearOutfit(null, actor); }));
+            wardrobe.Draw(WorkspaceWardrobe.Actors(workspace), file => Run(delegate { wardrobe.Open(file); }), (id, actor) => Attempt(delegate { WearOutfit(id, actor); }), actor => Attempt(delegate { WearOutfit(null, actor); }));
             EditorGUILayout.EndScrollView();
         }
 
@@ -403,6 +403,12 @@ namespace WitchMendokusai.ContentAuthoring
                 target.localScale = scale;
                 SceneView.RepaintAll();
             }
+        }
+
+        private bool Attempt(Action action)
+        {
+            Run(action);
+            return failure == false;
         }
 
         private void Run(Action action)

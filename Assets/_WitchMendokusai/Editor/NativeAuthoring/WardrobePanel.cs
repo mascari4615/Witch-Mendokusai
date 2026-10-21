@@ -32,7 +32,8 @@ namespace WitchMendokusai.ContentAuthoring
             return AuthoringText.Get("Character") + " " + (name.StartsWith("actor-", StringComparison.Ordinal) ? name.Substring(6) : name);
         }
 
-        public void Draw(string[] actors, Action<string> open, Action<string, string> wear, Action<string> takeOff)
+        // wear and takeOff return whether the change happened, so a failed attempt is not shown as worn.
+        public void Draw(string[] actors, Action<string> open, Func<string, string, bool> wear, Func<string, bool> takeOff)
         {
             expanded = EditorGUILayout.Foldout(expanded, AuthoringText.Get("Outfits"), true);
             if (expanded == false) return;
@@ -71,16 +72,14 @@ namespace WitchMendokusai.ContentAuthoring
                     {
                         if (GUILayout.Button(AuthoringText.Get("Wear"), GUILayout.Width(70)))
                         {
-                            wear(outfit.Id, current);
-                            worn[current] = outfit.Id;
+                            if (wear(outfit.Id, current)) worn[current] = outfit.Id;
                         }
                     }
                 }
             }
             if (GUILayout.Button(AuthoringText.Get("Take everything off")))
             {
-                takeOff(current);
-                worn.Remove(current);
+                if (takeOff(current)) worn.Remove(current);
             }
         }
     }
