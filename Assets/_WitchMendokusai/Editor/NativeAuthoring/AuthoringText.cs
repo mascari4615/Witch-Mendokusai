@@ -15,6 +15,8 @@ namespace WitchMendokusai.ContentAuthoring
             { "Open an outfit file", "의상 파일 열기" },
             { "Open an outfit file to dress this character. The character needs body role bindings.", "의상 파일을 열면 이 캐릭터에 입힐 수 있어요. 캐릭터에 몸 부위 연결 정보가 있어야 해요." },
             { "Wear", "입기" },
+            { "Character", "캐릭터" },
+            { "This scene has no body role bindings, so outfits cannot be worn.", "이 장면에는 몸 부위 연결 정보가 없어 의상을 입힐 수 없어요." },
             { "Changed outfit.", "의상을 바꿨어요." },
             { "Took off everything this outfit file added.", "이 의상 파일이 입힌 것을 모두 벗었어요." },
             { "Take everything off", "모두 벗기기" },

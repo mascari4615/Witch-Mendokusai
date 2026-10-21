@@ -215,12 +215,12 @@ namespace WitchMendokusai.ContentAuthoring
             WorkspaceRecovery.Write(workspace, motion);
         }
 
-        public void WearOutfit(string outfitId)
+        public void WearOutfit(string outfitId, string actor = "")
         {
             string draft = motion.ExportDraft();
             float seconds = motion.Time;
             bool changed = motion.HasChanges;
-            string dressed = WorkspaceWardrobe.Dress(workspace, wardrobe.File, outfitId);
+            string dressed = WorkspaceWardrobe.Dress(workspace, wardrobe.File, outfitId, actor);
             workspace.Load(dressed);
             ShowLoaded();
             motion.RestoreDraft(draft, seconds, changed);
@@ -299,7 +299,7 @@ namespace WitchMendokusai.ContentAuthoring
             expressions.Draw();
             cameras.Draw();
             surfaces.Draw();
-            wardrobe.Draw(file => Run(delegate { wardrobe.Open(file); }), id => Run(delegate { WearOutfit(id); }), () => Run(delegate { WearOutfit(null); }));
+            wardrobe.Draw(WorkspaceWardrobe.Actors(workspace), file => Run(delegate { wardrobe.Open(file); }), (id, actor) => Run(delegate { WearOutfit(id, actor); }), actor => Run(delegate { WearOutfit(null, actor); }));
             EditorGUILayout.EndScrollView();
         }
 

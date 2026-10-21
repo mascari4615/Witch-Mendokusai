@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -11,7 +12,8 @@ namespace WitchMendokusai.ContentAuthoring
     {
         private string file;
         private WardrobeDocument document;
-        private string worn;
+        private readonly Dictionary<string, string> worn = new Dictionary<string, string>();
+        private int actor;
         private bool expanded = true;
 
         public string File { get { return file; } }
@@ -21,10 +23,16 @@ namespace WitchMendokusai.ContentAuthoring
             WardrobeDocument loaded = WardrobeJson.Read(System.IO.File.ReadAllText(path));
             file = Path.GetFullPath(path);
             document = loaded;
-            worn = null;
+            worn.Clear();
         }
 
-        public void Draw(Action<string> open, Action<string> wear, Action takeOff)
+        private static string CharacterLabel(string name)
+        {
+            if (name.Length == 0) return AuthoringText.Get("Character") + " 1";
+            return AuthoringText.Get("Character") + " " + (name.StartsWith("actor-", StringComparison.Ordinal) ? name.Substring(6) : name);
+        }
+
+        public void Draw(string[] actors, Action<string> open, Action<string, string> wear, Action<string> takeOff)
         {
             expanded = EditorGUILayout.Foldout(expanded, AuthoringText.Get("Outfits"), true);
             if (expanded == false) return;
@@ -39,25 +47,40 @@ namespace WitchMendokusai.ContentAuthoring
                 return;
             }
             EditorGUILayout.LabelField(Path.GetFileName(file), EditorStyles.miniLabel);
+            if (actors.Length == 0)
+            {
+                EditorGUILayout.LabelField(AuthoringText.Get("This scene has no body role bindings, so outfits cannot be worn."), EditorStyles.wordWrappedLabel);
+                return;
+            }
+            actor = Mathf.Clamp(actor, 0, actors.Length - 1);
+            if (actors.Length > 1)
+            {
+                string[] labels = new string[actors.Length];
+                for (int index = 0; index < labels.Length; index++) labels[index] = CharacterLabel(actors[index]);
+                actor = EditorGUILayout.Popup(AuthoringText.Get("Character"), actor, labels);
+            }
+            string current = actors[actor];
+            string wearing;
+            worn.TryGetValue(current, out wearing);
             foreach (Outfit outfit in document.Outfits)
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField(string.IsNullOrEmpty(outfit.Label) ? outfit.Id : outfit.Label, worn == outfit.Id ? EditorStyles.boldLabel : EditorStyles.label);
-                    using (new EditorGUI.DisabledScope(worn == outfit.Id))
+                    EditorGUILayout.LabelField(string.IsNullOrEmpty(outfit.Label) ? outfit.Id : outfit.Label, wearing == outfit.Id ? EditorStyles.boldLabel : EditorStyles.label);
+                    using (new EditorGUI.DisabledScope(wearing == outfit.Id))
                     {
                         if (GUILayout.Button(AuthoringText.Get("Wear"), GUILayout.Width(70)))
                         {
-                            wear(outfit.Id);
-                            worn = outfit.Id;
+                            wear(outfit.Id, current);
+                            worn[current] = outfit.Id;
                         }
                     }
                 }
             }
             if (GUILayout.Button(AuthoringText.Get("Take everything off")))
             {
-                takeOff();
-                worn = null;
+                takeOff(current);
+                worn.Remove(current);
             }
         }
     }

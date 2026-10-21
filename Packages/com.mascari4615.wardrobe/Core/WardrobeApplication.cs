@@ -9,7 +9,9 @@ namespace Wardrobe
     {
         // Dressing first takes off everything this wardrobe put on, then wears the outfit. Other edits to the scene are kept,
         // so switching outfits never accumulates parts and never needs the original actor.
-        public static SceneDocument Dress(SceneDocument current, RigDefinition rig, WardrobeDocument wardrobe, string outfitId)
+        // actor names one of several characters in the scene by the prefix its nodes and roles share (for example "actor-2" for "actor-2:neck").
+        // An empty actor is the unprefixed first character. Each character has its own namespace for worn parts.
+        public static SceneDocument Dress(SceneDocument current, RigDefinition rig, WardrobeDocument wardrobe, string outfitId, string actor = "")
         {
             if (current == null || rig == null || wardrobe == null) throw new ArgumentNullException("scene, rig and wardrobe are required");
             rig.Validate();
@@ -21,16 +23,17 @@ namespace Wardrobe
             foreach (RigJoint joint in rig.Joints) roles.Add(joint.Role);
             foreach (Worn item in worn)
             {
-                if (roles.Contains(item.Part.Anchor) == false) throw new ArgumentException("Rig has no anchor role " + item.Part.Anchor + " for part " + item.Part.Id);
+                if (roles.Contains(Scoped(actor, ":", item.Part.Anchor)) == false) throw new ArgumentException("Rig has no anchor role " + Scoped(actor, ":", item.Part.Anchor) + " for part " + item.Part.Id);
                 foreach (PartBinding binding in item.Part.Bindings)
-                    if (roles.Contains(binding.Role) == false) throw new ArgumentException("Rig has no role " + binding.Role + " for part " + item.Part.Id);
+                    if (roles.Contains(Scoped(actor, ":", binding.Role)) == false) throw new ArgumentException("Rig has no role " + Scoped(actor, ":", binding.Role) + " for part " + item.Part.Id);
             }
-            SceneDocument result = Undress(current, wardrobe);
+            SceneDocument result = Undress(current, wardrobe, actor);
             HashSet<string> hiddenNodes = new HashSet<string>(StringComparer.Ordinal);
             foreach (Worn item in worn)
                 foreach (string regionId in item.Part.HiddenRegions)
                     foreach (BodyRegion region in wardrobe.Regions)
-                        if (region.Id == regionId) hiddenNodes.UnionWith(region.MeshNodes);
+                        if (region.Id == regionId)
+                            foreach (string node in region.MeshNodes) hiddenNodes.Add(Scoped(actor, ":", node));
             foreach (MeshInstance mesh in result.Meshes)
                 if (hiddenNodes.Contains(result.Nodes[mesh.Node].Id)) mesh.Hidden = true;
             foreach (Worn item in worn)
@@ -40,8 +43,8 @@ namespace Wardrobe
                 if (item.Variant != null)
                     foreach (MaterialOverride change in item.Variant.Materials) piece.Materials[change.Material].BaseColor = (float[])change.BaseColor.Clone();
                 Dictionary<string, string> shared = new Dictionary<string, string>(StringComparer.Ordinal);
-                foreach (PartBinding binding in item.Part.Bindings) shared.Add(binding.PartNode, rig.Resolve(binding.Role));
-                result = SceneComposition.Attach(result, piece, item.Part.Id, rig.Resolve(item.Part.Anchor), shared);
+                foreach (PartBinding binding in item.Part.Bindings) shared.Add(binding.PartNode, rig.Resolve(Scoped(actor, ":", binding.Role)));
+                result = SceneComposition.Attach(result, piece, Scoped(actor, "/", item.Part.Id), rig.Resolve(Scoped(actor, ":", item.Part.Anchor)), shared);
             }
             return result;
         }
@@ -67,13 +70,13 @@ namespace Wardrobe
 
         // Removes every part this wardrobe could have attached (nodes, meshes, materials and resources under the part's namespace)
         // and shows the body regions again. The input is not modified.
-        public static SceneDocument Undress(SceneDocument current, WardrobeDocument wardrobe)
+        public static SceneDocument Undress(SceneDocument current, WardrobeDocument wardrobe, string actor = "")
         {
             if (current == null || wardrobe == null) throw new ArgumentNullException("scene and wardrobe are required");
             wardrobe.Validate();
             SceneDocument result = SceneCloning.Copy(current);
             List<string> prefixes = new List<string>();
-            foreach (WardrobePart part in wardrobe.Parts) prefixes.Add(part.Id + ":");
+            foreach (WardrobePart part in wardrobe.Parts) prefixes.Add(Scoped(actor, "/", part.Id) + ":");
             bool[] removedNode = new bool[result.Nodes.Length];
             bool any = false;
             for (int index = 0; index < removedNode.Length; index++)
@@ -82,7 +85,8 @@ namespace Wardrobe
                 any |= removedNode[index];
             }
             HashSet<string> shown = new HashSet<string>(StringComparer.Ordinal);
-            foreach (BodyRegion region in wardrobe.Regions) shown.UnionWith(region.MeshNodes);
+            foreach (BodyRegion region in wardrobe.Regions)
+                foreach (string node in region.MeshNodes) shown.Add(Scoped(actor, ":", node));
             foreach (MeshInstance mesh in result.Meshes)
                 if (shown.Contains(result.Nodes[mesh.Node].Id)) mesh.Hidden = false;
             if (any == false) return result;
@@ -165,6 +169,11 @@ namespace Wardrobe
             result.Colliders = colliders.ToArray();
             SceneValidation.Ensure(result);
             return result;
+        }
+
+        private static string Scoped(string actor, string separator, string name)
+        {
+            return string.IsNullOrEmpty(actor) ? name : actor + separator + name;
         }
 
         private static bool HasPrefix(string id, List<string> prefixes)

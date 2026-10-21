@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Rigging.Serialization;
 using SceneContent;
@@ -11,17 +12,44 @@ namespace WitchMendokusai.ContentAuthoring
 {
     public static class WorkspaceWardrobe
     {
+        // The characters that have body role bindings: an empty name for the first, then each prefix such as "actor-2".
+        public static string[] Actors(ContentWorkspace workspace)
+        {
+            if (cachedFile == workspace.FilePath && cachedActors != null) return cachedActors;
+            string rigJson = RigFiles.Read(workspace.FilePath, workspace.Document);
+            List<string> actors = new List<string>();
+            if (rigJson == null) return Remember(workspace.FilePath, actors);
+            foreach (Rigging.RigJoint joint in RigJson.Read(rigJson).Joints)
+            {
+                int separator = joint.Role.IndexOf(':');
+                string actor = separator < 0 ? "" : joint.Role.Substring(0, separator);
+                if (actors.Contains(actor) == false) actors.Add(actor);
+            }
+            return Remember(workspace.FilePath, actors);
+        }
+
+        // The window repaints often and a scene file never changes under its path, so the answer is kept per path.
+        private static string cachedFile;
+        private static string[] cachedActors;
+
+        private static string[] Remember(string file, List<string> actors)
+        {
+            cachedFile = file;
+            cachedActors = actors.ToArray();
+            return cachedActors;
+        }
+
         // Returns a new library scene file for the dressed character. A null outfit takes everything off.
         // Edits already made to the scene are kept, the way adding an actor keeps them.
-        public static string Dress(ContentWorkspace workspace, string wardrobeFile, string outfitId)
+        public static string Dress(ContentWorkspace workspace, string wardrobeFile, string outfitId, string actor = "")
         {
             SceneDocument current = SceneSnapshot.Capture(workspace.Document, workspace.Instance);
             string rigJson = RigFiles.Read(workspace.FilePath, current);
             if (rigJson == null) throw new InvalidOperationException("This scene has no body role bindings, so parts cannot be attached");
             WardrobeDocument wardrobe = WardrobeJson.Read(File.ReadAllText(wardrobeFile));
             SceneDocument dressed = outfitId == null
-                ? WardrobeApplication.Undress(current, wardrobe)
-                : WardrobeApplication.Dress(current, RigJson.Read(rigJson), wardrobe, outfitId);
+                ? WardrobeApplication.Undress(current, wardrobe, actor)
+                : WardrobeApplication.Dress(current, RigJson.Read(rigJson), wardrobe, outfitId, actor);
             string directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WitchMendokusai", "ContentLibrary");
             ContentLibrary library = new ContentLibrary(UnityEditor.EditorPrefs.GetString("WM.ContentLibrary.Directory", directory));
             IContentSource source = new FallbackContentSource(
