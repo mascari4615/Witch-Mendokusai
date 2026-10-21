@@ -130,7 +130,8 @@
       "dependencies": {
         "com.mascari4615.scene-content": "0.1.0",
         "com.mascari4615.rigging": "0.1.0",
-        "com.mascari4615.appearance": "0.1.0"
+        "com.mascari4615.appearance": "0.1.0",
+        "com.unity.nuget.newtonsoft-json": "3.2.2"
       }
     },
     "com.mascari4615.wm-domainsdk": {

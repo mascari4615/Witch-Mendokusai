@@ -1,0 +1,4 @@
+{
+  "name": "Wardrobe.Serialization", "references": ["Wardrobe.Core", "SceneContent.Core", "Appearance.Core"], "noEngineReferences": true,
+  "overrideReferences": true, "precompiledReferences": ["Newtonsoft.Json.dll"]
+}
