@@ -86,11 +86,15 @@ namespace SceneContent
             }
             SceneDocument result = SceneCloning.Copy(current);
             SceneDocument piece = SceneCloning.Copy(addition);
-            if (piece.Cameras.Length > 0 || piece.Lights.Length > 0 || piece.Parameters != null || piece.LimbConstraints.Length > 0 ||
-                piece.Springs.Length > 0 || piece.Colliders.Length > 0)
+            if (piece.Cameras.Length > 0 || piece.Lights.Length > 0 || piece.Parameters != null || piece.LimbConstraints.Length > 0)
             {
-                throw new ArgumentException("An attached piece may contain only nodes, meshes, materials and resources");
+                throw new ArgumentException("An attached piece may contain nodes, meshes, materials, resources, springs and colliders only");
             }
+            foreach (SceneSpring spring in piece.Springs)
+                if (sharedNodes.ContainsKey(spring.Joint) || sharedNodes.ContainsKey(spring.Tip))
+                    throw new ArgumentException("A spring of an attached piece cannot use a shared host node: " + spring.Id);
+            foreach (SceneCollider collider in piece.Colliders)
+                if (sharedNodes.ContainsKey(collider.Node)) throw new ArgumentException("A collider of an attached piece cannot sit on a shared host node: " + collider.Id);
             Dictionary<string, int> hostIndices = new Dictionary<string, int>(StringComparer.Ordinal);
             for (int index = 0; index < result.Nodes.Length; index++) hostIndices[result.Nodes[index].Id] = index;
             int parent;
@@ -148,6 +152,8 @@ namespace SceneContent
             result.Resources = resources.ToArray();
             result.Materials = materials.ToArray();
             result.Meshes = meshes.ToArray();
+            result.Springs = Combine(result.Springs, SceneDynamics.Copy(piece.Springs, prefix + ":"));
+            result.Colliders = Combine(result.Colliders, SceneDynamics.Copy(piece.Colliders, prefix + ":"));
             SceneValidation.Ensure(result);
             return result;
         }

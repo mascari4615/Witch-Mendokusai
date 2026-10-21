@@ -7,4 +7,4 @@ Engine-free outfit composition for a rigged scene. The core knows no character n
 - `WardrobeApplication.Dress(actor, rig, wardrobe, outfitId)`: validates the outfit (one pick per slot, part belongs to slot, no conflicting slots, rig roles exist), then rebuilds the dressed scene from the unchanged actor. Switching outfits never accumulates edits.
 - `SceneComposition.Attach` (Scene Content) is the underlying merge: namespaced nodes, meshes, materials and resources are added under an existing node.
 
-Parts may contain only nodes, meshes, materials and resources. Cameras, lights, parameters, limb constraints, springs and colliders are rejected for now. A hidden body mesh that carries a parameter binding is rejected rather than silently dropped.
+Parts may contain nodes, meshes, materials, resources, springs and colliders. Springs and colliders are namespaced with the part and removed again on undress; a spring or collider on a shared host node is rejected. Cameras, lights, parameters and limb constraints are rejected for now. A hidden body mesh that carries a parameter binding is rejected rather than silently dropped.

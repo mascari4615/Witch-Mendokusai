@@ -131,10 +131,18 @@ namespace Wardrobe
                 if (removedNode[light.Node]) throw new ArgumentException("A light hangs from a removed part");
                 light.Node = nodeMap[light.Node];
             }
+            List<SceneSpring> springs = new List<SceneSpring>();
+            foreach (SceneSpring spring in result.Springs)
+                if (HasPrefix(spring.Id, prefixes) == false) springs.Add(spring);
+            List<SceneCollider> colliders = new List<SceneCollider>();
+            foreach (SceneCollider collider in result.Colliders)
+                if (HasPrefix(collider.Id, prefixes) == false) colliders.Add(collider);
             result.Nodes = nodes.ToArray();
             result.Meshes = meshes.ToArray();
             result.Materials = materials.ToArray();
             result.Resources = resources.ToArray();
+            result.Springs = springs.ToArray();
+            result.Colliders = colliders.ToArray();
             SceneValidation.Ensure(result);
             return result;
         }
