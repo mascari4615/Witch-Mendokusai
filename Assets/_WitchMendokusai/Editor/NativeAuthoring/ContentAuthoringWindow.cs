@@ -25,6 +25,7 @@ namespace WitchMendokusai.ContentAuthoring
         private LibraryPanel library;
         private double nextRecovery;
         private SurfacePanel surfaces;
+        private WardrobePanel wardrobe;
         private ParameterPanel parameters;
         private DynamicsPanel dynamics;
 
@@ -49,6 +50,7 @@ namespace WitchMendokusai.ContentAuthoring
             cameras = new CameraLightPanel(motion.RecordValues);
             library = new LibraryPanel();
             surfaces = new SurfacePanel();
+            wardrobe = new WardrobePanel();
             parameters = new ParameterPanel();
             dynamics = new DynamicsPanel();
             Undo.undoRedoPerformed += Repaint;
@@ -213,6 +215,21 @@ namespace WitchMendokusai.ContentAuthoring
             WorkspaceRecovery.Write(workspace, motion);
         }
 
+        public void WearOutfit(string outfitId)
+        {
+            string draft = motion.ExportDraft();
+            float seconds = motion.Time;
+            bool changed = motion.HasChanges;
+            string dressed = WorkspaceWardrobe.Dress(workspace, wardrobe.File, outfitId);
+            workspace.Load(dressed);
+            ShowLoaded();
+            motion.RestoreDraft(draft, seconds, changed);
+            message = outfitId == null ? "Took off everything this outfit file added." : "Changed outfit.";
+            WorkspaceRecovery.Write(workspace, motion);
+        }
+
+        public WardrobePanel Wardrobe { get { return wardrobe; } }
+
         private void OnGUI()
         {
             DrawWelcome();
@@ -282,6 +299,7 @@ namespace WitchMendokusai.ContentAuthoring
             expressions.Draw();
             cameras.Draw();
             surfaces.Draw();
+            wardrobe.Draw(file => Run(delegate { wardrobe.Open(file); }), id => Run(delegate { WearOutfit(id); }), () => Run(delegate { WearOutfit(null); }));
             EditorGUILayout.EndScrollView();
         }
 

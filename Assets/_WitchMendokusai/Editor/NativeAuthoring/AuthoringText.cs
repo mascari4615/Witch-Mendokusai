@@ -10,6 +10,12 @@ namespace WitchMendokusai.ContentAuthoring
         private static readonly Dictionary<string, string> KOREAN = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             { "Secondary motion", "흔들림" },
+            { "Outfits", "의상" },
+            { "Open outfit file...", "의상 파일 열기..." },
+            { "Open an outfit file", "의상 파일 열기" },
+            { "Open an outfit file to dress this character. The character needs body role bindings.", "의상 파일을 열면 이 캐릭터에 입힐 수 있어요. 캐릭터에 몸 부위 연결 정보가 있어야 해요." },
+            { "Wear", "입기" },
+            { "Take everything off", "모두 벗기기" },
             { "Dynamics seek exceeds the step budget; advance in smaller intervals", "먼 시간으로 한 번에 이동할 수 없어요. 가까운 시간부터 나눠 이동하세요." },
             { "Spring colliders must be kinematic inputs", "충돌체는 흔들리는 부위 바깥에 연결하세요." },
             { "Springs compete for joint rotations", "같은 관절에 흔들림을 두 번 켤 수 없어요." },
