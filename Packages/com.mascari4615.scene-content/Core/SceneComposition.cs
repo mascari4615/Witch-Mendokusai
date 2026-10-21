@@ -75,6 +75,83 @@ namespace SceneContent
             return result;
         }
 
+        // Adds a self-contained piece under an existing node. Nodes listed in sharedNodes are not copied:
+        // every reference to them is redirected to the named node of the current scene (skinned pieces bind to the host's bones).
+        public static SceneDocument Attach(SceneDocument current, SceneDocument addition, string prefix, string parentNode,
+            IDictionary<string, string> sharedNodes)
+        {
+            if (string.IsNullOrEmpty(prefix) || string.IsNullOrEmpty(parentNode) || sharedNodes == null)
+            {
+                throw new ArgumentException("Attach requires a namespace, a parent node and a shared node map");
+            }
+            SceneDocument result = SceneCloning.Copy(current);
+            SceneDocument piece = SceneCloning.Copy(addition);
+            if (piece.Cameras.Length > 0 || piece.Lights.Length > 0 || piece.Parameters != null || piece.LimbConstraints.Length > 0 ||
+                piece.Springs.Length > 0 || piece.Colliders.Length > 0)
+            {
+                throw new ArgumentException("An attached piece may contain only nodes, meshes, materials and resources");
+            }
+            Dictionary<string, int> hostIndices = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (int index = 0; index < result.Nodes.Length; index++) hostIndices[result.Nodes[index].Id] = index;
+            int parent;
+            if (hostIndices.TryGetValue(parentNode, out parent) == false) throw new ArgumentException("Missing parent node: " + parentNode);
+            int[] map = new int[piece.Nodes.Length];
+            int added = 0;
+            for (int index = 0; index < piece.Nodes.Length; index++)
+            {
+                string host;
+                if (sharedNodes.TryGetValue(piece.Nodes[index].Id, out host))
+                {
+                    if (hostIndices.TryGetValue(host, out map[index]) == false) throw new ArgumentException("Missing shared host node: " + host);
+                }
+                else
+                {
+                    map[index] = result.Nodes.Length + added++;
+                }
+            }
+            foreach (string shared in sharedNodes.Keys)
+                if (Array.Exists(piece.Nodes, node => node.Id == shared) == false) throw new ArgumentException("Shared node is not in the piece: " + shared);
+            List<SceneNode> nodes = new List<SceneNode>(result.Nodes);
+            for (int index = 0; index < piece.Nodes.Length; index++)
+            {
+                SceneNode node = piece.Nodes[index];
+                if (sharedNodes.ContainsKey(node.Id)) continue;
+                node.Id = prefix + ":" + node.Id;
+                if (string.IsNullOrEmpty(node.Label) == false) node.Label = prefix + "/" + node.Label;
+                node.Parent = node.Parent < 0 ? parent : map[node.Parent];
+                nodes.Add(node);
+            }
+            int materialOffset = result.Materials.Length;
+            List<ContentResource> resources = new List<ContentResource>(result.Resources);
+            foreach (ContentResource resource in piece.Resources)
+            {
+                resource.Id = prefix + ":" + resource.Id;
+                resources.Add(resource);
+            }
+            List<SurfaceMaterial> materials = new List<SurfaceMaterial>(result.Materials);
+            foreach (SurfaceMaterial material in piece.Materials)
+            {
+                if (string.IsNullOrEmpty(material.BaseColorTexture) == false) material.BaseColorTexture = prefix + ":" + material.BaseColorTexture;
+                materials.Add(material);
+            }
+            List<MeshInstance> meshes = new List<MeshInstance>(result.Meshes);
+            foreach (MeshInstance mesh in piece.Meshes)
+            {
+                mesh.Node = map[mesh.Node];
+                if (mesh.RootBone >= 0) mesh.RootBone = map[mesh.RootBone];
+                for (int index = 0; index < mesh.Bones.Length; index++) mesh.Bones[index] = map[mesh.Bones[index]];
+                for (int index = 0; index < mesh.Materials.Length; index++) mesh.Materials[index] += materialOffset;
+                mesh.Geometry = prefix + ":" + mesh.Geometry;
+                meshes.Add(mesh);
+            }
+            result.Nodes = nodes.ToArray();
+            result.Resources = resources.ToArray();
+            result.Materials = materials.ToArray();
+            result.Meshes = meshes.ToArray();
+            SceneValidation.Ensure(result);
+            return result;
+        }
+
         private static T[] Combine<T>(T[] left, T[] right)
         {
             List<T> values = new List<T>(left);

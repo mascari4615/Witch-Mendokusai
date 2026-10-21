@@ -1,0 +1,1 @@
+{ "name": "Wardrobe.Core", "references": ["SceneContent.Core", "Rigging.Core", "Appearance.Core"], "noEngineReferences": true }

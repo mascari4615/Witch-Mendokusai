@@ -13,6 +13,7 @@
     "com.mascari4615.rigging": "file:com.mascari4615.rigging",
     "com.mascari4615.scene-content": "file:com.mascari4615.scene-content",
     "com.mascari4615.sequence": "file:com.mascari4615.sequence",
+    "com.mascari4615.wardrobe": "file:com.mascari4615.wardrobe",
     "com.mascari4615.wm-domainsdk": "file:../DomainSDK",
     "com.unity.2d.animation": "16.0.1",
     "com.unity.addressables": "2.11.2",

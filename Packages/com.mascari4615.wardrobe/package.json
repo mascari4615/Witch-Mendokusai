@@ -1,0 +1,5 @@
+{
+  "name": "com.mascari4615.wardrobe", "version": "0.1.0", "displayName": "Wardrobe",
+  "description": "Portable outfit composition: wearable parts, slots and variants attached to a rigged scene.",
+  "unity": "6000.3", "dependencies": { "com.mascari4615.scene-content": "0.1.0", "com.mascari4615.rigging": "0.1.0", "com.mascari4615.appearance": "0.1.0" }
+}
