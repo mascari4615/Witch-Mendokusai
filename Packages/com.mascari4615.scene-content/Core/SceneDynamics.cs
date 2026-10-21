@@ -11,6 +11,7 @@ namespace SceneContent
         public string Tip;
         public float FrequencyHz = 2;
         public float DampingRatio = .5f;
+        public float Inertia;
         public float Radius = .01f;
         public float[] Acceleration = new[] { 0f, -9.81f, 0f };
         public string[] Colliders = new string[0];
@@ -55,7 +56,7 @@ namespace SceneContent
                 Identity(spring.Id, ids);
                 if (spring.Joint == null || spring.Tip == null || nodes.ContainsKey(spring.Joint) == false || nodes.ContainsKey(spring.Tip) == false ||
                     scene.Nodes[nodes[spring.Tip]].Parent != nodes[spring.Joint]) throw new ArgumentException("Spring tip must be a direct child of its joint");
-                Range(spring.FrequencyHz, .1f, 30); Range(spring.DampingRatio, 0, 4); Range(spring.Radius, 0, 100); Vector(spring.Acceleration);
+                Range(spring.FrequencyHz, .1f, 30); Range(spring.DampingRatio, 0, 4); Range(spring.Inertia, 0, 1); Range(spring.Radius, 0, 100); Vector(spring.Acceleration);
                 if (spring.Colliders == null || spring.Colliders.Length > 256) throw new ArgumentException("Invalid spring colliders");
                 HashSet<string> selected = new HashSet<string>(StringComparer.Ordinal);
                 foreach (string id in spring.Colliders)
@@ -120,7 +121,7 @@ namespace SceneContent
                 string[] colliders = new string[value.Colliders.Length];
                 for (int collider = 0; collider < colliders.Length; collider++) colliders[collider] = prefix + value.Colliders[collider];
                 result[index] = new SceneSpring { Id = prefix + value.Id, Joint = prefix + value.Joint, Tip = prefix + value.Tip,
-                    FrequencyHz = value.FrequencyHz, DampingRatio = value.DampingRatio, Radius = value.Radius,
+                    FrequencyHz = value.FrequencyHz, DampingRatio = value.DampingRatio, Inertia = value.Inertia, Radius = value.Radius,
                     Acceleration = (float[])value.Acceleration.Clone(), Colliders = colliders, Enabled = value.Enabled };
             }
             return result;

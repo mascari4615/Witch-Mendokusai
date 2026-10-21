@@ -107,6 +107,31 @@ namespace SceneSequence.Tests
         }
 
         [Test]
+        public void InertiaLetsTheParticleKeepTheJointsOwnMovement()
+        {
+            float[] swing = new float[2];
+            for (int mode = 0; mode < 2; mode++)
+            {
+                SceneDocument scene = Document();
+                scene.Springs[0].Inertia = mode;
+                Port port = new Port(scene);
+                SceneDynamicsClock clock = new SceneDynamicsClock(scene, port);
+                float largest = 0;
+                for (int index = 0; index <= 60; index++)
+                {
+                    clock.Evaluate(index / 60f, time => { PoseValue root = port.Read("root"); root.Position.X = Math.Min(1, time / .2f) * .3f; port.Write("root", root); });
+                    largest = Math.Max(largest, Math.Abs(port.Read("joint").Rotation.Z));
+                }
+                swing[mode] = largest;
+            }
+            Assert.That(swing[0], Is.GreaterThan(.05f));
+            Assert.That(swing[1], Is.LessThan(swing[0] * .2f));
+            SceneDocument invalid = Document();
+            invalid.Springs[0].Inertia = 2;
+            Assert.Throws<ArgumentException>(() => SceneValidation.Ensure(invalid));
+        }
+
+        [Test]
         public void FixedStepPlaybackAndBackwardSeekingProduceTheSamePose()
         {
             SceneDocument scene = Document();

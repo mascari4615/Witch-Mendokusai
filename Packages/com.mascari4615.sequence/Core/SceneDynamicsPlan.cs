@@ -19,6 +19,7 @@ namespace SceneSequence
         private readonly Quaternion[] driven;
         private readonly string[] rigid;
         private SpringState[] states;
+        private Vector3[] anchors;
         private readonly PoseValue[] backup;
         public int Count { get { return order.Length; } }
 
@@ -41,24 +42,26 @@ namespace SceneSequence
             }
         }
 
-        public void Reset() { states = null; }
+        public void Reset() { states = null; anchors = null; }
 
         internal sealed class Checkpoint
         {
             public SpringState[] States;
+            public Vector3[] Anchors;
             public Quaternion[] Driven;
         }
 
         internal Checkpoint Capture(IPoseTarget target)
         {
             for (int index = 0; index < backup.Length; index++) backup[index] = target.Read(frame.Ids[index]);
-            return new Checkpoint { States = states, Driven = (Quaternion[])driven.Clone() };
+            return new Checkpoint { States = states, Anchors = anchors, Driven = (Quaternion[])driven.Clone() };
         }
 
         internal void Restore(Checkpoint checkpoint, IPoseTarget target)
         {
             for (int index = 0; index < backup.Length; index++) target.Write(frame.Ids[index], backup[index]);
             states = checkpoint.States;
+            anchors = checkpoint.Anchors;
             Array.Copy(checkpoint.Driven, driven, driven.Length);
         }
 
@@ -92,6 +95,7 @@ namespace SceneSequence
                 SceneConstraints.EnsureScale(new[] { scale.X, scale.Y, scale.Z });
             }
             SpringState[] next = states == null ? new SpringState[Count] : (SpringState[])states.Clone();
+            Vector3[] nextAnchors = new Vector3[Count];
             for (int index = 0; index < Count; index++)
             {
                 SceneSpring spring = springs[order[index]];
@@ -105,7 +109,10 @@ namespace SceneSequence
                     float scale = Vector3.TransformNormal(Vector3.UnitX, frame.World[node]).Length();
                     obstacles[collider] = new CapsuleObstacle { Start = Vector3.Transform(V(source.Start), frame.World[node]), End = Vector3.Transform(V(source.End), frame.World[node]), Radius = source.Radius * scale };
                 }
+                // Inertia: the particle keeps this fraction of the joint's own movement since the last committed step, so it lags only by the rest.
                 if (states == null) next[index] = new SpringState { Position = goal };
+                else if (spring.Inertia > 0 && anchors != null) next[index].Position += (anchor - anchors[index]) * spring.Inertia;
+                nextAnchors[index] = anchor;
                 next[index] = SpringParticle.Step(next[index], goal, anchor, (goal - anchor).Length(), new SpringSettings
                 {
                     FrequencyHz = spring.FrequencyHz, DampingRatio = spring.DampingRatio,
@@ -115,7 +122,7 @@ namespace SceneSequence
                 if (Vector3.Distance(frame.Position(tip), next[index].Position) > .00002f) throw new ArgumentException("Spring rotation did not preserve its segment");
             }
             foreach (int joint in joints) target.Write(frame.Ids[joint], frame.Local[joint]);
-            if (commit) states = next;
+            if (commit) { states = next; anchors = nextAnchors; }
         }
 
         private static Vector3 V(float[] value) { return new Vector3(value[0], value[1], value[2]); }
