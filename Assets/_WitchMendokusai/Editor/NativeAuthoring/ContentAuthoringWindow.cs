@@ -299,7 +299,7 @@ namespace WitchMendokusai.ContentAuthoring
             expressions.Draw();
             cameras.Draw();
             surfaces.Draw();
-            wardrobe.Draw(WorkspaceWardrobe.Actors(workspace), file => Run(delegate { wardrobe.Open(file); }), (id, actor) => Attempt(delegate { WearOutfit(id, actor); }), actor => Attempt(delegate { WearOutfit(null, actor); }));
+            wardrobe.Draw(WorkspaceWardrobe.Actors(workspace), file => Run(delegate { wardrobe.Open(file); wardrobe.Restore(WorkspaceWardrobe.Actors(workspace), (document, actor) => WorkspaceWardrobe.Wearing(workspace, document, actor)); }), (id, actor) => Attempt(delegate { WearOutfit(id, actor); }), actor => Attempt(delegate { WearOutfit(null, actor); }));
             EditorGUILayout.EndScrollView();
         }
 

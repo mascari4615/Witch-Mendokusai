@@ -39,6 +39,12 @@ namespace WitchMendokusai.ContentAuthoring
             return cachedActors;
         }
 
+        // The outfit of the wardrobe that a character in the loaded scene wears, or null when it cannot be told.
+        public static string Wearing(ContentWorkspace workspace, WardrobeDocument wardrobe, string actor)
+        {
+            return WardrobeApplication.Wearing(SceneSnapshot.Capture(workspace.Document, workspace.Instance), wardrobe, actor);
+        }
+
         // Returns a new library scene file for the dressed character. A null outfit takes everything off.
         // Edits already made to the scene are kept, the way adding an actor keeps them.
         public static string Dress(ContentWorkspace workspace, string wardrobeFile, string outfitId, string actor = "")

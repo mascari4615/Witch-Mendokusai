@@ -81,6 +81,23 @@ namespace Wardrobe.Tests
         }
 
         [Test]
+        public void WearingNamesTheOutfitThatIsOnTheCharacter()
+        {
+            WardrobeDocument wardrobe = Build();
+            SceneDocument actor = Actor();
+            Assert.That(WardrobeApplication.Wearing(actor, wardrobe), Is.Null, "a bare character wears nothing");
+            SceneDocument casual = WardrobeApplication.Dress(actor, Rig(), wardrobe, "casual");
+            Assert.That(WardrobeApplication.Wearing(casual, wardrobe), Is.Null, "casual and formal use the same parts, so the scene cannot tell them apart");
+            wardrobe.Outfits = new[] { wardrobe.Outfits[0], wardrobe.Outfits[2] };
+            Assert.That(WardrobeApplication.Wearing(casual, wardrobe), Is.EqualTo("casual"), "with one outfit using those parts it is found");
+            SceneDocument plain = WardrobeApplication.Dress(casual, Rig(), wardrobe, "plain");
+            Assert.That(WardrobeApplication.Wearing(plain, wardrobe), Is.Null, "an outfit with no parts leaves nothing to find");
+            Assert.That(WardrobeApplication.Wearing(casual, wardrobe, "actor-2"), Is.Null, "another character's parts are not this character's");
+            wardrobe.Outfits = new[] { new Outfit { Id = "jacket-only", Picks = new[] { Pick("top", "jacket") } } };
+            Assert.That(WardrobeApplication.Wearing(casual, wardrobe), Is.Null, "worn parts that match no outfit give no answer");
+        }
+
+        [Test]
         public void CarrierMovesThePartWithAnAncestorWhileKeepingItAtTheAnchor()
         {
             WardrobeDocument wardrobe = Build();

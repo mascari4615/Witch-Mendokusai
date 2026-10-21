@@ -26,6 +26,17 @@ namespace WitchMendokusai.ContentAuthoring
             worn.Clear();
         }
 
+        // Reads which outfit each character already wears from the scene, so opening an outfit file does not forget outfits that are on.
+        public void Restore(string[] actors, Func<WardrobeDocument, string, string> wearingOf)
+        {
+            worn.Clear();
+            foreach (string name in actors)
+            {
+                string outfit = wearingOf(document, name);
+                if (outfit != null) worn[name] = outfit;
+            }
+        }
+
         private static string CharacterLabel(string name)
         {
             if (name.Length == 0) return AuthoringText.Get("Character") + " 1";

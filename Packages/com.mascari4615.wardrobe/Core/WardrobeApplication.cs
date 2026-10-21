@@ -81,6 +81,35 @@ namespace Wardrobe
             return chain;
         }
 
+        // The id of the outfit whose parts are exactly the parts this wardrobe has put on the character, or null when none is worn, the parts match no outfit
+        // or several outfits share the same parts (they differ only by variant, which a scene does not record).
+        public static string Wearing(SceneDocument scene, WardrobeDocument wardrobe, string actor = "")
+        {
+            if (scene == null || wardrobe == null) throw new ArgumentNullException("scene and wardrobe are required");
+            HashSet<string> present = new HashSet<string>(StringComparer.Ordinal);
+            foreach (WardrobePart part in wardrobe.Parts)
+            {
+                string prefix = Scoped(actor, "/", part.Id) + ":";
+                foreach (SceneNode node in scene.Nodes)
+                    if (node.Id.StartsWith(prefix, StringComparison.Ordinal))
+                    {
+                        present.Add(part.Id);
+                        break;
+                    }
+            }
+            if (present.Count == 0) return null;
+            string found = null;
+            foreach (Outfit outfit in wardrobe.Outfits)
+            {
+                HashSet<string> picked = new HashSet<string>(StringComparer.Ordinal);
+                foreach (OutfitPick pick in outfit.Picks) picked.Add(pick.Part);
+                if (picked.SetEquals(present) == false) continue;
+                if (found != null) return null;
+                found = outfit.Id;
+            }
+            return found;
+        }
+
         // Hangs every root of the part under one new node carrying the placement, so the part sits where the anchor point is, not at the role node.
         private static SceneDocument WithPlacement(SceneDocument piece, Matrix4x4 placement, WardrobePart part)
         {
