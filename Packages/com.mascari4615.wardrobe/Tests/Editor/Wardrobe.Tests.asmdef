@@ -1,0 +1,5 @@
+{
+  "name": "Wardrobe.Tests", "references": ["Wardrobe.Core", "Wardrobe.Serialization", "SceneContent.Core", "SceneContent.Serialization", "Rigging.Core", "Appearance.Core"],
+  "includePlatforms": ["Editor"], "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll", "Newtonsoft.Json.dll"], "optionalUnityReferences": ["TestAssemblies"]
+}
