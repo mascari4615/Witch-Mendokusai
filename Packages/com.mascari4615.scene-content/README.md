@@ -25,3 +25,8 @@ Camera data includes projection, vertical field of view, orthographic half-heigh
 `ScenePruning.Snapshot` is an explicit optimization operation. It retains mesh nodes, skin bones, roots, camera/light nodes, caller-pinned nodes and all ancestors, then remaps indices while preserving stable IDs. It never runs implicitly during loading. `SceneCloning.Copy` gives an independent editable copy, including nested mutable arrays.
 
 `ContentLibrary.Import` rewrites resource paths into a shared hash store and publishes a content-addressed scene manifest after verifying every blob. Pose, material and camera variants share identical resource bytes. Imported scenes remain ordinary scene documents, loadable through `DirectoryContentSource` and exportable through `SceneFiles.Save`. Reads and writes reject escaping paths and linked ancestors. Rig or motion composition is a host responsibility; the WM authoring host preserves rig sidecars.
+
+`SceneComposition.Attach` adds a self-contained piece under an existing node with namespaced nodes, meshes, materials, resources, springs and colliders. Nodes listed in its shared map are not copied; every reference to them is redirected to the named host node, so a skinned piece deforms with the host skeleton. A piece may not carry cameras, lights, parameters or limb constraints, and its springs and colliders may not use a shared node.
+
+`MeshInstance.Hidden` (default false) keeps a mesh in the document and only disables its renderer, so indices stay stable and hiding is reversible. `SceneSpring.Inertia` (0 to 1, default 0) is the share of the joint's own movement that the spring particle keeps, which sets how strongly the spring swings when the host moves.
+

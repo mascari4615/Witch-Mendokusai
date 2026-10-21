@@ -20,6 +20,7 @@ namespace WitchMendokusai.ContentAuthoring
         private float frequency = 2;
         private float endFrequency = 2;
         private float damping = .5f;
+        private float inertia;
         private float endDamping = .5f;
         private float radius = .01f;
         private float endRadius = .01f;
@@ -52,13 +53,14 @@ namespace WitchMendokusai.ContentAuthoring
                 SceneSpring spring = scene.Springs[selectedSpring];
                 if (loadedSpring != spring.Id)
                 {
-                    loadedSpring = spring.Id; frequency = spring.FrequencyHz; damping = spring.DampingRatio; radius = spring.Radius; acceleration = V(spring.Acceleration); enabled = spring.Enabled;
+                    loadedSpring = spring.Id; frequency = spring.FrequencyHz; damping = spring.DampingRatio; inertia = spring.Inertia; radius = spring.Radius; acceleration = V(spring.Acceleration); enabled = spring.Enabled;
                     collisions.Clear(); foreach (string id in spring.Colliders) collisions.Add(id);
                 }
                 enabled = EditorGUILayout.Toggle(AuthoringText.Get("Enabled"), enabled);
             }
             frequency = EditorGUILayout.FloatField(AuthoringText.Get("Frequency (Hz)"), frequency);
             damping = EditorGUILayout.FloatField(AuthoringText.Get("Damping ratio"), damping);
+            inertia = EditorGUILayout.Slider(AuthoringText.Get("Movement carried along"), inertia, 0, 1);
             radius = EditorGUILayout.FloatField(AuthoringText.Get("Contact radius (local)"), radius);
             acceleration = EditorGUILayout.Vector3Field(AuthoringText.Get("Acceleration (scene)"), acceleration);
             if (scene.Springs.Length > 0)
@@ -74,7 +76,7 @@ namespace WitchMendokusai.ContentAuthoring
                     change(document =>
                     {
                         SceneSpring spring = Array.Find(document.Springs, value => value.Id == id);
-                        spring.Enabled = enabled; spring.FrequencyHz = frequency; spring.DampingRatio = damping; spring.Radius = radius;
+                        spring.Enabled = enabled; spring.FrequencyHz = frequency; spring.DampingRatio = damping; spring.Inertia = Mathf.Clamp01(inertia); spring.Radius = radius;
                         spring.Acceleration = A(acceleration); spring.Colliders = new List<string>(collisions).ToArray();
                     });
                 }
