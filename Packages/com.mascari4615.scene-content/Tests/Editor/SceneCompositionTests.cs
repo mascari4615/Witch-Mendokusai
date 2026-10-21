@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using SceneContent.Unity;
 using UnityEngine;
@@ -56,6 +57,36 @@ namespace SceneContent.Tests
                 Mesh second = ((SkinnedMeshRenderer)instance.FindMesh(1)).sharedMesh;
                 Assert.That(first, Is.SameAs(second));
                 Assert.That(instance.FindNode("other:node-0"), Is.Not.SameAs(instance.FindNode("node-0")));
+            }
+            finally
+            {
+                if (instance != null) UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                QualitySettings.skinWeights = previous;
+            }
+        }
+
+        [Test]
+        public void AttachedPiecesHangFromTheHostNodeAndHiddenMeshesAreNotDrawn()
+        {
+            SkinWeights previous = QualitySettings.skinWeights;
+            SceneInstance instance = null;
+            try
+            {
+                QualitySettings.skinWeights = SkinWeights.FourBones;
+                byte[] bytes = SceneFixtures.Bytes();
+                SceneDocument host = SceneFixtures.Document(bytes);
+                SceneDocument piece = SceneFixtures.Document(bytes);
+                SceneDocument attached = SceneComposition.Attach(host, piece, "piece", host.Nodes[0].Id, new Dictionary<string, string>());
+                Assert.That(attached.Nodes.Length, Is.EqualTo(host.Nodes.Length + piece.Nodes.Length));
+                Assert.That(attached.Nodes[host.Nodes.Length].Parent, Is.EqualTo(0));
+                Assert.That(host.Nodes.Length, Is.EqualTo(SceneFixtures.Document(bytes).Nodes.Length), "host must not change");
+                attached.Meshes[0].Hidden = true;
+                SceneDocument copy = SceneCloning.Copy(attached);
+                Assert.That(copy.Meshes[0].Hidden, Is.True);
+                Assert.That(copy.Meshes[1].Hidden, Is.False);
+                instance = SceneContentLoader.Load(copy, new MemorySource { Bytes = bytes }, Shader.Find("Universal Render Pipeline/Unlit"));
+                Assert.That(instance.FindMesh(0).enabled, Is.False);
+                Assert.That(instance.FindMesh(1).enabled, Is.True);
             }
             finally
             {

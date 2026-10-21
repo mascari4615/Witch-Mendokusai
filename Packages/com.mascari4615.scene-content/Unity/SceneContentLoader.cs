@@ -116,6 +116,7 @@ namespace SceneContent.Unity
                     for (int surface = 0; surface < boundSurfaces.Length; surface++) boundSurfaces[surface] = materials[binding.Materials[surface]];
                     renderer.sharedMaterials = boundSurfaces;
                     renderer.shadowCastingMode = binding.ShadowOnly ? ShadowCastingMode.ShadowsOnly : ShadowCastingMode.On;
+                    renderer.enabled = binding.Hidden == false;
                     renderers[index] = renderer;
                 }
                 SceneComponents.Attach(document, nodes, activateCameras);

@@ -93,7 +93,7 @@ namespace SceneContent
                 {
                     Node = remap[original.Node], RootBone = original.RootBone < 0 ? -1 : remap[original.RootBone],
                     Geometry = original.Geometry, Bones = bones, Materials = (int[])original.Materials.Clone(),
-                    ShadowOnly = original.ShadowOnly, MorphWeights = (float[])original.MorphWeights.Clone()
+                    ShadowOnly = original.ShadowOnly, Hidden = original.Hidden, MorphWeights = (float[])original.MorphWeights.Clone()
                 };
             }
             SceneDocument result = SceneCloning.Copy(source);

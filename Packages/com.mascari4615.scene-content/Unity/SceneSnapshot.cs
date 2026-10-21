@@ -50,7 +50,7 @@ namespace SceneContent.Unity
                 meshes[index] = new MeshInstance
                 {
                     Node = original.Node, Geometry = original.Geometry, Bones = original.Bones,
-                    Materials = original.Materials, ShadowOnly = original.ShadowOnly,
+                    Materials = original.Materials, ShadowOnly = original.ShadowOnly, Hidden = original.Hidden,
                     RootBone = original.RootBone, MorphWeights = weights
                 };
             }

@@ -7,10 +7,11 @@ namespace Wardrobe
 {
     public static class WardrobeApplication
     {
-        // The actor document is never modified. Each call rebuilds the dressed scene from the actor, so switching outfits does not accumulate edits.
-        public static SceneDocument Dress(SceneDocument actor, RigDefinition rig, WardrobeDocument wardrobe, string outfitId)
+        // Dressing first takes off everything this wardrobe put on, then wears the outfit. Other edits to the scene are kept,
+        // so switching outfits never accumulates parts and never needs the original actor.
+        public static SceneDocument Dress(SceneDocument current, RigDefinition rig, WardrobeDocument wardrobe, string outfitId)
         {
-            if (actor == null || rig == null || wardrobe == null) throw new ArgumentNullException("actor, rig and wardrobe are required");
+            if (current == null || rig == null || wardrobe == null) throw new ArgumentNullException("scene, rig and wardrobe are required");
             rig.Validate();
             wardrobe.Validate();
             Outfit outfit = Array.Find(wardrobe.Outfits, candidate => candidate.Id == outfitId);
@@ -24,7 +25,14 @@ namespace Wardrobe
                 foreach (PartBinding binding in item.Part.Bindings)
                     if (roles.Contains(binding.Role) == false) throw new ArgumentException("Rig has no role " + binding.Role + " for part " + item.Part.Id);
             }
-            SceneDocument result = HideRegions(actor, wardrobe, worn);
+            SceneDocument result = Undress(current, wardrobe);
+            HashSet<string> hiddenNodes = new HashSet<string>(StringComparer.Ordinal);
+            foreach (Worn item in worn)
+                foreach (string regionId in item.Part.HiddenRegions)
+                    foreach (BodyRegion region in wardrobe.Regions)
+                        if (region.Id == regionId) hiddenNodes.UnionWith(region.MeshNodes);
+            foreach (MeshInstance mesh in result.Meshes)
+                if (hiddenNodes.Contains(result.Nodes[mesh.Node].Id)) mesh.Hidden = true;
             foreach (Worn item in worn)
             {
                 SceneDocument piece = SceneCloning.Copy(item.Part.Scene);
@@ -35,6 +43,114 @@ namespace Wardrobe
                 result = SceneComposition.Attach(result, piece, item.Part.Id, rig.Resolve(item.Part.Anchor), shared);
             }
             return result;
+        }
+
+        // Removes every part this wardrobe could have attached (nodes, meshes, materials and resources under the part's namespace)
+        // and shows the body regions again. The input is not modified.
+        public static SceneDocument Undress(SceneDocument current, WardrobeDocument wardrobe)
+        {
+            if (current == null || wardrobe == null) throw new ArgumentNullException("scene and wardrobe are required");
+            wardrobe.Validate();
+            SceneDocument result = SceneCloning.Copy(current);
+            List<string> prefixes = new List<string>();
+            foreach (WardrobePart part in wardrobe.Parts) prefixes.Add(part.Id + ":");
+            bool[] removedNode = new bool[result.Nodes.Length];
+            bool any = false;
+            for (int index = 0; index < removedNode.Length; index++)
+            {
+                removedNode[index] = HasPrefix(result.Nodes[index].Id, prefixes);
+                any |= removedNode[index];
+            }
+            HashSet<string> shown = new HashSet<string>(StringComparer.Ordinal);
+            foreach (BodyRegion region in wardrobe.Regions) shown.UnionWith(region.MeshNodes);
+            foreach (MeshInstance mesh in result.Meshes)
+                if (shown.Contains(result.Nodes[mesh.Node].Id)) mesh.Hidden = false;
+            if (any == false) return result;
+
+            int[] nodeMap = Remap(removedNode);
+            for (int index = 0; index < result.Nodes.Length; index++)
+            {
+                if (removedNode[index]) continue;
+                int parent = result.Nodes[index].Parent;
+                if (parent >= 0 && removedNode[parent]) throw new ArgumentException("Node " + result.Nodes[index].Id + " hangs from a removed part");
+            }
+            bool[] removedMesh = new bool[result.Meshes.Length];
+            for (int index = 0; index < removedMesh.Length; index++) removedMesh[index] = removedNode[result.Meshes[index].Node];
+            int[] meshMap = Remap(removedMesh);
+            bool[] keptMaterial = new bool[result.Materials.Length];
+            bool[] usedByRemoved = new bool[result.Materials.Length];
+            for (int index = 0; index < result.Meshes.Length; index++)
+                foreach (int material in result.Meshes[index].Materials)
+                {
+                    if (removedMesh[index]) usedByRemoved[material] = true;
+                    else keptMaterial[material] = true;
+                }
+            bool[] removedMaterial = new bool[result.Materials.Length];
+            for (int index = 0; index < removedMaterial.Length; index++) removedMaterial[index] = usedByRemoved[index] && keptMaterial[index] == false;
+            int[] materialMap = Remap(removedMaterial);
+
+            List<SceneNode> nodes = new List<SceneNode>();
+            for (int index = 0; index < result.Nodes.Length; index++)
+            {
+                if (removedNode[index]) continue;
+                SceneNode node = result.Nodes[index];
+                node.Parent = node.Parent < 0 ? -1 : nodeMap[node.Parent];
+                nodes.Add(node);
+            }
+            List<MeshInstance> meshes = new List<MeshInstance>();
+            for (int index = 0; index < result.Meshes.Length; index++)
+            {
+                if (removedMesh[index]) continue;
+                MeshInstance mesh = result.Meshes[index];
+                mesh.Node = nodeMap[mesh.Node];
+                if (mesh.RootBone >= 0) mesh.RootBone = nodeMap[mesh.RootBone];
+                for (int bone = 0; bone < mesh.Bones.Length; bone++) mesh.Bones[bone] = nodeMap[mesh.Bones[bone]];
+                for (int material = 0; material < mesh.Materials.Length; material++) mesh.Materials[material] = materialMap[mesh.Materials[material]];
+                meshes.Add(mesh);
+            }
+            List<SurfaceMaterial> materials = new List<SurfaceMaterial>();
+            for (int index = 0; index < result.Materials.Length; index++) if (removedMaterial[index] == false) materials.Add(result.Materials[index]);
+            List<ContentResource> resources = new List<ContentResource>();
+            foreach (ContentResource resource in result.Resources) if (HasPrefix(resource.Id, prefixes) == false) resources.Add(resource);
+            if (result.Parameters != null)
+            {
+                foreach (SceneParameterBinding binding in result.Parameters.Bindings)
+                {
+                    if (binding.Mesh < 0) continue;
+                    if (meshMap[binding.Mesh] < 0) throw new ArgumentException("A removed part carries parameter binding " + binding.Property);
+                    binding.Mesh = meshMap[binding.Mesh];
+                }
+            }
+            foreach (SceneCamera camera in result.Cameras)
+            {
+                if (removedNode[camera.Node]) throw new ArgumentException("A camera hangs from a removed part");
+                camera.Node = nodeMap[camera.Node];
+            }
+            foreach (SceneLight light in result.Lights)
+            {
+                if (removedNode[light.Node]) throw new ArgumentException("A light hangs from a removed part");
+                light.Node = nodeMap[light.Node];
+            }
+            result.Nodes = nodes.ToArray();
+            result.Meshes = meshes.ToArray();
+            result.Materials = materials.ToArray();
+            result.Resources = resources.ToArray();
+            SceneValidation.Ensure(result);
+            return result;
+        }
+
+        private static bool HasPrefix(string id, List<string> prefixes)
+        {
+            foreach (string prefix in prefixes) if (id.StartsWith(prefix, StringComparison.Ordinal)) return true;
+            return false;
+        }
+
+        private static int[] Remap(bool[] removed)
+        {
+            int[] map = new int[removed.Length];
+            int next = 0;
+            for (int index = 0; index < removed.Length; index++) map[index] = removed[index] ? -1 : next++;
+            return map;
         }
 
         private static List<Worn> Resolve(WardrobeDocument wardrobe, Outfit outfit)
@@ -66,37 +182,6 @@ namespace Wardrobe
                 return layer != 0 ? layer : string.CompareOrdinal(left.Slot.Id, right.Slot.Id);
             });
             return worn;
-        }
-
-        private static SceneDocument HideRegions(SceneDocument actor, WardrobeDocument wardrobe, List<Worn> worn)
-        {
-            HashSet<string> hiddenNodes = new HashSet<string>(StringComparer.Ordinal);
-            foreach (Worn item in worn)
-                foreach (string regionId in item.Part.HiddenRegions)
-                    foreach (BodyRegion region in wardrobe.Regions)
-                        if (region.Id == regionId) hiddenNodes.UnionWith(region.MeshNodes);
-            SceneDocument result = SceneCloning.Copy(actor);
-            if (hiddenNodes.Count == 0) return result;
-            int[] remap = new int[result.Meshes.Length];
-            List<MeshInstance> kept = new List<MeshInstance>();
-            for (int index = 0; index < result.Meshes.Length; index++)
-            {
-                bool hidden = hiddenNodes.Contains(result.Nodes[result.Meshes[index].Node].Id);
-                remap[index] = hidden ? -1 : kept.Count;
-                if (hidden == false) kept.Add(result.Meshes[index]);
-            }
-            if (result.Parameters != null)
-            {
-                foreach (SceneParameterBinding binding in result.Parameters.Bindings)
-                {
-                    if (binding.Mesh < 0) continue;
-                    if (remap[binding.Mesh] < 0) throw new ArgumentException("A hidden mesh carries parameter binding " + binding.Property);
-                    binding.Mesh = remap[binding.Mesh];
-                }
-            }
-            result.Meshes = kept.ToArray();
-            SceneValidation.Ensure(result);
-            return result;
         }
 
         private sealed class Worn

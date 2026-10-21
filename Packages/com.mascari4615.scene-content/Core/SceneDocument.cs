@@ -40,6 +40,7 @@ namespace SceneContent
         public int[] Bones;
         public int[] Materials;
         public bool ShadowOnly;
+        public bool Hidden;
         public int RootBone = -1;
         public float[] MorphWeights = new float[0];
     }

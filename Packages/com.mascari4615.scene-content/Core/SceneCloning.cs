@@ -27,7 +27,7 @@ namespace SceneContent
                 MeshInstance value = source.Meshes[index];
                 result.Meshes[index] = new MeshInstance
                 {
-                    Node = value.Node, RootBone = value.RootBone, Geometry = value.Geometry, ShadowOnly = value.ShadowOnly,
+                    Node = value.Node, RootBone = value.RootBone, Geometry = value.Geometry, ShadowOnly = value.ShadowOnly, Hidden = value.Hidden,
                     Bones = (int[])value.Bones.Clone(), Materials = (int[])value.Materials.Clone(), MorphWeights = (float[])value.MorphWeights.Clone()
                 };
             }
