@@ -224,7 +224,7 @@ namespace WitchMendokusai.ContentAuthoring
             workspace.Load(dressed);
             ShowLoaded();
             motion.RestoreDraft(draft, seconds, changed);
-            message = outfitId == null ? "Took off everything this outfit file added." : "Changed outfit.";
+            message = AuthoringText.Get(outfitId == null ? "Took off everything this outfit file added." : "Changed outfit.");
             WorkspaceRecovery.Write(workspace, motion);
         }
 
