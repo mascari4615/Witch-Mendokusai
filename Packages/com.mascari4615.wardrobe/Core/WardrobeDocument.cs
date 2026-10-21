@@ -37,6 +37,8 @@ namespace Wardrobe
                 if (part == null || string.IsNullOrEmpty(part.Id) || parts.Add(part.Id) == false || slots.Contains(part.Slot) == false ||
                     string.IsNullOrEmpty(part.Anchor) || part.Scene == null || part.Bindings == null || part.HiddenRegions == null || part.Variants == null)
                     throw new ArgumentException("Parts need a unique id, an existing slot, an anchor role and a scene");
+                if (part.Carrier != null && (part.Carrier.Length == 0 || part.Carrier == part.Anchor))
+                    throw new ArgumentException("A carrier role must be named and differ from the anchor role");
                 if (part.AnchorOffset != null) part.AnchorOffset.Validate();
                 SceneValidation.Ensure(part.Scene);
                 HashSet<string> nodes = new HashSet<string>(StringComparer.Ordinal);
@@ -98,6 +100,8 @@ namespace Wardrobe
         public string Label;
         public string Slot;
         public string Anchor;
+        // Optional role of an ancestor of the anchor that the part follows instead of the anchor itself, for example a necklace placed at the neck but carried by the chest.
+        public string Carrier;
         public AnchorOffset AnchorOffset;
         public PartBinding[] Bindings = new PartBinding[0];
         public string[] HiddenRegions = new string[0];

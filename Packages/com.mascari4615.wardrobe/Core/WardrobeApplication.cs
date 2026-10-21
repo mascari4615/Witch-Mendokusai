@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Rigging;
 using SceneContent;
 
@@ -24,6 +25,8 @@ namespace Wardrobe
             foreach (Worn item in worn)
             {
                 if (roles.Contains(Scoped(actor, ":", item.Part.Anchor)) == false) throw new ArgumentException("Rig has no anchor role " + Scoped(actor, ":", item.Part.Anchor) + " for part " + item.Part.Id);
+                if (item.Part.Carrier != null && roles.Contains(Scoped(actor, ":", item.Part.Carrier)) == false)
+                    throw new ArgumentException("Rig has no carrier role " + Scoped(actor, ":", item.Part.Carrier) + " for part " + item.Part.Id);
                 foreach (PartBinding binding in item.Part.Bindings)
                     if (roles.Contains(Scoped(actor, ":", binding.Role)) == false) throw new ArgumentException("Rig has no role " + Scoped(actor, ":", binding.Role) + " for part " + item.Part.Id);
             }
@@ -39,27 +42,60 @@ namespace Wardrobe
             foreach (Worn item in worn)
             {
                 SceneDocument piece = SceneCloning.Copy(item.Part.Scene);
-                if (item.Part.AnchorOffset != null) piece = WithAnchorOffset(piece, item.Part);
+                string parentRole = Scoped(actor, ":", item.Part.Carrier ?? item.Part.Anchor);
+                if (item.Part.AnchorOffset != null || item.Part.Carrier != null)
+                {
+                    Matrix4x4 placement = item.Part.AnchorOffset == null ? Matrix4x4.Identity : LocalMatrix(item.Part.AnchorOffset.Position, item.Part.AnchorOffset.Rotation, new[] { 1f, 1f, 1f });
+                    if (item.Part.Carrier != null)
+                        placement *= RelativeTo(result, rig.Resolve(Scoped(actor, ":", item.Part.Anchor)), rig.Resolve(parentRole), item.Part);
+                    piece = WithPlacement(piece, placement, item.Part);
+                }
                 if (item.Variant != null)
                     foreach (MaterialOverride change in item.Variant.Materials) piece.Materials[change.Material].BaseColor = (float[])change.BaseColor.Clone();
                 Dictionary<string, string> shared = new Dictionary<string, string>(StringComparer.Ordinal);
                 foreach (PartBinding binding in item.Part.Bindings) shared.Add(binding.PartNode, rig.Resolve(Scoped(actor, ":", binding.Role)));
-                result = SceneComposition.Attach(result, piece, Scoped(actor, "/", item.Part.Id), rig.Resolve(Scoped(actor, ":", item.Part.Anchor)), shared);
+                result = SceneComposition.Attach(result, piece, Scoped(actor, "/", item.Part.Id), rig.Resolve(parentRole), shared);
             }
             return result;
         }
 
-        // Hangs every root of the part under one new node carrying the offset, so the part sits where the anchor point is, not at the role node.
-        private static SceneDocument WithAnchorOffset(SceneDocument piece, WardrobePart part)
+        private static Matrix4x4 LocalMatrix(float[] position, float[] rotation, float[] scale)
         {
+            return Matrix4x4.CreateScale(new Vector3(scale[0], scale[1], scale[2])) *
+                Matrix4x4.CreateFromQuaternion(Quaternion.Normalize(new Quaternion(rotation[0], rotation[1], rotation[2], rotation[3]))) *
+                Matrix4x4.CreateTranslation(new Vector3(position[0], position[1], position[2]));
+        }
+
+        // The anchor node's transform in the carrier node's frame at the scene's rest pose. The carrier has to be an ancestor of the anchor.
+        private static Matrix4x4 RelativeTo(SceneDocument scene, string anchorNode, string carrierNode, WardrobePart part)
+        {
+            Matrix4x4 chain = Matrix4x4.Identity;
+            int index = Array.FindIndex(scene.Nodes, node => node.Id == anchorNode);
+            while (index >= 0 && scene.Nodes[index].Id != carrierNode)
+            {
+                SceneNode node = scene.Nodes[index];
+                chain *= LocalMatrix(node.Position, node.Rotation, node.Scale);
+                index = node.Parent;
+            }
+            if (index < 0) throw new ArgumentException("Carrier role of part " + part.Id + " is not an ancestor of its anchor role in this rig");
+            return chain;
+        }
+
+        // Hangs every root of the part under one new node carrying the placement, so the part sits where the anchor point is, not at the role node.
+        private static SceneDocument WithPlacement(SceneDocument piece, Matrix4x4 placement, WardrobePart part)
+        {
+            Vector3 scale;
+            Quaternion rotation;
+            Vector3 translation;
+            if (Matrix4x4.Decompose(placement, out scale, out rotation, out translation) == false) throw new ArgumentException("Placement of part " + part.Id + " cannot be decomposed");
             int offsetNode = piece.Nodes.Length;
             List<SceneNode> nodes = new List<SceneNode>(piece.Nodes);
             foreach (SceneNode node in nodes)
                 if (node.Parent < 0) node.Parent = offsetNode;
             nodes.Add(new SceneNode
             {
-                Id = "anchor-offset", Parent = -1, Position = (float[])part.AnchorOffset.Position.Clone(),
-                Rotation = (float[])part.AnchorOffset.Rotation.Clone(), Scale = new[] { 1f, 1f, 1f }
+                Id = "anchor-offset", Parent = -1, Position = new[] { translation.X, translation.Y, translation.Z },
+                Rotation = new[] { rotation.X, rotation.Y, rotation.Z, rotation.W }, Scale = new[] { scale.X, scale.Y, scale.Z }
             });
             piece.Nodes = nodes.ToArray();
             foreach (PartBinding binding in part.Bindings)

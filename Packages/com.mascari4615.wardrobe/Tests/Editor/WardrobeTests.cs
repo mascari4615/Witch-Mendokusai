@@ -81,6 +81,35 @@ namespace Wardrobe.Tests
         }
 
         [Test]
+        public void CarrierMovesThePartWithAnAncestorWhileKeepingItAtTheAnchor()
+        {
+            WardrobeDocument wardrobe = Build();
+            wardrobe.Parts[1].Carrier = "chest";
+            wardrobe.Parts[1].AnchorOffset = new AnchorOffset { Position = new[] { 0f, .038f, 0f }, Rotation = new[] { 0f, 0f, 0f, 1f } };
+            SceneDocument actor = ActorWithChest();
+            RigDefinition rig = ChestRig();
+            SceneDocument dressed = WardrobeApplication.Dress(actor, rig, wardrobe, "casual");
+            SceneNode offset = Array.Find(dressed.Nodes, node => node.Id == "pendant:anchor-offset");
+            Assert.That(dressed.Nodes[offset.Parent].Id, Is.EqualTo("chest"), "the part hangs from the carrier");
+            Assert.That(offset.Position[1], Is.EqualTo(.438f).Within(1e-6), "and sits at the neck plus the offset");
+            Assert.That(Text(WardrobeApplication.Undress(dressed, wardrobe)), Is.EqualTo(Text(actor)));
+
+            SceneNode neck = Array.Find(actor.Nodes, node => node.Id == "neck");
+            float half = (float)Math.Sqrt(.5);
+            neck.Rotation = new[] { 0f, 0f, half, half };
+            offset = Array.Find(WardrobeApplication.Dress(actor, rig, wardrobe, "casual").Nodes, node => node.Id == "pendant:anchor-offset");
+            Assert.That(offset.Position[0], Is.EqualTo(-.038f).Within(1e-6), "a turned neck turns the offset in the carrier frame");
+            Assert.That(offset.Position[1], Is.EqualTo(.4f).Within(1e-6));
+
+            wardrobe.Parts[1].Carrier = "hips";
+            Assert.Throws<ArgumentException>(() => WardrobeApplication.Dress(actor, rig, wardrobe, "casual"), "a carrier that is not an ancestor of the anchor");
+            wardrobe.Parts[1].Carrier = "neck";
+            Assert.Throws<ArgumentException>(() => wardrobe.Validate(), "the carrier equals the anchor");
+            wardrobe.Parts[1].Carrier = "chest";
+            Assert.That(WardrobeJson.Read(WardrobeJson.Write(wardrobe)).Parts[1].Carrier, Is.EqualTo("chest"));
+        }
+
+        [Test]
         public void InvalidOutfitsAreRejectedBeforeAnythingChanges()
         {
             SceneDocument actor = Actor();
@@ -137,6 +166,28 @@ namespace Wardrobe.Tests
             {
                 Id = "rig", Limbs = new RigLimb[0],
                 Joints = new[] { new RigJoint { Role = "hips", Node = "hips" }, new RigJoint { Role = "neck", Node = "neck" } }
+            };
+        }
+
+        private static RigDefinition ChestRig()
+        {
+            return new RigDefinition
+            {
+                Id = "rig", Limbs = new RigLimb[0],
+                Joints = new[] { new RigJoint { Role = "hips", Node = "hips" }, new RigJoint { Role = "chest", Node = "chest" }, new RigJoint { Role = "neck", Node = "neck" } }
+            };
+        }
+
+        // The neck hangs from a chest node, so a part can be carried by the chest and still sit at the neck.
+        private static SceneDocument ActorWithChest()
+        {
+            return new SceneDocument
+            {
+                Id = "actor",
+                Nodes = new[] { Node("root", -1, 0, 0, 0), Node("hips", 0, 0, 1f, 0), Node("chest", 0, 0, 1.2f, 0), Node("neck", 2, 0, .4f, 0), Node("body-mesh", 0, 0, 0, 0) },
+                Meshes = new[] { new MeshInstance { Node = 4, Geometry = "g-body", Bones = new[] { 1, 3 }, Materials = new[] { 0 } } },
+                Materials = new[] { Material(.8f, .6f, .5f) },
+                Resources = new[] { Geometry("g-body") }
             };
         }
 
