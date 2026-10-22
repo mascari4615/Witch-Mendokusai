@@ -15,6 +15,7 @@ namespace WitchMendokusai.ContentAuthoring
         private readonly Dictionary<string, string> worn = new Dictionary<string, string>();
         private int actor;
         private bool expanded = true;
+        private bool stale = true;
 
         public string File { get { return file; } }
 
@@ -24,11 +25,19 @@ namespace WitchMendokusai.ContentAuthoring
             file = Path.GetFullPath(path);
             document = loaded;
             worn.Clear();
+            stale = true;
+        }
+
+        // The scene changed under the panel (another scene was opened or the working scene was rebuilt), so the worn markers must be read again.
+        public void Invalidate()
+        {
+            stale = true;
         }
 
         // Reads which outfit each character already wears from the scene, so opening an outfit file does not forget outfits that are on.
         public void Restore(string[] actors, Func<WardrobeDocument, string, string> wearingOf)
         {
+            stale = false;
             worn.Clear();
             foreach (string name in actors)
             {
@@ -44,7 +53,7 @@ namespace WitchMendokusai.ContentAuthoring
         }
 
         // wear and takeOff return whether the change happened, so a failed attempt is not shown as worn.
-        public void Draw(string[] actors, Action<string> open, Func<string, string, bool> wear, Func<string, bool> takeOff)
+        public void Draw(string[] actors, Action<string> open, Func<string, string, bool> wear, Func<string, bool> takeOff, Func<WardrobeDocument, string, string> wearingOf)
         {
             expanded = EditorGUILayout.Foldout(expanded, AuthoringText.Get("Outfits"), true);
             if (expanded == false) return;
@@ -64,6 +73,7 @@ namespace WitchMendokusai.ContentAuthoring
                 EditorGUILayout.LabelField(AuthoringText.Get("This scene has no body role bindings, so outfits cannot be worn."), EditorStyles.wordWrappedLabel);
                 return;
             }
+            if (stale) Restore(actors, wearingOf);
             actor = Mathf.Clamp(actor, 0, actors.Length - 1);
             if (actors.Length > 1)
             {

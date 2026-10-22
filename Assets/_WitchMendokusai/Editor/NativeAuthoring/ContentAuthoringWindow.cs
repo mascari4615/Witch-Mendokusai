@@ -108,6 +108,7 @@ namespace WitchMendokusai.ContentAuthoring
             surfaces.Bind(workspace, ApplyChange);
             parameters.Bind(workspace, ApplyChange, ExportParameterSequence);
             labeledOnly = Array.Exists(workspace.Document.Nodes, node => string.IsNullOrEmpty(node.Label) == false);
+            wardrobe.Invalidate();
             selected = -1;
             failure = false;
             message = null;
@@ -299,7 +300,7 @@ namespace WitchMendokusai.ContentAuthoring
             expressions.Draw();
             cameras.Draw();
             surfaces.Draw();
-            wardrobe.Draw(WorkspaceWardrobe.Actors(workspace), file => Run(delegate { wardrobe.Open(file); wardrobe.Restore(WorkspaceWardrobe.Actors(workspace), (document, actor) => WorkspaceWardrobe.Wearing(workspace, document, actor)); }), (id, actor) => Attempt(delegate { WearOutfit(id, actor); }), actor => Attempt(delegate { WearOutfit(null, actor); }));
+            wardrobe.Draw(WorkspaceWardrobe.Actors(workspace), file => Run(delegate { wardrobe.Open(file); }), (id, actor) => Attempt(delegate { WearOutfit(id, actor); }), actor => Attempt(delegate { WearOutfit(null, actor); }), (document, actor) => WorkspaceWardrobe.Wearing(workspace, document, actor));
             EditorGUILayout.EndScrollView();
         }
 
