@@ -6,6 +6,27 @@ namespace SceneContent.Storage
 {
     public static class AtomicFiles
     {
+        // Another process (a scanner, an indexer) can hold the destination open for a moment, and File.Replace then fails
+        // with "unable to remove the file to be replaced". A short bounded wait clears it without hiding a lasting lock.
+        private const int REPLACE_ATTEMPTS = 6;
+        private const int REPLACE_WAIT_MILLISECONDS = 50;
+
+        private static void ReplaceWithRetry(string temporary, string destination)
+        {
+            for (int attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    File.Replace(temporary, destination, null);
+                    return;
+                }
+                catch (Exception exception) when (attempt < REPLACE_ATTEMPTS && (exception is IOException || exception is UnauthorizedAccessException))
+                {
+                    System.Threading.Thread.Sleep(REPLACE_WAIT_MILLISECONDS * attempt);
+                }
+            }
+        }
+
         public static void WriteText(string file, string text)
         {
             if (text == null)
@@ -24,7 +45,7 @@ namespace SceneContent.Storage
                 }
                 if (File.Exists(destination))
                 {
-                    File.Replace(temporary, destination, null);
+                    ReplaceWithRetry(temporary, destination);
                 }
                 else
                 {
