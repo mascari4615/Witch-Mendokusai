@@ -10,12 +10,11 @@ namespace WitchMendokusai.ContentAuthoring
 {
     public sealed class WardrobePanel
     {
-        private const float CELL_WIDTH = 104f;
-        private const float THUMB_HEIGHT = 84f;
+        private const float MIN_CELL_WIDTH = 96f;
+        private const float THUMB_RATIO = 0.8f;
         private const float NAME_HEIGHT = 18f;
-        private const float GRID_MAX_HEIGHT = 360f;
         private const float CELL_GAP = 4f;
-        private const float SCROLLBAR_ROOM = 24f;
+        private const float SIDE_ROOM = 28f;
 
         private string file;
         private WardrobeDocument document;
@@ -26,7 +25,6 @@ namespace WitchMendokusai.ContentAuthoring
         private bool stale = true;
         private string query = "";
         private bool wornOnly;
-        private Vector2 scroll;
 
         public string File { get { return file; } }
 
@@ -177,34 +175,34 @@ namespace WitchMendokusai.ContentAuthoring
                 EditorGUILayout.LabelField(AuthoringText.Get("No outfit matches"), EditorStyles.miniLabel);
                 return;
             }
-            int columns = Mathf.Max(1, Mathf.FloorToInt((EditorGUIUtility.currentViewWidth - SCROLLBAR_ROOM) / (CELL_WIDTH + CELL_GAP)));
-            float cellHeight = THUMB_HEIGHT + NAME_HEIGHT;
+            float room = EditorGUIUtility.currentViewWidth - SIDE_ROOM;
+            int columns = Mathf.Max(1, Mathf.FloorToInt((room + CELL_GAP) / (MIN_CELL_WIDTH + CELL_GAP)));
+            float cellWidth = (room - CELL_GAP * (columns - 1)) / columns;
             int rows = (shown.Count + columns - 1) / columns;
-            float gridHeight = Mathf.Min(GRID_MAX_HEIGHT, rows * (cellHeight + CELL_GAP) + CELL_GAP);
-            scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.Height(gridHeight));
             for (int row = 0; row < rows; row++)
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     for (int column = 0; column < columns && row * columns + column < shown.Count; column++)
                     {
-                        DrawCell(shown[row * columns + column], cellHeight, current, wearing, wear, takeOff);
+                        DrawCell(shown[row * columns + column], cellWidth, current, wearing, wear, takeOff);
                     }
                 }
             }
-            EditorGUILayout.EndScrollView();
         }
 
-        private void DrawCell(Outfit outfit, float cellHeight, string current, string wearing, Func<string, string, bool> wear, Func<string, bool> takeOff)
+        private void DrawCell(Outfit outfit, float cellWidth, string current, string wearing, Func<string, string, bool> wear, Func<string, bool> takeOff)
         {
-            Rect cell = GUILayoutUtility.GetRect(CELL_WIDTH, cellHeight, GUILayout.Width(CELL_WIDTH), GUILayout.Height(cellHeight));
+            float thumbHeight = cellWidth * THUMB_RATIO;
+            float cellHeight = thumbHeight + NAME_HEIGHT;
+            Rect cell = GUILayoutUtility.GetRect(cellWidth, cellHeight, GUILayout.Width(cellWidth), GUILayout.Height(cellHeight));
             bool on = outfit.Id == wearing;
             EditorGUI.DrawRect(cell, on ? new Color(.42f, .77f, .55f) : new Color(.23f, .25f, .29f));
-            Rect picture = new Rect(cell.x + 2f, cell.y + 2f, cell.width - 4f, THUMB_HEIGHT - 2f);
+            Rect picture = new Rect(cell.x + 2f, cell.y + 2f, cell.width - 4f, thumbHeight - 2f);
             Texture2D thumb = Thumb(outfit.Id);
             if (thumb != null) GUI.DrawTexture(picture, thumb, ScaleMode.ScaleAndCrop);
             else EditorGUI.DrawRect(picture, new Color(.13f, .15f, .17f));
-            GUI.Label(new Rect(cell.x + 2f, cell.y + THUMB_HEIGHT, cell.width - 4f, NAME_HEIGHT), LabelOf(outfit), EditorStyles.miniLabel);
+            GUI.Label(new Rect(cell.x + 2f, cell.y + thumbHeight, cell.width - 4f, NAME_HEIGHT), LabelOf(outfit), EditorStyles.miniLabel);
             if (GUI.Button(cell, GUIContent.none, GUIStyle.none) == false) return;
             if (on)
             {
