@@ -23,6 +23,7 @@ namespace WitchMendokusai.ContentAuthoring
             { "No outfit matches", "맞는 의상이 없어요" },
             { "Open wardrobe window", "옷장 창 열기" },
             { "Wardrobe", "옷장" },
+            { "Picture set", "그림 세트" },
             { "Quick search", "빠른 검색 (Ctrl+Space)" },
             { "Movement carried along", "이동 따라가기" },
             { "Character", "캐릭터" },

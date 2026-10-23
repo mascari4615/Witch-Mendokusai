@@ -27,6 +27,8 @@ namespace WitchMendokusai.ContentAuthoring
         private string query = "";
         private bool wornOnly;
         private int category;
+        private int pictureSet;
+        private string[] pictureSets = new string[0];
 
         public string File { get { return file; } }
         public bool HasDocument { get { return document != null; } }
@@ -41,6 +43,8 @@ namespace WitchMendokusai.ContentAuthoring
             document = loaded;
             worn.Clear();
             ClearThumbs();
+            pictureSets = FindPictureSets();
+            pictureSet = 0;
             stale = true;
         }
 
@@ -71,12 +75,25 @@ namespace WitchMendokusai.ContentAuthoring
             thumbs.Clear();
         }
 
-        // A picture of each outfit sits beside the outfit file as thumbs/<outfit id>.png. An outfit without one is drawn as a plain tile.
+        // Picture sets are the folders under thumbs/ beside the outfit file, one per character the pictures were taken on. Loose pictures directly in thumbs/ count as a set named after the folder.
+        private string[] FindPictureSets()
+        {
+            string directory = Path.Combine(Path.GetDirectoryName(file), "thumbs");
+            List<string> names = new List<string>();
+            if (Directory.Exists(directory) == false) return names.ToArray();
+            foreach (string sub in Directory.GetDirectories(directory)) names.Add(Path.GetFileName(sub));
+            names.Sort(StringComparer.Ordinal);
+            if (names.Count == 0 && Directory.GetFiles(directory, "*.png").Length > 0) names.Add("");
+            return names.ToArray();
+        }
+
+        // A picture of each outfit sits in the chosen picture set as <outfit id>.png. An outfit without one is drawn as a plain tile.
         private Texture2D Thumb(string outfitId)
         {
             Texture2D texture;
             if (thumbs.TryGetValue(outfitId, out texture)) return texture;
-            string path = Path.Combine(Path.Combine(Path.GetDirectoryName(file), "thumbs"), outfitId + ".png");
+            string set = pictureSet < pictureSets.Length ? pictureSets[pictureSet] : "";
+            string path = Path.Combine(Path.Combine(Path.Combine(Path.GetDirectoryName(file), "thumbs"), set), outfitId + ".png");
             if (System.IO.File.Exists(path))
             {
                 texture = new Texture2D(2, 2, TextureFormat.RGB24, false);
@@ -139,6 +156,15 @@ namespace WitchMendokusai.ContentAuthoring
                 string[] labels = new string[actors.Length];
                 for (int index = 0; index < labels.Length; index++) labels[index] = CharacterLabel(actors[index]);
                 actor = EditorGUILayout.Popup(AuthoringText.Get("Character"), actor, labels);
+            }
+            if (pictureSets.Length > 1)
+            {
+                int chosen = EditorGUILayout.Popup(AuthoringText.Get("Picture set"), pictureSet, pictureSets);
+                if (chosen != pictureSet)
+                {
+                    pictureSet = chosen;
+                    ClearThumbs();
+                }
             }
             string current = actors[actor];
             string wearing;

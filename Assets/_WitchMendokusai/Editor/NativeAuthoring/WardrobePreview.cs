@@ -6,8 +6,8 @@ namespace WitchMendokusai.ContentAuthoring
     public sealed class WardrobePreview
     {
         private const float FIELD_OF_VIEW = 25f;
-        private const float HEAD_DROP = 0.12f;
-        private const float MIN_DISTANCE = 0.6f;
+        private const float HEAD_DROP = 0.18f;
+        private const float MIN_DISTANCE = 0.8f;
         private const float DISTANCE_PER_SIZE = 2.6f;
         private const float PART_MIN_SIZE = 0.3f;
         private static readonly Vector3 VIEW_DIRECTION = new Vector3(.35f, .12f, 1f);
