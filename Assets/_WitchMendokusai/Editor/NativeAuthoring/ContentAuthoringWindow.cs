@@ -51,6 +51,7 @@ namespace WitchMendokusai.ContentAuthoring
             library = new LibraryPanel();
             surfaces = new SurfacePanel();
             wardrobe = new WardrobePanel();
+            wardrobe.OpenWindow = () => WardrobeWindow.Open(this);
             parameters = new ParameterPanel();
             dynamics = new DynamicsPanel();
             Undo.undoRedoPerformed += Repaint;
@@ -231,8 +232,22 @@ namespace WitchMendokusai.ContentAuthoring
 
         public WardrobePanel Wardrobe { get { return wardrobe; } }
 
+        // The wardrobe window wears through the same path as the panel and reports whether it worked.
+        public bool WearChecked(string outfitId, string actor)
+        {
+            bool done = Attempt(delegate { WearOutfit(outfitId, actor); });
+            foreach (WardrobeWindow window in Resources.FindObjectsOfTypeAll<WardrobeWindow>()) window.Repaint();
+            return done;
+        }
+
         private void OnGUI()
         {
+            Event current = Event.current;
+            if (current.type == EventType.KeyDown && current.control && current.keyCode == KeyCode.Space && workspace.IsLoaded && wardrobe.HasDocument)
+            {
+                current.Use();
+                WardrobeWindow.OpenQuick(this);
+            }
             DrawWelcome();
             if (workspace.IsLoaded)
             {

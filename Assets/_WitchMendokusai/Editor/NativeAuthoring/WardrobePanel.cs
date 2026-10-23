@@ -15,6 +15,7 @@ namespace WitchMendokusai.ContentAuthoring
         private const float NAME_HEIGHT = 18f;
         private const float CELL_GAP = 4f;
         private const float SIDE_ROOM = 28f;
+        private const string SEARCH_CONTROL = "wardrobe-search";
 
         private string file;
         private WardrobeDocument document;
@@ -25,8 +26,13 @@ namespace WitchMendokusai.ContentAuthoring
         private bool stale = true;
         private string query = "";
         private bool wornOnly;
+        private int category;
 
         public string File { get { return file; } }
+        public bool HasDocument { get { return document != null; } }
+        // Set by the window that owns the panel so a button can open the larger wardrobe window.
+        public Action OpenWindow;
+        public bool FocusSearch;
 
         public void Open(string path)
         {
@@ -117,6 +123,15 @@ namespace WitchMendokusai.ContentAuthoring
                 EditorGUILayout.LabelField(AuthoringText.Get("This scene has no body role bindings, so outfits cannot be worn."), EditorStyles.wordWrappedLabel);
                 return;
             }
+            if (OpenWindow != null && GUILayout.Button(AuthoringText.Get("Open wardrobe window"))) OpenWindow();
+            EditorGUILayout.LabelField(AuthoringText.Get("Quick search"), EditorStyles.miniLabel);
+            DrawBrowser(actors, wear, takeOff, wearingOf, EditorGUIUtility.currentViewWidth);
+        }
+
+        // The character choice, the worn row, search with categories, and the picture tiles, drawn at the given width.
+        public void DrawBrowser(string[] actors, Func<string, string, bool> wear, Func<string, bool> takeOff, Func<WardrobeDocument, string, string> wearingOf, float width)
+        {
+            if (document == null || actors.Length == 0) return;
             if (stale) Restore(actors, wearingOf);
             actor = Mathf.Clamp(actor, 0, actors.Length - 1);
             if (actors.Length > 1)
@@ -130,7 +145,33 @@ namespace WitchMendokusai.ContentAuthoring
             worn.TryGetValue(current, out wearing);
             DrawWorn(current, wearing, takeOff);
             DrawFilters();
-            DrawGrid(current, wearing, wear, takeOff);
+            DrawGrid(current, wearing, wear, takeOff, width);
+        }
+
+        // The outfit id the chosen character wears, or null. The wardrobe window frames its preview on it.
+        public string CurrentWorn(string[] actors)
+        {
+            if (actors.Length == 0) return null;
+            string wearing;
+            worn.TryGetValue(actors[Mathf.Clamp(actor, 0, actors.Length - 1)], out wearing);
+            return wearing;
+        }
+
+        // Outfit names end in a number ("headtop 01"), so the text before it names the group.
+        private static string CategoryOf(Outfit outfit)
+        {
+            return LabelOf(outfit).TrimEnd('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', '-', '_');
+        }
+
+        private List<string> Categories()
+        {
+            List<string> names = new List<string>();
+            foreach (Outfit outfit in document.Outfits)
+            {
+                string name = CategoryOf(outfit);
+                if (name.Length > 0 && names.Contains(name) == false) names.Add(name);
+            }
+            return names;
         }
 
         // One row above the grid: what is on now, with a button that takes it off.
@@ -154,19 +195,35 @@ namespace WitchMendokusai.ContentAuthoring
 
         private void DrawFilters()
         {
+            GUI.SetNextControlName(SEARCH_CONTROL);
             query = EditorGUILayout.TextField(AuthoringText.Get("Search"), query);
+            if (FocusSearch)
+            {
+                EditorGUI.FocusTextInControl(SEARCH_CONTROL);
+                FocusSearch = false;
+            }
             string[] tabs = { AuthoringText.Get("All") + " " + document.Outfits.Length, AuthoringText.Get("Worn only") };
             wornOnly = GUILayout.Toolbar(wornOnly ? 1 : 0, tabs) == 1;
+            List<string> groups = Categories();
+            if (groups.Count < 2) { category = 0; return; }
+            string[] names = new string[groups.Count + 1];
+            names[0] = AuthoringText.Get("All");
+            for (int index = 0; index < groups.Count; index++) names[index + 1] = groups[index];
+            category = Mathf.Clamp(category, 0, groups.Count);
+            category = GUILayout.SelectionGrid(category, names, 3, EditorStyles.miniButton);
         }
 
         // Picture tiles. A click wears the outfit, and a click on the worn tile takes it off.
-        private void DrawGrid(string current, string wearing, Func<string, string, bool> wear, Func<string, bool> takeOff)
+        private void DrawGrid(string current, string wearing, Func<string, string, bool> wear, Func<string, bool> takeOff, float width)
         {
             string needle = (query ?? "").Trim();
             List<Outfit> shown = new List<Outfit>();
+            List<string> groups = Categories();
+            string group = category > 0 && category <= groups.Count ? groups[category - 1] : null;
             foreach (Outfit outfit in document.Outfits)
             {
                 if (wornOnly && outfit.Id != wearing) continue;
+                if (group != null && CategoryOf(outfit) != group) continue;
                 if (needle.Length > 0 && LabelOf(outfit).IndexOf(needle, StringComparison.OrdinalIgnoreCase) < 0) continue;
                 shown.Add(outfit);
             }
@@ -175,7 +232,7 @@ namespace WitchMendokusai.ContentAuthoring
                 EditorGUILayout.LabelField(AuthoringText.Get("No outfit matches"), EditorStyles.miniLabel);
                 return;
             }
-            float room = EditorGUIUtility.currentViewWidth - SIDE_ROOM;
+            float room = width - SIDE_ROOM;
             int columns = Mathf.Max(1, Mathf.FloorToInt((room + CELL_GAP) / (MIN_CELL_WIDTH + CELL_GAP)));
             float cellWidth = (room - CELL_GAP * (columns - 1)) / columns;
             int rows = (shown.Count + columns - 1) / columns;
