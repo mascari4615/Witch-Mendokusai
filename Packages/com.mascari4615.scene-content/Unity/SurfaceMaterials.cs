@@ -7,7 +7,16 @@ namespace SceneContent.Unity
     {
         public static Material Create(SurfaceMaterial surface, Shader shader, Texture texture)
         {
+            if (surface.LightingModel == "toon")
+            {
+                if (surface.ToonSurface == null) throw new System.ArgumentException("Missing toon surface block");
+                surface.ToonSurface.Validate();
+                foreach (string property in new[] { "_ShadowColor", "_ShadowExtend", "_ShadeSoftness", "_ShadeRichness", "_LightStrength", "_AmbientStrength",
+                    "_RimStrength", "_RimPower", "_BandStrength", "_BandHeight", "_BandWidth", "_OutlineWidth", "_OutlineTint" })
+                    if (shader.FindPropertyIndex(property) < 0) throw new System.NotSupportedException("Shader does not support required toon input: " + property);
+            }
             Material material = new Material(shader) { name = "Native surface" };
+            if (surface.LightingModel == "toon") ApplyToon(material, surface.ToonSurface);
             Color color = new Color(surface.BaseColor[0], surface.BaseColor[1], surface.BaseColor[2], surface.BaseColor[3]);
             material.SetColor("_BaseColor", color);
             material.SetTexture("_BaseMap", texture);
@@ -34,6 +43,23 @@ namespace SceneContent.Unity
             material.SetOverrideTag("RenderType", blend ? "Transparent" : (mask ? "TransparentCutout" : "Opaque"));
             material.renderQueue = blend ? 3000 : (mask ? 2450 : 2000);
             return material;
+        }
+
+        private static void ApplyToon(Material material, ToonSurface surface)
+        {
+            material.SetColor("_ShadowColor", new Color(surface.ShadeTint[0], surface.ShadeTint[1], surface.ShadeTint[2], 1));
+            material.SetFloat("_ShadowExtend", surface.ShadeExtent);
+            material.SetFloat("_ShadeSoftness", surface.ShadeSoftness);
+            material.SetFloat("_ShadeRichness", surface.ShadeRichness);
+            material.SetFloat("_LightStrength", surface.LightStrength);
+            material.SetFloat("_AmbientStrength", surface.AmbientStrength);
+            material.SetFloat("_RimStrength", surface.RimStrength);
+            material.SetFloat("_RimPower", surface.RimPower);
+            material.SetFloat("_BandStrength", surface.BandStrength);
+            material.SetFloat("_BandHeight", surface.BandHeight);
+            material.SetFloat("_BandWidth", surface.BandWidth);
+            material.SetFloat("_OutlineWidth", surface.OutlineWidth);
+            material.SetColor("_OutlineTint", new Color(surface.OutlineTint[0], surface.OutlineTint[1], surface.OutlineTint[2], 1));
         }
     }
 }

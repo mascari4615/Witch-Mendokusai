@@ -55,6 +55,7 @@ namespace WitchMendokusai.ContentAuthoring
                     foreach (SurfaceMaterial material in document.Materials)
                     {
                         material.LightingModel = "lit";
+                        material.ToonSurface = null;
                     }
                 });
                 stage().sceneLighting = true;

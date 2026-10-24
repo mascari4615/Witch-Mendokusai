@@ -15,7 +15,7 @@ namespace WitchMendokusai.ContentAuthoring
         private bool expanded;
         private string[] labels = new string[0];
         private int[] usesPerSurface = new int[0];
-        private static readonly string[] LIGHTING = { "unlit", "lit" };
+        private static readonly string[] LIGHTING = { "unlit", "lit", "toon" };
         private static readonly string[] ALPHA = { "opaque", "mask", "blend" };
 
         public void Bind(ContentWorkspace value, Action<Action<SceneDocument>> applyChange)
@@ -50,7 +50,11 @@ namespace WitchMendokusai.ContentAuthoring
                 throw new ArgumentOutOfRangeException("index");
             }
             SurfaceMaterial copy = SceneCloning.CopySurface(surface);
-            apply(document => document.Materials[index] = copy);
+            apply(document =>
+            {
+                if (copy.ToonSurface != null || copy.MaterialClass != null) document.Version = 2;
+                document.Materials[index] = copy;
+            });
         }
 
         public void SelectUsers(int index)
@@ -105,6 +109,12 @@ namespace WitchMendokusai.ContentAuthoring
             Color color = EditorGUILayout.ColorField(AuthoringText.Get("Base color"), new Color(draft.BaseColor[0], draft.BaseColor[1], draft.BaseColor[2], draft.BaseColor[3]));
             draft.BaseColor = new[] { color.r, color.g, color.b, color.a };
             draft.LightingModel = LIGHTING[EditorGUILayout.Popup(AuthoringText.Get("Lighting"), Array.IndexOf(LIGHTING, draft.LightingModel), AuthoringText.Labels(LIGHTING))];
+            if (draft.LightingModel == "toon")
+            {
+                if (draft.ToonSurface == null) draft.ToonSurface = new ToonSurface();
+                DrawToon(draft.ToonSurface);
+            }
+            else draft.ToonSurface = null;
             draft.AlphaMode = ALPHA[EditorGUILayout.Popup(AuthoringText.Get("Alpha"), Array.IndexOf(ALPHA, draft.AlphaMode), AuthoringText.Labels(ALPHA))];
             draft.DoubleSided = EditorGUILayout.Toggle(AuthoringText.Get("Double sided"), draft.DoubleSided);
             using (new EditorGUI.DisabledScope(draft.LightingModel != "lit"))
@@ -129,6 +139,25 @@ namespace WitchMendokusai.ContentAuthoring
                 ResetDraft();
             }
             EditorGUILayout.EndHorizontal();
+        }
+
+        private static void DrawToon(ToonSurface surface)
+        {
+            Color shade = EditorGUILayout.ColorField(AuthoringText.Get("Shade tint"), new Color(surface.ShadeTint[0], surface.ShadeTint[1], surface.ShadeTint[2]));
+            surface.ShadeTint = new[] { shade.r, shade.g, shade.b };
+            surface.ShadeExtent = EditorGUILayout.Slider(AuthoringText.Get("Shade extent"), surface.ShadeExtent, 0, 1);
+            surface.ShadeSoftness = EditorGUILayout.Slider(AuthoringText.Get("Shade softness"), surface.ShadeSoftness, .001f, .3f);
+            surface.ShadeRichness = EditorGUILayout.Slider(AuthoringText.Get("Shade richness"), surface.ShadeRichness, 0, 1);
+            surface.LightStrength = EditorGUILayout.Slider(AuthoringText.Get("Light strength"), surface.LightStrength, 0, 2);
+            surface.AmbientStrength = EditorGUILayout.Slider(AuthoringText.Get("Ambient strength"), surface.AmbientStrength, 0, 2);
+            surface.RimStrength = EditorGUILayout.Slider(AuthoringText.Get("Rim strength"), surface.RimStrength, 0, 1);
+            surface.RimPower = EditorGUILayout.Slider(AuthoringText.Get("Rim power"), surface.RimPower, .5f, 8);
+            surface.BandStrength = EditorGUILayout.Slider(AuthoringText.Get("Band strength"), surface.BandStrength, 0, 1);
+            surface.BandHeight = EditorGUILayout.Slider(AuthoringText.Get("Band height"), surface.BandHeight, -1, 1);
+            surface.BandWidth = EditorGUILayout.Slider(AuthoringText.Get("Band width"), surface.BandWidth, .02f, .5f);
+            surface.OutlineWidth = EditorGUILayout.Slider(AuthoringText.Get("Outline width (screen fraction)"), surface.OutlineWidth, 0, .02f);
+            Color outline = EditorGUILayout.ColorField(AuthoringText.Get("Outline tint"), new Color(surface.OutlineTint[0], surface.OutlineTint[1], surface.OutlineTint[2]));
+            surface.OutlineTint = new[] { outline.r, outline.g, outline.b };
         }
     }
 }

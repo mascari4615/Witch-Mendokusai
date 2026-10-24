@@ -64,7 +64,7 @@ namespace SceneContent
             }
             SceneDocument result = new SceneDocument
             {
-                Id = left.Id, Nodes = nodes.ToArray(), Meshes = meshes.ToArray(), Materials = materials.ToArray(),
+                Id = left.Id, Version = Math.Max(left.Version, right.Version), Nodes = nodes.ToArray(), Meshes = meshes.ToArray(), Materials = materials.ToArray(),
                 Resources = resources.ToArray(), Cameras = cameras.ToArray(), Lights = lights.ToArray(),
                 Parameters = SceneParameters.Compose(left.Parameters, right.Parameters, prefix, left.Meshes.Length),
                 LimbConstraints = ComposeConstraints(left, right, prefix),
@@ -149,6 +149,7 @@ namespace SceneContent
                 meshes.Add(mesh);
             }
             result.Nodes = nodes.ToArray();
+            result.Version = Math.Max(result.Version, piece.Version);
             result.Resources = resources.ToArray();
             result.Materials = materials.ToArray();
             result.Meshes = meshes.ToArray();

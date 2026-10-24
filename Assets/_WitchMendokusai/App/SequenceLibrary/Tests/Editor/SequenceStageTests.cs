@@ -61,19 +61,25 @@ namespace WitchMendokusai.SequenceLibrary.Tests
             finally { UnityEngine.Object.DestroyImmediate(host); }
         }
 
-        [Test]
-        public void SceneWithoutAuthoredLightingGetsOneFallbackLight()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void SceneWithoutAuthoredLightingGetsOneCameraRelativeFallbackLight(bool authoredCamera)
         {
             GameObject host = new GameObject("sequence-stage-fallback-test");
             try
             {
                 SequenceLibraryMenu menu = host.AddComponent<SequenceLibraryMenu>();
-                SceneInstance scene = SceneContentLoader.Load(Document(), new EmptySource(), Shader.Find("Universal Render Pipeline/Unlit"), host.transform);
+                SceneDocument document = Document();
+                if (authoredCamera) document.Cameras = new[] { new SceneCamera { Node = 0 } };
+                SceneInstance scene = SceneContentLoader.Load(document, new EmptySource(), Shader.Find("Universal Render Pipeline/Unlit"), host.transform);
                 Prepare(menu, host, scene);
                 Light[] lights = host.GetComponentsInChildren<Light>(true);
                 Assert.That(lights.Length, Is.EqualTo(1));
                 Assert.That(lights[0].cullingMask, Is.EqualTo(1 << 31));
                 Assert.That(lights[0].name, Is.EqualTo("Sequence light"));
+                Camera camera = host.GetComponentsInChildren<Camera>(true)[0];
+                Assert.That(Vector3.Dot(camera.transform.forward, lights[0].transform.forward), Is.GreaterThan(.5f),
+                    "The fallback key must illuminate the viewer-facing side with authored or generated cameras");
             }
             finally { UnityEngine.Object.DestroyImmediate(host); }
         }

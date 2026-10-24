@@ -76,7 +76,7 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 GameObject anchor = new GameObject("Content workspace");
                 SceneManager.MoveGameObjectToScene(anchor, scene);
-                StandardSurfaceFactory surfaces = new StandardSurfaceFactory(Shader.Find("Universal Render Pipeline/Unlit"), Shader.Find("Universal Render Pipeline/Lit"));
+                StandardSurfaceFactory surfaces = new StandardSurfaceFactory(Shader.Find("Universal Render Pipeline/Unlit"), Shader.Find("Universal Render Pipeline/Lit"), Shader.Find("WM/Toon Surface"));
                 instance = SceneContentLoader.LoadWithSurfaces(document, source, surfaces, anchor.transform, activateCameras: false);
                 if (validate != null)
                 {

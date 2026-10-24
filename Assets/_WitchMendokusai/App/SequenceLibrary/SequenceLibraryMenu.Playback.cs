@@ -18,6 +18,7 @@ namespace WitchMendokusai.SequenceLibrary
         [SerializeField] private float fieldOfView = 35;
         [SerializeField] private float framePadding = 1.65f;
         [SerializeField] private float frameOffset = .2f;
+        [SerializeField] private Vector3 fallbackLightAngles = new Vector3(40, -30, 0);
         private GameObject stage;
         private ContentScenePlayer player;
         private readonly Dictionary<Camera, bool> cameras = new Dictionary<Camera, bool>();
@@ -36,7 +37,7 @@ namespace WitchMendokusai.SequenceLibrary
                 candidate.SetActive(false);
                 candidate.transform.SetParent(transform, false);
                 ContentScenePlayer next = candidate.AddComponent<ContentScenePlayer>();
-                StandardSurfaceFactory surfaces = new StandardSurfaceFactory(Shader.Find("Universal Render Pipeline/Unlit"), Shader.Find("Universal Render Pipeline/Lit"));
+                StandardSurfaceFactory surfaces = new StandardSurfaceFactory(Shader.Find("Universal Render Pipeline/Unlit"), Shader.Find("Universal Render Pipeline/Lit"), Shader.Find("WM/Toon Surface"));
                 next.Initialize(sequence, new DirectoryContentSource(Path.GetDirectoryName(Path.GetFullPath(file))), surfaces, useUnscaledTime: true);
                 PrepareCamera(candidate, next.Instance);
                 StopSequence();
@@ -72,13 +73,24 @@ namespace WitchMendokusai.SequenceLibrary
         {
             foreach (Transform part in scene.GetComponentsInChildren<Transform>(true)) part.gameObject.layer = contentLayer;
             foreach (Light authoredLight in scene.GetComponentsInChildren<Light>(true)) authoredLight.cullingMask = 1 << contentLayer;
-            bool authored = false;
+            Camera preview = null;
             foreach (Camera camera in scene.GetComponentsInChildren<Camera>(true))
             {
                 camera.cullingMask = 1 << contentLayer;
-                authored |= camera.enabled;
+                if (camera.enabled && preview == null) preview = camera;
             }
-            if (authored) return;
+            if (preview == null) preview = CreateFallbackCamera(owner, scene);
+            if (scene.GetComponentsInChildren<Light>(true).Length > 0) return;
+            Light light = new GameObject("Sequence light").AddComponent<Light>();
+            light.transform.SetParent(owner.transform, false);
+            light.transform.rotation = preview.transform.rotation * Quaternion.Euler(fallbackLightAngles);
+            light.type = LightType.Directional;
+            light.cullingMask = 1 << contentLayer;
+            light.intensity = 1;
+        }
+
+        private Camera CreateFallbackCamera(GameObject owner, SceneInstance scene)
+        {
             Bounds bounds = new Bounds(Vector3.zero, Vector3.one);
             bool first = true;
             foreach (Renderer renderer in scene.GetComponentsInChildren<Renderer>(true))
@@ -99,13 +111,7 @@ namespace WitchMendokusai.SequenceLibrary
             preview.farClipPlane = distance + bounds.size.magnitude * 2 + 1;
             preview.transform.position = bounds.center + Vector3.forward * distance;
             preview.transform.LookAt(bounds.center + Vector3.up * halfHeight * frameOffset);
-            if (scene.GetComponentsInChildren<Light>(true).Length > 0) return;
-            Light light = new GameObject("Sequence light").AddComponent<Light>();
-            light.transform.SetParent(owner.transform, false);
-            light.transform.rotation = Quaternion.Euler(40, -30, 0);
-            light.type = LightType.Directional;
-            light.cullingMask = 1 << contentLayer;
-            light.intensity = 1;
+            return preview;
         }
 
         private void CaptureLobby()

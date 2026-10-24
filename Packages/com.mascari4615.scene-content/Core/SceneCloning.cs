@@ -7,7 +7,7 @@ namespace SceneContent
             SceneValidation.Ensure(source);
             SceneDocument result = new SceneDocument
             {
-                Id = source.Id, Nodes = new SceneNode[source.Nodes.Length], Meshes = new MeshInstance[source.Meshes.Length],
+                Id = source.Id, Version = source.Version, Nodes = new SceneNode[source.Nodes.Length], Meshes = new MeshInstance[source.Meshes.Length],
                 Materials = new SurfaceMaterial[source.Materials.Length], Resources = new ContentResource[source.Resources.Length],
                 Cameras = new SceneCamera[source.Cameras.Length], Lights = new SceneLight[source.Lights.Length], Parameters = SceneParameters.Copy(source.Parameters),
                 LimbConstraints = SceneConstraints.Copy(source.LimbConstraints),
@@ -68,7 +68,8 @@ namespace SceneContent
                 BaseColor = (float[])value.BaseColor.Clone(), BaseColorTexture = value.BaseColorTexture,
                 AlphaMode = value.AlphaMode, DoubleSided = value.DoubleSided,
                 TextureScale = (float[])value.TextureScale.Clone(), TextureOffset = (float[])value.TextureOffset.Clone(),
-                LightingModel = value.LightingModel, Roughness = value.Roughness, Metallic = value.Metallic, Emission = (float[])value.Emission.Clone()
+                LightingModel = value.LightingModel, Roughness = value.Roughness, Metallic = value.Metallic, Emission = (float[])value.Emission.Clone(),
+                MaterialClass = value.MaterialClass, ToonSurface = value.ToonSurface == null ? null : value.ToonSurface.Copy()
             };
         }
     }

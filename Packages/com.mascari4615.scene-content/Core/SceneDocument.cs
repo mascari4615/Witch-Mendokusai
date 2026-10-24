@@ -58,6 +58,12 @@ namespace SceneContent
         public float Roughness = .7f;
         public float Metallic;
         public float[] Emission = new float[3];
+        public string MaterialClass;
+        public ToonSurface ToonSurface;
+
+        // Keep version-1 JSON free of fields unknown to existing readers.
+        public bool ShouldSerializeMaterialClass() => MaterialClass != null;
+        public bool ShouldSerializeToonSurface() => ToonSurface != null;
     }
 
     [Serializable]

@@ -7,7 +7,7 @@ namespace SceneContent
     {
         public static void Ensure(SceneDocument scene)
         {
-            if (scene == null || scene.Format != "scene-content" || scene.Version != 1 ||
+            if (scene == null || scene.Format != "scene-content" || (scene.Version != 1 && scene.Version != 2) ||
                 scene.CoordinateFrame != "right-handed-y-up-z-back" || string.IsNullOrEmpty(scene.Id))
                 throw new ArgumentException("Unsupported or missing scene contract");
             if (scene.Nodes == null || scene.Nodes.Length == 0 || scene.Nodes.Length > 100000 ||
@@ -65,9 +65,17 @@ namespace SceneContent
                 Vector(material.TextureScale, 2);
                 Vector(material.TextureOffset, 2);
                 Vector(material.Emission, 3);
-                if ((material.LightingModel != "unlit" && material.LightingModel != "lit") || material.Roughness < 0 || material.Roughness > 1 ||
+                if ((material.LightingModel != "unlit" && material.LightingModel != "lit" && material.LightingModel != "toon") || material.Roughness < 0 || material.Roughness > 1 ||
                     float.IsNaN(material.Roughness) || material.Metallic < 0 || material.Metallic > 1 || float.IsNaN(material.Metallic))
                     throw new ArgumentException("Invalid surface lighting model or physical properties");
+                if (scene.Version == 1 && (material.LightingModel == "toon" || material.ToonSurface != null || material.MaterialClass != null))
+                    throw new ArgumentException("Toon surfaces and material classes require scene version 2");
+                if ((material.LightingModel == "toon") != (material.ToonSurface != null))
+                    throw new ArgumentException("Toon lighting requires exactly one toon surface block");
+                if (material.ToonSurface != null) material.ToonSurface.Validate();
+                if (material.MaterialClass != null && material.MaterialClass != "generic" && material.MaterialClass != "hair" &&
+                    material.MaterialClass != "skin" && material.MaterialClass != "clothes" && material.MaterialClass != "face-overlay")
+                    throw new ArgumentException("Unsupported material class");
                 foreach (float emission in material.Emission)
                     if (emission < 0) throw new ArgumentException("Emission must be nonnegative");
                 if (material.AlphaMode != "opaque" && material.AlphaMode != "mask" && material.AlphaMode != "blend")
