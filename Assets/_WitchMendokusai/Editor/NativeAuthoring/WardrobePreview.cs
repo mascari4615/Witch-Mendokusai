@@ -26,16 +26,21 @@ namespace WitchMendokusai.ContentAuthoring
         private static readonly Color AMBIENT = new Color(.55f, .55f, .6f);
         private static readonly string[] COPIED_FLOATS = { "_Cull", "_Surface", "_AlphaClip", "_Cutoff", "_SrcBlend", "_DstBlend", "_ZWrite" };
         private RenderTexture texture;
+        private string drawnFor;
 
         // Frames the worn part when there is one, otherwise the top of the character where the head is.
+        // The window repaints on every mouse move, so the picture is drawn again only when the scene instance, the worn state, the look or the size changed.
         public Texture Render(ContentWorkspace workspace, bool wearing, int size, bool toon)
         {
+            string key = workspace.Instance.GetEntityId() + "|" + wearing + "|" + toon + "|" + size;
+            if (texture != null && drawnFor == key) return texture;
             if (texture == null || texture.width != size)
             {
                 Release();
                 texture = new RenderTexture(size, size, 24);
                 texture.hideFlags = HideFlags.HideAndDontSave;
             }
+            drawnFor = key;
             Vector3 center;
             float extent;
             Renderer part = wearing ? workspace.Instance.FindMesh(workspace.Document.Meshes.Length - 1) : null;
@@ -78,6 +83,7 @@ namespace WitchMendokusai.ContentAuthoring
             texture.Release();
             Object.DestroyImmediate(texture);
             texture = null;
+            drawnFor = null;
         }
 
         // The temporary changes of one toon draw. Undo restores every material array, the ambient light and the async compile setting.
