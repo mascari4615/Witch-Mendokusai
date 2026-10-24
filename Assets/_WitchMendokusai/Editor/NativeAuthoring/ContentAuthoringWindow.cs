@@ -118,7 +118,7 @@ namespace WitchMendokusai.ContentAuthoring
             {
                 stage = CreateInstance<ContentStageView>();
                 stage.titleContent = new GUIContent(AuthoringText.Get("Content stage"));
-                stage.ShowUtility();
+                stage.Show();
             }
             stage.ShowPreview(workspace.PreviewScene);
             stage.sceneLighting = sceneLighting;
