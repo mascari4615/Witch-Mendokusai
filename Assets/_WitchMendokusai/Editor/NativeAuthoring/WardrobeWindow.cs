@@ -18,6 +18,7 @@ namespace WitchMendokusai.ContentAuthoring
         private readonly WardrobePreview preview = new WardrobePreview();
         private bool quick;
         private Vector2 scroll;
+        private int look;
 
         public static void Open(ContentAuthoringWindow owner)
         {
@@ -92,9 +93,10 @@ namespace WitchMendokusai.ContentAuthoring
         {
             using (new EditorGUILayout.VerticalScope(GUILayout.Width(PREVIEW_SIZE)))
             {
+                look = GUILayout.Toolbar(look, new[] { AuthoringText.Get("Plain look"), AuthoringText.Get("Toon look") });
                 Rect area = GUILayoutUtility.GetRect(PREVIEW_SIZE, PREVIEW_SIZE, GUILayout.Width(PREVIEW_SIZE), GUILayout.Height(PREVIEW_SIZE));
                 if (Event.current.type != EventType.Repaint || workspace.IsLoaded == false) return;
-                GUI.DrawTexture(area, preview.Render(workspace, panel.CurrentWorn(actors) != null, PREVIEW_PIXELS), ScaleMode.ScaleToFit);
+                GUI.DrawTexture(area, preview.Render(workspace, panel.CurrentWorn(actors) != null, PREVIEW_PIXELS, look == 1), ScaleMode.ScaleToFit);
             }
         }
     }

@@ -24,6 +24,8 @@ namespace WitchMendokusai.ContentAuthoring
             { "Open wardrobe window", "옷장 창 열기" },
             { "Wardrobe", "옷장" },
             { "Picture set", "그림 세트" },
+            { "Plain look", "기본" },
+            { "Toon look", "툰" },
             { "Quick search", "빠른 검색 (Ctrl+Space)" },
             { "Movement carried along", "이동 따라가기" },
             { "Character", "캐릭터" },
