@@ -8,11 +8,12 @@ using Wardrobe.Serialization;
 
 namespace WitchMendokusai.ContentAuthoring
 {
+    [Serializable]
     public sealed class WardrobePanel
     {
         private const float MIN_CELL_WIDTH = 96f;
         private const float THUMB_RATIO = 0.8f;
-        private const float NAME_HEIGHT = 18f;
+        [SerializeField] private float nameHeight = 18f;
         private const float CELL_GAP = 4f;
         private const float SIDE_ROOM = 28f;
         private const string SEARCH_CONTROL = "wardrobe-search";
@@ -277,7 +278,7 @@ namespace WitchMendokusai.ContentAuthoring
         private void DrawCell(Outfit outfit, float cellWidth, string current, string wearing, Func<string, string, bool> wear, Func<string, bool> takeOff)
         {
             float thumbHeight = cellWidth * THUMB_RATIO;
-            float cellHeight = thumbHeight + NAME_HEIGHT;
+            float cellHeight = thumbHeight + nameHeight;
             Rect cell = GUILayoutUtility.GetRect(cellWidth, cellHeight, GUILayout.Width(cellWidth), GUILayout.Height(cellHeight));
             bool on = outfit.Id == wearing;
             EditorGUI.DrawRect(cell, on ? new Color(.42f, .77f, .55f) : new Color(.23f, .25f, .29f));
@@ -285,7 +286,7 @@ namespace WitchMendokusai.ContentAuthoring
             Texture2D thumb = Thumb(outfit.Id);
             if (thumb != null) GUI.DrawTexture(picture, thumb, ScaleMode.ScaleAndCrop);
             else EditorGUI.DrawRect(picture, new Color(.13f, .15f, .17f));
-            GUI.Label(new Rect(cell.x + 2f, cell.y + thumbHeight, cell.width - 4f, NAME_HEIGHT), LabelOf(outfit), EditorStyles.miniLabel);
+            GUI.Label(new Rect(cell.x + 2f, cell.y + thumbHeight, cell.width - 4f, nameHeight), LabelOf(outfit), EditorStyles.miniLabel);
             if (GUI.Button(cell, GUIContent.none, GUIStyle.none) == false) return;
             if (on)
             {

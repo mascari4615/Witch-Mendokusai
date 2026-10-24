@@ -8,12 +8,13 @@ namespace WitchMendokusai.ContentAuthoring
 {
     // Draws the character close to the head into a small texture, so the wardrobe window shows the result of a click without the stage window.
     // The toon look swaps every surface for the toon shader and adds one key light for the duration of the draw, then puts everything back, so the scene is not changed.
+    [System.Serializable]
     public sealed class WardrobePreview
     {
         private const float FIELD_OF_VIEW = 25f;
         private const float HEAD_DROP = 0.18f;
-        private const float MIN_DISTANCE = 0.8f;
-        private const float DISTANCE_PER_SIZE = 2.6f;
+        [SerializeField] private float minDistance = 0.8f;
+        [SerializeField] private float distancePerSize = 2.6f;
         private const float PART_MIN_SIZE = 0.3f;
         private const float KEY_LIGHT_INTENSITY = 0.95f;
         private const float SHADE_EXTENT = 0.5f;
@@ -67,7 +68,7 @@ namespace WitchMendokusai.ContentAuthoring
             camera.nearClipPlane = .01f;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = toon ? TOON_BACKGROUND : BACKGROUND;
-            camera.transform.position = center + VIEW_DIRECTION.normalized * Mathf.Max(MIN_DISTANCE, extent * DISTANCE_PER_SIZE);
+            camera.transform.position = center + VIEW_DIRECTION.normalized * Mathf.Max(minDistance, extent * distancePerSize);
             camera.transform.LookAt(center);
             Toon look = toon ? Toon.Apply(workspace) : null;
             camera.Render();
