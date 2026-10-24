@@ -36,7 +36,7 @@ namespace WitchMendokusai.ContentAuthoring
         [MenuItem("WM/Authoring/Scene workspace")]
         public static ContentAuthoringWindow Open()
         {
-            return GetWindow<ContentAuthoringWindow>(AuthoringText.Get("Scene workspace"));
+            return GetWindow<ContentAuthoringWindow>(AuthoringText.Get("Scene workspace"), true, typeof(SceneView));
         }
 
         private void OnEnable()
@@ -116,9 +116,7 @@ namespace WitchMendokusai.ContentAuthoring
             EditorPrefs.SetString(Application.dataPath + "/ContentWorkspace/LastScene", workspace.FilePath);
             if (stage == null)
             {
-                stage = CreateInstance<ContentStageView>();
-                stage.titleContent = new GUIContent(AuthoringText.Get("Content stage"));
-                stage.Show();
+                stage = GetWindow<ContentStageView>(AuthoringText.Get("Content stage"), true, typeof(SceneView), typeof(ContentAuthoringWindow));
             }
             stage.ShowPreview(workspace.PreviewScene);
             stage.sceneLighting = sceneLighting;

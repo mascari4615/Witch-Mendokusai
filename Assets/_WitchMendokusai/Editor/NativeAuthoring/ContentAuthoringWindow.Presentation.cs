@@ -69,15 +69,12 @@ namespace WitchMendokusai.ContentAuthoring
             if (workspace.IsLoaded == false) return;
             if (stage == null)
             {
-                stage = CreateInstance<ContentStageView>();
-                stage.Show();
+                stage = GetWindow<ContentStageView>(AuthoringText.Get("Content stage"), true, typeof(SceneView), typeof(ContentAuthoringWindow));
             }
             stage.titleContent = new GUIContent(AuthoringText.Get("Content stage"));
             stage.ShowPreview(workspace.PreviewScene);
             stage.sceneLighting = sceneLighting;
             stage.drawGizmos = sceneIcons;
-            Rect main = EditorGUIUtility.GetMainWindowPosition();
-            if (stage.docked == false) stage.position = new Rect(main.x + 16, main.y + 64, Mathf.Max(420, main.width * .65f - 24), Mathf.Max(320, main.height - 100));
             stage.Focus();
             stage.rotation = Quaternion.Euler(5, 180, 0);
             stage.Frame(workspace.GetBounds(), true);

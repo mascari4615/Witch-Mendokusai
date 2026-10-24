@@ -22,7 +22,7 @@ namespace WitchMendokusai.ContentAuthoring
 
         public static void Open(ContentAuthoringWindow owner)
         {
-            WardrobeWindow window = GetWindow<WardrobeWindow>(AuthoringText.Get("Wardrobe"));
+            WardrobeWindow window = GetWindow<WardrobeWindow>(AuthoringText.Get("Wardrobe"), true, typeof(ContentAuthoringWindow), typeof(SceneView));
             window.owner = owner;
             window.quick = false;
             window.minSize = new Vector2(420f, 420f);
