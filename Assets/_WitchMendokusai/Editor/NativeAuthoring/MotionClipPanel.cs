@@ -104,6 +104,14 @@ namespace WitchMendokusai.ContentAuthoring
             history.Clear();
         }
 
+        public static void ValidateDraft(string json, float seconds, SceneContent.SceneDocument document, SceneContent.Unity.SceneInstance instance)
+        {
+            PoseClip restored = PoseClipJson.Read(json);
+            SceneSequence.SequenceValidation.Ensure(new SceneSequence.SequenceDocument { Id = "draft", Scene = document, Clips = new[] { restored } });
+            new PoseClipSampler(restored).ValidateTargets(new TransformPoseTarget(instance.FindNode), SceneMotionBindings.Create(document, () => instance));
+            if (float.IsNaN(seconds) || float.IsInfinity(seconds)) throw new ArgumentException("Draft time must be finite");
+        }
+
         public MotionClipPanel()
         {
             Reset();

@@ -175,7 +175,7 @@ namespace WitchMendokusai.ContentAuthoring
         public void RestoreRecovery()
         {
             WorkspaceDraft draft = WorkspaceRecovery.Read();
-            workspace.Restore(draft.SourceFile, SceneJson.Read(draft.Scene));
+            workspace.Restore(draft.SourceFile, SceneJson.Read(draft.Scene), (document, instance) => MotionClipPanel.ValidateDraft(draft.Clip, draft.Time, document, instance));
             ShowLoaded();
             motion.RestoreDraft(draft.Clip, draft.Time, draft.ClipChanged);
             message = "Recovered the working scene and motion draft. Source files were not changed.";

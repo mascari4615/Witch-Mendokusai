@@ -40,10 +40,10 @@ namespace WitchMendokusai.ContentAuthoring
             history.Clear();
         }
 
-        public void Restore(string file, SceneDocument document)
+        public void Restore(string file, SceneDocument document, Action<SceneDocument, SceneInstance> validate = null)
         {
             string sourceBaseline = SceneJson.Write(SceneFiles.Read(file));
-            Build(document, file);
+            Build(document, file, validate);
             baseline = sourceBaseline;
             history.Clear();
         }

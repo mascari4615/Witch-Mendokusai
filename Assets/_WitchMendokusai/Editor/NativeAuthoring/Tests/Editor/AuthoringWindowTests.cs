@@ -18,6 +18,69 @@ namespace WitchMendokusai.ContentAuthoring.Tests
     public sealed class AuthoringWindowTests
     {
         [Test]
+        public void FailedRecoveryKeepsSceneMotionHistoryAndDraft()
+        {
+            using (WorkspaceFixture fixture = new WorkspaceFixture())
+            {
+                ContentAuthoringWindow window = fixture.OpenWindow();
+                window.ChangeScene(scene => scene.Nodes[0].Label = "first");
+                window.ChangeScene(scene => scene.Nodes[0].Label = "second");
+                window.UndoSceneChange();
+                window.Motion.Record("root");
+                string firstClip = window.Motion.ExportDraft();
+                window.Motion.Seek(.5f);
+                window.Motion.Record("root");
+                string secondClip = window.Motion.ExportDraft();
+                window.Motion.UndoEdit();
+                string clip = window.Motion.ExportDraft();
+                float seconds = window.Motion.Time;
+                UnityEngine.Object instance = window.Workspace.Instance;
+                string originalScene = SceneJson.Write(window.Workspace.Document);
+                string recoveryFile = Path.GetFullPath(Path.Combine(Application.dataPath, "../Library/ContentAuthoring/recovery.json"));
+                WorkspaceDraft draft = new WorkspaceDraft
+                {
+                    SourceFile = fixture.OtherFile, Scene = SceneJson.Write(SceneFiles.Read(fixture.OtherFile)),
+                    Clip = secondClip.Replace("\"root\"", "\"missing\""), Time = .5f, ClipChanged = true
+                };
+                Assert.That(draft.Clip, Is.Not.EqualTo(secondClip));
+                Directory.CreateDirectory(Path.GetDirectoryName(recoveryFile));
+                string original = JsonUtility.ToJson(draft, true);
+                File.WriteAllText(recoveryFile, original);
+                Assert.Catch(() => window.RestoreRecovery());
+                Assert.That(window.Workspace.Instance, Is.SameAs(instance));
+                Assert.That(window.Workspace.FilePath, Is.EqualTo(fixture.ActorFile));
+                Assert.That(SceneJson.Write(window.Workspace.Document), Is.EqualTo(originalScene));
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(clip));
+                Assert.That(window.Motion.Time, Is.EqualTo(seconds));
+                Assert.That(File.ReadAllText(recoveryFile), Is.EqualTo(original));
+                Assert.That(window.Workspace.CanUndoChange, Is.True);
+                Assert.That(window.Workspace.CanRedoChange, Is.True);
+                window.Motion.RedoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(secondClip));
+                window.Motion.UndoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(firstClip));
+                window.Motion.UndoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.Not.EqualTo(firstClip));
+                window.RedoSceneChange();
+                Assert.That(window.Workspace.Document.Nodes[0].Label, Is.EqualTo("second"));
+                window.UndoSceneChange();
+                window.UndoSceneChange();
+                Assert.That(window.Workspace.Document.Nodes[0].Label, Is.EqualTo("initial"));
+                draft.Clip = secondClip;
+                File.WriteAllText(recoveryFile, JsonUtility.ToJson(draft, true));
+                window.RestoreRecovery();
+                Assert.That(window.Workspace.FilePath, Is.EqualTo(fixture.OtherFile));
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(secondClip));
+                Assert.That(window.Motion.Time, Is.EqualTo(.5f));
+                Assert.That(window.Workspace.CanUndoChange, Is.False);
+                Assert.That(window.Workspace.CanRedoChange, Is.False);
+                window.Motion.UndoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(secondClip));
+                fixture.CheckResource(window.Workspace, "other");
+            }
+        }
+
+        [Test]
         public void OutfitsPreserveSceneAndClipHistoryAcrossUndoRedoAndSave()
         {
             using (WorkspaceFixture fixture = new WorkspaceFixture())
