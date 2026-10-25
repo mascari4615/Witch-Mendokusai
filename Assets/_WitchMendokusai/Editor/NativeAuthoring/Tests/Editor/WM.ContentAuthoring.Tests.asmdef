@@ -1,6 +1,6 @@
 {
   "name": "WM.ContentAuthoring.Tests",
-  "references": ["WM.ContentAuthoring.Editor"],
+  "references": ["WM.ContentAuthoring.Editor", "SceneContent.Core", "SceneContent.Serialization", "SceneContent.FileSystem", "SceneContent.Unity", "Geometry.Core", "Geometry.Binary"],
   "includePlatforms": ["Editor"], "overrideReferences": true,
   "precompiledReferences": ["nunit.framework.dll"], "optionalUnityReferences": ["TestAssemblies"]
 }

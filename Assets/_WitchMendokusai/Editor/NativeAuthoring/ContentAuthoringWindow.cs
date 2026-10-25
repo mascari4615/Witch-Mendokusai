@@ -218,13 +218,14 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void WearOutfit(string outfitId, string actor = "")
         {
-            string draft = motion.ExportDraft();
-            float seconds = motion.Time;
-            bool changed = motion.HasChanges;
             string dressed = WorkspaceWardrobe.Dress(workspace, wardrobe.File, outfitId, actor);
-            workspace.Load(dressed);
-            ShowLoaded();
-            motion.RestoreDraft(draft, seconds, changed);
+            workspace.ChangeFile(dressed, ValidateMotionTargets);
+            if (motion.IsPlaying) motion.TogglePlayback();
+            selected = -1;
+            RefreshPreview();
+            labeledOnly = Array.Exists(workspace.Document.Nodes, node => string.IsNullOrEmpty(node.Label) == false);
+            ShowCharacterView();
+            EditorPrefs.SetString(Application.dataPath + "/ContentWorkspace/LastScene", workspace.FilePath);
             message = AuthoringText.Get(outfitId == null ? "Took off everything this outfit file added." : "Changed outfit.");
             WorkspaceRecovery.Write(workspace, motion);
         }
@@ -372,6 +373,8 @@ namespace WitchMendokusai.ContentAuthoring
             dynamics.Bind(workspace, ApplyChange);
             surfaces.Bind(workspace, ApplyChange);
             parameters.Bind(workspace, ApplyChange, ExportParameterSequence);
+            wardrobe.Invalidate();
+            foreach (WardrobeWindow window in Resources.FindObjectsOfTypeAll<WardrobeWindow>()) window.Repaint();
             if (selected >= workspace.Document.Nodes.Length) selected = -1;
             if (selected >= 0) Selection.activeTransform = workspace.Instance.FindNode(workspace.Document.Nodes[selected].Id);
             Repaint();
