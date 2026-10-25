@@ -10,6 +10,43 @@ namespace SceneContent.Tests
     public sealed class ScenePersistenceTests
     {
         [Test]
+        public void ValidDeepWindowsResourcePathDoesNotGrowForStaging()
+        {
+            if (Path.DirectorySeparatorChar != '\\') Assert.Ignore("Windows path-boundary regression");
+            string temporary = Path.GetFullPath(Path.GetTempPath()).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            string root = Path.Combine(temporary, "scene-save-" + Guid.NewGuid().ToString("N"));
+            byte[] bytes = SceneFixtures.Bytes();
+            SceneDocument document = SceneFixtures.Document(bytes);
+            document.Resources[0].Path = document.Resources[0].Sha256 + ".blob";
+            int padding = 233 - document.Resources[0].Path.Length - root.Length - 2;
+            Assert.That(padding, Is.GreaterThan(0), "The temporary root must leave room for the path-boundary fixture");
+            string directory = Path.Combine(root, new string('d', padding));
+            string resourcePath = Path.Combine(directory, document.Resources[0].Path);
+            Assert.That(resourcePath.Length, Is.EqualTo(233));
+            Assert.That((resourcePath + "." + new string('0', 32) + ".tmp").Length, Is.GreaterThanOrEqualTo(260));
+            try
+            {
+                Directory.CreateDirectory(directory);
+                string file = Path.Combine(directory, "scene.json");
+                MemorySource source = new MemorySource { Bytes = bytes };
+                SceneFiles.Save(file, document, source);
+                SceneDocument reopened = SceneFiles.Read(file);
+                Assert.That(new DirectoryContentSource(directory).Read(reopened.Resources[0]), Is.EqualTo(bytes));
+                string manifest = File.ReadAllText(file);
+                SceneFiles.Save(file, document, source);
+                Assert.That(File.ReadAllText(file), Is.EqualTo(manifest));
+                Assert.That(Directory.GetFiles(root, "*.tmp", SearchOption.AllDirectories), Is.Empty);
+            }
+            finally
+            {
+                string target = Path.GetFullPath(root);
+                if (target.StartsWith(temporary, StringComparison.OrdinalIgnoreCase) == false || Path.GetFileName(target).StartsWith("scene-save-", StringComparison.Ordinal) == false)
+                    throw new InvalidOperationException("Unexpected persistence fixture cleanup path");
+                if (Directory.Exists(target)) Directory.Delete(target, true);
+            }
+        }
+
+        [Test]
         public void UneditedRotationsRetainSourceValuesWhileSmallEditsAndResetAreCaptured()
         {
             SkinWeights previous = QualitySettings.skinWeights;

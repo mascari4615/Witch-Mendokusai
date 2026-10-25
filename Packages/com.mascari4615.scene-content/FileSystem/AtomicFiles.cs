@@ -34,7 +34,7 @@ namespace SceneContent.Storage
                 throw new ArgumentNullException("text");
             }
             string destination = Path.GetFullPath(file);
-            string temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            string temporary = Path.Combine(Path.GetDirectoryName(destination), Guid.NewGuid().ToString("N") + ".tmp");
             try
             {
                 byte[] bytes = new UTF8Encoding(false).GetBytes(text);

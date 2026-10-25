@@ -48,7 +48,7 @@ namespace SceneContent.Storage
                     continue;
                 }
                 Directory.CreateDirectory(Path.GetDirectoryName(resourcePath));
-                string staged = resourcePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                string staged = Path.Combine(Path.GetDirectoryName(resourcePath), Guid.NewGuid().ToString("N") + ".tmp");
                 try
                 {
                     File.WriteAllBytes(staged, data);
