@@ -50,7 +50,9 @@ namespace SceneContent.Unity
                     SurfaceMaterial surface = document.Materials[index];
                     Texture2D texture = null;
                     string textureHash = string.IsNullOrEmpty(surface.BaseColorTexture) ? null : descriptors[surface.BaseColorTexture].Sha256;
-                    if (textureHash != null && textures.TryGetValue(textureHash, out texture) == false)
+                    string wrap = surface.TextureWrap ?? "repeat";
+                    string textureKey = textureHash == null ? null : textureHash + ":" + wrap;
+                    if (textureKey != null && textures.TryGetValue(textureKey, out texture) == false)
                     {
                         byte[] image = source.Read(descriptors[surface.BaseColorTexture]);
                         PngHeader.ValidateDimensions(image);
@@ -58,7 +60,8 @@ namespace SceneContent.Unity
                         instance.Own(texture);
                         if (ImageConversion.LoadImage(texture, image, true) == false)
                             throw new ArgumentException("Invalid texture image");
-                        textures.Add(textureHash, texture);
+                        texture.wrapMode = wrap == "clamp" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
+                        textures.Add(textureKey, texture);
                     }
                     materials[index] = surfaces.Create(surface, texture);
                     if (materials[index] == null) throw new ArgumentException("Surface factory returned no material");

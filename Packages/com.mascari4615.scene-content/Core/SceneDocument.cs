@@ -54,6 +54,7 @@ namespace SceneContent
         public bool DoubleSided;
         public float[] TextureScale = new[] { 1f, 1f };
         public float[] TextureOffset = new[] { 0f, 0f };
+        public string TextureWrap;
         public string LightingModel = "unlit";
         public float Roughness = .7f;
         public float Metallic;
@@ -64,6 +65,7 @@ namespace SceneContent
         // Keep version-1 JSON free of fields unknown to existing readers.
         public bool ShouldSerializeMaterialClass() => MaterialClass != null;
         public bool ShouldSerializeToonSurface() => ToonSurface != null;
+        public bool ShouldSerializeTextureWrap() => TextureWrap != null;
     }
 
     [Serializable]

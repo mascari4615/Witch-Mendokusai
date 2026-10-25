@@ -14,6 +14,24 @@ namespace WitchMendokusai.ContentAuthoring.Tests
     public sealed partial class AuthoringWindowTests
     {
         [Test]
+        public void SurfaceEditingPreservesTextureWrapThroughHistory()
+        {
+            using (WorkspaceFixture fixture = new WorkspaceFixture())
+            {
+                ContentAuthoringWindow window = fixture.OpenWindow();
+                window.ChangeScene(scene => { scene.Version = 2; scene.Materials[0].TextureWrap = "clamp"; });
+                SceneContent.SurfaceMaterial edited = SceneContent.SceneCloning.CopySurface(window.Workspace.Document.Materials[0]);
+                edited.BaseColor[0] = .25f;
+                window.Surfaces.Apply(0, edited);
+                Assert.That(window.Workspace.Document.Materials[0].TextureWrap, Is.EqualTo("clamp"));
+                window.UndoSceneChange();
+                Assert.That(window.Workspace.Document.Materials[0].TextureWrap, Is.EqualTo("clamp"));
+                window.RedoSceneChange();
+                Assert.That(window.Workspace.Document.Materials[0].TextureWrap, Is.EqualTo("clamp"));
+            }
+        }
+
+        [Test]
         public void InvalidSequenceScalarTargetKeepsCurrentWorkspaceAndRecovery()
         {
             using (WorkspaceFixture fixture = new WorkspaceFixture())

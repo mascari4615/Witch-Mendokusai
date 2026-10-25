@@ -13,6 +13,79 @@ namespace SceneContent.Tests
     public sealed class SceneContentTests
     {
         [Test]
+        public void TextureWrapIsOptionalVersionedAndSurvivesCopyAndComposition()
+        {
+            SceneDocument document = SceneFixtures.Document(SceneFixtures.Bytes());
+            string legacy = SceneJson.Write(document);
+            Assert.That(legacy, Does.Not.Contain("TextureWrap"));
+            Assert.That(SceneJson.Write(SceneJson.Read(legacy)), Is.EqualTo(legacy));
+            document.Materials[0].TextureWrap = "clamp";
+            Assert.Throws<ArgumentException>(() => SceneValidation.Ensure(document));
+            document.Version = 2;
+            SceneDocument copy = SceneCloning.Copy(SceneJson.Read(SceneJson.Write(document)));
+            Assert.That(copy.Materials[0].TextureWrap, Is.EqualTo("clamp"));
+            SceneDocument composed = SceneComposition.Append(copy, document, "another", new[] { 0f, 0f, 0f });
+            Assert.That(composed.Materials[1].TextureWrap, Is.EqualTo("clamp"));
+            document.Materials[0].TextureWrap = "mirror";
+            Assert.Throws<ArgumentException>(() => SceneJson.Write(document));
+        }
+
+        [Test]
+        public void TextureCacheSeparatesWrapAndSharesOnlyEquivalentSamplers()
+        {
+            SkinWeights previous = QualitySettings.skinWeights;
+            Texture2D image = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            SceneInstance instance = null;
+            Texture clamp = null;
+            Texture repeat = null;
+            try
+            {
+                QualitySettings.skinWeights = SkinWeights.FourBones;
+                image.SetPixels(new[] { Color.red, Color.blue, Color.green, Color.white });
+                image.Apply();
+                byte[] png = image.EncodeToPNG();
+                byte[] geometry = SceneFixtures.Bytes();
+                SceneDocument document = SceneFixtures.Document(geometry);
+                document.Version = 2;
+                string hash;
+                using (System.Security.Cryptography.SHA256 algorithm = System.Security.Cryptography.SHA256.Create())
+                    hash = BitConverter.ToString(algorithm.ComputeHash(png)).Replace("-", "").ToLowerInvariant();
+                document.Resources = new[] { document.Resources[0], new ContentResource { Id = "image", Path = "image.png", MediaType = "image/png", Sha256 = hash } };
+                document.Materials = new SurfaceMaterial[4];
+                document.Meshes = new MeshInstance[4];
+                string[] wraps = { "clamp", "repeat", null, "clamp" };
+                for (int index = 0; index < wraps.Length; index++)
+                {
+                    document.Materials[index] = new SurfaceMaterial { BaseColor = new[] { 1f, 1f, 1f, 1f }, BaseColorTexture = "image", TextureWrap = wraps[index] };
+                    document.Meshes[index] = new MeshInstance { Node = 0, Geometry = "geometry", RootBone = 1, Bones = new[] { 1, 2, 3, 4 }, Materials = new[] { index }, MorphWeights = new[] { .5f } };
+                }
+                instance = SceneContentLoader.Load(document, new TextureSource { Geometry = geometry, Image = png }, Shader.Find("Universal Render Pipeline/Unlit"));
+                clamp = instance.FindMesh(0).sharedMaterial.GetTexture("_BaseMap");
+                repeat = instance.FindMesh(1).sharedMaterial.GetTexture("_BaseMap");
+                Assert.That(clamp.wrapMode, Is.EqualTo(TextureWrapMode.Clamp));
+                Assert.That(repeat.wrapMode, Is.EqualTo(TextureWrapMode.Repeat));
+                Assert.That(clamp, Is.Not.SameAs(repeat));
+                Assert.That(instance.FindMesh(2).sharedMaterial.GetTexture("_BaseMap"), Is.SameAs(repeat));
+                Assert.That(instance.FindMesh(3).sharedMaterial.GetTexture("_BaseMap"), Is.SameAs(clamp));
+                UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                instance = null;
+                Assert.That(clamp == null && repeat == null, Is.True, "Both owned sampler textures must be released");
+            }
+            finally
+            {
+                if (instance != null) UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                UnityEngine.Object.DestroyImmediate(image);
+                QualitySettings.skinWeights = previous;
+            }
+        }
+
+        private sealed class TextureSource : IContentSource
+        {
+            public byte[] Geometry, Image;
+            public byte[] Read(ContentResource resource) { return resource.Id == "image" ? Image : Geometry; }
+        }
+
+        [Test]
         public void SparseMorphSurvivesBinaryAndRejectsDuplicateIndices()
         {
             MeshGeometry geometry = SceneFixtures.Geometry();

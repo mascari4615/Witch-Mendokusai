@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace SceneContent.Unity
 {
+    [ExecuteAlways]
     public sealed class SceneInstance : MonoBehaviour
     {
         [SerializeField] private List<UnityEngine.Object> assets = new List<UnityEngine.Object>();

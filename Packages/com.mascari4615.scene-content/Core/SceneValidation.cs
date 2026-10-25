@@ -64,6 +64,8 @@ namespace SceneContent
                 Vector(material.BaseColor, 4);
                 Vector(material.TextureScale, 2);
                 Vector(material.TextureOffset, 2);
+                if (material.TextureWrap != null && (scene.Version < 2 || (material.TextureWrap != "repeat" && material.TextureWrap != "clamp")))
+                    throw new ArgumentException("Explicit texture wrap requires scene version 2 and a supported mode");
                 Vector(material.Emission, 3);
                 if ((material.LightingModel != "unlit" && material.LightingModel != "lit" && material.LightingModel != "toon") || material.Roughness < 0 || material.Roughness > 1 ||
                     float.IsNaN(material.Roughness) || material.Metallic < 0 || material.Metallic > 1 || float.IsNaN(material.Metallic))
