@@ -49,6 +49,11 @@ jobs:
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File .github/scripts/wm-prune-retention.test.ps1
 
+      - name: Nightly build freshness policy holds
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File .github/scripts/wm-nightly-freshness.test.ps1
+
       # A workflow that fires on another workflow references it BY NAME. Rename the
       # producer and the consumer stops firing - silently, forever, with no error
       # anywhere. Measured 2026-08-06: the build workflow was still called

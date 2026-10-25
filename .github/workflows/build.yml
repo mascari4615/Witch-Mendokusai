@@ -131,13 +131,17 @@ jobs:
           "exe=$($unity.Exe)"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
       # Nightly builds the same commit twice would burn 40 minutes and 3GB for nothing,
       # so compare against the last built sha and stop early when unchanged.
+      # Windows success markers expire at 20h: the runtime gate requires a player
+      # under 26h old, with up to 4h between build-directory creation and success.
       - name: Nightly gate (skip when nothing changed)
         id: gate
         if: github.event_name == 'schedule'
         shell: powershell
         run: |
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
-          $needed = Test-BuildNeeded -BuildRoot $env:BUILD_ROOT -Platform '${{ steps.cfg.outputs.platform }}' -Sha $env:GITHUB_SHA
+          $freshness = @{}
+          if ('${{ steps.cfg.outputs.platform }}' -eq 'windows') { $freshness.MaxAgeHours = 20 }
+          $needed = Test-BuildNeeded -BuildRoot $env:BUILD_ROOT -Platform '${{ steps.cfg.outputs.platform }}' -Sha $env:GITHUB_SHA @freshness
           if (-not $needed) { "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8 }
       # TASK-WM-201 — 진단 자산은 *유니티 실행 전에* 써 둔다.
       # 빌드 도중 에셋을 심고 임포트하면 안드로이드 빌드가 네이티브로 죽는다(4연속 실측,

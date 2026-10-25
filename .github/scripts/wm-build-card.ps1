@@ -610,11 +610,18 @@ function Get-LastBuiltMarker {
 }
 
 function Test-BuildNeeded {
-    param([string]$BuildRoot, [string]$Platform, [string]$Sha)
+    param([string]$BuildRoot, [string]$Platform, [string]$Sha, [double]$MaxAgeHours = 0)
     $marker = Get-LastBuiltMarker -BuildRoot $BuildRoot -Platform $Platform
     if (-not (Test-Path $marker)) { return $true }
     $last = (Get-Content $marker -Raw).Trim()
     if ($last -eq $Sha) {
+        if ($MaxAgeHours -gt 0) {
+            $ageHours = ((Get-Date).ToUniversalTime() - (Get-Item -LiteralPath $marker).LastWriteTimeUtc).TotalHours
+            if ($ageHours -lt 0 -or $ageHours -ge $MaxAgeHours) {
+                Write-Host "nightly rebuild: $Platform success marker age ${ageHours}h (limit ${MaxAgeHours}h)"
+                return $true
+            }
+        }
         Write-Host "nightly skip: $Platform already built at $Sha"
         return $false
     }
