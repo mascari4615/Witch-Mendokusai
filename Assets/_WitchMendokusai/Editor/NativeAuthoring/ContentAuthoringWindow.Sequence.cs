@@ -81,11 +81,15 @@ namespace WitchMendokusai.ContentAuthoring
             ContentLibrary library = new ContentLibrary(EditorPrefs.GetString("WM.ContentLibrary.Directory", directory));
             string sceneFile = library.Import(sequence.Scene, new DirectoryContentSource(Path.GetDirectoryName(Path.GetFullPath(file))));
             RigFiles.Save(sceneFile, RigFiles.Read(file, sequence.Scene));
-            workspace.Load(sceneFile);
+            string clip = sequence.Clips.Length == 1 ? PoseClipJson.Write(sequence.Clips[0]) : null;
+            workspace.Load(sceneFile, (document, instance) =>
+            {
+                if (clip != null) MotionClipPanel.ValidateDraft(clip, 0, document, instance);
+            });
             ShowLoaded();
             if (sequence.Clips.Length == 1)
             {
-                motion.RestoreDraft(PoseClipJson.Write(sequence.Clips[0]), 0, false);
+                motion.RestoreDraft(clip, 0, false);
                 motion.Seek(0);
             }
             WorkspaceRecovery.Clear();

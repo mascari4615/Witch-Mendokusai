@@ -18,6 +18,71 @@ namespace WitchMendokusai.ContentAuthoring.Tests
     public sealed class AuthoringWindowTests
     {
         [Test]
+        public void InvalidSequenceScalarTargetKeepsCurrentWorkspaceAndRecovery()
+        {
+            using (WorkspaceFixture fixture = new WorkspaceFixture())
+            {
+                ContentAuthoringWindow window = fixture.OpenWindow();
+                window.ChangeScene(scene => scene.Nodes[0].Label = "first");
+                window.ChangeScene(scene => scene.Nodes[0].Label = "second");
+                window.UndoSceneChange();
+                window.Motion.Record("root");
+                string firstClip = window.Motion.ExportDraft();
+                window.Motion.Seek(.5f);
+                window.Motion.Record("root");
+                string secondClip = window.Motion.ExportDraft();
+                window.Motion.UndoEdit();
+                string clip = window.Motion.ExportDraft();
+                float seconds = window.Motion.Time;
+                bool changed = window.Motion.HasChanges;
+                UnityEngine.Object instance = window.Workspace.Instance;
+                string originalScene = SceneJson.Write(window.Workspace.Document);
+                window.SaveRecovery();
+                string recoveryFile = Path.GetFullPath(Path.Combine(Application.dataPath, "../Library/ContentAuthoring/recovery.json"));
+                string recovery = File.ReadAllText(recoveryFile);
+                string file = Path.Combine(Path.GetDirectoryName(fixture.OtherFile), "test.sequence.json");
+                string sequencePrefix = "{\"Format\":\"scene-sequence\",\"Version\":1,\"Id\":\"test-sequence\",\"Scene\":" + SceneJson.Write(SceneFiles.Read(fixture.OtherFile)) + ",\"Clips\":[";
+                string invalidClip = "{\"Format\":\"pose-clip\",\"Version\":1,\"Id\":\"invalid-scalar\",\"Duration\":3,\"Loop\":false,\"Tracks\":[],\"Values\":[{\"Target\":\"camera:missing:fov\",\"Keys\":[{\"Time\":0,\"Value\":30}]}]}";
+                string sequence = sequencePrefix + invalidClip + "]}";
+                File.WriteAllText(file, sequence);
+                KeyNotFoundException exception = Assert.Throws<KeyNotFoundException>(() => window.LoadSequence(file));
+                Assert.That(exception.Message, Does.Contain("camera:missing:fov"));
+                Assert.That(window.Workspace.Instance, Is.SameAs(instance));
+                Assert.That(window.Workspace.FilePath, Is.EqualTo(fixture.ActorFile));
+                Assert.That(SceneJson.Write(window.Workspace.Document), Is.EqualTo(originalScene));
+                Assert.That(window.Workspace.CanUndoChange, Is.True);
+                Assert.That(window.Workspace.CanRedoChange, Is.True);
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(clip));
+                Assert.That(window.Motion.Time, Is.EqualTo(seconds));
+                Assert.That(window.Motion.HasChanges, Is.EqualTo(changed));
+                Assert.That(File.ReadAllText(recoveryFile), Is.EqualTo(recovery));
+                Assert.That(File.ReadAllText(file), Is.EqualTo(sequence));
+                window.Motion.RedoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(secondClip));
+                window.Motion.UndoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(firstClip));
+                window.Motion.UndoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.Not.EqualTo(firstClip));
+                window.RedoSceneChange();
+                Assert.That(window.Workspace.Document.Nodes[0].Label, Is.EqualTo("second"));
+                window.UndoSceneChange();
+                window.UndoSceneChange();
+                Assert.That(window.Workspace.Document.Nodes[0].Label, Is.EqualTo("initial"));
+                File.WriteAllText(file, sequencePrefix + secondClip + "]}");
+                window.LoadSequence(file);
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(secondClip));
+                Assert.That(window.Motion.Time, Is.EqualTo(0));
+                Assert.That(window.Motion.HasChanges, Is.False);
+                Assert.That(window.Workspace.CanUndoChange, Is.False);
+                Assert.That(window.Workspace.CanRedoChange, Is.False);
+                window.Motion.UndoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(secondClip));
+                Assert.That(WorkspaceRecovery.Exists, Is.False);
+                fixture.CheckResource(window.Workspace, "other");
+            }
+        }
+
+        [Test]
         public void AddingAnActorPreservesMotionHistoryAndStartsSceneHistory()
         {
             using (WorkspaceFixture fixture = new WorkspaceFixture())
