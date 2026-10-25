@@ -18,6 +18,97 @@ namespace WitchMendokusai.ContentAuthoring.Tests
     public sealed class AuthoringWindowTests
     {
         [Test]
+        public void AddingAnActorPreservesMotionHistoryAndStartsSceneHistory()
+        {
+            using (WorkspaceFixture fixture = new WorkspaceFixture())
+            {
+                ContentAuthoringWindow window = fixture.OpenWindow();
+                window.ChangeScene(scene => scene.Nodes[0].Label = "first");
+                window.ChangeScene(scene => scene.Nodes[0].Label = "second");
+                window.UndoSceneChange();
+                window.Motion.Record("root");
+                string firstClip = window.Motion.ExportDraft();
+                window.Motion.Seek(.5f);
+                window.Workspace.Instance.FindNode("root").localPosition = new Vector3(2, 0, 0);
+                window.Motion.Record("root");
+                string secondClip = window.Motion.ExportDraft();
+                window.Motion.UndoEdit();
+                string clip = window.Motion.ExportDraft();
+                float seconds = window.Motion.Time;
+                bool changed = window.Motion.HasChanges;
+                window.AddActor(fixture.OtherFile);
+                Assert.That(window.Workspace.Document.Nodes.Length, Is.EqualTo(3));
+                Assert.That(window.Workspace.Instance.FindNode("actor-2:root"), Is.Not.Null);
+                Assert.That(window.Workspace.Document.Nodes[0].Label, Is.EqualTo("first"));
+                Assert.That(window.Workspace.CanUndoChange, Is.False);
+                Assert.That(window.Workspace.CanRedoChange, Is.False);
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(clip));
+                Assert.That(window.Motion.Time, Is.EqualTo(seconds));
+                Assert.That(window.Motion.HasChanges, Is.EqualTo(changed));
+                window.Motion.RedoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(secondClip));
+                window.Motion.UndoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(firstClip));
+                window.Motion.UndoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.Not.EqualTo(firstClip));
+                fixture.CheckResource(window.Workspace, "actor");
+                Assert.That(File.ReadAllText(fixture.ActorFile), Is.EqualTo(fixture.ActorOriginal));
+                Assert.That(File.ReadAllText(fixture.ActorRig), Is.EqualTo(fixture.RigOriginal));
+            }
+        }
+
+        [Test]
+        public void AddingAnActorWithInvalidMotionKeepsCurrentWorkspaceAndHistory()
+        {
+            using (WorkspaceFixture fixture = new WorkspaceFixture())
+            {
+                ContentAuthoringWindow window = fixture.OpenWindow();
+                window.ChangeScene(scene => scene.Nodes[0].Label = "first");
+                window.ChangeScene(scene => scene.Nodes[0].Label = "second");
+                window.UndoSceneChange();
+                window.Motion.Record("root");
+                string firstClip = window.Motion.ExportDraft();
+                window.Motion.Seek(.5f);
+                window.Motion.Record("root");
+                string secondClip = window.Motion.ExportDraft();
+                window.Motion.UndoEdit();
+                // Simulate a caller mutating the exposed clip without adding a test assembly dependency.
+                object clip = typeof(MotionClipPanel).GetField("clip", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(window.Motion);
+                Array tracks = (Array)clip.GetType().GetField("Tracks").GetValue(clip);
+                object track = tracks.GetValue(0);
+                FieldInfo node = track.GetType().GetField("Node");
+                node.SetValue(track, "missing");
+                string invalidClip = window.Motion.ExportDraft();
+                string originalScene = SceneJson.Write(window.Workspace.Document);
+                UnityEngine.Object instance = window.Workspace.Instance;
+                float seconds = window.Motion.Time;
+                bool changed = window.Motion.HasChanges;
+                Assert.Throws<InvalidOperationException>(() => window.AddActor(fixture.OtherFile));
+                Assert.That(window.Workspace.Instance, Is.SameAs(instance));
+                Assert.That(window.Workspace.FilePath, Is.EqualTo(fixture.ActorFile));
+                Assert.That(SceneJson.Write(window.Workspace.Document), Is.EqualTo(originalScene));
+                Assert.That(window.Workspace.CanUndoChange, Is.True);
+                Assert.That(window.Workspace.CanRedoChange, Is.True);
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(invalidClip));
+                Assert.That(window.Motion.Time, Is.EqualTo(seconds));
+                Assert.That(window.Motion.HasChanges, Is.EqualTo(changed));
+                node.SetValue(track, "root");
+                window.Motion.RedoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(secondClip));
+                window.Motion.UndoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.EqualTo(firstClip));
+                window.Motion.UndoEdit();
+                Assert.That(window.Motion.ExportDraft(), Is.Not.EqualTo(firstClip));
+                window.RedoSceneChange();
+                Assert.That(window.Workspace.Document.Nodes[0].Label, Is.EqualTo("second"));
+                window.UndoSceneChange();
+                window.UndoSceneChange();
+                Assert.That(window.Workspace.Document.Nodes[0].Label, Is.EqualTo("initial"));
+                fixture.CheckResource(window.Workspace, "actor");
+            }
+        }
+
+        [Test]
         public void FailedRecoveryKeepsSceneMotionHistoryAndDraft()
         {
             using (WorkspaceFixture fixture = new WorkspaceFixture())

@@ -100,9 +100,10 @@ namespace WitchMendokusai.ContentAuthoring
             WorkspaceRecovery.Clear();
         }
 
-        private void ShowLoaded()
+        private void ShowLoaded(bool preserveMotion = false)
         {
-            motion.Bind(workspace, Repaint);
+            if (preserveMotion) motion.RefreshValues();
+            else motion.Bind(workspace, Repaint);
             expressions.Bind(workspace);
             limbs.Bind(workspace, ApplyChange);
             dynamics.Bind(workspace, ApplyChange);
@@ -205,13 +206,10 @@ namespace WitchMendokusai.ContentAuthoring
 
         public void AddActor(string file)
         {
-            string draft = motion.ExportDraft();
-            float seconds = motion.Time;
-            bool changed = motion.HasChanges;
             string combined = WorkspaceComposition.AddActor(workspace, file);
-            workspace.Load(combined);
-            ShowLoaded();
-            motion.RestoreDraft(draft, seconds, changed);
+            workspace.Load(combined, ValidateMotionTargets);
+            if (motion.IsPlaying) motion.TogglePlayback();
+            ShowLoaded(preserveMotion: true);
             message = "Added actor with separate node identities and shared resources.";
             WorkspaceRecovery.Write(workspace, motion);
         }

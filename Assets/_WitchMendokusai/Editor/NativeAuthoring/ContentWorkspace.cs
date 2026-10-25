@@ -32,10 +32,10 @@ namespace WitchMendokusai.ContentAuthoring
             get { return IsLoaded && SceneJson.Write(SceneSnapshot.Capture(Document, Instance)) != baseline; }
         }
 
-        public void Load(string file)
+        public void Load(string file, Action<SceneDocument, SceneInstance> validate = null)
         {
             SceneDocument document = SceneFiles.Read(file);
-            Build(document, file);
+            Build(document, file, validate);
             baseline = SceneJson.Write(SceneSnapshot.Capture(Document, Instance));
             history.Clear();
         }
