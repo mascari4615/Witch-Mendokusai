@@ -9,7 +9,7 @@ using Wardrobe.Serialization;
 namespace WitchMendokusai.ContentAuthoring
 {
     [Serializable]
-    public sealed class WardrobePanel
+    public sealed class WardrobePanel : IDisposable
     {
         private const float MIN_CELL_WIDTH = 96f;
         private const float THUMB_RATIO = 0.8f;
@@ -65,6 +65,11 @@ namespace WitchMendokusai.ContentAuthoring
                 string outfit = wearingOf(document, name);
                 if (outfit != null) worn[name] = outfit;
             }
+        }
+
+        public void Dispose()
+        {
+            ClearThumbs();
         }
 
         private void ClearThumbs()

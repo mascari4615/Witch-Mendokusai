@@ -82,6 +82,7 @@ namespace WitchMendokusai.ContentAuthoring
             motion.Dispose();
             limbs.Dispose();
             dynamics.Dispose();
+            wardrobe.Dispose();
             if (stage != null)
             {
                 stage.Close();
