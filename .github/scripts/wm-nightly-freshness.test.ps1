@@ -2,10 +2,10 @@
 # Run: powershell -NoProfile -ExecutionPolicy Bypass -File .github/scripts/wm-nightly-freshness.test.ps1
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\wm-build-card.ps1"
-$temporaryParent = (Resolve-Path -LiteralPath $env:TEMP).Path
+# Resolve the directory itself: TEMP may end in a separator, unlike Parent.FullName.
+$temporaryParent = (Get-Item -LiteralPath (Join-Path $env:TEMP '.') -Force).FullName
 $fixtureName = 'wm-nightly-test-' + [guid]::NewGuid().ToString('N')
-$root = Join-Path $temporaryParent $fixtureName
-New-Item -ItemType Directory -Path $root | Out-Null
+$root = (New-Item -ItemType Directory -Path (Join-Path $temporaryParent $fixtureName)).FullName
 $script:now = [datetime]::Parse('2026-10-26T00:00:00Z').ToUniversalTime()
 function Get-Date { return $script:now }
 $passed = 0
