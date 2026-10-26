@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -7,6 +8,8 @@ using SceneContent.Serialization;
 using SceneContent.Storage;
 using SceneContent.Unity;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.TestTools;
 
 namespace SceneContent.Tests
 {
@@ -145,6 +148,62 @@ namespace SceneContent.Tests
                 UnityEngine.Object.DestroyImmediate(instance.gameObject);
                 instance = null;
                 Assert.That(textures.All(texture => texture == null), Is.True);
+            }
+            finally
+            {
+                if (instance != null) UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                QualitySettings.skinWeights = previous;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator AuthoredGpuMipBytesPreserveBothExplicitColorPoliciesWithoutRegeneration()
+        {
+            if (!SystemInfo.supportsAsyncGPUReadback)
+                Assert.Ignore("GPU mip byte verification requires AsyncGPUReadback support");
+            SkinWeights previous = QualitySettings.skinWeights;
+            SceneInstance instance = null;
+            try
+            {
+                QualitySettings.skinWeights = SkinWeights.FourBones;
+                byte[] geometry = SceneFixtures.Bytes(), linear = Authored(), srgb = Authored(false);
+                SceneDocument scene = SceneFixtures.Document(geometry);
+                scene.Version = 3;
+                scene.Resources = new[] { scene.Resources[0],
+                    new ContentResource { Id = "linear", Path = "linear.rgba", MediaType = RgbaMipPayload.MediaType, Sha256 = Hash(linear) },
+                    new ContentResource { Id = "srgb", Path = "srgb.rgba", MediaType = RgbaMipPayload.MediaType, Sha256 = Hash(srgb) } };
+                scene.Materials = new SurfaceMaterial[2];
+                scene.Meshes = new MeshInstance[2];
+                for (int index = 0; index < 2; index++)
+                {
+                    scene.Materials[index] = new SurfaceMaterial { BaseColor = new[] { 1f, 1f, 1f, 1f }, BaseColorTexture = index == 0 ? "linear" : "srgb" };
+                    scene.Meshes[index] = new MeshInstance { Node = 0, Geometry = "geometry", RootBone = 1,
+                        Bones = new[] { 1, 2, 3, 4 }, Materials = new[] { index }, MorphWeights = new[] { .5f } };
+                }
+                instance = SceneContentLoader.Load(scene, new AuthoredSource { Geometry = geometry, Linear = linear, Srgb = srgb }, Shader.Find("Universal Render Pipeline/Unlit"));
+                for (int policy = 0; policy < 2; policy++)
+                {
+                    Texture texture = instance.FindMesh(policy).sharedMaterial.GetTexture("_BaseMap");
+                    int offset = 80;
+                    for (int level = 0; level < 3; level++)
+                    {
+                        var request = AsyncGPUReadback.Request(texture, level);
+                        System.Diagnostics.Stopwatch timer = System.Diagnostics.Stopwatch.StartNew();
+                        while (!request.done && timer.Elapsed.TotalSeconds < 5)
+                            yield return null;
+                        Assert.That(request.done, Is.True, "GPU mip readback timed out: policy " + policy + " level " + level);
+                        Assert.That(request.hasError, Is.False, "GPU mip readback failed: policy " + policy + " level " + level);
+                        var data = request.GetData<byte>();
+                        int size = Math.Max(1, 4 >> level) * Math.Max(1, 2 >> level) * 4;
+                        Assert.That(data.Length, Is.EqualTo(size));
+                        byte[] actual = new byte[data.Length];
+                        for (int index = 0; index < actual.Length; index++) actual[index] = data[index];
+                        byte[] expected = (policy == 0 ? linear : srgb).Skip(offset).Take(size).ToArray();
+                        Assert.That(actual, Is.EqualTo(expected), "Authored GPU bytes differ: policy " + policy + " level " + level);
+                        offset += size;
+                    }
+                    Assert.That(offset - 80, Is.EqualTo(44));
+                }
             }
             finally
             {
