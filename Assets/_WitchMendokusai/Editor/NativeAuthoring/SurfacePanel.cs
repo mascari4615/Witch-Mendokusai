@@ -52,7 +52,7 @@ namespace WitchMendokusai.ContentAuthoring
             SurfaceMaterial copy = SceneCloning.CopySurface(surface);
             apply(document =>
             {
-                if (copy.ToonSurface != null || copy.MaterialClass != null || copy.TextureWrap != null) document.Version = 2;
+                if (copy.ToonSurface != null || copy.MaterialClass != null || copy.TextureWrap != null) document.Version = Math.Max(document.Version, 2);
                 document.Materials[index] = copy;
             });
         }

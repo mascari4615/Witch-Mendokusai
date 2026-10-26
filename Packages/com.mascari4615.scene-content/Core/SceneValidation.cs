@@ -7,7 +7,7 @@ namespace SceneContent
     {
         public static void Ensure(SceneDocument scene)
         {
-            if (scene == null || scene.Format != "scene-content" || (scene.Version != 1 && scene.Version != 2) ||
+            if (scene == null || scene.Format != "scene-content" || (scene.Version != 1 && scene.Version != 2 && scene.Version != 3) ||
                 scene.CoordinateFrame != "right-handed-y-up-z-back" || string.IsNullOrEmpty(scene.Id))
                 throw new ArgumentException("Unsupported or missing scene contract");
             if (scene.Nodes == null || scene.Nodes.Length == 0 || scene.Nodes.Length > 100000 ||
@@ -51,7 +51,8 @@ namespace SceneContent
             {
                 if (resource == null || string.IsNullOrEmpty(resource.Id) || resources.ContainsKey(resource.Id) ||
                     string.IsNullOrEmpty(resource.Path) || resource.Sha256 == null || resource.Sha256.Length != 64 ||
-                    (resource.MediaType != "image/png" && resource.MediaType != "application/vnd.native.geometry"))
+                    (resource.MediaType != "image/png" && resource.MediaType != "application/vnd.native.geometry" &&
+                    (scene.Version < 3 || resource.MediaType != RgbaMipPayload.MediaType)))
                     throw new ArgumentException("Invalid resource descriptor");
                 foreach (char character in resource.Sha256)
                     if ((character >= '0' && character <= '9') == false && (character >= 'a' && character <= 'f') == false)
@@ -83,7 +84,12 @@ namespace SceneContent
                 if (material.AlphaMode != "opaque" && material.AlphaMode != "mask" && material.AlphaMode != "blend")
                     throw new ArgumentException("Unsupported alpha mode");
                 if (string.IsNullOrEmpty(material.BaseColorTexture) == false)
-                    RequireResource(resources, material.BaseColorTexture, "image/png");
+                {
+                    ContentResource texture;
+                    if (resources.TryGetValue(material.BaseColorTexture, out texture) == false ||
+                        (texture.MediaType != "image/png" && (scene.Version < 3 || texture.MediaType != RgbaMipPayload.MediaType)))
+                        throw new ArgumentException("Base color texture requires a supported image resource");
+                }
             }
             foreach (MeshInstance mesh in scene.Meshes)
             {

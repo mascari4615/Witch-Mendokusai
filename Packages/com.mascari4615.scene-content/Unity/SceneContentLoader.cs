@@ -44,6 +44,7 @@ namespace SceneContent.Unity
                 Dictionary<string, ContentResource> descriptors = new Dictionary<string, ContentResource>(StringComparer.Ordinal);
                 foreach (ContentResource resource in document.Resources) descriptors.Add(resource.Id, resource);
                 Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
+                Dictionary<string, RgbaMipPayload> mipPayloads = new Dictionary<string, RgbaMipPayload>();
                 Material[] materials = new Material[document.Materials.Length];
                 for (int index = 0; index < materials.Length; index++)
                 {
@@ -51,15 +52,34 @@ namespace SceneContent.Unity
                     Texture2D texture = null;
                     string textureHash = string.IsNullOrEmpty(surface.BaseColorTexture) ? null : descriptors[surface.BaseColorTexture].Sha256;
                     string wrap = surface.TextureWrap ?? "repeat";
-                    string textureKey = textureHash == null ? null : textureHash + ":" + wrap;
+                    ContentResource descriptor = textureHash == null ? null : descriptors[surface.BaseColorTexture];
+                    RgbaMipPayload mip = null;
+                    if (descriptor != null && descriptor.MediaType == RgbaMipPayload.MediaType &&
+                        mipPayloads.TryGetValue(textureHash, out mip) == false)
+                    {
+                        mip = RgbaMipPayload.Read(source.Read(descriptor));
+                        mipPayloads.Add(textureHash, mip);
+                    }
+                    string textureKey = textureHash == null ? null : textureHash + ":" + wrap + ":" +
+                        (mip == null ? "png" : (mip.Linear ? "rgba-linear" : "rgba-srgb"));
                     if (textureKey != null && textures.TryGetValue(textureKey, out texture) == false)
                     {
-                        byte[] image = source.Read(descriptors[surface.BaseColorTexture]);
-                        PngHeader.ValidateDimensions(image);
-                        texture = new Texture2D(2, 2, TextureFormat.RGBA32, true);
-                        instance.Own(texture);
-                        if (ImageConversion.LoadImage(texture, image, true) == false)
-                            throw new ArgumentException("Invalid texture image");
+                        if (mip != null)
+                        {
+                            texture = new Texture2D(mip.Width, mip.Height, TextureFormat.RGBA32, true, mip.Linear);
+                            instance.Own(texture);
+                            texture.LoadRawTextureData(mip.Pixels);
+                            texture.Apply(false, true);
+                        }
+                        else
+                        {
+                            byte[] image = source.Read(descriptor);
+                            PngHeader.ValidateDimensions(image);
+                            texture = new Texture2D(2, 2, TextureFormat.RGBA32, true);
+                            instance.Own(texture);
+                            if (ImageConversion.LoadImage(texture, image, true) == false)
+                                throw new ArgumentException("Invalid texture image");
+                        }
                         texture.wrapMode = wrap == "clamp" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
                         textures.Add(textureKey, texture);
                     }
