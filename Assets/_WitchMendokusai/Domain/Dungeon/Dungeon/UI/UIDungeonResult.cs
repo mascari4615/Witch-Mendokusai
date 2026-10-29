@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using VContainer;
+using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
@@ -12,6 +13,8 @@ namespace WitchMendokusai
 		[SerializeField] private TextMeshProUGUI killCountText;
 		[SerializeField] private TextMeshProUGUI bossKillCountText;
 		[SerializeField] private TextMeshProUGUI nyangText;
+
+		[SerializeField] private Button retryButton;
 
 		// Info
 		private UICardDataGrid cardGrid;
@@ -29,6 +32,8 @@ namespace WitchMendokusai
 
 		public override bool IsFullscreen => true;
 
+		public void Retry() => dungeonManager.Retry();
+
 		public void Continue()
 		{
 			dungeonManager.Continue();
@@ -36,6 +41,7 @@ namespace WitchMendokusai
 
 		protected override void OnInit()
 		{
+			retryButton.onClick.AddListener(Retry);
 			cardGrid = GetComponentInChildren<UICardDataGrid>(true);
 			cardGrid.Init();
 

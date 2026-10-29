@@ -47,8 +47,11 @@ namespace WitchMendokusai
 
 		// Data
 		private readonly List<List<CardData>> cardDataBuffers = new(4) { new(), new(), new(), new() };
-		private List<int> deckIdMapping = new() { 0, 1, 2, 3 };
+		private readonly List<int> deckIdMapping = new();
+		private readonly List<CardData> offeredCards = new();
 		private int curDeckIndex;
+		[SerializeField] private float selectionDelay = 1f;
+		[SerializeField] private int cardsPerChoice = 3;
 
 		// TASK-WM-115 R1 — 카드 선택 UI = 던전전용 (사용자 확정: World 부재=정상).
 		// 구: Init(World Awake) 이 eager Find → 미발견 LogError + Panels 에 null 저장
@@ -100,14 +103,34 @@ namespace WitchMendokusai
 			gameEventManager.RegisterCallback(GameEventType.OnLevelUp, LevelUp);
 		}
 
-	
-			// foreach (UIDeck deckUI in deckUIDic.Values)
-			// 	deckUI.gameObject.SetActive(false);
+		private void OnDisable() => CancelSelection();
+
+		private void OnDestroy()
+		{
+			gameEventManager?.UnregisterCallback(GameEventType.OnLevelUp, LevelUp);
+		}
+
+		public void CancelSelection()
+		{
+			StopAllCoroutines();
+			levelUpStack = 0;
+			curDeckIndex = 0;
+			deckIdMapping.Clear();
+			offeredCards.Clear();
+			SetPanel(CardPanelType.None);
+			if (timeManager != null)
+			{
+				timeManager.Resume(gameObject);
+			}
+			foreach (UIDeck deckUI in deckUIDic.Values)
+			{
+				deckUI.gameObject.SetActive(false);
+			}
+		}
 
 		public void Reset()
 		{
-			SetPanel(CardPanelType.None);
-			timeManager.Resume(gameObject);
+			CancelSelection();
 
 			// ClearCardEffect
 			CardBuffer selectedCardBuffer = soManager.SelectedCardBuffer;
@@ -119,6 +142,10 @@ namespace WitchMendokusai
 
 			// 덱 ID 매핑 초기화
 			List<EquipmentData> equipments = dataManager.GetEquipmentData(dataManager.CurDollID);
+			while (cardDataBuffers.Count < equipments.Count)
+			{
+				cardDataBuffers.Add(new List<CardData>());
+			}
 			for (int i = 0; i < equipments.Count; i++)
 			{
 				if (equipments[i] == null)
@@ -127,17 +154,43 @@ namespace WitchMendokusai
 			}
 		}
 
-		private void ShuffleDeck()
+		private List<CardData> AvailableCards(int deckIndex)
+		{
+			return cardDataBuffers[deckIndex]
+				.Where(card => card != null && card.MaxStack > 0 &&
+					soManager.SelectedCardBuffer.Data.Count(selected => selected.ID == card.ID) < card.MaxStack)
+				.GroupBy(card => card.ID)
+				.Select(group => group.First())
+				.ToList();
+		}
+
+		private bool ShuffleDeck()
 		{
 			List<EquipmentData> equipments = dataManager.GetEquipmentData(dataManager.CurDollID);
-
-			deckIdMapping = deckIdMapping.OrderBy(m => Random.Range(0, 100)).ToList();
+			deckIdMapping.Clear();
+			for (int i = 0; i < equipments.Count; i++)
+			{
+				if (equipments[i] != null && AvailableCards(i).Count > 0)
+				{
+					deckIdMapping.Add(i);
+				}
+			}
+			if (deckIdMapping.Count == 0)
+			{
+				return false;
+			}
+			for (int i = deckIdMapping.Count - 1; i > 0; i--)
+			{
+				int otherIndex = Random.Range(0, i + 1);
+				(deckIdMapping[i], deckIdMapping[otherIndex]) = (deckIdMapping[otherIndex], deckIdMapping[i]);
+			}
 		
 			List<EquipmentData> shuffledEquipments = new(deckIdMapping.Count);
 			foreach (int index in deckIdMapping)
 				shuffledEquipments.Add(equipments[index]);
 		
 			(Panels[CardPanelType.SelectDeck] as UISelectDeck).SetDeckSelectButtons(shuffledEquipments);
+			return true;
 		}
 
 		public void LevelUp()
@@ -154,72 +207,42 @@ namespace WitchMendokusai
 		private IEnumerator StartSelectCard()
 		{
 			timeManager.Pause(gameObject);
-			yield return new WaitForSecondsRealtime(1f);
-			
-			// 선택한 덱에서 카드 뽑기
-			List<CardData> curDeckBuffer = cardDataBuffers[curDeckIndex];
-
-			if (curDeckBuffer.Count == 0)
+			yield return new WaitForSecondsRealtime(selectionDelay);
+			EnsureCardPanels();
+			if (ShuffleDeck() == false)
 			{
-				Debug.LogWarning("Not Enough Card Count");
-				timeManager.Resume(gameObject);
+				CancelSelection();
 				yield break;
 			}
 
-			EnsureCardPanels();
-			ShuffleDeck();
 			SetPanel(CardPanelType.SelectDeck);
 		}
 
 		public void SelectDeck(int selectIndex)
 		{
-			curDeckIndex = deckIdMapping[selectIndex];
-
-			// 선택한 덱에서 카드 뽑기
-			List<CardData> curDeckBuffer = cardDataBuffers[curDeckIndex];
-
-			if (curDeckBuffer.Count == 0)
+			if (CurPanelType != CardPanelType.SelectDeck || selectIndex < 0 || selectIndex >= deckIdMapping.Count)
 			{
-				Debug.LogWarning("Not Enough Card Count");
+				return;
+			}
+			curDeckIndex = deckIdMapping[selectIndex];
+			List<CardData> candidates = AvailableCards(curDeckIndex);
+			if (candidates.Count == 0)
+			{
+				SetPanel(CardPanelType.None);
+				StartCoroutine(StartSelectCard());
 				return;
 			}
 
-			List<CardData> randomCards = new();
-			CardBuffer selectedCardBuffer = soManager.SelectedCardBuffer;
-
-			// HACK:
-			int maxLoop = 100;
-			while (randomCards.Count != 3)
+			offeredCards.Clear();
+			int choiceCount = Math.Min(Math.Max(cardsPerChoice, 1), candidates.Count);
+			for (int i = 0; i < choiceCount; i++)
 			{
-				if (--maxLoop < 0)
-					break;
-
-				int randomIndex = Random.Range(0, curDeckBuffer.Count);
-				CardData randomCard = curDeckBuffer[randomIndex];
-
-				if (randomCards.Contains(randomCard))
-				{
-					// Debug.LogWarning("Already Contains");
-					continue;
-				}
-
-				if (randomCard.MaxStack == 0)
-				{
-					// Debug.LogWarning("MaxStack is 0");
-					continue;
-				}
-
-				if (selectedCardBuffer.Data.Count > 0 &&
-					selectedCardBuffer.Data.Where(m => m.ID == randomCard.ID).Count() >= randomCard.MaxStack)
-				{
-					// Debug.LogWarning($"MaxStack is Full {randomCard.ID} {randomCard.MaxStack}");
-					continue;
-				}
-
-				randomCards.Add(randomCard);
+				int randomIndex = Random.Range(0, candidates.Count);
+				offeredCards.Add(candidates[randomIndex]);
+				candidates.RemoveAt(randomIndex);
 			}
 
-			(Panels[CardPanelType.SelectCard] as UISelectCard).SetCardSelectButtons(randomCards);
+			(Panels[CardPanelType.SelectCard] as UISelectCard).SetCardSelectButtons(offeredCards);
 
 			SetPanel(CardPanelType.SelectCard);
 
@@ -231,7 +254,7 @@ namespace WitchMendokusai
 
 			if (deckUIDic.TryGetValue(equipmentID, out UIDeck targetDeckUI))
 			{
-				targetDeckUI.SetCards(randomCards);
+				targetDeckUI.SetCards(offeredCards);
 				targetDeckUI.UpdateUI();
 				targetDeckUI.gameObject.SetActive(true);
 			}
@@ -239,14 +262,13 @@ namespace WitchMendokusai
 
 		public void SelectCard(CardData card)
 		{
-			RuntimeManager.PlayOneShot("event:/SFX/UI/Click", transform.position);
-
-			if (card == null)
+			if (CurPanelType != CardPanelType.SelectCard || card == null || offeredCards.Contains(card) == false)
 			{
-				Debug.LogWarning("Card is null");
 				return;
 			}
-
+			RuntimeManager.PlayOneShot("event:/SFX/UI/Click", transform.position);
+			offeredCards.Clear();
+			SetPanel(CardPanelType.None);
 			CardBuffer selectedCardBuffer = soManager.SelectedCardBuffer;
 
 			selectedCardBuffer.Add(card);
@@ -267,7 +289,6 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				SetPanel(CardPanelType.None);
 				timeManager.Resume(gameObject);
 			}
 		}

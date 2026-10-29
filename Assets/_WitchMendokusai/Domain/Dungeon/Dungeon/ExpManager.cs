@@ -40,23 +40,34 @@ namespace WitchMendokusai
 			// Debug.Log(nameof(Init) + PlayerStat[StatType.EXP_CUR] + " / " + PlayerStat[StatType.EXP_MAX]);
 		}
 
+		private bool isUpdatingLevel;
+
 		public void UpdateLevel()
 		{
-			// Debug.Log("Try Level Up" + PlayerStat[StatType.EXP_CUR] + " / " + PlayerStat[StatType.EXP_MAX]);
-			if (PlayerStat[UnitStatType.EXP_CUR] >= PlayerStat[UnitStatType.EXP_MAX])
+			if (isUpdatingLevel)
+				return;
+
+			isUpdatingLevel = true;
+			try
 			{
-				// Debug.Log("Level Up");
-				RuntimeManager.PlayOneShot("event:/SFX/LevelUp", transform.position);
+				while (PlayerStat[UnitStatType.EXP_CUR] >= PlayerStat[UnitStatType.EXP_MAX])
+				{
+					int requiredExp = PlayerStat[UnitStatType.EXP_MAX];
+					PlayerStat[UnitStatType.EXP_MAX] += REQUIRE_EXP_INCREMENT;
+					PlayerStat[UnitStatType.LEVEL_CUR]++;
+					PlayerStat[UnitStatType.EXP_CUR] -= requiredExp;
 
-				PlayerStat[UnitStatType.EXP_CUR] -= PlayerStat[UnitStatType.EXP_MAX];
-				PlayerStat[UnitStatType.EXP_MAX] += REQUIRE_EXP_INCREMENT;
-				PlayerStat[UnitStatType.LEVEL_CUR]++;
-				
-				gameEventManager.Raise(GameEventType.OnLevelUp);
+					RuntimeManager.PlayOneShot("event:/SFX/LevelUp", transform.position);
+					gameEventManager.Raise(GameEventType.OnLevelUp);
 
-				GameObject l = objectPoolManager.Spawn(levelUpEffect);
-				l.transform.position = playerProvider.Current.transform.position;
-				l.SetActive(true);
+					GameObject effect = objectPoolManager.Spawn(levelUpEffect);
+					effect.transform.position = playerProvider.Current.transform.position;
+					effect.SetActive(true);
+				}
+			}
+			finally
+			{
+				isUpdatingLevel = false;
 			}
 		}
 	}

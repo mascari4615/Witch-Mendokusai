@@ -91,6 +91,12 @@ namespace WitchMendokusai
 
 		protected override void OnOpen() => SelectDungeon(0);
 
+		protected override void OnClose()
+		{
+			Root.panel?.focusController?.focusedElement?.Blur();
+			Root.GetUIServices()?.Tooltip?.Hide();
+		}
+
 		public override void UpdateUI() => UpdateTooltip();
 
 		public void SelectDungeon(int index)

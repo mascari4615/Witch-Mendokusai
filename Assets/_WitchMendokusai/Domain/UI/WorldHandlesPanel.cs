@@ -42,8 +42,15 @@ namespace WitchMendokusai
 			}
 
 			bool linked = WorldChestBridge.IsActive || WorldNameBridge.IsActive;
-			root.style.display = linked ? DisplayStyle.Flex : DisplayStyle.None;
-			if (linked == false)
+			bool visible = linked && DungeonManagerBridge.IsDungeon == false && GameConditionBridge.Get(GameConditionType.IsViewingUI) == false;
+			if (visible == false && root.style.display != DisplayStyle.None)
+			{
+				VisualElement focused = root.panel?.focusController?.focusedElement as VisualElement;
+				if (focused != null && (focused == root || root.Contains(focused)))
+					focused.Blur();
+			}
+			root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+			if (visible == false)
 				return;
 
 			refreshIn -= Time.unscaledDeltaTime;

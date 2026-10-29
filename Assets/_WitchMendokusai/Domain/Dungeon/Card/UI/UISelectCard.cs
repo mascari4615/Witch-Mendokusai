@@ -38,6 +38,7 @@ namespace WitchMendokusai
 		{
 			for (int i = 0; i < cardSelectButtons.Count; i++)
 			{
+				cardSelectButtons[i].SetActive(i < cardDataList.Count);
 				if (i < cardDataList.Count)
 				{
 					cardSelectButtons[i].SetSlot(cardDataList[i]);

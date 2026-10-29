@@ -18,7 +18,7 @@ namespace WitchMendokusai
 
 		public Dungeon CurDungeon { get; private set; }
 		public DungeonContext Context { get; private set; }
-		public DungeonRecord Result => dungeonRecorder.CaptureResultRecord();
+		public DungeonRecord Result => dungeonRecorder.ResultRecord;
 
 		public bool IsDungeon { get; private set; }
 
@@ -32,6 +32,7 @@ namespace WitchMendokusai
 		private DungeonRecorder dungeonRecorder = null;
 		private DungeonObjectiveStrategy dungeonStrategy = null;
 		private IDisposable dungeonLoopSubscription;
+		private bool isTransitioning;
 
 		private SOManager soManager;
 		private UIManager uiManager;
@@ -94,8 +95,11 @@ namespace WitchMendokusai
 			gameEventManager.RegisterCallback(GameEventType.OnPlayerDied, EndDungeon);
 		}
 
-		public void StartDungeon(Dungeon dungeon)
+		public void StartDungeon(Dungeon dungeon, bool restart = false)
 		{
+			if (IsDungeon || isTransitioning)
+				return;
+			isTransitioning = true;
 			Debug.Log($"{nameof(StartDungeon)} ({dungeon.Name})");
 
 			EnsureDungeonUI();
@@ -108,11 +112,13 @@ namespace WitchMendokusai
 			uiManager.Transition.Transition(
 				aDuringTransition: () =>
 				{
-					stageManager.LoadStage(stage);
+					if (restart == false)
+						stageManager.LoadStage(stage);
 					InitDungeonAndPlayer();
 				},
 				aWhenEnd: () =>
 				{
+					isTransitioning = false;
 					uiManager.StagePopup(stage);
 					// TODO: 던전 Intro?
 				}).Forget();
@@ -184,6 +190,10 @@ namespace WitchMendokusai
 
 		public void EndDungeon()
 		{
+			if (IsDungeon == false)
+				return;
+			IsDungeon = false;
+			cardManager.CancelSelection();
 			Debug.Log($"{nameof(EndDungeon)}");
 
 			// Stop DungeonLoop
@@ -192,15 +202,23 @@ namespace WitchMendokusai
 			monsterSpawner.StopWave();
 			resourceNodeSpawner.StopWave();
 
-			dungeonRecorder.CaptureResultRecord();
-
-			IsDungeon = false;
+			dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR]);
 
 			dungeonUI.SetPanel(DungeonPanelType.DungeonResult);
 		}
 
+		public void Retry()
+		{
+			if (CurDungeon == null || dungeonRecorder == null)
+				return;
+			StartDungeon(CurDungeon, restart: true);
+		}
+
 		public void Continue()
 		{
+			if (IsDungeon || dungeonRecorder == null || isTransitioning)
+				return;
+			isTransitioning = true;
 			// 집으로 돌아가기
 			uiManager.Transition.Transition(
 				aDuringTransition: () =>
@@ -210,6 +228,7 @@ namespace WitchMendokusai
 				},
 				aWhenEnd: () =>
 				{
+					isTransitioning = false;
 					gameEventManager.Raise(GameEventType.OnDungeonReturn);
 				}).Forget();
 

@@ -52,8 +52,6 @@ namespace WitchMendokusai
 			RegisterSlotTaps();
 			SelectSlot(0);
 
-			gameModeManager.OnModeChanged += OnGameModeChanged;
-			OnGameModeChanged(gameModeManager.CurrentMode);
 		}
 
 		private void OnDestroy()
@@ -61,15 +59,14 @@ namespace WitchMendokusai
 			grid?.Unbind();
 			UnregisterInputs();
 
-			if (gameModeManager != null)
-				gameModeManager.OnModeChanged -= OnGameModeChanged;
 		}
 
-		private void OnGameModeChanged(GameMode mode)
+		private void LateUpdate()
 		{
 			if (hotbarContainer == null)
 				return;
-			hotbarContainer.style.display = mode == GameMode.Default ? DisplayStyle.Flex : DisplayStyle.None;
+			bool visible = gameModeManager.CurrentMode == GameMode.Default && GameConditionBridge.Get(GameConditionType.IsViewingUI) == false;
+			hotbarContainer.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
 		}
 
 		private Hotbar Resolve() => hotbar != null ? hotbar : soManager.Hotbar;

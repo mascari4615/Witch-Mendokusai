@@ -38,14 +38,15 @@ namespace WitchMendokusai
 			record.Nyang = dataManager.GameStat[GameStatType.NYANG];
 		}
 
-		public DungeonRecord CaptureResultRecord()
+		public DungeonRecord CaptureResultRecord(int level = 0)
 		{
 			DungeonRecord endRecord = new();
 			SetRecord(ref endRecord);
 
 			DungeonRecord result = new()
 			{
-				PlayTime = endRecord.PlayTime - startRecord.PlayTime,
+				PlayTime = startRecord.PlayTime - endRecord.PlayTime,
+				Level = level,
 				KillCount = endRecord.KillCount - startRecord.KillCount,
 				BossKillCount = endRecord.BossKillCount - startRecord.BossKillCount,
 				Nyang = endRecord.Nyang - startRecord.Nyang
