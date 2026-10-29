@@ -73,7 +73,7 @@ namespace WitchMendokusai
 		private void UpdateTime(TimeSpan timeSpan)
 		{
 			progressBar.fillAmount = 1 - (float)(timeSpan.TotalSeconds / dungeonManager.Context.InitialDungeonTime.TotalSeconds);
-			timeText.text = timeSpan.ToString(@"mm\:ss");
+			timeText.text = timeSpan == TimeSpan.Zero && dungeonManager.CurDungeon.ObjectiveType == DungeonObjectiveType.Boss ? "보스전" : timeSpan.ToString(@"mm\:ss");
 		}
 
 		private void UpdateDifficulty(DungeonDifficulty curDifficulty)
@@ -84,7 +84,7 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				difficultyCircle.fillAmount = (float)(dungeonManager.Context.DungeonCurTime.TotalSeconds % 180f / 180f);
+				difficultyCircle.fillAmount = (float)(dungeonManager.Context.ElapsedTime.TotalSeconds % 180f / 180f);
 			}
 
 			switch (curDifficulty)

@@ -165,6 +165,39 @@ internal static class Program
                 Check(events.Raised == levels, "level notifications mismatched");
             });
         }
+        cases.Add("boss overtime keeps countdown at zero and total time advancing", () =>
+        {
+            DataManager data = new DataManager();
+            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat);
+            for (int i = 0; i < 6020; i++) context.UpdateTime();
+            Check(context.DungeonCurTime == TimeSpan.Zero, "boss countdown became negative");
+            Check(data.DungeonStat[DungeonStatType.DUNGEON_TIME] == 602, "boss overtime disappeared from run time");
+        });
+        cases.Add("late survival difficulty stays within supported hard tier", () =>
+        {
+            DataManager data = new DataManager();
+            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat);
+            for (int i = 0; i < 6000; i++) context.UpdateTime();
+            context.UpdateDifficulty();
+            Check(context.CurDifficulty == DungeonDifficulty.Hard, "ten minute difficulty is outside enum tiers");
+        });
+        cases.Add("result includes time spent fighting after survival countdown", () =>
+        {
+            DataManager data = new DataManager();
+            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat);
+            DungeonRecorder recorder = new DungeonRecorder(new DungeonManager { Context = context }, data);
+            for (int i = 0; i < 6050; i++) context.UpdateTime();
+            Check(recorder.CaptureResultRecord(5).PlayTime == TimeSpan.FromSeconds(605), "boss fight time missing from result");
+        });
+        cases.Add("selection cancellation tolerates a released deck view", () =>
+        {
+            Fixture fixture = new Fixture(Equipment(0, Card(10)));
+            fixture.Manager.LevelUp();
+            Dictionary<int, UIDeck> views = (Dictionary<int, UIDeck>)typeof(CardManager).GetField("deckUIDic", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fixture.Manager);
+            views[0] = null;
+            fixture.Manager.CancelSelection();
+            Check(fixture.Pending == 0 && fixture.Time.Paused == false, "released view blocked cleanup");
+        });
         foreach (KeyValuePair<string, Action> testCase in cases)
         {
             try { testCase.Value(); Console.WriteLine("PASS " + testCase.Key); }

@@ -75,7 +75,7 @@ namespace WitchMendokusai
 			// 굳이 처리할 waveInstance까지는 전달받지 않아도 된다.
 			MonsterWaveInstance waveInstance = waves[waveIndex];
 
-			TimeSpan dungeonTime = dungeonManager.Context.InitialDungeonTime - dungeonManager.Context.DungeonCurTime;
+			TimeSpan dungeonTime = dungeonManager.Context.ElapsedTime;
 			DungeonDifficulty curDifficulty = dungeonManager.Context.CurDifficulty;
 
 			if (dungeonTime < TimeSpan.FromSeconds(waveInstance.Data.StartTime))

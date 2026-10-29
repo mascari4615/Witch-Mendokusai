@@ -74,7 +74,7 @@ namespace WitchMendokusai
 			if (CurPanelType.Equals(newPanelType))
 				return;
 
-			if (Panels.TryGetValue(CurPanelType, out IUIPanel oldPanel))
+			if (Panels.TryGetValue(CurPanelType, out IUIPanel oldPanel) && oldPanel != null && oldPanel.Equals(null) == false)
 			{
 				oldPanel.SetActive(false);
 			}

@@ -18,6 +18,7 @@ namespace WitchMendokusai
 		public List<DungeonConstraint> Constraints { get; private set; } = new();
 		public DungeonDifficulty CurDifficulty { get; private set; } = DungeonDifficulty.Easy;
 		public TimeSpan InitialDungeonTime { get; private set; } = new(0, 0, 15, 0, 0);
+		public TimeSpan ElapsedTime { get; private set; } = TimeSpan.Zero;
 		public TimeSpan DungeonCurTime { get; private set; } = new(0, 0, 15, 0, 0);
 
 		private readonly DungeonStat dungeonStat;
@@ -32,13 +33,14 @@ namespace WitchMendokusai
 
 		public void UpdateTime()
 		{
-			DungeonCurTime -= TimeUpdateInterval;
-			dungeonStat[DungeonStatType.DUNGEON_TIME] = (int)(InitialDungeonTime.TotalSeconds - DungeonCurTime.TotalSeconds);
+			ElapsedTime += TimeUpdateInterval;
+			DungeonCurTime = InitialDungeonTime > ElapsedTime ? InitialDungeonTime - ElapsedTime : TimeSpan.Zero;
+			dungeonStat[DungeonStatType.DUNGEON_TIME] = (int)ElapsedTime.TotalSeconds;
 		}
 
 		public void UpdateDifficulty()
 		{
-			CurDifficulty = (DungeonDifficulty)((InitialDungeonTime - DungeonCurTime).TotalMinutes / 3);
+			CurDifficulty = (DungeonDifficulty)Math.Min((int)DungeonDifficulty.Hard, (int)(ElapsedTime.TotalMinutes / 3));
 		}
 	}
 }

@@ -32,7 +32,7 @@ namespace WitchMendokusai
 		{
 			DungeonContext dungeonContext = dungeonManager.Context;
 
-			record.PlayTime = dungeonContext.DungeonCurTime;
+			record.PlayTime = dungeonContext.ElapsedTime;
 			record.KillCount = dataManager.DungeonStat[DungeonStatType.MONSTER_KILL];
 			record.BossKillCount = dataManager.DungeonStat[DungeonStatType.BOSS_KILL];
 			record.Nyang = dataManager.GameStat[GameStatType.NYANG];
@@ -45,7 +45,7 @@ namespace WitchMendokusai
 
 			DungeonRecord result = new()
 			{
-				PlayTime = startRecord.PlayTime - endRecord.PlayTime,
+				PlayTime = endRecord.PlayTime - startRecord.PlayTime,
 				Level = level,
 				KillCount = endRecord.KillCount - startRecord.KillCount,
 				BossKillCount = endRecord.BossKillCount - startRecord.BossKillCount,

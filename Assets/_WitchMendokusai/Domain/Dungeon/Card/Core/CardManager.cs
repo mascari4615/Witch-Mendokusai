@@ -124,7 +124,8 @@ namespace WitchMendokusai
 			}
 			foreach (UIDeck deckUI in deckUIDic.Values)
 			{
-				deckUI.gameObject.SetActive(false);
+				if (deckUI != null)
+					deckUI.gameObject.SetActive(false);
 			}
 		}
 
@@ -250,7 +251,8 @@ namespace WitchMendokusai
 			int equipmentID = equipmentData[curDeckIndex].ID;
 
 			foreach (UIDeck deckUI in deckUIDic.Values)
-				deckUI.gameObject.SetActive(false);
+				if (deckUI != null)
+					deckUI.gameObject.SetActive(false);
 
 			if (deckUIDic.TryGetValue(equipmentID, out UIDeck targetDeckUI))
 			{
