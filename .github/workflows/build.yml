@@ -42,21 +42,7 @@ on:
   push:
     tags:
       - 'v[0-9]*'
-  # 밤에 알아서 굽는다. 정각을 피한 건 전 세계 크론이 몰리는 시각이라서.
-  #   03:23 KST (18:23 UTC) 는 안드로이드. 아침에 폰으로 바로 설치할 수 있게.
-  #   05:23 KST (20:23 UTC) 는 윈도우. 런타임 게이트의 재료.
-  #
-  # 왜 둘인가 (실측 2026-08-06): 런타임 스모크(부팅, 2인 접속)는 최근 26시간 안의 윈도우
-  #   빌드를 실행해야 도는데, 야간 빌드는 안드로이드만 구웠다. 사람이 손으로 윈도우
-  #   빌드를 걸지 않으면 그 게이트는 하루가 지나는 순간 빨개진다. 그것도
-  #   "야간 빌드가 안 나온다" 는 엉뚱한 메시지로. 노트북은 그 시간대에 놀고 있고,
-  #   바뀐 게 없으면 아래 게이트가 건너뛴다.
-  # 2026-08-16 ~ 08-30 배치 빌드가 매일 Access Violation 으로 죽었다. 에디터 6000.5.9f1 로
-  #   올린 뒤 3회 연속 통과해서 cron 을 되살렸다. 다시 죽으면 memo/wm/systems/release.md 의
-  #   검증 절을 보고 cron 을 끄고 원인부터 잰다.
-  schedule:
-    - cron: '23 18 * * *'
-    - cron: '23 20 * * *'
+  # Scheduled player builds disabled; manual dispatch and release tags retained.
 
 concurrency:
   # 그룹은 하나여야 한다 — 노트북 한 대에서 같은 프로젝트 폴더를 쓰므로 두 빌드가
@@ -249,6 +235,10 @@ jobs:
           if ($result.ExitCode -ne 0) {
             if (Test-Path $result.UnityLog) { Get-Content $result.UnityLog -Tail 120 | Write-Host }
             throw "Unity build failed (exit=$($result.ExitCode)). log: $($result.UnityLog)"
+          }
+          if ($platform -eq 'windows') {
+            . "$env:GITHUB_WORKSPACE\.github\scripts\wm-player-firewall.ps1"
+            Set-WmPlayerFirewall -Program (Join-Path $result.OutDir 'WitchMendokusai.exe')
           }
           Save-BuiltMarker -BuildRoot $env:BUILD_ROOT -Platform $platform -Sha $env:GITHUB_SHA
 
