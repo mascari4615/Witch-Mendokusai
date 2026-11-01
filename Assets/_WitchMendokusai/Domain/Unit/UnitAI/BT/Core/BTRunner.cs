@@ -9,15 +9,16 @@ namespace WitchMendokusai
 		// 화면 가로 한복판. 유닛이 화면 어느 쪽 절반에 있는지를 가르는 기준.
 		protected const float VIEWPORT_CENTER_X = 0.5f;
 
-		private readonly Node rootNode;
+		private Node rootNode;
+		// 파생 생성자의 대기 시간과 의존성 초기화 뒤 한 번만 행동트리 생성
+		private Node RootNode => rootNode ??= MakeNode();
 		protected UnitObject unitObject;
 		protected PlayerProvider playerProvider;
 
-		public bool CanChangeState => rootNode.State == BTState.Success || rootNode.State == BTState.Failure;
+		public bool CanChangeState => RootNode.State == BTState.Success || RootNode.State == BTState.Failure;
 
 		public BTRunner(UnitObject unitObject)
 		{
-			rootNode = MakeNode();
 			this.unitObject = unitObject;
 		}
 
@@ -34,7 +35,7 @@ namespace WitchMendokusai
 		
 		public BTState UpdateBT()
 		{
-			return rootNode.UpdateBT();
+			return RootNode.UpdateBT();
 		}
 	}
 }
