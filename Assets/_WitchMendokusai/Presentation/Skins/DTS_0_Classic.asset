@@ -13,16 +13,15 @@ MonoBehaviour:
   m_Name: DTS_0_Classic
   m_EditorClassIdentifier: WM.Presentation::WitchMendokusai.Presentation.DamageTextSkin
   <SkinId>k__BackingField: classic
-  <Font>k__BackingField: {fileID: 12800000, guid: bd8884ab213bad048ababd46b67d534a, type: 3}
+  <TextPrefab>k__BackingField: {fileID: 4697300371457149707, guid: 71c2164e18f3b9a4d87a5951d3caf40d, type: 3}
   <FontSize>k__BackingField: 25
-  <CriticalScale>k__BackingField: 1.3
-  <NormalColor>k__BackingField: {r: 1, g: 0.96, b: 0.82, a: 1}
-  <CriticalColor>k__BackingField: {r: 1, g: 0.71, b: 0.24, a: 1}
-  <HealColor>k__BackingField: {r: 0.48, g: 1, b: 0.56, a: 1}
-  <HurtColor>k__BackingField: {r: 1, g: 0.34, b: 0.3, a: 1}
-  <OutlineColor>k__BackingField: {r: 0.08, g: 0.05, b: 0.1, a: 1}
-  <OutlineWidth>k__BackingField: 2
+  <CriticalScale>k__BackingField: 1
+  <CriticalPrefix>k__BackingField: "\uD06C\uB9AC\uD2F0\uCEEC!\n"
+  <NormalColor>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+  <CriticalColor>k__BackingField: {r: 1, g: 0.43137255, b: 0.3372549, a: 1}
+  <HealColor>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+  <WarningColor>k__BackingField: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   <Lifetime>k__BackingField: 0.85
   <Rise>k__BackingField: 42
-  <LaneSpacing>k__BackingField: 48
+  <LaneSpacing>k__BackingField: 64
   <ImpactScale>k__BackingField: 1.24

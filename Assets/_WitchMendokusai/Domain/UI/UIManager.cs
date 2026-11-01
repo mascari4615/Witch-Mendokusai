@@ -228,6 +228,7 @@ namespace WitchMendokusai
 			container.Inject(chestStorageView);
 			floatingText = uiRootGameObject.AddComponent<FloatingTextView>();
 			container.Inject(floatingText);
+			floatingText.SetCanvas(BaseCanvas);
 			SpeechBubble = uiRootGameObject.AddComponent<SpeechBubbleView>();
 			container.Inject(SpeechBubble);
 			// DialogueRunner — SceneLifetimeScope.RegisterComponentOnNewGameObject 추출. 여기서 AddComponent X.

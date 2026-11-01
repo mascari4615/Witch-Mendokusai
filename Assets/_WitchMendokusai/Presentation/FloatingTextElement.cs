@@ -45,7 +45,7 @@ namespace WitchMendokusai.Presentation
 			Add(label);
 		}
 
-		public void Show(FloatingTextKind kind, string message, DamageTextSkin skin = null)
+		public void Show(FloatingTextKind kind, string message)
 		{
 			activation?.Pause();
 			style.opacity = StyleKeyword.Null;
@@ -63,7 +63,6 @@ namespace WitchMendokusai.Presentation
 			int variant = Mathf.Clamp((int)kind, 0, VARIANT_CLASSES.Length - 1);
 			AddToClassList(VARIANT_CLASSES[variant]);
 			label.text = message;
-			skin?.Apply(label, kind);
 
 			RemoveFromClassList(USS_ACTIVE);
 			activation = schedule.Execute(() => AddToClassList(USS_ACTIVE)).StartingIn(0);
@@ -80,13 +79,6 @@ namespace WitchMendokusai.Presentation
 			style.top = position.y + offset.y;
 		}
 
-		public void SetProgress(float progress, DamageTextSkin skin)
-		{
-			float impact = skin != null ? skin.ImpactScale : 1.24f;
-			float scale = Mathf.Lerp(impact, 1f, Mathf.Clamp01(progress / 0.18f));
-			style.scale = new Scale(new Vector3(scale, scale, 1f));
-			style.opacity = 1f - Mathf.Clamp01((progress - 0.65f) / 0.35f);
-		}
 
 		public void Hide()
 		{
