@@ -75,13 +75,12 @@ Shader "WitchMendokusai/BillboardShader"
             CBUFFER_START(UnityPerMaterial)
                 half4 _MainTex_ST;
                 float4 _Color;
+                float _Cutoff;
+                float4 _EmissionColor;
+                float _Emission;
+                float3 _RotateVector;
+                float _BillboardMode;
             CBUFFER_END
-
-            float _Cutoff;
-            float4 _EmissionColor;
-            float _Emission;
-            float3 _RotateVector;
-            float _BillboardMode;
 
             v2f vert(appdata v)
             {

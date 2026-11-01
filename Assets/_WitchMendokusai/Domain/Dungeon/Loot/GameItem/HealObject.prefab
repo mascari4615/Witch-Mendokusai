@@ -229,6 +229,7 @@ GameObject:
   - component: {fileID: 7734458163694823398}
   - component: {fileID: -7745759019293435587}
   - component: {fileID: 5758404937766944858}
+  - component: {fileID: 5800396770785419467}
   m_Layer: 0
   m_Name: HealObject
   m_TagString: Untagged
@@ -287,6 +288,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
+  pickupDistance: 0.3
   useBezierCurve: 0
   healAmount: 3
 --- !u!95 &5758404937766944858
@@ -311,6 +313,18 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &5800396770785419467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2678269809200631940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 040dd685ef626fa4bb47dbffe8e0f113, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.PoolingObject
 --- !u!1 &2919773747203697454
 GameObject:
   m_ObjectHideFlags: 0

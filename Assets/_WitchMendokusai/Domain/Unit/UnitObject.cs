@@ -53,7 +53,6 @@ namespace WitchMendokusai
 
 		protected virtual void Awake()
 		{
-			SpriteRenderer.material.SetFloat("_Emission", 0);
 			BindComponents();
 		}
 
