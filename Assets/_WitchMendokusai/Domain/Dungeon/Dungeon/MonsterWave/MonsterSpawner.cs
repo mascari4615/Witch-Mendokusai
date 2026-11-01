@@ -26,6 +26,7 @@ namespace WitchMendokusai
 		private readonly List<MonsterWaveInstance> waves = new();
 		[SerializeField] private float spawnDelay = .2f;
 		[SerializeField] private Vector2 spawnDistanceRange = new(10f, 15f);
+		[SerializeField] private float despawnDistance = 50f;
 
 		private DungeonManager dungeonManager;
 		private PlayerProvider playerProvider;
@@ -55,8 +56,26 @@ namespace WitchMendokusai
 
 		public void UpdateWaves()
 		{
+			RetireDistantMonsters();
 			for (int i = waves.Count - 1; i >= 0; i--)
 				UpdateWave(i);
+		}
+
+		private void RetireDistantMonsters()
+		{
+			Vector3 playerPosition = playerProvider.Current.transform.position;
+			float maxDistanceSquared = despawnDistance * despawnDistance;
+			List<GameObject> monsters = ObjectBufferManager.GetObjects(ObjectType.Monster);
+			for (int i = monsters.Count - 1; i >= 0; i--)
+			{
+				GameObject obj = monsters[i];
+				if (obj == null || obj.TryGetComponent(out MonsterObject monster) == false || monster.UnitData == null)
+					continue;
+				if (monster.UnitData.Type == MonsterType.Boss)
+					continue;
+				if ((obj.transform.position - playerPosition).sqrMagnitude > maxDistanceSquared)
+					obj.SetActive(false);
+			}
 		}
 
 		private void UpdateWave(int waveIndex)
