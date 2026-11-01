@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 20000001
   <Name>k__BackingField: "\uB3C4\uAE68\uBE44\uBD88"
-  <Description>k__BackingField: "\uC8FC\uC704\uB97C \uD68C\uC804\uD558\uB294 \uB3C4\uAE68\uBE44\uBD88\uC744
-    \uC18C\uD658\uD55C\uB2E4"
+  <Description>k__BackingField: "\uC8FC\uC704\uB97C \uD68C\uC804\uD558\uB294 \uB3C4\uAE68\uBE44\uBD88\uC744 \uC18C\uD658\uD55C\uB2E4"
   <Sprite>k__BackingField: {fileID: -1274367604, guid: 7ee3e373daba7f346a0660f6b7ae5b00, type: 3}
   <Sprites>k__BackingField: []
   <Grade>k__BackingField: 0
@@ -29,6 +28,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 93b494ebdbc4fcc42a853b6c1b234d29, type: 2}
   - {fileID: 11400000, guid: 00b6e0c75868af149bc9f2900d84c48e, type: 2}
   - {fileID: 11400000, guid: f2f771b5136798d47b73dd767b8b69ef, type: 2}
+  - {fileID: 11400000, guid: e98472199054ae34095fdd6ac31a594b, type: 2}
   <Effects>k__BackingField: []
   <Object>k__BackingField: {fileID: 2589627418613272440, guid: 0818743ea3f81814398df98a38c121f3, type: 3}
   <EquipmentType>k__BackingField: 0
+  <ActCostScale>k__BackingField: 1

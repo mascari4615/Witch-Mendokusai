@@ -14,6 +14,7 @@ namespace WitchMendokusai
 		[SerializeField] private float aimPollDelay = 0.1f;
 		// 공격속도 보너스 1스택이 쿨타임을 깎는 비율.
 		[SerializeField] private float attackSpeedBonusPerStack = 0.2f;
+		[SerializeField, Min(0.01f)] private float minimumCoolTime = 0.15f;
 		[SerializeField] private GameObject bulletPrefab;
 		[SerializeField] private GameObject swordPrefab;
 #pragma warning disable CS0414 // 칼 회전 미구현 예약 필드
@@ -23,8 +24,6 @@ namespace WitchMendokusai
 		private readonly List<Transform> swordTransforms = new();
 		private float coolTime;
 		private int damageBonus;
-
-		private Coroutine loop;
 
 		private PlayerProvider playerProvider;
 		private ObjectPoolManager objectPoolManager;
@@ -45,24 +44,22 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
+			PlayerStat.AddListener(UnitStatType.SWORD_COUNT, UpdateSword);
+			PlayerStat.AddListener(UnitStatType.SWORD_DAMAGE_BONUS, UpdateDamageBonus);
+			PlayerStat.AddListener(UnitStatType.SWORD_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 			UpdateSword(PlayerStat[UnitStatType.SWORD_COUNT]);
 			UpdateDamageBonus(PlayerStat[UnitStatType.SWORD_DAMAGE_BONUS]);
 			UpdateAttackSpeedBonus(PlayerStat[UnitStatType.SWORD_ATTACK_SPEED_BONUS]);
 
-			loop = StartCoroutine(Loop());
+			StartCoroutine(Loop());
 		}
 
 		private void OnDisable()
 		{
-			if (loop != null)
-				StopCoroutine(loop);
-		}
-
-		private void Start()
-		{
-			PlayerStat.AddListener(UnitStatType.SWORD_COUNT, UpdateSword);
-			PlayerStat.AddListener(UnitStatType.SWORD_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.AddListener(UnitStatType.SWORD_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
+			StopAllCoroutines();
+			PlayerStat.RemoveListener(UnitStatType.SWORD_COUNT, UpdateSword);
+			PlayerStat.RemoveListener(UnitStatType.SWORD_DAMAGE_BONUS, UpdateDamageBonus);
+			PlayerStat.RemoveListener(UnitStatType.SWORD_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 		}
 
 		private void Update()
@@ -165,7 +162,7 @@ namespace WitchMendokusai
 
 		private void UpdateAttackSpeedBonus(int attackSpeedBonus)
 		{
-			coolTime = originCoolTime * (1 - attackSpeedBonus * attackSpeedBonusPerStack);
+			coolTime = Mathf.Max(minimumCoolTime, originCoolTime * (1 - attackSpeedBonus * attackSpeedBonusPerStack));
 		}
 	}
 }

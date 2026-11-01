@@ -158,7 +158,7 @@ namespace WitchMendokusai
 		private List<CardData> AvailableCards(int deckIndex)
 		{
 			return cardDataBuffers[deckIndex]
-				.Where(card => card != null && card.MaxStack > 0 &&
+				.Where(card => card != null && card.MaxStack > 0 && card.MeetsRequirements(soManager.SelectedCardBuffer.Data) &&
 					soManager.SelectedCardBuffer.Data.Count(selected => selected.ID == card.ID) < card.MaxStack)
 				.GroupBy(card => card.ID)
 				.Select(group => group.First())

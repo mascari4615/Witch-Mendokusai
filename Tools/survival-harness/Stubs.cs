@@ -44,6 +44,9 @@ namespace UnityEngine
     }
     [AttributeUsage(AttributeTargets.Field)]
     public sealed class SerializeField : Attribute { }
+    public sealed class Header : Attribute { public Header(string title) { } }
+    public sealed class MinAttribute : Attribute { public MinAttribute(float value) { } }
+    public sealed class CreateAssetMenuAttribute : Attribute { public string fileName; public string menuName; }
     public sealed class WaitForSecondsRealtime { public WaitForSecondsRealtime(float seconds) { } }
     public static class Debug { public static void LogWarning(string message) { } }
     public static class Random
@@ -74,7 +77,8 @@ namespace WitchMendokusai
         }
     }
     public sealed class DungeonManager { public DungeonContext Context; }
-    public class CardData { public int ID; public int MaxStack = 1; }
+    public class DataSO { public int ID; }
+    public struct EffectInfo { }
     public class EquipmentData { public int ID; public List<CardData> EffectCards = new List<CardData>(); }
     public class CardBuffer
     {

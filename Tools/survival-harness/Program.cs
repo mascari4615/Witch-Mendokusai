@@ -29,7 +29,12 @@ internal static class Program
 
     private static EquipmentData Equipment(int id, params CardData[] cards)
         => new EquipmentData { ID = id, EffectCards = new List<CardData>(cards) };
-    private static CardData Card(int id, int maximum = 1) => new CardData { ID = id, MaxStack = maximum };
+    private static CardData Card(int id, int maximum = 1)
+    {
+        CardData card = new CardData { ID = id };
+        typeof(CardData).GetProperty(nameof(CardData.MaxStack)).SetValue(card, maximum);
+        return card;
+    }
     private static void Check(bool condition, string message)
     {
         if (condition == false) { throw new InvalidOperationException(message); }
@@ -197,6 +202,46 @@ internal static class Program
             views[0] = null;
             fixture.Manager.CancelSelection();
             Check(fixture.Pending == 0 && fixture.Time.Paused == false, "released view blocked cleanup");
+        });
+        cases.Add("advanced card unlocks only after every prerequisite", () =>
+        {
+            CardData count = Card(400, 10);
+            CardData damage = Card(401, 100);
+            CardData advanced = Card(410);
+            advanced.Requirements.Add(new CardData.Requirement { Card = count, Stack = 3 });
+            advanced.Requirements.Add(new CardData.Requirement { Card = damage, Stack = 2 });
+            Fixture fixture = new Fixture(Equipment(0, count, damage, advanced));
+            fixture.Data.SelectedCardBuffer.Add(count);
+            fixture.Data.SelectedCardBuffer.Add(count);
+            fixture.Data.SelectedCardBuffer.Add(count);
+            fixture.Data.SelectedCardBuffer.Add(damage);
+            fixture.Offer();
+            fixture.Manager.SelectDeck(0);
+            Check(fixture.Cards.Offered.Contains(advanced) == false, "missing prerequisite ignored");
+            fixture.Manager.CancelSelection();
+            fixture.Data.SelectedCardBuffer.Add(damage);
+            fixture.Offer();
+            fixture.Manager.SelectDeck(0);
+            Check(fixture.Cards.Offered.Contains(advanced), "eligible advanced card not offered");
+            fixture.Manager.SelectCard(advanced);
+            fixture.Offer();
+            fixture.Manager.SelectDeck(0);
+            Check(fixture.Cards.Offered.Contains(advanced) == false, "one-time card offered twice");
+            fixture.Manager.Reset();
+            fixture.Offer();
+            fixture.Manager.SelectDeck(0);
+            Check(fixture.Cards.Offered.Contains(advanced) == false, "previous run unlock leaked");
+        });
+        cases.Add("locked-only decks release selection and invalid requirements stay locked", () =>
+        {
+            CardData locked = Card(410);
+            locked.Requirements.Add(new CardData.Requirement { Card = Card(400), Stack = 1 });
+            Fixture fixture = new Fixture(Equipment(0, locked));
+            fixture.Offer();
+            Check(fixture.Pending == 0 && fixture.Time.Paused == false, "locked deck trapped level selection");
+            locked.Requirements.Clear();
+            locked.Requirements.Add(new CardData.Requirement { Card = null, Stack = 1 });
+            Check(locked.MeetsRequirements(fixture.Data.SelectedCardBuffer.Data) == false, "broken asset unlocked");
         });
         foreach (KeyValuePair<string, Action> testCase in cases)
         {

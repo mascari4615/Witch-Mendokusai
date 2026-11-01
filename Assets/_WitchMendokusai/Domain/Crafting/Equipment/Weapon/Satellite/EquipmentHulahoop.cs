@@ -27,18 +27,22 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
+			PlayerStat.AddListener(UnitStatType.SATELLITE_COUNT, UpdateSatellite);
+			PlayerStat.AddListener(UnitStatType.SATELLITE_ROTATE_SPEED_BONUS, UpdateRotationSpeed);
+			PlayerStat.AddListener(UnitStatType.SATELLITE_DAMAGE_BONUS, UpdateDamageBonus);
+			PlayerStat.AddListener(UnitStatType.SATELLITE_SCALE_BONUS, UpdateSatelliteScale);
 			UpdateSatellite();
 			UpdateRotationSpeed();
 			UpdateDamageBonus();
 			UpdateSatelliteScale();
 		}
 
-		private void Start()
+		private void OnDisable()
 		{
-			PlayerStat.AddListener(UnitStatType.SATELLITE_COUNT, UpdateSatellite);
-			PlayerStat.AddListener(UnitStatType.SATELLITE_ROTATE_SPEED_BONUS, UpdateRotationSpeed);
-			PlayerStat.AddListener(UnitStatType.SATELLITE_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.AddListener(UnitStatType.SATELLITE_SCALE_BONUS, UpdateSatelliteScale);
+			PlayerStat.RemoveListener(UnitStatType.SATELLITE_COUNT, UpdateSatellite);
+			PlayerStat.RemoveListener(UnitStatType.SATELLITE_ROTATE_SPEED_BONUS, UpdateRotationSpeed);
+			PlayerStat.RemoveListener(UnitStatType.SATELLITE_DAMAGE_BONUS, UpdateDamageBonus);
+			PlayerStat.RemoveListener(UnitStatType.SATELLITE_SCALE_BONUS, UpdateSatelliteScale);
 		}
 
 		private void Update()
@@ -56,9 +60,9 @@ namespace WitchMendokusai
 		{
 			int satelliteCount = 1 + PlayerStat[UnitStatType.SATELLITE_COUNT];
 
-			if (transform.childCount < satelliteCount)
+			if (satellites.Count < satelliteCount)
 			{
-				int diff = satelliteCount - transform.childCount;
+				int diff = satelliteCount - satellites.Count;
 				for (int i = 0; i < diff; i++)
 				{
 					GameObject g = objectPoolManager.Spawn(satellitePrefab);
@@ -77,6 +81,9 @@ namespace WitchMendokusai
 			{
 				transform.GetChild(i).transform.localRotation = Quaternion.Euler(Vector3.up * (delta * i));
 			}
+			// 수 증가로 새로 생긴 위성에도 이미 선택한 강화 적용
+			UpdateDamageBonus();
+			UpdateSatelliteScale();
 		}
 
 		private void UpdateRotationSpeed()

@@ -8,8 +8,32 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "C_", menuName = "WM/Variable/" + nameof(CardData))]
 	public class CardData : DataSO
 	{
+		[System.Serializable]
+		public struct Requirement
+		{
+			public CardData Card;
+			[Min(1)] public int Stack;
+		}
+
 		[field: Header("_" + nameof(CardData))]
-		[field: SerializeField] public List<EffectInfo> Effects { get; private set; }
+		[field: SerializeField] public List<EffectInfo> Effects { get; private set; } = new();
 		[field: SerializeField] public int MaxStack { get; private set; } = 5;
+		[field: SerializeField] public List<Requirement> Requirements { get; private set; } = new();
+
+		public bool MeetsRequirements(IReadOnlyList<CardData> selectedCards)
+		{
+			foreach (Requirement requirement in Requirements)
+			{
+				if (requirement.Card == null || requirement.Stack < 1)
+					return false;
+				int count = 0;
+				foreach (CardData selected in selectedCards)
+					if (selected.ID == requirement.Card.ID)
+						count++;
+				if (count < requirement.Stack)
+					return false;
+			}
+			return true;
+		}
 	}
 }

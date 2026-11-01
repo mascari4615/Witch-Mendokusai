@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../Assets/_WitchMendokusai/Domain/Dungeon/Card/Core/CardManager.cs" Link="CardManager.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Dungeon/Card/Core/CardData.cs" Link="CardData.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Domain/Dungeon/Dungeon/DungeonContext.cs" Link="DungeonContext.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Domain/Dungeon/Dungeon/DungeonRecorder.cs" Link="DungeonRecorder.cs" />
   <Compile Include="../../Assets/_WitchMendokusai/Domain/Dungeon/Dungeon/ExpManager.cs" Link="ExpManager.cs" /></ItemGroup>
