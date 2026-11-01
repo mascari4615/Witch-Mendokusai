@@ -33,6 +33,7 @@ namespace WitchMendokusai
 		private DungeonObjectiveStrategy dungeonStrategy = null;
 		private IDisposable dungeonLoopSubscription;
 		private bool isTransitioning;
+		private Vector3 dungeonSpawnPosition;
 
 		private SOManager soManager;
 		private UIManager uiManager;
@@ -113,7 +114,14 @@ namespace WitchMendokusai
 				aDuringTransition: () =>
 				{
 					if (restart == false)
+					{
 						stageManager.LoadStage(stage);
+						dungeonSpawnPosition = playerProvider.CurrentObject.transform.position;
+					}
+					else
+					{
+						playerProvider.CurrentObject.UnitMovement.Teleport(dungeonSpawnPosition);
+					}
 					InitDungeonAndPlayer();
 				},
 				aWhenEnd: () =>

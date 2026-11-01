@@ -94,7 +94,7 @@ namespace WitchMendokusai
 
 					if (shouldDamage)
 					{
-						damageable.ReceiveDamage(CalcDamage());
+						unitHealth.Unit.ReceiveDamage(CalcDamage());
 						if (useHitCount)
 						{
 							if (--curHitCount <= 0)
