@@ -243,6 +243,44 @@ internal static class Program
             locked.Requirements.Add(new CardData.Requirement { Card = null, Stack = 1 });
             Check(locked.MeetsRequirements(fixture.Data.SelectedCardBuffer.Data) == false, "broken asset unlocked");
         });
+        cases.Add("choice preview tracks each prerequisite without spending the choice", () =>
+        {
+            CardData count = Card(400, 10);
+            count.Name = "검 수";
+            count.Description = "검 수 +1";
+            CardData damage = Card(401, 100);
+            damage.Name = "검 피해";
+            CardData advanced = Card(410);
+            advanced.Name = "검의 공명";
+            advanced.Requirements.Add(new CardData.Requirement { Card = count, Stack = 3 });
+            advanced.Requirements.Add(new CardData.Requirement { Card = damage, Stack = 2 });
+            List<CardData> selected = new List<CardData> { count, count, damage };
+            List<CardData> deck = new List<CardData> { count, damage, advanced };
+            string preview = CardChoiceText.Description(count, selected, deck, true);
+            Check(preview.Contains("강화 2 → 3 / 10회"), "next stack missing");
+            Check(preview.Contains("검의 공명 조건 3 → 4 / 5회"), "unlock projection missing");
+            Check(preview.Contains("검 피해: 현재 1/2회"), "other prerequisite missing");
+            Check(selected.Count == 3 && advanced.MeetsRequirements(selected) == false, "preview spent a choice");
+            selected.Add(count);
+            Check(CardChoiceText.Description(count, selected, deck).Contains("조건 4 → 4 / 5회"), "surplus count bypassed damage requirement");
+            Check(CardChoiceText.Description(damage, selected, deck).Contains("조건 4 → 5 / 5회"), "finishing choice not explained");
+            selected.Add(damage);
+            selected.Add(advanced);
+            Check(CardChoiceText.Description(count, selected, deck).Contains("검의 공명") == false, "spent advanced hint remained");
+            selected.Clear();
+            Check(CardChoiceText.Description(count, selected, deck).Contains("조건 0 → 1 / 5회"), "new run retained old progress");
+        });
+        cases.Add("choice preview handles unrelated and invalid unlocks", () =>
+        {
+            CardData card = Card(10, 5);
+            CardData invalid = Card(410);
+            invalid.Name = "invalid";
+            invalid.Requirements.Add(new CardData.Requirement { Card = card, Stack = 1 });
+            invalid.Requirements.Add(new CardData.Requirement { Card = null, Stack = 1 });
+            string preview = CardChoiceText.Description(card, null, new List<CardData> { null, invalid });
+            Check(preview.Contains("강화 0 → 1 / 5회") && preview.Contains("invalid") == false, "invalid unlock advertised");
+            Check(CardChoiceText.Description(null, null, null) == string.Empty, "empty slot retained text");
+        });
         foreach (KeyValuePair<string, Action> testCase in cases)
         {
             try { testCase.Value(); Console.WriteLine("PASS " + testCase.Key); }

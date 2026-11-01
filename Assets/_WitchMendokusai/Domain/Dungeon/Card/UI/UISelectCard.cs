@@ -34,19 +34,19 @@ namespace WitchMendokusai
 			}
 		}
 		
-		public void SetCardSelectButtons(List<CardData> cardDataList)
+		public void SetCardSelectButtons(List<CardData> cardDataList, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards)
 		{
 			for (int i = 0; i < cardSelectButtons.Count; i++)
 			{
 				cardSelectButtons[i].SetActive(i < cardDataList.Count);
 				if (i < cardDataList.Count)
 				{
-					cardSelectButtons[i].SetSlot(cardDataList[i]);
+					cardSelectButtons[i].SetChoice(cardDataList[i], selectedCards, deckCards);
 					cardSelectButtons[i].UpdateUI();
 				}
 				else
 				{
-					cardSelectButtons[i].SetSlot(null);
+					cardSelectButtons[i].SetChoice(null, selectedCards, deckCards);
 				}
 			}
 		}

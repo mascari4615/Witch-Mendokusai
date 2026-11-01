@@ -516,7 +516,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3755209544143403908, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
       propertyPath: usePopupToolTip
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4001887075631167021, guid: 12b57324ed53feb4f851f133fc7a6d87, type: 3}
       propertyPath: m_Pivot.x

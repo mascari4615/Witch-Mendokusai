@@ -77,7 +77,7 @@ namespace WitchMendokusai
         }
     }
     public sealed class DungeonManager { public DungeonContext Context; }
-    public class DataSO { public int ID; }
+    public class DataSO { public int ID; public string Name; public string Description; }
     public struct EffectInfo { }
     public class EquipmentData { public int ID; public List<CardData> EffectCards = new List<CardData>(); }
     public class CardBuffer
@@ -132,7 +132,7 @@ namespace WitchMendokusai
         public List<CardData> Offered;
         public void Init(CardManager manager) { }
         public void SetActive(bool active) { }
-        public void SetCardSelectButtons(List<CardData> cards) => Offered = cards;
+        public void SetCardSelectButtons(List<CardData> cards, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards) => Offered = cards;
     }
     public sealed class UIDeck
     {

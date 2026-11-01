@@ -8,6 +8,7 @@
     <AnalysisLevel>none</AnalysisLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Dungeon/Card/UI/CardChoiceText.cs" Link="CardChoiceText.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Domain/Dungeon/Card/Core/CardManager.cs" Link="CardManager.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Domain/Dungeon/Card/Core/CardData.cs" Link="CardData.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Domain/Dungeon/Dungeon/DungeonContext.cs" Link="DungeonContext.cs" />

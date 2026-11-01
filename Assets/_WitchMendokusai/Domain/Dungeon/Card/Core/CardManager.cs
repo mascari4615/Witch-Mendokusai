@@ -243,7 +243,8 @@ namespace WitchMendokusai
 				candidates.RemoveAt(randomIndex);
 			}
 
-			(Panels[CardPanelType.SelectCard] as UISelectCard).SetCardSelectButtons(offeredCards);
+			(Panels[CardPanelType.SelectCard] as UISelectCard).SetCardSelectButtons(
+				offeredCards, soManager.SelectedCardBuffer.Data, cardDataBuffers[curDeckIndex]);
 
 			SetPanel(CardPanelType.SelectCard);
 
