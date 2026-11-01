@@ -30,8 +30,9 @@ namespace WitchMendokusai
 			SetBaseDeps(timeManager, unitStatCalculator, objectPoolManager, playerProvider);
 		}
 
-		protected virtual void OnEnable()
+		protected override void OnEnable()
 		{
+			base.OnEnable();
 			SpriteRenderer.sharedMaterial = UnitData.Material;
 			ObjectBufferManager.AddObject(ObjectType.Monster, gameObject);
 			hpBar.localScale = Vector3.one;
@@ -41,8 +42,9 @@ namespace WitchMendokusai
 			Health.OnDied += HandleDeathEffects;
 		}
 
-		protected virtual void OnDisable()
+		protected override void OnDisable()
 		{
+			base.OnDisable();
 			ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
 			StopAllCoroutines();
 			hpBar.gameObject.SetActive(false);

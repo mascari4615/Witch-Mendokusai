@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,7 +6,7 @@ namespace WitchMendokusai
 {
 	// skillIndex는 unitObject의 skill 슬롯 번호(0, 1, 2, ...)를 의미함.
 	// skillIndex는 skillID가 아님에 주의
-	public class SkillHandler
+	public class SkillHandler : IDisposable
 	{
 		/// <summary> Key : SkillIndex </summary>
 		public readonly Dictionary<int, Skill> skillDic = new();
@@ -29,6 +30,11 @@ namespace WitchMendokusai
 			for (int i = 0; i < unitObject.UnitData.DefaultSkills.Length; i++)
 				SetSkill(i, unitObject.UnitData.DefaultSkills[i]);
 			unitObject.UnitStat.AddListener(UnitStatType.COOLTIME_BONUS, UpdateCooltimeBonus);
+		}
+
+		public void Dispose()
+		{
+			unitObject.UnitStat.RemoveListener(UnitStatType.COOLTIME_BONUS, UpdateCooltimeBonus);
 		}
 
 		public void SetSkill(int skillIndex, SkillData skill)

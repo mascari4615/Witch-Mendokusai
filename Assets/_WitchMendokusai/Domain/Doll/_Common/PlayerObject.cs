@@ -91,14 +91,16 @@ namespace WitchMendokusai
 			base.ReceiveDamage(damageInfo);
 		}
 
-		private void OnEnable()
+		protected override void OnEnable()
 		{
+			base.OnEnable();
 			Health.OnTakeDamage += HandleDamageEffects;
 			Health.OnDied += HandleDeathEffects;
 		}
 
-		private void OnDisable()
+		protected override void OnDisable()
 		{
+			base.OnDisable();
 			Health.OnTakeDamage -= HandleDamageEffects;
 			Health.OnDied -= HandleDeathEffects;
 		}

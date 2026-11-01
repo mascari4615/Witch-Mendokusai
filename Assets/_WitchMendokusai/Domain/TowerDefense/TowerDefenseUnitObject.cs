@@ -61,14 +61,16 @@ namespace WitchMendokusai
 			UpdateHpBar();
 		}
 
-		protected virtual void OnEnable()
+		protected override void OnEnable()
 		{
+			base.OnEnable();
 			Health.OnDied += HandleDeath;
 			Health.OnTakeDamage += HandleDamaged;
 		}
 
-		protected virtual void OnDisable()
+		protected override void OnDisable()
 		{
+			base.OnDisable();
 			Health.OnDied -= HandleDeath;
 			Health.OnTakeDamage -= HandleDamaged;
 		}

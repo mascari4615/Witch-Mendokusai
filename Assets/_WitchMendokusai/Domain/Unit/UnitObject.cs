@@ -67,6 +67,28 @@ namespace WitchMendokusai
 			if (UnitData != null)
 				Init(UnitData);
 		}
+
+		protected virtual void OnEnable()
+		{
+			if (SkillHandler != null)
+				timeManager.RegisterCallback(SkillHandler.Tick);
+		}
+
+		protected virtual void OnDisable()
+		{
+			if (SkillHandler != null)
+				timeManager.RemoveCallback(SkillHandler.Tick);
+		}
+
+		protected virtual void OnDestroy()
+		{
+			if (SkillHandler != null)
+			{
+				if (timeManager != null)
+					timeManager.RemoveCallback(SkillHandler.Tick);
+				SkillHandler.Dispose();
+			}
+		}
 		
 		private void BindComponents()
 		{
@@ -90,10 +112,12 @@ namespace WitchMendokusai
 			if (SkillHandler != null)
 			{
 				timeManager.RemoveCallback(SkillHandler.Tick);
+				SkillHandler.Dispose();
 			}
 			SkillHandler = new(this, playerProvider, objectPoolManager);
 			SkillHandler.AutoCastEnabled = autoCastEnabled;
-			timeManager.RegisterCallback(SkillHandler.Tick);
+			if (isActiveAndEnabled)
+				timeManager.RegisterCallback(SkillHandler.Tick);
 
 			UnitStat.Set(UnitData.InitStatInfos.GetUnitStat());
 			UpdateStat();
