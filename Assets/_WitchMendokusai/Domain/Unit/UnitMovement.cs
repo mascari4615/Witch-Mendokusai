@@ -55,6 +55,10 @@ namespace WitchMendokusai
 
 		// Hit-stop — motor tick skip 동안 victim 만 멈춤. timescale 안 건드림.
 		private float pauseRemaining;
+		private float accumulatedSimulationTime;
+		private const float SIMULATION_INTERVAL_EPSILON = 0.00001f;
+		public float SimulationInterval { get; private set; }
+		public float LastSimulationDeltaTime { get; private set; }
 
 		private System.Collections.Generic.HashSet<Collider> currentHits = new();
 		private System.Collections.Generic.HashSet<Collider> previousHits = new();
@@ -144,6 +148,9 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
+			accumulatedSimulationTime = 0f;
+			SimulationInterval = 0f;
+			LastSimulationDeltaTime = 0f;
 			UpdateLookDirection(Vector3.right);
 			unitObject.UnitStat[UnitStatType.IS_JUMPING] = 0;
 			jumpContributor?.Reset(IsGrounded());
@@ -153,9 +160,17 @@ namespace WitchMendokusai
 		{
 			if (pauseRemaining > 0f)
 			{
+				accumulatedSimulationTime = 0f;
 				pauseRemaining -= Time.fixedDeltaTime;
 				return;
 			}
+
+			accumulatedSimulationTime += Time.fixedDeltaTime;
+			if (accumulatedSimulationTime + SIMULATION_INTERVAL_EPSILON < SimulationInterval)
+				return;
+			float deltaTime = accumulatedSimulationTime;
+			accumulatedSimulationTime = 0f;
+			LastSimulationDeltaTime = deltaTime;
 
 			System.Collections.Generic.HashSet<Collider> temp = previousHits;
 			previousHits = currentHits;
@@ -171,7 +186,7 @@ namespace WitchMendokusai
 				unitObject.UnitStat[UnitStatType.IS_CROUCHING] = posture.IsCrouching ? 1 : 0;
 			}
 
-			motor.Tick(Time.fixedDeltaTime);
+			motor.Tick(deltaTime);
 
 			if (jumpContributor.HasPendingLanded)
 			{
@@ -182,6 +197,9 @@ namespace WitchMendokusai
 		}
 
 		public void SetMoveDirection(Vector3 input) => SetMoveDirection(new Vector2(input.x, input.z));
+
+		// 화면 밖 이동도 누적 시간만큼 진행. 0은 원래의 매 물리 tick 갱신.
+		public void SetSimulationInterval(float interval) => SimulationInterval = Mathf.Max(0f, interval);
 
 		public void SetMoveDirection(Vector2 input) => SetInputDirection(input.normalized);
 
@@ -288,6 +306,7 @@ namespace WitchMendokusai
 
 		public void Teleport(Vector3 position)
 		{
+			accumulatedSimulationTime = 0f;
 			CancelMovementInput();
 			externalImpulse.Cancel();
 			Traversal.Reset();

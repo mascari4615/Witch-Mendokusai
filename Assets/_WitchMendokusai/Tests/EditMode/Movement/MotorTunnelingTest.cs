@@ -22,6 +22,40 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public sealed class MotorTunnelingTest
 	{
+		[TestCase(0.02f)]
+		[TestCase(0.1f)]
+		public void AccumulatedStepTime_PreservesTravelDistance(float interval)
+		{
+			using (MotorTestHarness harness = new(new Vector3(0f, 0f, 0f).ToUnity()))
+			{
+				harness.AddGround(new Vector3(0f, -0.5f, 0f).ToUnity(), new Vector3(20f, 1f, 20f).ToUnity());
+				harness.AddContributor(new ConstantHorizontalContributor(harness));
+				harness.AddContributor(new GravityContributor());
+				harness.SetHorizontalIntent(Vector3.forward.ToUnity(), 2f);
+				for (int i = 0; i < Mathf.RoundToInt(1f / interval); i++)
+					harness.Step(interval);
+				Assert.That(harness.Position.z, Is.EqualTo(2f).Within(0.02f));
+				Assert.That(harness.IsGrounded, Is.True);
+			}
+		}
+
+		[TestCase(0.02f)]
+		[TestCase(0.1f)]
+		public void AccumulatedStepTime_DoesNotTunnelThroughWall(float interval)
+		{
+			using (MotorTestHarness harness = new(new Vector3(0f, 0f, -1f).ToUnity()))
+			{
+				harness.AddGround(new Vector3(0f, -0.5f, 0f).ToUnity(), new Vector3(20f, 1f, 20f).ToUnity());
+				harness.AddGround(new Vector3(0f, 1.5f, 0.5f).ToUnity(), new Vector3(20f, 3f, 1f).ToUnity());
+				harness.AddContributor(new ConstantHorizontalContributor(harness));
+				harness.AddContributor(new GravityContributor());
+				harness.SetHorizontalIntent(Vector3.forward.ToUnity(), 50f);
+				harness.Step(interval);
+				Assert.That(harness.Position.z, Is.LessThan(0f));
+				Assert.That(harness.IsOverlappingGeometry(), Is.False);
+			}
+		}
+
 		private const float GROUND_TOP_Y = 0f;
 		private const float WALL_Z = 0f;
 

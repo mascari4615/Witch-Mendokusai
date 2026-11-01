@@ -27,6 +27,9 @@ namespace WitchMendokusai
 		[SerializeField] private float spawnDelay = .2f;
 		[SerializeField] private Vector2 spawnDistanceRange = new(10f, 15f);
 		[SerializeField] private float despawnDistance = 50f;
+		[SerializeField, Min(0f)] private float visibilityPadding = 2f;
+		[SerializeField, Min(0f)] private float offscreenMovementInterval = 0.1f;
+		private readonly Plane[] visibilityPlanes = new Plane[6];
 
 		private DungeonManager dungeonManager;
 		private PlayerProvider playerProvider;
@@ -63,6 +66,10 @@ namespace WitchMendokusai
 
 		private void RetireDistantMonsters()
 		{
+			Camera camera = Camera.main;
+			bool useVisibility = camera != null && dungeonManager.CurDungeon.MapType == DungeonMapType.SurvivorsLike;
+			if (useVisibility)
+				GeometryUtility.CalculateFrustumPlanes(camera, visibilityPlanes);
 			Vector3 playerPosition = playerProvider.Current.transform.position;
 			float maxDistanceSquared = despawnDistance * despawnDistance;
 			List<GameObject> monsters = ObjectBufferManager.GetObjects(ObjectType.Monster);
@@ -72,9 +79,20 @@ namespace WitchMendokusai
 				if (obj == null || obj.TryGetComponent(out MonsterObject monster) == false || monster.UnitData == null)
 					continue;
 				if (monster.UnitData.Type == MonsterType.Boss)
+				{
+					monster.UnitMovement.SetSimulationInterval(0f);
 					continue;
+				}
 				if ((obj.transform.position - playerPosition).sqrMagnitude > maxDistanceSquared)
+				{
 					obj.SetActive(false);
+					continue;
+				}
+
+				Bounds bounds = monster.SpriteRenderer.bounds;
+				bounds.Expand(visibilityPadding * 2f);
+				bool fullRate = useVisibility == false || GeometryUtility.TestPlanesAABB(visibilityPlanes, bounds);
+				monster.UnitMovement.SetSimulationInterval(fullRate ? 0f : offscreenMovementInterval);
 			}
 		}
 
@@ -163,6 +181,9 @@ namespace WitchMendokusai
 		{
 			Debug.Log(nameof(StopWave));
 			StopAllCoroutines();
+			foreach (GameObject obj in ObjectBufferManager.GetObjects(ObjectType.Monster))
+				if (obj != null && obj.TryGetComponent(out MonsterObject monster))
+					monster.UnitMovement.SetSimulationInterval(0f);
 		}
 	}
 }
