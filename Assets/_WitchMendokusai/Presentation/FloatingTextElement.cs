@@ -32,6 +32,7 @@ namespace WitchMendokusai.Presentation
 		};
 
 		private readonly Label label;
+		private IVisualElementScheduledItem activation;
 
 		public FloatingTextElement()
 		{
@@ -44,8 +45,16 @@ namespace WitchMendokusai.Presentation
 			Add(label);
 		}
 
-		public void Show(FloatingTextKind kind, string message)
+		public void Show(FloatingTextKind kind, string message, DamageTextSkin skin = null)
 		{
+			activation?.Pause();
+			style.opacity = StyleKeyword.Null;
+			style.scale = StyleKeyword.Null;
+			label.style.unityFontDefinition = StyleKeyword.Null;
+			label.style.fontSize = StyleKeyword.Null;
+			label.style.color = StyleKeyword.Null;
+			label.style.unityTextOutlineColor = StyleKeyword.Null;
+			label.style.unityTextOutlineWidth = StyleKeyword.Null;
 			for (int index = 0; index < VARIANT_CLASSES.Length; index++)
 			{
 				RemoveFromClassList(VARIANT_CLASSES[index]);
@@ -53,26 +62,35 @@ namespace WitchMendokusai.Presentation
 
 			int variant = Mathf.Clamp((int)kind, 0, VARIANT_CLASSES.Length - 1);
 			AddToClassList(VARIANT_CLASSES[variant]);
-			label.text = kind == FloatingTextKind.Critical ? "크리티컬!\n" + message : message;
+			label.text = message;
+			skin?.Apply(label, kind);
 
 			RemoveFromClassList(USS_ACTIVE);
-			schedule.Execute(() => AddToClassList(USS_ACTIVE)).StartingIn(0);
+			activation = schedule.Execute(() => AddToClassList(USS_ACTIVE)).StartingIn(0);
 		}
 
-		public void SetScreenPosition(Vector3 screenPosition)
+		public void SetScreenPosition(Vector3 screenPosition, Vector2 offset = default)
 		{
-			Rect box = panel?.visualTree != null ? panel.visualTree.worldBound : Rect.zero;
-			float panelWidth = box.width > 0f ? box.width : Screen.width;
-			float panelHeight = box.height > 0f ? box.height : Screen.height;
-			float screenWidth = Mathf.Max(1f, Screen.width);
-			float screenHeight = Mathf.Max(1f, Screen.height);
+			Vector2 position = new Vector2(screenPosition.x, Screen.height - screenPosition.y);
+			if (panel != null)
+				position = RuntimePanelUtils.ScreenToPanel(panel, position);
+			if (parent != null)
+				position = parent.WorldToLocal(position);
+			style.left = position.x + offset.x;
+			style.top = position.y + offset.y;
+		}
 
-			style.left = screenPosition.x * panelWidth / screenWidth;
-			style.top = (screenHeight - screenPosition.y) * panelHeight / screenHeight;
+		public void SetProgress(float progress, DamageTextSkin skin)
+		{
+			float impact = skin != null ? skin.ImpactScale : 1.24f;
+			float scale = Mathf.Lerp(impact, 1f, Mathf.Clamp01(progress / 0.18f));
+			style.scale = new Scale(new Vector3(scale, scale, 1f));
+			style.opacity = 1f - Mathf.Clamp01((progress - 0.65f) / 0.35f);
 		}
 
 		public void Hide()
 		{
+			activation?.Pause();
 			RemoveFromClassList(USS_ACTIVE);
 			style.display = DisplayStyle.None;
 		}

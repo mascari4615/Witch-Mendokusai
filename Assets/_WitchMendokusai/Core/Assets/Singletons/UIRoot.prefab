@@ -68,5 +68,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d7e8f0102030405060708a9b0c1d2e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UIRoot
-  dontDestroyOnLoad: 0
   styleSheet: {fileID: 7433441132597879392, guid: c3d4e5f60718293a4b5c6d7e8f010203, type: 3}
+  <DamageTextSkin>k__BackingField: {fileID: 11400000, guid: 90f627fb9672f3f4dab6c00ed47b6de2, type: 2}

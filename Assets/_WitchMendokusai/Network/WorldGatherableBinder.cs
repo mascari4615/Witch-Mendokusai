@@ -46,6 +46,13 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
+			if (CanGatherHere() == false)
+			{
+				foreach (Transform body in bodies.Values)
+					if (body != null && body.gameObject.activeSelf)
+						body.gameObject.SetActive(false);
+				return;
+			}
 			// 문이 늦게 열릴 수 있다 — 사용 시점에 다시 묻는다(init-order-ok: lazy resolve).
 			if (link == null)
 				link = Net.WorldDoor.Current;
@@ -73,6 +80,7 @@ namespace WitchMendokusai
 					bodies[node.id] = body;
 				}
 
+				body.gameObject.SetActive(true);
 				body.position = new Vector3(node.x, BODY_HEIGHT * 0.5f, node.z);
 				Paint(body, WithinReach(node));
 			}
@@ -97,7 +105,7 @@ namespace WitchMendokusai
 		/// <summary>가장 가까운 것을 줍는다 — 정말 줍히는지는 세계가 본다(멀면 아무 일도 안 일어난다).</summary>
 		private void GatherNearest()
 		{
-			if (link == null)
+			if (link == null || CanGatherHere() == false)
 				return;
 
 			GatherableView[] alive = link.Gatherables;
@@ -119,6 +127,9 @@ namespace WitchMendokusai
 
 			link.RequestGather(nearestId);
 		}
+
+		private static bool CanGatherHere() => GameConditionBridge.Get(GameConditionType.IsInDungeon) == false
+			&& GameConditionBridge.Get(GameConditionType.IsViewingUI) == false;
 
 		private bool WithinReach(GatherableView node) => DistanceToMe(node) <= REACH;
 

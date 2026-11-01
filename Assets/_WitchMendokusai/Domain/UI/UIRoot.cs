@@ -31,6 +31,7 @@ namespace WitchMendokusai
 		}
 
 		[SerializeField] private StyleSheet styleSheet;
+		[field: SerializeField] public WitchMendokusai.Presentation.DamageTextSkin DamageTextSkin { get; private set; }
 
 		private InputManager inputManager;
 		private HoldingManager holdingManager;
@@ -60,6 +61,7 @@ namespace WitchMendokusai
 		public VisualElement WindowsLayer { get; private set; }
 		public VisualElement ScreenLayer { get; private set; }
 		public VisualElement HudLayer { get; private set; }
+		public VisualElement CombatTextLayer { get; private set; }
 
 		/// <summary> 모드 전용 HUD(개척 핫바 등) — 본편 HUD 위, 사람이 여는 창 아래. </summary>
 		public VisualElement ModeHudLayer { get; private set; }
@@ -116,6 +118,7 @@ namespace WitchMendokusai
 			if (styleSheet != null && root.styleSheets.Contains(styleSheet) == false)
 				root.styleSheets.Add(styleSheet);
 
+			CombatTextLayer = MakeLayer("CombatTextLayer", PickingMode.Ignore);
 			HudLayer = MakeLayer("HudLayer", PickingMode.Ignore);
 			ModeHudLayer = MakeLayer("ModeHudLayer", PickingMode.Ignore);
 			WindowsLayer = MakeLayer("WindowsLayer", PickingMode.Ignore);
@@ -125,6 +128,8 @@ namespace WitchMendokusai
 
 			// ★ 붙이는 순서가 곧 층 순서다 — 위 § 문서의 1~6 과 *반드시* 같아야 한다.
 			//   여기 한 줄을 옮기면 화면 전체의 위아래가 바뀐다.
+			// 전투 숫자는 HUD와 모든 창 아래, 월드 위에만 표시
+			root.Add(CombatTextLayer);
 			root.Add(HudLayer);
 			root.Add(ModeHudLayer);
 			root.Add(WindowsLayer);

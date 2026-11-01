@@ -250,13 +250,13 @@ namespace WitchMendokusai
 			PanelGroups.Add(ui);
 		}
 
-		public void PopDamage(DamageInfo damageInfo, Vector3 pos = default)
+		public void PopDamage(DamageInfo damageInfo, Vector3? pos = null, ulong targetId = 0)
 		{
 			TextType textType = DamageUtil.DamageTypeToTextType(damageInfo.type);
-			StartCoroutine(floatingText.AniTextUI(textType, damageInfo.damage.ToString(), pos));
+			StartCoroutine(floatingText.AniTextUI(textType, damageInfo.damage.ToString(), pos, targetId));
 		}
 
-		public void PopText(string msg, TextType textType, Vector3 pos = default)
+		public void PopText(string msg, TextType textType, Vector3? pos = null)
 		{
 			StartCoroutine(floatingText.AniTextUI(textType, msg, pos));
 		}

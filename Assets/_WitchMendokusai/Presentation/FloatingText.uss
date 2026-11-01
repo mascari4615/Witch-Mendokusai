@@ -2,26 +2,27 @@
 	position: absolute;
 	translate: -50% -50%;
 	opacity: 0;
-	scale: 0.6 0.6;
-	transition-property: opacity, scale, translate;
-	transition-duration: 0.18s;
-	transition-timing-function: ease-out-cubic;
+	scale: 1.24 1.24;
+	white-space: nowrap;
 }
 
 .wm-floating-text--active {
 	opacity: 1;
 	scale: 1 1;
-	translate: -50% -120%;
+	translate: -50% -50%;
 }
 
 .wm-floating-text Label {
 	-unity-text-align: middle-center;
-	-unity-font-style: bold;
-	font-size: 22px;
+	-unity-font-definition: url("../Fonts/갈무리/Galmuri11-Bold.ttf");
+	-unity-font-style: normal;
+	-unity-text-outline-color: rgb(20, 13, 26);
+	-unity-text-outline-width: 2px;
+	font-size: 25px;
 }
 
 .wm-floating-text--normal Label { color: rgb(255, 255, 255); }
-.wm-floating-text--critical Label { color: rgb(255, 106, 78); font-size: 26px; }
+.wm-floating-text--critical Label { color: rgb(255, 181, 61); font-size: 33px; }
 .wm-floating-text--heal Label { color: rgb(120, 220, 130); }
 .wm-floating-text--exp Label { color: rgb(174, 204, 255); font-size: 16px; }
 .wm-floating-text--warning Label { color: rgb(255, 230, 80); }

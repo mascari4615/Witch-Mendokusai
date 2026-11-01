@@ -9145,6 +9145,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: '[Image] BlurBackground'
       objectReference: {fileID: 0}
+    - target: {fileID: 8032688271025280391, guid: dcf44d804db58fa44a0d262b26907198, type: 3}
+      propertyPath: m_Color.a
+      value: 0.82
+      objectReference: {fileID: 0}
+    - target: {fileID: 8032688271025280391, guid: dcf44d804db58fa44a0d262b26907198, type: 3}
+      propertyPath: m_Color.b
+      value: 0.065
+      objectReference: {fileID: 0}
+    - target: {fileID: 8032688271025280391, guid: dcf44d804db58fa44a0d262b26907198, type: 3}
+      propertyPath: m_Color.g
+      value: 0.045
+      objectReference: {fileID: 0}
+    - target: {fileID: 8032688271025280391, guid: dcf44d804db58fa44a0d262b26907198, type: 3}
+      propertyPath: m_Color.r
+      value: 0.035
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

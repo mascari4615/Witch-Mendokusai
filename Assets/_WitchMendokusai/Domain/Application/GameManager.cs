@@ -156,6 +156,7 @@ namespace WitchMendokusai
 				{ GameConditionType.IsBuilding, () => false },
 				{ GameConditionType.IsInTransition, () => UITransition.IsInTransition },
 				{ GameConditionType.IsViewingUI, () => false },
+				{ GameConditionType.IsInDungeon, () => DungeonManagerBridge.IsDungeon },
 				// 씬 의존 — BindSceneDependencies 에서 gameModeManager 파생으로 교체 (IsBuilding 대칭, TASK-WM-165 item9).
 				{ GameConditionType.IsSpectating, () => false },
 				// TASK-WM-193. 자유 위치 카메라 모드는 CameraManager 파생. 씬 의존이라 BindSceneDependencies 에서 교체 (IsBuilding 대칭)

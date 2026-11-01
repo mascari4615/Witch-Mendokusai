@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 800d851b0aa127c48b9b00699c9bd308, type: 3}
+  m_Name: ClassicDamageText
+  m_EditorClassIdentifier: WM.Presentation::WitchMendokusai.Presentation.DamageTextSkin
+  <SkinId>k__BackingField: classic
+  <Font>k__BackingField: {fileID: 12800000, guid: bd8884ab213bad048ababd46b67d534a, type: 3}
+  <FontSize>k__BackingField: 25
+  <CriticalScale>k__BackingField: 1.3
+  <NormalColor>k__BackingField: {r: 1, g: 0.96, b: 0.82, a: 1}
+  <CriticalColor>k__BackingField: {r: 1, g: 0.71, b: 0.24, a: 1}
+  <HealColor>k__BackingField: {r: 0.48, g: 1, b: 0.56, a: 1}
+  <HurtColor>k__BackingField: {r: 1, g: 0.34, b: 0.3, a: 1}
+  <OutlineColor>k__BackingField: {r: 0.08, g: 0.05, b: 0.1, a: 1}
+  <OutlineWidth>k__BackingField: 2
+  <Lifetime>k__BackingField: 0.85
+  <Rise>k__BackingField: 42
+  <LaneSpacing>k__BackingField: 48
+  <ImpactScale>k__BackingField: 1.24

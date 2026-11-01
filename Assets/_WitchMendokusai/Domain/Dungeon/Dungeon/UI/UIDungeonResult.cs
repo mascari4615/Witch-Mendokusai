@@ -22,15 +22,20 @@ namespace WitchMendokusai
 
 		private DungeonManager dungeonManager;
 		private SOManager soManager;
+		private TimeManager timeManager;
 
 		[Inject]
-		public void Construct(DungeonManager dungeonManager, SOManager soManager)
+		public void Construct(DungeonManager dungeonManager, SOManager soManager, TimeManager timeManager)
 		{
 			this.dungeonManager = dungeonManager;
 			this.soManager = soManager;
+			this.timeManager = timeManager;
 		}
 
 		public override bool IsFullscreen => true;
+
+		protected override void OnOpen() => timeManager.Pause(gameObject);
+		protected override void OnClose() => timeManager.Resume(gameObject);
 
 		public void Retry() => dungeonManager.Retry();
 

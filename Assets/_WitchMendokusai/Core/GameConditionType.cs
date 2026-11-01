@@ -25,5 +25,6 @@ namespace WitchMendokusai
 		// TASK-WM-194 — 특수시공 개척(TD) 모드 중 (GameMode.TowerDefense). IsSpectating 과 동형 —
 		// 플레이어가 이 모드엔 존재하지 않으므로 이동/시점 축 게이트(플레이싱은 별도 전략이 처리).
 		IsTowerDefenseMode = 1 << 10,
+		IsInDungeon = 1 << 11,
 	}
 }

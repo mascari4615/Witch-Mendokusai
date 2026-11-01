@@ -16,7 +16,7 @@ namespace WitchMendokusai
 
 		public void OnDamaged(DamageInfo damageInfo)
 		{
-			uiManager?.PopDamage(damageInfo, transform.position + Vector3.forward * 1);
+			uiManager?.PopDamage(damageInfo, transform.position + Vector3.forward * 1, UnityEngine.EntityId.ToULong(gameObject.GetEntityId()));
 		}
 	}
 }

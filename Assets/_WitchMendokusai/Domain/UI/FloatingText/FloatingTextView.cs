@@ -4,29 +4,38 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
 using WitchMendokusai.Presentation;
-using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
 {
-	/// <summary>
-	/// 데미지/메시지 floating 텍스트 — 풀 기반. World 좌표를 화면으로 변환해 유지.
-	/// USS .wm-floating-text + --active 로 POP/Fade.
-	/// </summary>
+	[DefaultExecutionOrder(200)]
 	public class FloatingTextView : MonoBehaviour
 	{
-		private const int INITIAL_POOL_SIZE = 10;
-		private const float LIFETIME_SECONDS = 1.0f;
-
-		private readonly Stack<FloatingTextElement> pool = new();
-
+		private const int INITIAL_POOL_SIZE = 16;
+		private const int MAX_VISIBLE_TEXTS = 96;
+		private const int STACK_LANES = 4;
+		private readonly Stack<FloatingTextElement> pool = new Stack<FloatingTextElement>();
+		private readonly List<ActiveText> active = new List<ActiveText>(MAX_VISIBLE_TEXTS);
 		private UIRoot uiRoot;
 		private InputManager inputManager;
+		public DamageTextSkin ActiveSkin { get; private set; }
+
+		private struct ActiveText
+		{
+			public FloatingTextElement Element;
+			public DamageTextSkin Skin;
+			public Vector3 WorldPosition;
+			public bool HasWorldPosition;
+			public float Age;
+			public int Lane;
+			public ulong TargetId;
+		}
 
 		[Inject]
 		public void Construct(UIRoot uiRoot, InputManager inputManager)
 		{
 			this.uiRoot = uiRoot;
 			this.inputManager = inputManager;
+			ActiveSkin = uiRoot.DamageTextSkin;
 		}
 
 		private void Start()
@@ -35,74 +44,124 @@ namespace WitchMendokusai
 				pool.Push(CreateItem());
 		}
 
+		public void SetSkin(DamageTextSkin skin) => ActiveSkin = skin != null ? skin : uiRoot.DamageTextSkin;
+
 		private FloatingTextElement CreateItem()
 		{
-			FloatingTextElement item = new();
+			FloatingTextElement item = new FloatingTextElement();
 			item.style.display = DisplayStyle.None;
-			uiRoot.OverlayLayer.Add(item);
+			uiRoot.CombatTextLayer.Add(item);
 			return item;
 		}
 
-		private FloatingTextElement Pop()
+		public IEnumerator AniTextUI(TextType textType, string message, Vector3? worldPosition = null, ulong targetId = 0)
 		{
-			if (pool.Count == 0)
-				return CreateItem();
-			return pool.Pop();
-		}
-
-		public IEnumerator AniTextUI(TextType textType, string msg, Vector3 worldPos = default)
-		{
-			FloatingTextElement item = Pop();
+			if (GameConditionBridge.Get(GameConditionType.IsViewingUI))
+				yield break;
+			if (worldPosition.HasValue)
+			{
+				for (int i = active.Count - 1; i >= 0; i--)
+				{
+					ActiveText text = active[i];
+					bool sameTarget = targetId != 0 ? text.TargetId == targetId
+						: text.TargetId == 0 && (text.WorldPosition - worldPosition.Value).sqrMagnitude < 4f;
+					if (text.HasWorldPosition == false || sameTarget == false)
+						continue;
+					text.Lane++;
+					if (text.Lane >= STACK_LANES)
+						Retire(i);
+					else
+						active[i] = text;
+				}
+			}
+			if (active.Count >= MAX_VISIBLE_TEXTS)
+				Retire(0);
+			FloatingTextElement item = pool.Count > 0 ? pool.Pop() : CreateItem();
 			item.style.display = DisplayStyle.Flex;
-			item.Show(KindOf(textType), msg);
-
-			// 월드 좌표를 준 호출인지 여부는 인자 유무로 판단해야 한다 — 좌표가 원점(0,0,0)인 대상
-			// (개척의 코어가 정확히 원점에 선다)을 "좌표 없음"으로 오인해 마우스 위치에 띄우면
-			// 데미지 숫자가 대상이 아니라 커서를 따라다닌다.
-			bool hasWorldPosition = worldPos != default;
-
-			Vector3 jitteredWorldPos = worldPos;
-			if (hasWorldPosition)
-				jitteredWorldPos += Random.insideUnitSphere * 0.3f;
-
-			Vector3 GetScreenPos()
+			item.Show(KindOf(textType), message, ActiveSkin);
+			active.Add(new ActiveText
 			{
-				if (hasWorldPosition == false)
-					return inputManager.MouseScreenPosition;
-
-				// ★ Camera.main 이 아니라 *지금 보이는* 카메라. 모드 카메라를 본편 카메라 위에 겹쳐
-				//   렌더하는 화면(개척)에서 둘이 갈라져 숫자가 엉뚱한 자리에 뜬다(WM-194 실측).
-				Camera viewCamera = ViewCameraResolver.Current;
-				if (viewCamera == null)
-					return Vector3.zero;
-
-				Vector3 screenPos = viewCamera.WorldToScreenPoint(jitteredWorldPos);
-				if (screenPos.z < 0f)
-					return new Vector3(-9999f, -9999f, 0f); // 카메라 뒤 = 화면 밖으로 밀어 반대편 유령 숫자 방지.
-
-				return screenPos;
-			}
-
-			for (float time = 0; time < LIFETIME_SECONDS; time += Time.deltaTime)
-			{
-				item.SetScreenPosition(GetScreenPos());
-				yield return new WaitForEndOfFrame();
-			}
-
-			item.Hide();
-			pool.Push(item);
+				Element = item,
+				Skin = ActiveSkin,
+				WorldPosition = worldPosition.GetValueOrDefault(),
+				HasWorldPosition = worldPosition.HasValue,
+				Lane = 0,
+				TargetId = targetId,
+			});
+			yield break;
 		}
 
-		private static FloatingTextKind KindOf(TextType textType)
+		private void LateUpdate()
 		{
-			switch (textType)
+			if (GameConditionBridge.Get(GameConditionType.IsViewingUI))
 			{
-				case TextType.Critical: return FloatingTextKind.Critical;
-				case TextType.Heal: return FloatingTextKind.Heal;
-				case TextType.Exp: return FloatingTextKind.Experience;
-				case TextType.Warning: return FloatingTextKind.Warning;
-				default: return FloatingTextKind.Normal;
+				Clear();
+				return;
+			}
+			Camera camera = ViewCameraResolver.Current;
+			for (int i = active.Count - 1; i >= 0; i--)
+			{
+				ActiveText text = active[i];
+				text.Age += Time.deltaTime;
+				float lifetime = text.Skin != null ? text.Skin.Lifetime : 0.85f;
+				if (text.Age >= lifetime)
+				{
+					Retire(i);
+					continue;
+				}
+				Vector3 screen = inputManager.MouseScreenPosition;
+				if (text.HasWorldPosition)
+				{
+					if (camera == null)
+					{
+						Retire(i);
+						continue;
+					}
+					screen = camera.WorldToScreenPoint(text.WorldPosition);
+					text.Element.style.display = screen.z > 0f ? DisplayStyle.Flex : DisplayStyle.None;
+				}
+				float progress = Mathf.Clamp01(text.Age / lifetime);
+				float spacing = text.Skin != null ? text.Skin.LaneSpacing : 24f;
+				float rise = text.Skin != null ? text.Skin.Rise : 42f;
+				float horizontal = text.Lane == 0 ? 0f : (text.Lane % 2 == 0 ? -spacing : spacing);
+				Vector2 offset = new Vector2(horizontal, -18f - text.Lane * spacing - rise * progress);
+				text.Element.SetScreenPosition(screen, offset);
+				text.Element.SetProgress(progress, text.Skin);
+				active[i] = text;
 			}
 		}
+
+		private void Retire(int index)
+		{
+			FloatingTextElement element = active[index].Element;
+			element.Hide();
+			pool.Push(element);
+			active.RemoveAt(index);
+		}
+
+		private void Clear()
+		{
+			for (int i = active.Count - 1; i >= 0; i--)
+				Retire(i);
+		}
+
+		private void OnDisable() => Clear();
+
+		private void OnDestroy()
+		{
+			Clear();
+			foreach (FloatingTextElement element in pool)
+				element.RemoveFromHierarchy();
+			pool.Clear();
+		}
+
+		private static FloatingTextKind KindOf(TextType textType) => textType switch
+		{
+			TextType.Critical => FloatingTextKind.Critical,
+			TextType.Heal => FloatingTextKind.Heal,
+			TextType.Exp => FloatingTextKind.Experience,
+			TextType.Warning => FloatingTextKind.Warning,
+			_ => FloatingTextKind.Normal,
+		};
 	}
 }
