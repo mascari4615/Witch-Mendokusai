@@ -33,6 +33,8 @@ namespace WitchMendokusai
 		protected override void OnEnable()
 		{
 			base.OnEnable();
+			if (UnitData.Type == MonsterType.Boss)
+				GroundGenerator.RegisterAnchor(UnitMovement);
 			SpriteRenderer.sharedMaterial = UnitData.Material;
 			ObjectBufferManager.AddObject(ObjectType.Monster, gameObject);
 			hpBar.localScale = Vector3.one;
@@ -45,6 +47,7 @@ namespace WitchMendokusai
 		protected override void OnDisable()
 		{
 			base.OnDisable();
+			GroundGenerator.UnregisterAnchor(UnitMovement);
 			ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
 			StopAllCoroutines();
 			hpBar.gameObject.SetActive(false);

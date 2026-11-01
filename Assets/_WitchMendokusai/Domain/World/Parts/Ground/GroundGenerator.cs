@@ -14,8 +14,18 @@ namespace WitchMendokusai
 
 		// 현재 청크
 		private readonly Dictionary<Vector3Int, GameObject> chunks = new();
-		private Vector3Int currentChunkCoord = Vector3Int.zero;
 		private readonly List<Vector3Int> retiredChunks = new();
+		private readonly HashSet<Vector3Int> currentCenters = new();
+		private readonly HashSet<Vector3Int> nextCenters = new();
+		private readonly HashSet<Vector3Int> requiredChunks = new();
+		private static readonly HashSet<UnitMovement> anchors = new();
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetAnchors() => anchors.Clear();
+
+		// 플레이어와 멀어져도 지면을 유지할 유닛의 활성 주기 등록
+		public static void RegisterAnchor(UnitMovement anchor) => anchors.Add(anchor);
+		public static void UnregisterAnchor(UnitMovement anchor) => anchors.Remove(anchor);
 
 		private PlayerProvider playerProvider;
 		private ObjectPoolManager objectPoolManager;
@@ -32,30 +42,38 @@ namespace WitchMendokusai
 			foreach (GameObject chunk in chunks.Values)
 				chunk.SetActive(false);
 			chunks.Clear();
+			currentCenters.Clear();
 		}
+
+		private Vector3Int ChunkCenter(Vector3 position) => new Vector3Int(
+			Mathf.RoundToInt(position.x / chunkSize), 0,
+			Mathf.RoundToInt(position.z / chunkSize)) * chunkSize;
 
 		private void FixedUpdate()
 		{
 			// 플레이어 생성 이전에는 지형 중심 미확정
 			if (playerProvider.CurrentObject == null)
 				return;
-			// 플레이어 위치를 Chunk 좌표로 변환 (현재 안에 있는 청크 좌표)
-			Vector3 playerPos = playerProvider.CurrentObject.UnitMovement.Position;
-
-			Vector3Int nextChunkCoord = new Vector3Int(
-				Mathf.RoundToInt(playerPos.x / chunkSize),
-				0,
-				Mathf.RoundToInt(playerPos.z / chunkSize)
-			) * chunkSize;
-			if (chunks.Count > 0 && nextChunkCoord == currentChunkCoord)
+			nextCenters.Clear();
+			nextCenters.Add(ChunkCenter(playerProvider.CurrentObject.UnitMovement.Position));
+			foreach (UnitMovement anchor in anchors)
+				if (anchor != null && anchor.isActiveAndEnabled)
+					nextCenters.Add(ChunkCenter(anchor.Position));
+			if (chunks.Count > 0 && currentCenters.SetEquals(nextCenters))
 				return;
-			currentChunkCoord = nextChunkCoord;
+			currentCenters.Clear();
+			currentCenters.UnionWith(nextCenters);
+			requiredChunks.Clear();
+			foreach (Vector3Int center in currentCenters)
+				for (int x = -1; x <= 1; x++)
+					for (int z = -1; z <= 1; z++)
+						requiredChunks.Add(center + new Vector3Int(x, 0, z) * chunkSize);
 
 			// 멀어진 청크는 비활성화
 			retiredChunks.Clear();
 			foreach (Vector3Int key in chunks.Keys)
 			{
-				if (Mathf.Abs(key.x - currentChunkCoord.x) > chunkSize || Mathf.Abs(key.z - currentChunkCoord.z) > chunkSize)
+				if (requiredChunks.Contains(key) == false)
 					retiredChunks.Add(key);
 			}
 			foreach (Vector3Int key in retiredChunks)
@@ -64,20 +82,15 @@ namespace WitchMendokusai
 				chunks.Remove(key);
 			}
 
-			// 플레이어 주변으로 청크를 생성
-			for (int x = -1; x <= 1; x++)
+			// 중첩 영역은 공유하고 등록 유닛이 떠난 지면만 회수
+			foreach (Vector3Int chunkPosition in requiredChunks)
 			{
-				for (int z = -1; z <= 1; z++)
+				if (chunks.ContainsKey(chunkPosition) == false)
 				{
-					Vector3Int chunkPosition = currentChunkCoord + new Vector3Int(x, 0, z) * chunkSize;
-
-					if (chunks.ContainsKey(chunkPosition) == false)
-					{
-						GameObject chunk = objectPoolManager.Spawn(groundPrefab);
-						chunk.transform.position = chunkPosition;
-						chunks[chunkPosition] = chunk;
-						chunk.SetActive(true);
-					}
+					GameObject chunk = objectPoolManager.Spawn(groundPrefab);
+					chunk.transform.position = chunkPosition;
+					chunks[chunkPosition] = chunk;
+					chunk.SetActive(true);
 				}
 			}
 
