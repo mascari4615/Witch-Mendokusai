@@ -147,12 +147,24 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
+			ClearCollisionContacts();
 			accumulatedSimulationTime = 0f;
 			SimulationInterval = 0f;
 			LastSimulationDeltaTime = 0f;
 			UpdateLookDirection(Vector3.right);
 			unitObject.UnitStat[UnitStatType.IS_JUMPING] = 0;
 			jumpContributor?.Reset(IsGrounded());
+		}
+
+		private void OnDisable()
+		{
+			ClearCollisionContacts();
+		}
+
+		private void ClearCollisionContacts()
+		{
+			currentHits.Clear();
+			previousHits.Clear();
 		}
 
 		private void FixedUpdate()
@@ -239,17 +251,24 @@ namespace WitchMendokusai
 		private void HandleMotorHit(Collider other)
 		{
 			if (other == null) return;
-			
-			if (currentHits.Add(other))
-			{
-				if (previousHits.Contains(other) == false)
-				{
-					foreach (IKinematicCollisionReceiver receiver in other.GetComponentsInParent<IKinematicCollisionReceiver>())
-						receiver.OnKinematicCollisionEnter(unitCapsule);
+			if (currentHits.Add(other) == false || previousHits.Contains(other))
+				return;
 
-					foreach (IKinematicCollisionReceiver receiver in GetComponents<IKinematicCollisionReceiver>())
-						receiver.OnKinematicCollisionEnter(other);
-				}
+			// 콜백 중 재진입해도 바깥 조회 결과를 덮지 않도록 호출별 목록 대여
+			System.Collections.Generic.List<IKinematicCollisionReceiver> receivers = UnityEngine.Pool.ListPool<IKinematicCollisionReceiver>.Get();
+			try
+			{
+				other.GetComponentsInParent(false, receivers);
+				foreach (IKinematicCollisionReceiver receiver in receivers)
+					receiver.OnKinematicCollisionEnter(unitCapsule);
+
+				GetComponents(receivers);
+				foreach (IKinematicCollisionReceiver receiver in receivers)
+					receiver.OnKinematicCollisionEnter(other);
+			}
+			finally
+			{
+				UnityEngine.Pool.ListPool<IKinematicCollisionReceiver>.Release(receivers);
 			}
 		}
 
@@ -306,6 +325,7 @@ namespace WitchMendokusai
 
 		public void Teleport(Vector3 position)
 		{
+			ClearCollisionContacts();
 			accumulatedSimulationTime = 0f;
 			CancelMovementInput();
 			externalImpulse.Cancel();
