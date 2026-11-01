@@ -32,7 +32,8 @@ namespace WitchMendokusai
 		private SkillObject skillObject = null;
 		// 아레나 매치 중이면 공격자의 MatchCombatant(팀 판정용). 비-아레나면 null → 레거시 적아판정.
 		private MatchCombatant ownerCombatant = null;
-		private Dictionary<GameObject, int> hitFrames = new();
+		private readonly HashSet<GameObject> hitTargets = new();
+		private int hitFrame = -1;
 
 		private PlayerProvider playerProvider;
 
@@ -40,6 +41,12 @@ namespace WitchMendokusai
 		public void Construct(PlayerProvider playerProvider)
 		{
 			this.playerProvider = playerProvider;
+		}
+
+		private void OnDisable()
+		{
+			hitTargets.Clear();
+			hitFrame = -1;
 		}
 
 		public void OnTriggerEnter(Collider other)
@@ -68,9 +75,14 @@ namespace WitchMendokusai
 
 		private void TryDamage(GameObject other)
 		{
-			if (hitFrames.TryGetValue(other, out int frame) && frame == Time.frameCount)
+			if (hitFrame != Time.frameCount)
+			{
+				hitTargets.Clear();
+				hitFrame = Time.frameCount;
+			}
+
+			if (hitTargets.Add(other) == false)
 				return;
-			hitFrames[other] = Time.frameCount;
 
 			if (other.TryGetComponent(out IDamageable damageable))
 			{
@@ -112,6 +124,8 @@ namespace WitchMendokusai
 
 		public override void InitContext(SkillObject skillObject)
 		{
+			hitTargets.Clear();
+			hitFrame = -1;
 			this.skillObject = skillObject;
 			usedByPlayer = skillObject.UsedByPlayer;
 			valid = true;
