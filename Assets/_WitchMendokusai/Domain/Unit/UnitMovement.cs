@@ -56,7 +56,6 @@ namespace WitchMendokusai
 		// Hit-stop — motor tick skip 동안 victim 만 멈춤. timescale 안 건드림.
 		private float pauseRemaining;
 		private float accumulatedSimulationTime;
-		private const float SIMULATION_INTERVAL_EPSILON = 0.00001f;
 		public float SimulationInterval { get; private set; }
 		public float LastSimulationDeltaTime { get; private set; }
 
@@ -166,7 +165,8 @@ namespace WitchMendokusai
 			}
 
 			accumulatedSimulationTime += Time.fixedDeltaTime;
-			if (accumulatedSimulationTime + SIMULATION_INTERVAL_EPSILON < SimulationInterval)
+			if (accumulatedSimulationTime < SimulationInterval &&
+				Mathf.Approximately(accumulatedSimulationTime, SimulationInterval) == false)
 				return;
 			float deltaTime = accumulatedSimulationTime;
 			accumulatedSimulationTime = 0f;
