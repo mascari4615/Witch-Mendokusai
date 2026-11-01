@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 800d851b0aa127c48b9b00699c9bd308, type: 3}
-  m_Name: ClassicDamageText
+  m_Name: DTS_0_Classic
   m_EditorClassIdentifier: WM.Presentation::WitchMendokusai.Presentation.DamageTextSkin
   <SkinId>k__BackingField: classic
   <Font>k__BackingField: {fileID: 12800000, guid: bd8884ab213bad048ababd46b67d534a, type: 3}
