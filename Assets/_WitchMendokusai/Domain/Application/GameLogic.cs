@@ -31,12 +31,13 @@ namespace WitchMendokusai
 			return position + randomOffset;
 		}
 
-		public void SpawnExpOrb(Vector3 position)
+		public void SpawnExpOrb(Vector3 position, int rewardMultiplier = 1)
 		{
 			GameObject exp = objectPoolManager.Spawn(
 				resourceManager.EXPPrefab,
 				GetRandomSpawnPosOffset(position)
 			);
+			exp.GetComponent<ExpObject>().SetRewardMultiplier(rewardMultiplier);
 			exp.SetActive(true);
 		}
 

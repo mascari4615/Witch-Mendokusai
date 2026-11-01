@@ -10,6 +10,8 @@ namespace WitchMendokusai
 	{
 		[Header("_" + nameof(MonsterObject))]
 		[SerializeField] private Transform hpBar;
+		[SerializeField, Min(1)] private int healthPerExperienceTier = 10;
+		[SerializeField, Min(1)] private int maxExperienceMultiplier = 5;
 
 		public new Monster UnitData => base.UnitData as Monster;
 
@@ -92,7 +94,8 @@ namespace WitchMendokusai
 		{
 			gameLogic.SpawnLootItem(UnitData.Loots, transform.position);
 			gameLogic.SpawnGameItem(transform.position);
-			gameLogic.SpawnExpOrb(transform.position);
+			int rewardMultiplier = Mathf.Clamp(Mathf.CeilToInt((float)UnitStat[UnitStatType.HP_MAX_STAT] / healthPerExperienceTier), 1, maxExperienceMultiplier);
+			gameLogic.SpawnExpOrb(transform.position, rewardMultiplier);
 		}
 
 		protected Vector3 GetRot()
