@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using MessagePipe;
 using Unity.Cinemachine;
@@ -59,6 +60,8 @@ namespace WitchMendokusai
 
 		private MCamera[] cameras;
 		private MCamera curCamera;
+		private RaycastHit[] obstructionHits = new RaycastHit[16];
+		private readonly List<TransparentObject> transparentObjects = new();
 
 		private Transform target;
 		private Transform headAnchor; // 1인칭 카메라 직접 구동 대상 (보간된 머리 위치).
@@ -411,19 +414,30 @@ namespace WitchMendokusai
 			if (target == null)
 				return;
 
-			Vector3 direction = (target.position - cinemachineBrain.transform.position).normalized;
-			// RaycastHit[] hits = Physics.RaycastAll(cinemachineBrain.transform.position, direction, Mathf.Infinity, 1 << LayerMask.NameToLayer("EnvironmentObject"));
-			RaycastHit[] hits = Physics.RaycastAll(cinemachineBrain.transform.position, direction, Vector3.Distance(target.position, cinemachineBrain.transform.position));
+			UpdateTransparency(cinemachineBrain.transform.position, target.position);
+		}
 
-			for (int i = 0; i < hits.Length; i++)
+		private void UpdateTransparency(Vector3 cameraPosition, Vector3 targetPosition)
+		{
+			Vector3 offset = targetPosition - cameraPosition;
+			Vector3 direction = offset.normalized;
+			float distance = offset.magnitude;
+			int hitCount;
+			// 표본 포화 시 확장 후 재조회, 가림 대상 누락 방지
+			while ((hitCount = Physics.RaycastNonAlloc(cameraPosition, direction, obstructionHits, distance)) == obstructionHits.Length)
+				Array.Resize(ref obstructionHits, obstructionHits.Length * 2);
+
+			for (int i = 0; i < hitCount; i++)
 			{
-				TransparentObject[] obj = hits[i].transform.GetComponentsInChildren<TransparentObject>();
+				transparentObjects.Clear();
+				obstructionHits[i].transform.GetComponentsInChildren(false, transparentObjects);
 
-				for (int j = 0; j < obj.Length; j++)
+				for (int j = 0; j < transparentObjects.Count; j++)
 				{
-					obj[j]?.UpdateTransparent();
+					transparentObjects[j]?.UpdateTransparent();
 				}
 			}
+			transparentObjects.Clear();
 		}
 
 		/// <summary>마을 경영 시점 순환 (F6): Normal → CityView(부감) → FreeFly(자유비행) → Normal. TASK-WM-193.
