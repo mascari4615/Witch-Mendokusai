@@ -46,6 +46,9 @@ namespace WitchMendokusai
 		private readonly MotorTuning tuning;
 		private readonly List<IVelocityContributor> contributors = new();
 		private readonly MotorContext context = new();
+		private Vector3 capsuleCenterOffset;
+		private float capsuleHalfSegment;
+		private float capsuleRadius;
 
 		public MotorContext Context => context;
 		public System.Func<MotorContext, float, bool> OverrideVelocity { get; set; }
@@ -62,6 +65,13 @@ namespace WitchMendokusai
 
 		public void Tick(float deltaTime)
 		{
+			// 한 tick의 모든 질의가 같은 충돌체 형상 사용. 다음 tick에서 자세와 배율 재반영.
+			Vector3 scale = unitTransform.lossyScale;
+			float radius = unitCapsule.radius;
+			capsuleCenterOffset = unitTransform.TransformVector(unitCapsule.center);
+			capsuleHalfSegment = Mathf.Max(0f, (unitCapsule.height * 0.5f - radius) * scale.y);
+			capsuleRadius = radius * Mathf.Max(scale.x, scale.z);
+
 			Vector3 position = unitRigidBody.position;
 			Depenetrate(ref position);
 

@@ -41,13 +41,15 @@ namespace WitchMendokusai
 					context.LastWallCollider = hit.collider;
 
 					// Step offset 시도 (한 sweep 당 한 번만): wall hit을 stepHeight 위로 들어올려 재sweep, walkable이면 step-up.
-					if (stepOffsetAttempted == false &&
-						TryStepOffset(currentPosition, direction, leftover.magnitude, out Vector3 steppedPosition))
+					if (stepOffsetAttempted == false)
 					{
 						stepOffsetAttempted = true;
-						currentPosition = steppedPosition;
-						remaining = Vector3.zero;
-						break;
+						if (TryStepOffset(currentPosition, direction, leftover.magnitude, out Vector3 steppedPosition))
+						{
+							currentPosition = steppedPosition;
+							remaining = Vector3.zero;
+							break;
+						}
 					}
 
 					// Crease handling: 직전 wall normal과 외적 ≠ 0이면 corner. 잔여 velocity를 crease 방향으로 projection.
@@ -318,13 +320,10 @@ namespace WitchMendokusai
 		/// </summary>
 		private void GetCapsuleEnds(Vector3 originPosition, out Vector3 capsuleBottom, out Vector3 capsuleTop, out float radius)
 		{
-			Vector3 worldCenter = originPosition + unitTransform.TransformVector(unitCapsule.center);
-			float verticalScale = unitTransform.lossyScale.y;
-			float halfSegment = Mathf.Max(0f, (unitCapsule.height * 0.5f - unitCapsule.radius) * verticalScale);
-			capsuleTop = worldCenter + Vector3.up * halfSegment;
-			capsuleBottom = worldCenter - Vector3.up * halfSegment;
-			float horizontalScale = Mathf.Max(unitTransform.lossyScale.x, unitTransform.lossyScale.z);
-			radius = unitCapsule.radius * horizontalScale;
+			Vector3 worldCenter = originPosition + capsuleCenterOffset;
+			capsuleTop = worldCenter + Vector3.up * capsuleHalfSegment;
+			capsuleBottom = worldCenter - Vector3.up * capsuleHalfSegment;
+			radius = capsuleRadius;
 		}
 	}
 }

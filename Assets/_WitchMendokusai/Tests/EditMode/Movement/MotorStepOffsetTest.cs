@@ -18,6 +18,25 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public sealed class MotorStepOffsetTest
 	{
+		[Test]
+		public void CapsuleShapeChangesBetweenTicks_KeepFeetOnGround()
+		{
+			using (MotorTestHarness harness = new(new Vector3(0f, 0f, 0f).ToUnity()))
+			{
+				harness.AddGround(new Vector3(0f, -0.5f, 0f).ToUnity(), new Vector3(20f, 1f, 20f).ToUnity());
+				harness.AddContributor(new GravityContributor());
+				harness.StepMany(3);
+				harness.Capsule.height = 1f;
+				harness.Capsule.radius = 0.2f;
+				harness.Capsule.center = new Vector3(0f, 0.5f, 0f).ToUnity();
+				harness.Capsule.transform.localScale = new Vector3(2f, 2f, 2f).ToUnity();
+				harness.StepMany(3);
+
+				Assert.That(harness.IsGrounded, Is.True);
+				Assert.That(harness.Position.y, Is.EqualTo(0f).Within(0.02f));
+			}
+		}
+
 		private const float LOWER_TOP_Y = 0f;
 		private const float SEAM_Z = 0f;
 		private const float WALK_SPEED = 2f;
