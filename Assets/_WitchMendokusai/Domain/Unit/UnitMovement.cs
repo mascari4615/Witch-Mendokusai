@@ -159,6 +159,9 @@ namespace WitchMendokusai
 		private void OnDisable()
 		{
 			ClearCollisionContacts();
+			// 풀 재사용 시 이전 생명의 밀림과 피격 정지 제거
+			externalImpulse?.Cancel();
+			pauseRemaining = 0f;
 		}
 
 		private void ClearCollisionContacts()

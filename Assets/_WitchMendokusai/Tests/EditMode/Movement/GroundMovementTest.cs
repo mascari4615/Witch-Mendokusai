@@ -11,6 +11,32 @@ namespace WitchMendokusai.Tests
 		private const float STEP = 0.02f;
 		private const float EPSILON = 0.001f;
 
+		[TestCase(0.15f, 0.05f)]
+		[TestCase(0.5f, 0.25f)]
+		public void DisabledUnit_DiscardsPreviousImpulseAndHitStop(float impulseSeconds, float pauseSeconds)
+		{
+			UnitMovement movement = unitGameObject.GetComponent<UnitMovement>();
+			System.Reflection.FieldInfo impulseField = typeof(UnitMovement).GetField("externalImpulse",
+				System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+			impulseField.SetValue(movement, new ExternalImpulseContributor());
+			movement.ApplyImpulse(Vector3.right * 10f, impulseSeconds);
+			movement.Pause(pauseSeconds);
+			Assert.That(movement.IsExternallyDriven, Is.True);
+			Assert.That(movement.IsPaused, Is.True);
+
+			// EditMode에서는 런타임 메시지 대신 수명 콜백 직접 실행
+			System.Reflection.MethodInfo onDisable = typeof(UnitMovement).GetMethod("OnDisable",
+				System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+			onDisable.Invoke(movement, null);
+
+			Assert.That(movement.IsExternallyDriven, Is.False);
+			Assert.That(movement.IsPaused, Is.False);
+			movement.ApplyImpulse(Vector3.left * 5f, impulseSeconds);
+			movement.Pause(pauseSeconds);
+			Assert.That(movement.IsExternallyDriven, Is.True, "New impulse must still work after reuse");
+			Assert.That(movement.IsPaused, Is.True, "New hit-stop must still work after reuse");
+		}
+
 		[SetUp]
 		public void SetUp()
 		{
