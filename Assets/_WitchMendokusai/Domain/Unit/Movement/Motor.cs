@@ -39,7 +39,8 @@ namespace WitchMendokusai
 
 		private static readonly RaycastHit[] HIT_BUFFER = new RaycastHit[8];
 		private static RaycastHit[] rayHitBuffer = new RaycastHit[8];
-		private static readonly Collider[] OVERLAP_BUFFER = new Collider[16];
+		// 충돌 콜백에서 다른 모터를 갱신해도 현재 조회 결과 보존
+		private readonly Collider[] overlapBuffer = new Collider[16];
 
 		private readonly Transform unitTransform;
 		private readonly Rigidbody unitRigidBody;
@@ -190,7 +191,7 @@ namespace WitchMendokusai
 					capsuleBottom,
 					capsuleTop,
 					radius * CAPSULE_SHRINK,
-					OVERLAP_BUFFER,
+					overlapBuffer,
 					~0,
 					QueryTriggerInteraction.Ignore);
 
@@ -202,7 +203,8 @@ namespace WitchMendokusai
 
 				for (int i = 0; i < overlapCount; i++)
 				{
-					Collider other = OVERLAP_BUFFER[i];
+					Collider other = overlapBuffer[i];
+					overlapBuffer[i] = null;
 					if (other == null)
 						continue;
 					if (other.transform.IsChildOf(unitTransform))

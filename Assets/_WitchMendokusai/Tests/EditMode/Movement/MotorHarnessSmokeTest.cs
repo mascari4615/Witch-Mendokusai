@@ -23,6 +23,33 @@ namespace WitchMendokusai.Tests
 		private const float POSITION_TOLERANCE = 0.01f;
 		private const float VELOCITY_TOLERANCE = 0.01f;
 
+		[Test]
+		public void NestedOtherMotorTick_PreservesBothOverlapContacts()
+		{
+			using (MotorTestHarness outer = new(UnityEngine.Vector3.zero))
+			using (MotorTestHarness inner = new(UnityEngine.Vector3.right * 1000f))
+			{
+				for (int i = 0; i < 40; i++)
+				{
+					GameObject part = inner.AddGround(inner.Position + UnityEngine.Vector3.up, UnityEngine.Vector3.one * 0.1f);
+					part.transform.SetParent(inner.Capsule.transform, true);
+				}
+				Collider first = outer.AddGround(new UnityEngine.Vector3(0.4f, 1f, 0f), new UnityEngine.Vector3(0.2f, 4f, 4f)).GetComponent<Collider>();
+				Collider second = outer.AddGround(new UnityEngine.Vector3(0.4f, 1f, 0f), new UnityEngine.Vector3(0.2f, 4f, 4f)).GetComponent<Collider>();
+				System.Collections.Generic.HashSet<Collider> contacts = new();
+				inner.Context.OnHitCollider = collider => { };
+				outer.Context.OnHitCollider = collider =>
+				{
+					contacts.Add(collider);
+					inner.Step();
+				};
+				outer.Step();
+				Assert.That(contacts, Does.Contain(first));
+				Assert.That(contacts, Does.Contain(second));
+				Assert.That(contacts.Count, Is.EqualTo(2));
+			}
+		}
+
 		[TestCase(1, true)]
 		[TestCase(40, true)]
 		[TestCase(40, false)]
