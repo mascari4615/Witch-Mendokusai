@@ -38,6 +38,7 @@ namespace WitchMendokusai
 		private float StabilityProbeDistance => tuning.StabilityProbeDistance;
 
 		private static readonly RaycastHit[] HIT_BUFFER = new RaycastHit[8];
+		private static RaycastHit[] rayHitBuffer = new RaycastHit[8];
 		private static readonly Collider[] OVERLAP_BUFFER = new Collider[16];
 
 		private readonly Transform unitTransform;
@@ -142,32 +143,12 @@ namespace WitchMendokusai
 			float reach = (allowSnapDown && rising == false) ? GroundSnapDistance : GroundTouchDistance;
 			float castDistance = SkinWidth + reach;
 
-			int hitCount = Physics.RaycastNonAlloc(origin, Vector3.down, HIT_BUFFER, castDistance, ~0, QueryTriggerInteraction.Ignore);
-
-			float closestDistance = float.PositiveInfinity;
-			int closestIndex = -1;
-			for (int i = 0; i < hitCount; i++)
-			{
-				RaycastHit candidate = HIT_BUFFER[i];
-				if (candidate.collider == null)
-					continue;
-				if (candidate.collider.transform.IsChildOf(unitTransform))
-					continue;
-				if (candidate.distance < closestDistance)
-				{
-					closestDistance = candidate.distance;
-					closestIndex = i;
-				}
-			}
-
-			if (closestIndex < 0 || IsWalkable(HIT_BUFFER[closestIndex]) == false)
+			if (RaycastOutsideBody(origin, Vector3.down, castDistance, out RaycastHit hit) == false || IsWalkable(hit) == false)
 			{
 				context.GroundState = MotorGroundState.Airborne;
 				context.HasGroundNormal = false;
 				return;
 			}
-
-			RaycastHit hit = HIT_BUFFER[closestIndex];
 
 			// 표면 위로 내려놓는다 — 「떠 있는 Grounded」를 없애는 대목.
 			//
@@ -260,13 +241,32 @@ namespace WitchMendokusai
 			Vector3 feet = capsuleBottom - Vector3.up * radius;
 			Vector3 origin = feet + Vector3.up * SkinWidth;
 			float distance = SkinWidth + StabilityProbeDistance;
-			int hitCount = Physics.RaycastNonAlloc(origin, Vector3.down, HIT_BUFFER, distance, ~0, QueryTriggerInteraction.Ignore);
+			return RaycastOutsideBody(origin, Vector3.down, distance, out RaycastHit hit) && IsWalkable(hit);
+		}
+
+		private bool RaycastOutsideBody(Vector3 origin, Vector3 direction, float distance, out RaycastHit closestHit)
+		{
+			// 보통의 지면/천장은 최근접 한 건으로 판정. 자기 몸이 먼저 잡힌 경우만 전체 조회
+			if (Physics.Raycast(origin, direction, out closestHit, distance, ~0, QueryTriggerInteraction.Ignore) == false)
+				return false;
+			if (closestHit.collider.transform.IsChildOf(unitTransform) == false)
+				return true;
+
+			int hitCount;
+			do
+			{
+				hitCount = Physics.RaycastNonAlloc(origin, direction, rayHitBuffer, distance, ~0, QueryTriggerInteraction.Ignore);
+				if (hitCount < rayHitBuffer.Length)
+					break;
+				// 포화 결과의 순서는 최근접 보장 없음. 자기 충돌체가 많아도 외부 지면 누락 방지
+				System.Array.Resize(ref rayHitBuffer, rayHitBuffer.Length * 2);
+			} while (true);
 
 			float closestDistance = float.PositiveInfinity;
-			int closestIndex = -1;
+			closestHit = default;
 			for (int i = 0; i < hitCount; i++)
 			{
-				RaycastHit hit = HIT_BUFFER[i];
+				RaycastHit hit = rayHitBuffer[i];
 				if (hit.collider == null)
 					continue;
 				if (hit.collider.transform.IsChildOf(unitTransform))
@@ -274,13 +274,11 @@ namespace WitchMendokusai
 				if (hit.distance < closestDistance)
 				{
 					closestDistance = hit.distance;
-					closestIndex = i;
+					closestHit = hit;
 				}
 			}
 
-			if (closestIndex < 0)
-				return false;
-			return HIT_BUFFER[closestIndex].normal.y >= GroundNormalYMin;
+			return closestHit.collider != null;
 		}
 
 		private bool IsWalkable(RaycastHit hit)

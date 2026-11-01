@@ -130,31 +130,7 @@ namespace WitchMendokusai
 			float fallDistance = -verticalDeltaY;
 			float castDistance = fallDistance + SkinWidth * 2f;
 
-			int hitCount = Physics.RaycastNonAlloc(
-				origin,
-				Vector3.down,
-				HIT_BUFFER,
-				castDistance,
-				~0,
-				QueryTriggerInteraction.Ignore);
-
-			float closestDistance = float.PositiveInfinity;
-			int closestIndex = -1;
-			for (int i = 0; i < hitCount; i++)
-			{
-				RaycastHit hit = HIT_BUFFER[i];
-				if (hit.collider == null)
-					continue;
-				if (hit.collider.transform.IsChildOf(unitTransform))
-					continue;
-				if (hit.distance < closestDistance)
-				{
-					closestDistance = hit.distance;
-					closestIndex = i;
-				}
-			}
-
-			if (closestIndex < 0)
+			if (RaycastOutsideBody(origin, Vector3.down, castDistance, out RaycastHit closestHit) == false)
 			{
 				// 발 정 직 아래 fallDistance 안에 surface 없음 — 자연 낙하 (Airborne, JumpContributor 가 g 누적).
 				context.GroundState = MotorGroundState.Airborne;
@@ -162,7 +138,6 @@ namespace WitchMendokusai
 				return startPosition + Vector3.down * fallDistance;
 			}
 
-			RaycastHit closestHit = HIT_BUFFER[closestIndex];
 			context.OnHitCollider.Invoke(closestHit.collider);
 
 			float rayMoveDistance = Mathf.Max(0f, closestHit.distance - SkinWidth);
@@ -196,34 +171,9 @@ namespace WitchMendokusai
 			float riseDistance = verticalDeltaY;
 			float castDistance = riseDistance + SkinWidth * 2f;
 
-			int hitCount = Physics.RaycastNonAlloc(
-				origin,
-				Vector3.up,
-				HIT_BUFFER,
-				castDistance,
-				~0,
-				QueryTriggerInteraction.Ignore);
-
-			float closestDistance = float.PositiveInfinity;
-			int closestIndex = -1;
-			for (int i = 0; i < hitCount; i++)
-			{
-				RaycastHit hit = HIT_BUFFER[i];
-				if (hit.collider == null)
-					continue;
-				if (hit.collider.transform.IsChildOf(unitTransform))
-					continue;
-				if (hit.distance < closestDistance)
-				{
-					closestDistance = hit.distance;
-					closestIndex = i;
-				}
-			}
-
-			if (closestIndex < 0)
+			if (RaycastOutsideBody(origin, Vector3.up, castDistance, out RaycastHit closestHit) == false)
 				return startPosition + Vector3.up * riseDistance;
 
-			RaycastHit closestHit = HIT_BUFFER[closestIndex];
 			context.OnHitCollider.Invoke(closestHit.collider);
 
 			float moveDistance = Mathf.Max(0f, closestHit.distance - SkinWidth);

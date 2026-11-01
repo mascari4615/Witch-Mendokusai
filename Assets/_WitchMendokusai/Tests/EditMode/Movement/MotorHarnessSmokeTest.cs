@@ -23,6 +23,31 @@ namespace WitchMendokusai.Tests
 		private const float POSITION_TOLERANCE = 0.01f;
 		private const float VELOCITY_TOLERANCE = 0.01f;
 
+		[TestCase(1, true)]
+		[TestCase(40, true)]
+		[TestCase(40, false)]
+		public void OwnCollidersNearFeet_DoNotReplaceExternalGround(int ownCount, bool hasGround)
+		{
+			using (MotorTestHarness harness = new(new UnityEngine.Vector3(0f, 0.01f, 0f)))
+			{
+				if (hasGround)
+					harness.AddGround(new UnityEngine.Vector3(0f, -0.5f, 0f), new UnityEngine.Vector3(10f, 1f, 10f));
+				for (int i = 0; i < ownCount; i++)
+				{
+					GameObject part = harness.AddGround(new UnityEngine.Vector3(0f, 0.025f, 0f), new UnityEngine.Vector3(0.1f, 0.001f, 0.1f));
+					part.transform.SetParent(harness.Capsule.transform, true);
+				}
+				Physics.SyncTransforms();
+				// 최근접 조회만 쓰는 잘못된 구현을 구분하는 fixture 조건
+				bool hitOwn = Physics.Raycast(harness.Position + UnityEngine.Vector3.up * 0.02f, UnityEngine.Vector3.down,
+					out RaycastHit hit, 0.06f, ~0, QueryTriggerInteraction.Ignore);
+				Assert.That(hitOwn && hit.collider.transform.IsChildOf(harness.Capsule.transform), Is.True);
+				harness.Step();
+				Assert.That(harness.IsGrounded, Is.EqualTo(hasGround));
+				Assert.That(harness.Position.y, Is.EqualTo(0.01f).Within(POSITION_TOLERANCE));
+			}
+		}
+
 		/// <summary>바닥이 없으면 Motor 는 계속 Airborne 이고, 중력이 tick 마다 vy 에 누적돼야 한다.</summary>
 		[Test]
 		public void NoGround_FallsFreelyAndStaysAirborne()
