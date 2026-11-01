@@ -177,7 +177,12 @@ namespace WitchMendokusai
 			//   흘러내린다. 실측: 30° 비탈에서 60 tick 에 2.3m.
 			//   ray 는 「땅 위에 있나」를, 캡슐 sweep 은 「어디까지 내려갈 수 있나」를 답한다.
 			float dropDistance = 0f;
-			if (CapsuleSweep(position, Vector3.down, reach + SkinWidth, out RaycastHit capsuleHit))
+			// 평지의 스킨 간격 안에서는 추가 하강 생략
+			// 경사, 낮은 턱과 낙하는 기존 캡슐 질의로 가장자리 충돌 확인
+			float restingRayDistance = SkinWidth + Mathf.Max(0f, SkinWidth - radius * (1f - CAPSULE_SHRINK));
+			bool flatAtRest = Mathf.Approximately(hit.normal.y, 1f) &&
+				(hit.distance <= restingRayDistance || Mathf.Approximately(hit.distance, restingRayDistance));
+			if (flatAtRest == false && CapsuleSweep(position, Vector3.down, reach + SkinWidth, out RaycastHit capsuleHit))
 				dropDistance = Mathf.Max(0f, capsuleHit.distance - SkinWidth);
 
 			if (dropDistance > 0f)

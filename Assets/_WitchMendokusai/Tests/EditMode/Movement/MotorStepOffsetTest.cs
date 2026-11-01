@@ -38,6 +38,29 @@ namespace WitchMendokusai.Tests
 		}
 
 		private const float LOWER_TOP_Y = 0f;
+		[Test]
+		public void WalkingIntoUnitBody_RemainsBlocked()
+		{
+			using (MotorTestHarness harness = new(new Vector3(0f, 0f, -2f).ToUnity()))
+			{
+				harness.AddGround(new Vector3(0f, -0.5f, 0f).ToUnity(), new Vector3(20f, 1f, 20f).ToUnity());
+				GameObject body = harness.AddGround(new Vector3(0f, 1f, 0f).ToUnity(), Vector3.one.ToUnity());
+				body.GetComponent<BoxCollider>().enabled = false;
+				CapsuleCollider capsule = body.AddComponent<CapsuleCollider>();
+				capsule.height = 2f;
+				capsule.radius = 0.5f;
+				body.AddComponent<Rigidbody>().isKinematic = true;
+				body.AddComponent<UnitMovement>().enabled = false;
+				harness.AddContributor(new ConstantHorizontalContributor(harness));
+				harness.AddContributor(new GravityContributor());
+				harness.SetHorizontalIntent(Vector3.forward.ToUnity(), WALK_SPEED);
+				harness.StepMany(120);
+
+				Assert.That(harness.Position.z, Is.LessThan(-0.9f), "유닛 몸체를 관통했다");
+				Assert.That(harness.Position.y, Is.EqualTo(0f).Within(POSITION_TOLERANCE));
+			}
+		}
+
 		private const float SEAM_Z = 0f;
 		private const float WALK_SPEED = 2f;
 		private const float POSITION_TOLERANCE = 0.02f;

@@ -1,32 +1,42 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
-	// UI Toolkit 모든 활성 UIDocument 를 스캔해 텍스트 입력 컨트롤 포커스 여부 검사.
-	// IsTyping GameCondition 의 일반화 — UIChat/DevWindow CommandLine 외 모든 TextField 가 자동 보호.
+	// 씬 로드 및 소유자가 등록한 활성 UIDocument의 텍스트 입력 포커스 검사.
+	// IsTyping GameCondition용. 동적 문서는 소유자가 등록
 	public static class UIToolkitFocus
 	{
-		private static int cachedFrame = -1;
-		private static bool cachedResult;
+		private static readonly HashSet<UIDocument> documents = new();
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void Reset()
+		{
+			documents.Clear();
+			SceneManager.sceneLoaded -= RegisterSceneDocuments;
+			SceneManager.sceneLoaded += RegisterSceneDocuments;
+		}
+
+		private static void RegisterSceneDocuments(Scene scene, LoadSceneMode mode)
+		{
+			documents.RemoveWhere(document => document == null);
+			foreach (GameObject root in scene.GetRootGameObjects())
+				foreach (UIDocument document in root.GetComponentsInChildren<UIDocument>(true))
+					Register(document);
+		}
+
+		// 동적 문서의 소유자가 생성/해제 때 등록. 프레임마다 씬 전체 검색 제거
+		public static void Register(UIDocument document) => documents.Add(document);
+		public static void Unregister(UIDocument document) => documents.Remove(document);
 
 		public static bool IsAnyTextFieldFocused()
 		{
-			if (Time.frameCount == cachedFrame)
-				return cachedResult;
-
-			cachedFrame = Time.frameCount;
-			cachedResult = CheckAnyTextFieldFocused();
-			return cachedResult;
-		}
-
-		private static bool CheckAnyTextFieldFocused()
-		{
-			UIDocument[] documents = Object.FindObjectsByType<UIDocument>(FindObjectsInactive.Exclude);
-
-			for (int i = 0; i < documents.Length; i++)
+			foreach (UIDocument document in documents)
 			{
-				UIDocument document = documents[i];
+				if (document == null || document.isActiveAndEnabled == false)
+					continue;
 				VisualElement root = document.rootVisualElement;
 				if (root == null)
 					continue;

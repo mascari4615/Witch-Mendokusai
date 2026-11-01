@@ -41,7 +41,9 @@ namespace WitchMendokusai
 					context.LastWallCollider = hit.collider;
 
 					// Step offset 시도 (한 sweep 당 한 번만): wall hit을 stepHeight 위로 들어올려 재sweep, walkable이면 step-up.
-					if (stepOffsetAttempted == false)
+					// 다른 유닛의 몸은 계단 대상 아님. 군집에서 실패할 턱 질의 생략
+					bool hitUnit = hit.rigidbody != null && hit.rigidbody.TryGetComponent(out UnitMovement otherMovement);
+					if (stepOffsetAttempted == false && hitUnit == false)
 					{
 						stepOffsetAttempted = true;
 						if (TryStepOffset(currentPosition, direction, leftover.magnitude, out Vector3 steppedPosition))

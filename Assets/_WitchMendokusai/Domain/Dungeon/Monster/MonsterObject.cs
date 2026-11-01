@@ -55,6 +55,8 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
+			if (hpBar.gameObject.activeSelf == false)
+				return;
 			// hpBar가 항상 카메라를 바라보도록 설정 (이때, Y축만 회전함. X나 Z축은 회전하지 않음)
 			hpBar.LookAt(Camera.main.transform.position, Vector3.up);
 			hpBar.rotation = Quaternion.Euler(0, hpBar.rotation.eulerAngles.y, 0);

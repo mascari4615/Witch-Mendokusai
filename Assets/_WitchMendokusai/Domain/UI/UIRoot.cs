@@ -112,6 +112,7 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
+			UIToolkitFocus.Register(Document);
 			VisualElement root = Document.rootVisualElement;
 
 			if (styleSheet != null && root.styleSheets.Contains(styleSheet) == false)
@@ -150,6 +151,7 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
+			UIToolkitFocus.Unregister(Document);
 			if (holdingManager != null && HoldingOverlay != null)
 				holdingManager.UnregisterOverlay(HoldingOverlay);
 		}
