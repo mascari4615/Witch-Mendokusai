@@ -1,9 +1,26 @@
 using NUnit.Framework;
+using UnityEngine;
 
 namespace WitchMendokusai.Tests
 {
 	public sealed class BTRunnerConstructionTest
 	{
+		private sealed class SceneReferenceRunner : BTRunner
+		{
+			private readonly Transform target;
+
+			public SceneReferenceRunner(Transform target) : base(null)
+			{
+				this.target = target;
+			}
+
+			protected override Node MakeNode()
+			{
+				Vector3 positionAtBuild = target.position;
+				return NodeHelper.Condition(() => target.position == positionAtBuild);
+			}
+		}
+
 		private sealed class WaitingRunner : BTRunner
 		{
 			private readonly float duration;
@@ -36,6 +53,23 @@ namespace WitchMendokusai.Tests
 			Assert.That(runner.UpdateBT(), Is.EqualTo(BTState.Success));
 			Assert.That(runner.CanChangeState, Is.True);
 			Assert.That(runner.BuildCount, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void TreeBuild_ReadsInitializedSceneReferenceAndKeepsSnapshot()
+		{
+			GameObject target = new("BehaviorTreeTarget");
+			try
+			{
+				SceneReferenceRunner runner = new(target.transform);
+				Assert.That(runner.UpdateBT(), Is.EqualTo(BTState.Success));
+				target.transform.position = Vector3.up;
+				Assert.That(runner.UpdateBT(), Is.EqualTo(BTState.Failure));
+			}
+			finally
+			{
+				Object.DestroyImmediate(target);
+			}
 		}
 
 		[Test]
