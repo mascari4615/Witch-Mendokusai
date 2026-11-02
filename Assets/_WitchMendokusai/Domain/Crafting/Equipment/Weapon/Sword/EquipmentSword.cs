@@ -21,8 +21,8 @@ namespace WitchMendokusai
 		[SerializeField] private ProceduralSlash resonanceSlashPrefab;
 		[SerializeField] private CardData resonanceCard;
 		[SerializeField] private Vector3 slashOffset = new(0, 0.9f, 2.19f);
-		[SerializeField] private Vector3 slashAngles = new(70, -90, 0);
-		[SerializeField] private Vector3 slashScale = new(2.6f, 1.1f, 1);
+		[SerializeField] private Vector3 slashAngles = new(70, -110, 270);
+		[SerializeField] private Vector3 slashScale = new(1.4f, 1.4f, 1.4f);
 #pragma warning disable CS0414 // 칼 회전 미구현 예약 필드
 		[SerializeField] private float rotateSpeed = -30f;
 #pragma warning restore CS0414

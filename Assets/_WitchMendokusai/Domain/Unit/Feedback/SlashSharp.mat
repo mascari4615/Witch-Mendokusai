@@ -19,12 +19,8 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Width: 0.11
-    - _Arc: 2.5
-    - _SweepTime: 0.42
-    - _Trail: 0.32
-    - _Tear: 0.55
+    - _Width: .66
+    - _Curl: .32
     m_Colors:
-    - _CoreColor: {r: 1, g: 0.97, b: 0.86, a: 1}
-    - _EdgeColor: {r: 0.58, g: 0.68, b: 0.70, a: 1}
-    - _OutlineColor: {r: 0.12, g: 0.16, b: 0.19, a: 1}
+    - _CoreColor: {r: .93, g: .97, b: 1, a: 1}
+    - _BodyColor: {r: .55, g: .67, b: .72, a: 1}

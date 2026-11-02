@@ -10,7 +10,9 @@ namespace WitchMendokusai
 		[field: SerializeField, Min(0.01f)] public float Duration { get; private set; } = 0.32f;
 		[SerializeField] private Material slashMaterial;
 
-		private readonly Vector2[] phaseCoordinates = new Vector2[4];
+		private const int LengthSegments = 32;
+		private const int DepthSegments = 4;
+		private readonly Vector2[] phaseCoordinates = new Vector2[(LengthSegments + 1) * (DepthSegments + 1)];
 		private Mesh slashMesh;
 		private MeshRenderer slashRenderer;
 		private ObjectPoolManager pool;
@@ -19,16 +21,33 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			slashMesh = new Mesh { name = "Procedural slash quad" };
+			slashMesh = new Mesh { name = "Curved slash sheet" };
 			slashMesh.MarkDynamic();
-			slashMesh.vertices = new[]
+			Vector3[] vertices = new Vector3[phaseCoordinates.Length];
+			Vector2[] coordinates = new Vector2[phaseCoordinates.Length];
+			int[] triangles = new int[LengthSegments * DepthSegments * 6];
+			for (int length = 0; length <= LengthSegments; length++)
 			{
-				new Vector3(-1, -1, 0), new Vector3(1, -1, 0),
-				new Vector3(1, 1, 0), new Vector3(-1, 1, 0),
-			};
-			slashMesh.uv = new[] { Vector2.zero, Vector2.right, Vector2.one, Vector2.up };
-			slashMesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };
-			slashMesh.bounds = new Bounds(Vector3.zero, new Vector3(2, 2, 0.01f));
+				for (int depth = 0; depth <= DepthSegments; depth++)
+				{
+					int index = length * (DepthSegments + 1) + depth;
+					coordinates[index] = new Vector2((float)length / LengthSegments, (float)depth / DepthSegments);
+					vertices[index] = coordinates[index];
+					if (length == LengthSegments || depth == DepthSegments) continue;
+					int triangle = (length * DepthSegments + depth) * 6;
+					triangles[triangle] = index;
+					triangles[triangle + 1] = index + DepthSegments + 1;
+					triangles[triangle + 2] = index + 1;
+					triangles[triangle + 3] = index + 1;
+					triangles[triangle + 4] = index + DepthSegments + 1;
+					triangles[triangle + 5] = index + DepthSegments + 2;
+				}
+			}
+			slashMesh.vertices = vertices;
+			slashMesh.uv = coordinates;
+			slashMesh.triangles = triangles;
+			// 셰이더가 곡면으로 접고 펼치는 전체 범위 포함
+			slashMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 4);
 			GetComponent<MeshFilter>().sharedMesh = slashMesh;
 			slashRenderer = GetComponent<MeshRenderer>();
 			slashRenderer.sharedMaterial = slashMaterial;

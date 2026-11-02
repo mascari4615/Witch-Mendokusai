@@ -69,8 +69,8 @@ MonoBehaviour:
   resonanceSlashPrefab: {fileID: 11400000, guid: 3cbfbc50b76b4fe08418a35dd4fb0a91, type: 3}
   resonanceCard: {fileID: 11400000, guid: 4372ca442ee886747aa6f051c5e2a462, type: 2}
   slashOffset: {x: 0, y: 0.9, z: 2.19}
-  slashAngles: {x: 70, y: -90, z: 0}
-  slashScale: {x: 2.6, y: 1.1, z: 1}
+  slashAngles: {x: 70, y: -110, z: 270}
+  slashScale: {x: 1.4, y: 1.4, z: 1.4}
   rotateSpeed: -30
 --- !u!114 &8052225126702749883
 MonoBehaviour:

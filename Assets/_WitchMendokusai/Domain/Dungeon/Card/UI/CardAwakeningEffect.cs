@@ -123,7 +123,7 @@ namespace WitchMendokusai
 				ProceduralSlash slash = slashes[i];
 				float progress = Mathf.Clamp01(age / slash.Duration);
 				slash.transform.localPosition = Vector3.up * (0.05f * i);
-				slash.transform.localRotation = Quaternion.Euler(70, 30 + i * 120, 0);
+				slash.transform.localRotation = Quaternion.Euler(70, 30 + i * 120, 270);
 				slash.transform.localScale = Vector3.one * slashScale * Mathf.Lerp(0.8f, 1.15f, progress);
 				slash.Evaluate(age);
 			}

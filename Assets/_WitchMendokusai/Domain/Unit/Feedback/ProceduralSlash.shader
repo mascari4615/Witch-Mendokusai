@@ -2,18 +2,14 @@ Shader "WM/ProceduralSlash"
 {
 	Properties
 	{
-		_CoreColor ("Blade light", Color) = (1, 0.97, 0.86, 1)
-		_EdgeColor ("Blade shade", Color) = (0.58, 0.68, 0.70, 1)
-		_OutlineColor ("Contour", Color) = (0.12, 0.16, 0.19, 1)
-		_Width ("Ribbon width", Range(0.01, 0.3)) = 0.11
-		_Arc ("Ribbon length radians", Range(1, 4.5)) = 2.5
-		_SweepTime ("Sweep phase", Range(0.1, 0.6)) = 0.42
-		_Trail ("Fine trailing lines", Range(0, 1)) = 0.3
-		_Tear ("Trailing edge separation", Range(0, 1)) = 0.55
+		_CoreColor ("Crest", Color) = (1, 0.96, 0.82, 1)
+		_BodyColor ("Sheet", Color) = (0.47, 0.56, 0.58, 1)
+		_Width ("Sheet depth", Range(0.2, 0.95)) = 0.78
+		_Curl ("Sheet curl", Range(0, 0.8)) = 0.4
 	}
 	SubShader
 	{
-		Tags { "Queue"="Transparent" "RenderType"="Transparent" "RenderPipeline"="UniversalPipeline" }
+		Tags { "Queue"="Transparent" "RenderType"="Transparent" "RenderPipeline"="UniversalPipeline" "DisableBatching"="True" }
 		Pass
 		{
 			Tags { "LightMode"="SRPDefaultUnlit" }
@@ -26,69 +22,68 @@ Shader "WM/ProceduralSlash"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 			CBUFFER_START(UnityPerMaterial)
 				float4 _CoreColor;
-				float4 _EdgeColor;
-				float4 _OutlineColor;
+				float4 _BodyColor;
 				float _Width;
-				float _Arc;
-				float _SweepTime;
-				float _Trail;
-				float _Tear;
+				float _Curl;
 			CBUFFER_END
 			struct Attributes { float4 positionOS : POSITION; float2 uv : TEXCOORD0; float2 phase : TEXCOORD1; };
-			struct Varyings { float4 positionCS : SV_POSITION; float2 uv : TEXCOORD0; float phase : TEXCOORD1; };
+			struct Varyings { float4 positionCS : SV_POSITION; float2 uv : TEXCOORD0; float2 phase : TEXCOORD1; };
 			Varyings Vert(Attributes input)
 			{
 				Varyings output;
-				output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+				float phase = input.phase.x;
+				float along = input.uv.x;
+				float across = input.uv.y;
+				float spread = smoothstep(0, 0.18, phase);
+				float angle = lerp(-2.4, 1.15, along) + (1 - spread) * 0.65;
+				float flare = pow(saturate(sin(along * 3.14159265)), 0.55);
+				float depth = _Width * flare * (0.65 + along * 0.35);
+				float radius = 0.97 - (1 - across) * depth;
+				radius *= 0.85 + spread * 0.15 + phase * 0.14;
+				float3 position = float3(cos(angle) * radius, sin(angle) * radius, 0);
+				position.z = _Curl * (1 - across) * (1 - across) * flare;
+				position.z += 0.12 * sin(along * 5) * across;
+				output.positionCS = TransformObjectToHClip(position);
 				output.uv = input.uv;
-				output.phase = input.phase.x;
+				output.phase = input.phase;
 				return output;
+			}
+			float Hash(float2 position)
+			{
+				return frac(sin(dot(position, float2(127.1, 311.7))) * 43758.5453);
+			}
+			float Noise(float2 position)
+			{
+				float2 cell = floor(position);
+				float2 fraction = frac(position);
+				fraction = fraction * fraction * (3 - 2 * fraction);
+				return lerp(lerp(Hash(cell), Hash(cell + float2(1, 0)), fraction.x),
+					lerp(Hash(cell + float2(0, 1)), Hash(cell + 1), fraction.x), fraction.y);
 			}
 			half4 Frag(Varyings input) : SV_Target
 			{
-				float phase = saturate(input.phase);
-				float2 p = input.uv * 2 - 1;
-				float angle = atan2(p.y, p.x);
-				float radius = length(p);
-				float sweep = saturate(phase / _SweepTime);
-				float travel = 4.5 * (1 - pow(1 - sweep, 3));
-				float head = -2.35 + travel;
-				// 먼저 지난 꼬리부터 회수, 앞선 뒤로 짧게 남는 곡면
-				float release = smoothstep(_SweepTime * 0.7, 1, phase);
-				float arc = min(_Arc, travel) * (1 - release);
-				float behind = fmod(head - angle + 12.56637, 6.283185);
-				float along = saturate(behind / max(arc, 0.001));
-				float taper = pow(saturate(sin(along * 3.14159265)), 0.65) * (1 - along * 0.6);
-				float arcMask = step(behind, arc) * smoothstep(0, 0.035, phase);
-				float outerRadius = 0.79 - along * along * 0.17 + release * 0.035;
-				float width = _Width * taper * (1 - release * 0.55);
-				float depth = outerRadius - radius;
-				float edge = max(fwidth(radius) * 0.65, 0.001);
-				float body = smoothstep(-edge, edge, depth) * (1 - smoothstep(width - edge, width + edge, depth));
-				float contour = smoothstep(-edge, edge, depth + 0.003) * (1 - smoothstep(width + 0.003 - edge, width + 0.003 + edge, depth));
-				float across = saturate(depth / max(width, 0.001));
-				// 길이 방향의 절개로 잔상 분리, 화면 격자와 입자 노이즈 제외
-				float splitOne = abs(across - (0.48 + along * 0.14));
-				float splitTwo = abs(across - (0.77 - along * 0.09));
-				float tearWidth = _Tear * 0.13;
-				float firstCut = (1 - smoothstep(tearWidth, tearWidth + 0.03, splitOne)) * smoothstep(0.35, 0.65, along + release * 0.2);
-				float secondCut = (1 - smoothstep(tearWidth * 0.6, tearWidth + 0.03, splitTwo)) * smoothstep(0.58, 0.85, along + release * 0.15);
-				float strands = 1 - max(firstCut, secondCut);
-				body *= strands;
-				contour *= strands;
-				float light = 1 - smoothstep(0.14, 0.23, across);
-				float3 bladeColor = lerp(_EdgeColor.rgb, _CoreColor.rgb, light);
-				float3 color = lerp(_OutlineColor.rgb, bladeColor, body);
-				float fade = 1 - smoothstep(0.75, 1, phase);
-				float alpha = contour * arcMask * fade;
-				float lineRadius = outerRadius + 0.045 + along * 0.04;
-				float lineDistance = abs(radius - lineRadius);
-				float lineWidth = 0.003 * taper;
-				float trail = (1 - smoothstep(lineWidth, lineWidth + edge, lineDistance));
-				trail *= smoothstep(0.12, 0.25, along) * (1 - smoothstep(0.65, 0.9, along)) * arcMask * _Trail * fade;
-				color = lerp(color, _EdgeColor.rgb, saturate(trail / max(alpha, 0.001)));
-				alpha = max(alpha, trail);
-				clip(alpha - 0.015);
+				float phase = input.phase.x;
+				float along = input.uv.x;
+				float across = input.uv.y;
+				// 곡면 안쪽으로 흐르는 결, 외곽선과 독립된 면의 명암
+				float flow = along * 3.2 - phase * 4;
+				float bend = sin(along * 4.5) * 0.18;
+				float broad = Noise(float2(flow, (across + bend) * 10));
+				float grain = Noise(float2(flow * 2.1, (across + bend) * 29));
+				float streak = broad * 0.72 + grain * 0.28;
+				float crest = smoothstep(0.93, 0.99, across);
+				float vein = smoothstep(0.48, 0.76, streak) * smoothstep(0.1, 0.75, across);
+				float body = smoothstep(0.08, 0.38, across + broad * 0.3);
+				float head = smoothstep(0, 0.18, phase);
+				float draw = 1 - smoothstep(head - 0.07, head, along);
+				float dissolve = smoothstep(0.3, 1, phase);
+				float survival = across * 0.48 + broad * 0.4 + grain * 0.12;
+				float erosion = smoothstep(dissolve - 0.035, dissolve + 0.035, survival);
+				float tip = smoothstep(0, 0.035, along) * (1 - smoothstep(0.94, 1, along));
+				float alpha = body * draw * tip * erosion * smoothstep(0, 0.025, phase);
+				alpha *= saturate(across * 0.12 + crest * 0.85 + vein * 0.88);
+				float3 color = lerp(_BodyColor.rgb, _CoreColor.rgb, saturate(crest + vein * 0.85));
+				clip(alpha - 0.025);
 				return half4(color, alpha * _CoreColor.a);
 			}
 			ENDHLSL
