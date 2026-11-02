@@ -5,12 +5,11 @@ Shader "WM/ProceduralSlash"
 		_CoreColor ("Blade light", Color) = (1, 0.97, 0.86, 1)
 		_EdgeColor ("Blade shade", Color) = (0.58, 0.68, 0.70, 1)
 		_OutlineColor ("Contour", Color) = (0.12, 0.16, 0.19, 1)
-		_Width ("Blade thickness", Range(0.01, 0.18)) = 0.028
-		_Arc ("Arc radians", Range(1, 4.5)) = 3.8
-		_SweepTime ("Sweep phase", Range(0.1, 0.6)) = 0.3
-		_Trail ("Afterimage", Range(0, 1)) = 0.3
-		_Impact ("Impact flare", Range(0, 1)) = 0
-		_Facets ("Blade facets", Range(12, 48)) = 24
+		_Width ("Ribbon width", Range(0.01, 0.3)) = 0.11
+		_Arc ("Ribbon length radians", Range(1, 4.5)) = 2.5
+		_SweepTime ("Sweep phase", Range(0.1, 0.6)) = 0.42
+		_Trail ("Fine trailing lines", Range(0, 1)) = 0.3
+		_Tear ("Trailing edge separation", Range(0, 1)) = 0.55
 	}
 	SubShader
 	{
@@ -33,8 +32,7 @@ Shader "WM/ProceduralSlash"
 				float _Arc;
 				float _SweepTime;
 				float _Trail;
-				float _Impact;
-				float _Facets;
+				float _Tear;
 			CBUFFER_END
 			struct Attributes { float4 positionOS : POSITION; float2 uv : TEXCOORD0; float2 phase : TEXCOORD1; };
 			struct Varyings { float4 positionCS : SV_POSITION; float2 uv : TEXCOORD0; float phase : TEXCOORD1; };
@@ -51,39 +49,45 @@ Shader "WM/ProceduralSlash"
 				float phase = saturate(input.phase);
 				float2 p = input.uv * 2 - 1;
 				float angle = atan2(p.y, p.x);
-				// 칼날 자체를 짧은 직선 면으로 구성, 화면 격자와 무관하게 회전
-				float facetAngle = 6.283185 / max(12, round(_Facets));
-				float normalAngle = floor(angle / facetAngle + 0.5) * facetAngle;
-				float radius = dot(p, float2(cos(normalAngle), sin(normalAngle)));
+				float radius = length(p);
 				float sweep = saturate(phase / _SweepTime);
-				float head = lerp(-2.35, 2.25, 1 - (1 - sweep) * (1 - sweep));
-				float arc = _Arc * smoothstep(0, 0.14, phase) * (1 - 0.5 * smoothstep(0.45, 1, phase));
+				float travel = 4.5 * (1 - pow(1 - sweep, 3));
+				float head = -2.35 + travel;
+				// 먼저 지난 꼬리부터 회수, 앞선 뒤로 짧게 남는 곡면
+				float release = smoothstep(_SweepTime * 0.7, 1, phase);
+				float arc = min(_Arc, travel) * (1 - release);
 				float behind = fmod(head - angle + 12.56637, 6.283185);
 				float along = saturate(behind / max(arc, 0.001));
-				float taper = pow(saturate(sin(along * 3.14159265)), 0.7);
-				float arcMask = step(behind, arc);
-				float bladeRadius = lerp(0.58, 0.77, sweep) + phase * 0.035;
-				float width = _Width * (1 - phase * 0.65) * taper;
-				float distance = abs(radius - bladeRadius);
-				float edge = max(fwidth(radius) * 0.5, 0.001);
-				float body = (1 - smoothstep(width - edge, width + edge, distance)) * arcMask;
-				float contour = (1 - smoothstep(width + 0.007 - edge, width + 0.007 + edge, distance)) * arcMask;
-				float fade = 1 - smoothstep(0.38, 1, phase);
-				float core = step(distance, width * 0.55);
-				float3 bladeColor = lerp(_EdgeColor.rgb, _CoreColor.rgb, core);
+				float taper = pow(saturate(sin(along * 3.14159265)), 0.65) * (1 - along * 0.6);
+				float arcMask = step(behind, arc) * smoothstep(0, 0.035, phase);
+				float outerRadius = 0.79 - along * along * 0.17 + release * 0.035;
+				float width = _Width * taper * (1 - release * 0.55);
+				float depth = outerRadius - radius;
+				float edge = max(fwidth(radius) * 0.65, 0.001);
+				float body = smoothstep(-edge, edge, depth) * (1 - smoothstep(width - edge, width + edge, depth));
+				float contour = smoothstep(-edge, edge, depth + 0.003) * (1 - smoothstep(width + 0.003 - edge, width + 0.003 + edge, depth));
+				float across = saturate(depth / max(width, 0.001));
+				// 길이 방향의 절개로 잔상 분리, 화면 격자와 입자 노이즈 제외
+				float splitOne = abs(across - (0.48 + along * 0.14));
+				float splitTwo = abs(across - (0.77 - along * 0.09));
+				float tearWidth = _Tear * 0.13;
+				float firstCut = (1 - smoothstep(tearWidth, tearWidth + 0.03, splitOne)) * smoothstep(0.35, 0.65, along + release * 0.2);
+				float secondCut = (1 - smoothstep(tearWidth * 0.6, tearWidth + 0.03, splitTwo)) * smoothstep(0.58, 0.85, along + release * 0.15);
+				float strands = 1 - max(firstCut, secondCut);
+				body *= strands;
+				contour *= strands;
+				float light = 1 - smoothstep(0.14, 0.23, across);
+				float3 bladeColor = lerp(_EdgeColor.rgb, _CoreColor.rgb, light);
 				float3 color = lerp(_OutlineColor.rgb, bladeColor, body);
-				float alpha = contour * fade;
-				float trailDistance = abs(radius - (bladeRadius - 0.10 - phase * 0.05));
-				float trail = (1 - smoothstep(0.006 - edge, 0.006 + edge, trailDistance)) * arcMask * taper * _Trail * fade * fade;
+				float fade = 1 - smoothstep(0.75, 1, phase);
+				float alpha = contour * arcMask * fade;
+				float lineRadius = outerRadius + 0.045 + along * 0.04;
+				float lineDistance = abs(radius - lineRadius);
+				float lineWidth = 0.003 * taper;
+				float trail = (1 - smoothstep(lineWidth, lineWidth + edge, lineDistance));
+				trail *= smoothstep(0.12, 0.25, along) * (1 - smoothstep(0.65, 0.9, along)) * arcMask * _Trail * fade;
 				color = lerp(color, _EdgeColor.rgb, saturate(trail / max(alpha, 0.001)));
 				alpha = max(alpha, trail);
-				float2 tip = float2(cos(head), sin(head)) * bladeRadius;
-				float2 spark = p - tip;
-				float flare = saturate(1 - abs(spark.x) / 0.17 - abs(spark.y) / 0.045);
-				flare = max(flare, saturate(1 - abs(spark.x) / 0.035 - abs(spark.y) / 0.14));
-				flare *= _Impact * (1 - smoothstep(0.16, 0.38, phase)) * smoothstep(0.04, 0.12, phase);
-				color = lerp(color, _CoreColor.rgb, flare);
-				alpha = max(alpha, flare);
 				clip(alpha - 0.015);
 				return half4(color, alpha * _CoreColor.a);
 			}

@@ -19,12 +19,11 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Width: 0.028
-    - _Arc: 3.8
-    - _SweepTime: 0.3
-    - _Trail: 0.38
-    - _Impact: 0
-    - _Facets: 24
+    - _Width: 0.11
+    - _Arc: 2.5
+    - _SweepTime: 0.42
+    - _Trail: 0.32
+    - _Tear: 0.55
     m_Colors:
     - _CoreColor: {r: 1, g: 0.97, b: 0.86, a: 1}
     - _EdgeColor: {r: 0.58, g: 0.68, b: 0.70, a: 1}
