@@ -24,7 +24,7 @@ Material:
     - _SweepTime: 0.3
     - _Trail: 0.38
     - _Impact: 0
-    - _PixelSize: 4
+    - _Facets: 24
     m_Colors:
     - _CoreColor: {r: 1, g: 0.97, b: 0.86, a: 1}
     - _EdgeColor: {r: 0.58, g: 0.68, b: 0.70, a: 1}
