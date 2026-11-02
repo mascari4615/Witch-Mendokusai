@@ -39,6 +39,9 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
+			PlayerStat.AddListener(UnitStatType.FAIRY_COUNT, UpdateFairy);
+			PlayerStat.AddListener(UnitStatType.FAIRY_DAMAGE_BONUS, UpdateDamageBonus);
+			PlayerStat.AddListener(UnitStatType.FAIRY_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 			UpdateFairy(PlayerStat[UnitStatType.FAIRY_COUNT]);
 			UpdateDamageBonus(PlayerStat[UnitStatType.FAIRY_DAMAGE_BONUS]);
 			UpdateAttackSpeedBonus(PlayerStat[UnitStatType.FAIRY_ATTACK_SPEED_BONUS]);
@@ -50,13 +53,10 @@ namespace WitchMendokusai
 		{
 			if (loop != null)
 				StopCoroutine(loop);
-		}
-
-		private void Start()
-		{
-			PlayerStat.AddListener(UnitStatType.FAIRY_COUNT, UpdateFairy);
-			PlayerStat.AddListener(UnitStatType.FAIRY_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.AddListener(UnitStatType.FAIRY_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
+			// 비활성 정령의 강화 알림 해제
+			PlayerStat.RemoveListener(UnitStatType.FAIRY_COUNT, UpdateFairy);
+			PlayerStat.RemoveListener(UnitStatType.FAIRY_DAMAGE_BONUS, UpdateDamageBonus);
+			PlayerStat.RemoveListener(UnitStatType.FAIRY_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 		}
 
 		private void Update()
