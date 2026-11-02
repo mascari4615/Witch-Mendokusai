@@ -64,13 +64,9 @@ MonoBehaviour:
   attackSpeedBonusPerStack: 0.2
   minimumCoolTime: 0.15
   bulletPrefab: {fileID: 1521986667925735823, guid: 10e1ea7dcc98465aa6a18bd28913ddf2, type: 3}
-  swordPrefab: {fileID: 5016466698488500064, guid: 1164c692ec68f92478ef56d2be73de36, type: 3}
-  basicSlashPrefab: {fileID: 11400000, guid: 1e5d84fa7ea149d88e2f87b3c539b5f6, type: 3}
-  resonanceSlashPrefab: {fileID: 11400000, guid: 3cbfbc50b76b4fe08418a35dd4fb0a91, type: 3}
+  basicSwingPrefab: {fileID: 6776204863301351702, guid: dcccdfab972a89941ae67d24595745c7, type: 3}
+  resonanceSwingPrefab: {fileID: 7672354232193240691, guid: 65493eb7ac1092440b83d836a49bbbdc, type: 3}
   resonanceCard: {fileID: 11400000, guid: 4372ca442ee886747aa6f051c5e2a462, type: 2}
-  slashOffset: {x: 0, y: 0.9, z: 2.19}
-  slashAngles: {x: 70, y: -110, z: 270}
-  slashScale: {x: 1.4, y: 1.4, z: 1.4}
   rotateSpeed: -30
 --- !u!114 &8052225126702749883
 MonoBehaviour:
