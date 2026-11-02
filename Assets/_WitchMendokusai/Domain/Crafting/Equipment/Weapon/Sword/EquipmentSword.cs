@@ -17,6 +17,12 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.01f)] private float minimumCoolTime = 0.15f;
 		[SerializeField] private GameObject bulletPrefab;
 		[SerializeField] private GameObject swordPrefab;
+		[SerializeField] private ProceduralSlash basicSlashPrefab;
+		[SerializeField] private ProceduralSlash resonanceSlashPrefab;
+		[SerializeField] private CardData resonanceCard;
+		[SerializeField] private Vector3 slashOffset = new(0, 0.9f, 2.19f);
+		[SerializeField] private Vector3 slashAngles = new(70, -90, 0);
+		[SerializeField] private Vector3 slashScale = new(2.6f, 1.1f, 1);
 #pragma warning disable CS0414 // 칼 회전 미구현 예약 필드
 		[SerializeField] private float rotateSpeed = -30f;
 #pragma warning restore CS0414
@@ -27,12 +33,14 @@ namespace WitchMendokusai
 
 		private PlayerProvider playerProvider;
 		private ObjectPoolManager objectPoolManager;
+		private SOManager soManager;
 
 		[Inject]
-		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager, SOManager soManager)
 		{
 			this.playerProvider = playerProvider;
 			this.objectPoolManager = objectPoolManager;
+			this.soManager = soManager;
 		}
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
@@ -126,7 +134,27 @@ namespace WitchMendokusai
 					damagingObject.SetDamageBonus(damageBonus);
 
 				g.SetActive(true);
+				PlaySlash(g.transform);
 			}
+		}
+
+		private void PlaySlash(Transform attack)
+		{
+			ProceduralSlash prefab = basicSlashPrefab;
+			foreach (CardData card in soManager.SelectedCardBuffer.Data)
+			{
+				if (resonanceCard != null && card == resonanceCard)
+				{
+					prefab = resonanceSlashPrefab;
+					break;
+				}
+			}
+			if (prefab == null) return;
+			GameObject visual = objectPoolManager.Spawn(prefab.gameObject);
+			visual.transform.SetPositionAndRotation(attack.TransformPoint(slashOffset), attack.rotation * Quaternion.Euler(slashAngles));
+			visual.transform.localScale = slashScale;
+			visual.SetActive(true);
+			visual.GetComponent<ProceduralSlash>().PlayPooled(objectPoolManager, gameObject);
 		}
 
 		private void UpdateSword(int swordCount)

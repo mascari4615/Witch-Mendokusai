@@ -40,15 +40,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   bladeSprite: {fileID: 122605839, guid: 61d00942005bcfe49ab4822e59ef8ebd, type: 3}
-  slashFrames:
-  - {fileID: 699915120, guid: c949356d56b246249b53371c40816def, type: 3}
-  - {fileID: -581351897, guid: c949356d56b246249b53371c40816def, type: 3}
-  - {fileID: -932449998, guid: c949356d56b246249b53371c40816def, type: 3}
-  - {fileID: 1183429587, guid: c949356d56b246249b53371c40816def, type: 3}
-  - {fileID: 1699466054, guid: c949356d56b246249b53371c40816def, type: 3}
-  - {fileID: 2115888377, guid: c949356d56b246249b53371c40816def, type: 3}
-  - {fileID: 510970813, guid: c949356d56b246249b53371c40816def, type: 3}
-  - {fileID: 2096246765, guid: c949356d56b246249b53371c40816def, type: 3}
+  slashPrefab: {fileID: 11400000, guid: 3cbfbc50b76b4fe08418a35dd4fb0a91, type: 3}
   gatherDuration: 0.55
   releaseDuration: 0.16
   fadeDuration: 0.65
@@ -62,7 +54,6 @@ MonoBehaviour:
   orbitDegrees: 60
   heightOffset: 0.7
   bladeLift: 1.3
-  slashDuration: 0.44
   slashDelay: 0.07
   slashScale: 3.1
   dimOpacity: 0.12

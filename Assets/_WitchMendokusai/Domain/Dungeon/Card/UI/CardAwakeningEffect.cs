@@ -3,11 +3,11 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
-	// 기존 카드 그림과 참격 프레임만 사용하는 공격 판정 없는 강화 연출
+	// 기존 카드 그림과 강화 참격을 사용하는 공격 판정 없는 연출
 	public class CardAwakeningEffect : MonoBehaviour
 	{
 		[SerializeField] private Sprite bladeSprite;
-		[SerializeField] private Sprite[] slashFrames;
+		[SerializeField] private ProceduralSlash slashPrefab;
 		[SerializeField, Min(0.01f)] private float gatherDuration = 0.55f;
 		[SerializeField, Min(0.01f)] private float releaseDuration = 0.16f;
 		[SerializeField, Min(0.01f)] private float fadeDuration = 0.65f;
@@ -21,13 +21,12 @@ namespace WitchMendokusai
 		[SerializeField] private float orbitDegrees = 60f;
 		[SerializeField] private float heightOffset = 0.7f;
 		[SerializeField] private float bladeLift = 1.3f;
-		[SerializeField, Min(0.01f)] private float slashDuration = 0.44f;
 		[SerializeField, Min(0)] private float slashDelay = 0.07f;
 		[SerializeField] private float slashScale = 3.1f;
 		[SerializeField, Range(0, 1)] private float dimOpacity = 0.12f;
 
 		private SpriteRenderer[] blades;
-		private SpriteRenderer[] slashes;
+		private ProceduralSlash[] slashes;
 		private Transform actor;
 		private Camera worldCamera;
 		private TimeManager timeManager;
@@ -40,7 +39,7 @@ namespace WitchMendokusai
 			if (playing) return;
 			actor = target;
 			worldCamera = Camera.main;
-			if (actor == null || worldCamera == null || clock == null || bladeSprite == null || slashFrames == null || slashFrames.Length == 0)
+			if (actor == null || worldCamera == null || clock == null || bladeSprite == null || slashPrefab == null)
 			{
 				Destroy(gameObject);
 				return;
@@ -48,7 +47,8 @@ namespace WitchMendokusai
 			timeManager = clock;
 			elapsed = 0;
 			blades = CreateSprites("Resonating blade", bladeCount, bladeSprite);
-			slashes = CreateSprites("Resonance slash", slashCount, slashFrames[0]);
+			slashes = new ProceduralSlash[slashCount];
+			for (int i = 0; i < slashes.Length; i++) slashes[i] = Instantiate(slashPrefab, transform);
 			GameObject shade = new("Awakening shade", typeof(RectTransform), typeof(Canvas));
 			shade.transform.SetParent(transform, false);
 			Canvas canvas = shade.GetComponent<Canvas>();
@@ -120,16 +120,12 @@ namespace WitchMendokusai
 			for (int i = 0; i < slashes.Length; i++)
 			{
 				float age = elapsed - gatherDuration - i * slashDelay;
-				SpriteRenderer slash = slashes[i];
-				slash.enabled = age >= 0 && age < slashDuration;
-				if (slash.enabled == false) continue;
-				float progress = Mathf.Clamp01(age / slashDuration);
-				int frame = Mathf.Min(Mathf.FloorToInt(progress * slashFrames.Length), slashFrames.Length - 1);
-				slash.sprite = slashFrames[frame];
+				ProceduralSlash slash = slashes[i];
+				float progress = Mathf.Clamp01(age / slash.Duration);
 				slash.transform.localPosition = Vector3.up * (0.05f * i);
-				slash.transform.localRotation = Quaternion.Euler(90, 30 + i * 120, 0);
+				slash.transform.localRotation = Quaternion.Euler(70, 30 + i * 120, 0);
 				slash.transform.localScale = Vector3.one * slashScale * Mathf.Lerp(0.8f, 1.15f, progress);
-				slash.color = new Color(1, 1, 1, 1 - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(0.5f, 1, progress)));
+				slash.Evaluate(age);
 			}
 		}
 
