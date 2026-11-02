@@ -9,7 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1840446083036639970}
-  - component: {fileID: 5550182701134326148}
+  - component: {fileID: 3173373060321710462}
+  - component: {fileID: 7206125863050933140}
   m_Layer: 0
   m_Name: Blade
   m_TagString: Untagged
@@ -32,23 +33,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3817851489224344248}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &5550182701134326148
-SpriteRenderer:
-  serializedVersion: 3
+--- !u!33 &3173373060321710462
+MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 647199953495002170}
-  m_Enabled: 0
-  m_CastShadows: 0
-  m_ReceiveShadows: 0
+  m_Mesh: {fileID: 0}
+--- !u!23 &7206125863050933140
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 647199953495002170}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 0
+  m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
@@ -58,7 +66,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: dc7e10507eabdfa44aaa9a724f6079bf, type: 2}
+  - {fileID: 2100000, guid: 9b873ba46e211a64b90ca4a15cca3ec3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -71,7 +79,7 @@ SpriteRenderer:
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
   m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 0
+  m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
@@ -79,19 +87,9 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -1783732083, guid: 61d00942005bcfe49ab4822e59ef8ebd, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
-  m_FlipY: 0
-  m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
-  m_AdaptiveModeThreshold: 0.5
-  m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
-  m_SpriteSortPoint: 0
-  m_BlendShapeWeights: []
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &9015821064952941197
 GameObject:
   m_ObjectHideFlags: 0
@@ -138,28 +136,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28d05f9ecd0d99c43bec1f5ae89b13b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SwordSwing
-  blade: {fileID: 5550182701134326148}
+  bladeFilter: {fileID: 3173373060321710462}
+  bladeRenderer: {fileID: 7206125863050933140}
   trailFilter: {fileID: 5953530065381679167}
   trailRenderer: {fileID: 783237134470776746}
-  spriteGrip: {x: -0.25, y: 0.25}
-  spriteTip: {x: 0.458, y: -0.458}
-  bladeLength: 2.1
-  handRadius: 0.35
-  height: 0.55
+  bladeLength: 0.95
+  bladeWidth: 0.14
+  bladeThickness: 0.03
+  tipLength: 0.14
+  guardWidth: 0.24
+  guardDepth: 0.05
+  gripLength: 0.2
+  gripWidth: 0.05
+  bladeTopColor: {r: 0.76, g: 0.7, b: 0.52, a: 1}
+  bladeBottomColor: {r: 0.32, g: 0.36, b: 0.46, a: 1}
+  guardColor: {r: 0.8, g: 0.48, b: 0.12, a: 1}
+  gripColor: {r: 0.16, g: 0.2, b: 0.45, a: 1}
+  handRadius: 0.3
+  height: 0.5
   startAngle: -135
   endAngle: 75
-  planeTilt: 28
   easeExponent: 3
   swingTime: 0.18
-  holdTime: 0.04
-  fadeTime: 0.1
-  trailTime: 0.08
-  trailInner: 0.5
-  trailOuter: 1.08
-  trailHeadColor: {r: 1, g: 0.97, b: 0.84, a: 0.95}
-  trailTailColor: {r: 1, g: 0.72, b: 0.42, a: 0}
-  trailInnerAlpha: 0
-  trailAlphaCurve: 2
+  holdTime: 0.08
+  trailTime: 0.09
+  trailSegments: 10
+  trailInner: 0.2
+  trailEdge: 0.85
+  trailOuter: 1.05
+  trailBodyColors:
+  - {r: 1, g: 0.85, b: 0.5, a: 0.5}
+  - {r: 0.95, g: 0.55, b: 0.25, a: 0.32}
+  - {r: 0.7, g: 0.28, b: 0.15, a: 0.16}
+  trailEdgeColors:
+  - {r: 1, g: 1, b: 0.92, a: 1}
+  - {r: 1, g: 0.9, b: 0.6, a: 0.75}
+  - {r: 1, g: 0.7, b: 0.4, a: 0.45}
 --- !u!1 &9113325376051501930
 GameObject:
   m_ObjectHideFlags: 0
