@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &100000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 400000}
+  - component: {fileID: 11400000}
+  m_Layer: 0
+  m_Name: CardAwakening
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &400000
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc117aab0614428dbcb40b56e4b3af58, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  effectMaterial: {fileID: 2100000, guid: da95aeb445674b3299956ee0c07e9548, type: 2}
+  gatherDuration: 0.55
+  releaseDuration: 0.16
+  fadeDuration: 0.65
+  bladeCount: 6
+  ringSegments: 64
+  gatherRadius: 2.5
+  focusRadius: 1.2
+  releaseRadius: 4.6
+  bladeLength: 0.8
+  bladeWidth: 0.14
+  lineWidth: 0.025
+  orbitDegrees: 100
+  heightOffset: 0.7
+  dimOpacity: 0.28
+  edgeColor: {r: 0.25, g: 0.65, b: 1, a: 1}
+  coreColor: {r: 0.85, g: 0.95, b: 1, a: 1}

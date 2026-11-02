@@ -32,3 +32,4 @@ MonoBehaviour:
     Stack: 3
   - Card: {fileID: 11400000, guid: bce723c013bedaf42a18e51019d040a6, type: 2}
     Stack: 2
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 11400000, guid: ce218d43c4894157be8fd7884677171f, type: 3}

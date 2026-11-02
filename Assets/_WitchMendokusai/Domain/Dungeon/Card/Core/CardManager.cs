@@ -31,14 +31,17 @@ namespace WitchMendokusai
 		private TimeManager timeManager;
 		private SOManager soManager;
 		private DataManager dataManager;
+		private PlayerProvider playerProvider;
+		private CardAwakeningEffect awakeningEffect;
 
 		[Inject]
-		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager, DataManager dataManager, UIManager uiManager)
+		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager, DataManager dataManager, UIManager uiManager, PlayerProvider playerProvider)
 		{
 			this.gameEventManager = gameEventManager;
 			this.timeManager = timeManager;
 			this.soManager = soManager;
 			this.dataManager = dataManager;
+			this.playerProvider = playerProvider;
 			SetUIManager(uiManager);
 		}
 
@@ -112,6 +115,10 @@ namespace WitchMendokusai
 
 		public void CancelSelection()
 		{
+			if (awakeningEffect != null)
+			{
+				Destroy(awakeningEffect.gameObject);
+			}
 			StopAllCoroutines();
 			levelUpStack = 0;
 			curDeckIndex = 0;
@@ -275,6 +282,11 @@ namespace WitchMendokusai
 			CardBuffer selectedCardBuffer = soManager.SelectedCardBuffer;
 
 			selectedCardBuffer.Add(card);
+			if (card.AwakeningEffectPrefab != null)
+			{
+				awakeningEffect = Instantiate(card.AwakeningEffectPrefab);
+				awakeningEffect.Play(playerProvider.Current.transform, timeManager);
+			}
 
 			int sameCardCount = selectedCardBuffer.Data.Where(m => m.ID == card.ID).Count();
 			if (card.MaxStack == sameCardCount)

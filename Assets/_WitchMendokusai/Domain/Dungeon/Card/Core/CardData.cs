@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public List<EffectInfo> Effects { get; private set; } = new();
 		[field: SerializeField] public int MaxStack { get; private set; } = 5;
 		[field: SerializeField] public List<Requirement> Requirements { get; private set; } = new();
+		[field: SerializeField] public CardAwakeningEffect AwakeningEffectPrefab { get; private set; }
 
 		public bool MeetsRequirements(IReadOnlyList<CardData> selectedCards)
 		{
