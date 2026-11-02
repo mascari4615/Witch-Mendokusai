@@ -10,7 +10,7 @@ Shader "WM/ProceduralSlash"
 		_SweepTime ("Sweep phase", Range(0.1, 0.6)) = 0.3
 		_Trail ("Afterimage", Range(0, 1)) = 0.3
 		_Impact ("Impact flare", Range(0, 1)) = 0
-		_Steps ("Contour resolution", Range(24, 256)) = 96
+		_PixelSize ("Screen pixel block", Range(1, 8)) = 4
 	}
 	SubShader
 	{
@@ -34,7 +34,7 @@ Shader "WM/ProceduralSlash"
 				float _SweepTime;
 				float _Trail;
 				float _Impact;
-				float _Steps;
+				float _PixelSize;
 			CBUFFER_END
 			struct Attributes { float4 positionOS : POSITION; float2 uv : TEXCOORD0; float2 phase : TEXCOORD1; };
 			struct Varyings { float4 positionCS : SV_POSITION; float2 uv : TEXCOORD0; float phase : TEXCOORD1; };
@@ -53,10 +53,16 @@ Shader "WM/ProceduralSlash"
 			half4 Frag(Varyings input) : SV_Target
 			{
 				float phase = saturate(input.phase);
-				float2 original = input.uv * 2 - 1;
-				float aa = max(length(fwidth(original)), 0.004);
-				float2 p = floor(original * _Steps + 0.5) / _Steps;
+				// 화면 격자 중심에서만 모양 계산, 기울어진 참격도 정사각 도트 유지
+				float pixelSize = max(1, round(_PixelSize));
+				float2 cell = floor(input.positionCS.xy / pixelSize);
+				float2 offset = (cell + 0.5) * pixelSize - input.positionCS.xy;
+				float2 uvDx = ddx(input.uv);
+				float2 uvDy = ddy(input.uv);
+				float2 p = (input.uv + uvDx * offset.x + uvDy * offset.y) * 2 - 1;
 				float radius = length(p);
+				float2 radialDirection = p / max(radius, 0.001);
+				float radialPixel = length(float2(dot(radialDirection, uvDx), dot(radialDirection, uvDy))) * 2 * pixelSize;
 				float angle = atan2(p.y, p.x);
 				float sweep = saturate(phase / _SweepTime);
 				float head = lerp(-2.35, 2.25, 1 - (1 - sweep) * (1 - sweep));
@@ -64,20 +70,20 @@ Shader "WM/ProceduralSlash"
 				float behind = fmod(head - angle + 12.56637, 6.283185);
 				float along = saturate(behind / max(arc, 0.001));
 				float taper = pow(saturate(sin(along * 3.14159265)), 0.7);
-				float arcMask = 1 - smoothstep(arc - 0.035, arc + 0.035, behind);
+				float arcMask = step(behind, arc);
 				float bladeRadius = lerp(0.58, 0.77, sweep) + phase * 0.035;
-				float width = _Width * taper * (1 - phase * 0.65);
+				float width = max(_Width * (1 - phase * 0.65), radialPixel * 0.55) * taper;
 				float distance = abs(radius - bladeRadius);
-				float body = (1 - smoothstep(width - aa, width + aa, distance)) * arcMask;
-				float contour = (1 - smoothstep(width + 0.009 - aa, width + 0.009 + aa, distance)) * arcMask;
+				float body = step(distance, width) * arcMask;
+				float contour = step(distance, width + radialPixel * 0.4) * arcMask;
 				float fade = 1 - smoothstep(0.38, 1, phase);
 				float erosion = step(Grain(p) * 0.75, fade);
-				float core = 1 - smoothstep(width * 0.2, max(width * 0.85, aa), distance);
+				float core = floor(saturate(1 - distance / max(width, 0.001)) * 2 + 0.5) * 0.5;
 				float3 bladeColor = lerp(_EdgeColor.rgb, _CoreColor.rgb, core);
 				float3 color = lerp(_OutlineColor.rgb, bladeColor, body);
 				float alpha = contour * fade * erosion;
 				float trailDistance = abs(radius - (bladeRadius - 0.10 - phase * 0.05));
-				float trail = (1 - smoothstep(0.007, 0.007 + aa, trailDistance)) * arcMask * taper * _Trail * fade * fade;
+				float trail = step(trailDistance, radialPixel * 0.45) * arcMask * taper * _Trail * fade * fade;
 				color = lerp(color, _EdgeColor.rgb, saturate(trail / max(alpha, 0.001)));
 				alpha = max(alpha, trail);
 				float2 tip = float2(cos(head), sin(head)) * bladeRadius;
@@ -87,8 +93,11 @@ Shader "WM/ProceduralSlash"
 				flare *= _Impact * (1 - smoothstep(0.16, 0.38, phase)) * smoothstep(0.04, 0.12, phase);
 				color = lerp(color, _CoreColor.rgb, flare);
 				alpha = max(alpha, flare);
-				clip(alpha - 0.015);
-				return half4(color, alpha * _CoreColor.a);
+				// 반투명 흐림 대신 2x2 도트 순서로 잔상 소멸
+				float2 parity = fmod(cell, 2);
+				float dither = (fmod(parity.x + parity.y, 2) * 2 + parity.y + 0.5) * 0.25;
+				clip(alpha * _CoreColor.a - dither);
+				return half4(floor(saturate(color) * 15 + 0.5) / 15, 1);
 			}
 			ENDHLSL
 		}
