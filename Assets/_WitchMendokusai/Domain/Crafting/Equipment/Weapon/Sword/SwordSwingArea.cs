@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -10,6 +11,10 @@ namespace WitchMendokusai
 		public readonly float OuterRadius;
 		// 공격 방향 좌우로 판정이 닿는 각도
 		public readonly float HalfAngle;
+
+		// 공격마다 측정하므로 메인 스레드 전용 버퍼 재사용
+		private static readonly List<Collider> ColliderBuffer = new();
+		private static readonly Vector3[] CornerBuffer = new Vector3[8];
 
 		public SwordSwingArea(float innerRadius, float outerRadius, float halfAngle)
 		{
@@ -24,19 +29,20 @@ namespace WitchMendokusai
 			float nearest = float.MaxValue;
 			float farthest = 0f;
 			float halfAngle = 0f;
-			Vector3[] corners = new Vector3[8];
-			foreach (Collider collider in hitboxRoot.GetComponentsInChildren<Collider>(true))
+			hitboxRoot.GetComponentsInChildren(true, ColliderBuffer);
+			foreach (Collider collider in ColliderBuffer)
 			{
-				CollectCorners(collider, corners);
-				for (int i = 0; i < corners.Length; i++)
+				CollectCorners(collider, CornerBuffer);
+				for (int i = 0; i < CornerBuffer.Length; i++)
 				{
-					Vector3 local = hitboxRoot.InverseTransformPoint(corners[i]);
+					Vector3 local = hitboxRoot.InverseTransformPoint(CornerBuffer[i]);
 					Vector2 planar = new(local.x, local.z);
 					nearest = Mathf.Min(nearest, Mathf.Max(0f, local.z));
 					farthest = Mathf.Max(farthest, planar.magnitude);
 					halfAngle = Mathf.Max(halfAngle, Mathf.Atan2(Mathf.Abs(local.x), Mathf.Max(local.z, 0.01f)) * Mathf.Rad2Deg);
 				}
 			}
+			ColliderBuffer.Clear();
 			if (farthest <= 0f)
 				return new SwordSwingArea(0f, 0f, 0f);
 
