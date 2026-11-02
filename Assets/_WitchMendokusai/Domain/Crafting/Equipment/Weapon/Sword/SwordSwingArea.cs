@@ -1,0 +1,74 @@
+using UnityEngine;
+
+namespace WitchMendokusai
+{
+	// 공격 방향 기준 수평 부채꼴로 나타낸 실제 판정 범위
+	// 판정 모양과 수치가 바뀌어도 연출은 이 값만 읽음
+	public readonly struct SwordSwingArea
+	{
+		public readonly float InnerRadius;
+		public readonly float OuterRadius;
+		// 공격 방향 좌우로 판정이 닿는 각도
+		public readonly float HalfAngle;
+
+		public SwordSwingArea(float innerRadius, float outerRadius, float halfAngle)
+		{
+			InnerRadius = Mathf.Max(0f, innerRadius);
+			OuterRadius = Mathf.Max(InnerRadius, outerRadius);
+			HalfAngle = Mathf.Clamp(halfAngle, 0f, 180f);
+		}
+
+		// 판정 오브젝트의 모든 판정과 수명 동안의 이동을 공격 기준 좌표로 측정
+		public static SwordSwingArea FromHitbox(Transform hitboxRoot)
+		{
+			float nearest = float.MaxValue;
+			float farthest = 0f;
+			float halfAngle = 0f;
+			Vector3[] corners = new Vector3[8];
+			foreach (Collider collider in hitboxRoot.GetComponentsInChildren<Collider>(true))
+			{
+				CollectCorners(collider, corners);
+				for (int i = 0; i < corners.Length; i++)
+				{
+					Vector3 local = hitboxRoot.InverseTransformPoint(corners[i]);
+					Vector2 planar = new(local.x, local.z);
+					nearest = Mathf.Min(nearest, Mathf.Max(0f, local.z));
+					farthest = Mathf.Max(farthest, planar.magnitude);
+					halfAngle = Mathf.Max(halfAngle, Mathf.Atan2(Mathf.Abs(local.x), Mathf.Max(local.z, 0.01f)) * Mathf.Rad2Deg);
+				}
+			}
+			if (farthest <= 0f)
+				return new SwordSwingArea(0f, 0f, 0f);
+
+			// 날아가는 판정은 수명 동안 공격 방향으로 나아간 거리만큼 범위 연장
+			if (hitboxRoot.TryGetComponent(out BulletMovement movement) && hitboxRoot.TryGetComponent(out ObjectWithTime lifetime))
+			{
+				float travel = movement.MoveSpeed * lifetime.Duration * Vector3.Dot(movement.MoveDirection, hitboxRoot.forward);
+				farthest += Mathf.Max(0f, travel);
+			}
+			return new SwordSwingArea(nearest, farthest, halfAngle);
+		}
+
+		private static void CollectCorners(Collider collider, Vector3[] corners)
+		{
+			Transform owner = collider.transform;
+			if (collider is BoxCollider box)
+			{
+				Vector3 half = box.size * 0.5f;
+				for (int i = 0; i < 8; i++)
+				{
+					Vector3 sign = new((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1);
+					corners[i] = owner.TransformPoint(box.center + Vector3.Scale(half, sign));
+				}
+				return;
+			}
+			// 상자 외 판정은 월드 경계 상자의 꼭짓점으로 근사
+			Bounds bounds = collider.bounds;
+			for (int i = 0; i < 8; i++)
+			{
+				Vector3 sign = new((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1);
+				corners[i] = bounds.center + Vector3.Scale(bounds.extents, sign);
+			}
+		}
+	}
+}

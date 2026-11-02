@@ -8,6 +8,8 @@ public class ObjectWithTime : MonoBehaviour
 	[SerializeField] private float duration = 1f;
 	private Coroutine coroutine;
 
+	public float Duration => duration;
+
 	private void OnEnable()
 	{
 		coroutine = StartCoroutine(DisableObject());

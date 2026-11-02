@@ -12,6 +12,9 @@ namespace WitchMendokusai
 
 		private PlayerProvider playerProvider;
 
+		public float MoveSpeed => moveSpeed;
+		public Vector3 MoveDirection => moveDirection;
+
 		[Inject]
 		public void Construct(PlayerProvider playerProvider)
 		{

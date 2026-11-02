@@ -126,6 +126,7 @@ namespace WitchMendokusai
 		}
 
 		// 판정 방향으로 실제 검을 휘두르는 연출, 강화 카드 보유 시 강화 휘두르기
+		// 연출 크기는 이번 판정 오브젝트에서 측정한 범위에 맞춤
 		private void PlaySwing(Transform attack)
 		{
 			SwordSwing prefab = basicSwingPrefab;
@@ -140,7 +141,7 @@ namespace WitchMendokusai
 			GameObject visual = objectPoolManager.Spawn(prefab.gameObject);
 			visual.transform.SetPositionAndRotation(attack.position, attack.rotation);
 			visual.SetActive(true);
-			visual.GetComponent<SwordSwing>().PlayPooled(objectPoolManager, gameObject, playerProvider.Current.transform);
+			visual.GetComponent<SwordSwing>().PlayPooled(objectPoolManager, gameObject, playerProvider.Current.transform, SwordSwingArea.FromHitbox(attack));
 		}
 
 		private void UpdateSword(int swordCount)

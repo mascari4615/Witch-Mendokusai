@@ -140,7 +140,8 @@ MonoBehaviour:
   bladeRenderer: {fileID: 7206125863050933140}
   trailFilter: {fileID: 5953530065381679167}
   trailRenderer: {fileID: 783237134470776746}
-  bladeLength: 0.95
+  minBladeLength: 0.5
+  maxBladeLength: 0.95
   bladeWidth: 0.14
   bladeThickness: 0.03
   tipLength: 0.14
@@ -154,8 +155,9 @@ MonoBehaviour:
   gripColor: {r: 0.16, g: 0.2, b: 0.45, a: 1}
   handRadius: 0.3
   height: 0.5
-  startAngle: -135
-  endAngle: 75
+  minHalfAngle: 75
+  startOvershoot: 60
+  endOvershoot: 0
   easeExponent: 3
   swingTime: 0.18
   holdTime: 0.08
@@ -163,7 +165,6 @@ MonoBehaviour:
   trailSegments: 10
   trailInner: 0.2
   trailEdge: 0.85
-  trailOuter: 1.05
   trailBodyColors:
   - {r: 1, g: 0.85, b: 0.5, a: 0.5}
   - {r: 0.95, g: 0.55, b: 0.25, a: 0.32}
