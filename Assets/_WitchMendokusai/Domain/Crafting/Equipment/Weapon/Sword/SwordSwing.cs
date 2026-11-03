@@ -23,7 +23,7 @@ namespace WitchMendokusai
 		[SerializeField] private MeshRenderer bladeRenderer;
 		[SerializeField] private MeshFilter trailFilter;
 		[SerializeField] private MeshRenderer trailRenderer;
-		[SerializeField] private SwordSwingStyle style = SwordSwingStyle.ScaledTrail;
+		[SerializeField] private SwordSwingStyle style = SwordSwingStyle.FittedStroke;
 
 		[Header("Blade")]
 		// 판정 거리에 맞춘 칼 길이의 하한과 상한
@@ -82,7 +82,7 @@ namespace WitchMendokusai
 		[SerializeField, Range(4, 48)] private int strokeSegments = 24;
 		// 크기와 무관하게 고정된 획 끝 길이와 굵기
 		[SerializeField, Min(0.01f)] private float strokeTip = 0.45f;
-		[SerializeField, Min(0.01f)] private float strokeWidth = 0.26f;
+		[SerializeField, Min(0.01f)] private float strokeWidth = 0.4f;
 		// 판정 길이가 폭의 이 배수 이상이면 앞으로 뻗는 긴 획, 아니면 폭을 가로지르는 호
 		[SerializeField, Min(0.1f)] private float strokeLongRatio = 1.2f;
 		[SerializeField, Min(0f)] private float strokeMaxSagitta = 0.7f;

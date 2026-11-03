@@ -230,7 +230,7 @@ MonoBehaviour:
   bladeRenderer: {fileID: 8029191119552514587}
   trailFilter: {fileID: 1268964730243979674}
   trailRenderer: {fileID: 8036844152858922449}
-  style: 1
+  style: 2
   minBladeLength: 0.5
   maxBladeLength: 0.85
   bladeWidth: 0.12
@@ -270,7 +270,7 @@ MonoBehaviour:
   strokeFade: 0.1
   strokeSegments: 24
   strokeTip: 0.45
-  strokeWidth: 0.26
+  strokeWidth: 0.4
   strokeLongRatio: 1.2
   strokeMaxSagitta: 0.7
   strokeMargin: 0.08
