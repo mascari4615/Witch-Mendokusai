@@ -16,6 +16,7 @@ namespace WitchMendokusai
 
 		// 자동 조준 탐색 최대 거리. Player 의 [SerializeField] 에서 주입 — POCO 라 자체 노출 불가.
 		private readonly float maxAimDistance;
+		private readonly int unitLayerMask;
 
 		public PlayerAim(Transform transform, InputManager inputManager, float maxAimDistance, params List<GameObject>[] targets)
 		{
@@ -23,13 +24,13 @@ namespace WitchMendokusai
 			this.inputManager = inputManager;
 			this.maxAimDistance = maxAimDistance;
 			targetLists = new(targets);
+			unitLayerMask = LayerMask.GetMask("UNIT");
 		}
 
 		public GameObject GetNearestTarget()
 		{
 			bool TryItsNearest(GameObject target, float minDistance, out float distance)
 			{
-				int layerMask = LayerMask.GetMask("UNIT");
 				Vector3 actualTargetPosition = target.transform.position + Vector3.up * 0.5f;
 
 				distance = Vector3.Distance(playerTr.position, actualTargetPosition);
@@ -39,7 +40,7 @@ namespace WitchMendokusai
 					return false;
 
 				// Debug.DrawRay(transform.position, direction, Color.red, 0.1f);
-				if (Physics.Raycast(playerTr.position, direction, out RaycastHit hit, distance, layerMask) == false)
+				if (Physics.Raycast(playerTr.position, direction, out RaycastHit hit, distance, unitLayerMask) == false)
 					return false;
 
 				if (hit.collider.gameObject != target)
@@ -83,18 +84,17 @@ namespace WitchMendokusai
 			return nearestAutoTarget;
 		}
 
-		public Vector3 CalcAim(bool useAutoAim)
+		// 한 프레임에 탐색한 최근접 대상을 받아 조준 위치 계산, 대상 재탐색 없음
+		public Vector3 CalcAim(GameObject nearestTarget, bool useAutoAim)
 		{
-			GameObject nearestTarget = GetNearestTarget();
 			return useAutoAim && (nearestTarget != null) ?
 				nearestTarget.transform.position :
 				inputManager.MouseWorldPosition;
 		}
 
-		public Vector3 CalcAimDirection(bool useAutoAim)
+		public Vector3 CalcAimDirection(Vector3 aimPosition)
 		{
-			Vector3 targetPosition = CalcAim(useAutoAim);
-			return (targetPosition - playerTr.position).normalized;
+			return (aimPosition - playerTr.position).normalized;
 		}
 	}
 }

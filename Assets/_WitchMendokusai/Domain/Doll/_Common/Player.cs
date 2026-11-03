@@ -121,9 +121,11 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			AimPos = aim.CalcAim(useAutoAim: IsAutoAim);
-			AimDirection = aim.CalcAimDirection(useAutoAim: IsAutoAim);
-			NearestTarget = aim.GetNearestTarget()?.transform;
+			// 최근접 대상 탐색은 프레임당 한 번, 조준 위치와 방향은 그 결과로 계산
+			GameObject nearestTarget = aim.GetNearestTarget();
+			AimPos = aim.CalcAim(nearestTarget, IsAutoAim);
+			AimDirection = aim.CalcAimDirection(AimPos);
+			NearestTarget = nearestTarget != null ? nearestTarget.transform : null;
 
 			CalcMoveDirection();
 		}
