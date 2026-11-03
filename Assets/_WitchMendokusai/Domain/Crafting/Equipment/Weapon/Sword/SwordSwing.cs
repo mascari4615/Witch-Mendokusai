@@ -8,11 +8,11 @@ namespace WitchMendokusai
 	public enum SwordSwingStyle
 	{
 		// 칼끝이 정면을 지날 때 초승달 검기가 떨어져 판정 끝까지 날아감
-		FlyingWave,
+		FlyingWave = 0,
 		// 칼이 지나간 자리의 초승달 궤적을 판정 거리까지 키움
-		ScaledTrail,
+		ScaledTrail = 1,
 		// 판정 상자 안에 들어가는 베기 획 하나를 그림
-		FittedStroke,
+		FittedStroke = 2,
 	}
 
 	// 로우폴리 검을 월드 수평면에서 휘두르고, 판정 범위(SwordSwingArea)에 맞춘 각진 단색 효과를 짧게 남기는 연출
