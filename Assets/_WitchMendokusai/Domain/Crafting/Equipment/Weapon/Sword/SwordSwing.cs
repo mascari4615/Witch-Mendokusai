@@ -101,11 +101,17 @@ namespace WitchMendokusai
 			pool = objectPool;
 			owner = attackOwner;
 			follow = followTarget;
-			FitArea(area);
-			// 좌우 어느 방향이든 먼 쪽에서 카메라 쪽으로 베도록 회전 부호 결정
-			side = Vector3.Dot(transform.right, Vector3.back) >= 0 ? 1f : -1f;
+			Prepare(area);
 			elapsed = 0;
 			Evaluate(0);
+		}
+
+		// 풀 없이 호출 측 시간으로 Evaluate하는 연출도 같은 준비를 거침, 방향을 정한 뒤 호출
+		public void Prepare(SwordSwingArea area)
+		{
+			// 좌우 어느 방향이든 먼 쪽에서 카메라 쪽으로 베도록 회전 부호 결정
+			side = Vector3.Dot(transform.right, Vector3.back) >= 0 ? 1f : -1f;
+			FitArea(area);
 		}
 
 		private void LateUpdate()

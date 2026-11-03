@@ -3,11 +3,11 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
-	// 기존 카드 그림과 강화 참격을 사용하는 공격 판정 없는 연출
+	// 기존 카드 그림과 강화 검 휘두르기를 사용하는 공격 판정 없는 연출
 	public class CardAwakeningEffect : MonoBehaviour
 	{
 		[SerializeField] private Sprite bladeSprite;
-		[SerializeField] private ProceduralSlash slashPrefab;
+		[SerializeField] private SwordSwing slashPrefab;
 		[SerializeField, Min(0.01f)] private float gatherDuration = 0.55f;
 		[SerializeField, Min(0.01f)] private float releaseDuration = 0.16f;
 		[SerializeField, Min(0.01f)] private float fadeDuration = 0.65f;
@@ -22,11 +22,13 @@ namespace WitchMendokusai
 		[SerializeField] private float heightOffset = 0.7f;
 		[SerializeField] private float bladeLift = 1.3f;
 		[SerializeField, Min(0)] private float slashDelay = 0.07f;
-		[SerializeField] private float slashScale = 3.1f;
+		// 휘두르기 칼끝과 궤적이 닿는 반경, 첫 방향 각도
+		[SerializeField, Min(0.1f)] private float slashReach = 2.2f;
+		[SerializeField] private float slashAngleOffset = 30f;
 		[SerializeField, Range(0, 1)] private float dimOpacity = 0.12f;
 
 		private SpriteRenderer[] blades;
-		private ProceduralSlash[] slashes;
+		private SwordSwing[] slashes;
 		private Transform actor;
 		private Camera worldCamera;
 		private TimeManager timeManager;
@@ -47,8 +49,15 @@ namespace WitchMendokusai
 			timeManager = clock;
 			elapsed = 0;
 			blades = CreateSprites("Resonating blade", bladeCount, bladeSprite);
-			slashes = new ProceduralSlash[slashCount];
-			for (int i = 0; i < slashes.Length; i++) slashes[i] = Instantiate(slashPrefab, transform);
+			slashes = new SwordSwing[slashCount];
+			transform.rotation = Quaternion.identity;
+			for (int i = 0; i < slashes.Length; i++)
+			{
+				slashes[i] = Instantiate(slashPrefab, transform);
+				// 연출 중심은 캐릭터 위로 올라가 있으므로 휘두르기 높이는 지면 기준으로 되돌림
+				slashes[i].transform.SetLocalPositionAndRotation(Vector3.down * heightOffset, Quaternion.Euler(0, slashAngleOffset + i * 360f / slashes.Length, 0));
+				slashes[i].Prepare(new SwordSwingArea(0, slashReach, 0));
+			}
 			GameObject shade = new("Awakening shade", typeof(RectTransform), typeof(Canvas));
 			shade.transform.SetParent(transform, false);
 			Canvas canvas = shade.GetComponent<Canvas>();
@@ -120,12 +129,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < slashes.Length; i++)
 			{
 				float age = elapsed - gatherDuration - i * slashDelay;
-				ProceduralSlash slash = slashes[i];
-				float progress = Mathf.Clamp01(age / slash.Duration);
-				slash.transform.localPosition = Vector3.up * (0.05f * i);
-				slash.transform.localRotation = Quaternion.Euler(70, 30 + i * 120, 270);
-				slash.transform.localScale = Vector3.one * slashScale * Mathf.Lerp(0.8f, 1.15f, progress);
-				slash.Evaluate(age);
+				slashes[i].Evaluate(age);
 			}
 		}
 
