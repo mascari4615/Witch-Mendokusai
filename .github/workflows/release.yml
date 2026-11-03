@@ -177,7 +177,17 @@ jobs:
         run: |
           set -euo pipefail
           TAG='${{ steps.ver.outputs.tag }}'
+          # GitHub 릴리스 본문 상한 125000자. v0.0.5 는 v0.0.4 이후 반년치 커밋으로 422 실패 (2026-11-03)
+          # 넘으면 앞부분만 싣고 CHANGELOG.md 링크
+          NOTES=/tmp/release-notes.md
+          python3 - "$NOTES" <<'PY'
+          import sys
+          text = open('/tmp/changelog-fragment.md', encoding='utf-8').read()
+          if len(text) > 120000:
+              text = text[:110000].rsplit('\n', 1)[0] + '\n\n(목록이 길어 일부만 실음. 전체는 저장소의 CHANGELOG.md)\n'
+          open(sys.argv[1], 'w', encoding='utf-8').write(text)
+          PY
           gh release create "$TAG" \
             --title "$TAG" \
-            --notes-file /tmp/changelog-fragment.md \
+            --notes-file "$NOTES" \
             --verify-tag
