@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace WitchMendokusai
 {
 	// 로우폴리 검을 월드 수평면에서 휘두르고, 칼날이 지나간 자리만 각진 띠로 짧게 남기는 연출
-	// 칼 길이, 궤적 반경, 휘두르는 각은 실제 판정 범위(SwordSwingArea)에 맞춤
+	// 칼 길이, 휘두르는 각, 각도마다 궤적이 뻗는 거리는 실제 판정 범위(SwordSwingArea)에 맞춤
 	// 판정과 독립된 수명, 소유자 위치를 따라가고 방향은 생성 시점 고정
 	public class SwordSwing : MonoBehaviour
 	{
@@ -49,7 +49,7 @@ namespace WitchMendokusai
 		// 칼날 길이 대비 궤적 안쪽 끝, 판정 끝의 밝은 테두리 폭
 		[SerializeField, Range(0f, 1f)] private float trailInner = 0.35f;
 		[SerializeField, Min(0.01f)] private float trailEdgeWidth = 0.15f;
-		// 칼끝보다 먼 판정 구간은 몸통 색을 이 비율로 옅게 채움
+		// 칼끝보다 먼 판정 구간은 몸통 색을 이 비율로 옅게 채움, 판정 밖 각도에서는 칼날 구간만 남김
 		[SerializeField, Range(0f, 1f)] private float trailExtensionAlpha = 0.3f;
 		// 칼날 쪽부터 꼬리 쪽 순서의 단계 색
 		[SerializeField] private Color[] trailBodyColors =
@@ -82,6 +82,8 @@ namespace WitchMendokusai
 		private float endAngle;
 		private float trailInnerRadius;
 		private float trailOuterRadius;
+		private SwordSwingArea area;
+		private readonly float[] reachProfile = new float[SwordSwingArea.REACH_SAMPLES];
 
 		public float Duration => swingTime + Mathf.Max(holdTime, trailTime);
 
@@ -134,8 +136,9 @@ namespace WitchMendokusai
 		}
 
 		// 칼끝이 판정 끝에 닿도록 길이를 정하고, 칼보다 먼 판정은 궤적 바깥 반경으로 표시
-		private void FitArea(SwordSwingArea area)
+		private void FitArea(SwordSwingArea hitArea)
 		{
+			area = hitArea.CopyReachTo(reachProfile);
 			float hilt = handRadius + guardDepth;
 			float length = Mathf.Clamp(area.OuterRadius - hilt, minBladeLength, maxBladeLength);
 			if (bladeMesh == null || Mathf.Approximately(length, bladeLength) == false)
@@ -163,7 +166,7 @@ namespace WitchMendokusai
 				return;
 
 			Vector3 pivot = Vector3.up * height;
-			Vector3 direction = BladeDirection(age);
+			Vector3 direction = Direction(BladeAngle(age));
 			Transform bladeTransform = bladeRenderer.transform;
 			bladeTransform.localPosition = pivot + direction * handRadius;
 			// 칼날 메시의 x축은 칼끝, y축은 월드 위
@@ -171,46 +174,75 @@ namespace WitchMendokusai
 			UpdateTrail(age, pivot);
 		}
 
-		private Vector3 BladeDirection(float age)
+		// 공격 방향 기준 칼의 각도, 오른쪽이 양수
+		private float BladeAngle(float age)
 		{
 			float progress = Mathf.Clamp01(age / swingTime);
 			float eased = 1f - Mathf.Pow(1f - progress, easeExponent);
-			float angle = Mathf.Lerp(startAngle, endAngle, eased) * side;
-			return Quaternion.AngleAxis(angle, Vector3.up) * Vector3.forward;
+			return Mathf.Lerp(startAngle, endAngle, eased) * side;
 		}
+
+		private static Vector3 Direction(float angle) => Quaternion.AngleAxis(angle, Vector3.up) * Vector3.forward;
 
 		private void UpdateTrail(float age, Vector3 pivot)
 		{
 			float head = Mathf.Min(age, swingTime);
 			float tail = Mathf.Clamp(age - trailTime, 0f, head);
-			float inner = trailInnerRadius;
-			float outer = trailOuterRadius;
-			float edge = Mathf.Max(inner, outer - trailEdgeWidth);
-			float bladeTip = Mathf.Clamp(handRadius + guardDepth + bladeLength, inner, edge);
+			float bladeTip = Mathf.Max(trailInnerRadius, handRadius + guardDepth + bladeLength);
+			TrailRadii from = Radii(BladeAngle(tail), bladeTip);
 			for (int i = 0; i < trailSegments; i++)
 			{
-				Vector3 from = BladeDirection(Mathf.Lerp(tail, head, (float)i / trailSegments));
-				Vector3 to = BladeDirection(Mathf.Lerp(tail, head, (float)(i + 1) / trailSegments));
+				TrailRadii to = Radii(BladeAngle(Mathf.Lerp(tail, head, (float)(i + 1) / trailSegments)), bladeTip);
 				// 칼날에 가까운 구간부터 단계 색, 구간 안에서는 단색
 				int tier = Mathf.Min(trailBodyColors.Length - 1, (trailSegments - 1 - i) * trailBodyColors.Length / trailSegments);
 				int vertex = i * QUADS_PER_SEGMENT * 4;
 				Color body = trailBodyColors[tier];
 				Color extension = body;
 				extension.a *= trailExtensionAlpha;
-				SetQuad(vertex, pivot, from, to, inner, bladeTip, body);
-				SetQuad(vertex + 4, pivot, from, to, bladeTip, edge, extension);
-				SetQuad(vertex + 8, pivot, from, to, edge, outer, trailEdgeColors[Mathf.Min(tier, trailEdgeColors.Length - 1)]);
+				SetQuad(vertex, pivot, from, to, trailInnerRadius, trailInnerRadius, from.BodyEnd, to.BodyEnd, body);
+				SetQuad(vertex + 4, pivot, from, to, from.BodyEnd, to.BodyEnd, from.Edge, to.Edge, extension);
+				SetQuad(vertex + 8, pivot, from, to, from.Edge, to.Edge, from.Far, to.Far, trailEdgeColors[Mathf.Min(tier, trailEdgeColors.Length - 1)]);
+				from = to;
 			}
 			trailMesh.vertices = trailVertices;
 			trailMesh.colors = trailColors;
 		}
 
-		private void SetQuad(int vertex, Vector3 pivot, Vector3 from, Vector3 to, float near, float far, Color color)
+		// 한 각도에서 칼날 구간 끝, 판정 끝 테두리 시작, 판정 끝까지의 거리
+		private readonly struct TrailRadii
 		{
-			trailVertices[vertex] = pivot + from * near;
-			trailVertices[vertex + 1] = pivot + from * far;
-			trailVertices[vertex + 2] = pivot + to * near;
-			trailVertices[vertex + 3] = pivot + to * far;
+			public readonly Vector3 Direction;
+			public readonly float BodyEnd;
+			public readonly float Edge;
+			public readonly float Far;
+
+			public TrailRadii(Vector3 direction, float bodyEnd, float edge, float far)
+			{
+				Direction = direction;
+				BodyEnd = bodyEnd;
+				Edge = edge;
+				Far = far;
+			}
+		}
+
+		// 판정이 닿는 각도는 판정 끝까지 뻗고 테두리를 그림, 판정 밖 각도는 칼날이 지나간 자리만 남김
+		private TrailRadii Radii(float angle, float bladeTip)
+		{
+			Vector3 direction = Direction(angle);
+			float reach = area.ReachAt(angle);
+			if (reach <= 0f)
+				return new TrailRadii(direction, bladeTip, bladeTip, bladeTip);
+			float far = Mathf.Max(bladeTip, reach);
+			float edge = Mathf.Max(trailInnerRadius, far - trailEdgeWidth);
+			return new TrailRadii(direction, Mathf.Min(bladeTip, edge), edge, far);
+		}
+
+		private void SetQuad(int vertex, Vector3 pivot, TrailRadii from, TrailRadii to, float nearFrom, float nearTo, float farFrom, float farTo, Color color)
+		{
+			trailVertices[vertex] = pivot + from.Direction * nearFrom;
+			trailVertices[vertex + 1] = pivot + from.Direction * farFrom;
+			trailVertices[vertex + 2] = pivot + to.Direction * nearTo;
+			trailVertices[vertex + 3] = pivot + to.Direction * farTo;
 			for (int i = 0; i < 4; i++)
 				trailColors[vertex + i] = color;
 		}
