@@ -140,6 +140,7 @@ MonoBehaviour:
   bladeRenderer: {fileID: 7206125863050933140}
   trailFilter: {fileID: 5953530065381679167}
   trailRenderer: {fileID: 783237134470776746}
+  style: 1
   minBladeLength: 0.5
   maxBladeLength: 0.95
   bladeWidth: 0.14
@@ -162,17 +163,27 @@ MonoBehaviour:
   swingTime: 0.18
   holdTime: 0.08
   trailTime: 0.09
-  trailSegments: 10
+  trailSegments: 24
   trailInner: 0.2
-  trailEdge: 0.85
-  trailBodyColors:
-  - {r: 1, g: 0.85, b: 0.5, a: 0.5}
-  - {r: 0.95, g: 0.55, b: 0.25, a: 0.32}
-  - {r: 0.7, g: 0.28, b: 0.15, a: 0.16}
-  trailEdgeColors:
-  - {r: 1, g: 1, b: 0.92, a: 1}
-  - {r: 1, g: 0.9, b: 0.6, a: 0.75}
-  - {r: 1, g: 0.7, b: 0.4, a: 0.45}
+  scaledTrailBands: {x: 0.35, y: 0.62, z: 0.9}
+  glowColor: {r: 0.7, g: 0.28, b: 0.15, a: 0.25}
+  bodyColor: {r: 1, g: 0.8, b: 0.45, a: 0.55}
+  coreColor: {r: 1, g: 1, b: 0.92, a: 0.95}
+  waveTime: 0.18
+  waveSegments: 20
+  waveStartSpan: 0.75
+  waveBend: 0.35
+  waveThickness: 0.32
+  waveEchoes: 2
+  waveEchoLag: 0.12
+  strokeReveal: 0.12
+  strokeFade: 0.1
+  strokeSegments: 24
+  strokeTip: 0.45
+  strokeWidth: 0.3
+  strokeLongRatio: 1.2
+  strokeMaxSagitta: 0.7
+  strokeMargin: 0.08
 --- !u!1 &9113325376051501930
 GameObject:
   m_ObjectHideFlags: 0

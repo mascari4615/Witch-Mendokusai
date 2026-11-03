@@ -22,8 +22,6 @@ namespace WitchMendokusai
 		[SerializeField] private float rotateSpeed = -30f;
 #pragma warning restore CS0414
 
-		// 공격마다 판정 모양을 재는 버퍼, 연출은 시작할 때 자기 버퍼로 복사
-		private readonly float[] reachBuffer = new float[SwordSwingArea.REACH_SAMPLES];
 		private int swingCount = 1;
 		private float coolTime;
 		private int damageBonus;
@@ -143,7 +141,7 @@ namespace WitchMendokusai
 			GameObject visual = objectPoolManager.Spawn(prefab.gameObject);
 			visual.transform.SetPositionAndRotation(attack.position, attack.rotation);
 			visual.SetActive(true);
-			visual.GetComponent<SwordSwing>().PlayPooled(objectPoolManager, gameObject, playerProvider.Current.transform, SwordSwingArea.FromHitbox(attack, reachBuffer));
+			visual.GetComponent<SwordSwing>().PlayPooled(objectPoolManager, gameObject, playerProvider.Current.transform, SwordSwingArea.FromHitbox(attack));
 		}
 
 		private void UpdateSword(int swordCount)

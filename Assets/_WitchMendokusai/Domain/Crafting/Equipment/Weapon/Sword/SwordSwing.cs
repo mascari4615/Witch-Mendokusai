@@ -4,18 +4,29 @@ using UnityEngine.Rendering;
 
 namespace WitchMendokusai
 {
-	// 로우폴리 검을 월드 수평면에서 휘두르고, 칼날이 지나간 자리만 각진 띠로 짧게 남기는 연출
-	// 칼 길이, 휘두르는 각, 각도마다 궤적이 뻗는 거리는 실제 판정 범위(SwordSwingArea)에 맞춤
+	// 판정 범위를 덮는 검 효과의 표현 방식
+	public enum SwordSwingStyle
+	{
+		// 칼끝이 정면을 지날 때 초승달 검기가 떨어져 판정 끝까지 날아감
+		FlyingWave,
+		// 칼이 지나간 자리의 초승달 궤적을 판정 거리까지 키움
+		ScaledTrail,
+		// 판정 상자 안에 들어가는 베기 획 하나를 그림
+		FittedStroke,
+	}
+
+	// 로우폴리 검을 월드 수평면에서 휘두르고, 판정 범위(SwordSwingArea)에 맞춘 각진 단색 효과를 짧게 남기는 연출
 	// 판정과 독립된 수명, 소유자 위치를 따라가고 방향은 생성 시점 고정
-	public class SwordSwing : MonoBehaviour
+	public partial class SwordSwing : MonoBehaviour
 	{
 		[SerializeField] private MeshFilter bladeFilter;
 		[SerializeField] private MeshRenderer bladeRenderer;
 		[SerializeField] private MeshFilter trailFilter;
 		[SerializeField] private MeshRenderer trailRenderer;
+		[SerializeField] private SwordSwingStyle style = SwordSwingStyle.ScaledTrail;
 
 		[Header("Blade")]
-		// 판정 거리에 맞춘 칼 길이의 하한과 상한, 상한을 넘는 거리는 궤적이 칼끝 밖으로 뻗어 표시
+		// 판정 거리에 맞춘 칼 길이의 하한과 상한
 		[SerializeField, Min(0.1f)] private float minBladeLength = 0.5f;
 		[SerializeField, Min(0.1f)] private float maxBladeLength = 0.85f;
 		[SerializeField, Min(0.01f)] private float bladeWidth = 0.12f;
@@ -45,33 +56,40 @@ namespace WitchMendokusai
 
 		[Header("Trail")]
 		[SerializeField, Min(0.01f)] private float trailTime = 0.07f;
-		[SerializeField, Range(2, 32)] private int trailSegments = 8;
-		// 칼날 길이 대비 궤적 안쪽 끝, 판정 끝의 밝은 테두리 폭
+		[SerializeField, Range(2, 48)] private int trailSegments = 24;
+		// 칼날 길이 대비 손 쪽 궤적 안쪽 끝
 		[SerializeField, Range(0f, 1f)] private float trailInner = 0.35f;
-		[SerializeField, Min(0.01f)] private float trailEdgeWidth = 0.15f;
-		// 칼끝보다 먼 판정 구간은 몸통 색을 이 비율로 옅게 채움, 판정 밖 각도에서는 칼날 구간만 남김
-		[SerializeField, Range(0f, 1f)] private float trailExtensionAlpha = 0.3f;
-		// 칼날 쪽부터 꼬리 쪽 순서의 단계 색
-		[SerializeField] private Color[] trailBodyColors =
-		{
-			new(0.72f, 0.86f, 1f, 0.55f),
-			new(0.45f, 0.62f, 0.95f, 0.35f),
-			new(0.28f, 0.38f, 0.75f, 0.18f),
-		};
-		[SerializeField] private Color[] trailEdgeColors =
-		{
-			new(1f, 1f, 1f, 0.95f),
-			new(0.85f, 0.93f, 1f, 0.7f),
-			new(0.6f, 0.75f, 1f, 0.4f),
-		};
+		// 궤적 확대 방식에서 판정 거리 대비 바깥 띠, 중간 띠, 밝은 가장자리 안쪽 끝
+		[SerializeField] private Vector3 scaledTrailBands = new(0.35f, 0.62f, 0.9f);
+		// 바깥 띠, 몸통, 밝은 심 순서의 단색
+		[SerializeField] private Color glowColor = new(0.28f, 0.42f, 0.85f, 0.25f);
+		[SerializeField] private Color bodyColor = new(0.55f, 0.72f, 1f, 0.55f);
+		[SerializeField] private Color coreColor = new(0.94f, 0.97f, 1f, 0.95f);
 
-		// 칼날 구간, 칼끝 밖 판정 구간, 판정 끝 테두리
-		private const int QUADS_PER_SEGMENT = 3;
+		[Header("Flying wave")]
+		[SerializeField, Min(0.01f)] private float waveTime = 0.18f;
+		[SerializeField, Range(4, 32)] private int waveSegments = 16;
+		// 판정 폭 대비 출발 때 양 끝 거리, 앞으로 휘는 깊이, 두께
+		[SerializeField, Range(0.1f, 1f)] private float waveStartSpan = 0.75f;
+		[SerializeField, Range(0f, 1f)] private float waveBend = 0.35f;
+		[SerializeField, Range(0.05f, 1f)] private float waveThickness = 0.32f;
+		[SerializeField, Range(0, 3)] private int waveEchoes = 2;
+		[SerializeField, Range(0f, 0.5f)] private float waveEchoLag = 0.12f;
 
-		private Vector3[] trailVertices;
-		private Color[] trailColors;
-		private Mesh trailMesh;
-		private Mesh bladeMesh;
+		[Header("Fitted stroke")]
+		[SerializeField, Min(0.01f)] private float strokeReveal = 0.12f;
+		[SerializeField, Min(0.01f)] private float strokeFade = 0.1f;
+		[SerializeField, Range(4, 48)] private int strokeSegments = 24;
+		// 크기와 무관하게 고정된 획 끝 길이와 굵기
+		[SerializeField, Min(0.01f)] private float strokeTip = 0.45f;
+		[SerializeField, Min(0.01f)] private float strokeWidth = 0.26f;
+		// 판정 길이가 폭의 이 배수 이상이면 앞으로 뻗는 긴 획, 아니면 폭을 가로지르는 호
+		[SerializeField, Min(0.1f)] private float strokeLongRatio = 1.2f;
+		[SerializeField, Min(0f)] private float strokeMaxSagitta = 0.7f;
+		[SerializeField, Min(0f)] private float strokeMargin = 0.08f;
+
+		private const int MAX_QUADS = 192;
+
 		private ObjectPoolManager pool;
 		private GameObject owner;
 		private Transform follow;
@@ -80,16 +98,17 @@ namespace WitchMendokusai
 		private float bladeLength;
 		private float startAngle;
 		private float endAngle;
-		private float trailInnerRadius;
-		private float trailOuterRadius;
 		private SwordSwingArea area;
-		private readonly float[] reachProfile = new float[SwordSwingArea.REACH_SAMPLES];
+		private Mesh bladeMesh;
 
-		public float Duration => swingTime + Mathf.Max(holdTime, trailTime);
+		public float Duration => Mathf.Max(swingTime + Mathf.Max(holdTime, trailTime), EffectEnd);
+
+		private float HiltRadius => handRadius + guardDepth;
+		private float BladeTip => HiltRadius + bladeLength;
 
 		private void Awake()
 		{
-			BuildTrailMesh();
+			BuildEffectMesh();
 			foreach (MeshRenderer meshRenderer in new[] { bladeRenderer, trailRenderer })
 			{
 				meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
@@ -98,22 +117,22 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void PlayPooled(ObjectPoolManager objectPool, GameObject attackOwner, Transform followTarget, SwordSwingArea area)
+		public void PlayPooled(ObjectPoolManager objectPool, GameObject attackOwner, Transform followTarget, SwordSwingArea hitArea)
 		{
 			pool = objectPool;
 			owner = attackOwner;
 			follow = followTarget;
-			Prepare(area);
+			Prepare(hitArea);
 			elapsed = 0;
 			Evaluate(0);
 		}
 
 		// 풀 없이 호출 측 시간으로 Evaluate하는 연출도 같은 준비를 거침, 방향을 정한 뒤 호출
-		public void Prepare(SwordSwingArea area)
+		public void Prepare(SwordSwingArea hitArea)
 		{
 			// 좌우 어느 방향이든 먼 쪽에서 카메라 쪽으로 베도록 회전 부호 결정
 			side = Vector3.Dot(transform.right, Vector3.back) >= 0 ? 1f : -1f;
-			FitArea(area);
+			FitArea(hitArea);
 		}
 
 		private void LateUpdate()
@@ -135,12 +154,11 @@ namespace WitchMendokusai
 			Evaluate(elapsed);
 		}
 
-		// 칼끝이 판정 끝에 닿도록 길이를 정하고, 칼보다 먼 판정은 궤적 바깥 반경으로 표시
+		// 칼끝이 판정 끝에 닿도록 칼 길이를 정하고, 휘두르는 각을 판정 각도에 맞춤
 		private void FitArea(SwordSwingArea hitArea)
 		{
-			area = hitArea.CopyReachTo(reachProfile);
-			float hilt = handRadius + guardDepth;
-			float length = Mathf.Clamp(area.OuterRadius - hilt, minBladeLength, maxBladeLength);
+			area = hitArea;
+			float length = Mathf.Clamp(area.OuterRadius - HiltRadius, minBladeLength, maxBladeLength);
 			if (bladeMesh == null || Mathf.Approximately(length, bladeLength) == false)
 			{
 				bladeLength = length;
@@ -149,19 +167,20 @@ namespace WitchMendokusai
 				bladeMesh = BuildBladeMesh();
 				bladeFilter.sharedMesh = bladeMesh;
 			}
-			trailOuterRadius = Mathf.Max(hilt + bladeLength, area.OuterRadius);
-			trailInnerRadius = Mathf.Clamp(Mathf.Max(area.InnerRadius, hilt + bladeLength * trailInner), hilt, trailOuterRadius);
 			float halfAngle = Mathf.Max(minHalfAngle, area.HalfAngle);
 			startAngle = -(halfAngle + startOvershoot);
 			endAngle = halfAngle + endOvershoot;
-			trailMesh.bounds = new Bounds(Vector3.zero, Vector3.one * (trailOuterRadius + height) * 2);
+			if (style == SwordSwingStyle.FittedStroke)
+				BuildStrokePath();
+			float reach = Mathf.Max(BladeTip, area.OuterRadius, area.MaxZ) + height;
+			effectMesh.bounds = new Bounds(Vector3.zero, Vector3.one * reach * 2);
 		}
 
 		public void Evaluate(float age)
 		{
 			bool visible = isActiveAndEnabled && age >= 0 && age < Duration;
 			bladeRenderer.enabled = visible && age < swingTime + holdTime;
-			trailRenderer.enabled = visible && age < swingTime + trailTime;
+			trailRenderer.enabled = visible;
 			if (visible == false)
 				return;
 
@@ -171,7 +190,7 @@ namespace WitchMendokusai
 			bladeTransform.localPosition = pivot + direction * handRadius;
 			// 칼날 메시의 x축은 칼끝, y축은 월드 위
 			bladeTransform.localRotation = Quaternion.LookRotation(Vector3.Cross(direction, Vector3.up), Vector3.up);
-			UpdateTrail(age, pivot);
+			UpdateEffect(age, pivot);
 		}
 
 		// 공격 방향 기준 칼의 각도, 오른쪽이 양수
@@ -182,94 +201,50 @@ namespace WitchMendokusai
 			return Mathf.Lerp(startAngle, endAngle, eased) * side;
 		}
 
+		// 칼끝이 공격 방향을 지나는 시각, 검기와 베기 획의 출발점
+		private float LaunchTime
+		{
+			get
+			{
+				float eased = Mathf.InverseLerp(startAngle, endAngle, 0f);
+				return swingTime * (1f - Mathf.Pow(1f - eased, 1f / easeExponent));
+			}
+		}
+
+		private float EffectEnd => style switch
+		{
+			SwordSwingStyle.FlyingWave => LaunchTime + waveTime,
+			SwordSwingStyle.FittedStroke => LaunchTime + strokeReveal + strokeFade,
+			_ => swingTime + trailTime,
+		};
+
 		private static Vector3 Direction(float angle) => Quaternion.AngleAxis(angle, Vector3.up) * Vector3.forward;
 
-		private void UpdateTrail(float age, Vector3 pivot)
+		private static float EaseOut(float value, float exponent) => 1f - Mathf.Pow(1f - Mathf.Clamp01(value), exponent);
+
+		private static Color Fade(Color color, float alpha)
 		{
-			float head = Mathf.Min(age, swingTime);
-			float tail = Mathf.Clamp(age - trailTime, 0f, head);
-			float bladeTip = Mathf.Max(trailInnerRadius, handRadius + guardDepth + bladeLength);
-			TrailRadii from = Radii(BladeAngle(tail), bladeTip);
-			for (int i = 0; i < trailSegments; i++)
-			{
-				TrailRadii to = Radii(BladeAngle(Mathf.Lerp(tail, head, (float)(i + 1) / trailSegments)), bladeTip);
-				// 칼날에 가까운 구간부터 단계 색, 구간 안에서는 단색
-				int tier = Mathf.Min(trailBodyColors.Length - 1, (trailSegments - 1 - i) * trailBodyColors.Length / trailSegments);
-				int vertex = i * QUADS_PER_SEGMENT * 4;
-				Color body = trailBodyColors[tier];
-				Color extension = body;
-				extension.a *= trailExtensionAlpha;
-				SetQuad(vertex, pivot, from, to, trailInnerRadius, trailInnerRadius, from.BodyEnd, to.BodyEnd, body);
-				SetQuad(vertex + 4, pivot, from, to, from.BodyEnd, to.BodyEnd, from.Edge, to.Edge, extension);
-				SetQuad(vertex + 8, pivot, from, to, from.Edge, to.Edge, from.Far, to.Far, trailEdgeColors[Mathf.Min(tier, trailEdgeColors.Length - 1)]);
-				from = to;
-			}
-			trailMesh.vertices = trailVertices;
-			trailMesh.colors = trailColors;
+			color.a *= alpha;
+			return color;
 		}
 
-		// 한 각도에서 칼날 구간 끝, 판정 끝 테두리 시작, 판정 끝까지의 거리
-		private readonly struct TrailRadii
+		private void OnDisable()
 		{
-			public readonly Vector3 Direction;
-			public readonly float BodyEnd;
-			public readonly float Edge;
-			public readonly float Far;
-
-			public TrailRadii(Vector3 direction, float bodyEnd, float edge, float far)
-			{
-				Direction = direction;
-				BodyEnd = bodyEnd;
-				Edge = edge;
-				Far = far;
-			}
+			pool = null;
+			owner = null;
+			follow = null;
+			if (bladeRenderer != null)
+				bladeRenderer.enabled = false;
+			if (trailRenderer != null)
+				trailRenderer.enabled = false;
 		}
 
-		// 판정이 닿는 각도는 판정 끝까지 뻗고 테두리를 그림, 판정 밖 각도는 칼날이 지나간 자리만 남김
-		private TrailRadii Radii(float angle, float bladeTip)
+		private void OnDestroy()
 		{
-			Vector3 direction = Direction(angle);
-			float reach = area.ReachAt(angle);
-			if (reach <= 0f)
-				return new TrailRadii(direction, bladeTip, bladeTip, bladeTip);
-			float far = Mathf.Max(bladeTip, reach);
-			float edge = Mathf.Max(trailInnerRadius, far - trailEdgeWidth);
-			return new TrailRadii(direction, Mathf.Min(bladeTip, edge), edge, far);
-		}
-
-		private void SetQuad(int vertex, Vector3 pivot, TrailRadii from, TrailRadii to, float nearFrom, float nearTo, float farFrom, float farTo, Color color)
-		{
-			trailVertices[vertex] = pivot + from.Direction * nearFrom;
-			trailVertices[vertex + 1] = pivot + from.Direction * farFrom;
-			trailVertices[vertex + 2] = pivot + to.Direction * nearTo;
-			trailVertices[vertex + 3] = pivot + to.Direction * farTo;
-			for (int i = 0; i < 4; i++)
-				trailColors[vertex + i] = color;
-		}
-
-		private void BuildTrailMesh()
-		{
-			int quads = trailSegments * QUADS_PER_SEGMENT;
-			trailVertices = new Vector3[quads * 4];
-			trailColors = new Color[quads * 4];
-			int[] triangles = new int[quads * 6];
-			for (int i = 0; i < quads; i++)
-			{
-				int vertex = i * 4;
-				int triangle = i * 6;
-				triangles[triangle] = vertex;
-				triangles[triangle + 1] = vertex + 1;
-				triangles[triangle + 2] = vertex + 2;
-				triangles[triangle + 3] = vertex + 2;
-				triangles[triangle + 4] = vertex + 1;
-				triangles[triangle + 5] = vertex + 3;
-			}
-			trailMesh = new Mesh { name = "Sword swing trail" };
-			trailMesh.MarkDynamic();
-			trailMesh.vertices = trailVertices;
-			trailMesh.colors = trailColors;
-			trailMesh.triangles = triangles;
-			trailFilter.sharedMesh = trailMesh;
+			if (effectMesh != null)
+				Destroy(effectMesh);
+			if (bladeMesh != null)
+				Destroy(bladeMesh);
 		}
 
 		// 손잡이, 가드, 마름모 단면 칼날의 면마다 단색인 로우폴리 검
@@ -343,25 +318,6 @@ namespace WitchMendokusai
 			mesh.SetTriangles(triangles, 0);
 			mesh.RecalculateBounds();
 			return mesh;
-		}
-
-		private void OnDisable()
-		{
-			pool = null;
-			owner = null;
-			follow = null;
-			if (bladeRenderer != null)
-				bladeRenderer.enabled = false;
-			if (trailRenderer != null)
-				trailRenderer.enabled = false;
-		}
-
-		private void OnDestroy()
-		{
-			if (trailMesh != null)
-				Destroy(trailMesh);
-			if (bladeMesh != null)
-				Destroy(bladeMesh);
 		}
 	}
 }
