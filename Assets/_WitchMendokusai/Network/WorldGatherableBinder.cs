@@ -19,8 +19,8 @@ namespace WitchMendokusai
 
 		private const float BODY_HEIGHT = 0.9f;
 
-		/// <summary>땅을 찾는 광선의 시작 높이.</summary>
-		private const float GROUND_RAY_HEIGHT = 100f;
+		[Tooltip("땅을 찾는 광선의 시작 높이")]
+		[SerializeField] private float groundRayHeight = 100f;
 
 		// 항상 포함 셰이더. CreatePrimitive 기본 재질은 URP 빌드에서 분홍 (2026-11-04 v0.0.7 실측)
 		private const string LIT_SHADER = "Universal Render Pipeline/Lit";
@@ -144,12 +144,12 @@ namespace WitchMendokusai
 		private static bool CanGatherHere() => GameConditionBridge.Get(GameConditionType.IsInDungeon) == false
 			&& GameConditionBridge.Get(GameConditionType.IsViewingUI) == false;
 
-		private static bool TryGetGroundHeight(GatherableView node, out float height)
+		private bool TryGetGroundHeight(GatherableView node, out float height)
 		{
 			height = 0f;
-			Vector3 origin = new Vector3(node.x, GROUND_RAY_HEIGHT, node.z);
+			Vector3 origin = new Vector3(node.x, groundRayHeight, node.z);
 			int mask = ~LayerMask.GetMask("UNIT");
-			if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, GROUND_RAY_HEIGHT * 2f, mask, QueryTriggerInteraction.Ignore) == false)
+			if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, groundRayHeight * 2f, mask, QueryTriggerInteraction.Ignore) == false)
 				return false;
 
 			height = hit.point.y;
