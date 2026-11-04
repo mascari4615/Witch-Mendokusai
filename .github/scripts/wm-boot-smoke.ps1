@@ -23,7 +23,7 @@
     나가는 값: 0 = 뜬다 / 1 = 안 뜬다(결과파일 FAIL 또는 무응답) / 2 = 환경 문제
 #>
 param(
-    [string]$Unity = 'C:\Program Files\Unity\Hub\Editor\6000.5.6f1\Editor\Unity.exe',
+    [string]$Unity = '',
     [string]$ExePath = '',
     [int]$TimeoutSec = 150,
     [switch]$SkipBuild
@@ -41,6 +41,14 @@ $resultFile = Join-Path ([System.IO.Path]::GetTempPath()) 'wm_boot_smoke_result.
 function Fail2([string]$m) { Write-Host "[boot-smoke] $m" -ForegroundColor Red; exit 2 }
 function Fail([string]$m) { Write-Host "[boot-smoke] $m" -ForegroundColor Red; exit 1 }
 
+if ([string]::IsNullOrWhiteSpace($Unity))
+{
+    # 고정 경로 대신 ProjectVersion.txt 값 사용
+    $versionFile = Join-Path $root 'ProjectSettings\ProjectVersion.txt'
+    if (-not (Test-Path $versionFile)) { Fail2 "ProjectVersion.txt 가 없다: $versionFile" }
+    $editorVersion = ((Get-Content $versionFile | Select-String '^m_EditorVersion:') -split ':\s*')[1].Trim()
+    $Unity = "C:\Program Files\Unity\Hub\Editor\$editorVersion\Editor\Unity.exe"
+}
 if (-not (Test-Path $Unity)) { Fail2 "유니티가 없다: $Unity" }
 
 if (-not $SkipBuild)
