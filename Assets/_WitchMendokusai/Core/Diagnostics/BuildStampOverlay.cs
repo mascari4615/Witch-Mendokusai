@@ -34,11 +34,15 @@ namespace WitchMendokusai
 #endif
         private static void Install()
         {
-            if (_installed)
+            BuildStampSettings settings = LoadSettings();
+            if (ShouldShow(settings))
             {
-                return;
+                Create(settings);
             }
+        }
 
+        private static BuildStampSettings LoadSettings()
+        {
             BuildStampSettings settings = Resources.Load<BuildStampSettings>(SETTINGS_RESOURCE);
             if (settings == null)
             {
@@ -46,7 +50,12 @@ namespace WitchMendokusai
                 // 아무 말도 안 한다. 기본값으로라도 뜬다 (2026-08-06 실기 실측).
                 settings = ScriptableObject.CreateInstance<BuildStampSettings>();
             }
-            if (ShouldShow(settings) == false)
+            return settings;
+        }
+
+        private static void Create(BuildStampSettings settings)
+        {
+            if (_installed)
             {
                 return;
             }
@@ -83,9 +92,17 @@ namespace WitchMendokusai
 #endif
         }
 
+        public static bool IsVisible => _instance != null && _instance._root != null && _instance._root.style.display != DisplayStyle.None;
+
         /// <summary>다른 코드(디버그 메뉴 등)가 껐다 켤 수 있게 — 스크린샷 찍을 때 방해되면 끈다.</summary>
         public static void SetVisible(bool visible)
         {
+            // 릴리스는 자동으로 안 뜸. 개발자 창에서 켤 때 생성
+            if (visible)
+            {
+                Create(LoadSettings());
+            }
+
             if (_instance != null && _instance._root != null)
             {
                 _instance._root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;

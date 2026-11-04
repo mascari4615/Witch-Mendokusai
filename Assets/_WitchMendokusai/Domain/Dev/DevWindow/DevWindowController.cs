@@ -25,6 +25,14 @@ namespace WitchMendokusai
 		private InputManager inputManager;
 		[SerializeField] private WorldStage traversalStage;
 		[SerializeField] private WorldStage explorationStage;
+
+		[Header("화면 구석 뱃지")]
+		[SerializeField] private Sprite badgeIcon;
+		[SerializeField] private float badgeSize = 28f;
+		[SerializeField] private float badgePadding = 4f;
+		[SerializeField] private float badgeMargin = 8f;
+		[SerializeField] private Color badgeBackground = new(0f, 0f, 0f, 0.55f);
+
 		private StageManager stageManager;
 		private UIRoot uiRoot;
 		private WMWindow window;
@@ -67,6 +75,7 @@ namespace WitchMendokusai
 		private void Start()
 		{
 			BuildWindow();
+			BuildBadge();
 			RegisterBuiltins();
 			view.RebuildSidebar(DevModeRegistry.Instance.Modes);
 
@@ -113,6 +122,38 @@ namespace WitchMendokusai
 			uiRoot.OverlayLayer.Add(view.CommandLine.Dropdown);
 		}
 
+		private void BuildBadge()
+		{
+			VisualElement badge = new() { name = "DevBadge", tooltip = WINDOW_TITLE };
+			badge.style.position = Position.Absolute;
+			badge.style.top = badgeMargin;
+			badge.style.right = badgeMargin;
+			badge.style.width = badgeSize;
+			badge.style.height = badgeSize;
+			badge.style.paddingTop = badgePadding;
+			badge.style.paddingBottom = badgePadding;
+			badge.style.paddingLeft = badgePadding;
+			badge.style.paddingRight = badgePadding;
+			badge.style.backgroundColor = badgeBackground;
+			badge.pickingMode = PickingMode.Position;
+
+			Image icon = new() { sprite = badgeIcon, scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
+			icon.style.flexGrow = 1;
+			badge.Add(icon);
+
+			badge.RegisterCallback<ClickEvent>(_ => ToggleFromBadge());
+			uiRoot.OverlayLayer.Add(badge);
+		}
+
+		// / 키와 달리 입력창 포커스 중에도 닫힘
+		private void ToggleFromBadge()
+		{
+			if (window.IsOpen)
+				window.Close();
+			else
+				window.Open();
+		}
+
 		private void RegisterBuiltins()
 		{
 			DevCommandRegistry.Instance.Register(new HelpCommand());
@@ -136,6 +177,10 @@ namespace WitchMendokusai
 				DevModeRegistry.Instance.Register(new TimeWeatherMode());
 			if (DevModeRegistry.Instance.FindById("traversal") == null)
 				DevModeRegistry.Instance.Register(new TraversalDevMode(() => Instance.EnterTraversalCourse(), () => Instance.EnterExplorationCourse()));
+			if (DevModeRegistry.Instance.FindById("world") == null)
+				DevModeRegistry.Instance.Register(new WorldDevMode());
+			if (DevModeRegistry.Instance.FindById("display") == null)
+				DevModeRegistry.Instance.Register(new DisplayDevMode());
 		}
 
 		/// <summary>UI 측에서 명령 시스템에 진입할 때 호출. 명령행에 직접 입력한 것과 동일한 경로 (출력/에러 처리 포함).</summary>

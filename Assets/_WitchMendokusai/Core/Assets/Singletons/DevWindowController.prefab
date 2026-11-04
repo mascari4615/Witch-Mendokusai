@@ -47,3 +47,4 @@ MonoBehaviour:
   dontDestroyOnLoad: 1
   traversalStage: {fileID: 11400000, guid: 95cc2fbfba1d5e64b87d895d78f4770d, type: 2}
   explorationStage: {fileID: 11400000, guid: a31adc16e43659e47b4103c368d09c30, type: 2}
+  badgeIcon: {fileID: 21300000, guid: 3557631b8f635064a8a21ab3b9253836, type: 3}
