@@ -13,7 +13,7 @@ namespace WitchMendokusai
     /// 패널 본체 = CauldronMapElement (Painter2D, EditorWindow 미리보기와 동일). 데이터 = placeholder(후속 SO/레시피 연동).
     /// ⚠ 트리거(키)는 임시 — 디제틱 트리거(솥 오브젝트 상호작용)는 후속 사용자 결정.
     /// </summary>
-    public sealed class CauldronMapController : MonoBehaviour
+    public sealed class CauldronMapController : MonoBehaviour, IUIPanelGroup
     {
         [Header("레시피 SO — 비우면 더미 placeholder 로 동작")]
         [SerializeField] private BrewRecipeSO recipeSO;
@@ -84,6 +84,13 @@ namespace WitchMendokusai
 
             map = new CauldronMapElement();
             frame.Add(map);
+
+            Button closeButton = new Button(Close) { name = "close-button", text = "닫기" };
+            closeButton.style.position = Position.Absolute;
+            closeButton.style.right = 0f;
+            closeButton.style.bottom = Length.Percent(100f);
+            frame.Add(closeButton);
+
             container.Add(frame);
 
             uiRoot.ScreenLayer.Add(container);
@@ -207,15 +214,35 @@ namespace WitchMendokusai
             {
                 container.style.display = DisplayStyle.Flex;
             }
+
+            // Esc 대상 등록. 씬 조립 순서와 무관하게 열 때 등록
+            if (UIManager.TryGetExistingInstance(out UIManager uiManager))
+            {
+                uiManager.RegisterOverlayUI(this);
+            }
         }
 
         public void Toggle()
         {
-            isOpen = isOpen == false;
-            if (container != null)
+            if (isOpen)
             {
-                container.style.display = isOpen ? DisplayStyle.Flex : DisplayStyle.None;
+                Close();
             }
+            else
+            {
+                Open();
+            }
+        }
+
+        public bool CanBeClosedByCancelInput => true;
+        public bool IsPanelOpen => isOpen;
+        public void Init() { }
+        public void ClosePanel() => Close();
+
+        public bool TryGetCurPanel(out IUIPanel panel)
+        {
+            panel = null;
+            return false;
         }
 
         public void Close()

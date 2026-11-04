@@ -42,6 +42,15 @@ namespace WitchMendokusai
             }
         }
 
+        // 메뉴 전환이나 NPC 창 닫기 때 지도도 같이 닫음
+        protected override void OnClose()
+        {
+            if (resolver != null && resolver.TryResolve(out CauldronMapController controller))
+            {
+                controller.Close();
+            }
+        }
+
         public override void UpdateUI() { }
     }
 }
