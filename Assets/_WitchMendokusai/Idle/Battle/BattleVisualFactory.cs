@@ -30,7 +30,7 @@ namespace WitchMendokusai.Idle
 		{
 			Material made = MakeMaterial(color);
 			made.EnableKeyword("_EMISSION");
-			made.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+			made.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeIndirectEmission;
 
 			if (made.HasProperty("_EmissionColor"))
 			{

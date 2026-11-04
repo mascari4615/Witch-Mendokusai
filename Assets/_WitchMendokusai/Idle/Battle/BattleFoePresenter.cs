@@ -322,7 +322,7 @@ namespace WitchMendokusai.Idle
 				}
 
 				foe.Skin.EnableKeyword("_EMISSION");
-				foe.Skin.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+				foe.Skin.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeIndirectEmission;
 				if (foe.Skin.HasProperty("_EmissionColor"))
 				{
 					foe.Skin.SetColor("_EmissionColor", made * settings.BossGlow);
