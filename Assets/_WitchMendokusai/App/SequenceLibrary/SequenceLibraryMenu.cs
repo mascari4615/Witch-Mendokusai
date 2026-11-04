@@ -34,6 +34,8 @@ namespace WitchMendokusai.SequenceLibrary
 
         private static void OnBootPhase(BootPhase phase)
         {
+            // 개발용 보관함. 릴리스 로비에 표시 금지 (사용자 2026-11-04)
+            if (Debug.isDebugBuild == false) return;
             if (phase != BootPhase.DataReady || instance != null || SceneManager.GetActiveScene().name != "Lobby") return;
             LifetimeScope scope = LifetimeScope.Find<RootLifetimeScope>();
             GameObject host = new GameObject("Sequence library");

@@ -19,6 +19,12 @@ namespace WitchMendokusai
 
 		private const float BODY_HEIGHT = 0.9f;
 
+		/// <summary>땅을 찾는 광선의 시작 높이.</summary>
+		private const float GROUND_RAY_HEIGHT = 100f;
+
+		// 항상 포함 셰이더. CreatePrimitive 기본 재질은 URP 빌드에서 분홍 (2026-11-04 v0.0.7 실측)
+		private const string LIT_SHADER = "Universal Render Pipeline/Lit";
+
 		private readonly Dictionary<int, Transform> bodies = new Dictionary<int, Transform>();
 		private readonly List<int> gone = new List<int>();
 
@@ -80,8 +86,15 @@ namespace WitchMendokusai
 					bodies[node.id] = body;
 				}
 
+				// 지금 스테이지에 땅이 없는 자리는 표시 안 함
+				if (TryGetGroundHeight(node, out float groundHeight) == false)
+				{
+					body.gameObject.SetActive(false);
+					continue;
+				}
+
 				body.gameObject.SetActive(true);
-				body.position = new Vector3(node.x, BODY_HEIGHT * 0.5f, node.z);
+				body.position = new Vector3(node.x, groundHeight + BODY_HEIGHT * 0.5f, node.z);
 				Paint(body, WithinReach(node));
 			}
 
@@ -115,7 +128,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < alive.Length; i++)
 			{
 				float distance = DistanceToMe(alive[i]);
-				if (distance >= nearest)
+				if (distance >= nearest || TryGetGroundHeight(alive[i], out float _) == false)
 					continue;
 
 				nearest = distance;
@@ -130,6 +143,18 @@ namespace WitchMendokusai
 
 		private static bool CanGatherHere() => GameConditionBridge.Get(GameConditionType.IsInDungeon) == false
 			&& GameConditionBridge.Get(GameConditionType.IsViewingUI) == false;
+
+		private static bool TryGetGroundHeight(GatherableView node, out float height)
+		{
+			height = 0f;
+			Vector3 origin = new Vector3(node.x, GROUND_RAY_HEIGHT, node.z);
+			int mask = ~LayerMask.GetMask("UNIT");
+			if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, GROUND_RAY_HEIGHT * 2f, mask, QueryTriggerInteraction.Ignore) == false)
+				return false;
+
+			height = hit.point.y;
+			return true;
+		}
 
 		private bool WithinReach(GatherableView node) => DistanceToMe(node) <= REACH;
 
@@ -171,8 +196,9 @@ namespace WitchMendokusai
 
 			if (nearMaterial == null)
 			{
-				nearMaterial = new Material(renderer.sharedMaterial) { color = new Color(0.79f, 0.69f, 0.42f) };
-				farMaterial = new Material(renderer.sharedMaterial) { color = new Color(0.36f, 0.42f, 0.32f) };
+				Shader lit = Shader.Find(LIT_SHADER);
+				nearMaterial = new Material(lit) { color = new Color(0.79f, 0.69f, 0.42f) };
+				farMaterial = new Material(lit) { color = new Color(0.36f, 0.42f, 0.32f) };
 			}
 
 			Material wanted = near ? nearMaterial : farMaterial;

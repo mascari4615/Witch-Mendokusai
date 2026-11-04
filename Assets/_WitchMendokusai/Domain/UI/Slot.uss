@@ -108,7 +108,7 @@
 
 .wm-hotbar {
     position: absolute;
-    bottom: 16px;
+    bottom: 112px;
     left: 50%;
     translate: -50% 0;
     flex-direction: row;
