@@ -12,11 +12,14 @@ namespace WitchMendokusai
 
 	public class Work
 	{
-		public WorkType WorkType { get; private set; }
-		public Guid? Value { get; private set; }
-		public float Time { get; private set; }
-		public float CurTime { get; private set; }
-		public int WorkerID { get; private set; }
+		public WorkType WorkType { get; set; }
+		public Guid? Value { get; set; }
+		public float Time { get; set; }
+		public float CurTime { get; set; }
+		public int WorkerID { get; set; }
+
+		// 세이브 복원용. Unity 7 IL2CPP에서 매개변수 이름이 비어 생성자 매칭이 실패
+		public Work() { }
 
 		public Work(int workerID, WorkType workType, Guid? value, float time, float curTime = 0)
 		{

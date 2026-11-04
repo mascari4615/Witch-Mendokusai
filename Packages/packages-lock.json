@@ -5,14 +5,14 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "33a618d2b2914b37e0d27b21c4ed89500381e965"
+      "hash": "47f036c55c378a3f0ba9f89c4380a500e32a7379"
     },
     "com.cysharp.messagepipe.vcontainer": {
       "version": "https://github.com/Cysharp/MessagePipe.git?path=src/MessagePipe.Unity/Assets/Plugins/MessagePipe.VContainer",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "33a618d2b2914b37e0d27b21c4ed89500381e965"
+      "hash": "47f036c55c378a3f0ba9f89c4380a500e32a7379"
     },
     "com.cysharp.r3": {
       "version": "https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity",
@@ -21,14 +21,14 @@
       "dependencies": {
         "com.unity.modules.imgui": "1.0.0"
       },
-      "hash": "3fed50ae5c7e123073f6e50218b2a0e6310d50b4"
+      "hash": "a8d5fb3c2d0afd124223084e94c9e0ee73497510"
     },
     "com.cysharp.unitask": {
       "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "e5acc106ee196bc5a32fb14cdf2987b0f96d11e0"
+      "hash": "a77a1b4a89824fb6df293099de3060daf2a432c1"
     },
     "com.mascari4615.appearance": {
       "version": "file:com.mascari4615.appearance",
@@ -118,7 +118,7 @@
       "dependencies": {}
     },
     "com.unity.2d.animation": {
-      "version": "17.0.1",
+      "version": "17.0.2",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -308,12 +308,10 @@
       "dependencies": {}
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.27",
+      "version": "2.0.29",
       "depth": 0,
       "source": "registry",
-      "dependencies": {
-        "com.unity.test-framework": "1.1.33"
-      },
+      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.inputsystem": {
@@ -340,7 +338,7 @@
       "dependencies": {}
     },
     "com.unity.memoryprofiler": {
-      "version": "1.2.0-pre.1",
+      "version": "1.2.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -373,7 +371,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.pipeline": {
-      "version": "0.7.0-exp.1",
+      "version": "0.10.0-exp.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {

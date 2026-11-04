@@ -171,7 +171,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f32a3480415cfac4d9a7825d92ad652d, type: 2}
   - {fileID: 11400000, guid: 3c85f590e5fcc2d41adeae4ffd4b434f, type: 2}
   m_ActiveProfileId: 9c61a8b9e6d64004d8850d6bb144cea9
-  m_ContentDirectoryCatalogNameMigrated: 0
-  m_CatalogFormatMigrated: 0
-  m_ContentDirectoryArchiveModeMigrated: 0
-  m_CrcCachedBundleFlagMigrated: 0
+  m_ContentDirectoryCatalogNameMigrated: 1
+  m_CatalogFormatMigrated: 1
+  m_ContentDirectoryArchiveModeMigrated: 1
+  m_CrcCachedBundleFlagMigrated: 1
