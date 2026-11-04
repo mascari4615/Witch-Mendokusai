@@ -18,5 +18,7 @@
     <type fullname="WitchMendokusai.BuildStampOverlay" preserve="all" />
     <type fullname="WitchMendokusai.BuildStampSettings" preserve="all" />
     <type fullname="WitchMendokusai.BuildInfo" preserve="all" />
+    <!-- 세이브 JSON 복원용. 코드 호출이 없어 Unity 7 High 가지치기에서 생성자와 setter 삭제 -->
+    <type fullname="WitchMendokusai.Work" preserve="all" />
   </assembly>
 </linker>
