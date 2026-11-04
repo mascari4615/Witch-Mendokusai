@@ -222,21 +222,16 @@ namespace WitchMendokusai
 
 			// 세계가 아는 내 자리 — 이게 기준이다. 화면의 내 캐릭터를 기준으로 삼으면
 			// 세계가 걸음을 잘라낼 때마다 둘이 벌어져 영원히 따라잡지 못한다.
-			SimVector3 known = SimVector3.zero;
-			if (dolls != null)
-			{
-				for (int i = 0; i < dolls.Length; i++)
-				{
-					if (dolls[i] != null && dolls[i].id == link.MyDollId)
-					{
-						known = new SimVector3(dolls[i].x, 0f, dolls[i].z);
-						break;
-					}
-				}
-			}
+			// 목록에 내가 없으면 (재접속 직후 등) 기준 없음. (0,0) 위치 보정 방지 (2026-11-04)
+			if (MyDoll.TryFind(dolls, link.MyDollId, out SimVector3 known) == false)
+				return;
 
 			if (MoveIntent.TryStep(known, new SimVector3(x, 0f, z), WorldSim.MAX_STEP, out SimVector3 step))
 				link.RequestMove(step.x, step.z);
+
+			// 내 안의 세계는 화면의 내가 정본, 끌어당길 서버 없음
+			if (link is LocalWorldLink)
+				return;
 
 			// 서버 권위의 반쪽 — 세계가 걸음을 잘라 내가 앞서 있으면 끌어당긴다.
 			// 안 하면 나는 문 앞인데 남들 화면의 나는 아직 복도에 있다.

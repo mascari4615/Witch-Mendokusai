@@ -9,11 +9,8 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 세계로 들어가는 문 하나 (TASK-WM-217).
 	///
-	/// 「혼자 하기 / 같이 하기」를 묻지 않는다. 들어가면 세계가 있고, 그 세계가
-	/// 멀리 있으면 거기 붙고 <b>없으면 내 안에서 띄운다.</b> 사람은 그 차이를 몰라도 된다.
-	///
-	/// ★ 왜 「못 붙으면 실패」가 아닌가: 인터넷이 없다고 게임이 안 열리면 그건 게임이 아니다.
-	///   접속은 <b>더 좋은 경우</b>이지 <b>필요 조건</b>이 아니다.
+	/// 싱글과 멀티는 사람이 로비에서 고른다 (사용자 결정 2026-11-04). 싱글은 서버 접속 없이 내 안의 세계,
+	/// 멀티는 멀리 있는 세계. 멀티 접속 실패 시 내 안의 세계로 입장, 경고 로그만.
 	/// </summary>
 	public sealed class WorldLinkProvider : MonoBehaviour, IWorldDoor
 	{
@@ -41,6 +38,7 @@ namespace WitchMendokusai
 		[SerializeField] private float connectTimeoutSeconds = 5f;
 
 		private WebWorldClient remote;
+		private Coroutine connecting;
 		private WorldLinkBuildChannel buildChannel;
 		private WorldLinkBrewChannel brewChannel;
 		private WorldLinkCraftChannel craftChannel;
@@ -66,16 +64,27 @@ namespace WitchMendokusai
 			WorldDoor.Register(this);
 		}
 
-		/// <summary>세계로 들어간다. 이미 들어와 있으면 그대로 둔다.</summary>
-		public void Enter()
+		/// <summary>싱글 입장. 이미 내 안의 세계면 그대로.</summary>
+		public void EnterSolo()
 		{
-			if (Current != null)
+			if (IsLocalWorld)
 				return;
 
-			StartCoroutine(EnterRoutine());
+			Leave();
+			EnterLocalWorld();
 		}
 
-		private IEnumerator EnterRoutine()
+		/// <summary>멀티 입장. 이미 접속했거나 접속 중이면 그대로.</summary>
+		public void EnterShared()
+		{
+			if (remote != null)
+				return;
+
+			Leave();
+			connecting = StartCoroutine(ConnectRoutine());
+		}
+
+		private IEnumerator ConnectRoutine()
 		{
 			remote = gameObject.AddComponent<WebWorldClient>();
 			// 붙을 곳은 기본값(빌드) 위에 기기 저장값, 그 위에 환경변수가 탄다.
@@ -92,6 +101,8 @@ namespace WitchMendokusai
 				yield return null;
 			}
 
+			connecting = null;
+
 			if (remote.IsLinked)
 			{
 				Current = remote;
@@ -101,11 +112,15 @@ namespace WitchMendokusai
 				yield break;
 			}
 
-			// 못 붙었다 — 조용히 내 안의 세계로. 사람에게는 그냥 「세계에 들어왔다」.
+			Debug.LogWarning($"[{nameof(WorldLinkProvider)}] 멀티 접속 실패, 내 안의 세계로 입장 ({targetUrl})");
 			remote.Disconnect();
 			Destroy(remote);
 			remote = null;
+			EnterLocalWorld();
+		}
 
+		private void EnterLocalWorld()
+		{
 			// 지난번에 지은 것을 되살려 들어간다 — 혼자 놀아도 세계는 이어진다 (단계 5).
 			WorldSim world = new WorldSim();
 
@@ -211,6 +226,12 @@ namespace WitchMendokusai
 		public void Leave()
 		{
 			SaveLocalWorld();
+
+			if (connecting != null)
+			{
+				StopCoroutine(connecting);
+				connecting = null;
+			}
 
 			if (buildChannel != null)
 			{

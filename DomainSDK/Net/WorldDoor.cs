@@ -3,8 +3,11 @@ namespace WitchMendokusai.Net
 	/// <summary>세계로 들어가는 문 — 실제로 어떻게 붙는지는 통신 층이 안다 (TASK-WM-217).</summary>
 	public interface IWorldDoor
 	{
-		/// <summary>세계로 들어간다. 이미 들어와 있으면 아무 일도 안 한다.</summary>
-		void Enter();
+		/// <summary>싱글, 내 안의 세계로 입장. 서버 접속 없음. 이미 그 세계면 그대로.</summary>
+		void EnterSolo();
+
+		/// <summary>멀티, 멀리 있는 세계로 입장. 이미 접속 중이면 그대로.</summary>
+		void EnterShared();
 
 		/// <summary>지금 이어진 줄 — 아직 안 들어갔으면 null.</summary>
 		IWorldLink Current { get; }
@@ -32,7 +35,10 @@ namespace WitchMendokusai.Net
 		/// <summary>통신 층이 부팅할 때 자기를 꽂는다.</summary>
 		public static void Register(IWorldDoor instance) => door = instance;
 
-		/// <summary>세계로 들어간다.</summary>
-		public static void Enter() => door?.Enter();
+		/// <summary>싱글 입장.</summary>
+		public static void EnterSolo() => door?.EnterSolo();
+
+		/// <summary>멀티 입장.</summary>
+		public static void EnterShared() => door?.EnterShared();
 	}
 }

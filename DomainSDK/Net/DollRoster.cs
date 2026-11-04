@@ -91,6 +91,28 @@ namespace WitchMendokusai.Net
 		}
 	}
 
+	/// <summary>세계 목록에서 내 인형의 자리를 찾는 자리. 없으면 false, 기준으로 쓰면 안 됨.</summary>
+	public static class MyDoll
+	{
+		public static bool TryFind(IReadOnlyList<WorldDollView> dolls, int myDollId, out Vector3 position)
+		{
+			position = Vector3.zero;
+			if (dolls == null)
+				return false;
+
+			for (int i = 0; i < dolls.Count; i++)
+			{
+				if (dolls[i] != null && dolls[i].id == myDollId)
+				{
+					position = new Vector3(dolls[i].x, 0f, dolls[i].z);
+					return true;
+				}
+			}
+
+			return false;
+		}
+	}
+
 	/// <summary>
 	/// 「가고 싶다」를 <b>세계가 받아 줄 크기의 걸음</b>으로 자르는 자리 (TASK-WM-217 단계 3).
 	///

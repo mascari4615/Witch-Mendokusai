@@ -59,11 +59,23 @@ namespace WitchMendokusai
 
 		private void Init()
 		{
+			BuildMultiplayerButton();
+			startButton.GetComponentInChildren<TextMeshProUGUI>().text = "싱글";
 			startButton.onClick.AddListener(StartGame);
 			settingButton.onClick.AddListener(ToggleSettings);
 			exitButton.onClick.AddListener(ExitGame);
 
 			UpdateText();
+		}
+
+		// 시작 버튼 복제로 같은 모양 유지, 격자 배치라 씬 수정 없이 옆에 놓임
+		private void BuildMultiplayerButton()
+		{
+			Button multiplayerButton = Instantiate(startButton, startButton.transform.parent);
+			multiplayerButton.name = "[Button] Multiplayer";
+			multiplayerButton.transform.SetSiblingIndex(startButton.transform.GetSiblingIndex() + 1);
+			multiplayerButton.GetComponentInChildren<TextMeshProUGUI>().text = "멀티";
+			multiplayerButton.onClick.AddListener(StartMultiplayer);
 		}
 
 		private void UpdateText()
@@ -78,17 +90,23 @@ namespace WitchMendokusai
 		}
 
 		#region Button
-		/// <summary>
-		/// 세계로 들어간다 (TASK-WM-217). 「혼자/같이」를 묻지 않는다 —
-		/// 멀리 있는 세계에 붙으면 거기로, 못 붙으면 내 안의 세계로 들어간다.
-		/// </summary>
+		/// <summary>싱글 시작. 서버 접속 없이 내 안의 세계로 입장.</summary>
 		public void StartGame()
 		{
 			Debug.Log(nameof(StartGame));
 
 			// 문은 통신 층이 스스로 세우고 여기 꽂아 둔다 (WorldDoor) — 로비는 통신을 몰라야 한다.
 			// 어셈블리 방향이 Network → Domain 단방향이라, 로비가 문의 타입을 직접 부르면 컴파일이 깨진다.
-			WitchMendokusai.Net.WorldDoor.Enter();
+			WitchMendokusai.Net.WorldDoor.EnterSolo();
+			UISceneLoading.LoadScene("World");
+		}
+
+		/// <summary>멀티 시작. 멀리 있는 세계로 입장.</summary>
+		public void StartMultiplayer()
+		{
+			Debug.Log(nameof(StartMultiplayer));
+
+			WitchMendokusai.Net.WorldDoor.EnterShared();
 			UISceneLoading.LoadScene("World");
 		}
 

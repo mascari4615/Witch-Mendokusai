@@ -99,6 +99,34 @@ namespace WitchMendokusai.Tests.EditMode.Net
 		}
 	}
 
+	/// <summary>재접속 직후 목록에 내가 없을 때 (0,0) 을 기준으로 삼지 않는지 (2026-11-04 되돌아감 버그).</summary>
+	public sealed class MyDollTests
+	{
+		private static WorldDollView Doll(int id, float x, float z) => new WorldDollView { id = id, x = x, z = z };
+
+		[Test]
+		public void 목록에_내가_없으면_찾지_못한다()
+		{
+			Assert.That(MyDoll.TryFind(new[] { Doll(2, 5f, 5f) }, 1, out Vector3 _), Is.False);
+		}
+
+		[Test]
+		public void 목록이_없으면_찾지_못한다()
+		{
+			Assert.That(MyDoll.TryFind(null, 1, out Vector3 _), Is.False);
+		}
+
+		[Test]
+		public void 목록에_내가_있으면_그_자리를_준다()
+		{
+			bool found = MyDoll.TryFind(new[] { Doll(2, 5f, 5f), Doll(1, 3f, 4f) }, 1, out Vector3 position);
+
+			Assert.That(found, Is.True);
+			Assert.That(position.x, Is.EqualTo(3f));
+			Assert.That(position.z, Is.EqualTo(4f));
+		}
+	}
+
 	/// <summary>걸음이 세계가 받아 줄 크기로 잘리는지 (TASK-WM-217 단계 3).</summary>
 	public sealed class MoveIntentTests
 	{

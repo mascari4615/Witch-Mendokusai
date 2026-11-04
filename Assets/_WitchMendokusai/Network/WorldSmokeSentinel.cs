@@ -122,8 +122,8 @@ namespace WitchMendokusai
 			// 「껐다 켜도 남나」를 재는 판 — 새로 놀지 않고, 지난 판이 상자에 넣어 둔 것을 확인만 한다.
 			checkKeptOnly = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WM_WORLD_SMOKE_KEEP")) == false;
 
-			// 스모크는 사람이 버튼을 안 누른다 — 파수꾼이 직접 세계로 들어간다.
-			WorldDoor.Enter();
+			// 스모크는 버튼 입력 없음. 2-peer 검사라 멀티로 직접 입장
+			WorldDoor.EnterShared();
 		}
 
 		private void Update()
