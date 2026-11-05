@@ -23,7 +23,13 @@ namespace WitchMendokusai
 		public override string Name => "던전 입장";
 		public override bool IsFullscreen => true;
 
-		private readonly List<ToolkitSlot> dungeonSelectButtons = new();
+		private const string USS_ROOT = "wm-dungeon-entrance";
+		private const string USS_ROW_SELECTED = "wm-dungeon-entrance__row--selected";
+
+		private readonly List<Button> dungeonSelectButtons = new();
+		private Image heroImage;
+		private Label nameLabel;
+		private Label descriptionLabel;
 		private UIRewardsToolkit rewardUI;
 		private UIDungeonConstraintToolkit constraintUI;
 		private Button dungeonEnterButton;
@@ -41,26 +47,50 @@ namespace WitchMendokusai
 
 		protected override void BuildUI(VisualElement root)
 		{
-			root.style.flexGrow = 1;
-			root.style.flexDirection = FlexDirection.Row;
+			root.AddToClassList(USS_ROOT);
 
-			dungeonSelectButtonsParent = new VisualElement { name = "DungeonSelectButtons" };
-			dungeonSelectButtonsParent.style.flexDirection = FlexDirection.Column;
-			root.Add(dungeonSelectButtonsParent);
+			VisualElement top = AddBlock(root, "__top");
+			top.Add(new Button(() => PanelGroup.ClosePanel()) { name = "BackButton", text = "←" });
+			top.Add(new Label("던전"));
 
-			VisualElement detail = new VisualElement { name = "Detail" };
-			detail.style.flexGrow = 1;
-			detail.style.flexDirection = FlexDirection.Column;
-			root.Add(detail);
+			VisualElement body = AddBlock(root, "__body");
+			dungeonSelectButtonsParent = AddBlock(body, "__list");
 
+			heroImage = new Image { scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
+			heroImage.AddToClassList(USS_ROOT + "__hero");
+			body.Add(heroImage);
+
+			VisualElement detail = AddBlock(body, "__detail");
+			nameLabel = AddLabel(detail, string.Empty, "__name");
+			descriptionLabel = AddLabel(detail, string.Empty, "__description");
+
+			AddLabel(detail, "보상", "__label");
 			rewardUI = new UIRewardsToolkit();
 			detail.Add(rewardUI);
 
+			AddLabel(detail, "제약", "__label");
 			constraintUI = new UIDungeonConstraintToolkit();
 			detail.Add(constraintUI);
 
 			dungeonEnterButton = new Button(EnterTheDungeon) { name = "EnterButton", text = "입장" };
+			dungeonEnterButton.AddToClassList(USS_ROOT + "__enter");
 			detail.Add(dungeonEnterButton);
+		}
+
+		private static VisualElement AddBlock(VisualElement parent, string suffix)
+		{
+			VisualElement block = new VisualElement();
+			block.AddToClassList(USS_ROOT + suffix);
+			parent.Add(block);
+			return block;
+		}
+
+		private static Label AddLabel(VisualElement parent, string text, string suffix)
+		{
+			Label label = new Label(text);
+			label.AddToClassList(USS_ROOT + suffix);
+			parent.Add(label);
+			return label;
 		}
 
 		public override void SetNPC(NPCObject npc)
@@ -76,7 +106,7 @@ namespace WitchMendokusai
 			{
 				if (i < dungeons.Count)
 				{
-					dungeonSelectButtons[i].SetSlot(dungeons[i]);
+					dungeonSelectButtons[i].text = dungeons[i].Name;
 					dungeonSelectButtons[i].style.display = DisplayStyle.Flex;
 				}
 				else
@@ -84,9 +114,6 @@ namespace WitchMendokusai
 					dungeonSelectButtons[i].style.display = DisplayStyle.None;
 				}
 			}
-
-			if (dungeonSelectButtons.Count > 0)
-				dungeonSelectButtons[0].Select();
 		}
 
 		protected override void OnOpen() => SelectDungeon(0);
@@ -94,28 +121,41 @@ namespace WitchMendokusai
 		protected override void OnClose()
 		{
 			Root.panel?.focusController?.focusedElement?.Blur();
-			Root.GetUIServices()?.Tooltip?.Hide();
 		}
 
-		public override void UpdateUI() => UpdateTooltip();
+		public override void UpdateUI() => UpdateDetail();
 
 		public void SelectDungeon(int index)
 		{
 			curDungeonIndex = index;
-			UpdateTooltip();
+			UpdateDetail();
 			dungeonEnterButton.Focus();
 		}
 
-		private void UpdateTooltip()
+		private void UpdateDetail()
 		{
-			ToolkitSlot selectedSlot = dungeonSelectButtons[curDungeonIndex];
-			Vector2 anchor = selectedSlot.worldBound.position;
-			selectedSlot.GetUIServices()?.Tooltip?.ShowAnchored(selectedSlot.Data, anchor);
+			for (int i = 0; i < dungeonSelectButtons.Count; i++)
+				dungeonSelectButtons[i].EnableInClassList(USS_ROW_SELECTED, i == curDungeonIndex);
+
+			heroImage.sprite = GetHeroSprite(CurDungeon);
+			nameLabel.text = CurDungeon.Name;
+			descriptionLabel.text = CurDungeon.Description;
 
 			rewardUI.UpdateUI(CurDungeon.Rewards);
 
 			constraintUI.SetDungeon(CurDungeon);
 			constraintUI.UpdateUI();
+		}
+
+		// 마지막 웨이브의 첫 몬스터가 대표, 웨이브가 없으면 던전 아이콘
+		private static Sprite GetHeroSprite(Dungeon dungeon)
+		{
+			List<MonsterWave> waves = dungeon.MonsterWaves;
+			if (waves == null || waves.Count == 0)
+				return dungeon.Sprite;
+
+			Monster[] monsters = waves[waves.Count - 1].Monsters;
+			return monsters == null || monsters.Length == 0 ? dungeon.Sprite : monsters[0].Sprite;
 		}
 
 		public void EnterTheDungeon()
@@ -128,11 +168,11 @@ namespace WitchMendokusai
 		{
 			while (dungeonSelectButtons.Count < count)
 			{
-				ToolkitSlot slot = new ToolkitSlot();
-				slot.SetSlotIndex(dungeonSelectButtons.Count);
-				slot.SetClickAction((ToolkitSlot clickedSlot) => SelectDungeon(clickedSlot.Index));
-				dungeonSelectButtons.Add(slot);
-				dungeonSelectButtonsParent.Add(slot);
+				int index = dungeonSelectButtons.Count;
+				Button row = new Button(() => SelectDungeon(index));
+				row.AddToClassList(USS_ROOT + "__row");
+				dungeonSelectButtons.Add(row);
+				dungeonSelectButtonsParent.Add(row);
 			}
 		}
 	}

@@ -1089,3 +1089,94 @@
 .wm-tactic-start {
     -unity-font-style: bold;
 }
+
+/* 던전 입장 전체 화면: 왼쪽 목록, 가운데 대표 몬스터, 오른쪽 정보 (사용자 선택 2026-11-05) */
+.wm-dungeon-entrance {
+    background-color: rgba(14, 12, 20, 0.88);
+    padding: 24px 32px;
+}
+
+.wm-dungeon-entrance__top {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 16px;
+    -unity-font-style: bold;
+    font-size: 22px;
+    color: rgb(236, 232, 242);
+}
+
+.wm-dungeon-entrance__body {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+.wm-dungeon-entrance__list {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.wm-dungeon-entrance__row {
+    height: 52px;
+    margin: 0 0 8px 0;
+    padding: 0 16px;
+    -unity-text-align: middle-left;
+    font-size: 16px;
+    color: rgb(236, 232, 242);
+    background-color: rgba(255, 255, 255, 0.07);
+    border-width: 0 0 0 4px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+.wm-dungeon-entrance__row--selected {
+    background-color: rgba(232, 191, 94, 0.16);
+    border-color: rgb(232, 191, 94);
+}
+
+.wm-dungeon-entrance__hero {
+    flex-grow: 1;
+    margin: 0 24px;
+}
+
+.wm-dungeon-entrance__detail {
+    width: 420px;
+    flex-shrink: 0;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.wm-dungeon-entrance__name {
+    font-size: 30px;
+    -unity-font-style: bold;
+    color: rgb(232, 191, 94);
+    white-space: normal;
+}
+
+.wm-dungeon-entrance__description {
+    margin: 8px 0 12px 0;
+    font-size: 16px;
+    color: rgb(236, 232, 242);
+    white-space: normal;
+}
+
+.wm-dungeon-entrance__label {
+    margin-top: 12px;
+    margin-bottom: 4px;
+    font-size: 13px;
+    color: rgb(169, 161, 184);
+}
+
+.wm-dungeon-entrance .wm-rewards,
+.wm-dungeon-entrance .wm-dungeon-constraint {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.wm-dungeon-entrance__enter {
+    margin: auto 0 0 0;
+    height: 60px;
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: rgb(36, 28, 10);
+    background-color: rgb(232, 191, 94);
+    border-width: 0;
+}
