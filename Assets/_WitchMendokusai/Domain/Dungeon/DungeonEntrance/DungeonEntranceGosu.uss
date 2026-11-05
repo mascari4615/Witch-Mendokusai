@@ -267,7 +267,7 @@
 .wm-dungeon-entrance--gosu .wm-dungeon-constraint__row--selected .wm-dungeon-constraint__check {
     background-color: var(--gosu-seal);
     border-color: var(--gosu-seal-dark);
-    background-image: url("../../../Core/UI/Common/Sprites/UI_Check.png");
+    background-image: url("Art/dungeon-entry-gosu-check.png");
     -unity-background-scale-mode: scale-to-fit;
 }
 
