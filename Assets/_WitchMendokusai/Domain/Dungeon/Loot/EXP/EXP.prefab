@@ -60,6 +60,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
+  pickupDistance: 0.3
   useBezierCurve: 0
   amount: 5
 --- !u!135 &8148981159910237954

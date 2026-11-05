@@ -290,7 +290,7 @@
       "depth": 0,
       "source": "builtin",
       "dependencies": {
-        "com.unity.2d.animation": "17.0.1",
+        "com.unity.2d.animation": "17.0.2",
         "com.unity.2d.pixel-perfect": "6.0.0",
         "com.unity.2d.psdimporter": "16.0.0",
         "com.unity.2d.sprite": "1.0.0",

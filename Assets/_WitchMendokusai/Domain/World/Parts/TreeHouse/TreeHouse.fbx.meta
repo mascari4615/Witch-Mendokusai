@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: cdcee8b7f99e62c41b3bab47cff7e1fa
 ModelImporter:
-  serializedVersion: 24501
+  serializedVersion: 24600
   internalIDToNameTable: []
   externalObjects:
   - first:
@@ -45,6 +45,8 @@ ModelImporter:
     addColliders: 0
     useSRGBMaterialColor: 1
     sortHierarchyByName: 1
+    preBakeConvexCollisionMesh: 0
+    preBakeTriangleCollisionMesh: 0
     importPhysicalCameras: 1
     importVisibility: 1
     importBlendShapes: 1
@@ -118,3 +120,9 @@ ModelImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+  script: {fileID: 21018, guid: 0000000000000000e000000000000000, type: 0}
+  blockCollection:
+    blocks: []
+  references:
+    version: 2
+    RefIds: []

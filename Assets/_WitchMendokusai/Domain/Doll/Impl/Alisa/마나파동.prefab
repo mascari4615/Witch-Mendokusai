@@ -241,11 +241,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CollisionTag: 
   EventReference:
-    Guid:
-      Data1: -1116116225
-      Data2: 1294663924
-      Data3: 1683440036
-      Data4: -1771286892
+    Guid: 00000000000000000000000000000000
     Path: event:/SFX/Skill/Bubble
   Event: 
   EventPlayTrigger: 11

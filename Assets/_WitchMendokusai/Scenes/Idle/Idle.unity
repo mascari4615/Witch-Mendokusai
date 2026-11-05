@@ -214,6 +214,10 @@ PanelRenderer:
   m_PivotReferenceSize: 0
   m_Pivot: 0
   m_Position: 0
+  m_GenerateAccessibilityHierarchy: 1
+  m_TrackScreenSpacePosition: 0
+  m_ScreenSpaceOffsetX: 0
+  m_ScreenSpaceOffsetY: 0
 --- !u!4 &235501449
 Transform:
   m_ObjectHideFlags: 0
@@ -479,8 +483,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 783478576}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.3461569, y: 0.2416284, z: -0.09275246, w: 0.90176946}
-  m_LocalPosition: {x: -5.1167297, y: 11.77522, z: -10.940899}
+  m_LocalRotation: {x: 0.35836798, y: 0, z: 0, w: 0.93358046}
+  m_LocalPosition: {x: 0.9333334, y: 13.782611, z: -12.862898}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -596,6 +600,9 @@ MonoBehaviour:
   blendDistance: 0
   weight: 1
   sharedProfile: {fileID: 11400000, guid: 0d95214c53abb9942848f1b295d36ce2, type: 2}
+  m_SceneObjectReference:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
 --- !u!4 &1724518128
 Transform:
   m_ObjectHideFlags: 0
