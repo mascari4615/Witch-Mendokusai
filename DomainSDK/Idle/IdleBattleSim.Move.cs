@@ -77,8 +77,9 @@ namespace WitchMendokusai.DomainSDK.Idle
 
                 if (wanted > battle.X[seat])
                 {
+                    // 멈춤선에 걸려 한 걸음의 절반도 못 가면 걷는 게 아니다. 안 그러면 제자리에서 걷기 애니만 돈다 (사용자 2026-09-20 "느리게 걷기 시작")
+                    battle.Moving[seat] = wanted - battle.X[seat] >= step * 0.5d;
                     battle.X[seat] = wanted;
-                    battle.Moving[seat] = true;
                 }
             }
         }
