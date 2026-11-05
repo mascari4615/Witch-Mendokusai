@@ -1092,7 +1092,7 @@
 
 /* 던전 입장 전체 화면: 왼쪽 목록, 가운데 대표 몬스터, 오른쪽 정보 (사용자 선택 2026-11-05) */
 .wm-dungeon-entrance {
-    background-color: rgba(14, 12, 20, 0.88);
+    background-color: rgba(14, 12, 20, 0.97);
     padding: 24px 32px;
 }
 
@@ -1134,6 +1134,8 @@
 
 .wm-dungeon-entrance__hero {
     flex-grow: 1;
+    align-self: center;
+    height: 55%;
     margin: 0 24px;
 }
 
