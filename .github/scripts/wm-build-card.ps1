@@ -299,18 +299,42 @@ function Get-PhoneInstallText {
     return "폰에 깔기: $Url"
 }
 
+# Unity 가 배포 금지로 이름 붙인 최상위 폴더. v0.0.8 zip 629MB 중 523MB 가 여기 (GameAssembly.pdb, il2cpp 출력)
+$script:WM_DO_NOT_SHIP = @('*_BackUpThisFolder_ButDontShipItWithYourGame', '*_BurstDebugInformation_DoNotShip')
+
+function New-ShippableZip {
+    param([string]$SourceDir, [string]$ZipPath)
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $root = (Get-Item -LiteralPath $SourceDir).FullName.TrimEnd('\')
+    $skip = @(Get-ChildItem -LiteralPath $root -Directory | Where-Object {
+        $folder = $_.Name
+        @($script:WM_DO_NOT_SHIP | Where-Object { $folder -like $_ }).Count -gt 0
+    } | ForEach-Object { $_.FullName + '\' })
+    $archive = [IO.Compression.ZipFile]::Open($ZipPath, [IO.Compression.ZipArchiveMode]::Create)
+    try {
+        foreach ($file in Get-ChildItem -LiteralPath $root -Recurse -File) {
+            $full = $file.FullName
+            if (@($skip | Where-Object { $full.StartsWith($_, [StringComparison]::OrdinalIgnoreCase) }).Count -gt 0) { continue }
+            $entry = $full.Substring($root.Length + 1).Replace('\', '/')
+            [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $full, $entry, [IO.Compression.CompressionLevel]::Fastest)
+        }
+    } finally {
+        $archive.Dispose()
+    }
+}
+
 function Get-BuildZip {
     param([string]$OutDir)
     $existing = Get-ChildItem $OutDir -File -Filter '*.zip' -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($existing) { return $existing }
     if (-not (Get-ChildItem $OutDir -File -Filter '*.exe' -ErrorAction SilentlyContinue)) { return $null }
 
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
     $name = "WitchMendokusai-$(Split-Path $OutDir -Leaf).zip"
     $staging = Join-Path (Split-Path $OutDir -Parent) "$name.building"
     if (Test-Path $staging) { Remove-Item $staging -Force -ErrorAction SilentlyContinue }
     $sw = [Diagnostics.Stopwatch]::StartNew()
-    [IO.Compression.ZipFile]::CreateFromDirectory($OutDir, $staging, [IO.Compression.CompressionLevel]::Fastest, $false)
+    New-ShippableZip -SourceDir $OutDir -ZipPath $staging
     $final = Join-Path $OutDir $name
     Move-Item $staging $final -Force
     $sw.Stop()
