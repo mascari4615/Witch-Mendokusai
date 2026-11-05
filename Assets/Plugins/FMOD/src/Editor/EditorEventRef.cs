@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,8 +11,14 @@ namespace FMODUnity
         [SerializeField]
         public string Path;
 
-        [SerializeField]
-        public FMOD.GUID Guid;
+        [SerializeField, UnityEngine.Serialization.FormerlySerializedAs("Guid")]
+        private SerializedGuid guidData;
+
+        public FMOD.GUID Guid
+        {
+            get => guidData;
+            set => guidData = value;
+        }
 
         [SerializeField]
         public List<EditorBankRef> Banks;

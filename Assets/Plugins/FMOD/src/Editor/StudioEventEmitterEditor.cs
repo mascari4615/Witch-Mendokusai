@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -45,7 +45,7 @@ namespace FMODUnity
             var tag = serializedObject.FindProperty("CollisionTag");
             var eventReference = serializedObject.FindProperty("EventReference");
 #if FMOD_SERIALIZE_GUID_ONLY
-            FMOD.GUID guid = eventReference.FindPropertyRelative("Guid").GetGuid();
+            FMOD.GUID guid = eventReference.FindPropertyRelative("GuidData").GetGuid();
             EditorEventRef editorEventRef = EventManager.EventFromGUID(guid);
             var eventPath = "";
             if (editorEventRef != null)

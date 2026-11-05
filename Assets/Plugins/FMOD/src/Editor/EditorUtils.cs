@@ -1,4 +1,4 @@
-﻿#if UNITY_ADDRESSABLES_EXIST
+#if UNITY_ADDRESSABLES_EXIST
     // The Addressables package depends on the ScriptableBuildPipeline package
     #define UNITY_SCRIPTABLEBUILDPIPELINE_EXIST
 #endif
@@ -1950,7 +1950,7 @@ namespace FMODUnity
 
         public static void SetEventReference(this SerializedProperty property, FMOD.GUID guid, string path)
         {
-            SerializedProperty guidProperty = property.FindPropertyRelative("Guid");
+            SerializedProperty guidProperty = property.FindPropertyRelative("GuidData");
             guidProperty.SetGuid(guid);
 
 #if !FMOD_SERIALIZE_GUID_ONLY
@@ -1961,7 +1961,7 @@ namespace FMODUnity
 
         public static EventReference GetEventReference(this SerializedProperty property)
         {
-            SerializedProperty guidProperty = property.FindPropertyRelative("Guid");
+            SerializedProperty guidProperty = property.FindPropertyRelative("GuidData");
             return new EventReference()
             {
                 Path = property.GetEventReferencePath(),
@@ -1972,7 +1972,7 @@ namespace FMODUnity
         public static string GetEventReferencePath(this SerializedProperty property)
         {
 #if FMOD_SERIALIZE_GUID_ONLY
-            return EditorUtils.PathFromGUID(property.FindPropertyRelative("Guid").GetGuid());
+            return EditorUtils.PathFromGUID(property.FindPropertyRelative("GuidData").GetGuid());
 #else
             return property.FindPropertyRelative("Path").stringValue;
 #endif

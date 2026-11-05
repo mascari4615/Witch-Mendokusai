@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -298,7 +298,7 @@ namespace FMODUnity
                             EventReferenceUpdater.MenuPath),
                         RepairTooltip = string.Format(L10n.Tr("Repair: set GUID to {0}"), editorEventRef.Guid),
                         RepairAction = (property) => {
-                            property.FindPropertyRelative("Guid").SetGuid(editorEventRef.Guid);
+                            property.FindPropertyRelative("GuidData").SetGuid(editorEventRef.Guid);
                         },
                     };
                 }
@@ -339,7 +339,7 @@ namespace FMODUnity
 
         private static SerializedProperty GetGuidProperty(SerializedProperty property)
         {
-            return property.FindPropertyRelative("Guid");
+            return property.FindPropertyRelative("GuidData");
         }
 
         private static SerializedProperty GetPathProperty(SerializedProperty property)
