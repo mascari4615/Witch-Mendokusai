@@ -1321,12 +1321,20 @@
     display: none;
 }
 
+.wm-dungeon-entrance .wm-slot__icon {
+    width: 62%;
+    height: 62%;
+    margin-bottom: 14px;
+}
+
 .wm-dungeon-entrance .wm-slot__amount {
-    bottom: 3px;
-    right: 6px;
+    left: 0;
+    right: 0;
+    bottom: 2px;
     font-size: 15px;
-    color: rgb(255, 248, 228);
-    -unity-text-outline-color: rgb(110, 76, 30);
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 0;
+    color: rgb(62, 47, 27);
 }
 
 .wm-dungeon-entrance__monster {
