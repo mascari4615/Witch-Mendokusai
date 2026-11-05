@@ -1322,9 +1322,9 @@
 }
 
 .wm-dungeon-entrance .wm-slot__icon {
-    width: 62%;
-    height: 62%;
-    margin-bottom: 14px;
+    width: 54%;
+    height: 54%;
+    margin-bottom: 18px;
 }
 
 .wm-dungeon-entrance .wm-slot__amount {
