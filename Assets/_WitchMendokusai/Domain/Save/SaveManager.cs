@@ -126,7 +126,7 @@ namespace WitchMendokusai
 			// 업그레이드 초기화
 			ForEach<UpgradeData>(upgradeData => { upgradeData.CurLevel = 0; });
 
-			SaveData();
+			WriteSaveData();
 			LoadLocalData();
 		}
 
@@ -243,6 +243,18 @@ namespace WitchMendokusai
 		}
 
 		public void SaveData()
+		{
+			// 로드 전의 빈 메모리로 저장 파일을 덮지 않음
+			if (IsDataLoaded == false)
+			{
+				Debug.LogWarning("데이터 로드 전이라 저장 생략");
+				return;
+			}
+
+			WriteSaveData();
+		}
+
+		private void WriteSaveData()
 		{
 			GameData gameData = new()
 			{
