@@ -18,6 +18,9 @@
 
 .wm-dungeon-entrance--cut .wm-dungeon-entrance__deco {
     display: flex;
+    left: auto;
+    right: 0;
+    width: 1422px;
     background-image: url("Art/dungeon-entry-cut-deco.png");
 }
 
