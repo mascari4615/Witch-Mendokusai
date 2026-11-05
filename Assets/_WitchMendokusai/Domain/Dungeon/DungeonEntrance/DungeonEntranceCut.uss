@@ -40,7 +40,7 @@
 
 .wm-dungeon-entrance--cut .wm-dungeon-entrance__top {
     left: 28px;
-    top: 24px;
+    top: 22px;
 }
 
 .wm-dungeon-entrance--cut .wm-dungeon-entrance__title {

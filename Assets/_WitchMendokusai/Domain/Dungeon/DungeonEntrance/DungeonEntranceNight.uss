@@ -14,7 +14,7 @@
 
 .wm-dungeon-entrance--night .wm-dungeon-entrance__top {
     left: 33px;
-    top: 25px;
+    top: 21.5px;
 }
 
 .wm-dungeon-entrance--night .wm-dungeon-entrance__title {

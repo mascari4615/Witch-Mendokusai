@@ -16,6 +16,7 @@ namespace WitchMendokusai
 	{
 		public const string USS_CLASS = "wm-rewards";
 		public const string USS_STAT_SLOT = USS_CLASS + "__stat";
+		private const string NYANG_DISPLAY_NAME = "냥";
 
 		private readonly List<ToolkitSlot> slots = new();
 
@@ -52,7 +53,9 @@ namespace WitchMendokusai
 							slots[i].SetSlot(itemData);
 							break;
 						case RewardType.Gold:
-							slots[i].SetSlot(GetGameStatData(GameStatType.NYANG), data[i].Amount);
+							// 자산 Name 은 DataSOWindow 가 enum 이름으로 덮어씀, 표시 이름은 여기서
+							GameStatData nyangData = GetGameStatData(GameStatType.NYANG);
+							slots[i].SetSlot(nyangData.Sprite, NYANG_DISPLAY_NAME, nyangData.Description, data[i].Amount);
 							break;
 						case RewardType.Exp:
 							slots[i].SetSlot(GetGameStatData(GameStatType.VILLAGE_QUEST_EXP), data[i].Amount);
