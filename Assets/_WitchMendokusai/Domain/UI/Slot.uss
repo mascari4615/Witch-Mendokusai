@@ -1107,9 +1107,9 @@
 
 .wm-dungeon-entrance__hero {
     position: absolute;
-    left: 18.75%;
+    left: 4.48%;
     top: -2.2%;
-    width: 61.46%;
+    width: 90%;
     height: 109.26%;
     background-image: url("../Dungeon/DungeonEntrance/Art/dungeon-entry-hero-alisa.png");
     -unity-background-scale-mode: scale-to-fit;
@@ -1317,8 +1317,16 @@
     border-radius: 7px;
 }
 
+.wm-dungeon-entrance .wm-slot__name {
+    display: none;
+}
+
 .wm-dungeon-entrance .wm-slot__amount {
+    bottom: 3px;
+    right: 6px;
+    font-size: 15px;
     color: rgb(255, 248, 228);
+    -unity-text-outline-color: rgb(110, 76, 30);
 }
 
 .wm-dungeon-entrance__monster {
@@ -1338,8 +1346,9 @@
 .wm-dungeon-constraint__row {
     flex-direction: row;
     align-items: center;
+    height: 38px;
     margin: 0;
-    padding: 7px 0;
+    padding: 0;
     background-color: rgba(0, 0, 0, 0);
     border-width: 0 0 1px 0;
     border-color: rgb(220, 203, 160);
@@ -1368,7 +1377,8 @@
 
 .wm-dungeon-constraint__text {
     flex-shrink: 1;
-    margin-left: 10px;
+    margin: 0 0 0 10px;
+    padding: 0;
     font-size: 14px;
     color: rgb(91, 75, 52);
     white-space: normal;
