@@ -25,10 +25,14 @@ namespace WitchMendokusai
 
 		private const string USS_ROOT = "wm-dungeon-entrance";
 		private const string USS_ROW_SELECTED = "wm-dungeon-entrance__row--selected";
+		private const int SECONDS_PER_MINUTE = 60;
 
 		private readonly List<Button> dungeonSelectButtons = new();
-		private Image heroImage;
+		private readonly List<Label> dungeonRowNames = new();
+		private readonly List<VisualElement> dungeonRowIcons = new();
+		private Image monsterImage;
 		private Label nameLabel;
+		private Label timeLabel;
 		private Label descriptionLabel;
 		private UIRewardsToolkit rewardUI;
 		private UIDungeonConstraintToolkit constraintUI;
@@ -49,32 +53,55 @@ namespace WitchMendokusai
 		{
 			root.AddToClassList(USS_ROOT);
 
+			AddBlock(root, "__hero").pickingMode = PickingMode.Ignore;
+			AddBlock(root, "__mist").pickingMode = PickingMode.Ignore;
+
 			VisualElement top = AddBlock(root, "__top");
-			top.Add(new Button(() => PanelGroup.ClosePanel()) { name = "BackButton", text = "←" });
-			top.Add(new Label("던전"));
+			top.Add(AddRoundButton("BackButton", "←"));
+			AddLabel(top, "던전", "__title");
 
-			VisualElement body = AddBlock(root, "__body");
-			dungeonSelectButtonsParent = AddBlock(body, "__list");
+			Button closeButton = AddRoundButton("CloseButton", "×");
+			closeButton.AddToClassList(USS_ROOT + "__close");
+			root.Add(closeButton);
 
-			heroImage = new Image { scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
-			heroImage.AddToClassList(USS_ROOT + "__hero");
-			body.Add(heroImage);
+			dungeonSelectButtonsParent = AddBlock(root, "__list");
 
-			VisualElement detail = AddBlock(body, "__detail");
+			VisualElement detail = AddBlock(root, "__detail");
+			AddBlock(detail, "__card").pickingMode = PickingMode.Ignore;
 			nameLabel = AddLabel(detail, string.Empty, "__name");
+			timeLabel = AddLabel(detail, string.Empty, "__tag");
 			descriptionLabel = AddLabel(detail, string.Empty, "__description");
 
-			AddLabel(detail, "보상", "__label");
+			AddHeader(detail, "보상과 출현");
+			VisualElement tiles = AddBlock(detail, "__tiles");
 			rewardUI = new UIRewardsToolkit();
-			detail.Add(rewardUI);
+			tiles.Add(rewardUI);
+			VisualElement monster = AddBlock(tiles, "__monster");
+			monsterImage = new Image { scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
+			monsterImage.AddToClassList(USS_ROOT + "__monster-image");
+			monster.Add(monsterImage);
 
-			AddLabel(detail, "제약", "__label");
+			AddHeader(detail, "제약");
 			constraintUI = new UIDungeonConstraintToolkit();
 			detail.Add(constraintUI);
 
 			dungeonEnterButton = new Button(EnterTheDungeon) { name = "EnterButton", text = "입장" };
 			dungeonEnterButton.AddToClassList(USS_ROOT + "__enter");
 			detail.Add(dungeonEnterButton);
+		}
+
+		private Button AddRoundButton(string buttonName, string text)
+		{
+			Button button = new Button(() => PanelGroup.ClosePanel()) { name = buttonName, text = text };
+			button.AddToClassList(USS_ROOT + "__round");
+			return button;
+		}
+
+		private static void AddHeader(VisualElement parent, string text)
+		{
+			VisualElement header = AddBlock(parent, "__header");
+			AddLabel(header, text, "__header-text");
+			AddBlock(header, "__header-line");
 		}
 
 		private static VisualElement AddBlock(VisualElement parent, string suffix)
@@ -106,7 +133,8 @@ namespace WitchMendokusai
 			{
 				if (i < dungeons.Count)
 				{
-					dungeonSelectButtons[i].text = dungeons[i].Name;
+					dungeonRowNames[i].text = GetRowName(dungeons[i].Name);
+					dungeonRowIcons[i].style.backgroundImage = new StyleBackground(dungeons[i].Sprite);
 					dungeonSelectButtons[i].style.display = DisplayStyle.Flex;
 				}
 				else
@@ -137,8 +165,10 @@ namespace WitchMendokusai
 			for (int i = 0; i < dungeonSelectButtons.Count; i++)
 				dungeonSelectButtons[i].EnableInClassList(USS_ROW_SELECTED, i == curDungeonIndex);
 
-			heroImage.sprite = GetHeroSprite(CurDungeon);
-			nameLabel.text = CurDungeon.Name;
+			monsterImage.sprite = GetMonsterSprite(CurDungeon);
+			nameLabel.text = GetTitle(CurDungeon.Name);
+			timeLabel.text = CurDungeon.TimeBySecond / SECONDS_PER_MINUTE + "분";
+			timeLabel.style.display = CurDungeon.TimeBySecond > 0 ? DisplayStyle.Flex : DisplayStyle.None;
 			descriptionLabel.text = CurDungeon.Description;
 
 			rewardUI.UpdateUI(CurDungeon.Rewards);
@@ -147,8 +177,17 @@ namespace WitchMendokusai
 			constraintUI.UpdateUI();
 		}
 
+		// 데이터 이름의 괄호: 목록은 풀어서, 제목은 시간 태그로
+		private static string GetRowName(string dungeonName) => dungeonName.Replace("(", string.Empty).Replace(")", string.Empty);
+
+		private static string GetTitle(string dungeonName)
+		{
+			int bracketIndex = dungeonName.IndexOf(" (", System.StringComparison.Ordinal);
+			return bracketIndex < 0 ? dungeonName : dungeonName[..bracketIndex];
+		}
+
 		// 마지막 웨이브의 첫 몬스터가 대표, 웨이브가 없으면 던전 아이콘
-		private static Sprite GetHeroSprite(Dungeon dungeon)
+		private static Sprite GetMonsterSprite(Dungeon dungeon)
 		{
 			List<MonsterWave> waves = dungeon.MonsterWaves;
 			if (waves == null || waves.Count == 0)
@@ -171,6 +210,16 @@ namespace WitchMendokusai
 				int index = dungeonSelectButtons.Count;
 				Button row = new Button(() => SelectDungeon(index));
 				row.AddToClassList(USS_ROOT + "__row");
+
+				VisualElement seal = AddBlock(row, "__row-seal");
+				seal.pickingMode = PickingMode.Ignore;
+				VisualElement icon = AddBlock(seal, "__row-icon");
+				icon.pickingMode = PickingMode.Ignore;
+				Label rowName = AddLabel(row, string.Empty, "__row-name");
+				rowName.pickingMode = PickingMode.Ignore;
+
+				dungeonRowIcons.Add(icon);
+				dungeonRowNames.Add(rowName);
 				dungeonSelectButtons.Add(row);
 				dungeonSelectButtonsParent.Add(row);
 			}

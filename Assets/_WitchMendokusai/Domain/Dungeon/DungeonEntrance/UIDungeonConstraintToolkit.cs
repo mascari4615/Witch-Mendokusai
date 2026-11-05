@@ -4,20 +4,20 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 던전 제약 선택 뷰 — uGUI UIDungeonConstraint(62L) 의 Toolkit 병렬 신설 (TASK-WM-113 S3-D).
-	/// 구 UIDungeonConstraint 는 UIDungeonEntrance 가 여전히 실사용 → 빅뱅 X,
-	/// 본 뷰는 *신규 병렬* (사용처 = 던전엔트런스 S3-E `UIDungeonEntranceToolkit`).
-	/// 구 UIDungeonConstraint 의 제약 토글 로직 1:1 보존(ID/index 표현 원본 그대로 — 충실
-	/// 마이그, 잠재 불일치 fix 는 별 사안). UIBase → VisualElement, prefab 고정 N UISlot →
-	/// lazy ToolkitSlot 풀(GC 회피, hide-excess 시맨틱 등가, 클릭 액션 생성 시 배선).
-	/// 구 UIDungeonConstraint deletion = 사용처 전부 이행 후 최후 E.
+	/// 던전 제약 선택 뷰. 제약마다 체크 표시와 설명 한 줄, 클릭으로 토글
+	/// 토글 로직은 구 UIDungeonConstraint 그대로 (ID/index 표현 원본 유지)
 	/// </summary>
 	public class UIDungeonConstraintToolkit : VisualElement
 	{
 		public const string USS_CLASS = "wm-dungeon-constraint";
+		private const string USS_ROW = USS_CLASS + "__row";
+		private const string USS_ROW_SELECTED = USS_ROW + "--selected";
+		private const string USS_CHECK = USS_CLASS + "__check";
+		private const string USS_TEXT = USS_CLASS + "__text";
 
 		private Dungeon dungeon;
-		private readonly List<ToolkitSlot> constraintSlots = new();
+		private readonly List<Button> constraintRows = new();
+		private readonly List<Label> constraintTexts = new();
 
 		public UIDungeonConstraintToolkit()
 		{
@@ -28,21 +28,21 @@ namespace WitchMendokusai
 
 		public void UpdateUI()
 		{
-			EnsureSlotCount(dungeon.Constraints.Count);
+			EnsureRowCount(dungeon.Constraints.Count);
 
-			for (int i = 0; i < constraintSlots.Count; i++)
+			for (int i = 0; i < constraintRows.Count; i++)
 			{
 				if (i < dungeon.Constraints.Count)
 				{
 					DungeonConstraint constraint = dungeon.Constraints[i];
 
-					constraintSlots[i].SetSlot(constraint);
-					constraintSlots[i].SetDisable(dungeon.ConstraintSelected[constraint.ID] == false);
-					constraintSlots[i].style.display = DisplayStyle.Flex;
+					constraintTexts[i].text = constraint.Description;
+					constraintRows[i].EnableInClassList(USS_ROW_SELECTED, dungeon.ConstraintSelected[constraint.ID]);
+					constraintRows[i].style.display = DisplayStyle.Flex;
 				}
 				else
 				{
-					constraintSlots[i].style.display = DisplayStyle.None;
+					constraintRows[i].style.display = DisplayStyle.None;
 				}
 			}
 		}
@@ -53,15 +53,26 @@ namespace WitchMendokusai
 			UpdateUI();
 		}
 
-		private void EnsureSlotCount(int count)
+		private void EnsureRowCount(int count)
 		{
-			while (constraintSlots.Count < count)
+			while (constraintRows.Count < count)
 			{
-				ToolkitSlot slot = new ToolkitSlot();
-				slot.SetSlotIndex(constraintSlots.Count);
-				slot.SetClickAction((ToolkitSlot clickedSlot) => ToggleConstraint(clickedSlot.Index));
-				constraintSlots.Add(slot);
-				Add(slot);
+				int index = constraintRows.Count;
+
+				Button row = new Button(() => ToggleConstraint(index));
+				row.AddToClassList(USS_ROW);
+
+				VisualElement check = new VisualElement { pickingMode = PickingMode.Ignore };
+				check.AddToClassList(USS_CHECK);
+				row.Add(check);
+
+				Label text = new Label { pickingMode = PickingMode.Ignore };
+				text.AddToClassList(USS_TEXT);
+				row.Add(text);
+
+				constraintRows.Add(row);
+				constraintTexts.Add(text);
+				Add(row);
 			}
 		}
 	}
