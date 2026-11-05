@@ -1,0 +1,214 @@
+@import url("DungeonEntranceGosu.uss");
+@import url("DungeonEntranceNight.uss");
+@import url("DungeonEntranceCut.uss");
+
+/* 던전 입장 전체 화면 공통 구조. 색과 글꼴과 그림은 테마 USS. 패널 높이 800 기준, 시안 1080 값의 0.74배 */
+.wm-dungeon-entrance {
+    padding: 0;
+    -unity-font-definition: url("Fonts/NotoSansKR-Regular.ttf");
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.wm-dungeon-entrance__backdrop-text,
+.wm-dungeon-entrance__deco,
+.wm-dungeon-entrance__number,
+.wm-dungeon-entrance__mist,
+.wm-dungeon-entrance__row-plate,
+.wm-dungeon-entrance__row-pointer,
+.wm-dungeon-entrance__row-number,
+.wm-dungeon-entrance__enter-glow,
+.wm-dungeon-entrance__enter-ring,
+.wm-dungeon-entrance__enter-arrow,
+.wm-dungeon-constraint__knob,
+.wm-dungeon-constraint__line {
+    display: none;
+}
+
+.wm-dungeon-entrance__hero,
+.wm-dungeon-entrance__mist,
+.wm-dungeon-entrance__deco,
+.wm-dungeon-entrance__backdrop-text,
+.wm-dungeon-entrance__number {
+    position: absolute;
+}
+
+.wm-dungeon-entrance__hero {
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-dungeon-entrance__deco {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.wm-dungeon-entrance__top {
+    position: absolute;
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-dungeon-entrance__round {
+    margin: 0;
+    padding: 0;
+    -unity-text-align: middle-center;
+}
+
+.wm-dungeon-entrance__close {
+    position: absolute;
+}
+
+.wm-dungeon-entrance__list {
+    position: absolute;
+}
+
+.wm-dungeon-entrance__row {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0;
+}
+
+.wm-dungeon-entrance__row-plate {
+    position: absolute;
+}
+
+.wm-dungeon-entrance__row-seal {
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-dungeon-entrance__row-icon {
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-dungeon-entrance__row-pointer {
+    position: absolute;
+}
+
+.wm-dungeon-entrance__detail {
+    position: absolute;
+}
+
+.wm-dungeon-entrance__card {
+    position: absolute;
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.wm-dungeon-entrance__name,
+.wm-dungeon-entrance__description {
+    white-space: normal;
+}
+
+.wm-dungeon-entrance__header {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-dungeon-entrance__header-line {
+    flex-grow: 1;
+    height: 1px;
+}
+
+.wm-dungeon-entrance__tiles {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-dungeon-entrance .wm-rewards {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.wm-dungeon-entrance .wm-slot__name {
+    display: none;
+}
+
+.wm-dungeon-entrance .wm-rewards__stat {
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-dungeon-entrance .wm-rewards__stat .wm-slot__icon {
+    display: none;
+}
+
+.wm-dungeon-entrance .wm-rewards__stat .wm-slot__name {
+    display: flex;
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+
+.wm-dungeon-entrance .wm-rewards__stat .wm-slot__amount {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin: 0;
+    padding: 0;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 0;
+}
+
+.wm-dungeon-entrance__monster-image {
+    flex-grow: 1;
+}
+
+.wm-dungeon-constraint__row {
+    flex-direction: row;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    border-radius: 0;
+}
+
+.wm-dungeon-constraint__check {
+    flex-shrink: 0;
+}
+
+.wm-dungeon-constraint__knob {
+    position: absolute;
+}
+
+.wm-dungeon-constraint__line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+}
+
+.wm-dungeon-constraint__text {
+    flex-shrink: 1;
+    margin: 0 0 0 10px;
+    padding: 0;
+    white-space: normal;
+}
+
+.wm-dungeon-entrance__enter {
+    position: absolute;
+    flex-direction: row;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.wm-dungeon-entrance__enter-glow,
+.wm-dungeon-entrance__enter-ring {
+    position: absolute;
+}
+
+.wm-dungeon-entrance__enter-text,
+.wm-dungeon-entrance__enter-arrow {
+    margin: 0;
+    padding: 0;
+    -unity-text-align: middle-center;
+}

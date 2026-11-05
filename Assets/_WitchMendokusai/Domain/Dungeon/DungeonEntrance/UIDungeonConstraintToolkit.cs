@@ -14,6 +14,8 @@ namespace WitchMendokusai
 		private const string USS_ROW_SELECTED = USS_ROW + "--selected";
 		private const string USS_CHECK = USS_CLASS + "__check";
 		private const string USS_TEXT = USS_CLASS + "__text";
+		private const string USS_KNOB = USS_CLASS + "__knob";
+		private const string USS_LINE = USS_CLASS + "__line";
 
 		private Dungeon dungeon;
 		private readonly List<Button> constraintRows = new();
@@ -65,6 +67,14 @@ namespace WitchMendokusai
 				VisualElement check = new VisualElement { pickingMode = PickingMode.Ignore };
 				check.AddToClassList(USS_CHECK);
 				row.Add(check);
+
+				VisualElement knob = new VisualElement { pickingMode = PickingMode.Ignore };
+				knob.AddToClassList(USS_KNOB);
+				check.Add(knob);
+
+				VisualElement line = new VisualElement { pickingMode = PickingMode.Ignore };
+				line.AddToClassList(USS_LINE);
+				row.Add(line);
 
 				Label text = new Label { pickingMode = PickingMode.Ignore };
 				text.AddToClassList(USS_TEXT);

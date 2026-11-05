@@ -1,0 +1,311 @@
+/* A 고서: 밝은 금빛 화면, 양피지 카드, 청록 인장 */
+.wm-dungeon-entrance--gosu {
+    --gosu-ink: rgb(62, 47, 27);
+    --gosu-ink-soft: rgb(107, 91, 66);
+    --gosu-line: rgb(205, 181, 130);
+    --gosu-paper: rgb(253, 248, 232);
+    --gosu-seal: rgb(47, 125, 116);
+    --gosu-seal-dark: rgb(31, 93, 86);
+    background-color: rgb(241, 212, 143);
+    background-image: url("Art/dungeon-entry-bg.png");
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__hero {
+    left: 4.48%;
+    top: -2.2%;
+    width: 90%;
+    height: 109.26%;
+    background-image: url("Art/dungeon-entry-hero-alisa.png");
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__mist {
+    display: flex;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 27.8%;
+    background-image: url("Art/dungeon-entry-mist.png");
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__top {
+    left: 33px;
+    top: 25px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__title {
+    margin-left: 15px;
+    font-size: 25px;
+    color: rgb(91, 69, 36);
+    -unity-font-definition: url("Fonts/GowunBatang-Bold.ttf");
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__round {
+    width: 43px;
+    height: 43px;
+    font-size: 20px;
+    color: rgb(107, 84, 51);
+    background-color: rgb(251, 244, 221);
+    border-width: 1.5px;
+    border-color: rgb(185, 154, 98);
+    border-radius: 22px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__round:hover {
+    background-color: var(--gosu-paper);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__close {
+    right: 33px;
+    top: 25px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__list {
+    left: 0;
+    top: 17.6%;
+    width: 318px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row {
+    width: 289px;
+    height: 68px;
+    margin-bottom: 13px;
+    padding: 0 18px 0 33px;
+    background-color: rgba(253, 247, 226, 0.72);
+    border-width: 1.5px 1.5px 1.5px 0;
+    border-color: rgba(160, 126, 74, 0.5);
+    border-radius: 0 34px 34px 0;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row:hover {
+    background-color: rgba(255, 250, 240, 0.9);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row--selected,
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row--selected:hover {
+    width: 318px;
+    background-color: rgb(255, 250, 240);
+    border-color: var(--gosu-seal);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row--selected .wm-dungeon-entrance__row-plate {
+    display: flex;
+    left: -30px;
+    right: -30px;
+    top: -30px;
+    bottom: -30px;
+    background-image: url("Art/dungeon-entry-gosu-row-plate.png");
+    -unity-slice-left: 60;
+    -unity-slice-right: 120;
+    -unity-slice-scale: 0.74px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row-seal {
+    width: 41px;
+    height: 41px;
+    rotate: 45deg;
+    background-color: rgb(231, 217, 178);
+    border-width: 1.5px;
+    border-color: rgb(185, 154, 98);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row--selected .wm-dungeon-entrance__row-seal {
+    background-color: var(--gosu-seal);
+    border-color: var(--gosu-seal-dark);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row-icon {
+    width: 27px;
+    height: 27px;
+    rotate: -45deg;
+    -unity-background-image-tint-color: rgb(107, 84, 51);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row--selected .wm-dungeon-entrance__row-icon {
+    -unity-background-image-tint-color: rgb(246, 239, 214);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row-name {
+    margin-left: 21px;
+    font-size: 18px;
+    color: rgb(91, 69, 36);
+    -unity-font-definition: url("Fonts/GowunBatang-Bold.ttf");
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row--selected .wm-dungeon-entrance__row-name {
+    color: var(--gosu-seal-dark);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__detail {
+    right: 41px;
+    top: 95px;
+    width: 415px;
+    height: 652px;
+    padding: 24px 37px 33px 37px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__card {
+    left: 0;
+    top: 0;
+    width: 415px;
+    height: 652px;
+    background-image: url("Art/dungeon-entry-card.png");
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__name {
+    font-size: 34px;
+    color: var(--gosu-ink);
+    -unity-font-definition: url("Fonts/GowunBatang-Bold.ttf");
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__tag {
+    align-self: flex-start;
+    margin-top: 2px;
+    padding: 1px 12px;
+    font-size: 13px;
+    color: rgb(246, 239, 214);
+    background-color: var(--gosu-seal);
+    border-radius: 12px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__description {
+    margin-top: 7px;
+    font-size: 16px;
+    color: var(--gosu-ink-soft);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__section--rewards {
+    margin-top: 12px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__section--constraints {
+    margin-top: 14px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__header {
+    margin-bottom: 4px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__header-text {
+    font-size: 16px;
+    color: rgb(107, 84, 51);
+    -unity-font-definition: url("Fonts/GowunBatang-Bold.ttf");
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__header-line {
+    margin-left: 9px;
+    background-color: var(--gosu-line);
+}
+
+.wm-dungeon-entrance--gosu .wm-slot {
+    width: 71px;
+    height: 71px;
+    margin: 0 10px 0 0;
+    background-color: rgb(216, 173, 113);
+    border-width: 1.5px;
+    border-color: rgb(154, 116, 64);
+    border-radius: 7px;
+}
+
+.wm-dungeon-entrance--gosu .wm-rewards__stat {
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    background-image: url("Art/dungeon-entry-gosu-tile.png");
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.wm-dungeon-entrance--gosu .wm-rewards__stat .wm-slot__amount {
+    font-size: 22px;
+    color: rgb(255, 248, 228);
+    text-shadow: 0 1px 2px rgba(80, 50, 10, 0.6);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance--gosu .wm-rewards__stat .wm-slot__name {
+    font-size: 12px;
+    color: rgb(255, 248, 228);
+    text-shadow: 0 1px 2px rgba(80, 50, 10, 0.6);
+}
+
+.wm-dungeon-entrance--gosu .wm-slot__icon {
+    width: 54%;
+    height: 54%;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__monster {
+    width: 71px;
+    height: 71px;
+    padding: 12px;
+    background-color: rgb(239, 230, 201);
+    border-width: 1.5px;
+    border-color: var(--gosu-line);
+    border-radius: 7px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-constraint__row {
+    height: 34px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-constraint__row:hover {
+    background-color: rgba(47, 125, 116, 0.08);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-constraint__line {
+    display: flex;
+    background-image: url("Art/dungeon-entry-gosu-dash.png");
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-constraint__check {
+    width: 19px;
+    height: 19px;
+    border-width: 1.5px;
+    border-color: rgb(185, 154, 98);
+    border-radius: 10px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-constraint__row--selected .wm-dungeon-constraint__check {
+    background-color: var(--gosu-seal);
+    border-color: var(--gosu-seal-dark);
+    background-image: url("../../../Core/UI/Common/Sprites/UI_Check.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-constraint__text {
+    font-size: 14px;
+    color: rgb(91, 75, 52);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__enter {
+    left: 37px;
+    right: 37px;
+    bottom: 33px;
+    height: 62px;
+    justify-content: center;
+    background-color: var(--gosu-seal);
+    border-width: 2px;
+    border-color: var(--gosu-seal-dark);
+    border-radius: 31px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__enter:hover {
+    background-color: rgb(58, 145, 135);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__enter-ring {
+    display: flex;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-width: 2px;
+    border-color: rgba(246, 239, 214, 0.5);
+    border-radius: 29px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__enter-text {
+    font-size: 24px;
+    letter-spacing: 5px;
+    color: rgb(251, 245, 223);
+    -unity-font-definition: url("Fonts/GowunBatang-Bold.ttf");
+}

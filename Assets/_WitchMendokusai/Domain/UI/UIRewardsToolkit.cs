@@ -15,6 +15,7 @@ namespace WitchMendokusai
 	public class UIRewardsToolkit : VisualElement
 	{
 		public const string USS_CLASS = "wm-rewards";
+		public const string USS_STAT_SLOT = USS_CLASS + "__stat";
 
 		private readonly List<ToolkitSlot> slots = new();
 
@@ -42,6 +43,7 @@ namespace WitchMendokusai
 				if (i < data.Count)
 				{
 					slots[i].style.display = DisplayStyle.Flex;
+					slots[i].EnableInClassList(USS_STAT_SLOT, data[i].Type != RewardType.Item);
 
 					switch (data[i].Type)
 					{

@@ -34,6 +34,8 @@ namespace WitchMendokusai
 		private Label nameLabel;
 		private Label timeLabel;
 		private Label descriptionLabel;
+		private Label backdropTextLabel;
+		private Label numberLabel;
 		private UIRewardsToolkit rewardUI;
 		private UIDungeonConstraintToolkit constraintUI;
 		private Button dungeonEnterButton;
@@ -53,6 +55,11 @@ namespace WitchMendokusai
 		{
 			root.AddToClassList(USS_ROOT);
 
+			backdropTextLabel = AddLabel(root, string.Empty, "__backdrop-text");
+			backdropTextLabel.pickingMode = PickingMode.Ignore;
+			AddBlock(root, "__deco").pickingMode = PickingMode.Ignore;
+			numberLabel = AddLabel(root, string.Empty, "__number");
+			numberLabel.pickingMode = PickingMode.Ignore;
 			AddBlock(root, "__hero").pickingMode = PickingMode.Ignore;
 			AddBlock(root, "__mist").pickingMode = PickingMode.Ignore;
 
@@ -68,12 +75,14 @@ namespace WitchMendokusai
 
 			VisualElement detail = AddBlock(root, "__detail");
 			AddBlock(detail, "__card").pickingMode = PickingMode.Ignore;
-			nameLabel = AddLabel(detail, string.Empty, "__name");
-			timeLabel = AddLabel(detail, string.Empty, "__tag");
-			descriptionLabel = AddLabel(detail, string.Empty, "__description");
+			VisualElement summary = AddBlock(detail, "__summary");
+			nameLabel = AddLabel(summary, string.Empty, "__name");
+			timeLabel = AddLabel(summary, string.Empty, "__tag");
+			descriptionLabel = AddLabel(summary, string.Empty, "__description");
 
-			AddHeader(detail, "보상과 출현");
-			VisualElement tiles = AddBlock(detail, "__tiles");
+			VisualElement rewards = AddSection(detail, "__section--rewards");
+			AddHeader(rewards, "보상과 출현");
+			VisualElement tiles = AddBlock(rewards, "__tiles");
 			rewardUI = new UIRewardsToolkit();
 			tiles.Add(rewardUI);
 			VisualElement monster = AddBlock(tiles, "__monster");
@@ -81,13 +90,31 @@ namespace WitchMendokusai
 			monsterImage.AddToClassList(USS_ROOT + "__monster-image");
 			monster.Add(monsterImage);
 
-			AddHeader(detail, "제약");
+			VisualElement constraints = AddSection(detail, "__section--constraints");
+			AddHeader(constraints, "제약");
 			constraintUI = new UIDungeonConstraintToolkit();
-			detail.Add(constraintUI);
+			constraints.Add(constraintUI);
 
-			dungeonEnterButton = new Button(EnterTheDungeon) { name = "EnterButton", text = "입장" };
+			dungeonEnterButton = new Button(EnterTheDungeon) { name = "EnterButton" };
 			dungeonEnterButton.AddToClassList(USS_ROOT + "__enter");
+			AddBlock(dungeonEnterButton, "__enter-glow").pickingMode = PickingMode.Ignore;
+			AddBlock(dungeonEnterButton, "__enter-ring").pickingMode = PickingMode.Ignore;
+			AddLabel(dungeonEnterButton, "→", "__enter-arrow").pickingMode = PickingMode.Ignore;
+			AddLabel(dungeonEnterButton, "입장", "__enter-text").pickingMode = PickingMode.Ignore;
 			detail.Add(dungeonEnterButton);
+		}
+
+		private static VisualElement AddSection(VisualElement parent, string suffix)
+		{
+			VisualElement section = AddBlock(parent, "__section");
+			section.AddToClassList(USS_ROOT + suffix);
+			return section;
+		}
+
+		private void ApplyTheme()
+		{
+			foreach (DungeonEntranceTheme theme in System.Enum.GetValues(typeof(DungeonEntranceTheme)))
+				Root.EnableInClassList(USS_ROOT + DungeonEntranceThemes.GetClassSuffix(theme), theme == DungeonEntranceThemes.Current);
 		}
 
 		private Button AddRoundButton(string buttonName, string text)
@@ -144,10 +171,17 @@ namespace WitchMendokusai
 			}
 		}
 
-		protected override void OnOpen() => SelectDungeon(0);
+		protected override void OnOpen()
+		{
+			ApplyTheme();
+			DungeonEntranceThemes.OnChanged -= ApplyTheme;
+			DungeonEntranceThemes.OnChanged += ApplyTheme;
+			SelectDungeon(0);
+		}
 
 		protected override void OnClose()
 		{
+			DungeonEntranceThemes.OnChanged -= ApplyTheme;
 			Root.panel?.focusController?.focusedElement?.Blur();
 		}
 
@@ -167,6 +201,8 @@ namespace WitchMendokusai
 
 			monsterImage.sprite = GetMonsterSprite(CurDungeon);
 			nameLabel.text = GetTitle(CurDungeon.Name);
+			backdropTextLabel.text = nameLabel.text;
+			numberLabel.text = GetRowNumber(curDungeonIndex);
 			timeLabel.text = CurDungeon.TimeBySecond / SECONDS_PER_MINUTE + "분";
 			timeLabel.style.display = CurDungeon.TimeBySecond > 0 ? DisplayStyle.Flex : DisplayStyle.None;
 			descriptionLabel.text = CurDungeon.Description;
@@ -176,6 +212,8 @@ namespace WitchMendokusai
 			constraintUI.SetDungeon(CurDungeon);
 			constraintUI.UpdateUI();
 		}
+
+		private static string GetRowNumber(int index) => (index + 1).ToString("00");
 
 		// 데이터 이름의 괄호: 목록은 풀어서, 제목은 시간 태그로
 		private static string GetRowName(string dungeonName) => dungeonName.Replace("(", string.Empty).Replace(")", string.Empty);
@@ -210,6 +248,10 @@ namespace WitchMendokusai
 				int index = dungeonSelectButtons.Count;
 				Button row = new Button(() => SelectDungeon(index));
 				row.AddToClassList(USS_ROOT + "__row");
+
+				AddBlock(row, "__row-plate").pickingMode = PickingMode.Ignore;
+				AddBlock(row, "__row-pointer").pickingMode = PickingMode.Ignore;
+				AddLabel(row, GetRowNumber(index), "__row-number").pickingMode = PickingMode.Ignore;
 
 				VisualElement seal = AddBlock(row, "__row-seal");
 				seal.pickingMode = PickingMode.Ignore;
