@@ -104,6 +104,15 @@
     white-space: normal;
 }
 
+.wm-dungeon-entrance__name,
+.wm-dungeon-entrance__description,
+.wm-dungeon-entrance__header-text {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
 .wm-dungeon-entrance__header {
     flex-direction: row;
     align-items: center;

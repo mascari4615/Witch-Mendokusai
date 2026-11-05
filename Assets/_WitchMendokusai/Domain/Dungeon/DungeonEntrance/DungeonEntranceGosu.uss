@@ -175,15 +175,15 @@
 }
 
 .wm-dungeon-entrance--gosu .wm-dungeon-entrance__section--rewards {
-    margin-top: 12px;
+    margin-top: 8.5px;
 }
 
 .wm-dungeon-entrance--gosu .wm-dungeon-entrance__section--constraints {
-    margin-top: 14px;
+    margin-top: 13px;
 }
 
 .wm-dungeon-entrance--gosu .wm-dungeon-entrance__header {
-    margin-bottom: 4px;
+    margin-bottom: 2.5px;
 }
 
 .wm-dungeon-entrance--gosu .wm-dungeon-entrance__header-text {
@@ -305,7 +305,7 @@
 
 .wm-dungeon-entrance--gosu .wm-dungeon-entrance__enter-text {
     font-size: 24px;
-    letter-spacing: 5px;
+    letter-spacing: 9px;
     color: rgb(251, 245, 223);
     -unity-font-definition: url("Fonts/GowunBatang-Bold.ttf");
 }

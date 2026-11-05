@@ -67,10 +67,6 @@ namespace WitchMendokusai
 			top.Add(AddRoundButton("BackButton", "←"));
 			AddLabel(top, "던전", "__title");
 
-			Button closeButton = AddRoundButton("CloseButton", "×");
-			closeButton.AddToClassList(USS_ROOT + "__close");
-			root.Add(closeButton);
-
 			dungeonSelectButtonsParent = AddBlock(root, "__list");
 
 			VisualElement detail = AddBlock(root, "__detail");
@@ -102,6 +98,10 @@ namespace WitchMendokusai
 			AddLabel(dungeonEnterButton, "→", "__enter-arrow").pickingMode = PickingMode.Ignore;
 			AddLabel(dungeonEnterButton, "입장", "__enter-text").pickingMode = PickingMode.Ignore;
 			detail.Add(dungeonEnterButton);
+
+			Button closeButton = AddRoundButton("CloseButton", "×");
+			closeButton.AddToClassList(USS_ROOT + "__close");
+			root.Add(closeButton);
 		}
 
 		private static VisualElement AddSection(VisualElement parent, string suffix)

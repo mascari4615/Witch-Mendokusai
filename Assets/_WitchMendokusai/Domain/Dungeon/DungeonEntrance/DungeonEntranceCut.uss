@@ -10,7 +10,9 @@
     top: -33px;
     font-size: 244px;
     white-space: nowrap;
-    color: rgba(0, 0, 0, 0.05);
+    color: rgb(233, 231, 225);
+    -unity-text-outline-width: 1.5px;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.14);
     -unity-font-definition: url("Fonts/BlackHanSans-Regular.ttf");
 }
 
@@ -131,7 +133,7 @@
     margin-left: 13px;
     font-size: 18px;
     color: rgb(17, 17, 17);
-    -unity-font-definition: url("Fonts/BlackHanSans-Regular.ttf");
+    -unity-font-style: bold;
 }
 
 .wm-dungeon-entrance--cut .wm-dungeon-entrance__row--selected .wm-dungeon-entrance__row-name {
@@ -143,7 +145,7 @@
     top: 0;
     bottom: 0;
     width: 503px;
-    padding: 95px 41px 0 96px;
+    padding: 91px 41px 0 96px;
 }
 
 .wm-dungeon-entrance--cut .wm-dungeon-entrance__card {
@@ -162,7 +164,7 @@
 
 .wm-dungeon-entrance--cut .wm-dungeon-entrance__tag {
     align-self: flex-start;
-    margin-top: 8px;
+    margin-top: 7px;
     padding: 1px 12px;
     font-size: 13px;
     color: rgb(17, 17, 17);
@@ -174,13 +176,25 @@
 }
 
 .wm-dungeon-entrance--cut .wm-dungeon-entrance__description {
-    margin-top: 11px;
+    margin-top: 9px;
     font-size: 15px;
     color: rgb(189, 186, 176);
 }
 
 .wm-dungeon-entrance--cut .wm-dungeon-entrance__section {
-    margin-top: 20px;
+    margin-top: 22px;
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-entrance__section--constraints {
+    margin-top: 28px;
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-entrance__section--constraints .wm-dungeon-entrance__header {
+    margin-bottom: 12px;
+}
+
+.wm-dungeon-entrance--cut .wm-rewards {
+    margin-left: -8px;
 }
 
 .wm-dungeon-entrance--cut .wm-dungeon-entrance__header {
@@ -247,6 +261,7 @@
 }
 
 .wm-dungeon-entrance--cut .wm-dungeon-constraint__check {
+    margin-left: -4px;
     width: 24px;
     height: 19px;
     background-image: url("Art/dungeon-entry-cut-check.png");
@@ -258,6 +273,7 @@
 }
 
 .wm-dungeon-entrance--cut .wm-dungeon-constraint__text {
+    margin-left: 5px;
     font-size: 13px;
     color: rgb(222, 219, 210);
 }
