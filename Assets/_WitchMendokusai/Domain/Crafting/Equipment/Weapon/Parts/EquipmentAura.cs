@@ -75,6 +75,7 @@ namespace WitchMendokusai
 		{
 			int damageBonus = damageBonusStat != UnitStatType.NONE ? PlayerStat[damageBonusStat] : 0;
 			float scale = 1f + (scaleBonusStat != UnitStatType.NONE ? PlayerStat[scaleBonusStat] : 0) * scalePerStack;
+			scale *= PlayerStat.PercentMultiplier(UnitStatType.PROJECTILE_SCALE_BONUS);
 
 			if (requireStill)
 			{
