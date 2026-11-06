@@ -127,6 +127,9 @@ namespace WitchMendokusai
 		private void HandleClickWithHolding(ItemSlot slot, Inventory inventory, Item targetItem, bool isLeft, bool isRight, bool isDouble)
 		{
 			// 더블클릭 + 합칠 게 있으면 FuncA, 없으면 single 동작으로 fall-through (사용자 의도 보호)
+			if (inventory.CanAccept(slot.Index, holdingItem) == false)
+				return;
+
 			bool doFuncA = isLeft && isDouble && HasCollectibleSameId();
 
 			if (doFuncA)

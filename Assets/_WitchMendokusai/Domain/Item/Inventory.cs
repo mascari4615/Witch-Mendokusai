@@ -54,6 +54,8 @@ namespace WitchMendokusai
 			}
 		}
 
+		public virtual bool CanAccept(int slotIndex, Item item) => true;
+
 		private int FindEmptySlotIndex(int startIndex = 0) => Core.FindEmptySlotIndex(startIndex);
 
 		public int FindItemIndex(int targetID, int startIndex = 0) => Core.FindItemIndex(targetID, startIndex);

@@ -110,6 +110,7 @@ namespace WitchMendokusai
 
 			style.display = DisplayStyle.Flex;
 			equipmentInventory.BindDoll(doll);
+			equipmentGrid.Bind(equipmentInventory);
 			Refresh();
 		}
 

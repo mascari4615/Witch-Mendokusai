@@ -20,5 +20,19 @@ namespace WitchMendokusai
 			Data = doll != null ? doll.Equipment : new List<Item>();
 			UpdateUI();
 		}
+
+		// 장비만, 같은 장비는 한 칸만
+		public override bool CanAccept(int slotIndex, Item item)
+		{
+			if (item.Data is EquipmentData == false)
+				return false;
+
+			for (int i = 0; i < Data.Count; i++)
+			{
+				if (i != slotIndex && Data[i] != null && Data[i].Data.ID == item.Data.ID)
+					return false;
+			}
+			return true;
+		}
 	}
 }

@@ -94,6 +94,19 @@ namespace WitchMendokusai
 			Select(FindFirstSelectable());
 		}
 
+		public void SelectDoll(int dollId)
+		{
+			foreach (DollEntry entry in entries)
+			{
+				if (entry.Doll != null && entry.Doll.ID == dollId)
+				{
+					Select(entry);
+					return;
+				}
+			}
+			Select(FindFirstSelectable());
+		}
+
 		private void Select(DollEntry entry)
 		{
 			if (selectedEntry != null)
