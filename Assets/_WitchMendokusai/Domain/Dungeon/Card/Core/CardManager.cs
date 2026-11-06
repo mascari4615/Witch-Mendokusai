@@ -203,7 +203,7 @@ namespace WitchMendokusai
 			foreach (int index in deckIdMapping)
 				shuffledEquipments.Add(equipments[index]);
 		
-			(Panels[CardPanelType.SelectDeck] as UISelectDeck).SetDeckSelectButtons(shuffledEquipments);
+			(Panels[CardPanelType.SelectDeck] as UISelectDeck).SetDeckSelectButtons(shuffledEquipments, soManager.SelectedCardBuffer.Data);
 			return true;
 		}
 
@@ -257,8 +257,9 @@ namespace WitchMendokusai
 				candidates.RemoveAt(randomIndex);
 			}
 
+			List<EquipmentData> choiceEquipments = dataManager.GetEquipmentData(dataManager.CurDollID);
 			(Panels[CardPanelType.SelectCard] as UISelectCard).SetCardSelectButtons(
-				offeredCards, soManager.SelectedCardBuffer.Data, cardDataBuffers[curDeckIndex]);
+				offeredCards, choiceEquipments[curDeckIndex], choiceEquipments, soManager.SelectedCardBuffer.Data, cardDataBuffers[curDeckIndex]);
 
 			SetPanel(CardPanelType.SelectCard);
 

@@ -56,6 +56,44 @@ namespace WitchMendokusai
 			return text.ToString();
 		}
 
+		public static bool TryGetCondition(CardData card, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards, out CardData advancedCard, out string text)
+		{
+			advancedCard = null;
+			text = null;
+			if (card == null || deckCards == null)
+				return false;
+			foreach (CardData advanced in deckCards)
+			{
+				if (advanced == null || advanced.Requirements.Count == 0 || Count(advanced, selectedCards) >= advanced.MaxStack)
+					continue;
+				bool related = false;
+				bool valid = true;
+				int before = 0;
+				int after = 0;
+				int required = 0;
+				foreach (CardData.Requirement requirement in advanced.Requirements)
+				{
+					if (requirement.Card == null || requirement.Stack < 1)
+					{
+						valid = false;
+						break;
+					}
+					int count = Count(requirement.Card, selectedCards);
+					bool matches = requirement.Card.ID == card.ID;
+					related |= matches;
+					before += Math.Min(count, requirement.Stack);
+					after += Math.Min(count + (matches ? 1 : 0), requirement.Stack);
+					required += requirement.Stack;
+				}
+				if (valid == false || related == false)
+					continue;
+				advancedCard = advanced;
+				text = $"{advanced.Name} 조건 {before} → {after} / {required}회";
+				return true;
+			}
+			return false;
+		}
+
 		private static int Count(CardData card, IReadOnlyList<CardData> selectedCards)
 		{
 			int count = 0;
