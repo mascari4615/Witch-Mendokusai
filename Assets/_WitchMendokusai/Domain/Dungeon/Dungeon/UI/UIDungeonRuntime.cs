@@ -27,6 +27,12 @@ namespace WitchMendokusai
 		[SerializeField] private SurvivalUITheme theme;
 		[SerializeField] private UIBurst difficultyBurst;
 		private DungeonDifficulty lastDifficulty;
+		[SerializeField] private TextMeshProUGUI nextEventText;
+		[SerializeField] private string eliteLabel = "다음 정예";
+		[SerializeField] private string swarmLabel = "다음 무리";
+		[SerializeField] private Color nextEventNormalColor = new(0.902f, 0.902f, 0.914f, 1f);
+		[SerializeField] private Color nextEventSoonColor = new(0.878f, 0.604f, 0.18f, 1f);
+		private MonsterSpawner monsterSpawner;
 		[SerializeField] private string battleHudObjectName = "[Block] Lower";
 		private CardManager cardManager;
 		private CanvasGroup headerGroup;
@@ -157,10 +163,26 @@ namespace WitchMendokusai
 			}
 		}
 
+		private void UpdateNextEvent()
+		{
+			if (monsterSpawner == null)
+				monsterSpawner = FindAnyObjectByType<MonsterSpawner>(FindObjectsInactive.Include);
+			SurvivalEventEntry nextEvent = monsterSpawner.NextEvent;
+			nextEventText.gameObject.SetActive(nextEvent != null);
+			if (nextEvent == null)
+				return;
+			float remain = Mathf.Max(0f, nextEvent.Time - (float)dungeonManager.Context.ElapsedTime.TotalSeconds);
+			string label = nextEvent.Type == SurvivalEventType.Elite ? eliteLabel : swarmLabel;
+			string remainText = TimeSpan.FromSeconds(remain).ToString(@"m\:ss");
+			nextEventText.text = $"{label} {remainText}";
+			nextEventText.color = remain <= nextEvent.AnnounceLead ? nextEventSoonColor : nextEventNormalColor;
+		}
+
 		public override void UpdateUI()
 		{
 			UpdateDifficulty(dungeonManager.Context.CurDifficulty);
 			UpdateTime(dungeonManager.Context.DungeonCurTime);
+			UpdateNextEvent();
 			questGrid.UpdateUI();
 		}
 	}
