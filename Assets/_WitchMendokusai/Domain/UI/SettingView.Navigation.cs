@@ -61,8 +61,8 @@ namespace WitchMendokusai
 			box.Add(buttons);
 
 			confirmLayer.Add(box);
-			container.Add(confirmLayer);
-			container.Add(selectFrame);
+			stage.Add(confirmLayer);
+			stage.Add(selectFrame);
 		}
 
 		private void AskConfirm(string title, string description, string acceptLabel, Action action)
@@ -110,7 +110,7 @@ namespace WitchMendokusai
 		private void MoveFrameTo(VisualElement element)
 		{
 			VisualElement bounds = element.parent != null && element.parent.ClassListContains("wm-setting-row") ? element.parent : element;
-			Rect rect = container.WorldToLocal(bounds.worldBound);
+			Rect rect = stage.WorldToLocal(bounds.worldBound);
 			selectFrame.RemoveFromClassList(HIDDEN_FRAME_CLASS);
 			selectFrame.style.left = rect.x;
 			selectFrame.style.top = rect.y;
@@ -118,13 +118,16 @@ namespace WitchMendokusai
 			selectFrame.style.height = rect.height;
 		}
 
+		// 기본 포커스 이동 차단. HUD 쪽 요소로 포커스가 나가는 문제 방지
 		private void OnNavigationMove(NavigationMoveEvent evt)
 		{
+			evt.StopPropagation();
+			container.focusController?.IgnoreEvent(evt);
+
 			VisualElement current = container.focusController?.focusedElement as VisualElement;
 			if (current == null || current.ClassListContains(NAV_CLASS) == false)
 			{
 				FocusFirst();
-				evt.StopPropagation();
 				return;
 			}
 
@@ -133,14 +136,12 @@ namespace WitchMendokusai
 			{
 				float sign = evt.direction == NavigationMoveEvent.Direction.Right ? 1f : -1f;
 				slider.value = Mathf.Clamp(slider.value + sign * sliderStep, slider.lowValue, slider.highValue);
-				evt.StopPropagation();
 				return;
 			}
 
 			VisualElement next = FindNext(current, evt.direction);
 			if (next != null)
 				next.Focus();
-			evt.StopPropagation();
 		}
 
 		private void FocusFirst()

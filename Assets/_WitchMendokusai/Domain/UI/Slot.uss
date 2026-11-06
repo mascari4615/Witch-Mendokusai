@@ -529,6 +529,15 @@
     display: flex;
 }
 
+.wm-setting-stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    transform-origin: 0 0;
+}
+
 .wm-setting-title {
     position: absolute;
     left: 300px;

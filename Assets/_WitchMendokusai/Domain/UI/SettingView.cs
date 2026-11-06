@@ -23,8 +23,10 @@ namespace WitchMendokusai
 		[SerializeField] private float navOverlapTolerance = 4f;
 		[SerializeField] private float navAcrossWeight = 2f;
 		[SerializeField] private int volumeDisplayScale = 100;
+		[SerializeField] private float stageWidth = 1920f;
 
 		private VisualElement container;
+		private VisualElement stage;
 		private VisualElement sidebar;
 		private VisualElement contentArea;
 		private Button closeButton;
@@ -101,18 +103,27 @@ namespace WitchMendokusai
 
 		private void BuildUI()
 		{
+			stage = new VisualElement();
+			stage.AddToClassList("wm-setting-stage");
+			container.Add(stage);
+			container.RegisterCallback<GeometryChangedEvent>(_ =>
+			{
+				float scale = container.resolvedStyle.width / stageWidth;
+				stage.style.scale = new Scale(new Vector3(scale, scale, 1f));
+			});
+
 			Label titleLabel = new Label("환경설정");
 			titleLabel.AddToClassList("wm-setting-title");
-			container.Add(titleLabel);
+			stage.Add(titleLabel);
 
 			closeButton = new Button(Close) { text = "닫기 (ESC)" };
 			closeButton.AddToClassList("wm-setting-close");
 			closeButton.AddToClassList(NAV_CLASS);
-			container.Add(closeButton);
+			stage.Add(closeButton);
 
 			VisualElement panel = new VisualElement();
 			panel.AddToClassList("wm-setting-panel");
-			container.Add(panel);
+			stage.Add(panel);
 
 			sidebar = new VisualElement();
 			sidebar.AddToClassList("wm-setting-tabs");
