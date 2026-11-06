@@ -173,7 +173,8 @@ namespace WitchMendokusai
 				return;
 			float remain = Mathf.Max(0f, nextEvent.Time - (float)dungeonManager.Context.ElapsedTime.TotalSeconds);
 			string label = nextEvent.Type == SurvivalEventType.Elite ? eliteLabel : swarmLabel;
-			nextEventText.text = $"{label} {TimeSpan.FromSeconds(remain):m\:ss}";
+			string remainText = TimeSpan.FromSeconds(remain).ToString(@"m\:ss");
+			nextEventText.text = $"{label} {remainText}";
 			nextEventText.color = remain <= nextEvent.AnnounceLead ? nextEventSoonColor : nextEventNormalColor;
 		}
 
