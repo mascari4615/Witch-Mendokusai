@@ -11,6 +11,8 @@
         "WitchMendokusai.DomainSDK.Common",
         "WitchMendokusai.DomainSDK.Criteria",
         "WitchMendokusai.DomainSDK.Effect",
+        "WitchMendokusai.DomainSDK.Reward",
+        "WitchMendokusai.DomainSDK.GameEvent",
         "WitchMendokusai.DomainSDK.EventBus",
         "WitchMendokusai.DomainSDK.Farming",
         "WitchMendokusai.DomainSDK.Idle",
