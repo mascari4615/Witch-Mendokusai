@@ -27,6 +27,11 @@ namespace WitchMendokusai
 		[SerializeField] private SurvivalUITheme theme;
 		[SerializeField] private UIBurst difficultyBurst;
 		private DungeonDifficulty lastDifficulty;
+		[SerializeField] private string battleHudObjectName = "[Block] Lower";
+		private CardManager cardManager;
+		private CanvasGroup headerGroup;
+		private CanvasGroup battleHudGroup;
+		private bool isSelecting;
 		private UIQuestGrid questGrid;
 		private Coroutine loop;
 
@@ -55,6 +60,36 @@ namespace WitchMendokusai
 		protected override void OnClose()
 		{
 			StopLoop();
+			isSelecting = false;
+			SetHudVisible(true);
+		}
+
+		private void Update()
+		{
+			if (cardManager == null)
+				cardManager = FindAnyObjectByType<CardManager>(FindObjectsInactive.Include);
+			bool selecting = cardManager.CurPanelType != CardPanelType.None;
+			if (selecting == isSelecting)
+				return;
+			isSelecting = selecting;
+			SetHudVisible(selecting == false);
+		}
+
+		private void SetHudVisible(bool isVisible)
+		{
+			if (headerGroup == null)
+				headerGroup = EnsureGroup(header);
+			if (battleHudGroup == null)
+				battleHudGroup = EnsureGroup(GameObject.Find(battleHudObjectName));
+			headerGroup.alpha = isVisible ? 1f : 0f;
+			battleHudGroup.alpha = isVisible ? 1f : 0f;
+			battleHudGroup.blocksRaycasts = isVisible;
+		}
+
+		private static CanvasGroup EnsureGroup(GameObject target)
+		{
+			CanvasGroup group = target.GetComponent<CanvasGroup>();
+			return group != null ? group : target.AddComponent<CanvasGroup>();
 		}
 
 		private void StartLoop()

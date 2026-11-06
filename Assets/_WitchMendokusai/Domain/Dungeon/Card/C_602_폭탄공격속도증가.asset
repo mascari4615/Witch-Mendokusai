@@ -23,3 +23,7 @@ MonoBehaviour:
     ArithmeticOperator: 1
     Value: 1
   <MaxStack>k__BackingField: 5
+  <Rarity>k__BackingField: 0
+  <Requirements>k__BackingField: []
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 0}
+  <UIKind>k__BackingField: 2

@@ -33,3 +33,5 @@ MonoBehaviour:
     Stack: 3
   - Card: {fileID: 11400000, guid: f2f771b5136798d47b73dd767b8b69ef, type: 2}
     Stack: 2
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 0}
+  <UIKind>k__BackingField: 4

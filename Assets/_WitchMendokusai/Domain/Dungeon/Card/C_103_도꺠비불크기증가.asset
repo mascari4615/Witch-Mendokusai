@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "C_103_\uB3C4\uAEA0\uBE44\uBD88\uD06C\uAE30\uC99D\uAC00"
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 103
-  <Name>k__BackingField: "\uB3C4\uAEA0\uBE44 \uBD88 \uD06C\uAE30 \uC99D\uAC00"
+  <Name>k__BackingField: "\uB3C4\uAE68\uBE44 \uBD88 \uD06C\uAE30 \uC99D\uAC00"
   <Description>k__BackingField: "\uC704\uC131 \uD06C\uAE30 +"
   <Sprite>k__BackingField: {fileID: 21300000, guid: aff0a23936502334791e2cbeaa38f3a2, type: 3}
   <Sprites>k__BackingField: []
@@ -23,3 +23,7 @@ MonoBehaviour:
     ArithmeticOperator: 1
     Value: 1
   <MaxStack>k__BackingField: 5
+  <Rarity>k__BackingField: 0
+  <Requirements>k__BackingField: []
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 0}
+  <UIKind>k__BackingField: 3
