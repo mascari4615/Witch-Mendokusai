@@ -35,6 +35,8 @@ namespace WitchMendokusai
 		[SerializeField] private UIBurst buyBurst;
 		[SerializeField] private UISelectionKeeper selectionKeeper;
 		[SerializeField] private Button closeButton;
+		[SerializeField] private GameObject buyLabel;
+		[SerializeField] private GameObject buyIcon;
 		[SerializeField] private string battleHudObjectName = "[Block] Lower";
 		private CanvasGroup battleHudGroup;
 
@@ -123,6 +125,8 @@ namespace WitchMendokusai
 			SetBattleHudVisible(false);
 			UpdateUI();
 			upgradeGridUI.CurSlot.Select();
+			for (int i = 0; i < upgradeGridUI.Slots.Count; i++)
+				(upgradeGridUI.Slots[i] as UIUpgradeSlot).PlayAppear(i);
 		}
 
 		protected override void OnClose() => SetBattleHudVisible(true);
@@ -174,7 +178,9 @@ namespace WitchMendokusai
 			nextValueText.text = isMax ? "-" : $"+{upgradeData.TotalValue + (int)upgradeData.ValuePerLevel[upgradeData.CurLevel]}";
 
 			buyButton.interactable = isMax == false;
-			priceText.text = isMax ? "-" : $"강화  {upgradeData.PricePerLevel[upgradeData.CurLevel]}냥";
+			buyLabel.SetActive(isMax == false);
+			buyIcon.SetActive(isMax == false);
+			priceText.text = isMax ? "-" : upgradeData.PricePerLevel[upgradeData.CurLevel].ToString();
 			curLevelText.text = isMax ? $"Lv. {upgradeData.CurLevel} (MAX)" : $"Lv. {upgradeData.CurLevel} → Lv. {upgradeData.CurLevel + 1}";
 
 			returnButton.interactable = hasLevel;

@@ -18,6 +18,7 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject sheen;
 		[SerializeField] private UIBurst burst;
 		[SerializeField] private Button button;
+		[SerializeField] private int openBurstCount = 36;
 
 		private SurvivalUIKind kind;
 		private bool isSelected;
@@ -32,6 +33,11 @@ namespace WitchMendokusai
 		public void PlayAppear(int order)
 		{
 			UIEffects.PopIn(transform, theme.CardAppearDuration, order * theme.CardAppearInterval);
+		}
+
+		public void PlayOpenBurst(int order)
+		{
+			DOVirtual.DelayedCall(order * theme.CardAppearInterval, () => burst.Play(theme.Style(kind).Main, openBurstCount)).SetUpdate(true).SetTarget(transform);
 		}
 
 		public void PlayConfirm()

@@ -22,7 +22,11 @@ namespace WitchMendokusai
 			deckSelectButtons[0].Select();
 			for (int i = 0; i < deckSelectButtons.Count; i++)
 				if (deckSelectButtons[i].gameObject.activeSelf)
-					deckSelectButtons[i].GetComponent<UIChoiceCard>().PlayAppear(i);
+					{
+					UIChoiceCard choiceCard = deckSelectButtons[i].GetComponent<UIChoiceCard>();
+					choiceCard.PlayAppear(i);
+					choiceCard.PlayOpenBurst(i);
+				}
 		}
 
 		protected override void OnInit()
