@@ -20,6 +20,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public int MaxStack { get; private set; } = 5;
 		[field: SerializeField] public List<Requirement> Requirements { get; private set; } = new();
 		[field: SerializeField] public CardAwakeningEffect AwakeningEffectPrefab { get; private set; }
+		[field: SerializeField] public SurvivalUIKind UIKind { get; private set; } = SurvivalUIKind.Count;
 
 		public bool MeetsRequirements(IReadOnlyList<CardData> selectedCards)
 		{

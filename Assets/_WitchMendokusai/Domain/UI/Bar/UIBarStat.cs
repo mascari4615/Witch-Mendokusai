@@ -17,6 +17,7 @@ namespace WitchMendokusai
 
 		[SerializeField] private float lerpSpeed = 5f;
 		[SerializeField] private bool isExpType;
+		[SerializeField] private string textFormat = "{0}";
 		private Coroutine routine;
 
 		private Stat<T> currentStat;
@@ -52,7 +53,7 @@ namespace WitchMendokusai
 			{
 				float target = (Max == 0) ? 0 : ((float)Cur / Max);
 				bar.fillAmount = target;
-				text.text = Text.ToString();
+				text.text = string.Format(textFormat, Text, Max);
 			}
 			else
 			{
@@ -60,7 +61,7 @@ namespace WitchMendokusai
 					StopCoroutine(routine);
 				routine = StartCoroutine(UpdateBarLerp());
 
-				text.text = Text.ToString();
+				text.text = string.Format(textFormat, Text, Max);
 			}
 		}
 

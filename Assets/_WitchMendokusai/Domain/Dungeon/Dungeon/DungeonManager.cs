@@ -93,7 +93,7 @@ namespace WitchMendokusai
 		private void Start()
 		{
 			// 당장 게임 이벤트 변화가 많아서, 인스펙터에서 GameEventListener 넣는 것보다, 이렇게 하드 코딩하는게 나은 듯
-			gameEventManager.RegisterCallback(GameEventType.OnPlayerDied, EndDungeon);
+			gameEventManager.RegisterCallback(GameEventType.OnPlayerDied, EndDungeonByDefeat);
 		}
 
 		public void StartDungeon(Dungeon dungeon, bool restart = false)
@@ -184,7 +184,7 @@ namespace WitchMendokusai
 							Context.UpdateDifficulty();
 							monsterSpawner.UpdateWaves();
 
-						}, () => EndDungeon());
+						}, () => EndDungeon(isCleared: true));
 				}
 
 				// Context 생성 이후 UI 설정
@@ -196,7 +196,9 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void EndDungeon()
+		private void EndDungeonByDefeat() => EndDungeon(isCleared: false);
+
+		public void EndDungeon(bool isCleared = true)
 		{
 			if (IsDungeon == false)
 				return;
@@ -210,7 +212,9 @@ namespace WitchMendokusai
 			monsterSpawner.StopWave();
 			resourceNodeSpawner.StopWave();
 
-			dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR]);
+			if (isCleared == false)
+				dataManager.GameStat[GameStatType.NYANG] += CurDungeon.CalculateDefeatNyang(Context.ElapsedTime, dungeonRecorder.KillCountSinceStart);
+			dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR], isCleared);
 
 			dungeonUI.SetPanel(DungeonPanelType.DungeonResult);
 		}

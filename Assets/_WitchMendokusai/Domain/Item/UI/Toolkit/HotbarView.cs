@@ -65,8 +65,19 @@ namespace WitchMendokusai
 		{
 			if (hotbarContainer == null)
 				return;
-			bool visible = gameModeManager.CurrentMode == GameMode.Default && GameConditionBridge.Get(GameConditionType.IsViewingUI) == false;
+			bool visible = gameModeManager.CurrentMode == GameMode.Default && GameConditionBridge.Get(GameConditionType.IsViewingUI) == false && IsHiddenAsEmptyInDungeon() == false;
 			hotbarContainer.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
+		private bool IsHiddenAsEmptyInDungeon()
+		{
+			if (DungeonManager.TryGetExistingInstance(out DungeonManager dungeonManager) == false || dungeonManager.IsDungeon == false)
+				return false;
+			Hotbar bound = Resolve();
+			for (int i = 0; i < SLOT_COUNT; i++)
+				if (bound.GetItem(i) != null)
+					return false;
+			return true;
 		}
 
 		private Hotbar Resolve() => hotbar != null ? hotbar : soManager.Hotbar;
