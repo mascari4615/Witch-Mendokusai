@@ -758,9 +758,9 @@
     top: 0;
     right: 16px;
     bottom: 0;
-    background-image: url("Survival/Art/tile-count.png");
+    background-image: url("Survival/Art/tile-bar.png");
     background-repeat: repeat repeat;
-    background-size: 72px 72px;
+    background-size: 42px 42px;
     -unity-background-image-tint-color: rgba(255, 255, 255, 0.14);
 }
 
