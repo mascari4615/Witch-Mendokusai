@@ -39,6 +39,7 @@ namespace WitchMendokusai
 		private UIRewardsToolkit rewardUI;
 		private UIDungeonConstraintToolkit constraintUI;
 		private Button dungeonEnterButton;
+		private Button backButton;
 		private VisualElement dungeonSelectButtonsParent;
 
 		private int curDungeonIndex = 0;
@@ -64,7 +65,9 @@ namespace WitchMendokusai
 			AddBlock(root, "__mist").pickingMode = PickingMode.Ignore;
 
 			VisualElement top = AddBlock(root, "__top");
-			top.Add(AddRoundButton("BackButton", "←"));
+			backButton = AddRoundButton("BackButton", "←");
+			top.Add(backButton);
+			root.RegisterCallback<NavigationMoveEvent>(OnNavigationMove, TrickleDown.TrickleDown);
 			AddLabel(top, "던전", "__title");
 
 			dungeonSelectButtonsParent = AddBlock(root, "__list");
@@ -169,6 +172,29 @@ namespace WitchMendokusai
 					dungeonSelectButtons[i].style.display = DisplayStyle.None;
 				}
 			}
+		}
+
+		private void OnNavigationMove(NavigationMoveEvent evt)
+		{
+			switch (evt.direction)
+			{
+				case NavigationMoveEvent.Direction.Up:
+					SelectDungeon((curDungeonIndex + dungeons.Count - 1) % dungeons.Count);
+					break;
+				case NavigationMoveEvent.Direction.Down:
+					SelectDungeon((curDungeonIndex + 1) % dungeons.Count);
+					break;
+				case NavigationMoveEvent.Direction.Left:
+					backButton.Focus();
+					break;
+				case NavigationMoveEvent.Direction.Right:
+					dungeonEnterButton.Focus();
+					break;
+				default:
+					return;
+			}
+			evt.StopPropagation();
+			Root.focusController?.IgnoreEvent(evt);
 		}
 
 		protected override void OnOpen()

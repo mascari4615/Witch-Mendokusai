@@ -90,6 +90,8 @@ namespace WitchMendokusai
 			headerGroup.alpha = isVisible ? 1f : 0f;
 			battleHudGroup.alpha = isVisible ? 1f : 0f;
 			battleHudGroup.blocksRaycasts = isVisible;
+			battleHudGroup.interactable = isVisible;
+			headerGroup.interactable = isVisible;
 		}
 
 		private static CanvasGroup EnsureGroup(GameObject target)

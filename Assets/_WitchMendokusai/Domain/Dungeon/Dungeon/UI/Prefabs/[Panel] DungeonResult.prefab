@@ -592,6 +592,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1585071157825315887}
   - component: {fileID: 2295019159615482535}
+  - component: {fileID: 4692644491141278957}
   m_Layer: 5
   m_Name: '[Panel] DungeonResult'
   m_TagString: Untagged
@@ -668,6 +669,19 @@ MonoBehaviour:
   itemParent: {fileID: 2518302769621468429}
   entryTemplate: {fileID: 3979355923854415326}
   retryButton: {fileID: 5778347330527499537}
+  battleHudObjectName: '[Block] Lower'
+--- !u!114 &4692644491141278957
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1067072391379776965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ade8291e55044505bfd124c734cefeb9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.UISelectionKeeper
 --- !u!1 &1133485029269052081
 GameObject:
   m_ObjectHideFlags: 0

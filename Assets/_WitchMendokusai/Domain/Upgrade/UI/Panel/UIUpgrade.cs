@@ -33,6 +33,8 @@ namespace WitchMendokusai
 		[SerializeField] private Button confirmYesButton;
 		[SerializeField] private Button confirmNoButton;
 		[SerializeField] private UIBurst buyBurst;
+		[SerializeField] private UISelectionKeeper selectionKeeper;
+		[SerializeField] private Button closeButton;
 		[SerializeField] private string battleHudObjectName = "[Block] Lower";
 		private CanvasGroup battleHudGroup;
 
@@ -65,8 +67,17 @@ namespace WitchMendokusai
 
 			upgradeGridUI.OnSelectSlot += (slot, data) =>
 			{
+				selectionKeeper.Fallback = slot != null ? slot.Selectable : null;
+				ApplyButtonNavigation(slot != null ? slot.Selectable : null);
 				UpdateUI();
 			};
+
+			foreach (UISlot slot in upgradeGridUI.Slots)
+				slot.SetClickAction(_ =>
+				{
+					if (buyButton.interactable)
+						buyButton.Select();
+				});
 
 			buyButton.onClick.AddListener(() =>
 			{
@@ -93,10 +104,10 @@ namespace WitchMendokusai
 			});
 
 			resetAllButton.onClick.AddListener(OpenResetAllConfirm);
-			confirmNoButton.onClick.AddListener(() => confirmBox.SetActive(false));
+			confirmNoButton.onClick.AddListener(CloseResetAllConfirm);
 			confirmYesButton.onClick.AddListener(() =>
 			{
-				confirmBox.SetActive(false);
+				CloseResetAllConfirm();
 				ResetUpgradeAll();
 			});
 			confirmBox.SetActive(false);
@@ -111,6 +122,7 @@ namespace WitchMendokusai
 		{
 			SetBattleHudVisible(false);
 			UpdateUI();
+			upgradeGridUI.CurSlot.Select();
 		}
 
 		protected override void OnClose() => SetBattleHudVisible(true);
@@ -126,6 +138,7 @@ namespace WitchMendokusai
 			}
 			battleHudGroup.alpha = isVisible ? 1f : 0f;
 			battleHudGroup.blocksRaycasts = isVisible;
+			battleHudGroup.interactable = isVisible;
 		}
 
 		public override void UpdateUI()
@@ -172,12 +185,32 @@ namespace WitchMendokusai
 			upgradeGridUI.UpdateUI();
 		}
 
+		private void ApplyButtonNavigation(Selectable curSlot)
+		{
+			returnButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = curSlot, selectOnRight = buyButton, selectOnDown = resetButton, selectOnUp = closeButton };
+			buyButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = returnButton, selectOnDown = resetButton, selectOnUp = closeButton };
+			resetButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = curSlot, selectOnRight = resetAllButton, selectOnUp = returnButton };
+			resetAllButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = resetButton, selectOnUp = buyButton };
+			closeButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = curSlot, selectOnDown = buyButton };
+			confirmNoButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnRight = confirmYesButton };
+			confirmYesButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = confirmNoButton };
+		}
+
 		private void OpenResetAllConfirm()
 		{
 			int total = 0;
 			ForEach<UpgradeData>(upgradeData => total += upgradeData.PricePerLevel.Take(upgradeData.CurLevel).Sum());
 			confirmSumText.text = $"모든 강화를 초기화하고 쓴 냥을 돌려받을까요?\n돌려받는 냥 {total:N0}냥";
 			confirmBox.SetActive(true);
+			selectionKeeper.SetScope(confirmBox.transform);
+			confirmNoButton.Select();
+		}
+
+		private void CloseResetAllConfirm()
+		{
+			confirmBox.SetActive(false);
+			selectionKeeper.ResetScope();
+			resetAllButton.Select();
 		}
 
 		public void GetUpgrade(int upgradeID)
