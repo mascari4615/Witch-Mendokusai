@@ -618,6 +618,7 @@ MonoBehaviour:
   sheen: {fileID: 3252245504034337018}
   burst: {fileID: 993896450923877341}
   button: {fileID: 6055887943821165589}
+  openBurstCount: 36
 --- !u!114 &3198121211320899962
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -733,7 +734,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.22
+  m_PixelsPerUnitMultiplier: 2
 --- !u!1 &1307980347157314571
 GameObject:
   m_ObjectHideFlags: 0
@@ -1850,7 +1851,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1.5
+  m_PixelsPerUnitMultiplier: 0.32
 --- !u!1 &4771618901633552978
 GameObject:
   m_ObjectHideFlags: 0
@@ -1986,7 +1987,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.03}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.023}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2002,7 +2003,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 2.9767442
+  m_PixelsPerUnitMultiplier: 0.68266666
 --- !u!1 &5614833310720057617
 GameObject:
   m_ObjectHideFlags: 0

@@ -938,25 +938,25 @@
     white-space: normal;
 }
 
-/* Stage 변형: 더 큰 배너 + 가운데 */
+/* Stage 변형: 상단 띠. 플레이어를 가리지 않음 */
 .wm-popup-card--stage {
-    top: 35%;
-    padding: 24px 32px;
+    top: 74px;
+    padding: 8px 40px;
     border-width: 2px;
-    border-color: rgba(255, 200, 100, 1);
+    border-color: rgb(227, 227, 230);
+    border-radius: 0;
+    background-color: rgba(23, 22, 26, 0.92);
     flex-direction: column;
     align-items: center;
 }
 
 .wm-popup-card--stage .wm-popup-card__icon {
-    width: 64px;
-    height: 64px;
-    margin-right: 0;
-    margin-bottom: 8px;
+    display: none;
 }
 
 .wm-popup-card--stage .wm-popup-card__name {
-    font-size: 22px;
+    font-size: 24px;
+    color: rgb(241, 241, 243);
     -unity-text-align: middle-center;
 }
 

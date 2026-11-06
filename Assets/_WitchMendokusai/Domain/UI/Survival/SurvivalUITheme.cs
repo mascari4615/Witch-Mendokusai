@@ -64,6 +64,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public float PunchAmount { get; private set; } = 0.14f;
 		[field: SerializeField] public float PunchDuration { get; private set; } = 0.3f;
 		[field: SerializeField] public float MinCardNameFontSize { get; private set; } = 22f;
+		[field: SerializeField] public float SlotAppearStartScale { get; private set; } = 0.85f;
 
 		public KindStyle Style(SurvivalUIKind kind) => Kinds[(int)kind];
 		public CategoryStyle Style(UpgradeCategory category) => Categories[(int)category];

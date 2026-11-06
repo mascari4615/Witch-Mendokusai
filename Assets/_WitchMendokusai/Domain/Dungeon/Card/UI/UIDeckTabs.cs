@@ -21,6 +21,11 @@ namespace WitchMendokusai
 		[SerializeField] private TextMeshProUGUI infoName;
 		[SerializeField] private TextMeshProUGUI infoText;
 		[SerializeField] private GameObject treeEmptyNotice;
+		[SerializeField] private int compactRowThreshold = 3;
+		[SerializeField] private float normalRowHeight = 96f;
+		[SerializeField] private float compactRowHeight = 76f;
+		[SerializeField] private float normalCell = 62f;
+		[SerializeField] private float compactCell = 54f;
 		[SerializeField] private Color activeLine = Color.white;
 		[SerializeField] private Color idleLine = Color.gray;
 
@@ -46,14 +51,19 @@ namespace WitchMendokusai
 			foreach (GameObject row in rows)
 				Destroy(row);
 			rows.Clear();
+			bool isCompact = equipments.Count(item => item != null) > compactRowThreshold;
 			foreach (EquipmentData equipment in equipments.Where(item => item != null))
 			{
 				GameObject row = Instantiate(rowTemplate, rowsParent);
 				row.SetActive(true);
 				rows.Add(row);
+				RectTransform rowRect = (RectTransform)row.transform;
+				rowRect.sizeDelta = new Vector2(rowRect.sizeDelta.x, isCompact ? compactRowHeight : normalRowHeight);
 				row.transform.Find("[Image] EquipmentIcon").GetComponent<Image>().sprite = equipment.Sprite;
 				row.transform.Find("[Text] EquipmentName").GetComponent<TextMeshProUGUI>().text = equipment.Name;
 				Transform list = row.transform.Find("[Block] List");
+				float cell = isCompact ? compactCell : normalCell;
+				list.GetComponent<GridLayoutGroup>().cellSize = new Vector2(cell, cell);
 				UIMiniCard template = list.GetChild(0).GetComponent<UIMiniCard>();
 				foreach (CardData card in equipment.EffectCards.Where(item => item != null).GroupBy(item => item.ID).Select(group => group.First()))
 				{
