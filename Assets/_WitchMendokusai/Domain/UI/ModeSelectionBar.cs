@@ -133,7 +133,7 @@ namespace WitchMendokusai
 			if (entry.Tooltip != null)
 			{
 				object tooltipData = entry.Tooltip;
-				card.RegisterCallback<PointerEnterEvent>(_ => card.GetUIServices()?.Tooltip?.Show(tooltipData));
+				card.RegisterCallback<PointerEnterEvent>(_ => card.GetUIServices()?.Tooltip?.Show(tooltipData, owner: card));
 				card.RegisterCallback<PointerLeaveEvent>(_ => card.GetUIServices()?.Tooltip?.Hide());
 			}
 
@@ -198,7 +198,7 @@ namespace WitchMendokusai
 			if (entry.Tooltip != null)
 			{
 				object rowTooltip = entry.Tooltip;
-				cell.RegisterCallback<PointerEnterEvent>(_ => cell.GetUIServices()?.Tooltip?.Show(rowTooltip));
+				cell.RegisterCallback<PointerEnterEvent>(_ => cell.GetUIServices()?.Tooltip?.Show(rowTooltip, owner: cell));
 				cell.RegisterCallback<PointerLeaveEvent>(_ => cell.GetUIServices()?.Tooltip?.Hide());
 			}
 

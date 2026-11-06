@@ -84,7 +84,7 @@ namespace WitchMendokusai
 			if (Data == null)
 				return;
 			// TASK-WM-133 — panel-context TooltipController (Slot 동형).
-			this.GetUIServices()?.Tooltip?.Show(Data);
+			this.GetUIServices()?.Tooltip?.Show(Data, owner: this);
 		}
 
 		private void OnPointerLeave(PointerLeaveEvent evt)

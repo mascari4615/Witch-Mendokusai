@@ -144,7 +144,7 @@ namespace WitchMendokusai
 		{
 			if (Data == null || Data.IsEmpty)
 				return;
-			this.GetUIServices()?.Tooltip?.Show(Data);
+			this.GetUIServices()?.Tooltip?.Show(Data, owner: this);
 		}
 	}
 }
