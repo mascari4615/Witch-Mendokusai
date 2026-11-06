@@ -52,6 +52,12 @@ namespace WitchMendokusai
 			SetVerticesDirty();
 		}
 
+		protected override void OnDisable()
+		{
+			particles.Clear();
+			base.OnDisable();
+		}
+
 		private void Update()
 		{
 			if (particles.Count == 0)
