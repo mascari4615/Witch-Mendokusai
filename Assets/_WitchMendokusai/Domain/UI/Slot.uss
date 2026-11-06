@@ -515,7 +515,7 @@
     top: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.86);
+    background-color: rgba(0, 0, 0, 0.94);
     opacity: 0;
     transition-property: opacity;
     transition-duration: 0.15s;
@@ -571,7 +571,12 @@
     height: 66px;
     margin: 0 8px 0 0;
     padding: 0;
-    background-color: rgb(36, 34, 41);
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("../../Art/Texture/UI/Vector.png");
+    -unity-slice-left: 30;
+    -unity-slice-right: 30;
+    -unity-slice-scale: 0.8px;
+    -unity-background-image-tint-color: rgb(46, 44, 52);
     color: rgb(190, 190, 196);
     border-width: 0;
     border-radius: 0;
@@ -584,7 +589,7 @@
 }
 
 .wm-setting-tab--active {
-    background-color: rgb(232, 232, 236);
+    -unity-background-image-tint-color: rgb(232, 232, 236);
     color: rgb(20, 20, 25);
 }
 
@@ -641,6 +646,10 @@
 
 .wm-setting-slider .unity-base-slider__fill {
     background-color: rgb(43, 117, 115);
+    background-image: url("Survival/Art/tile-count.png");
+    background-repeat: repeat repeat;
+    background-size: 40px 40px;
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0.14);
     border-radius: 0;
 }
 
@@ -764,6 +773,112 @@
 
 .wm-setting-frame--hidden {
     display: none;
+}
+
+.wm-setting-frame__inner {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    right: 3px;
+    bottom: 3px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.55);
+}
+
+.wm-setting-shaderpack-header {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 72px;
+    margin-bottom: 14px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.25);
+}
+
+.wm-setting-shaderpack-header .wm-setting-header {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    border-bottom-width: 0;
+}
+
+.wm-setting-shaderpack-header .wm-setting-btn {
+    height: 58px;
+    padding: 0 24px;
+    font-size: 24px;
+}
+
+.wm-setting-shaderpack-split {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.wm-setting-shaderpack-list {
+    width: 480px;
+    flex-shrink: 0;
+    margin-right: 20px;
+    padding: 12px;
+    background-color: rgb(22, 21, 26);
+}
+
+.wm-setting-shaderpack-empty {
+    color: rgb(200, 200, 206);
+    font-size: 20px;
+    white-space: normal;
+}
+
+.wm-setting-shaderpack-item {
+    height: 70px;
+    margin: 0 0 8px 0;
+    padding: 0 22px;
+    background-color: rgb(29, 85, 83);
+    color: rgb(255, 255, 255);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.3);
+    border-radius: 0;
+    font-size: 28px;
+    -unity-text-align: middle-left;
+}
+
+.wm-setting-shaderpack-item--active {
+    background-color: rgb(87, 184, 180);
+    color: rgb(20, 20, 25);
+}
+
+.wm-setting-shaderpack-detail {
+    flex-grow: 1;
+    padding: 32px;
+    background-color: rgb(22, 21, 26);
+}
+
+.wm-setting-shaderpack-hint {
+    color: rgb(200, 200, 206);
+    font-size: 24px;
+}
+
+.wm-setting-shaderpack-detail-name {
+    color: rgb(255, 255, 255);
+    font-size: 48px;
+    margin-bottom: 18px;
+}
+
+.wm-setting-shaderpack-detail-author,
+.wm-setting-shaderpack-detail-version {
+    color: rgb(180, 180, 186);
+    font-size: 24px;
+    margin-bottom: 14px;
+}
+
+.wm-setting-shaderpack-detail-desc {
+    color: rgb(226, 226, 230);
+    font-size: 26px;
+    white-space: normal;
+}
+
+.wm-setting-shaderpack-detail .wm-setting-btn {
+    align-self: flex-start;
+    width: 268px;
+    margin: auto 0 0 0;
 }
 
 .wm-setting-confirm-layer {

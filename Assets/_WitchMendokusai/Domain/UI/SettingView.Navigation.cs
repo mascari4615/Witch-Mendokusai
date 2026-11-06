@@ -27,6 +27,9 @@ namespace WitchMendokusai
 			selectFrame = new VisualElement { pickingMode = PickingMode.Ignore };
 			selectFrame.AddToClassList("wm-setting-frame");
 			selectFrame.AddToClassList(HIDDEN_FRAME_CLASS);
+			VisualElement frameInner = new VisualElement { pickingMode = PickingMode.Ignore };
+			frameInner.AddToClassList("wm-setting-frame__inner");
+			selectFrame.Add(frameInner);
 
 			container.RegisterCallback<NavigationMoveEvent>(OnNavigationMove, TrickleDown.TrickleDown);
 			container.RegisterCallback<FocusInEvent>(OnFocusIn);
@@ -109,13 +112,23 @@ namespace WitchMendokusai
 		// 슬라이더와 토글은 줄 전체, 나머지는 자기 영역에 틀 표시
 		private void MoveFrameTo(VisualElement element)
 		{
-			VisualElement bounds = element.parent != null && element.parent.ClassListContains("wm-setting-row") ? element.parent : element;
+			VisualElement bounds = element;
+			for (VisualElement walker = element; walker != null && walker != stage; walker = walker.parent)
+			{
+				if (walker.ClassListContains("wm-setting-row"))
+				{
+					bounds = walker;
+					break;
+				}
+				if (walker.ClassListContains(NAV_CLASS))
+					bounds = walker;
+			}
 			Rect rect = stage.WorldToLocal(bounds.worldBound);
 			selectFrame.RemoveFromClassList(HIDDEN_FRAME_CLASS);
-			selectFrame.style.left = rect.x;
-			selectFrame.style.top = rect.y;
-			selectFrame.style.width = rect.width;
-			selectFrame.style.height = rect.height;
+			selectFrame.style.left = rect.x - frameOutset;
+			selectFrame.style.top = rect.y - frameOutset;
+			selectFrame.style.width = rect.width + frameOutset * 2f;
+			selectFrame.style.height = rect.height + frameOutset * 2f;
 		}
 
 		// 기본 포커스 이동 차단. HUD 쪽 요소로 포커스가 나가는 문제 방지
@@ -183,6 +196,10 @@ namespace WitchMendokusai
 			foreach (VisualElement candidate in CollectCandidates())
 			{
 				if (candidate == current)
+					continue;
+				// 탭 줄 밖에서 위로 오면 현재 탭으로만 진입
+				bool isOtherTab = candidate.ClassListContains("wm-setting-tab") && candidate != tabButtons[currentTabKey];
+				if (isOtherTab && current.ClassListContains("wm-setting-tab") == false)
 					continue;
 				Rect to = candidate.worldBound;
 				float along;

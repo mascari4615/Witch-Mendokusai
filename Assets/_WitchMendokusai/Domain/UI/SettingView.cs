@@ -24,6 +24,7 @@ namespace WitchMendokusai
 		[SerializeField] private float navAcrossWeight = 2f;
 		[SerializeField] private int volumeDisplayScale = 100;
 		[SerializeField] private float stageWidth = 1920f;
+		[SerializeField] private float frameOutset = 4f;
 
 		private VisualElement container;
 		private VisualElement stage;

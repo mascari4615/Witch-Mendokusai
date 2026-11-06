@@ -100,7 +100,7 @@ namespace WitchMendokusai
 
 			if (selectedShaderPack == null)
 			{
-				Label hint = new Label("좌측에서 셰이더팩을 선택하세요");
+				Label hint = new Label("왼쪽에서 셰이더팩을 선택하세요");
 				hint.AddToClassList("wm-setting-shaderpack-hint");
 				shaderPackDetailContainer.Add(hint);
 				return;
