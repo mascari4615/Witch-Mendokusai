@@ -23,9 +23,6 @@ namespace WitchMendokusai
 	//   (attribute 가 뭉뚱그려 표현하던 걸 기계 검사로 정확히 옮긴 것).
 	public class PlayerObject : UnitObject
 	{
-		// INVINCIBLE_TIME 스탯 단위는 1/1000초
-		private const float INVINCIBLE_TIME_STAT_PER_SECOND = 1000f;
-
 		private Coroutine invincibleRoutine = null;
 		[SerializeField] private GameObject diedX;
 
@@ -143,7 +140,8 @@ namespace WitchMendokusai
 
 			if (invincibleRoutine != null)
 				StopCoroutine(invincibleRoutine);
-			invincibleRoutine = StartCoroutine(InvincibleTime(soManager.InvincibleTime.RuntimeValue + UnitStat[UnitStatType.INVINCIBLE_TIME] / INVINCIBLE_TIME_STAT_PER_SECOND));
+			float bonusSeconds = UnitStat[UnitStatType.INVINCIBLE_TIME] / resourceManager.SurvivalFeel.Upgrade.InvincibleTimeStatPerSecond;
+			invincibleRoutine = StartCoroutine(InvincibleTime(soManager.InvincibleTime.RuntimeValue + bonusSeconds));
 
 			switch (UnitStat[UnitStatType.HP_CUR])
 			{

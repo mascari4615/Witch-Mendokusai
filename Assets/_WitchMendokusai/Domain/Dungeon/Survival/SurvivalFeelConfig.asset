@@ -212,6 +212,7 @@ MonoBehaviour:
     HpRegenInterval: 20
     ReviveHealthRatio: 0.5
     ReviveInvincibility: 3
+    InvincibleTimeStatPerSecond: 1000
   PlayerRevive:
     Shake: 0.5
     Hitstop: 0

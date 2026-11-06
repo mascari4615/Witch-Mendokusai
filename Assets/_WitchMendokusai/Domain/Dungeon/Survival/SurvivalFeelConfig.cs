@@ -54,6 +54,7 @@ namespace WitchMendokusai
 		[Min(0.1f), Tooltip("체력 재생 주기 초. 주기마다 HP_REGENERATION 만큼 회복")] public float HpRegenInterval = 20f;
 		[Range(0.01f, 1f), Tooltip("부활 체력, 최대 체력 대비 비율")] public float ReviveHealthRatio = 0.5f;
 		[Min(0f), Tooltip("부활 직후 무적 초")] public float ReviveInvincibility = 3f;
+		[Min(1f), Tooltip("INVINCIBLE_TIME 스탯에서 1초에 해당하는 값")] public float InvincibleTimeStatPerSecond = 1000f;
 	}
 
 	[CreateAssetMenu(fileName = nameof(SurvivalFeelConfig), menuName = "WM/Variable/" + nameof(SurvivalFeelConfig))]
