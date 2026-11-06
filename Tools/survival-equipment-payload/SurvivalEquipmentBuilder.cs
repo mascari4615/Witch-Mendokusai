@@ -51,7 +51,6 @@ namespace WitchMendokusai
 			}
 
 			ApplyFeelConfig(CreateSpecs());
-			DeleteStaleMaterials();
 			AssetDatabase.SaveAssets();
 			SyncAddresses();
 			AssetDatabase.Refresh();

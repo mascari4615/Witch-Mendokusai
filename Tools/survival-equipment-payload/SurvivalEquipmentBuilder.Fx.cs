@@ -349,18 +349,5 @@ namespace WitchMendokusai
 			serialized.ApplyModifiedPropertiesWithoutUndo();
 			EditorUtility.SetDirty(asset);
 		}
-
-		private static void DeleteStaleMaterials()
-		{
-			foreach (string stale in new[] { "Needle/NeedleLine", "Bolt/BoltLight", "Beam/BeamLight", "Flask/FlaskBottle", "Broom/BroomBody", "Pin/PinBody", "Potion/PotionBody", "Candy/CandyBody", "Rune/RuneBody", "Thread/ThreadLine", "Ink/InkField", "Ink/InkDrop", "Page/PageBody", "Paper/PaperBody", "ClockHand/ClockHandLight" })
-			{
-				string path = WEAPON_ROOT + "/" + stale + ".mat";
-				if (AssetDatabase.LoadAssetAtPath<Material>(path) != null)
-				{
-					AssetDatabase.DeleteAsset(path);
-					log.AppendLine("deleted " + stale);
-				}
-			}
-		}
 	}
 }
