@@ -202,11 +202,22 @@ namespace WitchMendokusai
 			return curClearCount >= targetClearCount;
 		}
 
-		private void EndDungeonByDefeat() => EndDungeon(isCleared: false);
+		// 사망 연출을 보인 뒤 결과창으로, 같은 판에서 클리어가 뒤따르면 클리어 우선
+		private void EndDungeonByDefeat()
+		{
+			if (IsDungeon == false || clearDelayRoutine != null)
+				return;
+			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(resourceManager.SurvivalFeel.DefeatResultDelay, false));
+		}
 
 		// 보스 클리어는 처치 연출을 보인 뒤 결과창으로
 		private void HandleClear()
 		{
+			if (clearDelayRoutine != null)
+			{
+				StopCoroutine(clearDelayRoutine);
+				clearDelayRoutine = null;
+			}
 			float delay = resourceManager.SurvivalFeel.BossClearResultDelay;
 			if (CurDungeon.ObjectiveType != DungeonObjectiveType.Boss || delay <= 0f)
 			{
@@ -214,14 +225,14 @@ namespace WitchMendokusai
 				return;
 			}
 			playerProvider.CurrentObject.GrantInvincibility(delay);
-			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(delay));
+			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(delay, true));
 		}
 
-		private IEnumerator EndDungeonAfterDelay(float delay)
+		private IEnumerator EndDungeonAfterDelay(float delay, bool isCleared)
 		{
 			yield return new WaitForSecondsRealtime(delay);
 			clearDelayRoutine = null;
-			EndDungeon(isCleared: true);
+			EndDungeon(isCleared);
 		}
 
 		public void EndDungeon(bool isCleared = true)

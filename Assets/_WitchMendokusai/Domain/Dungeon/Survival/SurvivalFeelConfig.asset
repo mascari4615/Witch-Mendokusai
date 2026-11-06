@@ -23,6 +23,7 @@ MonoBehaviour:
   EliteAuraInterval: 0.12
   EliteRingInterval: 0.9
   ImpactHeight: 0.6
+  ShardOriginSpread: 0.45
   ExpSoundsPerWindow: 3
   ExpSoundWindow: 0.1
   Hit:
@@ -135,7 +136,37 @@ MonoBehaviour:
     RingSize: 8
     RingLife: 0.6
     Color: {r: 1, g: 0.3, b: 0.3, a: 1}
+  Sword:
+    TargetRange: 9
+    ForwardBias: 2.5
+    FanDegrees: 35
+    ResonanceBurstEvery: 4
+    ResonanceBurstSlashes: 6
+    ResonanceBurstDamage: 10
+  ResonanceAwakening:
+    Shake: 0.6
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 80
+    ShardSpeed: 12
+    ShardLife: 0.9
+    ShardSize: 0.3
+    RingSize: 16
+    RingLife: 0.8
+    Color: {r: 0.6, g: 0.8, b: 1, a: 1}
+  ResonanceBurst:
+    Shake: 0.2
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 16
+    ShardSpeed: 8
+    ShardLife: 0.4
+    ShardSize: 0.2
+    RingSize: 9
+    RingLife: 0.35
+    Color: {r: 0.6, g: 0.8, b: 1, a: 1}
   BossClearResultDelay: 1
+  DefeatResultDelay: 1
   LevelUpPopScale: 1.35
   LevelUpPopTime: 0.28
   DefaultHitColor: {r: 1, g: 0.95, b: 0.8, a: 1}
@@ -156,13 +187,13 @@ MonoBehaviour:
   ExpGemTiers:
   - MinValue: 0
     Scale: 1
-    Color: {r: 0.45, g: 0.75, b: 1, a: 1}
+    Color: {r: 1, g: 1, b: 1, a: 1}
     Emission: 3
   - MinValue: 15
-    Scale: 1.35
-    Color: {r: 0.45, g: 1, b: 0.55, a: 1}
+    Scale: 1.25
+    Color: {r: 0.55, g: 1, b: 0.6, a: 1}
     Emission: 4
   - MinValue: 60
-    Scale: 1.8
-    Color: {r: 1, g: 0.35, b: 0.4, a: 1}
+    Scale: 1.5
+    Color: {r: 1, g: 0.5, b: 0.55, a: 1}
     Emission: 6

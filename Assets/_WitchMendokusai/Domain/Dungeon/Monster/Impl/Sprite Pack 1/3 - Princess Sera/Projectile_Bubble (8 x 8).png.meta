@@ -105,9 +105,9 @@ TextureImporter:
       name: Projectile_Bubble (8 x 8)_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 8
         y: 0
-        width: 16
+        width: 8
         height: 8
       alignment: 0
       pivot: {x: 0, y: 0}

@@ -6,16 +6,12 @@ namespace WitchMendokusai
 {
 	public class ExpObject : LootObject
 	{
-		private static readonly int BASE_COLOR_ID = Shader.PropertyToID("_BaseColor");
-		private static readonly int LEGACY_COLOR_ID = Shader.PropertyToID("_Color");
-		private static readonly int EMISSION_COLOR_ID = Shader.PropertyToID("_EmissionColor");
-
 		[SerializeField] private int amount;
+		[SerializeField] private SpriteRenderer spriteRenderer;
 		private int value;
 		private List<ExpObject> registry;
-		private MeshRenderer meshRenderer;
-		private Vector3 baseMeshScale;
-		private MaterialPropertyBlock properties;
+		private Vector3 baseSpriteScale;
+		private bool hasBaseSpriteScale;
 
 		public int BaseAmount => amount;
 		public int Value => value;
@@ -39,22 +35,17 @@ namespace WitchMendokusai
 
 		private void ApplyTier(SurvivalFeelConfig config)
 		{
-			if (meshRenderer == null)
+			if (hasBaseSpriteScale == false)
 			{
-				meshRenderer = GetComponentInChildren<MeshRenderer>(true);
-				baseMeshScale = meshRenderer.transform.localScale;
-				properties = new MaterialPropertyBlock();
+				baseSpriteScale = spriteRenderer.transform.localScale;
+				hasBaseSpriteScale = true;
 			}
 			ExpGemTier tier = config.ExpGemTiers[0];
 			foreach (ExpGemTier candidate in config.ExpGemTiers)
 				if (value >= candidate.MinValue)
 					tier = candidate;
-			meshRenderer.transform.localScale = baseMeshScale * tier.Scale;
-			meshRenderer.GetPropertyBlock(properties);
-			properties.SetColor(BASE_COLOR_ID, tier.Color);
-			properties.SetColor(LEGACY_COLOR_ID, tier.Color);
-			properties.SetColor(EMISSION_COLOR_ID, tier.Color * tier.Emission);
-			meshRenderer.SetPropertyBlock(properties);
+			spriteRenderer.transform.localScale = baseSpriteScale * tier.Scale;
+			spriteRenderer.color = tier.Color;
 		}
 
 		protected override void OnEffect()
@@ -65,6 +56,11 @@ namespace WitchMendokusai
 			if (feel != null && DungeonManagerBridge.IsDungeon)
 				feel.OnExpPicked(transform.position);
 			PlayerStat[UnitStatType.EXP_CUR] += value;
+		}
+
+		private void LateUpdate()
+		{
+			spriteRenderer.transform.rotation = Camera.main.transform.rotation;
 		}
 
 		protected override void OnDisable()

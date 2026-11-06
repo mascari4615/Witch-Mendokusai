@@ -66,6 +66,7 @@ namespace WitchMendokusai
 		[Min(0.1f), Tooltip("엘리트 주변 조각 주기")] public float EliteAuraInterval = 0.12f;
 		[Min(0.1f)] public float EliteRingInterval = 0.9f;
 		public float ImpactHeight = 0.6f;
+		[Min(0f), Tooltip("조각 시작 위치 흩어짐")] public float ShardOriginSpread = 0.45f;
 
 		[Header("Sound limit")]
 		[Min(1)] public int ExpSoundsPerWindow = 3;
@@ -90,6 +91,7 @@ namespace WitchMendokusai
 
 		[Header("Clear")]
 		[Min(0f), Tooltip("보스 클리어 뒤 결과창까지 실제 시간 초")] public float BossClearResultDelay = 1f;
+		[Min(0f), Tooltip("사망 뒤 결과창까지 실제 시간 초")] public float DefeatResultDelay = 1f;
 
 		[Header("Level up pop")]
 		[Min(1f)] public float LevelUpPopScale = 1.35f;

@@ -262,7 +262,7 @@ namespace WitchMendokusai
 			{
 				Vector3 direction = Random.onUnitSphere;
 				direction.y = Mathf.Abs(direction.y) * 0.6f;
-				emitParams.position = origin;
+				emitParams.position = origin + direction * (Config.ShardOriginSpread * Random.value);
 				emitParams.velocity = direction.normalized * (moment.ShardSpeed * Random.Range(0.5f, 1f));
 				emitParams.startSize = moment.ShardSize * Random.Range(0.6f, 1.2f);
 				system.Emit(emitParams, 1);

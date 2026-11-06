@@ -20,6 +20,7 @@ namespace WitchMendokusai
 		private DataManager dataManager;
 		private GameLogic gameLogic;
 		private EliteProfile eliteProfile;
+		private float hpBarWidth = 1f;
 
 		[Inject]
 		public void Construct(PlayerProvider playerProvider, SOManager soManager, DataManager dataManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator,
@@ -38,6 +39,7 @@ namespace WitchMendokusai
 				GroundGenerator.RegisterAnchor(UnitMovement);
 			SpriteRenderer.sharedMaterial = UnitData.Material;
 			ObjectBufferManager.AddObject(ObjectType.Monster, gameObject);
+			hpBarWidth = 1f;
 			hpBar.localScale = Vector3.one;
 			hpBar.gameObject.SetActive(false);
 
@@ -64,6 +66,8 @@ namespace WitchMendokusai
 			ApplyEliteHealth();
 			Health.SetScaleMultiplier(profile.ScaleMultiplier);
 			SpriteRenderer.color = profile.Tint;
+			hpBarWidth = profile.HpBarScale;
+			hpBar.localScale = new Vector3(hpBarWidth, 1, 1);
 			hpBar.gameObject.SetActive(true);
 			SurvivalFeel.Instance.RegisterElite(this);
 		}
@@ -119,7 +123,7 @@ namespace WitchMendokusai
 			}
 
 			// hpBar 갱신은 컨텍스트 무관(아레나 관전서도 체력 표시 유용).
-			hpBar.localScale = new Vector3((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX], 1, 1);
+			hpBar.localScale = new Vector3((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX] * hpBarWidth, 1, 1);
 			hpBar.gameObject.SetActive(true);
 		}
 
