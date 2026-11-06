@@ -13,8 +13,28 @@ namespace WitchMendokusai
 		public ItemSlot()
 		{
 			AddToClassList(ITEM_SLOT_CLASS);
+			AddToClassList(WMWindow.NAV_CLASS);
 			RegisterCallback<PointerDownEvent>(OnPointerDown);
 			RegisterCallback<PointerUpEvent>(OnPointerUp);
+			RegisterCallback<NavigationSubmitEvent>(OnSubmit);
+			RegisterCallback<FocusInEvent>(_ => MoveHoldingHere());
+		}
+
+		// Enter는 왼쪽 클릭과 동일. 집은 물건 표시는 선택 칸으로 이동
+		private void OnSubmit(NavigationSubmitEvent evt)
+		{
+			if (Inventory == null)
+				return;
+
+			HoldingManager.Instance.HandleSlotClick(this, Inventory, 0, 1);
+			MoveHoldingHere();
+			evt.StopPropagation();
+		}
+
+		private void MoveHoldingHere()
+		{
+			if (HoldingManager.TryGetExistingInstance(out HoldingManager holding) && holding.IsHolding)
+				holding.MoveOverlayTo(worldBound.center);
 		}
 
 		public void SetInventory(Inventory inventory) => Inventory = inventory;

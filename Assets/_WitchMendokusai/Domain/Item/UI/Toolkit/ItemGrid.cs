@@ -83,6 +83,16 @@ namespace WitchMendokusai
 			}
 		}
 
+		public VisualElement FirstVisibleSlot()
+		{
+			foreach (ItemSlot slot in slots)
+			{
+				if (slot.resolvedStyle.display != DisplayStyle.None)
+					return slot;
+			}
+			return null;
+		}
+
 		private bool ShouldShow(Item item)
 		{
 			if (filter == ItemType.None)

@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -9,6 +10,8 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private Image shopImage;
 		[SerializeField] private Image dollImage;
+		[SerializeField] private TextMeshProUGUI walletText;
+		[SerializeField] private UISelectionKeeper selectionKeeper;
 
 		private UIItemDataGrid shopInventoryUI;
 		private UIItemGrid itemInventoryUI;
@@ -35,6 +38,7 @@ namespace WitchMendokusai
 
 			shopInventoryUI.Init();
 			shopInventoryUI.SetPriceType(PriceType.Buy);
+			selectionKeeper.Fallback = shopInventoryUI.Slots[0].GetComponent<Selectable>();
 			foreach (UISlot slot in shopInventoryUI.Slots)
 			{
 				slot.SetClickAction((slot) =>
@@ -66,6 +70,7 @@ namespace WitchMendokusai
 		{
 			shopImage.sprite = npc.Data.Sprite;
 			dollImage.sprite = GetDoll(dataManager.CurDollID).Sprite;
+			walletText.text = $"{dataManager.GameStat[GameStatType.NYANG]:N0}냥";
 
 			shopInventoryUI.UpdateUI();
 			itemInventoryUI.UpdateUI();

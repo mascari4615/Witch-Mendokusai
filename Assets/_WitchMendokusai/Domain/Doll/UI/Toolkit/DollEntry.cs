@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		public DollEntry()
 		{
 			AddToClassList(USS_CLASS);
+			AddToClassList(WMWindow.NAV_CLASS);
 			focusable = true;
 			pickingMode = PickingMode.Position;
 

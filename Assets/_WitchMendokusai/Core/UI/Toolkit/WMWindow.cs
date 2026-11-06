@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -21,6 +22,9 @@ namespace WitchMendokusai
 		public const string USS_SIZE_TOGGLE = "wm-window__size-toggle";
 		public const string USS_SIZE_SMALL = "wm-window--small";
 		public const string USS_SIZE_LARGE = "wm-window--large";
+		public const string USS_LINE = "wm-window__line";
+		public const string USS_CORNER = "wm-window__corner";
+		public const string NAV_CLASS = "wm-nav";
 
 		[UxmlAttribute] public string WindowId { get; set; }
 		[UxmlAttribute] public string Title { get; set; }
@@ -29,6 +33,9 @@ namespace WitchMendokusai
 		public VisualElement Content { get; private set; }
 		public WindowSize CurrentSize { get; private set; } = WindowSize.Small;
 		public bool IsSizeToggleEnabled { get; private set; }
+
+		/// <summary>창이 열릴 때 키 선택을 줄 칸. 없으면 머리 줄 밖 첫 NAV_CLASS 칸.</summary>
+		public Func<VisualElement> InitialFocus { get; set; }
 
 		public event Action OnOpened = delegate { };
 		public event Action OnClosed = delegate { };
@@ -39,6 +46,10 @@ namespace WitchMendokusai
 		private readonly Button closeButton;
 		private Button sizeToggleButton;
 		private WindowManager windowManager;
+
+		[UxmlAttribute] public float NavOverlapTolerance { get; set; } = 4f;
+		[UxmlAttribute] public float NavAcrossWeight { get; set; } = 2f;
+		[UxmlAttribute] public long FocusDelayMs { get; set; } = 50;
 
 		public WMWindow()
 		{
@@ -66,6 +77,18 @@ namespace WitchMendokusai
 			Content.AddToClassList(USS_CONTENT);
 			Add(Content);
 
+			VisualElement line = new() { pickingMode = PickingMode.Ignore };
+			line.AddToClassList(USS_LINE);
+			Add(line);
+			VisualElement corner = new() { pickingMode = PickingMode.Ignore };
+			corner.AddToClassList(USS_CORNER);
+			Add(corner);
+
+			closeButton.AddToClassList(NAV_CLASS);
+			RegisterCallback<NavigationMoveEvent>(OnNavigationMove, TrickleDown.TrickleDown);
+			RegisterCallback<FocusInEvent>(evt => windowManager?.SetNavigating(evt.target is VisualElement element && element.ClassListContains(NAV_CLASS)));
+			RegisterCallback<FocusOutEvent>(_ => windowManager?.SetNavigating(false));
+
 			header.AddManipulator(new WMWindowDragManipulator(this));
 
 			RegisterCallback<PointerDownEvent>(_ => BringToFront());
@@ -77,7 +100,7 @@ namespace WitchMendokusai
 
 		private void OnAttached(AttachToPanelEvent evt)
 		{
-			titleLabel.text = Title ?? string.Empty;
+			titleLabel.text = string.IsNullOrEmpty(Title) ? string.Empty : $"< {Title} >";
 			// TASK-WM-133 — panel-root owner-push 된 WindowManager 를 attach 시
 			// 1회 해결·캐싱(Core IUIWindowServices facet). detach 시 조상 walk
 			// 불가 타이밍 안전. static Instance reach 제거.
@@ -98,10 +121,13 @@ namespace WitchMendokusai
 			SetVisibleInternal(true);
 			BringToFront();
 			OnOpened.Invoke();
+			schedule.Execute(FocusInitial).ExecuteLater(FocusDelayMs);
 		}
 
 		public void Close()
 		{
+			if (focusController?.focusedElement is VisualElement focused && Contains(focused))
+				focused.Blur();
 			SavePosition();
 			SetVisibleInternal(false);
 			OnClosed.Invoke();
@@ -116,6 +142,61 @@ namespace WitchMendokusai
 		}
 
 		public void OnDragEnd() => SavePosition();
+
+		private List<VisualElement> CollectNavigable()
+		{
+			List<VisualElement> result = new();
+			this.Query<VisualElement>(className: NAV_CLASS).ForEach(element =>
+			{
+				if (element.enabledInHierarchy && element.resolvedStyle.display != DisplayStyle.None && element.worldBound.width > 0f)
+					result.Add(element);
+			});
+			return result;
+		}
+
+		private void FocusInitial()
+		{
+			if (IsOpen == false)
+				return;
+			VisualElement target = InitialFocus?.Invoke();
+			if (target != null)
+			{
+				target.Focus();
+				return;
+			}
+			foreach (VisualElement candidate in CollectNavigable())
+			{
+				if (header.Contains(candidate) == false)
+				{
+					candidate.Focus();
+					return;
+				}
+			}
+		}
+
+		// 표시된 칸이 없는 창은 기본 이동 유지. 칸이 있으면 창 밖으로 포커스가 나가지 않음
+		private void OnNavigationMove(NavigationMoveEvent evt)
+		{
+			List<VisualElement> candidates = CollectNavigable();
+			if (candidates.Count == 0)
+				return;
+
+			evt.StopPropagation();
+			focusController?.IgnoreEvent(evt);
+
+			VisualElement current = focusController?.focusedElement as VisualElement;
+			if (current == null || candidates.Contains(current) == false)
+			{
+				FocusInitial();
+				return;
+			}
+
+			VisualElement next = WMFocusNavigation.FindNext(current, candidates, evt.direction, NavOverlapTolerance, NavAcrossWeight);
+			if (next == null)
+				return;
+			next.Focus();
+			next.GetFirstAncestorOfType<ScrollView>()?.ScrollTo(next);
+		}
 
 		private void SetVisibleInternal(bool visible)
 		{

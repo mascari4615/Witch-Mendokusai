@@ -38,7 +38,21 @@ namespace WitchMendokusai
 
 			RegisterCallback<PointerEnterEvent>(OnPointerEnterTooltip);
 			RegisterCallback<PointerLeaveEvent>(OnPointerLeaveTooltip);
+			RegisterCallback<FocusInEvent>(OnFocusInTooltip);
+			RegisterCallback<FocusOutEvent>(OnFocusOutTooltip);
 		}
+
+		// 키 선택 툴팁. 칸 오른쪽 위 고정
+		private void OnFocusInTooltip(FocusInEvent _)
+		{
+			if (tooltipData == null || panel == null)
+				return;
+			float screenScale = Screen.width / panel.visualTree.layout.width;
+			Vector2 screenPosition = new(worldBound.xMax * screenScale, Screen.height - worldBound.yMin * screenScale);
+			this.GetUIServices()?.Tooltip?.ShowAnchored(tooltipData, screenPosition);
+		}
+
+		private void OnFocusOutTooltip(FocusOutEvent _) => this.GetUIServices()?.Tooltip?.Hide();
 
 		public void SetTooltipData(object data) => tooltipData = data;
 

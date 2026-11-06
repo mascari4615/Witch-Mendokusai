@@ -11,6 +11,9 @@ namespace WitchMendokusai
 		public const string USS_SECTION = "wm-doll-detail__section";
 		public const string USS_SECTION_LABEL = "wm-doll-detail__section-label";
 		public const string USS_SIGNATURE_SLOT = "wm-doll-detail__signature";
+		public const string USS_SIGNATURE_ROW = "wm-doll-detail__signature-row";
+		public const string USS_SIGNATURE_NAME = "wm-doll-detail__signature-name";
+		public const string USS_SELECT_BUTTON = "wm-doll-detail__select";
 
 		private readonly Label nameLabel;
 		private readonly Label levelLabel;
@@ -51,6 +54,8 @@ namespace WitchMendokusai
 			Add(equipmentSection);
 
 			selectButton = new Button(OnSelectClicked) { text = "이 인형으로 전환" };
+			selectButton.AddToClassList(USS_SELECT_BUTTON);
+			selectButton.AddToClassList(WMWindow.NAV_CLASS);
 			Add(selectButton);
 
 			equipmentInventory = ScriptableObject.CreateInstance<DollEquipmentInventory>();
@@ -85,11 +90,16 @@ namespace WitchMendokusai
 			icon.pickingMode = PickingMode.Ignore;
 			slot.Add(icon);
 
-			Label name = new();
-			name.pickingMode = PickingMode.Ignore;
-			slot.Add(name);
+			VisualElement row = new();
+			row.AddToClassList(USS_SIGNATURE_ROW);
+			row.Add(slot);
 
-			section.Add(slot);
+			Label name = new();
+			name.AddToClassList(USS_SIGNATURE_NAME);
+			name.pickingMode = PickingMode.Ignore;
+			row.Add(name);
+
+			section.Add(row);
 
 			slotElement = slot;
 			iconElement = icon;

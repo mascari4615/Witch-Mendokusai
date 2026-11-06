@@ -38,6 +38,7 @@ namespace WitchMendokusai
 
 		private bool isShow;
 		private float disappearTimer;
+		private Vector2? anchorPosition;
 
 		private float toolTipWidth;
 		private float toolTipHeight;
@@ -64,8 +65,17 @@ namespace WitchMendokusai
 				Instance = null;
 		}
 
+		public void ShowAt(SlotData slotData, Vector2 screenPosition)
+		{
+			anchorPosition = screenPosition;
+			popupToolTip.SetToolTipContent(slotData);
+			popupToolTip.transform.position = GetVec();
+			isShow = true;
+		}
+
 		public void Show(SlotData slotData)
 		{
+			anchorPosition = null;
 			popupToolTip.SetToolTipContent(slotData);
 			popupToolTip.transform.position = GetVec();
 			isShow = true;
@@ -93,7 +103,7 @@ namespace WitchMendokusai
 
 		private Vector3 GetVec()
 		{
-			Vector2 mousePos = inputManager.MouseScreenPosition;
+			Vector2 mousePos = anchorPosition ?? inputManager.MouseScreenPosition;
 			return new Vector3(
 				Mathf.Clamp(mousePos.x, toolTipWidth / 2 + screenPadding, Screen.width - toolTipWidth / 2 - screenPadding),
 				Mathf.Clamp(mousePos.y + cursorVerticalOffset, screenPadding, Screen.height - toolTipHeight - screenPadding), 0);

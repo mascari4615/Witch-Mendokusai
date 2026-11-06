@@ -187,54 +187,13 @@ namespace WitchMendokusai
 			return result;
 		}
 
-		// 방향으로 가장 가까운 칸. 진행 방향 거리와 수직 어긋남을 합산
+		// 탭 줄 밖에서 위로 오면 현재 탭으로만 진입
 		private VisualElement FindNext(VisualElement current, NavigationMoveEvent.Direction direction)
 		{
-			Rect from = current.worldBound;
-			VisualElement best = null;
-			float bestScore = float.MaxValue;
-			foreach (VisualElement candidate in CollectCandidates())
-			{
-				if (candidate == current)
-					continue;
-				// 탭 줄 밖에서 위로 오면 현재 탭으로만 진입
-				bool isOtherTab = candidate.ClassListContains("wm-setting-tab") && candidate != tabButtons[currentTabKey];
-				if (isOtherTab && current.ClassListContains("wm-setting-tab") == false)
-					continue;
-				Rect to = candidate.worldBound;
-				float along;
-				float across;
-				switch (direction)
-				{
-					case NavigationMoveEvent.Direction.Up:
-						along = from.yMin - to.yMax;
-						across = Mathf.Abs(from.center.x - to.center.x);
-						break;
-					case NavigationMoveEvent.Direction.Down:
-						along = to.yMin - from.yMax;
-						across = Mathf.Abs(from.center.x - to.center.x);
-						break;
-					case NavigationMoveEvent.Direction.Left:
-						along = from.xMin - to.xMax;
-						across = Mathf.Abs(from.center.y - to.center.y);
-						break;
-					case NavigationMoveEvent.Direction.Right:
-						along = to.xMin - from.xMax;
-						across = Mathf.Abs(from.center.y - to.center.y);
-						break;
-					default:
-						continue;
-				}
-				if (along < -navOverlapTolerance)
-					continue;
-				float score = along + across * navAcrossWeight;
-				if (score < bestScore)
-				{
-					bestScore = score;
-					best = candidate;
-				}
-			}
-			return best;
+			List<VisualElement> candidates = CollectCandidates();
+			if (current.ClassListContains("wm-setting-tab") == false)
+				candidates.RemoveAll(candidate => candidate.ClassListContains("wm-setting-tab") && candidate != tabButtons[currentTabKey]);
+			return WMFocusNavigation.FindNext(current, candidates, direction, navOverlapTolerance, navAcrossWeight);
 		}
 	}
 }

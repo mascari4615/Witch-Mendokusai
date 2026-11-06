@@ -37,6 +37,7 @@ namespace WitchMendokusai
 				userData = type
 			};
 			button.AddToClassList(BUTTON_CLASS);
+			button.AddToClassList(WMWindow.NAV_CLASS);
 			Add(button);
 		}
 

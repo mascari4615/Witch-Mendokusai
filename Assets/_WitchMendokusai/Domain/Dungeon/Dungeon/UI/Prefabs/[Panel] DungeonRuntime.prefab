@@ -7283,7 +7283,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &3825632391369086171
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7322,8 +7322,6 @@ MonoBehaviour:
   canvasGroup: {fileID: 6983928673815525752}
   hpBarText: {fileID: 5666881289170910122}
   nameText: {fileID: 5782601208654123439}
-  disableOnDied: 1
-  lastHitEnemyObject: {fileID: 11400000, guid: 02651b9ff301b0e4fac2091ae8860410, type: 2}
 --- !u!225 &6983928673815525752
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -7332,7 +7330,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5949154928456960534}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0

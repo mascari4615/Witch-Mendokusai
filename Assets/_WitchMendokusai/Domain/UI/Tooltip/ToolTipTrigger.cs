@@ -5,7 +5,7 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	public class ToolTipTrigger : MonoBehaviour, IPointerExitHandler, IPointerEnterHandler
+	public class ToolTipTrigger : MonoBehaviour, IPointerExitHandler, IPointerEnterHandler, ISelectHandler, IDeselectHandler
 	{
 		[field: SerializeField] public ToolTip ClickToolTip { get; private set; }
 		[SerializeField] private bool usePopupToolTip = true;
@@ -13,6 +13,8 @@ namespace WitchMendokusai
 		private SlotData slotData;
 
 		private bool isPopupTooltipShowingThis = false;
+		[SerializeField] private bool showOnSelect = false;
+		private readonly Vector3[] corners = new Vector3[4];
 
 		private ToolTipPopupManager toolTipPopupManager;
 
@@ -27,6 +29,25 @@ namespace WitchMendokusai
 		public void SetToolTipContent(SlotData slotData)
 		{
 			this.slotData = slotData;
+		}
+
+		public void OnSelect(BaseEventData eventData)
+		{
+			if (showOnSelect == false || slotData == null || slotData.IsEmpty)
+				return;
+
+			((RectTransform)transform).GetWorldCorners(corners);
+			toolTipPopupManager.ShowAt(slotData, (corners[1] + corners[2]) * 0.5f);
+			isPopupTooltipShowingThis = true;
+		}
+
+		public void OnDeselect(BaseEventData eventData)
+		{
+			if (showOnSelect == false || isPopupTooltipShowingThis == false)
+				return;
+
+			toolTipPopupManager.Hide();
+			isPopupTooltipShowingThis = false;
 		}
 
 		public void OnPointerEnter(PointerEventData eventData)

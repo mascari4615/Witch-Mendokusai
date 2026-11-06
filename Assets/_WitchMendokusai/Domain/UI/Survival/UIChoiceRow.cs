@@ -18,6 +18,11 @@ namespace WitchMendokusai
 		[SerializeField] private float appearDuration = 0.22f;
 		[SerializeField] private float confirmBrightness = 2.2f;
 		[SerializeField] private float confirmDuration = 0.2f;
+		[SerializeField] private RectTransform sheen;
+		[SerializeField] private float sheenWidthRatio = 0.18f;
+		[SerializeField] private float sheenStartRatio = -0.3f;
+		[SerializeField] private float sheenEndRatio = 1.15f;
+		[SerializeField] private float sheenDuration = 0.34f;
 
 		private RectTransform content;
 		private bool isSelected;
@@ -59,6 +64,21 @@ namespace WitchMendokusai
 		{
 			isSelected = true;
 			Apply();
+			PlaySheen();
+		}
+
+		// 선택 때 띠 위를 한 번 지나는 빛 줄
+		private void PlaySheen()
+		{
+			if (UIEffects.Enabled == false)
+				return;
+			float bandWidth = ((RectTransform)band.transform).rect.width;
+			sheen.DOKill();
+			sheen.gameObject.SetActive(true);
+			sheen.sizeDelta = new Vector2(bandWidth * sheenWidthRatio, sheen.sizeDelta.y);
+			sheen.anchoredPosition = new Vector2(bandWidth * sheenStartRatio, sheen.anchoredPosition.y);
+			sheen.DOAnchorPosX(bandWidth * sheenEndRatio, sheenDuration).SetEase(Ease.OutQuad).SetUpdate(true).SetTarget(sheen)
+				.OnComplete(() => sheen.gameObject.SetActive(false));
 		}
 
 		public void OnDeselect(BaseEventData eventData)
@@ -78,6 +98,8 @@ namespace WitchMendokusai
 		private void OnDisable()
 		{
 			band.DOKill();
+			sheen.DOKill();
+			sheen.gameObject.SetActive(false);
 			isSelected = false;
 		}
 

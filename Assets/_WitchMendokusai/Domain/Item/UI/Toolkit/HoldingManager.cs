@@ -24,6 +24,7 @@ namespace WitchMendokusai
 		private float lastClickTime;
 		private ItemSlot lastClickSlot;
 		private ItemSlot pressedSlot;
+		private Vector2 lastPointerPosition;
 
 		public bool IsHolding => holdingItem != null;
 
@@ -51,7 +52,15 @@ namespace WitchMendokusai
 				overlay = null;
 		}
 
-		public void OnPointerMove(Vector2 panelPosition) => overlay?.FollowPointer(panelPosition);
+		public void OnPointerMove(Vector2 panelPosition)
+		{
+			if (panelPosition == lastPointerPosition)
+				return;
+			lastPointerPosition = panelPosition;
+			overlay?.FollowPointer(panelPosition);
+		}
+
+		public void MoveOverlayTo(Vector2 panelPosition) => overlay?.FollowPointer(panelPosition);
 
 		public void HandleSlotClick(ItemSlot slot, Inventory inventory, int button, int clickCount)
 		{

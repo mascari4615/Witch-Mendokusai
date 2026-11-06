@@ -48,6 +48,8 @@ namespace WitchMendokusai
 		public void Close(string windowId) => Find(windowId)?.Close();
 		public void Toggle(string windowId) => Find(windowId)?.Toggle();
 
+		public void SetNavigating(bool isNavigating) => inputManager.IsMoveSuppressed = isNavigating;
+
 		public WMWindow GetTopmostOpen()
 		{
 			for (int i = windows.Count - 1; i >= 0; i--)

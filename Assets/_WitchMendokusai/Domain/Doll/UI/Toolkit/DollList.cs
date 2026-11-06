@@ -64,6 +64,7 @@ namespace WitchMendokusai
 			{
 				DollEntry entry = new();
 				entry.RegisterCallback<PointerDownEvent>(_ => Select(entry));
+				entry.RegisterCallback<FocusInEvent>(_ => Select(entry));
 				scrollView.Add(entry);
 				entries.Add(entry);
 			}
@@ -107,8 +108,13 @@ namespace WitchMendokusai
 			Select(FindFirstSelectable());
 		}
 
+		public VisualElement SelectedElement => selectedEntry;
+
 		private void Select(DollEntry entry)
 		{
+			if (entry == selectedEntry)
+				return;
+
 			if (selectedEntry != null)
 				selectedEntry.SetSelected(false);
 

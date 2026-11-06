@@ -42,6 +42,8 @@ namespace WitchMendokusai
 		private int showingSlotCount = 0;
 		private int flag = 0;
 
+		[SerializeField] private SurvivalUITheme theme;
+
 		private SOManager soManager;
 
 		[Inject]
@@ -135,7 +137,7 @@ namespace WitchMendokusai
 		
 			{
 				// 진입 애니메이션
-				Color targetColor = Color.white * (225f / 256f);
+				Color targetColor = theme.Style(SurvivalUIKind.Count).Main;
 				canvasGroup.DOFade(1, ANIM_TIME).SetUpdate(true);
 				image.DOColor(targetColor, ANIM_TIME).SetUpdate(true);
 				yield return targetSlot.transform.DOScale(Vector3.one * 1.2f, ANIM_TIME).SetUpdate(true).WaitForCompletion();

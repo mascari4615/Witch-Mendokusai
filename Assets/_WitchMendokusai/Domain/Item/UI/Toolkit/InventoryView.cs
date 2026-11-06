@@ -53,6 +53,7 @@ namespace WitchMendokusai
 
 			Inventory bound = inventory != null ? inventory : soManager.ItemInventory;
 			grid.Bind(bound);
+			window.InitialFocus = grid.FirstVisibleSlot;
 
 			inputManager.RegisterInputEvent(InputEventType.Inventory, InputEventResponseType.Performed, OnToggle);
 		}

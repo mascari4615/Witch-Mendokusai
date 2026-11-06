@@ -128,6 +128,9 @@ namespace WitchMendokusai
 			VisualElement panelLine = new VisualElement { pickingMode = PickingMode.Ignore };
 			panelLine.AddToClassList("wm-setting-panel__line");
 			panel.Add(panelLine);
+			VisualElement panelCorner = new VisualElement { pickingMode = PickingMode.Ignore };
+			panelCorner.AddToClassList("wm-setting-panel__corner");
+			panel.Add(panelCorner);
 
 			sidebar = new VisualElement();
 			sidebar.AddToClassList("wm-setting-tabs");
@@ -302,7 +305,21 @@ namespace WitchMendokusai
 			slider.AddToClassList("wm-setting-slider");
 			slider.AddToClassList(NAV_CLASS);
 			slider.fill = true;
+			slider.RegisterCallback<GeometryChangedEvent>(AddSliderTile);
 			return slider;
+		}
+
+		// fill 요소는 첫 배치 때 생성
+		private static void AddSliderTile(GeometryChangedEvent evt)
+		{
+			Slider slider = (Slider)evt.target;
+			VisualElement fillElement = UQueryExtensions.Q(slider, null, "unity-base-slider__fill");
+			if (fillElement == null)
+				return;
+			slider.UnregisterCallback<GeometryChangedEvent>(AddSliderTile);
+			VisualElement tile = new VisualElement { pickingMode = PickingMode.Ignore };
+			tile.AddToClassList("wm-setting-slider__tile");
+			fillElement.Add(tile);
 		}
 
 		private void OnDungeonExit()

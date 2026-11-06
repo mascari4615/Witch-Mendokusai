@@ -13,6 +13,8 @@ namespace WitchMendokusai
 	public partial class InputManager : MonoBehaviour
 	{
 		public Vector2 MoveInput { get; private set; }
+		// 키로 창 칸을 고르는 동안 방향 키가 캐릭터를 움직이지 않게 막음
+		public bool IsMoveSuppressed { get; set; }
 		public float CameraRotateInput { get; private set; }
 		// TASK-WM-163 — MouseLook 모드 시야 회전용 마우스 델타 (픽셀/프레임).
 		// 캡슐화 경계(InputManager) 내부에서 Mouse.current 직접 read — UpdateMoveInput 패턴과 동일.
@@ -32,6 +34,12 @@ namespace WitchMendokusai
 			if (CurrentInputStrategy != null &&
 				CurrentInputStrategy.TryGetAxisReturnConditions(InputAxisType.Move, out GameConditionType[] conditions) &&
 				GameConditionBridge.IsGameConditionAny(conditions))
+			{
+				MoveInput = Vector2.zero;
+				return;
+			}
+
+			if (IsMoveSuppressed)
 			{
 				MoveInput = Vector2.zero;
 				return;

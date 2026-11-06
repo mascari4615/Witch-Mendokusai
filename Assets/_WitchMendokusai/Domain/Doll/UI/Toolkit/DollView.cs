@@ -58,6 +58,7 @@ namespace WitchMendokusai
 
 			dollList.Bind(soManager.DollBuffer);
 			dollList.SelectDoll(dataManager.CurDollID);
+			window.InitialFocus = () => dollList.SelectedElement;
 
 			inputManager.RegisterInputEvent(InputEventType.DollToggle, InputEventResponseType.Performed, OnToggle);
 		}
