@@ -12,11 +12,18 @@ namespace WitchMendokusai
 		// 패널이 튀어나오는 시간.
 		[SerializeField] private float openAnimDuration = 0.5f;
 		[SerializeField] private UIDeckTabs deckTabs;
+		[SerializeField] private UICardChoiceActions actions;
+		[SerializeField] private UIEvolutionStrip evolutionStrip;
+		[SerializeField] private UIChestReward chestReward;
 
 		public override bool IsFullscreen => true;
 
 		public override void UpdateUI()
 		{
+			CardManager cardManager = PanelGroup as CardManager;
+			evolutionStrip.Set(cardManager.GetEvolutionProgress());
+			actions.ExitBanMode();
+			actions.Refresh();
 			deckPanelContent.localScale = Vector3.zero;
 			deckPanelContent.DOScale(Vector3.one, openAnimDuration).SetEase(Ease.OutBack).SetUpdate(true);
 
@@ -30,12 +37,20 @@ namespace WitchMendokusai
 		protected override void OnInit()
 		{
 			CardManager cardManager = PanelGroup as CardManager;
+			actions.Init(cardManager);
+			chestReward.Bind(cardManager);
 			for (int i = 0; i < cardSelectButtons.Count; i++)
 			{
 				// cardSelectAction: (slot) => { SelectCard(cardSlots[i].Artifact as Card); }
 				// 원래 위 코드를 썼는데, 클로저 문제로 인해 아래처럼 바꿈
 				cardSelectButtons[i].Init();
-				cardSelectButtons[i].SetClickAction((slot) => { cardManager.SelectCard(slot.DataSO as CardData); });
+				cardSelectButtons[i].SetClickAction((slot) =>
+				{
+					if (actions.IsBanMode)
+						cardManager.BanCard(slot.DataSO as CardData);
+					else
+						cardManager.SelectCard(slot.DataSO as CardData);
+				});
 				cardSelectButtons[i].SetSelectAction((slot) =>
 				{
 					if (slot.DataSO is CardData card)
@@ -46,6 +61,8 @@ namespace WitchMendokusai
 		
 		private void ApplyNavigation(int count)
 		{
+			actions.Refresh();
+			actions.SetUpTarget(cardSelectButtons[0].Selectable);
 			for (int i = 0; i < count && i < cardSelectButtons.Count; i++)
 			{
 				cardSelectButtons[i].SetNavigation(new Navigation
@@ -53,6 +70,7 @@ namespace WitchMendokusai
 					mode = Navigation.Mode.Explicit,
 					selectOnLeft = i > 0 ? cardSelectButtons[i - 1].Selectable : null,
 					selectOnRight = i < count - 1 ? cardSelectButtons[i + 1].Selectable : deckTabs.CurrentTabButton,
+					selectOnDown = actions.FirstEnabled,
 				});
 			}
 			deckTabs.SetCardNeighbor(cardSelectButtons[Mathf.Min(count, cardSelectButtons.Count) - 1].Selectable);
