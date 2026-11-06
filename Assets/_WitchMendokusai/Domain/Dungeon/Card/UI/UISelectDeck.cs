@@ -46,6 +46,10 @@ namespace WitchMendokusai
 			}
 		}
 
+		private void OnEnable() => UIHideWhileChatting.Request(this, true);
+
+		private void OnDisable() => UIHideWhileChatting.Request(this, false);
+
 		private void ApplyNavigation()
 		{
 			List<UISlot> visible = deckSelectButtons.FindAll(button => button.gameObject.activeInHierarchy);

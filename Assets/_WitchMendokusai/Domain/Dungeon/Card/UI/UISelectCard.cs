@@ -23,7 +23,7 @@ namespace WitchMendokusai
 			CardManager cardManager = PanelGroup as CardManager;
 			evolutionStrip.Set(cardManager.GetEvolutionProgress());
 			actions.ExitBanMode();
-			actions.Refresh();
+			ApplyNavigation(cardManager.OfferedCardCount);
 			deckPanelContent.localScale = Vector3.zero;
 			deckPanelContent.DOScale(Vector3.one, openAnimDuration).SetEase(Ease.OutBack).SetUpdate(true);
 
@@ -59,6 +59,10 @@ namespace WitchMendokusai
 			}
 		}
 		
+		private void OnEnable() => UIHideWhileChatting.Request(this, true);
+
+		private void OnDisable() => UIHideWhileChatting.Request(this, false);
+
 		private void ApplyNavigation(int count)
 		{
 			actions.Refresh();

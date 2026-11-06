@@ -42,6 +42,7 @@ namespace WitchMendokusai
 		public int BansLeft { get; private set; }
 		public bool IsChestOpen => isChestOpen;
 		public int PendingChestCount => pendingChestCount;
+		public int OfferedCardCount => offeredCards.Count;
 
 		public bool CanReroll => CurPanelType == CardPanelType.SelectCard && RerollsLeft > 0 && AvailableCards(curDeckIndex).Count > offeredCards.Count;
 		public bool CanSkip => (CurPanelType == CardPanelType.SelectDeck || CurPanelType == CardPanelType.SelectCard) && SkipsLeft > 0;

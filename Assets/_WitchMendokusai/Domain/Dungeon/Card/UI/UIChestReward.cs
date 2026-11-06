@@ -42,6 +42,7 @@ namespace WitchMendokusai
 		{
 			EventBusBridge.Unsubscribe<ChestOpenedEvent>(OnChestOpened);
 			EventBusBridge.Unsubscribe<ChestClosedEvent>(OnChestClosed);
+			UIHideWhileChatting.Request(this, false);
 		}
 
 		private void Update()
@@ -55,7 +56,11 @@ namespace WitchMendokusai
 
 		private void Close() => cardManager.CloseChest();
 
-		private void OnChestClosed(ChestClosedEvent closedEvent) => content.SetActive(false);
+		private void OnChestClosed(ChestClosedEvent closedEvent)
+		{
+			content.SetActive(false);
+			UIHideWhileChatting.Request(this, false);
+		}
 
 		private void OnChestOpened(ChestOpenedEvent openedEvent)
 		{
@@ -64,6 +69,7 @@ namespace WitchMendokusai
 			cells.Clear();
 
 			content.SetActive(true);
+			UIHideWhileChatting.Request(this, true);
 			autoCloseSeconds = openedEvent.AutoCloseSeconds;
 			openedAt = Time.unscaledTime;
 			closeTimer.gameObject.SetActive(autoCloseSeconds > 0f);
