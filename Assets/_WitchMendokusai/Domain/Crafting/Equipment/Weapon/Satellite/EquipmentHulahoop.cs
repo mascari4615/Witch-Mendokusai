@@ -10,7 +10,14 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject satellitePrefab;
 		[SerializeField] private float originRotateSpeed = 3;
 
+		[Header("Stat")]
+		[SerializeField] private UnitStatType countStat = UnitStatType.SATELLITE_COUNT;
+		[SerializeField] private UnitStatType rotateSpeedBonusStat = UnitStatType.SATELLITE_ROTATE_SPEED_BONUS;
+		[SerializeField] private UnitStatType damageBonusStat = UnitStatType.SATELLITE_DAMAGE_BONUS;
+		[SerializeField] private UnitStatType scaleBonusStat = UnitStatType.SATELLITE_SCALE_BONUS;
+
 		private readonly List<DamagingObject> satellites = new();
+		private readonly List<Transform> satelliteRoots = new();
 		private float rotateSpeed;
 
 		private PlayerProvider playerProvider;
@@ -27,10 +34,10 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
-			PlayerStat.AddListener(UnitStatType.SATELLITE_COUNT, UpdateSatellite);
-			PlayerStat.AddListener(UnitStatType.SATELLITE_ROTATE_SPEED_BONUS, UpdateRotationSpeed);
-			PlayerStat.AddListener(UnitStatType.SATELLITE_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.AddListener(UnitStatType.SATELLITE_SCALE_BONUS, UpdateSatelliteScale);
+			PlayerStat.AddListener(countStat, UpdateSatellite);
+			PlayerStat.AddListener(rotateSpeedBonusStat, UpdateRotationSpeed);
+			PlayerStat.AddListener(damageBonusStat, UpdateDamageBonus);
+			PlayerStat.AddListener(scaleBonusStat, UpdateSatelliteScale);
 			UpdateSatellite();
 			UpdateRotationSpeed();
 			UpdateDamageBonus();
@@ -39,10 +46,10 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
-			PlayerStat.RemoveListener(UnitStatType.SATELLITE_COUNT, UpdateSatellite);
-			PlayerStat.RemoveListener(UnitStatType.SATELLITE_ROTATE_SPEED_BONUS, UpdateRotationSpeed);
-			PlayerStat.RemoveListener(UnitStatType.SATELLITE_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.RemoveListener(UnitStatType.SATELLITE_SCALE_BONUS, UpdateSatelliteScale);
+			PlayerStat.RemoveListener(countStat, UpdateSatellite);
+			PlayerStat.RemoveListener(rotateSpeedBonusStat, UpdateRotationSpeed);
+			PlayerStat.RemoveListener(damageBonusStat, UpdateDamageBonus);
+			PlayerStat.RemoveListener(scaleBonusStat, UpdateSatelliteScale);
 		}
 
 		private void Update()
@@ -54,11 +61,12 @@ namespace WitchMendokusai
 		public override void InitContext(SkillObject skillObject)
 		{
 			satellites.Clear();
+			satelliteRoots.Clear();
 		}
 
 		private void UpdateSatellite()
 		{
-			int satelliteCount = 1 + PlayerStat[UnitStatType.SATELLITE_COUNT];
+			int satelliteCount = 1 + PlayerStat[countStat];
 
 			if (satellites.Count < satelliteCount)
 			{
@@ -69,6 +77,7 @@ namespace WitchMendokusai
 					g.transform.SetParent(transform);
 					g.transform.localPosition = Vector3.zero;
 					g.SetActive(true);
+					satelliteRoots.Add(g.transform);
 
 					DamagingObject damagingObject = g.GetComponentInChildren<DamagingObject>(true);
 					if (damagingObject != null)
@@ -77,9 +86,9 @@ namespace WitchMendokusai
 			}
 
 			float delta = 360f / satelliteCount;
-			for (int i = 0; i < transform.childCount; i++)
+			for (int i = 0; i < satelliteRoots.Count; i++)
 			{
-				transform.GetChild(i).transform.localRotation = Quaternion.Euler(Vector3.up * (delta * i));
+				satelliteRoots[i].localRotation = Quaternion.Euler(Vector3.up * (delta * i));
 			}
 			// 수 증가로 새로 생긴 위성에도 이미 선택한 강화 적용
 			UpdateDamageBonus();
@@ -88,19 +97,19 @@ namespace WitchMendokusai
 
 		private void UpdateRotationSpeed()
 		{
-			rotateSpeed = originRotateSpeed * (1 + PlayerStat[UnitStatType.SATELLITE_ROTATE_SPEED_BONUS] * .3f);
+			rotateSpeed = originRotateSpeed * (1 + PlayerStat[rotateSpeedBonusStat] * .3f);
 		}
 
 		private void UpdateDamageBonus()
 		{
 			foreach (DamagingObject satellite in satellites)
-				satellite.SetDamageBonus(PlayerStat[UnitStatType.SATELLITE_DAMAGE_BONUS]);
+				satellite.SetDamageBonus(PlayerStat[damageBonusStat]);
 		}
 
 		private void UpdateSatelliteScale()
 		{
 			foreach (DamagingObject satellite in satellites)
-				satellite.transform.localScale = Vector3.one * (1 + PlayerStat[UnitStatType.SATELLITE_SCALE_BONUS] * .2f);
+				satellite.transform.localScale = Vector3.one * (1 + PlayerStat[scaleBonusStat] * .2f);
 		}
 	}
 }

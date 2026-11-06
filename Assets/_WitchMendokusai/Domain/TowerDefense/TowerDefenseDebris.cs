@@ -90,7 +90,7 @@ namespace WitchMendokusai
 					continue;
 
 				// 짧게 계속 새로 걸어준다 — 밟고 있는 동안만 느리고 벗어나면 곧 회복된다.
-				TowerDefenseSlow.Apply(combatant.UnitObject, 1f - slowFactor, 0.4f);
+				UnitSlow.Apply(combatant.UnitObject, 1f - slowFactor, 0.4f);
 			}
 		}
 	}

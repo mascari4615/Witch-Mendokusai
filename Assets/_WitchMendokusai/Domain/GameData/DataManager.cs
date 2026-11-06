@@ -131,7 +131,8 @@ namespace WitchMendokusai
 
 			foreach (Item item in doll.Equipment)
 			{
-				equipmentData.Add(item?.Data as EquipmentData);
+				EquipmentData equipment = item?.Data as EquipmentData;
+				equipmentData.Add(equipmentData.Contains(equipment) ? null : equipment);
 			}
 
 			return equipmentData;

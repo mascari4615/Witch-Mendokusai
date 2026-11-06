@@ -239,7 +239,7 @@ namespace WitchMendokusai
 			if (combatant == null || combatant.UnitObject == null)
 				return false;
 
-			TowerDefenseSlow slow = combatant.UnitObject.GetComponent<TowerDefenseSlow>();
+			UnitSlow slow = combatant.UnitObject.GetComponent<UnitSlow>();
 			return slow != null && slow.IsActive;
 		}
 
@@ -347,7 +347,7 @@ namespace WitchMendokusai
 			{
 				// 둔화 저항 — 통하되 예전만큼은 아니게(상한 절반, 봉인 X).
 				float resisted = archetype.SlowFactor * (1f - CurrentAdaptation().SlowResist);
-				TowerDefenseSlow.Apply(combatant.UnitObject, resisted, archetype.SlowSeconds);
+				UnitSlow.Apply(combatant.UnitObject, resisted, archetype.SlowSeconds);
 				SlowApplied++;
 			}
 		}
