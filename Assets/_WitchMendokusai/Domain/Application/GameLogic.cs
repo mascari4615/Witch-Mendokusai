@@ -63,6 +63,21 @@ namespace WitchMendokusai
 				objectPoolManager.Spawn(resourceManager.HealObjectPrefab.gameObject, GetRandomSpawnPosOffset(position)).SetActive(true);
 			if (profile.DropMagnet)
 				objectPoolManager.Spawn(resourceManager.MagnetObjectPrefab.gameObject, GetRandomSpawnPosOffset(position)).SetActive(true);
+			TrySpawnEliteChest(position);
+		}
+
+		private void TrySpawnEliteChest(Vector3 position)
+		{
+			SurvivalRunRules rules = resourceManager.SurvivalRunRules;
+			if (Random.value >= rules.EliteChestChance)
+				return;
+			if (rules.ChestPrefab == null)
+			{
+				Debug.LogWarning($"{nameof(SurvivalRunRules.ChestPrefab)} 미연결, 처치 자리에서 바로 개봉");
+				EventBusBridge.Publish(new ChestPickedUpEvent { Position = position });
+				return;
+			}
+			objectPoolManager.Spawn(rules.ChestPrefab.gameObject, GetRandomSpawnPosOffset(position)).SetActive(true);
 		}
 
 		public void SpawnLootItem(List<DataSOWithPercentage> lootTable, Vector3 position)
