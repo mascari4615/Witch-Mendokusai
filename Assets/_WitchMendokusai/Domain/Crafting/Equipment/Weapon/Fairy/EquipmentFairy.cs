@@ -14,6 +14,13 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject fairyPrefab;
 		[SerializeField] private float rotateSpeed = -30f;
 
+		[Header("Stat")]
+		[SerializeField] private UnitStatType countStat = UnitStatType.FAIRY_COUNT;
+		[SerializeField] private UnitStatType damageBonusStat = UnitStatType.FAIRY_DAMAGE_BONUS;
+		[SerializeField] private UnitStatType attackSpeedBonusStat = UnitStatType.FAIRY_ATTACK_SPEED_BONUS;
+		[SerializeField, Range(0f, 1f)] private float attackSpeedReductionPerStack = 0.2f;
+		[SerializeField, Range(0.01f, 1f)] private float minCoolTimeRatio = 0.2f;
+
 		private readonly List<Transform> fairyTransforms = new();
 		private float coolTime;
 		private int damageBonus;
@@ -39,12 +46,12 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
-			PlayerStat.AddListener(UnitStatType.FAIRY_COUNT, UpdateFairy);
-			PlayerStat.AddListener(UnitStatType.FAIRY_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.AddListener(UnitStatType.FAIRY_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
-			UpdateFairy(PlayerStat[UnitStatType.FAIRY_COUNT]);
-			UpdateDamageBonus(PlayerStat[UnitStatType.FAIRY_DAMAGE_BONUS]);
-			UpdateAttackSpeedBonus(PlayerStat[UnitStatType.FAIRY_ATTACK_SPEED_BONUS]);
+			PlayerStat.AddListener(countStat, UpdateFairy);
+			PlayerStat.AddListener(damageBonusStat, UpdateDamageBonus);
+			PlayerStat.AddListener(attackSpeedBonusStat, UpdateAttackSpeedBonus);
+			UpdateFairy(PlayerStat[countStat]);
+			UpdateDamageBonus(PlayerStat[damageBonusStat]);
+			UpdateAttackSpeedBonus(PlayerStat[attackSpeedBonusStat]);
 
 			loop = StartCoroutine(Loop());
 		}
@@ -54,9 +61,9 @@ namespace WitchMendokusai
 			if (loop != null)
 				StopCoroutine(loop);
 			// 비활성 정령의 강화 알림 해제
-			PlayerStat.RemoveListener(UnitStatType.FAIRY_COUNT, UpdateFairy);
-			PlayerStat.RemoveListener(UnitStatType.FAIRY_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.RemoveListener(UnitStatType.FAIRY_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
+			PlayerStat.RemoveListener(countStat, UpdateFairy);
+			PlayerStat.RemoveListener(damageBonusStat, UpdateDamageBonus);
+			PlayerStat.RemoveListener(attackSpeedBonusStat, UpdateAttackSpeedBonus);
 		}
 
 		private void Update()
@@ -89,6 +96,8 @@ namespace WitchMendokusai
 
 				if (g.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);
+				else if (g.TryGetComponent(out ExplodeOnEnd explodeOnEnd))
+					explodeOnEnd.SetDamageBonus(damageBonus);
 
 				g.SetActive(true);
 
@@ -128,7 +137,7 @@ namespace WitchMendokusai
 
 		private void UpdateAttackSpeedBonus(int fairyAttackSpeedBonus)
 		{
-			coolTime = originCoolTime * (1 - fairyAttackSpeedBonus * .2f);
+			coolTime = AttackCadence.Interval(originCoolTime, fairyAttackSpeedBonus, attackSpeedReductionPerStack, minCoolTimeRatio);
 		}
 	}
 }

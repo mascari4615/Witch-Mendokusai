@@ -7,6 +7,7 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private Spawner spawner;
 		[SerializeField] private UnitStatType spawnCountStat;
+		[SerializeField, Min(1)] private int baseCount = 1;
 
 		private PlayerProvider playerProvider;
 
@@ -21,15 +22,20 @@ namespace WitchMendokusai
 			spawner = GetComponent<Spawner>();
 		}
 
-		private void Start()
+		private void OnEnable()
 		{
 			playerProvider.Current.UnitStat.AddListener(spawnCountStat, OnSpawnCountStatChanged);
 			OnSpawnCountStatChanged(playerProvider.Current.UnitStat[spawnCountStat]);
 		}
 
+		private void OnDisable()
+		{
+			playerProvider.Current.UnitStat.RemoveListener(spawnCountStat, OnSpawnCountStatChanged);
+		}
+
 		private void OnSpawnCountStatChanged(int newValue)
 		{
-			spawner.SpawnCount = 1 + newValue;
+			spawner.SpawnCount = baseCount + newValue;
 		}
 	}
 }

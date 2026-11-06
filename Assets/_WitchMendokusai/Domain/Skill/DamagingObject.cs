@@ -33,6 +33,7 @@ namespace WitchMendokusai
 		// 아레나 매치 중이면 공격자의 MatchCombatant(팀 판정용). 비-아레나면 null → 레거시 적아판정.
 		private MatchCombatant ownerCombatant = null;
 		private readonly HashSet<GameObject> hitTargets = new();
+		private IHitEffect[] hitEffects;
 		private int hitFrame = -1;
 
 		private PlayerProvider playerProvider;
@@ -84,6 +85,9 @@ namespace WitchMendokusai
 			if (hitTargets.Add(other) == false)
 				return;
 
+			if (CanHit(other) == false)
+				return;
+
 			if (other.TryGetComponent(out IDamageable damageable))
 			{
 				if (damageable is UnitHealth unitHealth)
@@ -107,6 +111,7 @@ namespace WitchMendokusai
 					if (shouldDamage)
 					{
 						unitHealth.Unit.ReceiveDamage(CalcDamage());
+						NotifyHitEffects(unitHealth.Unit);
 						if (useHitCount)
 						{
 							if (--curHitCount <= 0)
@@ -141,6 +146,21 @@ namespace WitchMendokusai
 		{
 			valid = false;
 			gameObject.SetActive(false);
+		}
+
+		protected virtual bool CanHit(GameObject target) => true;
+
+		private void NotifyHitEffects(UnitObject victim)
+		{
+			if (hitEffects == null)
+				hitEffects = GetComponents<IHitEffect>();
+			foreach (IHitEffect hitEffect in hitEffects)
+				hitEffect.OnHit(this, victim);
+		}
+
+		public void DealDirectDamage(UnitObject victim)
+		{
+			victim.ReceiveDamage(CalcDamage());
 		}
 
 		private DamageInfo CalcDamage()
