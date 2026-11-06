@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject rowTemplate;
 		[SerializeField] private TextMeshProUGUI infoName;
 		[SerializeField] private TextMeshProUGUI infoText;
+		[SerializeField] private GameObject treeEmptyNotice;
 		[SerializeField] private Color activeLine = Color.white;
 		[SerializeField] private Color idleLine = Color.gray;
 
@@ -60,6 +61,8 @@ namespace WitchMendokusai
 				template.gameObject.SetActive(false);
 			}
 		}
+
+		public void SetTreeAvailable(bool isAvailable) => treeEmptyNotice.SetActive(isAvailable == false);
 
 		public void ShowInfo(CardData card, string description)
 		{

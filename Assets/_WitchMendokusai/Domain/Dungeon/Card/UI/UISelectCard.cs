@@ -43,6 +43,8 @@ namespace WitchMendokusai
 			}
 		}
 		
+		public void SetTreeAvailable(bool isAvailable) => deckTabs.SetTreeAvailable(isAvailable);
+
 		public void SetCardSelectButtons(List<CardData> cardDataList, EquipmentData equipment, IReadOnlyList<EquipmentData> equipments, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards)
 		{
 			deckTabs.SetOverview(equipments, selectedCards);

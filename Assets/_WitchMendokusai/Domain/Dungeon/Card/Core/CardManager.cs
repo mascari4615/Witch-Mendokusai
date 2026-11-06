@@ -270,6 +270,7 @@ namespace WitchMendokusai
 				if (deckUI != null)
 					deckUI.gameObject.SetActive(false);
 
+			(Panels[CardPanelType.SelectCard] as UISelectCard).SetTreeAvailable(deckUIDic.ContainsKey(equipmentID));
 			if (deckUIDic.TryGetValue(equipmentID, out UIDeck targetDeckUI))
 			{
 				targetDeckUI.SetCards(offeredCards);
