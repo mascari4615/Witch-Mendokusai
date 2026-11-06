@@ -30,6 +30,9 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float visibilityPadding = 2f;
 		[SerializeField, Min(0f)] private float offscreenMovementInterval = 0.1f;
 		private readonly Plane[] visibilityPlanes = new Plane[6];
+		private SurvivalEventTable eventTable;
+		private int nextAnnounceIndex;
+		private int nextEventIndex;
 
 		private DungeonManager dungeonManager;
 		private PlayerProvider playerProvider;
@@ -55,6 +58,10 @@ namespace WitchMendokusai
 
 			foreach (MonsterWave monsterWave in curDungeon.MonsterWaves)
 				waves.Add(new MonsterWaveInstance(monsterWave, 0f));
+
+			eventTable = curDungeon.EventTable;
+			nextAnnounceIndex = 0;
+			nextEventIndex = 0;
 		}
 
 		public void UpdateWaves()
@@ -62,6 +69,58 @@ namespace WitchMendokusai
 			RetireDistantMonsters();
 			for (int i = waves.Count - 1; i >= 0; i--)
 				UpdateWave(i);
+			UpdateEvents();
+		}
+
+		public SurvivalEventEntry NextEvent => eventTable != null && nextEventIndex < eventTable.Events.Count ? eventTable.Events[nextEventIndex] : null;
+
+		private void UpdateEvents()
+		{
+			if (eventTable == null)
+				return;
+			float elapsed = (float)dungeonManager.Context.ElapsedTime.TotalSeconds;
+			List<SurvivalEventEntry> entries = eventTable.Events;
+			while (nextAnnounceIndex < entries.Count && elapsed >= entries[nextAnnounceIndex].Time - entries[nextAnnounceIndex].AnnounceLead)
+			{
+				SurvivalEventEntry entry = entries[nextAnnounceIndex++];
+				EventBusBridge.Publish(new SurvivalEventAnnouncedEvent { Type = entry.Type, StartTime = entry.Time, LeadSeconds = entry.AnnounceLead, Monster = entry.Monster, Count = entry.Count });
+			}
+			while (nextEventIndex < entries.Count && elapsed >= entries[nextEventIndex].Time)
+				StartEvent(entries[nextEventIndex++]);
+		}
+
+		private void StartEvent(SurvivalEventEntry entry)
+		{
+			Vector3 center = playerProvider.Current.transform.position;
+			DungeonDifficulty difficulty = dungeonManager.Context.CurDifficulty;
+			EliteProfile profile = entry.Type == SurvivalEventType.Elite ? eventTable.Elite : null;
+			for (int i = 0; i < entry.Count; i++)
+			{
+				float angle = (360f / entry.Count * i + Random.Range(0f, 30f)) * Mathf.Deg2Rad;
+				Vector3 position = center + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * eventTable.SwarmRadius;
+				StartCoroutine(SpawnMonsterAt(entry.Monster, position, profile));
+			}
+			if (entry.Type == SurvivalEventType.Swarm)
+				SurvivalFeel.Instance.OnSwarmStarted(center);
+			EventBusBridge.Publish(new SurvivalEventStartedEvent { Type = entry.Type, Monster = entry.Monster, Count = entry.Count });
+		}
+
+		private IEnumerator SpawnMonsterAt(Monster monster, Vector3 position, EliteProfile eliteProfile)
+		{
+			GameObject spawnCircle = objectPoolManager.Spawn(spawnCirclePrefab);
+			spawnCircle.transform.position = position;
+			spawnCircle.SetActive(true);
+			ObjectBufferManager.AddObject(ObjectType.SpawnCircle, spawnCircle);
+
+			yield return new WaitForSeconds(spawnDelay);
+
+			GameObject monsterObject = objectPoolManager.Spawn(monster.Prefab);
+			MonsterObject monsterObjectComponent = monsterObject.GetComponent<MonsterObject>();
+			monsterObject.transform.position = position;
+			monsterObjectComponent.Init(monster);
+			monsterObject.SetActive(true);
+			if (eliteProfile != null)
+				monsterObjectComponent.MakeElite(eliteProfile);
 		}
 
 		private void RetireDistantMonsters()

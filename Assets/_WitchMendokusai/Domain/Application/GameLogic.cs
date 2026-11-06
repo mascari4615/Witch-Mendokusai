@@ -17,6 +17,7 @@ namespace WitchMendokusai
 	{
 		private readonly ObjectPoolManager objectPoolManager;
 		private readonly ResourceManager resourceManager;
+		private readonly List<ExpObject> activeExpGems = new();
 
 		[Inject]
 		public GameLogic(ObjectPoolManager objectPoolManager, ResourceManager resourceManager)
@@ -33,12 +34,35 @@ namespace WitchMendokusai
 
 		public void SpawnExpOrb(Vector3 position, int rewardMultiplier = 1)
 		{
+			int value = resourceManager.EXPPrefab.GetComponent<ExpObject>().BaseAmount * Mathf.Max(1, rewardMultiplier);
+			SpawnExpValue(position, value);
+		}
+
+		private void SpawnExpValue(Vector3 position, int value)
+		{
+			SurvivalFeelConfig config = resourceManager.SurvivalFeel;
+			if (activeExpGems.Count >= config.ExpGemCap)
+			{
+				activeExpGems[0].AddValue(value, config);
+				return;
+			}
 			GameObject exp = objectPoolManager.Spawn(
 				resourceManager.EXPPrefab,
 				GetRandomSpawnPosOffset(position)
 			);
-			exp.GetComponent<ExpObject>().SetRewardMultiplier(rewardMultiplier);
+			ExpObject expObject = exp.GetComponent<ExpObject>();
+			expObject.SetValue(value, config, activeExpGems);
 			exp.SetActive(true);
+		}
+
+		public void SpawnEliteReward(EliteProfile profile, Vector3 position)
+		{
+			if (profile.ExpValue > 0)
+				SpawnExpValue(position, profile.ExpValue);
+			if (profile.DropHeal)
+				objectPoolManager.Spawn(resourceManager.HealObjectPrefab.gameObject, GetRandomSpawnPosOffset(position)).SetActive(true);
+			if (profile.DropMagnet)
+				objectPoolManager.Spawn(resourceManager.MagnetObjectPrefab.gameObject, GetRandomSpawnPosOffset(position)).SetActive(true);
 		}
 
 		public void SpawnLootItem(List<DataSOWithPercentage> lootTable, Vector3 position)

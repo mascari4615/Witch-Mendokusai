@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ce3e735dec84bfab08d8246cecaa61c, type: 3}
+  m_Name: SET_SlimeForest10
+  m_EditorClassIdentifier:
+  <Events>k__BackingField:
+  - <Time>k__BackingField: 120
+    <Type>k__BackingField: 0
+    <Monster>k__BackingField: {fileID: 11400000, guid: ab24c2555a737204a9520c2fcf5da203, type: 2}
+    <Count>k__BackingField: 1
+    <AnnounceLead>k__BackingField: 10
+  - <Time>k__BackingField: 240
+    <Type>k__BackingField: 1
+    <Monster>k__BackingField: {fileID: 11400000, guid: efd01aa3488c358488a9c5b03a759d41, type: 2}
+    <Count>k__BackingField: 24
+    <AnnounceLead>k__BackingField: 10
+  - <Time>k__BackingField: 360
+    <Type>k__BackingField: 0
+    <Monster>k__BackingField: {fileID: 11400000, guid: c8298ef2b0feb5440a349bcb395b8ab0, type: 2}
+    <Count>k__BackingField: 1
+    <AnnounceLead>k__BackingField: 10
+  - <Time>k__BackingField: 480
+    <Type>k__BackingField: 0
+    <Monster>k__BackingField: {fileID: 11400000, guid: 44760449275eb004db761ffc958fcd85, type: 2}
+    <Count>k__BackingField: 2
+    <AnnounceLead>k__BackingField: 10
+  - <Time>k__BackingField: 540
+    <Type>k__BackingField: 1
+    <Monster>k__BackingField: {fileID: 11400000, guid: 44760449275eb004db761ffc958fcd85, type: 2}
+    <Count>k__BackingField: 30
+    <AnnounceLead>k__BackingField: 10

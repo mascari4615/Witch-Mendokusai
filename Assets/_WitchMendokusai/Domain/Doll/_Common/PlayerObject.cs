@@ -119,7 +119,7 @@ namespace WitchMendokusai
 
 			if (invincibleRoutine != null)
 				StopCoroutine(invincibleRoutine);
-			invincibleRoutine = StartCoroutine(InvincibleTime());
+			invincibleRoutine = StartCoroutine(InvincibleTime(soManager.InvincibleTime.RuntimeValue));
 
 			switch (UnitStat[UnitStatType.HP_CUR])
 			{
@@ -129,6 +129,15 @@ namespace WitchMendokusai
 			}
 		}
 
+		public void GrantInvincibility(float duration)
+		{
+			if (duration <= 0f || isActiveAndEnabled == false)
+				return;
+			if (invincibleRoutine != null)
+				StopCoroutine(invincibleRoutine);
+			invincibleRoutine = StartCoroutine(InvincibleTime(duration));
+		}
+
 		protected virtual void HandleDeathEffects()
 		{
 			// 플레이어 사망 = 게임오버 이벤트 + 슬로모 = 전역 게임상태 → 던전에서만.
@@ -136,6 +145,7 @@ namespace WitchMendokusai
 			// HandleDamageEffects 는 이미 IsDungeon 가드 — death 만 누락이었음(비대칭 해소).
 			if (DungeonManagerBridge.IsDungeon)
 			{
+				SurvivalFeel.Instance.OnPlayerDied(transform.position);
 				gameEventManager.Raise(GameEventType.OnPlayerDied);
 				timeManager.DoSlowMotion();
 			}
@@ -143,9 +153,9 @@ namespace WitchMendokusai
 			diedX.SetActive(true); // 사망 시각 표시(died X)는 컨텍스트 무관.
 		}
 
-		private IEnumerator InvincibleTime()
+		private IEnumerator InvincibleTime(float duration)
 		{
-			int blinkCount = (int)(soManager.InvincibleTime.RuntimeValue / invincibleBlinkInterval);
+			int blinkCount = (int)(duration / invincibleBlinkInterval);
 			bool isWhite = false;
 
 			while (blinkCount > 0)
@@ -153,7 +163,8 @@ namespace WitchMendokusai
 				blinkCount--;
 				isWhite = isWhite == false;
 
-				SpriteRenderer.material.SetFloat("_Emission", isWhite ? 1 : 0);
+				if (CombatEffectSettings.Flash)
+					SpriteRenderer.material.SetFloat("_Emission", isWhite ? 1 : 0);
 				yield return new WaitForSeconds(invincibleBlinkInterval);
 			}
 

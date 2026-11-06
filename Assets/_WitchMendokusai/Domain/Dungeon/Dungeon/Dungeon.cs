@@ -42,6 +42,7 @@ namespace WitchMendokusai
 		[PropertyOrder(105)][field: SerializeField] public List<MonsterWave> MonsterWaves { get; set; }
 		[PropertyOrder(106)][field: SerializeField] public List<ResourceNodeWave> ResourceNodeWaves { get; set; }
 		[PropertyOrder(107)][field: SerializeField] public List<RewardInfo> Rewards { get; set; }
+		[PropertyOrder(108)][field: SerializeField] public SurvivalEventTable EventTable { get; private set; }
 
 		[field: NonSerialized] public Dictionary<int, bool> ConstraintSelected { get; private set; } = new();
 

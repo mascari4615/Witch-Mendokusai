@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		private SOManager soManager;
 		private DataManager dataManager;
 		private GameLogic gameLogic;
+		private EliteProfile eliteProfile;
 
 		[Inject]
 		public void Construct(PlayerProvider playerProvider, SOManager soManager, DataManager dataManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator,
@@ -42,6 +43,47 @@ namespace WitchMendokusai
 
 			Health.OnTakeDamage += HandleDamageEffects;
 			Health.OnDied += HandleDeathEffects;
+
+			if (UnitData.Type == MonsterType.Boss && DungeonManagerBridge.IsDungeon)
+			{
+				SurvivalFeel.Instance.OnBossSpawned(transform.position);
+				EventBusBridge.Publish(new BossSpawnedEvent { Monster = UnitData });
+			}
+		}
+
+		protected override void Start()
+		{
+			base.Start();
+			if (eliteProfile != null)
+				ApplyEliteHealth();
+		}
+
+		public void MakeElite(EliteProfile profile)
+		{
+			eliteProfile = profile;
+			ApplyEliteHealth();
+			Health.SetScaleMultiplier(profile.ScaleMultiplier);
+			SpriteRenderer.color = profile.Tint;
+			hpBar.gameObject.SetActive(true);
+			SurvivalFeel.Instance.RegisterElite(this);
+		}
+
+		private void ApplyEliteHealth()
+		{
+			UnitStat[UnitStatType.HP_MAX_STAT] = Mathf.CeilToInt(UnitStat[UnitStatType.HP_MAX_STAT] * eliteProfile.HealthMultiplier);
+			UpdateStat();
+			UnitStat[UnitStatType.HP_CUR] = UnitStat[UnitStatType.HP_MAX];
+		}
+
+		private void ClearElite()
+		{
+			if (eliteProfile == null)
+				return;
+			eliteProfile = null;
+			Health.SetScaleMultiplier(1f);
+			SpriteRenderer.color = Color.white;
+			if (SurvivalFeel.Instance != null)
+				SurvivalFeel.Instance.UnregisterElite(this);
 		}
 
 		protected override void OnDisable()
@@ -51,6 +93,7 @@ namespace WitchMendokusai
 			ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
 			StopAllCoroutines();
 			hpBar.gameObject.SetActive(false);
+			ClearElite();
 
 			Health.OnTakeDamage -= HandleDamageEffects;
 			Health.OnDied -= HandleDeathEffects;
@@ -69,7 +112,11 @@ namespace WitchMendokusai
 		{
 			// 던전 UI 추적(LastHitMonsterObject)은 던전에서만 — 아레나 피격이 던전 "마지막 피격 몬스터" 패널을 오염 X.
 			if (DungeonManagerBridge.IsDungeon)
+			{
 				soManager.LastHitMonsterObject.RuntimeValue = this;
+				if (IsAlive)
+					SurvivalFeel.Instance.OnMonsterHit(transform.position, damageInfo);
+			}
 
 			// hpBar 갱신은 컨텍스트 무관(아레나 관전서도 체력 표시 유용).
 			hpBar.localScale = new Vector3((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX], 1, 1);
@@ -83,6 +130,19 @@ namespace WitchMendokusai
 			if (DungeonManagerBridge.IsDungeon)
 			{
 				DropLoot();
+
+				if (UnitData.Type == MonsterType.Boss)
+					SurvivalFeel.Instance.OnBossKilled(transform.position);
+				else if (eliteProfile != null)
+					SurvivalFeel.Instance.OnEliteKilled(transform.position);
+				else
+					SurvivalFeel.Instance.OnMonsterKilled(transform.position);
+
+				if (eliteProfile != null)
+				{
+					gameLogic.SpawnEliteReward(eliteProfile, transform.position);
+					EventBusBridge.Publish(new EliteKilledEvent { Monster = UnitData, ExpValue = eliteProfile.ExpValue });
+				}
 
 				if (UnitData.Type == MonsterType.Boss)
 					dataManager.DungeonStat[DungeonStatType.BOSS_KILL]++;

@@ -50,6 +50,7 @@ namespace WitchMendokusai
 		public void OnDamaged(DamageInfo damageInfo)
 		{
 			if (health.IsAlive == false) return;
+			if (CombatEffectSettings.Flash == false) return;
 
 			if (flashRoutine != null)
 			{

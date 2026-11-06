@@ -36,6 +36,10 @@ namespace WitchMendokusai
 		private Action callback;
 		private Coroutine timeLoop;
 		private Coroutine slowMotion;
+		private bool isSlowMotion;
+		private Coroutine hitStop;
+		private float hitStopEnd;
+		private float hitStopScale = 1f;
 
 		public bool IsPaused => pausers.Count > 0;
 
@@ -91,7 +95,27 @@ namespace WitchMendokusai
 
 		private void UpdateTimeScale()
 		{
-			Time.timeScale = IsPaused ? Mathf.Epsilon : 1;
+			Time.timeScale = IsPaused ? Mathf.Epsilon : hitStop != null ? hitStopScale : 1;
+		}
+
+		// 전역 짧은 정지. 정지 중 더 오면 길이는 늘리고 배율은 더 낮은 쪽. 사망 슬로모션 중에는 무시
+		public void HitStop(float duration, float scale)
+		{
+			if (isSlowMotion || duration <= 0f)
+				return;
+			hitStopEnd = Mathf.Max(hitStopEnd, Time.unscaledTime + duration);
+			hitStopScale = hitStop != null ? Mathf.Min(hitStopScale, scale) : scale;
+			if (hitStop == null)
+				hitStop = StartCoroutine(HitStopRoutine());
+			UpdateTimeScale();
+		}
+
+		private IEnumerator HitStopRoutine()
+		{
+			while (Time.unscaledTime < hitStopEnd)
+				yield return null;
+			hitStop = null;
+			UpdateTimeScale();
 		}
 
 		public void Pause(GameObject pauser)
@@ -127,6 +151,12 @@ namespace WitchMendokusai
 		{
 			if (slowMotion != null)
 				StopCoroutine(slowMotion);
+			if (hitStop != null)
+			{
+				StopCoroutine(hitStop);
+				hitStop = null;
+			}
+			isSlowMotion = true;
 			slowMotion = StartCoroutine(SlowMotion());
 		}
 
@@ -149,6 +179,7 @@ namespace WitchMendokusai
 				if (Time.timeScale > 1)
 				{
 					Time.timeScale = Mathf.Clamp(Time.timeScale, 0f, 1f);
+					isSlowMotion = false;
 					break;
 				}
 

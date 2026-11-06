@@ -87,7 +87,7 @@ namespace WitchMendokusai
 		}
 		protected abstract void OnEffect();
 
-		private void OnDisable()
+		protected virtual void OnDisable()
 		{
 			ObjectBufferManager.RemoveObject(ObjectType.Drop, gameObject);
 		}

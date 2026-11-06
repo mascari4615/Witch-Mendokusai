@@ -466,6 +466,8 @@ namespace WitchMendokusai
 
 		public void GenerateCameraImpulse(float amplitude)
 		{
+			if (CombatEffectSettings.ScreenShake == false)
+				return;
 			impulseSource.GenerateImpulse(Mathf.Max(0f, amplitude));
 		}
 
