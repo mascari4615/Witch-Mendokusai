@@ -9,18 +9,25 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 전체화면 환경설정 UI (전체 화면 목록형).
 	/// UIRoot.ScreenLayer에 직접 VisualElement를 추가함.
-	/// 좌측 사이드바의 탭 버튼 클릭 → 우측 컨텐츠 swap (data-driven, RegisterTab).
+	/// 위 탭 → 아래 컨텐츠 swap (data-driven, RegisterTab).
 	/// </summary>
-	public class SettingView : MonoBehaviour
+	public partial class SettingView : MonoBehaviour
 	{
 		private const string USS_CLASS = "wm-setting-view";
 		private const string ACTIVE_CLASS = "wm-setting-view--active";
 		private const string TAB_KEY_GENERAL = "general";
+		private const string TAB_KEY_EFFECTS = "effects";
 		private const string TAB_KEY_SHADERPACKS = "shaderpacks";
+
+		[SerializeField] private float sliderStep = 0.05f;
+		[SerializeField] private float navOverlapTolerance = 4f;
+		[SerializeField] private float navAcrossWeight = 2f;
+		[SerializeField] private int volumeDisplayScale = 100;
 
 		private VisualElement container;
 		private VisualElement sidebar;
 		private VisualElement contentArea;
+		private Button closeButton;
 
 		private readonly Dictionary<string, VisualElement> tabContents = new();
 		private readonly Dictionary<string, Button> tabButtons = new();
@@ -73,14 +80,9 @@ namespace WitchMendokusai
 			container.AddToClassList(USS_CLASS);
 			uiRoot.ScreenLayer.Add(container);
 
-			// Frosted glass — RT 직접 reference (USS URL 의존 X). CustomBlurFeature 가 매 frame 그림 (Settings open 동안).
-			RenderTexture blurOutput = Resources.Load<RenderTexture>("Rendering/CustomBlurOutput");
-			if (blurOutput != null)
-			{
-				container.style.backgroundImage = Background.FromRenderTexture(blurOutput);
-			}
-
+			BuildNavigation();
 			BuildUI();
+			BuildConfirm();
 
 			// 초기 상태: 닫힘 (display: none 으로 처리됨)
 			IsOpen = false;
@@ -99,29 +101,39 @@ namespace WitchMendokusai
 
 		private void BuildUI()
 		{
-			sidebar = new VisualElement();
-			sidebar.AddToClassList("wm-setting-sidebar");
-
 			Label titleLabel = new Label("환경설정");
 			titleLabel.AddToClassList("wm-setting-title");
-			sidebar.Add(titleLabel);
+			container.Add(titleLabel);
+
+			closeButton = new Button(Close) { text = "닫기 (ESC)" };
+			closeButton.AddToClassList("wm-setting-close");
+			closeButton.AddToClassList(NAV_CLASS);
+			container.Add(closeButton);
+
+			VisualElement panel = new VisualElement();
+			panel.AddToClassList("wm-setting-panel");
+			container.Add(panel);
+
+			sidebar = new VisualElement();
+			sidebar.AddToClassList("wm-setting-tabs");
+			panel.Add(sidebar);
 
 			contentArea = new VisualElement();
 			contentArea.AddToClassList("wm-setting-content-area");
+			panel.Add(contentArea);
 
 			RegisterTab(TAB_KEY_GENERAL, "환경설정", BuildGeneralContent);
+			RegisterTab(TAB_KEY_EFFECTS, "효과", BuildEffectsContent);
 			RegisterTab(TAB_KEY_SHADERPACKS, "쉐이더팩", BuildShaderPackContent);
 
 			SwitchTab(TAB_KEY_GENERAL);
-
-			container.Add(sidebar);
-			container.Add(contentArea);
 		}
 
 		protected void RegisterTab(string tabKey, string title, Func<VisualElement> contentBuilder)
 		{
 			Button tabButton = new Button(() => SwitchTab(tabKey)) { text = title };
 			tabButton.AddToClassList("wm-setting-tab");
+			tabButton.AddToClassList(NAV_CLASS);
 			sidebar.Add(tabButton);
 			tabButtons[tabKey] = tabButton;
 
@@ -159,53 +171,112 @@ namespace WitchMendokusai
 
 			masterVolume = CreateSlider("마스터 볼륨", 0f, 1f, audioManager.GetVolume(AudioManager.BusType.Master));
 			masterVolume.RegisterValueChangedCallback(evt => audioManager.SetVolume(AudioManager.BusType.Master, evt.newValue));
-			content.Add(masterVolume);
+			content.Add(WrapSlider(masterVolume));
 
 			bgmVolume = CreateSlider("배경음악 (BGM)", 0f, 1f, audioManager.GetVolume(AudioManager.BusType.BGM));
 			bgmVolume.RegisterValueChangedCallback(evt => audioManager.SetVolume(AudioManager.BusType.BGM, evt.newValue));
-			content.Add(bgmVolume);
+			content.Add(WrapSlider(bgmVolume));
 
 			sfxVolume = CreateSlider("효과음 (SFX)", 0f, 1f, audioManager.GetVolume(AudioManager.BusType.SFX));
 			sfxVolume.RegisterValueChangedCallback(evt => audioManager.SetVolume(AudioManager.BusType.SFX, evt.newValue));
-			content.Add(sfxVolume);
+			content.Add(WrapSlider(sfxVolume));
 
 			// System
 			Label systemHeader = new Label("시스템");
 			systemHeader.AddToClassList("wm-setting-header");
 			content.Add(systemHeader);
 
-			framerateToggle = new Toggle("60 FPS 고정");
-			framerateToggle.AddToClassList("wm-setting-toggle");
-			framerateToggle.value = Application.targetFrameRate == 60;
-			framerateToggle.RegisterValueChangedCallback(evt => Application.targetFrameRate = evt.newValue ? 60 : 30);
-			content.Add(framerateToggle);
+			framerateToggle = CreateToggle("60 FPS 고정", Application.targetFrameRate == 60, isOn => isOn ? "켜짐 (60)" : "꺼짐 (30)", isOn => Application.targetFrameRate = isOn ? 60 : 30, content);
 
 			// 버튼 그룹
 			VisualElement buttonGroup = new VisualElement();
 			buttonGroup.AddToClassList("wm-setting-buttons");
 
-			btnDungeonExit = new Button(OnDungeonExit) { text = "던전 포기" };
+			btnDungeonExit = new Button(() => AskConfirm("던전을 포기할까요?", "이번 판은 패배로 끝납니다.", "포기", OnDungeonExit)) { text = "던전 포기" };
 			btnDungeonExit.AddToClassList("wm-setting-btn");
 			btnDungeonExit.AddToClassList("wm-setting-btn--danger");
+			btnDungeonExit.AddToClassList(NAV_CLASS);
 			buttonGroup.Add(btnDungeonExit);
 
-			Button btnSaveInit = new Button(OnClearData) { text = "세이브 데이터 초기화" };
+			Button btnSaveInit = new Button(() => AskConfirm("세이브 데이터를 초기화할까요?", "되돌릴 수 없습니다.", "초기화", OnClearData)) { text = "세이브 데이터 초기화" };
 			btnSaveInit.AddToClassList("wm-setting-btn");
 			btnSaveInit.AddToClassList("wm-setting-btn--danger");
+			btnSaveInit.AddToClassList(NAV_CLASS);
 			buttonGroup.Add(btnSaveInit);
 
-			Button btnQuit = new Button(OnQuit) { text = "게임 종료" };
+			Button btnQuit = new Button(() => AskConfirm("게임을 종료할까요?", "진행 중인 내용은 저장 시점까지만 남습니다.", "종료", OnQuit)) { text = "게임 종료" };
 			btnQuit.AddToClassList("wm-setting-btn");
+			btnQuit.AddToClassList(NAV_CLASS);
 			buttonGroup.Add(btnQuit);
 
 			content.Add(buttonGroup);
 
-			Button btnClose = new Button(Close) { text = "닫기 (ESC)" };
-			btnClose.AddToClassList("wm-setting-close");
-			content.Add(btnClose);
+			return content;
+		}
+
+		private VisualElement BuildEffectsContent()
+		{
+			VisualElement content = new VisualElement();
+
+			Label combatHeader = new Label("전투 효과");
+			combatHeader.AddToClassList("wm-setting-header");
+			content.Add(combatHeader);
+
+			CreateOnOffToggle("피해 숫자", CombatEffectSettings.DamageNumbers, isOn => CombatEffectSettings.DamageNumbers = isOn, content);
+			CreateOnOffToggle("피격 번쩍임", CombatEffectSettings.Flash, isOn => CombatEffectSettings.Flash = isOn, content);
+			CreateOnOffToggle("화면 흔들림", CombatEffectSettings.ScreenShake, isOn => CombatEffectSettings.ScreenShake = isOn, content);
+
+			Label uiHeader = new Label("화면 효과");
+			uiHeader.AddToClassList("wm-setting-header");
+			content.Add(uiHeader);
+
+			CreateOnOffToggle("UI 연출", UIEffects.Enabled, isOn => UIEffects.Enabled = isOn, content);
 
 			return content;
 		}
+
+		private void CreateOnOffToggle(string label, bool value, Action<bool> onChanged, VisualElement parent)
+			=> CreateToggle(label, value, isOn => isOn ? "켜짐" : "꺼짐", onChanged, parent);
+
+		private Toggle CreateToggle(string label, bool value, Func<bool, string> describe, Action<bool> onChanged, VisualElement parent)
+		{
+			VisualElement row = new VisualElement();
+			row.AddToClassList("wm-setting-row");
+
+			Toggle toggle = new Toggle(label) { value = value };
+			toggle.AddToClassList("wm-setting-toggle");
+			toggle.AddToClassList(NAV_CLASS);
+			row.Add(toggle);
+
+			Label state = new Label(describe(value));
+			state.AddToClassList("wm-setting-toggle-state");
+			row.Add(state);
+
+			toggle.RegisterValueChangedCallback(evt =>
+			{
+				onChanged(evt.newValue);
+				state.text = describe(evt.newValue);
+			});
+
+			parent.Add(row);
+			return toggle;
+		}
+
+		private VisualElement WrapSlider(Slider slider)
+		{
+			VisualElement row = new VisualElement();
+			row.AddToClassList("wm-setting-row");
+			row.Add(slider);
+
+			Label valueLabel = new Label(FormatVolume(slider.value));
+			valueLabel.AddToClassList("wm-setting-value");
+			row.Add(valueLabel);
+
+			slider.RegisterValueChangedCallback(evt => valueLabel.text = FormatVolume(evt.newValue));
+			return row;
+		}
+
+		private string FormatVolume(float value) => Mathf.RoundToInt(value * volumeDisplayScale).ToString();
 
 		private VisualElement BuildShaderPackContent()
 		{
@@ -221,10 +292,12 @@ namespace WitchMendokusai
 
 			Button btnOpenFolder = new Button(OnOpenShaderPacksFolder) { text = "폴더 열기" };
 			btnOpenFolder.AddToClassList("wm-setting-btn");
+			btnOpenFolder.AddToClassList(NAV_CLASS);
 			header.Add(btnOpenFolder);
 
 			Button btnRescan = new Button(OnRescanShaderPacks) { text = "재스캔" };
 			btnRescan.AddToClassList("wm-setting-btn");
+			btnRescan.AddToClassList(NAV_CLASS);
 			header.Add(btnRescan);
 
 			root.Add(header);
@@ -273,6 +346,7 @@ namespace WitchMendokusai
 				ShaderPackEntry capturedPack = pack;
 				Button packButton = new Button(() => SelectShaderPack(capturedPack)) { text = pack.Manifest.name };
 				packButton.AddToClassList("wm-setting-shaderpack-item");
+				packButton.AddToClassList(NAV_CLASS);
 				if (activePack == pack)
 					packButton.AddToClassList("wm-setting-shaderpack-item--active");
 				if (selectedShaderPack == pack)
@@ -330,12 +404,14 @@ namespace WitchMendokusai
 			{
 				Button btnRevert = new Button(OnRevertShaderPack) { text = "언로드" };
 				btnRevert.AddToClassList("wm-setting-btn");
+				btnRevert.AddToClassList(NAV_CLASS);
 				shaderPackDetailContainer.Add(btnRevert);
 			}
 			else
 			{
 				Button btnApply = new Button(OnApplyShaderPack) { text = "적용" };
 				btnApply.AddToClassList("wm-setting-btn");
+				btnApply.AddToClassList(NAV_CLASS);
 				shaderPackDetailContainer.Add(btnApply);
 			}
 		}
@@ -376,6 +452,8 @@ namespace WitchMendokusai
 				value = value
 			};
 			slider.AddToClassList("wm-setting-slider");
+			slider.AddToClassList(NAV_CLASS);
+			slider.fill = true;
 			return slider;
 		}
 
@@ -414,15 +492,11 @@ namespace WitchMendokusai
 			RebuildShaderPackList();
 			RebuildShaderPackDetail();
 
-			// Frosted glass — blur pass capture 동안 panel repaint 매 frame (RT update 따라가기).
-			// paused 후엔 씬 변화 0 이라 100ms 면 충분 → 그 후 BlurRequest.Remove + repaint 종료.
-			BlurRequest.Add();
-			IVisualElementScheduledItem repaintItem = container.schedule.Execute(() => container.MarkDirtyRepaint()).Every(16);
-			container.schedule.Execute(() =>
+			masterVolume.schedule.Execute(() =>
 			{
-				BlurRequest.Remove();
-				repaintItem.Pause();
-			}).ExecuteLater(100);
+				masterVolume.Focus();
+				MoveFrameTo(masterVolume);
+			});
 
 			timeManager.Pause(gameObject);
 		}
@@ -430,7 +504,13 @@ namespace WitchMendokusai
 		public void Close()
 		{
 			if (IsOpen == false) return;
+			if (IsConfirmOpen)
+			{
+				CloseConfirm();
+				return;
+			}
 			IsOpen = false;
+			selectFrame.AddToClassList(HIDDEN_FRAME_CLASS);
 			container.RemoveFromClassList(ACTIVE_CLASS);
 			timeManager.Resume(gameObject);
 		}
