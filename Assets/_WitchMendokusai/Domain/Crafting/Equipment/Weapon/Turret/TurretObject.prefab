@@ -58,11 +58,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40fb3feae86f2fb4ca281bf4e5580c02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  originDamage: 2
   originCoolTime: 1.5
+  aimPollDelay: 0.1
   bulletPrefab: {fileID: 1521986667925735823, guid: 4959ace3a5311e34b9842abe82d20969, type: 3}
   turretPrefab: {fileID: 5016466698488500064, guid: 876d35cd54910b6489b801b67efabd7a, type: 3}
-  rotateSpeed: -30
+  attackSpeedReductionPerStack: 0.2
+  minCoolTimeRatio: 0.2
 --- !u!114 &8052225126702749883
 MonoBehaviour:
   m_ObjectHideFlags: 0

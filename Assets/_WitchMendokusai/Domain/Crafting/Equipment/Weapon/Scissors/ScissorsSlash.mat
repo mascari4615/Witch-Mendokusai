@@ -8,19 +8,16 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: ScissorsSlash
-  m_Shader: {fileID: 4800000, guid: 8d2bb70cbf9db8d4da26e15b26e74248, type: 3}
+  m_Shader: {fileID: 4800000, guid: ac94ca1d0b1f4b29a16fe52b19dacd34, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - _EMISSION
-  - _RECEIVE_SHADOWS_OFF
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 10
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap:
-    RenderType: Opaque
+  m_CustomRenderQueue: 3010
+  stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
   m_LockedProperties: 
@@ -122,6 +119,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _AddPrecomputedVelocity: 0
+    - _Alpha: 1
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _Blend: 0
@@ -151,6 +149,7 @@ Material:
     - _Emission: 0.52
     - _EnableExternalAlpha: 0
     - _EnvironmentReflections: 1
+    - _FillAlpha: 0.25
     - _FlipbookBlending: 0
     - _FlipbookMode: 0
     - _GlossMapScale: 1
@@ -180,16 +179,21 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _ParticleInstancing: 1
+    - _PulseAmount: 0
+    - _PulseSpeed: 0
     - _QueueOffset: 0
     - _ReceiveFog: 1
     - _ReceiveShadows: 0
     - _RimLight: 0
     - _RimScale: 1
     - _RimStrength: 1
+    - _RingAlpha: 0.5
+    - _RingWidth: 0.05
     - _RotateAngle: 0
     - _SampleGI: 0
     - _ScreenSpaceReflectionsContributeTransparent: 1
     - _SecondColor: 0
+    - _Shape: 1
     - _Shininess: 0
     - _Smoothness: 0
     - _SmoothnessSource: 0
@@ -230,7 +234,7 @@ Material:
     - _BaseColor: {r: 0.85, g: 0.9, b: 1, a: 0.6}
     - _BaseColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
     - _CameraFadeParams: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.85, g: 0.9, b: 1, a: 0.6}
+    - _Color: {r: 0.62, g: 0.68, b: 0.78, a: 1}
     - _EmissionColor: {r: 0.084897235, g: 0.7351472, b: 1.9998025, a: 0}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
     - _NoiseValue: {r: 1, g: 1, b: 1, a: 0}

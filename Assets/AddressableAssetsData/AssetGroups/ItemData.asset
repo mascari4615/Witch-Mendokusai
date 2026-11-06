@@ -273,6 +273,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - ItemData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3bf9d8bcdf0223849bf19bc5e252a1d8
+    m_Address: ItemData/20000032
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3cb4fe68dc3695b479349fda80ba9b12
     m_Address: ItemData/47
     m_ReadOnly: 0
@@ -377,6 +383,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 506b8dd54e056204786498cb87d9bce2
     m_Address: ItemData/71
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 51d1786480a693b49984cb1702b4cca0
+    m_Address: ItemData/20000034
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemData
@@ -581,6 +593,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8b1917a54c678e94f9c604508dcd84a5
     m_Address: ItemData/15
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ItemData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b2fe98db9d60564abc52554f6b6ffdc
+    m_Address: ItemData/20000033
     m_ReadOnly: 0
     m_SerializedLabels:
     - ItemData

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 55819031812026741}
   - component: {fileID: 571389520202992058}
   - component: {fileID: 8545730385016838205}
+  - component: {fileID: 4943344047955781647}
   m_Layer: 0
   m_Name: PotionBlast
   m_TagString: Untagged
@@ -34,7 +35,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3692866255670306081}
+  - {fileID: 3775870444078985978}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3532392986752355982
@@ -73,7 +74,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9feb174bdf3d4954e90c7b218b7be244, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Core::ObjectWithTime
-  duration: 0.22
+  duration: 0.25
 --- !u!135 &571389520202992058
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -116,7 +117,30 @@ MonoBehaviour:
   knockbackDuration: 0.15
   hitstopDuration: 0.02
   usedByPlayer: 1
---- !u!1 &7055164473749923435
+--- !u!114 &4943344047955781647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4003162022726152808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b791d66144094feabe59dad0ecf3c365, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SurvivalFeelBurst
+  moment:
+    Shake: 0.06
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 12
+    ShardSpeed: 7
+    ShardLife: 0.3
+    ShardSize: 0.16
+    RingSize: 0
+    RingLife: 0.25
+    Color: {r: 0.58, g: 0.34, b: 0.7, a: 1}
+--- !u!1 &6448637091195902172
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -124,47 +148,48 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3692866255670306081}
-  - component: {fileID: 1934873621054243520}
-  - component: {fileID: 6545163918343014897}
-  - component: {fileID: 2842010454987288351}
+  - component: {fileID: 3775870444078985978}
+  - component: {fileID: 8153015679176185680}
+  - component: {fileID: 5596733024148886245}
+  - component: {fileID: 310128538250513805}
+  - component: {fileID: 4332688202210210093}
   m_Layer: 0
-  m_Name: Visual
+  m_Name: Ground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3692866255670306081
+--- !u!4 &3775870444078985978
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7055164473749923435}
+  m_GameObject: {fileID: 6448637091195902172}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.8, z: 0}
-  m_LocalScale: {x: 5, y: 5, z: 5}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0.06, z: 0}
+  m_LocalScale: {x: 5, y: 5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7520490831807617019}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &1934873621054243520
+--- !u!33 &8153015679176185680
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7055164473749923435}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &6545163918343014897
+  m_GameObject: {fileID: 6448637091195902172}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &5596733024148886245
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7055164473749923435}
+  m_GameObject: {fileID: 6448637091195902172}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -207,18 +232,33 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &2842010454987288351
+--- !u!114 &310128538250513805
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7055164473749923435}
+  m_GameObject: {fileID: 6448637091195902172}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 30addc8b363caef4985d3c067674b54b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.ScaleOverLife
-  startScale: {x: 1.5, y: 1.5, z: 1.5}
-  endScale: {x: 5, y: 5, z: 5}
-  duration: 0.22
+  startScale: {x: 2.5, y: 2.5, z: 1}
+  endScale: {x: 5, y: 5, z: 1}
+  duration: 0.25
+--- !u!114 &4332688202210210093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6448637091195902172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f17b90048fb44d090ae4f0b9330d94c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.FadeOverLife
+  duration: 0.25
+  startAlpha: 1
+  endAlpha: 0

@@ -73,11 +73,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefabToSpawn: {fileID: 3065810907856893044, guid: c1dbb981a3555c845af02c0d9ad05411, type: 3}
   spawnPositionStrategy: 0
+  spawnAimStrategy: 0
   <RandomRange>k__BackingField: 10
   <SpawnCount>k__BackingField: 1
   <SpawnDelay>k__BackingField: 0.1
-  damageBonusStatType: 10401
+  baseInterval: 1
   attackSpeedBonusStatType: 10402
+  attackSpeedReductionPerStack: 0.15
+  minIntervalRatio: 0.25
+  targetRange: 14
+  clockStepDegrees: 30
+  spreadDegrees: 0
+  spawnOpposite: 0
+  scaleBonusStatType: -1
+  scalePerStack: 0.1
+  damageBonusStatType: 10401
 --- !u!114 &436533938232106734
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92,3 +102,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawner: {fileID: 6664745894419640492}
   spawnCountStat: 10400
+  baseCount: 1

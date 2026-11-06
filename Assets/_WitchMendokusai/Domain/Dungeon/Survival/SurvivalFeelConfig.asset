@@ -15,7 +15,7 @@ MonoBehaviour:
   ShardMaterial: {fileID: 2100000, guid: 17a292e140f145cbac0811f94ade3aff, type: 2}
   RingMaterial: {fileID: 2100000, guid: eb82016b91a74ed384b4395c7ab85dd6, type: 2}
   PlayerHitFlashController: {fileID: 9100000, guid: 1ae115b1e79be68498f7e37998498e3e, type: 2}
-  PlayerHitFlashStrength: 0.3
+  PlayerHitFlashStrength: 0.12
   ShakeCap: 0.9
   ShakeDecay: 2.5
   SmallShakeInterval: 0.12
@@ -196,6 +196,48 @@ MonoBehaviour:
     Color: {r: 0.8, g: 0.6, b: 1, a: 1}
   - EquipmentId: 20000011
     Color: {r: 1, g: 0.45, b: 0.3, a: 1}
+  - EquipmentId: 20000013
+    Color: {r: 0.74, g: 0.76, b: 0.82, a: 1}
+  - EquipmentId: 20000014
+    Color: {r: 0.82, g: 0.74, b: 0.36, a: 1}
+  - EquipmentId: 20000015
+    Color: {r: 0.42, g: 0.6, b: 0.76, a: 1}
+  - EquipmentId: 20000016
+    Color: {r: 0.42, g: 0.64, b: 0.44, a: 1}
+  - EquipmentId: 20000017
+    Color: {r: 0.6, g: 0.45, b: 0.28, a: 1}
+  - EquipmentId: 20000018
+    Color: {r: 0.5, g: 0.44, b: 0.68, a: 1}
+  - EquipmentId: 20000019
+    Color: {r: 0.74, g: 0.42, b: 0.5, a: 1}
+  - EquipmentId: 20000020
+    Color: {r: 0.58, g: 0.34, b: 0.7, a: 1}
+  - EquipmentId: 20000021
+    Color: {r: 0.8, g: 0.48, b: 0.6, a: 1}
+  - EquipmentId: 20000022
+    Color: {r: 0.34, g: 0.62, b: 0.58, a: 1}
+  - EquipmentId: 20000023
+    Color: {r: 0.68, g: 0.68, b: 0.66, a: 1}
+  - EquipmentId: 20000024
+    Color: {r: 0.78, g: 0.52, b: 0.58, a: 1}
+  - EquipmentId: 20000025
+    Color: {r: 0.26, g: 0.22, b: 0.46, a: 1}
+  - EquipmentId: 20000026
+    Color: {r: 0.78, g: 0.72, b: 0.54, a: 1}
+  - EquipmentId: 20000027
+    Color: {r: 0.74, g: 0.7, b: 0.58, a: 1}
+  - EquipmentId: 20000028
+    Color: {r: 0.62, g: 0.68, b: 0.78, a: 1}
+  - EquipmentId: 20000029
+    Color: {r: 0.64, g: 0.58, b: 0.44, a: 1}
+  - EquipmentId: 20000030
+    Color: {r: 0.44, g: 0.16, b: 0.44, a: 1}
+  - EquipmentId: 20000031
+    Color: {r: 0.36, g: 0.6, b: 0.7, a: 1}
+  - EquipmentId: 20000032
+    Color: {r: 0.68, g: 0.6, b: 0.36, a: 1}
+  - EquipmentId: 20000033
+    Color: {r: 0.54, g: 0.64, b: 0.38, a: 1}
   ExpGemCap: 200
   ExpGemTiers:
   - MinValue: 0

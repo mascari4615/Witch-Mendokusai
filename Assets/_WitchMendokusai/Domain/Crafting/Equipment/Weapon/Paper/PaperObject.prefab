@@ -73,7 +73,7 @@ MonoBehaviour:
   originCoolTime: 1.6
   aimPollDelay: 0.1
   bulletPrefab: {fileID: 7938298375142711892, guid: a98d9e44853aadc49b8e25ac8c66fd3e, type: 3}
-  fairyPrefab: {fileID: 5016466698488500064, guid: 1164c692ec68f92478ef56d2be73de36, type: 3}
+  fairyPrefab: {fileID: 3500386159381427325, guid: 9dcd4af88bcc05a4eae33bab7b775923, type: 3}
   rotateSpeed: -30
   countStat: 12000
   damageBonusStat: 12001

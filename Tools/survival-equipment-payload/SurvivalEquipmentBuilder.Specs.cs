@@ -157,7 +157,7 @@ namespace WitchMendokusai
 					BuildObject = (spec, folder) =>
 					{
 						Color color = spec.HitColor;
-						GameObject strike = MakeBlast(folder, "BoltStrike", color, 1.6f, 0.22f, new DamageSpec(15, knockback: 4f, hitstop: 0.03f), Burst(color, 8, 6f, 0.25f, 0.14f, 0.04f), root => CreateSprite(root, new SpriteSpec(IconSprite("electric"), color, 3.2f, height: 1.7f)));
+						GameObject strike = MakeBlast(folder, "BoltStrike", color, 1.6f, 0.22f, new DamageSpec(15, knockback: 4f, hitstop: 0.03f), Burst(color, 8, 6f, 0.25f, 0.14f, 0.04f), root => CreateSprite(root, new SpriteSpec(IconSprite("electric"), color, 2.2f, height: 1.2f)));
 						return MakeSpawnerObject(spec, folder, strike, SpawnPositionStrategy.RandomEnemy, SpawnAimStrategy.None, 2.5f, 0.05f, 0f, 2);
 					},
 				},
@@ -523,7 +523,7 @@ namespace WitchMendokusai
 				},
 				new WeaponSpec
 				{
-					Tier = 5, Key = "Pull", Folder = "Pull", Prefix = null, Id = 20000034, CardBase = 910,
+					Tier = 5, Key = "Pull", Folder = "Magnet", Prefix = null, Id = 20000034, CardBase = 910,
 					Name = "끌리는 실", Description = "떨어진 보석을 더 멀리서 끌어온다.", Icon = "thorny-tentacle",
 					ExtraEffects = new[] { Fx("EXP_COLLIDER_SCALE", 2) },
 					Cards = new[]
