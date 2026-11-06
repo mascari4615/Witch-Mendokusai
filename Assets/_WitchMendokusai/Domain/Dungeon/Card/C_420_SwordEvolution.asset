@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fef6d2281070d344d9cdc494d9a13c92, type: 3}
+  m_Name: C_420_SwordEvolution
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
+  <ID>k__BackingField: 420
+  <Name>k__BackingField: "검 진화"
+  <Description>k__BackingField: "검 수 +2, 검 데미지 +20, 검 공격속도 +2\n검의 공명과 검 공격속도 최대 뒤 상자에서 획득. 한 판에 1회."
+  <Sprite>k__BackingField: {fileID: 122605839, guid: 61d00942005bcfe49ab4822e59ef8ebd, type: 3}
+  <Sprites>k__BackingField: []
+  <Effects>k__BackingField:
+  - Type: 0
+    Data: {fileID: 11400000, guid: ce45244654a94794a894af986e9e23c0, type: 2}
+    ArithmeticOperator: 1
+    Value: 2
+  - Type: 0
+    Data: {fileID: 11400000, guid: e53994ffc802bee4795d1caa2f82379c, type: 2}
+    ArithmeticOperator: 1
+    Value: 20
+  - Type: 0
+    Data: {fileID: 11400000, guid: 28609c7c8c6934f41949d75c138abe7d, type: 2}
+    ArithmeticOperator: 1
+    Value: 2
+  <MaxStack>k__BackingField: 1
+  <Rarity>k__BackingField: 2
+  <Requirements>k__BackingField:
+  - Card: {fileID: 11400000, guid: 4372ca442ee886747aa6f051c5e2a462, type: 2}
+    Stack: 1
+  - Card: {fileID: 11400000, guid: 189a74a067a262b4da696e9c95bb6353, type: 2}
+    Stack: 5
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 11400000, guid: ce218d43c4894157be8fd7884677171f, type: 3}
+  <UIKind>k__BackingField: 4

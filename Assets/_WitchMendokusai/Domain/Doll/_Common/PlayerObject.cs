@@ -38,13 +38,15 @@ namespace WitchMendokusai
 
 		private GameEventManager gameEventManager;
 		private SOManager soManager;
+		private ResourceManager resourceManager;
 
 		[Inject]
 		public void Construct(GameEventManager gameEventManager, SOManager soManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator,
-			ObjectPoolManager objectPoolManager, PlayerProvider playerProvider)
+			ObjectPoolManager objectPoolManager, PlayerProvider playerProvider, ResourceManager resourceManager)
 		{
 			this.gameEventManager = gameEventManager;
 			this.soManager = soManager;
+			this.resourceManager = resourceManager;
 			SetBaseDeps(timeManager, unitStatCalculator, objectPoolManager, playerProvider);
 		}
 
@@ -85,10 +87,29 @@ namespace WitchMendokusai
 		{
 			// 일반 피해는 피격 뒤 시작된 무적 시간 동안 막는다.
 			// 낙사·검증용 강제 피해처럼 ignoreInvincible을 명시한 호출만 관통한다.
-			if (damageInfo.ignoreInvincible == false && invincibleRoutine != null)
+			if (damageInfo.ignoreInvincible == false && (invincibleRoutine != null || RollDodge() || TryRevive(damageInfo)))
 				return;
 
 			base.ReceiveDamage(damageInfo);
+		}
+
+		private bool RollDodge() => Random.Range(0, DamageCalculation.ROLL_RANGE) < UnitStat[UnitStatType.DODGE];
+
+		// 치명상 직전 처리, 사망 이벤트와 사망 반응이 돌지 않음. 던전 나가기의 강제 피해는 여기 안 옴
+		private bool TryRevive(DamageInfo damageInfo)
+		{
+			if (DungeonManagerBridge.IsDungeon == false || IsAlive == false)
+				return false;
+			if (UnitStat[UnitStatType.REVIVE_COUNT] <= 0 || damageInfo.damage < UnitStat[UnitStatType.HP_CUR])
+				return false;
+
+			UnitStat[UnitStatType.REVIVE_COUNT]--;
+			UpgradeTuning tuning = resourceManager.SurvivalFeel.Upgrade;
+			int reviveHp = Mathf.CeilToInt(UnitStat[UnitStatType.HP_MAX] * tuning.ReviveHealthRatio);
+			ReceiveHeal(Mathf.Max(0, reviveHp - UnitStat[UnitStatType.HP_CUR]));
+			GrantInvincibility(tuning.ReviveInvincibility);
+			SurvivalFeel.Instance.OnPlayerRevived(transform.position);
+			return true;
 		}
 
 		protected override void OnEnable()
@@ -119,7 +140,8 @@ namespace WitchMendokusai
 
 			if (invincibleRoutine != null)
 				StopCoroutine(invincibleRoutine);
-			invincibleRoutine = StartCoroutine(InvincibleTime(soManager.InvincibleTime.RuntimeValue));
+			float bonusSeconds = UnitStat[UnitStatType.INVINCIBLE_TIME] / resourceManager.SurvivalFeel.Upgrade.InvincibleTimeStatPerSecond;
+			invincibleRoutine = StartCoroutine(InvincibleTime(soManager.InvincibleTime.RuntimeValue + bonusSeconds));
 
 			switch (UnitStat[UnitStatType.HP_CUR])
 			{

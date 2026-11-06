@@ -12,6 +12,8 @@ namespace WitchMendokusai
 		public bool UsedByPlayer { get; private set; }
 
 		private SkillComponent[] skillComponents;
+		private Vector3 baseScale;
+		private bool hasBaseScale;
 
 		private void OnEnable()
 		{
@@ -32,6 +34,18 @@ namespace WitchMendokusai
 
 			foreach (SkillComponent skillComponent in skillComponents)
 				skillComponent.InitContext(this);
+		}
+
+		// 공격 판정 초기화, 공격 범위 강화 적용. 풀 재사용이라 처음 크기 기준으로 계산
+		public void InitAttack(SkillContext context)
+		{
+			InitContext(context);
+			if (hasBaseScale == false)
+			{
+				baseScale = transform.localScale;
+				hasBaseScale = true;
+			}
+			transform.localScale = baseScale * context.User.UnitStat.PercentMultiplier(UnitStatType.PROJECTILE_SCALE_BONUS);
 		}
 	}
 }

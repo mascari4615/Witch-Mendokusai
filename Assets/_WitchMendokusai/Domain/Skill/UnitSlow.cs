@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	/// ★ 풀에서 재사용되는 몸이므로 꺼질 때 반드시 원속도로 되돌린다 — 안 그러면 다음 판의
 	///   멀쩡한 마수가 이유 없이 느리다.
 	/// </summary>
-	public sealed class TowerDefenseSlow : MonoBehaviour
+	public sealed class UnitSlow : MonoBehaviour
 	{
 		private UnitObject unitObject;
 		private int originalSpeed = -1;
@@ -25,9 +25,9 @@ namespace WitchMendokusai
 			if (target == null || slowFactor <= 0f || seconds <= 0f)
 				return;
 
-			TowerDefenseSlow slow = target.GetComponent<TowerDefenseSlow>();
+			UnitSlow slow = target.GetComponent<UnitSlow>();
 			if (slow == null)
-				slow = target.gameObject.AddComponent<TowerDefenseSlow>();
+				slow = target.gameObject.AddComponent<UnitSlow>();
 
 			slow.Engage(target, slowFactor, seconds);
 		}

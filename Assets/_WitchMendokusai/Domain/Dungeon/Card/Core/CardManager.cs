@@ -20,7 +20,7 @@ namespace WitchMendokusai
 		SelectCard = 1,
 	}
 
-	public class CardManager : UIPanelGroup<CardPanelType>
+	public partial class CardManager : UIPanelGroup<CardPanelType>
 	{
 		private readonly Dictionary<int, UIDeck> deckUIDic = new();
 
@@ -33,10 +33,12 @@ namespace WitchMendokusai
 		private DataManager dataManager;
 		private PlayerProvider playerProvider;
 		private CardAwakeningEffect awakeningEffect;
+		private ResourceManager resourceManager;
 
 		[Inject]
-		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager, DataManager dataManager, UIManager uiManager, PlayerProvider playerProvider)
+		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager, DataManager dataManager, UIManager uiManager, PlayerProvider playerProvider, ResourceManager resourceManager)
 		{
+			this.resourceManager = resourceManager;
 			this.gameEventManager = gameEventManager;
 			this.timeManager = timeManager;
 			this.soManager = soManager;
@@ -110,6 +112,7 @@ namespace WitchMendokusai
 		{
 			base.Start();
 			gameEventManager.RegisterCallback(GameEventType.OnLevelUp, LevelUp);
+			EventBusBridge.Subscribe<ChestPickedUpEvent>(HandleChestPickedUp);
 		}
 
 		private void OnDisable() => CancelSelection();
@@ -117,6 +120,7 @@ namespace WitchMendokusai
 		private void OnDestroy()
 		{
 			gameEventManager?.UnregisterCallback(GameEventType.OnLevelUp, LevelUp);
+			EventBusBridge.Unsubscribe<ChestPickedUpEvent>(HandleChestPickedUp);
 		}
 
 		public void CancelSelection()
@@ -126,6 +130,7 @@ namespace WitchMendokusai
 				Destroy(awakeningEffect.gameObject);
 			}
 			StopAllCoroutines();
+			ClearOpenChest();
 			levelUpStack = 0;
 			curDeckIndex = 0;
 			deckIdMapping.Clear();
@@ -145,6 +150,7 @@ namespace WitchMendokusai
 		public void Reset()
 		{
 			CancelSelection();
+			ResetRunChoices();
 
 			// ClearCardEffect
 			CardBuffer selectedCardBuffer = soManager.SelectedCardBuffer;
@@ -171,7 +177,7 @@ namespace WitchMendokusai
 		private List<CardData> AvailableCards(int deckIndex)
 		{
 			return cardDataBuffers[deckIndex]
-				.Where(card => card != null && card.MaxStack > 0 && card.MeetsRequirements(soManager.SelectedCardBuffer.Data) &&
+				.Where(card => card != null && card.MaxStack > 0 && bannedCardIds.Contains(card.ID) == false && card.MeetsRequirements(soManager.SelectedCardBuffer.Data) &&
 					soManager.SelectedCardBuffer.Data.Count(selected => selected.ID == card.ID) < card.MaxStack)
 				.GroupBy(card => card.ID)
 				.Select(group => group.First())
@@ -210,7 +216,7 @@ namespace WitchMendokusai
 		public void LevelUp()
 		{
 			levelUpStack++;
-			if (levelUpStack > 1)
+			if (levelUpStack > 1 || isChestOpen)
 			{
 				return;
 			}
@@ -227,6 +233,7 @@ namespace WitchMendokusai
 			{
 				ConvertLevelUps();
 				CancelSelection();
+				TryOpenNextChest();
 				yield break;
 			}
 
@@ -250,13 +257,12 @@ namespace WitchMendokusai
 
 			offeredCards.Clear();
 			int choiceCount = Math.Min(Math.Max(cardsPerChoice, 1), candidates.Count);
-			for (int i = 0; i < choiceCount; i++)
-			{
-				int randomIndex = PickWeightedIndex(candidates);
-				offeredCards.Add(candidates[randomIndex]);
-				candidates.RemoveAt(randomIndex);
-			}
+			DrawOfferedCards(candidates, choiceCount);
+			ShowOfferedCards();
+		}
 
+		private void ShowOfferedCards()
+		{
 			List<EquipmentData> choiceEquipments = dataManager.GetEquipmentData(dataManager.CurDollID);
 			(Panels[CardPanelType.SelectCard] as UISelectCard).SetCardSelectButtons(
 				offeredCards, choiceEquipments[curDeckIndex], choiceEquipments, soManager.SelectedCardBuffer.Data, cardDataBuffers[curDeckIndex]);
@@ -306,16 +312,7 @@ namespace WitchMendokusai
 			}
 
 			levelUpStack--;
-
-			if (levelUpStack > 0)
-			{
-				StartCoroutine(StartSelectCard());
-			}
-			else
-			{
-				timeManager.Resume(gameObject);
-				playerProvider.CurrentObject.GrantInvincibility(postSelectionInvincibility);
-			}
+			ContinueAfterChoice();
 		}
 
 		private void ConvertLevelUps()
@@ -339,8 +336,8 @@ namespace WitchMendokusai
 
 		private float RarityWeight(CardData card) => card.Rarity switch
 		{
-			CardRarity.Rare => rareWeight,
-			CardRarity.Epic => epicWeight,
+			CardRarity.Rare => rareWeight * UpgradeData.LuckMultiplier,
+			CardRarity.Epic => epicWeight * UpgradeData.LuckMultiplier,
 			_ => commonWeight,
 		};
 

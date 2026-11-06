@@ -25,8 +25,7 @@ namespace WitchMendokusai
 
 		public void UpdateEquipment()
 		{
-			playerProvider.Current.ExpCollider.transform.localScale =
-				Vector3.one * (1 + (PlayerStat[UnitStatType.EXP_COLLIDER_SCALE] * .5f));
+			playerProvider.Current.UpdatePickupRange();
 		}
 	}
 }

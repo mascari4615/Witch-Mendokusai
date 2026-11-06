@@ -13,6 +13,10 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject bulletPrefab;
 		[SerializeField] private GameObject turretPrefab;
 
+		[Header("Stat")]
+		[SerializeField, Range(0f, 1f)] private float attackSpeedReductionPerStack = 0.2f;
+		[SerializeField, Range(0.01f, 1f)] private float minCoolTimeRatio = 0.2f;
+
 		private readonly List<Transform> turretTransforms = new();
 		private float coolTime;
 		private int damageBonus;
@@ -38,6 +42,10 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
+			PlayerStat.AddListener(UnitStatType.TURRET_COUNT, UpdateTurret);
+			PlayerStat.AddListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateTurret);
+			PlayerStat.AddListener(UnitStatType.TURRET_DAMAGE_BONUS, UpdateDamageBonus);
+			PlayerStat.AddListener(UnitStatType.TURRET_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 			UpdateTurret();
 			UpdateDamageBonus();
 			UpdateAttackSpeedBonus();
@@ -51,13 +59,10 @@ namespace WitchMendokusai
 		{
 			if (loop != null)
 				StopCoroutine(loop);
-		}
-
-		private void Start()
-		{
-			PlayerStat.AddListener(UnitStatType.TURRET_COUNT, UpdateTurret);
-			PlayerStat.AddListener(UnitStatType.TURRET_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.AddListener(UnitStatType.TURRET_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
+			PlayerStat.RemoveListener(UnitStatType.TURRET_COUNT, UpdateTurret);
+			PlayerStat.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateTurret);
+			PlayerStat.RemoveListener(UnitStatType.TURRET_DAMAGE_BONUS, UpdateDamageBonus);
+			PlayerStat.RemoveListener(UnitStatType.TURRET_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 		}
 
 		private IEnumerator Loop()
@@ -80,7 +85,7 @@ namespace WitchMendokusai
 				bulletObject.transform.position = bulletSpawnPos;
 
 				if (bulletObject.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
+					skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
 
 				if (bulletObject.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);
@@ -93,7 +98,7 @@ namespace WitchMendokusai
 
 		private void UpdateTurret()
 		{
-			int turretCount = 1 + PlayerStat[UnitStatType.TURRET_COUNT];
+			int turretCount = 1 + PlayerStat[UnitStatType.TURRET_COUNT] + PlayerStat[UnitStatType.PROJECTILE_COUNT_BONUS];
 
 			if (turretTransforms.Count < turretCount)
 			{
@@ -126,7 +131,7 @@ namespace WitchMendokusai
 
 		private void UpdateAttackSpeedBonus()
 		{
-			coolTime = originCoolTime * (1 - PlayerStat[UnitStatType.TURRET_ATTACK_SPEED_BONUS] * .2f);
+			coolTime = AttackCadence.Interval(originCoolTime, PlayerStat[UnitStatType.TURRET_ATTACK_SPEED_BONUS], attackSpeedReductionPerStack, minCoolTimeRatio);
 		}
 	}
 }

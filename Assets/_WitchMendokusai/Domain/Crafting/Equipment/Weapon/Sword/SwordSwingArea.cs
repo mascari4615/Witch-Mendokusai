@@ -52,13 +52,15 @@ namespace WitchMendokusai
 			float halfAngle = 0f;
 			Vector2 min = new(float.MaxValue, float.MaxValue);
 			Vector2 max = new(float.MinValue, float.MinValue);
+			// 공격 범위 강화의 루트 크기가 측정에 반영되도록 위치와 회전만 되돌림
+			Quaternion inverseRotation = Quaternion.Inverse(hitboxRoot.rotation);
 			hitboxRoot.GetComponentsInChildren(true, ColliderBuffer);
 			foreach (Collider collider in ColliderBuffer)
 			{
 				CollectCorners(collider, CornerBuffer);
 				for (int i = 0; i < CornerBuffer.Length; i++)
 				{
-					Vector3 local = hitboxRoot.InverseTransformPoint(CornerBuffer[i]);
+					Vector3 local = inverseRotation * (CornerBuffer[i] - hitboxRoot.position);
 					Vector2 planar = new(local.x, local.z);
 					nearest = Mathf.Min(nearest, Mathf.Max(0f, local.z));
 					farthest = Mathf.Max(farthest, planar.magnitude);

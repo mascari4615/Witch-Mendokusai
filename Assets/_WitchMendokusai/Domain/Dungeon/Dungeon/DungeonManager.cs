@@ -47,6 +47,7 @@ namespace WitchMendokusai
 		private ResourceManager resourceManager;
 		private Coroutine clearDelayRoutine;
 		private int targetClearCount;
+		private float hpRegenElapsed;
 
 		[Inject]
 		public void Construct(SOManager soManager, UIManager uiManager, CameraManager cameraManager, StageManager stageManager, GameEventManager gameEventManager, PlayerProvider playerProvider, DataManager dataManager, GameManager gameManager, ResourceManager resourceManager, IObjectResolver container)
@@ -145,6 +146,7 @@ namespace WitchMendokusai
 				expChecker.Init();
 				cardManager.Reset();
 				soManager.DungeonItemBuffer.Clear();
+				hpRegenElapsed = 0f;
 
 				Context = new DungeonContext
 				(
@@ -190,6 +192,23 @@ namespace WitchMendokusai
 
 				gameEventManager.Raise(GameEventType.OnDungeonStart);
 			}
+		}
+
+		private void Update()
+		{
+			if (IsDungeon == false)
+				return;
+
+			float interval = resourceManager.SurvivalFeel.Upgrade.HpRegenInterval;
+			hpRegenElapsed += Time.deltaTime;
+			if (hpRegenElapsed < interval)
+				return;
+			hpRegenElapsed -= interval;
+
+			PlayerObject player = playerProvider.CurrentObject;
+			int regenAmount = player.UnitStat[UnitStatType.HP_REGENERATION];
+			if (regenAmount > 0 && player.UnitStat[UnitStatType.HP_CUR] < player.UnitStat[UnitStatType.HP_MAX])
+				player.ReceiveHeal(regenAmount);
 		}
 
 		private bool IsClearReached()
@@ -259,6 +278,8 @@ namespace WitchMendokusai
 
 			if (isCleared == false)
 				dataManager.GameStat[GameStatType.NYANG] += CurDungeon.CalculateDefeatNyang(Context.ElapsedTime, dungeonRecorder.KillCountSinceStart);
+			// 냥 보너스, 클리어 보상과 패배 보상과 레벨업 전환을 포함한 이번 판 획득분 기준
+			dataManager.GameStat[GameStatType.NYANG] += dungeonRecorder.NyangSinceStart * playerProvider.Current.UnitStat[UnitStatType.GOLD_BONUS] / UnitStat.PERCENT;
 			dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR], isCleared);
 
 			dungeonUI.SetPanel(DungeonPanelType.DungeonResult);
