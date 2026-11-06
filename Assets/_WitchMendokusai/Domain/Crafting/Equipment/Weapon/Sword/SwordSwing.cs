@@ -117,12 +117,13 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void PlayPooled(ObjectPoolManager objectPool, GameObject attackOwner, Transform followTarget, SwordSwingArea hitArea)
+		public void PlayPooled(ObjectPoolManager objectPool, GameObject attackOwner, Transform followTarget, SwordSwingArea hitArea, float swingSide)
 		{
 			pool = objectPool;
 			owner = attackOwner;
 			follow = followTarget;
-			Prepare(hitArea);
+			side = swingSide;
+			FitArea(hitArea);
 			elapsed = 0;
 			Evaluate(0);
 		}

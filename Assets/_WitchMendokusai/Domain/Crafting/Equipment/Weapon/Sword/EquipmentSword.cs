@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
 
@@ -29,10 +30,16 @@ namespace WitchMendokusai
 		private PlayerProvider playerProvider;
 		private ObjectPoolManager objectPoolManager;
 		private SOManager soManager;
+		private ResourceManager resourceManager;
+		private readonly List<(float Score, Vector3 Direction)> targetBuffer = new();
+		private Vector3 lastDirection = Vector3.right;
+		private float swingSide = 1f;
+		private int resonanceVolley;
 
 		[Inject]
-		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager, SOManager soManager)
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager, SOManager soManager, ResourceManager resourceManager)
 		{
+			this.resourceManager = resourceManager;
 			this.playerProvider = playerProvider;
 			this.objectPoolManager = objectPoolManager;
 			this.soManager = soManager;
@@ -43,6 +50,7 @@ namespace WitchMendokusai
 		public override void InitContext(SkillObject skillObject)
 		{
 			swingCount = 1;
+			resonanceVolley = 0;
 		}
 
 		private void OnEnable()
@@ -95,53 +103,104 @@ namespace WitchMendokusai
 		private IEnumerator AttackLoop()
 		{
 			WaitForSeconds wait = new WaitForSeconds(eachAttackDelay);
-			bool playerWasLookingRight = playerProvider.CurrentObject.UnitMovement.IsLookingRight;
+			SwordPattern pattern = resourceManager.SurvivalFeel.Sword;
 			for (int i = 0; i < swingCount; i++)
 			{
-				Attack(i);
+				Attack(PickDirection(i, pattern), 0);
 				yield return wait;
 			}
-
-			void Attack(int index)
+			if (HasResonance())
 			{
-				GameObject g = objectPoolManager.Spawn(bulletPrefab);
-
-				Vector3 spawnPosition = transform.position;
-				spawnPosition.y = 0;
-				g.transform.position = spawnPosition;
-
-				g.transform.rotation = Quaternion.LookRotation(index % 2 == 0 ? Vector3.right : Vector3.left);
-				if (playerWasLookingRight == false)
-					g.transform.Rotate(0, 180, 0);
-
-				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
-
-				if (g.GetComponentInChildren<DamagingObject>() is DamagingObject damagingObject)
-					damagingObject.SetDamageBonus(damageBonus);
-
-				g.SetActive(true);
-				PlaySwing(g.transform);
+				resonanceVolley++;
+				if ((resonanceVolley - 1) % pattern.ResonanceBurstEvery == 0)
+					ResonanceBurst(pattern);
 			}
+		}
+
+		private void ResonanceBurst(SwordPattern pattern)
+		{
+			Vector3 first = PickDirection(0, pattern);
+			float step = 360f / pattern.ResonanceBurstSlashes;
+			for (int i = 0; i < pattern.ResonanceBurstSlashes; i++)
+				Attack(Quaternion.AngleAxis(step * i, Vector3.up) * first, pattern.ResonanceBurstDamage);
+			SurvivalFeel.Instance.OnResonanceBurst(transform.position);
+		}
+
+		private void Attack(Vector3 direction, int extraDamage)
+		{
+			GameObject g = objectPoolManager.Spawn(bulletPrefab);
+
+			Vector3 spawnPosition = transform.position;
+			spawnPosition.y = 0;
+			g.transform.position = spawnPosition;
+			g.transform.rotation = Quaternion.LookRotation(direction);
+
+			if (g.TryGetComponent(out SkillObject skillObject))
+				skillObject.InitContext(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
+
+			if (g.GetComponentInChildren<DamagingObject>() is DamagingObject damagingObject)
+				damagingObject.SetDamageBonus(damageBonus + extraDamage);
+
+			g.SetActive(true);
+			swingSide = -swingSide;
+			PlaySwing(g.transform, swingSide);
+		}
+
+		// 이동 방향으로 치우친 가까운 순서의 index 번째 적, 적이 모자라면 부채꼴로 벌림
+		private Vector3 PickDirection(int index, SwordPattern pattern)
+		{
+			Vector3 origin = transform.position;
+			Vector3 moveDirection = playerProvider.CurrentObject.UnitMovement.MoveDirectionLocal;
+			moveDirection.y = 0f;
+			bool moving = moveDirection.sqrMagnitude > 0.001f;
+			if (moving)
+				lastDirection = moveDirection.normalized;
+
+			targetBuffer.Clear();
+			float rangeSquared = pattern.TargetRange * pattern.TargetRange;
+			foreach (GameObject monster in ObjectBufferManager.GetObjects(ObjectType.Monster))
+			{
+				Vector3 offset = monster.transform.position - origin;
+				offset.y = 0f;
+				float distanceSquared = offset.sqrMagnitude;
+				if (distanceSquared > rangeSquared || distanceSquared < 0.0001f)
+					continue;
+				float distance = Mathf.Sqrt(distanceSquared);
+				Vector3 toMonster = offset / distance;
+				float score = moving ? distance - Vector3.Dot(toMonster, lastDirection) * pattern.ForwardBias : distance;
+				targetBuffer.Add((score, toMonster));
+			}
+			targetBuffer.Sort((left, right) => left.Score.CompareTo(right.Score));
+
+			if (index < targetBuffer.Count)
+			{
+				lastDirection = index == 0 ? targetBuffer[0].Direction : lastDirection;
+				return targetBuffer[index].Direction;
+			}
+			int extra = index - targetBuffer.Count + 1;
+			float angle = pattern.FanDegrees * Mathf.Ceil(extra * 0.5f) * (extra % 2 == 0 ? -1f : 1f);
+			return Quaternion.AngleAxis(angle, Vector3.up) * lastDirection;
+		}
+
+		private bool HasResonance()
+		{
+			if (resonanceCard == null)
+				return false;
+			foreach (CardData card in soManager.SelectedCardBuffer.Data)
+				if (card.ID == resonanceCard.ID)
+					return true;
+			return false;
 		}
 
 		// 판정 방향으로 실제 검을 휘두르는 연출, 강화 카드 보유 시 강화 휘두르기
 		// 연출 크기는 이번 판정 오브젝트에서 측정한 범위에 맞춤
-		private void PlaySwing(Transform attack)
+		private void PlaySwing(Transform attack, float side)
 		{
-			SwordSwing prefab = basicSwingPrefab;
-			foreach (CardData card in soManager.SelectedCardBuffer.Data)
-			{
-				if (resonanceCard != null && card == resonanceCard)
-				{
-					prefab = resonanceSwingPrefab;
-					break;
-				}
-			}
+			SwordSwing prefab = HasResonance() ? resonanceSwingPrefab : basicSwingPrefab;
 			GameObject visual = objectPoolManager.Spawn(prefab.gameObject);
 			visual.transform.SetPositionAndRotation(attack.position, attack.rotation);
 			visual.SetActive(true);
-			visual.GetComponent<SwordSwing>().PlayPooled(objectPoolManager, gameObject, playerProvider.Current.transform, SwordSwingArea.FromHitbox(attack));
+			visual.GetComponent<SwordSwing>().PlayPooled(objectPoolManager, gameObject, playerProvider.Current.transform, SwordSwingArea.FromHitbox(attack), side);
 		}
 
 		private void UpdateSword(int swordCount)

@@ -35,6 +35,7 @@ namespace WitchMendokusai
 		private Image dimImage;
 		private float elapsed;
 		private bool playing;
+		private bool released;
 
 		public void Play(Transform target, TimeManager clock)
 		{
@@ -110,6 +111,11 @@ namespace WitchMendokusai
 			float gather = Mathf.Clamp01(elapsed / gatherDuration);
 			float release = Mathf.Clamp01((elapsed - gatherDuration) / releaseDuration);
 			float fade = Mathf.Clamp01((elapsed - gatherDuration - releaseDuration) / fadeDuration);
+			if (released == false && release > 0f)
+			{
+				released = true;
+				SurvivalFeel.Instance.OnResonanceAwakening(actor.position);
+			}
 			float intensity = Mathf.SmoothStep(0, 1, gather) * (1 - fade);
 			float radius = Mathf.Lerp(gatherRadius, focusRadius, gather * gather);
 			radius = Mathf.Lerp(radius, releaseRadius, 1 - (1 - release) * (1 - release));

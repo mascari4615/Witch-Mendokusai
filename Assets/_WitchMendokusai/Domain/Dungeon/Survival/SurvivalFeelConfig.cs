@@ -30,6 +30,17 @@ namespace WitchMendokusai
 	}
 
 	[Serializable]
+	public class SwordPattern
+	{
+		[Min(0.1f), Tooltip("적을 노리는 최대 거리")] public float TargetRange = 9f;
+		[Min(0f), Tooltip("이동 방향 쪽 적을 이 거리만큼 가깝게 취급")] public float ForwardBias = 2.5f;
+		[Min(0f), Tooltip("노릴 적이 모자랄 때 벌리는 각도")] public float FanDegrees = 35f;
+		[Min(1), Tooltip("공명 뒤 이 횟수마다 전방위 베기")] public int ResonanceBurstEvery = 4;
+		[Min(1)] public int ResonanceBurstSlashes = 6;
+		[Min(0), Tooltip("전방위 베기 추가 피해")] public int ResonanceBurstDamage = 10;
+	}
+
+	[Serializable]
 	public class WeaponHitColor
 	{
 		public int EquipmentId;
@@ -71,6 +82,11 @@ namespace WitchMendokusai
 		public FeelMoment BossSpawn = new() { Shake = 0.8f, Hitstop = 0.14f, HitstopScale = 0.05f, Shards = 60, ShardSpeed = 11f, ShardLife = 0.8f, ShardSize = 0.3f, RingSize = 14f, RingLife = 0.7f, Color = new Color(1f, 0.35f, 0.3f, 1f) };
 		public FeelMoment BossKill = new() { Shake = 1.1f, Hitstop = 0.28f, HitstopScale = 0.04f, Shards = 120, ShardSpeed = 14f, ShardLife = 1.2f, ShardSize = 0.34f, RingSize = 20f, RingLife = 0.9f, Color = new Color(1f, 0.9f, 0.55f, 1f) };
 		public FeelMoment PlayerDeath = new() { Shake = 0.7f, Shards = 50, ShardSpeed = 8f, ShardLife = 0.9f, ShardSize = 0.26f, RingSize = 8f, RingLife = 0.6f, Color = new Color(1f, 0.3f, 0.3f, 1f) };
+
+		[Header("Sword")]
+		public SwordPattern Sword = new();
+		public FeelMoment ResonanceAwakening = new() { Shake = 0.6f, Shards = 80, ShardSpeed = 12f, ShardLife = 0.9f, ShardSize = 0.3f, RingSize = 16f, RingLife = 0.8f, Color = new Color(0.6f, 0.8f, 1f, 1f) };
+		public FeelMoment ResonanceBurst = new() { Shake = 0.2f, Shards = 16, ShardSpeed = 8f, ShardLife = 0.4f, ShardSize = 0.2f, RingSize = 9f, RingLife = 0.35f, Color = new Color(0.6f, 0.8f, 1f, 1f) };
 
 		[Header("Clear")]
 		[Min(0f), Tooltip("보스 클리어 뒤 결과창까지 실제 시간 초")] public float BossClearResultDelay = 1f;
