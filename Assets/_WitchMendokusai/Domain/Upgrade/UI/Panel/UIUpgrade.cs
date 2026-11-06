@@ -33,6 +33,8 @@ namespace WitchMendokusai
 		[SerializeField] private Button confirmYesButton;
 		[SerializeField] private Button confirmNoButton;
 		[SerializeField] private UIBurst buyBurst;
+		[SerializeField] private string battleHudObjectName = "[Block] Lower";
+		private CanvasGroup battleHudGroup;
 
 		private UIUpgradeGrid upgradeGridUI;
 		private NPCObject npc;
@@ -107,7 +109,23 @@ namespace WitchMendokusai
 
 		protected override void OnOpen()
 		{
+			SetBattleHudVisible(false);
 			UpdateUI();
+		}
+
+		protected override void OnClose() => SetBattleHudVisible(true);
+
+		private void SetBattleHudVisible(bool isVisible)
+		{
+			if (battleHudGroup == null)
+			{
+				GameObject battleHud = GameObject.Find(battleHudObjectName);
+				battleHudGroup = battleHud.GetComponent<CanvasGroup>();
+				if (battleHudGroup == null)
+					battleHudGroup = battleHud.AddComponent<CanvasGroup>();
+			}
+			battleHudGroup.alpha = isVisible ? 1f : 0f;
+			battleHudGroup.blocksRaycasts = isVisible;
 		}
 
 		public override void UpdateUI()
