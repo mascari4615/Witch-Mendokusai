@@ -137,6 +137,9 @@ namespace WitchMendokusai
 				// TASK-WM-107 Slice 3-3 — static Effect 우회 폐기: DI runner 경유 dispatch.
 				effectRunner.ApplyEffect(upgrade.ToEffectInfo());
 			}
+
+			// 강화로 늘어난 최대 체력까지 충전
+			playerObject.UnitStat[UnitStatType.HP_CUR] = playerObject.UnitStat[UnitStatType.HP_MAX];
 		}
 	}
 
