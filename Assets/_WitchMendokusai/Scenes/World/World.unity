@@ -1165,6 +1165,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectionDelay: 1
   cardsPerChoice: 3
+  postSelectionInvincibility: 1
+  maxedLevelUpHeal: 5
+  maxedLevelUpNyang: 10
+  commonWeight: 1
+  rareWeight: 0.5
+  epicWeight: 0.2
 --- !u!1 &1200864839
 GameObject:
   m_ObjectHideFlags: 0
@@ -2890,7 +2896,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1.6666666
+  m_PixelsPerUnitMultiplier: 0.35555556
 --- !u!114 &474617409162566381
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2920,7 +2926,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 4.923077
+  m_PixelsPerUnitMultiplier: 1.5753846
 --- !u!224 &512374208591533720
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4776,7 +4782,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.2}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.14}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4792,7 +4798,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 4.923077
+  m_PixelsPerUnitMultiplier: 1.5753846
 --- !u!1001 &2823774666140838483
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5370,6 +5376,34 @@ PrefabInstance:
     - target: {fileID: 4941789067965531425, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
       propertyPath: m_Name
       value: '[Block] Workable Doll Count'
+      objectReference: {fileID: 0}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: f96b330e06ee441f93d7a6bc1c53b47b, type: 3}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_Color.a
+      value: 0.14
+      objectReference: {fileID: 0}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_PixelsPerUnitMultiplier
+      value: 2.0479999
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538882655057125064, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_PixelsPerUnitMultiplier
+      value: 0.53333336
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6529,6 +6563,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6136839774062729492, guid: 04434c12420602b4aa92f5d667a10e66, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 150
+      objectReference: {fileID: 0}
     - target: {fileID: 6295637163020220020, guid: 04434c12420602b4aa92f5d667a10e66, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -7125,6 +7163,34 @@ PrefabInstance:
     - target: {fileID: 4941789067965531425, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
       propertyPath: m_Name
       value: '[Block] Nyang'
+      objectReference: {fileID: 0}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: f96b330e06ee441f93d7a6bc1c53b47b, type: 3}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_Color.a
+      value: 0.14
+      objectReference: {fileID: 0}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6494112072680533542, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_PixelsPerUnitMultiplier
+      value: 2.0479999
+      objectReference: {fileID: 0}
+    - target: {fileID: 6538882655057125064, guid: 30433fb496771b54392c4a8454a9fb59, type: 3}
+      propertyPath: m_PixelsPerUnitMultiplier
+      value: 0.53333336
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9389,7 +9455,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 5
+  m_PixelsPerUnitMultiplier: 1.0666667
 --- !u!114 &9101424917600204292
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -741,7 +741,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.13}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.07}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -757,7 +757,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 4
+  m_PixelsPerUnitMultiplier: 1.28
 --- !u!1 &1228775176965627567
 GameObject:
   m_ObjectHideFlags: 0
@@ -1405,7 +1405,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1.3636364
+  m_PixelsPerUnitMultiplier: 0.29090908
 --- !u!114 &466916528551696085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2307,7 +2307,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1.3636364
+  m_PixelsPerUnitMultiplier: 0.29090908
 --- !u!114 &9134902040700969641
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3357,7 +3357,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1.3636364
+  m_PixelsPerUnitMultiplier: 0.29090908
 --- !u!114 &5012383469261883194
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4930,7 +4930,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.13}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.07}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4946,7 +4946,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 4
+  m_PixelsPerUnitMultiplier: 1.28
 --- !u!1 &7800392075800131289
 GameObject:
   m_ObjectHideFlags: 0
@@ -5575,7 +5575,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.13}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.07}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -5591,7 +5591,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 4
+  m_PixelsPerUnitMultiplier: 1.28
 --- !u!1 &8331453086418078061
 GameObject:
   m_ObjectHideFlags: 0
