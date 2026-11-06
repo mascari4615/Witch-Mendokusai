@@ -72,6 +72,9 @@ namespace WitchMendokusai
 		public FeelMoment BossKill = new() { Shake = 1.1f, Hitstop = 0.28f, HitstopScale = 0.04f, Shards = 120, ShardSpeed = 14f, ShardLife = 1.2f, ShardSize = 0.34f, RingSize = 20f, RingLife = 0.9f, Color = new Color(1f, 0.9f, 0.55f, 1f) };
 		public FeelMoment PlayerDeath = new() { Shake = 0.7f, Shards = 50, ShardSpeed = 8f, ShardLife = 0.9f, ShardSize = 0.26f, RingSize = 8f, RingLife = 0.6f, Color = new Color(1f, 0.3f, 0.3f, 1f) };
 
+		[Header("Clear")]
+		[Min(0f), Tooltip("보스 클리어 뒤 결과창까지 실제 시간 초")] public float BossClearResultDelay = 1f;
+
 		[Header("Level up pop")]
 		[Min(1f)] public float LevelUpPopScale = 1.35f;
 		[Min(0.01f)] public float LevelUpPopTime = 0.28f;

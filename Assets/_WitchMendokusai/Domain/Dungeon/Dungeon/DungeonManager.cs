@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
@@ -43,10 +44,13 @@ namespace WitchMendokusai
 		private PlayerProvider playerProvider;
 		private DataManager dataManager;
 		private GameManager gameManager;
+		private ResourceManager resourceManager;
+		private Coroutine clearDelayRoutine;
 
 		[Inject]
-		public void Construct(SOManager soManager, UIManager uiManager, CameraManager cameraManager, StageManager stageManager, GameEventManager gameEventManager, PlayerProvider playerProvider, DataManager dataManager, GameManager gameManager, IObjectResolver container)
+		public void Construct(SOManager soManager, UIManager uiManager, CameraManager cameraManager, StageManager stageManager, GameEventManager gameEventManager, PlayerProvider playerProvider, DataManager dataManager, GameManager gameManager, ResourceManager resourceManager, IObjectResolver container)
 		{
+			this.resourceManager = resourceManager;
 			this.soManager = soManager;
 			this.uiManager = uiManager;
 			this.cameraManager = cameraManager;
@@ -184,7 +188,7 @@ namespace WitchMendokusai
 							Context.UpdateDifficulty();
 							monsterSpawner.UpdateWaves();
 
-						}, () => EndDungeon(isCleared: true));
+						}, HandleClear);
 				}
 
 				// Context 생성 이후 UI 설정
@@ -198,11 +202,38 @@ namespace WitchMendokusai
 
 		private void EndDungeonByDefeat() => EndDungeon(isCleared: false);
 
+		// 보스 클리어는 처치 연출을 보인 뒤 결과창으로
+		private void HandleClear()
+		{
+			float delay = resourceManager.SurvivalFeel.BossClearResultDelay;
+			if (CurDungeon.ObjectiveType != DungeonObjectiveType.Boss || delay <= 0f)
+			{
+				EndDungeon(isCleared: true);
+				return;
+			}
+			playerProvider.CurrentObject.GrantInvincibility(delay);
+			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(delay));
+		}
+
+		private IEnumerator EndDungeonAfterDelay(float delay)
+		{
+			yield return new WaitForSecondsRealtime(delay);
+			clearDelayRoutine = null;
+			EndDungeon(isCleared: true);
+		}
+
 		public void EndDungeon(bool isCleared = true)
 		{
 			if (IsDungeon == false)
 				return;
 			IsDungeon = false;
+			if (clearDelayRoutine != null)
+			{
+				// 대기 중 사망은 이미 클리어
+				isCleared = true;
+				StopCoroutine(clearDelayRoutine);
+				clearDelayRoutine = null;
+			}
 			cardManager.CancelSelection();
 			Debug.Log($"{nameof(EndDungeon)}");
 

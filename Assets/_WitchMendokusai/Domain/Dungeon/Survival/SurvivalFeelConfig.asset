@@ -135,6 +135,7 @@ MonoBehaviour:
     RingSize: 8
     RingLife: 0.6
     Color: {r: 1, g: 0.3, b: 0.3, a: 1}
+  BossClearResultDelay: 1
   LevelUpPopScale: 1.35
   LevelUpPopTime: 0.28
   DefaultHitColor: {r: 1, g: 0.95, b: 0.8, a: 1}
