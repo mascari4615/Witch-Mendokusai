@@ -6,19 +6,19 @@ namespace WitchMendokusai
 {
 	public enum SurvivalUIKind
 	{
-		Count,
-		Damage,
-		Speed,
-		Size,
-		Advanced
+		Count = 0,
+		Damage = 1,
+		Speed = 2,
+		Size = 3,
+		Advanced = 4
 	}
 
 	public enum UpgradeCategory
 	{
-		Attack,
-		Survival,
-		MoveAndPickup,
-		Reward
+		Attack = 0,
+		Survival = 1,
+		MoveAndPickup = 2,
+		Reward = 3
 	}
 
 	[CreateAssetMenu(fileName = nameof(SurvivalUITheme), menuName = "WM/UI/SurvivalUITheme")]
