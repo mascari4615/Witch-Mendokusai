@@ -83,6 +83,7 @@ namespace WitchMendokusai
 		public FeelMoment BossSpawn = new() { Shake = 0.8f, Hitstop = 0.14f, HitstopScale = 0.05f, Shards = 60, ShardSpeed = 11f, ShardLife = 0.8f, ShardSize = 0.3f, RingSize = 14f, RingLife = 0.7f, Color = new Color(1f, 0.35f, 0.3f, 1f) };
 		public FeelMoment BossKill = new() { Shake = 1.1f, Hitstop = 0.28f, HitstopScale = 0.04f, Shards = 120, ShardSpeed = 14f, ShardLife = 1.2f, ShardSize = 0.34f, RingSize = 20f, RingLife = 0.9f, Color = new Color(1f, 0.9f, 0.55f, 1f) };
 		public FeelMoment PlayerDeath = new() { Shake = 0.7f, Shards = 50, ShardSpeed = 8f, ShardLife = 0.9f, ShardSize = 0.26f, RingSize = 8f, RingLife = 0.6f, Color = new Color(1f, 0.3f, 0.3f, 1f) };
+		public FeelMoment ChestOpen = new() { Shake = 0.3f, Shards = 48, ShardSpeed = 9f, ShardLife = 0.9f, ShardSize = 0.24f, RingSize = 9f, RingLife = 0.7f, Color = new Color(1f, 0.85f, 0.35f, 1f) };
 
 		[Header("Sword")]
 		public SwordPattern Sword = new();

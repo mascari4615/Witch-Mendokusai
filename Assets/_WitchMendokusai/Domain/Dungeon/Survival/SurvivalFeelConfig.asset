@@ -136,6 +136,17 @@ MonoBehaviour:
     RingSize: 8
     RingLife: 0.6
     Color: {r: 1, g: 0.3, b: 0.3, a: 1}
+  ChestOpen:
+    Shake: 0.3
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 48
+    ShardSpeed: 9
+    ShardLife: 0.9
+    ShardSize: 0.24
+    RingSize: 9
+    RingLife: 0.7
+    Color: {r: 1, g: 0.85, b: 0.35, a: 1}
   Sword:
     TargetRange: 9
     ForwardBias: 2.5
