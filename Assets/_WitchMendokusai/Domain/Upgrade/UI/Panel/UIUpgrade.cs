@@ -87,7 +87,16 @@ namespace WitchMendokusai
 		{
 			// shopImage.sprite = npc.Data.Sprite;
 
-			UpgradeData upgradeData = upgradeGridUI.CurSlot.DataSO as UpgradeData;
+			// 슬롯 수 > 강화 수, 빈 슬롯 선택 처리
+			if (upgradeGridUI.CurSlot == null || upgradeGridUI.CurSlot.DataSO is not UpgradeData upgradeData)
+			{
+				buyButton.interactable = false;
+				returnButton.interactable = false;
+				priceText.text = "-";
+				curLevelText.text = "-";
+				upgradeGridUI.UpdateUI();
+				return;
+			}
 
 			// 최대 레벨이때 buy 버튼, price 비활성화, 최소레벨일 때 return 버튼 비활성화
 			if (upgradeData.CurLevel >= upgradeData.MaxLevel)
