@@ -28,6 +28,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public CardRarity Rarity { get; private set; } = CardRarity.Common;
 		[field: SerializeField] public List<Requirement> Requirements { get; private set; } = new();
 		[field: SerializeField] public CardAwakeningEffect AwakeningEffectPrefab { get; private set; }
+		[field: SerializeField] public SurvivalUIKind UIKind { get; private set; } = SurvivalUIKind.Count;
 
 		public bool MeetsRequirements(IReadOnlyList<CardData> selectedCards)
 		{

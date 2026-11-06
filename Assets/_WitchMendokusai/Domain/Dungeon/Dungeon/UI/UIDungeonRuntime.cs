@@ -15,7 +15,18 @@ namespace WitchMendokusai
 		[SerializeField] private Image progressBar;
 		[SerializeField] private TextMeshProUGUI timeText;
 		[SerializeField] private TextMeshProUGUI difficultyText;
-		[SerializeField] private Image difficultyCircle;
+		[SerializeField] private UIRing difficultyRing;
+		[SerializeField] private TextMeshProUGUI difficultyRemainText;
+		[SerializeField] private Image difficultyHalo;
+		[SerializeField] private float haloPulseSpeed = 2.5f;
+		[SerializeField] private float haloMinAlpha = 0.1f;
+		[SerializeField] private float haloMaxAlpha = 0.3f;
+		[SerializeField] private float difficultyStepSeconds = 180f;
+		[SerializeField] private float hardFontSize = 44f;
+		[SerializeField] private float normalFontSize = 52f;
+		[SerializeField] private SurvivalUITheme theme;
+		[SerializeField] private UIBurst difficultyBurst;
+		private DungeonDifficulty lastDifficulty;
 		private UIQuestGrid questGrid;
 		private Coroutine loop;
 
@@ -78,13 +89,21 @@ namespace WitchMendokusai
 
 		private void UpdateDifficulty(DungeonDifficulty curDifficulty)
 		{
-			if (curDifficulty == DungeonDifficulty.Hard)
+			bool isHard = curDifficulty == DungeonDifficulty.Hard;
+			Color difficultyColor = theme.Difficulty(curDifficulty);
+			difficultyRing.color = difficultyColor;
+			difficultyRing.SetFill(isHard ? 1f : dungeonManager.Context.DifficultyProgress);
+			difficultyText.fontSize = isHard ? hardFontSize : normalFontSize;
+			double elapsedSeconds = dungeonManager.Context.ElapsedTime.TotalSeconds;
+			difficultyRemainText.text = isHard ? string.Empty : TimeSpan.FromSeconds(difficultyStepSeconds - elapsedSeconds % difficultyStepSeconds).ToString(@"m\:ss");
+			Color haloColor = difficultyColor;
+			haloColor.a = UIEffects.Enabled ? Mathf.Lerp(haloMinAlpha, haloMaxAlpha, Mathf.PingPong(Time.unscaledTime * haloPulseSpeed, 1f)) : haloMinAlpha;
+			difficultyHalo.color = haloColor;
+			if (curDifficulty != lastDifficulty)
 			{
-				difficultyCircle.fillAmount = 1;
-			}
-			else
-			{
-				difficultyCircle.fillAmount = (float)(dungeonManager.Context.ElapsedTime.TotalSeconds % 180f / 180f);
+				lastDifficulty = curDifficulty;
+				difficultyBurst.Play(difficultyColor);
+				UIEffects.Punch(difficultyText.transform, theme.PunchAmount, theme.PunchDuration);
 			}
 
 			switch (curDifficulty)

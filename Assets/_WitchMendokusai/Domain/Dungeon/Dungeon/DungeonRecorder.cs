@@ -10,6 +10,9 @@ namespace WitchMendokusai
 		public int KillCount;
 		public int BossKillCount;
 		public int Nyang;
+		public bool IsCleared;
+		public DungeonDifficulty Difficulty;
+		public float DifficultyProgress;
 	}
 
 	public class DungeonRecorder
@@ -38,10 +41,13 @@ namespace WitchMendokusai
 			record.Nyang = dataManager.GameStat[GameStatType.NYANG];
 		}
 
-		public DungeonRecord CaptureResultRecord(int level = 0)
+		public int KillCountSinceStart => dataManager.DungeonStat[DungeonStatType.MONSTER_KILL] - startRecord.KillCount;
+
+		public DungeonRecord CaptureResultRecord(int level, bool isCleared)
 		{
 			DungeonRecord endRecord = new();
 			SetRecord(ref endRecord);
+			DungeonContext context = dungeonManager.Context;
 
 			DungeonRecord result = new()
 			{
@@ -49,7 +55,10 @@ namespace WitchMendokusai
 				Level = level,
 				KillCount = endRecord.KillCount - startRecord.KillCount,
 				BossKillCount = endRecord.BossKillCount - startRecord.BossKillCount,
-				Nyang = endRecord.Nyang - startRecord.Nyang
+				Nyang = endRecord.Nyang - startRecord.Nyang,
+				IsCleared = isCleared,
+				Difficulty = context.CurDifficulty,
+				DifficultyProgress = context.CurDifficulty == DungeonDifficulty.Hard ? 1f : context.DifficultyProgress
 			};
 
 			ResultRecord = result;

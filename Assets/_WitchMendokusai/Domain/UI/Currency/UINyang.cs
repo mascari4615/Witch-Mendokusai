@@ -46,7 +46,7 @@ namespace WitchMendokusai
 					curValue = targetValue;
 
 				// text.text = curValue.ToString("N0") + "냥";
-				text.text = curValue.ToString("N0");
+				text.text = curValue.ToString("N0") + "냥";
 				yield return null;
 			}
 		}

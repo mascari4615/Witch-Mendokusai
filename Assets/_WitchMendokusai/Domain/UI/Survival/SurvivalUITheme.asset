@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b143d31d7081446e844085c48e6ea6cc, type: 3}
+  m_Name: SurvivalUITheme
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SurvivalUITheme
+  <Kinds>k__BackingField:
+  - Kind: 0
+    Main: {r: 0.34117648, g: 0.72156864, b: 0.7058824, a: 1}
+    Dark: {r: 0.11372549, g: 0.33333334, b: 0.3254902, a: 1}
+    Tile: {fileID: 21300000, guid: 286339c2823441f8a2380a682b772635, type: 3}
+  - Kind: 1
+    Main: {r: 0.8784314, g: 0.3372549, b: 0.43529412, a: 1}
+    Dark: {r: 0.4627451, g: 0.09019608, b: 0.1882353, a: 1}
+    Tile: {fileID: 21300000, guid: b8f84158beed4dc5bc15e72cb8b2ee5b, type: 3}
+  - Kind: 2
+    Main: {r: 0.8784314, g: 0.6039216, b: 0.18039216, a: 1}
+    Dark: {r: 0.43529412, g: 0.2784314, b: 0.023529412, a: 1}
+    Tile: {fileID: 21300000, guid: e83065ce04b641fe9110c5fe1aac0fd4, type: 3}
+  - Kind: 3
+    Main: {r: 0.6039216, g: 0.81960785, b: 0.38431373, a: 1}
+    Dark: {r: 0.24705882, g: 0.36862746, b: 0.10980392, a: 1}
+    Tile: {fileID: 21300000, guid: 3de7d69ac4c54699948a3d3333f31e15, type: 3}
+  - Kind: 4
+    Main: {r: 0.37254903, g: 0.83137256, b: 1, a: 1}
+    Dark: {r: 0.0627451, g: 0.2901961, b: 0.40784314, a: 1}
+    Tile: {fileID: 21300000, guid: ee85ffc7c23e409187ced4aa9ea12b62, type: 3}
+  <Categories>k__BackingField:
+  - Category: 0
+    DisplayName: "\uACF5\uACA9"
+    Main: {r: 0.8784314, g: 0.3372549, b: 0.43529412, a: 1}
+  - Category: 1
+    DisplayName: "\uC0DD\uC874"
+    Main: {r: 0.6039216, g: 0.81960785, b: 0.38431373, a: 1}
+  - Category: 2
+    DisplayName: "\uC774\uB3D9\uACFC \uD68D\uB4DD"
+    Main: {r: 0.34117648, g: 0.72156864, b: 0.7058824, a: 1}
+  - Category: 3
+    DisplayName: "\uBCF4\uC0C1"
+    Main: {r: 0.8784314, g: 0.6039216, b: 0.18039216, a: 1}
+  <DifficultyColors>k__BackingField:
+  - {r: 0.5411765, g: 0.7607843, b: 0.32156864, a: 1}
+  - {r: 0.8784314, g: 0.6039216, b: 0.18039216, a: 1}
+  - {r: 0.8784314, g: 0.3372549, b: 0.43529412, a: 1}
+  <SelectedLine>k__BackingField: {r: 0.8901961, g: 0.8901961, b: 0.9019608, a: 1}
+  <IdleLine>k__BackingField: {r: 0.30588236, g: 0.29803923, b: 0.3372549, a: 1}
+  <ValueColor>k__BackingField: {r: 0.9490196, g: 0.8862745, b: 0.47843137, a: 1}
+  <MaxColor>k__BackingField: {r: 0.9490196, g: 0.8862745, b: 0.47843137, a: 1}
+  <SelectedBandText>k__BackingField: {r: 0.050980393, g: 0.050980393, b: 0.06666667, a: 1}
+  <BandText>k__BackingField: {r: 0.94509804, g: 0.94509804, b: 0.9529412, a: 1}
+  <HoverLift>k__BackingField: 10
+  <HoverDuration>k__BackingField: 0.12
+  <CardAppearDuration>k__BackingField: 0.32
+  <CardAppearInterval>k__BackingField: 0.06
+  <ResultTimeDuration>k__BackingField: 0.65
+  <ResultRowStart>k__BackingField: 0.5
+  <ResultRowInterval>k__BackingField: 0.26
+  <ResultRowCountDuration>k__BackingField: 0.38
+  <ResultEntryInterval>k__BackingField: 0.055
+  <ResultTotalDuration>k__BackingField: 0.52
+  <DefeatSpeedScale>k__BackingField: 0.6
+  <PunchAmount>k__BackingField: 0.14
+  <PunchDuration>k__BackingField: 0.3
+  <MinCardNameFontSize>k__BackingField: 22

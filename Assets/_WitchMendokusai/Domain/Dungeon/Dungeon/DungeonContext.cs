@@ -31,6 +31,8 @@ namespace WitchMendokusai
 			DungeonCurTime = InitialDungeonTime;
 		}
 
+		public float DifficultyProgress => (float)(ElapsedTime.TotalSeconds % 180d / 180d);
+
 		public void UpdateTime()
 		{
 			ElapsedTime += TimeUpdateInterval;
