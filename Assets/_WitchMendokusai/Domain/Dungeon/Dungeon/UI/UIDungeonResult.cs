@@ -37,7 +37,10 @@ namespace WitchMendokusai
 		[SerializeField] private UIMiniCard entryTemplate;
 		[SerializeField] private Button retryButton;
 
+		[SerializeField] private string battleHudObjectName = "[Block] Lower";
+
 		private readonly List<UIMiniCard> entries = new();
+		private CanvasGroup battleHudGroup;
 
 		private DungeonManager dungeonManager;
 		private SOManager soManager;
@@ -53,11 +56,30 @@ namespace WitchMendokusai
 
 		public override bool IsFullscreen => true;
 
-		protected override void OnOpen() => timeManager.Pause(gameObject);
+		protected override void OnOpen()
+		{
+			timeManager.Pause(gameObject);
+			SetBattleHudVisible(false);
+		}
+
 		protected override void OnClose()
 		{
 			DOTween.Kill(this);
 			timeManager.Resume(gameObject);
+			SetBattleHudVisible(true);
+		}
+
+		private void SetBattleHudVisible(bool isVisible)
+		{
+			if (battleHudGroup == null)
+			{
+				GameObject battleHud = GameObject.Find(battleHudObjectName);
+				battleHudGroup = battleHud.GetComponent<CanvasGroup>();
+				if (battleHudGroup == null)
+					battleHudGroup = battleHud.AddComponent<CanvasGroup>();
+			}
+			battleHudGroup.alpha = isVisible ? 1f : 0f;
+			battleHudGroup.blocksRaycasts = isVisible;
 		}
 
 		public void Retry() => dungeonManager.Retry();
