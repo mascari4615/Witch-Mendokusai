@@ -199,7 +199,12 @@ namespace WitchMendokusai
 			// 작업 초기화
 			DataManager.WorkManager.Init(saveData.works);
 			CriteriaContext criteriaContext = DataManager.QuestManager.CreateCriteriaContext();
-			DataManager.QuestManager.Init(saveData.runtimeQuests.ConvertAll((RuntimeQuestSaveData questSaveData) => RuntimeQuestFactory.FromSaveData(questSaveData, criteriaContext)));
+			List<RuntimeQuestSaveData> savedQuests = ModQuestInstaller.NormalizeSavedQuests(saveData.runtimeQuests);
+			if (savedQuests.Count < saveData.runtimeQuests.Count)
+			{
+				Debug.Log($"[SaveManager] 중복 모드 퀘스트 정리: {saveData.runtimeQuests.Count} -> {savedQuests.Count}");
+			}
+			DataManager.QuestManager.Init(savedQuests.ConvertAll((RuntimeQuestSaveData questSaveData) => RuntimeQuestFactory.FromSaveData(questSaveData, criteriaContext)));
 
 			// 던전 초기화
 			ForEach<Dungeon>(dungeon => { dungeon.Init(); }); // 먼저 전부 Init (새로 추가된 던전 포함)

@@ -1,3 +1,5 @@
+using System;
+
 namespace WitchMendokusai
 {
     /// <summary>
@@ -30,6 +32,10 @@ namespace WitchMendokusai
 
         public ModQuestDefinition(string id, string displayName, QuestType type)
         {
+            // Id 는 저장 간 동일 퀘스트 판정 키
+            if (string.IsNullOrEmpty(id))
+                throw new ArgumentException("모드 퀘스트 Id 누락", nameof(id));
+
             Id = id;
             DisplayName = displayName;
             Type = type;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -67,6 +68,140 @@ namespace WitchMendokusai.Tests
             Assert.That(quest.State, Is.EqualTo(RuntimeQuestState.CanComplete), "criteria 0 → StartQuest 즉시 완료가능");
 
             Object.DestroyImmediate(buffer);
+        }
+
+        /// <summary>실행마다 저장에 1개씩 쌓이던 회귀 락: 설치, 저장, 새 실행의 복원과 재설치를 반복.</summary>
+        [Test]
+        public void ModQuest_SaveLoadAcrossRuns_StaysSingle()
+        {
+            List<ModQuestDefinition> definitions = new List<ModQuestDefinition>
+            {
+                new ModQuestDefinition("mq1", "모드 등장 퀘스트", QuestType.Normal),
+            };
+            List<RuntimeQuestSaveData> saved = new List<RuntimeQuestSaveData>();
+
+            for (int run = 0; run < 3; run++)
+            {
+                QuestBuffer buffer = ScriptableObject.CreateInstance<QuestBuffer>();
+                foreach (RuntimeQuestSaveData savedQuest in ModQuestInstaller.NormalizeSavedQuests(saved))
+                {
+                    buffer.Add(RuntimeQuestFactory.FromSaveData(savedQuest));
+                }
+
+                ModQuestInstaller.InstallInto(buffer, definitions);
+
+                saved = buffer.Data.ConvertAll(quest => quest.Save());
+                Object.DestroyImmediate(buffer);
+            }
+
+            Assert.That(saved.Count, Is.EqualTo(1));
+            Assert.That(saved[0].ModQuestId, Is.EqualTo("mq1"));
+        }
+
+        [Test]
+        public void ModQuest_DifferentIds_BothInstalled()
+        {
+            QuestBuffer buffer = ScriptableObject.CreateInstance<QuestBuffer>();
+            List<ModQuestDefinition> definitions = new List<ModQuestDefinition>
+            {
+                new ModQuestDefinition("mq1", "하나", QuestType.Normal),
+                new ModQuestDefinition("mq2", "둘", QuestType.Normal),
+            };
+
+            int installed = ModQuestInstaller.InstallInto(buffer, definitions);
+
+            Assert.That(installed, Is.EqualTo(2));
+            Object.DestroyImmediate(buffer);
+        }
+
+        [Test]
+        public void NormalizeSavedQuests_LegacyDuplicates_KeepsFirstOnly()
+        {
+            RuntimeQuestSaveData first = LegacyModQuest("sample_quest_1");
+            List<RuntimeQuestSaveData> saved = new List<RuntimeQuestSaveData>
+            {
+                first,
+                LegacyModQuest("sample_quest_1"),
+                LegacyModQuest("sample_quest_1"),
+                LegacyModQuest("other_mod_quest"),
+            };
+
+            List<RuntimeQuestSaveData> normalized = ModQuestInstaller.NormalizeSavedQuests(saved);
+
+            Assert.That(normalized.Count, Is.EqualTo(2));
+            Assert.That(normalized[0].Guid, Is.EqualTo(first.Guid));
+            Assert.That(normalized[0].ModQuestId, Is.EqualTo("sample_quest_1"));
+            Assert.That(normalized[1].ModQuestId, Is.EqualTo("other_mod_quest"));
+        }
+
+        [Test]
+        public void NormalizeSavedQuests_NonModQuests_Untouched()
+        {
+            RuntimeQuestSaveData soQuest = LegacyModQuest("sample_quest_1");
+            soQuest.SO_ID = 5000;
+
+            RuntimeQuestSaveData workTimeQuest = LegacyModQuest("sample_quest_1");
+            workTimeQuest.WorkTime = 1f;
+
+            RuntimeQuestSaveData plainQuest = LegacyModQuest("sample_quest_1");
+            plainQuest.Description = "일반 설명";
+
+            RuntimeQuestSaveData nullDescriptionQuest = LegacyModQuest("sample_quest_1");
+            nullDescriptionQuest.Description = null;
+
+            List<RuntimeQuestSaveData> saved = new List<RuntimeQuestSaveData>
+            {
+                soQuest,
+                soQuest,
+                workTimeQuest,
+                workTimeQuest,
+                plainQuest,
+                plainQuest,
+                nullDescriptionQuest,
+                nullDescriptionQuest,
+            };
+
+            List<RuntimeQuestSaveData> normalized = ModQuestInstaller.NormalizeSavedQuests(saved);
+
+            Assert.That(normalized.Count, Is.EqualTo(saved.Count));
+            Assert.That(normalized.TrueForAll(quest => quest.ModQuestId == null), Is.True);
+        }
+
+        [Test]
+        public void NormalizeSavedQuests_WorkingDuplicate_Kept()
+        {
+            RuntimeQuestSaveData working = LegacyModQuest("sample_quest_1");
+            working.State = RuntimeQuestState.Working;
+            List<RuntimeQuestSaveData> saved = new List<RuntimeQuestSaveData>
+            {
+                LegacyModQuest("sample_quest_1"),
+                working,
+            };
+
+            List<RuntimeQuestSaveData> normalized = ModQuestInstaller.NormalizeSavedQuests(saved);
+
+            Assert.That(normalized.Count, Is.EqualTo(2));
+        }
+
+        private static RuntimeQuestSaveData LegacyModQuest(string modQuestId)
+        {
+            return new RuntimeQuestSaveData
+            {
+                Guid = System.Guid.NewGuid(),
+                State = RuntimeQuestState.CanComplete,
+                SO_ID = -1,
+                Name = "샘플",
+                Description = $"모드 등록 퀘스트 ({modQuestId})",
+                Type = QuestType.Normal,
+                GameEvents = new List<GameEventType>(),
+                Criteria = new List<RuntimeCriteriaSaveData>(),
+                CompleteEffects = new List<EffectInfoData>(),
+                RewardEffects = new List<EffectInfoData>(),
+                Rewards = new List<RewardInfoData>(),
+                WorkTime = 0f,
+                AutoWork = false,
+                AutoComplete = false,
+            };
         }
     }
 }

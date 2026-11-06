@@ -9,6 +9,7 @@ namespace WitchMendokusai
 		public RuntimeQuestState State { get; private set; }
 
 		public int QuestSOID { get; private set; } = -1;
+		public string ModQuestId { get; private set; }
 
 		public string Name { get; private set; }
 		public string Description { get; private set; }
@@ -138,6 +139,7 @@ namespace WitchMendokusai
 			State = saveData.State;
 
 			QuestSOID = saveData.SO_ID;
+			ModQuestId = saveData.ModQuestId;
 
 			Name = saveData.Name;
 			Description = saveData.Description;
@@ -161,6 +163,7 @@ namespace WitchMendokusai
 				State = State,
 
 				SO_ID = QuestSOID,
+				ModQuestId = ModQuestId,
 
 				Name = Name,
 				Description = Description,

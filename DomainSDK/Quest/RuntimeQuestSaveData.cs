@@ -10,6 +10,7 @@ namespace WitchMendokusai
 		public RuntimeQuestState State;
 
 		public int SO_ID;
+		public string ModQuestId;
 
 		public string Name;
 		public string Description;
