@@ -24,7 +24,9 @@ namespace WitchMendokusai
 
 		// TODO: [SerializeField] private bool resetFilterOnEnable = true;
 
-		private RuntimeQuest CurQuest => Data.Count > 0 ? Data[CurSlotIndex] : null;
+		private readonly List<RuntimeQuest> filteredQuests = new();
+
+		private RuntimeQuest CurQuest => filteredQuests.ElementAtOrDefault(CurSlotIndex);
 
 		public override void Init()
 		{
@@ -54,13 +56,18 @@ namespace WitchMendokusai
 
 		public override void UpdateUI()
 		{
-			if (CurSlotIndex >= Data.Count)
-				CurSlotIndex = Data.Count - 1;
+			filteredQuests.Clear();
+			foreach (RuntimeQuest candidate in Data)
+				if (curFilter == QuestType.None || candidate.Type == curFilter)
+					filteredQuests.Add(candidate);
+
+			if (CurSlotIndex >= filteredQuests.Count)
+				CurSlotIndex = filteredQuests.Count - 1;
 
 			int activeSlotCount = 0;
 			foreach (UIQuestSlot slot in Slots.Cast<UIQuestSlot>())
 			{
-				RuntimeQuest quest = Data.ElementAtOrDefault(slot.Index);
+				RuntimeQuest quest = filteredQuests.ElementAtOrDefault(slot.Index);
 
 				if (quest == null)
 				{
@@ -69,8 +76,6 @@ namespace WitchMendokusai
 				}
 				else
 				{
-					bool slotActive = (curFilter == QuestType.None) || (quest.Type == curFilter);
-
 					slot.SetRuntimeQuestState(quest.State);
 					slot.SetQuest(quest);
 					slot.UpdateUI();
@@ -88,7 +93,7 @@ namespace WitchMendokusai
 							slot.SetSlot(null, quest.Name, quest.Description);
 					}
 
-					slot.gameObject.SetActive(slotActive);
+					slot.gameObject.SetActive(true);
 				}
 
 				activeSlotCount += slot.gameObject.activeSelf ? 1 : 0;
