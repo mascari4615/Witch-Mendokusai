@@ -48,7 +48,7 @@ namespace WitchMendokusai
 				return;
 			// TASK-WM-133 — panel-root owner-push 된 TooltipController(panel-context)
 			// 경유. pointer 이벤트 = 부착 보장 시점이라 event-time resolve.
-			this.GetUIServices()?.Tooltip?.Show(tooltipData);
+			this.GetUIServices()?.Tooltip?.Show(tooltipData, owner: this);
 		}
 
 		private void OnPointerLeaveTooltip(PointerLeaveEvent _)

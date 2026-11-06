@@ -42,6 +42,7 @@ namespace WitchMendokusai
 
 		private TooltipView view;
 		private bool isShowing;
+		private VisualElement hoverOwner;
 
 		// anchored 모드 (역할② — 고정 인라인 상세, 마우스추종/자동숨김 X). false = hover 팝업(기존).
 		private bool isAnchored;
@@ -80,10 +81,12 @@ namespace WitchMendokusai
 		/// <summary>
 		/// hover 팝업 (역할① — 마우스 추종, pointer-exit 시 caller 가 Hide). 기존 동작.
 		/// </summary>
-		public void Show(object data, TooltipMode mode = TooltipMode.Simple)
+		public void Show(object data, TooltipMode mode = TooltipMode.Simple, VisualElement owner = null)
 		{
 			isAnchored = false;
 			BuildAndShow(data, mode);
+			if (isShowing)
+				hoverOwner = owner;
 		}
 
 		/// <summary>
@@ -126,6 +129,7 @@ namespace WitchMendokusai
 		public void Hide()
 		{
 			isShowing = false;
+			hoverOwner = null;
 			if (view != null)
 				view.SetVisible(false);
 		}
@@ -140,10 +144,30 @@ namespace WitchMendokusai
 			return null;
 		}
 
+		private static bool IsOnScreen(VisualElement element)
+		{
+			if (element.panel == null)
+				return false;
+			for (VisualElement current = element; current != null; current = current.parent)
+			{
+				IResolvedStyle style = current.resolvedStyle;
+				if (style.display == DisplayStyle.None || style.visibility == Visibility.Hidden)
+					return false;
+			}
+			return true;
+		}
+
 		private void Update()
 		{
 			if (isShowing == false || view == null || view.panel == null)
 				return;
+
+			// 닫힌 패널: 포인터 이탈 이벤트 없음
+			if (hoverOwner != null && IsOnScreen(hoverOwner) == false)
+			{
+				Hide();
+				return;
+			}
 
 			Vector2 screen;
 			if (isAnchored)
