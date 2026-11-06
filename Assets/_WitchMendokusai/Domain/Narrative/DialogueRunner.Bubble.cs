@@ -9,20 +9,31 @@ namespace WitchMendokusai
 	public partial class DialogueRunner : MonoBehaviour
 	{
 		private Transform bubbleTarget;
+		private string lastSpokenName;
+		private string lastSpokenText;
 
 		private void HandleStepChanged(DialogueStep step)
 		{
 			if (step.Kind == DialogueStepKind.Speak)
 			{
 				Transcript.Record(step.SpeakLine);
+				lastSpokenName = step.SpeakLine?.ResolveSpeakerName();
+				lastSpokenText = step.SpeakLine?.Text;
 				ShowBubble(step.SpeakLine);
 				return;
 			}
 			if (step.Kind == DialogueStepKind.Choice)
 			{
 				OnChoicesPresented(step.Options);
+				if (HasChoiceScreen)
+				{
+					string prompt = string.IsNullOrEmpty(step.Prompt) ? lastSpokenText : step.Prompt;
+					uiManager.Chat.PresentChoices(lastSpokenName, prompt, step.Options, index => SubmitChoice(index));
+				}
 			}
 		}
+
+		private bool HasChoiceScreen => uiManager != null && uiManager.Chat != null;
 
 		private void ShowBubble(DialogueLine line)
 		{

@@ -61,7 +61,7 @@ namespace WitchMendokusai
 				ReadingCharactersPerSecond = readingCharactersPerSecond,
 				MinimumSpeakSeconds = minimumLineSeconds,
 				MaximumSpeakSeconds = maximumLineSeconds,
-				ChoiceStallSeconds = choiceStallSeconds,
+				ChoiceStallSeconds = HasChoiceScreen ? 0f : choiceStallSeconds,
 			};
 			playback.OnChoiceStalled += HandleChoiceStalled;
 			playback.OnChoiceSelected += HandleChoiceSelected;

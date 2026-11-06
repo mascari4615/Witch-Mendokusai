@@ -515,14 +515,13 @@
     top: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(10, 10, 15, 0.5);
-    -unity-background-scale-mode: stretch-to-fill;
-    flex-direction: row;
+    background-color: rgba(0, 0, 0, 0.94);
     opacity: 0;
     transition-property: opacity;
     transition-duration: 0.15s;
     transition-timing-function: ease-out;
     display: none;
+    -unity-font-definition: url("../../Fonts/갈무리/Galmuri11-Bold.ttf");
 }
 
 .wm-setting-view--active {
@@ -530,77 +529,195 @@
     display: flex;
 }
 
-.wm-setting-sidebar {
-    width: 240px;
-    background-color: rgba(15, 15, 20, 0.95);
-    border-right-width: 1px;
-    border-right-color: rgba(80, 80, 95, 1);
-    padding: 32px 16px;
-    flex-shrink: 0;
+.wm-setting-stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    transform-origin: 0 0;
 }
 
 .wm-setting-title {
-    color: rgba(230, 230, 235, 1);
-    font-size: 24px;
-    -unity-font-style: bold;
-    margin-bottom: 32px;
+    position: absolute;
+    left: 300px;
+    top: 96px;
+    color: rgb(255, 255, 255);
+    font-size: 48px;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+}
+
+.wm-setting-panel {
+    position: absolute;
+    left: 300px;
+    top: 176px;
+    width: 1320px;
+    height: 796px;
+    padding: 32px 40px;
+    background-color: rgb(32, 30, 36);
+    border-width: 2px;
+    border-color: rgb(227, 227, 230);
+}
+
+.wm-setting-panel__line {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    right: 10px;
+    bottom: 10px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.wm-setting-tabs {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-bottom: 20px;
 }
 
 .wm-setting-tab {
-    background-color: transparent;
-    color: rgba(180, 180, 190, 1);
+    width: 252px;
+    height: 66px;
+    margin: 0 8px 0 0;
+    padding: 0;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("../../Art/Texture/UI/Vector.png");
+    -unity-slice-left: 30;
+    -unity-slice-right: 30;
+    -unity-slice-scale: 0.8px;
+    -unity-background-image-tint-color: rgb(46, 44, 52);
+    color: rgb(190, 190, 196);
     border-width: 0;
-    font-size: 16px;
-    -unity-text-align: middle-left;
-    padding: 12px 16px;
-    margin-bottom: 8px;
-    border-radius: 4px;
-    transition-property: background-color, color;
-    transition-duration: 0.1s;
+    border-radius: 0;
+    font-size: 30px;
+    -unity-text-align: middle-center;
 }
 
 .wm-setting-tab:hover {
-    background-color: rgba(40, 40, 55, 1);
-    color: rgba(230, 230, 235, 1);
+    color: rgb(255, 255, 255);
 }
 
 .wm-setting-tab--active {
-    background-color: rgba(255, 220, 100, 1);
-    color: rgba(20, 20, 25, 1);
-    -unity-font-style: bold;
+    -unity-background-image-tint-color: rgb(232, 232, 236);
+    color: rgb(20, 20, 25);
+}
+
+.wm-setting-content-area {
+    flex-grow: 1;
 }
 
 .wm-setting-content {
     flex-grow: 1;
-    padding: 48px;
     flex-direction: column;
 }
 
 .wm-setting-header {
-    color: rgba(255, 220, 100, 1);
-    font-size: 18px;
-    -unity-font-style: bold;
-    margin-top: 24px;
-    margin-bottom: 16px;
-    border-bottom-width: 1px;
-    border-bottom-color: rgba(80, 80, 95, 1);
+    color: rgb(226, 226, 230);
+    font-size: 26px;
+    margin-top: 12px;
+    margin-bottom: 8px;
     padding-bottom: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.25);
+}
+
+.wm-setting-row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 82px;
+    margin-bottom: 6px;
+    padding: 0 36px 0 22px;
+    background-color: rgb(22, 21, 26);
 }
 
 .wm-setting-slider {
-    margin-bottom: 16px;
-    color: rgba(230, 230, 235, 1);
-    font-size: 14px;
+    flex-grow: 1;
+    margin: 0;
+    font-size: 28px;
+    color: rgb(240, 240, 242);
 }
 
 .wm-setting-slider > Label {
-    width: 200px;
+    min-width: 360px;
+    width: 360px;
+    color: rgb(240, 240, 242);
+    font-size: 28px;
+}
+
+.wm-setting-slider .unity-base-slider__tracker {
+    height: 42px;
+    margin-top: -21px;
+    background-color: rgb(16, 15, 20);
+    border-width: 0;
+    border-radius: 0;
+}
+
+.wm-setting-slider .unity-base-slider__fill {
+    background-color: rgb(43, 117, 115);
+    background-image: url("Survival/Art/tile-count.png");
+    background-repeat: repeat repeat;
+    background-size: 72px 72px;
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0.14);
+    border-radius: 0;
+}
+
+.wm-setting-slider .unity-base-slider__dragger {
+    width: 26px;
+    height: 26px;
+    margin-top: -13px;
+    rotate: 45deg;
+    background-color: rgb(120, 120, 124);
+    border-width: 2px;
+    border-color: rgb(40, 40, 44);
+    border-radius: 0;
+}
+
+.wm-setting-slider:focus .unity-base-slider__dragger {
+    background-color: rgb(255, 255, 255);
+}
+
+.wm-setting-value {
+    width: 130px;
+    color: rgb(242, 226, 122);
+    font-size: 36px;
+    -unity-text-align: middle-right;
 }
 
 .wm-setting-toggle {
-    margin-bottom: 16px;
-    color: rgba(230, 230, 235, 1);
-    font-size: 14px;
+    margin: 0;
+    color: rgb(240, 240, 242);
+    font-size: 28px;
+}
+
+.wm-setting-toggle > Label {
+    min-width: 360px;
+    width: 360px;
+    color: rgb(240, 240, 242);
+    font-size: 28px;
+}
+
+.wm-setting-toggle .unity-toggle__checkmark {
+    width: 34px;
+    height: 34px;
+    padding: 6px;
+    background-color: rgb(20, 20, 24);
+    background-image: none;
+    border-width: 2px;
+    border-color: rgb(240, 240, 242);
+    border-radius: 0;
+}
+
+.wm-setting-toggle:checked .unity-toggle__checkmark {
+    background-color: rgb(242, 226, 122);
+    border-color: rgb(240, 240, 242);
+}
+
+.wm-setting-toggle-state {
+    margin-left: 16px;
+    color: rgb(240, 240, 242);
+    font-size: 28px;
 }
 
 .wm-setting-buttons {
@@ -610,48 +727,211 @@
 }
 
 .wm-setting-btn {
-    background-color: rgba(40, 40, 55, 1);
-    color: rgba(230, 230, 235, 1);
-    border-color: rgba(80, 80, 95, 1);
-    border-width: 1px;
-    border-radius: 4px;
-    padding: 12px 24px;
-    margin-left: 16px;
-    font-size: 14px;
-    -unity-font-style: bold;
+    height: 76px;
+    padding: 0 40px;
+    margin: 0 0 0 14px;
+    background-color: rgb(20, 20, 24);
+    color: rgb(255, 255, 255);
+    border-color: rgba(255, 255, 255, 0.6);
+    border-width: 2px;
+    border-radius: 0;
+    font-size: 26px;
 }
 
 .wm-setting-btn:hover {
-    background-color: rgba(55, 55, 70, 1);
-    border-color: rgba(180, 180, 200, 1);
+    background-color: rgb(44, 42, 50);
 }
 
 .wm-setting-btn--danger {
-    color: rgba(255, 110, 110, 1);
-    border-color: rgba(150, 50, 50, 1);
+    color: rgb(226, 88, 76);
+    border-color: rgb(226, 88, 76);
 }
 
 .wm-setting-btn--danger:hover {
-    background-color: rgba(150, 50, 50, 1);
-    color: rgba(255, 255, 255, 1);
+    background-color: rgb(60, 28, 26);
 }
 
 .wm-setting-close {
     position: absolute;
-    top: 32px;
-    right: 32px;
-    background-color: transparent;
-    color: rgba(180, 180, 190, 1);
-    border-width: 1px;
-    border-color: rgba(80, 80, 95, 1);
-    border-radius: 4px;
-    padding: 8px 16px;
-    font-size: 14px;
+    left: 1396px;
+    top: 100px;
+    width: 224px;
+    height: 58px;
+    margin: 0;
+    padding: 0;
+    background-color: rgb(20, 20, 24);
+    color: rgb(255, 255, 255);
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.6);
+    border-radius: 0;
+    font-size: 24px;
+    -unity-text-align: middle-center;
 }
 
 .wm-setting-close:hover {
-    background-color: rgba(40, 40, 55, 1);
-    color: rgba(230, 230, 235, 1);
+    background-color: rgb(44, 42, 50);
+}
+
+.wm-setting-frame {
+    position: absolute;
+    border-width: 3px;
+    border-color: rgb(255, 255, 255);
+    transition-property: left, top, width, height;
+    transition-duration: 0.11s;
+    transition-timing-function: ease-out;
+}
+
+.wm-setting-frame--hidden {
+    display: none;
+}
+
+.wm-setting-frame__inner {
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    right: 3px;
+    bottom: 3px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.55);
+}
+
+.wm-setting-shaderpack-header {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 72px;
+    margin-bottom: 14px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.25);
+}
+
+.wm-setting-shaderpack-header .wm-setting-header {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    border-bottom-width: 0;
+}
+
+.wm-setting-shaderpack-header .wm-setting-btn {
+    height: 58px;
+    padding: 0 24px;
+    font-size: 24px;
+}
+
+.wm-setting-shaderpack-split {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.wm-setting-shaderpack-list {
+    width: 480px;
+    flex-shrink: 0;
+    margin-right: 20px;
+    padding: 12px;
+    background-color: rgb(22, 21, 26);
+}
+
+.wm-setting-shaderpack-empty {
+    color: rgb(200, 200, 206);
+    font-size: 20px;
+    white-space: normal;
+}
+
+.wm-setting-shaderpack-item {
+    height: 70px;
+    margin: 0 0 8px 0;
+    padding: 0 22px;
+    background-color: rgb(29, 85, 83);
+    color: rgb(255, 255, 255);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.3);
+    border-radius: 0;
+    font-size: 28px;
+    -unity-text-align: middle-left;
+}
+
+.wm-setting-shaderpack-item--active {
+    background-color: rgb(87, 184, 180);
+    color: rgb(20, 20, 25);
+}
+
+.wm-setting-shaderpack-detail {
+    flex-grow: 1;
+    padding: 32px;
+    background-color: rgb(22, 21, 26);
+}
+
+.wm-setting-shaderpack-hint {
+    color: rgb(200, 200, 206);
+    font-size: 24px;
+}
+
+.wm-setting-shaderpack-detail-name {
+    color: rgb(255, 255, 255);
+    font-size: 48px;
+    margin-bottom: 18px;
+}
+
+.wm-setting-shaderpack-detail-author,
+.wm-setting-shaderpack-detail-version {
+    color: rgb(180, 180, 186);
+    font-size: 24px;
+    margin-bottom: 14px;
+}
+
+.wm-setting-shaderpack-detail-desc {
+    color: rgb(226, 226, 230);
+    font-size: 26px;
+    white-space: normal;
+}
+
+.wm-setting-shaderpack-detail .wm-setting-btn {
+    align-self: flex-start;
+    width: 268px;
+    margin: auto 0 0 0;
+}
+
+.wm-setting-confirm-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.62);
+}
+
+.wm-setting-confirm {
+    width: 720px;
+    height: 252px;
+    padding: 44px 46px 36px 46px;
+    background-color: rgb(20, 20, 24);
+    border-width: 3px;
+    border-color: rgb(226, 88, 76);
+}
+
+.wm-setting-confirm__title {
+    color: rgb(255, 255, 255);
+    font-size: 28px;
+    margin-bottom: 14px;
+}
+
+.wm-setting-confirm__desc {
+    color: rgb(200, 200, 206);
+    font-size: 20px;
+}
+
+.wm-setting-confirm__buttons {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: auto;
+}
+
+.wm-setting-confirm__buttons .wm-setting-btn {
+    height: 58px;
+    padding: 0 24px;
+    font-size: 24px;
 }
 
 /* WMWindow Content 내 Label 기본 텍스트 색 — 어두운 창 배경 위 가독성 */
@@ -948,6 +1228,7 @@
     background-color: rgba(23, 22, 26, 0.92);
     flex-direction: column;
     align-items: center;
+    -unity-font-definition: url("../../Fonts/갈무리/Galmuri11-Bold.ttf");
 }
 
 .wm-popup-card--stage .wm-popup-card__icon {
