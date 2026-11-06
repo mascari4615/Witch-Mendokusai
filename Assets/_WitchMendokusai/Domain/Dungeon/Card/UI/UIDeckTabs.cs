@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace WitchMendokusai
@@ -25,6 +26,8 @@ namespace WitchMendokusai
 
 		private readonly List<GameObject> rows = new();
 		private bool initialized;
+		private bool isDeckTab = true;
+		private Selectable cardNeighbor;
 
 		private void Init()
 		{
@@ -62,6 +65,30 @@ namespace WitchMendokusai
 			}
 		}
 
+		public Selectable CurrentTabButton => isDeckTab ? deckTabButton : treeTabButton;
+
+		public void SetCardNeighbor(Selectable neighbor)
+		{
+			cardNeighbor = neighbor;
+			ApplyNavigation();
+		}
+
+		private void Update()
+		{
+			GameObject selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+			if (selected == deckTabButton.gameObject && isDeckTab == false)
+				SetTab(true);
+			else if (selected == treeTabButton.gameObject && isDeckTab)
+				SetTab(false);
+		}
+
+		private void ApplyNavigation()
+		{
+			Selectable firstTreeSlot = isDeckTab ? null : treeRoot.GetComponentInChildren<Selectable>();
+			deckTabButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = cardNeighbor, selectOnRight = treeTabButton };
+			treeTabButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = deckTabButton, selectOnDown = firstTreeSlot };
+		}
+
 		public void SetTreeAvailable(bool isAvailable) => treeEmptyNotice.SetActive(isAvailable == false);
 
 		public void ShowInfo(CardData card, string description)
@@ -72,10 +99,12 @@ namespace WitchMendokusai
 
 		private void SetTab(bool showDeck)
 		{
+			isDeckTab = showDeck;
 			deckRoot.SetActive(showDeck);
 			treeRoot.SetActive(showDeck == false);
 			deckTabLine.color = showDeck ? activeLine : idleLine;
 			treeTabLine.color = showDeck ? idleLine : activeLine;
+			ApplyNavigation();
 		}
 	}
 }

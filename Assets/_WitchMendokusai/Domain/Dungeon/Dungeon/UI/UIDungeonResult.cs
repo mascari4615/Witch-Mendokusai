@@ -80,6 +80,7 @@ namespace WitchMendokusai
 			}
 			battleHudGroup.alpha = isVisible ? 1f : 0f;
 			battleHudGroup.blocksRaycasts = isVisible;
+			battleHudGroup.interactable = isVisible;
 		}
 
 		public void Retry() => dungeonManager.Retry();

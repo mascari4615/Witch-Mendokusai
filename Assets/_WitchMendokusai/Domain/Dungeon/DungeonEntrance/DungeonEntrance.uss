@@ -221,3 +221,9 @@
     padding: 0;
     -unity-text-align: middle-center;
 }
+
+.wm-dungeon-entrance .wm-dungeon-entrance__enter:focus,
+.wm-dungeon-entrance .wm-dungeon-entrance__round:focus {
+    border-width: 4px;
+    border-color: rgb(255, 255, 255);
+}

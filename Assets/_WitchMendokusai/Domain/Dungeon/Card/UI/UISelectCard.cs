@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
@@ -43,11 +44,26 @@ namespace WitchMendokusai
 			}
 		}
 		
+		private void ApplyNavigation(int count)
+		{
+			for (int i = 0; i < count && i < cardSelectButtons.Count; i++)
+			{
+				cardSelectButtons[i].SetNavigation(new Navigation
+				{
+					mode = Navigation.Mode.Explicit,
+					selectOnLeft = i > 0 ? cardSelectButtons[i - 1].Selectable : null,
+					selectOnRight = i < count - 1 ? cardSelectButtons[i + 1].Selectable : deckTabs.CurrentTabButton,
+				});
+			}
+			deckTabs.SetCardNeighbor(cardSelectButtons[Mathf.Min(count, cardSelectButtons.Count) - 1].Selectable);
+		}
+
 		public void SetTreeAvailable(bool isAvailable) => deckTabs.SetTreeAvailable(isAvailable);
 
 		public void SetCardSelectButtons(List<CardData> cardDataList, EquipmentData equipment, IReadOnlyList<EquipmentData> equipments, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards)
 		{
 			deckTabs.SetOverview(equipments, selectedCards);
+			ApplyNavigation(cardDataList.Count);
 			for (int i = 0; i < cardSelectButtons.Count; i++)
 			{
 				cardSelectButtons[i].SetActive(i < cardDataList.Count);
