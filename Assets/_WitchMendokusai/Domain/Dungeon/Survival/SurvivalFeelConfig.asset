@@ -11,9 +11,133 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f14e8be5a6a54409a4fb4f56fe8d7499, type: 3}
   m_Name: SurvivalFeelConfig
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   ShardMaterial: {fileID: 2100000, guid: 17a292e140f145cbac0811f94ade3aff, type: 2}
   RingMaterial: {fileID: 2100000, guid: eb82016b91a74ed384b4395c7ab85dd6, type: 2}
+  ShakeCap: 0.9
+  ShakeDecay: 2.5
+  SmallShakeInterval: 0.12
+  KillHitstopInterval: 1.2
+  BurstsPerSecond: 30
+  MaxParticles: 800
+  EliteAuraInterval: 0.12
+  EliteRingInterval: 0.9
+  ImpactHeight: 0.6
+  ExpSoundsPerWindow: 3
+  ExpSoundWindow: 0.1
+  Hit:
+    Shake: 0.02
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 2
+    ShardSpeed: 3
+    ShardLife: 0.18
+    ShardSize: 0.1
+    RingSize: 0
+    RingLife: 0.3
+    Color: {r: 1, g: 1, b: 1, a: 1}
+  Kill:
+    Shake: 0.05
+    Hitstop: 0.03
+    HitstopScale: 0.2
+    Shards: 6
+    ShardSpeed: 5
+    ShardLife: 0.32
+    ShardSize: 0.16
+    RingSize: 1.6
+    RingLife: 0.22
+    Color: {r: 1, g: 0.95, b: 0.75, a: 1}
+  EliteAura:
+    Shake: 0
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 1
+    ShardSpeed: 1.2
+    ShardLife: 0.5
+    ShardSize: 0.16
+    RingSize: 3
+    RingLife: 0.7
+    Color: {r: 1, g: 0.72, b: 0.3, a: 1}
+  EliteKill:
+    Shake: 0.45
+    Hitstop: 0.1
+    HitstopScale: 0.05
+    Shards: 40
+    ShardSpeed: 9
+    ShardLife: 0.6
+    ShardSize: 0.26
+    RingSize: 7
+    RingLife: 0.45
+    Color: {r: 1, g: 0.72, b: 0.3, a: 1}
+  ExpPickup:
+    Shake: 0
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 2
+    ShardSpeed: 2.5
+    ShardLife: 0.2
+    ShardSize: 0.09
+    RingSize: 0
+    RingLife: 0.3
+    Color: {r: 1, g: 0.85, b: 0.35, a: 1}
+  LevelUp:
+    Shake: 0.25
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 36
+    ShardSpeed: 7
+    ShardLife: 0.8
+    ShardSize: 0.22
+    RingSize: 8
+    RingLife: 0.7
+    Color: {r: 0.65, g: 0.9, b: 1, a: 1}
+  SwarmStart:
+    Shake: 0.3
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 0
+    ShardSpeed: 4
+    ShardLife: 0.35
+    ShardSize: 0.18
+    RingSize: 22
+    RingLife: 0.6
+    Color: {r: 1, g: 0.4, b: 0.35, a: 1}
+  BossSpawn:
+    Shake: 0.8
+    Hitstop: 0.14
+    HitstopScale: 0.05
+    Shards: 60
+    ShardSpeed: 11
+    ShardLife: 0.8
+    ShardSize: 0.3
+    RingSize: 14
+    RingLife: 0.7
+    Color: {r: 1, g: 0.35, b: 0.3, a: 1}
+  BossKill:
+    Shake: 1.1
+    Hitstop: 0.28
+    HitstopScale: 0.04
+    Shards: 120
+    ShardSpeed: 14
+    ShardLife: 1.2
+    ShardSize: 0.34
+    RingSize: 20
+    RingLife: 0.9
+    Color: {r: 1, g: 0.9, b: 0.55, a: 1}
+  PlayerDeath:
+    Shake: 0.7
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 50
+    ShardSpeed: 8
+    ShardLife: 0.9
+    ShardSize: 0.26
+    RingSize: 8
+    RingLife: 0.6
+    Color: {r: 1, g: 0.3, b: 0.3, a: 1}
+  LevelUpPopScale: 1.35
+  LevelUpPopTime: 0.28
+  DefaultHitColor: {r: 1, g: 0.95, b: 0.8, a: 1}
   WeaponHitColors:
   - EquipmentId: 20000001
     Color: {r: 0.45, g: 0.95, b: 1, a: 1}
@@ -27,3 +151,17 @@ MonoBehaviour:
     Color: {r: 0.8, g: 0.6, b: 1, a: 1}
   - EquipmentId: 20000011
     Color: {r: 1, g: 0.45, b: 0.3, a: 1}
+  ExpGemCap: 200
+  ExpGemTiers:
+  - MinValue: 0
+    Scale: 1
+    Color: {r: 0.45, g: 0.75, b: 1, a: 1}
+    Emission: 3
+  - MinValue: 15
+    Scale: 1.35
+    Color: {r: 0.45, g: 1, b: 0.55, a: 1}
+    Emission: 4
+  - MinValue: 60
+    Scale: 1.8
+    Color: {r: 1, g: 0.35, b: 0.4, a: 1}
+    Emission: 6

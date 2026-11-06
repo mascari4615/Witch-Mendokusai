@@ -11,7 +11,15 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2ce3e735dec84bfab08d8246cecaa61c, type: 3}
   m_Name: SET_SlimeForest10
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
+  <Elite>k__BackingField:
+    <HealthMultiplier>k__BackingField: 12
+    <ScaleMultiplier>k__BackingField: 1.8
+    <Tint>k__BackingField: {r: 1, g: 0.72, b: 0.3, a: 1}
+    <ExpValue>k__BackingField: 150
+    <DropHeal>k__BackingField: 1
+    <DropMagnet>k__BackingField: 1
+  <SwarmRadius>k__BackingField: 11
   <Events>k__BackingField:
   - <Time>k__BackingField: 120
     <Type>k__BackingField: 0
