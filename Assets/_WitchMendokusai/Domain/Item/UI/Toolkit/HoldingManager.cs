@@ -23,6 +23,7 @@ namespace WitchMendokusai
 		private HoldingOverlay overlay;
 		private float lastClickTime;
 		private ItemSlot lastClickSlot;
+		private ItemSlot pressedSlot;
 
 		public bool IsHolding => holdingItem != null;
 
@@ -66,6 +67,7 @@ namespace WitchMendokusai
 			bool isDouble = (slot == lastClickSlot) && (now - lastClickTime < DOUBLE_CLICK_THRESHOLD);
 			lastClickTime = now;
 			lastClickSlot = slot;
+			pressedSlot = slot;
 
 			if (IsHolding == false)
 			{
@@ -75,6 +77,18 @@ namespace WitchMendokusai
 			{
 				HandleClickWithHolding(slot, inventory, targetItem, isLeft, isRight, isDouble);
 			}
+		}
+
+		// 드래그 놓기. 누른 칸과 다른 칸에서 떼면 그 칸에 내려놓음
+		public void HandleSlotRelease(ItemSlot slot, Inventory inventory, int button)
+		{
+			ItemSlot origin = pressedSlot;
+			pressedSlot = null;
+			if (button != 0 || IsHolding == false || origin == null || origin == slot)
+				return;
+
+			lastClickSlot = null;
+			HandleClickWithHolding(slot, inventory, inventory.GetItem(slot.Index), true, false, false);
 		}
 
 		private void HandleClickWithoutHolding(ItemSlot slot, Inventory inventory, Item targetItem, bool isLeft, bool isRight)

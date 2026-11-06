@@ -53,6 +53,7 @@ namespace WitchMendokusai
 			ApplyFeelConfig(CreateSpecs());
 			DeleteStaleMaterials();
 			AssetDatabase.SaveAssets();
+			SyncAddresses();
 			AssetDatabase.Refresh();
 			log.AppendLine("done tier " + maxTier);
 			return log.ToString();

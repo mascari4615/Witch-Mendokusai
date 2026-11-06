@@ -15,7 +15,7 @@ namespace WitchMendokusai
 		private const string SPRITE_ROOT = "Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/";
 		private const int FIELD_QUEUE = 2950;
 		private const int BEAM_QUEUE = 3010;
-		private const float PLAYER_HIT_FLASH_STRENGTH = 0.3f;
+		private const float PLAYER_HIT_FLASH_STRENGTH = 0.12f;
 
 		private readonly struct SpriteSpec
 		{
@@ -332,6 +332,13 @@ namespace WitchMendokusai
 					log.AppendLine("sprite fix " + card.name);
 				}
 			}
+		}
+
+		// 새 자산은 생성 순간 ID 0 으로 등록되므로 값 저장 뒤 주소 재등록
+		private static void SyncAddresses()
+		{
+			foreach (string guid in AssetDatabase.FindAssets("t:DataSO", new[] { CARD_ROOT, STAT_ROOT, WEAPON_ROOT }))
+				DataSOUtil.SetAddressableAsset(AssetDatabase.LoadAssetAtPath<DataSO>(AssetDatabase.GUIDToAssetPath(guid)));
 		}
 
 		private static void SetItemSprite(string assetPath, Sprite sprite)

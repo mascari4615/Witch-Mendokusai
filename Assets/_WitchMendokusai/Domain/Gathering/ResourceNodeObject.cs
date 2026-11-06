@@ -74,7 +74,7 @@ namespace WitchMendokusai
 		{
 			// equipmentData lookup — DataID 매핑 (DomainSDK Combat 격상, TASK-WM-089).
 			EquipmentData equipmentData = damageInfo.equipmentDataId != DamageInfo.NO_DATA_ID
-				? SOHelper.Get<EquipmentData>(damageInfo.equipmentDataId)
+				? SOHelper.Get<ItemData>(damageInfo.equipmentDataId) as EquipmentData
 				: null;
 
 			bool isCorrectTool = UnitData.RequiredTool == EquipmentType.Default

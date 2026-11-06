@@ -14,6 +14,7 @@ namespace WitchMendokusai
 		{
 			AddToClassList(ITEM_SLOT_CLASS);
 			RegisterCallback<PointerDownEvent>(OnPointerDown);
+			RegisterCallback<PointerUpEvent>(OnPointerUp);
 		}
 
 		public void SetInventory(Inventory inventory) => Inventory = inventory;
@@ -40,6 +41,15 @@ namespace WitchMendokusai
 				return;
 
 			HoldingManager.Instance.HandleSlotClick(this, Inventory, evt.button, evt.clickCount);
+			evt.StopPropagation();
+		}
+
+		private void OnPointerUp(PointerUpEvent evt)
+		{
+			if (Inventory == null)
+				return;
+
+			HoldingManager.Instance.HandleSlotRelease(this, Inventory, evt.button);
 			evt.StopPropagation();
 		}
 	}

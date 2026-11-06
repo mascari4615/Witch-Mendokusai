@@ -264,7 +264,7 @@ namespace WitchMendokusai
 					BuildObject = (spec, folder) =>
 					{
 						Color color = spec.HitColor;
-						SpriteSpec sprite = new(ItemSprite(POTION_ROOT + "/I_11000000_연두빛사탕.asset"), Color.white, 0.55f);
+						SpriteSpec sprite = new(IconSprite("wrapping-star"), color, 0.55f);
 						GameObject bullet = MakeBullet(folder, "CandyBullet", sprite, 14f, false, 2f, 0.35f, new DamageSpec(4, hitCount: 1, knockback: 1f), new Color(color.r, color.g, color.b, 0.3f));
 						return MakeSpawnerObject(spec, folder, bullet, SpawnPositionStrategy.Player, SpawnAimStrategy.RandomEnemy, 0.8f, 0.05f, 0f, 2, spread: 12f);
 					},
@@ -536,6 +536,7 @@ namespace WitchMendokusai
 			};
 		}
 
+		private const float PAPER_DOLL_SIZE = 0.9f;
 		private const string POTION_ROOT = "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Potion";
 
 		private static GameObject MakePaperDoll(string folder, Color tint)
@@ -546,8 +547,10 @@ namespace WitchMendokusai
 			{
 				if (spriteRenderer.name.Contains("Unit"))
 				{
-					spriteRenderer.sprite = IconSprite("voodoo-doll");
+					Sprite sprite = IconSprite("voodoo-doll");
+					spriteRenderer.sprite = sprite;
 					spriteRenderer.color = tint;
+					spriteRenderer.transform.localScale = Vector3.one * PAPER_DOLL_SIZE / Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
 				}
 			}
 			return SavePrefab(instance, folder, "PaperDoll");
