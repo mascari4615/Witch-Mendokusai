@@ -1,46 +1,42 @@
+using TMPro;
 using UnityEngine;
 
 namespace WitchMendokusai
 {
 	public class UIUpgradeSlot : UISlot
 	{
-		[SerializeField] private Transform checkBoxesParent;
-		private GameObject[] checkBoxes = new GameObject[0];
-		private GameObject[] checks = new GameObject[0];
+		[SerializeField] private SurvivalUITheme theme;
+		[SerializeField] private UIRing ring;
+		[SerializeField] private TextMeshProUGUI levelText;
+		[SerializeField] private TextMeshProUGUI priceText;
+		[SerializeField] private GameObject pendingBadge;
+		[SerializeField] private GameObject selectedFrame;
+		[SerializeField] private CanvasGroup iconGroup;
+		[SerializeField] private float zeroLevelIconAlpha = 0.38f;
 
-		public override void Init()
+		public void SetSelected(bool isSelected) => selectedFrame.SetActive(isSelected);
+
+		public void PlayBuy()
 		{
-			base.Init();
-
-			checkBoxes = new GameObject[checkBoxesParent.childCount];
-			checks = new GameObject[checkBoxesParent.childCount];
-
-			for (int i = 0; i < checkBoxesParent.childCount; i++)
-			{
-				checkBoxes[i] = checkBoxesParent.GetChild(i).gameObject;
-				checks[i] = checkBoxes[i].transform.GetChild(1).gameObject; // 0: Background, 1: Check
-			}
+			UIEffects.Punch(transform, theme.PunchAmount, theme.PunchDuration);
 		}
 
 		public override void UpdateUI()
 		{
 			base.UpdateUI();
 
-			if (DataSO is UpgradeData upgradeData)
-			{
-				for (int i = 0; i < checkBoxes.Length; i++)
-				{
-					if (i < upgradeData.MaxLevel)
-					{
-						checkBoxes[i].SetActive(true);
-						checks[i].SetActive(i < upgradeData.CurLevel);
-					}
-					else
-					{
-						checkBoxes[i].SetActive(false);
-					}
-				}
-			}
+			if (DataSO is not UpgradeData upgradeData)
+				return;
+
+			bool isMax = upgradeData.CurLevel >= upgradeData.MaxLevel;
+			nameText.text = upgradeData.DisplayName;
+			ring.color = isMax ? theme.MaxColor : theme.Style(upgradeData.Category).Main;
+			ring.SetFill((float)upgradeData.CurLevel / upgradeData.MaxLevel);
+			iconGroup.alpha = upgradeData.CurLevel == 0 ? zeroLevelIconAlpha : 1f;
+			levelText.text = isMax ? "MAX" : $"{upgradeData.CurLevel}/{upgradeData.MaxLevel}";
+			levelText.color = isMax ? theme.MaxColor : Color.white;
+			priceText.text = isMax ? string.Empty : $"{upgradeData.PricePerLevel[upgradeData.CurLevel]}냥";
+			pendingBadge.SetActive(upgradeData.EffectPending);
 		}
 	}
 }
