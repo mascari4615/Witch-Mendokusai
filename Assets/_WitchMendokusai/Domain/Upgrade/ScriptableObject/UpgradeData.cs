@@ -52,6 +52,11 @@ namespace WitchMendokusai
 		[field: SerializeField] public int MaxLevel { get; private set; } = 10;
 		[field: SerializeField] public int[] PricePerLevel { get; private set; } = new int[1];
 		[field: SerializeField] public float[] ValuePerLevel { get; private set; } = new float[1];
+		[field: SerializeField] public string DisplayName { get; private set; } = "";
+		[field: SerializeField] public string DisplayDescription { get; private set; } = "";
+		[field: SerializeField] public UpgradeCategory Category { get; private set; } = UpgradeCategory.Attack;
+		[field: SerializeField] public int DisplayOrder { get; private set; } = 0;
+		[field: SerializeField] public bool EffectPending { get; private set; } = false;
 
 		[field: NonSerialized] public int CurLevel { get; set; }
 
