@@ -10,43 +10,12 @@ namespace WitchMendokusai
 	{
 		private const float VISUAL_HEIGHT = 0.8f;
 
-		private static Material EnsureMaterial(string folder, string materialName, Color color)
-		{
-			string path = folder + "/" + materialName + ".mat";
-			Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
-			if (material == null)
-			{
-				material = new Material(LoadRequired<Material>(BASE_MATERIAL));
-				AssetDatabase.CreateAsset(material, path);
-			}
-			material.SetColor("_BaseColor", color);
-			material.SetColor("_Color", color);
-			EditorUtility.SetDirty(material);
-			return material;
-		}
-
 		private static GameObject SavePrefab(GameObject root, string folder, string prefabName)
 		{
 			root.name = prefabName;
 			GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, folder + "/" + prefabName + ".prefab");
 			Object.DestroyImmediate(root);
 			return prefab;
-		}
-
-		private static GameObject CreateVisual(GameObject parent, PrimitiveType primitive, Vector3 localPosition, Vector3 localEuler, Vector3 localScale, Material material)
-		{
-			GameObject visual = GameObject.CreatePrimitive(primitive);
-			Object.DestroyImmediate(visual.GetComponent<Collider>());
-			visual.name = "Visual";
-			visual.transform.SetParent(parent.transform, false);
-			visual.transform.localPosition = localPosition;
-			visual.transform.localEulerAngles = localEuler;
-			visual.transform.localScale = localScale;
-			MeshRenderer meshRenderer = visual.GetComponent<MeshRenderer>();
-			meshRenderer.sharedMaterial = material;
-			meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
-			meshRenderer.receiveShadows = false;
-			return visual;
 		}
 
 		private static void AddBase(GameObject root, float lifeSeconds)
@@ -106,7 +75,7 @@ namespace WitchMendokusai
 			serialized.ApplyModifiedPropertiesWithoutUndo();
 		}
 
-		private static GameObject MakeChainLink(string folder, string prefabName, Material material)
+		private static GameObject MakeChainLink(string folder, string prefabName, Color color)
 		{
 			GameObject root = new(prefabName);
 			root.AddComponent<PoolingObject>();
@@ -115,8 +84,10 @@ namespace WitchMendokusai
 			life.ApplyModifiedPropertiesWithoutUndo();
 			LineRenderer lineRenderer = root.AddComponent<LineRenderer>();
 			lineRenderer.useWorldSpace = true;
-			lineRenderer.widthMultiplier = 0.12f;
-			lineRenderer.sharedMaterial = material;
+			lineRenderer.widthMultiplier = 0.07f;
+			lineRenderer.startColor = color;
+			lineRenderer.endColor = color;
+			lineRenderer.sharedMaterial = EnsureFlatMaterial(folder, prefabName + "Line");
 			lineRenderer.shadowCastingMode = ShadowCastingMode.Off;
 			SerializedObject link = new(root.AddComponent<ChainLink>());
 			Set(link, "lineRenderer", lineRenderer);
@@ -134,7 +105,7 @@ namespace WitchMendokusai
 			serialized.ApplyModifiedPropertiesWithoutUndo();
 		}
 
-		private static GameObject MakeBullet(string folder, string prefabName, Material material, Vector3 visualScale, float speed, bool autoAim, float lifeSeconds, float radius, DamageSpec damage, Action<GameObject> extra = null)
+		private static GameObject MakeBullet(string folder, string prefabName, SpriteSpec sprite, float speed, bool autoAim, float lifeSeconds, float radius, DamageSpec damage, Color trailColor, Action<GameObject> extra = null)
 		{
 			GameObject root = new(prefabName);
 			AddBase(root, lifeSeconds);
@@ -144,50 +115,52 @@ namespace WitchMendokusai
 			Set(movement, "moveSpeed", speed);
 			Set(movement, "useAutoAim", autoAim);
 			movement.ApplyModifiedPropertiesWithoutUndo();
-			CreateVisual(root, PrimitiveType.Capsule, new Vector3(0f, VISUAL_HEIGHT, 0f), new Vector3(90f, 0f, 0f), visualScale, material);
+			GameObject visual = CreateSprite(root, sprite);
+			if (trailColor.a > 0f)
+				AddTrail(visual, folder, trailColor, 0.18f, sprite.Size * 0.35f);
 			extra?.Invoke(root);
 			return SavePrefab(root, folder, prefabName);
 		}
 
-		private static GameObject MakeBlast(string folder, string prefabName, Material material, float radius, float lifeSeconds, DamageSpec damage, Action<GameObject> extra = null)
+		private static GameObject MakeBlast(string folder, string prefabName, Color color, float radius, float lifeSeconds, DamageSpec damage, FeelMoment burst, Action<GameObject> extra = null)
 		{
 			GameObject root = new(prefabName);
 			AddBase(root, lifeSeconds);
 			AddSphereTrigger(root, radius);
 			AddDamage(root, damage);
-			GameObject visual = CreateVisual(root, PrimitiveType.Sphere, new Vector3(0f, VISUAL_HEIGHT, 0f), Vector3.zero, Vector3.one * radius * 2f, material);
-			SerializedObject scale = new(visual.AddComponent<ScaleOverLife>());
-			Set(scale, "duration", lifeSeconds);
-			RequireProperty(scale, "startScale").vector3Value = Vector3.one * radius * 0.6f;
-			RequireProperty(scale, "endScale").vector3Value = Vector3.one * radius * 2f;
-			scale.ApplyModifiedPropertiesWithoutUndo();
+			AddBurst(root, burst);
+			Material material = EnsureFieldMaterial(folder, prefabName, color, 0.1f, 0.55f, 0.08f);
+			CreateExpandingRing(root, material, radius * 0.5f, radius, lifeSeconds);
 			extra?.Invoke(root);
 			return SavePrefab(root, folder, prefabName);
 		}
 
-		private static GameObject MakeField(string folder, string prefabName, Material material, float radius, float lifeSeconds, DamageSpec damage, Action<GameObject> extra = null)
+		private static GameObject MakeField(string folder, string prefabName, Color color, float radius, float lifeSeconds, DamageSpec damage, Action<GameObject> extra = null)
 		{
 			GameObject root = new(prefabName);
 			AddBase(root, lifeSeconds);
 			AddSphereTrigger(root, radius);
 			AddDamage(root, damage);
-			CreateVisual(root, PrimitiveType.Cylinder, new Vector3(0f, 0.05f, 0f), Vector3.zero, new Vector3(radius * 2f, 0.03f, radius * 2f), material);
+			Material material = EnsureFieldMaterial(folder, prefabName, color, 0.1f, 0.4f, 0.05f, 3f, 0.25f);
+			CreateGroundQuad(root, material, radius);
 			extra?.Invoke(root);
 			return SavePrefab(root, folder, prefabName);
 		}
 
-		private static GameObject MakeBeam(string folder, string prefabName, Material material, float width, float length, float lifeSeconds, DamageSpec damage, Action<GameObject> extra = null)
+		private static GameObject MakeBeam(string folder, string prefabName, Color color, float width, float length, float lifeSeconds, DamageSpec damage, Action<GameObject> extra = null)
 		{
 			GameObject root = new(prefabName);
 			AddBase(root, lifeSeconds);
 			AddBoxTrigger(root, width, length);
 			AddDamage(root, damage);
-			CreateVisual(root, PrimitiveType.Cube, new Vector3(0f, VISUAL_HEIGHT, length * 0.5f), Vector3.zero, new Vector3(width, 0.15f, length), material);
+			Material material = EnsureBeamMaterial(folder, prefabName, color, 0.5f, 0.25f);
+			GameObject quad = CreateBeamQuad(root, material, width, length);
+			AddFade(quad, lifeSeconds);
 			extra?.Invoke(root);
 			return SavePrefab(root, folder, prefabName);
 		}
 
-		private static GameObject MakeFlyer(string folder, string prefabName, Material material, PrimitiveType primitive, Vector3 visualScale, float duration, float arcHeight, float dropHeight, GameObject explosion)
+		private static GameObject MakeFlyer(string folder, string prefabName, SpriteSpec sprite, float duration, float arcHeight, float dropHeight, GameObject explosion, Color trailColor)
 		{
 			GameObject root = new(prefabName);
 			AddBase(root, 0f);
@@ -199,11 +172,13 @@ namespace WitchMendokusai
 			SerializedObject explode = new(root.AddComponent<ExplodeOnEnd>());
 			Set(explode, "explosionPrefab", explosion);
 			explode.ApplyModifiedPropertiesWithoutUndo();
-			CreateVisual(root, primitive, new Vector3(0f, VISUAL_HEIGHT, 0f), Vector3.zero, visualScale, material);
+			GameObject visual = CreateSprite(root, sprite);
+			if (trailColor.a > 0f)
+				AddTrail(visual, folder, trailColor, 0.25f, sprite.Size * 0.3f);
 			return SavePrefab(root, folder, prefabName);
 		}
 
-		private static GameObject MakeMine(string folder, string prefabName, Material material, Vector3 visualScale, float lifeSeconds, float triggerRadius, GameObject explosion)
+		private static GameObject MakeMine(string folder, string prefabName, SpriteSpec sprite, Color ringColor, float lifeSeconds, float triggerRadius, GameObject explosion)
 		{
 			GameObject root = new(prefabName);
 			AddBase(root, lifeSeconds);
@@ -212,7 +187,9 @@ namespace WitchMendokusai
 			Set(explode, "explosionPrefab", explosion);
 			Set(explode, "explodeOnContact", true);
 			explode.ApplyModifiedPropertiesWithoutUndo();
-			CreateVisual(root, PrimitiveType.Capsule, new Vector3(0f, 0.3f, 0f), Vector3.zero, visualScale, material);
+			CreateSprite(root, sprite);
+			Material material = EnsureFieldMaterial(folder, prefabName + "Ring", ringColor, 0.04f, 0.3f, 0.1f);
+			CreateGroundQuad(root, material, triggerRadius);
 			return SavePrefab(root, folder, prefabName);
 		}
 
@@ -251,13 +228,17 @@ namespace WitchMendokusai
 			initializer.ApplyModifiedPropertiesWithoutUndo();
 		}
 
-		private static GameObject MakeAura(WeaponSpec spec, string folder, Material material, float radius, DamageSpec damage, bool requireStill)
+		private static GameObject MakeAura(WeaponSpec spec, string folder, Color color, float radius, DamageSpec damage, bool requireStill, float fillAlpha, float ringAlpha, AmbientSpec ambient)
 		{
 			GameObject root = new(spec.Key + "Object");
 			AddBase(root, 0f);
 			SphereCollider sphere = AddSphereTrigger(root, radius);
 			DamagingObject damagingObject = AddDamage(root, damage);
-			GameObject visual = CreateVisual(root, PrimitiveType.Cylinder, new Vector3(0f, 0.05f, 0f), Vector3.zero, new Vector3(radius * 2f, 0.03f, radius * 2f), material);
+			GameObject visual = new("Visual");
+			visual.transform.SetParent(root.transform, false);
+			Material material = EnsureFieldMaterial(folder, spec.Key + "Field", color, fillAlpha, ringAlpha, 0.04f, 1.5f, 0.3f);
+			CreateGroundQuad(visual, material, radius);
+			AddAmbient(visual, ambient);
 			SerializedObject aura = new(root.AddComponent<EquipmentAura>());
 			Set(aura, "damagingObject", damagingObject);
 			Set(aura, "damageCollider", sphere);
@@ -266,6 +247,38 @@ namespace WitchMendokusai
 			Set(aura, "scaleBonusStat", (int)Stat(spec, "SCALE_BONUS"));
 			Set(aura, "requireStill", requireStill);
 			aura.ApplyModifiedPropertiesWithoutUndo();
+			return SavePrefab(root, folder, spec.Key + "Object");
+		}
+
+		private static GameObject MakeCounterShield(WeaponSpec spec, string folder, Color color, float ringRadius, GameObject counter)
+		{
+			GameObject root = new(spec.Key + "Object");
+			AddBase(root, 0f);
+			Material material = EnsureFieldMaterial(folder, spec.Key + "Ring", color, 0.02f, 0.4f, 0.06f, 2f, 0.2f);
+			GameObject ring = CreateGroundQuad(root, material, ringRadius);
+			SerializedObject shield = new(root.AddComponent<EquipmentCounterShield>());
+			Set(shield, "counterPrefab", counter);
+			Set(shield, "readyRing", ring.GetComponent<Renderer>());
+			Set(shield, "cooldownStat", (int)Stat(spec, "ATTACK_SPEED_BONUS"));
+			Set(shield, "damageBonusStat", (int)Stat(spec, "DAMAGE_BONUS"));
+			Set(shield, "scaleBonusStat", (int)Stat(spec, "SCALE_BONUS"));
+			shield.ApplyModifiedPropertiesWithoutUndo();
+			return SavePrefab(root, folder, spec.Key + "Object");
+		}
+
+		private static GameObject MakeChoreNote(WeaponSpec spec, string folder, Color color, float ringRadius, GameObject burst)
+		{
+			GameObject root = new(spec.Key + "Object");
+			AddBase(root, 0f);
+			Material material = EnsureFieldMaterial(folder, spec.Key + "Ring", color, 0.05f, 0.4f, 0.06f);
+			GameObject ring = CreateGroundQuad(root, material, ringRadius);
+			SerializedObject note = new(root.AddComponent<EquipmentChoreNote>());
+			Set(note, "burstPrefab", burst);
+			Set(note, "chargeRing", ring.transform);
+			Set(note, "chargeSpeedStat", (int)Stat(spec, "ATTACK_SPEED_BONUS"));
+			Set(note, "damageBonusStat", (int)Stat(spec, "DAMAGE_BONUS"));
+			Set(note, "scaleBonusStat", (int)Stat(spec, "SCALE_BONUS"));
+			note.ApplyModifiedPropertiesWithoutUndo();
 			return SavePrefab(root, folder, spec.Key + "Object");
 		}
 

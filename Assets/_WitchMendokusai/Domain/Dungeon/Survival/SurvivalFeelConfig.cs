@@ -64,6 +64,10 @@ namespace WitchMendokusai
 		public Material ShardMaterial;
 		public Material RingMaterial;
 
+		[Header("Player hit flash")]
+		public RuntimeAnimatorController PlayerHitFlashController;
+		[Range(0f, 1f), Tooltip("피격 때 화면 전체 빨강의 세기 배율")] public float PlayerHitFlashStrength = 0.3f;
+
 		[Header("Shake limit")]
 		[Min(0f), Tooltip("쌓인 흔들림 상한. 대량 적에서 이 이상 쌓이지 않는다")] public float ShakeCap = 0.9f;
 		[Min(0f), Tooltip("초당 빠지는 흔들림 양")] public float ShakeDecay = 2.5f;

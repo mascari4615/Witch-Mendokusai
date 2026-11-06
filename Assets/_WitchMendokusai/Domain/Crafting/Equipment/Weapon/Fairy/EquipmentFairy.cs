@@ -39,8 +39,11 @@ namespace WitchMendokusai
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 
+		private IItemData usedEquipment;
+
 		public override void InitContext(SkillObject skillObject)
 		{
+			usedEquipment = skillObject.Context.UsedEquipment;
 			fairyTransforms.Clear();
 			// 재도전 때 풀에서 다시 쓰면 이전 판 정령이 자식으로 남아 있음
 			while (transform.childCount > 0)
@@ -101,7 +104,7 @@ namespace WitchMendokusai
 				g.transform.position = spawnPosition;
 
 				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
+					skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager, usedEquipment));
 
 				if (g.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);

@@ -11,7 +11,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 생존 장비 자산 생성기. 같은 경로에 다시 저장해 GUID 유지.
 	/// 호출: unity command eval "return WitchMendokusai.SurvivalEquipmentBuilder.Build(4);"
-	/// 인자: 만들 최대 차수. 0 기존 장비 상점, 1 첫 묶음, 2 2차, 3 3차, 4 4차.
+	/// 인자: 만들 최대 차수. 0 기존 장비 상점, 1 첫 묶음, 2 2차, 3 3차, 4 4차, 5 추가 3종.
 	/// </summary>
 	public static partial class SurvivalEquipmentBuilder
 	{
@@ -35,6 +35,8 @@ namespace WitchMendokusai
 			CheckIsolation();
 
 			AddLegacyEquipmentToShop();
+			FixMissingSprites();
+			AddLegacyTrails();
 			foreach (WeaponSpec spec in CreateSpecs())
 			{
 				if (spec.Tier > maxTier)
@@ -48,6 +50,8 @@ namespace WitchMendokusai
 				BuildResonance(spec, maxTier);
 			}
 
+			ApplyFeelConfig(CreateSpecs());
+			DeleteStaleMaterials();
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 			log.AppendLine("done tier " + maxTier);
@@ -97,18 +101,24 @@ namespace WitchMendokusai
 			int cardIndex = 0;
 			foreach (CardSpec cardSpec in spec.Cards)
 			{
-				UnitStatData stat = EnsureStat(spec.Prefix + "_" + cardSpec.StatSuffix, icon);
-				CardData card = EnsureCard(spec.CardBase + cardIndex, spec.Key + cardSpec.StatSuffix, spec.Name + " " + cardSpec.Label, spec.Name + " " + cardSpec.Label + " +", icon,
+				bool absolute = cardSpec.StatSuffix.StartsWith("!", StringComparison.Ordinal);
+				string statName = absolute ? cardSpec.StatSuffix.Substring(1) : spec.Prefix + "_" + cardSpec.StatSuffix;
+				UnitStatData stat = EnsureStat(statName, icon);
+				string fileSuffix = absolute ? cardSpec.StatSuffix.Substring(1) : cardSpec.StatSuffix;
+				CardData card = EnsureCard(spec.CardBase + cardIndex, spec.Key + fileSuffix, spec.Name + " " + cardSpec.Label, spec.Name + " " + cardSpec.Label + " +", icon,
 					new[] { new EffectSpec(stat, cardSpec.Value) }, cardSpec.MaxStack, 0, cardSpec.UIKind, null, null);
 				cards.Add(card);
-				cardsByKey[spec.Prefix + "_" + cardSpec.StatSuffix] = card;
+				cardsByKey[statName] = card;
 				cardIndex++;
 			}
 
-			EnsureStat(spec.Prefix + "_COUNT", icon);
-			EnsureStat(spec.Prefix + "_DAMAGE_BONUS", icon);
-			EnsureStat(spec.Prefix + "_ATTACK_SPEED_BONUS", icon);
-			EnsureStat(spec.Prefix + "_SCALE_BONUS", icon);
+			if (spec.Prefix != null)
+			{
+				EnsureStat(spec.Prefix + "_COUNT", icon);
+				EnsureStat(spec.Prefix + "_DAMAGE_BONUS", icon);
+				EnsureStat(spec.Prefix + "_ATTACK_SPEED_BONUS", icon);
+				EnsureStat(spec.Prefix + "_SCALE_BONUS", icon);
+			}
 
 			string assetPath = WEAPON_ROOT + "/I_" + spec.Id + "_" + spec.Name.Replace(" ", "") + ".asset";
 			EquipmentData equipment = LoadOrCreate<EquipmentData>(assetPath);
@@ -127,6 +137,19 @@ namespace WitchMendokusai
 			effectCards.arraySize = cards.Count;
 			for (int i = 0; i < cards.Count; i++)
 				effectCards.GetArrayElementAtIndex(i).objectReferenceValue = cards[i];
+			if (spec.ExtraEffects != null)
+			{
+				SerializedProperty effects = RequireProperty(serialized, "<Effects>k__BackingField");
+				effects.arraySize = spec.ExtraEffects.Length;
+				for (int i = 0; i < spec.ExtraEffects.Length; i++)
+				{
+					SerializedProperty element = effects.GetArrayElementAtIndex(i);
+					element.FindPropertyRelative("Type").intValue = 0;
+					element.FindPropertyRelative("Data").objectReferenceValue = EnsureStat(spec.ExtraEffects[i].StatName, icon);
+					element.FindPropertyRelative("ArithmeticOperator").intValue = 1;
+					element.FindPropertyRelative("Value").intValue = spec.ExtraEffects[i].Value;
+				}
+			}
 			serialized.ApplyModifiedPropertiesWithoutUndo();
 			EditorUtility.SetDirty(equipment);
 

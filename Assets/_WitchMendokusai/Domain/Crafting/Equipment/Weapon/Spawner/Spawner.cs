@@ -55,6 +55,7 @@ namespace WitchMendokusai
 		private Coroutine spawnCoroutine;
 		private int damageBonus = 0;
 		private float clockAngle = 0f;
+		private IItemData usedEquipment;
 
 		private PlayerProvider playerProvider;
 		private ObjectPoolManager objectPoolManager;
@@ -140,7 +141,7 @@ namespace WitchMendokusai
 			g.transform.localScale = prefabToSpawn.transform.localScale;
 
 			if (g.TryGetComponent(out SkillObject skillObject))
-				skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
+				skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager, usedEquipment));
 
 			g.transform.localScale *= ScaleMultiplier();
 
@@ -239,7 +240,7 @@ namespace WitchMendokusai
 
 		public override void InitContext(SkillObject skillObject)
 		{
-
+			usedEquipment = skillObject.Context.UsedEquipment;
 		}
 	}
 }

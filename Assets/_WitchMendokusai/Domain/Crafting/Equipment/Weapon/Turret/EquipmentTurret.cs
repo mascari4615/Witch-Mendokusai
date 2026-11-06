@@ -35,8 +35,11 @@ namespace WitchMendokusai
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 
+		private IItemData usedEquipment;
+
 		public override void InitContext(SkillObject skillObject)
 		{
+			usedEquipment = skillObject.Context.UsedEquipment;
 			turretTransforms.Clear();
 		}
 
@@ -85,7 +88,7 @@ namespace WitchMendokusai
 				bulletObject.transform.position = bulletSpawnPos;
 
 				if (bulletObject.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
+					skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager, usedEquipment));
 
 				if (bulletObject.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);

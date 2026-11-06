@@ -28,6 +28,7 @@ namespace WitchMendokusai
 		private float burstWindowEnd;
 		private int burstCount;
 		private float expSoundWindowEnd;
+		private UnityEngine.UI.Image hitFlashImage;
 		private int expSoundCount;
 
 		private SurvivalFeelConfig Config => resourceManager.SurvivalFeel;
@@ -43,6 +44,7 @@ namespace WitchMendokusai
 			Instance = this;
 			BuildSystems();
 			gameEventManager.RegisterCallback(GameEventType.OnLevelUp, OnLevelUp);
+			gameEventManager.RegisterCallback(GameEventType.OnPlayerHit, OnPlayerHit);
 		}
 
 		private void OnDestroy()
@@ -50,6 +52,7 @@ namespace WitchMendokusai
 			if (Instance == this)
 				Instance = null;
 			gameEventManager?.UnregisterCallback(GameEventType.OnLevelUp, OnLevelUp);
+			gameEventManager?.UnregisterCallback(GameEventType.OnPlayerHit, OnPlayerHit);
 		}
 
 		private void BuildSystems()
@@ -191,6 +194,31 @@ namespace WitchMendokusai
 			}
 			expSoundCount++;
 			return expSoundCount <= config.ExpSoundsPerWindow;
+		}
+
+		public void OnWeaponBurst(Vector3 position, FeelMoment moment)
+		{
+			RequestSmallShake(moment.Shake);
+			if (TakeBurst() == false)
+				return;
+			EmitShards(shards, position, moment, moment.Color);
+			EmitRing(rings, position, moment, moment.Color);
+		}
+
+		// 화면 전체 피격 효과 세기, 애니메이션 색 알파에 곱셈
+		private void OnPlayerHit()
+		{
+			if (hitFlashImage == null)
+				hitFlashImage = FindHitFlashImage();
+			hitFlashImage.canvasRenderer.SetAlpha(Config.PlayerHitFlashStrength);
+		}
+
+		private UnityEngine.UI.Image FindHitFlashImage()
+		{
+			foreach (Animator animator in FindObjectsByType<Animator>())
+				if (animator.runtimeAnimatorController == Config.PlayerHitFlashController)
+					return animator.GetComponentInChildren<UnityEngine.UI.Image>(true);
+			throw new System.InvalidOperationException("피격 화면 효과 없음");
 		}
 
 		private void OnLevelUp()

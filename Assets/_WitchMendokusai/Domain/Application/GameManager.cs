@@ -113,7 +113,7 @@ namespace WitchMendokusai
 					GameObject g = objectPoolManager.Spawn(equipment.Object);
 
 					if (g.TryGetComponent(out SkillObject skillObject))
-						skillObject.InitContext(new SkillContext(playerObject, playerProvider, objectPoolManager));
+						skillObject.InitContext(new SkillContext(playerObject, playerProvider, objectPoolManager, equipment));
 
 					g.SetActive(true);
 				}

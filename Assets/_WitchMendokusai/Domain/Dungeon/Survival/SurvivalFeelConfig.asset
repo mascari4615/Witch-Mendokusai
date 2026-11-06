@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShardMaterial: {fileID: 2100000, guid: 17a292e140f145cbac0811f94ade3aff, type: 2}
   RingMaterial: {fileID: 2100000, guid: eb82016b91a74ed384b4395c7ab85dd6, type: 2}
+  PlayerHitFlashController: {fileID: 9100000, guid: 1ae115b1e79be68498f7e37998498e3e, type: 2}
+  PlayerHitFlashStrength: 0.3
   ShakeCap: 0.9
   ShakeDecay: 2.5
   SmallShakeInterval: 0.12

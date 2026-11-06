@@ -47,8 +47,11 @@ namespace WitchMendokusai
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 
+		private IItemData usedEquipment;
+
 		public override void InitContext(SkillObject skillObject)
 		{
+			usedEquipment = skillObject.Context.UsedEquipment;
 			swingCount = 1;
 			resonanceVolley = 0;
 		}
@@ -138,7 +141,7 @@ namespace WitchMendokusai
 			g.transform.rotation = Quaternion.LookRotation(direction);
 
 			if (g.TryGetComponent(out SkillObject skillObject))
-				skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
+				skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager, usedEquipment));
 
 			if (g.GetComponentInChildren<DamagingObject>() is DamagingObject damagingObject)
 				damagingObject.SetDamageBonus(damageBonus + extraDamage);
