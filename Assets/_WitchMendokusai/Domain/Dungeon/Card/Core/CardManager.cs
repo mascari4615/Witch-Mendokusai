@@ -339,8 +339,8 @@ namespace WitchMendokusai
 
 		private float RarityWeight(CardData card) => card.Rarity switch
 		{
-			CardRarity.Rare => rareWeight,
-			CardRarity.Epic => epicWeight,
+			CardRarity.Rare => rareWeight * UpgradeData.LuckMultiplier,
+			CardRarity.Epic => epicWeight * UpgradeData.LuckMultiplier,
 			_ => commonWeight,
 		};
 

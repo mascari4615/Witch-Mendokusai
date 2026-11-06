@@ -91,6 +91,8 @@ namespace WitchMendokusai
 			ObjectBufferManager.ClearObjects(ObjectType.SpawnCircle);
 
 			playerObject.Init(GetDoll(dataManager.CurDollID));
+			// 스탯 초기화는 알림이 없어 획득 범위를 직접 되돌림
+			playerProvider.Current.UpdatePickupRange();
 
 			dataManager.QuestManager.RemoveQuests(QuestType.Dungeon);
 			dataManager.GameStat.UpdateData(dataManager.DungeonStat);
@@ -130,13 +132,15 @@ namespace WitchMendokusai
 				if (upgrade.CurLevel <= 0)
 					continue;
 
-				// 대응 스탯이 없는 강화 (Luck)
+				// 대응 스탯이 없는 강화 (Luck). UpgradeData.LuckMultiplier 로 직접 읽음
 				if (upgrade.UnitStatType == UnitStatType.NONE)
 					continue;
 
 				// TASK-WM-107 Slice 3-3 — static Effect 우회 폐기: DI runner 경유 dispatch.
 				effectRunner.ApplyEffect(upgrade.ToEffectInfo());
 			}
+
+			playerProvider.Current.UpdatePickupRange();
 
 			// 강화로 늘어난 최대 체력까지 충전
 			playerObject.UnitStat[UnitStatType.HP_CUR] = playerObject.UnitStat[UnitStatType.HP_MAX];

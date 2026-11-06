@@ -42,6 +42,7 @@ namespace WitchMendokusai
 		}
 
 		public int KillCountSinceStart => dataManager.DungeonStat[DungeonStatType.MONSTER_KILL] - startRecord.KillCount;
+		public int NyangSinceStart => dataManager.GameStat[GameStatType.NYANG] - startRecord.Nyang;
 
 		public DungeonRecord CaptureResultRecord(int level, bool isCleared)
 		{

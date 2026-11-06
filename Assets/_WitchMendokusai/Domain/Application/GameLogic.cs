@@ -96,8 +96,9 @@ namespace WitchMendokusai
 		public void SpawnGameItem(Vector3 position)
 		{
 			Probability<GameItemObject> gameItemProbability = new(shouldFill100Percent: true);
-			gameItemProbability.Add(resourceManager.HealObjectPrefab, HEAL_PERCENTAGE);
-			gameItemProbability.Add(resourceManager.MagnetObjectPrefab, MAGNET_PERCENTAGE);
+			float luckMultiplier = UpgradeData.LuckMultiplier;
+			gameItemProbability.Add(resourceManager.HealObjectPrefab, HEAL_PERCENTAGE * luckMultiplier);
+			gameItemProbability.Add(resourceManager.MagnetObjectPrefab, MAGNET_PERCENTAGE * luckMultiplier);
 
 			GameItemObject gameItem = gameItemProbability.Get();
 

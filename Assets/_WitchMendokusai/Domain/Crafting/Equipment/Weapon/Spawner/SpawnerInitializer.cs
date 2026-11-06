@@ -21,15 +21,25 @@ namespace WitchMendokusai
 			spawner = GetComponent<Spawner>();
 		}
 
-		private void Start()
+		private void OnEnable()
 		{
-			playerProvider.Current.UnitStat.AddListener(spawnCountStat, OnSpawnCountStatChanged);
-			OnSpawnCountStatChanged(playerProvider.Current.UnitStat[spawnCountStat]);
+			UnitStat playerStat = playerProvider.Current.UnitStat;
+			playerStat.AddListener(spawnCountStat, UpdateSpawnCount);
+			playerStat.AddListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSpawnCount);
+			UpdateSpawnCount();
 		}
 
-		private void OnSpawnCountStatChanged(int newValue)
+		private void OnDisable()
 		{
-			spawner.SpawnCount = 1 + newValue;
+			UnitStat playerStat = playerProvider.Current.UnitStat;
+			playerStat.RemoveListener(spawnCountStat, UpdateSpawnCount);
+			playerStat.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSpawnCount);
+		}
+
+		private void UpdateSpawnCount()
+		{
+			UnitStat playerStat = playerProvider.Current.UnitStat;
+			spawner.SpawnCount = 1 + playerStat[spawnCountStat] + playerStat[UnitStatType.PROJECTILE_COUNT_BONUS];
 		}
 	}
 }

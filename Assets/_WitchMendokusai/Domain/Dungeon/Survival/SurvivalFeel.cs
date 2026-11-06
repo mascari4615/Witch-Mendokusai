@@ -169,6 +169,7 @@ namespace WitchMendokusai
 		public void OnBossSpawned(Vector3 position) => PlayMoment(Config.BossSpawn, position, false);
 		public void OnBossKilled(Vector3 position) => PlayMoment(Config.BossKill, position, false);
 		public void OnPlayerDied(Vector3 position) => PlayMoment(Config.PlayerDeath, position, true);
+		public void OnPlayerRevived(Vector3 position) => PlayMoment(Config.PlayerRevive, position, true);
 
 		public void OnResonanceAwakening(Vector3 position) => PlayMoment(Config.ResonanceAwakening, position, true);
 		public void OnResonanceBurst(Vector3 position) => PlayMoment(Config.ResonanceBurst, position, false);

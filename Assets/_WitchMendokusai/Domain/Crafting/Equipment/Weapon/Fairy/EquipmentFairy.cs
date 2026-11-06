@@ -42,6 +42,7 @@ namespace WitchMendokusai
 			PlayerStat.AddListener(UnitStatType.FAIRY_COUNT, UpdateFairy);
 			PlayerStat.AddListener(UnitStatType.FAIRY_DAMAGE_BONUS, UpdateDamageBonus);
 			PlayerStat.AddListener(UnitStatType.FAIRY_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
+			PlayerStat.AddListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateFairyByCountBonus);
 			UpdateFairy(PlayerStat[UnitStatType.FAIRY_COUNT]);
 			UpdateDamageBonus(PlayerStat[UnitStatType.FAIRY_DAMAGE_BONUS]);
 			UpdateAttackSpeedBonus(PlayerStat[UnitStatType.FAIRY_ATTACK_SPEED_BONUS]);
@@ -57,6 +58,7 @@ namespace WitchMendokusai
 			PlayerStat.RemoveListener(UnitStatType.FAIRY_COUNT, UpdateFairy);
 			PlayerStat.RemoveListener(UnitStatType.FAIRY_DAMAGE_BONUS, UpdateDamageBonus);
 			PlayerStat.RemoveListener(UnitStatType.FAIRY_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
+			PlayerStat.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateFairyByCountBonus);
 		}
 
 		private void Update()
@@ -85,7 +87,7 @@ namespace WitchMendokusai
 				g.transform.position = spawnPosition;
 
 				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
+					skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
 
 				if (g.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);
@@ -96,9 +98,11 @@ namespace WitchMendokusai
 			}
 		}
 
+		private void UpdateFairyByCountBonus() => UpdateFairy(PlayerStat[UnitStatType.FAIRY_COUNT]);
+
 		private void UpdateFairy(int fairyCount)
 		{
-			int actualFairyCount = 1 + fairyCount;
+			int actualFairyCount = 1 + fairyCount + PlayerStat[UnitStatType.PROJECTILE_COUNT_BONUS];
 
 			if (fairyTransforms.Count < actualFairyCount)
 			{

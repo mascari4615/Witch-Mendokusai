@@ -60,6 +60,9 @@ namespace WitchMendokusai
 
 		[field: NonSerialized] public int CurLevel { get; set; }
 
+		// 스탯 칸 없는 행운의 배율, 희귀 카드 가중치와 회복, 자석 획득 확률에 곱함
+		public static float LuckMultiplier => 1f + (float)Get<UpgradeData>((int)UpgradeType.Luck).TotalValue / UnitStat.PERCENT;
+
 		public int TotalValue
 		{
 			get

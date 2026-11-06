@@ -166,3 +166,18 @@ MonoBehaviour:
     Scale: 1.8
     Color: {r: 1, g: 0.35, b: 0.4, a: 1}
     Emission: 6
+  Upgrade:
+    HpRegenInterval: 20
+    ReviveHealthRatio: 0.5
+    ReviveInvincibility: 3
+  PlayerRevive:
+    Shake: 0.5
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 60
+    ShardSpeed: 9
+    ShardLife: 0.8
+    ShardSize: 0.26
+    RingSize: 10
+    RingLife: 0.7
+    Color: {r: 1, g: 0.9, b: 0.55, a: 1}

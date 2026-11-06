@@ -31,6 +31,8 @@ namespace WitchMendokusai
 			PlayerStat.AddListener(UnitStatType.SATELLITE_ROTATE_SPEED_BONUS, UpdateRotationSpeed);
 			PlayerStat.AddListener(UnitStatType.SATELLITE_DAMAGE_BONUS, UpdateDamageBonus);
 			PlayerStat.AddListener(UnitStatType.SATELLITE_SCALE_BONUS, UpdateSatelliteScale);
+			PlayerStat.AddListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSatellite);
+			PlayerStat.AddListener(UnitStatType.PROJECTILE_SCALE_BONUS, UpdateSatelliteScale);
 			UpdateSatellite();
 			UpdateRotationSpeed();
 			UpdateDamageBonus();
@@ -43,6 +45,8 @@ namespace WitchMendokusai
 			PlayerStat.RemoveListener(UnitStatType.SATELLITE_ROTATE_SPEED_BONUS, UpdateRotationSpeed);
 			PlayerStat.RemoveListener(UnitStatType.SATELLITE_DAMAGE_BONUS, UpdateDamageBonus);
 			PlayerStat.RemoveListener(UnitStatType.SATELLITE_SCALE_BONUS, UpdateSatelliteScale);
+			PlayerStat.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSatellite);
+			PlayerStat.RemoveListener(UnitStatType.PROJECTILE_SCALE_BONUS, UpdateSatelliteScale);
 		}
 
 		private void Update()
@@ -58,7 +62,7 @@ namespace WitchMendokusai
 
 		private void UpdateSatellite()
 		{
-			int satelliteCount = 1 + PlayerStat[UnitStatType.SATELLITE_COUNT];
+			int satelliteCount = 1 + PlayerStat[UnitStatType.SATELLITE_COUNT] + PlayerStat[UnitStatType.PROJECTILE_COUNT_BONUS];
 
 			if (satellites.Count < satelliteCount)
 			{
@@ -99,8 +103,9 @@ namespace WitchMendokusai
 
 		private void UpdateSatelliteScale()
 		{
+			float rangeMultiplier = PlayerStat.PercentMultiplier(UnitStatType.PROJECTILE_SCALE_BONUS);
 			foreach (DamagingObject satellite in satellites)
-				satellite.transform.localScale = Vector3.one * (1 + PlayerStat[UnitStatType.SATELLITE_SCALE_BONUS] * .2f);
+				satellite.transform.localScale = Vector3.one * ((1 + PlayerStat[UnitStatType.SATELLITE_SCALE_BONUS] * .2f) * rangeMultiplier);
 		}
 	}
 }

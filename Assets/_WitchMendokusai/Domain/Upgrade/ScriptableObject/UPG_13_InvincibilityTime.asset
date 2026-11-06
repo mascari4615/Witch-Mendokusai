@@ -19,21 +19,21 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 13
   <UnitStatType>k__BackingField: 800
-  <MaxLevel>k__BackingField: 10
+  <MaxLevel>k__BackingField: 5
   <PricePerLevel>k__BackingField: 0100000002000000030000000400000005000000060000000700000008000000090000000a000000i
   <ValuePerLevel>k__BackingField:
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
+  - 100
+  - 100
+  - 100
+  - 100
+  - 100
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
   <DisplayName>k__BackingField: "\uBB34\uC801 \uC2DC\uAC04"
-  <DisplayDescription>k__BackingField: "\uD53C\uACA9 \uB4A4 \uBB34\uC801 \uC2DC\uAC04\uC774 \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
+  <DisplayDescription>k__BackingField: "\uD53C\uACA9 \uB4A4 \uBB34\uC801 \uC2DC\uAC04\uC774 \uB808\uBCA8\uB2F9 0.1\uCD08 \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
   <Category>k__BackingField: 1
   <DisplayOrder>k__BackingField: 2
-  <EffectPending>k__BackingField: 1
+  <EffectPending>k__BackingField: 0

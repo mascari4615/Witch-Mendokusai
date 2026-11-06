@@ -136,7 +136,7 @@ namespace WitchMendokusai
 			g.transform.rotation = Quaternion.LookRotation(direction);
 
 			if (g.TryGetComponent(out SkillObject skillObject))
-				skillObject.InitContext(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
+				skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
 
 			if (g.GetComponentInChildren<DamagingObject>() is DamagingObject damagingObject)
 				damagingObject.SetDamageBonus(damageBonus + extraDamage);
@@ -205,7 +205,7 @@ namespace WitchMendokusai
 
 		private void UpdateSword(int swordCount)
 		{
-			swingCount = 1 + swordCount;
+			swingCount = 1 + swordCount + PlayerStat[UnitStatType.PROJECTILE_COUNT_BONUS];
 		}
 
 		private void UpdateDamageBonus(int damageBonus)
