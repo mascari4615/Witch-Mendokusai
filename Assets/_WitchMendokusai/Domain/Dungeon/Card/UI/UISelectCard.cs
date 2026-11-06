@@ -10,6 +10,7 @@ namespace WitchMendokusai
 		[SerializeField] private List<UICardSlot> cardSelectButtons;
 		// 패널이 튀어나오는 시간.
 		[SerializeField] private float openAnimDuration = 0.5f;
+		[SerializeField] private UIDeckTabs deckTabs;
 
 		public override bool IsFullscreen => true;
 
@@ -20,6 +21,9 @@ namespace WitchMendokusai
 
 			// DeckPanel이 켜지면 첫 번째 카드 버튼 포커스
 			cardSelectButtons[0].Select();
+			for (int i = 0; i < cardSelectButtons.Count; i++)
+				if (cardSelectButtons[i].gameObject.activeSelf)
+					cardSelectButtons[i].ChoiceView.ChoiceCard.PlayAppear(i);
 		}
 
 		protected override void OnInit()
@@ -31,22 +35,28 @@ namespace WitchMendokusai
 				// 원래 위 코드를 썼는데, 클로저 문제로 인해 아래처럼 바꿈
 				cardSelectButtons[i].Init();
 				cardSelectButtons[i].SetClickAction((slot) => { cardManager.SelectCard(slot.DataSO as CardData); });
+				cardSelectButtons[i].SetSelectAction((slot) =>
+				{
+					if (slot.DataSO is CardData card)
+						deckTabs.ShowInfo(card, (slot as UICardSlot).ChoiceDetail);
+				});
 			}
 		}
 		
-		public void SetCardSelectButtons(List<CardData> cardDataList, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards)
+		public void SetCardSelectButtons(List<CardData> cardDataList, EquipmentData equipment, IReadOnlyList<EquipmentData> equipments, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards)
 		{
+			deckTabs.SetOverview(equipments, selectedCards);
 			for (int i = 0; i < cardSelectButtons.Count; i++)
 			{
 				cardSelectButtons[i].SetActive(i < cardDataList.Count);
 				if (i < cardDataList.Count)
 				{
-					cardSelectButtons[i].SetChoice(cardDataList[i], selectedCards, deckCards);
+					cardSelectButtons[i].SetChoice(cardDataList[i], equipment, selectedCards, deckCards);
 					cardSelectButtons[i].UpdateUI();
 				}
 				else
 				{
-					cardSelectButtons[i].SetChoice(null, selectedCards, deckCards);
+					cardSelectButtons[i].SetChoice(null, equipment, selectedCards, deckCards);
 				}
 			}
 		}

@@ -20,6 +20,9 @@ namespace WitchMendokusai
 
 			// SelectDeckPanel이 켜지면 첫 번째 버튼 포커스
 			deckSelectButtons[0].Select();
+			for (int i = 0; i < deckSelectButtons.Count; i++)
+				if (deckSelectButtons[i].gameObject.activeSelf)
+					deckSelectButtons[i].GetComponent<UIChoiceCard>().PlayAppear(i);
 		}
 
 		protected override void OnInit()
@@ -33,7 +36,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void SetDeckSelectButtons(List<EquipmentData> equipmentList)
+		public void SetDeckSelectButtons(List<EquipmentData> equipmentList, IReadOnlyList<CardData> selectedCards)
 		{
 			for (int i = 0; i < deckSelectButtons.Count; i++)
 			{
@@ -42,6 +45,7 @@ namespace WitchMendokusai
 				{
 					deckSelectButtons[i].SetSlot(equipmentList[i]);
 					deckSelectButtons[i].UpdateUI();
+					deckSelectButtons[i].GetComponent<UIDeckChoiceView>().Set(equipmentList[i], selectedCards);
 				}
 				else
 				{
