@@ -27,6 +27,7 @@ MonoBehaviour:
     ArithmeticOperator: 1
     Value: 12
   <MaxStack>k__BackingField: 1
+  <Rarity>k__BackingField: 2
   <Requirements>k__BackingField:
   - Card: {fileID: 11400000, guid: d3e28982df1a30645a0773cd17035370, type: 2}
     Stack: 3

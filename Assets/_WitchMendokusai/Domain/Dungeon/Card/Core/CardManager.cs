@@ -55,6 +55,12 @@ namespace WitchMendokusai
 		private int curDeckIndex;
 		[SerializeField] private float selectionDelay = 1f;
 		[SerializeField] private int cardsPerChoice = 3;
+		[SerializeField, Min(0f), Tooltip("선택 직후 무적 초")] private float postSelectionInvincibility = 1f;
+		[SerializeField, Min(0), Tooltip("고를 카드가 없을 때 체력이 닳아 있으면 레벨업 하나당 회복량")] private int maxedLevelUpHeal = 5;
+		[SerializeField, Min(0), Tooltip("고를 카드가 없고 체력이 가득이면 레벨업 하나당 냥")] private int maxedLevelUpNyang = 10;
+		[SerializeField, Min(0f)] private float commonWeight = 1f;
+		[SerializeField, Min(0f)] private float rareWeight = 0.5f;
+		[SerializeField, Min(0f)] private float epicWeight = 0.2f;
 
 		// TASK-WM-115 R1 — 카드 선택 UI = 던전전용 (사용자 확정: World 부재=정상).
 		// 구: Init(World Awake) 이 eager Find → 미발견 LogError + Panels 에 null 저장
@@ -219,6 +225,7 @@ namespace WitchMendokusai
 			EnsureCardPanels();
 			if (ShuffleDeck() == false)
 			{
+				ConvertLevelUps();
 				CancelSelection();
 				yield break;
 			}
@@ -245,7 +252,7 @@ namespace WitchMendokusai
 			int choiceCount = Math.Min(Math.Max(cardsPerChoice, 1), candidates.Count);
 			for (int i = 0; i < choiceCount; i++)
 			{
-				int randomIndex = Random.Range(0, candidates.Count);
+				int randomIndex = PickWeightedIndex(candidates);
 				offeredCards.Add(candidates[randomIndex]);
 				candidates.RemoveAt(randomIndex);
 			}
@@ -305,7 +312,49 @@ namespace WitchMendokusai
 			else
 			{
 				timeManager.Resume(gameObject);
+				playerProvider.CurrentObject.GrantInvincibility(postSelectionInvincibility);
 			}
+		}
+
+		private void ConvertLevelUps()
+		{
+			UnitObject player = playerProvider.CurrentObject;
+			int heal = 0;
+			int nyang = 0;
+			for (; levelUpStack > 0; levelUpStack--)
+			{
+				if (player.UnitStat[UnitStatType.HP_CUR] + heal < player.UnitStat[UnitStatType.HP_MAX])
+					heal += maxedLevelUpHeal;
+				else
+					nyang += maxedLevelUpNyang;
+			}
+			if (heal > 0)
+				player.ReceiveHeal(heal);
+			if (nyang > 0)
+				dataManager.GameStat[GameStatType.NYANG] += nyang;
+			EventBusBridge.Publish(new LevelUpConvertedEvent { Heal = heal, Nyang = nyang });
+		}
+
+		private float RarityWeight(CardData card) => card.Rarity switch
+		{
+			CardRarity.Rare => rareWeight,
+			CardRarity.Epic => epicWeight,
+			_ => commonWeight,
+		};
+
+		private int PickWeightedIndex(List<CardData> candidates)
+		{
+			float total = 0f;
+			foreach (CardData card in candidates)
+				total += RarityWeight(card);
+			float roll = Random.value * total;
+			for (int i = 0; i < candidates.Count; i++)
+			{
+				roll -= RarityWeight(candidates[i]);
+				if (roll <= 0f)
+					return i;
+			}
+			return candidates.Count - 1;
 		}
 	}
 }
