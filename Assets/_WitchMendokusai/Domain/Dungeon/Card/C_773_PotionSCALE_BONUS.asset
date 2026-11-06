@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fef6d2281070d344d9cdc494d9a13c92, type: 3}
+  m_Name: C_773_PotionSCALE_BONUS
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
+  <ID>k__BackingField: 773
+  <Name>k__BackingField: "\uD130\uC9C0\uB294 \uBB3C\uC57D \uD06C\uAE30 \uC99D\uAC00"
+  <Description>k__BackingField: "\uD130\uC9C0\uB294 \uBB3C\uC57D \uD06C\uAE30 \uC99D\uAC00 +"
+  <Sprite>k__BackingField: {fileID: 21300000, guid: fe4ea2fe7e0a5104a957a6b0ebd4689e, type: 3}
+  <Sprites>k__BackingField: []
+  <Effects>k__BackingField:
+  - Type: 0
+    Data: {fileID: 11400000, guid: b96ddd7abbf272544a9899a1ccd2010b, type: 2}
+    ArithmeticOperator: 1
+    Value: 1
+  <MaxStack>k__BackingField: 5
+  <Rarity>k__BackingField: 0
+  <Requirements>k__BackingField: []
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 0}
+  <UIKind>k__BackingField: 3

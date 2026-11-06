@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fef6d2281070d344d9cdc494d9a13c92, type: 3}
+  m_Name: C_742_BroomATTACK_SPEED_BONUS
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
+  <ID>k__BackingField: 742
+  <Name>k__BackingField: "\uB418\uB3CC\uC544\uC624\uB294 \uBE57\uC790\uB8E8 \uACF5\uACA9\uC18D\uB3C4 \uC99D\uAC00"
+  <Description>k__BackingField: "\uB418\uB3CC\uC544\uC624\uB294 \uBE57\uC790\uB8E8 \uACF5\uACA9\uC18D\uB3C4 \uC99D\uAC00 +"
+  <Sprite>k__BackingField: {fileID: 21300000, guid: e4d65d3171c8eab4ab77d78faa0212b4, type: 3}
+  <Sprites>k__BackingField: []
+  <Effects>k__BackingField:
+  - Type: 0
+    Data: {fileID: 11400000, guid: d6cfa325d438d0b4389688795daaa50e, type: 2}
+    ArithmeticOperator: 1
+    Value: 1
+  <MaxStack>k__BackingField: 5
+  <Rarity>k__BackingField: 0
+  <Requirements>k__BackingField: []
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 0}
+  <UIKind>k__BackingField: 2

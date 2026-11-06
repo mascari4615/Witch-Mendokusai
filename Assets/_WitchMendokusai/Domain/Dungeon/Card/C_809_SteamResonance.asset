@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fef6d2281070d344d9cdc494d9a13c92, type: 3}
+  m_Name: C_809_SteamResonance
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
+  <ID>k__BackingField: 809
+  <Name>k__BackingField: "\uB053\uC5B4\uB118\uCE5C \uC1A5"
+  <Description>k__BackingField: "\uAE40 \uD06C\uAE30 +2, \uAE40 \uB370\uBBF8\uC9C0 +4\n\uAE40 \uD06C\uAE30 \uAC15\uD654 3\uD68C\uC640 \uBCD1 \uACF5\uACA9\uC18D\uB3C4 \uAC15\uD654 2\uD68C \uD6C4 \uB4F1\uC7A5. \uD55C \uD310\uC5D0 1\uD68C."
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 8abcb408087215741bc9725440f059e0, type: 3}
+  <Sprites>k__BackingField: []
+  <Effects>k__BackingField:
+  - Type: 0
+    Data: {fileID: 11400000, guid: e6af7ebc54cde4c48bbcdb23ad992ffa, type: 2}
+    ArithmeticOperator: 1
+    Value: 2
+  - Type: 0
+    Data: {fileID: 11400000, guid: 3f60aacb3f986794685a49a1e1a854d8, type: 2}
+    ArithmeticOperator: 1
+    Value: 4
+  <MaxStack>k__BackingField: 1
+  <Rarity>k__BackingField: 2
+  <Requirements>k__BackingField:
+  - Card: {fileID: 11400000, guid: 025874a611f07194195199999eb05299, type: 2}
+    Stack: 3
+  - Card: {fileID: 11400000, guid: 00659e3520c01484eb19a76ee1fd58e9, type: 2}
+    Stack: 2
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 11400000, guid: ce218d43c4894157be8fd7884677171f, type: 3}
+  <UIKind>k__BackingField: 4

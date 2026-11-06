@@ -56,6 +56,7 @@ namespace WitchMendokusai
 		private void OnEnable()
 		{
 			PlayerStat.AddListener(UnitStatType.SWORD_COUNT, UpdateSword);
+			PlayerStat.AddListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSwordFromBonus);
 			PlayerStat.AddListener(UnitStatType.SWORD_DAMAGE_BONUS, UpdateDamageBonus);
 			PlayerStat.AddListener(UnitStatType.SWORD_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 			UpdateSword(PlayerStat[UnitStatType.SWORD_COUNT]);
@@ -69,6 +70,7 @@ namespace WitchMendokusai
 		{
 			StopAllCoroutines();
 			PlayerStat.RemoveListener(UnitStatType.SWORD_COUNT, UpdateSword);
+			PlayerStat.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSwordFromBonus);
 			PlayerStat.RemoveListener(UnitStatType.SWORD_DAMAGE_BONUS, UpdateDamageBonus);
 			PlayerStat.RemoveListener(UnitStatType.SWORD_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 		}
@@ -202,6 +204,8 @@ namespace WitchMendokusai
 			visual.SetActive(true);
 			visual.GetComponent<SwordSwing>().PlayPooled(objectPoolManager, gameObject, playerProvider.Current.transform, SwordSwingArea.FromHitbox(attack), side);
 		}
+
+		private void UpdateSwordFromBonus(int bonus) => UpdateSword(PlayerStat[UnitStatType.SWORD_COUNT]);
 
 		private void UpdateSword(int swordCount)
 		{

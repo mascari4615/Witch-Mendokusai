@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fef6d2281070d344d9cdc494d9a13c92, type: 3}
+  m_Name: C_862_DusterSCALE_BONUS
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
+  <ID>k__BackingField: 862
+  <Name>k__BackingField: "\uBA3C\uC9C0\uB5A8\uC774 \uD06C\uAE30 \uC99D\uAC00"
+  <Description>k__BackingField: "\uBA3C\uC9C0\uB5A8\uC774 \uD06C\uAE30 \uC99D\uAC00 +"
+  <Sprite>k__BackingField: {fileID: 21300000, guid: bd3990a69b0b81142bc3c79442566bf3, type: 3}
+  <Sprites>k__BackingField: []
+  <Effects>k__BackingField:
+  - Type: 0
+    Data: {fileID: 11400000, guid: 376d6295b365bb248a2b3fe503ce71d6, type: 2}
+    ArithmeticOperator: 1
+    Value: 1
+  <MaxStack>k__BackingField: 5
+  <Rarity>k__BackingField: 0
+  <Requirements>k__BackingField: []
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 0}
+  <UIKind>k__BackingField: 3

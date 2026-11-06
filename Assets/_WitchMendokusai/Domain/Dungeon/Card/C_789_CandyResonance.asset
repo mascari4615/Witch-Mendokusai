@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fef6d2281070d344d9cdc494d9a13c92, type: 3}
+  m_Name: C_789_CandyResonance
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
+  <ID>k__BackingField: 789
+  <Name>k__BackingField: "\uC3DF\uC544\uC9C4 \uC0AC\uD0D5"
+  <Description>k__BackingField: "\uC0AC\uD0D5 \uC218 +3, \uC0AC\uD0D5 \uB370\uBBF8\uC9C0 +4\n\uC0AC\uD0D5 \uC218 \uAC15\uD654 3\uD68C\uC640 \uBCD1 \uC218 \uAC15\uD654 2\uD68C \uD6C4 \uB4F1\uC7A5. \uD55C \uD310\uC5D0 1\uD68C."
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 84407d3f5149c504bbd1ce6f7937395e, type: 3}
+  <Sprites>k__BackingField: []
+  <Effects>k__BackingField:
+  - Type: 0
+    Data: {fileID: 11400000, guid: dfeac7d646fd592459677756c6668d35, type: 2}
+    ArithmeticOperator: 1
+    Value: 3
+  - Type: 0
+    Data: {fileID: 11400000, guid: 7f081a6cdb6007a4e8f7ef6c520676d3, type: 2}
+    ArithmeticOperator: 1
+    Value: 4
+  <MaxStack>k__BackingField: 1
+  <Rarity>k__BackingField: 2
+  <Requirements>k__BackingField:
+  - Card: {fileID: 11400000, guid: 60bd09087232803489bd0198196a642f, type: 2}
+    Stack: 3
+  - Card: {fileID: 11400000, guid: 785c9ee413c1a3c4da61196fbd367582, type: 2}
+    Stack: 2
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 11400000, guid: ce218d43c4894157be8fd7884677171f, type: 3}
+  <UIKind>k__BackingField: 4

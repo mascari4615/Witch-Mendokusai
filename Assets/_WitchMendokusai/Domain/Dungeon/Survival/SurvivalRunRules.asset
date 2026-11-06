@@ -11,12 +11,12 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1ae0a394dded485db301fa2e54c1f207, type: 3}
   m_Name: SurvivalRunRules
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   RerollCharges: 3
   SkipCharges: 2
   BanCharges: 2
   SkipExpRefundRatio: 0.25
-  ChestPrefab: {fileID: 0}
+  ChestPrefab: {fileID: 5421623657637269341, guid: 8780f3fd875b9414488a82ba00dc0eda, type: 3}
   EliteChestChance: 1
   ChestRewardCounts:
   - Count: 1

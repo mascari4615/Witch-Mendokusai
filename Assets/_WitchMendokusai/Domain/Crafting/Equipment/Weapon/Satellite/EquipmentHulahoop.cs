@@ -65,6 +65,13 @@ namespace WitchMendokusai
 		public override void InitContext(SkillObject skillObject)
 		{
 			satellites.Clear();
+			// 재도전 때 풀에서 다시 쓰면 이전 판 위성이 자식으로 남아 있음
+			while (transform.childCount > 0)
+			{
+				GameObject previous = transform.GetChild(0).gameObject;
+				previous.transform.SetParent(null, false);
+				objectPoolManager.Despawn(previous);
+			}
 			satelliteRoots.Clear();
 		}
 

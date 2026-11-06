@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 434a55e845928a541b5a736c21266c1b, type: 3}
+  m_Name: "I_20000029_\uBA3C\uC9C0\uB5A8\uC774"
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.EquipmentData
+  <ID>k__BackingField: 20000029
+  <Name>k__BackingField: "\uBA3C\uC9C0\uB5A8\uC774"
+  <Description>k__BackingField: "\uC55E\uCABD \uC801\uC744 \uBA40\uB9AC \uD138\uC5B4\uB0B8\uB2E4. \uC784\uC2DC \uD310\uC815\uACFC \uC784\uC2DC \uC5F0\uCD9C."
+  <Sprite>k__BackingField: {fileID: 21300000, guid: bd3990a69b0b81142bc3c79442566bf3, type: 3}
+  <Sprites>k__BackingField: []
+  <Grade>k__BackingField: 0
+  <Type>k__BackingField: 2
+  <Recipes>k__BackingField: []
+  <MaxAmount>k__BackingField: 1
+  <PurchasePrice>k__BackingField: 50
+  <SalePrice>k__BackingField: 20
+  <EffectCards>k__BackingField:
+  - {fileID: 11400000, guid: 2ae8bf226200730428fb3e7b2d0366d9, type: 2}
+  - {fileID: 11400000, guid: 823d22497a5179c48b2cec587075ee26, type: 2}
+  - {fileID: 11400000, guid: 39d9ce7d67ab48c4b94956f4de5d5ee8, type: 2}
+  - {fileID: 11400000, guid: 07dc789f71f1f6f4892efbbb3647b71c, type: 2}
+  <Effects>k__BackingField: []
+  <Object>k__BackingField: {fileID: 7312590864717611201, guid: 4d9f8370059cc7e489da2b61ca0d3483, type: 3}
+  <EquipmentType>k__BackingField: 0
+  <UIKind>k__BackingField: 1
+  <ActCostScale>k__BackingField: 1
