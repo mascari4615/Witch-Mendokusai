@@ -46,6 +46,7 @@ namespace WitchMendokusai
 		private GameManager gameManager;
 		private ResourceManager resourceManager;
 		private Coroutine clearDelayRoutine;
+		private int targetClearCount;
 
 		[Inject]
 		public void Construct(SOManager soManager, UIManager uiManager, CameraManager cameraManager, StageManager stageManager, GameEventManager gameEventManager, PlayerProvider playerProvider, DataManager dataManager, GameManager gameManager, ResourceManager resourceManager, IObjectResolver container)
@@ -169,19 +170,10 @@ namespace WitchMendokusai
 				// StartDungeonLoop();
 				{
 					// RuntimeQuest를 통해 DungeonClear 수치가 1 오르면 던전 종료
-					int targetClearCount = dataManager.DungeonStat[DungeonStatType.DUNGEON_CLEAR] + 1;
-					bool IsClear()
-					{
-						int curClearCount = dataManager.DungeonStat[DungeonStatType.DUNGEON_CLEAR];
-						if (curClearCount > targetClearCount)
-						{
-							Debug.LogWarning($"Dungeon Clear Count is over target: {curClearCount} > {targetClearCount}");
-						}
-						return curClearCount >= targetClearCount;
-					};
+					targetClearCount = dataManager.DungeonStat[DungeonStatType.DUNGEON_CLEAR] + 1;
 
 					dungeonLoopSubscription = Observable.Interval(TimeSpan.FromSeconds(0.1f))
-						.TakeWhile(_ => IsClear() == false)
+						.TakeWhile(_ => IsClearReached() == false)
 						.Subscribe(_ =>
 						{
 							Context.UpdateTime();
@@ -198,6 +190,16 @@ namespace WitchMendokusai
 
 				gameEventManager.Raise(GameEventType.OnDungeonStart);
 			}
+		}
+
+		private bool IsClearReached()
+		{
+			int curClearCount = dataManager.DungeonStat[DungeonStatType.DUNGEON_CLEAR];
+			if (curClearCount > targetClearCount)
+			{
+				Debug.LogWarning($"Dungeon Clear Count is over target: {curClearCount} > {targetClearCount}");
+			}
+			return curClearCount >= targetClearCount;
 		}
 
 		private void EndDungeonByDefeat() => EndDungeon(isCleared: false);
@@ -227,10 +229,11 @@ namespace WitchMendokusai
 			if (IsDungeon == false)
 				return;
 			IsDungeon = false;
+			// 폴링이 보기 전에 죽어도 클리어 보상을 이미 받았으면 클리어
+			if (IsClearReached())
+				isCleared = true;
 			if (clearDelayRoutine != null)
 			{
-				// 대기 중 사망은 이미 클리어
-				isCleared = true;
 				StopCoroutine(clearDelayRoutine);
 				clearDelayRoutine = null;
 			}
