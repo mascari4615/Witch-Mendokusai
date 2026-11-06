@@ -22,6 +22,9 @@ namespace WitchMendokusai
 		[SerializeField] private Transform optionsParent;
 		private readonly List<UISlot> options = new();
 
+		[SerializeField] private Image headerPortrait;
+		[SerializeField] private TMPro.TextMeshProUGUI headerName;
+
 		private CanvasGroup canvasGroup;
 		private NPCObject curNPC = null;
 
@@ -53,7 +56,7 @@ namespace WitchMendokusai
 
 				// 퀘스트 버튼
 				questOption.Init();
-				questOption.SetClickAction((_) => { questEachParent.gameObject.SetActive(true); questEachOptions[0].Select(); });
+				questOption.SetClickAction((_) => OpenQuestList());
 				questOption.SetSelectAction((_) =>
 				{
 					if (questEachParent.gameObject.activeSelf)
@@ -136,6 +139,9 @@ namespace WitchMendokusai
 			// 대화 불가 시 바로 선택 모드로 전환
 			bool canTalk = chatManager.TryGetChatData(curNPC.UnitData.ID.ToString(), out _);
 			talkOption.gameObject.SetActive(canTalk);
+			headerPortrait.sprite = curNPCData.Sprite;
+			headerName.text = curNPCData.Name;
+			RebuildMenuNavigation();
 
 			if (canTalk)
 			{
@@ -164,35 +170,80 @@ namespace WitchMendokusai
 
 		private void UpdateQuestButtons()
 		{
-			Navigation navigation;
-
-			navigation = questOption.Selectable.navigation;
-			navigation.selectOnRight = questEachOptions[0].Selectable;
-			questOption.Selectable.navigation = navigation;
-
 			NPC curNPCData = curNPC.UnitData as NPC;
 			List<QuestSO> questData = curNPCData.QuestData;
 			int questCount = questData.Count;
+			List<UISlot> visibleQuests = new();
 
-			questOption.gameObject.SetActive(questCount > 0);
 			for (int i = 0; i < questEachOptions.Length; i++)
 			{
-				if (i < questCount && questManager.GetQuestState(questData[i].ID) != QuestState.Completed)
+				bool isVisible = i < questCount && questManager.GetQuestState(questData[i].ID) != QuestState.Completed;
+				questEachOptions[i].gameObject.SetActive(isVisible);
+				if (isVisible)
 				{
-					questEachOptions[i].gameObject.SetActive(true);
 					questEachOptions[i].SetSlot(questData[i]);
-
-					navigation = questEachOptions[i].Selectable.navigation;
-					navigation.selectOnLeft = questOption.Selectable;
-					navigation.selectOnUp = i > 0 ? questEachOptions[i - 1].Selectable : null;
-					navigation.selectOnDown = i < questCount - 1 ? questEachOptions[i + 1].Selectable : null;
-					questEachOptions[i].Selectable.navigation = navigation;
-				}
-				else
-				{
-					questEachOptions[i].gameObject.SetActive(false);
+					visibleQuests.Add(questEachOptions[i]);
 				}
 			}
+
+			questOption.gameObject.SetActive(visibleQuests.Count > 0);
+
+			for (int i = 0; i < visibleQuests.Count; i++)
+			{
+				visibleQuests[i].SetNavigation(new Navigation
+				{
+					mode = Navigation.Mode.Explicit,
+					selectOnLeft = questOption.Selectable,
+					selectOnUp = i > 0 ? visibleQuests[i - 1].Selectable : null,
+					selectOnDown = i < visibleQuests.Count - 1 ? visibleQuests[i + 1].Selectable : null
+				});
+			}
+		}
+
+		// 보이는 칸만으로 위아래 이동 구성
+		private void RebuildMenuNavigation()
+		{
+			List<UISlot> visible = GetVisibleMenuSlots();
+			for (int i = 0; i < visible.Count; i++)
+			{
+				Selectable right = visible[i] == questOption ? FirstVisibleQuest()?.Selectable : null;
+				visible[i].SetNavigation(new Navigation
+				{
+					mode = Navigation.Mode.Explicit,
+					selectOnUp = i > 0 ? visible[i - 1].Selectable : null,
+					selectOnDown = i < visible.Count - 1 ? visible[i + 1].Selectable : null,
+					selectOnRight = right
+				});
+			}
+		}
+
+		private List<UISlot> GetVisibleMenuSlots()
+		{
+			List<UISlot> visible = new();
+			if (talkOption.gameObject.activeSelf)
+				visible.Add(talkOption);
+			if (questOption.gameObject.activeSelf)
+				visible.Add(questOption);
+			foreach (UISlot option in options)
+				if (option.gameObject.activeSelf)
+					visible.Add(option);
+			return visible;
+		}
+
+		private UISlot FirstVisibleQuest() => questEachOptions.FirstOrDefault(slot => slot.gameObject.activeSelf);
+
+		private void OpenQuestList()
+		{
+			questEachParent.gameObject.SetActive(true);
+			FirstVisibleQuest().Select();
+		}
+
+		private void PlayMenuAppear()
+		{
+			List<UISlot> visible = GetVisibleMenuSlots();
+			for (int i = 0; i < visible.Count; i++)
+				if (visible[i].TryGetComponent(out UIChoiceRow row))
+					row.PlayAppear(i);
 		}
 
 		#region Button Actions
@@ -210,7 +261,10 @@ namespace WitchMendokusai
 
 			SetPanel(NPCPanelType.None);
 			buttonsParent.SetActive(true);
-			talkOption.Select();
+			List<UISlot> visible = GetVisibleMenuSlots();
+			if (visible.Count > 0)
+				visible[0].Select();
+			PlayMenuAppear();
 
 			cameraManager.SetSelecting(true);
 		}
