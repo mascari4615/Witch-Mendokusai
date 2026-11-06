@@ -4,9 +4,14 @@ namespace WitchMendokusai
 {
 	public class UnitStat : Stat<UnitStatType>
 	{
+		public const int PERCENT = 100;
+
 		public UnitStat() : base()
 		{
 		}
+
+		// 퍼센트 단위 스탯의 배율, 0이면 1
+		public float PercentMultiplier(UnitStatType statType) => 1f + (float)this[statType] / PERCENT;
 
 		protected override void InitValue()
 		{

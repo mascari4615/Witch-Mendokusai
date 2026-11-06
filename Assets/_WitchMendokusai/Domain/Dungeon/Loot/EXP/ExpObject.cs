@@ -55,7 +55,15 @@ namespace WitchMendokusai
 				RuntimeManager.PlayOneShot("event:/SFX/EXP", transform.position);
 			if (feel != null && DungeonManagerBridge.IsDungeon)
 				feel.OnExpPicked(transform.position);
-			PlayerStat[UnitStatType.EXP_CUR] += value;
+			PlayerStat[UnitStatType.EXP_CUR] += RollExpGain();
+		}
+
+		// 보석 값이 작아 소수점을 버리면 보너스가 사라짐, 남는 소수점은 그 확률로 1 추가
+		private int RollExpGain()
+		{
+			float gain = value * PlayerStat.PercentMultiplier(UnitStatType.EXP_BONUS);
+			int wholeGain = Mathf.FloorToInt(gain);
+			return Random.value < gain - wholeGain ? wholeGain + 1 : wholeGain;
 		}
 
 		private void LateUpdate()

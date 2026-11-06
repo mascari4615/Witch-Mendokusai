@@ -136,10 +136,13 @@ namespace WitchMendokusai
 			Quaternion rotation = hasDirection ? Quaternion.LookRotation(direction, Vector3.up) : Quaternion.identity;
 			GameObject g = objectPoolManager.Spawn(prefabToSpawn, position, rotation);
 
-			g.transform.localScale = prefabToSpawn.transform.localScale * ScaleMultiplier();
+			// 풀 재사용이라 프리팹 크기로 되돌린 뒤 공격 범위 강화, 장비 크기 카드 순서로 곱함
+			g.transform.localScale = prefabToSpawn.transform.localScale;
 
 			if (g.TryGetComponent(out SkillObject skillObject))
-				skillObject.InitContext(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
+				skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager));
+
+			g.transform.localScale *= ScaleMultiplier();
 
 			if (hasDirection && g.TryGetComponent(out BulletMovement bulletMovement))
 				bulletMovement.SetMoveDirection(direction);

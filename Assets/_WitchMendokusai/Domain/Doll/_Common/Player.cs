@@ -9,6 +9,7 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private bool dontDestroyOnLoad = false;
 		[SerializeField] private float aimMaxDistance = 100f;
+		[SerializeField, Tooltip("EXP_COLLIDER_SCALE 1당 획득 범위 증가 배율")] private float expColliderScalePerStack = 0.5f;
 
 		public PlayerObject Object { get; private set; }
 		public PlayerRotation Rotation { get; private set; }
@@ -128,6 +129,12 @@ namespace WitchMendokusai
 			NearestTarget = nearestTarget != null ? nearestTarget.transform : null;
 
 			CalcMoveDirection();
+		}
+
+		public void UpdatePickupRange()
+		{
+			float stackScale = 1f + UnitStat[UnitStatType.EXP_COLLIDER_SCALE] * expColliderScalePerStack;
+			ExpCollider.transform.localScale = Vector3.one * (stackScale * UnitStat.PercentMultiplier(UnitStatType.PICKUP_RADIUS_BONUS));
 		}
 
 		public void TryInteract()

@@ -59,7 +59,7 @@ namespace WitchMendokusai
 
 		private float GetHorizontalSpeed()
 		{
-			float moveSpeed = unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] / STAT_PER_UNIT_PER_SECOND;
+			float moveSpeed = (unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] + unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED_BONUS]) / STAT_PER_UNIT_PER_SECOND;
 			if (tuning != null && tuning.Enabled && unitObject.UnitStat[UnitStatType.IS_CROUCHING] > 0)
 				return moveSpeed * tuning.CrouchSpeedMultiplier;
 			if (unitObject.UnitStat[UnitStatType.IS_SPRINTING] > 0)

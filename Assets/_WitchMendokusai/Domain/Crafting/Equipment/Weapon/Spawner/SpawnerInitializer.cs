@@ -24,18 +24,23 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
-			playerProvider.Current.UnitStat.AddListener(spawnCountStat, OnSpawnCountStatChanged);
-			OnSpawnCountStatChanged(playerProvider.Current.UnitStat[spawnCountStat]);
+			UnitStat playerStat = playerProvider.Current.UnitStat;
+			playerStat.AddListener(spawnCountStat, UpdateSpawnCount);
+			playerStat.AddListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSpawnCount);
+			UpdateSpawnCount();
 		}
 
 		private void OnDisable()
 		{
-			playerProvider.Current.UnitStat.RemoveListener(spawnCountStat, OnSpawnCountStatChanged);
+			UnitStat playerStat = playerProvider.Current.UnitStat;
+			playerStat.RemoveListener(spawnCountStat, UpdateSpawnCount);
+			playerStat.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSpawnCount);
 		}
 
-		private void OnSpawnCountStatChanged(int newValue)
+		private void UpdateSpawnCount()
 		{
-			spawner.SpawnCount = baseCount + newValue;
+			UnitStat playerStat = playerProvider.Current.UnitStat;
+			spawner.SpawnCount = baseCount + playerStat[spawnCountStat] + playerStat[UnitStatType.PROJECTILE_COUNT_BONUS];
 		}
 	}
 }
