@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
@@ -10,11 +11,15 @@ namespace WitchMendokusai
 		[SerializeField] private List<UISlot> deckSelectButtons;
 		// 패널이 튀어나오는 시간.
 		[SerializeField] private float openAnimDuration = 0.5f;
+		[SerializeField] private UICardChoiceActions actions;
 
 		public override bool IsFullscreen => true;
 
 		public override void UpdateUI()
 		{
+			actions.Refresh();
+			actions.SetUpTarget(deckSelectButtons[0].Selectable);
+			ApplyNavigation();
 			selectDeckPanelContent.localScale = Vector3.zero;
 			selectDeckPanelContent.DOScale(Vector3.one, openAnimDuration).SetEase(Ease.OutBack).SetUpdate(true);
 
@@ -32,11 +37,31 @@ namespace WitchMendokusai
 		protected override void OnInit()
 		{
 			CardManager cardManager = PanelGroup as CardManager;
+			actions.Init(cardManager);
 			for (int i = 0; i < deckSelectButtons.Count; i++)
 			{
 				deckSelectButtons[i].Init();
 				deckSelectButtons[i].SetSlotIndex(i);
 				deckSelectButtons[i].SetClickAction((slot) => { cardManager.SelectDeck(slot.Index); });
+			}
+		}
+
+		private void OnEnable() => UIHideWhileChatting.Request(this, true);
+
+		private void OnDisable() => UIHideWhileChatting.Request(this, false);
+
+		private void ApplyNavigation()
+		{
+			List<UISlot> visible = deckSelectButtons.FindAll(button => button.gameObject.activeInHierarchy);
+			for (int i = 0; i < visible.Count; i++)
+			{
+				visible[i].SetNavigation(new Navigation
+				{
+					mode = Navigation.Mode.Explicit,
+					selectOnLeft = i > 0 ? visible[i - 1].Selectable : null,
+					selectOnRight = i < visible.Count - 1 ? visible[i + 1].Selectable : null,
+					selectOnDown = actions.FirstEnabled,
+				});
 			}
 		}
 

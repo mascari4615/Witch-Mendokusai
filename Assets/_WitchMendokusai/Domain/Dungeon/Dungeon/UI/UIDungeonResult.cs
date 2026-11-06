@@ -60,6 +60,7 @@ namespace WitchMendokusai
 		{
 			timeManager.Pause(gameObject);
 			SetBattleHudVisible(false);
+			UIHideWhileChatting.Request(this, true);
 		}
 
 		protected override void OnClose()
@@ -67,6 +68,7 @@ namespace WitchMendokusai
 			DOTween.Kill(this);
 			timeManager.Resume(gameObject);
 			SetBattleHudVisible(true);
+			UIHideWhileChatting.Request(this, false);
 		}
 
 		private void SetBattleHudVisible(bool isVisible)
