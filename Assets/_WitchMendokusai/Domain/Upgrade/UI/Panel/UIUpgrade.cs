@@ -34,6 +34,7 @@ namespace WitchMendokusai
 		[SerializeField] private Button confirmNoButton;
 		[SerializeField] private UIBurst buyBurst;
 		[SerializeField] private UISelectionKeeper selectionKeeper;
+		[SerializeField] private Button closeButton;
 		[SerializeField] private string battleHudObjectName = "[Block] Lower";
 		private CanvasGroup battleHudGroup;
 
@@ -67,6 +68,7 @@ namespace WitchMendokusai
 			upgradeGridUI.OnSelectSlot += (slot, data) =>
 			{
 				selectionKeeper.Fallback = slot != null ? slot.Selectable : null;
+				ApplyButtonNavigation(slot != null ? slot.Selectable : null);
 				UpdateUI();
 			};
 
@@ -181,6 +183,17 @@ namespace WitchMendokusai
 			resetText.text = hasLevel ? $"이 항목 초기화 +{upgradeData.PricePerLevel.Take(upgradeData.CurLevel).Sum()}" : "이 항목 초기화";
 
 			upgradeGridUI.UpdateUI();
+		}
+
+		private void ApplyButtonNavigation(Selectable curSlot)
+		{
+			returnButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = curSlot, selectOnRight = buyButton, selectOnDown = resetButton, selectOnUp = closeButton };
+			buyButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = returnButton, selectOnDown = resetButton, selectOnUp = closeButton };
+			resetButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = curSlot, selectOnRight = resetAllButton, selectOnUp = returnButton };
+			resetAllButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = resetButton, selectOnUp = buyButton };
+			closeButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = curSlot, selectOnDown = buyButton };
+			confirmNoButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnRight = confirmYesButton };
+			confirmYesButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = confirmNoButton };
 		}
 
 		private void OpenResetAllConfirm()
