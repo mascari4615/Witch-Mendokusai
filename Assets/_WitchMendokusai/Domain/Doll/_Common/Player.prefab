@@ -1891,8 +1891,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UnitMovement
   groundMovementTuning:
     enabled: 1
-    acceleration: 18
-    deceleration: 24
+    acceleration: 100
+    deceleration: 120
     airAcceleration: 6
     crouchSpeedMultiplier: 0.4
     crouchHeightFraction: 0.6
