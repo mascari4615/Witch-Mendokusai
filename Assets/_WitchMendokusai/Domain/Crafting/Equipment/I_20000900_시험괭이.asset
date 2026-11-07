@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 20000900
   <Name>k__BackingField: "시험괭이"
   <Description>k__BackingField: "검증용 마도 괭이."
-  <Sprite>k__BackingField: {fileID: 0}
+  <Sprite>k__BackingField: {fileID: 1222280389, guid: 61d00942005bcfe49ab4822e59ef8ebd, type: 3}
   <Sprites>k__BackingField: []
   <Grade>k__BackingField: 0
   <Type>k__BackingField: 2
