@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		public int MaxNodesPerRow = 4;
 		public float NodeSize = 84f;
 		public float ColumnPitch = 132f;
-		public float RowPitch = 118f;
+		public float RowPitch = 104f;
 		public float GraphPadding = 14f;
 		public long AppearDelayMs = 60;
 		public long PulseIntervalMs = 520;
