@@ -84,6 +84,7 @@ namespace WitchMendokusai
 			builder.Register<WorkManager>(Lifetime.Singleton);
 			builder.Register<SaveManager>(Lifetime.Singleton);
 			builder.Register<WorldClockViewModel>(Lifetime.Singleton);
+			builder.Register<SkillTreeCatalog>(Lifetime.Singleton);
 
 			// TASK-WM-107 Slice 2A — POCO Effect dispatch DI 진입점 (static Effect.ApplyEffect 우회 대체).
 			builder.Register<EffectRunner>(Lifetime.Singleton).As<IEffectRunner>();

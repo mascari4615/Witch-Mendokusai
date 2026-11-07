@@ -22,8 +22,6 @@ namespace WitchMendokusai
 
 	public partial class CardManager : UIPanelGroup<CardPanelType>
 	{
-		private readonly Dictionary<int, UIDeck> deckUIDic = new();
-
 		public override bool CanBeClosedByCancelInput => false;
 		public override CardPanelType DefaultPanel => CardPanelType.None;
 
@@ -34,11 +32,13 @@ namespace WitchMendokusai
 		private PlayerProvider playerProvider;
 		private CardAwakeningEffect awakeningEffect;
 		private ResourceManager resourceManager;
+		private SkillTreeCatalog skillTrees;
 
 		[Inject]
-		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager, DataManager dataManager, UIManager uiManager, PlayerProvider playerProvider, ResourceManager resourceManager)
+		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager, DataManager dataManager, UIManager uiManager, PlayerProvider playerProvider, ResourceManager resourceManager, SkillTreeCatalog skillTrees)
 		{
 			this.resourceManager = resourceManager;
+			this.skillTrees = skillTrees;
 			this.gameEventManager = gameEventManager;
 			this.timeManager = timeManager;
 			this.soManager = soManager;
@@ -52,6 +52,7 @@ namespace WitchMendokusai
 
 		// Data
 		private readonly List<List<CardData>> cardDataBuffers = new(4) { new(), new(), new(), new() };
+		private readonly List<SkillTree> deckTrees = new();
 		private readonly List<int> deckIdMapping = new();
 		private readonly List<CardData> offeredCards = new();
 		private int curDeckIndex;
@@ -72,13 +73,6 @@ namespace WitchMendokusai
 		// Panels[..] 직접 인덱스(line 118/199)가 자연 FastFail (방어코드 X).
 		public override void Init()
 		{
-			// init-order-ok: UIDeck = 씬배치 정적 UI(동적 스폰 X), Awake-invoked Init 시점 존재 보장. cross-manager Start-order 의존 아님 = 마스킹체인 클래스 외 (WM-118 적용외).
-			UIDeck[] deckUIs = FindObjectsByType<UIDeck>(FindObjectsInactive.Include); // init-order-ok
-			foreach (UIDeck deckUI in deckUIs)
-			{
-				deckUIDic.Add(deckUI.EquipmentData.ID, deckUI);
-				deckUI.Init();
-			}
 		}
 
 		// 던전 카드 흐름 진입 시 패널 lazy 확정. UIPanelGroup.Start 의 per-panel
@@ -140,11 +134,6 @@ namespace WitchMendokusai
 			{
 				timeManager.Resume(gameObject);
 			}
-			foreach (UIDeck deckUI in deckUIDic.Values)
-			{
-				if (deckUI != null)
-					deckUI.gameObject.SetActive(false);
-			}
 		}
 
 		public void Reset()
@@ -166,18 +155,24 @@ namespace WitchMendokusai
 			{
 				cardDataBuffers.Add(new List<CardData>());
 			}
+			deckTrees.Clear();
+			for (int i = 0; i < cardDataBuffers.Count; i++)
+				deckTrees.Add(null);
 			for (int i = 0; i < equipments.Count; i++)
 			{
 				if (equipments[i] == null)
 					continue;
-				cardDataBuffers[i].AddRange(equipments[i].EffectCards);
+				cardDataBuffers[i].AddRange(skillTrees.CardsFor(equipments[i]));
+				deckTrees[i] = skillTrees.Find(equipments[i].ID);
 			}
 		}
 
 		private List<CardData> AvailableCards(int deckIndex)
 		{
+			SkillTree tree = deckTrees[deckIndex];
 			return cardDataBuffers[deckIndex]
 				.Where(card => card != null && card.MaxStack > 0 && bannedCardIds.Contains(card.ID) == false && card.MeetsRequirements(soManager.SelectedCardBuffer.Data) &&
+					(tree == null || tree.IsUnlocked(card, soManager.SelectedCardBuffer.Data)) &&
 					soManager.SelectedCardBuffer.Data.Count(selected => selected.ID == card.ID) < card.MaxStack)
 				.GroupBy(card => card.ID)
 				.Select(group => group.First())
@@ -209,7 +204,7 @@ namespace WitchMendokusai
 			foreach (int index in deckIdMapping)
 				shuffledEquipments.Add(equipments[index]);
 		
-			(Panels[CardPanelType.SelectDeck] as UISelectDeck).SetDeckSelectButtons(shuffledEquipments, soManager.SelectedCardBuffer.Data);
+			(Panels[CardPanelType.SelectDeck] as UISelectDeck).SetDeckSelectButtons(shuffledEquipments, soManager.SelectedCardBuffer.Data, skillTrees);
 			return true;
 		}
 
@@ -264,25 +259,13 @@ namespace WitchMendokusai
 		private void ShowOfferedCards()
 		{
 			List<EquipmentData> choiceEquipments = dataManager.GetEquipmentData(dataManager.CurDollID);
-			(Panels[CardPanelType.SelectCard] as UISelectCard).SetCardSelectButtons(
-				offeredCards, choiceEquipments[curDeckIndex], choiceEquipments, soManager.SelectedCardBuffer.Data, cardDataBuffers[curDeckIndex]);
+			UISelectCard selectCardPanel = Panels[CardPanelType.SelectCard] as UISelectCard;
+			selectCardPanel.SetCardSelectButtons(
+				offeredCards, choiceEquipments[curDeckIndex], choiceEquipments, soManager.SelectedCardBuffer.Data, cardDataBuffers[curDeckIndex], skillTrees);
 
 			SetPanel(CardPanelType.SelectCard);
 
-			List<EquipmentData> equipmentData = dataManager.GetEquipmentData(dataManager.CurDollID);
-			int equipmentID = equipmentData[curDeckIndex].ID;
-
-			foreach (UIDeck deckUI in deckUIDic.Values)
-				if (deckUI != null)
-					deckUI.gameObject.SetActive(false);
-
-			(Panels[CardPanelType.SelectCard] as UISelectCard).SetTreeAvailable(deckUIDic.ContainsKey(equipmentID));
-			if (deckUIDic.TryGetValue(equipmentID, out UIDeck targetDeckUI))
-			{
-				targetDeckUI.SetCards(offeredCards);
-				targetDeckUI.UpdateUI();
-				targetDeckUI.gameObject.SetActive(true);
-			}
+			selectCardPanel.SetSkillTree(skillTrees.Find(choiceEquipments[curDeckIndex].ID), choiceEquipments[curDeckIndex], soManager.SelectedCardBuffer.Data, offeredCards);
 		}
 
 		public void SelectCard(CardData card)

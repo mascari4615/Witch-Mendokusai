@@ -279,9 +279,18 @@ namespace WitchMendokusai
 		{
 			IReadOnlyList<CardData> selectedCards = soManager.SelectedCardBuffer.Data;
 			foreach (CardData card in rules.EvolutionCards)
-				if (CountSelected(card) < card.MaxStack && card.MeetsRequirements(selectedCards))
+				if (CountSelected(card) < card.MaxStack && card.MeetsRequirements(selectedCards) && IsTreeUnlocked(card))
 					return card;
 			return null;
+		}
+
+		// 장착 장비 트리 전부에서 해금돼야 함
+		private bool IsTreeUnlocked(CardData card)
+		{
+			foreach (SkillTree tree in deckTrees)
+				if (tree != null && tree.IsUnlocked(card, soManager.SelectedCardBuffer.Data) == false)
+					return false;
+			return true;
 		}
 
 		private int CountSelected(CardData card) => soManager.SelectedCardBuffer.Data.Count(selected => selected.ID == card.ID);
@@ -294,7 +303,7 @@ namespace WitchMendokusai
 			{
 				if (equipment == null)
 					continue;
-				foreach (CardData card in equipment.EffectCards)
+				foreach (CardData card in skillTrees.CardsFor(equipment))
 					if (card != null)
 						equippedCardIds.Add(card.ID);
 			}
