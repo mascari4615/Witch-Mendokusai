@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a062d584b62946fa864878390dd596d4, type: 3}
+  m_Name: UiSfxTable
+  m_EditorClassIdentifier: 
+  entries:
+  - sfxEvent: 0
+    eventPath: event:/SFX/EXP
+    minIntervalSeconds: 0.05
+    candidates: "EXP(현재). 후보: UI Soundpack Minimalist 짧은 틱 / RPG interface1. 새 이벤트 필요"
+  - sfxEvent: 1
+    eventPath: event:/SFX/UI/Click
+    minIntervalSeconds: 0.08
+    candidates: "UI/Click(기존 확정음)"
+  - sfxEvent: 2
+    eventPath: event:/SFX/UI/Click
+    minIntervalSeconds: 0.08
+    candidates: "Click 임시. 후보: RPG interface 계열, Wood Block. 새 이벤트 필요"
+  - sfxEvent: 3
+    eventPath: event:/SFX/UI/Click
+    minIntervalSeconds: 0.06
+    candidates: "Click 임시. 후보: Minimalist 계열. 새 이벤트 필요"
+  - sfxEvent: 4
+    eventPath: event:/SFX/LevelUp
+    minIntervalSeconds: 0.3
+    candidates: "LevelUp(기존)"
+  - sfxEvent: 5
+    eventPath: event:/SFX/UI/Click
+    minIntervalSeconds: 0.15
+    candidates: "Click(기존). 후보 등급음: RPG magic1, spell"
+  - sfxEvent: 6
+    eventPath: event:/SFX/Equip
+    minIntervalSeconds: 0.08
+    candidates: "Equip 임시. 후보: RPG coin, coin2, coin3. 새 이벤트 필요"
+  - sfxEvent: 7
+    eventPath: event:/SFX/Monster/Hit
+    minIntervalSeconds: 0.2
+    candidates: "Hit 임시. 후보: Wood Block, metal-small. 새 이벤트 필요"
+  - sfxEvent: 8
+    eventPath: event:/SFX/EXP
+    minIntervalSeconds: 0.06
+    candidates: "EXP 임시. 후보: Minimalist 틱. 새 이벤트 필요"
+  - sfxEvent: 9
+    eventPath: event:/SFX/Equip
+    minIntervalSeconds: 0.1
+    candidates: "Equip 임시. 후보: RPG cloth, Minimalist. 새 이벤트 필요"
+  - sfxEvent: 10
+    eventPath: event:/SFX/Equip
+    minIntervalSeconds: 0.1
+    candidates: "Equip 임시. 후보: RPG cloth, Minimalist. 새 이벤트 필요"
+  - sfxEvent: 11
+    eventPath: event:/SFX/EXP
+    minIntervalSeconds: 0.12
+    candidates: "EXP 임시. 후보: RPG bubble, beads. 새 이벤트 필요"
+  - sfxEvent: 12
+    eventPath: event:/SFX/Monster/Hit
+    minIntervalSeconds: 0.2
+    candidates: "Hit 임시. 후보: RPG metal-small, Wood Block. 새 이벤트 필요"
+  - sfxEvent: 13
+    eventPath: event:/SFX/LevelUp
+    minIntervalSeconds: 0.3
+    candidates: "LevelUp 임시(레벨업과 같은 소리). 후보: RPG inventory 계열. 새 이벤트 필요"
+  - sfxEvent: 14
+    eventPath: event:/SFX/LevelUp
+    minIntervalSeconds: 0.3
+    candidates: "LevelUp 임시. 후보: RPG spell, magic1. 새 이벤트 필요"
+  - sfxEvent: 15
+    eventPath: event:/SFX/UI/Click
+    minIntervalSeconds: 0.08
+    candidates: "Click 임시. 후보: Minimalist 짧은 음. 새 이벤트 필요"

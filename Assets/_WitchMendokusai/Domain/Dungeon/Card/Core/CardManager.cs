@@ -304,7 +304,7 @@ namespace WitchMendokusai
 			{
 				return;
 			}
-			RuntimeManager.PlayOneShot("event:/SFX/UI/Click", transform.position);
+			UiSfx.Play(UiSfxEvent.CardSelect);
 			offeredCards.Clear();
 			SetPanel(CardPanelType.None);
 			CardBuffer selectedCardBuffer = soManager.SelectedCardBuffer;

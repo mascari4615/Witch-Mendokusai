@@ -6,7 +6,7 @@ namespace WitchMendokusai
 	{
 		protected override void OnEffect()
 		{
-			RuntimeManager.PlayOneShot("event:/SFX/LevelUp", transform.position);
+			UiSfx.Play(UiSfxEvent.Chest);
 			EventBusBridge.Publish(new ChestPickedUpEvent { Position = transform.position });
 		}
 	}

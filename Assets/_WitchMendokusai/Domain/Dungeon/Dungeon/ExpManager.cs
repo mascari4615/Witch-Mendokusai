@@ -57,7 +57,7 @@ namespace WitchMendokusai
 					PlayerStat[UnitStatType.LEVEL_CUR]++;
 					PlayerStat[UnitStatType.EXP_CUR] -= requiredExp;
 
-					RuntimeManager.PlayOneShot("event:/SFX/LevelUp", transform.position);
+					UiSfx.Play(UiSfxEvent.LevelUp);
 					gameEventManager.Raise(GameEventType.OnLevelUp);
 
 					GameObject effect = objectPoolManager.Spawn(levelUpEffect);

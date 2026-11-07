@@ -153,7 +153,7 @@ namespace WitchMendokusai
 		// 새 장비 선택이 레벨업 하나를 소비
 		private void AcquireEquipment(EquipmentData equipment)
 		{
-			RuntimeManager.PlayOneShot("event:/SFX/UI/Click", transform.position);
+			UiSfx.Play(UiSfxEvent.CardSelect);
 			deckOffers.Clear();
 			SetPanel(CardPanelType.None);
 

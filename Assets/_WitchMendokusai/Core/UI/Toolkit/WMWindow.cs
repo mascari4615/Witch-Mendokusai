@@ -120,6 +120,7 @@ namespace WitchMendokusai
 		{
 			SetVisibleInternal(true);
 			BringToFront();
+			UiSfx.Play(UiSfxEvent.WindowOpen);
 			OnOpened.Invoke();
 			schedule.Execute(FocusInitial).ExecuteLater(FocusDelayMs);
 		}
@@ -130,6 +131,7 @@ namespace WitchMendokusai
 				focused.Blur();
 			SavePosition();
 			SetVisibleInternal(false);
+			UiSfx.Play(UiSfxEvent.WindowClose);
 			OnClosed.Invoke();
 		}
 

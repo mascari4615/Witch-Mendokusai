@@ -85,6 +85,7 @@ namespace WitchMendokusai
 			{
 				dataManager.GameStat[GameStatType.NYANG] -= price;
 				soManager.ItemInventory.Add(itemData);
+				UiSfx.Play(UiSfxEvent.Purchase);
 				UpdateUI();
 
 				uiManager.PopText($"- {price}", TextType.Warning);
