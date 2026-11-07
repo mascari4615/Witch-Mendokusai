@@ -157,16 +157,16 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-/* 아이콘 아래, 마름모 아래 꼭짓점에 가운데 정렬. 옆 기준이면 촘촘한 트리에서 이웃 노드를 덮음 */
+/* 마름모 오른쪽 꼭짓점 바깥, 세로 가운데. 아래 기준이면 촘촘한 트리에서 바로 아래 노드에 가려짐 */
 .wm-skilltree__stack {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -12%;
+    left: 104%;
+    top: 50%;
+    translate: 0 -50%;
     padding: 0;
     margin: 0;
     font-size: 14px;
-    -unity-text-align: middle-center;
+    -unity-text-align: middle-left;
     color: rgb(242, 226, 122);
     -unity-text-outline-width: 1px;
     -unity-text-outline-color: rgb(0, 0, 0);
