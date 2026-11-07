@@ -3,16 +3,17 @@ using System.Collections.Generic;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// dungeon &lt;stageRef&gt;
+	/// dungeon &lt;stageRef&gt; [random]
 	/// stageRef: ID 정수 / `D_&lt;num&gt;` / Name 부분.
 	/// DungeonManager.StartDungeon 호출.
 	/// </summary>
 	public class StartDungeonCommand : IDevCommand
 	{
 		public string Name => "dungeon";
-		public string Usage => "dungeon <stageRef>";
+		public string Usage => "dungeon <stageRef> [random]";
 
 		private const string CODE_PREFIX = "D_";
+		private const string RANDOM_MODE_ARG = "random";
 
 		public void Execute(DevCommandContext context, string[] args)
 		{
@@ -38,7 +39,8 @@ namespace WitchMendokusai
 				return;
 			}
 
-			DungeonManager.Instance.StartDungeon(target);
+			DungeonRunMode runMode = args.Length > 1 && args[1] == RANDOM_MODE_ARG ? DungeonRunMode.Random : DungeonRunMode.Equipped;
+			DungeonManager.Instance.StartDungeon(target, runMode: runMode);
 			context.LogSuccess($"{target.Name} 시작 (ID {target.ID})");
 		}
 

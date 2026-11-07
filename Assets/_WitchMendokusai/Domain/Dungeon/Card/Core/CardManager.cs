@@ -34,10 +34,14 @@ namespace WitchMendokusai
 		private PlayerProvider playerProvider;
 		private CardAwakeningEffect awakeningEffect;
 		private ResourceManager resourceManager;
+		private GameManager gameManager;
+
+		private RunLoadout Loadout => dataManager.RunLoadout;
 
 		[Inject]
-		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager, DataManager dataManager, UIManager uiManager, PlayerProvider playerProvider, ResourceManager resourceManager)
+		public void Construct(GameEventManager gameEventManager, TimeManager timeManager, SOManager soManager, DataManager dataManager, UIManager uiManager, PlayerProvider playerProvider, ResourceManager resourceManager, GameManager gameManager)
 		{
+			this.gameManager = gameManager;
 			this.resourceManager = resourceManager;
 			this.gameEventManager = gameEventManager;
 			this.timeManager = timeManager;
@@ -52,7 +56,7 @@ namespace WitchMendokusai
 
 		// Data
 		private readonly List<List<CardData>> cardDataBuffers = new(4) { new(), new(), new(), new() };
-		private readonly List<int> deckIdMapping = new();
+		private readonly List<RunDeckOffer> deckOffers = new();
 		private readonly List<CardData> offeredCards = new();
 		private int curDeckIndex;
 		[SerializeField] private float selectionDelay = 1f;
@@ -133,7 +137,7 @@ namespace WitchMendokusai
 			ClearOpenChest();
 			levelUpStack = 0;
 			curDeckIndex = 0;
-			deckIdMapping.Clear();
+			deckOffers.Clear();
 			offeredCards.Clear();
 			SetPanel(CardPanelType.None);
 			if (timeManager != null)
@@ -161,7 +165,7 @@ namespace WitchMendokusai
 				cardDataBuffer.Clear();
 
 			// 덱 ID 매핑 초기화
-			List<EquipmentData> equipments = dataManager.GetEquipmentData(dataManager.CurDollID);
+			List<EquipmentData> equipments = Loadout.Equipments();
 			while (cardDataBuffers.Count < equipments.Count)
 			{
 				cardDataBuffers.Add(new List<CardData>());
@@ -186,30 +190,34 @@ namespace WitchMendokusai
 
 		private bool ShuffleDeck()
 		{
-			List<EquipmentData> equipments = dataManager.GetEquipmentData(dataManager.CurDollID);
-			deckIdMapping.Clear();
+			List<EquipmentData> equipments = Loadout.Equipments();
+			List<int> ownedDecks = new();
 			for (int i = 0; i < equipments.Count; i++)
 			{
 				if (equipments[i] != null && AvailableCards(i).Count > 0)
 				{
-					deckIdMapping.Add(i);
+					ownedDecks.Add(i);
 				}
 			}
-			if (deckIdMapping.Count == 0)
+			UISelectDeck deckPanel = Panels[CardPanelType.SelectDeck] as UISelectDeck;
+			deckOffers.Clear();
+			deckOffers.AddRange(Loadout.BuildDeckOffers(RunRules, ownedDecks, deckPanel.ChoiceCount, maxExclusive => Random.Range(0, maxExclusive)));
+			if (deckOffers.Count == 0)
 			{
 				return false;
 			}
-			for (int i = deckIdMapping.Count - 1; i > 0; i--)
+
+			List<EquipmentData> offeredEquipments = new(deckOffers.Count);
+			HashSet<EquipmentData> newEquipments = new();
+			foreach (RunDeckOffer offer in deckOffers)
 			{
-				int otherIndex = Random.Range(0, i + 1);
-				(deckIdMapping[i], deckIdMapping[otherIndex]) = (deckIdMapping[otherIndex], deckIdMapping[i]);
+				EquipmentData equipment = offer.IsNew ? RunLoadout.GetEquipment(offer.NewEquipmentId) : equipments[offer.DeckIndex];
+				offeredEquipments.Add(equipment);
+				if (offer.IsNew)
+					newEquipments.Add(equipment);
 			}
-		
-			List<EquipmentData> shuffledEquipments = new(deckIdMapping.Count);
-			foreach (int index in deckIdMapping)
-				shuffledEquipments.Add(equipments[index]);
-		
-			(Panels[CardPanelType.SelectDeck] as UISelectDeck).SetDeckSelectButtons(shuffledEquipments, soManager.SelectedCardBuffer.Data);
+
+			deckPanel.SetDeckSelectButtons(offeredEquipments, soManager.SelectedCardBuffer.Data, newEquipments);
 			return true;
 		}
 
@@ -242,11 +250,17 @@ namespace WitchMendokusai
 
 		public void SelectDeck(int selectIndex)
 		{
-			if (CurPanelType != CardPanelType.SelectDeck || selectIndex < 0 || selectIndex >= deckIdMapping.Count)
+			if (CurPanelType != CardPanelType.SelectDeck || selectIndex < 0 || selectIndex >= deckOffers.Count)
 			{
 				return;
 			}
-			curDeckIndex = deckIdMapping[selectIndex];
+			RunDeckOffer offer = deckOffers[selectIndex];
+			if (offer.IsNew)
+			{
+				AcquireEquipment(RunLoadout.GetEquipment(offer.NewEquipmentId));
+				return;
+			}
+			curDeckIndex = offer.DeckIndex;
 			List<CardData> candidates = AvailableCards(curDeckIndex);
 			if (candidates.Count == 0)
 			{
@@ -263,14 +277,13 @@ namespace WitchMendokusai
 
 		private void ShowOfferedCards()
 		{
-			List<EquipmentData> choiceEquipments = dataManager.GetEquipmentData(dataManager.CurDollID);
+			List<EquipmentData> choiceEquipments = Loadout.Equipments();
 			(Panels[CardPanelType.SelectCard] as UISelectCard).SetCardSelectButtons(
 				offeredCards, choiceEquipments[curDeckIndex], choiceEquipments, soManager.SelectedCardBuffer.Data, cardDataBuffers[curDeckIndex]);
 
 			SetPanel(CardPanelType.SelectCard);
 
-			List<EquipmentData> equipmentData = dataManager.GetEquipmentData(dataManager.CurDollID);
-			int equipmentID = equipmentData[curDeckIndex].ID;
+			int equipmentID = choiceEquipments[curDeckIndex].ID;
 
 			foreach (UIDeck deckUI in deckUIDic.Values)
 				if (deckUI != null)

@@ -33,6 +33,11 @@ namespace WitchMendokusai
 		[Min(0), Tooltip("줄 카드가 없을 때 보상 한 칸당 냥")] public int ChestFallbackNyang = 20;
 		[Min(0f), Tooltip("개봉 뒤 자동으로 닫는 실제 시간 초. 0이면 CloseChest 호출까지 유지")] public float ChestAutoCloseSeconds = 1.5f;
 
+		[Header("Random mode")]
+		[Tooltip("판 시작 무기. 자동 공격이 없으면 경험치를 못 얻음")] public EquipmentData RandomModeStartEquipment;
+		[Min(1), Tooltip("장비 칸 수. 시작 무기 포함, 인형 고유 장비 제외")] public int RandomModeSlotCount = 6;
+		[Min(0), Tooltip("레벨업 한 번에 제시하는 새 장비 수")] public int RandomModeNewOfferCount = 1;
+
 		[Header("Evolution")]
 		[Tooltip("덱에 넣지 않는 카드. 조건은 CardData.Requirements, 지급은 상자 첫 보상")] public List<CardData> EvolutionCards = new();
 	}

@@ -100,23 +100,34 @@ namespace WitchMendokusai
 
 		public void InitEquipment()
 		{
-			List<EquipmentData> equipments = dataManager.GetEquipmentData(dataManager.CurDollID);
+			List<EquipmentData> equipments = dataManager.RunLoadout.Equipments();
 			foreach (EquipmentData equipment in equipments)
 			{
 				if (equipment == null)
 					continue;
 
-				effectRunner.ApplyEffects(equipment.Effects);
+				ApplyEquipment(equipment);
+			}
+		}
 
-				if (equipment.Object != null)
-				{
-					GameObject g = objectPoolManager.Spawn(equipment.Object);
+		public void EquipDuringRun(EquipmentData equipment)
+		{
+			ApplyEquipment(equipment);
+			playerProvider.Current.UpdatePickupRange();
+		}
 
-					if (g.TryGetComponent(out SkillObject skillObject))
-						skillObject.InitContext(new SkillContext(playerObject, playerProvider, objectPoolManager, equipment));
+		private void ApplyEquipment(EquipmentData equipment)
+		{
+			effectRunner.ApplyEffects(equipment.Effects);
 
-					g.SetActive(true);
-				}
+			if (equipment.Object != null)
+			{
+				GameObject g = objectPoolManager.Spawn(equipment.Object);
+
+				if (g.TryGetComponent(out SkillObject skillObject))
+					skillObject.InitContext(new SkillContext(playerObject, playerProvider, objectPoolManager, equipment));
+
+				g.SetActive(true);
 			}
 		}
 

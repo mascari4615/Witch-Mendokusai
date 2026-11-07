@@ -27,6 +27,9 @@ MonoBehaviour:
     Weight: 5
   ChestFallbackNyang: 20
   ChestAutoCloseSeconds: 1.5
+  RandomModeStartEquipment: {fileID: 11400000, guid: 16c3f6495ee810747993a8bb3009abdd, type: 2}
+  RandomModeSlotCount: 6
+  RandomModeNewOfferCount: 1
   EvolutionCards:
   - {fileID: 11400000, guid: a8869e83a8e34e89b6c16287d5e59ad7, type: 2}
   - {fileID: 11400000, guid: 036cc99084004505b5a740353c84051e, type: 2}

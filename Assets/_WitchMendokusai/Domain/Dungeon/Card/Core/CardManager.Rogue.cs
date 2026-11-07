@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using FMODUnity;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -43,6 +44,7 @@ namespace WitchMendokusai
 		public bool IsChestOpen => isChestOpen;
 		public int PendingChestCount => pendingChestCount;
 		public int OfferedCardCount => offeredCards.Count;
+		public IReadOnlyList<RunDeckOffer> DeckOffers => deckOffers;
 
 		public bool CanReroll => CurPanelType == CardPanelType.SelectCard && RerollsLeft > 0 && AvailableCards(curDeckIndex).Count > offeredCards.Count;
 		public bool CanSkip => (CurPanelType == CardPanelType.SelectDeck || CurPanelType == CardPanelType.SelectCard) && SkipsLeft > 0;
@@ -146,6 +148,23 @@ namespace WitchMendokusai
 				playerStat[UnitStatType.EXP_CUR] += refundExp;
 			EventBusBridge.Publish(new LevelUpSkippedEvent { RefundExp = refundExp });
 			return true;
+		}
+
+		// 새 장비 선택이 레벨업 하나를 소비
+		private void AcquireEquipment(EquipmentData equipment)
+		{
+			RuntimeManager.PlayOneShot("event:/SFX/UI/Click", transform.position);
+			deckOffers.Clear();
+			SetPanel(CardPanelType.None);
+
+			int deckIndex = Loadout.Acquire(equipment);
+			while (cardDataBuffers.Count <= deckIndex)
+				cardDataBuffers.Add(new List<CardData>());
+			cardDataBuffers[deckIndex].AddRange(equipment.EffectCards);
+			gameManager.EquipDuringRun(equipment);
+
+			levelUpStack--;
+			ContinueAfterChoice();
 		}
 
 		private void ContinueAfterChoice()
@@ -290,7 +309,7 @@ namespace WitchMendokusai
 		public List<CardEvolutionProgress> GetEvolutionProgress()
 		{
 			HashSet<int> equippedCardIds = new();
-			foreach (EquipmentData equipment in dataManager.GetEquipmentData(dataManager.CurDollID))
+			foreach (EquipmentData equipment in Loadout.Equipments())
 			{
 				if (equipment == null)
 					continue;

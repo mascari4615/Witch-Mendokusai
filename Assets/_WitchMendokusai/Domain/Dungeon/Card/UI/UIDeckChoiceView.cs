@@ -22,10 +22,11 @@ namespace WitchMendokusai
 		[SerializeField] private TextMeshProUGUI totalText;
 		[SerializeField] private Transform miniParent;
 		[SerializeField] private UIMiniCard miniTemplate;
+		[SerializeField] private string newEquipmentLabel = "새 장비";
 
 		private readonly List<UIMiniCard> minis = new();
 
-		public void Set(EquipmentData equipment, IReadOnlyList<CardData> selectedCards)
+		public void Set(EquipmentData equipment, IReadOnlyList<CardData> selectedCards, bool isNewEquipment)
 		{
 			SurvivalUITheme.KindStyle style = theme.Style(equipment.UIKind);
 			choiceCard.SetKind(equipment.UIKind);
@@ -50,7 +51,7 @@ namespace WitchMendokusai
 			for (int i = cards.Count; i < minis.Count; i++)
 				minis[i].gameObject.SetActive(false);
 			miniTemplate.gameObject.SetActive(false);
-			totalText.text = $"{total}회";
+			totalText.text = isNewEquipment ? newEquipmentLabel : $"{total}회";
 		}
 	}
 }

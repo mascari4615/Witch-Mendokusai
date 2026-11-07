@@ -121,6 +121,9 @@ namespace WitchMendokusai
 
 		private void OnApplicationQuit() => SaveManager.SaveData();
 
+		public RunLoadout RunLoadout => runLoadout ??= new RunLoadout(this);
+		private RunLoadout runLoadout;
+
 		public List<EquipmentData> GetEquipmentData(int dollID)
 		{
 			Doll doll = GetDoll(dollID);

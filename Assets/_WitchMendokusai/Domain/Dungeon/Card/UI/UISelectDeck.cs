@@ -14,6 +14,7 @@ namespace WitchMendokusai
 		[SerializeField] private UICardChoiceActions actions;
 
 		public override bool IsFullscreen => true;
+		public int ChoiceCount => deckSelectButtons.Count;
 
 		public override void UpdateUI()
 		{
@@ -65,7 +66,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void SetDeckSelectButtons(List<EquipmentData> equipmentList, IReadOnlyList<CardData> selectedCards)
+		public void SetDeckSelectButtons(List<EquipmentData> equipmentList, IReadOnlyList<CardData> selectedCards, ICollection<EquipmentData> newEquipments)
 		{
 			for (int i = 0; i < deckSelectButtons.Count; i++)
 			{
@@ -75,7 +76,7 @@ namespace WitchMendokusai
 				{
 					deckSelectButtons[i].SetSlot(equipmentList[i]);
 					deckSelectButtons[i].UpdateUI();
-					deckSelectButtons[i].GetComponent<UIDeckChoiceView>().Set(equipmentList[i], selectedCards);
+					deckSelectButtons[i].GetComponent<UIDeckChoiceView>().Set(equipmentList[i], selectedCards, newEquipments.Contains(equipmentList[i]));
 				}
 				else
 				{

@@ -22,6 +22,8 @@ namespace WitchMendokusai
 		public DungeonRecord Result => dungeonRecorder.ResultRecord;
 
 		public bool IsDungeon { get; private set; }
+		public RunLoadout RunLoadout => dataManager.RunLoadout;
+		public int RunEquipmentSlotCount => resourceManager.SurvivalRunRules.RandomModeSlotCount;
 
 		[SerializeField] private CardManager cardManager;
 		[SerializeField] private MonsterSpawner monsterSpawner;
@@ -102,7 +104,7 @@ namespace WitchMendokusai
 			gameEventManager.RegisterCallback(GameEventType.OnPlayerDied, EndDungeonByDefeat);
 		}
 
-		public void StartDungeon(Dungeon dungeon, bool restart = false)
+		public void StartDungeon(Dungeon dungeon, bool restart = false, DungeonRunMode runMode = DungeonRunMode.Equipped)
 		{
 			if (IsDungeon || isTransitioning)
 				return;
@@ -140,6 +142,7 @@ namespace WitchMendokusai
 			void InitDungeonAndPlayer()
 			{
 				gameManager.Init();
+				dataManager.RunLoadout.Begin(runMode, resourceManager.SurvivalRunRules);
 				gameManager.InitEquipment();
 				gameManager.ApplyUpgradeEffects(); // [VamsurLike-Upgrade] - KarmoDDrine 2026-01-12
 
@@ -289,7 +292,7 @@ namespace WitchMendokusai
 		{
 			if (CurDungeon == null || dungeonRecorder == null)
 				return;
-			StartDungeon(CurDungeon, restart: true);
+			StartDungeon(CurDungeon, restart: true, runMode: dataManager.RunLoadout.Mode);
 		}
 
 		public void Continue()
@@ -316,6 +319,7 @@ namespace WitchMendokusai
 				cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
 
 				gameManager.Init();
+				dataManager.RunLoadout.End();
 				expChecker.Init();
 				cardManager.Reset();
 			}
