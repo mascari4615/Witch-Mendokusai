@@ -643,9 +643,10 @@ MonoBehaviour:
   <PanelIcon>k__BackingField: {fileID: 0}
   theme: {fileID: 11400000, guid: 03a27beb1f47b364b9337bb8bc633b34, type: 2}
   titleText: {fileID: 6668969058085128646}
-  clearTitle: "\uAC8C\uC784 \uACB0\uACFC"
+  clearTitle: "\uC2B9\uB9AC"
   defeatTitle: "\uD328\uBC30"
   defeatTitleColor: {r: 0.886, g: 0.345, b: 0.298, a: 1}
+  clearTitleColor: {r: 0.949, g: 0.886, b: 0.478, a: 1}
   difficultyRing: {fileID: 2616983925794244600}
   difficultyText: {fileID: 3164403116889495112}
   playTimeText: {fileID: 6467653408204154130}
