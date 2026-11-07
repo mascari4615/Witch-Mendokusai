@@ -112,3 +112,9 @@ Scenes/World/World/NavMesh-TempStage_Mesh.asset
 Scenes/World/World_Profiles/Bokeh.asset
 Scenes/World/World_Profiles/Gaussian.asset
 ShaderModdingSDK/Samples/cozy-night/CozyNightVolumeProfile.asset
+Core/Resources/UiSfxTable.asset
+Domain/Dungeon/Survival/SET_SlimeForest10.asset
+Domain/Dungeon/Survival/SurvivalFeelConfig.asset
+Domain/Dungeon/Survival/SurvivalRunRules.asset
+Domain/Trade/Shop/Object/_DevShopItemDataBuffer.asset
+Domain/UI/Survival/SurvivalUITheme.asset
