@@ -414,7 +414,7 @@ namespace WitchMendokusai.Idle.Editor
 
 		private static VisualElement Root()
 		{
-			BattleScreen screen = Object.FindFirstObjectByType<BattleScreen>();
+			BattleScreen screen = Object.FindAnyObjectByType<BattleScreen>();
 			if (screen == null)
 			{
 				return null;

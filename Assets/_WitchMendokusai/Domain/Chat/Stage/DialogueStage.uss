@@ -361,7 +361,6 @@
 
 .wm-dlg-choice__label {
     font-size: 19px;
-    color: inherit;
 }
 
 .wm-dlg-choice__reason {
