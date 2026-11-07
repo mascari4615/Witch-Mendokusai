@@ -31,4 +31,4 @@ MonoBehaviour:
     SuccessRewards: []
   <MaxAmount>k__BackingField: 500
   <PurchasePrice>k__BackingField: 4
-  <SalePrice>k__BackingField: 6
+  <SalePrice>k__BackingField: 2
