@@ -30,6 +30,23 @@ namespace WitchMendokusai
 		[field: SerializeField] public CardAwakeningEffect AwakeningEffectPrefab { get; private set; }
 		[field: SerializeField] public SurvivalUIKind UIKind { get; private set; } = SurvivalUIKind.Count;
 
+		// 트리 파일이 정의한 카드. 효과 적용 경로는 자산 카드와 같음
+		public static CardData CreateRuntime(int id, string name, string description, Sprite sprite, List<EffectInfo> effects, int maxStack, CardRarity rarity, SurvivalUIKind kind)
+		{
+			CardData card = CreateInstance<CardData>();
+			card.hideFlags = HideFlags.DontUnloadUnusedAsset;
+			card.name = $"C_{id}_{name}";
+			card.ID = id;
+			card.Name = name;
+			card.Description = description;
+			card.Sprite = sprite;
+			card.Effects = effects;
+			card.MaxStack = maxStack;
+			card.Rarity = rarity;
+			card.UIKind = kind;
+			return card;
+		}
+
 		public bool MeetsRequirements(IReadOnlyList<CardData> selectedCards)
 		{
 			foreach (Requirement requirement in Requirements)
