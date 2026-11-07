@@ -7,12 +7,16 @@ namespace WitchMendokusai
 {
 	public class ExpObject : LootObject
 	{
+		private static readonly int BASE_COLOR_ID = Shader.PropertyToID("_BaseColor");
+		private static readonly int LEGACY_COLOR_ID = Shader.PropertyToID("_Color");
+		private static readonly int EMISSION_COLOR_ID = Shader.PropertyToID("_EmissionColor");
+
 		[SerializeField] private int amount;
-		[SerializeField] private SpriteRenderer spriteRenderer;
 		private int value;
 		private List<ExpObject> registry;
-		private Vector3 baseSpriteScale;
-		private bool hasBaseSpriteScale;
+		private MeshRenderer meshRenderer;
+		private Vector3 baseMeshScale;
+		private MaterialPropertyBlock properties;
 
 		public int BaseAmount => amount;
 		public int Value => value;
@@ -38,17 +42,22 @@ namespace WitchMendokusai
 
 		private void ApplyTier(SurvivalFeelConfig config)
 		{
-			if (hasBaseSpriteScale == false)
+			if (meshRenderer == null)
 			{
-				baseSpriteScale = spriteRenderer.transform.localScale;
-				hasBaseSpriteScale = true;
+				meshRenderer = GetComponentInChildren<MeshRenderer>(true);
+				baseMeshScale = meshRenderer.transform.localScale;
+				properties = new MaterialPropertyBlock();
 			}
 			ExpGemTier tier = config.ExpGemTiers[0];
 			foreach (ExpGemTier candidate in config.ExpGemTiers)
 				if (value >= candidate.MinValue)
 					tier = candidate;
-			spriteRenderer.transform.localScale = baseSpriteScale * tier.Scale;
-			spriteRenderer.color = tier.Color;
+			meshRenderer.transform.localScale = baseMeshScale * tier.Scale;
+			meshRenderer.GetPropertyBlock(properties);
+			properties.SetColor(BASE_COLOR_ID, tier.Color);
+			properties.SetColor(LEGACY_COLOR_ID, tier.Color);
+			properties.SetColor(EMISSION_COLOR_ID, tier.Color * tier.Emission);
+			meshRenderer.SetPropertyBlock(properties);
 		}
 
 		protected override void OnEffect()
@@ -69,11 +78,6 @@ namespace WitchMendokusai
 			float gain = value * PlayerStat.PercentMultiplier(UnitStatType.EXP_BONUS) * barrierMultiplier;
 			int wholeGain = Mathf.FloorToInt(gain);
 			return Random.value < gain - wholeGain ? wholeGain + 1 : wholeGain;
-		}
-
-		private void LateUpdate()
-		{
-			spriteRenderer.transform.rotation = Camera.main.transform.rotation;
 		}
 
 		protected override void OnDisable()
