@@ -19,8 +19,12 @@ namespace WitchMendokusai
 		[field: Header("_" + nameof(NPC))]
 		[field: SerializeField] public List<NPCPanelInfo> PanelInfos { get; private set; }
 		[field: SerializeField] public List<QuestSO> QuestData { get; private set; }
+		[field: Tooltip("상점 구매가를 0 으로 처리. 아이템 구매가는 그대로")]
+		[field: SerializeField] public bool IsShopFree { get; private set; }
 
 		public List<ItemDataBuffer> ItemDataBuffers => GetAllDataSOs(NPCPanelType.Shop).Cast<ItemDataBuffer>().ToList();
+
+		public int GetShopPrice(ItemData itemData) => IsShopFree ? 0 : itemData.PurchasePrice;
 
 		private List<DataSO> GetAllDataSOs(NPCPanelType panelType)
 		{

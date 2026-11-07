@@ -26,6 +26,7 @@ namespace WitchMendokusai
 		public bool canPlayerSetItem = true;
 		public bool canHold = true;
 		private PriceType priceType = PriceType.Buy;
+		private Func<ItemData, int> buyPrice = itemData => itemData.PurchasePrice;
 
 		private UIHoldingSlot uiHoldingSlot;
 
@@ -51,7 +52,7 @@ namespace WitchMendokusai
 				if (DataSO)
 				{
 					ItemData itemData = DataSO as ItemData;
-					priceText.text = (priceType == PriceType.Buy) ? itemData.PurchasePrice.ToString() : itemData.SalePrice.ToString();
+					priceText.text = (priceType == PriceType.Buy) ? buyPrice(itemData).ToString() : itemData.SalePrice.ToString();
 				}
 				else
 				{
@@ -64,6 +65,11 @@ namespace WitchMendokusai
 		public void SetPriceType(PriceType priceType)
 		{
 			this.priceType = priceType;
+			UpdateUI();
+		}
+		public void SetBuyPrice(Func<ItemData, int> buyPrice)
+		{
+			this.buyPrice = buyPrice;
 			UpdateUI();
 		}
 

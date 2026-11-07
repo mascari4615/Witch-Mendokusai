@@ -74,5 +74,12 @@ namespace WitchMendokusai
 				slot.SetPriceType(priceType);
 			UpdateUI();
 		}
+
+		public void SetBuyPrice(Func<ItemData, int> buyPrice)
+		{
+			foreach (UIItemSlot slot in Slots.Cast<UIItemSlot>())
+				slot.SetBuyPrice(buyPrice);
+			UpdateUI();
+		}
 	}
 }

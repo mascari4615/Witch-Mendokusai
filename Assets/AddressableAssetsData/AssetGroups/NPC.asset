@@ -51,6 +51,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - NPC
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 637ce0e846c842759e4123f408792b69
+    m_Address: NPC/11
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - NPC
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7adc61e104a0d944da7dfd946107a2c0
     m_Address: NPC/6
     m_ReadOnly: 0

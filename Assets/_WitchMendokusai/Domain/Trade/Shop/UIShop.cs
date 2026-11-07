@@ -64,6 +64,7 @@ namespace WitchMendokusai
 		{
 			this.npc = npc;
 			shopInventoryUI.SetDataBuffer(npc.Data.ItemDataBuffers[0]);
+			shopInventoryUI.SetBuyPrice(npc.Data.GetShopPrice);
 		}
 
 		public override void UpdateUI()
@@ -79,13 +80,14 @@ namespace WitchMendokusai
 		public void BuyItem(int itemID)
 		{
 			ItemData itemData = GetItemData(itemID);
-			if (itemData.PurchasePrice <= dataManager.GameStat[GameStatType.NYANG])
+			int price = npc.Data.GetShopPrice(itemData);
+			if (price <= dataManager.GameStat[GameStatType.NYANG])
 			{
-				dataManager.GameStat[GameStatType.NYANG] -= itemData.PurchasePrice;
+				dataManager.GameStat[GameStatType.NYANG] -= price;
 				soManager.ItemInventory.Add(itemData);
 				UpdateUI();
 
-				uiManager.PopText($"- {itemData.PurchasePrice}", TextType.Warning);
+				uiManager.PopText($"- {price}", TextType.Warning);
 			}
 			else
 			{
