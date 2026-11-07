@@ -15,6 +15,36 @@ MonoBehaviour:
   m_GroupName: Doll
   m_GUID: 4670b1f60c71e4b438d66782ded5e92f
   m_SerializeEntries:
+  - m_GUID: 58e4770b6f3d4c37ac0380946024aaf6
+    m_Address: Doll/4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6b069c9881de4d20951286e30c80e41c
+    m_Address: Doll/5
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b7b8376e514d4a0f91f6cd793d420870
+    m_Address: Doll/6
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3eb3031b88af42809bd4b59102a39179
+    m_Address: Doll/7
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 60826b598a9847d2846d91588e91c100
+    m_Address: Doll/8
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Doll
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9f85001dde9fbdd448c49a3cb01ae69b
     m_Address: Doll/4444
     m_ReadOnly: 0

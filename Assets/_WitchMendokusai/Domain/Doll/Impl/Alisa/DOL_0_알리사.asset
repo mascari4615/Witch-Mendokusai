@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 0
   <Name>k__BackingField: "\uC54C\uB9AC\uC0AC"
   <Description>k__BackingField: "\uB9C8\uB140\uB97C \uB3D5\uB294 \uC778\uD615\uC785\uB2C8\uB2E4."
-  <Sprite>k__BackingField: {fileID: 21300000, guid: cd6bddf795a0b2b48a2ac2db750952d6, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 988cb67987cd411d8f9e8f3ef79b8330, type: 3}
   <Sprites>k__BackingField:
   - {fileID: 21300000, guid: 29359046fec919743ac9a3e727577d42, type: 3}
   - {fileID: 21300000, guid: 993a70164fbb498438b9253217dffa3d, type: 3}
@@ -29,11 +29,13 @@ MonoBehaviour:
   <InitStatInfos>k__BackingField:
     initStats:
     - unitStat: 2
-      value: 20
+      value: 22
     - unitStat: 300
-      value: 30
-  <SignatureEquipment>k__BackingField: {fileID: 11400000, guid: 558768e4ce1c3d7429e1dfa98df215d5, type: 2}
+      value: 28
+    - unitStat: 400
+      value: 10
+  <SignatureEquipment>k__BackingField: {fileID: 11400000, guid: 79d2d6449c88c8b43a235c09629abac9, type: 2}
   <DefaultEquipments>k__BackingField:
-  - {fileID: 11400000, guid: 16c3f6495ee810747993a8bb3009abdd, type: 2}
-  - {fileID: 11400000, guid: 016db4505076ec04ba2de9a282ace381, type: 2}
-  - {fileID: 11400000, guid: 61cbebb97ff32a049bf1e1b9a2ad2c09, type: 2}
+  - {fileID: 11400000, guid: 8b2fe98db9d60564abc52554f6b6ffdc, type: 2}
+  - {fileID: 11400000, guid: 30d54fceff16df4499e3323c0a9fc1fc, type: 2}
+  <BodyTint>k__BackingField: {r: 0.8, g: 0.86, b: 1, a: 1}
