@@ -147,14 +147,14 @@ namespace WitchMendokusai
 				signatureName.text = "없음";
 			}
 
-			bool isDummy = doll.ID == Doll.DUMMY_ID;
-			selectButton.style.display = isDummy ? DisplayStyle.None : DisplayStyle.Flex;
-			selectButton.SetEnabled(dataManager.CurDollID != doll.ID);
+			selectButton.style.display = doll.IsControllable ? DisplayStyle.Flex : DisplayStyle.None;
+			selectButton.SetEnabled(dataManager.CurDollID != doll.ID && DungeonManagerBridge.IsDungeon == false);
 		}
 
 		private void OnSelectClicked()
 		{
-			if (doll == null || doll.ID == Doll.DUMMY_ID)
+			// 던전 중 전환은 스탯과 장비를 초기화
+			if (doll == null || doll.IsControllable == false || DungeonManagerBridge.IsDungeon)
 				return;
 
 			dataManager.SetCurDoll(doll.ID);

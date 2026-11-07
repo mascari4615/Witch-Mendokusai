@@ -71,9 +71,9 @@ namespace WitchMendokusai
 
 			for (int i = 0; i < dolls.Count; i++)
 			{
-				bool isDummy = dolls[i] != null && dolls[i].ID == Doll.DUMMY_ID;
+				bool isControllable = dolls[i] != null && dolls[i].IsControllable;
 				entries[i].Bind(dolls[i]);
-				entries[i].style.display = isDummy ? DisplayStyle.None : DisplayStyle.Flex;
+				entries[i].style.display = isControllable ? DisplayStyle.Flex : DisplayStyle.None;
 			}
 
 			if (selectedEntry != null && selectedEntry.Doll != null && dolls.Contains(selectedEntry.Doll) == false)
@@ -84,7 +84,7 @@ namespace WitchMendokusai
 		{
 			foreach (DollEntry entry in entries)
 			{
-				if (entry.Doll != null && entry.Doll.ID != Doll.DUMMY_ID)
+				if (entry.Doll != null && entry.Doll.IsControllable)
 					return entry;
 			}
 			return null;

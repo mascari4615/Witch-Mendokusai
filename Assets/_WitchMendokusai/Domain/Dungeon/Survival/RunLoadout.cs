@@ -58,7 +58,7 @@ namespace WitchMendokusai
 
 		public static EquipmentData GetEquipment(int id) => (EquipmentData)GetItemData(id);
 
-		// 인형 고유 장비와 채집 도구 제외, 강화 카드가 있는 장비만
+		// 현재 인형 고유 장비와 채집 도구 제외, 강화 카드가 있는 장비만
 		private List<int> NewEquipmentIds()
 		{
 			List<int> eligibleIds = new();
@@ -69,11 +69,9 @@ namespace WitchMendokusai
 			});
 
 			List<int> excludedIds = acquired.Select(equipment => equipment.ID).ToList();
-			ForEach<Doll>(doll =>
-			{
-				if (doll.SignatureEquipment != null)
-					excludedIds.Add(doll.SignatureEquipment.ID);
-			});
+			EquipmentData signature = GetDoll(dataManager.CurDollID).SignatureEquipment;
+			if (signature != null)
+				excludedIds.Add(signature.ID);
 			return DungeonRunModeRules.NewEquipmentCandidates(eligibleIds, excludedIds);
 		}
 	}

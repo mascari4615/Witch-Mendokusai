@@ -69,25 +69,7 @@ namespace WitchMendokusai
 				void InitDoll(int dollID)
 				{
 					Doll doll = GetDoll(dollID);
-					DollSaveData newDollData = new()
-					{
-						DollID = doll.ID,
-						Level = 1,
-						Exp = 0,
-						Equipment = new()
-					};
-
-					int slotIndex = 0;
-					foreach (EquipmentData equipmentData in doll.DefaultEquipments)
-					{
-						if (slotIndex >= Doll.EQUIPMENT_SLOT_COUNT)
-							break;
-						Item newItem = equipmentData.CreateItem();
-						newDollData.Equipment.Add(new DollEquipmentSlotSaveData(slotIndex, newItem));
-						slotIndex++;
-					}
-
-					doll.Load(newDollData);
+					doll.Load(doll.CreateDefaultSaveData());
 					newGameData.dolls.Add(doll.Save());
 				}
 
@@ -161,6 +143,15 @@ namespace WitchMendokusai
 				GetDoll(dollData.DollID).Load(dollData);
 				soManager.DollBuffer.Add(GetDoll(dollData.DollID));
 			}
+			// 세이브 이후 추가된 인형은 기본값
+			HashSet<int> savedDollIds = saveData.dolls.Select(dollData => dollData.DollID).ToHashSet();
+			ForEach<Doll>(doll =>
+			{
+				if (savedDollIds.Contains(doll.ID))
+					return;
+				doll.Load(doll.CreateDefaultSaveData());
+				soManager.DollBuffer.Add(doll);
+			});
 			for (int i = 0; i < saveData.dummyDollCount - 1; i++)
 				soManager.DollBuffer.Add(GetDoll(Doll.DUMMY_ID));
 

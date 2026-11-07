@@ -16,14 +16,41 @@ namespace WitchMendokusai
 		[field: SerializeField] public EquipmentData SignatureEquipment { get; private set; }
 		// 기본 장비 : 인형을 얻을 때 기본적으로 장착되어 있는 장비들
 		[field: SerializeField] public List<EquipmentData> DefaultEquipments { get; private set; }
+		// 몸체 모델 색 배율. 흰색이면 모델 원색
+		[field: SerializeField] public Color BodyTint { get; private set; } = Color.white;
 
 		public const int EQUIPMENT_SLOT_COUNT = 3;
+		private const int REQUIRED_BODY_SPRITE_COUNT = 2;
+
+		// 조작 인형 조건: 머리와 몸 스프라이트, 고유 장비
+		public bool IsControllable => ID != DUMMY_ID && Sprites != null && Sprites.Count >= REQUIRED_BODY_SPRITE_COUNT && SignatureEquipment != null;
 
 		// 인형의 레벨과 경험치 (던전 내 일시적 레벨과 경험치와는 별개)
 		[field: NonSerialized] public int Level { get; private set; } = 1;
 		[field: NonSerialized] public int Exp { get; private set; } = 0;
 		// 현재 장착 장비 (인형이 직접 소유). 시그니처 장비는 별개 (SignatureEquipment 필드).
 		[field: NonSerialized] public List<Item> Equipment { get; private set; } = new() { null, null, null };
+
+		public DollSaveData CreateDefaultSaveData()
+		{
+			DollSaveData saveData = new()
+			{
+				DollID = ID,
+				Level = 1,
+				Exp = 0,
+				Equipment = new()
+			};
+
+			int slotIndex = 0;
+			foreach (EquipmentData equipmentData in DefaultEquipments)
+			{
+				if (slotIndex >= EQUIPMENT_SLOT_COUNT)
+					break;
+				saveData.Equipment.Add(new DollEquipmentSlotSaveData(slotIndex, equipmentData.CreateItem()));
+				slotIndex++;
+			}
+			return saveData;
+		}
 
 		public void Load(DollSaveData dollData)
 		{

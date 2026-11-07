@@ -40,6 +40,9 @@ namespace WitchMendokusai
 		private SOManager soManager;
 		private ResourceManager resourceManager;
 
+		private static readonly int BASE_COLOR_PROPERTY = Shader.PropertyToID("_BaseColor");
+		private MaterialPropertyBlock bodyTintBlock;
+
 		[Inject]
 		public void Construct(GameEventManager gameEventManager, SOManager soManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator,
 			ObjectPoolManager objectPoolManager, PlayerProvider playerProvider, ResourceManager resourceManager)
@@ -71,6 +74,7 @@ namespace WitchMendokusai
 
 			headRenderer.sprite = UnitData.Sprites[0];
 			bodyRenderer.sprite = UnitData.Sprites[1];
+			ApplyBodyTint();
 
 			diedX.SetActive(false);
 
@@ -81,6 +85,21 @@ namespace WitchMendokusai
 				Transform = transform,
 				Object = this,
 			});
+		}
+
+		// 모델 공유, 인형별 차이는 재질 색 값만
+		private void ApplyBodyTint()
+		{
+			Color tint = UnitData is Doll doll ? doll.BodyTint : Color.white;
+			bodyTintBlock ??= new MaterialPropertyBlock();
+			foreach (Renderer meshRenderer in MeshParent.GetComponentsInChildren<Renderer>(true))
+			{
+				if (meshRenderer is SpriteRenderer)
+					continue;
+				meshRenderer.GetPropertyBlock(bodyTintBlock);
+				bodyTintBlock.SetColor(BASE_COLOR_PROPERTY, tint);
+				meshRenderer.SetPropertyBlock(bodyTintBlock);
+			}
 		}
 
 		public override void ReceiveDamage(DamageInfo damageInfo)
