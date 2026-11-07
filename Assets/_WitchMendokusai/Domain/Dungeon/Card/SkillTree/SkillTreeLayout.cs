@@ -19,8 +19,6 @@ namespace WitchMendokusai
 	// 노드 자동 배치와 방향키 이동 대상 계산
 	public static class SkillTreeLayout
 	{
-		private const float ROW_WEIGHT = 10f;
-
 		public static Dictionary<string, SkillTreeCell> Compute(SkillTree tree, int maxPerRow)
 		{
 			Dictionary<SkillTreeNode, int> depths = new();
@@ -50,7 +48,8 @@ namespace WitchMendokusai
 		{
 			SkillTreeCell origin = cells[from];
 			string best = null;
-			float bestScore = float.MaxValue;
+			int bestRowGap = int.MaxValue;
+			float bestColumnGap = float.MaxValue;
 			foreach (KeyValuePair<string, SkillTreeCell> pair in cells)
 			{
 				if (pair.Key == from)
@@ -62,10 +61,12 @@ namespace WitchMendokusai
 				if (along <= 0f)
 					continue;
 
-				float score = Mathf.Abs(rowDelta) * ROW_WEIGHT + Mathf.Abs(columnDelta);
-				if (score < bestScore)
+				int rowGap = Mathf.Abs(rowDelta);
+				float columnGap = Mathf.Abs(columnDelta);
+				if (rowGap < bestRowGap || (rowGap == bestRowGap && columnGap < bestColumnGap))
 				{
-					bestScore = score;
+					bestRowGap = rowGap;
+					bestColumnGap = columnGap;
 					best = pair.Key;
 				}
 			}

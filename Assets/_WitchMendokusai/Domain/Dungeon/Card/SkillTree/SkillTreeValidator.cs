@@ -30,8 +30,10 @@ namespace WitchMendokusai
 			{
 				if (string.IsNullOrEmpty(node.Id))
 					Report("노드 id 없음");
-				else if (nodes.TryAdd(node.Id, node) == false)
+				else if (nodes.ContainsKey(node.Id))
 					Report($"중복 노드 id {node.Id}");
+				else
+					nodes.Add(node.Id, node);
 			}
 
 			foreach (SkillTreeNodeFile node in file.Nodes)
