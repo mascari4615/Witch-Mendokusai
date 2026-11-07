@@ -144,7 +144,7 @@ namespace WitchMendokusai
 				soManager.DollBuffer.Add(GetDoll(dollData.DollID));
 			}
 			// 세이브 이후 추가된 인형은 기본값
-			HashSet<int> savedDollIds = saveData.dolls.Select(dollData => dollData.DollID).ToHashSet();
+			HashSet<int> savedDollIds = new(saveData.dolls.Select(dollData => dollData.DollID));
 			ForEach<Doll>(doll =>
 			{
 				if (savedDollIds.Contains(doll.ID))
