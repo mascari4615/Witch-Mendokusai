@@ -250,6 +250,8 @@ namespace WitchMendokusai
 				return;
 			}
 			RunDeckOffer offer = deckOffers[selectIndex];
+			if (offer.IsNew == false)
+				UiSfx.Play(UiSfxEvent.Confirm);
 			if (offer.IsNew)
 			{
 				AcquireEquipment(RunLoadout.GetEquipment(offer.NewEquipmentId));
@@ -288,7 +290,7 @@ namespace WitchMendokusai
 			{
 				return;
 			}
-			UiSfx.Play(UiSfxEvent.CardSelect);
+			UiSfx.Play(card.UIKind == SurvivalUIKind.Advanced ? UiSfxEvent.Evolve : UiSfxEvent.CardSelect);
 			offeredCards.Clear();
 			SetPanel(CardPanelType.None);
 			CardBuffer selectedCardBuffer = soManager.SelectedCardBuffer;

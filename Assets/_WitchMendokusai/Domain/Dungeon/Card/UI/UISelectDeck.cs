@@ -13,11 +13,14 @@ namespace WitchMendokusai
 		[SerializeField] private float openAnimDuration = 0.5f;
 		[SerializeField] private UICardChoiceActions actions;
 
+		private readonly UICardFocusSound focusSound = new();
+
 		public override bool IsFullscreen => true;
 		public int ChoiceCount => deckSelectButtons.Count;
 
 		public override void UpdateUI()
 		{
+			focusSound.Silence();
 			actions.Refresh();
 			actions.SetUpTarget(deckSelectButtons[0].Selectable);
 			ApplyNavigation();
@@ -46,6 +49,8 @@ namespace WitchMendokusai
 				deckSelectButtons[i].SetClickAction((slot) => { cardManager.SelectDeck(slot.Index); });
 			}
 		}
+
+		private void Update() => focusSound.Tick(transform);
 
 		private void OnEnable() => UIHideWhileChatting.Request(this, true);
 

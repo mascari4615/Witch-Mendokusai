@@ -171,6 +171,7 @@ namespace WitchMendokusai
 			{
 				tabContents[currentTabKey].style.display = DisplayStyle.None;
 				tabButtons[currentTabKey].RemoveFromClassList("wm-setting-tab--active");
+				UiSfx.Play(UiSfxEvent.Tab);
 			}
 
 			tabContents[tabKey].style.display = DisplayStyle.Flex;
@@ -210,19 +211,19 @@ namespace WitchMendokusai
 			VisualElement buttonGroup = new VisualElement();
 			buttonGroup.AddToClassList("wm-setting-buttons");
 
-			btnDungeonExit = new Button(() => AskConfirm("던전을 포기할까요?", "이번 판은 패배로 끝납니다.", "포기", OnDungeonExit)) { text = "던전 포기" };
+			btnDungeonExit = new Button(() => AskConfirmWithSound("던전을 포기할까요?", "이번 판은 패배로 끝납니다.", "포기", OnDungeonExit)) { text = "던전 포기" };
 			btnDungeonExit.AddToClassList("wm-setting-btn");
 			btnDungeonExit.AddToClassList("wm-setting-btn--danger");
 			btnDungeonExit.AddToClassList(NAV_CLASS);
 			buttonGroup.Add(btnDungeonExit);
 
-			Button btnSaveInit = new Button(() => AskConfirm("세이브 데이터를 초기화할까요?", "되돌릴 수 없습니다.", "초기화", OnClearData)) { text = "세이브 데이터 초기화" };
+			Button btnSaveInit = new Button(() => AskConfirmWithSound("세이브 데이터를 초기화할까요?", "되돌릴 수 없습니다.", "초기화", OnClearData)) { text = "세이브 데이터 초기화" };
 			btnSaveInit.AddToClassList("wm-setting-btn");
 			btnSaveInit.AddToClassList("wm-setting-btn--danger");
 			btnSaveInit.AddToClassList(NAV_CLASS);
 			buttonGroup.Add(btnSaveInit);
 
-			Button btnQuit = new Button(() => AskConfirm("게임을 종료할까요?", "진행 중인 내용은 저장 시점까지만 남습니다.", "종료", OnQuit)) { text = "게임 종료" };
+			Button btnQuit = new Button(() => AskConfirmWithSound("게임을 종료할까요?", "진행 중인 내용은 저장 시점까지만 남습니다.", "종료", OnQuit)) { text = "게임 종료" };
 			btnQuit.AddToClassList("wm-setting-btn");
 			btnQuit.AddToClassList(NAV_CLASS);
 			buttonGroup.Add(btnQuit);
@@ -272,6 +273,7 @@ namespace WitchMendokusai
 
 			toggle.RegisterValueChangedCallback(evt =>
 			{
+				UiSfx.Play(UiSfxEvent.Confirm);
 				onChanged(evt.newValue);
 				state.text = describe(evt.newValue);
 			});
@@ -290,7 +292,11 @@ namespace WitchMendokusai
 			valueLabel.AddToClassList("wm-setting-value");
 			row.Add(valueLabel);
 
-			slider.RegisterValueChangedCallback(evt => valueLabel.text = FormatVolume(evt.newValue));
+			slider.RegisterValueChangedCallback(evt =>
+			{
+				valueLabel.text = FormatVolume(evt.newValue);
+				UiSfx.Play(UiSfxEvent.Slider);
+			});
 			return row;
 		}
 
@@ -346,6 +352,7 @@ namespace WitchMendokusai
 		{
 			if (IsOpen) return;
 			IsOpen = true;
+			UiSfx.Play(UiSfxEvent.WindowOpen);
 			container.AddToClassList(ACTIVE_CLASS);
 
 			// HACK: World 씬에서만 던전 포기 버튼 활성화
@@ -371,10 +378,11 @@ namespace WitchMendokusai
 			if (IsOpen == false) return;
 			if (IsConfirmOpen)
 			{
-				CloseConfirm();
+				CancelConfirm();
 				return;
 			}
 			IsOpen = false;
+			UiSfx.Play(UiSfxEvent.WindowClose);
 			selectFrame.AddToClassList(HIDDEN_FRAME_CLASS);
 			container.RemoveFromClassList(ACTIVE_CLASS);
 			timeManager.Resume(gameObject);

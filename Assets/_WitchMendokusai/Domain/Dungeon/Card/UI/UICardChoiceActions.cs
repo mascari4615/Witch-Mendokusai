@@ -33,7 +33,7 @@ namespace WitchMendokusai
 		public void Init(CardManager manager)
 		{
 			cardManager = manager;
-			skipButton.onClick.AddListener(() => cardManager.SkipLevelUp());
+			skipButton.onClick.AddListener(OnSkip);
 			UITermIcon.Attach(skipLabel, theme, SurvivalTerm.Skip);
 			if (rerollButton != null)
 			{
@@ -88,10 +88,17 @@ namespace WitchMendokusai
 
 		private void OnDisable() => ExitBanMode();
 
+		private void OnSkip()
+		{
+			if (cardManager.SkipLevelUp())
+				UiSfx.Play(UiSfxEvent.Cancel);
+		}
+
 		private void OnReroll()
 		{
 			ExitBanMode();
-			cardManager.RerollCards();
+			if (cardManager.RerollCards())
+				UiSfx.Play(UiSfxEvent.Reroll);
 			if (cardManager.CanReroll)
 				rerollButton.Select();
 		}
@@ -99,6 +106,7 @@ namespace WitchMendokusai
 		private void OnBanToggle()
 		{
 			IsBanMode = IsBanMode == false;
+			UiSfx.Play(IsBanMode ? UiSfxEvent.Confirm : UiSfxEvent.Cancel);
 			title.text = IsBanMode ? banTitle : normalTitle;
 			Refresh();
 			if (IsBanMode && upTarget != null)

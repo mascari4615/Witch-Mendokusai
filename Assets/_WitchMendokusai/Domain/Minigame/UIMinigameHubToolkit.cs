@@ -223,7 +223,7 @@ namespace WitchMendokusai
 			{
 				if (enterButton == null || enterButton.style.display == DisplayStyle.None)
 					return;
-				enterButton.Focus();
+				WMFocusNavigation.MoveFocus(enterButton);
 				evt.StopPropagation();
 				return;
 			}
@@ -232,7 +232,7 @@ namespace WitchMendokusai
 			{
 				if (entryButtons.Count == 0)
 					return;
-				entryButtons[Mathf.Clamp(selectedIndex, 0, entryButtons.Count - 1)].Focus();
+				WMFocusNavigation.MoveFocus(entryButtons[Mathf.Clamp(selectedIndex, 0, entryButtons.Count - 1)]);
 				evt.StopPropagation();
 			}
 		}
@@ -276,6 +276,7 @@ namespace WitchMendokusai
 
 		private void EnterSelected()
 		{
+			UiSfx.Play(UiSfxEvent.Confirm);
 			MinigameEntrySO entry = CurrentEntry;
 			if (entry == null)
 				return;
@@ -290,7 +291,7 @@ namespace WitchMendokusai
 			while (entryButtons.Count < count)
 			{
 				int capturedIndex = entryButtons.Count;
-				Button button = new Button(() => SelectEntry(capturedIndex));
+				Button button = new Button(() => { UiSfx.Play(UiSfxEvent.FocusMove); SelectEntry(capturedIndex); });
 				button.style.height = 52;
 				button.style.fontSize = 17;
 				button.style.marginBottom = 8;

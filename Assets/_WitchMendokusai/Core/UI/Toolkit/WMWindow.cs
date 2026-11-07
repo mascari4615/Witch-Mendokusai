@@ -198,7 +198,7 @@ namespace WitchMendokusai
 			VisualElement next = WMFocusNavigation.FindNext(current, candidates, evt.direction, NavOverlapTolerance, NavAcrossWeight);
 			if (next == null)
 				return;
-			next.Focus();
+			WMFocusNavigation.MoveFocus(next);
 			next.GetFirstAncestorOfType<ScrollView>()?.ScrollTo(next);
 		}
 

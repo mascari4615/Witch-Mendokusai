@@ -76,6 +76,8 @@ namespace WitchMendokusai
 			}
 		}
 
+		public bool IsTabButton(GameObject selected) => selected == deckTabButton.gameObject || selected == treeTabButton.gameObject;
+
 		public Selectable CurrentTabButton => isDeckTab ? deckTabButton : treeTabButton;
 
 		public void SetCardNeighbor(Selectable neighbor)
@@ -118,6 +120,8 @@ namespace WitchMendokusai
 
 		private void SetTab(bool showDeck)
 		{
+			if (isDeckTab != showDeck)
+				UiSfx.Play(UiSfxEvent.Tab);
 			isDeckTab = showDeck;
 			deckRoot.SetActive(showDeck);
 			treeRoot.SetActive(showDeck == false);

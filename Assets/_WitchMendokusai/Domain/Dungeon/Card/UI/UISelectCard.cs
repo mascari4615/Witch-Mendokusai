@@ -16,10 +16,13 @@ namespace WitchMendokusai
 		[SerializeField] private UIEvolutionStrip evolutionStrip;
 		[SerializeField] private UIChestReward chestReward;
 
+		private readonly UICardFocusSound focusSound = new();
+
 		public override bool IsFullscreen => true;
 
 		public override void UpdateUI()
 		{
+			focusSound.Silence();
 			CardManager cardManager = PanelGroup as CardManager;
 			evolutionStrip.Set(cardManager.GetEvolutionProgress());
 			actions.ExitBanMode();
@@ -49,8 +52,15 @@ namespace WitchMendokusai
 					if (actions.IsBanMode)
 					{
 						CardData target = slot.DataSO as CardData;
-						if (cardManager.BanCard(target) == false)
+						if (cardManager.BanCard(target))
+						{
+							UiSfx.Play(UiSfxEvent.Blocked);
+						}
+						else
+						{
+							UiSfx.Play(UiSfxEvent.PurchaseFail);
 							actions.ShowBanDenied(cardManager.BanDeniedText(target));
+						}
 					}
 					else
 						cardManager.SelectCard(slot.DataSO as CardData);
@@ -63,6 +73,8 @@ namespace WitchMendokusai
 			}
 		}
 		
+		private void Update() => focusSound.Tick(transform, deckTabs.IsTabButton);
+
 		private void OnEnable() => UIHideWhileChatting.Request(this, true);
 
 		private void OnDisable() => UIHideWhileChatting.Request(this, false);

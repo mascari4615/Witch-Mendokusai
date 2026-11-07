@@ -52,7 +52,7 @@ namespace WitchMendokusai
 
 			VisualElement buttons = new VisualElement();
 			buttons.AddToClassList("wm-setting-confirm__buttons");
-			confirmCancel = new Button(CloseConfirm) { text = "취소" };
+			confirmCancel = new Button(CancelConfirm) { text = "취소" };
 			confirmCancel.AddToClassList("wm-setting-btn");
 			confirmCancel.AddToClassList(NAV_CLASS);
 			buttons.Add(confirmCancel);
@@ -79,6 +79,12 @@ namespace WitchMendokusai
 			confirmCancel.schedule.Execute(() => confirmCancel.Focus());
 		}
 
+		private void AskConfirmWithSound(string title, string description, string acceptLabel, Action action)
+		{
+			UiSfx.Play(UiSfxEvent.Confirm);
+			AskConfirm(title, description, acceptLabel, action);
+		}
+
 		private void CloseConfirm()
 		{
 			confirmLayer.style.display = DisplayStyle.None;
@@ -88,8 +94,15 @@ namespace WitchMendokusai
 				target.schedule.Execute(() => target.Focus());
 		}
 
+		private void CancelConfirm()
+		{
+			UiSfx.Play(UiSfxEvent.Cancel);
+			CloseConfirm();
+		}
+
 		private void AcceptConfirm()
 		{
+			UiSfx.Play(UiSfxEvent.Confirm);
 			Action action = confirmAction;
 			CloseConfirm();
 			action?.Invoke();
@@ -153,8 +166,12 @@ namespace WitchMendokusai
 			}
 
 			VisualElement next = FindNext(current, evt.direction);
-			if (next != null)
+			if (next == null)
+				return;
+			if (next.ClassListContains("wm-setting-tab"))
 				next.Focus();
+			else
+				WMFocusNavigation.MoveFocus(next);
 		}
 
 		private void FocusFirst()

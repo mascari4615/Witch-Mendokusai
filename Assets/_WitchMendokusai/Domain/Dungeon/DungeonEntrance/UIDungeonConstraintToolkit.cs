@@ -61,7 +61,7 @@ namespace WitchMendokusai
 			{
 				int index = constraintRows.Count;
 
-				Button row = new Button(() => ToggleConstraint(index));
+				Button row = new Button(() => { UiSfx.Play(UiSfxEvent.Confirm); ToggleConstraint(index); });
 				row.AddToClassList(USS_ROW);
 
 				VisualElement check = new VisualElement { pickingMode = PickingMode.Ignore };

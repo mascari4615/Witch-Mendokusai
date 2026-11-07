@@ -128,7 +128,7 @@ namespace WitchMendokusai
 
 		private Button AddRunModeButton(VisualElement parent, DungeonRunMode mode, string text)
 		{
-			Button button = new Button(() => SelectRunMode(mode)) { name = mode + "ModeButton", text = text };
+			Button button = new Button(() => { UiSfx.Play(UiSfxEvent.Tab); SelectRunMode(mode); }) { name = mode + "ModeButton", text = text };
 			button.AddToClassList(USS_ROOT + "__mode-button");
 			parent.Add(button);
 			runModeButtons[mode] = button;
@@ -161,6 +161,7 @@ namespace WitchMendokusai
 
 		private void StepThreat(int direction)
 		{
+			UiSfx.Play(UiSfxEvent.Slider);
 			selectedThreatLevel = DungeonThreatRules.StepSelection(selectedThreatLevel, direction, CurDungeon.ClearedThreatCount, dungeonManager.GetMaxThreatLevel(CurDungeon));
 			UpdateThreatRow();
 		}
@@ -210,10 +211,12 @@ namespace WitchMendokusai
 			int index = horizontalFocusOrder.IndexOf(Root.focusController?.focusedElement as Button);
 			if (index < 0)
 			{
-				horizontalFocusOrder[direction < 0 ? 0 : horizontalFocusOrder.Count - 1].Focus();
+				WMFocusNavigation.MoveFocus(horizontalFocusOrder[direction < 0 ? 0 : horizontalFocusOrder.Count - 1]);
 				return;
 			}
-			horizontalFocusOrder[Mathf.Clamp(index + direction, 0, horizontalFocusOrder.Count - 1)].Focus();
+			int nextIndex = Mathf.Clamp(index + direction, 0, horizontalFocusOrder.Count - 1);
+			if (nextIndex != index)
+				WMFocusNavigation.MoveFocus(horizontalFocusOrder[nextIndex]);
 		}
 
 		private static VisualElement AddSection(VisualElement parent, string suffix)
@@ -231,7 +234,7 @@ namespace WitchMendokusai
 
 		private Button AddRoundButton(string buttonName, string text)
 		{
-			Button button = new Button(() => PanelGroup.ClosePanel()) { name = buttonName, text = text };
+			Button button = new Button(() => { UiSfx.Play(UiSfxEvent.Cancel); PanelGroup.ClosePanel(); }) { name = buttonName, text = text };
 			button.AddToClassList(USS_ROOT + "__round");
 			return button;
 		}
@@ -288,9 +291,11 @@ namespace WitchMendokusai
 			switch (evt.direction)
 			{
 				case NavigationMoveEvent.Direction.Up:
+					UiSfx.Play(UiSfxEvent.FocusMove);
 					SelectDungeon((curDungeonIndex + dungeons.Count - 1) % dungeons.Count);
 					break;
 				case NavigationMoveEvent.Direction.Down:
+					UiSfx.Play(UiSfxEvent.FocusMove);
 					SelectDungeon((curDungeonIndex + 1) % dungeons.Count);
 					break;
 				case NavigationMoveEvent.Direction.Left:
@@ -374,6 +379,7 @@ namespace WitchMendokusai
 
 		public void EnterTheDungeon()
 		{
+			UiSfx.Play(UiSfxEvent.Confirm);
 			PanelGroup.ClosePanel();
 			dungeonManager.StartDungeon(CurDungeon, runMode: selectedRunMode, threatLevel: selectedThreatLevel);
 		}
@@ -383,7 +389,7 @@ namespace WitchMendokusai
 			while (dungeonSelectButtons.Count < count)
 			{
 				int index = dungeonSelectButtons.Count;
-				Button row = new Button(() => SelectDungeon(index));
+				Button row = new Button(() => { UiSfx.Play(UiSfxEvent.FocusMove); SelectDungeon(index); });
 				row.AddToClassList(USS_ROOT + "__row");
 
 				AddBlock(row, "__row-plate").pickingMode = PickingMode.Ignore;

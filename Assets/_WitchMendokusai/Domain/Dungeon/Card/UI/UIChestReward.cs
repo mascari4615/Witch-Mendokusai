@@ -56,7 +56,11 @@ namespace WitchMendokusai
 
 		public void Bind(CardManager manager) => cardManager = manager;
 
-		private void Close() => cardManager.CloseChest();
+		private void Close()
+		{
+			UiSfx.Play(UiSfxEvent.Confirm);
+			cardManager.CloseChest();
+		}
 
 		private void OnChestClosed(ChestClosedEvent closedEvent)
 		{
@@ -89,6 +93,8 @@ namespace WitchMendokusai
 				UIEffects.PopIn(cell.transform, theme.CardAppearDuration, i * theme.CardAppearInterval);
 			}
 
+			if (hasEvolution)
+				UiSfx.Play(UiSfxEvent.Evolve);
 			burst.Play(hasEvolution ? theme.Style(SurvivalUIKind.Advanced).Main : theme.MaxColor);
 			closeButton.Select();
 		}

@@ -7,6 +7,12 @@ namespace WitchMendokusai
 	// 방향 키 칸 이동. 진행 방향 거리와 수직 어긋남 합산이 가장 작은 칸
 	public static class WMFocusNavigation
 	{
+		public static void MoveFocus(VisualElement next)
+		{
+			next.Focus();
+			UiSfx.Play(UiSfxEvent.FocusMove);
+		}
+
 		public static VisualElement FindNext(VisualElement current, IReadOnlyList<VisualElement> candidates, NavigationMoveEvent.Direction direction, float overlapTolerance, float acrossWeight)
 		{
 			Rect from = current.worldBound;
