@@ -25,6 +25,7 @@ namespace WitchMendokusai
 
 		private const string USS_ROOT = "wm-dungeon-entrance";
 		private const string USS_ROW_SELECTED = "wm-dungeon-entrance__row--selected";
+		private const string USS_MODE_SELECTED = "wm-dungeon-entrance__mode-button--selected";
 		private const int SECONDS_PER_MINUTE = 60;
 
 		private readonly List<Button> dungeonSelectButtons = new();
@@ -41,6 +42,9 @@ namespace WitchMendokusai
 		private Button dungeonEnterButton;
 		private Button backButton;
 		private VisualElement dungeonSelectButtonsParent;
+		private readonly Dictionary<DungeonRunMode, Button> runModeButtons = new();
+		private readonly List<Button> horizontalFocusOrder = new();
+		private DungeonRunMode selectedRunMode = DungeonRunMode.Equipped;
 
 		private int curDungeonIndex = 0;
 		private List<Dungeon> dungeons;
@@ -102,9 +106,42 @@ namespace WitchMendokusai
 			AddLabel(dungeonEnterButton, "입장", "__enter-text").pickingMode = PickingMode.Ignore;
 			detail.Add(dungeonEnterButton);
 
+			VisualElement modeRow = AddBlock(root, "__mode");
+			Button equippedButton = AddRunModeButton(modeRow, DungeonRunMode.Equipped, "장착 모드");
+			Button randomButton = AddRunModeButton(modeRow, DungeonRunMode.Random, "랜덤 모드");
+			horizontalFocusOrder.AddRange(new[] { backButton, equippedButton, randomButton, dungeonEnterButton });
+			SelectRunMode(selectedRunMode);
+
 			Button closeButton = AddRoundButton("CloseButton", "×");
 			closeButton.AddToClassList(USS_ROOT + "__close");
 			root.Add(closeButton);
+		}
+
+		private Button AddRunModeButton(VisualElement parent, DungeonRunMode mode, string text)
+		{
+			Button button = new Button(() => SelectRunMode(mode)) { name = mode + "ModeButton", text = text };
+			button.AddToClassList(USS_ROOT + "__mode-button");
+			parent.Add(button);
+			runModeButtons[mode] = button;
+			return button;
+		}
+
+		private void SelectRunMode(DungeonRunMode mode)
+		{
+			selectedRunMode = mode;
+			foreach (KeyValuePair<DungeonRunMode, Button> entry in runModeButtons)
+				entry.Value.EnableInClassList(USS_MODE_SELECTED, entry.Key == mode);
+		}
+
+		private void MoveHorizontalFocus(int direction)
+		{
+			int index = horizontalFocusOrder.IndexOf(Root.focusController?.focusedElement as Button);
+			if (index < 0)
+			{
+				horizontalFocusOrder[direction < 0 ? 0 : horizontalFocusOrder.Count - 1].Focus();
+				return;
+			}
+			horizontalFocusOrder[Mathf.Clamp(index + direction, 0, horizontalFocusOrder.Count - 1)].Focus();
 		}
 
 		private static VisualElement AddSection(VisualElement parent, string suffix)
@@ -185,10 +222,10 @@ namespace WitchMendokusai
 					SelectDungeon((curDungeonIndex + 1) % dungeons.Count);
 					break;
 				case NavigationMoveEvent.Direction.Left:
-					backButton.Focus();
+					MoveHorizontalFocus(-1);
 					break;
 				case NavigationMoveEvent.Direction.Right:
-					dungeonEnterButton.Focus();
+					MoveHorizontalFocus(1);
 					break;
 				default:
 					return;
@@ -264,7 +301,7 @@ namespace WitchMendokusai
 		public void EnterTheDungeon()
 		{
 			PanelGroup.ClosePanel();
-			dungeonManager.StartDungeon(CurDungeon);
+			dungeonManager.StartDungeon(CurDungeon, runMode: selectedRunMode);
 		}
 
 		private void EnsureButtonCount(int count)

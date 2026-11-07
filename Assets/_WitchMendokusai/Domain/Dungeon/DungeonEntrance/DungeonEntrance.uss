@@ -222,7 +222,32 @@
     -unity-text-align: middle-center;
 }
 
+.wm-dungeon-entrance__mode {
+    position: absolute;
+    right: 470px;
+    bottom: 53px;
+    flex-direction: row;
+}
+
+.wm-dungeon-entrance__mode-button {
+    margin: 0 0 0 8px;
+    padding: 8px 18px;
+    font-size: 18px;
+    color: rgb(246, 239, 214);
+    background-color: rgba(30, 26, 20, 0.8);
+    border-width: 2px;
+    border-color: rgba(246, 239, 214, 0.35);
+    border-radius: 6px;
+}
+
+.wm-dungeon-entrance__mode-button--selected {
+    color: rgb(30, 26, 20);
+    background-color: rgb(246, 239, 214);
+    border-color: rgb(246, 239, 214);
+}
+
 .wm-dungeon-entrance .wm-dungeon-entrance__enter:focus,
+.wm-dungeon-entrance .wm-dungeon-entrance__mode-button:focus,
 .wm-dungeon-entrance .wm-dungeon-entrance__round:focus {
     border-width: 4px;
     border-color: rgb(255, 255, 255);

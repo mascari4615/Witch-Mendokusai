@@ -40,6 +40,7 @@ namespace WitchMendokusai
 		private bool isSelecting;
 		private UIQuestGrid questGrid;
 		private Coroutine loop;
+		private RunEquipmentHud runEquipmentHud;
 
 		private DungeonManager dungeonManager;
 
@@ -68,6 +69,7 @@ namespace WitchMendokusai
 			StopLoop();
 			isSelecting = false;
 			SetHudVisible(true);
+			runEquipmentHud?.RemoveFromHierarchy();
 		}
 
 		private void Update()
@@ -92,6 +94,21 @@ namespace WitchMendokusai
 			battleHudGroup.blocksRaycasts = isVisible;
 			battleHudGroup.interactable = isVisible;
 			headerGroup.interactable = isVisible;
+			runEquipmentHud?.SetVisible(isVisible);
+		}
+
+		private void UpdateRunEquipment()
+		{
+			RunLoadout loadout = dungeonManager.RunLoadout;
+			if (loadout.UsesRunSlots == false)
+			{
+				runEquipmentHud?.RemoveFromHierarchy();
+				return;
+			}
+			runEquipmentHud ??= new RunEquipmentHud();
+			if (runEquipmentHud.parent == null)
+				UIRoot.Instance.HudLayer.Add(runEquipmentHud);
+			runEquipmentHud.Refresh(loadout.Acquired, dungeonManager.RunEquipmentSlotCount);
 		}
 
 		private static CanvasGroup EnsureGroup(GameObject target)
@@ -185,6 +202,7 @@ namespace WitchMendokusai
 			UpdateDifficulty(dungeonManager.Context.CurDifficulty);
 			UpdateTime(dungeonManager.Context.DungeonCurTime);
 			UpdateNextEvent();
+			UpdateRunEquipment();
 			questGrid.UpdateUI();
 		}
 	}

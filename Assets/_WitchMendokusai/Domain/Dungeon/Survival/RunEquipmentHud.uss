@@ -1,0 +1,27 @@
+/* 랜덤 모드 장비 칸. 색은 핫바와 같은 값 */
+.wm-run-equipment {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    translate: 0 -50%;
+    flex-direction: column;
+    background-color: rgba(20, 20, 24, 0.85);
+    border-color: rgba(255, 255, 255, 0.35);
+    border-width: 1px;
+    padding: 4px;
+}
+
+.wm-run-equipment__slot {
+    width: 48px;
+    height: 48px;
+    margin: 2px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+    border-width: 1px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-run-equipment__slot--filled {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.6);
+}
