@@ -55,9 +55,9 @@ namespace WitchMendokusai
 		private void ResetRunChoices()
 		{
 			SurvivalRunRules rules = RunRules;
-			RerollsLeft = rules.RerollCharges;
-			SkipsLeft = rules.SkipCharges;
-			BansLeft = rules.BanCharges;
+			RerollsLeft = RunChoiceRules.StartCharges(rules.RerollCharges, UpgradeData.BonusOf(UpgradeType.RerollCharge));
+			SkipsLeft = RunChoiceRules.StartCharges(rules.SkipCharges, UpgradeData.BonusOf(UpgradeType.SkipCharge));
+			BansLeft = RunChoiceRules.StartCharges(rules.BanCharges, UpgradeData.BonusOf(UpgradeType.BanCharge));
 			bannedCardIds.Clear();
 			pendingChestCount = 0;
 			PublishCharges();

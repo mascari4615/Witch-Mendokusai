@@ -18,7 +18,8 @@ namespace WitchMendokusai
 		Attack = 0,
 		Survival = 1,
 		MoveAndPickup = 2,
-		Reward = 3
+		Reward = 3,
+		Choice = 4
 	}
 
 	public enum SurvivalTerm

@@ -22,7 +22,10 @@ namespace WitchMendokusai
 		GoldBonus,
 		InvincibilityTime,
 		Evasion,
-		Revive
+		Revive,
+		RerollCharge = 16,
+		SkipCharge = 17,
+		BanCharge = 18
 	}
 
 	public enum UpgradeFailReason
@@ -62,6 +65,8 @@ namespace WitchMendokusai
 
 		// 스탯 칸 없는 행운의 배율, 희귀 카드 가중치와 회복, 자석 획득 확률에 곱함
 		public static float LuckMultiplier => 1f + (float)Get<UpgradeData>((int)UpgradeType.Luck).TotalValue / UnitStat.PERCENT;
+
+		public static int BonusOf(UpgradeType type) => Get<UpgradeData>((int)type).TotalValue;
 
 		public int TotalValue
 		{

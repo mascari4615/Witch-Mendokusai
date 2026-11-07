@@ -46,6 +46,9 @@ MonoBehaviour:
   - Category: 3
     DisplayName: "\uBCF4\uC0C1"
     Main: {r: 0.8784314, g: 0.6039216, b: 0.18039216, a: 1}
+  - Category: 4
+    DisplayName: "\uc120\ud0dd\uc9c0"
+    Main: {r: 0.654902, g: 0.5372549, b: 0.8745098, a: 1}
   <DifficultyColors>k__BackingField:
   - {r: 0.5411765, g: 0.7607843, b: 0.32156864, a: 1}
   - {r: 0.8784314, g: 0.6039216, b: 0.18039216, a: 1}
