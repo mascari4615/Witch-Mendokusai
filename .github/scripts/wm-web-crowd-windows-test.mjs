@@ -61,6 +61,17 @@ const CROWD = Number(process.env.WM_CROWD || 40);
 
 const WATCH_SECONDS = 15;
 
+/** 봇 왕복. 틱당 0.15m, 편도 2초라 관찰 구간마다 움직임 문턱(0.5m)을 넘는다. */
+const MILL_TICK_MS = 100;
+const MILL_STEP = 0.15;
+const MILL_LEG_TICKS = 20;
+
+/** 이 거리 넘게 벗어나야 그 구간에 움직였다고 본다. */
+const LEAST_MOVE_METERS = 0.5;
+
+/** 창의 인형 자리를 표본으로 읽는 간격. 판 간격보다 조금 길어도 왕복 2초를 놓치지 않는다. */
+const SAMPLE_MS = 200;
+
 /**
  * 무리가 무리로 보이려면 최소 이만큼.
  * [문턱-사유] (c) 제품 상수 — 세계가 한 창에 보여 주기로 한 수(48)의 넉넉한 아래쪽 (crowd-smoke 와 같은 바닥).
@@ -170,12 +181,16 @@ await wait(4000);
 }
 
 // 광장은 계속 움직인다 — 가만히 선 무리는 「바뀐 것만」 규칙 때문에 회선을 거의 안 쓴다(부하가 아니다).
+// 무작위 걸음은 끝점이 제자리 근처라 움직임 판정이 표본 운. 왕복은 결정적, 부하 동일
+let millTick = 0;
 const milling = setInterval(() => {
-	for (const socket of crowd) {
-		if (socket.readyState !== 1) continue;
-		socket.send(JSON.stringify({ type: 'move', x: Math.random() < 0.5 ? 0.15 : -0.15, z: 0 }));
-	}
-}, 100);
+	millTick += 1;
+	crowd.forEach((socket, index) => {
+		if (socket.readyState !== 1) return;
+		const heading = Math.floor((millTick + index) / MILL_LEG_TICKS) % 2 === 0 ? MILL_STEP : -MILL_STEP;
+		socket.send(JSON.stringify({ type: 'move', x: heading, z: 0 }));
+	});
+}, MILL_TICK_MS);
 
 const badLine = openBadLine({
 	listenPort: linePort, targetPort: worldPort,
@@ -206,22 +221,44 @@ for (let i = 0; i < WINDOWS; i += 1) {
 // 남들이 움직였나도 세계 좌표로 본다(그리기 보간이 아니라 세계가 보낸 자리).
 for (const one of windows) {
 	if (one.paintedInMs < 0) continue;
-	await one.page.evaluate(() => {
+	await one.page.evaluate((sampleMs) => {
 		window.__plates = 0;
 		window.__wmView.socket().addEventListener('message', (event) => {
 			try {
 				if (JSON.parse(String(event.data)).type === 'world') window.__plates += 1;
 			} catch (e) { /* 딴 소식 */ }
 		});
-		window.__before = Object.fromEntries(
-			window.__wmView.dolls().map((doll) => [doll.id, { x: doll.serverX, z: doll.serverZ, mine: doll.isLocal }]));
+		// 구간마다 기준 자리에서 가장 멀어진 거리 측정. 끝점만 보면 왕복 위상이 판정 좌우
+		window.__beginWatch = () => {
+			window.__before = Object.fromEntries(
+				window.__wmView.dolls().map((doll) => [doll.id, { x: doll.serverX, z: doll.serverZ, mine: doll.isLocal, farthest: 0 }]));
+		};
+		window.__beginWatch();
+		window.__sampling = setInterval(() => {
+			for (const doll of window.__wmView.dolls()) {
+				const was = window.__before[doll.id];
+				if (was) was.farthest = Math.max(was.farthest, Math.hypot(doll.serverX - was.x, doll.serverZ - was.z));
+			}
+		}, sampleMs);
 		window.__frames = 0;
 		const count = () => { window.__frames += 1; requestAnimationFrame(count); };
 		requestAnimationFrame(count);
-	});
+	}, SAMPLE_MS);
 }
 
-await wait(WATCH_SECONDS * 1000);
+// 앞 구간에 움직인 인형만 뒤 구간 후보. 도중에 굳은 창은 뒤 구간에서 빨강
+await wait(WATCH_SECONDS * 500);
+
+for (const one of windows) {
+	if (one.paintedInMs < 0) continue;
+	await one.page.evaluate((leastMove) => {
+		window.__watchedEarly = Object.keys(window.__before);
+		window.__movedEarly = window.__watchedEarly.filter((id) => window.__before[id].farthest > leastMove);
+		window.__beginWatch();
+	}, LEAST_MOVE_METERS);
+}
+
+await wait(WATCH_SECONDS * 500);
 
 // ★ <b>나간 사람이 창마다 사라지나</b> (TASK-WM-346) — 「유령 20초」의 자리다.
 //   굶는 창은 「그 사람 나갔다」가 실린 판을 못 받는다(작은 한 장에는 그 목록이 없다).
@@ -261,15 +298,18 @@ const health = await fetch(`http://127.0.0.1:${worldPort}/health`, { headers: { 
 const seen = [];
 for (const one of windows) {
 	if (one.paintedInMs < 0) continue;
-	seen.push(await one.page.evaluate(() => {
+	seen.push(await one.page.evaluate((leastMove) => {
+		clearInterval(window.__sampling);
 		const before = window.__before || {};
+		const watchedEarly = new Set(window.__watchedEarly || []);
+		const movedEarly = new Set(window.__movedEarly || []);
 		let movedOthers = 0;
 		let watched = 0;
 		for (const doll of window.__wmView.dolls()) {
 			const was = before[doll.id];
-			if (!was || was.mine) continue;
+			if (!was || was.mine || watchedEarly.has(String(doll.id)) === false) continue;
 			watched += 1;
-			if (Math.hypot(doll.serverX - was.x, doll.serverZ - was.z) > 0.5) movedOthers += 1;
+			if (movedEarly.has(String(doll.id)) && was.farthest > leastMove) movedOthers += 1;
 		}
 
 		return {
@@ -281,7 +321,7 @@ for (const one of windows) {
 			watched,
 			movedOthers,
 		};
-	}));
+	}, LEAST_MOVE_METERS));
 }
 
 clearInterval(milling);
