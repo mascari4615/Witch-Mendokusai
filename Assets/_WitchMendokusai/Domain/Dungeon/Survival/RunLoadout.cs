@@ -64,7 +64,7 @@ namespace WitchMendokusai
 			List<int> eligibleIds = new();
 			ForEach<ItemData>(itemData =>
 			{
-				if (itemData is EquipmentData equipment && equipment.EquipmentType == EquipmentType.Default && equipment.EffectCards.Any(card => card != null))
+				if (itemData is EquipmentData equipment && equipment.IsRunOfferType && equipment.EffectCards.Any(card => card != null))
 					eligibleIds.Add(equipment.ID);
 			});
 

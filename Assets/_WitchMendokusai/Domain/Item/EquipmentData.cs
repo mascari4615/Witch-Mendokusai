@@ -12,7 +12,10 @@ namespace WitchMendokusai
 		FishingRod,
 
 		// 마도 괭이 (TASK-WM-410) — 땅을 가는 손. 등급이 오르면 같은 밭을 덜 지치고 빨리 판다.
-		Hoe
+		Hoe,
+
+		// 공격 오브젝트가 없는 보조 장비 (커피, 작은 망치 등). 채집 도구와 달리 무작위 장비 모드 후보
+		Tool = 5
 	}
 
 	[CreateAssetMenu(fileName = nameof(EquipmentData), menuName = "WM/Variable/" + nameof(EquipmentData))]
@@ -28,5 +31,7 @@ namespace WitchMendokusai
 
 		[Tooltip("이 도구로 하는 행동의 대가 배율 (TASK-WM-410). 1 = 맨손과 같음, 0.6 = 시간·기운 60%. 씨앗 같은 자원은 안 줄어든다.")]
 		[PropertyOrder(24)][field: SerializeField, Min(0.05f)] public float ActCostScale { get; private set; } = 1f;
+
+		public bool IsRunOfferType => EquipmentType == EquipmentType.Default || EquipmentType == EquipmentType.Tool;
 	}
 }

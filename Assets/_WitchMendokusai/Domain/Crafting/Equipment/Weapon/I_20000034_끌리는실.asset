@@ -32,6 +32,6 @@ MonoBehaviour:
     ArithmeticOperator: 1
     Value: 2
   <Object>k__BackingField: {fileID: 7050511653448900852, guid: 33450ca970de4c9408fb64e1c94aa2af, type: 3}
-  <EquipmentType>k__BackingField: 0
+  <EquipmentType>k__BackingField: 5
   <UIKind>k__BackingField: 1
   <ActCostScale>k__BackingField: 1

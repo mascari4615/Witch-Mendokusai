@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 434a55e845928a541b5a736c21266c1b, type: 3}
-  m_Name: "I_20000900_시험괝이"
+  m_Name: "I_20000900_시험괭이"
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 20000900
-  <Name>k__BackingField: "시험괝이"
-  <Description>k__BackingField: "검증용 마도 괝이."
+  <Name>k__BackingField: "시험괭이"
+  <Description>k__BackingField: "검증용 마도 괭이."
   <Sprite>k__BackingField: {fileID: 0}
   <Sprites>k__BackingField: []
   <Grade>k__BackingField: 0
