@@ -71,6 +71,13 @@ namespace WitchMendokusai
 			ApplyNavigation();
 		}
 
+		// 전체 화면 패널에서는 PopText가 지워져서 제목 자리에 표시
+		public void ShowBanDenied(string text)
+		{
+			if (string.IsNullOrEmpty(text) == false)
+				title.text = text;
+		}
+
 		public void ExitBanMode()
 		{
 			if (IsBanMode == false)

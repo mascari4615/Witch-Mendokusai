@@ -47,7 +47,11 @@ namespace WitchMendokusai
 				cardSelectButtons[i].SetClickAction((slot) =>
 				{
 					if (actions.IsBanMode)
-						cardManager.BanCard(slot.DataSO as CardData);
+					{
+						CardData target = slot.DataSO as CardData;
+						if (cardManager.BanCard(target) == false)
+							actions.ShowBanDenied(cardManager.BanDeniedText(target));
+					}
 					else
 						cardManager.SelectCard(slot.DataSO as CardData);
 				});

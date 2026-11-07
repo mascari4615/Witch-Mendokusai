@@ -49,6 +49,7 @@ namespace WitchMendokusai
 		public bool CanReroll => CurPanelType == CardPanelType.SelectCard && RerollsLeft > 0 && AvailableCards(curDeckIndex).Count > offeredCards.Count;
 		public bool CanSkip => (CurPanelType == CardPanelType.SelectDeck || CurPanelType == CardPanelType.SelectCard) && SkipsLeft > 0;
 		public bool CanBan(CardData card) => CurPanelType == CardPanelType.SelectCard && BansLeft > 0 && card != null && offeredCards.Contains(card) && IsTreeRoot(card) == false;
+		public string BanDeniedText(CardData card) => card != null && IsTreeRoot(card) ? RunRules.BanRootDeniedText : null;
 		private bool IsTreeRoot(CardData card) => deckTrees.Any(tree => tree != null && tree.IsRoot(card));
 		public bool IsCardBanned(CardData card) => card != null && bannedCardIds.Contains(card.ID);
 
@@ -107,11 +108,7 @@ namespace WitchMendokusai
 		public bool BanCard(CardData card)
 		{
 			if (CanBan(card) == false)
-			{
-				if (card != null && IsTreeRoot(card))
-					UIManager.PopText(RunRules.BanRootDeniedText, TextType.Warning);
 				return false;
-			}
 
 			BansLeft--;
 			bannedCardIds.Add(card.ID);
