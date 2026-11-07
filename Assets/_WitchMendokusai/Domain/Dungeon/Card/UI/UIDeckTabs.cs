@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
-	// 카드 선택 오른쪽 패널. 덱 전체 탭과 선택 장비의 스킬 트리 탭 (트리는 기존 UIDeck)
+	// 카드 선택 오른쪽 패널. 덱 전체 탭과 선택 장비의 스킬 트리 탭
 	public class UIDeckTabs : MonoBehaviour
 	{
 		[SerializeField] private Button deckTabButton;
@@ -21,6 +21,7 @@ namespace WitchMendokusai
 		[SerializeField] private TextMeshProUGUI infoName;
 		[SerializeField] private TextMeshProUGUI infoText;
 		[SerializeField] private GameObject treeEmptyNotice;
+		[SerializeField] private UISkillTreeTab skillTreeTab;
 		[SerializeField] private int compactRowThreshold = 3;
 		[SerializeField] private float normalRowHeight = 96f;
 		[SerializeField] private float compactRowHeight = 76f;
@@ -45,7 +46,7 @@ namespace WitchMendokusai
 			SetTab(true);
 		}
 
-		public void SetOverview(IReadOnlyList<EquipmentData> equipments, IReadOnlyList<CardData> selectedCards)
+		public void SetOverview(IReadOnlyList<EquipmentData> equipments, IReadOnlyList<CardData> selectedCards, SkillTreeCatalog skillTrees)
 		{
 			Init();
 			foreach (GameObject row in rows)
@@ -65,7 +66,7 @@ namespace WitchMendokusai
 				float cell = isCompact ? compactCell : normalCell;
 				list.GetComponent<GridLayoutGroup>().cellSize = new Vector2(cell, cell);
 				UIMiniCard template = list.GetChild(0).GetComponent<UIMiniCard>();
-				foreach (CardData card in equipment.EffectCards.Where(item => item != null).GroupBy(item => item.ID).Select(group => group.First()))
+				foreach (CardData card in skillTrees.CardsFor(equipment).Where(item => item != null).GroupBy(item => item.ID).Select(group => group.First()))
 				{
 					UIMiniCard mini = Instantiate(template, list);
 					mini.gameObject.SetActive(true);
@@ -94,17 +95,25 @@ namespace WitchMendokusai
 
 		private void ApplyNavigation()
 		{
-			Selectable firstTreeSlot = isDeckTab ? null : treeRoot.GetComponentInChildren<Selectable>();
+			Selectable treeFocus = isDeckTab == false && skillTreeTab.IsInteractable() ? skillTreeTab : null;
 			deckTabButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = cardNeighbor, selectOnRight = treeTabButton };
-			treeTabButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = deckTabButton, selectOnDown = firstTreeSlot };
+			treeTabButton.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnLeft = deckTabButton, selectOnDown = treeFocus };
+			skillTreeTab.SetNeighbors(treeTabButton, cardNeighbor);
 		}
 
-		public void SetTreeAvailable(bool isAvailable) => treeEmptyNotice.SetActive(isAvailable == false);
+		public void SetSkillTree(SkillTree tree, EquipmentData equipment, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> offeredCards)
+		{
+			Init();
+			treeEmptyNotice.SetActive(tree == null);
+			skillTreeTab.Show(tree, equipment, selectedCards, offeredCards);
+			ApplyNavigation();
+		}
 
 		public void ShowInfo(CardData card, string description)
 		{
 			infoName.text = card.Name;
 			infoText.text = description;
+			skillTreeTab.Preview(card);
 		}
 
 		private void SetTab(bool showDeck)

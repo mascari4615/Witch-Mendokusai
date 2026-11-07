@@ -66,7 +66,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void SetDeckSelectButtons(List<EquipmentData> equipmentList, IReadOnlyList<CardData> selectedCards, ICollection<EquipmentData> newEquipments)
+		public void SetDeckSelectButtons(List<EquipmentData> equipmentList, IReadOnlyList<CardData> selectedCards, ICollection<EquipmentData> newEquipments, SkillTreeCatalog skillTrees)
 		{
 			for (int i = 0; i < deckSelectButtons.Count; i++)
 			{
@@ -76,7 +76,7 @@ namespace WitchMendokusai
 				{
 					deckSelectButtons[i].SetSlot(equipmentList[i]);
 					deckSelectButtons[i].UpdateUI();
-					deckSelectButtons[i].GetComponent<UIDeckChoiceView>().Set(equipmentList[i], selectedCards, newEquipments.Contains(equipmentList[i]));
+					deckSelectButtons[i].GetComponent<UIDeckChoiceView>().Set(equipmentList[i], skillTrees.CardsFor(equipmentList[i]), selectedCards, newEquipments.Contains(equipmentList[i]));
 				}
 				else
 				{
