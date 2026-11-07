@@ -11,6 +11,23 @@ namespace WitchMendokusai
 		/// 대괄호가 없으면 조건 없음. 있는데 못 읽으면 **오류로 남기고 조건 없음으로 둔다** —
 		/// 조용히 잠가 버리면 「왜 이 선택지가 안 뜨지」를 영영 못 찾는다.
 		/// </summary>
+		// 라벨 끝 `{사유}` 분리. 없으면 null
+		private static string ReadLockReason(ref string label)
+		{
+			if (label.EndsWith("}", StringComparison.Ordinal) == false)
+			{
+				return null;
+			}
+			int open = label.LastIndexOf('{');
+			if (open < 0)
+			{
+				return null;
+			}
+			string reason = label.Substring(open + 1, label.Length - open - 2).Trim();
+			label = label.Substring(0, open).Trim();
+			return reason.Length == 0 ? null : reason;
+		}
+
 		private static DialogueScriptCondition ReadBracketCondition(ParsedDialogueScript parsed, ref string label, int lineNumber)
 		{
 			int open = label.LastIndexOf('[');

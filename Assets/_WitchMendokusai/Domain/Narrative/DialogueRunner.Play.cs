@@ -67,6 +67,7 @@ namespace WitchMendokusai
 			playback.OnChoiceSelected += HandleChoiceSelected;
 			playback.OnStepChanged += HandleStepChanged;
 			playback.OnFinished += HandlePlaybackFinished;
+			BeginStage(playback);
 
 			playback.Begin();
 		}
@@ -132,6 +133,10 @@ namespace WitchMendokusai
 		/// </summary>
 		public int Skip() => playback == null ? 0 : playback.Skip();
 
+		// 표시 어댑터의 넘김 입력. 선택지와 대기는 재생기가 거름
+		public void AdvanceLine() => playback?.Advance();
+		public bool CanAdvanceLine => playback != null && playback.IsPlaying && playback.Current.Kind == DialogueStepKind.Speak;
+
 		/// <summary>바깥 사건 통지 — 사건 대기 노드를 푼다(퀘스트 완료 등).</summary>
 		public void NotifyDialogueEvent(string eventId) => playback?.NotifyEvent(eventId);
 
@@ -150,6 +155,7 @@ namespace WitchMendokusai
 			{
 				History.MarkCompleted(CurrentDialogueId);
 			}
+			FinishStage();
 			OnDialogueFinished();
 
 			// 지금 막 끝난 재생을 정리한 *뒤* 다음 것을 건다 — 안 그러면 「재생 중」으로 보여 또 줄을 선다.
@@ -179,6 +185,7 @@ namespace WitchMendokusai
 				return;
 			}
 			stopping.Stop();
+			FinishStage();
 			OnDialogueFinished();
 		}
 

@@ -23,7 +23,7 @@ namespace WitchMendokusai
 	///
 	/// TASK-WM-078 γ P2-2 (2026-05-13) 부터 SceneLifetimeScope.RegisterComponentOnNewGameObject 가 spawn (UIManager AddComponent 폐기).
 	/// </summary>
-	public partial class DialogueRunner : MonoBehaviour
+	public partial class DialogueRunner : MonoBehaviour, IDialogueStageControls
 	{
 		public static DialogueRunner Instance { get; private set; }
 

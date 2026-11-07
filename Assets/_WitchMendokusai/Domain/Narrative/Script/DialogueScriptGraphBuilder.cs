@@ -98,12 +98,18 @@ namespace WitchMendokusai
 		/// </summary>
 		private static string FindPromptFor(DialogueScriptSection section, int choiceIndex)
 		{
-			if (choiceIndex <= 0)
+			// 무대 신호는 안 보이는 줄이라 건너뜀
+			int previousIndex = choiceIndex - 1;
+			while (previousIndex >= 0 && section.Entries[previousIndex].Kind == DialogueScriptEntryKind.Stage)
+			{
+				previousIndex--;
+			}
+			if (previousIndex < 0)
 			{
 				return null;
 			}
 
-			DialogueScriptEntry previous = section.Entries[choiceIndex - 1];
+			DialogueScriptEntry previous = section.Entries[previousIndex];
 			if (previous.Kind != DialogueScriptEntryKind.Speak)
 			{
 				return null;
@@ -123,7 +129,7 @@ namespace WitchMendokusai
 					for (int i = 0; i < entry.Choices.Count; i++)
 					{
 						choiceNode.Options.Add(new DialogueChoiceOption(
-							entry.Choices[i].Label, CreateCriteria(entry.Choices[i].Condition)));
+							entry.Choices[i].Label, CreateCriteria(entry.Choices[i].Condition), entry.Choices[i].LockReason));
 					}
 					return choiceNode;
 
@@ -132,6 +138,9 @@ namespace WitchMendokusai
 
 				case DialogueScriptEntryKind.Effect:
 					return new DialogueEffectNode { EffectData = new List<EffectInfoData>(entry.Effects) };
+
+				case DialogueScriptEntryKind.Stage:
+					return new DialogueStageNode { Cues = new List<DialogueStageCue> { entry.Cue } };
 
 				case DialogueScriptEntryKind.WaitTime:
 					return new DialogueWaitNode { Kind = DialogueWaitKind.Time, Seconds = entry.Seconds };
@@ -162,6 +171,10 @@ namespace WitchMendokusai
 
 				case DialogueScriptEntryKind.Effect:
 					Connect(graph, node, DialogueEffectNode.PORT_NEXT, following);
+					return;
+
+				case DialogueScriptEntryKind.Stage:
+					Connect(graph, node, DialogueStageNode.PORT_NEXT, following);
 					return;
 
 				case DialogueScriptEntryKind.Goto:
@@ -285,6 +298,10 @@ namespace WitchMendokusai
 			if (node is DialogueChoiceNode)
 			{
 				return DialogueChoiceNode.PORT_IN;
+			}
+			if (node is DialogueStageNode)
+			{
+				return DialogueStageNode.PORT_IN;
 			}
 			return DialogueWaitNode.PORT_IN;
 		}

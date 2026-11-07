@@ -24,6 +24,8 @@ namespace WitchMendokusai
 	/// <item><c>&gt; !아이템 1001 3</c> → 실제로 일으킨다(아이템·카드·퀘스트추가·퀘스트열기·레시피).</item>
 	/// <item><c>&gt; 기다림 2초</c> / <c>&gt; wait 2s</c> → 시간 대기.</item>
 	/// <item><c>&gt; 기다림 사건 boss-defeated</c> / <c>&gt; wait event boss-defeated</c> → 사건 대기.</item>
+	/// <item><c>&gt; @등장 욘 오른쪽 슬라이드</c> → 무대 신호. 보이는 것만 바꿈, 효과 `!`와 분리.</item>
+	/// <item><c>&gt; - 라벨 [조건] {사유} -&gt; 장면</c> → 조건이 안 맞으면 숨기지 않고 사유와 함께 잠금.</item>
 	/// <item><c>&gt; "우리는 진짜야?"</c> → 이름 없이 따옴표만 있으면 **나레이션**(말하는 이 없음).</item>
 	/// <item>그 밖의 줄(산문·지시문·문서 인용) → **무시하고 세어만 둔다**(<see cref="ParsedDialogueScript.SkippedQuoteLines"/>).
 	///   실측(2026-08-08): 원고의 인용줄 절반은 대사가 아니라 경구·메모였다. 그걸 오류라고 하면
@@ -91,7 +93,12 @@ namespace WitchMendokusai
 					}
 
 					string labelPart = choiceBody.Substring(0, arrow).Trim();
+					string lockReason = ReadLockReason(ref labelPart);
 					DialogueScriptCondition condition = ReadBracketCondition(parsed, ref labelPart, lineNumber);
+					if (lockReason != null && condition.HasCondition == false)
+					{
+						parsed.Issues.Add(new DialogueScriptIssue(lineNumber, $"잠금 사유에 조건이 없다: \"{labelPart}\""));
+					}
 
 					pendingChoices ??= new List<DialogueScriptChoice>();
 					if (pendingChoices.Count == 0)
@@ -101,7 +108,8 @@ namespace WitchMendokusai
 					pendingChoices.Add(new DialogueScriptChoice(
 						StripQuotes(labelPart),
 						choiceBody.Substring(arrow + GOTO_ARROW.Length).Trim(),
-						condition));
+						condition,
+						lockReason));
 					continue;
 				}
 
@@ -133,6 +141,20 @@ namespace WitchMendokusai
 						pendingEffectLine = lineNumber;
 					}
 					pendingEffects.Add(effectData);
+					continue;
+				}
+
+				// `@등장 욘 오른쪽` 무대 신호. 게임 상태 불변
+				if (body.StartsWith("@", StringComparison.Ordinal))
+				{
+					if (DialogueStageCueText.TryRead(body.Substring(1).Trim(), out DialogueStageCue cue, out string cueProblem))
+					{
+						current.Entries.Add(DialogueScriptEntry.Stage(lineNumber, cue));
+					}
+					else
+					{
+						parsed.Issues.Add(new DialogueScriptIssue(lineNumber, cueProblem));
+					}
 					continue;
 				}
 

@@ -14,6 +14,7 @@ namespace WitchMendokusai
 		Effect = 6,
 		WaitTime = 3,
 		WaitEvent = 4,
+		Stage = 7,
 	}
 
 	/// <summary>대본에 적을 수 있는 조건의 종류. 지금은 「그 대화를 봤나」 하나 — 늘릴 자리다.</summary>
@@ -76,11 +77,15 @@ namespace WitchMendokusai
 		public string TargetSection { get; }
 		public DialogueScriptCondition Condition { get; }
 
-		public DialogueScriptChoice(string label, string targetSection, DialogueScriptCondition condition = default)
+		// 조건이 안 맞을 때 잠근 채 보여 줄 사유. 없으면 숨김
+		public string LockReason { get; }
+
+		public DialogueScriptChoice(string label, string targetSection, DialogueScriptCondition condition = default, string lockReason = null)
 		{
 			Label = label;
 			TargetSection = targetSection;
 			Condition = condition;
+			LockReason = lockReason;
 		}
 	}
 
@@ -105,6 +110,8 @@ namespace WitchMendokusai
 		/// <summary>조건부 건너뛰기의 조건. 다른 종류에서는 비어 있다.</summary>
 		public DialogueScriptCondition Condition { get; private set; }
 
+		public DialogueStageCue Cue { get; private set; }
+
 		private DialogueScriptEntry(DialogueScriptEntryKind kind, int lineNumber, string speaker, string text,
 			string targetSection, float seconds, string eventId, IReadOnlyList<DialogueScriptChoice> choices)
 		{
@@ -128,6 +135,8 @@ namespace WitchMendokusai
 			new(DialogueScriptEntryKind.Effect, lineNumber, null, null, null, 0f, null, null) { Effects = effects };
 		public static DialogueScriptEntry ConditionalGoto(int lineNumber, string targetSection, DialogueScriptCondition condition) =>
 			new(DialogueScriptEntryKind.ConditionalGoto, lineNumber, null, null, targetSection, 0f, null, null) { Condition = condition };
+		public static DialogueScriptEntry Stage(int lineNumber, DialogueStageCue cue) =>
+			new(DialogueScriptEntryKind.Stage, lineNumber, null, null, null, 0f, null, null) { Cue = cue };
 		public static DialogueScriptEntry WaitTime(int lineNumber, float seconds) =>
 			new(DialogueScriptEntryKind.WaitTime, lineNumber, null, null, null, seconds, null, null);
 		public static DialogueScriptEntry WaitEvent(int lineNumber, string eventId) =>

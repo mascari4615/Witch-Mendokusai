@@ -35,6 +35,12 @@ namespace WitchMendokusai
 		/// <summary>스텝이 바뀔 때마다 — 소비자가 말풍선/선택지 UI 를 갱신하는 자리.</summary>
 		public event Action<DialogueStep> OnStepChanged = delegate { };
 
+		// 무대 신호가 흐름에서 지나갈 때. 효과와 같은 자리에서 순서 유지
+		public event Action<IReadOnlyList<DialogueStageCue>> OnStageCues = delegate { };
+
+		// 켜면 대사가 시간으로 안 넘어감. 미연시 창처럼 입력으로 넘기는 표시 방식용
+		public bool ManualSpeakAdvance { get; set; }
+
 		/// <summary>대화가 끝났을 때 한 번.</summary>
 		public event Action OnFinished = delegate { };
 
@@ -209,7 +215,7 @@ namespace WitchMendokusai
 				return true;
 			}
 
-			if (Current.Kind != DialogueStepKind.Speak)
+			if (Current.Kind != DialogueStepKind.Speak || ManualSpeakAdvance)
 			{
 				return false;
 			}
@@ -333,7 +339,7 @@ namespace WitchMendokusai
 		private DialogueStep ApplyEffectsUntilVisibleStep(DialogueStep step)
 		{
 			int hopBudget = nodeCount;
-			while (step.Kind == DialogueStepKind.Effect)
+			while (step.Kind == DialogueStepKind.Effect || step.Kind == DialogueStepKind.Stage)
 			{
 				if (hopBudget <= 0)
 				{
@@ -341,6 +347,13 @@ namespace WitchMendokusai
 						$"DialogueEffectNode chain did not terminate within {nodeCount} hops — effect nodes form a loop.");
 				}
 				hopBudget--;
+
+				if (step.Kind == DialogueStepKind.Stage)
+				{
+					OnStageCues(step.StageCues);
+					step = traversal.Next();
+					continue;
+				}
 
 				if (effectSink == null)
 				{

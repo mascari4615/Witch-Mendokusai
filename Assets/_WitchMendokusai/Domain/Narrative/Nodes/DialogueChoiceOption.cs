@@ -19,17 +19,23 @@ namespace WitchMendokusai
 		[SerializeField] private string label;
 		[SerializeReference] private Criteria condition;
 
+		[SerializeField]
+		[Tooltip("조건이 안 맞을 때 숨기지 않고 잠근 채 보여 줄 사유. 비우면 숨김.")]
+		private string lockReason;
+
 		public string Label { get => label; set => label = value; }
 		public Criteria Condition { get => condition; set => condition = value; }
+		public string LockReason { get => lockReason; set => lockReason = value; }
 
 		public DialogueChoiceOption()
 		{
 		}
 
-		public DialogueChoiceOption(string label, Criteria condition = null)
+		public DialogueChoiceOption(string label, Criteria condition = null, string lockReason = null)
 		{
 			this.label = label;
 			this.condition = condition;
+			this.lockReason = lockReason;
 		}
 
 		/// <summary>조건이 없거나 조건이 맞으면 보인다.</summary>

@@ -19,21 +19,31 @@ namespace WitchMendokusai
 				Transcript.Record(step.SpeakLine);
 				lastSpokenName = step.SpeakLine?.ResolveSpeakerName();
 				lastSpokenText = step.SpeakLine?.Text;
-				ShowBubble(step.SpeakLine);
+				ApplyStageLine(step.SpeakLine);
 				return;
 			}
 			if (step.Kind == DialogueStepKind.Choice)
 			{
 				OnChoicesPresented(step.Options);
-				if (HasChoiceScreen)
+				string prompt = string.IsNullOrEmpty(step.Prompt) ? lastSpokenText : step.Prompt;
+				if (StageHost != null)
 				{
-					string prompt = string.IsNullOrEmpty(step.Prompt) ? lastSpokenText : step.Prompt;
+					StageHost.PresentChoices(stagePlan.Flush(), lastSpokenName, prompt, step.Rows, index => SubmitChoice(index));
+				}
+				else if (HasChatPanel)
+				{
 					uiManager.Chat.PresentChoices(lastSpokenName, prompt, step.Options, index => SubmitChoice(index));
 				}
+				return;
+			}
+			if (step.Kind == DialogueStepKind.Wait)
+			{
+				ApplyPendingStageCues();
 			}
 		}
 
-		private bool HasChoiceScreen => uiManager != null && uiManager.Chat != null;
+		private bool HasChatPanel => uiManager != null && uiManager.Chat != null;
+		private bool HasChoiceScreen => StageHost != null || HasChatPanel;
 
 		private void ShowBubble(DialogueLine line)
 		{
@@ -72,6 +82,11 @@ namespace WitchMendokusai
 				&& DialogueSpeakerBridge.TryGetAnchor(speakerName, out Transform speakerAnchor))
 			{
 				return speakerAnchor;
+			}
+			if (string.IsNullOrEmpty(speakerName) == false && StageHost != null
+				&& StageHost.TryResolveWorldAnchor(speakerName, out Transform worldAnchor))
+			{
+				return worldAnchor;
 			}
 			return bubbleTarget;
 		}

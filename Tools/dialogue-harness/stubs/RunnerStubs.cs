@@ -115,9 +115,17 @@ namespace WitchMendokusai
 		}
 	}
 
+	public sealed class UIChat
+	{
+		public void PresentChoices(string speakerName, string prompt, IReadOnlyList<string> labels, System.Action<int> submit)
+		{
+		}
+	}
+
 	public sealed class UIManager
 	{
 		public SpeechBubble SpeechBubble { get; }
+		public UIChat Chat { get; }
 	}
 
 	public sealed class Inventory

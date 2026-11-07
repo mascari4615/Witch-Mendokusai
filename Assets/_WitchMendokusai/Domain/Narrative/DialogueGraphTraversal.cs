@@ -11,6 +11,7 @@ namespace WitchMendokusai
 		Wait,
 		Effect,
 		End,
+		Stage,
 	}
 
 	/// <summary>
@@ -33,11 +34,18 @@ namespace WitchMendokusai
 		public string WaitEventId { get; }
 		public IReadOnlyList<EffectInfo> Effects { get; }
 		public IReadOnlyList<EffectInfoData> EffectData { get; }
+		public IReadOnlyList<DialogueStageCue> StageCues { get; }
+
+		// 잠긴 칸까지 포함한 화면용 목록. Options 순번과 SubmitIndex로 연결
+		public IReadOnlyList<DialogueChoiceRow> Rows { get; }
 
 		private DialogueStep(DialogueStepKind kind, DialogueLine speakLine, string prompt, IReadOnlyList<string> options,
 			DialogueWaitKind waitKind, float waitSeconds, string waitEventId, IReadOnlyList<EffectInfo> effects = null,
-			IReadOnlyList<EffectInfoData> effectData = null)
+			IReadOnlyList<EffectInfoData> effectData = null, IReadOnlyList<DialogueStageCue> stageCues = null,
+			IReadOnlyList<DialogueChoiceRow> rows = null)
 		{
+			StageCues = stageCues;
+			Rows = rows;
 			Effects = effects;
 			EffectData = effectData;
 			Kind = kind;
@@ -53,8 +61,10 @@ namespace WitchMendokusai
 			new(DialogueStepKind.Effect, null, null, null, default, 0f, null, effects, effectData);
 		public static DialogueStep Speak(DialogueLine line) =>
 			new(DialogueStepKind.Speak, line, null, null, default, 0f, null);
-		public static DialogueStep Choice(string prompt, IReadOnlyList<string> options) =>
-			new(DialogueStepKind.Choice, null, prompt, options, default, 0f, null);
+		public static DialogueStep Choice(string prompt, IReadOnlyList<string> options, IReadOnlyList<DialogueChoiceRow> rows = null) =>
+			new(DialogueStepKind.Choice, null, prompt, options, default, 0f, null, rows: rows);
+		public static DialogueStep Stage(IReadOnlyList<DialogueStageCue> cues) =>
+			new(DialogueStepKind.Stage, null, null, null, default, 0f, null, stageCues: cues);
 		public static DialogueStep Wait(DialogueWaitKind waitKind, float waitSeconds, string waitEventId) =>
 			new(DialogueStepKind.Wait, null, null, null, waitKind, waitSeconds, waitEventId);
 		public static readonly DialogueStep End = new(DialogueStepKind.End, null, null, null, default, 0f, null);
@@ -85,6 +95,7 @@ namespace WitchMendokusai
 		// 화면에 보이는 순번 → 노드에 적힌 순번. 조건이 안 맞아 빠진 칸이 있으면 둘이 어긋나는데,
 		// 포트는 *적힌 순번* 으로 고정이라 이 표가 없으면 엉뚱한 가지로 간다.
 		private readonly List<int> visibleToAuthored = new();
+		private readonly List<DialogueChoiceRow> choiceRows = new();
 
 		public DialogueGraphTraversal(DialogueGraph graph)
 		{
@@ -167,6 +178,10 @@ namespace WitchMendokusai
 			{
 				return DialogueEffectNode.PORT_NEXT;
 			}
+			if (node is DialogueStageNode)
+			{
+				return DialogueStageNode.PORT_NEXT;
+			}
 			return null;
 		}
 
@@ -227,7 +242,7 @@ namespace WitchMendokusai
 					return DialogueStep.End;
 				}
 
-				return DialogueStep.Choice(choiceNode.Prompt, availableLabels);
+				return DialogueStep.Choice(choiceNode.Prompt, availableLabels, new List<DialogueChoiceRow>(choiceRows));
 			}
 			if (currentNode is DialogueWaitNode waitNode)
 			{
@@ -236,6 +251,10 @@ namespace WitchMendokusai
 			if (currentNode is DialogueEffectNode effectNode)
 			{
 				return DialogueStep.Effect(effectNode.Effects, effectNode.EffectData);
+			}
+			if (currentNode is DialogueStageNode stageNode)
+			{
+				return DialogueStep.Stage(stageNode.Cues);
 			}
 			return DialogueStep.End;
 		}
@@ -248,16 +267,27 @@ namespace WitchMendokusai
 		private List<string> BuildAvailableOptions(DialogueChoiceNode choiceNode)
 		{
 			visibleToAuthored.Clear();
+			choiceRows.Clear();
 			List<string> labels = new();
 
 			List<DialogueChoiceOption> options = choiceNode.Options;
 			for (int i = 0; i < options.Count; i++)
 			{
 				DialogueChoiceOption option = options[i];
-				if (option == null || option.IsAvailable() == false)
+				if (option == null)
 				{
 					continue;
 				}
+				if (option.IsAvailable() == false)
+				{
+					// 잠금 사유가 적힌 칸만 잠긴 채 표시, 나머지는 기존처럼 제외
+					if (string.IsNullOrEmpty(option.LockReason) == false)
+					{
+						choiceRows.Add(new DialogueChoiceRow(option.Label, DialogueChoiceRow.LOCKED_INDEX, option.LockReason));
+					}
+					continue;
+				}
+				choiceRows.Add(new DialogueChoiceRow(option.Label, labels.Count));
 				visibleToAuthored.Add(i);
 				labels.Add(option.Label);
 			}

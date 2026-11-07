@@ -61,6 +61,10 @@ namespace WitchMendokusai
 					DrawEffect();
 					break;
 
+				case DialogueStepKind.Stage:
+					EditorGUILayout.HelpBox(StageCueSummary(), MessageType.None);
+					break;
+
 				case DialogueStepKind.End:
 					EditorGUILayout.HelpBox("대화 끝.", MessageType.Info);
 					break;
@@ -255,10 +259,21 @@ namespace WitchMendokusai
 			return string.IsNullOrEmpty(line.Speaker.Name) ? line.Speaker.name : line.Speaker.Name;
 		}
 
+		private string StageCueSummary()
+		{
+			System.Collections.Generic.List<string> lines = new();
+			foreach (DialogueStageCue cue in step.StageCues)
+			{
+				lines.Add("@" + DialogueStageCueText.Write(cue));
+			}
+			return "무대 신호\n" + string.Join("\n", lines);
+		}
+
 		private static string KindLabel(DialogueStepKind kind)
 		{
 			switch (kind)
 			{
+				case DialogueStepKind.Stage: return "무대 신호";
 				case DialogueStepKind.Speak: return "말하기";
 				case DialogueStepKind.Choice: return "선택지";
 				case DialogueStepKind.Wait: return "대기";

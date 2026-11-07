@@ -55,6 +55,10 @@ namespace WitchMendokusai
 						DialogueScriptChoice choice = entry.Choices[i];
 						builder.Append("> - ").Append(choice.Label);
 						WriteCondition(builder, choice.Condition, true);
+						if (string.IsNullOrEmpty(choice.LockReason) == false)
+						{
+							builder.Append(" {").Append(choice.LockReason).Append('}');
+						}
 						builder.Append(" -> ").Append(choice.TargetSection).Append('\n');
 					}
 					return;
@@ -79,6 +83,10 @@ namespace WitchMendokusai
 
 				case DialogueScriptEntryKind.Effect:
 					WriteEffects(builder, entry.Effects);
+					return;
+
+				case DialogueScriptEntryKind.Stage:
+					builder.Append("> @").Append(DialogueStageCueText.Write(entry.Cue)).Append('\n');
 					return;
 			}
 		}
