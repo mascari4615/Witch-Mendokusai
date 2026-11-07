@@ -157,14 +157,16 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-/* 마름모 오른쪽 아래 빈 모서리 기준, 오른쪽으로 자람. 오른쪽 기준이면 긴 숫자(10/100)가 아이콘을 덮음 */
+/* 아이콘 아래, 마름모 아래 꼭짓점에 가운데 정렬. 옆 기준이면 촘촘한 트리에서 이웃 노드를 덮음 */
 .wm-skilltree__stack {
     position: absolute;
-    left: 78%;
-    bottom: -6%;
+    left: 0;
+    right: 0;
+    bottom: -12%;
     padding: 0;
     margin: 0;
-    font-size: 16px;
+    font-size: 14px;
+    -unity-text-align: middle-center;
     color: rgb(242, 226, 122);
     -unity-text-outline-width: 1px;
     -unity-text-outline-color: rgb(0, 0, 0);
