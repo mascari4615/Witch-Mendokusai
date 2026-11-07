@@ -46,6 +46,8 @@ namespace WitchMendokusai
 		}
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
+		// 구독한 대상에서 해제. 플레이어가 먼저 사라져도 OnDisable 이 안전
+		private UnitStat subscribedStat;
 
 		private IItemData usedEquipment;
 
@@ -58,6 +60,7 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
+			subscribedStat = PlayerStat;
 			PlayerStat.AddListener(UnitStatType.SWORD_COUNT, UpdateSword);
 			PlayerStat.AddListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSwordFromBonus);
 			PlayerStat.AddListener(UnitStatType.SWORD_DAMAGE_BONUS, UpdateDamageBonus);
@@ -72,10 +75,11 @@ namespace WitchMendokusai
 		private void OnDisable()
 		{
 			StopAllCoroutines();
-			PlayerStat.RemoveListener(UnitStatType.SWORD_COUNT, UpdateSword);
-			PlayerStat.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSwordFromBonus);
-			PlayerStat.RemoveListener(UnitStatType.SWORD_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.RemoveListener(UnitStatType.SWORD_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
+			subscribedStat?.RemoveListener(UnitStatType.SWORD_COUNT, UpdateSword);
+			subscribedStat?.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSwordFromBonus);
+			subscribedStat?.RemoveListener(UnitStatType.SWORD_DAMAGE_BONUS, UpdateDamageBonus);
+			subscribedStat?.RemoveListener(UnitStatType.SWORD_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
+			subscribedStat = null;
 		}
 
 		private void Update()

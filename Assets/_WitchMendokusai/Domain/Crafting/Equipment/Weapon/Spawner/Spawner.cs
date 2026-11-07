@@ -68,6 +68,8 @@ namespace WitchMendokusai
 		}
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
+		// 구독한 대상에서 해제. 플레이어가 먼저 사라져도 OnDisable 이 안전
+		private UnitStat subscribedStat;
 
 		public float CurrentInterval
 		{
@@ -82,6 +84,7 @@ namespace WitchMendokusai
 		{
 			if (damageBonusStatType != UnitStatType.NONE)
 			{
+				subscribedStat = PlayerStat;
 				PlayerStat.AddListener(damageBonusStatType, UpdateDamageBonus);
 				UpdateDamageBonus(PlayerStat[damageBonusStatType]);
 			}
@@ -94,7 +97,8 @@ namespace WitchMendokusai
 			if (spawnCoroutine != null)
 				StopCoroutine(spawnCoroutine);
 			if (damageBonusStatType != UnitStatType.NONE)
-				PlayerStat.RemoveListener(damageBonusStatType, UpdateDamageBonus);
+				subscribedStat?.RemoveListener(damageBonusStatType, UpdateDamageBonus);
+			subscribedStat = null;
 		}
 
 		private IEnumerator Loop()

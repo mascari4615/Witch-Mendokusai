@@ -31,9 +31,12 @@ namespace WitchMendokusai
 		}
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
+		// 구독한 대상에서 해제. 플레이어가 먼저 사라져도 OnDisable 이 안전
+		private UnitStat subscribedStat;
 
 		private void OnEnable()
 		{
+			subscribedStat = PlayerStat;
 			PlayerStat.AddListener(countStat, UpdateSatellite);
 			PlayerStat.AddListener(rotateSpeedBonusStat, UpdateRotationSpeed);
 			PlayerStat.AddListener(damageBonusStat, UpdateDamageBonus);
@@ -48,12 +51,13 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
-			PlayerStat.RemoveListener(countStat, UpdateSatellite);
-			PlayerStat.RemoveListener(rotateSpeedBonusStat, UpdateRotationSpeed);
-			PlayerStat.RemoveListener(damageBonusStat, UpdateDamageBonus);
-			PlayerStat.RemoveListener(scaleBonusStat, UpdateSatelliteScale);
-			PlayerStat.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSatellite);
-			PlayerStat.RemoveListener(UnitStatType.PROJECTILE_SCALE_BONUS, UpdateSatelliteScale);
+			subscribedStat?.RemoveListener(countStat, UpdateSatellite);
+			subscribedStat?.RemoveListener(rotateSpeedBonusStat, UpdateRotationSpeed);
+			subscribedStat?.RemoveListener(damageBonusStat, UpdateDamageBonus);
+			subscribedStat?.RemoveListener(scaleBonusStat, UpdateSatelliteScale);
+			subscribedStat?.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSatellite);
+			subscribedStat?.RemoveListener(UnitStatType.PROJECTILE_SCALE_BONUS, UpdateSatelliteScale);
+			subscribedStat = null;
 		}
 
 		private void Update()

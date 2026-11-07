@@ -34,6 +34,8 @@ namespace WitchMendokusai
 		}
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
+		// 구독한 대상에서 해제. 플레이어가 먼저 사라져도 OnDisable 이 안전
+		private UnitStat subscribedStat;
 
 		private IItemData usedEquipment;
 
@@ -45,6 +47,7 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
+			subscribedStat = PlayerStat;
 			PlayerStat.AddListener(UnitStatType.TURRET_COUNT, UpdateTurret);
 			PlayerStat.AddListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateTurret);
 			PlayerStat.AddListener(UnitStatType.TURRET_DAMAGE_BONUS, UpdateDamageBonus);
@@ -62,10 +65,11 @@ namespace WitchMendokusai
 		{
 			if (loop != null)
 				StopCoroutine(loop);
-			PlayerStat.RemoveListener(UnitStatType.TURRET_COUNT, UpdateTurret);
-			PlayerStat.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateTurret);
-			PlayerStat.RemoveListener(UnitStatType.TURRET_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.RemoveListener(UnitStatType.TURRET_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
+			subscribedStat?.RemoveListener(UnitStatType.TURRET_COUNT, UpdateTurret);
+			subscribedStat?.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateTurret);
+			subscribedStat?.RemoveListener(UnitStatType.TURRET_DAMAGE_BONUS, UpdateDamageBonus);
+			subscribedStat?.RemoveListener(UnitStatType.TURRET_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
+			subscribedStat = null;
 		}
 
 		private IEnumerator Loop()
