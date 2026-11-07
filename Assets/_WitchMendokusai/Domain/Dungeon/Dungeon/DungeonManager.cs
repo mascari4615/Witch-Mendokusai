@@ -23,6 +23,7 @@ namespace WitchMendokusai
 
 		public bool IsDungeon { get; private set; }
 		public RunLoadout RunLoadout => dataManager.RunLoadout;
+		public SurvivalRunRules RunRules => resourceManager.SurvivalRunRules;
 		public int RunEquipmentSlotCount => resourceManager.SurvivalRunRules.RandomModeSlotCount;
 		public DungeonThreatEffect CurThreat { get; private set; } = DungeonThreatEffect.Identity;
 

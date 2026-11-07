@@ -35,6 +35,8 @@ namespace WitchMendokusai
 		private readonly List<SurvivalEventEntry> runEvents = new();
 		private int nextAnnounceIndex;
 		private int nextEventIndex;
+		// 생성 원 표시 중이라 아직 버퍼에 없는 적. 상한과 최소 적 수 판정에 합산
+		private int pendingSpawns;
 
 		private DungeonManager dungeonManager;
 		private PlayerProvider playerProvider;
@@ -57,6 +59,7 @@ namespace WitchMendokusai
 		{
 			// Debug.Log(nameof(InitWaves));
 			waves.Clear();
+			pendingSpawns = 0;
 
 			foreach (MonsterWave monsterWave in curDungeon.MonsterWaves)
 				waves.Add(new MonsterWaveInstance(monsterWave, 0f));
@@ -105,6 +108,8 @@ namespace WitchMendokusai
 			UpdateEvents();
 		}
 
+		private int CurrentMonsterCount => ObjectBufferManager.GetObjects(ObjectType.Monster).Count + pendingSpawns;
+
 		public SurvivalEventEntry NextEvent => nextEventIndex < runEvents.Count ? runEvents[nextEventIndex] : null;
 
 		private void UpdateEvents()
@@ -125,27 +130,31 @@ namespace WitchMendokusai
 		private void StartEvent(SurvivalEventEntry entry)
 		{
 			Vector3 center = playerProvider.Current.transform.position;
-			DungeonDifficulty difficulty = dungeonManager.Context.CurDifficulty;
 			EliteProfile profile = entry.Type == SurvivalEventType.Elite ? eventTable.Elite : null;
-			for (int i = 0; i < entry.Count; i++)
+			SurvivalRunRules rules = dungeonManager.RunRules;
+			SpawnClass spawnClass = entry.Type == SurvivalEventType.Elite ? SpawnClass.Priority : SpawnClass.Event;
+			int count = WaveDensityRules.AllowedCount(spawnClass, CurrentMonsterCount, entry.Count, rules.EnemySoftCap, rules.EnemyHardCap);
+			for (int i = 0; i < count; i++)
 			{
-				float angle = (360f / entry.Count * i + Random.Range(0f, 30f)) * Mathf.Deg2Rad;
+				float angle = (360f / count * i + Random.Range(0f, 30f)) * Mathf.Deg2Rad;
 				Vector3 position = center + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * eventTable.SwarmRadius;
 				StartCoroutine(SpawnMonsterAt(entry.Monster, position, profile));
 			}
-			if (entry.Type == SurvivalEventType.Swarm)
+			if (entry.Type == SurvivalEventType.Swarm && count > 0)
 				SurvivalFeel.Instance.OnSwarmStarted(center);
-			EventBusBridge.Publish(new SurvivalEventStartedEvent { Type = entry.Type, Monster = entry.Monster, Count = entry.Count });
+			EventBusBridge.Publish(new SurvivalEventStartedEvent { Type = entry.Type, Monster = entry.Monster, Count = count });
 		}
 
 		private IEnumerator SpawnMonsterAt(Monster monster, Vector3 position, EliteProfile eliteProfile)
 		{
+			pendingSpawns++;
 			GameObject spawnCircle = objectPoolManager.Spawn(spawnCirclePrefab);
 			spawnCircle.transform.position = position;
 			spawnCircle.SetActive(true);
 			ObjectBufferManager.AddObject(ObjectType.SpawnCircle, spawnCircle);
 
 			yield return new WaitForSeconds(spawnDelay);
+			pendingSpawns = Mathf.Max(0, pendingSpawns - 1);
 
 			GameObject monsterObject = objectPoolManager.Spawn(monster.Prefab);
 			MonsterObject monsterObjectComponent = monsterObject.GetComponent<MonsterObject>();
@@ -222,7 +231,7 @@ namespace WitchMendokusai
 			float spawnInterval = waveInstance.Data.Once ? waveInstance.Data.SpawnDelay : dungeonManager.CurThreat.ScaleSpawnDelay(waveInstance.Data.SpawnDelay);
 			if (waveInstance.SpawnT > spawnInterval)
 			{
-				StartCoroutine(SpawnMonster(waveInstance.Data.Monsters[Random.Range(0, waveInstance.Data.Monsters.Length)], spawnDelay, curDifficulty));
+				SpawnWaveTick(waveInstance.Data, curDifficulty);
 				waveInstance.SpawnT = 0;
 
 				if (waveInstance.Data.Once)
@@ -230,8 +239,29 @@ namespace WitchMendokusai
 			}
 		}
 
+		// 한 번의 생성 기회. 보스 웨이브는 상한 예외, 그 외는 최소 적 수 보충과 상한 적용
+		private void SpawnWaveTick(MonsterWave wave, DungeonDifficulty difficulty)
+		{
+			SurvivalRunRules rules = dungeonManager.RunRules;
+			int current = CurrentMonsterCount;
+			Monster first = wave.Monsters[Random.Range(0, wave.Monsters.Length)];
+			if (wave.Once || first.Type == MonsterType.Boss)
+			{
+				StartCoroutine(SpawnMonster(first, spawnDelay, difficulty));
+				return;
+			}
+
+			int count = WaveDensityRules.PeriodicCount(current, wave.MinOnScreen, rules.RefillBurstMax, rules.EnemySoftCap, rules.EnemyHardCap);
+			for (int i = 0; i < count; i++)
+			{
+				Monster monster = i == 0 ? first : wave.Monsters[Random.Range(0, wave.Monsters.Length)];
+				StartCoroutine(SpawnMonster(monster, spawnDelay, difficulty));
+			}
+		}
+
 		private IEnumerator SpawnMonster(Monster monster, float spawnDelay, DungeonDifficulty difficulty)
 		{
+			pendingSpawns++;
 			// 플레이어가 이동하는 방향 쪽으로 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
 			Vector3 randomOffset;
 			Vector3 playerPosition = playerProvider.Current.transform.position;
@@ -264,6 +294,7 @@ namespace WitchMendokusai
 			ObjectBufferManager.AddObject(ObjectType.SpawnCircle, spawnCircle);
 
 			yield return new WaitForSeconds(spawnDelay);
+			pendingSpawns = Mathf.Max(0, pendingSpawns - 1);
 
 			GameObject monsterObject = objectPoolManager.Spawn(monster.Prefab);
 			MonsterObject monsterObjectComponent = monsterObject.GetComponent<MonsterObject>();
@@ -277,6 +308,7 @@ namespace WitchMendokusai
 		{
 			Debug.Log(nameof(StopWave));
 			StopAllCoroutines();
+			pendingSpawns = 0;
 			foreach (GameObject obj in ObjectBufferManager.GetObjects(ObjectType.Monster))
 				if (obj != null && obj.TryGetComponent(out MonsterObject monster))
 					monster.UnitMovement.SetSimulationInterval(0f);

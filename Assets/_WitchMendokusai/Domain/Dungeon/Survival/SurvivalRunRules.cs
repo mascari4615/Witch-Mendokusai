@@ -41,6 +41,11 @@ namespace WitchMendokusai
 		[Header("Evolution")]
 		[Tooltip("덱에 넣지 않는 카드. 조건은 CardData.Requirements, 지급은 상자 첫 보상")] public List<CardData> EvolutionCards = new();
 
+		[Header("Wave density (provisional values)")]
+		[Min(0), Tooltip("임시값. 동시 적 수가 이 값 이상이면 주기 생성과 보충 중지. 0이면 상한 없음")] public int EnemySoftCap = 300;
+		[Min(0), Tooltip("임시값. 동시 적 수가 이 값 이상이면 무리 사건도 중지. 보스와 정예는 예외. 0이면 상한 없음")] public int EnemyHardCap = 500;
+		[Min(0), Tooltip("임시값. 최소 적 수 보충 한 번에 만들 최대 마릿수. 0이면 부족분 전부")] public int RefillBurstMax = 30;
+
 		[Header("Threat levels (provisional values)")]
 		[Tooltip("임시값. 한 줄이 한 단계. 줄 추가로 단계 추가, 단계 0은 줄 없음")] public List<DungeonThreatLevel> ThreatLevels = new();
 	}
