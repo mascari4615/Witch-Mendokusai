@@ -29,7 +29,7 @@ namespace WitchMendokusai
 		private DungeonDifficulty lastDifficulty;
 		[SerializeField] private TextMeshProUGUI nextEventText;
 		[SerializeField] private string eliteLabel = "다음 정예";
-		[SerializeField] private string swarmLabel = "다음 무리";
+		[SerializeField] private string swarmLabel = "다음 웨이브";
 		[SerializeField] private Color nextEventNormalColor = new(0.902f, 0.902f, 0.914f, 1f);
 		[SerializeField] private Color nextEventSoonColor = new(0.878f, 0.604f, 0.18f, 1f);
 		private MonsterSpawner monsterSpawner;

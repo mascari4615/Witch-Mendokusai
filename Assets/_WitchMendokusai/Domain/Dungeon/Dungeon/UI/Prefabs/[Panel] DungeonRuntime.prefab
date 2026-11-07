@@ -6517,7 +6517,7 @@ MonoBehaviour:
   difficultyBurst: {fileID: 3830741744714866195}
   nextEventText: {fileID: 3901050895536347033}
   eliteLabel: "\uB2E4\uC74C \uC815\uC608"
-  swarmLabel: "\uB2E4\uC74C \uBB34\uB9AC"
+  swarmLabel: "\uB2E4\uC74C \uC6E8\uC774\uBE0C"
   nextEventNormalColor: {r: 0.902, g: 0.902, b: 0.914, a: 1}
   nextEventSoonColor: {r: 0.878, g: 0.604, b: 0.18, a: 1}
   battleHudObjectName: '[Block] Lower'
