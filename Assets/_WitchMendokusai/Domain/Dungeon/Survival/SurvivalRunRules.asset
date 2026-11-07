@@ -16,6 +16,18 @@ MonoBehaviour:
   SkipCharges: 2
   BanCharges: 2
   SkipExpRefundRatio: 0.25
+  ExpBaseRequired: 30
+  ExpCurveBands:
+  - FromLevel: 1
+    Increment: 30
+    BarrierExtra: 0
+  - FromLevel: 15
+    Increment: 60
+    BarrierExtra: 1500
+  - FromLevel: 30
+    Increment: 90
+    BarrierExtra: 4300
+  ExpBarrierGainMultiplier: 2
   ChestPrefab: {fileID: 5421623657637269341, guid: 8780f3fd875b9414488a82ba00dc0eda, type: 3}
   EliteChestChance: 1
   ChestRewardCounts:

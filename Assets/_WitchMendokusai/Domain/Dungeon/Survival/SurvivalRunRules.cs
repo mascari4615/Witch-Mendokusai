@@ -21,6 +21,12 @@ namespace WitchMendokusai
 		[Min(0), Tooltip("판 시작 차단 횟수")] public int BanCharges = 2;
 		[Range(0f, 1f), Tooltip("스킵 환급 경험치, 현재 필요 경험치 대비 비율")] public float SkipExpRefundRatio = 0.25f;
 
+		[Header("Exp curve (provisional values)")]
+		[Min(1), Tooltip("임시값. 레벨 0에서 1까지 필요 경험치")] public int ExpBaseRequired = 30;
+		[Tooltip("임시값. FromLevel 오름차순. Increment는 레벨당 증가량, BarrierExtra는 FromLevel 한 레벨에만 더하는 장벽")]
+		public List<ExpCurveBand> ExpCurveBands = new();
+		[Min(1f), Tooltip("임시값. 장벽 레벨에서 획득 경험치 배율")] public float ExpBarrierGainMultiplier = 2f;
+
 		[Header("Chest")]
 		[Tooltip("비어 있으면 처치 자리에서 바로 개봉")] public ChestObject ChestPrefab;
 		[Range(0f, 1f), Tooltip("엘리트 처치 상자 확률")] public float EliteChestChance = 1f;

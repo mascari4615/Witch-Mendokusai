@@ -8,23 +8,24 @@ namespace WitchMendokusai
 {
 	public class ExpManager : MonoBehaviour
 	{
-		private const int REQUIRE_EXP_INCREMENT = 30;
-
 		[SerializeField] private GameObject levelUpEffect;
 
 		private PlayerProvider playerProvider;
 		private GameEventManager gameEventManager;
 		private ObjectPoolManager objectPoolManager;
+		private ResourceManager resourceManager;
 
 		[Inject]
-		public void Construct(PlayerProvider playerProvider, GameEventManager gameEventManager, ObjectPoolManager objectPoolManager)
+		public void Construct(PlayerProvider playerProvider, GameEventManager gameEventManager, ObjectPoolManager objectPoolManager, ResourceManager resourceManager)
 		{
 			this.playerProvider = playerProvider;
 			this.gameEventManager = gameEventManager;
 			this.objectPoolManager = objectPoolManager;
+			this.resourceManager = resourceManager;
 		}
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
+		private SurvivalRunRules RunRules => resourceManager.SurvivalRunRules;
 
 		private void Start()
 		{
@@ -34,7 +35,7 @@ namespace WitchMendokusai
 
 		public void Init()
 		{
-			PlayerStat[UnitStatType.EXP_MAX] = REQUIRE_EXP_INCREMENT;
+			PlayerStat[UnitStatType.EXP_MAX] = ExpCurveRules.Required(RunRules.ExpCurveBands, RunRules.ExpBaseRequired, 0);
 			PlayerStat[UnitStatType.EXP_CUR] = 0;
 			PlayerStat[UnitStatType.LEVEL_CUR] = 0;
 			// Debug.Log(nameof(Init) + PlayerStat[StatType.EXP_CUR] + " / " + PlayerStat[StatType.EXP_MAX]);
@@ -53,8 +54,9 @@ namespace WitchMendokusai
 				while (PlayerStat[UnitStatType.EXP_CUR] >= PlayerStat[UnitStatType.EXP_MAX])
 				{
 					int requiredExp = PlayerStat[UnitStatType.EXP_MAX];
-					PlayerStat[UnitStatType.EXP_MAX] += REQUIRE_EXP_INCREMENT;
-					PlayerStat[UnitStatType.LEVEL_CUR]++;
+					int nextLevel = PlayerStat[UnitStatType.LEVEL_CUR] + 1;
+					PlayerStat[UnitStatType.EXP_MAX] = ExpCurveRules.Required(RunRules.ExpCurveBands, RunRules.ExpBaseRequired, nextLevel);
+					PlayerStat[UnitStatType.LEVEL_CUR] = nextLevel;
 					PlayerStat[UnitStatType.EXP_CUR] -= requiredExp;
 
 					UiSfx.Play(UiSfxEvent.LevelUp);

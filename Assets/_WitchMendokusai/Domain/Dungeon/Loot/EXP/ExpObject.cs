@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
+using VContainer;
 
 namespace WitchMendokusai
 {
@@ -15,6 +16,8 @@ namespace WitchMendokusai
 
 		public int BaseAmount => amount;
 		public int Value => value;
+
+		[Inject] internal ResourceManager resourceManager;
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 
@@ -61,7 +64,9 @@ namespace WitchMendokusai
 		// 보석 값이 작아 소수점을 버리면 보너스가 사라짐, 남는 소수점은 그 확률로 1 추가
 		private int RollExpGain()
 		{
-			float gain = value * PlayerStat.PercentMultiplier(UnitStatType.EXP_BONUS);
+			SurvivalRunRules rules = resourceManager.SurvivalRunRules;
+			float barrierMultiplier = ExpCurveRules.GainMultiplier(rules.ExpCurveBands, PlayerStat[UnitStatType.LEVEL_CUR], rules.ExpBarrierGainMultiplier);
+			float gain = value * PlayerStat.PercentMultiplier(UnitStatType.EXP_BONUS) * barrierMultiplier;
 			int wholeGain = Mathf.FloorToInt(gain);
 			return Random.value < gain - wholeGain ? wholeGain + 1 : wholeGain;
 		}
