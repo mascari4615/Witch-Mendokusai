@@ -14,6 +14,8 @@ namespace WitchMendokusai
 		[SerializeField, Min(1)] private int maxExperienceMultiplier = 5;
 
 		public new Monster UnitData => base.UnitData as Monster;
+		public bool IsElite => eliteProfile != null;
+		public override bool IsActionSuspended => UnitData != null && EnemyFreezeState.IsFrozen(UnitData.Type == MonsterType.Boss);
 
 		// TASK-WM-107 Slice 4 — playerProvider 는 base UnitObject.playerProvider (protected) 재사용 (CS0108 hide 해소).
 		private SOManager soManager;

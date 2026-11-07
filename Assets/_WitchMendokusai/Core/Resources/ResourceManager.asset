@@ -16,5 +16,7 @@ MonoBehaviour:
   <LootItemPrefab>k__BackingField: {fileID: 2678269809200631940, guid: 3b2d778d3303e0647b26b6d6063f89db, type: 3}
   <HealObjectPrefab>k__BackingField: {fileID: -7745759019293435587, guid: d071fbb54dc3aad43abe8da02a6d75d0, type: 3}
   <MagnetObjectPrefab>k__BackingField: {fileID: 1013125595153812277, guid: de059e3729ee5294eb32d344253d0bdb, type: 3}
+  <FreezeObjectPrefab>k__BackingField: {fileID: -7745759019293435587, guid: 4a2d5915219a4e32bf53666535ffc43c, type: 3}
+  <ClearScreenObjectPrefab>k__BackingField: {fileID: -7745759019293435587, guid: eb122f887cf74a4089ed7c9e8484162e, type: 3}
   <SurvivalFeel>k__BackingField: {fileID: 11400000, guid: df02ce1e77e0493d940fab034d2290a2, type: 2}
   <SurvivalRunRules>k__BackingField: {fileID: 11400000, guid: 0c11e1d0b5ef4e4f9bd1451d3441e359, type: 2}

@@ -71,6 +71,9 @@ namespace WitchMendokusai
 
 		public void Tick()
 		{
+			if (unitObject.IsActionSuspended)
+				return;
+
 			foreach (Skill skill in SkillDic.Values)
 			{
 				skill.Tick();

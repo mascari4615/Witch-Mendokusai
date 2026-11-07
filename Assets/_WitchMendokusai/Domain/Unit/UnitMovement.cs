@@ -172,10 +172,10 @@ namespace WitchMendokusai
 
 		private void FixedUpdate()
 		{
-			if (pauseRemaining > 0f)
+			if (pauseRemaining > 0f || unitObject.IsActionSuspended)
 			{
 				accumulatedSimulationTime = 0f;
-				pauseRemaining -= Time.fixedDeltaTime;
+				pauseRemaining = Mathf.Max(0f, pauseRemaining - Time.fixedDeltaTime);
 				return;
 			}
 

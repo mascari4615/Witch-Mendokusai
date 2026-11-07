@@ -114,6 +114,11 @@ namespace WitchMendokusai
 			float luckMultiplier = UpgradeData.LuckMultiplier;
 			gameItemProbability.Add(resourceManager.HealObjectPrefab, HEAL_PERCENTAGE * luckMultiplier);
 			gameItemProbability.Add(resourceManager.MagnetObjectPrefab, MAGNET_PERCENTAGE * luckMultiplier);
+			SurvivalRunRules rules = resourceManager.SurvivalRunRules;
+			if (resourceManager.FreezeObjectPrefab != null)
+				gameItemProbability.Add(resourceManager.FreezeObjectPrefab, rules.FreezeDropPercent * luckMultiplier);
+			if (resourceManager.ClearScreenObjectPrefab != null)
+				gameItemProbability.Add(resourceManager.ClearScreenObjectPrefab, rules.ClearDropPercent * luckMultiplier);
 
 			GameItemObject gameItem = gameItemProbability.Get();
 

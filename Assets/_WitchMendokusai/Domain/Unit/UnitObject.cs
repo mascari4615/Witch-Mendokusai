@@ -141,6 +141,9 @@ namespace WitchMendokusai
 			return SkillHandler.UseSkill(index);
 		}
 
+		// 정지 효과 같은 외부 규칙으로 이동과 공격이 막힌 상태
+		public virtual bool IsActionSuspended => false;
+
 		public virtual void ReceiveHeal(int healAmount)
 		{
 			Health.ReceiveHeal(healAmount);

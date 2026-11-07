@@ -76,6 +76,9 @@ namespace WitchMendokusai
 
 		private void TryDamage(GameObject other)
 		{
+			if (IsOwnerSuspended())
+				return;
+
 			if (hitFrame != Time.frameCount)
 			{
 				hitTargets.Clear();
@@ -140,6 +143,14 @@ namespace WitchMendokusai
 			// 아레나 경로 판정용 — 공격자(skill User)의 MatchCombatant 캐싱. 비-아레나면 null.
 			UnitObject owner = skillObject.Context != null ? skillObject.Context.User : null;
 			ownerCombatant = owner != null ? owner.GetComponent<MatchCombatant>() : null;
+		}
+
+		private bool IsOwnerSuspended()
+		{
+			UnitObject owner = skillObject != null && skillObject.Context != null ? skillObject.Context.User : null;
+			if (owner == null)
+				owner = GetComponentInParent<UnitObject>();
+			return owner != null && owner.IsActionSuspended;
 		}
 
 		private void TurnOff()

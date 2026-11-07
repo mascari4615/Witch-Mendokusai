@@ -26,6 +26,8 @@ namespace WitchMendokusai
 
 		[field: SerializeField] public HealObject HealObjectPrefab { get; private set; } = null;
 		[field: SerializeField] public MagnetObject MagnetObjectPrefab { get; private set; } = null;
+		[field: SerializeField] public FreezeObject FreezeObjectPrefab { get; private set; } = null;
+		[field: SerializeField] public ClearScreenObject ClearScreenObjectPrefab { get; private set; } = null;
 
 		[field: SerializeField] public SurvivalFeelConfig SurvivalFeel { get; private set; } = null;
 		[field: SerializeField] public SurvivalRunRules SurvivalRunRules { get; private set; } = null;

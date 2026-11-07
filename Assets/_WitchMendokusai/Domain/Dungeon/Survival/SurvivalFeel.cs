@@ -176,6 +176,8 @@ namespace WitchMendokusai
 
 		public void OnResonanceAwakening(Vector3 position) => PlayMoment(Config.ResonanceAwakening, position, true);
 		public void OnResonanceBurst(Vector3 position) => PlayMoment(Config.ResonanceBurst, position, false);
+		public void OnFreezePicked(Vector3 position) => PlayMoment(Config.FreezePick, position, false);
+		public void OnClearPicked(Vector3 position) => PlayMoment(Config.ClearPick, position, false);
 		public void OnChestOpened(Vector3 position) => PlayMoment(Config.ChestOpen, position, true);
 
 		public void OnExpPicked(Vector3 position)

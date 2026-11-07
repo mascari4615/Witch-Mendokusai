@@ -53,6 +53,12 @@ namespace WitchMendokusai
 		[Min(0), Tooltip("임시값. 동시 적 수가 이 값 이상이면 무리 사건도 중지. 보스와 정예는 예외. 0이면 상한 없음")] public int EnemyHardCap = 500;
 		[Min(0), Tooltip("임시값. 최소 적 수 보충 한 번에 만들 최대 마릿수. 0이면 부족분 전부")] public int RefillBurstMax = 30;
 
+		[Header("Floor items (provisional values)")]
+		[Min(0f), Tooltip("임시값. 적 처치마다 적 정지 아이템이 나올 확률, 퍼센트. Luck 배율 적용")] public float FreezeDropPercent = 0.25f;
+		[Min(0f), Tooltip("임시값. 적 처치마다 화면 청소 아이템이 나올 확률, 퍼센트. Luck 배율 적용")] public float ClearDropPercent = 0.15f;
+		[Min(0f), Tooltip("임시값. 적 정지 지속 시간 초")] public float FreezeSeconds = 8f;
+		[Range(0f, 1f), Tooltip("임시값. 보스 정지 시간 비율. 0이면 보스 면역")] public float FreezeBossRatio = 0.25f;
+
 		[Header("Threat levels (provisional values)")]
 		[Tooltip("임시값. 한 줄이 한 단계. 줄 추가로 단계 추가, 단계 0은 줄 없음")] public List<DungeonThreatLevel> ThreatLevels = new();
 	}
