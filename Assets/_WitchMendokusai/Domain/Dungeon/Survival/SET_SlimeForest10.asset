@@ -31,11 +31,23 @@ MonoBehaviour:
     <Monster>k__BackingField: {fileID: 11400000, guid: efd01aa3488c358488a9c5b03a759d41, type: 2}
     <Count>k__BackingField: 24
     <AnnounceLead>k__BackingField: 10
+  - <Time>k__BackingField: 240
+    <Type>k__BackingField: 0
+    <Monster>k__BackingField: {fileID: 11400000, guid: efd01aa3488c358488a9c5b03a759d41, type: 2}
+    <Count>k__BackingField: 1
+    <AnnounceLead>k__BackingField: 10
+    <GuaranteedChest>k__BackingField: 1
   - <Time>k__BackingField: 360
     <Type>k__BackingField: 0
     <Monster>k__BackingField: {fileID: 11400000, guid: c8298ef2b0feb5440a349bcb395b8ab0, type: 2}
     <Count>k__BackingField: 1
     <AnnounceLead>k__BackingField: 10
+  - <Time>k__BackingField: 420
+    <Type>k__BackingField: 0
+    <Monster>k__BackingField: {fileID: 11400000, guid: c8298ef2b0feb5440a349bcb395b8ab0, type: 2}
+    <Count>k__BackingField: 1
+    <AnnounceLead>k__BackingField: 10
+    <GuaranteedChest>k__BackingField: 1
   - <Time>k__BackingField: 480
     <Type>k__BackingField: 0
     <Monster>k__BackingField: {fileID: 11400000, guid: 44760449275eb004db761ffc958fcd85, type: 2}

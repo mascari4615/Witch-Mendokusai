@@ -77,27 +77,7 @@ namespace WitchMendokusai
 			if (eventTable == null)
 				return;
 
-			List<SurvivalEventEntry> elites = new();
-			List<float> eliteTimes = new();
-			foreach (SurvivalEventEntry entry in eventTable.Events)
-			{
-				if (entry.Type == SurvivalEventType.Swarm)
-				{
-					runEvents.Add(entry.CopyWith(entry.Time, threat.ScaleSwarmCount(entry.Count)));
-					continue;
-				}
-				runEvents.Add(entry);
-				elites.Add(entry);
-				eliteTimes.Add(entry.Time);
-			}
-
-			foreach (ExtraEliteSlot slot in DungeonThreatRules.ExtraEliteSlots(eliteTimes, threat.EliteExtraPerGap))
-				runEvents.Add(elites[slot.SourceIndex].CopyWith(slot.Time, 1));
-
-			// 안정 정렬, 원본 순서 유지
-			List<SurvivalEventEntry> sorted = runEvents.OrderBy(entry => entry.Time).ToList();
-			runEvents.Clear();
-			runEvents.AddRange(sorted);
+			runEvents.AddRange(eventTable.BuildRunEvents(threat));
 		}
 
 		public void UpdateWaves()
@@ -138,14 +118,14 @@ namespace WitchMendokusai
 			{
 				float angle = (360f / count * i + Random.Range(0f, 30f)) * Mathf.Deg2Rad;
 				Vector3 position = center + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * eventTable.SwarmRadius;
-				StartCoroutine(SpawnMonsterAt(entry.Monster, position, profile));
+				StartCoroutine(SpawnMonsterAt(entry.Monster, position, profile, entry.GuaranteedChest));
 			}
 			if (entry.Type == SurvivalEventType.Swarm && count > 0)
 				SurvivalFeel.Instance.OnSwarmStarted(center);
 			EventBusBridge.Publish(new SurvivalEventStartedEvent { Type = entry.Type, Monster = entry.Monster, Count = count });
 		}
 
-		private IEnumerator SpawnMonsterAt(Monster monster, Vector3 position, EliteProfile eliteProfile)
+		private IEnumerator SpawnMonsterAt(Monster monster, Vector3 position, EliteProfile eliteProfile, bool guaranteedChest)
 		{
 			pendingSpawns++;
 			GameObject spawnCircle = objectPoolManager.Spawn(spawnCirclePrefab);
@@ -163,7 +143,7 @@ namespace WitchMendokusai
 			monsterObjectComponent.Init(monster);
 			monsterObject.SetActive(true);
 			if (eliteProfile != null)
-				monsterObjectComponent.MakeElite(eliteProfile);
+				monsterObjectComponent.MakeElite(eliteProfile, guaranteedChest);
 		}
 
 		private void RetireDistantMonsters()

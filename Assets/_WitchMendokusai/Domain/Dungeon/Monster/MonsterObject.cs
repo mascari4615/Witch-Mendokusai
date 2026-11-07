@@ -20,6 +20,7 @@ namespace WitchMendokusai
 		private DataManager dataManager;
 		private GameLogic gameLogic;
 		private EliteProfile eliteProfile;
+		private bool eliteGuaranteedChest;
 		private DungeonThreatEffect threat = DungeonThreatEffect.Identity;
 		private float hpBarWidth = 1f;
 
@@ -80,9 +81,10 @@ namespace WitchMendokusai
 			UnitStat[UnitStatType.MOVEMENT_SPEED] = threat.ScaleEnemySpeed(UnitStat[UnitStatType.MOVEMENT_SPEED]);
 		}
 
-		public void MakeElite(EliteProfile profile)
+		public void MakeElite(EliteProfile profile, bool guaranteedChest)
 		{
 			eliteProfile = profile;
+			eliteGuaranteedChest = guaranteedChest;
 			ApplyEliteHealth();
 			Health.SetScaleMultiplier(profile.ScaleMultiplier);
 			SpriteRenderer.color = profile.Tint;
@@ -104,6 +106,7 @@ namespace WitchMendokusai
 			if (eliteProfile == null)
 				return;
 			eliteProfile = null;
+			eliteGuaranteedChest = false;
 			Health.SetScaleMultiplier(1f);
 			SpriteRenderer.color = Color.white;
 			if (SurvivalFeel.Instance != null)
@@ -165,7 +168,7 @@ namespace WitchMendokusai
 
 				if (eliteProfile != null)
 				{
-					gameLogic.SpawnEliteReward(eliteProfile, transform.position);
+					gameLogic.SpawnEliteReward(eliteProfile, transform.position, eliteGuaranteedChest);
 					EventBusBridge.Publish(new EliteKilledEvent { Monster = UnitData, ExpValue = eliteProfile.ExpValue });
 				}
 

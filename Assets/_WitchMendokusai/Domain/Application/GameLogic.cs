@@ -55,7 +55,7 @@ namespace WitchMendokusai
 			exp.SetActive(true);
 		}
 
-		public void SpawnEliteReward(EliteProfile profile, Vector3 position)
+		public void SpawnEliteReward(EliteProfile profile, Vector3 position, bool guaranteedChest)
 		{
 			if (profile.ExpValue > 0)
 				SpawnExpValue(position, profile.ExpValue);
@@ -63,13 +63,13 @@ namespace WitchMendokusai
 				objectPoolManager.Spawn(resourceManager.HealObjectPrefab.gameObject, GetRandomSpawnPosOffset(position)).SetActive(true);
 			if (profile.DropMagnet)
 				objectPoolManager.Spawn(resourceManager.MagnetObjectPrefab.gameObject, GetRandomSpawnPosOffset(position)).SetActive(true);
-			TrySpawnEliteChest(position);
+			TrySpawnEliteChest(position, guaranteedChest);
 		}
 
-		private void TrySpawnEliteChest(Vector3 position)
+		private void TrySpawnEliteChest(Vector3 position, bool guaranteedChest)
 		{
 			SurvivalRunRules rules = resourceManager.SurvivalRunRules;
-			if (Random.value >= rules.EliteChestChance)
+			if (RunChoiceRules.DropsEliteChest(guaranteedChest, Random.value, rules.EliteChestChance) == false)
 				return;
 			if (rules.ChestPrefab == null)
 			{

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -18,12 +19,14 @@ namespace WitchMendokusai
 		[field: SerializeField] public Monster Monster { get; private set; }
 		[field: SerializeField, Min(1)] public int Count { get; private set; } = 1;
 		[field: SerializeField, Tooltip("예고 이벤트를 시작 몇 초 전에 낼지"), Min(0f)] public float AnnounceLead { get; private set; } = 10f;
+		[field: SerializeField, Tooltip("정예 전용. 처치 상자 확정. 위협 단계 추가 정예 간격 계산에서 제외")] public bool GuaranteedChest { get; private set; }
 
 		public SurvivalEventEntry CopyWith(float time, int count)
 		{
 			SurvivalEventEntry copy = (SurvivalEventEntry)MemberwiseClone();
 			copy.Time = time;
 			copy.Count = count;
+			copy.GuaranteedChest = false;
 			return copy;
 		}
 	}
@@ -47,5 +50,31 @@ namespace WitchMendokusai
 		[field: SerializeField] public EliteProfile Elite { get; private set; } = new();
 		[field: SerializeField, Tooltip("무리 출현 거리"), Min(1f)] public float SwarmRadius { get; private set; } = 11f;
 		[field: SerializeField] public List<SurvivalEventEntry> Events { get; private set; } = new();
+
+		// 위협 단계를 입힌 이번 판 사건표. 단계 0은 원본 그대로, 시간 안정 정렬
+		public List<SurvivalEventEntry> BuildRunEvents(DungeonThreatEffect threat)
+		{
+			List<SurvivalEventEntry> runEvents = new();
+			List<SurvivalEventEntry> elites = new();
+			List<float> eliteTimes = new();
+			foreach (SurvivalEventEntry entry in Events)
+			{
+				if (entry.Type == SurvivalEventType.Swarm)
+				{
+					runEvents.Add(entry.CopyWith(entry.Time, threat.ScaleSwarmCount(entry.Count)));
+					continue;
+				}
+				runEvents.Add(entry);
+				if (entry.GuaranteedChest)
+					continue;
+				elites.Add(entry);
+				eliteTimes.Add(entry.Time);
+			}
+
+			foreach (ExtraEliteSlot slot in DungeonThreatRules.ExtraEliteSlots(eliteTimes, threat.EliteExtraPerGap))
+				runEvents.Add(elites[slot.SourceIndex].CopyWith(slot.Time, 1));
+
+			return runEvents.OrderBy(entry => entry.Time).ToList();
+		}
 	}
 }
