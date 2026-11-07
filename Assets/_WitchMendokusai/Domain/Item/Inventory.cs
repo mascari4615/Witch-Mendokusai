@@ -203,6 +203,41 @@ namespace WitchMendokusai
 			UpdateSlot(index);
 		}
 
+		// 집었다가 되돌리는 자리. 세계 가방 보고를 거치지 않음 (꺼낼 때 보고하지 않았으므로)
+		public bool TryPlaceBack(int preferredIndex, Item item)
+		{
+			if (item == null || item.Data == null)
+				return false;
+
+			if (IsValidIndex(preferredIndex) && CanAccept(preferredIndex, item))
+			{
+				Item current = Data[preferredIndex];
+				if (current == null)
+				{
+					SetItem(preferredIndex, item);
+					return true;
+				}
+
+				if (current.Data.ID == item.Data.ID && current.Amount + item.Amount <= current.MaxAmount)
+				{
+					current.SetAmount(current.Amount + item.Amount);
+					UpdateSlot(preferredIndex);
+					return true;
+				}
+			}
+
+			for (int i = 0; i < Capacity; i++)
+			{
+				if (Data[i] == null && CanAccept(i, item))
+				{
+					SetItem(i, item);
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		public void SetItemAmount(int index, int amount)
 		{
 			if (IsValidIndex(index) == false)

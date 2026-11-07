@@ -112,6 +112,7 @@ namespace WitchMendokusai
 
 		private void OnDetached(DetachFromPanelEvent evt)
 		{
+			windowManager?.NotifyClosed(this);
 			windowManager?.Unregister(this);
 			windowManager = null;
 		}
@@ -132,6 +133,7 @@ namespace WitchMendokusai
 			SavePosition();
 			SetVisibleInternal(false);
 			UiSfx.Play(UiSfxEvent.WindowClose);
+			windowManager?.NotifyClosed(this);
 			OnClosed.Invoke();
 		}
 

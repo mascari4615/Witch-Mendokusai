@@ -17,6 +17,10 @@ namespace WitchMendokusai
 		private InputManager inputManager;
 		private readonly List<WMWindow> windows = new();
 
+		/// <summary>창이 닫히거나 패널에서 떨어질 때. 집은 물건 정리 같은 창 밖 상태가 구독</summary>
+		public event System.Action<WMWindow> WindowClosed = delegate { };
+		public void NotifyClosed(WMWindow window) => WindowClosed.Invoke(window);
+
 		[Inject]
 		public void Construct(InputManager inputManager)
 		{

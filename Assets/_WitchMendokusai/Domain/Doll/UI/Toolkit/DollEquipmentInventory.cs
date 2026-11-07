@@ -15,6 +15,8 @@ namespace WitchMendokusai
 
 		public void BindDoll(Doll doll)
 		{
+			if (HoldingManager.TryGetExistingInstance(out HoldingManager holding))
+				holding.ReturnHeldFrom(this);
 			BoundDoll = doll;
 			Capacity = Doll.EQUIPMENT_SLOT_COUNT;
 			Data = doll != null ? doll.Equipment : new List<Item>();

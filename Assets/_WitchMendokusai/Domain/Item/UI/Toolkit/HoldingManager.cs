@@ -20,6 +20,8 @@ namespace WitchMendokusai
 
 		private Item holdingItem;
 		private Inventory holdingInventory;
+		private int holdingIndex = -1;
+		private ItemSlot holdingSourceSlot;
 		private HoldingOverlay overlay;
 		private float lastClickTime;
 		private ItemSlot lastClickSlot;
@@ -130,6 +132,8 @@ namespace WitchMendokusai
 
 			holdingItem = new Item(new(), data, amount);
 			holdingInventory = null;
+			holdingIndex = -1;
+			holdingSourceSlot = null;
 			overlay?.SetItem(holdingItem);
 		}
 
@@ -224,7 +228,7 @@ namespace WitchMendokusai
 		private void HoldFull(ItemSlot slot, Inventory inventory, Item targetItem)
 		{
 			holdingItem = targetItem;
-			holdingInventory = inventory;
+			SetHoldingSource(inventory, slot);
 			inventory.SetItem(slot.Index, null);
 			overlay?.SetItem(holdingItem);
 		}
@@ -239,7 +243,7 @@ namespace WitchMendokusai
 
 			int halfAmount = targetItem.Amount / 2;
 			holdingItem = new Item(new(), targetItem.Data, halfAmount);
-			holdingInventory = inventory;
+			SetHoldingSource(inventory, slot);
 			targetItem.SetAmount(targetItem.Amount - halfAmount);
 			inventory.UpdateSlot(slot.Index);
 			overlay?.SetItem(holdingItem);
@@ -301,15 +305,59 @@ namespace WitchMendokusai
 			{
 				inventory.SetItem(slot.Index, holdingItem);
 				holdingItem = slotItem;
-				holdingInventory = inventory;
+				SetHoldingSource(inventory, slot);
 				overlay?.SetItem(holdingItem);
 			}
+		}
+
+		private void SetHoldingSource(Inventory inventory, ItemSlot slot)
+		{
+			holdingInventory = inventory;
+			holdingIndex = slot.Index;
+			holdingSourceSlot = slot;
+		}
+
+		// 창이 닫히면 그 창에서 집은 물건을 원래 자리로 되돌림. 자리가 없으면 가방, 그래도 없으면 계속 들고 있음
+		public void ReturnHeld(WMWindow closedWindow)
+		{
+			if (holdingItem == null)
+				return;
+			if (holdingSourceSlot == null || closedWindow == null || closedWindow.Contains(holdingSourceSlot) == false)
+				return;
+
+			ReturnHeldToSource();
+		}
+
+		// 슬롯이 묶인 인벤토리가 바뀌기 전에 호출. 다른 인형 전환처럼 같은 칸 번호가 다른 데이터를 가리키는 경우
+		public void ReturnHeldFrom(Inventory inventory)
+		{
+			if (holdingItem == null || holdingInventory != inventory)
+				return;
+
+			ReturnHeldToSource();
+		}
+
+		private void ReturnHeldToSource()
+		{
+			bool placed = holdingInventory.TryPlaceBack(holdingIndex, holdingItem);
+			if (placed == false && SOManagerBridge.HasInstance && ReferenceEquals(holdingInventory, SOManagerBridge.ItemInventory) == false)
+				placed = SOManagerBridge.ItemInventory.TryPlaceBack(-1, holdingItem);
+
+			if (placed == false)
+			{
+				Debug.LogWarning("집은 물건을 되돌릴 빈 칸이 없어 계속 들고 있음");
+				return;
+			}
+
+			ClearHolding();
 		}
 
 		private void ClearHolding()
 		{
 			holdingItem = null;
 			holdingInventory = null;
+			holdingIndex = -1;
+			holdingSourceSlot = null;
 			overlay?.SetItem(null);
 		}
 	}

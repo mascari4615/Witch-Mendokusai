@@ -147,11 +147,14 @@ namespace WitchMendokusai
 			HoldingOverlay = new HoldingOverlay();
 			OverlayLayer.Add(HoldingOverlay);
 			holdingManager.RegisterOverlay(HoldingOverlay);
+			windowManager.WindowClosed += holdingManager.ReturnHeld;
 		}
 
 		private void OnDisable()
 		{
 			UIToolkitFocus.Unregister(Document);
+			if (windowManager != null && holdingManager != null)
+				windowManager.WindowClosed -= holdingManager.ReturnHeld;
 			if (holdingManager != null && HoldingOverlay != null)
 				holdingManager.UnregisterOverlay(HoldingOverlay);
 		}
