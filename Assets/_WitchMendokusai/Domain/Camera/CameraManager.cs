@@ -12,7 +12,7 @@ using VContainer.Unity;
 namespace WitchMendokusai
 {
 	[DefaultExecutionOrder(100)]
-	public class CameraManager : MonoBehaviour
+	public partial class CameraManager : MonoBehaviour
 	{
 		public static CameraManager Instance { get; private set; }
 
@@ -408,6 +408,7 @@ namespace WitchMendokusai
 		{
 			UpdateCameraOrientation();
 			suppressLookFrame = false;
+			TickDialogueFocus(Time.unscaledDeltaTime);
 			// 입력, 리그 회전, 보간된 대상 위치 뒤에 최종 카메라 계산 한 번
 			cinemachineBrain.ManualUpdate();
 

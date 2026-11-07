@@ -41,6 +41,7 @@ namespace WitchMendokusai
 
 			// 제목·로비처럼 아직 아무도 등록 안 한 화면에서 그냥 물으면 *매 프레임* 널 참조로 터진다.
 			bool uiHoldsInput = UIChat.IsChatting
+				|| DialogueStageBridge.IsHoldingInput
 				|| (GameConditionBridge.HasInstance
 					&& GameConditionBridge.Get(GameConditionType.IsViewingUI));
 

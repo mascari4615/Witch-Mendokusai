@@ -1,0 +1,27 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:wm="WitchMendokusai" editor-extension-mode="False">
+    <ui:VisualElement name="wm-dlg" class="wm-dlg wm-dlg--world">
+        <ui:VisualElement name="wm-dlg-backdrop" class="wm-dlg-backdrop" picking-mode="Ignore" />
+        <ui:VisualElement name="wm-dlg-cast" class="wm-dlg-cast" picking-mode="Ignore" />
+        <ui:VisualElement name="wm-dlg-band-top" class="wm-dlg-band wm-dlg-band--top" picking-mode="Ignore" />
+        <ui:VisualElement name="wm-dlg-band-bottom" class="wm-dlg-band wm-dlg-band--bottom" picking-mode="Ignore" />
+        <ui:VisualElement name="wm-dlg-window" class="wm-dlg-window" picking-mode="Ignore">
+            <wm:DialogueNameBandElement name="wm-dlg-name" class="wm-dlg-name">
+                <ui:Label name="wm-dlg-name-label" class="wm-dlg-name__label" picking-mode="Ignore" />
+            </wm:DialogueNameBandElement>
+            <ui:Label name="wm-dlg-line" class="wm-dlg-line" picking-mode="Ignore" />
+            <ui:VisualElement name="wm-dlg-next" class="wm-dlg-next" picking-mode="Ignore" />
+        </ui:VisualElement>
+        <ui:VisualElement name="wm-dlg-fx" class="wm-dlg-fx" picking-mode="Ignore" />
+        <ui:VisualElement name="wm-dlg-flash" class="wm-dlg-flash" picking-mode="Ignore" />
+        <ui:VisualElement name="wm-dlg-choices" class="wm-dlg-choices" />
+        <ui:VisualElement name="wm-dlg-tools" class="wm-dlg-tools">
+            <ui:Button name="wm-dlg-tool-auto" text="자동" class="wm-dlg-tool" focusable="false" />
+            <ui:Button name="wm-dlg-tool-skip" text="건너뛰기" class="wm-dlg-tool" focusable="false" />
+            <ui:Button name="wm-dlg-tool-log" text="로그" class="wm-dlg-tool" focusable="false" />
+        </ui:VisualElement>
+        <ui:VisualElement name="wm-dlg-log" class="wm-dlg-log">
+            <ui:ScrollView name="wm-dlg-log-scroll" class="wm-dlg-log__scroll" />
+            <ui:Button name="wm-dlg-log-close" text="닫기" class="wm-dlg-tool wm-dlg-log__close" focusable="false" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

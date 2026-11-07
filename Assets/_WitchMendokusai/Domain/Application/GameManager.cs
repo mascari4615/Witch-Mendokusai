@@ -170,7 +170,7 @@ namespace WitchMendokusai
 			gameConditionActions = new()
 			{
 				{ GameConditionType.IsPaused, () => timeManager.IsPaused }, // Setting, Dungeon Card 선택, Transition, ...
-				{ GameConditionType.IsTyping, () => UIChat.IsChatting || (DevWindowController.TryGetExistingInstance(out DevWindowController dwc) && dwc.IsCommandLineFocused) || UIToolkitFocus.IsAnyTextFieldFocused() },
+				{ GameConditionType.IsTyping, () => UIChat.IsChatting || DialogueStageBridge.IsHoldingInput || (DevWindowController.TryGetExistingInstance(out DevWindowController dwc) && dwc.IsCommandLineFocused) || UIToolkitFocus.IsAnyTextFieldFocused() },
 				{ GameConditionType.IsMouseOnUI, () => inputManager.IsPointerOverUI() },
 				{ GameConditionType.IsPlayerCasting, IsPlayerCasting },
 				{ GameConditionType.IsDied, IsDied },

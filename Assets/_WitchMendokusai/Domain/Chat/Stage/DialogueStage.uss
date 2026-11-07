@@ -1,0 +1,484 @@
+/* 대화 연출 무대. 패널 기준 높이 800, 시안 1080 값을 0.74배 */
+.wm-dlg {
+    --wm-dlg-ink: #f1f1f3;
+    --wm-dlg-soft: #b9b8c2;
+    --wm-dlg-line: #e3e3e6;
+    --wm-dlg-line-soft: #4e4c56;
+    --wm-dlg-teal: #57b8b4;
+    --wm-dlg-teal-dark: #1d5553;
+    --wm-dlg-amber: #e09a2e;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    color: var(--wm-dlg-ink);
+    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11-Bold.ttf");
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.2s;
+}
+
+.wm-dlg--open {
+    opacity: 1;
+}
+
+/* 배경 어둡게. 게임 화면 위 일러 대화 */
+.wm-dlg-backdrop {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(8, 9, 12);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.25s;
+}
+
+.wm-dlg--novel .wm-dlg-backdrop,
+.wm-dlg--feature .wm-dlg-backdrop {
+    opacity: 0.58;
+}
+
+/* 인물 */
+.wm-dlg-cast {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.wm-dlg-actor {
+    position: absolute;
+    bottom: -30px;
+    width: 592px;
+    height: 592px;
+    margin-left: -296px;
+    transform-origin: 50% 100%;
+}
+
+.wm-dlg-actor__glow {
+    position: absolute;
+    left: -15%;
+    top: -15%;
+    right: -15%;
+    bottom: -15%;
+    background-size: 100% 100%;
+    opacity: 0;
+}
+
+/* 윗부분이 잘린 반신이라 아래로 맞춤 */
+.wm-dlg-actor__art {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-size: contain;
+    background-position-x: center;
+    background-position-y: bottom;
+    background-repeat: no-repeat;
+    transition-property: filter;
+    transition-duration: 0.18s;
+}
+
+.wm-dlg-actor__art--listening {
+    filter: grayscale(0.25);
+}
+
+.wm-dlg-actor__emote {
+    display: none;
+    position: absolute;
+    left: 58%;
+    top: 7.5%;
+    width: 56px;
+    height: 48px;
+    background-color: #ffffff;
+    border-width: 2px;
+    border-color: #111111;
+    color: #111111;
+    font-size: 25px;
+    -unity-text-align: middle-center;
+}
+
+.wm-dlg-actor__emote--on {
+    display: flex;
+}
+
+/* 위아래 검은 띠. 특정 순간만 */
+.wm-dlg-band {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 0;
+    background-color: #000000;
+    transition-property: height;
+    transition-duration: 0.3s;
+}
+
+.wm-dlg-band--top {
+    top: 0;
+}
+
+.wm-dlg-band--bottom {
+    bottom: 0;
+}
+
+.wm-dlg--cinema .wm-dlg-band {
+    height: 72px;
+}
+
+/* 메시지 창 공통 */
+.wm-dlg-window {
+    position: absolute;
+    transition-property: opacity;
+    transition-duration: 0.08s;
+}
+
+.wm-dlg-window--faded {
+    opacity: 0;
+}
+
+.wm-dlg--window-hidden .wm-dlg-window {
+    display: none;
+}
+
+.wm-dlg-name {
+    position: absolute;
+    --wm-dlg-band-color: #1d5553;
+    --wm-dlg-band-slant: 12;
+}
+
+.wm-dlg-name--npc {
+    --wm-dlg-band-color: #6f4706;
+}
+
+.wm-dlg-name--hidden {
+    display: none;
+}
+
+.wm-dlg-name__label {
+    color: var(--wm-dlg-ink);
+    -unity-text-align: middle-left;
+}
+
+.wm-dlg-line {
+    position: absolute;
+    white-space: normal;
+    color: var(--wm-dlg-ink);
+}
+
+.wm-dlg-next {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #ffffff;
+    rotate: 45deg;
+}
+
+.wm-dlg-next--dim {
+    background-color: #8f8e98;
+}
+
+/* 2 미연시 창 */
+.wm-dlg--novel .wm-dlg-window {
+    left: 7.8%;
+    right: 7.8%;
+    bottom: 27px;
+    height: 176px;
+    background-color: rgba(12, 11, 16, 0.88);
+    border-width: 2px;
+    border-color: var(--wm-dlg-line);
+}
+
+.wm-dlg--novel .wm-dlg-name {
+    left: 30px;
+    top: -22px;
+    height: 43px;
+    padding-left: 25px;
+    padding-right: 40px;
+}
+
+.wm-dlg--novel .wm-dlg-name__label {
+    font-size: 24px;
+    height: 43px;
+}
+
+.wm-dlg--novel .wm-dlg-line {
+    left: 47px;
+    top: 44px;
+    right: 59px;
+    font-size: 25px;
+}
+
+.wm-dlg--novel .wm-dlg-next {
+    right: 31px;
+    bottom: 22px;
+}
+
+/* 1 인물 크게, 자막 */
+.wm-dlg--feature .wm-dlg-window {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 222px;
+    background-size: 100% 100%;
+}
+
+.wm-dlg--feature .wm-dlg-name {
+    left: 0;
+    right: 0;
+    top: 83px;
+    height: 30px;
+    --wm-dlg-band-color: rgba(0, 0, 0, 0);
+}
+
+.wm-dlg--feature .wm-dlg-name__label {
+    font-size: 22px;
+    height: 30px;
+    color: #f2e27a;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 1.5px;
+    -unity-text-outline-color: #000000;
+}
+
+.wm-dlg--feature .wm-dlg-line {
+    left: 16.7%;
+    right: 16.7%;
+    top: 117px;
+    font-size: 24px;
+    -unity-text-align: upper-center;
+    -unity-text-outline-width: 1.5px;
+    -unity-text-outline-color: #000000;
+}
+
+.wm-dlg--feature .wm-dlg-next {
+    left: 50%;
+    bottom: 19px;
+    margin-left: -6px;
+}
+
+/* 3 게임 화면 + 큰 초상, 말풍선 방식의 선택지 물음도 같은 창 */
+.wm-dlg--field .wm-dlg-window,
+.wm-dlg--world .wm-dlg-window {
+    left: 22.4%;
+    right: 5.2%;
+    bottom: 30px;
+    height: 148px;
+    background-color: #17161a;
+    border-width: 2px;
+    border-color: var(--wm-dlg-line);
+}
+
+.wm-dlg--field .wm-dlg-name,
+.wm-dlg--world .wm-dlg-name {
+    left: 25px;
+    top: -19px;
+    height: 36px;
+    padding-left: 19px;
+    padding-right: 19px;
+    background-color: #17161a;
+    border-width: 2px;
+    border-color: var(--wm-dlg-line);
+    --wm-dlg-band-color: rgba(0, 0, 0, 0);
+}
+
+.wm-dlg--field .wm-dlg-name__label,
+.wm-dlg--world .wm-dlg-name__label {
+    font-size: 22px;
+    height: 32px;
+}
+
+.wm-dlg--field .wm-dlg-line,
+.wm-dlg--world .wm-dlg-line {
+    left: 30px;
+    top: 36px;
+    right: 44px;
+    font-size: 24px;
+}
+
+.wm-dlg--field .wm-dlg-next,
+.wm-dlg--world .wm-dlg-next {
+    right: 22px;
+    bottom: 18px;
+}
+
+/* 선택지: 오른쪽 작은 세로 목록 */
+.wm-dlg-choices {
+    display: none;
+    position: absolute;
+    right: 67px;
+    top: 318px;
+    width: 385px;
+    flex-direction: column;
+}
+
+.wm-dlg-choice {
+    margin: 0 0 6px 0;
+    padding: 0 15px;
+    min-height: 41px;
+    background-color: rgba(10, 9, 14, 0.86);
+    border-width: 2px;
+    border-color: rgba(0, 0, 0, 0);
+    border-radius: 0;
+    color: var(--wm-dlg-ink);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    opacity: 0;
+    translate: 12px 0;
+    transition-property: opacity, translate, background-color, border-color;
+    transition-duration: 0.14s;
+    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11-Bold.ttf");
+}
+
+.wm-dlg-choice--in {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.wm-dlg-choice--focus {
+    background-color: var(--wm-dlg-teal-dark);
+    border-color: var(--wm-dlg-teal);
+}
+
+.wm-dlg-choice:hover,
+.wm-dlg-choice:active,
+.wm-dlg-choice:focus {
+    background-color: var(--wm-dlg-teal-dark);
+}
+
+.wm-dlg-choice--locked,
+.wm-dlg-choice--locked:hover,
+.wm-dlg-choice--locked:active {
+    background-color: rgba(10, 9, 14, 0.6);
+    border-color: rgba(0, 0, 0, 0);
+    color: var(--wm-dlg-soft);
+}
+
+.wm-dlg-choice__label {
+    font-size: 19px;
+    color: inherit;
+}
+
+.wm-dlg-choice__reason {
+    font-size: 13px;
+    color: var(--wm-dlg-amber);
+    margin-left: 12px;
+    flex-shrink: 1;
+    white-space: normal;
+    -unity-text-align: middle-right;
+}
+
+/* 자동, 건너뛰기, 로그 */
+.wm-dlg-tools {
+    position: absolute;
+    right: 27px;
+    top: 21px;
+    flex-direction: row;
+}
+
+.wm-dlg--world .wm-dlg-tools {
+    display: none;
+}
+
+.wm-dlg-tool {
+    margin: 0 0 0 4px;
+    padding: 3px 9px;
+    font-size: 15px;
+    color: var(--wm-dlg-soft);
+    background-color: rgba(0, 0, 0, 0.5);
+    border-width: 1px;
+    border-color: var(--wm-dlg-line-soft);
+    border-radius: 0;
+    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11-Bold.ttf");
+}
+
+.wm-dlg-tool:hover {
+    color: var(--wm-dlg-ink);
+    border-color: var(--wm-dlg-line);
+}
+
+.wm-dlg-tool--on {
+    color: #111111;
+    background-color: var(--wm-dlg-line);
+}
+
+/* 로그 최소판 */
+.wm-dlg-log {
+    display: none;
+    position: absolute;
+    left: 15%;
+    right: 15%;
+    top: 8%;
+    bottom: 8%;
+    padding: 18px;
+    background-color: rgba(12, 11, 16, 0.96);
+    border-width: 2px;
+    border-color: var(--wm-dlg-line);
+}
+
+.wm-dlg-log--open {
+    display: flex;
+}
+
+.wm-dlg-log__scroll {
+    flex-grow: 1;
+}
+
+.wm-dlg-log__entry {
+    margin-bottom: 8px;
+    font-size: 18px;
+    white-space: normal;
+    color: var(--wm-dlg-ink);
+}
+
+.wm-dlg-log__entry--choice {
+    color: var(--wm-dlg-teal);
+}
+
+.wm-dlg-log__close {
+    align-self: flex-end;
+    margin-top: 10px;
+}
+
+/* 입자와 플래시 */
+.wm-dlg-fx {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.wm-dlg-particle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 6px;
+    height: 6px;
+    rotate: 45deg;
+}
+
+.wm-dlg-flash {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ffffff;
+    opacity: 0;
+}
+
+/* 효과 끄기 설정 */
+.wm-dlg--no-fx,
+.wm-dlg--no-fx .wm-dlg-backdrop,
+.wm-dlg--no-fx .wm-dlg-band,
+.wm-dlg--no-fx .wm-dlg-window,
+.wm-dlg--no-fx .wm-dlg-choice,
+.wm-dlg--no-fx .wm-dlg-actor__art {
+    transition-duration: 0s;
+}

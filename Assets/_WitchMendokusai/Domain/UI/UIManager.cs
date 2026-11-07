@@ -33,6 +33,7 @@ namespace WitchMendokusai
 		public TransitionView Transition { get; private set; }
 		public UIChat Chat { get; private set; }
 		public SpeechBubbleView SpeechBubble { get; private set; }
+		public DialogueStageView DialogueStage { get; private set; }
 		public CutSceneModule CutSceneModule { get; private set; }
 		[field: SerializeField] public Canvas BaseCanvas { get; private set; }
 
@@ -137,6 +138,8 @@ namespace WitchMendokusai
 				Destroy(floatingText);
 			if (SpeechBubble != null)
 				Destroy(SpeechBubble);
+			if (DialogueStage != null)
+				Destroy(DialogueStage);
 			if (Transition != null)
 				Destroy(Transition);
 
@@ -231,6 +234,8 @@ namespace WitchMendokusai
 			floatingText.SetCanvas(BaseCanvas);
 			SpeechBubble = uiRootGameObject.AddComponent<SpeechBubbleView>();
 			container.Inject(SpeechBubble);
+			DialogueStage = uiRootGameObject.AddComponent<DialogueStageView>();
+			container.Inject(DialogueStage);
 			// DialogueRunner — SceneLifetimeScope.RegisterComponentOnNewGameObject 추출. 여기서 AddComponent X.
 			Transition = uiRootGameObject.AddComponent<TransitionView>();
 			container.Inject(Transition);
@@ -275,6 +280,9 @@ namespace WitchMendokusai
 		public void OnCancelInput()
 		{
 			SettingView settingView = uiRoot.SettingView;
+
+			if (settingView.IsOpen == false && DialogueStage != null && DialogueStage.TryHandleCancel())
+				return;
 
 			// SettingView가 열려있으면 먼저 닫음
 			if (settingView.IsOpen)

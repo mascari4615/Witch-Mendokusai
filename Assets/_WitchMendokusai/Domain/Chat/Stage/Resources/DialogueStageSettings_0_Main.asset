@@ -1,0 +1,216 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9b0e7bb5ede425f834628c5a4f6baf3, type: 3}
+  m_Name: DialogueStageSettings_0_Main
+  m_EditorClassIdentifier:
+  <Layout>k__BackingField: {fileID: 9197481963319205126, guid: afa0d33aaf564147b8a5cd462ee3e84c, type: 3}
+  <Style>k__BackingField: {fileID: 7433441132597879392, guid: 1d8df3d6851e4ef58bbc236209c6964c, type: 3}
+  <Cast>k__BackingField:
+  - <Name>k__BackingField: "욘"
+    <Bust>k__BackingField: {fileID: 21300000, guid: 068c2afa2e2f4dfba97a071b135c226e, type: 3}
+    <IsPlayable>k__BackingField: 1
+    <IsPlayerInWorld>k__BackingField: 1
+    <Scale>k__BackingField: 1
+    <OffsetY>k__BackingField: 0
+    <GlowColor>k__BackingField: {r: 1, g: 0.72, b: 0.42, a: 1}
+  - <Name>k__BackingField: "링"
+    <Bust>k__BackingField: {fileID: 21300000, guid: 9250b358fd8c4573b7db8f26c00eb99f, type: 3}
+    <IsPlayable>k__BackingField: 0
+    <IsPlayerInWorld>k__BackingField: 0
+    <Scale>k__BackingField: 1
+    <OffsetY>k__BackingField: 0
+    <GlowColor>k__BackingField: {r: 1, g: 0.86, b: 0.5, a: 1}
+  - <Name>k__BackingField: "알리사"
+    <Bust>k__BackingField: {fileID: 21300000, guid: 9c300b7e122448b7a17263aaa4582f11, type: 3}
+    <IsPlayable>k__BackingField: 0
+    <IsPlayerInWorld>k__BackingField: 0
+    <Scale>k__BackingField: 1
+    <OffsetY>k__BackingField: 0
+    <GlowColor>k__BackingField: {r: 0.7, g: 0.8, b: 1, a: 1}
+  <PlayerActorName>k__BackingField: "플레이어"
+  <SlotPositions>k__BackingField:
+  - 0.1667
+  - 0.25
+  - 0.5
+  - 0.75
+  - 0.8333
+  <FieldPosition>k__BackingField: 0.172
+  <FieldScale>k__BackingField: 0.8
+  <FieldOffsetY>k__BackingField: 15
+  <FeatureScale>k__BackingField: 1
+  <MoveSmoothSeconds>k__BackingField: 0.09
+  <FadeSmoothSeconds>k__BackingField: 0.07
+  <EmphasisSmoothSeconds>k__BackingField: 0.06
+  <EnterSlideDistance>k__BackingField: 90
+  <SpeakerScale>k__BackingField: 1
+  <ListenerTint>k__BackingField: {r: 0.5, g: 0.5, b: 0.52, a: 1}
+  <SpeakerGlowOpacity>k__BackingField: 0.22
+  <Motions>k__BackingField:
+  - <Motion>k__BackingField: 0
+    <Seconds>k__BackingField: 0.3
+    <Keys>k__BackingField:
+    - Time: 0
+      X: 0
+      Y: 0
+      Scale: 1
+    - Time: 0.4
+      X: 0
+      Y: -12
+      Scale: 1.012
+    - Time: 1
+      X: 0
+      Y: 0
+      Scale: 1
+  - <Motion>k__BackingField: 1
+    <Seconds>k__BackingField: 0.4
+    <Keys>k__BackingField:
+    - Time: 0
+      X: 0
+      Y: 0
+      Scale: 1
+    - Time: 0.3
+      X: 0
+      Y: 10
+      Scale: 1
+    - Time: 0.6
+      X: 0
+      Y: -3
+      Scale: 1
+    - Time: 1
+      X: 0
+      Y: 0
+      Scale: 1
+  - <Motion>k__BackingField: 2
+    <Seconds>k__BackingField: 0.42
+    <Keys>k__BackingField:
+    - Time: 0
+      X: 0
+      Y: 0
+      Scale: 1
+    - Time: 0.25
+      X: 0
+      Y: -33
+      Scale: 1
+    - Time: 0.5
+      X: 0
+      Y: 0
+      Scale: 1
+    - Time: 0.7
+      X: 0
+      Y: -12
+      Scale: 1
+    - Time: 1
+      X: 0
+      Y: 0
+      Scale: 1
+  - <Motion>k__BackingField: 3
+    <Seconds>k__BackingField: 0.34
+    <Keys>k__BackingField:
+    - Time: 0
+      X: 0
+      Y: 0
+      Scale: 1
+    - Time: 0.2
+      X: -10
+      Y: 0
+      Scale: 1
+    - Time: 0.45
+      X: 9
+      Y: 0
+      Scale: 1
+    - Time: 0.7
+      X: -5
+      Y: 0
+      Scale: 1
+    - Time: 1
+      X: 0
+      Y: 0
+      Scale: 1
+  <EmoteSeconds>k__BackingField: 0.9
+  <EmoteStartScale>k__BackingField: 0.3
+  <EmoteOvershootScale>k__BackingField: 1.1
+  <Emotes>k__BackingField:
+  - <Emote>k__BackingField: 0
+    <Glyph>k__BackingField: "!"
+    <ParticleColor>k__BackingField: {r: 1, g: 0.85, b: 0.35, a: 1}
+    <ParticleCount>k__BackingField: 10
+  - <Emote>k__BackingField: 1
+    <Glyph>k__BackingField: "?"
+    <ParticleColor>k__BackingField: {r: 0.6, g: 0.85, b: 1, a: 1}
+    <ParticleCount>k__BackingField: 6
+  - <Emote>k__BackingField: 2
+    <Glyph>k__BackingField: "♪"
+    <ParticleColor>k__BackingField: {r: 1, g: 0.75, b: 0.85, a: 1}
+    <ParticleCount>k__BackingField: 10
+  - <Emote>k__BackingField: 3
+    <Glyph>k__BackingField: "♥"
+    <ParticleColor>k__BackingField: {r: 1, g: 0.45, b: 0.6, a: 1}
+    <ParticleCount>k__BackingField: 12
+  - <Emote>k__BackingField: 4
+    <Glyph>k__BackingField: "…"
+    <ParticleColor>k__BackingField: {r: 0.6, g: 0.8, b: 1, a: 1}
+    <ParticleCount>k__BackingField: 6
+  - <Emote>k__BackingField: 5
+    <Glyph>k__BackingField: "..."
+    <ParticleColor>k__BackingField: {r: 0.75, g: 0.75, b: 0.8, a: 1}
+    <ParticleCount>k__BackingField: 0
+  <CharactersPerSecond>k__BackingField: 26
+  <AutoDelaySeconds>k__BackingField: 1
+  <AutoSecondsPerCharacter>k__BackingField: 0.03
+  <NextMarkBlinkSeconds>k__BackingField: 0.4
+  <PresentationSwitchSeconds>k__BackingField: 0.16
+  <CloseSeconds>k__BackingField: 0.2
+  <ChoiceRowDelaySeconds>k__BackingField: 0.05
+  <ChoiceAppearDelaySeconds>k__BackingField: 0.016
+  <EnterEffectName>k__BackingField: "빛"
+  <Effects>k__BackingField:
+  - <Name>k__BackingField: "빛"
+    <Kind>k__BackingField: 0
+    <Color>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+    <ParticleCount>k__BackingField: 0
+    <Seconds>k__BackingField: 0.45
+    <Strength>k__BackingField: 0.8
+  - <Name>k__BackingField: "반짝"
+    <Kind>k__BackingField: 1
+    <Color>k__BackingField: {r: 1, g: 0.92, b: 0.55, a: 1}
+    <ParticleCount>k__BackingField: 16
+    <Seconds>k__BackingField: 0.5
+    <Strength>k__BackingField: 1
+  - <Name>k__BackingField: "플래시"
+    <Kind>k__BackingField: 2
+    <Color>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+    <ParticleCount>k__BackingField: 0
+    <Seconds>k__BackingField: 0.3
+    <Strength>k__BackingField: 0.75
+  - <Name>k__BackingField: "화면흔들림"
+    <Kind>k__BackingField: 3
+    <Color>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+    <ParticleCount>k__BackingField: 0
+    <Seconds>k__BackingField: 0.3
+    <Strength>k__BackingField: 10
+  <ScreenShakeFrequency>k__BackingField: 40
+  <ParticleCapacity>k__BackingField: 64
+  <ParticleLifeSeconds>k__BackingField: 0.7
+  <ParticleSpeed>k__BackingField: 190
+  <ParticleGravity>k__BackingField: 260
+  <GlowTextureSize>k__BackingField: 64
+  <FadeTextureHeight>k__BackingField: 64
+  <Shots>k__BackingField:
+  - <Shot>k__BackingField: 0
+    <Distance>k__BackingField: 12
+  - <Shot>k__BackingField: 1
+    <Distance>k__BackingField: 7
+  - <Shot>k__BackingField: 2
+    <Distance>k__BackingField: 3.5
+  <CameraBlendSeconds>k__BackingField: 0.6
+  <CameraDistanceSmoothSeconds>k__BackingField: 0.25
+  <SampleScript>k__BackingField: {fileID: 11400000, guid: 3021d7851cc34098a3edb497d669fa97, type: 2}

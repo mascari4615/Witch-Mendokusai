@@ -162,6 +162,7 @@ namespace WitchMendokusai
 			DevCommandRegistry.Instance.Register(new SpawnMonsterCommand());
 			DevCommandRegistry.Instance.Register(new StartDungeonCommand());
 			DevCommandRegistry.Instance.Register(new UnlockQuestCommand());
+			DevCommandRegistry.Instance.Register(new DialogueStageSampleCommand());
 
 			if (DevModeRegistry.Instance.FindById("console") == null)
 				DevModeRegistry.Instance.Register(new ConsoleMode());
