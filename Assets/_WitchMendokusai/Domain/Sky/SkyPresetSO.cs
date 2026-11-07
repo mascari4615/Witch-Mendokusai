@@ -30,6 +30,9 @@ namespace WitchMendokusai
 		[field: Tooltip("해 높이 (0=수평선 / 1=천정 / 다시 0=수평선). 0~1 = 00:00~24:00")]
 		[field: SerializeField] public AnimationCurve SunAltitude { get; private set; } = DefaultSunAltitude();
 
+		[field: Tooltip("직접광 최소 고도(도). 해가 지평선 아래여도 빛은 이 각도 위에서 내려온다")]
+		[field: SerializeField, Range(0f, 90f)] public float MinLightPitch { get; private set; } = 50f;
+
 		[field: Tooltip("별 layer alpha (밤만 1)")]
 		[field: SerializeField] public AnimationCurve StarAlpha { get; private set; } = DefaultStarAlpha();
 

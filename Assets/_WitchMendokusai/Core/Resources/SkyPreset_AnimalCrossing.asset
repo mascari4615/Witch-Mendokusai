@@ -105,12 +105,12 @@ MonoBehaviour:
     m_NumAlphaKeys: 6
   <SunLightColor>k__BackingField:
     serializedVersion: 2
-    key0: {r: 0.3, g: 0.3, b: 0.5, a: 1}
+    key0: {r: 0.55, g: 0.55, b: 0.8, a: 1}
     key1: {r: 1, g: 0.85, b: 0.75, a: 1}
     key2: {r: 1, g: 0.95, b: 0.9, a: 1}
     key3: {r: 1, g: 0.65, b: 0.45, a: 1}
     key4: {r: 0.45, g: 0.35, b: 0.55, a: 1}
-    key5: {r: 0.3, g: 0.3, b: 0.5, a: 1}
+    key5: {r: 0.55, g: 0.55, b: 0.8, a: 1}
     key6: {r: 0, g: 0, b: 0, a: 0}
     key7: {r: 0, g: 0, b: 0, a: 0}
     ctime0: 0
@@ -165,10 +165,10 @@ MonoBehaviour:
     m_NumAlphaKeys: 4
   <AmbientColor>k__BackingField:
     serializedVersion: 2
-    key0: {r: 0.18, g: 0.18, b: 0.3, a: 1}
+    key0: {r: 0.34, g: 0.34, b: 0.48, a: 1}
     key1: {r: 0.65, g: 0.7, b: 0.8, a: 1}
     key2: {r: 0.85, g: 0.65, b: 0.6, a: 1}
-    key3: {r: 0.18, g: 0.18, b: 0.3, a: 1}
+    key3: {r: 0.34, g: 0.34, b: 0.48, a: 1}
     key4: {r: 0, g: 0, b: 0, a: 0}
     key5: {r: 0, g: 0, b: 0, a: 0}
     key6: {r: 0, g: 0, b: 0, a: 0}
@@ -198,18 +198,18 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.1
-      inSlope: 1.5
-      outSlope: 1.5
+      value: 0.8
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 0.2
-      value: 0.4
-      inSlope: 2.0833335
-      outSlope: 2.0833335
+      value: 0.8
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
@@ -217,35 +217,35 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0.5
       value: 1.2
-      inSlope: 0.44047606
-      outSlope: 0.44047606
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 0.78
-      value: 0.7
-      inSlope: -3.6428564
-      outSlope: -3.6428564
+      value: 0.8
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 0.88
-      value: 0.15
-      inSlope: -2.9583323
-      outSlope: -2.9583323
+      value: 0.8
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 1
-      value: 0.1
-      inSlope: -0.4166667
-      outSlope: -0.4166667
+      value: 0.8
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
@@ -304,6 +304,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  <MinLightPitch>k__BackingField: 50
   <StarAlpha>k__BackingField:
     serializedVersion: 2
     m_Curve:

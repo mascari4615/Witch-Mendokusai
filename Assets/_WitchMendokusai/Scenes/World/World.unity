@@ -37,7 +37,7 @@ RenderSettings:
   m_ReflectionBounces: 1
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
-  m_Sun: {fileID: 0}
+  m_Sun: {fileID: 3544521880616111001}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -5632,13 +5632,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: Light
       objectReference: {fileID: 0}
-    - target: {fileID: 6899038483242530734, guid: 6953d165cf383e7419677887bd3617e8, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 8414968382803179587, guid: 6953d165cf383e7419677887bd3617e8, type: 3}
       propertyPath: m_Lightmapping
       value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8414968382803179587, guid: 6953d165cf383e7419677887bd3617e8, type: 3}
+      propertyPath: m_Shadows.m_Type
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 7397607640107972015, guid: 6953d165cf383e7419677887bd3617e8, type: 3}
@@ -5646,6 +5646,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6953d165cf383e7419677887bd3617e8, type: 3}
+--- !u!108 &3544521880616111001 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 8414968382803179587, guid: 6953d165cf383e7419677887bd3617e8, type: 3}
+  m_PrefabInstance: {fileID: 3544521880616111000}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &3711188247173537543
 GameObject:
   m_ObjectHideFlags: 0

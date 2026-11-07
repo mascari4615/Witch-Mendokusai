@@ -74,12 +74,34 @@ namespace WitchMendokusai
 			}
 			Instance = this;
 			ApplySkyboxMaterial();
+			StageManager.OnStageChanged += OnStageChanged;
 		}
 
 		private void OnDestroy()
 		{
 			if (Instance == this)
+			{
 				Instance = null;
+				StageManager.OnStageChanged -= OnStageChanged;
+			}
+		}
+
+		// 자기 직접광이 있는 스테이지(Home, StartTown)는 씬 태양 끔
+		private void OnStageChanged(Stage stage, StageObject stageObject)
+		{
+			Light sun = RenderSettings.sun;
+			if (sun != null)
+				sun.enabled = HasOwnDirectionalLight(stageObject) == false;
+		}
+
+		public static bool HasOwnDirectionalLight(StageObject stageObject)
+		{
+			foreach (Light light in stageObject.GetComponentsInChildren<Light>())
+			{
+				if (light.type == LightType.Directional && light.enabled == true)
+					return true;
+			}
+			return false;
 		}
 
 		private void Start()
@@ -128,12 +150,20 @@ namespace WitchMendokusai
 			DynamicGI.UpdateEnvironment();
 		}
 
+		// 정본은 씬 Lighting의 Sun Source. 없는 씬(Idle, Arena)만 켜진 직접광 탐색
+		// 꺼진 빛이나 풀에 든 스테이지 빛은 제외. 값만 바뀌고 화면 변화 없음
 		private void FindDirectionalLight()
 		{
-			Light[] lights = FindObjectsByType<Light>(FindObjectsInactive.Include);
+			if (RenderSettings.sun != null)
+			{
+				directionalLight = RenderSettings.sun;
+				return;
+			}
+
+			Light[] lights = FindObjectsByType<Light>(FindObjectsInactive.Exclude);
 			foreach (Light light in lights)
 			{
-				if (light.type == LightType.Directional)
+				if (light.type == LightType.Directional && light.enabled == true)
 				{
 					directionalLight = light;
 					return;
@@ -232,9 +262,12 @@ namespace WitchMendokusai
 			directionalLight.intensity = ActivePreset.SunIntensity.Evaluate(t);
 
 			float altitude = ActivePreset.SunAltitude.Evaluate(t);
-			float pitchDegrees = altitude * 90f;
+			float pitchDegrees = ComputeLightPitch(altitude, ActivePreset.MinLightPitch);
 			directionalLight.transform.rotation = Quaternion.Euler(pitchDegrees, sunAzimuth, 0f);
 		}
+
+		// 밤의 달빛 겸용. 해가 지평선 아래여도 빛 방향은 위쪽
+		public static float ComputeLightPitch(float altitude, float minPitch) => Mathf.Max(altitude * 90f, minPitch);
 
 		private void ApplyEnvironment(float t)
 		{
