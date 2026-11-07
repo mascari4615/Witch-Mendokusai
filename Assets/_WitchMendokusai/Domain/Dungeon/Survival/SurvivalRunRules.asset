@@ -45,6 +45,10 @@ MonoBehaviour:
   EvolutionCards:
   - {fileID: 11400000, guid: a8869e83a8e34e89b6c16287d5e59ad7, type: 2}
   - {fileID: 11400000, guid: 036cc99084004505b5a740353c84051e, type: 2}
+  - {fileID: 11400000, guid: ece6962dbb7048b394bc684dc11fc022, type: 2}
+  - {fileID: 11400000, guid: b454a57018c94e7d826652a6a3a8675d, type: 2}
+  - {fileID: 11400000, guid: bdac3000011a4bd6b2c1eb0f99fb9002, type: 2}
+  - {fileID: 11400000, guid: 2128aa72c6074654935b1b16d7b20861, type: 2}
   EnemySoftCap: 300
   EnemyHardCap: 500
   RefillBurstMax: 30

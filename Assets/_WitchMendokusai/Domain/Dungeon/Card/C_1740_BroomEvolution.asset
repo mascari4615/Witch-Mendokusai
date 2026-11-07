@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fef6d2281070d344d9cdc494d9a13c92, type: 3}
+  m_Name: C_1740_BroomEvolution
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
+  <ID>k__BackingField: 1740
+  <Name>k__BackingField: "빗자루 진화 2"
+  <Description>k__BackingField: "빗자루 수 +2, 빗자루 데미지 +12, 빗자루 공격속도 +2\n돌아오기 귀찮아와 빗자루 공격속도 최대 뒤 상자에서 획득. 한 판에 1회."
+  <Sprite>k__BackingField: {fileID: 21300000, guid: e4d65d3171c8eab4ab77d78faa0212b4, type: 3}
+  <Sprites>k__BackingField: []
+  <Effects>k__BackingField:
+  - Type: 0
+    Data: {fileID: 11400000, guid: 2276ebab7406e144d8e76bf0c90ac943, type: 2}
+    ArithmeticOperator: 1
+    Value: 2
+  - Type: 0
+    Data: {fileID: 11400000, guid: fde49ae78b6c1d64e9cc4e317b90bb34, type: 2}
+    ArithmeticOperator: 1
+    Value: 12
+  - Type: 0
+    Data: {fileID: 11400000, guid: d6cfa325d438d0b4389688795daaa50e, type: 2}
+    ArithmeticOperator: 1
+    Value: 2
+  <MaxStack>k__BackingField: 1
+  <Rarity>k__BackingField: 2
+  <Requirements>k__BackingField:
+  - Card: {fileID: 11400000, guid: fa54e08789087d04f928111028c4ed97, type: 2}
+    Stack: 1
+  - Card: {fileID: 11400000, guid: 670e9679ce7bf3341a2fea4cce728822, type: 2}
+    Stack: 5
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 11400000, guid: ce218d43c4894157be8fd7884677171f, type: 3}
+  <UIKind>k__BackingField: 4

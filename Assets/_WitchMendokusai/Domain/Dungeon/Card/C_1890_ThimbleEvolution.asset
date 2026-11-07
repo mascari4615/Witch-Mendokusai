@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fef6d2281070d344d9cdc494d9a13c92, type: 3}
+  m_Name: C_1890_ThimbleEvolution
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
+  <ID>k__BackingField: 1890
+  <Name>k__BackingField: "골무 방패 진화 2"
+  <Description>k__BackingField: "골무 크기 +2, 골무 데미지 +24, 골무 재사용 감소 +2\n두꺼운 골무와 골무 재사용 감소 최대 뒤 상자에서 획득. 한 판에 1회."
+  <Sprite>k__BackingField: {fileID: 21300000, guid: e408d3b885a7ac64ab21e74cbe2518ee, type: 3}
+  <Sprites>k__BackingField: []
+  <Effects>k__BackingField:
+  - Type: 0
+    Data: {fileID: 11400000, guid: b381f891af029c040b0cf1ac1215a0bb, type: 2}
+    ArithmeticOperator: 1
+    Value: 2
+  - Type: 0
+    Data: {fileID: 11400000, guid: fd84f450915351e4d866391e5623c819, type: 2}
+    ArithmeticOperator: 1
+    Value: 24
+  - Type: 0
+    Data: {fileID: 11400000, guid: 93bc6b6c1b86a7b4996138268543aa4b, type: 2}
+    ArithmeticOperator: 1
+    Value: 2
+  <MaxStack>k__BackingField: 1
+  <Rarity>k__BackingField: 2
+  <Requirements>k__BackingField:
+  - Card: {fileID: 11400000, guid: f9d614b90c4fb7d4a8f73570f52c8da5, type: 2}
+    Stack: 1
+  - Card: {fileID: 11400000, guid: 08bc5726cf358a04780bdc3c87f152d2, type: 2}
+    Stack: 5
+  <AwakeningEffectPrefab>k__BackingField: {fileID: 11400000, guid: ce218d43c4894157be8fd7884677171f, type: 3}
+  <UIKind>k__BackingField: 4
