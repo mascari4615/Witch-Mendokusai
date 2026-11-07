@@ -51,8 +51,8 @@ namespace WitchMendokusai
 			SetUIManager(uiManager);
 		}
 
-		// Level Up Stack
-		private int levelUpStack = 0;
+		// 레벨업 선택과 상자 개봉 대기열
+		private readonly SurvivalChoiceQueue choiceQueue = new();
 
 		// Data
 		private readonly List<List<CardData>> cardDataBuffers = new(4) { new(), new(), new(), new() };
@@ -129,7 +129,7 @@ namespace WitchMendokusai
 			}
 			StopAllCoroutines();
 			ClearOpenChest();
-			levelUpStack = 0;
+			choiceQueue.CancelSelection();
 			curDeckIndex = 0;
 			deckOffers.Clear();
 			offeredCards.Clear();
@@ -218,8 +218,7 @@ namespace WitchMendokusai
 
 		public void LevelUp()
 		{
-			levelUpStack++;
-			if (levelUpStack > 1 || isChestOpen)
+			if (choiceQueue.AddLevelUp() == false)
 			{
 				return;
 			}
@@ -310,7 +309,7 @@ namespace WitchMendokusai
 				curDeckBuffer.RemoveAt(cardIndex);
 			}
 
-			levelUpStack--;
+			choiceQueue.ConsumeLevelUp();
 			ContinueAfterChoice();
 		}
 
@@ -319,7 +318,8 @@ namespace WitchMendokusai
 			UnitObject player = playerProvider.CurrentObject;
 			int heal = 0;
 			int nyang = 0;
-			for (; levelUpStack > 0; levelUpStack--)
+			int levelUpCount = choiceQueue.TakeAllLevelUps();
+			for (int i = 0; i < levelUpCount; i++)
 			{
 				if (player.UnitStat[UnitStatType.HP_CUR] + heal < player.UnitStat[UnitStatType.HP_MAX])
 					heal += maxedLevelUpHeal;

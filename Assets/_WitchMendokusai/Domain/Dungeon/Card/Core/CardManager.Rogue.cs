@@ -32,8 +32,6 @@ namespace WitchMendokusai
 	public partial class CardManager
 	{
 		private readonly HashSet<int> bannedCardIds = new();
-		private int pendingChestCount;
-		private bool isChestOpen;
 		private Coroutine chestCloseRoutine;
 
 		private SurvivalRunRules RunRules => resourceManager.SurvivalRunRules;
@@ -41,8 +39,8 @@ namespace WitchMendokusai
 		public int RerollsLeft { get; private set; }
 		public int SkipsLeft { get; private set; }
 		public int BansLeft { get; private set; }
-		public bool IsChestOpen => isChestOpen;
-		public int PendingChestCount => pendingChestCount;
+		public bool IsChestOpen => choiceQueue.IsChestOpen;
+		public int PendingChestCount => choiceQueue.PendingChests;
 		public int OfferedCardCount => offeredCards.Count;
 		public IReadOnlyList<RunDeckOffer> DeckOffers => deckOffers;
 
@@ -60,7 +58,7 @@ namespace WitchMendokusai
 			SkipsLeft = RunChoiceRules.StartCharges(rules.SkipCharges, UpgradeData.BonusOf(UpgradeType.SkipCharge));
 			BansLeft = RunChoiceRules.StartCharges(rules.BanCharges, UpgradeData.BonusOf(UpgradeType.BanCharge));
 			bannedCardIds.Clear();
-			pendingChestCount = 0;
+			choiceQueue.ResetRun();
 			PublishCharges();
 		}
 
@@ -140,7 +138,7 @@ namespace WitchMendokusai
 			SkipsLeft--;
 			offeredCards.Clear();
 			SetPanel(CardPanelType.None);
-			levelUpStack--;
+			choiceQueue.ConsumeLevelUp();
 			PublishCharges();
 
 			UnitStat playerStat = playerProvider.Current.UnitStat;
@@ -168,13 +166,13 @@ namespace WitchMendokusai
 			deckTrees[deckIndex] = skillTrees.Find(equipment.ID);
 			gameManager.EquipDuringRun(equipment);
 
-			levelUpStack--;
+			choiceQueue.ConsumeLevelUp();
 			ContinueAfterChoice();
 		}
 
 		private void ContinueAfterChoice()
 		{
-			if (levelUpStack > 0)
+			if (choiceQueue.PendingLevelUps > 0)
 			{
 				StartCoroutine(StartSelectCard());
 				return;
@@ -188,18 +186,16 @@ namespace WitchMendokusai
 		{
 			if (DungeonManagerBridge.IsDungeon == false)
 				return;
-			pendingChestCount++;
+			choiceQueue.AddChest();
 			TryOpenNextChest();
 		}
 
 		// 카드 선택과 겹치면 대기, 선택이 끝난 뒤 개봉
 		private void TryOpenNextChest()
 		{
-			if (pendingChestCount == 0 || isChestOpen || levelUpStack > 0)
+			if (choiceQueue.TryOpenChest() == false)
 				return;
 
-			pendingChestCount--;
-			isChestOpen = true;
 			timeManager.Pause(gameObject);
 			SurvivalFeel.Instance.OnChestOpened(playerProvider.Current.transform.position);
 			float autoCloseSeconds = RunRules.ChestAutoCloseSeconds;
@@ -217,7 +213,7 @@ namespace WitchMendokusai
 
 		public void CloseChest()
 		{
-			if (isChestOpen == false)
+			if (choiceQueue.IsChestOpen == false)
 				return;
 			if (chestCloseRoutine != null)
 				StopCoroutine(chestCloseRoutine);
@@ -229,9 +225,8 @@ namespace WitchMendokusai
 		private void ClearOpenChest()
 		{
 			chestCloseRoutine = null;
-			if (isChestOpen == false)
+			if (choiceQueue.CloseChest() == false)
 				return;
-			isChestOpen = false;
 			if (isActiveAndEnabled)
 				EventBusBridge.Publish(new ChestClosedEvent());
 		}

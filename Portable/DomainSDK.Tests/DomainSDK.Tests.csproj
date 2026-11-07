@@ -54,6 +54,7 @@
     <Compile Include="$(TestsRoot)Combat/FloorItemRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/ExpCurveRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/RunChoiceRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/SurvivalChoiceQueueTests.cs" />
     <Compile Include="$(TestsRoot)Combat/AttackCadenceTests.cs" />
     <Compile Include="$(TestsRoot)Item/InventoryCoreTests.cs" />
     <Compile Include="$(TestsRoot)Item/InventoryCanReceiveTests.cs" />
