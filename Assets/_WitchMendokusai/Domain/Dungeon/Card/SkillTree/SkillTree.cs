@@ -5,10 +5,10 @@ namespace WitchMendokusai
 {
 	public enum SkillTreeNodeState
 	{
-		Locked,
-		Open,
-		Owned,
-		Maxed,
+		Locked = 0,
+		Open = 1,
+		Owned = 2,
+		Maxed = 3,
 	}
 
 	public class SkillTreeRequirement

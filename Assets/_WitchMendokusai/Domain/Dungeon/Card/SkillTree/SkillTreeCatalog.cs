@@ -128,13 +128,13 @@ namespace WitchMendokusai
 			List<EffectInfo> effects = new();
 			foreach (SkillTreeEffectFile effect in node.Effects)
 			{
-				EffectType type = Enum.Parse<EffectType>(effect.Type);
+				EffectType type = (EffectType)Enum.Parse(typeof(EffectType), effect.Type);
 				dataSource.TryGetEffectTarget(type, effect.Target, out DataSO target);
 				effects.Add(new EffectInfo
 				{
 					Type = type,
 					Data = target,
-					ArithmeticOperator = Enum.Parse<ArithmeticOperator>(effect.Operator),
+					ArithmeticOperator = (ArithmeticOperator)Enum.Parse(typeof(ArithmeticOperator), effect.Operator),
 					Value = effect.Value.Value,
 				});
 			}
@@ -152,8 +152,8 @@ namespace WitchMendokusai
 				sprite,
 				effects,
 				node.MaxStack.Value,
-				node.Rarity != null ? Enum.Parse<CardRarity>(node.Rarity) : CardRarity.Common,
-				node.Kind != null ? Enum.Parse<SurvivalUIKind>(node.Kind) : SurvivalUIKind.Count);
+				node.Rarity != null ? (CardRarity)Enum.Parse(typeof(CardRarity), node.Rarity) : CardRarity.Common,
+				node.Kind != null ? (SurvivalUIKind)Enum.Parse(typeof(SurvivalUIKind), node.Kind) : SurvivalUIKind.Count);
 		}
 	}
 }
