@@ -17,6 +17,7 @@ namespace WitchMendokusai.Tests
 			public Action<int> Submit;
 
 			public bool IsHoldingInput => false;
+			public bool IsPausingTime => false;
 
 			public void Begin(IDialogueStageControls controls)
 			{

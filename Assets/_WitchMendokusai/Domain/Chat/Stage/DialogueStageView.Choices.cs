@@ -14,8 +14,10 @@ namespace WitchMendokusai
 		private const string USS_ROW_LOCKED = USS_ROW + "--locked";
 		private const string USS_ROW_LABEL = USS_ROW + "__label";
 		private const string USS_ROW_REASON = USS_ROW + "__reason";
+		private const string USS_FRAME_CORNER = "wm-dlg-frame__corner";
 
 		private VisualElement choiceList;
+		private VisualElement choiceFrame;
 		private readonly List<Button> choiceRows = new();
 		private readonly List<int> selectableRows = new();
 		private IReadOnlyList<DialogueChoiceRow> currentRows;
@@ -28,6 +30,10 @@ namespace WitchMendokusai
 		{
 			choiceList = root.Q<VisualElement>("wm-dlg-choices");
 			choiceList.RegisterCallback<NavigationMoveEvent>(OnChoiceNavigationMove, TrickleDown.TrickleDown);
+			choiceFrame = root.Q<VisualElement>("wm-dlg-frame");
+			ShopNineSlice corner = new();
+			corner.AddToClassList(USS_FRAME_CORNER);
+			choiceFrame.Add(corner);
 		}
 
 		public void PresentChoices(DialogueStageDelta delta, string speakerName, string prompt, IReadOnlyList<DialogueChoiceRow> rows, Action<int> submit)
@@ -122,9 +128,26 @@ namespace WitchMendokusai
 			for (int i = 0; i < selectableRows.Count; i++)
 				choiceRows[selectableRows[i]].EnableInClassList(USS_ROW_FOCUS, i == selectableIndex);
 
-			choiceRows[selectableRows[selectableIndex]].Focus();
+			Button focused = choiceRows[selectableRows[selectableIndex]];
+			focused.Focus();
+			MoveChoiceFrame(focused);
+			focused.schedule.Execute(() => MoveChoiceFrame(focused)).ExecuteLater(ChoiceFrameSettleMilliseconds);
 			if (playSound && isSame == false)
 				UiSfx.Play(UiSfxEvent.FocusMove);
+		}
+
+		private long ChoiceFrameSettleMilliseconds =>
+			(long)((settings.ChoiceAppearDelaySeconds + settings.ChoiceRowDelaySeconds * choiceRows.Count + settings.ChoiceFrameSettleSeconds) * 1000f);
+
+		private void MoveChoiceFrame(VisualElement row)
+		{
+			if (isChoosing == false || row.panel == null)
+				return;
+			Rect bound = root.WorldToLocal(row.worldBound);
+			choiceFrame.style.left = bound.x;
+			choiceFrame.style.top = bound.y;
+			choiceFrame.style.width = bound.width;
+			choiceFrame.style.height = bound.height;
 		}
 
 		private void OnChoiceClicked(int rowIndex)

@@ -54,7 +54,7 @@ namespace WitchMendokusai
 				if (actors.TryGetValue(emote.Actor, out DialogueStageActorElement actor) == false)
 					continue;
 				DialogueStageSettings.EmoteEntry entry = settings.FindEmote(emote.Emote);
-				actor.PlayEmote(entry.Glyph, settings);
+				actor.PlayEmote(entry, settings);
 				EmitParticles(actor, entry.ParticleCount, entry.ParticleColor);
 			}
 
@@ -111,7 +111,7 @@ namespace WitchMendokusai
 				return null;
 			}
 
-			DialogueStageActorElement actor = new(actorName, entry, GetGlowTexture());
+			DialogueStageActorElement actor = new(actorName, entry, GetGlowTexture(), GetArtFilter());
 			actors.Add(actorName, actor);
 			cast.Add(actor);
 			return actor;

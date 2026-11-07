@@ -14,6 +14,7 @@
         <ui:VisualElement name="wm-dlg-fx" class="wm-dlg-fx" picking-mode="Ignore" />
         <ui:VisualElement name="wm-dlg-flash" class="wm-dlg-flash" picking-mode="Ignore" />
         <ui:VisualElement name="wm-dlg-choices" class="wm-dlg-choices" />
+        <ui:VisualElement name="wm-dlg-frame" class="wm-dlg-frame" picking-mode="Ignore" />
         <ui:VisualElement name="wm-dlg-tools" class="wm-dlg-tools">
             <ui:Button name="wm-dlg-tool-auto" text="자동" class="wm-dlg-tool" focusable="false" />
             <ui:Button name="wm-dlg-tool-skip" text="건너뛰기" class="wm-dlg-tool" focusable="false" />

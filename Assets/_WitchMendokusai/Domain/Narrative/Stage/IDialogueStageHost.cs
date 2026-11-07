@@ -35,6 +35,7 @@ namespace WitchMendokusai
 	public interface IDialogueStageHost
 	{
 		bool IsHoldingInput { get; }
+		bool IsPausingTime { get; }
 		void Begin(IDialogueStageControls controls);
 		void ApplyLine(DialogueStageDelta delta, string speakerName, string text);
 		void ApplyCues(DialogueStageDelta delta);
@@ -48,6 +49,8 @@ namespace WitchMendokusai
 		public static IDialogueStageHost Current { get; private set; }
 
 		public static bool IsHoldingInput => Current != null && Current.IsHoldingInput;
+
+		public static bool IsPausingTime => Current != null && Current.IsPausingTime;
 
 		public static void Register(IDialogueStageHost host) => Current = host;
 

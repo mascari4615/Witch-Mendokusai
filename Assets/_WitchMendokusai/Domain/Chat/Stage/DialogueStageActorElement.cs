@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -22,6 +23,7 @@ namespace WitchMendokusai
 		private readonly VisualElement art = new() { pickingMode = PickingMode.Ignore };
 		private readonly Label emote = new() { pickingMode = PickingMode.Ignore };
 		private readonly DialogueStageSettings.CastEntry cast;
+		private readonly FilterFunctionDefinition artFilter;
 
 		private float currentX;
 		private float currentOpacity;
@@ -49,15 +51,19 @@ namespace WitchMendokusai
 		private float lightSeconds;
 		private float lightStrength;
 		private bool isListening;
+		private bool hasInlineFilter;
+		private Color tintColor;
+		private float tintStrength;
 
 		public string ActorName { get; }
 		public bool IsOnStage { get; set; }
 		public bool IsVisibleNow => currentOpacity > VISIBLE_EPSILON || targetOpacity > VISIBLE_EPSILON;
 
-		public DialogueStageActorElement(string actorName, DialogueStageSettings.CastEntry cast, Texture2D glowTexture)
+		public DialogueStageActorElement(string actorName, DialogueStageSettings.CastEntry cast, Texture2D glowTexture, FilterFunctionDefinition artFilter)
 		{
 			ActorName = actorName;
 			this.cast = cast;
+			this.artFilter = artFilter;
 			pickingMode = PickingMode.Ignore;
 			AddToClassList(USS_ROOT);
 
@@ -109,9 +115,11 @@ namespace WitchMendokusai
 			motionElapsed = 0f;
 		}
 
-		public void PlayEmote(string glyph, DialogueStageSettings settings)
+		public void PlayEmote(DialogueStageSettings.EmoteEntry entry, DialogueStageSettings settings)
 		{
-			emote.text = glyph;
+			emote.text = entry.Glyph;
+			tintColor = entry.ParticleColor;
+			tintStrength = entry.TintStrength;
 			emoteElapsed = 0f;
 			emoteSeconds = settings.EmoteSeconds;
 			emoteStartScale = settings.EmoteStartScale;
@@ -158,15 +166,61 @@ namespace WitchMendokusai
 
 			DialogueMotionKey motion = SampleMotion(deltaTime);
 			float lightBoost = SampleLight(deltaTime);
+			float tint = SampleTint();
 			TickEmote(deltaTime);
+			float speaking = settings.SpeakerGlowOpacity <= 0f ? 0f : Mathf.Clamp01(currentGlow / settings.SpeakerGlowOpacity);
+			float breath = speaking * BreathWave(settings);
 
 			style.left = Length.Percent(currentX * 100f);
 			style.opacity = currentOpacity;
 			style.display = currentOpacity <= VISIBLE_EPSILON && targetOpacity <= VISIBLE_EPSILON ? DisplayStyle.None : DisplayStyle.Flex;
 			style.translate = new Translate(currentSlide + motion.X + stageShake.x, currentOffsetY + motion.Y + stageShake.y);
-			style.scale = new Scale(Vector2.one * (currentScale * motion.Scale));
+			style.scale = new Scale(Vector2.one * (currentScale * motion.Scale * (1f + breath * settings.BreathScale)));
 			art.style.unityBackgroundImageTintColor = Color.Lerp(Color.white, settings.ListenerTint, currentDim);
 			glow.style.opacity = Mathf.Clamp01(currentGlow + lightBoost);
+			ApplyArtFilter(settings, speaking, breath, lightBoost, tint);
+		}
+
+		private static float BreathWave(DialogueStageSettings settings)
+		{
+			if (settings.BreathSeconds <= 0f)
+				return 0f;
+			return 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * Mathf.PI * 2f / settings.BreathSeconds);
+		}
+
+		// 효과 끄기면 USS 기본값으로 복귀
+		private void ApplyArtFilter(DialogueStageSettings settings, float speaking, float breath, float lightBoost, float tint)
+		{
+			if (UIEffects.Enabled == false || style.display == DisplayStyle.None)
+			{
+				if (hasInlineFilter)
+				{
+					art.style.filter = StyleKeyword.Null;
+					hasInlineFilter = false;
+				}
+				return;
+			}
+
+			float sweepPhase = lightElapsed >= 0f && lightSeconds > 0f ? Mathf.Clamp01(lightElapsed / lightSeconds) : -1f;
+			float rim = Mathf.Clamp01(speaking * settings.SpeakerRimStrength + lightBoost);
+			float light = breath * settings.BreathBrightness - currentDim * settings.ListenerDesaturate;
+			Color effectColor = tint > 0f ? tintColor : cast.GlowColor;
+			effectColor.a = tint;
+
+			FilterFunction filter = new(artFilter);
+			filter.AddParameter(new FilterParameter(sweepPhase));
+			filter.AddParameter(new FilterParameter(rim));
+			filter.AddParameter(new FilterParameter(light));
+			filter.AddParameter(new FilterParameter(effectColor));
+			art.style.filter = new StyleList<FilterFunction>(new List<FilterFunction> { filter });
+			hasInlineFilter = true;
+		}
+
+		private float SampleTint()
+		{
+			if (emoteElapsed < 0f || emoteSeconds <= 0f)
+				return 0f;
+			return tintStrength * Mathf.Clamp01(1f - emoteElapsed / emoteSeconds);
 		}
 
 		private DialogueMotionKey SampleMotion(float deltaTime)

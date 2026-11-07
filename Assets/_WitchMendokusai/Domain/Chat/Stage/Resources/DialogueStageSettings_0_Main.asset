@@ -14,6 +14,30 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   <Layout>k__BackingField: {fileID: 9197481963319205126, guid: afa0d33aaf564147b8a5cd462ee3e84c, type: 3}
   <Style>k__BackingField: {fileID: 7433441132597879392, guid: 1d8df3d6851e4ef58bbc236209c6964c, type: 3}
+  <Presentations>k__BackingField:
+  - <Presentation>k__BackingField: 0
+    <PausesTime>k__BackingField: 0
+    <BlursBackground>k__BackingField: 0
+  - <Presentation>k__BackingField: 1
+    <PausesTime>k__BackingField: 1
+    <BlursBackground>k__BackingField: 1
+  - <Presentation>k__BackingField: 2
+    <PausesTime>k__BackingField: 1
+    <BlursBackground>k__BackingField: 1
+  - <Presentation>k__BackingField: 3
+    <PausesTime>k__BackingField: 0
+    <BlursBackground>k__BackingField: 0
+  <BlurOutput>k__BackingField: {fileID: 8400000, guid: 4f1f5a32ebefe5041a43447ad1711148, type: 2}
+  <ArtFilterShader>k__BackingField: {fileID: 4800000, guid: 7c3e1f5a9b2d4e608a41d6c2f0b7e935, type: 3}
+  <SweepWidth>k__BackingField: 0.14
+  <SweepAngle>k__BackingField: 0.35
+  <SweepStrength>k__BackingField: 0.9
+  <RimRadiusPixels>k__BackingField: 3
+  <SpeakerRimStrength>k__BackingField: 0.3
+  <BreathSeconds>k__BackingField: 3.2
+  <BreathBrightness>k__BackingField: 0.05
+  <BreathScale>k__BackingField: 0.004
+  <ListenerDesaturate>k__BackingField: 0.25
   <Cast>k__BackingField:
   - <Name>k__BackingField: "욘"
     <Bust>k__BackingField: {fileID: 21300000, guid: 068c2afa2e2f4dfba97a071b135c226e, type: 3}
@@ -143,26 +167,32 @@ MonoBehaviour:
     <Glyph>k__BackingField: "!"
     <ParticleColor>k__BackingField: {r: 1, g: 0.85, b: 0.35, a: 1}
     <ParticleCount>k__BackingField: 10
+    <TintStrength>k__BackingField: 0.25
   - <Emote>k__BackingField: 1
     <Glyph>k__BackingField: "?"
     <ParticleColor>k__BackingField: {r: 0.6, g: 0.85, b: 1, a: 1}
     <ParticleCount>k__BackingField: 6
+    <TintStrength>k__BackingField: 0.25
   - <Emote>k__BackingField: 2
     <Glyph>k__BackingField: "♪"
     <ParticleColor>k__BackingField: {r: 1, g: 0.75, b: 0.85, a: 1}
     <ParticleCount>k__BackingField: 10
+    <TintStrength>k__BackingField: 0.25
   - <Emote>k__BackingField: 3
     <Glyph>k__BackingField: "♥"
     <ParticleColor>k__BackingField: {r: 1, g: 0.45, b: 0.6, a: 1}
     <ParticleCount>k__BackingField: 12
+    <TintStrength>k__BackingField: 0.25
   - <Emote>k__BackingField: 4
     <Glyph>k__BackingField: "…"
     <ParticleColor>k__BackingField: {r: 0.6, g: 0.8, b: 1, a: 1}
     <ParticleCount>k__BackingField: 6
+    <TintStrength>k__BackingField: 0.25
   - <Emote>k__BackingField: 5
     <Glyph>k__BackingField: "..."
     <ParticleColor>k__BackingField: {r: 0.75, g: 0.75, b: 0.8, a: 1}
     <ParticleCount>k__BackingField: 0
+    <TintStrength>k__BackingField: 0.25
   <CharactersPerSecond>k__BackingField: 26
   <AutoDelaySeconds>k__BackingField: 1
   <AutoSecondsPerCharacter>k__BackingField: 0.03
@@ -171,6 +201,7 @@ MonoBehaviour:
   <CloseSeconds>k__BackingField: 0.2
   <ChoiceRowDelaySeconds>k__BackingField: 0.05
   <ChoiceAppearDelaySeconds>k__BackingField: 0.016
+  <ChoiceFrameSettleSeconds>k__BackingField: 0.16
   <EnterEffectName>k__BackingField: "빛"
   <Effects>k__BackingField:
   - <Name>k__BackingField: "빛"

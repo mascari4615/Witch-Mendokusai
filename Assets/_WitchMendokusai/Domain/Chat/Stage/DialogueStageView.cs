@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		private InputManager inputManager;
 		private CameraManager cameraManager;
 		private PlayerProvider playerProvider;
+		private TimeManager timeManager;
 
 		private DialogueStageSettings settings;
 		private DialogueCameraDirector cameraDirector;
@@ -44,12 +45,13 @@ namespace WitchMendokusai
 		public bool IsHoldingInput => isSessionOpen && (presentation != DialogueStagePresentation.World || isChoosing);
 
 		[Inject]
-		public void Construct(UIRoot uiRoot, InputManager inputManager, CameraManager cameraManager, PlayerProvider playerProvider)
+		public void Construct(UIRoot uiRoot, InputManager inputManager, CameraManager cameraManager, PlayerProvider playerProvider, TimeManager timeManager)
 		{
 			this.uiRoot = uiRoot;
 			this.inputManager = inputManager;
 			this.cameraManager = cameraManager;
 			this.playerProvider = playerProvider;
+			this.timeManager = timeManager;
 			DialogueStageBridge.Register(this);
 		}
 
@@ -58,6 +60,8 @@ namespace WitchMendokusai
 			DialogueStageBridge.Clear(this);
 			cameraDirector?.Release();
 			SetHudHidden(false);
+			SetTimePaused(false);
+			SetBlurred(false);
 			root?.RemoveFromHierarchy();
 			ReleaseTextures();
 		}
@@ -87,6 +91,7 @@ namespace WitchMendokusai
 			BuildChoices();
 			BuildTools();
 			BuildFx();
+			BuildBackdrop();
 
 			root.RegisterCallback<PointerDownEvent>(OnRootPointerDown);
 			root.style.display = DisplayStyle.None;
@@ -153,6 +158,7 @@ namespace WitchMendokusai
 			closeElapsed = 0f;
 			root.RemoveFromClassList(USS_OPEN);
 			root.pickingMode = PickingMode.Ignore;
+			RefreshStageMood();
 		}
 
 		public bool TryResolveWorldAnchor(string actorName, out Transform anchor)
@@ -178,11 +184,13 @@ namespace WitchMendokusai
 			ClearParticles();
 			presentation = DialogueStagePresentation.World;
 			shownPresentation = DialogueStagePresentation.World;
+			RefreshStageMood();
 		}
 
 		// 말풍선 방식은 선택지가 없으면 화면 전체를 비움
 		private void RefreshOpenState()
 		{
+			RefreshStageMood();
 			bool needsScreen = presentation != DialogueStagePresentation.World || isChoosing;
 			if (needsScreen == false && isClosing == false)
 			{
@@ -256,6 +264,7 @@ namespace WitchMendokusai
 			TickActors(deltaTime);
 			TickFx(deltaTime);
 			TickWindow(deltaTime);
+			TickBackdrop();
 
 			if (isSessionOpen)
 				TickInput(deltaTime);

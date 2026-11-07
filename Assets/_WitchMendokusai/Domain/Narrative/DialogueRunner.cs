@@ -233,7 +233,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			Tick(Time.deltaTime);
+			Tick(DialogueStageBridge.IsPausingTime ? Time.unscaledDeltaTime : Time.deltaTime);
 		}
 
 		/// <summary>

@@ -32,6 +32,8 @@
     right: 0;
     bottom: 0;
     background-color: rgb(8, 9, 12);
+    background-size: 100% 100%;
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0);
     opacity: 0;
     transition-property: opacity;
     transition-duration: 0.25s;
@@ -40,6 +42,15 @@
 .wm-dlg--novel .wm-dlg-backdrop,
 .wm-dlg--feature .wm-dlg-backdrop {
     opacity: 0.58;
+}
+
+/* 배경 흐림과 어둡게. 효과 끄기면 단색 */
+.wm-dlg--novel .wm-dlg-backdrop--blur,
+.wm-dlg--feature .wm-dlg-backdrop--blur {
+    background-color: rgba(0, 0, 0, 0);
+    -unity-background-image-tint-color: rgb(128, 128, 128);
+    filter: grayscale(0.2);
+    opacity: 1;
 }
 
 /* 인물 */
@@ -81,8 +92,6 @@
     background-position-x: center;
     background-position-y: bottom;
     background-repeat: no-repeat;
-    transition-property: filter;
-    transition-duration: 0.18s;
 }
 
 .wm-dlg-actor__art--listening {
@@ -217,6 +226,23 @@
 .wm-dlg--novel .wm-dlg-next {
     right: 31px;
     bottom: 22px;
+}
+
+/* 미연시 창 corner 틀 */
+.wm-dlg-window__corner {
+    display: none;
+    position: absolute;
+    left: -7px;
+    top: -7px;
+    right: -7px;
+    bottom: -7px;
+    --wm-nine-image: url("../../Trade/Shop/Art/corner.png");
+    --wm-nine-slice: 16;
+    --wm-nine-width: 13;
+}
+
+.wm-dlg--novel .wm-dlg-window__corner {
+    display: flex;
 }
 
 /* 1 인물 크게, 자막 */
@@ -372,6 +398,32 @@
     -unity-text-align: middle-right;
 }
 
+/* 선택 틀. 포커스 칸을 따라 이동 */
+.wm-dlg-frame {
+    display: none;
+    position: absolute;
+    border-width: 2px;
+    border-color: #ffffff;
+    transition-property: left, top, width, height;
+    transition-duration: 0.11s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.wm-dlg--choosing .wm-dlg-frame {
+    display: flex;
+}
+
+.wm-dlg-frame__corner {
+    position: absolute;
+    left: -9px;
+    top: -9px;
+    right: -9px;
+    bottom: -9px;
+    --wm-nine-image: url("../../Trade/Shop/Art/corner.png");
+    --wm-nine-slice: 16;
+    --wm-nine-width: 13;
+}
+
 /* 자동, 건너뛰기, 로그 */
 .wm-dlg-tools {
     position: absolute;
@@ -478,6 +530,6 @@
 .wm-dlg--no-fx .wm-dlg-band,
 .wm-dlg--no-fx .wm-dlg-window,
 .wm-dlg--no-fx .wm-dlg-choice,
-.wm-dlg--no-fx .wm-dlg-actor__art {
+.wm-dlg--no-fx .wm-dlg-frame {
     transition-duration: 0s;
 }

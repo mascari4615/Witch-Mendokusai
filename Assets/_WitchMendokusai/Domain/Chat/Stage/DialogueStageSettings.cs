@@ -46,6 +46,15 @@ namespace WitchMendokusai
 			[field: SerializeField] public string Glyph { get; private set; }
 			[field: SerializeField] public Color ParticleColor { get; private set; } = Color.white;
 			[field: SerializeField] public int ParticleCount { get; private set; } = 8;
+			[field: SerializeField, Tooltip("일러에 얹는 감정 색 세기. 색은 입자 색")] public float TintStrength { get; private set; } = 0.25f;
+		}
+
+		[Serializable]
+		public class PresentationEntry
+		{
+			[field: SerializeField] public DialogueStagePresentation Presentation { get; private set; }
+			[field: SerializeField] public bool PausesTime { get; private set; }
+			[field: SerializeField] public bool BlursBackground { get; private set; }
 		}
 
 		[Serializable]
@@ -69,6 +78,22 @@ namespace WitchMendokusai
 		[field: Header("화면")]
 		[field: SerializeField] public VisualTreeAsset Layout { get; private set; }
 		[field: SerializeField] public StyleSheet Style { get; private set; }
+
+		[field: Header("표시 방식별 시간 정지와 배경 흐림")]
+		[field: SerializeField] public List<PresentationEntry> Presentations { get; private set; } = new();
+		[field: SerializeField] public RenderTexture BlurOutput { get; private set; }
+
+		[field: Header("일러 셰이더")]
+		[field: SerializeField] public Shader ArtFilterShader { get; private set; }
+		[field: SerializeField] public float SweepWidth { get; private set; } = 0.14f;
+		[field: SerializeField] public float SweepAngle { get; private set; } = 0.35f;
+		[field: SerializeField] public float SweepStrength { get; private set; } = 0.9f;
+		[field: SerializeField] public float RimRadiusPixels { get; private set; } = 3f;
+		[field: SerializeField] public float SpeakerRimStrength { get; private set; } = 0.3f;
+		[field: SerializeField] public float BreathSeconds { get; private set; } = 3.2f;
+		[field: SerializeField] public float BreathBrightness { get; private set; } = 0.05f;
+		[field: SerializeField] public float BreathScale { get; private set; } = 0.004f;
+		[field: SerializeField] public float ListenerDesaturate { get; private set; } = 0.25f;
 
 		[field: Header("인물")]
 		[field: SerializeField] public List<CastEntry> Cast { get; private set; } = new();
@@ -108,6 +133,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public float CloseSeconds { get; private set; } = 0.2f;
 		[field: SerializeField] public float ChoiceRowDelaySeconds { get; private set; } = 0.05f;
 		[field: SerializeField] public float ChoiceAppearDelaySeconds { get; private set; } = 0.016f;
+		[field: SerializeField] public float ChoiceFrameSettleSeconds { get; private set; } = 0.16f;
 
 		[field: Header("이펙트")]
 		[field: SerializeField, Tooltip("등장 때 자동으로 쓰는 이펙트 이름. 비우면 없음")] public string EnterEffectName { get; private set; } = DialogueStageVocabulary.EFFECT_LIGHT;
@@ -136,6 +162,16 @@ namespace WitchMendokusai
 					return entry;
 			}
 			return null;
+		}
+
+		public PresentationEntry FindPresentation(DialogueStagePresentation presentation)
+		{
+			foreach (PresentationEntry entry in Presentations)
+			{
+				if (entry.Presentation == presentation)
+					return entry;
+			}
+			throw new InvalidOperationException($"{nameof(DialogueStageSettings)}: no presentation entry for {presentation}");
 		}
 
 		public MotionTrack FindMotion(DialogueStageMotion motion)

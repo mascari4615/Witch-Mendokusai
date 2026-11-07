@@ -7,6 +7,7 @@ namespace WitchMendokusai
 	public partial class DialogueStageView
 	{
 		private const string USS_WINDOW_FADED = "wm-dlg-window--faded";
+		private const string USS_WINDOW_CORNER = "wm-dlg-window__corner";
 		private const string USS_BAND_NPC = "wm-dlg-name--npc";
 		private const string USS_BAND_HIDDEN = "wm-dlg-name--hidden";
 		private const string HIDDEN_TEXT_OPEN = "<color=#00000000>";
@@ -33,6 +34,9 @@ namespace WitchMendokusai
 			lineLabel = root.Q<Label>("wm-dlg-line");
 			nextMark = root.Q<VisualElement>("wm-dlg-next");
 			lineLabel.enableRichText = true;
+			ShopNineSlice corner = new();
+			corner.AddToClassList(USS_WINDOW_CORNER);
+			window.Add(corner);
 		}
 
 		private void SetPresentation(DialogueStagePresentation next)

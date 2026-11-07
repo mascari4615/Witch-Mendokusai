@@ -21,6 +21,8 @@ namespace WitchMendokusai
 		private readonly Stack<Particle> particlePool = new();
 		private Texture2D glowTexture;
 		private Texture2D fadeTexture;
+		private Material artFilterMaterial;
+		private FilterFunctionDefinition artFilter;
 
 		private float flashElapsed = -1f;
 		private float flashSeconds;
@@ -153,6 +155,45 @@ namespace WitchMendokusai
 			flash.style.opacity = 0f;
 		}
 
+		// 인물마다 값만 다른 필터 정의 하나
+		private FilterFunctionDefinition GetArtFilter()
+		{
+			if (artFilter != null)
+				return artFilter;
+
+			artFilterMaterial = new Material(settings.ArtFilterShader);
+			artFilterMaterial.SetFloat("_SweepWidth", settings.SweepWidth);
+			artFilterMaterial.SetFloat("_SweepAngle", settings.SweepAngle);
+			artFilterMaterial.SetFloat("_SweepStrength", settings.SweepStrength);
+			artFilterMaterial.SetFloat("_RimRadius", settings.RimRadiusPixels);
+
+			artFilter = ScriptableObject.CreateInstance<FilterFunctionDefinition>();
+			artFilter.filterName = "wm-dialogue-art";
+			artFilter.parameters = new[]
+			{
+				new FilterParameterDeclaration { name = "sweep", interpolationDefaultValue = new FilterParameter(-1f) },
+				new FilterParameterDeclaration { name = "rim", interpolationDefaultValue = new FilterParameter(0f) },
+				new FilterParameterDeclaration { name = "light", interpolationDefaultValue = new FilterParameter(0f) },
+				new FilterParameterDeclaration { name = "color", interpolationDefaultValue = new FilterParameter(Color.clear) },
+			};
+			artFilter.passes = new[]
+			{
+				new PostProcessingPass
+				{
+					material = artFilterMaterial,
+					passIndex = 0,
+					parameterBindings = new[]
+					{
+						new ParameterBinding { index = 0, name = "_SweepPhase" },
+						new ParameterBinding { index = 1, name = "_Rim" },
+						new ParameterBinding { index = 2, name = "_Light" },
+						new ParameterBinding { index = 3, name = "_EffectColor" },
+					},
+				},
+			};
+			return artFilter;
+		}
+
 		// 등장 빛과 화자 뒤 빛에 쓰는 원형 감쇠 그림. 코드 생성이라 자산 없음
 		private Texture2D GetGlowTexture()
 		{
@@ -203,6 +244,10 @@ namespace WitchMendokusai
 				Destroy(glowTexture);
 			if (fadeTexture != null)
 				Destroy(fadeTexture);
+			if (artFilter != null)
+				Destroy(artFilter);
+			if (artFilterMaterial != null)
+				Destroy(artFilterMaterial);
 		}
 	}
 }
