@@ -333,8 +333,11 @@ namespace WitchMendokusai.ServerTests
 			int viewerId = await ReadWelcomeAsync(viewer);
 			int travelerId = await ReadWelcomeAsync(traveler);
 
-			string nearby = await WaitForAsync(viewer, text => ReadWorldDollCount(text) == 2);
-			Assert.AreEqual(2, ReadWorldDollCount(nearby));
+			// 틱과 입장 순서를 가정하지 않음. 뷰어 칸의 장부에 여행자가 오른 뒤에만 "gone" 경로 측정
+			//   늦은 입장: 통째 [뷰어] 뒤 델타 [여행자]라 2명이 든 한 장이 영영 안 옴 (CI 실패 줄 336)
+			//   이른 이동: 첫 방송 전에 걸어 나가면 통째 판이 대신 지워 "gone"이 영영 안 옴 (로컬 25/25 실패)
+			System.Collections.Generic.HashSet<int> visible = new System.Collections.Generic.HashSet<int>();
+			await WaitForAsync(viewer, text => ApplyWorldToVisible(visible, text) && visible.Contains(travelerId));
 
 			// ⚠ 「몇 미터까지 보이나」는 <b>칸 단위</b>다 (TASK-WM-217 — 한 칸이 소식 한 벌을 같이 쓴다).
 			//   반경 32 + 칸 하나(16)까지는 아직 보일 수 있다. 지키는 약속은 「멀리 가면 사라진다」이므로
@@ -593,16 +596,30 @@ namespace WitchMendokusai.ServerTests
 			return System.Text.Json.JsonDocument.Parse(json).RootElement.GetProperty("sequence").GetInt64();
 		}
 
-		private static int ReadWorldDollCount(string json)
+		/// <summary>창과 같은 규칙으로 보이는 인형을 갱신한다. 델타 판이면 참</summary>
+		private static bool ApplyWorldToVisible(System.Collections.Generic.HashSet<int> visible, string json)
 		{
 			using System.Text.Json.JsonDocument document = System.Text.Json.JsonDocument.Parse(json);
 			System.Text.Json.JsonElement root = document.RootElement;
 			if (root.TryGetProperty("type", out System.Text.Json.JsonElement type) == false
 				|| type.GetString() != "world"
 				|| root.TryGetProperty("dolls", out System.Text.Json.JsonElement dolls) == false)
-				return -1;
+				return false;
 
-			return dolls.GetArrayLength();
+			bool isDelta = root.TryGetProperty("changed", out System.Text.Json.JsonElement _);
+			if (isDelta == false)
+				visible.Clear();
+
+			foreach (System.Text.Json.JsonElement doll in dolls.EnumerateArray())
+				visible.Add(doll.GetProperty("id").GetInt32());
+
+			if (root.TryGetProperty("gone", out System.Text.Json.JsonElement gone))
+			{
+				foreach (System.Text.Json.JsonElement dollId in gone.EnumerateArray())
+					visible.Remove(dollId.GetInt32());
+			}
+
+			return isDelta;
 		}
 
 		private static int ReadWorldBuildingCount(string json)
