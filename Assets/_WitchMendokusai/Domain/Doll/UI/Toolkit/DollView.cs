@@ -8,6 +8,9 @@ namespace WitchMendokusai
 	{
 		private const string WINDOW_ID = "Doll";
 
+		[SerializeField, Tooltip("창 처음 위치와 크기. 높이는 인형 6명이 스크롤 없이 보이는 값")] private Rect windowRect = new(240f, 120f, 640f, 480f);
+		[SerializeField] private float listWidth = 240f;
+
 		private WMWindow window;
 		private DollList dollList;
 		private DollDetail dollDetail;
@@ -35,10 +38,10 @@ namespace WitchMendokusai
 				WindowId = WINDOW_ID,
 				Title = "인형"
 			};
-			window.style.left = 240;
-			window.style.top = 120;
-			window.style.width = 640;
-			window.style.height = 440;
+			window.style.left = windowRect.x;
+			window.style.top = windowRect.y;
+			window.style.width = windowRect.width;
+			window.style.height = windowRect.height;
 			uiRoot.WindowsLayer.Add(window);
 
 			VisualElement body = new();
@@ -47,7 +50,7 @@ namespace WitchMendokusai
 			window.Content.Add(body);
 
 			dollList = new DollList();
-			dollList.style.width = 240;
+			dollList.style.width = listWidth;
 			dollList.style.flexShrink = 0;
 			dollList.OnDollSelected += OnDollSelected;
 			body.Add(dollList);

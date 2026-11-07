@@ -121,7 +121,11 @@ namespace WitchMendokusai
 			selectedEntry = entry;
 
 			if (selectedEntry != null)
+			{
 				selectedEntry.SetSelected(true);
+				// 레이아웃 전이면 ScrollTo 가 무시됨, 다음 갱신에 실행
+				selectedEntry.schedule.Execute(() => scrollView.ScrollTo(entry));
+			}
 
 			OnDollSelected.Invoke(entry?.Doll);
 		}
