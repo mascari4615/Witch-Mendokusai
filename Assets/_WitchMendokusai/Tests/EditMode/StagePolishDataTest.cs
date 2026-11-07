@@ -5,7 +5,7 @@ using UnityEngine;
 namespace WitchMendokusai.Tests
 {
 	// 대화 연출 자료와 UI 효과음 표의 자료 계약
-	public class DialoguePolishDataTest
+	public class StagePolishDataTest
 	{
 		[TestCase(DialogueStagePresentation.World, false, false)]
 		[TestCase(DialogueStagePresentation.Novel, true, true)]

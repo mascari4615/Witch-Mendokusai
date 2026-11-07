@@ -88,6 +88,7 @@ namespace UnityEngine
 	public static class Time
 	{
 		public static float deltaTime => 0f;
+		public static float unscaledDeltaTime => 0f;
 	}
 
 	public sealed class WaitForSeconds
