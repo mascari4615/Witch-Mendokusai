@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 4
   <Name>k__BackingField: AttackCount
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 21300000, guid: e408d3b885a7ac64ab21e74cbe2518ee, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 71eafe093e2489045bbb337fb8328056, type: 3}
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 4
   <UnitStatType>k__BackingField: 450

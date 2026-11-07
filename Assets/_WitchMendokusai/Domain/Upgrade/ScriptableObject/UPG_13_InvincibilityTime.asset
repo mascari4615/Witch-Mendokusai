@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 13
   <Name>k__BackingField: InvincibilityTime
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 21300000, guid: e408d3b885a7ac64ab21e74cbe2518ee, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 862f00bf63474ea69a52f067a8abeb6d, type: 3}
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 13
   <UnitStatType>k__BackingField: 800
