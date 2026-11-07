@@ -1,0 +1,8 @@
+{
+  "equipment": 20000034,
+  "nodes": [
+    {"id":"size","card":910},
+    {"id":"resonance","card":919,"requires":[{"card":5,"stack":3},{"card":810,"stack":2}]},
+    {"id":"reach","cardId":911,"name":"멀리 끌리는 실","description":"흡수 범위가 크게 늘어납니다.","iconCard":910,"kind":"Size","rarity":"Rare","maxStack":3,"effects":[{"type":"UnitStat","target":"EXP_COLLIDER_SCALE","op":"Add","value":2}],"requires":[{"node":"size","stack":3}]}
+  ]
+}
