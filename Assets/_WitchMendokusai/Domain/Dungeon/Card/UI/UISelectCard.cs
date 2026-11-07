@@ -80,11 +80,11 @@ namespace WitchMendokusai
 			deckTabs.SetCardNeighbor(cardSelectButtons[Mathf.Min(count, cardSelectButtons.Count) - 1].Selectable);
 		}
 
-		public void SetTreeAvailable(bool isAvailable) => deckTabs.SetTreeAvailable(isAvailable);
+		public void SetSkillTree(SkillTree tree, EquipmentData equipment, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> offeredCards) => deckTabs.SetSkillTree(tree, equipment, selectedCards, offeredCards);
 
-		public void SetCardSelectButtons(List<CardData> cardDataList, EquipmentData equipment, IReadOnlyList<EquipmentData> equipments, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards)
+		public void SetCardSelectButtons(List<CardData> cardDataList, EquipmentData equipment, IReadOnlyList<EquipmentData> equipments, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards, SkillTreeCatalog skillTrees)
 		{
-			deckTabs.SetOverview(equipments, selectedCards);
+			deckTabs.SetOverview(equipments, selectedCards, skillTrees);
 			ApplyNavigation(cardDataList.Count);
 			for (int i = 0; i < cardSelectButtons.Count; i++)
 			{

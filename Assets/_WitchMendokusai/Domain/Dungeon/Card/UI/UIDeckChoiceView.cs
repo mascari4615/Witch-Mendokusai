@@ -26,7 +26,7 @@ namespace WitchMendokusai
 
 		private readonly List<UIMiniCard> minis = new();
 
-		public void Set(EquipmentData equipment, IReadOnlyList<CardData> selectedCards, bool isNewEquipment)
+		public void Set(EquipmentData equipment, IReadOnlyList<CardData> equipmentCards, IReadOnlyList<CardData> selectedCards, bool isNewEquipment)
 		{
 			SurvivalUITheme.KindStyle style = theme.Style(equipment.UIKind);
 			choiceCard.SetKind(equipment.UIKind);
@@ -35,7 +35,7 @@ namespace WitchMendokusai
 			tile.sprite = style.Tile;
 			panelTile.sprite = style.Tile;
 
-			List<CardData> cards = equipment.EffectCards.Where(card => card != null).GroupBy(card => card.ID).Select(group => group.First()).ToList();
+			List<CardData> cards = equipmentCards.Where(card => card != null).GroupBy(card => card.ID).Select(group => group.First()).ToList();
 			float cell = cards.Count > compactThreshold ? compactCell : normalCell;
 			miniGrid.cellSize = new Vector2(cell, cell);
 			int total = 0;
