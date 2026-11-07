@@ -14,21 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   entries:
   - sfxEvent: 0
-    eventPath: event:/SFX/EXP
+    eventPath: event:/SFX/UI/FocusMove
     minIntervalSeconds: 0.05
-    candidates: "EXP(현재). 후보: UI Soundpack Minimalist 짧은 틱 / RPG interface1. 새 이벤트 필요"
+    candidates: "UI Soundpack Minimalist3, 0.02초 -30dB. 이름 근거, 미청취"
   - sfxEvent: 1
     eventPath: event:/SFX/UI/Click
     minIntervalSeconds: 0.08
     candidates: "UI/Click(기존 확정음)"
   - sfxEvent: 2
-    eventPath: event:/SFX/UI/Click
+    eventPath: event:/SFX/UI/Cancel
     minIntervalSeconds: 0.08
-    candidates: "Click 임시. 후보: RPG interface 계열, Wood Block. 새 이벤트 필요"
+    candidates: "RPG interface1, 0.10초, -7dB 조정. 이름 근거, 미청취"
   - sfxEvent: 3
-    eventPath: event:/SFX/UI/Click
+    eventPath: event:/SFX/UI/Tab
     minIntervalSeconds: 0.06
-    candidates: "Click 임시. 후보: Minimalist 계열. 새 이벤트 필요"
+    candidates: "UI Soundpack Minimalist5, 0.03초. 이름 근거, 미청취"
   - sfxEvent: 4
     eventPath: event:/SFX/LevelUp
     minIntervalSeconds: 0.3
@@ -38,42 +38,42 @@ MonoBehaviour:
     minIntervalSeconds: 0.15
     candidates: "Click(기존). 후보 등급음: RPG magic1, spell"
   - sfxEvent: 6
-    eventPath: event:/SFX/Equip
+    eventPath: event:/SFX/UI/Purchase
     minIntervalSeconds: 0.08
-    candidates: "Equip 임시. 후보: RPG coin, coin2, coin3. 새 이벤트 필요"
+    candidates: "RPG coin3, 0.26초. 이름 근거, 미청취"
   - sfxEvent: 7
-    eventPath: event:/SFX/Monster/Hit
+    eventPath: event:/SFX/UI/PurchaseFail
     minIntervalSeconds: 0.2
-    candidates: "Hit 임시. 후보: Wood Block, metal-small. 새 이벤트 필요"
+    candidates: "UI Soundpack Wood Block1, 0.18초. 이름 근거, 미청취"
   - sfxEvent: 8
-    eventPath: event:/SFX/EXP
+    eventPath: event:/SFX/UI/Slider
     minIntervalSeconds: 0.06
-    candidates: "EXP 임시. 후보: Minimalist 틱. 새 이벤트 필요"
+    candidates: "UI Soundpack Minimalist7, 0.03초. 이름 근거, 미청취"
   - sfxEvent: 9
-    eventPath: event:/SFX/Equip
+    eventPath: event:/SFX/UI/WindowOpen
     minIntervalSeconds: 0.1
-    candidates: "Equip 임시. 후보: RPG cloth, Minimalist. 새 이벤트 필요"
+    candidates: "RPG cloth, 0.28초, -10.5dB 조정. 이름 근거, 미청취"
   - sfxEvent: 10
-    eventPath: event:/SFX/Equip
+    eventPath: event:/SFX/UI/WindowClose
     minIntervalSeconds: 0.1
-    candidates: "Equip 임시. 후보: RPG cloth, Minimalist. 새 이벤트 필요"
+    candidates: "RPG cloth-heavy, 0.24초, -11.5dB 조정. 이름 근거, 미청취"
   - sfxEvent: 11
-    eventPath: event:/SFX/EXP
+    eventPath: event:/SFX/UI/Reroll
     minIntervalSeconds: 0.12
-    candidates: "EXP 임시. 후보: RPG bubble, beads. 새 이벤트 필요"
+    candidates: "RPG bubble, 0.32초, -10dB 조정. 이름 근거, 미청취"
   - sfxEvent: 12
-    eventPath: event:/SFX/Monster/Hit
+    eventPath: event:/SFX/UI/Blocked
     minIntervalSeconds: 0.2
-    candidates: "Hit 임시. 후보: RPG metal-small, Wood Block. 새 이벤트 필요"
+    candidates: "RPG metal-small2, 0.14초. 이름 근거, 미청취"
   - sfxEvent: 13
-    eventPath: event:/SFX/LevelUp
+    eventPath: event:/SFX/UI/Chest
     minIntervalSeconds: 0.3
-    candidates: "LevelUp 임시(레벨업과 같은 소리). 후보: RPG inventory 계열. 새 이벤트 필요"
+    candidates: "RPG coin2, 0.83초. 이름 근거, 미청취"
   - sfxEvent: 14
-    eventPath: event:/SFX/LevelUp
+    eventPath: event:/SFX/UI/Evolve
     minIntervalSeconds: 0.3
-    candidates: "LevelUp 임시. 후보: RPG spell, magic1. 새 이벤트 필요"
+    candidates: "RPG magic1, 0.59초. 이름 근거, 미청취"
   - sfxEvent: 15
-    eventPath: event:/SFX/UI/Click
+    eventPath: event:/SFX/UI/DialogueAdvance
     minIntervalSeconds: 0.08
-    candidates: "Click 임시. 후보: Minimalist 짧은 음. 새 이벤트 필요"
+    candidates: "UI Soundpack Minimalist1, 0.04초. 이름 근거, 미청취"
