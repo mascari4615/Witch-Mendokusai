@@ -154,6 +154,12 @@ namespace WitchMendokusai.Net
 		/// </summary>
 		MoveOnMessage TakeMoveOn();
 
+		/// <summary>
+		/// 세계가 걸음과 무관하게 옮긴 내 자리 (2026-11-07). 한 번 읽으면 비움, 아직이면 null
+		/// 안 읽으면 화면이 옛 자리에 남고 걸음이 나를 옛 자리로 되돌림
+		/// </summary>
+		PlacedMessage TakePlaced();
+
 		/// <summary>세계가 아는 아이템 이름 — 「나무 1/2」의 「나무」다. 못 받았으면 빈 배열.</summary>
 		CatalogEntry[] ItemNames { get; }
 	}

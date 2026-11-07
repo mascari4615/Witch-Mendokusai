@@ -160,6 +160,16 @@ namespace WitchMendokusai.Net
 		public string pass = string.Empty;
 	}
 
+	/// <summary>세계 → 그 창: 걸음과 무관하게 옮긴 내 자리 (2026-11-07). seq 는 그때까지 답한 걸음 번호.</summary>
+	[Serializable]
+	public class PlacedMessage
+	{
+		public string type = NetMessageType.PLACED;
+		public float x;
+		public float z;
+		public int seq;
+	}
+
 	/// <summary>창 → 세계: 저 사람을 때린다 (TASK-WM-251·261). 되는지는 세계가 본다.</summary>
 	[Serializable]
 	public class StrikeMessage

@@ -207,6 +207,12 @@ namespace WitchMendokusai.Net
 		/// 주소와 통행증을 같이 준다 — 창은 그걸 들고 옆 세계에 hello 한다.
 		/// </summary>
 		public const string MOVE_ON = "moveon";
+
+		/// <summary>
+		/// 세계 -> 그 창에게만: 걸음과 무관하게 <b>네 자리를 옮겼다</b> (2026-11-07).
+		/// 쓰러진 뒤 다시 세움, 열쇠 인사 뒤 남긴 자리, 국경 통행증 자리. 안 다루면 옛 자리로 되돌아감
+		/// </summary>
+		public const string PLACED = "placed";
 	}
 
 	/// <summary>모든 수신 메시지의 첫 판별에 쓰는 공통 envelope.</summary>

@@ -36,6 +36,7 @@ namespace WitchMendokusai
 		private readonly Dictionary<int, Transform> bodies = new Dictionary<int, Transform>();
 		private readonly Dictionary<int, Animator[]> bodyAnimators = new Dictionary<int, Animator[]>();
 		private readonly Dictionary<int, bool> bodyMoving = new Dictionary<int, bool>();
+		private readonly PlacedFollow placedFollow = new PlacedFollow();
 		private GameObject prefab;
 		private float sendCooldown;
 
@@ -52,6 +53,11 @@ namespace WitchMendokusai
 
 				return;
 			}
+
+			// 세계가 옮긴 내 자리는 걸음 주기와 무관하게 받아 둔다 (한 번 읽으면 비워짐)
+			PlacedMessage placed = link.TakePlaced();
+			if (placed != null)
+				placedFollow.Receive(placed.x, placed.z);
 
 			WorldDollView[] dolls = link.Dolls;
 			SyncBodies(dolls, link.MyDollId);
@@ -226,6 +232,14 @@ namespace WitchMendokusai
 			if (MyDoll.TryFind(dolls, link.MyDollId, out SimVector3 known) == false)
 				return;
 
+			// 세계가 걸음과 무관하게 옮긴 자리로 화면 이동, 세계 목록이 따라올 때까지 걸음 중지
+			// 없으면 걸음이 세계 자리에서 옛 화면 자리로 나가 옛 자리로 되돌아감 (4m 미만이면 끌어당김보다 빠름)
+			if (placedFollow.TryHold(new SimVector3(x, 0f, z), known, out SimVector3 placedSpot))
+			{
+				LocalPlayerProbeBridge.TryPullTo(placedSpot.x, placedSpot.z);
+				return;
+			}
+
 			if (MoveIntent.TryStep(known, new SimVector3(x, 0f, z), WorldSim.MAX_STEP, out SimVector3 step))
 				link.RequestMove(step.x, step.z);
 
@@ -254,6 +268,7 @@ namespace WitchMendokusai
 			bodyAnimators.Clear();
 			bodyMoving.Clear();
 			roster.Clear();
+			placedFollow.Clear();
 		}
 	}
 }

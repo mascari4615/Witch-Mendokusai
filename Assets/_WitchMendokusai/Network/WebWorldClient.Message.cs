@@ -86,6 +86,13 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (type == NetMessageType.PLACED)
+			{
+				// 붙잡아 두기만 한다. 화면을 옮기는 것은 걸음을 보내는 쪽 (WorldDollBinder)
+				placed = JsonUtility.FromJson<PlacedMessage>(json);
+				return;
+			}
+
 			if (type == NetMessageType.BUILD_CATALOG)
 			{
 				// ★ 짓기 목록도 세계 것이어야 한다 (TASK-WM-217) — 자기 자산으로 늘어놓으면

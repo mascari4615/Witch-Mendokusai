@@ -85,6 +85,8 @@ namespace WitchMendokusai
 
 		private MoveOnMessage moveOn;
 
+		private PlacedMessage placed;
+
 		/// <summary>이렇게 말했다 — 다듬는 것도 자르는 것도 세계가 한다 (TASK-WM-261).</summary>
 		public void RequestSay(string line)
 		{
@@ -124,6 +126,14 @@ namespace WitchMendokusai
 		{
 			MoveOnMessage taken = moveOn;
 			moveOn = null;
+			return taken;
+		}
+
+		/// <summary>세계가 옮긴 내 자리 — 한 번 읽으면 비운다. 여러 번 왔으면 마지막 자리.</summary>
+		public PlacedMessage TakePlaced()
+		{
+			PlacedMessage taken = placed;
+			placed = null;
 			return taken;
 		}
 

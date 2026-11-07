@@ -302,5 +302,8 @@ namespace WitchMendokusai
 
 		/// <summary>내 안의 세계는 하나뿐이라 국경이 없다 — 넘어갈 곳이 없으니 늘 null.</summary>
 		public MoveOnMessage TakeMoveOn() => null;
+
+		// 내 안의 세계는 화면의 내가 정본, 옮겨 줄 서버 없음
+		public PlacedMessage TakePlaced() => null;
 	}
 }
