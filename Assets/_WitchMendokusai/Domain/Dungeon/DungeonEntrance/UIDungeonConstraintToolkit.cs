@@ -4,8 +4,9 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 던전 제약 선택 뷰. 제약마다 체크 표시와 설명 한 줄, 클릭으로 토글
-	/// 토글 로직은 구 UIDungeonConstraint 그대로 (ID/index 표현 원본 유지)
+	/// 던전 제약 표시 뷰. 제약마다 켜짐 표시와 설명 한 줄
+	/// DungeonManager 는 선택 여부와 무관하게 던전 제약 전부를 적용 (DungeonContext.Constraints)
+	/// 그래서 행은 항상 켜짐, 클릭 토글 없음. 꺼짐 표시는 적용 중인 규칙이 빠진 것처럼 읽힘
 	/// </summary>
 	public class UIDungeonConstraintToolkit : VisualElement
 	{
@@ -18,7 +19,7 @@ namespace WitchMendokusai
 		private const string USS_LINE = USS_CLASS + "__line";
 
 		private Dungeon dungeon;
-		private readonly List<Button> constraintRows = new();
+		private readonly List<VisualElement> constraintRows = new();
 		private readonly List<Label> constraintTexts = new();
 
 		public UIDungeonConstraintToolkit()
@@ -36,10 +37,7 @@ namespace WitchMendokusai
 			{
 				if (i < dungeon.Constraints.Count)
 				{
-					DungeonConstraint constraint = dungeon.Constraints[i];
-
-					constraintTexts[i].text = constraint.Description;
-					constraintRows[i].EnableInClassList(USS_ROW_SELECTED, dungeon.ConstraintSelected[constraint.ID]);
+					constraintTexts[i].text = dungeon.Constraints[i].Description;
 					constraintRows[i].style.display = DisplayStyle.Flex;
 				}
 				else
@@ -49,20 +47,13 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void ToggleConstraint(int index)
-		{
-			dungeon.ConstraintSelected[index] = dungeon.ConstraintSelected[index] == false;
-			UpdateUI();
-		}
-
 		private void EnsureRowCount(int count)
 		{
 			while (constraintRows.Count < count)
 			{
-				int index = constraintRows.Count;
-
-				Button row = new Button(() => { UiSfx.Play(UiSfxEvent.Confirm); ToggleConstraint(index); });
+				VisualElement row = new VisualElement { pickingMode = PickingMode.Ignore };
 				row.AddToClassList(USS_ROW);
+				row.AddToClassList(USS_ROW_SELECTED);
 
 				VisualElement check = new VisualElement { pickingMode = PickingMode.Ignore };
 				check.AddToClassList(USS_CHECK);

@@ -41,6 +41,7 @@ namespace WitchMendokusai
 		private Label numberLabel;
 		private UIRewardsToolkit rewardUI;
 		private UIDungeonConstraintToolkit constraintUI;
+		private VisualElement constraintSection;
 		private Button dungeonEnterButton;
 		private Button backButton;
 		private VisualElement dungeonSelectButtonsParent;
@@ -101,10 +102,10 @@ namespace WitchMendokusai
 			monsterImage.AddToClassList(USS_ROOT + "__monster-image");
 			monster.Add(monsterImage);
 
-			VisualElement constraints = AddSection(detail, "__section--constraints");
-			AddHeader(constraints, "제약");
+			constraintSection = AddSection(detail, "__section--constraints");
+			AddHeader(constraintSection, "제약");
 			constraintUI = new UIDungeonConstraintToolkit();
-			constraints.Add(constraintUI);
+			constraintSection.Add(constraintUI);
 
 			dungeonEnterButton = new Button(EnterTheDungeon) { name = "EnterButton" };
 			dungeonEnterButton.AddToClassList(USS_ROOT + "__enter");
@@ -351,6 +352,7 @@ namespace WitchMendokusai
 
 			constraintUI.SetDungeon(CurDungeon);
 			constraintUI.UpdateUI();
+			constraintSection.style.display = CurDungeon.Constraints.Count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
 
 			UpdateThreatRow();
 		}
