@@ -10,6 +10,7 @@ namespace WitchMendokusai.Tests
 	public class DollRosterDataTest
 	{
 		private static readonly int[] PLAYABLE_IDS = { 0, 4, 5, 6, 7, 8 };
+		private static readonly int[] TEST_ONLY_IDS = { 1, 2, 3 };
 
 		private static Dictionary<int, Doll> LoadDolls() =>
 			AssetDatabase.FindAssets("t:Doll")
@@ -40,6 +41,17 @@ namespace WitchMendokusai.Tests
 			Assert.That(signatures, Is.Unique);
 			foreach (EquipmentData signature in signatures)
 				Assert.That(signature.EffectCards.Any(card => card != null), signature.name);
+		}
+
+		[Test]
+		public void TestOnlyDolls_AreNotControllable_ButAssetsRemain()
+		{
+			Dictionary<int, Doll> dolls = LoadDolls();
+			foreach (int id in TEST_ONLY_IDS)
+			{
+				Assert.That(dolls[id].IsTestOnly, Is.True, dolls[id].name);
+				Assert.That(dolls[id].IsControllable, Is.False, dolls[id].name);
+			}
 		}
 
 		[Test]

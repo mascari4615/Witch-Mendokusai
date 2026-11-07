@@ -33,3 +33,4 @@ MonoBehaviour:
       value: 30
   <SignatureEquipment>k__BackingField: {fileID: 11400000, guid: 558768e4ce1c3d7429e1dfa98df215d5, type: 2}
   <DefaultEquipments>k__BackingField: []
+  <IsTestOnly>k__BackingField: 1

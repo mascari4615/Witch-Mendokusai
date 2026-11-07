@@ -18,12 +18,14 @@ namespace WitchMendokusai
 		[field: SerializeField] public List<EquipmentData> DefaultEquipments { get; private set; }
 		// 몸체 모델 색 배율. 흰색이면 모델 원색
 		[field: SerializeField] public Color BodyTint { get; private set; } = Color.white;
+		// 옛 시험 인형. 자산은 다른 콘텐츠가 참조하므로 두고 인형 창과 조작 대상에서만 뺌
+		[field: SerializeField] public bool IsTestOnly { get; private set; }
 
 		public const int EQUIPMENT_SLOT_COUNT = 3;
 		private const int REQUIRED_BODY_SPRITE_COUNT = 2;
 
-		// 조작 인형 조건: 머리와 몸 스프라이트, 고유 장비
-		public bool IsControllable => ID != DUMMY_ID && Sprites != null && Sprites.Count >= REQUIRED_BODY_SPRITE_COUNT && SignatureEquipment != null;
+		// 조작 인형 조건: 시험 전용 아님, 머리와 몸 스프라이트, 고유 장비
+		public bool IsControllable => ID != DUMMY_ID && IsTestOnly == false && Sprites != null && Sprites.Count >= REQUIRED_BODY_SPRITE_COUNT && SignatureEquipment != null;
 
 		// 인형의 레벨과 경험치 (던전 내 일시적 레벨과 경험치와는 별개)
 		[field: NonSerialized] public int Level { get; private set; } = 1;

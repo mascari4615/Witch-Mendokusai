@@ -37,3 +37,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1eaff0ea30c73634e8a1aee5fb7fa473, type: 2}
   - {fileID: 11400000, guid: 3d8ac01dbc15b99468dc54d2c6be0c47, type: 2}
   - {fileID: 11400000, guid: 98d7f0896153f2648a9f31a7b671a3d0, type: 2}
+  <IsTestOnly>k__BackingField: 1
