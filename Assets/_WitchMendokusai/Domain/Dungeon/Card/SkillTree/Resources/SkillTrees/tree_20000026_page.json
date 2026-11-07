@@ -1,0 +1,10 @@
+{
+  "equipment": 20000026,
+  "nodes": [
+    {"id":"count","card":830},
+    {"id":"damage","card":831,"requires":[{"node":"count","stack":1}]},
+    {"id":"speed","card":832,"requires":[{"node":"count","stack":1}]},
+    {"id":"size","card":833,"requires":[{"node":"damage","stack":1}]},
+    {"id":"resonance","card":839,"requires":[{"node":"count","stack":3},{"card":103,"stack":2}]}
+  ]
+}

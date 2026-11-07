@@ -1,0 +1,10 @@
+{
+  "equipment": 20000001,
+  "nodes": [
+    {"id":"card100","card":100},
+    {"id":"card101","card":101},
+    {"id":"card102","card":102},
+    {"id":"card103","card":103},
+    {"id":"card110","card":110,"requires":[{"node":"card100","stack":3},{"node":"card103","stack":2}]}
+  ]
+}
