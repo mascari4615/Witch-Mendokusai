@@ -180,7 +180,7 @@ namespace WitchMendokusai
 			horizontalFocusOrder.InsertRange(horizontalFocusOrder.IndexOf(dungeonEnterButton), new[] { threatPrevButton, threatNextButton });
 
 			threatLevelLabel.text = $"위협 단계 {selectedThreatLevel} / {maxLevel}";
-			threatPrevButton.EnableInClassList(USS_THREAT_LOCKED, selectedThreatLevel == 0);
+			threatPrevButton.EnableInClassList(USS_THREAT_LOCKED, selectedThreatLevel == 0); // zero-id-ok: 위협 단계 0, ID 아님
 			threatNextButton.EnableInClassList(USS_THREAT_LOCKED, selectedThreatLevel == highestUnlocked);
 			string unlockHint = selectedThreatLevel == highestUnlocked && highestUnlocked < maxLevel ? "\n다음 단계: 이 단계 승리 필요" : string.Empty;
 			threatEffectLabel.text = DescribeThreat(dungeonManager.ResolveThreat(CurDungeon, selectedThreatLevel)) + unlockHint;
