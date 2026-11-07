@@ -6,11 +6,11 @@ namespace WitchMendokusai
 	public enum SpawnClass
 	{
 		// 웨이브 주기 생성과 최소 적 수 보충. 소프트 상한에서 멈춤
-		Periodic,
+		Periodic = 0,
 		// 무리 사건. 절대 상한에서 멈춤
-		Event,
+		Event = 1,
 		// 보스와 정예. 상한 무시
-		Priority,
+		Priority = 2,
 	}
 
 	// 웨이브 밀도 판정의 정본. 엔진 무관
