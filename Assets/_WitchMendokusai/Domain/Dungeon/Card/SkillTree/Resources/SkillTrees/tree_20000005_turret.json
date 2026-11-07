@@ -1,0 +1,8 @@
+{
+  "equipment": 20000005,
+  "nodes": [
+    {"id":"count","card":300},
+    {"id":"damage","card":301,"requires":[{"node":"count","stack":1}]},
+    {"id":"speed","card":302,"requires":[{"node":"count","stack":1}]}
+  ]
+}

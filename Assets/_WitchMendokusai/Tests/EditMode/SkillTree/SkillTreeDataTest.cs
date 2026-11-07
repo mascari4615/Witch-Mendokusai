@@ -110,7 +110,7 @@ namespace WitchMendokusai.Tests
 		public void ShippedFiles_AreValid() => Assert.That(catalog.Validate(), Is.Empty);
 
 		[Test]
-		public void ShippedFiles_AreLoaded() => Assert.That(SkillTreeCatalog.LoadResources().Count, Is.EqualTo(28));
+		public void ShippedFiles_AreLoaded() => Assert.That(SkillTreeCatalog.LoadResources().Count, Is.EqualTo(35));
 
 		[Test]
 		public void OldPrefabs_AreMigrated_WithSameEffects()

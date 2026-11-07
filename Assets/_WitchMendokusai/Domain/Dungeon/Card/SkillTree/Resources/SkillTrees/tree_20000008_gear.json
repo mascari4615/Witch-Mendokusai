@@ -1,0 +1,8 @@
+{
+  "equipment": 20000008,
+  "nodes": [
+    {"id":"card0","card":0},
+    {"id":"card1","card":1},
+    {"id":"card2","card":2}
+  ]
+}
