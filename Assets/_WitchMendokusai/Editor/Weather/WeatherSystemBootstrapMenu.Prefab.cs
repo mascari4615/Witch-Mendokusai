@@ -167,6 +167,7 @@ namespace WitchMendokusai
 		{
 			EnsureFolder(VISUALS_DIR);
 
+			bool changed = false;
 			foreach (WeatherType type in VisualWeatherTypes)
 			{
 				string prefabPath = $"{VISUALS_DIR}/{type}Visual.prefab";
@@ -183,10 +184,10 @@ namespace WitchMendokusai
 				UnityEngine.Object.DestroyImmediate(root);
 
 				Debug.Log($"[WeatherSystemBootstrap] {(force == true ? "Recreated" : "Created")} {prefabPath}");
+				changed = true;
 			}
 
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
+			SaveIfChanged(changed);
 		}
 
 		// E2-fix: empty ParticleSystem shell — main.loop / playOnAwake / simulationSpace 만 박고 나머지 모두 SO 가 set.

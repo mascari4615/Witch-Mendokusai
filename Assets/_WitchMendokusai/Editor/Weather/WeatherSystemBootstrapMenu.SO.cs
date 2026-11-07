@@ -21,6 +21,7 @@ namespace WitchMendokusai
 				return;
 			}
 
+			bool changed = false;
 			foreach (WeatherType type in VisualWeatherTypes)
 			{
 				string matPath = $"{MATERIALS_DIR}/{type}Mat.mat";
@@ -28,6 +29,8 @@ namespace WitchMendokusai
 
 				if (existing != null && force == false)
 					continue;
+
+				changed = true;
 
 				Material mat = new Material(urpUnlit);
 
@@ -44,8 +47,7 @@ namespace WitchMendokusai
 				}
 			}
 
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
+			SaveIfChanged(changed);
 		}
 
 		// ─── D1: WeatherSO 7 .asset ───
@@ -54,6 +56,7 @@ namespace WitchMendokusai
 		{
 			EnsureFolder(WEATHER_DIR);
 
+			bool changed = false;
 			foreach (WeatherType type in Enum.GetValues(typeof(WeatherType)))
 			{
 				string assetPath = $"{WEATHER_DIR}/{type}.asset";
@@ -61,6 +64,8 @@ namespace WitchMendokusai
 
 				if (existing != null && force == false)
 					continue;
+
+				changed = true;
 
 				if (existing == null)
 				{
@@ -77,8 +82,7 @@ namespace WitchMendokusai
 				}
 			}
 
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
+			SaveIfChanged(changed);
 		}
 
 		private static void InitializeSO(WeatherSO weather, WeatherType type)
@@ -192,6 +196,7 @@ namespace WitchMendokusai
 		// 둘 다 만족 시 = 첫 schema 진입 → type 별 default 박기. 사용자 인스펙터 tweak 보존 (이미 채워진 노브 건들지 X).
 		private static void EnsureWeatherSOVisualKnobs()
 		{
+			bool changed = false;
 			foreach (WeatherType type in Enum.GetValues(typeof(WeatherType)))
 			{
 				string assetPath = $"{WEATHER_DIR}/{type}.asset";
@@ -223,9 +228,22 @@ namespace WitchMendokusai
 				ApplyVisualKnobDefaults(serializedObject, type);
 				serializedObject.ApplyModifiedProperties();
 				EditorUtility.SetDirty(existing);
+				changed = true;
 				Debug.Log($"[WeatherSystemBootstrap] Migrated visual knobs → {assetPath}");
 			}
+
+			if (changed)
+				AssetDatabase.SaveAssets();
+		}
+
+		// 도메인 재로드마다 도는 경로. 바꾼 것 없이 저장하면 남의 더티 자산까지 저장을 시도함
+		private static void SaveIfChanged(bool changed)
+		{
+			if (changed == false)
+				return;
+
 			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
 		}
 	}
 }
