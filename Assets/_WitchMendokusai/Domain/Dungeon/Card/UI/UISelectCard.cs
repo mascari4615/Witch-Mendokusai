@@ -16,7 +16,7 @@ namespace WitchMendokusai
 		[SerializeField] private UIEvolutionStrip evolutionStrip;
 		[SerializeField] private UIChestReward chestReward;
 
-		private readonly UICardFocusSound focusSound = new();
+		private UICardFocusSound focusSound;
 
 		public override bool IsFullscreen => true;
 
@@ -40,6 +40,7 @@ namespace WitchMendokusai
 		protected override void OnInit()
 		{
 			CardManager cardManager = PanelGroup as CardManager;
+			focusSound = UICardFocusSound.AttachTo(gameObject, selected => chestReward.IsOpen || deckTabs.IsTabButton(selected));
 			actions.Init(cardManager);
 			chestReward.Bind(cardManager);
 			for (int i = 0; i < cardSelectButtons.Count; i++)
@@ -73,8 +74,6 @@ namespace WitchMendokusai
 			}
 		}
 		
-		private void Update() => focusSound.Tick(transform, selected => chestReward.IsOpen || deckTabs.IsTabButton(selected));
-
 		private void OnEnable() => UIHideWhileChatting.Request(this, true);
 
 		private void OnDisable() => UIHideWhileChatting.Request(this, false);

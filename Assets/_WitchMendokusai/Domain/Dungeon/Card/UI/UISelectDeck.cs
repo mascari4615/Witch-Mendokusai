@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		[SerializeField] private float openAnimDuration = 0.5f;
 		[SerializeField] private UICardChoiceActions actions;
 
-		private readonly UICardFocusSound focusSound = new();
+		private UICardFocusSound focusSound;
 
 		public override bool IsFullscreen => true;
 		public int ChoiceCount => deckSelectButtons.Count;
@@ -41,6 +41,7 @@ namespace WitchMendokusai
 		protected override void OnInit()
 		{
 			CardManager cardManager = PanelGroup as CardManager;
+			focusSound = UICardFocusSound.AttachTo(gameObject);
 			actions.Init(cardManager);
 			for (int i = 0; i < deckSelectButtons.Count; i++)
 			{
@@ -49,8 +50,6 @@ namespace WitchMendokusai
 				deckSelectButtons[i].SetClickAction((slot) => { cardManager.SelectDeck(slot.Index); });
 			}
 		}
-
-		private void Update() => focusSound.Tick(transform);
 
 		private void OnEnable() => UIHideWhileChatting.Request(this, true);
 
