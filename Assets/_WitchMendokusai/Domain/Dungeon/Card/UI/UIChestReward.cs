@@ -26,6 +26,8 @@ namespace WitchMendokusai
 		private float autoCloseSeconds;
 		private float openedAt;
 
+		public bool IsOpen => content.activeSelf;
+
 		private void Awake()
 		{
 			closeButton.onClick.AddListener(Close);

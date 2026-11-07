@@ -371,16 +371,19 @@
     border-color: var(--wm-dlg-teal);
 }
 
-/* 자막 방식은 흰 틀과 옅은 흰 바탕 */
-.wm-dlg--feature .wm-dlg-choice--focus {
-    background-color: rgba(255, 255, 255, 0.16);
-    border-color: rgba(0, 0, 0, 0);
-}
-
 .wm-dlg-choice:hover,
 .wm-dlg-choice:active,
 .wm-dlg-choice:focus {
     background-color: var(--wm-dlg-teal-dark);
+}
+
+/* 자막 방식은 흰 틀과 옅은 흰 바탕 */
+.wm-dlg--feature .wm-dlg-choice--focus,
+.wm-dlg--feature .wm-dlg-choice:hover,
+.wm-dlg--feature .wm-dlg-choice:active,
+.wm-dlg--feature .wm-dlg-choice:focus {
+    background-color: rgba(255, 255, 255, 0.16);
+    border-color: rgba(0, 0, 0, 0);
 }
 
 .wm-dlg-choice--locked,

@@ -31,7 +31,7 @@ MonoBehaviour:
   <ArtFilterShader>k__BackingField: {fileID: 4800000, guid: 7c3e1f5a9b2d4e608a41d6c2f0b7e935, type: 3}
   <SweepWidth>k__BackingField: 0.14
   <SweepAngle>k__BackingField: 0.35
-  <SweepStrength>k__BackingField: 0.9
+  <SweepStrength>k__BackingField: 0.6
   <RimRadiusPixels>k__BackingField: 2.5
   <SpeakerRimStrength>k__BackingField: 0.35
   <BreathSeconds>k__BackingField: 3.2

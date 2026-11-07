@@ -10,7 +10,7 @@ Shader "WM/UI/DialogueArtFilter"
 		_EffectColor ("Effect Color", Color) = (1,1,1,0)
 		_SweepWidth ("Sweep Width", Float) = 0.14
 		_SweepAngle ("Sweep Angle", Float) = 0.35
-		_SweepStrength ("Sweep Strength", Float) = 0.9
+		_SweepStrength ("Sweep Strength", Float) = 0.6
 		_RimRadius ("Rim Radius", Float) = 3
 	}
 	SubShader

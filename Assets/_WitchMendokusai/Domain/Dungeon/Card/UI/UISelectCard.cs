@@ -73,7 +73,7 @@ namespace WitchMendokusai
 			}
 		}
 		
-		private void Update() => focusSound.Tick(transform, deckTabs.IsTabButton);
+		private void Update() => focusSound.Tick(transform, selected => chestReward.IsOpen || deckTabs.IsTabButton(selected));
 
 		private void OnEnable() => UIHideWhileChatting.Request(this, true);
 
