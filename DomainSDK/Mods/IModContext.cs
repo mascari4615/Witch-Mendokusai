@@ -29,8 +29,10 @@ namespace WitchMendokusai
         public string Id { get; }
         public string DisplayName { get; }
         public QuestType Type { get; }
+        // false면 등록만 하고 게임 퀘스트 목록 설치 제외, 예제와 시험용
+        public bool VisibleInGame { get; }
 
-        public ModQuestDefinition(string id, string displayName, QuestType type)
+        public ModQuestDefinition(string id, string displayName, QuestType type, bool visibleInGame = true)
         {
             // Id 는 저장 간 동일 퀘스트 판정 키
             if (string.IsNullOrEmpty(id))
@@ -39,6 +41,7 @@ namespace WitchMendokusai
             Id = id;
             DisplayName = displayName;
             Type = type;
+            VisibleInGame = visibleInGame;
         }
     }
 }

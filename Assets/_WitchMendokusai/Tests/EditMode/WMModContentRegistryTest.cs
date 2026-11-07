@@ -183,6 +183,53 @@ namespace WitchMendokusai.Tests
             Assert.That(normalized.Count, Is.EqualTo(2));
         }
 
+        [Test]
+        public void HiddenModQuest_NotInstalledByDefault_InstalledWhenIncluded()
+        {
+            List<ModQuestDefinition> definitions = new List<ModQuestDefinition>
+            {
+                new ModQuestDefinition("hidden_q", "숨김", QuestType.Normal, visibleInGame: false),
+                new ModQuestDefinition("shown_q", "표시", QuestType.Normal),
+            };
+
+            QuestBuffer defaultBuffer = ScriptableObject.CreateInstance<QuestBuffer>();
+            Assert.That(ModQuestInstaller.InstallInto(defaultBuffer, definitions), Is.EqualTo(1));
+            Assert.That(defaultBuffer.Data[0].ModQuestId, Is.EqualTo("shown_q"));
+            Object.DestroyImmediate(defaultBuffer);
+
+            QuestBuffer fullBuffer = ScriptableObject.CreateInstance<QuestBuffer>();
+            Assert.That(ModQuestInstaller.InstallInto(fullBuffer, definitions, includeHidden: true), Is.EqualTo(2));
+            Object.DestroyImmediate(fullBuffer);
+        }
+
+        [Test]
+        public void Registry_HiddenQuestIds_ListsOnlyHidden()
+        {
+            ModContentRegistry registry = new ModContentRegistry();
+            registry.RegisterQuest(new ModQuestDefinition("hidden_q", "숨김", QuestType.Normal, visibleInGame: false));
+            registry.RegisterQuest(new ModQuestDefinition("shown_q", "표시", QuestType.Normal));
+
+            Assert.That(registry.HiddenQuestIds, Is.EquivalentTo(new[] { "hidden_q" }));
+            Assert.That(registry.RegisteredQuests.Count, Is.EqualTo(2), "숨김도 등록은 유지");
+        }
+
+        [Test]
+        public void NormalizeSavedQuests_HiddenId_RemovedExceptWorking()
+        {
+            RuntimeQuestSaveData hidden = LegacyModQuest("sample_quest_1");
+            RuntimeQuestSaveData working = LegacyModQuest("sample_quest_1");
+            working.State = RuntimeQuestState.Working;
+            RuntimeQuestSaveData other = LegacyModQuest("other_mod_quest");
+
+            List<RuntimeQuestSaveData> normalized = ModQuestInstaller.NormalizeSavedQuests(
+                new List<RuntimeQuestSaveData> { hidden, working, other },
+                new HashSet<string> { "sample_quest_1" });
+
+            Assert.That(normalized.Count, Is.EqualTo(2));
+            Assert.That(normalized[0].State, Is.EqualTo(RuntimeQuestState.Working));
+            Assert.That(normalized[1].ModQuestId, Is.EqualTo("other_mod_quest"));
+        }
+
         private static RuntimeQuestSaveData LegacyModQuest(string modQuestId)
         {
             return new RuntimeQuestSaveData

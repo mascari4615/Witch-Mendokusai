@@ -20,8 +20,9 @@ namespace WitchMendokusai.Mods.Sample
 		public void Initialize(IModContext context)
 		{
 			// 껍데기(로그) → 실기능: DomainSDK seam(IModContentRegistry)으로 게임에 quest 1개 등록.
-			context.Content.RegisterQuest(new ModQuestDefinition("sample_quest_1", "샘플 모드 퀘스트", DefaultQuestType));
-			Debug.Log($"[Mod:{Name} v{Version}] Initialize — quest 1개 등록 (실기능, DomainSDK sandbox OK). DefaultQuestType={DefaultQuestType}, DefaultEffectType={DefaultEffectType}, DefaultWorkerID={DefaultWorkerID}");
+			// visibleInGame false, 등록 경로 시연만 하고 게임 퀘스트 목록에서 제외
+			context.Content.RegisterQuest(new ModQuestDefinition("sample_quest_1", "샘플 모드 퀘스트", DefaultQuestType, visibleInGame: false));
+			Debug.Log($"[Mod:{Name} v{Version}] Initialize, quest 1개 등록, 게임 목록에는 숨김 (DomainSDK sandbox OK). DefaultQuestType={DefaultQuestType}, DefaultEffectType={DefaultEffectType}, DefaultWorkerID={DefaultWorkerID}");
 		}
 	}
 }

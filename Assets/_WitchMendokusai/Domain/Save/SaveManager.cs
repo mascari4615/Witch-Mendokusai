@@ -199,7 +199,7 @@ namespace WitchMendokusai
 			// 작업 초기화
 			DataManager.WorkManager.Init(saveData.works);
 			CriteriaContext criteriaContext = DataManager.QuestManager.CreateCriteriaContext();
-			List<RuntimeQuestSaveData> savedQuests = ModQuestInstaller.NormalizeSavedQuests(saveData.runtimeQuests);
+			List<RuntimeQuestSaveData> savedQuests = ModQuestInstaller.NormalizeSavedQuests(saveData.runtimeQuests, ModLoader.Content.HiddenQuestIds);
 			if (savedQuests.Count < saveData.runtimeQuests.Count)
 			{
 				Debug.Log($"[SaveManager] 중복 모드 퀘스트 정리: {saveData.runtimeQuests.Count} -> {savedQuests.Count}");

@@ -40,8 +40,8 @@ namespace WitchMendokusai
             return quest;
         }
 
-        /// <summary>모드 등록 quest 들을 QuestBuffer 에 설치 + StartQuest. 같은 모드 ID 가 이미 있으면 건너뜀. 설치 수 반환.</summary>
-        public static int InstallInto(QuestBuffer buffer, IReadOnlyList<ModQuestDefinition> quests)
+        /// <summary>모드 등록 quest 들을 QuestBuffer 에 설치 + StartQuest. 같은 모드 ID 가 이미 있으면 건너뜀. 게임에 숨긴 quest 는 includeHidden 일 때만 설치. 설치 수 반환.</summary>
+        public static int InstallInto(QuestBuffer buffer, IReadOnlyList<ModQuestDefinition> quests, bool includeHidden = false)
         {
             if (buffer == null || quests == null)
                 return 0;
@@ -50,6 +50,9 @@ namespace WitchMendokusai
             foreach (ModQuestDefinition def in quests)
             {
                 if (def == null)
+                    continue;
+
+                if (def.VisibleInGame == false && includeHidden == false)
                     continue;
 
                 if (buffer.Data.Exists(existing => existing.ModQuestId == def.Id))
@@ -68,6 +71,10 @@ namespace WitchMendokusai
         /// ModQuestId 없고 옛 형식도 아닌 항목은 그대로 통과. 진행 중 Work 가 Guid 를 참조하는 Working 항목도 유지.
         /// </summary>
         public static List<RuntimeQuestSaveData> NormalizeSavedQuests(List<RuntimeQuestSaveData> savedQuests)
+            => NormalizeSavedQuests(savedQuests, null);
+
+        /// <summary>위 정리에 더해, 게임에 숨긴 모드 ID 의 저장 항목을 제거 (Working 제외). 이미 저장된 샘플 퀘스트를 목록에서 걷어냄.</summary>
+        public static List<RuntimeQuestSaveData> NormalizeSavedQuests(List<RuntimeQuestSaveData> savedQuests, ICollection<string> hiddenModQuestIds)
         {
             List<RuntimeQuestSaveData> normalized = new List<RuntimeQuestSaveData>(savedQuests.Count);
             HashSet<string> seenModQuestIds = new HashSet<string>();
@@ -85,6 +92,10 @@ namespace WitchMendokusai
                     normalized.Add(quest);
                     continue;
                 }
+
+                bool isHidden = hiddenModQuestIds != null && hiddenModQuestIds.Contains(quest.ModQuestId);
+                if (isHidden && quest.State != RuntimeQuestState.Working)
+                    continue;
 
                 bool isDuplicate = seenModQuestIds.Add(quest.ModQuestId) == false;
                 if (isDuplicate && quest.State != RuntimeQuestState.Working)

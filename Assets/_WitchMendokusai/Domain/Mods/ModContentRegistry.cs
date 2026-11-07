@@ -13,6 +13,21 @@ namespace WitchMendokusai
 
         public IReadOnlyList<ModQuestDefinition> RegisteredQuests => _quests;
 
+        /// <summary>게임 목록에 숨긴 quest 의 모드 ID.</summary>
+        public HashSet<string> HiddenQuestIds
+        {
+            get
+            {
+                HashSet<string> ids = new HashSet<string>();
+                foreach (ModQuestDefinition quest in _quests)
+                {
+                    if (quest.VisibleInGame == false)
+                        ids.Add(quest.Id);
+                }
+                return ids;
+            }
+        }
+
         // IModContext — 모드에 자신을 registry 로 노출.
         public IModContentRegistry Content => this;
 
