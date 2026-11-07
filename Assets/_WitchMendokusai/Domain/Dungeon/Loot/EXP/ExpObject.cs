@@ -10,13 +10,18 @@ namespace WitchMendokusai
 		private static readonly int BASE_COLOR_ID = Shader.PropertyToID("_BaseColor");
 		private static readonly int LEGACY_COLOR_ID = Shader.PropertyToID("_Color");
 		private static readonly int EMISSION_COLOR_ID = Shader.PropertyToID("_EmissionColor");
+		private static readonly List<ExpObject> motionOrbs = new();
+		private static Material sourceMaterial;
+		private static Material[] tierMaterials = new Material[0];
+		private static int spawnCounter;
 
 		[SerializeField] private int amount;
 		private int value;
 		private List<ExpObject> registry;
 		private MeshRenderer meshRenderer;
-		private Vector3 baseMeshScale;
-		private MaterialPropertyBlock properties;
+		private Transform meshTransform;
+		private float tierScale = 1f;
+		private float phase;
 
 		public int BaseAmount => amount;
 		public int Value => value;
@@ -31,7 +36,11 @@ namespace WitchMendokusai
 			if (registry == null)
 				registry = activeGems;
 			registry.Add(this);
+			phase = ExpOrbMotion.PhaseOf(spawnCounter++);
 			ApplyTier(config);
+			ApplyMotion(config, Time.time);
+			if (motionOrbs.Contains(this) == false)
+				motionOrbs.Add(this);
 		}
 
 		public void AddValue(int addedValue, SurvivalFeelConfig config)
@@ -40,24 +49,52 @@ namespace WitchMendokusai
 			ApplyTier(config);
 		}
 
+		// 오브 전체의 회전, 맥동, 떠오름을 한 번에 갱신. SurvivalFeel 이 프레임마다 한 번 호출
+		public static void TickMotion(SurvivalFeelConfig config, float time)
+		{
+			for (int i = 0; i < motionOrbs.Count; i++)
+				motionOrbs[i].ApplyMotion(config, time);
+		}
+
+		private void ApplyMotion(SurvivalFeelConfig config, float time)
+		{
+			if (meshTransform == null)
+				return;
+			meshTransform.localScale = Vector3.one * ExpOrbMotion.Size(config, tierScale, phase, time);
+			meshTransform.localRotation = ExpOrbMotion.Rotation(config, phase, time);
+			meshTransform.localPosition = new Vector3(0f, ExpOrbMotion.Lift(config, phase, time), 0f);
+		}
+
+		// 등급 재질은 등급마다 하나. 같은 재질이라 SRP Batcher 와 인스턴싱이 묶음
 		private void ApplyTier(SurvivalFeelConfig config)
 		{
 			if (meshRenderer == null)
 			{
 				meshRenderer = GetComponentInChildren<MeshRenderer>(true);
-				baseMeshScale = meshRenderer.transform.localScale;
-				properties = new MaterialPropertyBlock();
+				meshTransform = meshRenderer.transform;
+				if (sourceMaterial == null)
+					sourceMaterial = meshRenderer.sharedMaterial;
 			}
-			ExpGemTier tier = config.ExpGemTiers[0];
-			foreach (ExpGemTier candidate in config.ExpGemTiers)
-				if (value >= candidate.MinValue)
-					tier = candidate;
-			meshRenderer.transform.localScale = baseMeshScale * tier.Scale;
-			meshRenderer.GetPropertyBlock(properties);
-			properties.SetColor(BASE_COLOR_ID, tier.Color);
-			properties.SetColor(LEGACY_COLOR_ID, tier.Color);
-			properties.SetColor(EMISSION_COLOR_ID, tier.Color * tier.Emission);
-			meshRenderer.SetPropertyBlock(properties);
+			int tierIndex = ExpOrbMotion.TierIndex(config.ExpGemTiers, value);
+			ExpGemTier tier = config.ExpGemTiers[tierIndex];
+			tierScale = tier.Scale;
+			meshRenderer.sharedMaterial = TierMaterial(tierIndex, tier, config.ExpOrbEmissionScale);
+		}
+
+		private static Material TierMaterial(int tierIndex, ExpGemTier tier, float emissionScale)
+		{
+			if (tierMaterials.Length <= tierIndex)
+				System.Array.Resize(ref tierMaterials, tierIndex + 1);
+			Material material = tierMaterials[tierIndex];
+			if (material == null)
+			{
+				material = new Material(sourceMaterial) { name = "EXP Tier " + tierIndex, enableInstancing = true };
+				tierMaterials[tierIndex] = material;
+			}
+			material.SetColor(BASE_COLOR_ID, tier.Color);
+			material.SetColor(LEGACY_COLOR_ID, tier.Color);
+			material.SetColor(EMISSION_COLOR_ID, tier.Color * (tier.Emission * emissionScale));
+			return material;
 		}
 
 		protected override void OnEffect()
@@ -84,6 +121,7 @@ namespace WitchMendokusai
 		{
 			base.OnDisable();
 			registry?.Remove(this);
+			motionOrbs.Remove(this);
 		}
 	}
 }

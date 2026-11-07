@@ -127,6 +127,17 @@ namespace WitchMendokusai
 			new ExpGemTier { MinValue = 60, Scale = 1.8f, Color = new Color(1f, 0.35f, 0.4f, 1f), Emission = 6f },
 		};
 
+		[Header("Exp orb look")]
+		[Min(0.01f), Tooltip("등급 1 오브 기준 크기. 이전 구 0.15의 75%")] public float ExpOrbSize = 0.1125f;
+		[Range(0.1f, 1.5f), Tooltip("큐브 한 변 비율. 구 지름과 같은 인상이 되게 줄인 값")] public float ExpOrbCubeRatio = 0.85f;
+		[Min(0f), Tooltip("등급 발광값에 곱함. 낮을수록 등급 색이 흰색으로 날아가지 않음")] public float ExpOrbEmissionScale = 0.3f;
+		[Tooltip("회전 기울기. Y는 회전 시작 각에 더해짐")] public Vector3 ExpOrbTilt = new(35f, 0f, 20f);
+		[Min(0f), Tooltip("초당 회전 각도")] public float ExpOrbSpinSpeed = 90f;
+		[Range(0f, 0.5f), Tooltip("맥동 크기 변화 비율")] public float ExpOrbPulseAmplitude = 0.08f;
+		[Min(0f), Tooltip("맥동 초당 횟수")] public float ExpOrbPulseSpeed = 1.2f;
+		[Min(0f), Tooltip("떠오름 높이. 바닥 위로만 오르내림")] public float ExpOrbBobAmplitude = 0.04f;
+		[Min(0f), Tooltip("떠오름 초당 횟수")] public float ExpOrbBobSpeed = 0.8f;
+
 		[Header("Upgrade")]
 		public UpgradeTuning Upgrade = new();
 		public FeelMoment PlayerRevive = new() { Shake = 0.5f, Shards = 60, ShardSpeed = 9f, ShardLife = 0.8f, ShardSize = 0.26f, RingSize = 10f, RingLife = 0.7f, Color = new Color(1f, 0.9f, 0.55f, 1f) };

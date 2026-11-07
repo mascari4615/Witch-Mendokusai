@@ -120,6 +120,7 @@ namespace WitchMendokusai
 		{
 			shakeEnergy = Mathf.Max(0f, shakeEnergy - Config.ShakeDecay * Time.unscaledDeltaTime);
 			UpdateEliteAura();
+			ExpObject.TickMotion(Config, Time.time);
 		}
 
 		private void UpdateEliteAura()
