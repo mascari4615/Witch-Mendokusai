@@ -40,5 +40,8 @@ namespace WitchMendokusai
 
 		[Header("Evolution")]
 		[Tooltip("덱에 넣지 않는 카드. 조건은 CardData.Requirements, 지급은 상자 첫 보상")] public List<CardData> EvolutionCards = new();
+
+		[Header("Threat levels (provisional values)")]
+		[Tooltip("임시값. 한 줄이 한 단계. 줄 추가로 단계 추가, 단계 0은 줄 없음")] public List<DungeonThreatLevel> ThreatLevels = new();
 	}
 }

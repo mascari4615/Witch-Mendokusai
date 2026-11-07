@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using VContainer;
 using Random = UnityEngine.Random;
@@ -31,6 +32,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float offscreenMovementInterval = 0.1f;
 		private readonly Plane[] visibilityPlanes = new Plane[6];
 		private SurvivalEventTable eventTable;
+		private readonly List<SurvivalEventEntry> runEvents = new();
 		private int nextAnnounceIndex;
 		private int nextEventIndex;
 
@@ -60,8 +62,39 @@ namespace WitchMendokusai
 				waves.Add(new MonsterWaveInstance(monsterWave, 0f));
 
 			eventTable = curDungeon.EventTable;
+			BuildRunEvents(dungeonManager.CurThreat);
 			nextAnnounceIndex = 0;
 			nextEventIndex = 0;
+		}
+
+		// 위협 단계를 입힌 이번 판 사건표. 단계 0은 원본 그대로
+		private void BuildRunEvents(DungeonThreatEffect threat)
+		{
+			runEvents.Clear();
+			if (eventTable == null)
+				return;
+
+			List<SurvivalEventEntry> elites = new();
+			List<float> eliteTimes = new();
+			foreach (SurvivalEventEntry entry in eventTable.Events)
+			{
+				if (entry.Type == SurvivalEventType.Swarm)
+				{
+					runEvents.Add(entry.CopyWith(entry.Time, threat.ScaleSwarmCount(entry.Count)));
+					continue;
+				}
+				runEvents.Add(entry);
+				elites.Add(entry);
+				eliteTimes.Add(entry.Time);
+			}
+
+			foreach (ExtraEliteSlot slot in DungeonThreatRules.ExtraEliteSlots(eliteTimes, threat.EliteExtraPerGap))
+				runEvents.Add(elites[slot.SourceIndex].CopyWith(slot.Time, 1));
+
+			// 안정 정렬, 원본 순서 유지
+			List<SurvivalEventEntry> sorted = runEvents.OrderBy(entry => entry.Time).ToList();
+			runEvents.Clear();
+			runEvents.AddRange(sorted);
 		}
 
 		public void UpdateWaves()
@@ -72,14 +105,14 @@ namespace WitchMendokusai
 			UpdateEvents();
 		}
 
-		public SurvivalEventEntry NextEvent => eventTable != null && nextEventIndex < eventTable.Events.Count ? eventTable.Events[nextEventIndex] : null;
+		public SurvivalEventEntry NextEvent => nextEventIndex < runEvents.Count ? runEvents[nextEventIndex] : null;
 
 		private void UpdateEvents()
 		{
 			if (eventTable == null)
 				return;
 			float elapsed = (float)dungeonManager.Context.ElapsedTime.TotalSeconds;
-			List<SurvivalEventEntry> entries = eventTable.Events;
+			List<SurvivalEventEntry> entries = runEvents;
 			while (nextAnnounceIndex < entries.Count && elapsed >= entries[nextAnnounceIndex].Time - entries[nextAnnounceIndex].AnnounceLead)
 			{
 				SurvivalEventEntry entry = entries[nextAnnounceIndex++];
@@ -117,6 +150,7 @@ namespace WitchMendokusai
 			GameObject monsterObject = objectPoolManager.Spawn(monster.Prefab);
 			MonsterObject monsterObjectComponent = monsterObject.GetComponent<MonsterObject>();
 			monsterObject.transform.position = position;
+			monsterObjectComponent.SetThreat(dungeonManager.CurThreat);
 			monsterObjectComponent.Init(monster);
 			monsterObject.SetActive(true);
 			if (eliteProfile != null)
@@ -184,7 +218,9 @@ namespace WitchMendokusai
 			}
 
 			waveInstance.SpawnT += DungeonContext.TimeUpdateInterval.Milliseconds / 1000f;
-			if (waveInstance.SpawnT > waveInstance.Data.SpawnDelay)
+			// 보스 같은 1회 웨이브는 물량 배율 제외
+			float spawnInterval = waveInstance.Data.Once ? waveInstance.Data.SpawnDelay : dungeonManager.CurThreat.ScaleSpawnDelay(waveInstance.Data.SpawnDelay);
+			if (waveInstance.SpawnT > spawnInterval)
 			{
 				StartCoroutine(SpawnMonster(waveInstance.Data.Monsters[Random.Range(0, waveInstance.Data.Monsters.Length)], spawnDelay, curDifficulty));
 				waveInstance.SpawnT = 0;
@@ -232,6 +268,7 @@ namespace WitchMendokusai
 			GameObject monsterObject = objectPoolManager.Spawn(monster.Prefab);
 			MonsterObject monsterObjectComponent = monsterObject.GetComponent<MonsterObject>();
 			monsterObject.transform.position = spawnPos;
+			monsterObjectComponent.SetThreat(dungeonManager.CurThreat);
 			monsterObjectComponent.Init(monster);
 			monsterObject.SetActive(true);
 		}

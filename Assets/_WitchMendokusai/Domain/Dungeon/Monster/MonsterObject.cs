@@ -20,6 +20,7 @@ namespace WitchMendokusai
 		private DataManager dataManager;
 		private GameLogic gameLogic;
 		private EliteProfile eliteProfile;
+		private DungeonThreatEffect threat = DungeonThreatEffect.Identity;
 		private float hpBarWidth = 1f;
 
 		[Inject]
@@ -60,6 +61,25 @@ namespace WitchMendokusai
 				ApplyEliteHealth();
 		}
 
+		// 풀 첫 사용은 Start 의 재-Init 포함, 적용 자리는 Init 안
+		public void SetThreat(DungeonThreatEffect threatEffect) => threat = threatEffect;
+
+		public override void Init(Unit unitData)
+		{
+			base.Init(unitData);
+			ApplyThreat();
+		}
+
+		private void ApplyThreat()
+		{
+			if (threat.Level == 0)
+				return;
+			UnitStat[UnitStatType.HP_MAX_STAT] = threat.ScaleEnemyHealth(UnitStat[UnitStatType.HP_MAX_STAT]);
+			UnitStat[UnitStatType.HP_MAX] = threat.ScaleEnemyHealth(UnitStat[UnitStatType.HP_MAX]);
+			UnitStat[UnitStatType.HP_CUR] = UnitStat[UnitStatType.HP_MAX];
+			UnitStat[UnitStatType.MOVEMENT_SPEED] = threat.ScaleEnemySpeed(UnitStat[UnitStatType.MOVEMENT_SPEED]);
+		}
+
 		public void MakeElite(EliteProfile profile)
 		{
 			eliteProfile = profile;
@@ -98,6 +118,7 @@ namespace WitchMendokusai
 			StopAllCoroutines();
 			hpBar.gameObject.SetActive(false);
 			ClearElite();
+			threat = DungeonThreatEffect.Identity;
 
 			Health.OnTakeDamage -= HandleDamageEffects;
 			Health.OnDied -= HandleDeathEffects;
@@ -165,7 +186,8 @@ namespace WitchMendokusai
 		{
 			gameLogic.SpawnLootItem(UnitData.Loots, transform.position);
 			gameLogic.SpawnGameItem(transform.position);
-			int rewardMultiplier = Mathf.Clamp(Mathf.CeilToInt((float)UnitStat[UnitStatType.HP_MAX_STAT] / healthPerExperienceTier), 1, maxExperienceMultiplier);
+			// 경험치는 위협 단계 체력 배율과 무관
+			int rewardMultiplier = Mathf.Clamp(Mathf.CeilToInt((float)threat.UnscaleEnemyHealth(UnitStat[UnitStatType.HP_MAX_STAT]) / healthPerExperienceTier), 1, maxExperienceMultiplier);
 			gameLogic.SpawnExpOrb(transform.position, rewardMultiplier);
 		}
 

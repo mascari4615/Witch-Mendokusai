@@ -104,3 +104,4 @@ MonoBehaviour:
     DataSO: {fileID: 0}
     Amount: 500
   <EventTable>k__BackingField: {fileID: 11400000, guid: 4ee083008e854ab5a9ea7ecd891d7f8d, type: 2}
+  <HasThreatLevels>k__BackingField: 1

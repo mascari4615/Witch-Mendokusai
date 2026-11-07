@@ -13,6 +13,7 @@ namespace WitchMendokusai
 		public bool IsCleared;
 		public DungeonDifficulty Difficulty;
 		public float DifficultyProgress;
+		public int ThreatLevel;
 	}
 
 	public class DungeonRecorder
@@ -59,7 +60,8 @@ namespace WitchMendokusai
 				Nyang = endRecord.Nyang - startRecord.Nyang,
 				IsCleared = isCleared,
 				Difficulty = context.CurDifficulty,
-				DifficultyProgress = context.CurDifficulty == DungeonDifficulty.Hard ? 1f : context.DifficultyProgress
+				DifficultyProgress = context.CurDifficulty == DungeonDifficulty.Hard ? 1f : context.DifficultyProgress,
+				ThreatLevel = dungeonManager.CurThreat.Level
 			};
 
 			ResultRecord = result;

@@ -18,6 +18,14 @@ namespace WitchMendokusai
 		[field: SerializeField] public Monster Monster { get; private set; }
 		[field: SerializeField, Min(1)] public int Count { get; private set; } = 1;
 		[field: SerializeField, Tooltip("예고 이벤트를 시작 몇 초 전에 낼지"), Min(0f)] public float AnnounceLead { get; private set; } = 10f;
+
+		public SurvivalEventEntry CopyWith(float time, int count)
+		{
+			SurvivalEventEntry copy = (SurvivalEventEntry)MemberwiseClone();
+			copy.Time = time;
+			copy.Count = count;
+			return copy;
+		}
 	}
 
 	[Serializable]

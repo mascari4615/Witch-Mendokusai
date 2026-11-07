@@ -24,6 +24,10 @@ namespace WitchMendokusai
 		public bool IsDungeon { get; private set; }
 		public RunLoadout RunLoadout => dataManager.RunLoadout;
 		public int RunEquipmentSlotCount => resourceManager.SurvivalRunRules.RandomModeSlotCount;
+		public DungeonThreatEffect CurThreat { get; private set; } = DungeonThreatEffect.Identity;
+
+		public int GetMaxThreatLevel(Dungeon dungeon) => dungeon.HasThreatLevels ? DungeonThreatRules.MaxLevel(resourceManager.SurvivalRunRules.ThreatLevels) : 0;
+		public DungeonThreatEffect ResolveThreat(Dungeon dungeon, int level) => dungeon.HasThreatLevels ? DungeonThreatRules.Resolve(resourceManager.SurvivalRunRules.ThreatLevels, level) : DungeonThreatEffect.Identity;
 
 		[SerializeField] private CardManager cardManager;
 		[SerializeField] private MonsterSpawner monsterSpawner;
@@ -104,7 +108,7 @@ namespace WitchMendokusai
 			gameEventManager.RegisterCallback(GameEventType.OnPlayerDied, EndDungeonByDefeat);
 		}
 
-		public void StartDungeon(Dungeon dungeon, bool restart = false, DungeonRunMode runMode = DungeonRunMode.Equipped)
+		public void StartDungeon(Dungeon dungeon, bool restart = false, DungeonRunMode runMode = DungeonRunMode.Equipped, int threatLevel = 0)
 		{
 			if (IsDungeon || isTransitioning)
 				return;
@@ -113,6 +117,7 @@ namespace WitchMendokusai
 
 			EnsureDungeonUI();
 			CurDungeon = dungeon;
+			CurThreat = ResolveThreat(dungeon, threatLevel);
 			dungeonStrategy = DungeonObjectiveStrategyFactory.Create(dungeon);
 
 			Stage stage = dungeon.Stages[0];
@@ -281,7 +286,10 @@ namespace WitchMendokusai
 
 			if (isCleared == false)
 				dataManager.GameStat[GameStatType.NYANG] += CurDungeon.CalculateDefeatNyang(dungeonRecorder.KillCountSinceStart);
-			// 냥 보너스, 클리어 보상과 패배 보상과 레벨업 전환을 포함한 이번 판 획득분 기준
+			else if (CurDungeon.HasThreatLevels)
+				CurDungeon.RecordThreatClear(CurThreat.Level);
+			// 위협 배율과 냥 보너스, 클리어 보상과 패배 보상과 레벨업 전환을 포함한 이번 판 획득분 기준
+			dataManager.GameStat[GameStatType.NYANG] += DungeonThreatRules.BonusNyang(dungeonRecorder.NyangSinceStart, CurThreat.RewardMultiplier);
 			dataManager.GameStat[GameStatType.NYANG] += dungeonRecorder.NyangSinceStart * playerProvider.Current.UnitStat[UnitStatType.GOLD_BONUS] / UnitStat.PERCENT;
 			dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR], isCleared);
 
@@ -292,7 +300,7 @@ namespace WitchMendokusai
 		{
 			if (CurDungeon == null || dungeonRecorder == null)
 				return;
-			StartDungeon(CurDungeon, restart: true, runMode: dataManager.RunLoadout.Mode);
+			StartDungeon(CurDungeon, restart: true, runMode: dataManager.RunLoadout.Mode, threatLevel: CurThreat.Level);
 		}
 
 		public void Continue()
@@ -320,6 +328,7 @@ namespace WitchMendokusai
 
 				gameManager.Init();
 				dataManager.RunLoadout.End();
+				CurThreat = DungeonThreatEffect.Identity;
 				expChecker.Init();
 				cardManager.Reset();
 			}

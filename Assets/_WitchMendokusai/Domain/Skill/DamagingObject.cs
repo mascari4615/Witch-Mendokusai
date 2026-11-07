@@ -201,6 +201,10 @@ namespace WitchMendokusai
 				if (outcome.IsCritical)
 					damageInfo.type = DamageType.Critical;
 			}
+			else if (DungeonManager.TryGetExistingInstance(out DungeonManager dungeonManager) && dungeonManager.IsDungeon)
+			{
+				calcDamage = dungeonManager.CurThreat.ScaleEnemyDamage(calcDamage);
+			}
 
 			damageInfo.damage = calcDamage;
 			return damageInfo;

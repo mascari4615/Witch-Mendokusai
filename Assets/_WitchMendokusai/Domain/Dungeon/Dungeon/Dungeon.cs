@@ -22,10 +22,13 @@ namespace WitchMendokusai
 	public struct DungeonSaveData
 	{
 		public Dictionary<int, bool> ConstraintSelected;
+		// 아래부터 승리한 위협 단계 수, 최고 승리 단계 + 1. 옛 저장은 0
+		public int ClearedThreatCount;
 
-		public DungeonSaveData(Dictionary<int, bool> constraintSelected)
+		public DungeonSaveData(Dictionary<int, bool> constraintSelected, int clearedThreatCount)
 		{
 			ConstraintSelected = constraintSelected;
+			ClearedThreatCount = clearedThreatCount;
 		}
 	}
 
@@ -48,12 +51,19 @@ namespace WitchMendokusai
 		[Tooltip("패배 보상 상한")]
 		[PropertyOrder(110)][field: SerializeField, Min(0)] public int DefeatNyangMax { get; private set; } = 300;
 
+		[Tooltip("위협 단계 선택 가능 여부. 표는 SurvivalRunRules.ThreatLevels")]
+		[PropertyOrder(111)][field: SerializeField] public bool HasThreatLevels { get; private set; }
+
 		public int CalculateDefeatNyang(int killCount) => Mathf.Min(DefeatNyangMax, Mathf.FloorToInt(killCount * DefeatNyangPerKill));
 
 		[field: NonSerialized] public Dictionary<int, bool> ConstraintSelected { get; private set; } = new();
+		[field: NonSerialized] public int ClearedThreatCount { get; private set; }
+
+		public void RecordThreatClear(int level) => ClearedThreatCount = DungeonThreatRules.AfterClear(ClearedThreatCount, level);
 
 		public void Init()
 		{
+			ClearedThreatCount = 0;
 			ConstraintSelected = new();
 			foreach (DungeonConstraint constraint in Constraints)
 				ConstraintSelected.Add(constraint.ID, false);
@@ -64,6 +74,7 @@ namespace WitchMendokusai
 			// 현재 Constraints 기준으로 초기화 후, 세이브 데이터에 있는 값만 덮어쓰기
 			// 새로 추가된 던전이나 Constraint가 세이브에 없어도 안전하게 동작
 			Init();
+			ClearedThreatCount = saveData.ClearedThreatCount;
 
 			if (saveData.ConstraintSelected != null)
 			{
@@ -77,7 +88,7 @@ namespace WitchMendokusai
 
 		public DungeonSaveData Save()
 		{
-			return new DungeonSaveData(ConstraintSelected);
+			return new DungeonSaveData(ConstraintSelected, ClearedThreatCount);
 		}
 	}
 }
