@@ -25,20 +25,24 @@ namespace WitchMendokusai
 
 	public class UINPC : UIPanelGroup<NPCPanelType>
 	{
+		[SerializeField] private ShopUISettings shopSettings;
+
 		[Inject]
 		public void Construct(UIManager uiManager) => SetUIManager(uiManager);
 
 		public override bool CanBeClosedByCancelInput => true;
 		public override NPCPanelType DefaultPanel => NPCPanelType.None;
 
-		// init-order-ok: 상점·모루·화로·제작대·강화·연구 창은 **코드로 만들어지지 않는다** — 전부 씬·프리팹에
-		// 미리 놓인 것이라 찾는 시점에 반드시 있다(전수 확인: Instantiate/AddComponent 0건). 꺼진 것까지 포함해 찾고,
-		// 이 Init 은 모든 깨우기가 끝난 뒤에 불린다(UIPanelGroup.Start). 확인 2026-08-08 / TASK-WM-212.
+		// init-order-ok: 모루, 화로, 제작대, 강화, 연구 창은 씬과 프리팹에 미리 배치
+		// 코드 생성 0건, 찾는 시점에 항상 존재 (전수 확인 2026-08-08, TASK-WM-212)
+		// Init 호출은 모든 깨우기 뒤 (UIPanelGroup.Start)
 		public override void Init()
 		{
 			Panels[NPCPanelType.NPC] = FindAnyObjectByType<UINPCMenu>(FindObjectsInactive.Include);
 
-			Panels[NPCPanelType.Shop] = FindAnyObjectByType<UIShop>(FindObjectsInactive.Include);
+			UIShopToolkit shop = UIManager.CreateToolkitPanel<UIShopToolkit>();
+			shop.SetSettings(shopSettings);
+			Panels[NPCPanelType.Shop] = shop;
 			Panels[NPCPanelType.DungeonEntrance] = UIManager.CreateToolkitPanel<UIDungeonEntranceToolkit>(); // WM-113 S3-F: uGUI UIDungeonEntrance → Toolkit (S3-A/C/D/E 체인 first-use, line 38 Pot S2 패턴 동형). 구 UIDungeonEntrance orphan → E deletion
 			Panels[NPCPanelType.Pot] = UIManager.CreateToolkitPanel<UIPotToolkit>(); // WM-113 S2: 구 빈 uGUI UIPot 스텁 → Toolkit (잠복크래시 해소·substrate first-use)
 			Panels[NPCPanelType.CauldronMap] = UIManager.CreateToolkitPanel<UICauldronMapPanel>(); // TASK-WM-174 5b-5: 솥 속의 지도(공존)

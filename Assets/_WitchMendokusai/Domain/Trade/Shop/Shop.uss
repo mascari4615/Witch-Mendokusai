@@ -1,0 +1,1058 @@
+.wm-shop__label {
+    margin: 0;
+    padding: 0;
+}
+
+.wm-shop {
+    --wm-shop-ink: rgb(241, 241, 243);
+    --wm-shop-soft: rgb(180, 177, 192);
+    --wm-shop-faint: rgb(119, 115, 138);
+    --wm-shop-value: rgb(242, 226, 122);
+    --wm-shop-line: rgb(227, 227, 230);
+    --wm-shop-line-soft: rgb(84, 78, 99);
+    --wm-shop-slot-lit: rgb(59, 53, 72);
+    --wm-shop-up: rgb(154, 209, 98);
+    --wm-shop-down: rgb(224, 86, 111);
+    --wm-shop-no: rgb(255, 141, 130);
+    --wm-shop-teal-dark: rgb(29, 85, 83);
+    --wm-shop-rose-dark: rgb(118, 23, 48);
+    --wm-shop-row-line: rgba(84, 78, 99, 0.45);
+    --wm-shop-outline-color: rgb(0, 0, 0);
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(12, 10, 16);
+    color: var(--wm-shop-ink);
+    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11-Bold.ttf");
+    font-size: 20px;
+}
+
+.wm-shop__outline-front {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    -unity-text-outline-width: 0;
+}
+
+.wm-shop__outline-back {
+    color: var(--wm-shop-outline-color);
+}
+
+/* 무대 */
+.wm-shop__stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    transform-origin: 0 0;
+    overflow: hidden;
+    --wm-gradient-top: rgb(29, 23, 38);
+    --wm-gradient-bottom: rgb(15, 12, 20);
+}
+
+.wm-shop__stage-tile {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("../../UI/Survival/Art/tile-bar.png");
+    background-repeat: repeat;
+    background-size: 220px 220px;
+    background-position-x: left 0;
+    background-position-y: top 0;
+    opacity: 0.003;
+}
+
+/* 패널 */
+.wm-shop__panel {
+    position: absolute;
+    --wm-gradient-top: rgb(23, 19, 29);
+    --wm-gradient-bottom: rgb(44, 37, 54);
+    border-width: 2px;
+    border-color: var(--wm-shop-line);
+}
+
+.wm-shop__panel-targeting {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --wm-nine-image: url("../../../Core/UI/Common/Sprites/UI_Targeting.png");
+    --wm-nine-slice: 7;
+    --wm-nine-width: 14;
+    opacity: 0.025;
+}
+
+.wm-shop__panel-corner {
+    position: absolute;
+    left: -9px;
+    top: -9px;
+    right: -9px;
+    bottom: -9px;
+    --wm-nine-image: url("Art/corner.png");
+    --wm-nine-slice: 16;
+    --wm-nine-width: 18;
+}
+
+.wm-shop__panel-body {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+/* 머리 줄 */
+.wm-shop__who {
+    position: absolute;
+    left: 40px;
+    top: 24px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-shop__who-picture {
+    width: 64px;
+    height: 64px;
+    background-color: var(--wm-shop-slot-lit);
+    border-width: 2px;
+    border-color: var(--wm-shop-line-soft);
+    margin-right: 14px;
+    flex-shrink: 0;
+}
+
+.wm-shop__who-image {
+    width: 60px;
+    height: 60px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-shop__who-name {
+    font-size: 38px;
+    -unity-text-outline-width: 5px;
+    -unity-text-outline-color: var(--wm-shop-outline-color);
+    margin-right: 14px;
+    padding: 0;
+    padding-top: 0;
+    margin-top: 4px;
+}
+
+.wm-shop__who-free {
+    font-size: 20px;
+    color: rgb(13, 13, 17);
+    background-color: var(--wm-shop-value);
+    padding: 5px 10px 4px 10px;
+}
+
+.wm-shop__wallet {
+    position: absolute;
+    left: 1550px;
+    top: 28px;
+    width: 330px;
+    height: 56px;
+}
+
+.wm-shop__wallet-band {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --wm-slant: 17;
+    --wm-slant-fill: rgb(43, 117, 115);
+    --wm-slant-tile: url("../../UI/Survival/Art/tile-count.png");
+    --wm-slant-tile-size: 56;
+    --wm-slant-tile-opacity: 0.12;
+}
+
+.wm-shop__wallet-cap {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 72px;
+    background-color: rgba(0, 0, 0, 0.88);
+    align-items: center;
+    justify-content: center;
+    padding-left: 8px;
+}
+
+.wm-shop__wallet-nyang {
+    width: 36px;
+    height: 36px;
+    background-image: url("../../Research/GameStat/Nyang/Nyang.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-shop__wallet-value {
+    position: absolute;
+    right: 30px;
+    top: 11px;
+    font-size: 32px;
+    color: var(--wm-shop-value);
+    -unity-text-outline-width: 3px;
+    -unity-text-outline-color: var(--wm-shop-outline-color);
+    padding: 0;
+}
+
+/* 분류 */
+.wm-shop__tabs {
+    position: absolute;
+    left: 40px;
+    top: 104px;
+    flex-direction: row;
+}
+
+.wm-shop__tab {
+    height: 50px;
+    min-width: 112px;
+    padding: 0 26px;
+    margin-right: -8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-shop__tab--sell {
+    margin-left: 16px;
+}
+
+.wm-shop__tab-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --wm-slant: 14;
+    --wm-slant-fill: rgb(35, 32, 44);
+    --wm-slant-tile-opacity: 0;
+}
+
+.wm-shop__tab--on .wm-shop__tab-fill {
+    --wm-slant-fill: var(--wm-shop-teal-dark);
+    --wm-slant-tile: url("../../UI/Survival/Art/tile-count.png");
+    --wm-slant-tile-size: 50;
+    --wm-slant-tile-opacity: 0.11;
+}
+
+.wm-shop__tab--sell.wm-shop__tab--on .wm-shop__tab-fill {
+    --wm-slant-fill: var(--wm-shop-rose-dark);
+    --wm-slant-tile: url("../../UI/Survival/Art/tile-dmg.png");
+}
+
+.wm-shop__tab-text {
+    flex-direction: row;
+    align-items: center;
+    padding-top: 3px;
+}
+
+.wm-shop__tab-name {
+    font-size: 21px;
+    color: var(--wm-shop-soft);
+    margin-right: 8px;
+    padding: 0;
+}
+
+.wm-shop__tab:hover .wm-shop__tab-name,
+.wm-shop__tab--on .wm-shop__tab-name {
+    color: var(--wm-shop-ink);
+}
+
+.wm-shop__tab-count {
+    font-size: 16px;
+    color: var(--wm-shop-faint);
+    padding: 0;
+}
+
+.wm-shop__tab--on .wm-shop__tab-count {
+    color: rgb(191, 232, 229);
+}
+
+.wm-shop__tab--sell.wm-shop__tab--on .wm-shop__tab-count {
+    color: rgb(244, 198, 207);
+}
+
+/* 스크롤 */
+.wm-shop__scroll {
+    flex-grow: 1;
+}
+
+.wm-shop__scroll .unity-scroller--vertical {
+    width: 6px;
+    border-width: 0;
+    background-color: rgb(13, 11, 17);
+}
+
+.wm-shop__scroll .unity-scroller--vertical .unity-base-slider__dragger {
+    width: 6px;
+    left: 0;
+    border-width: 0;
+    background-color: var(--wm-shop-line);
+}
+
+.wm-shop__scroll .unity-scroller--vertical .unity-repeat-button {
+    display: none;
+}
+
+.wm-shop__scroll .unity-scroller--vertical .unity-base-slider__tracker {
+    border-width: 0;
+    background-color: transparent;
+}
+
+/* 격자 */
+.wm-shop__grid {
+    left: 40px;
+    top: 166px;
+    width: 1090px;
+    height: 838px;
+}
+
+.wm-shop__grid-body {
+    padding: 16px;
+}
+
+.wm-shop__grid-scroll {
+    margin-bottom: -16px;
+}
+
+.wm-shop__grid-content {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 1090px;
+}
+
+.wm-shop__cell {
+    width: 146.28px;
+    height: 130px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.36);
+}
+
+.wm-shop__grid-content--large .wm-shop__cell {
+    height: 156px;
+}
+
+.wm-shop__cell--selected {
+    background-color: rgba(255, 255, 255, 0.022);
+}
+
+.wm-shop__icon-box {
+    align-items: center;
+    justify-content: center;
+    background-color: var(--wm-shop-slot-lit);
+    border-width: 1px;
+    border-color: var(--wm-shop-line-soft);
+    flex-shrink: 0;
+}
+
+.wm-shop__icon-box--empty {
+    background-color: transparent;
+    border-width: 0;
+}
+
+.wm-shop__icon-image {
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-shop__empty-icon {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --wm-stripe-a: rgb(27, 24, 34);
+    --wm-stripe-b: rgb(38, 34, 47);
+    --wm-stripe-width: 6;
+    --wm-dash-color: rgb(119, 115, 138);
+    --wm-dash-width: 1;
+    --wm-dash-length: 3;
+}
+
+.wm-shop__empty-label {
+    color: var(--wm-shop-soft);
+    font-size: 15px;
+    padding: 0;
+}
+
+.wm-shop__cell-box {
+    width: 78px;
+    height: 78px;
+    margin-top: -16px;
+}
+
+.wm-shop__cell-image {
+    width: 56px;
+    height: 56px;
+}
+
+.wm-shop__cell-empty-label {
+    font-size: 18px;
+}
+
+.wm-shop__grid-content--large .wm-shop__cell-box {
+    width: 92px;
+    height: 92px;
+    margin-top: -22px;
+}
+
+.wm-shop__grid-content--large .wm-shop__cell-image {
+    width: 68px;
+    height: 68px;
+}
+
+.wm-shop__cell--dimmed .wm-shop__cell-image {
+    opacity: 0.25;
+}
+
+.wm-shop__cell-price {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 6px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-shop__grid-content--large .wm-shop__cell-price {
+    bottom: 10px;
+}
+
+.wm-shop__nyang {
+    background-image: url("../../Research/GameStat/Nyang/Nyang.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-shop__cell-nyang {
+    width: 20px;
+    height: 20px;
+    margin-right: 6px;
+}
+
+.wm-shop__cell-value {
+    font-size: 20px;
+    color: var(--wm-shop-value);
+    -unity-text-outline-width: 3px;
+    -unity-text-outline-color: var(--wm-shop-outline-color);
+    padding: 0;
+}
+
+.wm-shop__grid-content--large .wm-shop__cell-value {
+    font-size: 22px;
+}
+
+.wm-shop__cell-value--no {
+    color: var(--wm-shop-no);
+}
+
+.wm-shop__cell-value--sell {
+    color: var(--wm-shop-up);
+}
+
+.wm-shop__cell-original {
+    font-size: 14px;
+    margin-left: 6px;
+    color: var(--wm-shop-faint);
+    -unity-text-outline-width: 4px;
+    -unity-text-outline-color: var(--wm-shop-outline-color);
+    padding: 0;
+}
+
+.wm-shop__grid-content--large .wm-shop__cell-original {
+    font-size: 16px;
+}
+
+.wm-shop__cell-owned {
+    position: absolute;
+    left: 6px;
+    top: 4px;
+    font-size: 15px;
+    color: var(--wm-shop-value);
+    -unity-text-outline-width: 3px;
+    -unity-text-outline-color: var(--wm-shop-outline-color);
+    padding: 0;
+}
+
+.wm-shop__cell-badge {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 6px;
+    font-size: 18px;
+    color: rgb(13, 13, 17);
+    background-color: var(--wm-shop-value);
+    -unity-text-align: middle-center;
+}
+
+.wm-shop__cell-badge--sell {
+    background-color: var(--wm-shop-up);
+}
+
+/* 상세 */
+.wm-shop__info {
+    left: 1150px;
+    top: 104px;
+    width: 730px;
+    height: 408px;
+}
+
+.wm-shop__info-body {
+    padding: 14px 26px;
+}
+
+.wm-shop__empty-text {
+    color: var(--wm-shop-faint);
+    font-size: 20px;
+    -unity-text-align: upper-center;
+    padding-top: 56px;
+}
+
+.wm-shop__info-head {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-shop__diamond-box {
+    width: 96px;
+    height: 96px;
+    margin-right: 16px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.wm-shop__diamond {
+    position: absolute;
+    left: 14.6%;
+    top: 14.6%;
+    width: 70.8%;
+    height: 70.8%;
+    rotate: 45deg;
+    background-color: var(--wm-shop-slot-lit);
+    border-width: 2px;
+    border-color: var(--wm-shop-line-soft);
+}
+
+.wm-shop__diamond--empty {
+    background-color: transparent;
+    border-width: 0;
+}
+
+.wm-shop__diamond-empty {
+    --wm-dash-width: 2;
+    --wm-dash-length: 6;
+}
+
+.wm-shop__diamond-image {
+    width: 52px;
+    height: 52px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-shop__info-texts {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.wm-shop__info-name-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-shop__info-name {
+    font-size: 30px;
+    -unity-text-outline-width: 3px;
+    -unity-text-outline-color: var(--wm-shop-outline-color);
+    padding: 0;
+    padding-top: 0;
+    margin-top: 5px;
+}
+
+.wm-shop__info-worn {
+    margin-left: 14px;
+    font-size: 15px;
+    padding: 4px 6px 3px 6px;
+    background-color: rgb(16, 32, 31);
+    color: rgb(168, 224, 220);
+    border-width: 1px;
+    border-color: var(--wm-shop-teal-dark);
+}
+
+.wm-shop__info-description {
+    margin-top: 4px;
+    min-height: 48px;
+    font-size: 18px;
+    color: var(--wm-shop-soft);
+    white-space: normal;
+    padding: 0;
+}
+
+.wm-shop__info-description--none {
+    color: var(--wm-shop-faint);
+}
+
+.wm-shop__compare {
+    margin-top: 9px;
+}
+
+.wm-shop__compare-header {
+    flex-direction: row;
+    border-bottom-width: 1px;
+    border-color: var(--wm-shop-line-soft);
+    padding: 4px 8px;
+}
+
+.wm-shop__compare-head-kind {
+    width: 212px;
+    font-size: 17px;
+    color: var(--wm-shop-soft);
+    padding: 0;
+}
+
+.wm-shop__compare-head-selected {
+    width: 80px;
+    font-size: 17px;
+    color: var(--wm-shop-value);
+    -unity-text-align: middle-right;
+    padding: 0;
+}
+
+.wm-shop__compare-head-best {
+    width: 252px;
+    font-size: 17px;
+    color: var(--wm-shop-soft);
+    -unity-text-align: middle-right;
+    padding: 0;
+}
+
+.wm-shop__compare-head-difference {
+    width: 114px;
+    font-size: 17px;
+    color: var(--wm-shop-soft);
+    -unity-text-align: middle-right;
+    padding: 0;
+}
+
+.wm-shop__compare-row {
+    flex-direction: row;
+    align-items: center;
+    height: 37px;
+    padding: 3px 8px 0 8px;
+    border-bottom-width: 1px;
+    border-color: var(--wm-shop-row-line);
+}
+
+.wm-shop__compare-kind {
+    width: 212px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-shop__compare-chip {
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+}
+
+.wm-shop__compare-chip--count { background-color: rgb(87, 184, 180); }
+.wm-shop__compare-chip--damage { background-color: rgb(224, 86, 111); }
+.wm-shop__compare-chip--speed { background-color: rgb(224, 154, 46); }
+.wm-shop__compare-chip--size { background-color: rgb(154, 209, 98); }
+.wm-shop__compare-chip--advanced { background-color: rgb(95, 212, 255); }
+
+.wm-shop__compare-kind-name {
+    font-size: 19px;
+    padding: 0;
+}
+
+.wm-shop__compare-selected {
+    width: 80px;
+    font-size: 19px;
+    color: var(--wm-shop-value);
+    -unity-text-align: middle-right;
+    padding: 0;
+}
+
+.wm-shop__compare-best {
+    width: 252px;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.wm-shop__compare-best-value {
+    font-size: 19px;
+    padding: 0;
+}
+
+.wm-shop__compare-best-owner {
+    font-size: 16px;
+    margin-left: 5px;
+    color: var(--wm-shop-faint);
+    padding: 0;
+}
+
+.wm-shop__compare-difference {
+    width: 114px;
+    font-size: 19px;
+    color: var(--wm-shop-faint);
+    -unity-text-align: middle-right;
+    padding: 0;
+}
+
+.wm-shop__compare-difference--up {
+    color: var(--wm-shop-up);
+}
+
+.wm-shop__compare-difference--down {
+    color: var(--wm-shop-down);
+}
+
+.wm-shop__plain {
+    margin-top: 6px;
+}
+
+.wm-shop__plain-row {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0 8px;
+    border-bottom-width: 1px;
+    border-color: var(--wm-shop-row-line);
+    height: 45px;
+    align-items: center;
+}
+
+.wm-shop__plain-name {
+    font-size: 20px;
+    color: var(--wm-shop-soft);
+    padding: 0;
+}
+
+.wm-shop__plain-value {
+    font-size: 20px;
+    padding: 0;
+}
+
+.wm-shop__plain-value--sell {
+    color: var(--wm-shop-up);
+}
+
+/* 장바구니 */
+.wm-shop__cart {
+    left: 1150px;
+    top: 530px;
+    width: 730px;
+    height: 474px;
+}
+
+.wm-shop__cart-body {
+    padding: 0 22px 16px 22px;
+}
+
+.wm-shop__cart-title {
+    padding: 0;
+    font-size: 24px;
+    -unity-text-align: upper-center;
+    -unity-text-outline-width: 4px;
+    -unity-text-outline-color: var(--wm-shop-outline-color);
+    margin-top: 14px;
+}
+
+.wm-shop__cart-list {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    margin-top: 6px;
+}
+
+.wm-shop__cart-empty {
+    color: var(--wm-shop-faint);
+    font-size: 20px;
+    -unity-text-align: upper-center;
+    padding-top: 62px;
+    -unity-paragraph-spacing: 12px;
+}
+
+.wm-shop__cart-row {
+    flex-direction: row;
+    align-items: center;
+    height: 46px;
+    border-bottom-width: 1px;
+    border-color: rgba(84, 78, 99, 0.4);
+    flex-shrink: 0;
+    padding-top: 4px;
+}
+
+.wm-shop__cart-row--selected {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.wm-shop__cart-box {
+    width: 38px;
+    height: 38px;
+    margin-right: 10px;
+}
+
+.wm-shop__cart-image {
+    width: 30px;
+    height: 30px;
+}
+
+.wm-shop__cart-side {
+    width: 50px;
+    margin-right: 20px;
+    font-size: 15px;
+    padding: 3px 6px 2px 6px;
+    -unity-text-align: middle-center;
+    color: rgb(168, 224, 220);
+    background-color: var(--wm-shop-teal-dark);
+}
+
+.wm-shop__cart-side--sell {
+    color: rgb(247, 210, 217);
+    background-color: var(--wm-shop-rose-dark);
+}
+
+.wm-shop__cart-name {
+    flex-grow: 1;
+    flex-shrink: 1;
+    font-size: 20px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.wm-shop__cart-amount {
+    width: 70px;
+    font-size: 20px;
+    color: var(--wm-shop-soft);
+    -unity-text-align: middle-right;
+    padding: 0;
+}
+
+.wm-shop__cart-total {
+    width: 110px;
+    font-size: 20px;
+    color: var(--wm-shop-value);
+    -unity-text-align: middle-right;
+    padding: 0;
+}
+
+.wm-shop__cart-total--sell {
+    color: var(--wm-shop-up);
+}
+
+.wm-shop__summary {
+    border-top-width: 2px;
+    border-color: var(--wm-shop-line-soft);
+    padding-top: 13px;
+}
+
+.wm-shop__summary-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    height: 34px;
+}
+
+.wm-shop__summary-label {
+    font-size: 20px;
+    color: var(--wm-shop-soft);
+    padding: 0;
+}
+
+.wm-shop__summary-total {
+    font-size: 30px;
+    color: var(--wm-shop-value);
+    -unity-text-align: middle-right;
+    padding: 0;
+}
+
+.wm-shop__summary-total--over {
+    color: var(--wm-shop-no);
+}
+
+.wm-shop__summary-total--gain {
+    color: var(--wm-shop-up);
+}
+
+.wm-shop__after {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.wm-shop__after-before {
+    font-size: 24px;
+    padding: 0;
+}
+
+.wm-shop__after-arrow {
+    font-size: 24px;
+    color: var(--wm-shop-soft);
+    margin: 0 12px;
+    padding: 0;
+}
+
+.wm-shop__after-value {
+    font-size: 24px;
+    color: var(--wm-shop-value);
+    padding: 0;
+}
+
+.wm-shop__after-short {
+    font-size: 24px;
+    color: var(--wm-shop-no);
+    padding: 0;
+}
+
+.wm-shop__pay {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    background-color: rgba(0, 0, 0, 0.82);
+    border-width: 4px;
+    border-color: rgb(255, 255, 255);
+    margin-top: -2px;
+    padding-top: 2px;
+}
+
+.wm-shop__pay:hover {
+    background-color: rgb(42, 37, 51);
+}
+
+.wm-shop__pay-key {
+    font-size: 17px;
+    color: var(--wm-shop-value);
+    margin-right: 10px;
+    padding: 0;
+}
+
+.wm-shop__pay-label {
+    font-size: 24px;
+    padding: 0;
+}
+
+.wm-shop__pay--off {
+    border-color: var(--wm-shop-line-soft);
+}
+
+.wm-shop__pay--off .wm-shop__pay-label {
+    color: var(--wm-shop-faint);
+}
+
+/* 키 안내 */
+.wm-shop__keys {
+    position: absolute;
+    left: 40px;
+    top: 1030px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-shop__key {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 22px;
+}
+
+.wm-shop__key-cap {
+    font-size: 17px;
+    color: var(--wm-shop-ink);
+    background-color: rgb(0, 0, 0);
+    border-width: 1px;
+    border-color: var(--wm-shop-line-soft);
+    padding: 4px 9px 2px 9px;
+    margin-right: 7px;
+}
+
+.wm-shop__key-action {
+    font-size: 19px;
+    color: var(--wm-shop-soft);
+    padding: 0;
+    padding-top: 2px;
+}
+
+/* 움직이는 선택 틀 */
+.wm-shop__cursor {
+    position: absolute;
+    border-width: 3px;
+    border-color: rgb(255, 255, 255);
+    visibility: hidden;
+    transition-property: left, top, width, height;
+    transition-duration: 0.09s;
+    transition-timing-function: ease-out;
+}
+
+.wm-shop__cursor--jump {
+    transition-duration: 0s;
+}
+
+.wm-shop__cursor-corner {
+    position: absolute;
+    left: -11px;
+    top: -11px;
+    right: -11px;
+    bottom: -11px;
+    --wm-nine-image: url("Art/corner.png");
+    --wm-nine-slice: 16;
+    --wm-nine-width: 18;
+    transition-property: scale, opacity;
+    transition-duration: 0.55s;
+    transition-timing-function: ease-in-out;
+}
+
+.wm-shop__cursor-corner--out {
+    scale: 1.022 1.022;
+    opacity: 0.78;
+}
+
+.wm-shop__cursor-targeting {
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    right: 2px;
+    bottom: 2px;
+    --wm-nine-image: url("../../../Core/UI/Common/Sprites/UI_Targeting.png");
+    --wm-nine-slice: 7;
+    --wm-nine-width: 10;
+    opacity: 0.06;
+}
+
+/* 알림 */
+.wm-shop__pop {
+    position: absolute;
+    font-size: 30px;
+    color: var(--wm-shop-value);
+    -unity-text-outline-width: 4px;
+    -unity-text-outline-color: var(--wm-shop-outline-color);
+    padding: 0;
+    translate: 0 0;
+    opacity: 1;
+    transition-property: translate, opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+}
+
+.wm-shop__pop--warning {
+    color: var(--wm-shop-no);
+}
+
+.wm-shop__pop--enter {
+    translate: 0 16px;
+    opacity: 0;
+}
+
+.wm-shop__pop--exit {
+    translate: 0 -20px;
+    opacity: 0;
+}

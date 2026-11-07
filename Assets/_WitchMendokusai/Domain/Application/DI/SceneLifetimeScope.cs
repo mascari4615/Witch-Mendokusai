@@ -94,7 +94,6 @@ namespace WitchMendokusai
 			// UINPC.Construct=멱등(SetUIManager 재호출 무해).
 			RegisterInHierarchyIfPresent<UINPC>(builder);
 			RegisterInHierarchyIfPresent<UIUpgrade>(builder);
-			RegisterInHierarchyIfPresent<UIShop>(builder);
 			RegisterInHierarchyIfPresent<UICraft>(builder);
 			RegisterInHierarchyIfPresent<UIItemSlot>(builder);
 			RegisterInHierarchyIfPresent<UIQuestSlot>(builder);
@@ -168,7 +167,6 @@ namespace WitchMendokusai
 				ResolveIfPresent<UINPCMenu>(container);
 				ResolveIfPresent<UINPC>(container); // TASK-WM-118 I2 — Construct 결정화
 				ResolveIfPresent<UIUpgrade>(container);
-				ResolveIfPresent<UIShop>(container);
 				ResolveIfPresent<UICraft>(container);
 				ResolveIfPresent<UIItemSlot>(container);
 				ResolveIfPresent<UIQuestSlot>(container);

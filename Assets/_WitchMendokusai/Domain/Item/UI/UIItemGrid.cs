@@ -98,11 +98,5 @@ namespace WitchMendokusai
 			UpdateUI();
 		}
 
-		public void SetPriceType(PriceType priceType)
-		{
-			foreach (UIItemSlot slot in Slots.Cast<UIItemSlot>())
-				slot.SetPriceType(priceType);
-			UpdateUI();
-		}
 	}
 }

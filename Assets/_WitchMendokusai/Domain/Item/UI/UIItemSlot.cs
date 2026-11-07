@@ -10,12 +10,6 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	public enum PriceType
-	{
-		Buy,
-		Sell
-	}
-
 	public class UIItemSlot : UISlot, IPointerDownHandler
 	{
 		protected TextMeshProUGUI priceText;
@@ -25,8 +19,6 @@ namespace WitchMendokusai
 
 		public bool canPlayerSetItem = true;
 		public bool canHold = true;
-		private PriceType priceType = PriceType.Buy;
-		private Func<ItemData, int> buyPrice = itemData => itemData.PurchasePrice;
 
 		private UIHoldingSlot uiHoldingSlot;
 
@@ -52,7 +44,7 @@ namespace WitchMendokusai
 				if (DataSO)
 				{
 					ItemData itemData = DataSO as ItemData;
-					priceText.text = (priceType == PriceType.Buy) ? buyPrice(itemData).ToString() : itemData.SalePrice.ToString();
+					priceText.text = itemData.PurchasePrice.ToString();
 				}
 				else
 				{
@@ -62,16 +54,6 @@ namespace WitchMendokusai
 		}
 
 		public void SetUIItemGrid(UIItemGrid itemGridUI) => UIItemGrid = itemGridUI;
-		public void SetPriceType(PriceType priceType)
-		{
-			this.priceType = priceType;
-			UpdateUI();
-		}
-		public void SetBuyPrice(Func<ItemData, int> buyPrice)
-		{
-			this.buyPrice = buyPrice;
-			UpdateUI();
-		}
 
 		public virtual void OnPointerDown(PointerEventData eventData)
 		{
