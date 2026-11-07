@@ -115,7 +115,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public float EnterSlideDistance { get; private set; } = 90f;
 		[field: SerializeField] public float SpeakerScale { get; private set; } = 1f;
 		[field: SerializeField] public Color ListenerTint { get; private set; } = new(0.5f, 0.5f, 0.52f, 1f);
-		[field: SerializeField] public float SpeakerGlowOpacity { get; private set; } = 0.22f;
+		[field: SerializeField] public float SpeakerGlowOpacity { get; private set; } = 0.08f;
 		[field: SerializeField] public List<MotionTrack> Motions { get; private set; } = new();
 
 		[field: Header("감정 아이콘")]
@@ -143,7 +143,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public float ParticleLifeSeconds { get; private set; } = 0.7f;
 		[field: SerializeField] public float ParticleSpeed { get; private set; } = 190f;
 		[field: SerializeField] public float ParticleGravity { get; private set; } = 260f;
-		[field: SerializeField] public int GlowTextureSize { get; private set; } = 64;
+		[field: SerializeField] public int GlowTextureSize { get; private set; } = 128;
 		[field: SerializeField] public int FadeTextureHeight { get; private set; } = 64;
 
 		[field: Header("카메라")]

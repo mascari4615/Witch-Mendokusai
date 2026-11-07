@@ -77,7 +77,7 @@ MonoBehaviour:
   <EnterSlideDistance>k__BackingField: 90
   <SpeakerScale>k__BackingField: 1
   <ListenerTint>k__BackingField: {r: 0.5, g: 0.5, b: 0.52, a: 1}
-  <SpeakerGlowOpacity>k__BackingField: 0.22
+  <SpeakerGlowOpacity>k__BackingField: 0.08
   <Motions>k__BackingField:
   - <Motion>k__BackingField: 0
     <Seconds>k__BackingField: 0.3
@@ -233,7 +233,7 @@ MonoBehaviour:
   <ParticleLifeSeconds>k__BackingField: 0.7
   <ParticleSpeed>k__BackingField: 190
   <ParticleGravity>k__BackingField: 260
-  <GlowTextureSize>k__BackingField: 64
+  <GlowTextureSize>k__BackingField: 128
   <FadeTextureHeight>k__BackingField: 64
   <Shots>k__BackingField:
   - <Shot>k__BackingField: 0
