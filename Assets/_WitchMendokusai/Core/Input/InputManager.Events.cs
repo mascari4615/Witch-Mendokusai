@@ -48,6 +48,9 @@ namespace WitchMendokusai
 			{ InputEventType.KeybindHelpToggle, InputMapType.UI },
 			{ InputEventType.MagicBookToggle, InputMapType.UI },
 			{ InputEventType.CauldronMapToggle, InputMapType.UI },
+			{ InputEventType.DialogueSkip, InputMapType.UI },
+			{ InputEventType.DialogueAuto, InputMapType.UI },
+			{ InputEventType.DialogueLog, InputMapType.UI },
 		};
 
 		// Strategy-owned: cleared on every strategy switch
@@ -77,6 +80,12 @@ namespace WitchMendokusai
 			(Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
 			|| (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
 			|| (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame);
+
+		public bool IsAnyKeyboardKeyPressedThisFrame => Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame;
+
+		// 입력 잠금 중에도 읽는 대화 진행용. 사건 등록과 달리 IsTyping 관문을 안 지남
+		public bool WasActionPressedThisFrame(InputEventType inputEventType) =>
+			inputActionAsset[$"{inputEventBindings[inputEventType]}/{inputEventType}"].WasPressedThisFrame();
 
 		private void InitEventDictionaries()
 		{

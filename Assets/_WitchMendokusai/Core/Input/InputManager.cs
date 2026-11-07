@@ -87,6 +87,12 @@ namespace WitchMendokusai
 		MagicBookToggle,
 		[InputEvent("창", "솥 지도", "<Keyboard>/n")]
 		CauldronMapToggle,
+		[InputEvent("대화", "건너뛰기", "<Keyboard>/p")]
+		DialogueSkip,
+		[InputEvent("대화", "자동 진행", "<Keyboard>/o")]
+		DialogueAuto,
+		[InputEvent("대화", "대화 기록", "<Keyboard>/l")]
+		DialogueLog,
 	}
 
 	public enum InputEventResponseType
