@@ -16,6 +16,7 @@ namespace WitchMendokusai
 		public DungeonRunMode Mode { get; private set; } = DungeonRunMode.Equipped;
 		public IReadOnlyList<EquipmentData> Acquired => acquired;
 		public bool UsesRunSlots => DungeonRunModeRules.UsesSavedEquipment(Mode) == false;
+		public EquipmentData Signature => GetDoll(dataManager.CurDollID).SignatureEquipment;
 
 		public void Begin(DungeonRunMode mode, SurvivalRunRules rules)
 		{
@@ -37,7 +38,7 @@ namespace WitchMendokusai
 			if (UsesRunSlots == false)
 				return dataManager.GetEquipmentData(dataManager.CurDollID);
 
-			List<EquipmentData> equipments = new() { GetDoll(dataManager.CurDollID).SignatureEquipment };
+			List<EquipmentData> equipments = new() { Signature };
 			foreach (EquipmentData equipment in acquired)
 				equipments.Add(equipments.Contains(equipment) ? null : equipment);
 			return equipments;
@@ -69,7 +70,7 @@ namespace WitchMendokusai
 			});
 
 			List<int> excludedIds = acquired.Select(equipment => equipment.ID).ToList();
-			EquipmentData signature = GetDoll(dataManager.CurDollID).SignatureEquipment;
+			EquipmentData signature = Signature;
 			if (signature != null)
 				excludedIds.Add(signature.ID);
 			return DungeonRunModeRules.NewEquipmentCandidates(eligibleIds, excludedIds);

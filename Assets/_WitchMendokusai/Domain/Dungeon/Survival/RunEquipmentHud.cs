@@ -9,8 +9,11 @@ namespace WitchMendokusai
 		private const string USS_ROOT = "wm-run-equipment";
 		private const string USS_SLOT = USS_ROOT + "__slot";
 		private const string USS_SLOT_FILLED = USS_SLOT + "--filled";
+		private const string USS_SLOT_SIGNATURE = USS_SLOT + "--signature";
 
+		private readonly VisualElement signatureSlot = new() { name = "Signature", pickingMode = PickingMode.Ignore };
 		private readonly List<VisualElement> slots = new();
+		private EquipmentData shownSignature;
 		private int shownCount = -1;
 
 		public RunEquipmentHud()
@@ -18,13 +21,20 @@ namespace WitchMendokusai
 			name = "RunEquipmentHud";
 			pickingMode = PickingMode.Ignore;
 			AddToClassList(USS_ROOT);
+			signatureSlot.AddToClassList(USS_SLOT);
+			signatureSlot.AddToClassList(USS_SLOT_FILLED);
+			signatureSlot.AddToClassList(USS_SLOT_SIGNATURE);
+			Add(signatureSlot);
 		}
 
-		public void Refresh(IReadOnlyList<EquipmentData> equipments, int slotCount)
+		// 고유 장비는 덱 0번 고정, 획득 칸 수에서 제외
+		public void Refresh(EquipmentData signature, IReadOnlyList<EquipmentData> equipments, int slotCount)
 		{
-			if (shownCount == equipments.Count && slots.Count == slotCount)
+			if (shownSignature == signature && shownCount == equipments.Count && slots.Count == slotCount)
 				return;
+			shownSignature = signature;
 			shownCount = equipments.Count;
+			signatureSlot.style.backgroundImage = new StyleBackground(signature.Sprite);
 
 			while (slots.Count < slotCount)
 			{

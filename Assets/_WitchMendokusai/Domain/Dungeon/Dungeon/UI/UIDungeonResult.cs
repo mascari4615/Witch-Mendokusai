@@ -42,6 +42,8 @@ namespace WitchMendokusai
 
 		private readonly List<UIMiniCard> entries = new();
 		private CanvasGroup battleHudGroup;
+		private Vector2 cardArea;
+		private Vector2 itemArea;
 
 		private DungeonManager dungeonManager;
 		private SOManager soManager;
@@ -97,6 +99,8 @@ namespace WitchMendokusai
 		{
 			retryButton.onClick.AddListener(Retry);
 			entryTemplate.gameObject.SetActive(false);
+			cardArea = ((RectTransform)cardParent).rect.size;
+			itemArea = ((RectTransform)itemParent).rect.size;
 		}
 
 		public override void UpdateUI()
@@ -132,6 +136,8 @@ namespace WitchMendokusai
 				entry.SetCard(group.First(), group.Count());
 				entries.Add(entry);
 			}
+			FitGrid(cardParent, cardArea, entries.Count);
+			int cardEntryCount = entries.Count;
 			cardCountText.text = $"{selected.Count}회 강화";
 
 			ItemDataBuffer buffer = soManager.DungeonItemBuffer;
@@ -142,6 +148,19 @@ namespace WitchMendokusai
 				entry.SetItem(itemData, buffer.itemCountDic.TryGetValue(itemData.ID, out int count) ? count : 1);
 				entries.Add(entry);
 			}
+			FitGrid(itemParent, itemArea, entries.Count - cardEntryCount);
+		}
+
+		// 넘친 줄의 겹침 방지. 묶음 전체를 줄여 제 영역 안에 배치
+		private static void FitGrid(Transform parent, Vector2 area, int count)
+		{
+			GridLayoutGroup grid = parent.GetComponent<GridLayoutGroup>();
+			GridFit fit = GridFit.Compute(count, area, grid.cellSize, grid.spacing);
+			grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+			grid.constraintCount = fit.Columns;
+			RectTransform rect = (RectTransform)parent;
+			rect.localScale = new Vector3(fit.Scale, fit.Scale, 1f);
+			rect.sizeDelta = area / fit.Scale;
 		}
 
 		private void Play(DungeonRecord record, float speed)

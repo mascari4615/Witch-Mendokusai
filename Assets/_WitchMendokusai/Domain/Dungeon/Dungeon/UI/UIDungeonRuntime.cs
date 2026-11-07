@@ -108,7 +108,7 @@ namespace WitchMendokusai
 			runEquipmentHud ??= new RunEquipmentHud();
 			if (runEquipmentHud.parent == null)
 				UIRoot.Instance.HudLayer.Add(runEquipmentHud);
-			runEquipmentHud.Refresh(loadout.Acquired, dungeonManager.RunEquipmentSlotCount);
+			runEquipmentHud.Refresh(loadout.Signature, loadout.Acquired, dungeonManager.RunEquipmentSlotCount);
 		}
 
 		private static CanvasGroup EnsureGroup(GameObject target)
