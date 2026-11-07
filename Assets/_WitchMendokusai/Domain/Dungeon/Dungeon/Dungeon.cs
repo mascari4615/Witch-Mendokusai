@@ -43,18 +43,12 @@ namespace WitchMendokusai
 		[PropertyOrder(106)][field: SerializeField] public List<ResourceNodeWave> ResourceNodeWaves { get; set; }
 		[PropertyOrder(107)][field: SerializeField] public List<RewardInfo> Rewards { get; set; }
 		[PropertyOrder(108)][field: SerializeField] public SurvivalEventTable EventTable { get; private set; }
-		[Tooltip("패배 보상: 생존 1분당 냥")]
-		[PropertyOrder(108)][field: SerializeField, Min(0f)] public float DefeatNyangPerMinute { get; private set; } = 20f;
 		[Tooltip("패배 보상: 처치 1마리당 냥")]
 		[PropertyOrder(109)][field: SerializeField, Min(0f)] public float DefeatNyangPerKill { get; private set; } = 0.05f;
 		[Tooltip("패배 보상 상한")]
 		[PropertyOrder(110)][field: SerializeField, Min(0)] public int DefeatNyangMax { get; private set; } = 300;
 
-		public int CalculateDefeatNyang(TimeSpan playTime, int killCount)
-		{
-			float raw = (float)playTime.TotalMinutes * DefeatNyangPerMinute + killCount * DefeatNyangPerKill;
-			return Mathf.Min(DefeatNyangMax, Mathf.FloorToInt(raw));
-		}
+		public int CalculateDefeatNyang(int killCount) => Mathf.Min(DefeatNyangMax, Mathf.FloorToInt(killCount * DefeatNyangPerKill));
 
 		[field: NonSerialized] public Dictionary<int, bool> ConstraintSelected { get; private set; } = new();
 

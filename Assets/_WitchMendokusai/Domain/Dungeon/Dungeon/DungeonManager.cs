@@ -277,7 +277,7 @@ namespace WitchMendokusai
 			resourceNodeSpawner.StopWave();
 
 			if (isCleared == false)
-				dataManager.GameStat[GameStatType.NYANG] += CurDungeon.CalculateDefeatNyang(Context.ElapsedTime, dungeonRecorder.KillCountSinceStart);
+				dataManager.GameStat[GameStatType.NYANG] += CurDungeon.CalculateDefeatNyang(dungeonRecorder.KillCountSinceStart);
 			// 냥 보너스, 클리어 보상과 패배 보상과 레벨업 전환을 포함한 이번 판 획득분 기준
 			dataManager.GameStat[GameStatType.NYANG] += dungeonRecorder.NyangSinceStart * playerProvider.Current.UnitStat[UnitStatType.GOLD_BONUS] / UnitStat.PERCENT;
 			dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR], isCleared);
