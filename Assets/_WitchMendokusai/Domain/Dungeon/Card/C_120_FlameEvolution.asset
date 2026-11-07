@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: C_120_FlameEvolution
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
   <ID>k__BackingField: 120
-  <Name>k__BackingField: "도깨비불 진화"
+  <Name>k__BackingField: "도깨비불 진화 2"
   <Description>k__BackingField: "도깨비불 수 +2, 데미지 +12, 속도 +2\n불꽃 고리와 도깨비불 속도 최대 뒤 상자에서 획득. 한 판에 1회."
   <Sprite>k__BackingField: {fileID: 21300000, guid: ce811b0cc758a254082230223efc9168, type: 3}
   <Sprites>k__BackingField: []

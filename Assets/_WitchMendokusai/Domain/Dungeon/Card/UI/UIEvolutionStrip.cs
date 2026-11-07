@@ -10,6 +10,7 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private SurvivalUITheme theme;
 		[SerializeField] private GameObject root;
+		[SerializeField] private TextMeshProUGUI label;
 		[SerializeField] private Transform chipsParent;
 		[SerializeField] private GameObject chipTemplate;
 		[SerializeField] private string readyText = "준비";
@@ -28,6 +29,7 @@ namespace WitchMendokusai
 			chips.Clear();
 			chipTemplate.SetActive(false);
 			root.SetActive(progressList.Count > 0);
+			UITermIcon.Attach(label, theme, SurvivalTerm.Evolution);
 
 			foreach (CardEvolutionProgress progress in progressList)
 			{

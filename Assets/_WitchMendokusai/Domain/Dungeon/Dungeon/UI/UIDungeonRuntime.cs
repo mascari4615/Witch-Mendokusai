@@ -191,7 +191,9 @@ namespace WitchMendokusai
 			if (nextEvent == null)
 				return;
 			float remain = Mathf.Max(0f, nextEvent.Time - (float)dungeonManager.Context.ElapsedTime.TotalSeconds);
-			string label = nextEvent.Type == SurvivalEventType.Elite ? eliteLabel : swarmLabel;
+			bool isElite = nextEvent.Type == SurvivalEventType.Elite;
+			string label = isElite ? eliteLabel : swarmLabel;
+			UITermIcon.Attach(nextEventText, theme, isElite ? SurvivalTerm.NextElite : SurvivalTerm.NextWave);
 			string remainText = TimeSpan.FromSeconds(remain).ToString(@"m\:ss");
 			nextEventText.text = $"{label} {remainText}";
 			nextEventText.color = remain <= nextEvent.AnnounceLead ? nextEventSoonColor : nextEventNormalColor;

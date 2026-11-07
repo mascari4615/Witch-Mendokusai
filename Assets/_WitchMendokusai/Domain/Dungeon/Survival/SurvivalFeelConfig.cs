@@ -35,7 +35,7 @@ namespace WitchMendokusai
 		[Min(0.1f), Tooltip("적을 노리는 최대 거리")] public float TargetRange = 9f;
 		[Min(0f), Tooltip("이동 방향 쪽 적을 이 거리만큼 가깝게 취급")] public float ForwardBias = 2.5f;
 		[Min(0f), Tooltip("노릴 적이 모자랄 때 벌리는 각도")] public float FanDegrees = 35f;
-		[Min(1), Tooltip("공명 뒤 이 횟수마다 전방위 베기")] public int ResonanceBurstEvery = 4;
+		[Min(1), Tooltip("진화 뒤 이 횟수마다 전방위 베기")] public int ResonanceBurstEvery = 4;
 		[Min(1)] public int ResonanceBurstSlashes = 6;
 		[Min(0), Tooltip("전방위 베기 추가 피해")] public int ResonanceBurstDamage = 10;
 	}

@@ -17,7 +17,8 @@ namespace WitchMendokusai
 		[SerializeField] private UIBurst burst;
 		[SerializeField] private Sprite nyangSprite;
 		[SerializeField] private string nyangName = "냥";
-		[SerializeField] private string evolutionTag = "진화";
+		[SerializeField] private TextMeshProUGUI title;
+		[SerializeField] private string evolutionTag = "진화 2";
 		[SerializeField] private SurvivalUIKind nyangKind = SurvivalUIKind.Speed;
 
 		private readonly List<GameObject> cells = new();
@@ -28,6 +29,7 @@ namespace WitchMendokusai
 		private void Awake()
 		{
 			closeButton.onClick.AddListener(Close);
+			UITermIcon.Attach(title, theme, SurvivalTerm.ChestReward);
 			content.SetActive(false);
 			cellTemplate.SetActive(false);
 		}
@@ -101,7 +103,9 @@ namespace WitchMendokusai
 			cell.Find("[Text] Name").GetComponent<TextMeshProUGUI>().text = isCard ? reward.Card.Name : $"{reward.Nyang} {nyangName}";
 			GameObject tag = cell.Find("[Block] Tag").gameObject;
 			tag.SetActive(reward.IsEvolution);
-			tag.GetComponentInChildren<TextMeshProUGUI>().text = evolutionTag;
+			TextMeshProUGUI tagText = tag.GetComponentInChildren<TextMeshProUGUI>(true);
+			tagText.text = evolutionTag;
+			UITermIcon.Attach(tagText, theme, SurvivalTerm.Evolution);
 		}
 	}
 }

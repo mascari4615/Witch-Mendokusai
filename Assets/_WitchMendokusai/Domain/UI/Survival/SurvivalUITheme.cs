@@ -21,6 +21,19 @@ namespace WitchMendokusai
 		Reward = 3
 	}
 
+	public enum SurvivalTerm
+	{
+		Rare = 0,
+		Epic = 1,
+		NextElite = 2,
+		NextWave = 3,
+		Reroll = 4,
+		Skip = 5,
+		Ban = 6,
+		ChestReward = 7,
+		Evolution = 8
+	}
+
 	[CreateAssetMenu(fileName = nameof(SurvivalUITheme), menuName = "WM/UI/SurvivalUITheme")]
 	public class SurvivalUITheme : ScriptableObject
 	{
@@ -39,6 +52,13 @@ namespace WitchMendokusai
 			public UpgradeCategory Category;
 			public string DisplayName;
 			public Color Main;
+		}
+
+		[Serializable]
+		public class TermStyle
+		{
+			public SurvivalTerm Term;
+			public Sprite Icon;
 		}
 
 		[field: SerializeField] public List<KindStyle> Kinds { get; private set; } = new();
@@ -65,7 +85,11 @@ namespace WitchMendokusai
 		[field: SerializeField] public float PunchDuration { get; private set; } = 0.3f;
 		[field: SerializeField] public float MinCardNameFontSize { get; private set; } = 22f;
 		[field: SerializeField] public float SlotAppearStartScale { get; private set; } = 0.85f;
+		[field: SerializeField] public List<TermStyle> Terms { get; private set; } = new();
+		[field: SerializeField] public float TermIconSizeRatio { get; private set; } = 1.1f;
+		[field: SerializeField] public float TermIconGapRatio { get; private set; } = 0.2f;
 
+		public Sprite TermIcon(SurvivalTerm term) => Terms[(int)term].Icon;
 		public KindStyle Style(SurvivalUIKind kind) => Kinds[(int)kind];
 		public CategoryStyle Style(UpgradeCategory category) => Categories[(int)category];
 		public Color Difficulty(DungeonDifficulty difficulty) => DifficultyColors[(int)difficulty];

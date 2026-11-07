@@ -70,3 +70,24 @@ MonoBehaviour:
   <PunchAmount>k__BackingField: 0.14
   <PunchDuration>k__BackingField: 0.3
   <MinCardNameFontSize>k__BackingField: 22
+  <Terms>k__BackingField:
+  - Term: 0
+    Icon: {fileID: 21300000, guid: 185d994b6cd84cd88a3ef51932ccb71e, type: 3}
+  - Term: 1
+    Icon: {fileID: 21300000, guid: e62a55cbdec94790bb7602ec74da64ac, type: 3}
+  - Term: 2
+    Icon: {fileID: 21300000, guid: b3f37628ebbf4a9886960586c7d6706c, type: 3}
+  - Term: 3
+    Icon: {fileID: 21300000, guid: 998408514ea44a63bbfc270af0b0f10e, type: 3}
+  - Term: 4
+    Icon: {fileID: 21300000, guid: 0096b08b6980492c95c6e60eff516bfe, type: 3}
+  - Term: 5
+    Icon: {fileID: 21300000, guid: 2f474fb0be564323944a42c318d9b492, type: 3}
+  - Term: 6
+    Icon: {fileID: 21300000, guid: 630cd8a11eb742ad8351a5e08d217e93, type: 3}
+  - Term: 7
+    Icon: {fileID: 21300000, guid: c94f7fda6dd948088ed5a16280ee03cc, type: 3}
+  - Term: 8
+    Icon: {fileID: 21300000, guid: 70c2569cb0274d6f93d0cf476a7ddc74, type: 3}
+  <TermIconSizeRatio>k__BackingField: 1.1
+  <TermIconGapRatio>k__BackingField: 0.2

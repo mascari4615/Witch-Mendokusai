@@ -251,14 +251,14 @@ internal static class Program
             CardData damage = Card(401, 100);
             damage.Name = "검 피해";
             CardData advanced = Card(410);
-            advanced.Name = "검의 공명";
+            advanced.Name = "검 진화";
             advanced.Requirements.Add(new CardData.Requirement { Card = count, Stack = 3 });
             advanced.Requirements.Add(new CardData.Requirement { Card = damage, Stack = 2 });
             List<CardData> selected = new List<CardData> { count, count, damage };
             List<CardData> deck = new List<CardData> { count, damage, advanced };
             string preview = CardChoiceText.Description(count, selected, deck, true);
             Check(preview.Contains("강화 2 → 3 / 10회"), "next stack missing");
-            Check(preview.Contains("검의 공명 조건 3 → 4 / 5회"), "unlock projection missing");
+            Check(preview.Contains("검 진화 조건 3 → 4 / 5회"), "unlock projection missing");
             Check(preview.Contains("검 피해: 현재 1/2회"), "other prerequisite missing");
             Check(selected.Count == 3 && advanced.MeetsRequirements(selected) == false, "preview spent a choice");
             selected.Add(count);
@@ -266,7 +266,7 @@ internal static class Program
             Check(CardChoiceText.Description(damage, selected, deck).Contains("조건 4 → 5 / 5회"), "finishing choice not explained");
             selected.Add(damage);
             selected.Add(advanced);
-            Check(CardChoiceText.Description(count, selected, deck).Contains("검의 공명") == false, "spent advanced hint remained");
+            Check(CardChoiceText.Description(count, selected, deck).Contains("검 진화") == false, "spent advanced hint remained");
             selected.Clear();
             Check(CardChoiceText.Description(count, selected, deck).Contains("조건 0 → 1 / 5회"), "new run retained old progress");
         });

@@ -37,8 +37,11 @@ namespace WitchMendokusai
 		[SerializeField] private string epicLabel = "영웅";
 		[SerializeField] private Color rareColor = new(0.373f, 0.831f, 1f, 1f);
 		[SerializeField] private Color epicColor = new(0.949f, 0.886f, 0.478f, 1f);
+		[SerializeField] private string evolutionLabel = "진화";
+		[SerializeField] private float evolutionBadgeGap = 4f;
 
 		private readonly List<Image> pips = new();
+		private GameObject evolutionBadge;
 
 		public UIChoiceCard ChoiceCard => choiceCard;
 
@@ -56,12 +59,15 @@ namespace WitchMendokusai
 			nameText.text = card.Name;
 			UIEffects.AvoidOrphan(nameText, theme.MinCardNameFontSize);
 
+			SetEvolutionBadge(card);
 			bool hasRarity = card.Rarity != CardRarity.Common;
 			rarityRoot.SetActive(hasRarity);
 			if (hasRarity)
 			{
-				rarityBack.color = card.Rarity == CardRarity.Epic ? epicColor : rareColor;
-				rarityText.text = card.Rarity == CardRarity.Epic ? epicLabel : rareLabel;
+				bool isEpic = card.Rarity == CardRarity.Epic;
+				rarityBack.color = isEpic ? epicColor : rareColor;
+				rarityText.text = isEpic ? epicLabel : rareLabel;
+				UITermIcon.Attach(rarityText, theme, isEpic ? SurvivalTerm.Epic : SurvivalTerm.Rare);
 			}
 
 			int current = selectedCards.Count(selected => selected.ID == card.ID);
@@ -75,6 +81,23 @@ namespace WitchMendokusai
 				conditionIcon.sprite = advanced.Sprite;
 				conditionText.text = condition;
 			}
+		}
+
+		// 진화 표식. 희귀도 표식의 사본을 그 아래에 배치, 첫 Set에서 UITermIcon 부착 전에 복제
+		private void SetEvolutionBadge(CardData card)
+		{
+			if (evolutionBadge == null)
+			{
+				evolutionBadge = Instantiate(rarityRoot, rarityRoot.transform.parent);
+				evolutionBadge.transform.SetSiblingIndex(rarityRoot.transform.GetSiblingIndex() + 1);
+				RectTransform source = rarityRoot.GetComponent<RectTransform>();
+				evolutionBadge.GetComponent<RectTransform>().anchoredPosition = source.anchoredPosition - new Vector2(0f, source.sizeDelta.y + evolutionBadgeGap);
+				evolutionBadge.GetComponent<Image>().color = theme.Style(SurvivalUIKind.Advanced).Main;
+				TextMeshProUGUI label = evolutionBadge.GetComponentInChildren<TextMeshProUGUI>(true);
+				label.text = evolutionLabel;
+				UITermIcon.Attach(label, theme, SurvivalTerm.Evolution);
+			}
+			evolutionBadge.SetActive(card.UIKind == SurvivalUIKind.Advanced);
 		}
 
 		private void UpdateMeter(int maxStack, int current, Color fillColor)

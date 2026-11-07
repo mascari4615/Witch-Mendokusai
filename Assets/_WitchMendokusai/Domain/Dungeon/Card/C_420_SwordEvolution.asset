@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: C_420_SwordEvolution
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
   <ID>k__BackingField: 420
-  <Name>k__BackingField: "검 진화"
-  <Description>k__BackingField: "검 수 +2, 검 데미지 +20, 검 공격속도 +2\n검의 공명과 검 공격속도 최대 뒤 상자에서 획득. 한 판에 1회."
+  <Name>k__BackingField: "검 진화 2"
+  <Description>k__BackingField: "검 수 +2, 검 데미지 +20, 검 공격속도 +2\n검 진화와 검 공격속도 최대 뒤 상자에서 획득. 한 판에 1회."
   <Sprite>k__BackingField: {fileID: 122605839, guid: 61d00942005bcfe49ab4822e59ef8ebd, type: 3}
   <Sprites>k__BackingField: []
   <Effects>k__BackingField:

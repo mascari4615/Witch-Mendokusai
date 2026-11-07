@@ -1856,6 +1856,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01ae2ac4c10743c487557e6d5b1f2805, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.UICardChoiceActions
+  theme: {fileID: 11400000, guid: 03a27beb1f47b364b9337bb8bc633b34, type: 2}
   rerollButton: {fileID: 5160258439868610063}
   skipButton: {fileID: 4231050023877767895}
   banButton: {fileID: 6974046027164090111}
@@ -3832,6 +3833,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01ae2ac4c10743c487557e6d5b1f2805, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.UICardChoiceActions
+  theme: {fileID: 11400000, guid: 03a27beb1f47b364b9337bb8bc633b34, type: 2}
   rerollButton: {fileID: 0}
   skipButton: {fileID: 658618771729476768}
   banButton: {fileID: 0}
@@ -6808,8 +6810,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 12, y: -0}
-  m_SizeDelta: {x: 60, y: 62}
+  m_AnchoredPosition: {x: 0, y: -0}
+  m_SizeDelta: {x: 76, y: 62}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &5381718658262801188
 CanvasRenderer:
@@ -8500,6 +8502,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.UIEvolutionStrip
   theme: {fileID: 11400000, guid: 03a27beb1f47b364b9337bb8bc633b34, type: 2}
   root: {fileID: 6427823575313466622}
+  label: {fileID: 7777197314654687009}
   chipsParent: {fileID: 6558485086827856758}
   chipTemplate: {fileID: 4769900692821308843}
   readyText: "\uC900\uBE44"
@@ -9918,7 +9921,8 @@ MonoBehaviour:
   burst: {fileID: 9053170868857080055}
   nyangSprite: {fileID: 1838480835472450139, guid: 1bb2045d890a47e4fa857e56e9089f74, type: 3}
   nyangName: "\uB0E5"
-  evolutionTag: "\uC9C4\uD654"
+  title: {fileID: 4049451746717152631}
+  evolutionTag: "\uC9C4\uD654 2"
   nyangKind: 2
 --- !u!1 &7503106060470825940
 GameObject:

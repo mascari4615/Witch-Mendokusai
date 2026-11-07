@@ -8,6 +8,7 @@ namespace WitchMendokusai
 	// 레벨업 화면의 리롤, 스킵, 차단 버튼과 잔여 횟수. 덱 화면은 스킵만 사용
 	public class UICardChoiceActions : MonoBehaviour
 	{
+		[SerializeField] private SurvivalUITheme theme;
 		[SerializeField] private Button rerollButton;
 		[SerializeField] private Button skipButton;
 		[SerializeField] private Button banButton;
@@ -33,11 +34,14 @@ namespace WitchMendokusai
 		{
 			cardManager = manager;
 			skipButton.onClick.AddListener(() => cardManager.SkipLevelUp());
+			UITermIcon.Attach(skipLabel, theme, SurvivalTerm.Skip);
 			if (rerollButton != null)
 			{
 				rerollButton.onClick.AddListener(OnReroll);
 				banButton.onClick.AddListener(OnBanToggle);
 				normalTitle = title.text;
+				UITermIcon.Attach(rerollLabel, theme, SurvivalTerm.Reroll);
+				UITermIcon.Attach(banLabel, theme, SurvivalTerm.Ban);
 			}
 		}
 

@@ -21,6 +21,7 @@ Unity의 **WM > Authoring > Scene workspace**에서 독립 장면과 동작을 �
 
 - [Galmuri (Font)](https://galmuri.quiple.dev/), [(Github)](https://github.com/quiple/galmuri)
 - [Game-icons.net (Icon)](https://game-icons.net/), [(Github)](https://github.com/game-icons/icons)
+  - 생존 용어 아이콘 (`Domain/UI/Survival/Art/TermIcons`, CC BY 3.0). Icons made by Lorc: cut-diamond, laurel-crown, horned-skull, big-wave. Delapouite: rolling-dice-cup, chest, upgrade, upgrade-right (upgrade 90도 회전본). Sbed: cancel
 - [Newtonsoft.JSON](https://github.com/applejag/Newtonsoft.Json-for-Unity)
 - [Unified-Universal-Blur](https://github.com/lukakldiashvili/Unified-Universal-Blur)
 - [DOTween](https://dotween.demigiant.com/index.php), [(Github)](https://github.com/Demigiant/dotween)
