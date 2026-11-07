@@ -83,6 +83,15 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
+		// 몬스터 바 판은 Y 180도라 right 가 월드 -x, 카메라 right 는 월드 +x (2026-11-07 Play 실측)
+		[Test]
+		public void Flipped_bar_anchors_screen_left()
+		{
+			Assert.AreEqual(-1f, HpBarLayout.ScreenLeftSign(Vector3.left, Vector3.right));
+			Assert.AreEqual(1f, HpBarLayout.ScreenLeftSign(Vector3.right, Vector3.right));
+			Assert.AreEqual(-1f, HpBarLayout.ScreenLeftSign(new Vector3(-0.99f, 0f, -0.13f), Vector3.right));
+		}
+
 		[Test]
 		public void Nan_ratio_is_empty() => Assert.AreEqual(0f, HpBarLayout.Clamp(float.NaN));
 
