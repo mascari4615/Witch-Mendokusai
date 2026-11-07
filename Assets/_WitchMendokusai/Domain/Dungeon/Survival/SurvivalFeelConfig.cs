@@ -81,6 +81,9 @@ namespace WitchMendokusai
 		[Min(0.1f)] public float EliteRingInterval = 0.9f;
 		public float ImpactHeight = 0.6f;
 		[Min(0f), Tooltip("조각 시작 위치 흩어짐")] public float ShardOriginSpread = 0.45f;
+		[Min(0f), Tooltip("조각 속도 감쇠 (초당). 속도 상한으로 묶지 않음")] public float ShardDrag = 2.5f;
+		[Range(0f, 1f), Tooltip("조각 위쪽 성분 최대치. 낮을수록 바닥을 따라 퍼짐")] public float ShardLift = 0.35f;
+		[Range(0f, 1f), Tooltip("조각 방향 칸 안 흔들림. 0이면 등간격")] public float ShardAngleJitter = 0.8f;
 
 		[Header("Sound limit")]
 		[Min(1)] public int ExpSoundsPerWindow = 3;

@@ -24,7 +24,17 @@ namespace WitchMendokusai
 		private EliteProfile eliteProfile;
 		private bool eliteGuaranteedChest;
 		private DungeonThreatEffect threat = DungeonThreatEffect.Identity;
-		private float hpBarWidth = 1f;
+		private HpBarView hpBarView;
+
+		private HpBarView HpBarView
+		{
+			get
+			{
+				if (hpBarView == null)
+					hpBarView = hpBar.GetComponent<HpBarView>();
+				return hpBarView;
+			}
+		}
 
 		[Inject]
 		public void Construct(PlayerProvider playerProvider, SOManager soManager, DataManager dataManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator,
@@ -43,8 +53,8 @@ namespace WitchMendokusai
 				GroundGenerator.RegisterAnchor(UnitMovement);
 			SpriteRenderer.sharedMaterial = UnitData.Material;
 			ObjectBufferManager.AddObject(ObjectType.Monster, gameObject);
-			hpBarWidth = 1f;
 			hpBar.localScale = Vector3.one;
+			HpBarView.SetRatio(1f);
 			hpBar.gameObject.SetActive(false);
 
 			Health.OnTakeDamage += HandleDamageEffects;
@@ -90,8 +100,9 @@ namespace WitchMendokusai
 			ApplyEliteHealth();
 			Health.SetScaleMultiplier(profile.ScaleMultiplier);
 			SpriteRenderer.color = profile.Tint;
-			hpBarWidth = profile.HpBarScale;
-			hpBar.localScale = new Vector3(hpBarWidth, 1, 1);
+			// 바 판은 지면에 눕혀져 있어 z가 두께
+			hpBar.localScale = new Vector3(profile.HpBarScale, 1f, profile.HpBarThickness);
+			HpBarView.SetRatio(1f);
 			hpBar.gameObject.SetActive(true);
 			SurvivalFeel.Instance.RegisterElite(this);
 		}
@@ -149,7 +160,7 @@ namespace WitchMendokusai
 			}
 
 			// hpBar 갱신은 컨텍스트 무관(아레나 관전서도 체력 표시 유용).
-			hpBar.localScale = new Vector3((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX] * hpBarWidth, 1, 1);
+			HpBarView.SetRatio((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX]);
 			hpBar.gameObject.SetActive(true);
 		}
 

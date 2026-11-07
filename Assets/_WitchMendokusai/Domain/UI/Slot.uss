@@ -1516,3 +1516,49 @@
 .wm-tactic-start {
     -unity-font-style: bold;
 }
+
+.wm-setting-credit {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 82px;
+    margin-bottom: 6px;
+    padding: 10px 36px 10px 22px;
+    background-color: rgb(22, 21, 26);
+}
+
+.wm-setting-credit__name {
+    width: 320px;
+    color: rgb(240, 240, 242);
+    font-size: 28px;
+}
+
+.wm-setting-credit__note {
+    flex-grow: 1;
+    flex-shrink: 1;
+    color: rgb(170, 170, 178);
+    font-size: 20px;
+    white-space: normal;
+}
+
+.wm-setting-credit-buttons {
+    flex-direction: row;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    margin: 12px 0;
+}
+
+.wm-setting-license {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 200px;
+    padding: 16px 22px;
+    background-color: rgb(14, 14, 18);
+}
+
+.wm-setting-license__text {
+    color: rgb(200, 200, 206);
+    font-size: 18px;
+    white-space: normal;
+    margin-bottom: 24px;
+}

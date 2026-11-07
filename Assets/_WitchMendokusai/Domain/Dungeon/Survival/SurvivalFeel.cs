@@ -95,10 +95,13 @@ namespace WitchMendokusai
 			color.color = fade;
 			if (ring == false)
 			{
+				// 속도 상한 감쇠는 조각을 출발점 근처에 묶어 한 점처럼 보임. 상한 없이 감쇠만
 				ParticleSystem.LimitVelocityOverLifetimeModule limit = system.limitVelocityOverLifetime;
 				limit.enabled = true;
-				limit.dampen = 0.12f;
-				limit.limit = 0.5f;
+				limit.dampen = 0f;
+				limit.drag = Config.ShardDrag;
+				limit.multiplyDragByParticleSize = false;
+				limit.multiplyDragByParticleVelocity = false;
 			}
 
 			ParticleSystemRenderer systemRenderer = host.GetComponent<ParticleSystemRenderer>();
@@ -290,13 +293,14 @@ namespace WitchMendokusai
 				startColor = color,
 				applyShapeToPosition = false,
 			};
-			Vector3 origin = position + Vector3.up * Config.ImpactHeight;
+			SurvivalFeelConfig config = Config;
+			Vector3 origin = position + Vector3.up * config.ImpactHeight;
+			float burstTurn = Random.value;
 			for (int i = 0; i < moment.Shards; i++)
 			{
-				Vector3 direction = Random.onUnitSphere;
-				direction.y = Mathf.Abs(direction.y) * 0.6f;
-				emitParams.position = origin + direction * (Config.ShardOriginSpread * Random.value);
-				emitParams.velocity = direction.normalized * (moment.ShardSpeed * Random.Range(0.5f, 1f));
+				Vector3 direction = ShardSpread.Direction(i, moment.Shards, burstTurn, Random.value * config.ShardAngleJitter, Random.value * config.ShardLift);
+				emitParams.position = origin + direction * (config.ShardOriginSpread * Random.value);
+				emitParams.velocity = direction * (moment.ShardSpeed * Random.Range(0.5f, 1f));
 				emitParams.startSize = moment.ShardSize * Random.Range(0.6f, 1.2f);
 				system.Emit(emitParams, 1);
 			}

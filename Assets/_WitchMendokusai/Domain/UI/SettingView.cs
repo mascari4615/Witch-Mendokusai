@@ -143,6 +143,7 @@ namespace WitchMendokusai
 			RegisterTab(TAB_KEY_GENERAL, "환경설정", BuildGeneralContent);
 			RegisterTab(TAB_KEY_EFFECTS, "효과", BuildEffectsContent);
 			RegisterTab(TAB_KEY_SHADERPACKS, "쉐이더팩", BuildShaderPackContent);
+			RegisterTab(TAB_KEY_CREDITS, "크레딧", BuildCreditsContent);
 
 			SwitchTab(TAB_KEY_GENERAL);
 		}

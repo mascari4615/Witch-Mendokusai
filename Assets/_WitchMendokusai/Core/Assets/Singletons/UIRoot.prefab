@@ -70,3 +70,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UIRoot
   styleSheet: {fileID: 7433441132597879392, guid: c3d4e5f60718293a4b5c6d7e8f010203, type: 3}
   <DamageTextSkin>k__BackingField: {fileID: 11400000, guid: 90f627fb9672f3f4dab6c00ed47b6de2, type: 2}
+  <Credits>k__BackingField: {fileID: 11400000, guid: 06e0b99f95a7483493f280bca148f0b0, type: 2}

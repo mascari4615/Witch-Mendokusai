@@ -16,6 +16,8 @@ MonoBehaviour:
     <HealthMultiplier>k__BackingField: 12
     <ScaleMultiplier>k__BackingField: 1.8
     <Tint>k__BackingField: {r: 1, g: 0.72, b: 0.3, a: 1}
+    <HpBarScale>k__BackingField: 3
+    <HpBarThickness>k__BackingField: 2.5
     <ExpValue>k__BackingField: 150
     <DropHeal>k__BackingField: 1
     <DropMagnet>k__BackingField: 1

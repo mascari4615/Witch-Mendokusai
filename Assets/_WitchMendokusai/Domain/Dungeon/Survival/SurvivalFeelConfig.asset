@@ -26,6 +26,9 @@ MonoBehaviour:
   EliteRingInterval: 0.9
   ImpactHeight: 0.6
   ShardOriginSpread: 0.45
+  ShardDrag: 2.5
+  ShardLift: 0.35
+  ShardAngleJitter: 0.8
   ExpSoundsPerWindow: 3
   ExpSoundWindow: 0.1
   Hit:

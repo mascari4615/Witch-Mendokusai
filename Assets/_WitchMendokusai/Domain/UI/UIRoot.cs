@@ -32,6 +32,7 @@ namespace WitchMendokusai
 
 		[SerializeField] private StyleSheet styleSheet;
 		[field: SerializeField] public WitchMendokusai.Presentation.DamageTextSkin DamageTextSkin { get; private set; }
+		[field: SerializeField] public CreditsInfo Credits { get; private set; }
 
 		private InputManager inputManager;
 		private HoldingManager holdingManager;

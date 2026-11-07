@@ -38,6 +38,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Min(1f)] public float ScaleMultiplier { get; private set; } = 1.8f;
 		[field: SerializeField] public Color Tint { get; private set; } = new(1f, 0.72f, 0.3f, 1f);
 		[field: SerializeField, Min(1f)] public float HpBarScale { get; private set; } = 3f;
+		[field: SerializeField, Min(1f), Tooltip("정예 체력 바 두께 배율")] public float HpBarThickness { get; private set; } = 2.5f;
 		[field: SerializeField, Min(0)] public int ExpValue { get; private set; } = 150;
 		[field: SerializeField] public bool DropHeal { get; private set; } = true;
 		[field: SerializeField] public bool DropMagnet { get; private set; } = true;
