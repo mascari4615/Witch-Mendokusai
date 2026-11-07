@@ -157,10 +157,13 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
+/* 마름모 오른쪽 아래 빈 모서리 기준, 오른쪽으로 자람. 오른쪽 기준이면 긴 숫자(10/100)가 아이콘을 덮음 */
 .wm-skilltree__stack {
     position: absolute;
-    right: -18px;
-    bottom: 0;
+    left: 78%;
+    bottom: -6%;
+    padding: 0;
+    margin: 0;
     font-size: 16px;
     color: rgb(242, 226, 122);
     -unity-text-outline-width: 1px;
