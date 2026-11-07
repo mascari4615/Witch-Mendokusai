@@ -213,4 +213,19 @@
     <Compile Include="$(TestsRoot)TowerDefense/TowerDefenseWaveComposerTests.cs" />
   </ItemGroup>
 
+  <!-- 대화 무대 신호 판정. Domain 소스지만 엔진 호출이 없어 링크로 돌린다. SerializeField 표시만 DialogueStageUnityShim.cs 가 받는다 -->
+  <ItemGroup>
+    <Compile Include="DialogueStageUnityShim.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Narrative/Script/DialogueScriptParser*.cs;../../Assets/_WitchMendokusai/Domain/Narrative/Script/DialogueScriptModel.cs;../../Assets/_WitchMendokusai/Domain/Narrative/Script/DialogueScriptWriter.cs" Link="DialogueStage/%(Filename)%(Extension)" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Narrative/Stage/DialogueLineAdvancer.cs" Link="DialogueStage/DialogueLineAdvancer.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Narrative/Stage/DialogueMotionTrack.cs" Link="DialogueStage/DialogueMotionTrack.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Narrative/Stage/DialogueStageCue.cs" Link="DialogueStage/DialogueStageCue.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Narrative/Stage/DialogueStageCueText.cs" Link="DialogueStage/DialogueStageCueText.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Narrative/Stage/DialogueStagePlan.cs" Link="DialogueStage/DialogueStagePlan.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Domain/Narrative/Stage/DialogueStageVocabulary.cs" Link="DialogueStage/DialogueStageVocabulary.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/DialogueLineAdvancerTest.cs" Link="DialogueStage/DialogueLineAdvancerTest.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/DialogueStageCueTest.cs" Link="DialogueStage/DialogueStageCueTest.cs" />
+    <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/DialogueStagePlanTest.cs" Link="DialogueStage/DialogueStagePlanTest.cs" />
+  </ItemGroup>
+
 </Project>
