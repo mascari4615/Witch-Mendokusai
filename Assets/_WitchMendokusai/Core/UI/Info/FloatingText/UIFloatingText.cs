@@ -52,6 +52,7 @@ namespace WitchMendokusai
 			{
 				Animator animator = textsRoot.GetChild(i).GetComponent<Animator>();
 				animator.keepAnimatorStateOnDisable = true;
+				animator.updateMode = AnimatorUpdateMode.UnscaledTime;
 				animator.gameObject.SetActive(false);
 				texts.Push((animator, animator.transform.GetChild(0).GetComponent<TextMeshProUGUI>()));
 			}
@@ -62,6 +63,7 @@ namespace WitchMendokusai
 			GameObject newObject = Instantiate(textPrefab, textsRoot);
 			Animator animator = newObject.GetComponent<Animator>();
 			animator.keepAnimatorStateOnDisable = true;
+				animator.updateMode = AnimatorUpdateMode.UnscaledTime;
 			animator.gameObject.SetActive(false);
 			texts.Push((animator, animator.transform.GetChild(0).GetComponent<TextMeshProUGUI>()));
 		}
@@ -98,7 +100,7 @@ namespace WitchMendokusai
 					return Camera.main.WorldToScreenPoint(worldPos);
 			}
 
-			for (float time = 0; time < 1; time += Time.deltaTime)
+			for (float time = 0; time < 1; time += Time.unscaledDeltaTime)
 			{
 				animator.transform.position = GetScreenPos();
 				yield return new WaitForEndOfFrame(); // 카메라 업데이트 후 위치 조정
