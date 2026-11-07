@@ -29,6 +29,20 @@ namespace WitchMendokusai
 		public int IdentityId { get; set; }
 
 		public Vector3 Position { get; set; }
+
+		/// <summary>
+		/// 세계가 걸음과 무관하게 옮긴 횟수 (2026-11-07). <see cref="PlaceAt"/> 만 증가.
+		/// 창은 자기 걸음만 되감기 때문에, 이 수가 바뀌면 서버가 그 창에 새 자리를 따로 통지.
+		/// </summary>
+		public int PlacedCount { get; private set; }
+
+		/// <summary>걸음이 아닌 옮김 (다시 세움, 기억한 자리, 통행증 자리). 걸음은 Position 직접 대입.</summary>
+		public void PlaceAt(Vector3 spot)
+		{
+			Position = spot;
+			PlacedCount += 1;
+		}
+
 		public InventoryCore Bag { get; }
 
 		/// <summary>이 사람의 몸 (TASK-WM-251). 0 이면 쓰러진 것이다.</summary>

@@ -128,7 +128,8 @@ namespace WitchMendokusai
 					// ⚠ 쓰러진 채로 두면 그 사람은 <b>게임에서 나간 것</b>이 된다. 뼈대에서는 곧바로 세운다 —
 					//   어떻게 되살아날지(자리·기다림·잃는 것)는 게임이 정할 몫이다.
 					target.Health = Net.StrikeRule.FULL_HEALTH;
-					target.Position = Vector3.zero;
+					// 걸음이 아닌 옮김. 4m 미만이면 창의 끌어당김도 안 돈다 (wm-web-placed-test)
+					target.PlaceAt(Vector3.zero);
 					healthLeft = target.Health;
 					wentDown = true;
 				}

@@ -228,5 +228,83 @@ namespace WitchMendokusai.Tests.EditMode.Net
 			Assert.That(second.Position.x, Is.EqualTo(0f));
 			Assert.That(world.SavePeople(), Is.Empty);
 		}
+
+		// 세계가 걸음과 무관하게 옮긴 횟수 (2026-11-07, wm-web-placed-test)
+		// - 서버는 이 수가 바뀌면 그 창에 placed 송신. 창은 자기 걸음만 되감기 때문
+		// - 걸음은 안 셈. 세면 걷는 동안 매 판 placed 가 나가 되감기와 겹침
+
+		[Test]
+		public void 걸음은_옮김으로_세지_않는다()
+		{
+			WorldSim world = new WorldSim();
+			WorldDoll doll = world.Join();
+			world.TryMove(doll.Id, new Vector3(1f, 0f, 0f));
+
+			Assert.That(world.PlacementOf(doll.Id, out int placedCount, out Vector3 _), Is.True);
+			Assert.That(placedCount, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void 열쇠_인사로_남긴_자리에_서면_옮김이다()
+		{
+			WorldSim world = new WorldSim();
+			WorldDoll before = world.Join(identityId: 7, catalog: null);
+			world.TryMove(before.Id, new Vector3(1f, 0f, 1f));
+			Vector3 left = before.Position;
+			world.Leave(before.Id);
+
+			WorldDoll guest = world.Join();
+			world.Adopt(guest.Id, 7, null);
+
+			Assert.That(world.PlacementOf(guest.Id, out int placedCount, out Vector3 position), Is.True);
+			Assert.That(placedCount, Is.EqualTo(1));
+			Assert.That(position.x, Is.EqualTo(left.x).Within(0.001f));
+			Assert.That(position.z, Is.EqualTo(left.z).Within(0.001f));
+		}
+
+		[Test]
+		public void 쓰러져_다시_서면_옮김이다()
+		{
+			WorldSim world = new WorldSim();
+			WorldDoll attacker = world.Join();
+			WorldDoll target = world.Join();
+			world.TryMove(target.Id, new Vector3(1f, 0f, 0f));
+
+			bool wentDown = false;
+			long nowMs = 0;
+			for (int i = 0; i < 100 && wentDown == false; i++)
+			{
+				nowMs += global::WitchMendokusai.Net.StrikeRule.COOLDOWN_MS;
+				world.TryStrike(attacker.Id, target.Id, nowMs, null, 0, out int _, out wentDown);
+			}
+
+			Assert.That(wentDown, Is.True, "재는 자가 성한지부터: 붙어서 치면 쓰러짐");
+			Assert.That(world.PlacementOf(target.Id, out int placedCount, out Vector3 position), Is.True);
+			Assert.That(placedCount, Is.EqualTo(1));
+			Assert.That(position.x, Is.EqualTo(0f));
+			Assert.That(world.PlacementOf(attacker.Id, out int attackerPlaced, out Vector3 _), Is.True);
+			Assert.That(attackerPlaced, Is.EqualTo(0), "때린 사람은 안 옮겼다");
+		}
+
+		[Test]
+		public void 국경_통행증_자리에_세우면_옮김이다()
+		{
+			WorldSim world = new WorldSim();
+			WorldDoll doll = world.Join();
+			world.WelcomeTraveller(doll.Id, 9, new Vector3(2f, 0f, 3f), null, null, global::WitchMendokusai.Net.StrikeRule.FULL_HEALTH);
+
+			Assert.That(world.PlacementOf(doll.Id, out int placedCount, out Vector3 position), Is.True);
+			Assert.That(placedCount, Is.EqualTo(1));
+			Assert.That(position.z, Is.EqualTo(3f).Within(0.001f));
+		}
+
+		[Test]
+		public void 없는_인형은_옮김을_모른다()
+		{
+			WorldSim world = new WorldSim();
+
+			Assert.That(world.PlacementOf(404, out int placedCount, out Vector3 _), Is.False);
+			Assert.That(placedCount, Is.EqualTo(0));
+		}
 	}
 }

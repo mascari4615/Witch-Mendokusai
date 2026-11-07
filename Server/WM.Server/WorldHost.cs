@@ -438,6 +438,9 @@ namespace WitchMendokusai.Server
 			/// <summary>그중 창에 <b>알려 준</b> 번호 — 안 바뀌었으면 안 보낸다(줄을 먹지 않게).</summary>
 			public int ToldStep;
 
+			/// <summary>창에 알려 준 <see cref="WorldDoll.PlacedCount"/>. 다르면 placed 한 마디 (2026-11-07).</summary>
+			public int ToldPlaced;
+
 			/// <summary>
 			/// 지금 이 창에 알림을 보내는 중인가 (TASK-WM-217).
 			///
@@ -2576,6 +2579,21 @@ namespace WitchMendokusai.Server
 					}
 
 					Connection target = entry.Value;
+
+					// 세계가 걸음과 무관하게 옮겼으면 그 자리를 따로 알린다 (2026-11-07, wm-web-placed-test)
+					// - 창은 자기 걸음 답(stepseen)으로만 되감기. 가만히 선 사람은 stepseen 이 없어 옛 자리에 남음
+					// - 판을 건너뛰거나 작은 한 장을 받는 창에도 송신. 서른 바이트, 한 번뿐
+					// - 걸음 번호를 자리보다 먼저 읽기. 사이에 든 걸음은 창이 한 번 더 얹고 이 판의 stepseen 이 바로잡음
+					// - 이 판의 stepseen 보다 먼저 송신. stepseen 되감기가 새 자리에서 출발하도록
+					{
+						int sawStepBeforePlace = target.SawStep;
+						if (World.PlacementOf(entry.Key, out int placedCount, out Vector3 placedAt)
+							&& placedCount != target.ToldPlaced)
+						{
+							target.ToldPlaced = placedCount;
+							_ = SendAsync(target, Protocol.Placed(placedAt.x, placedAt.z, sawStepBeforePlace));
+						}
+					}
 
 					// 줄이 뚫렸다 = 회선이 따라오고 있다. 줄여 뒀던 사람 수를 곧바로 되돌린다.
 					if (target.MissedAPlate == false)

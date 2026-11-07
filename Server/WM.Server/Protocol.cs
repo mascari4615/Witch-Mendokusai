@@ -85,6 +85,12 @@ namespace WitchMendokusai.Server
 		/// </summary>
 		public const string STEP_SEEN = "stepseen";
 
+		/// <summary>
+		/// 세계 → 그 창에게만: 세계가 네 인형을 걸음과 무관하게 옮겼다 (2026-11-07).
+		/// 쓰러진 뒤 다시 세움, 열쇠 인사 뒤 남긴 자리, 국경 통행증 자리. <see cref="WorldDoll.PlacedCount"/> 가 바뀌면 한 번.
+		/// </summary>
+		public const string PLACED = "placed";
+
 		/// <summary>그 번호는 처리했다 (TASK-WM-305).</summary>
 		public const string DID = "did";
 
@@ -645,6 +651,17 @@ namespace WitchMendokusai.Server
 		public static string StepSeen(int seq)
 		{
 			return "{\"type\":\"" + STEP_SEEN + "\",\"seq\":" + seq + "}";
+		}
+
+		/// <summary>
+		/// 세계가 네 인형을 걸음과 무관하게 옮겼다 (2026-11-07). 그 자리와 그때까지 본 걸음 번호.
+		/// 창은 이 자리 + 아직 답 안 온 걸음으로 가려는 곳을 재설정.
+		/// </summary>
+		public static string Placed(float x, float z, int seq)
+		{
+			return "{\"type\":\"" + PLACED + "\",\"x\":" + x.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
+				+ ",\"z\":" + z.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
+				+ ",\"seq\":" + seq + "}";
 		}
 
 		/// <summary>이름표 — 바뀐 사람만 담아 모두에게 보낸다 (TASK-WM-220).</summary>

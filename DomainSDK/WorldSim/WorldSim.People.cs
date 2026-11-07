@@ -20,7 +20,7 @@ namespace WitchMendokusai
 
 				if (identityId != 0 && remembered.TryGetValue(identityId, out PersonSaveData kept))
 				{
-					doll.Position = new Vector3(kept.x, 0f, kept.z);
+					doll.PlaceAt(new Vector3(kept.x, 0f, kept.z));
 					RestoreBag(doll, kept, catalog);
 				}
 
@@ -82,7 +82,8 @@ namespace WitchMendokusai
 
 				if (remembered.TryGetValue(identityId, out PersonSaveData kept))
 				{
-					doll.Position = new Vector3(kept.x, 0f, kept.z);
+					// 걸음이 아닌 옮김. 창이 손님 인형 자리(원점)를 들고 있어 PlaceAt 으로 통지
+					doll.PlaceAt(new Vector3(kept.x, 0f, kept.z));
 					RestoreBag(doll, kept, catalog);
 				}
 
@@ -115,6 +116,24 @@ namespace WitchMendokusai
 			lock (gate)
 			{
 				return dolls.TryGetValue(dollId, out WorldDoll doll) ? doll.Position : Vector3.zero;
+			}
+		}
+
+		/// <summary>세계가 그 인형을 걸음과 무관하게 옮긴 횟수와 지금 자리. 없는 인형이면 false.</summary>
+		public bool PlacementOf(int dollId, out int placedCount, out Vector3 position)
+		{
+			lock (gate)
+			{
+				if (dolls.TryGetValue(dollId, out WorldDoll doll) == false)
+				{
+					placedCount = 0;
+					position = Vector3.zero;
+					return false;
+				}
+
+				placedCount = doll.PlacedCount;
+				position = doll.Position;
+				return true;
 			}
 		}
 
@@ -169,7 +188,7 @@ namespace WitchMendokusai
 					doll.Health = health < Net.StrikeRule.FULL_HEALTH ? health : Net.StrikeRule.FULL_HEALTH;
 
 				// 들어온 자리가 내 땅이 아니면 경계로 당긴다 — 남의 땅에 세우면 두 세계가 갈라진다.
-				doll.Position = Patch.Clamp(spot);
+				doll.PlaceAt(Patch.Clamp(spot));
 
 				if (carried == null || catalog == null)
 					return;

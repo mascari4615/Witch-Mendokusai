@@ -31,6 +31,7 @@ wm-web-crowd-badline-test.mjs		110
 wm-web-lead-test.mjs		70
 wm-web-contest-test.mjs		40
 wm-web-still-me-test.mjs		40
+wm-web-placed-test.mjs		60
 wm-web-answer-test.mjs		40
 wm-web-build-test.mjs		40
 wm-server-soak-test.mjs	WM_SOAK_MS=90000	120

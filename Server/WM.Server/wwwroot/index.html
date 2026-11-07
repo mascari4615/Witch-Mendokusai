@@ -293,6 +293,19 @@ function read(text) {
 		people = without.concat([said.doll]);
 	}
 
+	// 세계가 내 인형을 걸음과 무관하게 옮겼다 (2026-11-07, wm-web-placed-test)
+	// - 지도는 "가려는 곳 - 세계가 아는 자리" 를 50ms 마다 송신. 가려는 곳이 옛 자리면 그리로 도로 걸음
+	// - 가려는 곳과 세계가 아는 내 자리를 둘 다 새 자리로. 하나만 바꾸면 그 차이만큼 한 걸음 더 감
+	if (said.type === 'placed') {
+		const me = people.find((one) => one.id === mine);
+		if (me) {
+			me.x = said.x;
+			me.z = said.z;
+		}
+
+		if (target !== null) target = { x: said.x, z: said.z };
+	}
+
 	if (Array.isArray(said.dolls) && said.type === 'world') {
 		if (said.changed) {
 			const byId = new Map(people.map((one) => [one.id, one]));
@@ -428,6 +441,12 @@ socket.onerror = () => { /* 본체가 이어받아 다시 붙는다 */ };
  */
 early.field = () => field.slice();
 early.reachable = () => reachable();
+// 내 번호와 세계가 아는 내 자리. 세계가 옮긴 자리를 지도가 따라오는지 확인용 (wm-web-placed-test)
+early.me = () => mine;
+early.worldMe = () => {
+	const me = people.find((one) => one.id === mine);
+	return me ? { x: me.x, z: me.z } : null;
+};
 early.nearestNode = () => {
 	const me = target || { x: 0, z: 0 };
 	let best = null;
@@ -1201,6 +1220,21 @@ function onLinkMessage(event) {
 	// 네 걸음을 여기까지 봤다 (TASK-WM-271) — 답 온 걸음은 버리고, 나머지만 다시 굴린다.
 	if (message.type === 'stepseen') {
 		stepsWaiting = stepsWaiting.filter((one) => one.seq > message.seq);
+		replayMySteps();
+		return;
+	}
+
+	// 세계가 내 인형을 걸음과 무관하게 옮겼다 (2026-11-07, wm-web-placed-test)
+	// - 쓰러진 뒤 다시 세움, 열쇠 인사 뒤 남긴 자리, 국경 통행증 자리. 서버 쪽 옮김은 WorldDoll.PlaceAt 하나
+	// - 가만히 선 사람은 stepseen 이 없어 가려는 곳이 옛 자리에 남음. 4m 미만이면 끌어당김도 없음
+	// - 받은 자리를 세계가 아는 자리로, 그 번호까지 답 온 걸음은 버리고 되감기
+	if (message.type === 'placed') {
+		const selfView = myId === null ? null : dollViews.get(myId);
+		if (!selfView) return;   // 아직 안 세운 인형은 세울 때 세계 자리에서 시작
+
+		stepsWaiting = stepsWaiting.filter((one) => one.seq > message.seq);
+		selfView.serverX = message.x;
+		selfView.serverZ = message.z;
 		replayMySteps();
 		return;
 	}
