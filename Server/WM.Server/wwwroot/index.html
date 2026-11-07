@@ -476,6 +476,8 @@ let sawWholeWorld = false;
 let buildings = [];
 let gatherables = [];
 let bag = [];
+/** welcome 뒤 받은 가방 소식 수. 관문의 인사 답 도착 판정용 */
+let bagNewsSinceWelcome = 0;
 let buildKinds = [];      // 지을 수 있는 것 — 들어올 때 한 번 받는다.
 // ⚠ 「아직 안 골랐다」를 0 으로 쓰면 안 된다 — 건물 0번(가문의 나무)이 실재해서 그것만 못 짓는다.
 let pickedBuilding = null;
@@ -565,6 +567,13 @@ const heard = new Map();
 const SAID_SHOWS_FOR_MS = 6000;
 
 let pendingWorld = null;
+
+// welcome 뒤 첫 전체 그림 적용 직후 내 목표 위치를 세계 위치로 재설정 (2026-11-07)
+// - 접속 직후 손님 인형은 원점, 열쇠 인사 뒤 세계가 남긴 자리로 옮김
+// - 그 옮김은 내 걸음이 아니라 stepseen 되감기 없음. 목표 위치가 원점에 남음
+// - 옮긴 거리 < POSITION_TELEPORT_DISTANCE 면 끌어당김도 없음. 50ms 걸음 송신이 원점으로 도로 걸음 (still-me 관문 재현)
+let rebaseMineAfterWelcome = false;
+let rebaseMineInPendingWorld = false;
 
 /** 받아 둔 말을 되읽는 중인가 — 그때는 판을 건너뛰지 않는다 (TASK-WM-234). */
 let replaying = false;
@@ -1071,6 +1080,7 @@ function onLinkMessage(event) {
 
 	if (message.type === 'bag') {
 		gotAnswer('주웠다');
+		bagNewsSinceWelcome += 1;
 		bag = message.items || [];
 		drawBag();
 		drawBuildPicker();   // 가진 게 바뀌면 「지을 수 있나」도 바뀐다
@@ -1247,6 +1257,8 @@ function onLinkMessage(event) {
 		stepNumber = 0;
 		stepsWaiting = [];
 		sentUpTo = null;
+		rebaseMineAfterWelcome = true;
+		bagNewsSinceWelcome = 0;
 
 		document.getElementById('me').textContent = message.identityId ? `${message.identityId}번 사람` : '손님';
 		return;
@@ -1279,6 +1291,11 @@ function onLinkMessage(event) {
 		else if (message.sequence > 0 && message.sequence <= lastWorldSequence) return;
 
 		if (message.sequence > 0) lastWorldSequence = message.sequence;
+
+		if (wholeWorld && rebaseMineAfterWelcome) {
+			rebaseMineAfterWelcome = false;
+			rebaseMineInPendingWorld = true;
+		}
 
 		// ★ 여기서 세우지 않는다 — <b>가장 최근 것만</b> 다음 프레임에 세운다.
 		//   사람이 200명이면 세계는 초당 13번 10KB 를 보낸다. 도착할 때마다 인형 200개를
@@ -2289,6 +2306,11 @@ function applyPendingWorld() {
 	brew = message.brew || brew;
 	drawWorldLines();
 	syncDolls();
+
+	if (rebaseMineInPendingWorld && myId !== null && dollViews.has(myId)) {
+		rebaseMineInPendingWorld = false;
+		replayMySteps();
+	}
 }
 
 function frame() {
@@ -2358,6 +2380,8 @@ window.__wmView = {
 		seeThrough: view.body.material.transparent === true,
 	})),
 	me: () => myId,
+	// welcome 뒤 가방 소식 수. 새로고침 관문이 손님 인형(원점, 빈 가방)을 나로 오판하지 않게
+	bagNewsSinceWelcome: () => bagNewsSinceWelcome,
 	// 세계의 자리를 <b>화면 좌표</b>로 — 시험이 사람처럼 <b>진짜로 누르게</b> 하는 자리 (TASK-WM-283).
 	screenOf: (x, z, y = 0.4) => {
 		const spot = new THREE.Vector3(x, y, -z).project(camera);

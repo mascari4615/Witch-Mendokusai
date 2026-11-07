@@ -13,6 +13,8 @@
 // exit: 0 = 나다 · 1 = 남이 된다 · 2 = 못 돌림
 //
 // [빨강-확인] 창이 열쇠를 안 적게 하니 3건 빨강 — 가방 석탄1 → 빈손 · 자리 (0.25,5.08) → (0,0)
+// [빨강-확인] 2026-11-07 인사 뒤 되감기 끔: 감속 없이 3판 중 2판, CPU 10배 감속 3판 중 2판 빨강
+//   예: (0.64,3.44) -> (0.26,1.39), (0.42,3.79) -> (0.11,0.91). 4m 넘게 옮긴 판은 끌어당김에 가려 초록
 
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -180,7 +182,40 @@ check('나쁜 회선으로 세계에 붙었다', await page.evaluate(() => typeo
 	}
 }
 
+// 원점에서 2.2~3.5m 에 서기 (2026-11-07)
+// - 새로고침 직후 손님 인형은 원점, 열쇠 인사 뒤 남긴 자리로 옮김
+// - 창이 그 옮김을 못 받으면 원점 쪽으로 도로 걸음. 4m(POSITION_TELEPORT_DISTANCE) 넘는 옮김은 끌어당김이 가림
+// - 줍는 자리는 늘 원점에서 4.5~5.3m 라 그 고장이 안 보였음. 허용 오차 1.5m 보다 먼 3m 안팎에서 잼
+{
+	const until = Date.now() + 30000;
+	while (Date.now() < until) {
+		const me = await whoAmI();
+		const away = me.x === null ? null : Math.hypot(me.x, me.z);
+		if (away !== null && away >= 2.2 && away <= 3.5) break;
+		if (away === null) { await wait(300); continue; }
+
+		const towardOrigin = away > 3.5;
+		const keyX = Math.abs(me.x) < 0.3 ? null : ((me.x > 0) === towardOrigin ? 'a' : 'd');
+		const keyZ = Math.abs(me.z) < 0.3 ? null : ((me.z > 0) === towardOrigin ? 's' : 'w');
+		for (const key of [keyX, keyZ]) {
+			if (key !== null) await page.keyboard.down(key);
+		}
+
+		await wait(80);
+		for (const key of [keyX, keyZ]) {
+			if (key !== null) await page.keyboard.up(key);
+		}
+
+		await wait(500);
+	}
+}
+
 const before = await whoAmI();
+{
+	const away = before.x === null ? null : Math.hypot(before.x, before.z);
+	check('원점에서 4m 안쪽에 섰다 (옮김을 끌어당김이 가리지 않는 거리)', away !== null && away >= 2.2 && away <= 3.5,
+		away === null ? '자리를 모른다' : `${away.toFixed(2)}m`);
+}
 check('무언가를 주웠다 (남길 것이 있어야 잰다)', before.bag.length > 0, before.bag || '가방이 비었다');
 check('세계가 나를 사람으로 안다', before.identity.includes('번 사람'), before.identity);
 
@@ -204,22 +239,36 @@ await page.waitForFunction(
 //   CI 에서 「(0.54, 4.76) → (null, null)」로 빨갰다 — 자리가 <b>틀린</b> 것이 아니라
 //   그 자리를 아직 <b>못 받은</b> 것이다(나쁜 회선 + 느린 러너 + 새로고침 직후).
 //   시간을 박지 말고 <b>왔나</b>를 보면서 기다린다. 그래도 안 오면 못 잰 것이다(0 을 빨강으로 안 적는다).
-let after = await whoAmI();
+//
+// 내 인형 보임 != 열쇠 인사의 답 도착 (2026-11-07, CI run 42358040950)
+// - 접속 직후 세계는 주인 없는 손님 인형을 원점에 세우고 그 번호로 첫 welcome 을 보냄
+// - 신원, 옮긴 자리, 가방은 열쇠 인사의 답이라 회선 한 바퀴 뒤 도착
+// - 옛 판정은 손님 인형을 나로 봄. CI 실측 1번 사람, 빈 가방, (0, 0)
+// - 판정 조건: 신원 표시, 인사 뒤 가방 소식 1건 이상 (bagask 답은 hello 처리 뒤 송신), 화면 두 판 경과
+async function helloAnswered() {
+	return page.evaluate(() => {
+		const view = window.__wmView;
+		if (typeof view !== 'object' || typeof view.bagNewsSinceWelcome !== 'function') return false;
+		const identity = (document.getElementById('me').textContent || '').trim();
+		return identity.includes('번 사람') && view.bagNewsSinceWelcome() > 0
+			&& (view.dolls() || []).some((one) => one.isLocal);
+	});
+}
+
 {
 	const until = Date.now() + 60000;
-	while (Date.now() < until && after.x === null) {
-		await wait(500);
-		after = await whoAmI();
-	}
+	while (Date.now() < until && (await helloAnswered()) === false)
+		await wait(200);
 }
 
-if (after.x === null) {
-	await browser.close();
-	await line.close();
-	killWorld();
-	cannotRun('새로고침 뒤 내 인형이 안 왔다 — 이 판에서는 자리를 못 쟀다');
-}
+// 답 미도착은 못 돌림(exit 2)이 아닌 빨강
+check('새로고침 뒤 열쇠 인사의 답이 왔다 (신원, 가방 소식)', await helloAnswered(), '최대 60초 기다린다');
 
+// 받은 전체 그림은 다음 화면 판에서 적용, 두 판 뒤 읽기
+await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+let after = await whoAmI();
+
+// 600ms 뒤 재읽기: 원점 쪽으로 도로 걷는 고장 검출 (2026-11-07 실측 (0.32, 3.92) -> (0.14, 1.72))
 await wait(600);
 // ⚠ 다시 읽은 값이 null 이면 <b>덮지 않는다</b> (2026-08-20). 위에서 「내 인형이 왔다」를 이미
 //   확인했는데, 이 재읽기 순간 인형이 안 실린 소식이 오면 자리가 null 로 돌아가 관문이 빨개진다
