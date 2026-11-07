@@ -1,0 +1,10 @@
+{
+  "equipment": 20000009,
+  "nodes": [
+    {"id":"count","card":400},
+    {"id":"damage","card":401,"requires":[{"node":"count","stack":1}]},
+    {"id":"speed","card":402,"requires":[{"node":"count","stack":1}]},
+    {"id":"resonance","card":410,"requires":[{"node":"count","stack":3},{"node":"damage","stack":2}]},
+    {"id":"sharpen","cardId":403,"name":"검 벼리기","description":"검 피해가 크게 늘어납니다.","iconCard":401,"kind":"Damage","rarity":"Rare","maxStack":3,"effects":[{"type":"UnitStat","target":"SWORD_DAMAGE_BONUS","op":"Add","value":8}],"requires":[{"node":"damage","stack":3}]}
+  ]
+}
