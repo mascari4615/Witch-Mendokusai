@@ -206,7 +206,7 @@
 
 .wm-skilltree__info {
     flex-shrink: 0;
-    height: 168px;
+    height: 214px;
     padding: 12px 16px;
     background-color: rgba(10, 9, 13, 0.55);
     border-width: 2px;
@@ -225,6 +225,7 @@
 
 .wm-skilltree__info-head {
     flex-direction: row;
+    flex-shrink: 0;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
@@ -237,7 +238,8 @@
 }
 
 .wm-skilltree__info-text {
-    font-size: 18px;
+    flex-shrink: 0;
+    font-size: 17px;
     white-space: normal;
     color: rgb(169, 168, 178);
     margin-bottom: 4px;
