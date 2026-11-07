@@ -57,6 +57,7 @@
     <Compile Include="$(TestsRoot)Item/InventoryCoreTests.cs" />
     <Compile Include="$(TestsRoot)Item/InventoryCanReceiveTests.cs" />
     <Compile Include="$(TestsRoot)Item/RecipeKeyTests.cs" />
+    <Compile Include="$(TestsRoot)Item/ShopCartTests.cs" />
     <Compile Include="$(TestsRoot)Building/BuildingCensusTests.cs" />
     <!-- 방치(Idle) 시험 **전부**. 전에는 둘만 왔다 — 나머지는 표를 찍으려고 `Debug.Log` 하나를
          쓴다는 이유로 엔진에 묶여 있었다. 그 하나를 `TestContext.WriteLine` 으로 바꾸니
