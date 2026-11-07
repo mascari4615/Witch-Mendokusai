@@ -87,6 +87,8 @@ namespace WitchMendokusai
 		public bool WasActionPressedThisFrame(InputEventType inputEventType) =>
 			inputActionAsset[$"{inputEventBindings[inputEventType]}/{inputEventType}"].WasPressedThisFrame();
 
+		public bool IsShiftHeld => Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
+
 		private void InitEventDictionaries()
 		{
 			foreach (InputEventType inputEventType in Enum.GetValues(typeof(InputEventType)))

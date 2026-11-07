@@ -105,7 +105,7 @@ namespace WitchMendokusai
 							InputEventType.CameraControlModeToggle,
 							InputEventResponseType.Performed,
 							() => cameraManager.ToggleControlMode(),
-							() => CanExecute(InputEventType.CameraControlModeToggle)
+							() => CanExecute(InputEventType.CameraControlModeToggle) && uiManager.IsTabInputOwnedByPanel == false
 						),
 						new(
 							InputEventType.CameraPerspectiveToggle,

@@ -48,7 +48,7 @@ namespace WitchMendokusai
 
 		public void UpdatePopup()
 		{
-			if (playerTransform == null)
+			if (playerTransform == null || GameConditionBridge.Get(GameConditionType.IsViewingUI))
 			{
 				canvasGroup.SetVisible(false);
 				return;

@@ -90,6 +90,15 @@ namespace WitchMendokusai
 			}
 		}
 
+		public bool IsTabInputOwnedByPanel
+		{
+			get
+			{
+				PanelGroups.RemoveAll(ui => ui == null || ui.Equals(null));
+				return PanelGroups.Any(ui => ui.IsPanelOpen && ui.TryGetCurPanel(out IUIPanel panel) && panel is IUIPanelInputOwner owner && owner.OwnsTabInput);
+			}
+		}
+
 		private void Awake()
 		{
 			if (Instance != null && Instance != this)
@@ -302,6 +311,9 @@ namespace WitchMendokusai
 			{
 				if (ui.IsPanelOpen && ui.CanBeClosedByCancelInput)
 				{
+					if (ui.TryGetCurPanel(out IUIPanel panel) && panel is IUIPanelInputOwner owner && owner.HandleCancelInput())
+						return;
+
 					ui.ClosePanel();
 					return;
 				}
