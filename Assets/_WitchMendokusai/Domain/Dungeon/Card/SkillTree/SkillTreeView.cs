@@ -167,7 +167,7 @@ namespace WitchMendokusai
 				element.style.top = center.y - settings.NodeSize / 2f;
 			}
 
-			edges.SetEdges(tree, centers, settings.NodeSize, selectedCards);
+			edges.SetEdges(tree, centers, settings.NodeSize, Mathf.Max(0f, rowPitch - settings.NodeSize) / 2f, selectedCards);
 		}
 
 		private void PlayAppear()
@@ -224,10 +224,13 @@ namespace WitchMendokusai
 				return string.Empty;
 
 			StringBuilder builder = new(settings.ConditionLabel);
-			foreach (SkillTreeRequirement requirement in node.Requirements)
+			builder.Append("  ");
+			for (int i = 0; i < node.Requirements.Count; i++)
 			{
+				SkillTreeRequirement requirement = node.Requirements[i];
 				string owner = requirement.IsExternal ? $" ({settings.OtherEquipmentLabel})" : string.Empty;
-				builder.Append($"\n{requirement.Card.Name}{owner}  {Mathf.Min(requirement.Current(selectedCards), requirement.Stack)}/{requirement.Stack}");
+				string separator = i > 0 ? ", " : string.Empty;
+				builder.Append($"{separator}{requirement.Card.Name}{owner} {Mathf.Min(requirement.Current(selectedCards), requirement.Stack)}/{requirement.Stack}");
 			}
 			return builder.ToString();
 		}
@@ -338,6 +341,7 @@ namespace WitchMendokusai
 		private Color lockedColor = Color.gray;
 		private Color openColor = Color.white;
 		private float width = 2f;
+		private float elbow;
 
 		public SkillTreeEdges()
 		{
@@ -348,10 +352,11 @@ namespace WitchMendokusai
 
 		public int LineCount => lines.Count;
 
-		public void SetEdges(SkillTree tree, Dictionary<string, Vector2> centers, float nodeSize, IReadOnlyList<CardData> selectedCards)
+		public void SetEdges(SkillTree tree, Dictionary<string, Vector2> centers, float nodeSize, float elbowOffset, IReadOnlyList<CardData> selectedCards)
 		{
 			lines.Clear();
 			float gap = nodeSize / 2f;
+			elbow = elbowOffset;
 			foreach (SkillTreeNode node in tree.Nodes)
 			{
 				foreach (SkillTreeRequirement requirement in node.Requirements.Where(requirement => requirement.IsExternal == false))
@@ -382,7 +387,7 @@ namespace WitchMendokusai
 			painter.lineWidth = width;
 			foreach ((Vector2 from, Vector2 to, bool isOpen) in lines)
 			{
-				float middleY = (from.y + to.y) / 2f;
+				float middleY = to.y - elbow;
 				painter.strokeColor = isOpen ? openColor : lockedColor;
 				painter.BeginPath();
 				painter.MoveTo(from);
