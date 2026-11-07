@@ -339,6 +339,12 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
+		/// 이동 입력과 속도를 유지한 채 자리만 옮긴다. 세계가 아는 자리로 끌어당김, 세계가 옮긴 자리 (placed) 따르기.
+		/// transform 만 쓰면 보간 Rigidbody 가 다음 프레임에 옛 자리로 되돌린다 (2026-11-07 MOIS2 실측)
+		/// </summary>
+		public void Reposition(Vector3 position) => motor.Reposition(position);
+
+		/// <summary>
 		/// 외부 horizontal impulse 적용 (dash / knockback / 폭발 등). duration 동안 InputContributor의
 		/// horizontal 기여를 덮어쓰고 점프를 차단한다.
 		/// </summary>

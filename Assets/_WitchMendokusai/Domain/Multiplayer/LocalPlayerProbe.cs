@@ -41,7 +41,8 @@ namespace WitchMendokusai
                 }
 
                 Vector3 position = playerObject.transform.position;
-                playerObject.transform.position = new Vector3(x, position.y, z);
+                // transform 만 쓰면 보간 Rigidbody 가 다음 프레임에 옛 자리로 되돌림 (2026-11-07 실측, 끌어당김과 placed 무효)
+                playerObject.UnitMovement.Reposition(new Vector3(x, position.y, z));
             }
 
             public bool TryGetPose(out float x, out float y, out float z, out float yaw)

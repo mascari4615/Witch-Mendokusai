@@ -37,5 +37,13 @@ namespace WitchMendokusai
 			context.FullBodySweep = false;
 			context.ResetPerTick();
 		}
+
+		// 걷던 상태를 두고 자리만 옮김. 보간 Rigidbody 는 transform 만 쓰면 다음 프레임에 옛 자리로 되돌림
+		public void Reposition(Vector3 position)
+		{
+			unitRigidBody.position = position;
+			unitTransform.position = position;
+			context.Position = position;
+		}
 	}
 }
