@@ -80,6 +80,23 @@ namespace WitchMendokusai.Tests
 			Assert.That(errors.Any(error => error.Contains(part)), $"'{part}' 오류 없음: {string.Join(" | ", errors)}");
 
 		[Test]
+		public void IsRoot_OnlyStartNodeWithDependents()
+		{
+			CardData loneCard = NewCard(SECOND_CARD_ID + 1, 5);
+			SkillTree tree = new(EQUIPMENT_ID);
+			SkillTreeNode root = new("root", rootCard, false);
+			SkillTreeNode child = new("child", secondCard, false);
+			child.Requirements.Add(new SkillTreeRequirement(root, rootCard, 1));
+			tree.Add(root);
+			tree.Add(child);
+			tree.Add(new SkillTreeNode("lone", loneCard, false));
+
+			Assert.That(tree.IsRoot(rootCard), Is.True);
+			Assert.That(tree.IsRoot(secondCard), Is.False);
+			Assert.That(tree.IsRoot(loneCard), Is.False);
+		}
+
+		[Test]
 		public void ValidTree_HasNoErrors() => Assert.That(Errors(Tree(VALID_NODES + "," + INLINE_NODE)), Is.Empty);
 
 		[Test]

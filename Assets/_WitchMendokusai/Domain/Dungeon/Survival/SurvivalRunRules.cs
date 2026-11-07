@@ -40,6 +40,7 @@ namespace WitchMendokusai
 
 		[Header("Evolution")]
 		[Tooltip("덱에 넣지 않는 카드. 조건은 CardData.Requirements, 지급은 상자 첫 보상")] public List<CardData> EvolutionCards = new();
+		[Tooltip("트리 시작 카드를 차단하려 할 때 문구")] public string BanRootDeniedText = "시작 카드는 차단할 수 없어요.";
 
 		[Header("Wave density (provisional values)")]
 		[Min(0), Tooltip("임시값. 동시 적 수가 이 값 이상이면 주기 생성과 보충 중지. 0이면 상한 없음")] public int EnemySoftCap = 300;

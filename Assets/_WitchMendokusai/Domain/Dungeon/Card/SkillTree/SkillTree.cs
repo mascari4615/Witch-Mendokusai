@@ -83,6 +83,15 @@ namespace WitchMendokusai
 			return node == null || node.IsUnlocked(selectedCards);
 		}
 
+		// 다른 노드가 기대는 시작 노드. 빼면 하위 노드가 그 판에서 잠김
+		public bool IsRoot(CardData card)
+		{
+			SkillTreeNode node = NodeOf(card);
+			if (node == null || node.Requirements.Count > 0)
+				return false;
+			return Nodes.Any(other => other.Requirements.Any(requirement => requirement.Card.ID == card.ID));
+		}
+
 		public static int Count(CardData card, IReadOnlyList<CardData> selectedCards)
 		{
 			int count = 0;
