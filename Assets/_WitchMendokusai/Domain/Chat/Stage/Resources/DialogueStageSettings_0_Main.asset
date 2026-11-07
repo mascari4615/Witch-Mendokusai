@@ -32,8 +32,8 @@ MonoBehaviour:
   <SweepWidth>k__BackingField: 0.14
   <SweepAngle>k__BackingField: 0.35
   <SweepStrength>k__BackingField: 0.9
-  <RimRadiusPixels>k__BackingField: 3
-  <SpeakerRimStrength>k__BackingField: 0.3
+  <RimRadiusPixels>k__BackingField: 2.5
+  <SpeakerRimStrength>k__BackingField: 0.35
   <BreathSeconds>k__BackingField: 3.2
   <BreathBrightness>k__BackingField: 0.05
   <BreathScale>k__BackingField: 0.004

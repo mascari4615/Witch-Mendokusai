@@ -49,7 +49,7 @@
 .wm-dlg--feature .wm-dlg-backdrop--blur {
     background-color: rgba(0, 0, 0, 0);
     -unity-background-image-tint-color: rgb(128, 128, 128);
-    filter: grayscale(0.2);
+    filter: blur(3px) grayscale(0.2);
     opacity: 1;
 }
 
@@ -369,6 +369,12 @@
 .wm-dlg-choice--focus {
     background-color: var(--wm-dlg-teal-dark);
     border-color: var(--wm-dlg-teal);
+}
+
+/* 자막 방식은 흰 틀과 옅은 흰 바탕 */
+.wm-dlg--feature .wm-dlg-choice--focus {
+    background-color: rgba(255, 255, 255, 0.16);
+    border-color: rgba(0, 0, 0, 0);
 }
 
 .wm-dlg-choice:hover,

@@ -83,19 +83,17 @@ Shader "WM/UI/DialogueArtFilter"
 
 				// 윤곽 빛
 				float2 pixel = float2(abs(ddx(input.uv.x)), abs(ddy(input.uv.y))) * _RimRadius;
-				float low = 1.0;
-				float high = 0.0;
+				float around = 0.0;
 				for (int x = -1; x <= 1; x++)
 				{
 					for (int y = -1; y <= 1; y++)
 					{
-						float neighbor = SampleAlpha(input.uv + pixel * float2(x, y), rect);
-						low = min(low, neighbor);
-						high = max(high, neighbor);
+						around += SampleAlpha(input.uv + pixel * float2(x, y), rect);
 					}
 				}
-				float inner = saturate(color.a - low);
-				float outer = saturate(high - color.a);
+				around /= 9.0;
+				float inner = saturate(color.a - around);
+				float outer = saturate(around - color.a);
 				color.rgb += _EffectColor.rgb * (inner + outer) * _Rim;
 				color.a = saturate(color.a + outer * _Rim);
 

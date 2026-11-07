@@ -88,8 +88,8 @@ namespace WitchMendokusai
 		[field: SerializeField] public float SweepWidth { get; private set; } = 0.14f;
 		[field: SerializeField] public float SweepAngle { get; private set; } = 0.35f;
 		[field: SerializeField] public float SweepStrength { get; private set; } = 0.9f;
-		[field: SerializeField] public float RimRadiusPixels { get; private set; } = 3f;
-		[field: SerializeField] public float SpeakerRimStrength { get; private set; } = 0.3f;
+		[field: SerializeField] public float RimRadiusPixels { get; private set; } = 2.5f;
+		[field: SerializeField] public float SpeakerRimStrength { get; private set; } = 0.35f;
 		[field: SerializeField] public float BreathSeconds { get; private set; } = 3.2f;
 		[field: SerializeField] public float BreathBrightness { get; private set; } = 0.05f;
 		[field: SerializeField] public float BreathScale { get; private set; } = 0.004f;
