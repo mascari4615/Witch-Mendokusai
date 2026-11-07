@@ -26,6 +26,8 @@ namespace WitchMendokusai
 		private const string USS_ROOT = "wm-dungeon-entrance";
 		private const string USS_ROW_SELECTED = "wm-dungeon-entrance__row--selected";
 		private const string USS_MODE_SELECTED = "wm-dungeon-entrance__mode-button--selected";
+		private const string USS_THREAT_LOCKED = "wm-dungeon-entrance__mode-button--locked";
+		private const string MULTIPLIER_FORMAT = "0.##";
 		private const int SECONDS_PER_MINUTE = 60;
 
 		private readonly List<Button> dungeonSelectButtons = new();
@@ -45,6 +47,12 @@ namespace WitchMendokusai
 		private readonly Dictionary<DungeonRunMode, Button> runModeButtons = new();
 		private readonly List<Button> horizontalFocusOrder = new();
 		private DungeonRunMode selectedRunMode = DungeonRunMode.Equipped;
+		private VisualElement threatRow;
+		private Button threatPrevButton;
+		private Button threatNextButton;
+		private Label threatLevelLabel;
+		private Label threatEffectLabel;
+		private int selectedThreatLevel = 0;
 
 		private int curDungeonIndex = 0;
 		private List<Dungeon> dungeons;
@@ -111,6 +119,7 @@ namespace WitchMendokusai
 			Button randomButton = AddRunModeButton(modeRow, DungeonRunMode.Random, "랜덤 모드");
 			horizontalFocusOrder.AddRange(new[] { backButton, equippedButton, randomButton, dungeonEnterButton });
 			SelectRunMode(selectedRunMode);
+			BuildThreatRow(root);
 
 			Button closeButton = AddRoundButton("CloseButton", "×");
 			closeButton.AddToClassList(USS_ROOT + "__close");
@@ -131,6 +140,69 @@ namespace WitchMendokusai
 			selectedRunMode = mode;
 			foreach (KeyValuePair<DungeonRunMode, Button> entry in runModeButtons)
 				entry.Value.EnableInClassList(USS_MODE_SELECTED, entry.Key == mode);
+		}
+
+		private void BuildThreatRow(VisualElement root)
+		{
+			threatRow = AddBlock(root, "__threat");
+			threatPrevButton = AddThreatStepButton("ThreatPrevButton", "<", -1);
+			threatLevelLabel = AddLabel(threatRow, string.Empty, "__threat-level");
+			threatNextButton = AddThreatStepButton("ThreatNextButton", ">", 1);
+			threatEffectLabel = AddLabel(threatRow, string.Empty, "__threat-effect");
+		}
+
+		private Button AddThreatStepButton(string buttonName, string text, int direction)
+		{
+			Button button = new Button(() => StepThreat(direction)) { name = buttonName, text = text };
+			button.AddToClassList(USS_ROOT + "__mode-button");
+			threatRow.Add(button);
+			return button;
+		}
+
+		private void StepThreat(int direction)
+		{
+			selectedThreatLevel = DungeonThreatRules.StepSelection(selectedThreatLevel, direction, CurDungeon.ClearedThreatCount, dungeonManager.GetMaxThreatLevel(CurDungeon));
+			UpdateThreatRow();
+		}
+
+		private void UpdateThreatRow()
+		{
+			int maxLevel = dungeonManager.GetMaxThreatLevel(CurDungeon);
+			int highestUnlocked = DungeonThreatRules.HighestUnlocked(CurDungeon.ClearedThreatCount, maxLevel);
+			selectedThreatLevel = Mathf.Clamp(selectedThreatLevel, 0, highestUnlocked);
+
+			bool isVisible = maxLevel > 0;
+			threatRow.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
+			horizontalFocusOrder.Remove(threatPrevButton);
+			horizontalFocusOrder.Remove(threatNextButton);
+			if (isVisible == false)
+				return;
+			horizontalFocusOrder.InsertRange(horizontalFocusOrder.IndexOf(dungeonEnterButton), new[] { threatPrevButton, threatNextButton });
+
+			threatLevelLabel.text = $"위협 단계 {selectedThreatLevel} / {maxLevel}";
+			threatPrevButton.EnableInClassList(USS_THREAT_LOCKED, selectedThreatLevel == 0);
+			threatNextButton.EnableInClassList(USS_THREAT_LOCKED, selectedThreatLevel == highestUnlocked);
+			string unlockHint = selectedThreatLevel == highestUnlocked && highestUnlocked < maxLevel ? "\n다음 단계: 이 단계 승리 필요" : string.Empty;
+			threatEffectLabel.text = DescribeThreat(dungeonManager.ResolveThreat(CurDungeon, selectedThreatLevel)) + unlockHint;
+		}
+
+		private static string DescribeThreat(DungeonThreatEffect threat)
+		{
+			List<string> parts = new();
+			AddMultiplierPart(parts, "적 체력", threat.EnemyHealth);
+			AddMultiplierPart(parts, "적 피해", threat.EnemyDamage);
+			if (threat.EliteExtraPerGap > 0)
+				parts.Add($"정예 추가 +{threat.EliteExtraPerGap}");
+			AddMultiplierPart(parts, "적 속도", threat.EnemySpeed);
+			AddMultiplierPart(parts, "웨이브 물량", threat.WaveRate);
+			parts.Add($"보상 x{threat.RewardMultiplier.ToString(MULTIPLIER_FORMAT)}");
+			return string.Join(", ", parts);
+		}
+
+		private static void AddMultiplierPart(List<string> parts, string statName, float multiplier)
+		{
+			if (Mathf.Approximately(multiplier, 1f) == false)
+				parts.Add($"{statName} x{multiplier.ToString(MULTIPLIER_FORMAT)}");
 		}
 
 		private void MoveHorizontalFocus(int direction)
@@ -274,6 +346,8 @@ namespace WitchMendokusai
 
 			constraintUI.SetDungeon(CurDungeon);
 			constraintUI.UpdateUI();
+
+			UpdateThreatRow();
 		}
 
 		private static string GetRowNumber(int index) => (index + 1).ToString("00");
@@ -301,7 +375,7 @@ namespace WitchMendokusai
 		public void EnterTheDungeon()
 		{
 			PanelGroup.ClosePanel();
-			dungeonManager.StartDungeon(CurDungeon, runMode: selectedRunMode);
+			dungeonManager.StartDungeon(CurDungeon, runMode: selectedRunMode, threatLevel: selectedThreatLevel);
 		}
 
 		private void EnsureButtonCount(int count)

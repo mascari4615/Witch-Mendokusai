@@ -15,6 +15,7 @@ namespace WitchMendokusai
 		[SerializeField] private TextMeshProUGUI titleText;
 		[SerializeField] private string clearTitle = "게임 결과";
 		[SerializeField] private string defeatTitle = "패배";
+		[SerializeField, Tooltip("0: 승패 제목, 1: 단계")] private string threatTitleFormat = "{0} (위협 단계 {1})";
 		[SerializeField] private Color defeatTitleColor = new(0.886f, 0.345f, 0.298f, 1f);
 		[SerializeField] private UIRing difficultyRing;
 		[SerializeField] private TextMeshProUGUI difficultyText;
@@ -104,7 +105,8 @@ namespace WitchMendokusai
 			bool cleared = record.IsCleared;
 			float speed = cleared ? 1f : theme.DefeatSpeedScale;
 
-			titleText.text = cleared ? clearTitle : defeatTitle;
+			string title = cleared ? clearTitle : defeatTitle;
+			titleText.text = dungeonManager.CurDungeon.HasThreatLevels ? string.Format(threatTitleFormat, title, record.ThreatLevel) : title;
 			titleText.color = cleared ? Color.white : defeatTitleColor;
 			difficultyText.text = DifficultyName(record.Difficulty);
 			difficultyRing.color = theme.Difficulty(record.Difficulty);
