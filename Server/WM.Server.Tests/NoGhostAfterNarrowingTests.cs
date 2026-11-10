@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -136,6 +137,14 @@ namespace WitchMendokusai.ServerTests
 			await window.ConnectAsync(address, CancellationToken.None);
 			byte[] hello = Encoding.UTF8.GetBytes("{\"type\":\"hello\",\"secret\":\"\"}");
 			await window.SendAsync(new ArraySegment<byte>(hello), WebSocketMessageType.Text, true, CancellationToken.None);
+			// 최초 welcome 이후 방송 등록과 hello 처리를 마친 응답으로 준비 확인
+			await ReadUntilAsync(window, text =>
+			{
+				using JsonDocument message = JsonDocument.Parse(text);
+				JsonElement root = message.RootElement;
+				return root.TryGetProperty("type", out JsonElement type) && type.GetString() == "welcome"
+					&& root.TryGetProperty("identityId", out JsonElement identity) && identity.GetInt32() > 0;
+			}, 15);
 			return window;
 		}
 
@@ -143,6 +152,7 @@ namespace WitchMendokusai.ServerTests
 		{
 			using CancellationTokenSource timeout = TestTimeout.After(seconds);
 			byte[] bin = new byte[65536];
+			using MemoryStream pending = new MemoryStream();
 
 			while (timeout.IsCancellationRequested == false)
 			{
@@ -159,7 +169,11 @@ namespace WitchMendokusai.ServerTests
 				if (came.MessageType == WebSocketMessageType.Close)
 					break;
 
-				string text = Encoding.UTF8.GetString(bin, 0, came.Count);
+				pending.Write(bin, 0, came.Count);
+				if (came.EndOfMessage == false)
+					continue;
+				string text = Encoding.UTF8.GetString(pending.GetBuffer(), 0, (int)pending.Length);
+				pending.SetLength(0);
 				if (matches(text))
 					return text;
 			}

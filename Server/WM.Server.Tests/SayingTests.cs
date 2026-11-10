@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -118,7 +119,26 @@ namespace WitchMendokusai.ServerTests
 			await window.ConnectAsync(address, CancellationToken.None);
 			byte[] hello = Encoding.UTF8.GetBytes("{\"type\":\"hello\",\"secret\":\"\"}");
 			await window.SendAsync(new ArraySegment<byte>(hello), WebSocketMessageType.Text, true, CancellationToken.None);
+			// 초기 welcome/스냅샷 뒤 수신 대상 등록과 hello 처리까지 완료된 응답 대기
+			await ReadUntilAsync(window, HasAssignedIdentity, 10);
 			return window;
+		}
+
+		private static bool HasAssignedIdentity(string text)
+		{
+			if (text.Contains("\"identityId\"") == false)
+				return false;
+			using JsonDocument message = JsonDocument.Parse(text);
+			return message.RootElement.TryGetProperty("type", out JsonElement type) && type.GetString() == "welcome"
+				&& message.RootElement.TryGetProperty("identityId", out JsonElement identity)
+				&& identity.TryGetInt32(out int identityId) && identityId > 0;
+		}
+
+		[TestCase(0, false)]
+		[TestCase(1, true)]
+		public void 접속_준비는_신원_배정_응답으로_판정한다(int identityId, bool ready)
+		{
+			Assert.AreEqual(ready, HasAssignedIdentity(Protocol.Welcome(1, identityId: identityId)));
 		}
 
 		private static async Task SendAsync(ClientWebSocket window, string json)
@@ -131,6 +151,7 @@ namespace WitchMendokusai.ServerTests
 		{
 			using CancellationTokenSource timeout = TestTimeout.After(seconds);
 			byte[] bin = new byte[65536];
+			using MemoryStream pending = new MemoryStream();
 
 			while (timeout.IsCancellationRequested == false)
 			{
@@ -147,7 +168,11 @@ namespace WitchMendokusai.ServerTests
 				if (came.MessageType == WebSocketMessageType.Close)
 					break;
 
-				string text = Encoding.UTF8.GetString(bin, 0, came.Count);
+				pending.Write(bin, 0, came.Count);
+				if (came.EndOfMessage == false)
+					continue;
+				string text = Encoding.UTF8.GetString(pending.GetBuffer(), 0, (int)pending.Length);
+				pending.SetLength(0);
 				if (matches(text))
 					return text;
 			}
