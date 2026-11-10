@@ -23,7 +23,6 @@ namespace WitchMendokusai
 		[SerializeField] private float navOverlapTolerance = 4f;
 		[SerializeField] private float navAcrossWeight = 2f;
 		[SerializeField] private int volumeDisplayScale = 100;
-		[SerializeField] private float stageWidth = 1920f;
 		[SerializeField] private float frameOutset = 4f;
 
 		private VisualElement container;
@@ -107,11 +106,8 @@ namespace WitchMendokusai
 			stage = new VisualElement();
 			stage.AddToClassList("wm-setting-stage");
 			container.Add(stage);
-			container.RegisterCallback<GeometryChangedEvent>(_ =>
-			{
-				float scale = container.resolvedStyle.width / stageWidth;
-				stage.style.scale = new Scale(new Vector3(scale, scale, 1f));
-			});
+			container.RegisterCallback<GeometryChangedEvent>(_ => FitStage());
+			stage.RegisterCallback<GeometryChangedEvent>(_ => FitStage());
 
 			Label titleLabel = new Label("환경설정");
 			titleLabel.AddToClassList("wm-setting-title");
@@ -146,6 +142,17 @@ namespace WitchMendokusai
 			RegisterTab(TAB_KEY_CREDITS, "크레딧", BuildCreditsContent);
 
 			SwitchTab(TAB_KEY_GENERAL);
+		}
+
+		// USS의 기준 화면을 가로와 세로에 함께 맞추고 남은 공간 중앙에 배치
+		private void FitStage()
+		{
+			float width = stage.resolvedStyle.width;
+			float height = stage.resolvedStyle.height;
+			float scale = Mathf.Min(container.resolvedStyle.width / width, container.resolvedStyle.height / height);
+			stage.style.scale = new Scale(new Vector3(scale, scale, 1f));
+			stage.style.left = (container.resolvedStyle.width - width * scale) * .5f;
+			stage.style.top = (container.resolvedStyle.height - height * scale) * .5f;
 		}
 
 		protected void RegisterTab(string tabKey, string title, Func<VisualElement> contentBuilder)
