@@ -75,14 +75,13 @@ namespace WitchMendokusai.ServerTests
 				"가방을 못 채웠으면 이 시험은 아무것도 안 재는 것이다");
 
 			await Send(window, "{\"type\":\"" + Protocol.GATHER + "\",\"nodeId\":" + node.Id + "}");
-			await Task.Delay(300);
+			string denied = await Read(window, "\"what\":\"" + Protocol.DENIED_GATHER + "\"");
 
 			// ① 세계의 것이 그대로 서 있어야 한다 — 자리도 비고 손도 비면 그냥 잃은 것이다.
 			Assert.IsTrue(StillStanding(node.Id),
 				"가방이 꽉 찼는데 주울 것이 세계에서 사라졌다 — 그건 그냥 없어진 것이다");
 
 			// ② 왜 안 되는지 말해 줘야 한다 — 아무 말도 없으면 사람은 버튼이 고장 난 줄 안다.
-			string denied = await Read(window, "\"what\":\"" + Protocol.DENIED_GATHER + "\"");
 			string why = JsonDocument.Parse(denied).RootElement.GetProperty("why").GetString();
 
 			Assert.IsTrue(why.Contains("가방"),
@@ -104,10 +103,16 @@ namespace WitchMendokusai.ServerTests
 
 			// 한 개만 들어갈 만큼 남기고 채운다.
 			FillBagLeaving(dollId, ServerItemCatalog.Find(node.ItemId), 1);
+			Assert.IsTrue(host.World.CanReceive(dollId, ServerItemCatalog.Find(node.ItemId), 1),
+				"한 개를 받을 빈틈을 만들지 못했다");
+			Assert.IsFalse(host.World.CanReceive(dollId, ServerItemCatalog.Find(node.ItemId), node.Amount),
+				"전부 받을 수 있으면 일부만 받는 상황을 재지 못한다");
 
 			int before = host.World.BagCount(dollId, node.ItemId);
 			await Send(window, "{\"type\":\"" + Protocol.GATHER + "\",\"nodeId\":" + node.Id + "}");
-			await Task.Delay(300);
+			// 가방 반영과 나머지 복구 완료 응답으로 처리 순서 확인
+			string denied = await Read(window, "\"what\":\"" + Protocol.DENIED_GATHER + "\"");
+			StringAssert.Contains("가방", JsonDocument.Parse(denied).RootElement.GetProperty("why").GetString());
 
 			int got = host.World.BagCount(dollId, node.ItemId) - before;
 			Assert.Greater(got, 0, "자리가 있는데 하나도 못 받았다");
