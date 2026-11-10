@@ -78,5 +78,51 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(oldLevel, ExpCurveRules.LevelAfter(LINEAR, BASE, BARRIER_MULTIPLIER, collectedExp));
 			Assert.AreEqual(newLevel, ExpCurveRules.LevelAfter(BANDS, BASE, BARRIER_MULTIPLIER, collectedExp));
 		}
+
+		[TestCase(15, 0, 2000, 17, 425)]
+		[TestCase(15, 1010, 2000, 18, 300)]
+		[TestCase(14, 400, 2000, 17, 375)]
+		[TestCase(30, 0, 5000, 32, 600)]
+		[TestCase(0, 0, 30000, 36, 535)]
+		[TestCase(16, 0, 100, 16, 100)]
+		public void CollectedExperienceDoesNotDependOnOrbSize(int startLevel, int startExp, int rawExp, int expectedLevel, int expectedExp)
+		{
+			(int level, int exp) large = Collect(startLevel, startExp, rawExp, rawExp);
+			(int level, int exp) small = Collect(startLevel, startExp, rawExp, 5);
+			Assert.AreEqual((expectedLevel, expectedExp), large);
+			Assert.AreEqual(large, small);
+		}
+
+		[TestCase(14, 440, 20, 30)]
+		[TestCase(15, 2000, 20, 25)]
+		[TestCase(15, 0, 1005, 2010)]
+		[TestCase(16, 0, 12.5, 12.5)]
+		[TestCase(15, 0, 5.25, 10.5)]
+		[TestCase(15, 0, 2100, 3105)]
+		[TestCase(15, 0, 3000, 4005)]
+		[TestCase(15, 2009, 0.75, 1.25)]
+		[TestCase(15, 0, 0, 0)]
+		public void GainUsesOnlyMultiplierOfEachCrossedLevel(int level, int exp, double rawExp, double expectedGain)
+		{
+			Assert.AreEqual(expectedGain, ExpCurveRules.CalculateGain(BANDS, BASE, BARRIER_MULTIPLIER, level, exp, rawExp), 0.000001);
+		}
+
+		private static (int level, int exp) Collect(int level, int exp, int total, int orbSize)
+		{
+			while (total > 0)
+			{
+				int raw = System.Math.Min(total, orbSize);
+				double gain = ExpCurveRules.CalculateGain(BANDS, BASE, BARRIER_MULTIPLIER, level, exp, raw);
+				Assert.AreEqual(System.Math.Round(gain), gain, 0.000001);
+				exp += (int)System.Math.Round(gain);
+				while (exp >= ExpCurveRules.Required(BANDS, BASE, level))
+				{
+					exp -= ExpCurveRules.Required(BANDS, BASE, level);
+					level++;
+				}
+				total -= raw;
+			}
+			return (level, exp);
+		}
 	}
 }

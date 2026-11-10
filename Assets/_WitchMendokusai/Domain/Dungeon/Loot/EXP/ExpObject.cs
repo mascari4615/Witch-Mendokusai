@@ -111,9 +111,10 @@ namespace WitchMendokusai
 		private int RollExpGain()
 		{
 			SurvivalRunRules rules = resourceManager.SurvivalRunRules;
-			float barrierMultiplier = ExpCurveRules.GainMultiplier(rules.ExpCurveBands, PlayerStat[UnitStatType.LEVEL_CUR], rules.ExpBarrierGainMultiplier);
-			float gain = value * PlayerStat.PercentMultiplier(UnitStatType.EXP_BONUS) * barrierMultiplier;
-			int wholeGain = Mathf.FloorToInt(gain);
+			double baseGain = value * (double)PlayerStat.PercentMultiplier(UnitStatType.EXP_BONUS);
+			double gain = ExpCurveRules.CalculateGain(rules.ExpCurveBands, rules.ExpBaseRequired, rules.ExpBarrierGainMultiplier,
+				PlayerStat[UnitStatType.LEVEL_CUR], PlayerStat[UnitStatType.EXP_CUR], baseGain);
+			int wholeGain = (int)System.Math.Floor(gain);
 			return Random.value < gain - wholeGain ? wholeGain + 1 : wholeGain;
 		}
 

@@ -38,6 +38,38 @@ namespace WitchMendokusai
 		public static float GainMultiplier(IReadOnlyList<ExpCurveBand> bands, int level, float barrierMultiplier)
 			=> IsBarrierLevel(bands, level) && barrierMultiplier > 0f ? barrierMultiplier : 1f;
 
+		// 보너스 적용 뒤 원시 경험치를 레벨 경계별로 소비, 장벽 이후 초과분의 배율 누출 방지
+		// 소수점은 호출부의 기존 확률 반올림까지 유지
+		public static double CalculateGain(IReadOnlyList<ExpCurveBand> bands, int baseRequired, float barrierMultiplier, int level, int currentExp, double baseGain)
+		{
+			double remaining = baseGain;
+			double gain = 0d;
+			while (remaining > 0d)
+			{
+				int required = Required(bands, baseRequired, level);
+				if (required <= 0)
+					return gain + remaining;
+
+				if (currentExp >= required)
+				{
+					currentExp -= required;
+					level++;
+					continue;
+				}
+
+				double multiplier = GainMultiplier(bands, level, barrierMultiplier);
+				double toBoundary = (required - currentExp) / multiplier;
+				if (remaining < toBoundary)
+					return gain + remaining * multiplier;
+
+				gain += required - currentExp;
+				remaining -= toBoundary;
+				currentExp = 0;
+				level++;
+			}
+			return gain;
+		}
+
 		public static int LevelAfter(IReadOnlyList<ExpCurveBand> bands, int baseRequired, float barrierMultiplier, int collectedExp)
 		{
 			int level = 0;
