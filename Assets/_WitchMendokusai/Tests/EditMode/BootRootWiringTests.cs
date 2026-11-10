@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using VContainer.Unity;
@@ -7,6 +8,37 @@ namespace WitchMendokusai.Tests
 {
     public sealed class BootRootWiringTests
     {
+        // 이전 실행의 정지 배율로 새 로딩이 멈춘 실제 재현. 기존 코드의 Awake에서는 배율 유지
+        [TestCase(0f)]
+        [TestCase(float.Epsilon)]
+        [TestCase(0.2f)]
+        public void NewTimeManagerRestoresClockAndRetainsPauseOwnership(float previousScale)
+        {
+            Assert.That(TimeManager.Instance, Is.Null, "Editor test requires no running world");
+            float originalScale = Time.timeScale;
+            GameObject host = new GameObject("ClockBootTest");
+            host.SetActive(false);
+            GameObject pauser = new GameObject("ClockBootPauser");
+            try
+            {
+                TimeManager timer = host.AddComponent<TimeManager>();
+                Time.timeScale = previousScale;
+                typeof(TimeManager).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(timer, null);
+                Assert.That(Time.timeScale, Is.EqualTo(1f));
+                Assert.That(timer.IsPaused, Is.False);
+                timer.Pause(pauser);
+                Assert.That(Time.timeScale, Is.EqualTo(float.Epsilon));
+                timer.Resume(pauser);
+                Assert.That(Time.timeScale, Is.EqualTo(1f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(host);
+                Object.DestroyImmediate(pauser);
+                Time.timeScale = originalScale;
+            }
+        }
+
         [Test]
         public void EditorAndBootConfigUseTheSameRootWithACompleteCatalog()
         {

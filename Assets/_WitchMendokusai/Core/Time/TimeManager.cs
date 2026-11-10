@@ -51,6 +51,8 @@ namespace WitchMendokusai
 				return;
 			}
 			Instance = this;
+			// 이전 Play의 정지 배율 제거. 새 관리자는 정지 소유자와 hit stop이 없는 상태
+			UpdateTimeScale();
 		}
 
 		private void OnDestroy()
