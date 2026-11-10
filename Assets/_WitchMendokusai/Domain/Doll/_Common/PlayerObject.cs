@@ -96,9 +96,16 @@ namespace WitchMendokusai
 			{
 				if (meshRenderer is SpriteRenderer)
 					continue;
-				meshRenderer.GetPropertyBlock(bodyTintBlock);
-				bodyTintBlock.SetColor(BASE_COLOR_PROPERTY, tint);
-				meshRenderer.SetPropertyBlock(bodyTintBlock);
+				Material[] materials = meshRenderer.sharedMaterials;
+				for (int index = 0; index < materials.Length; index++)
+				{
+					Material material = materials[index];
+					if (material.HasProperty(BASE_COLOR_PROPERTY) == false)
+						continue;
+					meshRenderer.GetPropertyBlock(bodyTintBlock, index);
+					bodyTintBlock.SetColor(BASE_COLOR_PROPERTY, material.GetColor(BASE_COLOR_PROPERTY) * tint);
+					meshRenderer.SetPropertyBlock(bodyTintBlock, index);
+				}
 			}
 		}
 
