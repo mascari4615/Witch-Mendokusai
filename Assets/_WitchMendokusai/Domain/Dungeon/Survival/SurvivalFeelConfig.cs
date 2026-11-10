@@ -133,7 +133,7 @@ namespace WitchMendokusai
 		[Header("Exp orb look")]
 		[Min(0.01f), Tooltip("등급 1 오브 기준 크기. 이전 구 0.15의 75%")] public float ExpOrbSize = 0.1125f;
 		[Range(0.1f, 1.5f), Tooltip("큐브 한 변 비율. 구 지름과 같은 인상이 되게 줄인 값")] public float ExpOrbCubeRatio = 0.85f;
-		[Min(0f), Tooltip("등급 발광값에 곱함. 낮을수록 등급 색이 흰색으로 날아가지 않음")] public float ExpOrbEmissionScale = 0.3f;
+		[Min(0f), Tooltip("등급 발광값에 곱함. HDR 발광과 Bloom의 밝은 테두리 조절")] public float ExpOrbEmissionScale = 1.1f;
 		[Tooltip("회전 기울기. Y는 회전 시작 각에 더해짐")] public Vector3 ExpOrbTilt = new(35f, 0f, 20f);
 		[Min(0f), Tooltip("초당 회전 각도")] public float ExpOrbSpinSpeed = 90f;
 		[Range(0f, 0.5f), Tooltip("맥동 크기 변화 비율")] public float ExpOrbPulseAmplitude = 0.08f;

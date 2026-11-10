@@ -193,6 +193,10 @@ MonoBehaviour:
     m_ColorSpace: -1
     m_NumColorKeys: 4
     m_NumAlphaKeys: 4
+  <UseHemisphereAmbient>k__BackingField: 1
+  <AmbientSkyTint>k__BackingField: {r: 1.4, g: 1.45, b: 1.6, a: 1}
+  <AmbientEquatorTint>k__BackingField: {r: 0.85, g: 0.9, b: 1, a: 1}
+  <AmbientGroundTint>k__BackingField: {r: 0.55, g: 0.48, b: 0.42, a: 1}
   <SunIntensity>k__BackingField:
     serializedVersion: 2
     m_Curve:

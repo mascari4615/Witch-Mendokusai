@@ -257,7 +257,7 @@ MonoBehaviour:
     Emission: 6
   ExpOrbSize: 0.1125
   ExpOrbCubeRatio: 0.85
-  ExpOrbEmissionScale: 0.3
+  ExpOrbEmissionScale: 1.1
   ExpOrbTilt: {x: 35, y: 0, z: 20}
   ExpOrbSpinSpeed: 90
   ExpOrbPulseAmplitude: 0.08

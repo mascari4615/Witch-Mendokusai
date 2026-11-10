@@ -22,6 +22,10 @@ namespace WitchMendokusai
 		[field: SerializeField] public Gradient SunLightColor { get; private set; } = DefaultSunLight();
 		[field: SerializeField] public Gradient FogColor { get; private set; } = DefaultFog();
 		[field: SerializeField] public Gradient AmbientColor { get; private set; } = DefaultAmbient();
+		[field: SerializeField] public bool UseHemisphereAmbient { get; private set; } = true;
+		[field: SerializeField, ColorUsage(false, true)] public Color AmbientSkyTint { get; private set; } = new(1.4f, 1.45f, 1.6f);
+		[field: SerializeField] public Color AmbientEquatorTint { get; private set; } = new(.85f, .9f, 1f);
+		[field: SerializeField] public Color AmbientGroundTint { get; private set; } = new(.55f, .48f, .42f);
 
 		[field: Header("Curves (0~1 → scalar)")]
 		[field: Tooltip("DirLight intensity (0=꺼짐, 1=정오 강함)")]

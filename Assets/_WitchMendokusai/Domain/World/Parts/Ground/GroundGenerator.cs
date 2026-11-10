@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	// 순간 이동 뒤 첫 모터 질의보다 먼저 발밑 지형 배치
 	[DefaultExecutionOrder(-100)]
-	public class GroundGenerator : MonoBehaviour
+	public partial class GroundGenerator : MonoBehaviour
 	{
 		// 플레이어 주변 3 × 3 청크를 풀에서 배치
 		[SerializeField] private GameObject groundPrefab;
@@ -39,6 +39,7 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
+			ReleaseDecorations();
 			foreach (GameObject chunk in chunks.Values)
 				chunk.SetActive(false);
 			chunks.Clear();

@@ -271,8 +271,15 @@ namespace WitchMendokusai
 
 		private void ApplyEnvironment(float t)
 		{
-			RenderSettings.ambientMode = AmbientMode.Flat;
-			RenderSettings.ambientLight = ActivePreset.AmbientColor.Evaluate(t);
+			Color ambient = ActivePreset.AmbientColor.Evaluate(t);
+			RenderSettings.ambientMode = ActivePreset.UseHemisphereAmbient ? AmbientMode.Trilight : AmbientMode.Flat;
+			if (ActivePreset.UseHemisphereAmbient)
+			{
+				RenderSettings.ambientSkyColor = ambient * ActivePreset.AmbientSkyTint;
+				RenderSettings.ambientEquatorColor = ambient * ActivePreset.AmbientEquatorTint;
+				RenderSettings.ambientGroundColor = ambient * ActivePreset.AmbientGroundTint;
+			}
+			else RenderSettings.ambientLight = ambient;
 
 			RenderSettings.fog = true;
 			RenderSettings.fogMode = ActivePreset.FogMode;
