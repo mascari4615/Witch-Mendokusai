@@ -14,14 +14,14 @@ namespace WitchMendokusai.Tests
         [TestCase(0.2f)]
         public void NewTimeManagerRestoresClockAndRetainsPauseOwnership(float previousScale)
         {
-            Assert.That(TimeManager.Instance, Is.Null, "Editor test requires no running world");
+            Assert.That(TimeManager.Instance == null, Is.True, "Editor test requires no running world");
             float originalScale = Time.timeScale;
             GameObject host = new GameObject("ClockBootTest");
             host.SetActive(false);
             GameObject pauser = new GameObject("ClockBootPauser");
+            TimeManager timer = host.AddComponent<TimeManager>();
             try
             {
-                TimeManager timer = host.AddComponent<TimeManager>();
                 Time.timeScale = previousScale;
                 typeof(TimeManager).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(timer, null);
                 Assert.That(Time.timeScale, Is.EqualTo(1f));
@@ -33,6 +33,7 @@ namespace WitchMendokusai.Tests
             }
             finally
             {
+                typeof(TimeManager).GetMethod("OnDestroy", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(timer, null);
                 Object.DestroyImmediate(host);
                 Object.DestroyImmediate(pauser);
                 Time.timeScale = originalScale;
