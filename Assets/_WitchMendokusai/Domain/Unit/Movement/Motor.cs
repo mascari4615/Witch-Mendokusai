@@ -45,6 +45,7 @@ namespace WitchMendokusai
 		private readonly Transform unitTransform;
 		private readonly Rigidbody unitRigidBody;
 		private readonly CapsuleCollider unitCapsule;
+		private readonly bool ownCapsuleIsOnRoot;
 		private readonly MotorTuning tuning;
 		private readonly List<IVelocityContributor> contributors = new();
 		private readonly MotorContext context = new();
@@ -60,6 +61,8 @@ namespace WitchMendokusai
 			this.unitTransform = unitTransform;
 			this.unitRigidBody = unitRigidBody;
 			this.unitCapsule = unitCapsule;
+			// 다른 Transform의 캡슐을 받는 호출은 기존 계층 필터를 유지.
+			ownCapsuleIsOnRoot = unitCapsule.transform == unitTransform;
 			this.tuning = tuning;
 		}
 
@@ -205,9 +208,10 @@ namespace WitchMendokusai
 				{
 					Collider other = overlapBuffer[i];
 					overlapBuffer[i] = null;
-					if (other == null)
+					if (other == null || (ownCapsuleIsOnRoot && other == unitCapsule))
 						continue;
-					if (other.transform.IsChildOf(unitTransform))
+					Transform otherTransform = other.transform;
+					if (otherTransform.IsChildOf(unitTransform))
 						continue;
 
 					if (Physics.ComputePenetration(
@@ -215,8 +219,8 @@ namespace WitchMendokusai
 						position,
 						unitTransform.rotation,
 						other,
-						other.transform.position,
-						other.transform.rotation,
+						otherTransform.position,
+						otherTransform.rotation,
 						out Vector3 direction,
 						out float distance))
 					{
