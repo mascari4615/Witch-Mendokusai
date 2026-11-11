@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae5ce0301af83b843b6eb0ba07681ca6, type: 3}
+  m_Name: SlimeKingAttackConfig
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SlimeKingAttackConfig
+  DashPreDelay: 0.2
+  DashPostDelay: 0.5
+  ApproachMinimumSpeed: 3
+  MinimumEscapeSpeed: 0.96
+  EscapeAcceleration: 100
+  EscapeReactionSeconds: 0.5
+  EscapePadding: 0.2
+  MaximumFleeSpeed: 4
+  MaximumDashDuration: 2.5
+  MaximumDashDistance: 37.5
+  TelegraphMaterial: {fileID: 2100000, guid: 17a292e140f145cbac0811f94ade3aff, type: 2}
+  PrepareColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  RecoveryColor: {r: 0, g: 1, b: 1, a: 1}

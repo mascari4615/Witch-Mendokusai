@@ -27,6 +27,13 @@ namespace WitchMendokusai
 		[field: SerializeField] public Color AmbientEquatorTint { get; private set; } = new(.85f, .9f, 1f);
 		[field: SerializeField] public Color AmbientGroundTint { get; private set; } = new(.55f, .48f, .42f);
 
+		[field: Header("Survival readability")]
+		[field: SerializeField] public bool UseSurvivalReadability { get; private set; } = true;
+		[field: SerializeField, Min(0f)] public float SurvivalAmbientMultiplier { get; private set; } = 1.15f;
+		[field: SerializeField, Min(0f), Tooltip("생존 전투 환경광 RGB 가중 밝기 하한. 색 비율과 Trilight 방향 차이는 유지")]
+		public float SurvivalAmbientMinimumLuminance { get; private set; } = .5f;
+		[field: SerializeField, Min(0f)] public float SurvivalSunMinimumIntensity { get; private set; } = 1f;
+
 		[field: Header("Curves (0~1 → scalar)")]
 		[field: Tooltip("DirLight intensity (0=꺼짐, 1=정오 강함)")]
 		[field: SerializeField] public AnimationCurve SunIntensity { get; private set; } = DefaultSunIntensity();

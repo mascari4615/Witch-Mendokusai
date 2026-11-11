@@ -41,6 +41,7 @@ namespace WitchMendokusai
 
 		private Light directionalLight;
 		private float cachedNormalizedTime = -1f;
+		private bool survivalLightingActive;
 
 		private static readonly int ZenithColorId = Shader.PropertyToID("_ZenithColor");
 		private static readonly int HorizonColorId = Shader.PropertyToID("_HorizonColor");
@@ -180,11 +181,14 @@ namespace WitchMendokusai
 				return;
 
 			float normalizedTime = ComputeNormalizedTime(worldClock);
+			DungeonManager dungeonManager = DungeonManager.Instance;
+			bool isSurvivalLighting = ActivePreset.UseSurvivalReadability && dungeonManager != null && dungeonManager.IsDungeon && dungeonManager.CurDungeon != null && dungeonManager.CurDungeon.MapType == DungeonMapType.SurvivorsLike;
 
-			if (force == false && Mathf.Approximately(normalizedTime, cachedNormalizedTime) == true)
+			if (force == false && Mathf.Approximately(normalizedTime, cachedNormalizedTime) == true && survivalLightingActive == isSurvivalLighting)
 				return;
 
 			cachedNormalizedTime = normalizedTime;
+			survivalLightingActive = isSurvivalLighting;
 
 			ApplySky(normalizedTime);
 			ApplyShaderGlobals(normalizedTime);
@@ -260,6 +264,8 @@ namespace WitchMendokusai
 
 			directionalLight.color = ActivePreset.SunLightColor.Evaluate(t);
 			directionalLight.intensity = ActivePreset.SunIntensity.Evaluate(t);
+			if (survivalLightingActive)
+				directionalLight.intensity = Mathf.Max(directionalLight.intensity, ActivePreset.SurvivalSunMinimumIntensity);
 
 			float altitude = ActivePreset.SunAltitude.Evaluate(t);
 			float pitchDegrees = ComputeLightPitch(altitude, ActivePreset.MinLightPitch);
@@ -272,6 +278,13 @@ namespace WitchMendokusai
 		private void ApplyEnvironment(float t)
 		{
 			Color ambient = ActivePreset.AmbientColor.Evaluate(t);
+			if (survivalLightingActive)
+			{
+				ambient *= ActivePreset.SurvivalAmbientMultiplier;
+				float luminance = ambient.r * .2126f + ambient.g * .7152f + ambient.b * .0722f;
+				if (luminance > .0001f && luminance < ActivePreset.SurvivalAmbientMinimumLuminance)
+					ambient *= ActivePreset.SurvivalAmbientMinimumLuminance / luminance;
+			}
 			RenderSettings.ambientMode = ActivePreset.UseHemisphereAmbient ? AmbientMode.Trilight : AmbientMode.Flat;
 			if (ActivePreset.UseHemisphereAmbient)
 			{

@@ -63,6 +63,8 @@ namespace WitchMendokusai
 		[Header("Materials")]
 		public Material ShardMaterial;
 		public Material RingMaterial;
+		[Tooltip("생존 절차 풀 전용 선택형 재질. 비어 있으면 기존 재질 유지")]
+		public Material GrassMaterialOverride;
 
 		[Header("Freeze status")]
 		public Sprite FreezeStatusIcon;

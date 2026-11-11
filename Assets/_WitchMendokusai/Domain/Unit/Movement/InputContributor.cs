@@ -12,6 +12,7 @@ namespace WitchMendokusai
 		private readonly UnitObject unitObject;
 		private readonly float sprintSpeedMultiplier;
 		private readonly GroundMovementTuning tuning;
+		public float MinimumHorizontalSpeed { get; set; }
 
 		public InputContributor(UnitObject unitObject, float sprintSpeedMultiplier, GroundMovementTuning tuning = null)
 		{
@@ -60,6 +61,8 @@ namespace WitchMendokusai
 		private float GetHorizontalSpeed()
 		{
 			float moveSpeed = (unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] + unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED_BONUS]) / STAT_PER_UNIT_PER_SECOND;
+			if (MinimumHorizontalSpeed > 0f)
+				moveSpeed = Mathf.Max(moveSpeed, MinimumHorizontalSpeed);
 			if (tuning != null && tuning.Enabled && unitObject.UnitStat[UnitStatType.IS_CROUCHING] > 0)
 				return moveSpeed * tuning.CrouchSpeedMultiplier;
 			if (unitObject.UnitStat[UnitStatType.IS_SPRINTING] > 0)

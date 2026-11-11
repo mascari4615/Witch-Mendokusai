@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdd91601ba458a8468ec5f0fe69be7f6, type: 3}
+  m_Name: SurvivalMapChallengeConfig
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SurvivalMapChallengeConfig
+  EnableSite: 1
+  EnableCrossing: 0
+  MarkerMaterial: {fileID: 2100000, guid: 17a292e140f145cbac0811f94ade3aff, type: 2}
+  GroundMask:
+    serializedVersion: 2
+    m_Bits: 1
+  ObstacleMask:
+    serializedVersion: 2
+    m_Bits: 1
+  SitePlacementAttempts: 8
+  SiteDistance: 11
+  MarkerWidth: 0.2
+  GroundProbeHeight: 15
+  GroundLift: 0.02
+  SiteColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  CrossingColor: {r: 0, g: 1, b: 1, a: 1}
+  CrossingEventTime: 240
+  MinimumEscapeSpeed: 0.96
+  EscapeSpeedMultiplier: 0.4
+  EscapeAcceleration: 100
+  ReactionSeconds: 0.5
+  EscapePadding: 0.2
+  CrossingSpacing: 0.5
+  CrossingLifetime: 11
+  RouteSampleSpacing: 0.2
+  RouteMaxSamples: 128
+  RouteGroundDeviation: 0.2

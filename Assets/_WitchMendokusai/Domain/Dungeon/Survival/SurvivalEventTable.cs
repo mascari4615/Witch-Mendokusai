@@ -48,6 +48,7 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = nameof(SurvivalEventTable), menuName = "WM/Variable/" + nameof(SurvivalEventTable))]
 	public class SurvivalEventTable : ScriptableObject
 	{
+		[field: SerializeField] public SurvivalMapChallengeConfig MapChallenge { get; private set; }
 		[field: SerializeField] public EliteProfile Elite { get; private set; } = new();
 		[field: SerializeField, Tooltip("무리 출현 거리"), Min(1f)] public float SwarmRadius { get; private set; } = 11f;
 		[field: SerializeField] public List<SurvivalEventEntry> Events { get; private set; } = new();

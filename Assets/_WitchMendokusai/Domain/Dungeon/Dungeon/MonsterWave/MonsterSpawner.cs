@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
 {
-	public class MonsterSpawner : MonoBehaviour
+	public partial class MonsterSpawner : MonoBehaviour
 	{
 		public class MonsterWaveInstance
 		{
@@ -68,6 +68,7 @@ namespace WitchMendokusai
 			BuildRunEvents(dungeonManager.CurThreat);
 			nextAnnounceIndex = 0;
 			nextEventIndex = 0;
+			InitMapChallenge();
 		}
 
 		// 위협 단계를 입힌 이번 판 사건표. 단계 0은 원본 그대로
@@ -101,6 +102,7 @@ namespace WitchMendokusai
 			while (nextAnnounceIndex < entries.Count && elapsed >= entries[nextAnnounceIndex].Time - entries[nextAnnounceIndex].AnnounceLead)
 			{
 				SurvivalEventEntry entry = entries[nextAnnounceIndex++];
+				PrepareCrossing(entry);
 				EventBusBridge.Publish(new SurvivalEventAnnouncedEvent { Type = entry.Type, StartTime = entry.Time, LeadSeconds = entry.AnnounceLead, Monster = entry.Monster, Count = entry.Count });
 			}
 			while (nextEventIndex < entries.Count && elapsed >= entries[nextEventIndex].Time)
@@ -109,6 +111,7 @@ namespace WitchMendokusai
 
 		private void StartEvent(SurvivalEventEntry entry)
 		{
+			if (TryStartCrossing(entry)) return;
 			Vector3 center = playerProvider.Current.transform.position;
 			EliteProfile profile = entry.Type == SurvivalEventType.Elite ? eventTable.Elite : null;
 			SurvivalRunRules rules = dungeonManager.RunRules;
@@ -288,6 +291,7 @@ namespace WitchMendokusai
 		{
 			Debug.Log(nameof(StopWave));
 			StopAllCoroutines();
+			StopMapChallenge();
 			pendingSpawns = 0;
 			foreach (GameObject obj in ObjectBufferManager.GetObjects(ObjectType.Monster))
 				if (obj != null && obj.TryGetComponent(out MonsterObject monster))

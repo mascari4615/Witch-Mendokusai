@@ -14,14 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShardMaterial: {fileID: 2100000, guid: 17a292e140f145cbac0811f94ade3aff, type: 2}
   RingMaterial: {fileID: 2100000, guid: eb82016b91a74ed384b4395c7ab85dd6, type: 2}
-  PlayerHitFlashController: {fileID: 9100000, guid: 1ae115b1e79be68498f7e37998498e3e, type: 2}
-  PlayerHitFlashStrength: 0.12
-  ShakeCap: 0.9
-  ShakeDecay: 2.5
-  SmallShakeInterval: 0.12
-  KillHitstopInterval: 1.2
-  BurstsPerSecond: 30
-  MaxParticles: 800
+  GrassMaterialOverride: {fileID: 2100000, guid: 9cf35727358132d48aa379b2e13ba56f, type: 2}
   FreezeStatusIcon: {fileID: -1677760388, guid: fbd184d873518c24aaaa66f4c3d4c2a9, type: 3}
   FreezeStatusColor: {r: 0.65, g: 0.85, b: 1, a: 0.85}
   FreezeMarkerSize: 1.8
@@ -32,9 +25,17 @@ MonoBehaviour:
   FreezeHudFontSize: 22
   FreezeHudIconSize: 30
   FreezeHudIconSpacing: 8
-  FreezeStatusLabel: "시간정지"
-  FreezeBossLabel: "보스"
-  FreezeBossReleasedLabel: "보스 해제"
+  FreezeStatusLabel: "\uC2DC\uAC04\uC815\uC9C0"
+  FreezeBossLabel: "\uBCF4\uC2A4"
+  FreezeBossReleasedLabel: "\uBCF4\uC2A4 \uD574\uC81C"
+  PlayerHitFlashController: {fileID: 9100000, guid: 1ae115b1e79be68498f7e37998498e3e, type: 2}
+  PlayerHitFlashStrength: 0.12
+  ShakeCap: 0.9
+  ShakeDecay: 2.5
+  SmallShakeInterval: 0.12
+  KillHitstopInterval: 1.2
+  BurstsPerSecond: 30
+  MaxParticles: 800
   EliteAuraInterval: 0.12
   EliteRingInterval: 0.9
   ImpactHeight: 0.6
@@ -154,6 +155,28 @@ MonoBehaviour:
     RingSize: 8
     RingLife: 0.6
     Color: {r: 1, g: 0.3, b: 0.3, a: 1}
+  FreezePick:
+    Shake: 0.1
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 24
+    ShardSpeed: 6
+    ShardLife: 0.5
+    ShardSize: 0.2
+    RingSize: 12
+    RingLife: 0.5
+    Color: {r: 0.45, g: 0.75, b: 1, a: 1}
+  ClearPick:
+    Shake: 0.2
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 40
+    ShardSpeed: 9
+    ShardLife: 0.5
+    ShardSize: 0.22
+    RingSize: 16
+    RingLife: 0.45
+    Color: {r: 1, g: 0.9, b: 0.4, a: 1}
   ChestOpen:
     Shake: 0.3
     Hitstop: 0

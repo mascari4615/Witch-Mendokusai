@@ -101,11 +101,13 @@ namespace WitchMendokusai
 		private void Dispose()
 		{
 			StopStateUpdateLoop();
+			OnFSMDisabled();
 
 			// stateEvents.Clear();
 			currentState = DefaultState;
 			// UnitObject = null;
 		}
+		protected virtual void OnFSMDisabled() { }
 		#endregion
 
 		#region Utils

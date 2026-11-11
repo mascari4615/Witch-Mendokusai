@@ -130,7 +130,8 @@ namespace WitchMendokusai
 			// IsExternallyDriven=true 표시. Input은 그 플래그 보고 자기 기여 보류.
 			externalImpulse = new ExternalImpulseContributor();
 			motor.AddContributor(externalImpulse);
-			motor.AddContributor(new InputContributor(unitObject, sprintSpeedMultiplier, groundMovementTuning));
+			inputContributor = new InputContributor(unitObject, sprintSpeedMultiplier, groundMovementTuning);
+			motor.AddContributor(inputContributor);
 			motor.AddContributor(new GravityContributor());
 
 			jumpContributor = new JumpContributor(
@@ -158,6 +159,7 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
+			if (inputContributor != null) inputContributor.MinimumHorizontalSpeed = 0f;
 			ClearCollisionContacts();
 			// 풀 재사용 시 이전 생명의 밀림과 피격 정지 제거
 			externalImpulse?.Cancel();
@@ -211,6 +213,8 @@ namespace WitchMendokusai
 			unitObject.UnitStat[UnitStatType.IS_JUMPING] = jumpContributor.IsJumping ? 1 : 0;
 		}
 
+		private InputContributor inputContributor;
+		public void SetMinimumInputSpeed(float speed) => inputContributor.MinimumHorizontalSpeed = speed;
 		public void SetMoveDirection(Vector3 input) => SetMoveDirection(new Vector2(input.x, input.z));
 
 		// 화면 밖 이동도 누적 시간만큼 진행. 0은 원래의 매 물리 tick 갱신.

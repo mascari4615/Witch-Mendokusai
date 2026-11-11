@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ce3e735dec84bfab08d8246cecaa61c, type: 3}
   m_Name: SET_SlimeForest10
   m_EditorClassIdentifier: 
+  <MapChallenge>k__BackingField: {fileID: 11400000, guid: 721a1a42305135e478965b7b7bf78a75, type: 2}
   <Elite>k__BackingField:
     <HealthMultiplier>k__BackingField: 12
     <ScaleMultiplier>k__BackingField: 1.8
@@ -28,11 +29,13 @@ MonoBehaviour:
     <Monster>k__BackingField: {fileID: 11400000, guid: ab24c2555a737204a9520c2fcf5da203, type: 2}
     <Count>k__BackingField: 1
     <AnnounceLead>k__BackingField: 10
+    <GuaranteedChest>k__BackingField: 0
   - <Time>k__BackingField: 240
     <Type>k__BackingField: 1
     <Monster>k__BackingField: {fileID: 11400000, guid: efd01aa3488c358488a9c5b03a759d41, type: 2}
     <Count>k__BackingField: 24
     <AnnounceLead>k__BackingField: 10
+    <GuaranteedChest>k__BackingField: 0
   - <Time>k__BackingField: 240
     <Type>k__BackingField: 0
     <Monster>k__BackingField: {fileID: 11400000, guid: efd01aa3488c358488a9c5b03a759d41, type: 2}
@@ -44,6 +47,7 @@ MonoBehaviour:
     <Monster>k__BackingField: {fileID: 11400000, guid: c8298ef2b0feb5440a349bcb395b8ab0, type: 2}
     <Count>k__BackingField: 1
     <AnnounceLead>k__BackingField: 10
+    <GuaranteedChest>k__BackingField: 0
   - <Time>k__BackingField: 420
     <Type>k__BackingField: 0
     <Monster>k__BackingField: {fileID: 11400000, guid: c8298ef2b0feb5440a349bcb395b8ab0, type: 2}
@@ -55,8 +59,10 @@ MonoBehaviour:
     <Monster>k__BackingField: {fileID: 11400000, guid: 44760449275eb004db761ffc958fcd85, type: 2}
     <Count>k__BackingField: 2
     <AnnounceLead>k__BackingField: 10
+    <GuaranteedChest>k__BackingField: 0
   - <Time>k__BackingField: 540
     <Type>k__BackingField: 1
     <Monster>k__BackingField: {fileID: 11400000, guid: 44760449275eb004db761ffc958fcd85, type: 2}
     <Count>k__BackingField: 30
     <AnnounceLead>k__BackingField: 10
+    <GuaranteedChest>k__BackingField: 0

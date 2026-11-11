@@ -13,6 +13,7 @@ namespace WitchMendokusai
 		private sealed class DecorationSource
 		{
 			public GameObject Prefab;
+			public bool UseGrassMaterialOverride;
 			[Range(1, MAX_DECORATION_BATCH_INSTANCES)] public int CandidatesPerChunk = 100;
 			public Vector2 ScaleRange = new(.7f, 1.4f);
 		}
@@ -22,6 +23,7 @@ namespace WitchMendokusai
 			public Mesh Mesh;
 			public int Submesh;
 			public Material Material;
+			public Material GrassMaterialOverride;
 			public Matrix4x4 Local;
 			public ShadowCastingMode Shadows;
 			public bool ReceiveShadows;
@@ -63,6 +65,7 @@ namespace WitchMendokusai
 		private bool[] decorationChunkVisible = Array.Empty<bool>();
 		private readonly List<DecorationTemplate> decorationTemplates = new();
 		private readonly Dictionary<Material, Material> decorationMaterials = new();
+		private readonly Dictionary<Material, Material> decorationGrassMaterials = new();
 		private readonly Plane[] decorationPlanes = new Plane[6];
 		private Vector2Int decorationCenter;
 		private bool decorationCenterValid;
@@ -79,6 +82,9 @@ namespace WitchMendokusai
 			foreach (Material material in decorationMaterials.Values)
 				Destroy(material);
 			decorationMaterials.Clear();
+			foreach (Material material in decorationGrassMaterials.Values)
+				Destroy(material);
+			decorationGrassMaterials.Clear();
 		}
 
 		private void ReleaseDecorations()
@@ -140,6 +146,7 @@ namespace WitchMendokusai
 						decorationTemplates.Add(new DecorationTemplate
 						{
 							Mesh = filter.sharedMesh, Submesh = index, Material = material,
+							GrassMaterialOverride = source.UseGrassMaterialOverride ? GetGrassMaterialOverride(original) : null,
 							Local = Matrix4x4.TRS(Vector3.zero, source.Prefab.transform.localRotation, source.Prefab.transform.localScale) * source.Prefab.transform.worldToLocalMatrix * filter.transform.localToWorldMatrix,
 							Shadows = renderer.shadowCastingMode, ReceiveShadows = renderer.receiveShadows, Probes = renderer.lightProbeUsage,
 							Layer = renderer.gameObject.layer, Source = source, SourceSeed = sourceIndex * 83492791
@@ -148,6 +155,30 @@ namespace WitchMendokusai
 				}
 				sourceIndex++;
 			}
+		}
+
+		private Material GetGrassMaterialOverride(Material original)
+		{
+			ResourceManager resources = ResourceManager.Instance;
+			Material candidate = resources != null && resources.SurvivalFeel != null ? resources.SurvivalFeel.GrassMaterialOverride : null;
+			if (candidate == null) return null;
+			if (decorationGrassMaterials.TryGetValue(original, out Material material)) return material;
+			material = new Material(candidate) { name = original.name + " Survival Decoration", enableInstancing = true };
+			foreach (string property in new[] { "_BaseColor", "_Color" })
+				if (original.HasProperty(property) && material.HasProperty(property)) material.SetColor(property, original.GetColor(property));
+			if (original.HasProperty("_BaseMap") && material.HasProperty("_BaseMap"))
+			{
+				material.SetTexture("_BaseMap", original.GetTexture("_BaseMap"));
+				material.SetTextureScale("_BaseMap", original.GetTextureScale("_BaseMap"));
+				material.SetTextureOffset("_BaseMap", original.GetTextureOffset("_BaseMap"));
+			}
+			foreach (string property in new[] { "_Cull", "_AlphaClip", "_Cutoff", "_Surface", "_SrcBlend", "_DstBlend", "_ZWrite" })
+				if (original.HasProperty(property) && material.HasProperty(property)) material.SetFloat(property, original.GetFloat(property));
+			if (original.IsKeywordEnabled("_ALPHATEST_ON")) material.EnableKeyword("_ALPHATEST_ON");
+			else material.DisableKeyword("_ALPHATEST_ON");
+			material.renderQueue = original.renderQueue;
+			decorationGrassMaterials.Add(original, material);
+			return material;
 		}
 
 		private void BuildDecorationChunk(DecorationChunk chunk, Vector2Int key)
@@ -247,7 +278,9 @@ namespace WitchMendokusai
 
 		private void SubmitDecorations(DecorationTemplate template, Camera camera, int count, Bounds bounds)
 		{
-			RenderParams parameters = new(template.Material)
+			DungeonManager dungeon = DungeonManager.Instance;
+			bool survival = dungeon != null && dungeon.IsDungeon && dungeon.CurDungeon != null && dungeon.CurDungeon.MapType == DungeonMapType.SurvivorsLike;
+			RenderParams parameters = new(survival && template.GrassMaterialOverride != null ? template.GrassMaterialOverride : template.Material)
 			{
 				camera = camera, worldBounds = bounds, layer = template.Layer,
 				shadowCastingMode = template.Shadows, receiveShadows = template.ReceiveShadows,
