@@ -20,6 +20,9 @@ namespace WitchMendokusai
         [field: Tooltip("에디터에서도 보낼지. 기본 끔 — 에디터는 콘솔이 이미 정본.")]
         [field: SerializeField] public bool EnabledInEditor { get; private set; } = false;
 
+        [field: Tooltip("릴리스(비개발) 빌드에서도 보낼지. 기본 끔, 데모 배포본은 플레이어 PC 로그를 보내지 않음 (사용자 2026-11-12)")]
+        [field: SerializeField] public bool EnabledInReleaseBuild { get; private set; } = false;
+
         [field: Tooltip("서버 수신 주소. 노트북 prod yawnbot.")]
         [field: SerializeField] public string Endpoint { get; private set; } = "https://yawnbot.mascari4615.com/device-log";
 

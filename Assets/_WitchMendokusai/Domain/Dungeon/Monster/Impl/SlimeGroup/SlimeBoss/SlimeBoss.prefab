@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6547949991324373500, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
+      propertyPath: flashStrength
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 761542210302735019, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
       propertyPath: m_LocalScale.x
       value: 3

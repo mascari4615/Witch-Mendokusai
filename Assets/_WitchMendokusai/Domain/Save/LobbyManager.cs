@@ -71,6 +71,9 @@ namespace WitchMendokusai
 		// 시작 버튼 복제로 같은 모양 유지, 격자 배치라 씬 수정 없이 옆에 놓임
 		private void BuildMultiplayerButton()
 		{
+			// 데모 릴리스 빌드는 멀티 미노출 (사용자 2026-11-12)
+			if (Debug.isDebugBuild == false)
+				return;
 			Button multiplayerButton = Instantiate(startButton, startButton.transform.parent);
 			multiplayerButton.name = "[Button] Multiplayer";
 			multiplayerButton.transform.SetSiblingIndex(startButton.transform.GetSiblingIndex() + 1);

@@ -84,6 +84,11 @@ namespace WitchMendokusai
             {
                 return;
             }
+#else
+            if (Debug.isDebugBuild == false && settings.EnabledInReleaseBuild == false)
+            {
+                return;
+            }
 #endif
             _installed = true;
 

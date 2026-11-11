@@ -8,6 +8,8 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private SpriteRenderer spriteRenderer;
 		[SerializeField, Min(0f)] private float flashDuration = 0.1f;
+		[SerializeField, Range(0f, 1f), Tooltip("피격 흰 점멸 세기. 큰 몸은 낮춰 형태 유지 (보스 0.5, 사용자 2026-11-12)")]
+		private float flashStrength = 1f;
 		private UnitHealth health;
 		private Coroutine flashRoutine;
 		private MaterialPropertyBlock properties;
@@ -70,7 +72,7 @@ namespace WitchMendokusai
 				spriteRenderer.GetPropertyBlock(originalProperties);
 				hasOriginalProperties = true;
 			}
-			SetEmission(1f);
+			SetEmission(flashStrength);
 			yield return new WaitForSeconds(flashDuration);
 			RestoreProperties();
 			flashRoutine = null;
