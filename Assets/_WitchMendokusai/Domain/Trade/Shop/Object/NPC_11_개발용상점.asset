@@ -33,3 +33,4 @@ MonoBehaviour:
     - {fileID: 11400000, guid: fe681fa9838d4f3193b7c145fed98b10, type: 2}
   <QuestData>k__BackingField: []
   <IsShopFree>k__BackingField: 1
+  <DevBuildOnly>k__BackingField: 1
