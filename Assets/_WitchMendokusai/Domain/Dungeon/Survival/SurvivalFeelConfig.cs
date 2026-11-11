@@ -64,6 +64,21 @@ namespace WitchMendokusai
 		public Material ShardMaterial;
 		public Material RingMaterial;
 
+		[Header("Freeze status")]
+		public Sprite FreezeStatusIcon;
+		public Color FreezeStatusColor = new(.65f, .85f, 1f, .85f);
+		[Min(.01f)] public float FreezeMarkerSize = 1.8f;
+		[Min(0f)] public float FreezeMarkerHeight = .08f;
+		[Min(.01f)] public float FreezeMarkerRefreshLife = .25f;
+		public Vector2 FreezeHudOffset = new(0f, -150f);
+		public Vector2 FreezeHudSize = new(420f, 36f);
+		[Min(1f)] public float FreezeHudFontSize = 22f;
+		[Min(1f)] public float FreezeHudIconSize = 30f;
+		[Min(0f)] public float FreezeHudIconSpacing = 8f;
+		public string FreezeStatusLabel = "시간정지";
+		public string FreezeBossLabel = "보스";
+		public string FreezeBossReleasedLabel = "보스 해제";
+
 		[Header("Player hit flash")]
 		public RuntimeAnimatorController PlayerHitFlashController;
 		[Range(0f, 1f), Tooltip("피격 때 화면 전체 빨강의 세기 배율")] public float PlayerHitFlashStrength = 0.3f;

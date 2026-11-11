@@ -18,6 +18,9 @@ namespace WitchMendokusai
 		private ParticleSystem rings;
 		private ParticleSystem unscaledShards;
 		private ParticleSystem unscaledRings;
+		private ParticleSystem freezeMarkers;
+		private ParticleSystem.Particle[] freezeParticles = System.Array.Empty<ParticleSystem.Particle>();
+		private readonly Plane[] freezePlanes = new Plane[6];
 		private readonly List<MonsterObject> elites = new();
 
 		private float shakeEnergy;
@@ -32,6 +35,15 @@ namespace WitchMendokusai
 		private int expSoundCount;
 
 		private SurvivalFeelConfig Config => resourceManager.SurvivalFeel;
+
+		private void OnEnable() => UnityEngine.Rendering.RenderPipelineManager.beginCameraRendering += RenderFreezeMarkers;
+
+		private void OnDisable()
+		{
+			UnityEngine.Rendering.RenderPipelineManager.beginCameraRendering -= RenderFreezeMarkers;
+			if (freezeMarkers != null)
+				freezeMarkers.Clear();
+		}
 
 		[Inject]
 		public void Construct(ResourceManager resourceManager, CameraManager cameraManager, TimeManager timeManager, GameEventManager gameEventManager, PlayerProvider playerProvider)
@@ -61,6 +73,51 @@ namespace WitchMendokusai
 			rings = BuildSystem("Rings", Config.RingMaterial, false, ParticleSystemRenderMode.HorizontalBillboard);
 			unscaledShards = BuildSystem("UnscaledShards", Config.ShardMaterial, true, ParticleSystemRenderMode.Stretch);
 			unscaledRings = BuildSystem("UnscaledRings", Config.RingMaterial, true, ParticleSystemRenderMode.HorizontalBillboard);
+			freezeMarkers = BuildSystem("Freeze markers", Config.RingMaterial, false, ParticleSystemRenderMode.HorizontalBillboard);
+			ParticleSystem.SizeOverLifetimeModule size = freezeMarkers.sizeOverLifetime;
+			size.enabled = false;
+			ParticleSystem.ColorOverLifetimeModule color = freezeMarkers.colorOverLifetime;
+			color.enabled = false;
+		}
+
+		private void RenderFreezeMarkers(UnityEngine.Rendering.ScriptableRenderContext context, Camera camera)
+		{
+			if (freezeMarkers == null || camera.cameraType != CameraType.Game || camera.CompareTag("MainCamera") == false)
+				return;
+			if (EnemyFreezeState.NormalRemainingSeconds <= 0f && EnemyFreezeState.BossRemainingSeconds <= 0f)
+			{
+				freezeMarkers.SetParticles(freezeParticles, 0);
+				return;
+			}
+			List<GameObject> monsters = ObjectBufferManager.GetObjects(ObjectType.Monster);
+			if (freezeParticles.Length < monsters.Count)
+			{
+				System.Array.Resize(ref freezeParticles, Mathf.NextPowerOfTwo(monsters.Count));
+				ParticleSystem.MainModule main = freezeMarkers.main;
+				main.maxParticles = Mathf.Max(main.maxParticles, freezeParticles.Length);
+			}
+			GeometryUtility.CalculateFrustumPlanes(camera, freezePlanes);
+			SurvivalFeelConfig config = Config;
+			int count = 0;
+			foreach (GameObject monsterObject in monsters)
+			{
+				if (monsterObject == null || monsterObject.TryGetComponent(out MonsterObject monster) == false || monster.isActiveAndEnabled == false || monster.IsActionSuspended == false)
+					continue;
+				SpriteRenderer renderer = monster.SpriteRenderer;
+				if (renderer == null || renderer.enabled == false || renderer.gameObject.activeInHierarchy == false || (camera.cullingMask & (1 << renderer.gameObject.layer)) == 0 || GeometryUtility.TestPlanesAABB(freezePlanes, renderer.bounds) == false)
+					continue;
+				float scale = Mathf.Max(Mathf.Abs(monster.transform.lossyScale.x), Mathf.Abs(monster.transform.lossyScale.z));
+				freezeParticles[count++] = new ParticleSystem.Particle
+				{
+					position = monster.transform.position + Vector3.up * config.FreezeMarkerHeight,
+					velocity = Vector3.zero,
+					startColor = config.FreezeStatusColor,
+					startSize = config.FreezeMarkerSize * scale,
+					startLifetime = config.FreezeMarkerRefreshLife,
+					remainingLifetime = config.FreezeMarkerRefreshLife
+				};
+			}
+			freezeMarkers.SetParticles(freezeParticles, count);
 		}
 
 		private ParticleSystem BuildSystem(string systemName, Material material, bool unscaled, ParticleSystemRenderMode renderMode)

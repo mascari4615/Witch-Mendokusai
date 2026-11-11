@@ -41,13 +41,20 @@ namespace WitchMendokusai
 		private UIQuestGrid questGrid;
 		private Coroutine loop;
 		private RunEquipmentHud runEquipmentHud;
+		private RectTransform freezeHud;
+		private Image freezeIcon;
+		private TextMeshProUGUI freezeText;
+		private int lastFreezeSeconds = -1;
+		private int lastBossFreezeSeconds = -1;
+		private ResourceManager resourceManager;
 
 		private DungeonManager dungeonManager;
 
 		[Inject]
-		public void Construct(DungeonManager dungeonManager)
+		public void Construct(DungeonManager dungeonManager, ResourceManager resourceManager)
 		{
 			this.dungeonManager = dungeonManager;
+			this.resourceManager = resourceManager;
 		}
 
 		public override bool IsFullscreen => false;
@@ -66,6 +73,8 @@ namespace WitchMendokusai
 
 		protected override void OnClose()
 		{
+			if (freezeHud != null)
+				freezeHud.gameObject.SetActive(false);
 			StopLoop();
 			isSelecting = false;
 			SetHudVisible(true);
@@ -74,6 +83,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
+			UpdateFreezeStatus();
 			if (cardManager == null)
 				cardManager = FindAnyObjectByType<CardManager>(FindObjectsInactive.Include);
 			bool selecting = cardManager.CurPanelType != CardPanelType.None;
@@ -81,6 +91,66 @@ namespace WitchMendokusai
 				return;
 			isSelecting = selecting;
 			SetHudVisible(selecting == false);
+		}
+
+		private void BuildFreezeStatus()
+		{
+			GameObject status = new("Freeze status", typeof(RectTransform));
+			status.layer = header.layer;
+			freezeHud = (RectTransform)status.transform;
+			freezeHud.SetParent(header.transform, false);
+			freezeHud.anchorMin = freezeHud.anchorMax = new Vector2(.5f, 1f);
+			GameObject icon = new("Icon", typeof(RectTransform), typeof(Image));
+			icon.layer = header.layer;
+			freezeIcon = icon.GetComponent<Image>();
+			freezeIcon.rectTransform.SetParent(freezeHud, false);
+			freezeIcon.rectTransform.anchorMin = freezeIcon.rectTransform.anchorMax = new Vector2(0f, .5f);
+			freezeIcon.rectTransform.pivot = new Vector2(0f, .5f);
+			freezeIcon.preserveAspect = true;
+			freezeIcon.raycastTarget = false;
+			GameObject text = new("Remaining game time", typeof(RectTransform), typeof(TextMeshProUGUI));
+			text.layer = header.layer;
+			freezeText = text.GetComponent<TextMeshProUGUI>();
+			freezeText.rectTransform.SetParent(freezeHud, false);
+			freezeText.rectTransform.anchorMin = Vector2.zero;
+			freezeText.rectTransform.anchorMax = Vector2.one;
+			freezeText.font = nextEventText.font;
+			freezeText.fontSharedMaterial = nextEventText.fontSharedMaterial;
+			freezeText.alignment = TextAlignmentOptions.MidlineLeft;
+			freezeText.raycastTarget = false;
+		}
+
+		private void UpdateFreezeStatus()
+		{
+			int remaining = Mathf.CeilToInt(EnemyFreezeState.NormalRemainingSeconds);
+			int bossRemaining = Mathf.CeilToInt(EnemyFreezeState.BossRemainingSeconds);
+			bool visible = dungeonManager.IsDungeon && (remaining > 0 || bossRemaining > 0);
+			if (visible == false)
+			{
+				if (freezeHud != null)
+					freezeHud.gameObject.SetActive(false);
+				lastFreezeSeconds = lastBossFreezeSeconds = -1;
+				return;
+			}
+			if (freezeHud == null)
+				BuildFreezeStatus();
+			freezeHud.gameObject.SetActive(true);
+			if (remaining == lastFreezeSeconds && bossRemaining == lastBossFreezeSeconds)
+				return;
+			lastFreezeSeconds = remaining;
+			lastBossFreezeSeconds = bossRemaining;
+			SurvivalFeelConfig config = resourceManager.SurvivalFeel;
+			freezeHud.anchoredPosition = config.FreezeHudOffset;
+			freezeHud.sizeDelta = config.FreezeHudSize;
+			freezeIcon.sprite = config.FreezeStatusIcon;
+			freezeIcon.color = config.FreezeStatusColor;
+			freezeIcon.rectTransform.sizeDelta = Vector2.one * config.FreezeHudIconSize;
+			freezeText.rectTransform.offsetMin = new Vector2(config.FreezeHudIconSize + config.FreezeHudIconSpacing, 0f);
+			freezeText.rectTransform.offsetMax = Vector2.zero;
+			freezeText.fontSize = config.FreezeHudFontSize;
+			freezeText.color = config.FreezeStatusColor;
+			string boss = bossRemaining > 0 ? $"{config.FreezeBossLabel} {bossRemaining}s" : config.FreezeBossReleasedLabel;
+			freezeText.text = $"{config.FreezeStatusLabel} {remaining}s / {boss}";
 		}
 
 		private void SetHudVisible(bool isVisible)

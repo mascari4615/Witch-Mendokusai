@@ -22,6 +22,19 @@ MonoBehaviour:
   KillHitstopInterval: 1.2
   BurstsPerSecond: 30
   MaxParticles: 800
+  FreezeStatusIcon: {fileID: -1677760388, guid: fbd184d873518c24aaaa66f4c3d4c2a9, type: 3}
+  FreezeStatusColor: {r: 0.65, g: 0.85, b: 1, a: 0.85}
+  FreezeMarkerSize: 1.8
+  FreezeMarkerHeight: 0.08
+  FreezeMarkerRefreshLife: 0.25
+  FreezeHudOffset: {x: 0, y: -150}
+  FreezeHudSize: {x: 420, y: 36}
+  FreezeHudFontSize: 22
+  FreezeHudIconSize: 30
+  FreezeHudIconSpacing: 8
+  FreezeStatusLabel: "시간정지"
+  FreezeBossLabel: "보스"
+  FreezeBossReleasedLabel: "보스 해제"
   EliteAuraInterval: 0.12
   EliteRingInterval: 0.9
   ImpactHeight: 0.6
