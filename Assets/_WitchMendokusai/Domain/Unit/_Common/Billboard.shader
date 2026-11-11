@@ -174,7 +174,8 @@ Shader "WitchMendokusai/BillboardShader"
                 col *= i.color;
                 
                 clip(col.a - _Cutoff  * _Emission);
-                col += _EmissionColor * _Emission;
+                // 피격 점멸: 더하기 대신 섞기. 1이면 기존과 같은 완전 흰색, 0.5면 형태가 남음
+                col.rgb = lerp(col.rgb, _EmissionColor.rgb, saturate(_Emission));
                 return col;
             }
             ENDHLSL
