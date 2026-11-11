@@ -12,6 +12,8 @@ namespace WitchMendokusai
 	{
 		private CanvasGroup canvasGroup;
 		private Animator[] transitionAnimators;
+		private int transitionGeneration;
+		private bool visualActive;
 
 		private TimeManager timeManager;
 
@@ -43,7 +45,7 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			canvasGroup.alpha = 1;
+			canvasGroup.alpha = visualActive ? 1f : 0f;
 		}
 
 		public async UniTask Transition(Action aDuringTransition, Action aWhenStart = null, Action aWhenEnd = null)
@@ -64,6 +66,10 @@ namespace WitchMendokusai
 
 		private async UniTask TransitionCore(Func<UniTask> tDuringTransition, Action aWhenStart = null, Action aWhenEnd = null)
 		{
+			int generation = ++transitionGeneration;
+			visualActive = true;
+			canvasGroup.alpha = 1f;
+			double visualEndTime = 0d;
 			// HACK:
 			Animator transitionAnimator = transitionAnimators[Random.Range(0, transitionAnimators.Length)];
 			AnimatorStateInfo currentStateInfo;
@@ -92,6 +98,7 @@ namespace WitchMendokusai
 				await UniTask.Delay(ToMilliseconds(animWaitTime), DelayType.Realtime);
 				currentStateInfo = transitionAnimator.GetCurrentAnimatorStateInfo(0); // UpdateMode: UnscaledTime
 				float fadeInDuration = currentStateInfo.length / currentStateInfo.speedMultiplier;
+				visualEndTime = Time.realtimeSinceStartupAsDouble + ToMilliseconds(fadeInDuration) / 1000d;
 				await UniTask.Delay(ToMilliseconds(fadeInDuration * earlyResumeRatio), DelayType.Realtime);
 			}
 
@@ -100,6 +107,21 @@ namespace WitchMendokusai
 			canvasGroup.blocksRaycasts = false;
 			timeManager.Resume(gameObject);
 			aWhenEnd?.Invoke();
+			HideAfterVisualEnd(visualEndTime, generation).Forget();
+		}
+
+		// 입력 재개와 API 완료는 기존 30% 지점, 시각 루트만 IN 끝에서 정리
+		private async UniTask HideAfterVisualEnd(double visualEndTime, int generation)
+		{
+			if (this == null || canvasGroup == null || generation != transitionGeneration)
+				return;
+			int remainingMilliseconds = Math.Max(0, (int)Math.Ceiling((visualEndTime - Time.realtimeSinceStartupAsDouble) * 1000d));
+			bool cancelled = await UniTask.Delay(remainingMilliseconds, DelayType.Realtime,
+				cancellationToken: this.GetCancellationTokenOnDestroy()).SuppressCancellationThrow();
+			if (cancelled || this == null || canvasGroup == null || generation != transitionGeneration)
+				return;
+			visualActive = false;
+			canvasGroup.alpha = 0f;
 		}
 
 		private int ToMilliseconds(float seconds)
