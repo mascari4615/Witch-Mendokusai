@@ -89,6 +89,7 @@ namespace WitchMendokusai
 				if (chunks.ContainsKey(chunkPosition) == false)
 				{
 					GameObject chunk = objectPoolManager.Spawn(groundPrefab);
+					SurvivalLook.ApplyAll(chunk, ResourceManager.Instance.SurvivalFeel);
 					chunk.transform.position = chunkPosition;
 					chunks[chunkPosition] = chunk;
 					chunk.SetActive(true);

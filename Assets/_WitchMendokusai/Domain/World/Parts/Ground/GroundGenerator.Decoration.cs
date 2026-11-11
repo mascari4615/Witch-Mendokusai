@@ -72,7 +72,13 @@ namespace WitchMendokusai
 		public int DecorationVisibleInstances { get; private set; }
 		public int DecorationGeneratedChunks { get; private set; }
 
-		private void OnEnable() => RenderPipelineManager.beginCameraRendering += RenderDecorations;
+		private void OnEnable()
+		{
+			RenderPipelineManager.beginCameraRendering += RenderDecorations;
+			// 스테이지에 직접 놓인 풀도 생존 맵 재질로
+			StageObject stage = GetComponentInParent<StageObject>();
+			SurvivalLook.ApplyAll(stage != null ? stage.gameObject : gameObject, ResourceManager.Instance.SurvivalFeel);
+		}
 
 		private void OnDestroy()
 		{
@@ -131,7 +137,7 @@ namespace WitchMendokusai
 					Material[] materials = renderer.sharedMaterials;
 					for (int index = 0; index < filter.sharedMesh.subMeshCount; index++)
 					{
-						Material original = materials[index];
+						Material original = SurvivalLook.Map(materials[index], ResourceManager.Instance.SurvivalFeel);
 						if (decorationMaterials.TryGetValue(original, out Material material) == false)
 						{
 							material = new Material(original) { name = original.name + " Decoration", enableInstancing = true };

@@ -293,3 +293,11 @@ MonoBehaviour:
     RingSize: 10
     RingLife: 0.7
     Color: {r: 1, g: 0.9, b: 0.55, a: 1}
+  UseMapLook: 1
+  GrassSourceMaterial: {fileID: 2100000, guid: 2a27b3985f33f324185d30511b4aec4a, type: 2}
+  GrassLitMaterial: {fileID: 2100000, guid: 9cf35727358132d48aa379b2e13ba56f, type: 2}
+  GroundSourceMaterial: {fileID: 2100000, guid: 96cb66d3f55ab69458576aa757bd763a, type: 2}
+  GroundColorScale: 1.25
+  UseRunSky: 1
+  RunSkyStartHour: 10
+  RunSkyEndHour: 16.5

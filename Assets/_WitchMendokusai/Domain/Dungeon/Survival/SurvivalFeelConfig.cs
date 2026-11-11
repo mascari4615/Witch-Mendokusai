@@ -156,6 +156,13 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("떠오름 높이. 바닥 위로만 오르내림")] public float ExpOrbBobAmplitude = 0.04f;
 		[Min(0f), Tooltip("떠오름 초당 횟수")] public float ExpOrbBobSpeed = 0.8f;
 
+		[Header("Map look")]
+		[Tooltip("생존 맵에서 풀과 지면 재질 바꾸기 (사용자 2026-11-12 조명 C안)")] public bool UseMapLook = true;
+		[Tooltip("바꿀 원본 풀 재질 (Unlit)")] public Material GrassSourceMaterial;
+		[Tooltip("대신 쓸 빛 받는 풀 재질")] public Material GrassLitMaterial;
+		[Tooltip("색을 밝힐 원본 지면 재질")] public Material GroundSourceMaterial;
+		[Min(0f), Tooltip("지면 색 배율")] public float GroundColorScale = 1.25f;
+
 		[Header("Run sky")]
 		[Tooltip("판 동안 하늘을 월드 시계 대신 아래 시간대로 그림. 월드 시계는 계속 흐름")] public bool UseRunSky;
 		[Range(0f, 24f), Tooltip("판 시작 때 하늘 시각")] public float RunSkyStartHour = 10f;
