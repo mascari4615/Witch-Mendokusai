@@ -7,6 +7,7 @@
     --wm-dlg-teal: #57b8b4;
     --wm-dlg-teal-dark: #1d5553;
     --wm-dlg-amber: #e09a2e;
+    --wm-dlg-cinema-band: 72px;
     position: absolute;
     left: 0;
     top: 0;
@@ -137,7 +138,7 @@
 }
 
 .wm-dlg--cinema .wm-dlg-band {
-    height: 72px;
+    height: var(--wm-dlg-cinema-band);
 }
 
 /* 메시지 창 공통 */
@@ -252,6 +253,11 @@
     bottom: 0;
     height: 222px;
     background-size: 100% 100%;
+}
+
+/* 위아래 검은 띠가 있으면 자막이 띠에 잘리지 않게 띠 높이만큼 올림 */
+.wm-dlg--cinema.wm-dlg--feature .wm-dlg-window {
+    bottom: var(--wm-dlg-cinema-band);
 }
 
 .wm-dlg--feature .wm-dlg-name {
