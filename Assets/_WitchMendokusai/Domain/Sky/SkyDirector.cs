@@ -179,7 +179,9 @@ namespace WitchMendokusai
 			if (worldClock.Config == null)
 				return;
 
-			float normalizedTime = ComputeNormalizedTime(worldClock);
+			float normalizedTime = SkyTimeOverride.IsActive
+				? Mathf.Repeat(SkyTimeOverride.Hour / worldClock.Config.HoursPerDay, 1f)
+				: ComputeNormalizedTime(worldClock);
 
 			if (force == false && Mathf.Approximately(normalizedTime, cachedNormalizedTime) == true)
 				return;

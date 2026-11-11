@@ -156,6 +156,11 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("떠오름 높이. 바닥 위로만 오르내림")] public float ExpOrbBobAmplitude = 0.04f;
 		[Min(0f), Tooltip("떠오름 초당 횟수")] public float ExpOrbBobSpeed = 0.8f;
 
+		[Header("Run sky")]
+		[Tooltip("판 동안 하늘을 월드 시계 대신 아래 시간대로 그림. 월드 시계는 계속 흐름")] public bool UseRunSky;
+		[Range(0f, 24f), Tooltip("판 시작 때 하늘 시각")] public float RunSkyStartHour = 10f;
+		[Range(0f, 24f), Tooltip("판 제한 시간이 끝날 때 하늘 시각")] public float RunSkyEndHour = 16.5f;
+
 		[Header("Upgrade")]
 		public UpgradeTuning Upgrade = new();
 		public FeelMoment PlayerRevive = new() { Shake = 0.5f, Shards = 60, ShardSpeed = 9f, ShardLife = 0.8f, ShardSize = 0.26f, RingSize = 10f, RingLife = 0.7f, Color = new Color(1f, 0.9f, 0.55f, 1f) };

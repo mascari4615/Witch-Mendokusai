@@ -101,6 +101,7 @@ namespace WitchMendokusai
 			if (Instance == this)
 				Instance = null;
 			DungeonManagerBridge.Register(null);
+			SkyTimeOverride.Clear();
 		}
 
 		private void Start()
@@ -209,6 +210,8 @@ namespace WitchMendokusai
 			if (IsDungeon == false)
 				return;
 
+			UpdateRunSky();
+
 			float interval = resourceManager.SurvivalFeel.Upgrade.HpRegenInterval;
 			hpRegenElapsed += Time.deltaTime;
 			if (hpRegenElapsed < interval)
@@ -219,6 +222,20 @@ namespace WitchMendokusai
 			int regenAmount = player.UnitStat[UnitStatType.HP_REGENERATION];
 			if (regenAmount > 0 && player.UnitStat[UnitStatType.HP_CUR] < player.UnitStat[UnitStatType.HP_MAX])
 				player.ReceiveHeal(regenAmount);
+		}
+
+		// 판 진행률에 맞춰 하늘 시각을 시작에서 끝 시각으로. 결과창 동안은 마지막 값 유지, 귀환 때 해제
+		private void UpdateRunSky()
+		{
+			SurvivalFeelConfig feel = resourceManager.SurvivalFeel;
+			if (feel.UseRunSky == false || Context == null)
+			{
+				SkyTimeOverride.Clear();
+				return;
+			}
+			double total = Context.InitialDungeonTime.TotalSeconds;
+			float progress = total > 0d ? Mathf.Clamp01((float)(Context.ElapsedTime.TotalSeconds / total)) : 0f;
+			SkyTimeOverride.Set(Mathf.Lerp(feel.RunSkyStartHour, feel.RunSkyEndHour, progress));
 		}
 
 		private bool IsClearReached()
@@ -328,6 +345,7 @@ namespace WitchMendokusai
 			{
 				dungeonUI.ClosePanel();
 				cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
+				SkyTimeOverride.Clear();
 
 				gameManager.Init();
 				dataManager.RunLoadout.End();
