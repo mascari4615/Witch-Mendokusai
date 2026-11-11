@@ -79,9 +79,9 @@ namespace WitchMendokusai
 
 			TemplateContainer tree = settings.Layout.CloneTree();
 			root = tree.Q<VisualElement>(USS_ROOT);
+			root.style.display = DisplayStyle.None;
 			root.styleSheets.Add(settings.Style);
 			root.RemoveFromHierarchy();
-			uiRoot.WindowsLayer.Add(root);
 
 			cast = root.Q<VisualElement>("wm-dlg-cast");
 			fxLayer = root.Q<VisualElement>("wm-dlg-fx");
@@ -94,7 +94,7 @@ namespace WitchMendokusai
 			BuildBackdrop();
 
 			root.RegisterCallback<PointerDownEvent>(OnRootPointerDown);
-			root.style.display = DisplayStyle.None;
+			uiRoot.WindowsLayer.Add(root);
 		}
 
 		public void Begin(IDialogueStageControls stageControls)

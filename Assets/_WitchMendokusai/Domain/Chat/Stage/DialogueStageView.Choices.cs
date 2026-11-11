@@ -29,6 +29,7 @@ namespace WitchMendokusai
 		private void BuildChoices()
 		{
 			choiceList = root.Q<VisualElement>("wm-dlg-choices");
+			choiceList.style.display = DisplayStyle.None;
 			choiceList.RegisterCallback<NavigationMoveEvent>(OnChoiceNavigationMove, TrickleDown.TrickleDown);
 			choiceFrame = root.Q<VisualElement>("wm-dlg-frame");
 			ShopNineSlice corner = new();
@@ -68,6 +69,8 @@ namespace WitchMendokusai
 				DialogueChoiceRow row = rows[i];
 				Button button = new(() => OnChoiceClicked(rowIndex));
 				button.AddToClassList(USS_ROW);
+				if (UIEffects.Enabled)
+					button.style.opacity = 0f;
 
 				Label label = new(row.Label) { pickingMode = PickingMode.Ignore };
 				label.AddToClassList(USS_ROW_LABEL);
@@ -94,7 +97,11 @@ namespace WitchMendokusai
 				if (UIEffects.Enabled)
 				{
 					button.style.transitionDelay = new List<TimeValue> { new(settings.ChoiceRowDelaySeconds * i, TimeUnit.Second) };
-					button.schedule.Execute(() => button.AddToClassList(USS_ROW_IN)).ExecuteLater((long)(settings.ChoiceAppearDelaySeconds * 1000f));
+					button.schedule.Execute(() =>
+					{
+						button.style.opacity = StyleKeyword.Null;
+						button.AddToClassList(USS_ROW_IN);
+					}).ExecuteLater((long)(settings.ChoiceAppearDelaySeconds * 1000f));
 				}
 				else
 				{

@@ -25,6 +25,7 @@ namespace WitchMendokusai
 			root.Q<Button>("wm-dlg-tool-skip").clicked += SkipLines;
 			root.Q<Button>("wm-dlg-tool-log").clicked += ToggleLog;
 			logPanel = root.Q<VisualElement>("wm-dlg-log");
+			logPanel.style.display = DisplayStyle.None;
 			logScroll = root.Q<ScrollView>("wm-dlg-log-scroll");
 			root.Q<Button>("wm-dlg-log-close").clicked += CloseLogWithSound;
 		}
@@ -130,6 +131,7 @@ namespace WitchMendokusai
 			UiSfx.Play(UiSfxEvent.Confirm);
 			RefreshLog();
 			logPanel.AddToClassList(USS_LOG_OPEN);
+			logPanel.style.display = DisplayStyle.Flex;
 		}
 
 		private void RefreshLog()
@@ -159,6 +161,7 @@ namespace WitchMendokusai
 		{
 			isLogOpen = false;
 			logPanel.RemoveFromClassList(USS_LOG_OPEN);
+			logPanel.style.display = DisplayStyle.None;
 		}
 
 		// 취소 입력 우선권. 로그가 열려 있으면 로그만 닫음

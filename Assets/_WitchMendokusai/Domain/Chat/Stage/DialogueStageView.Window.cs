@@ -33,6 +33,7 @@ namespace WitchMendokusai
 			nameLabel = root.Q<Label>("wm-dlg-name-label");
 			lineLabel = root.Q<Label>("wm-dlg-line");
 			nextMark = root.Q<VisualElement>("wm-dlg-next");
+			nextMark.style.display = DisplayStyle.None;
 			lineLabel.enableRichText = true;
 			ShopNineSlice corner = new();
 			corner.AddToClassList(USS_WINDOW_CORNER);
@@ -85,6 +86,7 @@ namespace WitchMendokusai
 
 		private void ShowLine(string speakerName, string text)
 		{
+			nextMark.style.display = DisplayStyle.None;
 			nameLabel.text = speakerName;
 			bool hasName = string.IsNullOrEmpty(speakerName) == false;
 			nameBand.EnableInClassList(USS_BAND_HIDDEN, hasName == false);

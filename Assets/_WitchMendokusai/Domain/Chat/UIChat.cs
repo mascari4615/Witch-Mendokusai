@@ -57,6 +57,9 @@ namespace WitchMendokusai
 		private int lastSpeakerID;
 		private Action endAction;
 		private Vector2 panelOrigin;
+		private Vector2 panelDesignOrigin;
+		private Vector3 panelDesignScale;
+		private bool initialized;
 
 		private ChatManager chatManager;
 		private CameraManager cameraManager;
@@ -76,13 +79,39 @@ namespace WitchMendokusai
 			this.playerProvider = playerProvider;
 		}
 
-		private void Start()
+		private void Awake() => InitializePanel();
+
+		private void InitializePanel()
 		{
+			if (initialized)
+				return;
+			initialized = true;
 			chatCanvasGroup.alpha = 0;
 			bubbleCanvasGroup.alpha = 0;
-			panelOrigin = panelRoot.anchoredPosition;
+			panelDesignOrigin = panelRoot.anchoredPosition;
+			panelDesignScale = panelRoot.localScale;
 			nextMark.SetActive(false);
 			choiceList.Hide();
+			unitName.text = string.Empty;
+			lineText.text = string.Empty;
+			FitPanel();
+		}
+
+		private void OnRectTransformDimensionsChange()
+		{
+			if (initialized)
+				FitPanel();
+		}
+
+		private void FitPanel()
+		{
+			RectTransform viewport = panelRoot.parent as RectTransform;
+			if (viewport == null || viewport.rect.width <= 0f || viewport.rect.height <= 0f)
+				return;
+			float scale = Mathf.Min(1f, viewport.rect.width / 1920f, viewport.rect.height / 1080f);
+			panelRoot.localScale = panelDesignScale * scale;
+			panelOrigin = new Vector2((viewport.rect.width - panelRoot.rect.width * scale) * .5f, panelDesignOrigin.y * scale);
+			panelRoot.anchoredPosition = panelOrigin;
 		}
 
 		// 선택지 표시. 프롬프트와 화자 이름이 없으면 해당 칸 비움
@@ -109,6 +138,8 @@ namespace WitchMendokusai
 
 		private void OpenPanel()
 		{
+			InitializePanel();
+			FitPanel();
 			chatCanvasGroup.DOKill();
 			chatCanvasGroup.DOFade(1, panelRiseDuration).SetUpdate(true);
 			panelRoot.DOKill();

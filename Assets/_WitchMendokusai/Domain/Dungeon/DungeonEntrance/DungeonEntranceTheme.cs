@@ -19,7 +19,7 @@ namespace WitchMendokusai
 
 		public static event Action OnChanged = delegate { };
 
-		public static DungeonEntranceTheme Current => (DungeonEntranceTheme)PlayerPrefs.GetInt(PREFS_KEY, (int)DungeonEntranceTheme.Gosu);
+		public static DungeonEntranceTheme Current => (DungeonEntranceTheme)PlayerPrefs.GetInt(PREFS_KEY, (int)DungeonEntranceTheme.NightGlass);
 
 		public static void Set(DungeonEntranceTheme theme)
 		{

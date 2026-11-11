@@ -25,15 +25,51 @@ namespace WitchMendokusai
 		private CardManager cardManager;
 		private float autoCloseSeconds;
 		private float openedAt;
+		private RectTransform rewardLayout;
 
 		public bool IsOpen => content.activeSelf;
 
 		private void Awake()
 		{
+			BuildRewardLayout();
 			closeButton.onClick.AddListener(Close);
 			UITermIcon.Attach(title, theme, SurvivalTerm.ChestReward);
 			content.SetActive(false);
 			cellTemplate.SetActive(false);
+		}
+
+		private void BuildRewardLayout()
+		{
+			RectTransform viewport = (RectTransform)content.transform;
+			List<RectTransform> children = new();
+			foreach (Transform child in viewport)
+				if (child is RectTransform rect)
+					children.Add(rect);
+			GameObject layout = new("Reward layout", typeof(RectTransform));
+			rewardLayout = (RectTransform)layout.transform;
+			rewardLayout.SetParent(viewport, false);
+			rewardLayout.anchorMin = rewardLayout.anchorMax = new Vector2(.5f, .5f);
+			rewardLayout.sizeDelta = new Vector2(1920f, 1080f);
+			foreach (RectTransform child in children)
+			{
+				Vector2 position = child.anchoredPosition;
+				child.SetParent(rewardLayout, false);
+				child.anchoredPosition = position;
+			}
+			FitRewardLayout();
+		}
+
+		private void OnRectTransformDimensionsChange() => FitRewardLayout();
+
+		private void FitRewardLayout()
+		{
+			if (rewardLayout == null)
+				return;
+			Rect viewport = ((RectTransform)content.transform).rect;
+			if (viewport.width <= 0f || viewport.height <= 0f)
+				return;
+			float scale = Mathf.Min(1f, viewport.width / 1920f, viewport.height / 1080f);
+			rewardLayout.localScale = Vector3.one * scale;
 		}
 
 		private void OnEnable()
@@ -73,10 +109,14 @@ namespace WitchMendokusai
 		private void OnChestOpened(ChestOpenedEvent openedEvent)
 		{
 			foreach (GameObject cell in cells)
+			{
+				cell.SetActive(false);
 				Destroy(cell);
+			}
 			cells.Clear();
 
 			content.SetActive(true);
+			FitRewardLayout();
 			UIHideWhileChatting.Request(this, true);
 			autoCloseSeconds = openedEvent.AutoCloseSeconds;
 			openedAt = Time.unscaledTime;
