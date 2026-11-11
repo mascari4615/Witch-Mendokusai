@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Globalization;
 using System.Reflection;
 using Unity.Profiling;
 using Unity.Profiling.LowLevel.Unsafe;
@@ -74,13 +75,13 @@ namespace WitchMendokusai
 			{
 				["scenario"] = SCENARIO, ["revision"] = Environment.GetEnvironmentVariable("WM_PERF_REVISION"),
 				["seed"] = SEED, ["controlledFixture"] = true, ["healthInjected"] = true,
-				["warmupSeconds"] = WARMUP_SECONDS, ["measureSeconds"] = MEASURE_SECONDS,
+				["schemaVersion"] = 2,
 				["frameSelection"] = "Yield one frame, reject menu/loading pause or population change, retain unpaused hitstop/slow-motion frames and record timeScale; sample unscaledDeltaTime with identical guards in Editor and Player"
 			};
 			string resultPath = Environment.GetEnvironmentVariable("WM_PERF_RESULT");
 			bool success = false;
 			Exception failure = null;
-			double deadline = Time.realtimeSinceStartupAsDouble + 120d;
+			double deadline = Time.realtimeSinceStartupAsDouble + 300d;
 			IEnumerator routine = Execute(report, counters, resultPath, deadline);
 			while (true)
 			{
@@ -88,7 +89,7 @@ namespace WitchMendokusai
 				object current = null;
 				try
 				{
-					if (Time.realtimeSinceStartupAsDouble > deadline) throw new TimeoutException("Scenario 120s deadline");
+					if (Time.realtimeSinceStartupAsDouble > deadline) throw new TimeoutException("Scenario 300s deadline");
 					moved = routine.MoveNext();
 					if (moved) current = routine.Current;
 					else success = true;
@@ -120,6 +121,10 @@ namespace WitchMendokusai
 
 		private static IEnumerator Execute(Dictionary<string, object> report, List<Counter> counters, string resultPath, double deadline)
 		{
+			float warmupSeconds = ReadDuration("WM_PERF_WARMUP_SECONDS", WARMUP_SECONDS, 0f, 60f);
+			float measureSeconds = ReadDuration("WM_PERF_MEASURE_SECONDS", MEASURE_SECONDS, 1f, 120f);
+			report["warmupSeconds"] = warmupSeconds;
+			report["measureSeconds"] = measureSeconds;
 			Require(Application.productName == PROFILE, "Isolated product profile required: " + Application.productName);
 			Require(Application.persistentDataPath.Replace('\\', '/').TrimEnd('/').EndsWith("/" + PROFILE, StringComparison.Ordinal), "Isolated persistentDataPath required");
 			Require(string.IsNullOrWhiteSpace(resultPath) == false && Path.IsPathRooted(resultPath), "Absolute WM_PERF_RESULT required");
@@ -226,7 +231,7 @@ namespace WitchMendokusai
 			report["before"] = State();
 			double warmupStart = Time.realtimeSinceStartupAsDouble;
 			ScaleSamples warmupScales = new();
-			while (Time.realtimeSinceStartupAsDouble - warmupStart < WARMUP_SECONDS)
+			while (Time.realtimeSinceStartupAsDouble - warmupStart < warmupSeconds)
 			{
 				Guard(timeManager, population);
 				yield return null;
@@ -238,9 +243,11 @@ namespace WitchMendokusai
 			OpenCounters(counters);
 			List<double> frames = new(16384);
 			ScaleSamples measureScales = new();
+			int[] collectionsBefore = Enumerable.Range(0, GC.MaxGeneration + 1).Select(GC.CollectionCount).ToArray();
+			long managedBytesBefore = GC.GetTotalMemory(false);
 			double startElapsed = dungeon.Context.ElapsedTime.TotalSeconds;
 			double measureStart = Time.realtimeSinceStartupAsDouble;
-			while (Time.realtimeSinceStartupAsDouble - measureStart < MEASURE_SECONDS)
+			while (Time.realtimeSinceStartupAsDouble - measureStart < measureSeconds)
 			{
 				Guard(timeManager, population);
 				yield return null;
@@ -257,6 +264,9 @@ namespace WitchMendokusai
 				}
 			}
 			double measuredWallSeconds = Time.realtimeSinceStartupAsDouble - measureStart;
+			long managedBytesAfter = GC.GetTotalMemory(false);
+			int[] collectionsAfter = Enumerable.Range(0, GC.MaxGeneration + 1).Select(GC.CollectionCount).ToArray();
+			report["managedMemory"] = Map("beforeBytes", managedBytesBefore, "afterBytes", managedBytesAfter, "collectionsBefore", collectionsBefore, "collectionsAfter", collectionsAfter, "forcedCollection", false);
 			double endElapsed = dungeon.Context.ElapsedTime.TotalSeconds;
 			Require(frames.Count > 0, "No frame samples");
 			frames.Sort();
@@ -296,6 +306,16 @@ namespace WitchMendokusai
 			}
 		}
 
+		private static float ReadDuration(string name, float fallback, float minimum, float maximum)
+		{
+			string text = Environment.GetEnvironmentVariable(name);
+			if (string.IsNullOrWhiteSpace(text)) return fallback;
+			Require(float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out float seconds)
+				&& float.IsNaN(seconds) == false && float.IsInfinity(seconds) == false
+				&& seconds >= minimum && seconds <= maximum, name + " is outside the diagnostic duration range");
+			return seconds;
+		}
+
 		private static object State()
 		{
 			Camera camera = Camera.main;
@@ -306,12 +326,13 @@ namespace WitchMendokusai
 				"pid", System.Diagnostics.Process.GetCurrentProcess().Id, "editor", Application.isEditor, "development", UnityEngine.Debug.isDebugBuild,
 				"unity", Application.unityVersion, "product", Application.productName, "savePath", Application.persistentDataPath,
 				"cpu", SystemInfo.processorType, "processors", SystemInfo.processorCount, "gpu", SystemInfo.graphicsDeviceName, "graphicsApi", SystemInfo.graphicsDeviceType.ToString(), "driver", SystemInfo.graphicsDeviceVersion, "os", SystemInfo.operatingSystem,
+				"jobWorkerCount", Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerCount, "jobWorkerMaximumCount", Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerMaximumCount,
 				"scene", SceneManager.GetActiveScene().path, "dollId", DataManager.Instance.CurDollID, "width", Screen.width, "height", Screen.height, "fullscreen", Screen.fullScreenMode.ToString(),
 				"quality", QualitySettings.names[QualitySettings.GetQualityLevel()], "pipeline", pipeline == null ? null : pipeline.name, "pipelineType", pipeline == null ? null : pipeline.GetType().FullName, "renderScale", renderScale?.GetValue(pipeline),
 				"antiAliasing", QualitySettings.antiAliasing, "shadowDistance", QualitySettings.shadowDistance, "shadows", QualitySettings.shadows.ToString(), "colorSpace", QualitySettings.activeColorSpace.ToString(),
 				"vSyncCount", QualitySettings.vSyncCount, "targetFrameRate", Application.targetFrameRate, "runInBackground", Application.runInBackground, "timeScale", Time.timeScale, "fixedDeltaTime", Time.fixedDeltaTime,
 				"defaultSolverIterations", Physics.defaultSolverIterations, "defaultSolverVelocityIterations", Physics.defaultSolverVelocityIterations, "volume", AudioListener.volume, "pause", AudioListener.pause, "fmodMute", FMODUnity.RuntimeManager.IsMuted,
-				"camera", camera == null ? null : Map("name", camera.name, "background", camera.backgroundColor.ToString(), "clear", camera.clearFlags.ToString(), "cullingMask", camera.cullingMask, "allowHDR", camera.allowHDR, "allowMSAA", camera.allowMSAA, "fieldOfView", camera.fieldOfView, "position", camera.transform.position.ToString()),
+				"camera", camera == null ? null : Map("name", camera.name, "background", camera.backgroundColor.ToString(), "clear", camera.clearFlags.ToString(), "cullingMask", camera.cullingMask, "allowHDR", camera.allowHDR, "allowMSAA", camera.allowMSAA, "fieldOfView", camera.fieldOfView, "position", camera.transform.position.ToString(), "rotation", camera.transform.eulerAngles.ToString()),
 				"ambientMode", RenderSettings.ambientMode.ToString(), "ambient", RenderSettings.ambientLight.ToString(), "fog", RenderSettings.fog,
 				"bake", Map(
 					"mode", LightmapSettings.lightmapsMode.ToString(), "probeCount", LightmapSettings.lightProbes == null ? 0 : LightmapSettings.lightProbes.count,
