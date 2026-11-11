@@ -220,14 +220,15 @@ namespace WitchMendokusai
 
 		private string ConditionText(SkillTreeNode node)
 		{
-			if (node.Requirements.Count == 0)
+			IReadOnlyList<SkillTreeRequirement> requirements = node.ChoiceRequirements;
+			if (requirements.Count == 0)
 				return string.Empty;
 
 			StringBuilder builder = new(settings.ConditionLabel);
 			builder.Append("  ");
-			for (int i = 0; i < node.Requirements.Count; i++)
+			for (int i = 0; i < requirements.Count; i++)
 			{
-				SkillTreeRequirement requirement = node.Requirements[i];
+				SkillTreeRequirement requirement = requirements[i];
 				string owner = requirement.IsExternal ? $" ({settings.OtherEquipmentLabel})" : string.Empty;
 				string separator = i > 0 ? ", " : string.Empty;
 				builder.Append($"{separator}{requirement.Card.Name}{owner} {Mathf.Min(requirement.Current(selectedCards), requirement.Stack)}/{requirement.Stack}");
@@ -359,7 +360,7 @@ namespace WitchMendokusai
 			elbow = elbowOffset;
 			foreach (SkillTreeNode node in tree.Nodes)
 			{
-				foreach (SkillTreeRequirement requirement in node.Requirements.Where(requirement => requirement.IsExternal == false))
+				foreach (SkillTreeRequirement requirement in node.ChoiceRequirements.Where(requirement => requirement.IsExternal == false))
 				{
 					Vector2 from = centers[requirement.Node.Id] + Vector2.up * gap;
 					Vector2 to = centers[node.Id] - Vector2.up * gap;

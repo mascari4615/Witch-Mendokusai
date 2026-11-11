@@ -100,6 +100,64 @@ namespace WitchMendokusai.Tests
 		public void ValidTree_HasNoErrors() => Assert.That(Errors(Tree(VALID_NODES + "," + INLINE_NODE)), Is.Empty);
 
 		[Test]
+		public void StartingBasicBranches_OfferThreeDistinctUpgradesAndAgreeWithTreeState()
+		{
+			CardData thirdCard = NewCard(SECOND_CARD_ID + 1, 5);
+			SkillTreeNode root = new("root", rootCard, false);
+			SkillTreeNode second = new("second", secondCard, false);
+			SkillTreeNode third = new("third", thirdCard, true);
+			second.Requirements.Add(new SkillTreeRequirement(root, rootCard, 1));
+			third.Requirements.Add(new SkillTreeRequirement(second, secondCard, 1));
+			SkillTree tree = new(EQUIPMENT_ID);
+			foreach (SkillTreeNode node in new[] { root, second, third }) tree.Add(node);
+			List<CardData> selected = new();
+
+			Assert.That(tree.Nodes.Count(node => tree.IsUnlocked(node.Card, selected)), Is.EqualTo(3));
+			Assert.That(tree.Nodes.Select(node => node.Card.ID).Distinct().Count(), Is.EqualTo(3));
+			foreach (SkillTreeNode node in tree.Nodes)
+			{
+				Assert.That(node.State(selected), Is.EqualTo(SkillTreeNodeState.Open));
+				Assert.That(node.ChoiceRequirements, Is.Empty);
+			}
+			Assert.That(third.Requirements, Has.Count.EqualTo(1), "관계 원자료는 보존");
+		}
+
+		[Test]
+		public void AdvancedRareMultiStackAndExternalRequirements_StayLocked()
+		{
+			SkillTreeNode root = new("root", rootCard, false);
+			CardData rareCard = CardData.CreateRuntime(3000, "rare", "", null, new List<EffectInfo>(), 3, CardRarity.Rare, SurvivalUIKind.Damage);
+			CardData advancedCard = CardData.CreateRuntime(3001, "advanced", "", null, new List<EffectInfo>(), 1, CardRarity.Common, SurvivalUIKind.Advanced);
+			created.Add(rareCard);
+			created.Add(advancedCard);
+			SkillTreeNode rare = new("rare", rareCard, true);
+			SkillTreeNode advanced = new("advanced", advancedCard, false);
+			SkillTreeNode multi = new("multi", secondCard, false);
+			SkillTreeNode external = new("external", NewCard(3002, 5), false);
+			rare.Requirements.Add(new SkillTreeRequirement(root, rootCard, 1));
+			advanced.Requirements.Add(new SkillTreeRequirement(root, rootCard, 1));
+			multi.Requirements.Add(new SkillTreeRequirement(root, rootCard, 2));
+			external.Requirements.Add(new SkillTreeRequirement(null, rootCard, 1));
+			foreach (SkillTreeNode node in new[] { rare, advanced, multi, external })
+			{
+				Assert.That(node.IsStartingUpgrade, Is.False);
+				Assert.That(node.State(new List<CardData>()), Is.EqualTo(SkillTreeNodeState.Locked));
+				Assert.That(node.ChoiceRequirements, Has.Count.EqualTo(1));
+			}
+			Assert.That(multi.IsUnlocked(new List<CardData> { rootCard, rootCard }), Is.True);
+		}
+
+		[Test]
+		public void CardAssetRequirement_IsNotBypassedByStartingChoice()
+		{
+			secondCard.Requirements.Add(new CardData.Requirement { Card = rootCard, Stack = 1 });
+			SkillTreeNode node = new("asset-gated", secondCard, false);
+			Assert.That(node.IsStartingUpgrade, Is.False);
+			Assert.That(node.IsUnlocked(new List<CardData>()), Is.False);
+			Assert.That(node.IsUnlocked(new List<CardData> { rootCard }), Is.True);
+		}
+
+		[Test]
 		public void BrokenJson_IsReported() => AssertHasError(Errors("{ not json"), "JSON");
 
 		[Test]

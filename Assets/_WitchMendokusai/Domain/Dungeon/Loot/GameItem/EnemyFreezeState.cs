@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	// Àû Á¤Áö »óÅÂ. ÀÏ¹Ý Àû°ú º¸½ºÀÇ ³¡³ª´Â ½Ã°¢À» µû·Î º¸°ü
+	// ì  ì •ì§€ ìƒíƒœ. ì¼ë°˜ ì ê³¼ ë³´ìŠ¤ì˜ ëë‚˜ëŠ” ì‹œê°ì„ ë”°ë¡œ ë³´ê´€
 	public static class EnemyFreezeState
 	{
 		private static float normalEnd;
@@ -16,6 +16,10 @@ namespace WitchMendokusai
 		}
 
 		public static bool IsFrozen(bool isBoss) => FloorItemRules.IsFrozen(Time.time, isBoss ? bossEnd : normalEnd);
+
+		public static float RemainingSeconds(bool isBoss) => Mathf.Max(0f, (isBoss ? bossEnd : normalEnd) - Time.time);
+		public static float NormalRemainingSeconds => RemainingSeconds(false);
+		public static float BossRemainingSeconds => RemainingSeconds(true);
 
 		public static void Reset()
 		{

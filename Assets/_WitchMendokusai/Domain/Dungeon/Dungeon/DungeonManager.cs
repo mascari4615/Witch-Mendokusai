@@ -147,6 +147,7 @@ namespace WitchMendokusai
 
 			void InitDungeonAndPlayer()
 			{
+				EnemyFreezeState.Reset();
 				gameManager.Init();
 				dataManager.RunLoadout.Begin(runMode, resourceManager.SurvivalRunRules);
 				gameManager.InitEquipment();
@@ -268,6 +269,7 @@ namespace WitchMendokusai
 			if (IsDungeon == false)
 				return;
 			IsDungeon = false;
+			EnemyFreezeState.Reset();
 			// 폴링이 보기 전에 죽어도 클리어 보상을 이미 받았으면 클리어
 			if (IsClearReached())
 				isCleared = true;

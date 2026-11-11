@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -44,7 +45,15 @@ namespace WitchMendokusai
 			IsInline = isInline;
 		}
 
-		public bool IsUnlocked(IReadOnlyList<CardData> selectedCards) => Requirements.All(requirement => requirement.IsMet(selectedCards));
+		// 기본 강화의 같은 무기 1회 연결은 시작부터 선택, 진화와 상위 및 외부 조건 유지
+		public bool IsStartingUpgrade => Card != null && Card.Rarity == CardRarity.Common && Card.UIKind != SurvivalUIKind.Advanced
+			&& Card.Requirements.Count == 0 && Requirements.All(requirement => requirement.IsExternal == false
+				&& requirement.Stack == 1 && requirement.Node.IsStartingUpgrade);
+
+		public IReadOnlyList<SkillTreeRequirement> ChoiceRequirements => IsStartingUpgrade ? Array.Empty<SkillTreeRequirement>() : Requirements;
+
+		public bool IsUnlocked(IReadOnlyList<CardData> selectedCards) => Card != null && Card.MeetsRequirements(selectedCards)
+			&& ChoiceRequirements.All(requirement => requirement.IsMet(selectedCards));
 
 		public SkillTreeNodeState State(IReadOnlyList<CardData> selectedCards)
 		{
