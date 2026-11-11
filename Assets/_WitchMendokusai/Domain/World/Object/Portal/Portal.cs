@@ -20,6 +20,12 @@ namespace WitchMendokusai
 			this.stageManager = stageManager;
 		}
 
+		private void OnEnable()
+		{
+			if (TargetStage != null && TargetStage.DevOnly && Debug.isDebugBuild == false)
+				gameObject.SetActive(false);
+		}
+
 		public void OnTriggerEnter(Collider other)
 		{
 			if (other.CompareTag("Player"))

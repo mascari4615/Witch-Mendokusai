@@ -75,8 +75,11 @@ namespace WitchMendokusai
 		private void Start()
 		{
 			BuildWindow();
-			BuildBadge();
 			RegisterBuiltins();
+			// 릴리스 빌드는 배지와 단축키를 걸지 않는다. 창은 만들어 두되 열 길이 없음
+			if (Debug.isDebugBuild == false)
+				return;
+			BuildBadge();
 			view.RebuildSidebar(DevModeRegistry.Instance.Modes);
 
 			IDevMode firstMode = DevModeRegistry.Instance.FindById("console");

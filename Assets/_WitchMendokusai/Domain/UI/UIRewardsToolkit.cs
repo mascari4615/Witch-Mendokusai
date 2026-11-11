@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		public const string USS_CLASS = "wm-rewards";
 		public const string USS_STAT_SLOT = USS_CLASS + "__stat";
 		private const string NYANG_DISPLAY_NAME = "냥";
+		private const string VILLAGE_EXP_DISPLAY_NAME = "마을 경험치";
 
 		private readonly List<ToolkitSlot> slots = new();
 
@@ -58,7 +59,8 @@ namespace WitchMendokusai
 							slots[i].SetSlot(nyangData.Sprite, NYANG_DISPLAY_NAME, nyangData.Description, data[i].Amount);
 							break;
 						case RewardType.Exp:
-							slots[i].SetSlot(GetGameStatData(GameStatType.VILLAGE_QUEST_EXP), data[i].Amount);
+							GameStatData expData = GetGameStatData(GameStatType.VILLAGE_QUEST_EXP);
+							slots[i].SetSlot(expData.Sprite, VILLAGE_EXP_DISPLAY_NAME, expData.Description, data[i].Amount);
 							break;
 					}
 				}
