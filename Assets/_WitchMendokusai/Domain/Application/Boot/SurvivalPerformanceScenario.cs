@@ -133,11 +133,20 @@ namespace WitchMendokusai
 			Application.targetFrameRate = -1;
 			Application.runInBackground = true;
 			Screen.SetResolution(1920, 1080, FullScreenMode.Windowed);
+			report["audioBeforeInitialization"] = new { AudioListener.volume, AudioListener.pause };
+			// FMOD 초기화 중 다른 오디오 부팅 코드 실행 가능, 엔진 listener 설정은 마지막에 적용
+			FMODUnity.RuntimeManager.MuteAllEvents(true);
+			FMOD.Studio.Bus masterBus = FMODUnity.RuntimeManager.GetBus("bus:/");
+			FMOD.RESULT muteResult = masterBus.setMute(true);
+			FMOD.RESULT readMuteResult = masterBus.getMute(out bool masterMuted);
+			bool runtimeMuted = FMODUnity.RuntimeManager.IsMuted;
+			report["audioAfterFmodInitialization"] = new { AudioListener.volume, AudioListener.pause, runtimeMuted, masterMuted, setMuteResult = muteResult.ToString(), getMuteResult = readMuteResult.ToString() };
 			AudioListener.volume = 0f;
 			AudioListener.pause = true;
-			FMODUnity.RuntimeManager.MuteAllEvents(true);
-			FMODUnity.RuntimeManager.GetBus("bus:/").setMute(true);
-			Require(FMODUnity.RuntimeManager.IsMuted && AudioListener.volume == 0f && AudioListener.pause, "Audio mute verification failed");
+			report["audioVerified"] = new { AudioListener.volume, AudioListener.pause, runtimeMuted, masterMuted, setMuteResult = muteResult.ToString(), getMuteResult = readMuteResult.ToString() };
+			// 내장 오디오 비활성 프로젝트는 volume setter 무시 가능, 실제 FMOD 버스 mute와 listener pause 검증
+			Require(muteResult == FMOD.RESULT.OK && readMuteResult == FMOD.RESULT.OK && masterMuted && runtimeMuted
+				&& AudioListener.pause, "Audio mute verification failed; see audioVerified snapshot");
 			DungeonManager dungeon = DungeonManager.Instance;
 			Require(dungeon != null && dungeon.IsDungeon == false, "Fresh WorldReady outside dungeon required");
 			dungeon.StartDungeon(SOHelper.GetDungeon(0), runMode: DungeonRunMode.Random, threatLevel: 0);
