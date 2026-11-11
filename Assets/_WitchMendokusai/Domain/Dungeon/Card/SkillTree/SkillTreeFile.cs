@@ -58,6 +58,14 @@ namespace WitchMendokusai
 	{
 		private static readonly JsonSerializerSettings SETTINGS = new() { MissingMemberHandling = MissingMemberHandling.Error };
 
+		static SkillTreeParser()
+		{
+			// 반사로 생성하는 중첩 목록의 IL2CPP 제네릭 코드 생성 보장
+			Newtonsoft.Json.Utilities.AotHelper.EnsureList<SkillTreeNodeFile>();
+			Newtonsoft.Json.Utilities.AotHelper.EnsureList<SkillTreeEffectFile>();
+			Newtonsoft.Json.Utilities.AotHelper.EnsureList<SkillTreeRequireFile>();
+		}
+
 		public static SkillTreeFile Parse(SkillTreeSource source, List<string> errors)
 		{
 			try

@@ -21,4 +21,11 @@
     <!-- 세이브 JSON 복원용. 코드 호출이 없어 Unity 7 High 가지치기에서 생성자와 setter 삭제 -->
     <type fullname="WitchMendokusai.Work" preserve="all" />
   </assembly>
+  <assembly fullname="WM.Domain">
+    <!-- Json.NET 반사 생성과 필드 복원, 중첩 트리 DTO 네 종류만 보존 -->
+    <type fullname="WitchMendokusai.SkillTreeFile" preserve="all" />
+    <type fullname="WitchMendokusai.SkillTreeNodeFile" preserve="all" />
+    <type fullname="WitchMendokusai.SkillTreeEffectFile" preserve="all" />
+    <type fullname="WitchMendokusai.SkillTreeRequireFile" preserve="all" />
+  </assembly>
 </linker>
