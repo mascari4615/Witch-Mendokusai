@@ -8,10 +8,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 6547949991324373500, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
-      propertyPath: flashStrength
-      value: 0.5
-      objectReference: {fileID: 0}
     - target: {fileID: 761542210302735019, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
       propertyPath: m_LocalScale.x
       value: 3
@@ -104,6 +100,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 7241926e841025945a87bb7e3d1511f5, type: 2}
+    - target: {fileID: 6547949991324373500, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
+      propertyPath: flashStrength
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -131,3 +131,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.FSMSlimeKing
   attackRange: 15
   isSpriteLookLeft: 0
+  dashSpeed: 15
+  dashDuration: 0.5
+  waitDuration: 2
