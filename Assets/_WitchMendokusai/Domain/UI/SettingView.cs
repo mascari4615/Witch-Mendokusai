@@ -14,6 +14,9 @@ namespace WitchMendokusai
 	public partial class SettingView : MonoBehaviour
 	{
 		private const string USS_CLASS = "wm-setting-view";
+		// 데모 목표 144FPS (사용자 2026-11-12). 토글 끔: 제한 없음 (품질 단계의 수직 동기만)
+		private const int LOCKED_FRAME_RATE = 60;
+		private const int UNLIMITED_FRAME_RATE = -1;
 		private const string ACTIVE_CLASS = "wm-setting-view--active";
 		private const string TAB_KEY_GENERAL = "general";
 		private const string TAB_KEY_EFFECTS = "effects";
@@ -213,7 +216,7 @@ namespace WitchMendokusai
 			systemHeader.AddToClassList("wm-setting-header");
 			content.Add(systemHeader);
 
-			framerateToggle = CreateToggle("60 FPS 고정", Application.targetFrameRate == 60, isOn => isOn ? "켜짐 (60)" : "꺼짐 (30)", isOn => Application.targetFrameRate = isOn ? 60 : 30, content);
+			framerateToggle = CreateToggle("60 FPS 고정", Application.targetFrameRate == LOCKED_FRAME_RATE, isOn => isOn ? "켜짐 (60)" : "꺼짐 (제한 없음)", isOn => Application.targetFrameRate = isOn ? LOCKED_FRAME_RATE : UNLIMITED_FRAME_RATE, content);
 
 			// 버튼 그룹
 			VisualElement buttonGroup = new VisualElement();
