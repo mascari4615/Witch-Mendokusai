@@ -40,3 +40,4 @@ MonoBehaviour:
   - Type: 1
     DataSO: {fileID: 0}
     Amount: 500
+  <DevBuildOnly>k__BackingField: 1

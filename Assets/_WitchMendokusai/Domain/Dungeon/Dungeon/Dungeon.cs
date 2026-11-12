@@ -54,6 +54,9 @@ namespace WitchMendokusai
 		[Tooltip("위협 단계 선택 가능 여부. 표는 SurvivalRunRules.ThreatLevels")]
 		[PropertyOrder(111)][field: SerializeField] public bool HasThreatLevels { get; private set; }
 
+		[Tooltip("개발 빌드에서만 입장 목록에 표시. 데모 릴리스에서 실험 모드 숨김")]
+		[PropertyOrder(112)][field: SerializeField] public bool DevBuildOnly { get; private set; }
+
 		public int CalculateDefeatNyang(int killCount) => Mathf.Min(DefeatNyangMax, Mathf.FloorToInt(killCount * DefeatNyangPerKill));
 
 		[field: NonSerialized] public Dictionary<int, bool> ConstraintSelected { get; private set; } = new();

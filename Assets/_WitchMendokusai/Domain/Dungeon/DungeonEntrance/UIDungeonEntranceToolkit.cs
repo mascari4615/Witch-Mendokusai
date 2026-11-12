@@ -266,6 +266,9 @@ namespace WitchMendokusai
 		public override void SetNPC(NPCObject npc)
 		{
 			dungeons = NPCUtil.GetDungeons(npc.Data);
+			// 데모 릴리스 빌드는 개발용 던전 미노출 (사용자 2026-11-12)
+			if (Debug.isDebugBuild == false)
+				dungeons = dungeons.FindAll(dungeon => dungeon.DevBuildOnly == false);
 
 			if (dungeons == null || dungeons.Count == 0)
 				Debug.LogError("No Dungeon Data");

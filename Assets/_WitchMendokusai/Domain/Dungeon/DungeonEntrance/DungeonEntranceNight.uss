@@ -5,7 +5,7 @@
 }
 
 .wm-dungeon-entrance--night .wm-dungeon-entrance__hero {
-    left: 2.4%;
+    left: -7%;
     top: -5.19%;
     width: 90%;
     height: 144.44%;
