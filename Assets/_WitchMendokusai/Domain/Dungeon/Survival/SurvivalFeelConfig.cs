@@ -168,6 +168,18 @@ namespace WitchMendokusai
 		[Range(0f, 24f), Tooltip("판 시작 때 하늘 시각")] public float RunSkyStartHour = 10f;
 		[Range(0f, 24f), Tooltip("판 제한 시간이 끝날 때 하늘 시각")] public float RunSkyEndHour = 16.5f;
 
+		[Header("Low health")]
+		[Range(0f, 1f), Tooltip("이 체력 비율 아래에서 화면 가장자리 붉게")] public float LowHealthThreshold = 0.3f;
+		[Range(0f, 1f), Tooltip("경계 바로 아래의 최소 세기")] public float LowHealthMinWeight = 0.35f;
+		public Color LowHealthColor = new(0.75f, 0.05f, 0.08f, 1f);
+		[Range(0f, 1f), Tooltip("가장자리 최대 불투명도")] public float LowHealthMaxAlpha = 0.55f;
+		[Range(0f, 1f), Tooltip("이 반경 (모서리 기준 비율) 안쪽은 투명")] public float LowHealthInnerRadius = 0.45f;
+		[Min(0.1f), Tooltip("가장자리로 갈수록 짙어지는 곡선")] public float LowHealthEdgePower = 1.6f;
+		[Min(0f), Tooltip("맥동 초당 횟수")] public float LowHealthPulseSpeed = 1.1f;
+		[Range(0f, 1f), Tooltip("맥동 때 줄어드는 비율")] public float LowHealthPulseDepth = 0.35f;
+		[Min(0f), Tooltip("세기 변화 초당 최대량")] public float LowHealthFadeSpeed = 2.5f;
+		[Tooltip("화면 위 캔버스 순서. 전투 UI 보다 아래")] public int LowHealthSortingOrder = -5;
+
 		[Header("Upgrade")]
 		public UpgradeTuning Upgrade = new();
 		public FeelMoment PlayerRevive = new() { Shake = 0.5f, Shards = 60, ShardSpeed = 9f, ShardLife = 0.8f, ShardSize = 0.26f, RingSize = 10f, RingLife = 0.7f, Color = new Color(1f, 0.9f, 0.55f, 1f) };

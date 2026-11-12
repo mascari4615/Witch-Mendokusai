@@ -55,6 +55,7 @@ namespace WitchMendokusai
 			this.playerProvider = playerProvider;
 			Instance = this;
 			BuildSystems();
+			gameObject.AddComponent<SurvivalLowHealthVignette>().Init(resourceManager, playerProvider);
 			gameEventManager.RegisterCallback(GameEventType.OnLevelUp, OnLevelUp);
 			gameEventManager.RegisterCallback(GameEventType.OnPlayerHit, OnPlayerHit);
 		}
