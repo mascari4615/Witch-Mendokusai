@@ -72,7 +72,10 @@ namespace WitchMendokusai
 
 					if (criteria[i].Criteria is NumCriteria numCriteria)
 					{
-						criteriaDesc = $"{numCriteria.GetCurValue()}/{numCriteria.GetTargetValue()} ({numCriteria.GetProgress() * 100:0}%)";
+						// 누적 기록 조건은 목표를 넘어 쌓임. 표시는 목표에서 멈춤
+						int targetValue = numCriteria.GetTargetValue();
+						int shownValue = Mathf.Min(numCriteria.GetCurValue(), targetValue);
+						criteriaDesc = $"{shownValue}/{targetValue} ({Mathf.Min(numCriteria.GetProgress(), 1f) * 100:0}%)";
 					}
 
 					slots[i].SetSlot(criteriaSprite, criteriaName, criteriaDesc);
