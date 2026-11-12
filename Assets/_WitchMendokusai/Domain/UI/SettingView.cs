@@ -14,13 +14,14 @@ namespace WitchMendokusai
 	public partial class SettingView : MonoBehaviour
 	{
 		private const string USS_CLASS = "wm-setting-view";
-		// 데모 목표 144FPS (사용자 2026-11-12). 토글 끔: 제한 없음 (품질 단계의 수직 동기만)
-		private const int LOCKED_FRAME_RATE = 60;
-		private const int UNLIMITED_FRAME_RATE = -1;
 		private const string ACTIVE_CLASS = "wm-setting-view--active";
 		private const string TAB_KEY_GENERAL = "general";
 		private const string TAB_KEY_EFFECTS = "effects";
 		private const string TAB_KEY_SHADERPACKS = "shaderpacks";
+
+		// 데모 목표 144FPS (사용자 2026-11-12). 토글 끔: 품질 단계의 수직 동기만
+		[SerializeField, Tooltip("FPS 고정 토글 켬")] private int lockedFrameRate = 60;
+		[SerializeField, Tooltip("FPS 고정 토글 끔. -1 제한 없음")] private int unlockedFrameRate = -1;
 
 		[SerializeField] private float sliderStep = 0.05f;
 		[SerializeField] private float navOverlapTolerance = 4f;
@@ -216,7 +217,7 @@ namespace WitchMendokusai
 			systemHeader.AddToClassList("wm-setting-header");
 			content.Add(systemHeader);
 
-			framerateToggle = CreateToggle("60 FPS 고정", Application.targetFrameRate == LOCKED_FRAME_RATE, isOn => isOn ? "켜짐 (60)" : "꺼짐 (제한 없음)", isOn => Application.targetFrameRate = isOn ? LOCKED_FRAME_RATE : UNLIMITED_FRAME_RATE, content);
+			framerateToggle = CreateToggle("60 FPS 고정", Application.targetFrameRate == lockedFrameRate, isOn => isOn ? "켜짐 (60)" : "꺼짐 (제한 없음)", isOn => Application.targetFrameRate = isOn ? lockedFrameRate : unlockedFrameRate, content);
 
 			// 버튼 그룹
 			VisualElement buttonGroup = new VisualElement();
