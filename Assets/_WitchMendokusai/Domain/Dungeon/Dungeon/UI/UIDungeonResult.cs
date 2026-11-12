@@ -13,6 +13,7 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private SurvivalUITheme theme;
 		[SerializeField] private TextMeshProUGUI titleText;
+		[SerializeField, Tooltip("결과 뒤 게임 화면을 어둡게 가리는 막 색")] private Color backdropColor = new(0.02f, 0.02f, 0.05f, 0.62f);
 		[SerializeField] private string clearTitle = "승리";
 		[SerializeField] private string defeatTitle = "패배";
 		[SerializeField, Tooltip("0: 승패 제목, 1: 단계")] private string threatTitleFormat = "{0} (위협 단계 {1})";
@@ -98,6 +99,7 @@ namespace WitchMendokusai
 
 		protected override void OnInit()
 		{
+			BuildBackdrop();
 			retryButton.onClick.AddListener(Retry);
 			entryTemplate.gameObject.SetActive(false);
 			cardArea = ((RectTransform)cardParent).rect.size;
@@ -111,7 +113,8 @@ namespace WitchMendokusai
 			float speed = cleared ? 1f : theme.DefeatSpeedScale;
 
 			string title = cleared ? clearTitle : defeatTitle;
-			titleText.text = dungeonManager.CurDungeon.HasThreatLevels ? string.Format(threatTitleFormat, title, record.ThreatLevel) : title;
+			// 단계 0은 기본 판이라 제목에 단계 미표시
+			titleText.text = dungeonManager.CurDungeon.HasThreatLevels && record.ThreatLevel > 0 ? string.Format(threatTitleFormat, title, record.ThreatLevel) : title;
 			titleText.color = cleared ? clearTitleColor : defeatTitleColor;
 			difficultyText.text = DifficultyName(record.Difficulty);
 			difficultyRing.color = theme.Difficulty(record.Difficulty);
@@ -121,6 +124,22 @@ namespace WitchMendokusai
 
 			RebuildEntries();
 			Play(record, speed);
+		}
+
+		// 결과 판이 몬스터와 효과 위에 바로 떠서 읽기 어려움. 맨 뒤에 화면 전체 막
+		private void BuildBackdrop()
+		{
+			GameObject backdrop = new("[Image] Backdrop", typeof(RectTransform), typeof(Image));
+			RectTransform rect = (RectTransform)backdrop.transform;
+			rect.SetParent(transform, false);
+			rect.SetAsFirstSibling();
+			rect.anchorMin = Vector2.zero;
+			rect.anchorMax = Vector2.one;
+			rect.offsetMin = Vector2.zero;
+			rect.offsetMax = Vector2.zero;
+			Image image = backdrop.GetComponent<Image>();
+			image.color = backdropColor;
+			image.raycastTarget = false;
 		}
 
 		private void RebuildEntries()
