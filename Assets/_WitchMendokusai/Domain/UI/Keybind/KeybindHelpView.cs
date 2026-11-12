@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -55,7 +56,12 @@ namespace WitchMendokusai
 
 			inputManager.RegisterInputEvent(InputEventType.KeybindHelpToggle, InputEventResponseType.Performed, OnToggle);
 
-			if (PlayerPrefs.GetInt(SHOWN_PREF_KEY, 0) == 0)
+			if (PlayerPrefs.GetInt(SHOWN_PREF_KEY, 0) == 1)
+				return;
+			// 스테이지가 이 창보다 먼저 뜬 경우 (StageManager.Start 선행) 알림을 놓치므로 바로 확인
+			if (StageManager.TryGetExistingInstance(out StageManager stageManager) && stageManager.CurStage != null)
+				StartCoroutine(OpenFirstTime());
+			else
 				StageManager.OnStageChanged += OnFirstStage;
 		}
 
@@ -67,6 +73,16 @@ namespace WitchMendokusai
 
 		private void OnFirstStage(Stage stage, StageObject stageObject)
 		{
+			if (isActiveAndEnabled)
+				StartCoroutine(OpenFirstTime());
+		}
+
+		// 한 프레임 뒤 판정: 씬 전환 중 사라질 이전 씬 UI 가 받으면 코루틴째 끊겨 기록이 안 남음
+		private IEnumerator OpenFirstTime()
+		{
+			yield return null;
+			if (UIRoot.Instance != uiRoot || PlayerPrefs.GetInt(SHOWN_PREF_KEY, 0) == 1)
+				yield break;
 			StageManager.OnStageChanged -= OnFirstStage;
 			PlayerPrefs.SetInt(SHOWN_PREF_KEY, 1);
 			PlayerPrefs.Save();
