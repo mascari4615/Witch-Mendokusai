@@ -9,7 +9,7 @@ namespace WitchMendokusai
 	public static class TitleStageBuilder
 	{
 		private const string FOLDER = "Assets/_WitchMendokusai/Domain/Title/Stage";
-		private const string RECIPE_PATH = FOLDER + "/TitleStageRecipe.asset";
+		private const string RECIPE_PATH = FOLDER + "/Title_0_StageRecipe.asset";
 		private const string PREFAB_PATH = FOLDER + "/[Stage] Title.prefab";
 		private const string GROUND_MATERIAL_PATH = FOLDER + "/TitleGround.mat";
 		private const string LOBBY_SCENE_PATH = "Assets/_WitchMendokusai/Scenes/Lobby.unity";
