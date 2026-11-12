@@ -16,6 +16,11 @@ namespace WitchMendokusai
 		private const string STAGE_INSTANCE_NAME = "[Stage] Title";
 		private const string SCENERY_NAME = "[Title] Scenery";
 		private const string SUN_NAME = "[Title] Sun";
+		private const string LOBBY_BACKGROUND_PATH = "Canvas/[Block] Background";
+		private const string LOBBY_TITLE_PATH = "Canvas/[Block] Texts/[Text] Title";
+		private const string LOBBY_VERSION_PATH = "Canvas/[Block] Texts/[Text] Version";
+		private const string LOBBY_COPYRIGHT_PATH = "Canvas/[Block] Texts/[Text] CopyRight";
+		private const string LOBBY_BUTTONS_PATH = "Canvas/[Block] Buttons";
 
 		// 기본 참조 (레시피를 새로 만들 때만 사용)
 		private const string GROUND_SOURCE_GUID = "96cb66d3f55ab69458576aa757bd763a";
@@ -27,6 +32,8 @@ namespace WitchMendokusai
 		private const string GRAVEL_GUID = "871875c89c8ec7142a27c6271f62c2e0";
 		private const string SKY_PRESET_GUID = "7dfb6657b0a0df944b421b00a3a88c09";
 		private const string SKYBOX_GUID = "282b50081561f8f4289b7d1b999c03de";
+		private const string CHARACTER_MODEL_GUID = "8403658c3298ac34db76445e300408d8";
+		private const string CHARACTER_ANIMATOR_GUID = "a54ae9bdcf3a33143b27ba56208bee76";
 
 		[MenuItem("WM/Title/Build Title Stage")]
 		public static void BuildStage()
@@ -47,13 +54,29 @@ namespace WitchMendokusai
 
 			Place(recipe, terrain, props, recipe.TreePrefab, recipe.BigTreePosition, recipe.BigTreeScale, (float)random.NextDouble() * 360f);
 
+			if (recipe.CharacterModel != null)
+			{
+				Vector2 characterPoint = recipe.BigTreePosition + recipe.CharacterOffset;
+				GameObject character = Place(recipe, terrain, props, recipe.CharacterModel, characterPoint, recipe.CharacterScale, recipe.CharacterYaw);
+				character.name = "Character";
+				Animator animator = character.GetComponentInChildren<Animator>();
+				if (animator == null)
+					animator = character.AddComponent<Animator>();
+				animator.runtimeAnimatorController = recipe.CharacterAnimator;
+			}
+
 			for (int i = 0; i < recipe.ForestCount; i++)
 			{
 				Vector2 point = RandomRing(random, recipe.ForestRadius.x, recipe.ForestRadius.y, recipe.ForestFrontGapDegrees);
 				Place(recipe, terrain, props, recipe.TreePrefab, point, Lerp(random, recipe.ForestScale), (float)random.NextDouble() * 360f);
 			}
 			for (int i = 0; i < recipe.ShrubCount; i++)
-				Place(recipe, terrain, props, recipe.ShrubPrefab, RandomDisk(random, recipe.ShrubRadius), Lerp(random, recipe.ShrubScale), (float)random.NextDouble() * 360f);
+			{
+				Vector2 point = RandomDisk(random, recipe.ShrubRadius);
+				if (point.y < recipe.ShrubFrontLimit)
+					point.y = -point.y;
+				Place(recipe, terrain, props, recipe.ShrubPrefab, point, Lerp(random, recipe.ShrubScale), (float)random.NextDouble() * 360f);
+			}
 			for (int i = 0; i < recipe.GrassCount; i++)
 				Place(recipe, terrain, props, recipe.GrassPrefab, RandomDisk(random, recipe.GrassRadius), Lerp(random, recipe.GrassScale), (float)random.NextDouble() * 360f);
 			for (int i = 0; i < recipe.GravelCount; i++)
@@ -80,7 +103,8 @@ namespace WitchMendokusai
 			DestroyRoot(scene, SCENERY_NAME);
 			DestroyRoot(scene, SUN_NAME);
 
-			PrefabUtility.InstantiatePrefab(prefab, scene);
+			GameObject stage = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
+			TitleTerrain terrain = stage.GetComponentInChildren<TitleTerrain>();
 
 			GameObject sunObject = new(SUN_NAME, typeof(Light));
 			SceneManager.MoveGameObjectToScene(sunObject, scene);
@@ -89,7 +113,10 @@ namespace WitchMendokusai
 			sun.shadows = LightShadows.Soft;
 
 			Camera camera = FindMainCamera(scene);
-			camera.transform.SetPositionAndRotation(recipe.CameraPosition, Quaternion.Euler(recipe.CameraEuler));
+			Vector3 cameraPosition = recipe.CameraPosition;
+			cameraPosition.y += terrain.HeightAt(cameraPosition.x, cameraPosition.z);
+			camera.transform.SetPositionAndRotation(cameraPosition, Quaternion.Euler(recipe.CameraEuler));
+			camera.orthographic = false;
 			camera.fieldOfView = recipe.CameraFieldOfView;
 			camera.clearFlags = CameraClearFlags.Skybox;
 			camera.farClipPlane = 1000f;
@@ -105,12 +132,83 @@ namespace WitchMendokusai
 			scenery.ApplyModifiedPropertiesWithoutUndo();
 			sceneryObject.GetComponent<TitleScenery>().ApplySky();
 
+			GameObject background = GameObject.Find(LOBBY_BACKGROUND_PATH);
+			if (background != null)
+				background.SetActive(false);
+			LayoutLobbyUI(recipe);
+
 			EditorSceneManager.MarkSceneDirty(scene);
 			EditorSceneManager.SaveScene(scene);
 			Debug.Log("[TitleStageBuilder] Lobby installed");
 		}
 
-		private static void Place(TitleStageRecipe recipe, TitleTerrain terrain, Transform parent, GameObject prefab, Vector2 point, float scale, float yaw)
+		// 무대가 보이게 제목은 하늘 위, 메뉴는 아래 한 줄, 판 없는 글자 버튼
+		private static void LayoutLobbyUI(TitleStageRecipe recipe)
+		{
+			Anchor(LOBBY_TITLE_PATH, new Vector2(0.5f, 1f), recipe.TitleOffset, recipe.TitleSize);
+			Anchor(LOBBY_BUTTONS_PATH, new Vector2(0.5f, 0f), recipe.MenuOffset, recipe.MenuSize);
+			Anchor(LOBBY_VERSION_PATH, new Vector2(1f, 0f), new Vector2(-recipe.FooterMargin.x, recipe.FooterMargin.y), recipe.FooterSize);
+			Anchor(LOBBY_COPYRIGHT_PATH, new Vector2(0f, 0f), recipe.FooterMargin, recipe.FooterSize);
+			Align(LOBBY_VERSION_PATH, TMPro.TextAlignmentOptions.BottomRight);
+			Align(LOBBY_COPYRIGHT_PATH, TMPro.TextAlignmentOptions.BottomLeft);
+			GameObject buttons = GameObject.Find(LOBBY_BUTTONS_PATH);
+			foreach (UnityEngine.UI.Button button in buttons.GetComponentsInChildren<UnityEngine.UI.Button>(true))
+			{
+				// 판 이미지가 Mask 그래픽이라 투명하게 하면 글자까지 가려짐. Mask 와 무늬 끄기
+				UnityEngine.UI.Mask mask = button.GetComponent<UnityEngine.UI.Mask>();
+				if (mask != null)
+				{
+					mask.enabled = false;
+					EditorUtility.SetDirty(mask);
+				}
+				foreach (UnityEngine.UI.Image decoration in button.GetComponentsInChildren<UnityEngine.UI.Image>(true))
+				{
+					if (decoration.gameObject != button.gameObject)
+					{
+						decoration.enabled = false;
+						EditorUtility.SetDirty(decoration);
+					}
+				}
+				TMPro.TextMeshProUGUI label = button.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+				if (label != null)
+				{
+					label.enableAutoSizing = false;
+					label.fontSize = recipe.MenuFontSize;
+					EditorUtility.SetDirty(label);
+				}
+				UnityEngine.UI.Image plate = button.GetComponent<UnityEngine.UI.Image>();
+				if (plate != null)
+				{
+					Color color = plate.color;
+					color.a = 0f;
+					plate.color = color;
+					EditorUtility.SetDirty(plate);
+				}
+			}
+		}
+
+		private static void Align(string path, TMPro.TextAlignmentOptions alignment)
+		{
+			TMPro.TextMeshProUGUI text = GameObject.Find(path).GetComponent<TMPro.TextMeshProUGUI>();
+			text.alignment = alignment;
+			EditorUtility.SetDirty(text);
+		}
+
+		private static void Anchor(string path, Vector2 anchor, Vector2 offset, Vector2 size)
+		{
+			GameObject target = GameObject.Find(path);
+			if (target == null)
+				throw new System.InvalidOperationException($"{path} 없음");
+			RectTransform rect = (RectTransform)target.transform;
+			rect.anchorMin = anchor;
+			rect.anchorMax = anchor;
+			rect.pivot = anchor;
+			rect.anchoredPosition = offset;
+			rect.sizeDelta = size;
+			EditorUtility.SetDirty(rect);
+		}
+
+		private static GameObject Place(TitleStageRecipe recipe, TitleTerrain terrain, Transform parent, GameObject prefab, Vector2 point, float scale, float yaw)
 		{
 			GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
 			instance.transform.SetParent(parent, false);
@@ -132,6 +230,7 @@ namespace WitchMendokusai
 				if (changed)
 					renderer.sharedMaterials = materials;
 			}
+			return instance;
 		}
 
 		private static Vector2 RandomDisk(System.Random random, float radius)
@@ -168,6 +267,8 @@ namespace WitchMendokusai
 			recipe.GravelPrefab = Load<GameObject>(GRAVEL_GUID);
 			recipe.SkyPreset = Load<SkyPresetSO>(SKY_PRESET_GUID);
 			recipe.SkyboxMaterial = Load<Material>(SKYBOX_GUID);
+			recipe.CharacterModel = Load<GameObject>(CHARACTER_MODEL_GUID);
+			recipe.CharacterAnimator = Load<RuntimeAnimatorController>(CHARACTER_ANIMATOR_GUID);
 			AssetDatabase.CreateAsset(recipe, RECIPE_PATH);
 			return recipe;
 		}

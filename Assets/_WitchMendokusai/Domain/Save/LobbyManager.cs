@@ -60,7 +60,7 @@ namespace WitchMendokusai
 		private void Init()
 		{
 			BuildMultiplayerButton();
-			startButton.GetComponentInChildren<TextMeshProUGUI>().text = "싱글";
+			startButton.GetComponentInChildren<TextMeshProUGUI>().text = "시작하기";
 			startButton.onClick.AddListener(StartGame);
 			settingButton.onClick.AddListener(ToggleSettings);
 			exitButton.onClick.AddListener(ExitGame);
@@ -83,7 +83,7 @@ namespace WitchMendokusai
 
 		private void UpdateText()
 		{
-			versionText.text = $"마녀여 영원히 v{Application.version}";
+			versionText.text = $"v{Application.version}";
 			copyRightText.text = $"© {year} {Application.companyName}";
 		}
 

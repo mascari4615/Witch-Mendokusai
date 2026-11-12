@@ -12,6 +12,8 @@ namespace WitchMendokusai
 		[SerializeField] private float hoursPerDay = 24f;
 		[SerializeField] private Light sun;
 		[SerializeField, Range(0f, 360f)] private float sunAzimuth = 30f;
+		[Tooltip("게임 카메라 거리용 안개를 넓은 무대에 맞게 줄이는 배율")]
+		[SerializeField] private float fogDensityScale = 0.12f;
 
 		[Header("Camera drift")]
 		[SerializeField] private Transform cameraTransform;
@@ -32,8 +34,10 @@ namespace WitchMendokusai
 			}
 		}
 
-		private void Update()
+		// 월드 SkyDirector 가 Update 에서 월드 시각으로 덮으므로 매 프레임 뒤에 다시 적용
+		private void LateUpdate()
 		{
+			ApplySky();
 			if (cameraTransform == null)
 				return;
 			float phase = Time.unscaledTime * driftSpeed * Mathf.PI * 2f;
@@ -58,6 +62,7 @@ namespace WitchMendokusai
 				RenderSettings.sun = sun;
 			}
 			SkyPresetApplier.ApplyEnvironment(skyPreset, normalizedTime);
+			RenderSettings.fogDensity *= fogDensityScale;
 		}
 	}
 }

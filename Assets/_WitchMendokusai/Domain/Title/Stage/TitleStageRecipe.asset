@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03e06e9133a14c70afdb00daafa20e90, type: 3}
+  m_Name: TitleStageRecipe
+  m_EditorClassIdentifier: WM.Editor::WitchMendokusai.TitleStageRecipe
+  Seed: 4615
+  GroundSource: {fileID: 2100000, guid: 96cb66d3f55ab69458576aa757bd763a, type: 2}
+  GroundColorScale: 1.2
+  GrassSource: {fileID: 2100000, guid: 2a27b3985f33f324185d30511b4aec4a, type: 2}
+  GrassLit: {fileID: 2100000, guid: 9cf35727358132d48aa379b2e13ba56f, type: 2}
+  TreePrefab: {fileID: 2871132453943284833, guid: c0c27574d0d91ea44894908f417f36d4, type: 3}
+  BigTreePosition: {x: 7, y: 3}
+  BigTreeScale: 3.2
+  CharacterModel: {fileID: 919132149155446097, guid: 8403658c3298ac34db76445e300408d8, type: 3}
+  CharacterAnimator: {fileID: 9100000, guid: a54ae9bdcf3a33143b27ba56208bee76, type: 2}
+  CharacterOffset: {x: -4.5, y: -5}
+  CharacterScale: 1.5
+  CharacterYaw: 200
+  ForestCount: 34
+  ForestRadius: {x: 55, y: 150}
+  ForestScale: {x: 1.1, y: 2.4}
+  ForestFrontGapDegrees: 70
+  ShrubPrefab: {fileID: 5350839332914572334, guid: 3540440509c30ba49b2125f242729c46, type: 3}
+  ShrubCount: 26
+  ShrubFrontLimit: -25
+  ShrubRadius: 60
+  ShrubScale: {x: 0.8, y: 1.6}
+  GrassPrefab: {fileID: 6107932506994862601, guid: a26a53e463177194db6585765f564431, type: 3}
+  GrassCount: 650
+  GrassRadius: 70
+  GrassScale: {x: 0.9, y: 1.8}
+  GravelPrefab: {fileID: 4364362874430228022, guid: 871875c89c8ec7142a27c6271f62c2e0, type: 3}
+  GravelCount: 26
+  GravelRadius: 45
+  SkyPreset: {fileID: 11400000, guid: 7dfb6657b0a0df944b421b00a3a88c09, type: 2}
+  SkyboxMaterial: {fileID: 2100000, guid: 282b50081561f8f4289b7d1b999c03de, type: 2}
+  Hour: 14.5
+  CameraPosition: {x: -8, y: 1.6, z: -92}
+  CameraEuler: {x: -9, y: 6, z: 0}
+  CameraFieldOfView: 40
+  TitleOffset: {x: 0, y: -120}
+  TitleSize: {x: 1600, y: 220}
+  MenuOffset: {x: 0, y: 40}
+  MenuSize: {x: 1200, y: 80}
+  MenuFontSize: 46
+  FooterMargin: {x: 40, y: 28}
+  FooterSize: {x: 600, y: 50}
