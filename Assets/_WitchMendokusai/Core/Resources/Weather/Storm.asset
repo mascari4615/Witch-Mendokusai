@@ -20,7 +20,7 @@ MonoBehaviour:
   <Type>k__BackingField: 3
   <FadeMinutes>k__BackingField: 30
   <IsWet>k__BackingField: 1
-  <SfxKey>k__BackingField: weather_storm
+  <SfxKey>k__BackingField: 
   <ThunderSfxKey>k__BackingField: 
   <LightningIntervalMin>k__BackingField: 8
   <LightningIntervalMax>k__BackingField: 30

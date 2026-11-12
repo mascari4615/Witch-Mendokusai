@@ -13,6 +13,12 @@ namespace WitchMendokusai
 	public class KeybindHelpView : MonoBehaviour
 	{
 		private const string WINDOW_ID = "KeybindHelp";
+		// 첫 스테이지 진입 때 한 번 자동 열기, 이후 F1
+		private const string SHOWN_PREF_KEY = "KeybindHelpShownOnce";
+		private const string MOVE_CATEGORY = "이동";
+		// 이동: InputEventType 아닌 Move 축 입력, 레지스트리 밖
+		private const string MOVE_DISPLAY_NAME = "이동";
+		private const string MOVE_KEYS = "W A S D";
 
 		public const string USS_VIEW = "wm-keybind-help";
 		public const string USS_CATEGORY = "wm-keybind-help__category";
@@ -48,11 +54,42 @@ namespace WitchMendokusai
 			BuildContent();
 
 			inputManager.RegisterInputEvent(InputEventType.KeybindHelpToggle, InputEventResponseType.Performed, OnToggle);
+
+			if (PlayerPrefs.GetInt(SHOWN_PREF_KEY, 0) == 0)
+				StageManager.OnStageChanged += OnFirstStage;
 		}
 
 		private void OnDestroy()
 		{
 			inputManager.UnregisterInputEvent(InputEventType.KeybindHelpToggle, InputEventResponseType.Performed, OnToggle);
+			StageManager.OnStageChanged -= OnFirstStage;
+		}
+
+		private void OnFirstStage(Stage stage, StageObject stageObject)
+		{
+			StageManager.OnStageChanged -= OnFirstStage;
+			PlayerPrefs.SetInt(SHOWN_PREF_KEY, 1);
+			PlayerPrefs.Save();
+			window.Open();
+		}
+
+		// 릴리스: 개발자 창 단축키 줄 숨김 (DevWindow 와 같은 조건)
+		private static bool IsVisible(KeybindEntry entry)
+			=> entry.EventType != InputEventType.DevWindowToggle || Debug.isDebugBuild;
+
+		private VisualElement CreateRow(string displayName, string keyText)
+		{
+			VisualElement row = new();
+			row.AddToClassList(USS_ROW);
+
+			Label displayLabel = new(displayName);
+			displayLabel.AddToClassList(USS_DISPLAY_NAME);
+			row.Add(displayLabel);
+
+			Label keyLabel = new(keyText);
+			keyLabel.AddToClassList(USS_KEY);
+			row.Add(keyLabel);
+			return row;
 		}
 
 		private void BuildContent()
@@ -70,21 +107,11 @@ namespace WitchMendokusai
 				categoryLabel.AddToClassList(USS_CATEGORY_LABEL);
 				categoryBox.Add(categoryLabel);
 
-				foreach (KeybindEntry entry in group)
-				{
-					VisualElement row = new();
-					row.AddToClassList(USS_ROW);
+				if (group.Key == MOVE_CATEGORY)
+					categoryBox.Add(CreateRow(MOVE_DISPLAY_NAME, MOVE_KEYS));
 
-					Label displayLabel = new(entry.DisplayName);
-					displayLabel.AddToClassList(USS_DISPLAY_NAME);
-					row.Add(displayLabel);
-
-					Label keyLabel = new(FormatPath(entry.CurrentPath));
-					keyLabel.AddToClassList(USS_KEY);
-					row.Add(keyLabel);
-
-					categoryBox.Add(row);
-				}
+				foreach (KeybindEntry entry in group.Where(IsVisible))
+					categoryBox.Add(CreateRow(entry.DisplayName, FormatPath(entry.CurrentPath)));
 
 				scrollView.Add(categoryBox);
 			}

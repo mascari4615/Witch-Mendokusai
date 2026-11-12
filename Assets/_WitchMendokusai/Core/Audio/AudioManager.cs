@@ -192,8 +192,17 @@ namespace WitchMendokusai
 		{
 			if (audioReady == false)
 				return;
-			if (string.IsNullOrEmpty(eventPath) == false)
+			if (string.IsNullOrEmpty(eventPath))
+				return;
+			try
+			{
 				RuntimeManager.PlayOneShot(eventPath);
+			}
+			catch (EventNotFoundException)
+			{
+				// 뱅크에 없는 데이터 키 (WeatherSO ThunderSfxKey 등): 호출 코루틴 중단 방지
+				Debug.LogWarning($"[AudioManager] FMOD event not found: '{eventPath}', sfx skip");
+			}
 		}
 
 		public void PlayMusic(string eventPath)

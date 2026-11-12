@@ -15,7 +15,8 @@ namespace WitchMendokusai
 		protected override void OnInit()
 		{
 			reputationSlot.Init();
-			reputationSlot.SetSlot(GetGameStatData(GameStatType.VILLAGE_REPUTATION_LEVEL));
+			GameStatData reputationData = GetGameStatData(GameStatType.VILLAGE_REPUTATION_LEVEL);
+			reputationSlot.SetSlot(reputationData.Sprite, StatDisplayName.Get(GameStatType.VILLAGE_REPUTATION_LEVEL), reputationData.Description);
 		}
 
 		public override void UpdateUI()

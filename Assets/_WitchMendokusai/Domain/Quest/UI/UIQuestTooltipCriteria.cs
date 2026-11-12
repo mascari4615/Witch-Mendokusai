@@ -61,18 +61,18 @@ namespace WitchMendokusai
 						case StatCriteria statCriteria:
 							// HACK
 							criteriaSprite = GetGameStatData(GameStatType.VILLAGE_QUEST_EXP).Sprite;
-							criteriaName = statCriteria.Type.ToString();
+							criteriaName = StatDisplayName.Get(statCriteria.Type);
 							break;
 						case GameStatCriteria gameStatCriteria:
 							// HACK
 							criteriaSprite = GetGameStatData(GameStatType.VILLAGE_QUEST_EXP).Sprite;
-							criteriaName = gameStatCriteria.Type.ToString();
+							criteriaName = StatDisplayName.Get(gameStatCriteria.Type);
 							break;
 					}
 
 					if (criteria[i].Criteria is NumCriteria numCriteria)
 					{
-						criteriaDesc = $"{numCriteria.GetCurValue()}/{numCriteria.GetTargetValue()} ({numCriteria.GetProgress() * 100}%)";
+						criteriaDesc = $"{numCriteria.GetCurValue()}/{numCriteria.GetTargetValue()} ({numCriteria.GetProgress() * 100:0}%)";
 					}
 
 					slots[i].SetSlot(criteriaSprite, criteriaName, criteriaDesc);

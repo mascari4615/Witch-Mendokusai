@@ -19,10 +19,10 @@ namespace WitchMendokusai
 		[field: Tooltip("ground 가 젖은 상태 (sub-F 농사 자동 물주기 / sub-E Wet shader hook 용).")]
 		[field: SerializeField] public bool IsWet { get; private set; }
 
-		[field: Tooltip("AudioManager ambient 호출 키 (sub-E WeatherDirector 가 발동 시 사용).")]
+		[field: Tooltip("FMOD ambient event 경로 (event:/...). 비어있으면 ambient 생략. 2026-11-12 뱅크에 날씨 event 없음.")]
 		[field: SerializeField] public string SfxKey { get; private set; } = "";
 
-		[field: Tooltip("Storm 번개 1회 천둥 one-shot 키. 비어있으면 천둥 SFX 생략.")]
+		[field: Tooltip("Storm 번개 1회 천둥 FMOD event 경로 (event:/...). 비어있으면 천둥 SFX 생략.")]
 		[field: SerializeField] public string ThunderSfxKey { get; private set; } = "";
 
 		[field: Tooltip("Storm 번개 발생 최소 간격 (실 초).")]
