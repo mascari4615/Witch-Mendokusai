@@ -218,6 +218,7 @@ namespace WitchMendokusai
 			content.Add(systemHeader);
 
 			framerateToggle = CreateToggle("60 FPS 고정", Application.targetFrameRate == lockedFrameRate, isOn => isOn ? "켜짐 (60)" : "꺼짐 (제한 없음)", isOn => Application.targetFrameRate = isOn ? lockedFrameRate : unlockedFrameRate, content);
+			CreateOnOffToggle("FPS 표시", UIFPS.IsVisible, isOn => UIFPS.IsVisible = isOn, content);
 
 			// 버튼 그룹
 			VisualElement buttonGroup = new VisualElement();
