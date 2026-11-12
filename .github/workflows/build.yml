@@ -27,7 +27,7 @@ on:
         options: [release, development]
         default: release
       publish:
-        description: '산출물 처리 (none=노트북에만 / artifact=GitHub Actions 아티팩트 업로드)'
+        description: '산출물 처리 (none=노트북에만, Files 앱 빌드 탭에서 받기 / artifact=GitHub Actions 아티팩트 업로드도)'
         type: choice
         options: [none, artifact]
         default: none
@@ -292,7 +292,8 @@ jobs:
             -UnityLog '${{ steps.build.outputs.unity_log }}' `
             -SummaryFile $env:GITHUB_STEP_SUMMARY
       - name: Pick the deliverable
-        if: ${{ success() && (inputs.publish == 'artifact' || github.ref_type == 'tag') }}
+        # 모든 성공 빌드: Files 앱 빌드 탭 받기 링크가 zip 이나 apk 를 찾는다. 시험 빌드도 릴리스 없이 받기 (사용자 2026-11-12)
+        if: ${{ success() }}
         shell: powershell
         # Android is DIFFERENT: the .apk IS the deliverable - a phone installs that file
         # directly. Zipping it would only make the phone unpack it first.
