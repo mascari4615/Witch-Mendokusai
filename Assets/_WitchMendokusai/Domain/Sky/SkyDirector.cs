@@ -42,29 +42,6 @@ namespace WitchMendokusai
 		private Light directionalLight;
 		private float cachedNormalizedTime = -1f;
 
-		private static readonly int ZenithColorId = Shader.PropertyToID("_ZenithColor");
-		private static readonly int HorizonColorId = Shader.PropertyToID("_HorizonColor");
-		private static readonly int SunDiscColorId = Shader.PropertyToID("_SunDiscColor");
-		private static readonly int SunDirectionId = Shader.PropertyToID("_SunDirection");
-		private static readonly int StarAlphaId = Shader.PropertyToID("_StarAlpha");
-		private static readonly int CloudColorId = Shader.PropertyToID("_CloudColor");
-		private static readonly int CloudCoverageId = Shader.PropertyToID("_CloudCoverage");
-		private static readonly int CloudSoftnessId = Shader.PropertyToID("_CloudSoftness");
-		private static readonly int CloudHeightId = Shader.PropertyToID("_CloudHeight");
-		private static readonly int CloudScaleId = Shader.PropertyToID("_CloudScale");
-		private static readonly int CloudSpeedId = Shader.PropertyToID("_CloudSpeed");
-
-		// Shader Modding Contract (C6) — 모더 ShaderGraph 가 받을 standard global uniform 7개.
-		// 매 프레임 SetGlobal 로 노출 → WM-058 P2-B SkyboxSlot 가 RenderSettings.skybox 교체 시
-		// 모더 Material 이 자동으로 base 시간대 색감 받음 (base+overlay 합성 모델).
-		private static readonly int WMSkyZenithId = Shader.PropertyToID("_WMSkyZenith");
-		private static readonly int WMSkyHorizonId = Shader.PropertyToID("_WMSkyHorizon");
-		private static readonly int WMSkySunId = Shader.PropertyToID("_WMSkySun");
-		private static readonly int WMSkyStarAlphaId = Shader.PropertyToID("_WMSkyStarAlpha");
-		private static readonly int WMSunAltitudeId = Shader.PropertyToID("_WMSunAltitude");
-		private static readonly int WMSunDirectionId = Shader.PropertyToID("_WMSunDirection");
-		private static readonly int WMNormalizedTimeId = Shader.PropertyToID("_WMNormalizedTime");
-
 		private void Awake()
 		{
 			if (Instance != null && Instance != this)
@@ -200,19 +177,7 @@ namespace WitchMendokusai
 
 		// 모더 ShaderGraph contract — SkyboxMaterial 유무와 무관하게 항상 노출.
 		// 모더 Skybox/Water/PostFX 등 셰이더가 _WM* 글로벌 받아 시간대 색감 합성.
-		private void ApplyShaderGlobals(float normalizedTime)
-		{
-			Shader.SetGlobalColor(WMSkyZenithId, ActivePreset.ZenithColor.Evaluate(normalizedTime));
-			Shader.SetGlobalColor(WMSkyHorizonId, ActivePreset.HorizonColor.Evaluate(normalizedTime));
-			Shader.SetGlobalColor(WMSkySunId, ActivePreset.SunDiscColor.Evaluate(normalizedTime));
-			Shader.SetGlobalFloat(WMSkyStarAlphaId, ActivePreset.StarAlpha.Evaluate(normalizedTime));
-
-			float altitude = ActivePreset.SunAltitude.Evaluate(normalizedTime);
-			Shader.SetGlobalFloat(WMSunAltitudeId, altitude);
-			Shader.SetGlobalVector(WMSunDirectionId, ComputeSunDirection(altitude));
-
-			Shader.SetGlobalFloat(WMNormalizedTimeId, normalizedTime);
-		}
+		private void ApplyShaderGlobals(float normalizedTime) => SkyPresetApplier.ApplyShaderGlobals(ActivePreset, normalizedTime);
 
 		private static float ComputeNormalizedTime(WorldClock worldClock)
 		{
@@ -221,35 +186,7 @@ namespace WitchMendokusai
 			return currentMinutes / minutesPerDay;
 		}
 
-		private void ApplySky(float t)
-		{
-			if (SkyboxMaterial == null)
-				return;
-
-			SkyboxMaterial.SetColor(ZenithColorId, ActivePreset.ZenithColor.Evaluate(t));
-			SkyboxMaterial.SetColor(HorizonColorId, ActivePreset.HorizonColor.Evaluate(t));
-			SkyboxMaterial.SetColor(SunDiscColorId, ActivePreset.SunDiscColor.Evaluate(t));
-
-			float altitude = ActivePreset.SunAltitude.Evaluate(t);
-			Vector3 sunDirection = ComputeSunDirection(altitude);
-			SkyboxMaterial.SetVector(SunDirectionId, sunDirection);
-
-			SkyboxMaterial.SetFloat(StarAlphaId, ActivePreset.StarAlpha.Evaluate(t));
-
-			SkyboxMaterial.SetColor(CloudColorId, ActivePreset.CloudColor.Evaluate(t));
-			SkyboxMaterial.SetFloat(CloudCoverageId, ActivePreset.CloudCoverage.Evaluate(t));
-			SkyboxMaterial.SetFloat(CloudSoftnessId, ActivePreset.CloudSoftness);
-			SkyboxMaterial.SetFloat(CloudHeightId, ActivePreset.CloudHeight);
-			SkyboxMaterial.SetFloat(CloudScaleId, ActivePreset.CloudScale);
-			SkyboxMaterial.SetFloat(CloudSpeedId, ActivePreset.CloudSpeed);
-		}
-
-		private static Vector3 ComputeSunDirection(float altitude)
-		{
-			// altitude: -1=수평선 아래 / 0=수평선 / 1=천정
-			float pitch = altitude * 90f * Mathf.Deg2Rad;
-			return new Vector3(0f, Mathf.Sin(pitch), Mathf.Cos(pitch));
-		}
+		private void ApplySky(float t) => SkyPresetApplier.ApplySky(ActivePreset, SkyboxMaterial, t);
 
 		private void ApplyDirectionalLight(float t)
 		{
@@ -260,34 +197,13 @@ namespace WitchMendokusai
 					return;
 			}
 
-			directionalLight.color = ActivePreset.SunLightColor.Evaluate(t);
-			directionalLight.intensity = ActivePreset.SunIntensity.Evaluate(t);
-
-			float altitude = ActivePreset.SunAltitude.Evaluate(t);
-			float pitchDegrees = ComputeLightPitch(altitude, ActivePreset.MinLightPitch);
-			directionalLight.transform.rotation = Quaternion.Euler(pitchDegrees, sunAzimuth, 0f);
+			SkyPresetApplier.ApplyDirectionalLight(ActivePreset, directionalLight, t, sunAzimuth);
 		}
 
 		// 밤의 달빛 겸용. 해가 지평선 아래여도 빛 방향은 위쪽
-		public static float ComputeLightPitch(float altitude, float minPitch) => Mathf.Max(altitude * 90f, minPitch);
+		public static float ComputeLightPitch(float altitude, float minPitch) => SkyPresetApplier.ComputeLightPitch(altitude, minPitch);
 
-		private void ApplyEnvironment(float t)
-		{
-			Color ambient = ActivePreset.AmbientColor.Evaluate(t);
-			RenderSettings.ambientMode = ActivePreset.UseHemisphereAmbient ? AmbientMode.Trilight : AmbientMode.Flat;
-			if (ActivePreset.UseHemisphereAmbient)
-			{
-				RenderSettings.ambientSkyColor = ambient * ActivePreset.AmbientSkyTint;
-				RenderSettings.ambientEquatorColor = ambient * ActivePreset.AmbientEquatorTint;
-				RenderSettings.ambientGroundColor = ambient * ActivePreset.AmbientGroundTint;
-			}
-			else RenderSettings.ambientLight = ambient;
-
-			RenderSettings.fog = true;
-			RenderSettings.fogMode = ActivePreset.FogMode;
-			RenderSettings.fogColor = ActivePreset.FogColor.Evaluate(t);
-			RenderSettings.fogDensity = ActivePreset.FogDensity.Evaluate(t);
-		}
+		private void ApplyEnvironment(float t) => SkyPresetApplier.ApplyEnvironment(ActivePreset, t);
 
 		[ContextMenu("Debug/Reapply Now")]
 		private void DebugReapplyNow()
