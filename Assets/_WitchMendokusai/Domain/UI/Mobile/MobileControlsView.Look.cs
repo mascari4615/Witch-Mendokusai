@@ -11,7 +11,7 @@ namespace WitchMendokusai
 
 		[Header("둘러보기 안내")]
 		[Tooltip("처음 온 사람에게 보여줄 한 줄. 한 번 둘러보면 다시 안 뜬다.")]
-		[SerializeField] private string lookHintText = "화면을 문지르면 둘러봅니다";
+		[SerializeField] private string lookHintText = "오른쪽을 문지르면 둘러봅니다";
 		[Tooltip("안내 글자 크기(픽셀).")]
 		[SerializeField, Min(8f)] private float lookHintFontSize = 22f;
 		[Tooltip("안내의 진하기. 게임 화면을 가리지 않을 만큼만.")]
@@ -52,6 +52,18 @@ namespace WitchMendokusai
 			lookBackdrop.pickingMode = wanted;
 			if (uiHoldsInput)
 				lookAccumulated = Vector2.zero; // 창이 뜨는 순간 남아 있던 훑기량으로 시점이 튀지 않게
+		}
+
+		private static bool IsLookLocked => CameraManager.TryGetExistingInstance(out CameraManager cameraManager) && cameraManager.IsTouchLookLocked;
+
+		/// <summary> 둘러보기를 못 하는 동안엔 둘러보라는 안내도 숨김 </summary>
+		private void UpdateLookHintVisibility()
+		{
+			if (lookHint == null)
+				return;
+			DisplayStyle wanted = IsLookLocked ? DisplayStyle.None : DisplayStyle.Flex;
+			if (lookHint.style.display != wanted)
+				lookHint.style.display = wanted;
 		}
 
 		/// <summary> 훑은 양을 넘기고 비운다 — 한 번 쓴 움직임을 다음 프레임에 또 쓰면 시점이 계속 흐른다. </summary>
@@ -99,7 +111,7 @@ namespace WitchMendokusai
 			lookHint = new Label(lookHintText) { name = "MobileLookHint" };
 			lookHint.pickingMode = PickingMode.Ignore;
 			lookHint.style.position = Position.Absolute;
-			lookHint.style.left = 0;
+			lookHint.style.left = Length.Percent(floatingStickZone * 100f);
 			lookHint.style.right = 0;
 			lookHint.style.top = Length.Percent(38f);
 			lookHint.style.unityTextAlign = TextAnchor.MiddleCenter;
@@ -130,6 +142,16 @@ namespace WitchMendokusai
 			//   이 판이 그 아래에 깔려 있어도 손가락은 둘 다 닿는다. 창을 만지는 동안 시점이 돌면
 			//   「무엇을 만지고 있는지」가 화면과 어긋난다.
 			if (InputManager.TryGetExistingInstance(out InputManager inputManager) && inputManager.IsPointerOverUI())
+				return;
+
+			// 왼쪽은 걷기, 오른쪽은 둘러보기. 일반과 던전이 같은 손 배치
+			if (IsInFloatingStickZone(evt.position))
+			{
+				if (TryBeginStick(evt.pointerId, evt.position))
+					evt.StopPropagation();
+				return;
+			}
+			if (IsLookLocked)
 				return;
 
 			lookBackdrop.CapturePointer(evt.pointerId);

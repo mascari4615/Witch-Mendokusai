@@ -13,11 +13,16 @@ namespace WitchMendokusai
 		[SerializeField, Min(20f)] private float knobSize = 90f;
 		[Tooltip("이 비율 안쪽은 안 민 것으로 본다 — 손가락이 살짝 흔들려도 캐릭터가 안 움직이게.")]
 		[SerializeField, Range(0f, 0.5f)] private float stickDeadZone = 0.15f;
+		[Tooltip("화면 왼쪽에서 이 비율 안을 누르면 그 자리에 스틱이 생긴다. 엄지가 스틱 칸을 정확히 찾지 않아도 걷게")]
+		[SerializeField, Range(0f, 1f)] private float floatingStickZone = 0.5f;
 		private VisualElement stickBase;
 		private VisualElement stickKnob;
 
 		private int stickPointerId = -1;
-		private Vector2 stickCenter;
+		// 스틱 중심의 패널 좌표. 누른 자리로 옮긴 뒤의 값
+		private Vector2 stickPanelCenter;
+		// 사용자가 자리 옮기기로 정한 쉬는 자리. 떼면 여기로 돌아감
+		private Vector2 stickRestOffset;
 		private Vector2 stickValue;
 
 		private void BuildStick(VisualElement parent)
@@ -71,21 +76,38 @@ namespace WitchMendokusai
 			// 자리를 옮기는 중엔 스틱이 「밀리면」 안 된다 — 옮기려는 손가락이 캐릭터를 걷게 한다.
 			if (layoutEditMode)
 				return;
-			if (stickPointerId >= 0)
-				return; // 스틱은 손가락 하나만 받는다 — 둘째 손가락은 다른 조작의 것이다.
+			if (TryBeginStick(evt.pointerId, evt.position))
+				evt.StopPropagation();
+		}
 
-			stickPointerId = evt.pointerId;
-			stickBase.CapturePointer(evt.pointerId);
-			stickCenter = new Vector2(stickSize, stickSize) * 0.5f;
-			ApplyStick(evt.localPosition);
-			evt.StopPropagation();
+		private bool IsInFloatingStickZone(Vector2 panelPosition) =>
+			lookBackdrop != null && panelPosition.x <= lookBackdrop.worldBound.xMin + lookBackdrop.worldBound.width * floatingStickZone;
+
+		/// <summary>
+		/// 누른 자리를 스틱 중심으로 삼아 잡기. 스틱 칸과 왼쪽 빈 화면 공통 경로.
+		/// 처음 누른 순간은 기울기 0. 엄지를 대자마자 엉뚱한 쪽으로 튀는 것 방지
+		/// </summary>
+		private bool TryBeginStick(int pointerId, Vector2 panelPosition)
+		{
+			// 스틱은 손가락 하나만 받는다. 둘째 손가락은 다른 조작의 것
+			if (layoutEditMode || stickPointerId >= 0 || stickBase == null)
+				return false;
+
+			stickPointerId = pointerId;
+			stickRestOffset = GetOffset(stickBase);
+			Vector2 restCenter = stickBase.worldBound.center;
+			ApplyOffset(stickBase, stickRestOffset + (panelPosition - restCenter));
+			stickPanelCenter = panelPosition;
+			stickBase.CapturePointer(pointerId);
+			ApplyStick(panelPosition);
+			return true;
 		}
 
 		private void OnStickMove(PointerMoveEvent evt)
 		{
 			if (evt.pointerId != stickPointerId)
 				return;
-			ApplyStick(evt.localPosition);
+			ApplyStick(evt.position);
 		}
 
 		private void OnStickUp(PointerUpEvent evt)
@@ -95,14 +117,13 @@ namespace WitchMendokusai
 			ReleaseStick();
 		}
 
-		private void ApplyStick(Vector3 localPosition)
+		private void ApplyStick(Vector2 panelPosition)
 		{
 			float radius = (stickSize - knobSize) * 0.5f;
-			Vector2 offset = new Vector2(localPosition.x, localPosition.y) - stickCenter;
-			offset = Vector2.ClampMagnitude(offset, radius);
+			Vector2 offset = Vector2.ClampMagnitude(panelPosition - stickPanelCenter, radius);
 
-			stickKnob.style.left = stickCenter.x + offset.x - knobSize * 0.5f;
-			stickKnob.style.top = stickCenter.y + offset.y - knobSize * 0.5f;
+			stickKnob.style.left = (stickSize - knobSize) * 0.5f + offset.x;
+			stickKnob.style.top = (stickSize - knobSize) * 0.5f + offset.y;
 
 			Vector2 raw = radius <= 0f ? Vector2.zero : offset / radius;
 			// 화면은 아래로 갈수록 y 가 커지고, 걷는 방향은 위가 앞이다.
@@ -139,8 +160,12 @@ namespace WitchMendokusai
 
 		private void ReleaseStick()
 		{
-			if (stickBase != null && stickPointerId >= 0 && stickBase.HasPointerCapture(stickPointerId))
-				stickBase.ReleasePointer(stickPointerId);
+			if (stickBase != null && stickPointerId >= 0)
+			{
+				if (stickBase.HasPointerCapture(stickPointerId))
+					stickBase.ReleasePointer(stickPointerId);
+				ApplyOffset(stickBase, stickRestOffset);
+			}
 			stickPointerId = -1;
 			stickValue = Vector2.zero;
 			if (stickKnob != null)

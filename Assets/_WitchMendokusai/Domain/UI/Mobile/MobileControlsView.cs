@@ -112,6 +112,7 @@ namespace WitchMendokusai
 			UpdateArenaExitButton(touch);
 			UpdateInteractButton(show, playerProvider);
 			UpdateLookBackdropBlocking();
+			UpdateLookHintVisibility();
 			// 화면을 돌렸을 때의 처리는 위(다시 세우기) 한 곳뿐이다. 여기에 「여백만 다시 재기」를
 			// 따로 두면 위에서 이미 값을 갱신한 뒤라 *영영 안 불리는 죽은 가지*가 된다.
 		}

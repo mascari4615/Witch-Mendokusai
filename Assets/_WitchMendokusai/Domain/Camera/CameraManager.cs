@@ -49,6 +49,8 @@ namespace WitchMendokusai
 		[SerializeField] private float minPitch = -60f;
 		[Tooltip("pitch 상한 (아래로 본 한계).")]
 		[SerializeField] private float maxPitch = 70f;
+		[Tooltip("폰 던전에서 시점 훑기를 막는다. 전투 중 버튼을 살짝 벗어난 손가락이 시점과 스틱의 앞 방향을 돌리지 않게")]
+		[SerializeField] private bool lockTouchLookInDungeon = true;
 		[Tooltip("1인칭 시 firstPersonCamera priority (Content vcam 10 보다 높게).")]
 		[SerializeField] private int firstPersonPriority = 50;
 		[Tooltip("1인칭 카메라 눈 높이 — HeadAnchor 위로 이만큼(월드 up). 머리 위치 조정. TASK-WM-163.")]
@@ -96,6 +98,11 @@ namespace WitchMendokusai
 				pitchPivot.rotation = Quaternion.Euler(pitch, yaw, 0f);
 			suppressLookFrame = true;
 		}
+
+		/// <summary>폰 던전처럼 손가락 시점 회전을 받지 않는 상태</summary>
+		public bool IsTouchLookLocked => lockTouchLookInDungeon
+			&& inputManager != null && inputManager.IsTouchMode
+			&& CurrentContentMode == ContentCameraMode.Dungeon;
 
 		/// <summary>PlayerRotation body 회전용 — 평면 yaw (pitch 무시).</summary>
 		public Quaternion FlatYawRotation => Quaternion.Euler(0f, yaw, 0f);
@@ -197,7 +204,7 @@ namespace WitchMendokusai
 			//   마우스 잠금은 여기 없다(UpdateCursorState 가 따로 본다) — 손가락엔 잠글 커서가 없다.
 			if (ControlMode == CameraControlMode.MouseLook || inputManager.IsTouchMode)
 			{
-				Vector2 look = suppressLookFrame ? Vector2.zero : inputManager.LookDelta;
+				Vector2 look = suppressLookFrame || IsTouchLookLocked ? Vector2.zero : inputManager.LookDelta;
 				yaw += look.x * mouseYawSensitivity;
 				pitch += -look.y * mousePitchSensitivity;
 				pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
@@ -316,7 +323,11 @@ namespace WitchMendokusai
 			// content 카메라 추가/재배치에 견고. Normal/Dungeon 은 필드로도 동일 카메라(동작 무변경). TASK-WM-165 item9.
 			if (curCamera != null)
 				curCamera.SetOrbitProfile(null);
+			MCamera previousCamera = curCamera;
 			curCamera = cameras.First(cam => cam.ContentCameraMode == mode);
+			// 상태가 바뀌면 손으로 바꾼 기울기를 버리고 그 카메라의 기본 기울기로. 실험실에서 숙인 값이 던전까지 따라가지 않게
+			if (previousCamera != curCamera)
+				SetOrbitAngles(new Vector2(yaw, 0f));
 			curCamera.SetOrbitProfile(OrbitProfile);
 
 			// 카메라 블렌딩 설정 (던전일 경우 Cut, 그 외 EaseInOut)
