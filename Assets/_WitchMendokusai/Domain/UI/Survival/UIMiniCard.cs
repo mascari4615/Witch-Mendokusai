@@ -18,6 +18,8 @@ namespace WitchMendokusai
 		[SerializeField] private Color offBackground = new(0.08f, 0.07f, 0.1f, 1f);
 		[SerializeField] private Color offOutline = new(0.31f, 0.3f, 0.34f, 1f);
 
+		private float nameFontSize = -1f;
+
 		public void SetCard(CardData card, int count)
 		{
 			SurvivalUITheme.KindStyle style = theme.Style(card.UIKind);
@@ -28,7 +30,7 @@ namespace WitchMendokusai
 			offGroup.alpha = hasCount ? 1f : offAlpha;
 			amountText.text = hasCount ? $"x{count}" : string.Empty;
 			if (nameText != null)
-				nameText.text = card.Name;
+				SetName(card.Name);
 		}
 
 		public void SetItem(ItemData item, int count)
@@ -39,7 +41,17 @@ namespace WitchMendokusai
 			offGroup.alpha = 1f;
 			amountText.text = count.ToString();
 			if (nameText != null)
-				nameText.text = item.Name;
+				SetName(item.Name);
+		}
+
+		// 한글은 글자마다 끊겨 "증가" 가 "증 / 가" 로 갈림. 마지막 줄 한 글자면 마지막 공백에서 줄바꿈
+		private void SetName(string displayName)
+		{
+			if (nameFontSize < 0f)
+				nameFontSize = nameText.fontSize;
+			nameText.fontSize = nameFontSize;
+			nameText.text = displayName;
+			UIEffects.AvoidOrphan(nameText, theme.MinCardNameFontSize);
 		}
 	}
 }
