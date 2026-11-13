@@ -125,12 +125,7 @@ namespace WitchMendokusai
 			container.style.display = DisplayStyle.None;
 			container.pickingMode = PickingMode.Ignore;
 
-			// ★ 안전영역 — 노치·둥근 모서리·제스처 바가 먹는 자리를 루트에서 한 번에 비켜준다.
-			//   각 조각이 저마다 여백을 박으면 기기마다 어긋난다(지금까지 그랬다). 비켜주는 곳은 여기 한 곳.
-			ApplySafeArea();
-			// ★ 한 번만 재면 창 크기·회전이 바뀐 뒤로는 계속 옛 값이다. 자리가 다시 잡힐 때마다 다시 잰다 —
-			//   해상도가 바뀌어도 「띠가 늘어날 뿐」이 되려면 이 되풀이가 있어야 한다.
-			container.RegisterCallback<GeometryChangedEvent>(_ => ApplySafeArea());
+			// 안전 영역은 ModeHudLayer 가 UIRoot 에서 이미 비킴 (SafeArea 단일 출처)
 
 			// ★ 한 덩어리가 한 가지만 말한다 — 예전엔 전부 좌상단에 몰려 있어 무엇부터 봐야 할지 알 수 없었다
 			//   (사용자 실증: "정보는 전부 모여 있어서 복잡복잡"). 자원은 상단 가운데 독립 띠(종류가 늘어도

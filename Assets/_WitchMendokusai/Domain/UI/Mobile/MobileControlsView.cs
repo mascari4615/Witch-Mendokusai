@@ -26,7 +26,6 @@ namespace WitchMendokusai
 
 		[Tooltip("이만큼(픽셀) 안에서 뗐을 때만 「눌렀다」로 본다 — 서랍을 굴리려던 손가락과 구별하는 문턱.")]
 		[SerializeField, Min(1f)] private float tapSlopPixels = 16f;
-		private Rect lastSafeArea;
 		private int lastScreenWidth;
 		private int lastScreenHeight;
 		private VisualElement controlsRoot;
@@ -64,13 +63,9 @@ namespace WitchMendokusai
 			if (built && IsAttached() == false)
 				built = false;
 
-			// ★ 화면 크기·가장자리 여백은 *한 번만* 재고 끝이었다. 폰을 180도 돌리면(이 게임은 가로
-			//   두 방향을 다 허용한다) 노치가 반대편으로 가는데 층은 그대로라, 버튼이 카메라 구멍
-			//   아래로 들어간다. 화면 모양이 달라지면 다시 세운다.
-			Rect safeArea = Screen.safeArea;
-			if (built && (safeArea != lastSafeArea || Screen.width != lastScreenWidth || Screen.height != lastScreenHeight))
+			// 화면 크기가 달라지면 다시 세움. 노치 회전 같은 안전 영역 변화는 HudLayer 가 UIRoot 에서 비킴
+			if (built && (Screen.width != lastScreenWidth || Screen.height != lastScreenHeight))
 				built = false;
-			lastSafeArea = safeArea;
 			lastScreenWidth = Screen.width;
 			lastScreenHeight = Screen.height;
 
@@ -166,7 +161,10 @@ namespace WitchMendokusai
 		{
 			controlsRoot = new VisualElement { name = "MobileControls" };
 			controlsRoot.style.position = Position.Absolute;
-			ApplySafeArea(controlsRoot);
+			controlsRoot.style.left = 0;
+			controlsRoot.style.right = 0;
+			controlsRoot.style.top = 0;
+			controlsRoot.style.bottom = 0;
 			controlsRoot.style.display = DisplayStyle.None;
 			controlsRoot.pickingMode = PickingMode.Ignore;
 
@@ -182,35 +180,6 @@ namespace WitchMendokusai
 		private Vector2 dragStart;
 
 		private static Vector2 ScreenSize => new Vector2(Screen.width, Screen.height);
-
-		/// <summary>
-		/// 손끝이 확실히 닿는 최소 크기(논리 픽셀)로 올려준다.
-		///
-		/// ★ 안드로이드·iOS 접근성 기준이 같은 말을 한다: 누를 수 있는 것은 **최소 48dp(약 9mm)**.
-		///   우리 화면은 논리 픽셀이라 기기 밀도에 따라 실제 크기가 달라진다 — 조밀한 폰일수록
-		///   같은 숫자가 더 작아진다. 그래서 숫자를 박지 않고 *실제 손가락 크기*로 환산해 바닥을 깐다.
-		/// ★ 실측(2026-08-07, 400dpi 폰): 창 메뉴 작은 버튼이 약 5.7mm 였다 — 기준의 3분의 2.
-		///   「눌렀는데 안 눌린다」의 흔한 정체가 이것이고, 사람은 그걸 버그로 신고하지 않는다.
-		/// </summary>
-		/// <summary>
-		/// 조작 장치를 기기의 「안전 영역」 안으로 들인다.
-		///
-		/// ★ 노치·둥근 모서리·아래쪽 제스처 바는 *화면이지만 내 것이 아닌 자리*다. 거기 버튼을 두면
-		///   눌리지 않거나, 눌렀는데 시스템이 먼저 가져간다(뒤로가기·홈으로 나감). 사용자는 이걸
-		///   「가끔 안 눌림」으로만 겪고 원인을 못 짚는다.
-		/// ★ 화면 표시기는 이미 같은 계산을 한다 — 조작 장치만 안 하고 있었다(2026-08-07 점검).
-		/// ★ 화면을 돌리면 안전 영역이 통째로 바뀐다. 그래서 한 번이 아니라 바뀔 때마다 다시 잰다.
-		/// </summary>
-		private static void ApplySafeArea(VisualElement root)
-		{
-			Rect safeArea = Screen.safeArea;
-			float scale = Screen.height > 0 ? PANEL_REFERENCE_HEIGHT / Screen.height : 1f;
-
-			root.style.left = safeArea.xMin * scale;
-			root.style.right = (Screen.width - safeArea.xMax) * scale;
-			root.style.top = (Screen.height - safeArea.yMax) * scale;
-			root.style.bottom = safeArea.yMin * scale;
-		}
 
 		/// <summary>패널이 기준으로 삼는 세로 크기 — 화면 픽셀을 이 화면의 좌표로 바꿀 때 쓴다.</summary>
 		private const float PANEL_REFERENCE_HEIGHT = 800f;

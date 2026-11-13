@@ -458,7 +458,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 시간
+  m_text: "\uC2DC\uAC04"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e44828fdf5f47ce46a291aba27d2db64, type: 2}
   m_sharedMaterial: {fileID: 7827383132625158668, guid: e44828fdf5f47ce46a291aba27d2db64, type: 2}
@@ -1432,7 +1432,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 목표
+  m_text: "\uBAA9\uD45C"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e44828fdf5f47ce46a291aba27d2db64, type: 2}
   m_sharedMaterial: {fileID: 7827383132625158668, guid: e44828fdf5f47ce46a291aba27d2db64, type: 2}
@@ -7565,7 +7565,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 난이도
+  m_text: "\uB09C\uC774\uB3C4"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e44828fdf5f47ce46a291aba27d2db64, type: 2}
   m_sharedMaterial: {fileID: 7827383132625158668, guid: e44828fdf5f47ce46a291aba27d2db64, type: 2}
@@ -10877,6 +10877,27 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!224 &8382369999936442837
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7808980190098289223}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4582243768317787128}
+  m_Father: {fileID: 7813288658708807810}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: -46}
+  m_SizeDelta: {x: -48, y: -140}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &4615000000000000701
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10887,7 +10908,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1a937e350cd77435bd590bda38782be5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.UISkillTreeTab
   m_Navigation:
     m_Mode: 4
@@ -10920,27 +10941,22 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 0}
   styleSheet: {fileID: 7433441132597879392, guid: 3dc0ca3d18d5b0854e9bcc8e0465d2a9, type: 3}
   area: {fileID: 8382369999936442837}
---- !u!224 &8382369999936442837
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7808980190098289223}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 4582243768317787128}
-  m_Father: {fileID: 7813288658708807810}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -46}
-  m_SizeDelta: {x: -48, y: -140}
-  m_Pivot: {x: 0.5, y: 0.5}
+  settings:
+    MaxNodesPerRow: 4
+    NodeSize: 84
+    ColumnPitch: 132
+    RowPitch: 104
+    GraphPadding: 14
+    AppearDelayMs: 60
+    PulseIntervalMs: 520
+    LockedLabel: "\uC7A0\uAE40"
+    OpenLabel: "\uD574\uAE08\uB428"
+    MaxedLabel: "\uCD5C\uB300"
+    OfferedLabel: "\uC774\uBC88 \uD6C4\uBCF4"
+    ConditionLabel: "\uD574\uAE08 \uC870\uAC74"
+    OtherEquipmentLabel: "\uB2E4\uB978 \uC7A5\uBE44"
+    TotalFormat: "\uAC15\uD654 {0}\uD68C"
+    StackFormat: "\uAC15\uD654 {0} / {1}\uD68C"
 --- !u!1 &7818652644237115789
 GameObject:
   m_ObjectHideFlags: 0
@@ -11026,6 +11042,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7164106193312397176}
+  - component: {fileID: 2842183347107694920}
   m_Layer: 5
   m_Name: '[Block] Header'
   m_TagString: Untagged
@@ -11056,6 +11073,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &2842183347107694920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7881586386253057841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8449b81701da46dda3b076efc811f5d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Presentation::WitchMendokusai.Presentation.SafeAreaFitter
 --- !u!1 &7979020922287323524
 GameObject:
   m_ObjectHideFlags: 0

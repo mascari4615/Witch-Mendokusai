@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using WitchMendokusai.Presentation;
 
 namespace WitchMendokusai
 {
@@ -111,6 +112,8 @@ namespace WitchMendokusai
 
         private BuildStampSettings _settings;
         private PanelSettings _panelSettings;
+        private VisualElement _safeFrame;
+        private Rect _safeArea = SafeArea.UNSET;
         private VisualElement _root;
         private VisualElement _collapsed;
         private VisualElement _expanded;
@@ -128,8 +131,13 @@ namespace WitchMendokusai
             // 이 패널은 *표시만* 한다 — 접힌 줄과 카드 밖에서는 손가락이 그대로 게임에 닿아야 한다.
             documentRoot.pickingMode = PickingMode.Ignore;
 
+            // 안전 영역 틀 안에 표시기를 둠. 틀 크기는 SafeArea 단일 출처
+            _safeFrame = new VisualElement { name = "build-stamp-safe-frame" };
+            _safeFrame.style.position = Position.Absolute;
+            _safeFrame.pickingMode = PickingMode.Ignore;
+            documentRoot.Add(_safeFrame);
             _root = BuildRoot();
-            documentRoot.Add(_root);
+            _safeFrame.Add(_root);
         }
 
         private VisualElement BuildRoot()
@@ -148,41 +156,31 @@ namespace WitchMendokusai
             return root;
         }
 
-        /// <summary>노치·제스처바를 피해 안전영역 안으로 들인다 (기기마다 다르므로 계산으로).</summary>
+        /// <summary>안전 영역 틀 안의 구석에 여백을 두고 붙임</summary>
         private void ApplyCorner(VisualElement root)
         {
-            Rect safeArea = Screen.safeArea;
-            float scale = _panelSettings.referenceResolution.y > 0 && Screen.height > 0
-                ? (float)_panelSettings.referenceResolution.y / Screen.height
-                : 1f;
-
-            float insetTop = (Screen.height - safeArea.yMax) * scale;
-            float insetBottom = safeArea.yMin * scale;
-            float insetLeft = safeArea.xMin * scale;
-            float insetRight = (Screen.width - safeArea.xMax) * scale;
-
             float margin = _settings.Margin + _settings.SafeAreaPadding;
 
             switch (_settings.Corner)
             {
                 case BuildStampCorner.RightTop:
-                    root.style.right = insetRight + margin;
-                    root.style.top = insetTop + margin;
+                    root.style.right = margin;
+                    root.style.top = margin;
                     root.style.alignItems = Align.FlexEnd;
                     break;
                 case BuildStampCorner.RightBottom:
-                    root.style.right = insetRight + margin;
-                    root.style.bottom = insetBottom + margin;
+                    root.style.right = margin;
+                    root.style.bottom = margin;
                     root.style.alignItems = Align.FlexEnd;
                     break;
                 case BuildStampCorner.LeftTop:
-                    root.style.left = insetLeft + margin;
-                    root.style.top = insetTop + margin;
+                    root.style.left = margin;
+                    root.style.top = margin;
                     root.style.alignItems = Align.FlexStart;
                     break;
                 default:
-                    root.style.left = insetLeft + margin;
-                    root.style.bottom = insetBottom + margin;
+                    root.style.left = margin;
+                    root.style.bottom = margin;
                     root.style.alignItems = Align.FlexStart;
                     break;
             }
@@ -275,19 +273,10 @@ namespace WitchMendokusai
         }
 
         /// <summary>화면을 돌리면 안전영역이 바뀐다 — 그때만 다시 계산한다.</summary>
-        private ScreenOrientation _lastOrientation;
-
         private void Update()
         {
-            if (_root == null)
-            {
-                return;
-            }
-            if (Screen.orientation != _lastOrientation)
-            {
-                _lastOrientation = Screen.orientation;
-                ApplyCorner(_root);
-            }
+            if (_safeFrame != null && SafeArea.Refresh(ref _safeArea))
+                SafeArea.ApplyInsets(_safeFrame, _safeArea);
         }
     }
 }

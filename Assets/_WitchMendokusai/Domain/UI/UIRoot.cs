@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
+using WitchMendokusai.Presentation;
 
 namespace WitchMendokusai
 {
@@ -135,6 +136,10 @@ namespace WitchMendokusai
 			root.Add(OverlayLayer);
 			root.Add(TooltipLayer);
 
+			// 안전 영역: 화면 가장자리에 붙는 층만. Overlay, Tooltip 은 포인터 좌표를 따라가서 화면 전체 기준 유지
+			safeArea = SafeArea.UNSET;
+			ApplySafeArea();
+
 			// TASK-WM-133 — panel-root 에 UI 서비스 1회 owner-push. UXML-cloned
 			// VisualElement(DiscoveryDetailPanel 등)가 static Instance reach 대신
 			// 조상 walk 로 panel-scoped 획득 (global Singleton 결합 제거).
@@ -162,6 +167,8 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
+			ApplySafeArea();
+
 			if (inputManager.IsMouseAvailable == false || HoldingOverlay == null || HoldingOverlay.panel == null)
 				return;
 
@@ -169,6 +176,16 @@ namespace WitchMendokusai
 			screen.y = Screen.height - screen.y;
 			Vector2 panelPosition = RuntimePanelUtils.ScreenToPanel(HoldingOverlay.panel, screen);
 			holdingManager.OnPointerMove(panelPosition);
+		}
+
+		private Rect safeArea = SafeArea.UNSET;
+
+		private void ApplySafeArea()
+		{
+			if (HudLayer == null || SafeArea.Refresh(ref safeArea) == false)
+				return;
+			foreach (VisualElement layer in new[] { HudLayer, ModeHudLayer, WindowsLayer, ScreenLayer })
+				SafeArea.ApplyInsets(layer, safeArea);
 		}
 
 		private static VisualElement MakeLayer(string name, PickingMode pickingMode)

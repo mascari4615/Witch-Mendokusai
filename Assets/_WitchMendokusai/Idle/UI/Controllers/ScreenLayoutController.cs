@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using WitchMendokusai.Presentation;
 
 namespace WitchMendokusai.Idle.UI
 {
@@ -62,7 +63,7 @@ namespace WitchMendokusai.Idle.UI
 			sidePanel.Apply(openTab, ContentVisible);
 			battleHud.SetSplit(ContentVisible);
 			AimCamera();
-			ApplySafeArea();
+			SafeArea.ApplyPadding(root, SafeArea.Normalized);
 		}
 
 		public void Dispose()
@@ -78,7 +79,7 @@ namespace WitchMendokusai.Idle.UI
 		private void OnGeometryChanged(GeometryChangedEvent moment)
 		{
 			AimCamera();
-			ApplySafeArea();
+			SafeArea.ApplyPadding(root, SafeArea.Normalized);
 		}
 
 		private void AimCamera()
@@ -118,26 +119,6 @@ namespace WitchMendokusai.Idle.UI
 				projection.m02 += 1f - share;
 			}
 			main.projectionMatrix = projection;
-		}
-
-		private void ApplySafeArea()
-		{
-			Rect safe = Screen.safeArea;
-			float wide = Screen.width;
-			float high = Screen.height;
-			if (wide <= 0f || high <= 0f)
-			{
-				return;
-			}
-
-			float resolvedWidth = root.resolvedStyle.width;
-			float scale = resolvedWidth > 0f && float.IsNaN(resolvedWidth) == false
-				? resolvedWidth / wide
-				: 1f;
-			root.style.paddingLeft = safe.xMin * scale;
-			root.style.paddingRight = (wide - safe.xMax) * scale;
-			root.style.paddingBottom = safe.yMin * scale;
-			root.style.paddingTop = (high - safe.yMax) * scale;
 		}
 	}
 }

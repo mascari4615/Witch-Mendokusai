@@ -7040,6 +7040,7 @@ GameObject:
   - component: {fileID: 783160155752354400}
   - component: {fileID: 5184756260932689258}
   - component: {fileID: 5184756260932689257}
+  - component: {fileID: 5184756260932689259}
   m_Layer: 5
   m_Name: '[Block] Lower'
   m_TagString: Untagged
@@ -7072,6 +7073,18 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &5184756260932689259
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5184756260932689256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8449b81701da46dda3b076efc811f5d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Presentation::WitchMendokusai.Presentation.SafeAreaFitter
 --- !u!1001 &5212000987719173203
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8577,6 +8590,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <ClickToolTip>k__BackingField: {fileID: 0}
   usePopupToolTip: 1
+  showOnSelect: 0
 --- !u!114 &7421657120354160361
 MonoBehaviour:
   m_ObjectHideFlags: 0

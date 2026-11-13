@@ -10,23 +10,6 @@ namespace WitchMendokusai
 	public partial class TowerDefenseHudView
 	{
 		/// <summary>
-		/// 안전영역만큼 루트를 안쪽으로 민다 — 노치·둥근 모서리에 글자가 잘리지 않게.
-		/// 데스크톱에서는 안전영역 = 화면 전체라 아무 일도 안 일어난다(그래서 한 코드로 둘 다 된다).
-		/// </summary>
-		private void ApplySafeArea()
-		{
-			Rect safe = Screen.safeArea;
-			float width = Mathf.Max(1f, Screen.width);
-			float height = Mathf.Max(1f, Screen.height);
-
-			container.style.paddingLeft = Length.Percent(safe.xMin / width * 100f);
-			container.style.paddingRight = Length.Percent((width - safe.xMax) / width * 100f);
-			// 화면 좌표는 아래가 0 이고 UI 는 위가 0 이라 위아래가 뒤집힌다 — 여기서 한 번만 뒤집는다.
-			container.style.paddingTop = Length.Percent((height - safe.yMax) / height * 100f);
-			container.style.paddingBottom = Length.Percent(safe.yMin / height * 100f);
-		}
-
-		/// <summary>
 		/// HUD 덩어리에 이름을 붙인다 — 「겹치나」를 눈이 아니라 *좌표로* 물을 수 있게.
 		/// ★ 이름이 없으면 화면 검사가 「사람이 봐야 안다」에 영원히 묶인다. 붙는 순간 자동 확인이 가능해진다.
 		/// </summary>
