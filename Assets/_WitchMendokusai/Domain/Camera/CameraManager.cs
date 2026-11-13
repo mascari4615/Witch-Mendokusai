@@ -100,9 +100,7 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>폰 던전처럼 손가락 시점 회전을 받지 않는 상태</summary>
-		public bool IsTouchLookLocked => lockTouchLookInDungeon
-			&& inputManager != null && inputManager.IsTouchMode
-			&& CurrentContentMode == ContentCameraMode.Dungeon;
+		public bool IsTouchLookLocked => lockTouchLookInDungeon && inputManager != null && inputManager.IsTouchMode && CurrentContentMode == ContentCameraMode.Dungeon;
 
 		/// <summary>PlayerRotation body 회전용 — 평면 yaw (pitch 무시).</summary>
 		public Quaternion FlatYawRotation => Quaternion.Euler(0f, yaw, 0f);
@@ -325,7 +323,7 @@ namespace WitchMendokusai
 				curCamera.SetOrbitProfile(null);
 			MCamera previousCamera = curCamera;
 			curCamera = cameras.First(cam => cam.ContentCameraMode == mode);
-			// 상태가 바뀌면 손으로 바꾼 기울기를 버리고 그 카메라의 기본 기울기로. 실험실에서 숙인 값이 던전까지 따라가지 않게
+			// 상태 전환 때 손으로 바꾼 기울기 폐기, 각 카메라 기본 기울기로
 			if (previousCamera != curCamera)
 				SetOrbitAngles(new Vector2(yaw, 0f));
 			curCamera.SetOrbitProfile(OrbitProfile);
