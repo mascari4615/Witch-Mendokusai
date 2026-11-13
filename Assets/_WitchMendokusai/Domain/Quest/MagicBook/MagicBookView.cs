@@ -134,14 +134,15 @@ namespace WitchMendokusai
 			questDetail.style.paddingRight = 12;
 			container.Add(questDetail);
 
-			CollectChapters();
+			// 부팅 때는 자료 로드 전일 수 있음. Open 에서 다시 모음
+			CollectChapters(warnIfMissing: false);
 			BuildChapterButtons();
 
 			if (chapters.Count > 0)
 				OpenChapter(chapters[0]);
 		}
 
-		private void CollectChapters()
+		private void CollectChapters(bool warnIfMissing = true)
 		{
 			chapters.Clear();
 
@@ -150,8 +151,9 @@ namespace WitchMendokusai
 				// ★ 옛 문구는 「Addressable 라벨을 붙여라」였는데, 실제로는 라벨이 멀쩡한데도 떴다
 				//   (2026-08-06 실측 — 그 문구를 믿고 엉뚱한 곳을 파게 만든다). 이 시점에 확실한 건
 				//   「아직 안 들어왔다」뿐이므로 그것만 말한다. 라벨 누락이면 로드 자체가 실패해 따로 뜬다.
-				Debug.LogWarning("[MagicBookView] 마도서 챕터가 아직 안 들어왔다 — 자료 로드보다 화면이 먼저 열렸을 수 있다. "
-					+ "로드가 끝난 뒤에도 비어 있으면 챕터 자산의 Addressable 라벨과 번호 중복을 본다.");
+				if (warnIfMissing)
+					Debug.LogWarning("[MagicBookView] 마도서 챕터가 아직 안 들어왔다. 자료 로드보다 화면이 먼저 열렸을 수 있다. "
+						+ "로드가 끝난 뒤에도 비어 있으면 챕터 자산의 Addressable 라벨과 번호 중복을 본다.");
 				return;
 			}
 
