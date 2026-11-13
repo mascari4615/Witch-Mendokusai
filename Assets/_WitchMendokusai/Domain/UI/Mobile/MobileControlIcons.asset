@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11217be68790446aa228b18836b5e7ef, type: 3}
+  m_Name: MobileControlIcons
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MobileControlIcons
+  entries:
+  - EventType: 2
+    Icon: {fileID: 2800000, guid: fe6decb2c3d74ff4f9c81ee5c15de75a, type: 3}
+  - EventType: 0
+    Icon: {fileID: 2800000, guid: a5bf45689a41f1449a847ff1cd602716, type: 3}
+  - EventType: 3
+    Icon: {fileID: 2800000, guid: 862f00bf63474ea69a52f067a8abeb6d, type: 3}
+  - EventType: 6
+    Icon: {fileID: 2800000, guid: b1c4444c99a5bd44888ddfaa2d69d83d, type: 3}
+  - EventType: 4
+    Icon: {fileID: 2800000, guid: 9de3daea73568c941a7d2347a0981336, type: 3}
+  - EventType: 19
+    Icon: {fileID: 2800000, guid: cdcf999897f4f1a41adcfb0fa15f8ba2, type: 3}
+  - EventType: 1
+    Icon: {fileID: 2800000, guid: 829c8658d6ef4bf4593ac99c32b9a812, type: 3}
+  - EventType: 7
+    Icon: {fileID: 2800000, guid: c7381c798591bc94d9f765231cefd326, type: 3}
+  - EventType: 20
+    Icon: {fileID: 2800000, guid: 6cf76a743c75d39488f3fbd04838fab2, type: 3}
+  - EventType: 25
+    Icon: {fileID: 2800000, guid: 8df4389960317ed44917907a806e2324, type: 3}
+  - EventType: 28
+    Icon: {fileID: 2800000, guid: 4bcd91e9e0a5f844cb35867bc30ed0ce, type: 3}
+  - EventType: 27
+    Icon: {fileID: 2800000, guid: 3830fbbe727ae064abf15d545bd0501f, type: 3}
+  - EventType: 31
+    Icon: {fileID: 2800000, guid: 69305c5b0c973df4e866dc6915ff7a6e, type: 3}
+  - EventType: 29
+    Icon: {fileID: 2800000, guid: e04badfb31cf37940afae38a534f0259, type: 3}
+  - EventType: 24
+    Icon: {fileID: 2800000, guid: 66645eb5e68dbaf42b7dd5fff2fa0bca, type: 3}
+  - EventType: 8
+    Icon: {fileID: 2800000, guid: fcc7c385be064b54a9ef5e2876dacb7b, type: 3}
+  - EventType: 23
+    Icon: {fileID: 2800000, guid: 6a36a6e4f72453a4d85e928f0b886ede, type: 3}
+  - EventType: 22
+    Icon: {fileID: 2800000, guid: 9dd58b05ac201334fb38de094708b62a, type: 3}
+  <WindowMenu>k__BackingField: {fileID: 2800000, guid: b351a1bc9ffd063458764e557be92dbd, type: 3}
+  <LayoutEdit>k__BackingField: {fileID: 2800000, guid: 7c171f19fe6b13b4c9ee90681a83eb02, type: 3}
+  <LayoutDone>k__BackingField: {fileID: 2800000, guid: ed7000f8ec5a5be4bb80e0e4438b18f9, type: 3}
+  <LayoutReset>k__BackingField: {fileID: 2800000, guid: 12bd72399fe1b3649bf3ff14060550c9, type: 3}

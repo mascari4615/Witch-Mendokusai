@@ -91,7 +91,7 @@ namespace WitchMendokusai
 
 		// 릴리스: 개발자 창 단축키 줄 숨김 (DevWindow 와 같은 조건)
 		private static bool IsVisible(KeybindEntry entry)
-			=> entry.ShownInRelease || Debug.isDebugBuild;
+			=> KeybindRegistry.IsShownInThisBuild(entry.EventType);
 
 		private VisualElement CreateRow(string displayName, string keyText)
 		{

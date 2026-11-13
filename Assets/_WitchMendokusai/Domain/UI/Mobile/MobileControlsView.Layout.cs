@@ -119,9 +119,9 @@ namespace WitchMendokusai
 		/// <summary>자리 옮기기로 들어가는 문 — 창 목록 맨 아래(자주 쓰는 것 아래)에 둔다.</summary>
 		private Label MakeLayoutEditButton()
 		{
-			Label button = new Label("자리 옮기기") { name = "MobileLayoutEditEnter" };
+			Label button = new Label { name = "MobileLayoutEditEnter" };
 			StyleRoundButton(button, actionButtonSize * 0.7f);
-			button.style.width = actionButtonSize * 1.15f;
+			ApplyIcon(button, Icons.LayoutEdit, "자리 옮기기");
 			button.RegisterCallback<PointerDownEvent>(evt =>
 			{
 				windowMenuColumn.style.display = DisplayStyle.None;
@@ -146,14 +146,14 @@ namespace WitchMendokusai
 			editBar.style.justifyContent = Justify.Center;
 			editBar.style.display = DisplayStyle.None;
 
-			Label done = new Label("완료");
+			Label done = new Label();
 			StyleRoundButton(done, actionButtonSize * 0.7f);
-			done.style.width = actionButtonSize * 1.15f;
+			ApplyIcon(done, Icons.LayoutDone, "완료");
 			done.RegisterCallback<PointerDownEvent>(evt => { SetLayoutEditMode(false); evt.StopPropagation(); });
 
-			Label reset = new Label("원래대로");
+			Label reset = new Label();
 			StyleRoundButton(reset, actionButtonSize * 0.7f);
-			reset.style.width = actionButtonSize * 1.3f;
+			ApplyIcon(reset, Icons.LayoutReset, "원래대로");
 			reset.RegisterCallback<PointerDownEvent>(evt => { ResetLayout(); evt.StopPropagation(); });
 
 			editBar.Add(reset);

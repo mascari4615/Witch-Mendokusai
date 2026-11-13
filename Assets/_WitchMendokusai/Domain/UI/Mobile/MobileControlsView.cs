@@ -26,6 +26,12 @@ namespace WitchMendokusai
 
 		[Tooltip("이만큼(픽셀) 안에서 뗐을 때만 「눌렀다」로 본다 — 서랍을 굴리려던 손가락과 구별하는 문턱.")]
 		[SerializeField, Min(1f)] private float tapSlopPixels = 16f;
+		[Tooltip("버튼 안 그림 크기 (버튼 대비)")]
+		[SerializeField, Range(0.2f, 1f)] private float iconScale = 0.6f;
+		[SerializeField] private Color iconTint = new(0.93f, 0.95f, 0.99f, 1f);
+
+		// 버튼 그림 표. UIRoot 가 AddComponent 직후 넘김 (UIRoot 프리팹에 직렬화)
+		public MobileControlIcons Icons { private get; set; }
 		private int lastScreenWidth;
 		private int lastScreenHeight;
 		private VisualElement controlsRoot;

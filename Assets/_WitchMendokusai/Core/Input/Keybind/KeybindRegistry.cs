@@ -31,6 +31,13 @@ namespace WitchMendokusai
 			return attributes.TryGetValue(eventType, out attribute);
 		}
 
+		// 이 빌드의 안내 (F1 창, 폰 창 메뉴) 에 보일지. 개발 빌드는 전부, 릴리스는 ShownInRelease 만
+		public static bool IsShownInThisBuild(InputEventType eventType)
+			=> Debug.isDebugBuild || IsShownInRelease(eventType);
+
+		public static bool IsShownInRelease(InputEventType eventType)
+			=> attributes.TryGetValue(eventType, out InputEventAttribute attribute) == false || attribute.ShownInRelease;
+
 		public static string GetDisplayName(InputEventType eventType)
 		{
 			return attributes.TryGetValue(eventType, out InputEventAttribute attribute) && string.IsNullOrEmpty(attribute.DisplayName) == false
@@ -65,7 +72,7 @@ namespace WitchMendokusai
 					GetDisplayName(eventType),
 					GetDefaultPath(eventType),
 					GetCurrentPath(eventType),
-					attributes.TryGetValue(eventType, out InputEventAttribute attribute) == false || attribute.ShownInRelease
+					IsShownInRelease(eventType)
 				);
 			}
 		}

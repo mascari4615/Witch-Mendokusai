@@ -221,20 +221,20 @@ namespace WitchMendokusai
 			windowMenuColumn.style.alignItems = Align.FlexEnd;
 			windowMenuScroll.contentContainer.style.alignItems = Align.FlexEnd;
 
-			windowMenuColumn.Add(MakeTapButton("가방", InputEventType.Inventory));
-			windowMenuColumn.Add(MakeTapButton("퀘스트", InputEventType.QuestToggle));
-			windowMenuColumn.Add(MakeTapButton("도감", InputEventType.DiscoveryToggle));
-			windowMenuColumn.Add(MakeTapButton("마도서", InputEventType.MagicBookToggle));
-			windowMenuColumn.Add(MakeTapButton("인형", InputEventType.DollToggle));
-			windowMenuColumn.Add(MakeTapButton("몸 상태", InputEventType.Status));
+			AddWindowButton("가방", InputEventType.Inventory);
+			AddWindowButton("퀘스트", InputEventType.QuestToggle);
+			AddWindowButton("도감", InputEventType.DiscoveryToggle);
+			AddWindowButton("마도서", InputEventType.MagicBookToggle);
+			AddWindowButton("인형", InputEventType.DollToggle);
+			AddWindowButton("몸 상태", InputEventType.Status);
 			// 건축도 키 하나에만 매달려 있었다 — 폰에서 집을 지을 방법이 0 이었다.
-			windowMenuColumn.Add(MakeTapButton("건축", InputEventType.BuildModeToggle));
+			AddWindowButton("건축", InputEventType.BuildModeToggle);
 			// 시점 바꾸기(1인칭/3인칭 순환)도 키 하나에만 있었다 — 폰에선 시점을 영영 못 바꿨다.
 			// 자주 쓰는 조작이 아니라 화면에 상시 띄우지 않고 이 서랍에 둔다.
-			windowMenuColumn.Add(MakeTapButton("시점", InputEventType.CameraViewCycle));
+			AddWindowButton("시점", InputEventType.CameraViewCycle);
 			// 1인칭↔3인칭은 위의 「시점 순환」과 다른 축이다(그건 부감·자유비행을 도는 것).
 			// 이것도 키 하나(F5)에만 있어서 폰에선 1인칭으로 갈 방법이 0 이었다.
-			windowMenuColumn.Add(MakeTapButton("1인칭", InputEventType.CameraPerspectiveToggle));
+			AddWindowButton("1인칭", InputEventType.CameraPerspectiveToggle);
 			windowMenuColumn.Add(MakeLayoutEditButton());
 
 			Label toggle = MakeMenuToggleButton();
@@ -249,8 +249,9 @@ namespace WitchMendokusai
 
 		private Label MakeMenuToggleButton()
 		{
-			Label button = new Label("창") { name = "MobileWindowMenuToggle" };
+			Label button = new Label { name = "MobileWindowMenuToggle" };
 			StyleRoundButton(button, actionButtonSize * 0.7f);
+			ApplyIcon(button, Icons.WindowMenu, "창");
 			button.RegisterCallback<PointerDownEvent>(evt =>
 			{
 				bool open = windowMenuColumn.style.display == DisplayStyle.None;
@@ -263,9 +264,9 @@ namespace WitchMendokusai
 		/// <summary> 한 번 톡 = 그 키를 한 번 눌렀다 뗀 것 — 창 여닫기처럼 「누르고 있기」가 뜻 없는 것들. </summary>
 		private Label MakeTapButton(string label, InputEventType inputEventType)
 		{
-			Label button = new Label(label) { name = "MobileWindowButton_" + inputEventType };
+			Label button = new Label { name = "MobileWindowButton_" + inputEventType };
 			StyleRoundButton(button, actionButtonSize * 0.7f);
-			button.style.width = actionButtonSize * 1.15f;
+			ApplyIcon(button, Icons.For(inputEventType), label);
 			// ★ 예전엔 *닿는 순간* 곧바로 눌렀다. 그런데 이 버튼들은 위아래로 굴러가는 서랍 안에 있다 —
 			//   서랍을 굴리려고 버튼 위에서 손가락을 끌면, 끌기가 시작되기도 전에 창이 열려 버린다.
 			//   그래서 「닿았다 → 거의 안 움직이고 → 그 자리에서 뗐다」일 때만 누른 것으로 친다.
@@ -323,9 +324,29 @@ namespace WitchMendokusai
 			button.style.backgroundColor = new Color(0.1f, 0.12f, 0.17f, 0.62f);
 			SetBorder(button, new Color(0.75f, 0.8f, 0.9f, 0.4f), 2f);
 			button.style.color = new Color(0.93f, 0.95f, 0.99f, 1f);
-			button.style.unityTextAlign = TextAnchor.MiddleCenter;
-			button.style.fontSize = Mathf.Max(13f, size * 0.28f);
 			button.pickingMode = PickingMode.Position;
+		}
+
+		// 버튼 글자 대신 그림. 이름은 접근성 이름 (tooltip) 으로만 남김. 그림 크기는 버튼에 비례
+		private void ApplyIcon(Label button, Texture2D icon, string accessibleName)
+		{
+			button.text = string.Empty;
+			button.tooltip = accessibleName;
+			button.style.alignItems = Align.Center;
+			button.style.justifyContent = Justify.Center;
+			VisualElement image = new VisualElement { name = "Icon", pickingMode = PickingMode.Ignore };
+			image.style.width = Length.Percent(iconScale * 100f);
+			image.style.height = Length.Percent(iconScale * 100f);
+			image.style.backgroundImage = new StyleBackground(icon);
+			image.style.unityBackgroundImageTintColor = iconTint;
+			button.Add(image);
+		}
+
+		// 창 메뉴 칸. 이 빌드에서 안내하지 않는 기능 (데모의 도감, 마도서, 인형, 건축) 은 F1 창과 같은 기준으로 뺌
+		private void AddWindowButton(string label, InputEventType inputEventType)
+		{
+			if (KeybindRegistry.IsShownInThisBuild(inputEventType))
+				windowMenuColumn.Add(MakeTapButton(label, inputEventType));
 		}
 
 		/// <summary>
@@ -334,7 +355,7 @@ namespace WitchMendokusai
 		private VisualElement MakeHoldButton(string label, InputEventType inputEventType, float rawSize)
 		{
 			float size = TouchFriendly(rawSize);
-			Label button = new Label(label) { name = "MobileButton_" + inputEventType };
+			Label button = new Label { name = "MobileButton_" + inputEventType };
 			button.style.width = size;
 			button.style.height = size;
 			button.style.marginLeft = 10;
@@ -347,8 +368,8 @@ namespace WitchMendokusai
 			SetBorder(button, new Color(0.75f, 0.8f, 0.9f, 0.4f), 2f);
 			button.style.color = new Color(0.93f, 0.95f, 0.99f, 1f);
 			button.style.unityTextAlign = TextAnchor.MiddleCenter;
-			button.style.fontSize = Mathf.Max(14f, size * 0.22f);
 			button.pickingMode = PickingMode.Position;
+			ApplyIcon(button, Icons.For(inputEventType), label);
 
 			button.RegisterCallback<PointerDownEvent>(evt =>
 			{

@@ -32,6 +32,7 @@ namespace WitchMendokusai
 		}
 
 		[SerializeField] private StyleSheet styleSheet;
+		[SerializeField, Tooltip("폰 조작 버튼 그림")] private MobileControlIcons mobileControlIcons;
 		[field: SerializeField] public WitchMendokusai.Presentation.DamageTextSkin DamageTextSkin { get; private set; }
 		[field: SerializeField] public CreditsInfo Credits { get; private set; }
 
@@ -109,7 +110,7 @@ namespace WitchMendokusai
 			// 마우스를 쓰는 동안은 스스로 숨는다.
 			// ★ 이 줄이 한 번 사라진 적이 있다(넓게 훑는 커밋이 옛 사본을 얹음) — 없으면 조작 장치를
 			//   아무도 안 만들어서 **폰에서 화면만 뜨고 못 움직인다**. 지우지 말 것.
-			gameObject.AddComponent<MobileControlsView>();
+			gameObject.AddComponent<MobileControlsView>().Icons = mobileControlIcons;
 		}
 
 		private void OnEnable()
