@@ -48,6 +48,7 @@ namespace WitchMendokusai
 
 		// System
 		private Toggle framerateToggle;
+		private Toggle fpsDisplayToggle;
 
 		// Shaderpacks
 		private VisualElement shaderPackListContainer;
@@ -218,7 +219,7 @@ namespace WitchMendokusai
 			content.Add(systemHeader);
 
 			framerateToggle = CreateToggle("60 FPS 고정", Application.targetFrameRate == lockedFrameRate, isOn => isOn ? "켜짐 (60)" : "꺼짐 (제한 없음)", isOn => Application.targetFrameRate = isOn ? lockedFrameRate : unlockedFrameRate, content);
-			CreateOnOffToggle("FPS 표시", UIFPS.IsVisible, isOn => UIFPS.IsVisible = isOn, content);
+			fpsDisplayToggle = CreateToggle("FPS 표시", UIFPS.IsVisible, DescribeOnOff, isOn => UIFPS.IsVisible = isOn, content);
 
 			// 버튼 그룹
 			VisualElement buttonGroup = new VisualElement();
@@ -268,7 +269,9 @@ namespace WitchMendokusai
 		}
 
 		private void CreateOnOffToggle(string label, bool value, Action<bool> onChanged, VisualElement parent)
-			=> CreateToggle(label, value, isOn => isOn ? "켜짐" : "꺼짐", onChanged, parent);
+			=> CreateToggle(label, value, DescribeOnOff, onChanged, parent);
+
+		private static string DescribeOnOff(bool isOn) => isOn ? "켜짐" : "꺼짐";
 
 		private Toggle CreateToggle(string label, bool value, Func<bool, string> describe, Action<bool> onChanged, VisualElement parent)
 		{
@@ -293,6 +296,15 @@ namespace WitchMendokusai
 
 			parent.Add(row);
 			return toggle;
+		}
+
+		// 값만 바꾸고 소리와 콜백 없이 상태 글자도 맞춤
+		private static void SyncToggle(Toggle toggle, bool value, Func<bool, string> describe)
+		{
+			if (toggle.value == value)
+				return;
+			toggle.SetValueWithoutNotify(value);
+			toggle.parent.Q<Label>(className: "wm-setting-toggle-state").text = describe(value);
 		}
 
 		private VisualElement WrapSlider(Slider slider)
@@ -376,6 +388,9 @@ namespace WitchMendokusai
 			// 쉐이더팩 탭 진입 시 최신 상태 반영 (다른 곳에서 ShaderPackManager 변경했을 수 있음)
 			RebuildShaderPackList();
 			RebuildShaderPackDetail();
+
+			// 개발자 창 표시 탭에서 바뀌었을 수 있음
+			SyncToggle(fpsDisplayToggle, UIFPS.IsVisible, DescribeOnOff);
 
 			masterVolume.schedule.Execute(() =>
 			{
