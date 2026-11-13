@@ -180,6 +180,21 @@ jobs:
           $ErrorActionPreference = 'Stop'
           & "$env:GITHUB_WORKSPACE\.github\scripts\wm-runner-hygiene.ps1" -ProjectPath $PWD.Path
 
+      # 2026-11-13: clean:false 라 git 에 없는 Assets/Plugins/Android/AndroidManifest.xml (10-30 생성) 이
+      #   남아 시작 Activity 를 없는 클래스 (AppUIActivity) 로 덮었다. apk 가 켜자마자 꺼짐.
+      #   Plugins 아래 untracked 파일은 빌드에 섞이므로 빌드 전에 막는다. ASCII only in run.
+      - name: Block untracked plugin files
+        if: steps.gate.outputs.skip != 'true'
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $stray = git status --porcelain --untracked-files=all -- Assets/Plugins | Where-Object { $_ -like '`?`? *' -and $_ -notlike '*.meta' }
+          if ($stray) {
+            $stray | ForEach-Object { Write-Host "::error::untracked plugin file in runner checkout: $_" }
+            throw 'Untracked files under Assets/Plugins would be baked into the player. Move them out of the runner checkout first.'
+          }
+          Write-Host 'No untracked plugin files.'
+
       - name: Memory before build
         if: steps.gate.outputs.skip != 'true'
         shell: powershell
