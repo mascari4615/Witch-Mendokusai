@@ -10,14 +10,16 @@ namespace WitchMendokusai
 		public string DisplayName { get; }
 		public string DefaultPath { get; }
 		public string CurrentPath { get; }
+		public bool ShownInRelease { get; }
 
-		public KeybindEntry(InputEventType eventType, string category, string displayName, string defaultPath, string currentPath)
+		public KeybindEntry(InputEventType eventType, string category, string displayName, string defaultPath, string currentPath, bool shownInRelease)
 		{
 			EventType = eventType;
 			Category = category;
 			DisplayName = displayName;
 			DefaultPath = defaultPath;
 			CurrentPath = currentPath;
+			ShownInRelease = shownInRelease;
 		}
 	}
 }

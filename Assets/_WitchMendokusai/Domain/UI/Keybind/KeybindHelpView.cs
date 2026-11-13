@@ -91,7 +91,7 @@ namespace WitchMendokusai
 
 		// 릴리스: 개발자 창 단축키 줄 숨김 (DevWindow 와 같은 조건)
 		private static bool IsVisible(KeybindEntry entry)
-			=> entry.EventType != InputEventType.DevWindowToggle || Debug.isDebugBuild;
+			=> entry.ShownInRelease || Debug.isDebugBuild;
 
 		private VisualElement CreateRow(string displayName, string keyText)
 		{
@@ -116,6 +116,11 @@ namespace WitchMendokusai
 			IEnumerable<IGrouping<string, KeybindEntry>> grouped = KeybindRegistry.EnumerateGroupedByCategory();
 			foreach (IGrouping<string, KeybindEntry> group in grouped)
 			{
+				List<KeybindEntry> visibleEntries = group.Where(IsVisible).ToList();
+				// 릴리스에서 전부 숨은 묶음 (핫바) 은 제목도 빼기
+				if (visibleEntries.Count == 0 && group.Key != MOVE_CATEGORY)
+					continue;
+
 				VisualElement categoryBox = new();
 				categoryBox.AddToClassList(USS_CATEGORY);
 
@@ -126,7 +131,7 @@ namespace WitchMendokusai
 				if (group.Key == MOVE_CATEGORY)
 					categoryBox.Add(CreateRow(MOVE_DISPLAY_NAME, MOVE_KEYS));
 
-				foreach (KeybindEntry entry in group.Where(IsVisible))
+				foreach (KeybindEntry entry in visibleEntries)
 					categoryBox.Add(CreateRow(entry.DisplayName, FormatPath(entry.CurrentPath)));
 
 				scrollView.Add(categoryBox);

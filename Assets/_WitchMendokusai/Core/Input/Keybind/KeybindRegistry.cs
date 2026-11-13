@@ -64,7 +64,8 @@ namespace WitchMendokusai
 					GetCategory(eventType),
 					GetDisplayName(eventType),
 					GetDefaultPath(eventType),
-					GetCurrentPath(eventType)
+					GetCurrentPath(eventType),
+					attributes.TryGetValue(eventType, out InputEventAttribute attribute) == false || attribute.ShownInRelease
 				);
 			}
 		}

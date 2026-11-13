@@ -34,28 +34,28 @@ namespace WitchMendokusai
 		Sprint,
 		[InputEvent("이동", "앉기", "<Keyboard>/c")]
 		Crouch,
-		[InputEvent("월드", "건축 모드", "<Keyboard>/g")]
+		[InputEvent("월드", "건축 모드", "<Keyboard>/g", ShownInRelease = false)]
 		BuildModeToggle,
 		[InputEvent("월드", "줍기", "<Keyboard>/e")]
 		Gather,
 		// HotbarSlot1~9는 연속 정의 유지 — UIHotbar이 (HotbarSlot1 + i) 산수에 의존
-		[InputEvent("핫바", "핫바 슬롯 1", "<Keyboard>/1")]
+		[InputEvent("핫바", "핫바 슬롯 1", "<Keyboard>/1", ShownInRelease = false)]
 		HotbarSlot1,
-		[InputEvent("핫바", "핫바 슬롯 2", "<Keyboard>/2")]
+		[InputEvent("핫바", "핫바 슬롯 2", "<Keyboard>/2", ShownInRelease = false)]
 		HotbarSlot2,
-		[InputEvent("핫바", "핫바 슬롯 3", "<Keyboard>/3")]
+		[InputEvent("핫바", "핫바 슬롯 3", "<Keyboard>/3", ShownInRelease = false)]
 		HotbarSlot3,
-		[InputEvent("핫바", "핫바 슬롯 4", "<Keyboard>/4")]
+		[InputEvent("핫바", "핫바 슬롯 4", "<Keyboard>/4", ShownInRelease = false)]
 		HotbarSlot4,
-		[InputEvent("핫바", "핫바 슬롯 5", "<Keyboard>/5")]
+		[InputEvent("핫바", "핫바 슬롯 5", "<Keyboard>/5", ShownInRelease = false)]
 		HotbarSlot5,
-		[InputEvent("핫바", "핫바 슬롯 6", "<Keyboard>/6")]
+		[InputEvent("핫바", "핫바 슬롯 6", "<Keyboard>/6", ShownInRelease = false)]
 		HotbarSlot6,
-		[InputEvent("핫바", "핫바 슬롯 7", "<Keyboard>/7")]
+		[InputEvent("핫바", "핫바 슬롯 7", "<Keyboard>/7", ShownInRelease = false)]
 		HotbarSlot7,
-		[InputEvent("핫바", "핫바 슬롯 8", "<Keyboard>/8")]
+		[InputEvent("핫바", "핫바 슬롯 8", "<Keyboard>/8", ShownInRelease = false)]
 		HotbarSlot8,
-		[InputEvent("핫바", "핫바 슬롯 9", "<Keyboard>/9")]
+		[InputEvent("핫바", "핫바 슬롯 9", "<Keyboard>/9", ShownInRelease = false)]
 		HotbarSlot9,
 
 		// UI
@@ -73,19 +73,19 @@ namespace WitchMendokusai
 		Status,
 		[InputEvent("창", "인벤토리", "<Keyboard>/i")]
 		Inventory,
-		[InputEvent("창", "개발자 창", "<Keyboard>/slash")]
+		[InputEvent("창", "개발자 창", "<Keyboard>/slash", ShownInRelease = false)]
 		DevWindowToggle,
-		[InputEvent("창", "도감", "<Keyboard>/b")]
+		[InputEvent("창", "도감", "<Keyboard>/b", ShownInRelease = false)]
 		DiscoveryToggle,
 		[InputEvent("창", "퀘스트", "<Keyboard>/j")]
 		QuestToggle,
-		[InputEvent("창", "인형", "<Keyboard>/k")]
+		[InputEvent("창", "인형", "<Keyboard>/k", ShownInRelease = false)]
 		DollToggle,
 		[InputEvent("창", "단축키 안내", "<Keyboard>/f1")]
 		KeybindHelpToggle,
-		[InputEvent("창", "마도서", "<Keyboard>/m")]
+		[InputEvent("창", "마도서", "<Keyboard>/m", ShownInRelease = false)]
 		MagicBookToggle,
-		[InputEvent("창", "솥 지도", "<Keyboard>/n")]
+		[InputEvent("창", "솥 지도", "<Keyboard>/n", ShownInRelease = false)]
 		CauldronMapToggle,
 		[InputEvent("대화", "건너뛰기", "<Keyboard>/p")]
 		DialogueSkip,
