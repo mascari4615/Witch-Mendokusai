@@ -17,8 +17,8 @@ MonoBehaviour:
   <Description>k__BackingField: "\uB3C8 \uC88B\uC544\uD558\uACE0 \uB0E5\uB0E5\uAC70\uB9B0\uB2E4. \uC774\uB984\uACFC \uC218\uCE58\uC640 \uC7A5\uBE44\uB294 \uC784\uC2DC."
   <Sprite>k__BackingField: {fileID: 21300000, guid: 8ae5146761604789802313aa9c69d860, type: 3}
   <Sprites>k__BackingField:
-  - {fileID: 21300000, guid: 29359046fec919743ac9a3e727577d42, type: 3}
-  - {fileID: 21300000, guid: 993a70164fbb498438b9253217dffa3d, type: 3}
+  - {fileID: 21300000, guid: e1199ade78734b409b1ca58c29aefa85, type: 3}
+  - {fileID: 21300000, guid: c7badbc75afd432daeb2c77f0cb27060, type: 3}
   <Affiliation>k__BackingField: -1
   <Prefab>k__BackingField: {fileID: 4424679600471619191, guid: 48984c858f60ded4bb21f7e787490808, type: 3}
   <DefaultSkills>k__BackingField:
