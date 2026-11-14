@@ -8,6 +8,8 @@ namespace WitchMendokusai
 		[SerializeField] private bool useRotate = true;
 		[SerializeField] private Transform meshPivotOf3DModel;
 		[SerializeField] private float rotateSmoothTime = 0.1f;
+		// 캐릭터 3D 모델 표시. 데모에서는 숨기고 2D 그림만 (사용자 2026-11-14). 모델과 회전은 그대로 두고 그리기만 끔
+		[SerializeField] private bool show3DModel = false;
 
 		// TASK-WM-163 — 카메라 yaw/pitch 회전 = CameraManager 단일 권위자로 이관.
 		// PlayerRotation 은 body 를 camera yaw 에 맞추고, mesh 를 이동 방향으로만 회전.
@@ -19,6 +21,14 @@ namespace WitchMendokusai
 		private void Awake()
 		{
 			unitRigidbody = GetComponent<Rigidbody>();
+			SetShow3DModel(show3DModel);
+		}
+
+		public void SetShow3DModel(bool show)
+		{
+			show3DModel = show;
+			foreach (Renderer modelRenderer in meshPivotOf3DModel.GetComponentsInChildren<Renderer>(true))
+				modelRenderer.enabled = show;
 		}
 
 		[Inject]
