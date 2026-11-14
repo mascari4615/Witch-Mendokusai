@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: WM.Editor::WitchMendokusai.TitleStageRecipe
   Seed: 4615
   GroundSource: {fileID: 2100000, guid: 96cb66d3f55ab69458576aa757bd763a, type: 2}
-  GroundColorScale: 1.2
   GrassSource: {fileID: 2100000, guid: 2a27b3985f33f324185d30511b4aec4a, type: 2}
   GrassLit: {fileID: 2100000, guid: 9cf35727358132d48aa379b2e13ba56f, type: 2}
   TreePrefab: {fileID: 2871132453943284833, guid: c0c27574d0d91ea44894908f417f36d4, type: 3}
@@ -43,14 +42,6 @@ MonoBehaviour:
   GravelRadius: 45
   SkyPreset: {fileID: 11400000, guid: 7dfb6657b0a0df944b421b00a3a88c09, type: 2}
   SkyboxMaterial: {fileID: 2100000, guid: 282b50081561f8f4289b7d1b999c03de, type: 2}
-  Hour: 14.5
-  CameraPosition: {x: -8, y: 1.6, z: -92}
-  CameraEuler: {x: -9, y: 6, z: 0}
-  CameraFieldOfView: 40
-  TitleOffset: {x: 0, y: -120}
-  TitleSize: {x: 1600, y: 220}
-  MenuOffset: {x: 0, y: 40}
-  MenuSize: {x: 1200, y: 80}
-  MenuFontSize: 46
-  FooterMargin: {x: 40, y: 28}
-  FooterSize: {x: 600, y: 50}
+  LeafSource: {fileID: 2100000, guid: 4489b195897487d43bb2ed6b4f9ae62f, type: 2}
+  LogoFontSource: {fileID: 12800000, guid: 45ed480f13a258f468b3269727966fa4, type: 3}
+  SubtitleFontSource: {fileID: 12800000, guid: 7ab417d8e5984216b4465d412b63103c, type: 3}
