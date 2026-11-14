@@ -229,7 +229,7 @@ namespace WitchMendokusai
 				return new WorldCalendar(0, 0, 0);
 			}
 
-			return new WorldCalendar(config.HoursPerDay, config.DaysPerSeason, config.SeasonsPerYear, config.StartHour, config.StartMinute);
+			return config.CreateCalendar();
 		}
 
 		private void HandleClockMinute(int minute)

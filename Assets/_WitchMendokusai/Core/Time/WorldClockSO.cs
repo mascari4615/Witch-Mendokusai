@@ -18,5 +18,8 @@ namespace WitchMendokusai
 		[field: SerializeField, Range(1, 48)] public int HoursPerDay { get; set; } = 24;
 		[field: SerializeField, Range(1, 100)] public int DaysPerSeason { get; set; } = 28;
 		[field: SerializeField, Range(1, 12)] public int SeasonsPerYear { get; set; } = 4;
+
+		/// <summary>이 설정의 자릿수와 시작 시각으로 새 달력. 달력 생성의 단일 경로 (같은 수 두 곳 금지).</summary>
+		public WorldCalendar CreateCalendar() => new WorldCalendar(HoursPerDay, DaysPerSeason, SeasonsPerYear, StartHour, StartMinute);
 	}
 }

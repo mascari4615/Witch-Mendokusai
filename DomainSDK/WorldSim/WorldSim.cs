@@ -38,9 +38,19 @@ namespace WitchMendokusai
 
 		/// <summary>
 		/// 세계의 시계 — <b>사람이 없어도 흐른다</b> (TASK-WM-217).
-		/// 자릿수는 게임의 WorldClockSO 가 정본이고, 서버는 그 값을 받아 여기 꽂는다.
+		/// 자릿수와 시작 시각의 정본: 게임의 WorldClockSO. 게임 쪽 생성은 <c>WorldClockSO.CreateCalendar()</c> 결과 전달.
+		/// 인자 없음 (화면 없는 서버, 시험): 아래 기본 달력.
 		/// </summary>
-		public WorldCalendar Calendar { get; } = new WorldCalendar(24, 28, 4, 6, 0);
+		public WorldCalendar Calendar { get; }
+
+		public WorldSim() : this(null)
+		{
+		}
+
+		public WorldSim(WorldCalendar calendar)
+		{
+			Calendar = calendar ?? new WorldCalendar(24, 28, 4, 6, 0);
+		}
 
 		/// <summary>
 		/// ⚠ <b>폐기</b> — 세계에 하나뿐이던 솥 (TASK-WM-217). 지은 자리마다의 <see cref="Cauldrons"/> 로 옮겼다.

@@ -122,7 +122,9 @@ namespace WitchMendokusai
 		private void EnterLocalWorld()
 		{
 			// 지난번에 지은 것을 되살려 들어간다 — 혼자 놀아도 세계는 이어진다 (단계 5).
-			WorldSim world = new WorldSim();
+			// 달력 출처: WorldClockSO 정본 (시작 시각 단일 경로)
+			WorldClockSO clockConfig = WorldClock.TryGetExistingInstance(out WorldClock clock) ? clock.Config : null;
+			WorldSim world = new WorldSim(clockConfig != null ? clockConfig.CreateCalendar() : null);
 
 			// ★ 목록을 <b>먼저</b> 꽂고 되살린다 (실측 2026-08-10).
 			//   순서를 바꿨더니 「그 자리가 몇 칸짜리 상자인가」를 모른 채 되살려 <b>상자를 통째로 버렸고</b>,
