@@ -219,6 +219,9 @@ namespace WitchMendokusai
 				if (condition == null || condition()) action();
 		}
 
+		// 아무 장치의 아무 버튼 한 번. 시작 화면의 PRESS ANY KEY 용. 돌려받은 것을 Dispose 하면 취소
+		public IDisposable ListenAnyButtonOnce(Action action) => UnityEngine.InputSystem.Utilities.Observable.CallOnce(InputSystem.onAnyButtonPress, _ => action());
+
 		/// <summary> 등록 — 칸이 아직 없으면 만들어서 넣는다(위 설명과 같은 이유). </summary>
 		public void RegisterInputEvent(InputEventType inputEventType, InputEventResponseType inputEventResponseType, Action<InputAction.CallbackContext> action)
 		{
