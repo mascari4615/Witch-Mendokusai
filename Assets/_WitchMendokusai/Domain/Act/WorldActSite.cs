@@ -226,7 +226,7 @@ namespace WitchMendokusai
 
 			if (config == null)
 			{
-				return new WorldCalendar(0, 0, 0);
+				return WorldCalendar.CreateDefault();
 			}
 
 			return config.CreateCalendar();

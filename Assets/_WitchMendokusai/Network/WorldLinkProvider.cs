@@ -188,12 +188,10 @@ namespace WitchMendokusai
 			if (IsLocalWorld == false)
 				return;
 
-			if (Current is LocalWorldLink local)
-				local.World.AdvanceMinutes(MINUTES_PER_REAL_SECOND * Time.unscaledDeltaTime);
+			// 흐름 속도 정본: WorldClockSO.MinutesPerRealSecond, 매 프레임 읽음 (개발 창 조절 즉시 반영)
+			if (Current is LocalWorldLink local && WorldClock.TryGetExistingInstance(out WorldClock clock))
+				local.World.AdvanceMinutes(clock.Config.MinutesPerRealSecond * Time.unscaledDeltaTime);
 		}
-
-		/// <summary>실제 1초에 세계의 몇 분이 흐르나 — 서버(WorldHost)와 같은 값이어야 한다.</summary>
-		private const float MINUTES_PER_REAL_SECOND = 1f;
 
 		private void SaveLocalWorld()
 		{

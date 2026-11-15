@@ -6,9 +6,9 @@ namespace WitchMendokusai
 	public class WorldClockSO : ScriptableObject
 	{
 		[field: Header("_" + nameof(WorldClockSO))]
-		[field: Tooltip("1초 (실시간) 당 진행되는 게임 분. 디폴트 2 → 1게임일 = 12실분")]
+		[field: Tooltip("1초 (실시간) 당 진행되는 게임 분. 1 이면 1게임일 = 24실분. 서버 WorldHost.MINUTES_PER_REAL_SECOND 와 같게")]
 		[field: SerializeField, Range(0.1f, 600f)]
-		public float MinutesPerRealSecond { get; set; } = 2f;
+		public float MinutesPerRealSecond { get; set; } = 1f;
 
 		[field: Header("시작 시각")]
 		[field: SerializeField, Range(0, 23)] public int StartHour { get; set; } = 6;

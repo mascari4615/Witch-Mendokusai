@@ -49,7 +49,7 @@ namespace WitchMendokusai
 
 		public WorldSim(WorldCalendar calendar)
 		{
-			Calendar = calendar ?? new WorldCalendar(24, 28, 4, 6, 0);
+			Calendar = calendar ?? WorldCalendar.CreateDefault();
 		}
 
 		/// <summary>

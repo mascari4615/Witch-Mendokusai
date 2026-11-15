@@ -143,7 +143,7 @@ namespace WitchMendokusai.Server
 				? asked
 				: 400;
 
-		/// <summary>실제 1초에 세계의 몇 분이 흐르나 — 게임의 WorldClockSO 와 맞춰야 할 값.</summary>
+		/// <summary>실제 1초에 세계의 몇 분이 흐르나. 서버는 유니티 자산을 못 읽어 따로 둠, WorldClockSO.asset 의 MinutesPerRealSecond 와 같은 값 유지 (시험 WorldClockParityTests).</summary>
 		private const float MINUTES_PER_REAL_SECOND = 1f;
 
 		/// <summary>

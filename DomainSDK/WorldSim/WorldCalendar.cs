@@ -14,13 +14,22 @@ namespace WitchMendokusai
 	{
 		public const int MINUTES_PER_HOUR = 60;
 
+		// 설정 (WorldClockSO) 이 없을 때의 기본 달력. 화면 없는 서버, 시험, 설정 못 찾은 경로가 모두 이 값
+		public const int DEFAULT_HOURS_PER_DAY = 24;
+		public const int DEFAULT_DAYS_PER_SEASON = 28;
+		public const int DEFAULT_SEASONS_PER_YEAR = 4;
+		public const int DEFAULT_START_HOUR = 6;
+
+		/// <summary>설정 없이 만드는 기본 달력. 기본값의 단일 경로.</summary>
+		public static WorldCalendar CreateDefault() => new WorldCalendar(DEFAULT_HOURS_PER_DAY, DEFAULT_DAYS_PER_SEASON, DEFAULT_SEASONS_PER_YEAR, DEFAULT_START_HOUR, 0);
+
 		private float minuteRemainder;
 
 		public WorldCalendar(int hoursPerDay, int daysPerSeason, int seasonsPerYear, int startHour = 0, int startMinute = 0)
 		{
-			HoursPerDay = hoursPerDay > 0 ? hoursPerDay : 24;
-			DaysPerSeason = daysPerSeason > 0 ? daysPerSeason : 28;
-			SeasonsPerYear = seasonsPerYear > 0 ? seasonsPerYear : 4;
+			HoursPerDay = hoursPerDay > 0 ? hoursPerDay : DEFAULT_HOURS_PER_DAY;
+			DaysPerSeason = daysPerSeason > 0 ? daysPerSeason : DEFAULT_DAYS_PER_SEASON;
+			SeasonsPerYear = seasonsPerYear > 0 ? seasonsPerYear : DEFAULT_SEASONS_PER_YEAR;
 
 			Year = 1;
 			Season = 0;

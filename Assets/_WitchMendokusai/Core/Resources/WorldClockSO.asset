@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4373d07b0d4f454babd175fabc2c8b4, type: 3}
   m_Name: WorldClockSO
   m_EditorClassIdentifier: WM.Core::WitchMendokusai.WorldClockSO
-  <MinutesPerRealSecond>k__BackingField: 2
+  <MinutesPerRealSecond>k__BackingField: 1
   <StartHour>k__BackingField: 6
   <StartMinute>k__BackingField: 0
   <HoursPerDay>k__BackingField: 24
