@@ -20,6 +20,13 @@ namespace WitchMendokusai
 		[field: SerializeField, Range(1, 12)] public int SeasonsPerYear { get; set; } = 4;
 
 		/// <summary>이 설정의 자릿수와 시작 시각으로 새 달력. 달력 생성의 단일 경로 (같은 수 두 곳 금지).</summary>
+		// 하루 길이를 줄였을 때 시작 시각이 하루 밖으로 나가지 않게
+		private void OnValidate()
+		{
+			if (StartHour >= HoursPerDay)
+				StartHour = HoursPerDay - 1;
+		}
+
 		public WorldCalendar CreateCalendar() => new WorldCalendar(HoursPerDay, DaysPerSeason, SeasonsPerYear, StartHour, StartMinute);
 	}
 }
