@@ -5,26 +5,19 @@ using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
-	// 씬 사이 검은 막. 부팅 때 한 번 만들어 씬과 무관하게 유지 (UIFPS 와 같은 방식)
+	// 씬 사이 막. 부팅 때 한 번 만들어 씬과 무관하게 유지 (UIFPS 와 같은 방식)
 	// 나갈 때 덮고 씬 교체, 새 씬 첫 프레임 몇 개 지난 뒤 걷음. 씬 안 전환 (포털, 던전) 은 TransitionView
+	// 막 모양과 길이는 UIFxSettings (ScreenWipe)
 	public sealed class SceneFader : MonoBehaviour
 	{
 		// 게임 UI 위, FPS 숫자 (32000) 아래
 		private const int SORTING_ORDER = 31000;
-		// 실행 중 Hierarchy (DontDestroyOnLoad) 의 SceneFader 에서 조절
-		[SerializeField] private float coverSeconds = 0.35f;
-		[SerializeField] private float revealSeconds = 0.5f;
-		// 새 씬 첫 프레임들의 멈칫을 막 뒤에 숨김
+		// 새 씬 첫 프레임들의 멈칫을 막 뒤에 숨김. 실행 중 Hierarchy (DontDestroyOnLoad) 에서 조절
 		[SerializeField] private int revealDelayFrames = 2;
-		[SerializeField] private Color coverColor = new(0.04f, 0.035f, 0.05f, 1f);
-		// 씬 활성화 멈칫 (MOIS2 월드 약 5초) 뒤 첫 프레임 dt 로 걷기가 한 번에 끝나는 것 방지
-		// 30fps 미만에서는 위 초 값보다 길어짐
-		[SerializeField] private float maxStepSeconds = 1f / 30f;
 
 		private static SceneFader instance;
 
-		private VisualElement cover;
-		private float alpha = 1f;
+		private ScreenWipe wipe;
 		private Coroutine running;
 		private bool coverOnNextScene;
 		private bool loading;
@@ -76,15 +69,9 @@ namespace WitchMendokusai
 			VisualElement root = document.rootVisualElement;
 			root.pickingMode = PickingMode.Ignore;
 
-			cover = new VisualElement { name = "scene-fader" };
-			cover.style.position = Position.Absolute;
-			cover.style.left = 0;
-			cover.style.top = 0;
-			cover.style.right = 0;
-			cover.style.bottom = 0;
-			cover.style.backgroundColor = coverColor;
-			root.Add(cover);
-			Apply();
+			wipe = new ScreenWipe();
+			root.Add(wipe);
+			wipe.SetInstant(true);
 
 			SceneManager.sceneLoaded += OnSceneLoaded;
 			// 첫 씬은 sceneLoaded 와 무관하게 걷음. 추가 씬만 열린 Play 에서 검은 화면 고정 방지
@@ -106,11 +93,8 @@ namespace WitchMendokusai
 				return;
 			loading = false;
 			if (cover)
-			{
-				alpha = 1f;
-				Apply();
-			}
-			if (alpha <= 0f)
+				wipe.SetInstant(true);
+			if (wipe.Coverage <= 0f)
 				return;
 			Play(Reveal());
 		}
@@ -124,7 +108,10 @@ namespace WitchMendokusai
 
 		private IEnumerator CoverThenLoad(string sceneName)
 		{
-			yield return FadeTo(1f, coverSeconds);
+			bool covered = false;
+			wipe.Play(true, () => covered = true);
+			while (covered == false)
+				yield return null;
 			running = null;
 			SceneManager.LoadScene(sceneName);
 		}
@@ -133,33 +120,8 @@ namespace WitchMendokusai
 		{
 			for (int i = 0; i < revealDelayFrames; i++)
 				yield return null;
-			yield return FadeTo(0f, revealSeconds);
+			wipe.Play(false);
 			running = null;
 		}
-
-		// 시간 정지 (timeScale 0) 중에도 진행
-		private IEnumerator FadeTo(float target, float seconds)
-		{
-			float start = alpha;
-			float elapsed = 0f;
-			while (elapsed < seconds)
-			{
-				elapsed += Mathf.Min(Time.unscaledDeltaTime, maxStepSeconds);
-				alpha = Mathf.Lerp(start, target, Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / seconds)));
-				Apply();
-				yield return null;
-			}
-			alpha = target;
-			Apply();
-		}
-
-		private void Apply()
-		{
-			cover.style.opacity = alpha;
-			cover.style.display = alpha > 0f ? DisplayStyle.Flex : DisplayStyle.None;
-			// 덮는 동안 클릭 차단
-			cover.pickingMode = alpha > 0f ? PickingMode.Position : PickingMode.Ignore;
-		}
-
 	}
 }

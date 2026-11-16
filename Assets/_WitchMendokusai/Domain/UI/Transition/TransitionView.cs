@@ -1,27 +1,22 @@
 using System;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
 using VContainer;
 
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 씬 전환 페이드 — UI Toolkit 검은 오버레이 + USS opacity transition.
-	/// 원본 UITransition 의 UniTask API 시그니처 유지.
+	/// 씬 안 전환 (포털, 던전 입장과 귀환). ScreenWipe 로 덮고, 작업 뒤 걷음
+	/// 모양과 길이는 UIFxSettings, 머무는 시간과 입력 조기 재개는 여기
 	/// </summary>
 	public class TransitionView : MonoBehaviour
 	{
-		private const float FADE_OUT_SECONDS = 0.4f;
-		private const float HOLD_SECONDS = 0.3f;
-		private const float FADE_IN_SECONDS = 0.4f;
-		private const float EARLY_RESUME_RATIO = 0.3f;
+		// 덮인 채 머무는 시간
+		[SerializeField] private float holdSeconds = 0.25f;
+		// 걷기의 이 비율 지점에서 시간 정지와 입력을 미리 풂 (체감 답답함 완화)
+		[SerializeField, Range(0f, 1f)] private float earlyResumeRatio = 0.3f;
 
-		public const string USS_CLASS = "wm-transition";
-		public const string USS_ACTIVE = "wm-transition--active";
-
-		private VisualElement overlay;
+		private ScreenWipe wipe;
 
 		private UIRoot uiRoot;
 		private TimeManager timeManager;
@@ -37,16 +32,14 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			overlay = new VisualElement();
-			overlay.AddToClassList(USS_CLASS);
-			overlay.pickingMode = PickingMode.Position;
-			overlay.style.display = DisplayStyle.None;
-			uiRoot.OverlayLayer.Add(overlay);
+			wipe = new ScreenWipe();
+			wipe.SetInstant(false);
+			uiRoot.OverlayLayer.Add(wipe);
 		}
 
 		private void OnDestroy()
 		{
-			overlay?.RemoveFromHierarchy();
+			wipe?.RemoveFromHierarchy();
 		}
 
 		public async UniTask Transition(Action aDuringTransition, Action aWhenStart = null, Action aWhenEnd = null)
@@ -70,30 +63,24 @@ namespace WitchMendokusai
 			IsInTransition = true;
 			aWhenStart?.Invoke();
 			timeManager.Pause(gameObject);
-			overlay.style.display = DisplayStyle.Flex;
-			overlay.pickingMode = PickingMode.Position;
 
-			// Fade Out (검은 오버레이가 화면 덮음)
-			overlay.AddToClassList(USS_ACTIVE);
-			await UniTask.Delay(ToMilliseconds(FADE_OUT_SECONDS), DelayType.Realtime);
+			UniTaskCompletionSource covered = new();
+			wipe.Play(true, () => covered.TrySetResult());
+			await covered.Task;
 
-			// During Action (검은 화면 상태에서 작업)
 			await tDuringTransition.Invoke();
-			await UniTask.Delay(ToMilliseconds(HOLD_SECONDS), DelayType.Realtime);
+			await UniTask.Delay(ToMilliseconds(holdSeconds), DelayType.Realtime);
 
-			// Fade In (검은 오버레이 사라짐)
-			overlay.RemoveFromClassList(USS_ACTIVE);
-			await UniTask.Delay(ToMilliseconds(FADE_IN_SECONDS * EARLY_RESUME_RATIO), DelayType.Realtime);
+			UniTaskCompletionSource revealed = new();
+			wipe.Play(false, () => revealed.TrySetResult());
+			float revealSeconds = UIFxSettings.Instance.wipeRevealSeconds;
+			await UniTask.Delay(ToMilliseconds(revealSeconds * earlyResumeRatio), DelayType.Realtime);
 
-			// 시각 fade in 은 진행 중 — 입력은 미리 풀어줌 (체감 답답함 완화)
 			IsInTransition = false;
-			overlay.pickingMode = PickingMode.Ignore;
 			timeManager.Resume(gameObject);
 			aWhenEnd?.Invoke();
 
-			// 남은 fade in 시간 — 시각 완료까지 대기 후 element 숨김
-			await UniTask.Delay(ToMilliseconds(FADE_IN_SECONDS * (1f - EARLY_RESUME_RATIO)), DelayType.Realtime);
-			overlay.style.display = DisplayStyle.None;
+			await revealed.Task;
 		}
 
 		private static int ToMilliseconds(float seconds) => (int)(seconds * 1000);

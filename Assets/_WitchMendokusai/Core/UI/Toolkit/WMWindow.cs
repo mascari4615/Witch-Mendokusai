@@ -122,8 +122,14 @@ namespace WitchMendokusai
 
 		public void Open()
 		{
+			bool wasOpen = IsOpen;
 			SetVisibleInternal(true);
 			BringToFront();
+			if (wasOpen == false)
+			{
+				UIShine.Sweep(this);
+				UISparkle.Burst(this);
+			}
 			UiSfx.Play(UiSfxEvent.WindowOpen);
 			OnOpened.Invoke();
 			schedule.Execute(FocusInitial).ExecuteLater(FocusDelayMs);

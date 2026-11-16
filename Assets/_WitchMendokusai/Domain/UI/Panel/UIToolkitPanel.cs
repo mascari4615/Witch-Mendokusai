@@ -58,6 +58,8 @@ namespace WitchMendokusai
 			uiRoot.ScreenLayer.Add(Root);
 
 			BuildUI(Root);
+			if (UIFxSettings.Instance.ambientMotes)
+				UISparkle.AttachMotes(Root);
 			isBuilt = true;
 		}
 
@@ -74,7 +76,12 @@ namespace WitchMendokusai
 				return;
 
 			if (newActive)
+			{
 				UIMotion.Show(Root);
+				// 패널 몸통 하나 아래에 실제 칸들이 있으면 그 칸들을 순서대로
+				VisualElement staggerRoot = Root.childCount == 2 && Root[0].childCount > 1 ? Root[0] : Root;
+				UIShine.StaggerChildren(staggerRoot);
+			}
 			else
 				UIMotion.Hide(Root);
 

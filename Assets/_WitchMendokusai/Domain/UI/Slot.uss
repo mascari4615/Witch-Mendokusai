@@ -1455,24 +1455,6 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-/* === Transition === */
-.wm-transition {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 1);
-    opacity: 0;
-    transition-property: opacity;
-    transition-duration: 0.4s;
-    transition-timing-function: ease-in-out;
-}
-
-.wm-transition--active {
-    opacity: 1;
-}
-
 /* =========================================================================
    전술 코딩 에디터 (TASK-WM-206 / WM-179) — Domain/Arena/UI/TacticEditorView.cs
    -------------------------------------------------------------------------
