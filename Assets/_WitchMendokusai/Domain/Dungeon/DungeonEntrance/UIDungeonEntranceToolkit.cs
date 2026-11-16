@@ -34,8 +34,7 @@ namespace WitchMendokusai
 		private readonly List<Button> dungeonSelectButtons = new();
 		private readonly List<Label> dungeonRowNames = new();
 		private readonly List<VisualElement> dungeonRowIcons = new();
-		private Image monsterImage;
-		private readonly SlotData monsterTooltipData = new();
+		private UIDungeonFoesToolkit foesUI;
 		private Label nameLabel;
 		private Label timeLabel;
 		private Label descriptionLabel;
@@ -82,6 +81,8 @@ namespace WitchMendokusai
 			heroImage.pickingMode = PickingMode.Ignore;
 			heroScrim = AddBlock(root, "__hero-scrim");
 			heroScrim.pickingMode = PickingMode.Ignore;
+			// 오른쪽 정보 띠 (밤 테마). 그림 위 글 가독용
+			AddBlock(root, "__band").pickingMode = PickingMode.Ignore;
 			AddBlock(root, "__mist").pickingMode = PickingMode.Ignore;
 
 			VisualElement top = AddBlock(root, "__top");
@@ -99,19 +100,10 @@ namespace WitchMendokusai
 			timeLabel = AddLabel(summary, string.Empty, "__tag");
 			descriptionLabel = AddLabel(summary, string.Empty, "__description");
 
-			VisualElement rewards = AddSection(detail, "__section--rewards");
-			AddHeader(rewards, "보상과 출현");
-			VisualElement tiles = AddBlock(rewards, "__tiles");
-			rewardUI = new UIRewardsToolkit();
-			tiles.Add(rewardUI);
-			VisualElement monster = AddBlock(tiles, "__monster");
-			monsterImage = new Image { scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
-			monsterImage.AddToClassList(USS_ROOT + "__monster-image");
-			monster.Add(monsterImage);
-			// 출현 몬스터 툴팁. 보상 칸 (ToolkitSlot) 과 같은 툴팁 경로
-			monster.pickingMode = PickingMode.Position;
-			monster.RegisterCallback<PointerEnterEvent>(_ => ShowMonsterTooltip(monster));
-			monster.RegisterCallback<PointerLeaveEvent>(_ => monster.GetUIServices()?.Tooltip?.Hide());
+			VisualElement foes = AddSection(detail, "__section--foes");
+			AddHeader(foes, "출현 적");
+			foesUI = new UIDungeonFoesToolkit();
+			foes.Add(foesUI);
 
 			constraintSection = AddSection(detail, "__section--constraints");
 			AddHeader(constraintSection, "제약");
@@ -125,6 +117,14 @@ namespace WitchMendokusai
 			Button equippedButton = AddRunModeButton(modeRow, DungeonRunMode.Equipped, "장착 모드");
 			Button randomButton = AddRunModeButton(modeRow, DungeonRunMode.Random, "랜덤 모드");
 			BuildThreatRow(runSection);
+
+			// 보상은 입장 버튼 바로 위
+			AddBlock(detail, "__spacer").pickingMode = PickingMode.Ignore;
+			VisualElement rewards = AddSection(detail, "__section--rewards");
+			AddHeader(rewards, "보상 미리보기");
+			VisualElement tiles = AddBlock(rewards, "__tiles");
+			rewardUI = new UIRewardsToolkit();
+			tiles.Add(rewardUI);
 
 			dungeonEnterButton = new Button(EnterTheDungeon) { name = "EnterButton" };
 			dungeonEnterButton.AddToClassList(USS_ROOT + "__enter");
@@ -359,7 +359,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < dungeonSelectButtons.Count; i++)
 				dungeonSelectButtons[i].EnableInClassList(USS_ROW_SELECTED, i == curDungeonIndex);
 
-			monsterImage.sprite = GetMonsterSprite(CurDungeon);
+			foesUI.UpdateUI(CurDungeon);
 			// 던전 대표 그림이 있으면 테마 캐릭터 그림 대신 화면 전체에
 			bool hasKeyArt = CurDungeon.KeyArt != null;
 			heroImage.EnableInClassList(USS_HERO_KEY_ART, hasKeyArt);
@@ -390,31 +390,6 @@ namespace WitchMendokusai
 		{
 			int bracketIndex = dungeonName.IndexOf(" (", System.StringComparison.Ordinal);
 			return bracketIndex < 0 ? dungeonName : dungeonName[..bracketIndex];
-		}
-
-		private void ShowMonsterTooltip(VisualElement owner)
-		{
-			Monster monster = GetRepresentativeMonster(CurDungeon);
-			if (monster == null)
-				return;
-			monsterTooltipData.SetData(monster);
-			owner.GetUIServices()?.Tooltip?.Show(monsterTooltipData, owner: owner);
-		}
-
-		private static Monster GetRepresentativeMonster(Dungeon dungeon)
-		{
-			List<MonsterWave> waves = dungeon.MonsterWaves;
-			if (waves == null || waves.Count == 0)
-				return null;
-			Monster[] monsters = waves[waves.Count - 1].Monsters;
-			return monsters == null || monsters.Length == 0 ? null : monsters[0];
-		}
-
-		// 마지막 웨이브의 첫 몬스터가 대표, 웨이브가 없으면 던전 아이콘
-		private static Sprite GetMonsterSprite(Dungeon dungeon)
-		{
-			Monster monster = GetRepresentativeMonster(dungeon);
-			return monster == null ? dungeon.Sprite : monster.Sprite;
 		}
 
 		public void EnterTheDungeon()

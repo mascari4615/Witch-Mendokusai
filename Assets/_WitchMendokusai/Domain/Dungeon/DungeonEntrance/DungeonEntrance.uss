@@ -306,3 +306,42 @@
     border-width: 4px;
     border-color: rgb(255, 255, 255);
 }
+
+/* 오른쪽 정보 띠와 아래 여백 칸. 밤 테마만 씀 */
+.wm-dungeon-entrance__band {
+    display: none;
+    position: absolute;
+}
+
+.wm-dungeon-entrance__spacer {
+    flex-grow: 0;
+}
+
+/* 출현 적 줄 구조. 색과 크기는 테마 USS */
+.wm-dungeon-foes {
+    flex-direction: row;
+}
+
+.wm-dungeon-foes__foe {
+    align-items: center;
+}
+
+.wm-dungeon-foes__pic {
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-dungeon-foes__tag {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    -unity-text-align: middle-center;
+}
+
+.wm-dungeon-foes__name,
+.wm-dungeon-foes__time {
+    margin: 0;
+    padding: 0;
+    -unity-text-align: upper-center;
+}

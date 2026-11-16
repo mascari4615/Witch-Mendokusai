@@ -164,4 +164,8 @@ MonoBehaviour:
     DataSO: {fileID: 0}
     Amount: 500
   <EventTable>k__BackingField: {fileID: 11400000, guid: 4ee083008e854ab5a9ea7ecd891d7f8d, type: 2}
+  <DefeatNyangPerKill>k__BackingField: 0.05
+  <DefeatNyangMax>k__BackingField: 300
   <HasThreatLevels>k__BackingField: 1
+  <DevBuildOnly>k__BackingField: 0
+  <KeyArt>k__BackingField: {fileID: 21300000, guid: 83cdfd9e40b22384ebe2c5743ef88e46, type: 3}

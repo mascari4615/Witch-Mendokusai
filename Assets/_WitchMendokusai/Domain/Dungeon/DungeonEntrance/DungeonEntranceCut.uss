@@ -357,3 +357,29 @@
 .wm-dungeon-entrance--cut .wm-dungeon-entrance__hero-scrim {
     background-color: rgba(0, 0, 0, 0.35);
 }
+
+.wm-dungeon-entrance--cut .wm-dungeon-foes__foe {
+    width: 62px;
+    margin-right: 10px;
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-foes__pic {
+    width: 62px;
+    height: 62px;
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-foes__image {
+    width: 40px;
+    height: 40px;
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-foes__tag {
+    padding: 0 4px;
+    font-size: 10px;
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-foes__name,
+.wm-dungeon-entrance--cut .wm-dungeon-foes__time {
+    font-size: 10px;
+    color: rgb(244, 242, 236);
+}
