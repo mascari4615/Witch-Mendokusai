@@ -214,6 +214,8 @@ namespace WitchMendokusai
 			}
 			else if (DungeonManager.TryGetExistingInstance(out DungeonManager dungeonManager) && dungeonManager.IsDungeon)
 			{
+				// 시간이 지날수록 적 피해 상승 (SurvivalRunRules), 그 위에 위협 배율
+				calcDamage += dungeonManager.RunRules.EnemyDamageBonus(dungeonManager.Context.ElapsedTime.TotalMinutes);
 				calcDamage = dungeonManager.CurThreat.ScaleEnemyDamage(calcDamage);
 			}
 

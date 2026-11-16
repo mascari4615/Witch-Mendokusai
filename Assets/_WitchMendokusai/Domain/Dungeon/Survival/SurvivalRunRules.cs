@@ -48,6 +48,14 @@ namespace WitchMendokusai
 		[Tooltip("덱에 넣지 않는 카드. 조건은 CardData.Requirements, 지급은 상자 첫 보상")] public List<CardData> EvolutionCards = new();
 		[Tooltip("트리 시작 카드를 차단하려 할 때 문구")] public string BanRootDeniedText = "시작 카드는 차단할 수 없어요.";
 
+		[Header("Enemy growth over time (2026-11-16 balance)")]
+		[Min(0f), Tooltip("분당 적 최대 체력 증가 비율. 0.35 면 10분에 4.5배. 생성 시점 경과 분 기준")] public float EnemyHpGrowthPerMinute = 0.35f;
+		[Min(0f), Tooltip("적 피해가 1씩 오르는 간격 분. 0이면 성장 없음")] public float EnemyDamageStepMinutes = 3f;
+		[Min(0), Tooltip("간격마다 더하는 적 피해")] public int EnemyDamagePerStep = 1;
+
+		public double EnemyHpMultiplier(double elapsedMinutes) => 1d + EnemyHpGrowthPerMinute * elapsedMinutes;
+		public int EnemyDamageBonus(double elapsedMinutes) => EnemyDamageStepMinutes <= 0f ? 0 : (int)(elapsedMinutes / EnemyDamageStepMinutes) * EnemyDamagePerStep;
+
 		[Header("Wave density (provisional values)")]
 		[Min(0), Tooltip("임시값. 동시 적 수가 이 값 이상이면 주기 생성과 보충 중지. 0이면 상한 없음")] public int EnemySoftCap = 300;
 		[Min(0), Tooltip("임시값. 동시 적 수가 이 값 이상이면 무리 사건도 중지. 보스와 정예는 예외. 0이면 상한 없음")] public int EnemyHardCap = 500;

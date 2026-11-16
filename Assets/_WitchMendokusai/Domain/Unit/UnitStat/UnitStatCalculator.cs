@@ -12,7 +12,6 @@ namespace WitchMendokusai
 			return mgr != null;
 		}
 
-		private const double DIFFICULTY_HP_BONUS_FACTOR = .7f;
 
 		private void Awake()
 		{
@@ -68,7 +67,12 @@ namespace WitchMendokusai
 			if (context != null)
 			{
 				double percentage = (double)unitStat[UnitStatType.HP_CUR] / unitStat[UnitStatType.HP_MAX];
-				unitStat[UnitStatType.HP_MAX] = (int)(unitStat[UnitStatType.HP_MAX_STAT] * (1 + DIFFICULTY_HP_BONUS_FACTOR * (double)context.CurDifficulty));
+				// 생성 시점 경과 분에 비례해 체력 성장 (SurvivalRunRules). 예전 3분 계단 0.7배는 위기가 없어 교체 (2026-11-16)
+				// 판 제한 시간에서 멈춤. 살아 있는 보스가 시간이 지날수록 계속 단단해지지 않게
+				double limitMinutes = context.InitialDungeonTime.TotalMinutes;
+				double growthMinutes = limitMinutes > 0 ? System.Math.Min(context.ElapsedTime.TotalMinutes, limitMinutes) : context.ElapsedTime.TotalMinutes;
+				double hpMultiplier = dungeonManager.RunRules.EnemyHpMultiplier(growthMinutes);
+				unitStat[UnitStatType.HP_MAX] = (int)(unitStat[UnitStatType.HP_MAX_STAT] * hpMultiplier);
 				unitStat[UnitStatType.HP_CUR] = (int)(unitStat[UnitStatType.HP_MAX] * percentage);
 				// SetHp((int)(unitStat[UnitStatType.HP_MAX] * percentage));
 

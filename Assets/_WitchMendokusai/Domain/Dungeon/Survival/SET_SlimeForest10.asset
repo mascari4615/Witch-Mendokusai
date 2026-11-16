@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SET_SlimeForest10
   m_EditorClassIdentifier: 
   <Elite>k__BackingField:
-    <HealthMultiplier>k__BackingField: 12
+    <HealthMultiplier>k__BackingField: 30
     <ScaleMultiplier>k__BackingField: 1.8
     <Tint>k__BackingField: {r: 1, g: 0.72, b: 0.3, a: 1}
     <HpBarScale>k__BackingField: 3

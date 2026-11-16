@@ -26,7 +26,7 @@ MonoBehaviour:
     BarrierExtra: 1500
   - FromLevel: 20
     Increment: 150
-    BarrierExtra: 4000
+    BarrierExtra: 2500
   ExpBarrierGainMultiplier: 2
   ChestPrefab: {fileID: 5421623657637269341, guid: 8780f3fd875b9414488a82ba00dc0eda, type: 3}
   EliteChestChance: 1
