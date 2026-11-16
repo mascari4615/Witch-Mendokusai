@@ -162,7 +162,7 @@ namespace WitchMendokusai
 				Context = new DungeonContext
 				(
 					initialDungeonTime: new TimeSpan(0, 0, dungeon.TimeBySecond),
-					constraints: dungeon.Constraints,
+					constraints: dungeon.SelectedConstraints(),
 					dungeonStat: dataManager.DungeonStat
 				);
 

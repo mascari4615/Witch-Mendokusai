@@ -4,9 +4,8 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 던전 제약 표시 뷰. 제약마다 켜짐 표시와 설명 한 줄
-	/// DungeonManager 는 선택 여부와 무관하게 던전 제약 전부를 적용 (DungeonContext.Constraints)
-	/// 그래서 행은 항상 켜짐, 클릭 토글 없음. 꺼짐 표시는 적용 중인 규칙이 빠진 것처럼 읽힘
+	/// 던전 제약 고르기. 행을 누르면 켜고 끔, 값은 Dungeon.ConstraintSelected (세이브에 저장)
+	/// DungeonManager 는 켜진 제약만 판에 적용 (DungeonContext.Constraints)
 	/// </summary>
 	public class UIDungeonConstraintToolkit : VisualElement
 	{
@@ -19,7 +18,7 @@ namespace WitchMendokusai
 		private const string USS_LINE = USS_CLASS + "__line";
 
 		private Dungeon dungeon;
-		private readonly List<VisualElement> constraintRows = new();
+		private readonly List<Button> constraintRows = new();
 		private readonly List<Label> constraintTexts = new();
 
 		public UIDungeonConstraintToolkit()
@@ -37,7 +36,9 @@ namespace WitchMendokusai
 			{
 				if (i < dungeon.Constraints.Count)
 				{
-					constraintTexts[i].text = dungeon.Constraints[i].Description;
+					DungeonConstraint constraint = dungeon.Constraints[i];
+					constraintTexts[i].text = constraint.Description;
+					constraintRows[i].EnableInClassList(USS_ROW_SELECTED, dungeon.ConstraintSelected[constraint.ID]);
 					constraintRows[i].style.display = DisplayStyle.Flex;
 				}
 				else
@@ -47,13 +48,22 @@ namespace WitchMendokusai
 			}
 		}
 
+		private void Toggle(int index)
+		{
+			int id = dungeon.Constraints[index].ID;
+			bool isOn = dungeon.ConstraintSelected[id] == false;
+			dungeon.ConstraintSelected[id] = isOn;
+			UiSfx.Play(isOn ? UiSfxEvent.Confirm : UiSfxEvent.Cancel);
+			UpdateUI();
+		}
+
 		private void EnsureRowCount(int count)
 		{
 			while (constraintRows.Count < count)
 			{
-				VisualElement row = new VisualElement { pickingMode = PickingMode.Ignore };
+				int index = constraintRows.Count;
+				Button row = new Button(() => Toggle(index));
 				row.AddToClassList(USS_ROW);
-				row.AddToClassList(USS_ROW_SELECTED);
 
 				VisualElement check = new VisualElement { pickingMode = PickingMode.Ignore };
 				check.AddToClassList(USS_CHECK);

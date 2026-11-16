@@ -62,6 +62,9 @@ namespace WitchMendokusai
 		[field: NonSerialized] public Dictionary<int, bool> ConstraintSelected { get; private set; } = new();
 		[field: NonSerialized] public int ClearedThreatCount { get; private set; }
 
+		// 입장 창에서 켠 제약만 판에 적용
+		public List<DungeonConstraint> SelectedConstraints() => Constraints.FindAll(constraint => ConstraintSelected[constraint.ID]);
+
 		public void RecordThreatClear(int level) => ClearedThreatCount = DungeonThreatRules.AfterClear(ClearedThreatCount, level);
 
 		public void Init()
