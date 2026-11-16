@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	// 시작 화면 지형. 가운데 언덕, 잔물결 기복, 멀리 둘러싼 능선을 높이 함수로 만들어 메시 생성
+	// 시작 화면과 실험실 들판 지형. 가운데 언덕, 잔물결 기복, 멀리 둘러싼 능선을 높이 함수로 만들어 메시 생성
 	// 메시는 자산으로 저장하지 않고 켜질 때 생성
 	[ExecuteAlways]
 	[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
@@ -94,6 +94,9 @@ namespace WitchMendokusai
 			mesh.RecalculateNormals();
 			mesh.RecalculateBounds();
 			GetComponent<MeshFilter>().sharedMesh = mesh;
+			// 걸어 다니는 땅으로 쓸 때만 충돌체를 붙인다. 시작 화면 무대는 충돌체 없음
+			if (TryGetComponent(out MeshCollider meshCollider))
+				meshCollider.sharedMesh = mesh;
 		}
 	}
 }
