@@ -22,6 +22,9 @@ namespace WitchMendokusai
 		[SerializeField] private Transform optionsParent;
 		private readonly List<UISlot> options = new();
 
+		[SerializeField, Tooltip("릴리스 빌드에서 메뉴에 안 띄우는 개발 중 패널")]
+		private NPCPanelType[] devBuildOnlyPanels = { NPCPanelType.CauldronMap, NPCPanelType.Hub };
+
 		[SerializeField] private Image headerPortrait;
 		[SerializeField] private TMPro.TextMeshProUGUI headerName;
 
@@ -121,14 +124,26 @@ namespace WitchMendokusai
 			}
 		}
 
+		// 켜지는 프레임에 지난 선택지 (처음엔 버튼 전부) 가 보이지 않게
+		protected override void OnBeforeShow()
+		{
+			canvasGroup.SetVisible(false);
+			buttonsParent.SetActive(false);
+		}
+
 		protected override void OnOpen()
 		{
 			canvasGroup.SetVisible(false);
 
 			NPC curNPCData = curNPC.UnitData as NPC;
 			List<NPCPanelType> panelTypes = curNPCData.GetPanelTypeList();
+			bool isReleaseBuild = Debug.isDebugBuild == false;
 			for (int i = 0; i < options.Count; i++)
-				options[i].gameObject.SetActive(panelTypes.Contains((NPCPanelType)options[i].Index)); // Index는 PanelType의 인덱스와 동일
+			{
+				NPCPanelType panelType = (NPCPanelType)options[i].Index; // Index는 PanelType의 인덱스와 동일
+				bool isHidden = isReleaseBuild && devBuildOnlyPanels.Contains(panelType);
+				options[i].gameObject.SetActive(panelTypes.Contains(panelType) && isHidden == false);
+			}
 
 			UpdateQuestButtons();
 			questEachParent.gameObject.SetActive(false);

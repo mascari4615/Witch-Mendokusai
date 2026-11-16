@@ -25,6 +25,9 @@ namespace WitchMendokusai
 		{
 			// Debug.Log($"{name} {nameof(SetActive)}({newActive})");
 
+			if (newActive)
+				OnBeforeShow();
+
 			gameObject.SetActive(newActive);
 
 			if (newActive)
@@ -47,6 +50,8 @@ namespace WitchMendokusai
 				OnOpen();
 		}
 
+		// 켜기 직전, 같은 프레임. OnOpen 이 한 프레임 늦게 돌아 그 사이 옛 내용이 보이는 것을 막을 때
+		protected virtual void OnBeforeShow() { }
 		protected virtual void OnOpen() { }
 		protected virtual void OnClose() { }
 
