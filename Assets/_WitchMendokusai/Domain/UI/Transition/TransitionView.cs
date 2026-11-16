@@ -73,6 +73,9 @@ namespace WitchMendokusai
 			overlay.style.display = DisplayStyle.Flex;
 			overlay.pickingMode = PickingMode.Position;
 
+			// 같은 프레임 클래스 부여 시 transition 생략, 즉시 검은 화면 (UIMotion 주석)
+			await UniTask.NextFrame();
+
 			// Fade Out (검은 오버레이가 화면 덮음)
 			overlay.AddToClassList(USS_ACTIVE);
 			await UniTask.Delay(ToMilliseconds(FADE_OUT_SECONDS), DelayType.Realtime);

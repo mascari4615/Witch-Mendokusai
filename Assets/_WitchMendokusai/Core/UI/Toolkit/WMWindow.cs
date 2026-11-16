@@ -29,7 +29,8 @@ namespace WitchMendokusai
 		[UxmlAttribute] public string WindowId { get; set; }
 		[UxmlAttribute] public string Title { get; set; }
 
-		public bool IsOpen => style.display != DisplayStyle.None;
+		// 닫힘 애니메이션 중에도 display 켜짐, 열림 여부는 별도 값
+		public bool IsOpen { get; private set; }
 		public VisualElement Content { get; private set; }
 		public WindowSize CurrentSize { get; private set; } = WindowSize.Small;
 		public bool IsSizeToggleEnabled { get; private set; }
@@ -54,6 +55,7 @@ namespace WitchMendokusai
 		public WMWindow()
 		{
 			AddToClassList(USS_CLASS);
+			AddToClassList(UIMotion.POP);
 			focusable = true;
 			pickingMode = PickingMode.Position;
 
@@ -95,7 +97,8 @@ namespace WitchMendokusai
 			RegisterCallback<AttachToPanelEvent>(OnAttached);
 			RegisterCallback<DetachFromPanelEvent>(OnDetached);
 
-			SetVisibleInternal(false);
+			IsOpen = false;
+			UIMotion.SetInstant(this, false);
 		}
 
 		private void OnAttached(AttachToPanelEvent evt)
@@ -204,7 +207,11 @@ namespace WitchMendokusai
 
 		private void SetVisibleInternal(bool visible)
 		{
-			style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+			IsOpen = visible;
+			if (visible)
+				UIMotion.Show(this);
+			else
+				UIMotion.Hide(this);
 		}
 
 		private void RestorePosition()

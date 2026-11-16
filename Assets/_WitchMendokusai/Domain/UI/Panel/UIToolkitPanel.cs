@@ -53,7 +53,8 @@ namespace WitchMendokusai
 			Root.style.top = 0;
 			Root.style.bottom = 0;
 
-			Root.style.display = DisplayStyle.None;
+			Root.AddToClassList(UIMotion.RISE);
+			UIMotion.SetInstant(Root, false);
 			uiRoot.ScreenLayer.Add(Root);
 
 			BuildUI(Root);
@@ -72,7 +73,10 @@ namespace WitchMendokusai
 			if (Root == null)
 				return;
 
-			Root.style.display = newActive ? DisplayStyle.Flex : DisplayStyle.None;
+			if (newActive)
+				UIMotion.Show(Root);
+			else
+				UIMotion.Hide(Root);
 
 			if (newActive)
 				OnOpen();

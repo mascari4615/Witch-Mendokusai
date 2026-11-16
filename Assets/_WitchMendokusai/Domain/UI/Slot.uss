@@ -31,6 +31,39 @@
     -unity-font-definition: url("../../Fonts/갈무리/Galmuri11-Bold.ttf");
 }
 
+/* === 열기와 닫기 움직임 (UIMotion.cs) ===
+   기본 클래스 = 닫힌 상태와 닫힘 transition, --in = 열린 상태와 열림 transition.
+   열기는 감속, 닫기는 가속에 열기보다 짧게. 길이는 여기만 정본, C# 은 opacity 0 도달을 본다 */
+.wm-motion-pop {
+    opacity: 0;
+    scale: 0.94 0.94;
+    transition-property: opacity, scale;
+    transition-duration: 0.1s, 0.1s;
+    transition-timing-function: ease-in-cubic, ease-in-cubic;
+}
+
+.wm-motion-pop.wm-motion--in {
+    opacity: 1;
+    scale: 1 1;
+    transition-duration: 0.14s, 0.22s;
+    transition-timing-function: ease-out-cubic, ease-out-back;
+}
+
+.wm-motion-rise {
+    opacity: 0;
+    translate: 0 18px;
+    transition-property: opacity, translate;
+    transition-duration: 0.12s, 0.12s;
+    transition-timing-function: ease-in-cubic, ease-in-cubic;
+}
+
+.wm-motion-rise.wm-motion--in {
+    opacity: 1;
+    translate: 0 0;
+    transition-duration: 0.18s, 0.24s;
+    transition-timing-function: ease-out-cubic, ease-out-cubic;
+}
+
 .wm-window__line {
     position: absolute;
     left: 6px;

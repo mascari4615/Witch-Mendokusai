@@ -392,7 +392,7 @@ namespace WitchMendokusai
 			if (IsOpen) return;
 			IsOpen = true;
 			UiSfx.Play(UiSfxEvent.WindowOpen);
-			container.AddToClassList(ACTIVE_CLASS);
+			UIMotion.Show(container, ACTIVE_CLASS);
 
 			// HACK: World 씬에서만 던전 포기 버튼 활성화
 			bool isWorld = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "World";
@@ -428,7 +428,7 @@ namespace WitchMendokusai
 			IsOpen = false;
 			UiSfx.Play(UiSfxEvent.WindowClose);
 			selectFrame.AddToClassList(HIDDEN_FRAME_CLASS);
-			container.RemoveFromClassList(ACTIVE_CLASS);
+			UIMotion.Hide(container, ACTIVE_CLASS);
 			timeManager.Resume(gameObject);
 		}
 
