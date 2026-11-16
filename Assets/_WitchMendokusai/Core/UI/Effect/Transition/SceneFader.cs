@@ -11,11 +11,12 @@ namespace WitchMendokusai
 	{
 		// 게임 UI 위, FPS 숫자 (32000) 아래
 		private const int SORTING_ORDER = 31000;
-		private const float COVER_SECONDS = 0.35f;
-		private const float REVEAL_SECONDS = 0.5f;
+		// 실행 중 Hierarchy 의 SceneFader 에서 조절 (DontSave, 숨김 아님)
+		[SerializeField] private float coverSeconds = 0.35f;
+		[SerializeField] private float revealSeconds = 0.5f;
 		// 새 씬 첫 프레임들의 멈칫을 막 뒤에 숨김
-		private const int REVEAL_DELAY_FRAMES = 2;
-		private static readonly Color COVER_COLOR = new(0.04f, 0.035f, 0.05f, 1f);
+		[SerializeField] private int revealDelayFrames = 2;
+		[SerializeField] private Color coverColor = new(0.04f, 0.035f, 0.05f, 1f);
 
 		private static SceneFader instance;
 
@@ -36,7 +37,7 @@ namespace WitchMendokusai
 			GameObject host = new GameObject(nameof(SceneFader));
 			host.SetActive(false);
 			DontDestroyOnLoad(host);
-			host.hideFlags = HideFlags.HideAndDontSave;
+			host.hideFlags = HideFlags.DontSave;
 			host.AddComponent<SceneFader>();
 			host.SetActive(true);
 		}
@@ -57,7 +58,7 @@ namespace WitchMendokusai
 		{
 			if (instance == null)
 				yield break;
-			yield return instance.FadeTo(1f, COVER_SECONDS);
+			yield return instance.FadeTo(1f, instance.coverSeconds);
 		}
 
 		private void Awake()
@@ -76,7 +77,7 @@ namespace WitchMendokusai
 			cover.style.top = 0;
 			cover.style.right = 0;
 			cover.style.bottom = 0;
-			cover.style.backgroundColor = COVER_COLOR;
+			cover.style.backgroundColor = coverColor;
 			root.Add(cover);
 			Apply();
 
@@ -106,16 +107,16 @@ namespace WitchMendokusai
 
 		private IEnumerator CoverThenLoad(string sceneName)
 		{
-			yield return FadeTo(1f, COVER_SECONDS);
+			yield return FadeTo(1f, coverSeconds);
 			running = null;
 			SceneManager.LoadScene(sceneName);
 		}
 
 		private IEnumerator Reveal()
 		{
-			for (int i = 0; i < REVEAL_DELAY_FRAMES; i++)
+			for (int i = 0; i < revealDelayFrames; i++)
 				yield return null;
-			yield return FadeTo(0f, REVEAL_SECONDS);
+			yield return FadeTo(0f, revealSeconds);
 			running = null;
 		}
 
