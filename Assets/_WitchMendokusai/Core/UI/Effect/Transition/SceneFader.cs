@@ -23,6 +23,7 @@ namespace WitchMendokusai
 		private VisualElement cover;
 		private float alpha = 1f;
 		private Coroutine running;
+		private bool coverOnNextScene;
 
 		public static bool IsCovering => instance != null && instance.alpha > 0f;
 
@@ -53,12 +54,11 @@ namespace WitchMendokusai
 			instance.Play(instance.CoverThenLoad(sceneName));
 		}
 
-		/// <summary>화면을 덮는 코루틴. 비동기 로딩의 씬 활성 직전에 기다림</summary>
-		public static IEnumerator Cover()
+		/// <summary>다음 씬 첫 프레임에 막을 바로 씌우고 걷음. 비동기 로딩처럼 교체 시점을 모를 때 사용</summary>
+		public static void CoverOnNextScene()
 		{
-			if (instance == null)
-				yield break;
-			yield return instance.FadeTo(1f, instance.coverSeconds);
+			if (instance != null)
+				instance.coverOnNextScene = true;
 		}
 
 		private void Awake()
@@ -93,7 +93,15 @@ namespace WitchMendokusai
 
 		private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 		{
-			if (mode != LoadSceneMode.Single || alpha <= 0f)
+			if (mode != LoadSceneMode.Single)
+				return;
+			if (coverOnNextScene)
+			{
+				coverOnNextScene = false;
+				alpha = 1f;
+				Apply();
+			}
+			if (alpha <= 0f)
 				return;
 			Play(Reveal());
 		}

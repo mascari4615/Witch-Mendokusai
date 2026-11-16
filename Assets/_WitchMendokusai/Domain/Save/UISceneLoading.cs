@@ -56,7 +56,8 @@ namespace WitchMendokusai
 			text.text = $"로딩 완료 !";
 
 			yield return new WaitForSeconds(completedHoldTime);
-			yield return SceneFader.Cover();
+			// 활성화가 몇 초 걸려 미리 덮으면 검은 화면이 길어짐. 로딩 화면 유지, 월드 첫 프레임에 덮고 걷음
+			SceneFader.CoverOnNextScene();
 
 			operation.allowSceneActivation = true;
 		}
