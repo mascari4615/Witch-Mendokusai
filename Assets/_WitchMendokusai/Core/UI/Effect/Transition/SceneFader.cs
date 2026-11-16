@@ -11,12 +11,14 @@ namespace WitchMendokusai
 	{
 		// 게임 UI 위, FPS 숫자 (32000) 아래
 		private const int SORTING_ORDER = 31000;
-		// 실행 중 Hierarchy 의 SceneFader 에서 조절 (DontSave, 숨김 아님)
+		// 실행 중 Hierarchy (DontDestroyOnLoad) 의 SceneFader 에서 조절
 		[SerializeField] private float coverSeconds = 0.35f;
 		[SerializeField] private float revealSeconds = 0.5f;
 		// 새 씬 첫 프레임들의 멈칫을 막 뒤에 숨김
 		[SerializeField] private int revealDelayFrames = 2;
 		[SerializeField] private Color coverColor = new(0.04f, 0.035f, 0.05f, 1f);
+		// 씬 활성화 멈칫 (MOIS2 월드 약 5초) 뒤 첫 프레임 dt 로 걷기가 한 번에 끝나는 것 방지
+		[SerializeField] private float maxStepSeconds = 1f / 30f;
 
 		private static SceneFader instance;
 
@@ -38,7 +40,6 @@ namespace WitchMendokusai
 			GameObject host = new GameObject(nameof(SceneFader));
 			host.SetActive(false);
 			DontDestroyOnLoad(host);
-			host.hideFlags = HideFlags.DontSave;
 			host.AddComponent<SceneFader>();
 			host.SetActive(true);
 		}
@@ -135,7 +136,7 @@ namespace WitchMendokusai
 			float elapsed = 0f;
 			while (elapsed < seconds)
 			{
-				elapsed += Time.unscaledDeltaTime;
+				elapsed += Mathf.Min(Time.unscaledDeltaTime, maxStepSeconds);
 				alpha = Mathf.Lerp(start, target, Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / seconds)));
 				Apply();
 				yield return null;
