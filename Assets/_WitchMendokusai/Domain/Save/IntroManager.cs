@@ -49,7 +49,7 @@ namespace WitchMendokusai
 		
 		private void LoadLobby()
 		{
-			SceneManager.LoadScene("Lobby");
+			SceneFader.LoadScene("Lobby");
 		}
 	}
 }

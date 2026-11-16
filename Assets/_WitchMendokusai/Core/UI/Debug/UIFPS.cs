@@ -8,7 +8,6 @@ namespace WitchMendokusai
 	public sealed class UIFPS : MonoBehaviour
 	{
 		private const string VISIBLE_PREF_KEY = "WM.Display.Fps";
-		private const string PANEL_SETTINGS_RESOURCE = "BuildStampPanelSettings";
 		// 빌드 표시 (BuildStampOverlay) 와 게임 UI 위
 		private const int SORTING_ORDER = 32000;
 		// 월드 왼쪽 위 세계 시계 아래 자리, 패널 기준 해상도 픽셀
@@ -63,7 +62,7 @@ namespace WitchMendokusai
 		{
 			instance = this;
 			UIDocument document = gameObject.AddComponent<UIDocument>();
-			document.panelSettings = LoadPanelSettings();
+			document.panelSettings = OverlayPanelSettings.Load();
 			document.sortingOrder = SORTING_ORDER;
 
 			VisualElement root = document.rootVisualElement;
@@ -86,19 +85,6 @@ namespace WitchMendokusai
 			safeFrame.Add(label);
 		}
 
-		private static PanelSettings LoadPanelSettings()
-		{
-			PanelSettings settings = Resources.Load<PanelSettings>(PANEL_SETTINGS_RESOURCE);
-			if (settings != null)
-				return settings;
-
-			settings = ScriptableObject.CreateInstance<PanelSettings>();
-			settings.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-			settings.referenceResolution = new Vector2Int(1200, 800);
-			settings.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
-			settings.match = 1f;
-			return settings;
-		}
 
 		private void Update()
 		{

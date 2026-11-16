@@ -30,7 +30,7 @@ namespace WitchMendokusai
 		{
 			sceneName = targetSceneName;
 			BootObserver.Enter(BootPhase.SceneLoading); // TASK-WM-118 B1
-			SceneManager.LoadScene("Loading");
+			SceneFader.LoadScene("Loading");
 		}
 
 		private void Start()
@@ -56,6 +56,7 @@ namespace WitchMendokusai
 			text.text = $"로딩 완료 !";
 
 			yield return new WaitForSeconds(completedHoldTime);
+			yield return SceneFader.Cover();
 
 			operation.allowSceneActivation = true;
 		}
