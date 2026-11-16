@@ -30,7 +30,7 @@ namespace WitchMendokusai
 			band.style.position = Position.Absolute;
 			band.style.backgroundImage = new StyleBackground(UIFxTextures.Band);
 			band.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, settings.shineAlpha);
-			band.style.rotate = new Rotate(new Angle(settings.shineAngle, AngleUnit.Degree));
+			band.style.rotate = new UnityEngine.UIElements.Rotate(new UnityEngine.UIElements.Angle(settings.shineAngle, AngleUnit.Degree));
 			band.style.opacity = 0f;
 			clip.Add(band);
 

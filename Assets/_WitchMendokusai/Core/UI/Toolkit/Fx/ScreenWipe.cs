@@ -141,7 +141,7 @@ namespace WitchMendokusai
 					tile.style.height = cell;
 					tile.style.left = column * cell - cell * 0.5f;
 					tile.style.top = row * cell - cell * 0.5f;
-					tile.style.rotate = new Rotate(new Angle(DIAMOND_ROTATION_DEGREES, AngleUnit.Degree));
+					tile.style.rotate = new UnityEngine.UIElements.Rotate(new UnityEngine.UIElements.Angle(DIAMOND_ROTATION_DEGREES, AngleUnit.Degree));
 					tile.style.scale = new Scale(Vector3.zero);
 					Add(tile);
 					tiles.Add(tile);
