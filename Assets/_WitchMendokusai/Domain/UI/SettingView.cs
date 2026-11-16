@@ -40,6 +40,7 @@ namespace WitchMendokusai
 		private string currentTabKey;
 
 		private Button btnDungeonExit;
+		private Button btnUnstuck;
 
 		// Audio
 		private Slider masterVolume;
@@ -225,6 +226,11 @@ namespace WitchMendokusai
 			VisualElement buttonGroup = new VisualElement();
 			buttonGroup.AddToClassList("wm-setting-buttons");
 
+			btnUnstuck = new Button(() => AskConfirmWithSound("들어온 자리로 돌아갈까요?", "땅에 끼였거나 떨어졌을 때 지금 스테이지에 들어선 자리로 옮깁니다.", "돌아가기", OnUnstuck)) { text = "끼임 탈출" };
+			btnUnstuck.AddToClassList("wm-setting-btn");
+			btnUnstuck.AddToClassList(NAV_CLASS);
+			buttonGroup.Add(btnUnstuck);
+
 			btnDungeonExit = new Button(() => AskConfirmWithSound("던전을 포기할까요?", "이번 판은 패배로 끝납니다.", "포기", OnDungeonExit)) { text = "던전 포기" };
 			btnDungeonExit.AddToClassList("wm-setting-btn");
 			btnDungeonExit.AddToClassList("wm-setting-btn--danger");
@@ -369,6 +375,13 @@ namespace WitchMendokusai
 			});
 		}
 
+		private void OnUnstuck()
+		{
+			Close();
+			if (StageManager.TryGetExistingInstance(out StageManager stageManager))
+				stageManager.ReturnToEntry();
+		}
+
 		private void OnClearData() => dataManager.CreateNewGameData();
 
 		private void OnQuit() => Application.Quit();
@@ -384,6 +397,8 @@ namespace WitchMendokusai
 			bool isWorld = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "World";
 			bool isDungeon = DungeonManager.TryGetExistingInstance(out DungeonManager dm) && dm.IsDungeon;
 			btnDungeonExit.style.display = (isWorld && isDungeon) ? DisplayStyle.Flex : DisplayStyle.None;
+			bool hasStage = StageManager.TryGetExistingInstance(out StageManager stageManager) && stageManager.CurStageObject != null;
+			btnUnstuck.style.display = (isWorld && hasStage) ? DisplayStyle.Flex : DisplayStyle.None;
 
 			// 쉐이더팩 탭 진입 시 최신 상태 반영 (다른 곳에서 ShaderPackManager 변경했을 수 있음)
 			RebuildShaderPackList();

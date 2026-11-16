@@ -29,6 +29,11 @@ namespace WitchMendokusai
 
 		private Vector3 lastPosDiff;
 
+		// 스테이지에 들어선 자리. 스테이지 기준 상대 위치, 스테이지 이동에도 유지
+		private Vector3 entryOffset;
+		[Tooltip("진입 자리보다 이만큼 아래로 떨어지면 진입 자리로 되돌림 (m). 0 이하면 끔")]
+		[SerializeField] private float fallRecoverDepth = 30f;
+
 		private PlayerProvider playerProvider;
 		private ObjectPoolManager objectPoolManager;
 
@@ -59,6 +64,22 @@ namespace WitchMendokusai
 		{
 			LoadStage(StartStage);
 		}
+
+		private void Update()
+		{
+			if (fallRecoverDepth <= 0f || CurStageObject == null || playerProvider.HasObject == false)
+				return;
+			if (playerProvider.CurrentObject.UnitMovement.Position.y < EntryPosition.y - fallRecoverDepth)
+			{
+				Debug.Log($"[{nameof(StageManager)}] {CurStage.name} 아래로 떨어져 진입 자리로 되돌림");
+				ReturnToEntry();
+			}
+		}
+
+		public Vector3 EntryPosition => CurStageObject.transform.position + entryOffset;
+
+		// 끼임이나 낙하 때 지금 스테이지의 진입 자리로 되돌림
+		public void ReturnToEntry() => playerProvider.CurrentObject.UnitMovement.Teleport(EntryPosition);
 
 		public void LoadStage(Stage stage, int spawnPortalIndex = -1, bool isBackToLastStage = false)
 		{
@@ -121,6 +142,7 @@ namespace WitchMendokusai
 			CurStageStrategy = StageStrategyFactory.Create(stage);
 			CurStageStrategy.Init(stage);
 			playerProvider.CurrentObject.UnitMovement.Teleport(playerPosition);
+			entryOffset = playerPosition - newStagePos;
 
 			OnStageChanged(CurStage, CurStageObject);
 
