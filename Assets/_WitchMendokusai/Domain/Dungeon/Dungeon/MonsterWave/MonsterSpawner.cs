@@ -245,7 +245,9 @@ namespace WitchMendokusai
 			// 플레이어가 이동하는 방향 쪽으로 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
 			Vector3 randomOffset;
 			Vector3 playerPosition = playerProvider.Current.transform.position;
-			Vector3 playerForward = playerProvider.CurrentObject.UnitMovement.MoveDirectionLocal;
+			// 입력값 (MoveDirectionLocal) 은 카메라 기준 축. 생성 방향은 월드 이동 방향
+			Vector3 playerForward = playerProvider.CurrentObject.UnitMovement.MoveDirectionWorld;
+			playerForward.y = 0f;
 
 			// 플레이어가 이동 중이면, 플레이어 앞에 스폰. 도망가지마 맞서싸워.
 			bool spawnInFrontOfPlayer = playerForward != Vector3.zero;
