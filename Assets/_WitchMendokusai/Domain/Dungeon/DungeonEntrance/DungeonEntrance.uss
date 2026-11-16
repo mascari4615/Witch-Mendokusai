@@ -143,15 +143,22 @@
     justify-content: center;
 }
 
+/* 냥과 경험치는 숫자 아래 재화 아이콘 (이름 글자 대신) */
 .wm-dungeon-entrance .wm-rewards__stat .wm-slot__icon {
-    display: none;
+    display: flex;
+    position: relative;
+    left: auto;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    width: 22px;
+    height: 22px;
+    margin: 2px 0 0 0;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .wm-dungeon-entrance .wm-rewards__stat .wm-slot__name {
-    display: flex;
-    position: relative;
-    margin: 0;
-    padding: 0;
+    display: none;
 }
 
 .wm-dungeon-entrance .wm-rewards__stat .wm-slot__amount {

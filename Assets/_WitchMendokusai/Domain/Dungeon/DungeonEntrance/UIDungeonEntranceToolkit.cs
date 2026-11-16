@@ -34,6 +34,7 @@ namespace WitchMendokusai
 		private readonly List<Label> dungeonRowNames = new();
 		private readonly List<VisualElement> dungeonRowIcons = new();
 		private Image monsterImage;
+		private readonly SlotData monsterTooltipData = new();
 		private Label nameLabel;
 		private Label timeLabel;
 		private Label descriptionLabel;
@@ -101,6 +102,10 @@ namespace WitchMendokusai
 			monsterImage = new Image { scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
 			monsterImage.AddToClassList(USS_ROOT + "__monster-image");
 			monster.Add(monsterImage);
+			// 출현 몬스터 툴팁. 보상 칸 (ToolkitSlot) 과 같은 툴팁 경로
+			monster.pickingMode = PickingMode.Position;
+			monster.RegisterCallback<PointerEnterEvent>(_ => ShowMonsterTooltip(monster));
+			monster.RegisterCallback<PointerLeaveEvent>(_ => monster.GetUIServices()?.Tooltip?.Hide());
 
 			constraintSection = AddSection(detail, "__section--constraints");
 			AddHeader(constraintSection, "제약");
@@ -371,15 +376,29 @@ namespace WitchMendokusai
 			return bracketIndex < 0 ? dungeonName : dungeonName[..bracketIndex];
 		}
 
-		// 마지막 웨이브의 첫 몬스터가 대표, 웨이브가 없으면 던전 아이콘
-		private static Sprite GetMonsterSprite(Dungeon dungeon)
+		private void ShowMonsterTooltip(VisualElement owner)
+		{
+			Monster monster = GetRepresentativeMonster(CurDungeon);
+			if (monster == null)
+				return;
+			monsterTooltipData.SetData(monster);
+			owner.GetUIServices()?.Tooltip?.Show(monsterTooltipData, owner: owner);
+		}
+
+		private static Monster GetRepresentativeMonster(Dungeon dungeon)
 		{
 			List<MonsterWave> waves = dungeon.MonsterWaves;
 			if (waves == null || waves.Count == 0)
-				return dungeon.Sprite;
-
+				return null;
 			Monster[] monsters = waves[waves.Count - 1].Monsters;
-			return monsters == null || monsters.Length == 0 ? dungeon.Sprite : monsters[0].Sprite;
+			return monsters == null || monsters.Length == 0 ? null : monsters[0];
+		}
+
+		// 마지막 웨이브의 첫 몬스터가 대표, 웨이브가 없으면 던전 아이콘
+		private static Sprite GetMonsterSprite(Dungeon dungeon)
+		{
+			Monster monster = GetRepresentativeMonster(dungeon);
+			return monster == null ? dungeon.Sprite : monster.Sprite;
 		}
 
 		public void EnterTheDungeon()
