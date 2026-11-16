@@ -13,8 +13,6 @@ namespace WitchMendokusai
 	/// </summary>
 	public sealed class ScreenWipe : VisualElement
 	{
-		// 회전한 정사각형이 같은 크기 칸을 덮는 배율은 루트 2, 이음새 여유를 더함
-		private const float COVER_SCALE = 1.5f;
 		private const float DIAMOND_ROTATION_DEGREES = 45f;
 		// 멈칫 뒤 첫 프레임 dt 로 한 번에 끝나지 않게 하는 한 프레임 상한
 		private const float MAX_STEP_SECONDS = 1f / 30f;
@@ -99,7 +97,7 @@ namespace WitchMendokusai
 				{
 					float local = Mathf.Clamp01(progress * (1f + spread) - tileOrder[i] * spread);
 					float grown = cover ? EaseOutBack(local) : 1f - EaseInQuad(local);
-					float scale = Mathf.Max(0f, grown) * COVER_SCALE;
+					float scale = Mathf.Max(0f, grown) * Settings.wipeTileGrowth;
 					tiles[i].style.scale = new Scale(new Vector3(scale, scale, 1f));
 					tiles[i].style.backgroundColor = color;
 				}

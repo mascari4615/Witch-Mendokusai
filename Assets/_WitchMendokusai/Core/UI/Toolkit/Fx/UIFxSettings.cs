@@ -4,8 +4,8 @@ namespace WitchMendokusai
 {
 	public enum ScreenWipeStyle
 	{
-		Fade,
-		Diamond,
+		Fade = 0,
+		Diamond = 1,
 	}
 
 	// UI 연출 수치 한 곳. Resources/UIFxSettings.asset, 실행 중 인스펙터에서 조절
@@ -37,6 +37,8 @@ namespace WitchMendokusai
 		[Range(0f, 3f)] public float wipeSpread = 1.2f;
 		public float wipeCoverSeconds = 0.55f;
 		public float wipeRevealSeconds = 0.6f;
+		[Tooltip("다 자란 마름모 배율. 루트 2 (1.414) 이상이어야 칸 사이 틈이 안 보임")]
+		public float wipeTileGrowth = 1.5f;
 
 		[Header("창 열기 반짝임")]
 		public bool windowShine = true;
@@ -46,6 +48,8 @@ namespace WitchMendokusai
 		[Tooltip("빛 띠 너비, 창 너비 대비")]
 		[Range(0.05f, 1f)] public float shineWidthRatio = 0.22f;
 		public float shineAngle = 18f;
+		[Tooltip("기울인 빛 띠 길이, 창 높이 대비. 모서리까지 덮도록 1 보다 크게")]
+		public float shineBandLength = 2.2f;
 
 		[Header("반짝이 입자 (창 열기, 패널 열기)")]
 		public int sparkleCount = 10;
@@ -54,6 +58,8 @@ namespace WitchMendokusai
 		[Tooltip("위로 떠오르는 속도, 픽셀/초")]
 		public float sparkleRiseSpeed = 28f;
 		public Color sparkleColor = new(1f, 0.96f, 0.82f, 1f);
+		[Tooltip("태어날 때 바깥으로 튀는 세기, 입자 크기 배수")]
+		public float sparklePopOut = 1.5f;
 
 		[Header("떠다니는 빛 입자 (전체 패널 뒤)")]
 		public bool ambientMotes = true;

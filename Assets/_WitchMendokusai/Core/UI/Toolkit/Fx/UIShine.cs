@@ -9,8 +9,6 @@ namespace WitchMendokusai
 	public static class UIShine
 	{
 		private const float MILLISECONDS_PER_SECOND = 1000f;
-		// 회전한 띠가 모서리까지 덮도록 높이를 늘리는 배수
-		private const float BAND_HEIGHT_MULTIPLIER = 2.2f;
 
 		/// <summary>대상 위로 빛 띠를 왼쪽에서 오른쪽으로 한 번</summary>
 		public static void Sweep(VisualElement target)
@@ -46,7 +44,7 @@ namespace WitchMendokusai
 					return;
 				float progress = Mathf.Clamp01(elapsed / settings.shineSeconds);
 				float width = area.width * settings.shineWidthRatio;
-				float height = area.height * BAND_HEIGHT_MULTIPLIER;
+				float height = area.height * settings.shineBandLength;
 				float eased = 1f - (1f - progress) * (1f - progress);
 				band.style.width = width;
 				band.style.height = height;

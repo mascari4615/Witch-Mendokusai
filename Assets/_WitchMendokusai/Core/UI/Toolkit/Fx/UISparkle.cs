@@ -13,8 +13,6 @@ namespace WitchMendokusai
 		private const float MILLISECONDS_PER_SECOND = 1000f;
 		// 깜박임 횟수 (수명 동안)
 		private const float TWINKLE_CYCLES = 2.5f;
-		// 태어날 때 바깥으로 튀는 거리, 입자 크기 배수
-		private const float POP_OUT_SIZE_MULTIPLIER = 1.5f;
 
 		private sealed class Particle
 		{
@@ -57,7 +55,7 @@ namespace WitchMendokusai
 				Particle particle = new()
 				{
 					Position = edge,
-					Velocity = outward * size * POP_OUT_SIZE_MULTIPLIER + Vector2.down * settings.sparkleRiseSpeed,
+					Velocity = outward * size * settings.sparklePopOut + Vector2.down * settings.sparkleRiseSpeed,
 					Size = size,
 					Life = settings.sparkleLifeSeconds * Random.Range(0.7f, 1.15f),
 					Phase = Random.value,
