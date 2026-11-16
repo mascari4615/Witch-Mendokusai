@@ -85,7 +85,6 @@ namespace WitchMendokusai
 			safeFrame.Add(label);
 		}
 
-
 		private void Update()
 		{
 			if (safeFrame != null && SafeArea.Refresh(ref safeArea))

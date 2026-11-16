@@ -632,7 +632,6 @@
 
 .wm-setting-view--active {
     opacity: 1;
-    display: flex;
 }
 
 .wm-setting-stage {

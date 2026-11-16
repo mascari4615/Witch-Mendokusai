@@ -18,6 +18,7 @@ namespace WitchMendokusai
 		[SerializeField] private int revealDelayFrames = 2;
 		[SerializeField] private Color coverColor = new(0.04f, 0.035f, 0.05f, 1f);
 		// 씬 활성화 멈칫 (MOIS2 월드 약 5초) 뒤 첫 프레임 dt 로 걷기가 한 번에 끝나는 것 방지
+		// 30fps 미만에서는 위 초 값보다 길어짐
 		[SerializeField] private float maxStepSeconds = 1f / 30f;
 
 		private static SceneFader instance;
@@ -26,8 +27,7 @@ namespace WitchMendokusai
 		private float alpha = 1f;
 		private Coroutine running;
 		private bool coverOnNextScene;
-
-		public static bool IsCovering => instance != null && instance.alpha > 0f;
+		private bool loading;
 
 #if !WM_IDLE
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
@@ -44,14 +44,18 @@ namespace WitchMendokusai
 			host.SetActive(true);
 		}
 
-		/// <summary>덮은 뒤 씬 교체. 설치 전 호출이면 바로 교체</summary>
+		/// <summary>덮은 뒤 씬 교체. 덮는 중 중복 호출은 무시 (키보드 연타)</summary>
 		public static void LoadScene(string sceneName)
 		{
+			// 방치형 빌드 (WM_IDLE) 는 막을 설치하지 않음
 			if (instance == null)
 			{
 				SceneManager.LoadScene(sceneName);
 				return;
 			}
+			if (instance.loading)
+				return;
+			instance.loading = true;
 			instance.Play(instance.CoverThenLoad(sceneName));
 		}
 
@@ -83,6 +87,8 @@ namespace WitchMendokusai
 			Apply();
 
 			SceneManager.sceneLoaded += OnSceneLoaded;
+			// 첫 씬은 sceneLoaded 와 무관하게 걷음. 추가 씬만 열린 Play 에서 검은 화면 고정 방지
+			Play(Reveal());
 		}
 
 		private void OnDestroy()
@@ -94,11 +100,13 @@ namespace WitchMendokusai
 
 		private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
 		{
+			bool cover = coverOnNextScene;
+			coverOnNextScene = false;
 			if (mode != LoadSceneMode.Single)
 				return;
-			if (coverOnNextScene)
+			loading = false;
+			if (cover)
 			{
-				coverOnNextScene = false;
 				alpha = 1f;
 				Apply();
 			}
