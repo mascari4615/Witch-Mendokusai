@@ -105,6 +105,13 @@ namespace WitchMendokusai
 				}
 			});
 
+			// "<" 닫기. 던전 입장 창 닫기와 같은 경로 (ESC 와 같은 결과)
+			closeButton.onClick.AddListener(() =>
+			{
+				UiSfx.Play(UiSfxEvent.Cancel);
+				PanelGroup.ClosePanel();
+			});
+
 			resetAllButton.onClick.AddListener(OpenResetAllConfirm);
 			confirmNoButton.onClick.AddListener(CloseResetAllConfirm);
 			confirmYesButton.onClick.AddListener(() =>
