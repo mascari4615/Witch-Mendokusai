@@ -33,6 +33,7 @@ namespace WitchMendokusai
 
 		[SerializeField] private StyleSheet styleSheet;
 		[SerializeField, Tooltip("폰 조작 버튼 그림")] private MobileControlIcons mobileControlIcons;
+		[SerializeField, Tooltip("상호작용 표시 모양")] private StyleSheet interactPromptStyle;
 		[field: SerializeField] public WitchMendokusai.Presentation.DamageTextSkin DamageTextSkin { get; private set; }
 		[field: SerializeField] public CreditsInfo Credits { get; private set; }
 
@@ -111,6 +112,8 @@ namespace WitchMendokusai
 			// ★ 이 줄이 한 번 사라진 적이 있다(넓게 훑는 커밋이 옛 사본을 얹음) — 없으면 조작 장치를
 			//   아무도 안 만들어서 **폰에서 화면만 뜨고 못 움직인다**. 지우지 말 것.
 			gameObject.AddComponent<MobileControlsView>().Icons = mobileControlIcons;
+			// 가까운 NPC 옆 상호작용 표시 (옛 UGUI UIInteractPopup 대체, 2026-11-17)
+			gameObject.AddComponent<InteractPromptView>().Style = interactPromptStyle;
 		}
 
 		private void OnEnable()

@@ -74,7 +74,6 @@ namespace WitchMendokusai
 			RegisterInHierarchyIfPresent<CardManager>(builder);
 			RegisterInHierarchyIfPresent<UINyang>(builder);
 			RegisterInHierarchyIfPresent<UIWorkableDollCount>(builder);
-			RegisterInHierarchyIfPresent<UIInteractPopup>(builder);
 			RegisterInHierarchyIfPresent<UISkillBar>(builder);
 			RegisterInHierarchyIfPresent<Player>(builder);
 			RegisterInHierarchyIfPresent<PlayerObject>(builder);
@@ -155,7 +154,6 @@ namespace WitchMendokusai
 				ResolveIfPresent<CardManager>(container);
 				ResolveIfPresent<UINyang>(container);
 				ResolveIfPresent<UIWorkableDollCount>(container);
-				ResolveIfPresent<UIInteractPopup>(container);
 				ResolveIfPresent<UISkillBar>(container);
 				ResolveIfPresent<Player>(container);
 				ResolveIfPresent<PlayerObject>(container);
