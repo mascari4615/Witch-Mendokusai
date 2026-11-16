@@ -229,60 +229,79 @@
     -unity-text-align: middle-center;
 }
 
+/* 진행 방식 섹션: 모드 둘은 나란히 반씩, 위협 단계는 좌우 화살표와 효과 글. 색은 테마 USS */
 .wm-dungeon-entrance__mode {
-    position: absolute;
-    right: 470px;
-    bottom: 53px;
     flex-direction: row;
 }
 
 .wm-dungeon-entrance__mode-button {
-    margin: 0 0 0 8px;
-    padding: 8px 18px;
-    font-size: 18px;
-    color: rgb(246, 239, 214);
-    background-color: rgba(30, 26, 20, 0.8);
-    border-width: 2px;
-    border-color: rgba(246, 239, 214, 0.35);
-    border-radius: 6px;
-}
-
-.wm-dungeon-entrance__mode-button--selected {
-    color: rgb(30, 26, 20);
-    background-color: rgb(246, 239, 214);
-    border-color: rgb(246, 239, 214);
-}
-
-.wm-dungeon-entrance__mode-button--locked {
-    opacity: 0.4;
+    flex-grow: 1;
+    flex-basis: 0;
+    margin: 0;
+    padding: 0;
+    -unity-text-align: middle-center;
 }
 
 .wm-dungeon-entrance__threat {
-    position: absolute;
-    right: 470px;
-    bottom: 103px;
     flex-direction: row;
     align-items: center;
 }
 
-.wm-dungeon-entrance__threat-level,
-.wm-dungeon-entrance__threat-effect {
-    margin: 0 0 0 8px;
-    padding: 8px 12px;
-    font-size: 18px;
-    color: rgb(246, 239, 214);
-    background-color: rgba(30, 26, 20, 0.8);
-    border-radius: 6px;
+.wm-dungeon-entrance__threat-steps {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.wm-dungeon-entrance__threat-step {
+    margin: 0;
+    padding: 0;
+    -unity-text-align: middle-center;
+}
+
+.wm-dungeon-entrance__threat-step--locked {
+    opacity: 0.3;
+}
+
+.wm-dungeon-entrance__threat-level {
+    margin: 0;
+    padding: 0;
+    -unity-text-align: middle-center;
 }
 
 .wm-dungeon-entrance__threat-effect {
-    font-size: 15px;
-    max-width: 420px;
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 0;
+    padding: 0;
     white-space: normal;
+}
+
+/* 던전 대표 그림: 테마 캐릭터 자리 대신 화면 전체, 글 가독용 어둡게 */
+.wm-dungeon-entrance__hero-scrim {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.wm-dungeon-entrance .wm-dungeon-entrance__hero--key-art {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.wm-dungeon-entrance .wm-dungeon-entrance__hero-scrim.wm-dungeon-entrance__hero--key-art {
+    display: flex;
 }
 
 .wm-dungeon-entrance .wm-dungeon-entrance__enter:focus,
 .wm-dungeon-entrance .wm-dungeon-entrance__mode-button:focus,
+.wm-dungeon-entrance .wm-dungeon-entrance__threat-step:focus,
 .wm-dungeon-entrance .wm-dungeon-entrance__round:focus {
     border-width: 4px;
     border-color: rgb(255, 255, 255);

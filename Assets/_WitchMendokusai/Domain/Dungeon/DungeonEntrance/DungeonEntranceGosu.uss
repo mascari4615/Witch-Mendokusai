@@ -309,3 +309,54 @@
     color: rgb(251, 245, 223);
     -unity-font-definition: url("Fonts/GowunBatang-Bold.ttf");
 }
+
+/* 진행 방식: 양피지 칸, 선택은 청록 인장 */
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__section--run {
+    margin-top: 13px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__mode {
+    height: 32px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__mode-button,
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__threat-step {
+    font-size: 14px;
+    color: var(--gosu-ink);
+    background-color: var(--gosu-paper);
+    border-width: 1px;
+    border-color: var(--gosu-line);
+    border-radius: 3px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__mode-button--selected {
+    color: var(--gosu-paper);
+    background-color: var(--gosu-seal);
+    border-color: var(--gosu-seal-dark);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__threat {
+    margin-top: 8px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__threat-step {
+    width: 28px;
+    height: 28px;
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__threat-level {
+    width: 96px;
+    font-size: 14px;
+    color: var(--gosu-ink);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__threat-effect {
+    margin-left: 12px;
+    font-size: 11px;
+    color: var(--gosu-ink-soft);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__hero-scrim {
+    background-color: rgba(241, 212, 143, 0.3);
+}

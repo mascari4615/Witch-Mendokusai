@@ -26,7 +26,8 @@ namespace WitchMendokusai
 		private const string USS_ROOT = "wm-dungeon-entrance";
 		private const string USS_ROW_SELECTED = "wm-dungeon-entrance__row--selected";
 		private const string USS_MODE_SELECTED = "wm-dungeon-entrance__mode-button--selected";
-		private const string USS_THREAT_LOCKED = "wm-dungeon-entrance__mode-button--locked";
+		private const string USS_THREAT_LOCKED = "wm-dungeon-entrance__threat-step--locked";
+		private const string USS_HERO_KEY_ART = "wm-dungeon-entrance__hero--key-art";
 		private const string MULTIPLIER_FORMAT = "0.##";
 		private const int SECONDS_PER_MINUTE = 60;
 
@@ -40,6 +41,8 @@ namespace WitchMendokusai
 		private Label descriptionLabel;
 		private Label backdropTextLabel;
 		private Label numberLabel;
+		private VisualElement heroImage;
+		private VisualElement heroScrim;
 		private UIRewardsToolkit rewardUI;
 		private UIDungeonConstraintToolkit constraintUI;
 		private VisualElement constraintSection;
@@ -75,7 +78,10 @@ namespace WitchMendokusai
 			AddBlock(root, "__deco").pickingMode = PickingMode.Ignore;
 			numberLabel = AddLabel(root, string.Empty, "__number");
 			numberLabel.pickingMode = PickingMode.Ignore;
-			AddBlock(root, "__hero").pickingMode = PickingMode.Ignore;
+			heroImage = AddBlock(root, "__hero");
+			heroImage.pickingMode = PickingMode.Ignore;
+			heroScrim = AddBlock(root, "__hero-scrim");
+			heroScrim.pickingMode = PickingMode.Ignore;
 			AddBlock(root, "__mist").pickingMode = PickingMode.Ignore;
 
 			VisualElement top = AddBlock(root, "__top");
@@ -112,6 +118,14 @@ namespace WitchMendokusai
 			constraintUI = new UIDungeonConstraintToolkit();
 			constraintSection.Add(constraintUI);
 
+			// 진행 방식 (장착, 랜덤) 과 위협 단계. 보상, 제약과 같은 섹션 모양
+			VisualElement runSection = AddSection(detail, "__section--run");
+			AddHeader(runSection, "진행 방식");
+			VisualElement modeRow = AddBlock(runSection, "__mode");
+			Button equippedButton = AddRunModeButton(modeRow, DungeonRunMode.Equipped, "장착 모드");
+			Button randomButton = AddRunModeButton(modeRow, DungeonRunMode.Random, "랜덤 모드");
+			BuildThreatRow(runSection);
+
 			dungeonEnterButton = new Button(EnterTheDungeon) { name = "EnterButton" };
 			dungeonEnterButton.AddToClassList(USS_ROOT + "__enter");
 			AddBlock(dungeonEnterButton, "__enter-glow").pickingMode = PickingMode.Ignore;
@@ -120,12 +134,8 @@ namespace WitchMendokusai
 			AddLabel(dungeonEnterButton, "입장", "__enter-text").pickingMode = PickingMode.Ignore;
 			detail.Add(dungeonEnterButton);
 
-			VisualElement modeRow = AddBlock(root, "__mode");
-			Button equippedButton = AddRunModeButton(modeRow, DungeonRunMode.Equipped, "장착 모드");
-			Button randomButton = AddRunModeButton(modeRow, DungeonRunMode.Random, "랜덤 모드");
 			horizontalFocusOrder.AddRange(new[] { backButton, equippedButton, randomButton, dungeonEnterButton });
 			SelectRunMode(selectedRunMode);
-			BuildThreatRow(root);
 
 			Button closeButton = AddRoundButton("CloseButton", "×");
 			closeButton.AddToClassList(USS_ROOT + "__close");
@@ -148,20 +158,21 @@ namespace WitchMendokusai
 				entry.Value.EnableInClassList(USS_MODE_SELECTED, entry.Key == mode);
 		}
 
-		private void BuildThreatRow(VisualElement root)
+		private void BuildThreatRow(VisualElement parent)
 		{
-			threatRow = AddBlock(root, "__threat");
-			threatPrevButton = AddThreatStepButton("ThreatPrevButton", "<", -1);
-			threatLevelLabel = AddLabel(threatRow, string.Empty, "__threat-level");
-			threatNextButton = AddThreatStepButton("ThreatNextButton", ">", 1);
+			threatRow = AddBlock(parent, "__threat");
+			VisualElement stepRow = AddBlock(threatRow, "__threat-steps");
+			threatPrevButton = AddThreatStepButton(stepRow, "ThreatPrevButton", "<", -1);
+			threatLevelLabel = AddLabel(stepRow, string.Empty, "__threat-level");
+			threatNextButton = AddThreatStepButton(stepRow, "ThreatNextButton", ">", 1);
 			threatEffectLabel = AddLabel(threatRow, string.Empty, "__threat-effect");
 		}
 
-		private Button AddThreatStepButton(string buttonName, string text, int direction)
+		private Button AddThreatStepButton(VisualElement parent, string buttonName, string text, int direction)
 		{
 			Button button = new Button(() => StepThreat(direction)) { name = buttonName, text = text };
-			button.AddToClassList(USS_ROOT + "__mode-button");
-			threatRow.Add(button);
+			button.AddToClassList(USS_ROOT + "__threat-step");
+			parent.Add(button);
 			return button;
 		}
 
@@ -349,6 +360,11 @@ namespace WitchMendokusai
 				dungeonSelectButtons[i].EnableInClassList(USS_ROW_SELECTED, i == curDungeonIndex);
 
 			monsterImage.sprite = GetMonsterSprite(CurDungeon);
+			// 던전 대표 그림이 있으면 테마 캐릭터 그림 대신 화면 전체에
+			bool hasKeyArt = CurDungeon.KeyArt != null;
+			heroImage.EnableInClassList(USS_HERO_KEY_ART, hasKeyArt);
+			heroScrim.EnableInClassList(USS_HERO_KEY_ART, hasKeyArt);
+			heroImage.style.backgroundImage = hasKeyArt ? new StyleBackground(CurDungeon.KeyArt) : new StyleBackground(StyleKeyword.Null);
 			nameLabel.text = GetTitle(CurDungeon.Name);
 			backdropTextLabel.text = nameLabel.text;
 			numberLabel.text = GetRowNumber(curDungeonIndex);

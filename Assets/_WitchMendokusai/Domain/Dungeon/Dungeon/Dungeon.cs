@@ -57,6 +57,9 @@ namespace WitchMendokusai
 		[Tooltip("개발 빌드에서만 입장 목록에 표시. 데모 릴리스에서 실험 모드 숨김")]
 		[PropertyOrder(112)][field: SerializeField] public bool DevBuildOnly { get; private set; }
 
+		[Tooltip("입장 화면 대표 그림. 비우면 테마 기본 그림")]
+		[PropertyOrder(113)][field: SerializeField] public Sprite KeyArt { get; private set; }
+
 		public int CalculateDefeatNyang(int killCount) => Mathf.Min(DefeatNyangMax, Mathf.FloorToInt(killCount * DefeatNyangPerKill));
 
 		[field: NonSerialized] public Dictionary<int, bool> ConstraintSelected { get; private set; } = new();

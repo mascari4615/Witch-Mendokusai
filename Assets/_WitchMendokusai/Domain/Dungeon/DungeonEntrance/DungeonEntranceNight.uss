@@ -175,11 +175,15 @@
 }
 
 .wm-dungeon-entrance--night .wm-dungeon-entrance__section--rewards {
-    top: 206px;
+    top: 200px;
 }
 
 .wm-dungeon-entrance--night .wm-dungeon-entrance__section--constraints {
-    top: 333px;
+    top: 321px;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__section--run {
+    top: 465px;
 }
 
 .wm-dungeon-entrance--night .wm-dungeon-entrance__header {
@@ -321,4 +325,66 @@
     font-size: 21px;
     color: rgb(27, 28, 72);
     -unity-font-style: bold;
+}
+
+/* 진행 방식: 선택은 목록 선택 행과 같은 흰 판, 나머지는 비치는 칸 */
+.wm-dungeon-entrance--night .wm-dungeon-entrance__mode {
+    height: 32px;
+    padding: 2px;
+    background-color: rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__mode-button {
+    font-size: 14px;
+    color: rgb(215, 219, 247);
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    border-radius: 3px;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__mode-button:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__mode-button--selected,
+.wm-dungeon-entrance--night .wm-dungeon-entrance__mode-button--selected:hover {
+    color: rgb(22, 26, 62);
+    background-color: rgb(244, 244, 251);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__threat {
+    margin-top: 8px;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__threat-step {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    color: rgb(228, 231, 255);
+    background-color: rgba(255, 255, 255, 0.04);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__threat-step:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__threat-level {
+    width: 96px;
+    font-size: 14px;
+    color: rgb(238, 240, 255);
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__threat-effect {
+    margin-left: 12px;
+    font-size: 11px;
+    color: rgb(174, 180, 224);
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__hero-scrim {
+    background-color: rgba(9, 10, 30, 0.6);
 }

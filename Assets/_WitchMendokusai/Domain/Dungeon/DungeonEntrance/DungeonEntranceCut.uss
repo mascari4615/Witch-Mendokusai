@@ -312,3 +312,48 @@
     color: rgb(17, 17, 17);
     -unity-font-definition: url("Fonts/BlackHanSans-Regular.ttf");
 }
+
+/* 진행 방식: 검은 판, 선택은 흰 판 */
+.wm-dungeon-entrance--cut .wm-dungeon-entrance__mode {
+    height: 34px;
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-entrance__mode-button,
+.wm-dungeon-entrance--cut .wm-dungeon-entrance__threat-step {
+    font-size: 15px;
+    color: rgb(244, 242, 236);
+    background-color: rgba(0, 0, 0, 0.55);
+    border-width: 0;
+    border-radius: 0;
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-entrance__mode-button--selected {
+    color: rgb(20, 20, 20);
+    background-color: rgb(244, 242, 236);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-entrance__threat {
+    margin-top: 10px;
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-entrance__threat-step {
+    width: 30px;
+    height: 30px;
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-entrance__threat-level {
+    width: 100px;
+    font-size: 15px;
+    color: rgb(244, 242, 236);
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-entrance__threat-effect {
+    margin-left: 12px;
+    font-size: 12px;
+    color: rgb(200, 198, 190);
+}
+
+.wm-dungeon-entrance--cut .wm-dungeon-entrance__hero-scrim {
+    background-color: rgba(0, 0, 0, 0.35);
+}
