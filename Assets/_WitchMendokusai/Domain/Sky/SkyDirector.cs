@@ -156,6 +156,7 @@ namespace WitchMendokusai
 			if (worldClock.Config == null)
 				return;
 
+			worldClock.SyncWithWorld();
 			float normalizedTime = SkyTimeOverride.IsActive
 				? Mathf.Repeat(SkyTimeOverride.Hour / worldClock.Config.HoursPerDay, 1f)
 				: ComputeNormalizedTime(worldClock);

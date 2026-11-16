@@ -109,6 +109,12 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
+		/// 틱을 기다리지 않고 지금 세계 시각에 맞춤. 하늘이 그리기 직전 호출
+		/// 월드 진입 첫 프레임에 시작 화면의 시각 (06:00) 이 한 번 그려졌다가 저장 시각으로 바뀌던 깜빡임 방지
+		/// </summary>
+		public void SyncWithWorld() => TryFollowWorldTime();
+
+		/// <summary>
 		/// 세계가 준 시각으로 맞춘다 (TASK-WM-217). 값이 실제로 바뀐 것만 알린다 —
 		/// 세계는 초당 20번 말하지만, 「시가 바뀌었다」는 한 번만 일어난 일이다.
 		/// </summary>
