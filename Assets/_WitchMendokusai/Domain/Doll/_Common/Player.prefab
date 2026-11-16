@@ -1942,6 +1942,8 @@ MonoBehaviour:
   useRotate: 1
   meshPivotOf3DModel: {fileID: 899963047270775616}
   rotateSmoothTime: 0.1
+  show3DModel: 0
+  spriteRoot: {fileID: 9005776504709051414}
 --- !u!54 &1735806719502580175
 Rigidbody:
   m_ObjectHideFlags: 0

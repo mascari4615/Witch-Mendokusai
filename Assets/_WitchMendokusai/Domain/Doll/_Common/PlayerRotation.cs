@@ -10,6 +10,8 @@ namespace WitchMendokusai
 		[SerializeField] private float rotateSmoothTime = 0.1f;
 		// 캐릭터 3D 모델 표시. 데모에서는 숨기고 2D 그림만 (사용자 2026-11-14). 모델과 회전은 그대로 두고 그리기만 끔
 		[SerializeField] private bool show3DModel = false;
+		[Tooltip("2D 그림 묶음. 카메라 기울기만큼 눕혀 화면을 보게 함. 몬스터의 빌보드 셰이더와 같은 결")]
+		[SerializeField] private Transform spriteRoot;
 
 		// TASK-WM-163 — 카메라 yaw/pitch 회전 = CameraManager 단일 권위자로 이관.
 		// PlayerRotation 은 body 를 camera yaw 에 맞추고, mesh 를 이동 방향으로만 회전.
@@ -44,6 +46,23 @@ namespace WitchMendokusai
 
 			RotateCamera();
 			RotateMesh();
+		}
+
+		private void LateUpdate()
+		{
+			if (show3DModel)
+				return;
+			FaceSpritesToCamera();
+		}
+
+		// 던전처럼 내려다보는 카메라에서도 2D 그림이 납작하게 보이지 않게
+		private void FaceSpritesToCamera()
+		{
+			Camera cam = Camera.main;
+			if (cam == null)
+				return;
+			Vector3 cameraAngles = cam.transform.eulerAngles;
+			spriteRoot.rotation = Quaternion.Euler(cameraAngles.x, cameraAngles.y, 0f);
 		}
 
 		private void RotateCamera()
