@@ -7,9 +7,8 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// UI Toolkit 열기와 닫기 애니메이션 순서. 움직임은 USS transition 담당
-	/// - 같은 프레임에 display 켜기와 활성 클래스: 시작 값 없음, transition 생략
-	/// - 열기: display 먼저, 스타일 계산 한 번 뒤 다음 프레임에 클래스
-	/// - 닫기: 클래스 제거, 닫힘 애니메이션 끝난 뒤 display 끔
+	/// - 열기: display 켜기와 활성 클래스 동시. Unity 7 a12 에서 transition 정상 (2026-11-17 MOIS2 대조)
+	/// - 닫기: 클래스 제거 뒤 opacity 0 도달 시 display 끔. display 를 바로 끄면 닫힘 애니메이션이 안 보임
 	/// </summary>
 	public static class UIMotion
 	{
@@ -34,40 +33,18 @@ namespace WitchMendokusai
 
 		private static State GetState(VisualElement element) => states.GetValue(element, _ => new State());
 
-		/// <summary>display 를 켜고 다음 프레임에 inClass 를 붙인다. 닫히는 중이면 그 자리에서 다시 연다</summary>
+		/// <summary>display 를 켜고 inClass 를 붙인다. 닫히는 중이면 그 자리에서 되돌림</summary>
 		public static void Show(VisualElement element, string inClass = IN)
 		{
 			if (element == null)
 				return;
 
 			State state = GetState(element);
-			int generation = ++state.Generation;
+			state.Generation++;
 			state.Pending?.Pause();
-
+			state.Pending = null;
 			element.style.display = DisplayStyle.Flex;
-
-			// 닫히는 도중: 시작 값 있음, 바로 붙여 그 자리에서 되돌림
-			if (element.resolvedStyle.display == DisplayStyle.Flex && element.panel != null && element.ClassListContains(inClass) == false && element.resolvedStyle.opacity > HIDDEN_OPACITY)
-			{
-				element.AddToClassList(inClass);
-				state.Pending = null;
-				return;
-			}
-
-			int shownFrame = Time.frameCount;
-			bool done = false;
-			state.Pending = element.schedule.Execute(() =>
-			{
-				if (state.Generation != generation)
-				{
-					done = true;
-					return;
-				}
-				if (Time.frameCount <= shownFrame)
-					return;
-				element.AddToClassList(inClass);
-				done = true;
-			}).Every(0).Until(() => done);
+			element.AddToClassList(inClass);
 		}
 
 		/// <summary>inClass 를 떼고, 닫힘 transition 으로 opacity 가 0 이 되면 display 를 끈다. 그 사이 Show 가 오면 취소</summary>
