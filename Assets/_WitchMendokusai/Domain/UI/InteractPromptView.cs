@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 가까운 상호작용 대상 옆에 뜨는 한 줄 표시 (키, 구분선, 이름). 서브컬처 게임의 선택지 줄 모양
-	/// 대상의 머리 높이를 화면에 투영해 그 오른쪽에. 손가락 모드에서는 줄을 눌러도 상호작용
+	/// 가까운 상호작용 대상 옆에 뜨는 한 줄 표시 (키, 구분선, 이름, 역할). 서브컬처 게임의 선택지 줄 모양
+	/// 대상의 머리 높이를 화면에 투영해 그 오른쪽에, 화면 오른쪽 끝이면 왼쪽에. 손가락 모드에서는 줄을 눌러도 상호작용
 	/// UIRoot 가 만들어 HUD 층에 붙임. 모양은 InteractPrompt.uss
 	/// </summary>
 	public class InteractPromptView : MonoBehaviour
@@ -14,10 +14,12 @@ namespace WitchMendokusai
 		private const string USS_VISIBLE = USS_ROOT + "--visible";
 		private const string KEY_LABEL = "Z";
 		private const string TOUCH_LABEL = "›";
+		private const string CLONE_SUFFIX = "(Clone)";
+		private const char ROLE_SEPARATOR = '_';
 
 		[Tooltip("대상 발밑에서 표시 기준점까지 높이 (m)")]
 		[SerializeField, Min(0f)] private float anchorHeight = 1.4f;
-		[Tooltip("대상 화면 위치에서 오른쪽으로 띄우는 거리 (패널 픽셀)")]
+		[Tooltip("대상 화면 위치에서 옆으로 띄우는 거리 (패널 픽셀)")]
 		[SerializeField, Min(0f)] private float offsetX = 36f;
 
 		public StyleSheet Style { private get; set; }
@@ -27,38 +29,30 @@ namespace WitchMendokusai
 		private Label nameLabel;
 		private Label roleLabel;
 		private VisualElement layer;
-		private Transform playerTransform;
 		private InteractiveObject current;
-		private InputManager inputManager;
-
-		private void Awake()
-		{
-			EventBusBridge.Subscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
-			EventBusBridge.Subscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
-		}
+		private InteractiveObject shownTarget;
+		private bool shownTouchMode;
 
 		private void OnDestroy()
 		{
-			EventBusBridge.Unsubscribe<PlayerSpawnedEvent>(OnPlayerSpawned);
-			EventBusBridge.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
-			row?.RemoveFromHierarchy();
+			if (row != null)
+				row.RemoveFromHierarchy();
 		}
 
-		private void OnPlayerSpawned(PlayerSpawnedEvent evt) => playerTransform = evt.Transform;
-		private void OnPlayerDespawned(PlayerDespawnedEvent evt) => playerTransform = null;
-
+		// UIRoot 재활성화 때 층 새로 생성. 붙은 층이 현재 HUD 층이 아니면 재구성
 		private bool EnsureBuilt()
 		{
-			if (row != null)
-				return true;
 			if (UIRoot.Instance == null || UIRoot.Instance.HudLayer == null)
 				return false;
+			if (row != null && row.parent == UIRoot.Instance.HudLayer)
+				return true;
 
+			row?.RemoveFromHierarchy();
 			layer = UIRoot.Instance.HudLayer;
-			if (Style != null && layer.styleSheets.Contains(Style) == false)
+			if (layer.styleSheets.Contains(Style) == false)
 				layer.styleSheets.Add(Style);
 
-			row = new VisualElement { name = "InteractPrompt", pickingMode = PickingMode.Position };
+			row = new VisualElement { name = "InteractPrompt", pickingMode = PickingMode.Ignore };
 			row.AddToClassList(USS_ROOT);
 			keyLabel = new Label(KEY_LABEL) { pickingMode = PickingMode.Ignore };
 			keyLabel.AddToClassList(USS_ROOT + "__key");
@@ -74,21 +68,21 @@ namespace WitchMendokusai
 			row.Add(roleLabel);
 			row.RegisterCallback<ClickEvent>(_ => OnRowClicked());
 			layer.Add(row);
+			shownTarget = null;
 			return true;
 		}
 
+		// 누른 순간 대상 재탐색, 키 입력과 같은 조건
 		private void OnRowClicked()
 		{
-			if (current != null && IsTouchMode())
-				current.Interact();
+			if (IsTouchMode() == false)
+				return;
+			InteractiveObject target = FindTarget();
+			if (target != null)
+				target.Interact();
 		}
 
-		private bool IsTouchMode()
-		{
-			if (inputManager == null)
-				InputManager.TryGetExistingInstance(out inputManager);
-			return inputManager != null && inputManager.IsTouchMode;
-		}
+		private static bool IsTouchMode() => InputManager.TryGetExistingInstance(out InputManager inputManager) && inputManager.IsTouchMode;
 
 		private void LateUpdate()
 		{
@@ -99,51 +93,85 @@ namespace WitchMendokusai
 			Camera camera = Camera.main;
 			if (current == null || camera == null || row.panel == null)
 			{
-				row.RemoveFromClassList(USS_VISIBLE);
+				Hide();
 				return;
 			}
 
 			Vector3 screen = camera.WorldToScreenPoint(current.transform.position + Vector3.up * anchorHeight);
-			if (screen.z <= 0f)
+			bool isOnScreen = screen.z > 0f && screen.x >= 0f && screen.x <= Screen.width && screen.y >= 0f && screen.y <= Screen.height;
+			if (isOnScreen == false)
 			{
-				row.RemoveFromClassList(USS_VISIBLE);
+				Hide();
 				return;
 			}
 
+			bool isTouchMode = IsTouchMode();
+			if (current != shownTarget || isTouchMode != shownTouchMode)
+				ApplyContent(current, isTouchMode);
+
 			Vector2 panelPoint = RuntimePanelUtils.ScreenToPanel(row.panel, new Vector2(screen.x, Screen.height - screen.y));
 			Vector2 local = layer.WorldToLocal(panelPoint);
-			float height = row.resolvedStyle.height;
 			float width = row.resolvedStyle.width;
+			float height = row.resolvedStyle.height;
+			if (float.IsNaN(width) || float.IsNaN(height))
+				return;
 			Rect bounds = layer.contentRect;
-			float left = Mathf.Clamp(local.x + offsetX, 0f, Mathf.Max(0f, bounds.width - width));
-			float top = Mathf.Clamp(local.y - height * 0.5f, 0f, Mathf.Max(0f, bounds.height - height));
-			row.style.left = left;
-			row.style.top = top;
-
-			keyLabel.text = IsTouchMode() ? TOUCH_LABEL : KEY_LABEL;
-			// 데이터 이름 "이름_역할" 은 이름과 흐린 역할로 나눔
-			string displayName = GetDisplayName(current);
-			int split = displayName.IndexOf('_');
-			nameLabel.text = split > 0 ? displayName.Substring(0, split) : displayName;
-			roleLabel.text = split > 0 ? displayName.Substring(split + 1) : string.Empty;
-			roleLabel.style.display = split > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+			float left = local.x + offsetX;
+			if (left + width > bounds.width)
+				left = local.x - offsetX - width;
+			row.style.left = Mathf.Clamp(left, 0f, Mathf.Max(0f, bounds.width - width));
+			row.style.top = Mathf.Clamp(local.y - height / 2f, 0f, Mathf.Max(0f, bounds.height - height));
 			row.AddToClassList(USS_VISIBLE);
 		}
 
-		private InteractiveObject FindTarget()
+		private void Hide()
 		{
-			if (playerTransform == null || GameConditionBridge.Get(GameConditionType.IsViewingUI))
-				return null;
-			return InteractiveObject.GetNearest(playerTransform.position, PlayerInteraction.InteractionDistance);
+			row.RemoveFromClassList(USS_VISIBLE);
+			row.pickingMode = PickingMode.Ignore;
+			shownTarget = null;
 		}
 
-		// NPC 는 데이터 이름 (한국어), 그 밖은 오브젝트 이름
-		private static string GetDisplayName(InteractiveObject target)
+		// 대상이나 입력 방식이 바뀔 때만 글자 갱신
+		private void ApplyContent(InteractiveObject target, bool isTouchMode)
 		{
+			shownTarget = target;
+			shownTouchMode = isTouchMode;
+			keyLabel.text = isTouchMode ? TOUCH_LABEL : KEY_LABEL;
+			// 숨긴 동안과 마우스 모드는 클릭을 잡지 않음 (월드 클릭 보호)
+			row.pickingMode = isTouchMode ? PickingMode.Position : PickingMode.Ignore;
+
 			NPCObject npc = target.GetComponent<NPCObject>();
 			if (npc != null && npc.Data != null)
-				return npc.Data.Name;
-			return target.name;
+			{
+				// NPC 데이터 이름 "이름_역할" 은 이름과 흐린 역할로
+				string dataName = npc.Data.Name;
+				int split = dataName.IndexOf(ROLE_SEPARATOR);
+				nameLabel.text = split > 0 ? dataName.Substring(0, split) : dataName;
+				roleLabel.text = split > 0 ? dataName.Substring(split + 1) : string.Empty;
+			}
+			else
+			{
+				nameLabel.text = target.name.Replace(CLONE_SUFFIX, string.Empty).Trim();
+				roleLabel.text = string.Empty;
+			}
+			roleLabel.style.display = roleLabel.text.Length > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
+		// 키 입력이 막히는 상황 (일시정지, 글 입력, 전체 화면 창, 시전, 사망, 건설, 전환) 에는 표시도 숨김
+		private static InteractiveObject FindTarget()
+		{
+			if (GameConditionBridge.Get(GameConditionType.IsViewingUI)
+				|| GameConditionBridge.Get(GameConditionType.IsPaused)
+				|| GameConditionBridge.Get(GameConditionType.IsTyping)
+				|| GameConditionBridge.Get(GameConditionType.IsPlayerCasting)
+				|| GameConditionBridge.Get(GameConditionType.IsDied)
+				|| GameConditionBridge.Get(GameConditionType.IsBuilding)
+				|| GameConditionBridge.Get(GameConditionType.IsInTransition))
+				return null;
+			PlayerObject player = PlayerProvider.Instance != null ? PlayerProvider.Instance.CurrentObject : null;
+			if (player == null)
+				return null;
+			return InteractiveObject.GetNearest(player.transform.position, PlayerInteraction.InteractionDistance);
 		}
 	}
 }

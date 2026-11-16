@@ -50,7 +50,7 @@
 .wm-interact-prompt__role {
     margin: 0 0 0 8px;
     padding: 0;
-    font-size: 13px;
-    color: rgb(170, 175, 210);
+    font-size: 14px;
+    color: rgb(205, 209, 238);
     -unity-text-align: middle-left;
 }
