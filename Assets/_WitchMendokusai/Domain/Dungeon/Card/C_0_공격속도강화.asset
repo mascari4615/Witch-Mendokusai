@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 0
   <Name>k__BackingField: "\uACF5\uACA9\uC18D\uB3C4 \uAC15\uD654"
-  <Description>k__BackingField: "\uACF5\uACA9\uC18D\uB3C4\uB97C \uAC15\uD654\uD569\uB2C8\uB2E4."
+  <Description>k__BackingField: "\ubaa8\ub4e0 \ubb34\uae30\uc758 \uacf5\uaca9 \uc18d\ub3c4\ub97c \uac15\ud654\ud569\ub2c8\ub2e4."
   <Sprite>k__BackingField: {fileID: 21300000, guid: 03d40f11884ef624da193e2c5f21de37, type: 3}
   <Sprites>k__BackingField: []
   <Effects>k__BackingField:
@@ -22,7 +22,7 @@ MonoBehaviour:
     Data: {fileID: 11400000, guid: 089ecd16f711da24c96abad2e5f2e209, type: 2}
     ArithmeticOperator: 1
     Value: 1
-  <MaxStack>k__BackingField: 10
+  <MaxStack>k__BackingField: 3
   <Rarity>k__BackingField: 0
   <Requirements>k__BackingField: []
   <AwakeningEffectPrefab>k__BackingField: {fileID: 0}

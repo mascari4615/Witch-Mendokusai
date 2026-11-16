@@ -13,16 +13,16 @@ MonoBehaviour:
   m_Name: "C_2_\uCFE8\uAC1020"
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 2
-  <Name>k__BackingField: "\uCFE8\uAC10 20"
-  <Description>k__BackingField: "\uCFE8\uD0C0\uC784 \uAC10\uC18C 20"
+  <Name>k__BackingField: "\ucfe8\ud0c0\uc784 \uac10\uc18c"
+  <Description>k__BackingField: "\ubaa8\ub4e0 \ubb34\uae30\uc758 \uacf5\uaca9 \uac04\uaca9 3% \uac10\uc18c"
   <Sprite>k__BackingField: {fileID: 21300000, guid: c635fecf65809e846a0b62f709c27858, type: 3}
   <Sprites>k__BackingField: []
   <Effects>k__BackingField:
   - Type: 0
     Data: {fileID: 11400000, guid: f4e02202b7b4cc24c937696a66128681, type: 2}
     ArithmeticOperator: 1
-    Value: 20
-  <MaxStack>k__BackingField: 10
+    Value: 3
+  <MaxStack>k__BackingField: 5
   <Rarity>k__BackingField: 0
   <Requirements>k__BackingField: []
   <AwakeningEffectPrefab>k__BackingField: {fileID: 0}

@@ -21,7 +21,7 @@ MonoBehaviour:
   - Type: 0
     Data: {fileID: 11400000, guid: 6dcd2e89596a96b49ae615c8429841dc, type: 2}
     ArithmeticOperator: 1
-    Value: 2
+    Value: 4
   <MaxStack>k__BackingField: 10
   <Rarity>k__BackingField: 0
   <Requirements>k__BackingField: []

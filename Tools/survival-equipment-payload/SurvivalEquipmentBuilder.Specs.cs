@@ -112,7 +112,7 @@ namespace WitchMendokusai
 		{
 			List<CardSpec> cards = new();
 			if (hasCount)
-				cards.Add(new CardSpec("COUNT", countLabel + " 증가", 1, 10, SurvivalUIKind.Count));
+				cards.Add(new CardSpec("COUNT", countLabel + " 증가", 1, COUNT_MAX_STACK, SurvivalUIKind.Count));
 			cards.Add(new CardSpec("DAMAGE_BONUS", "데미지 증가", damageValue, DAMAGE_BONUS_MAX_STACK, SurvivalUIKind.Damage));
 			if (hasSpeed)
 				cards.Add(new CardSpec("ATTACK_SPEED_BONUS", "공격속도 증가", 1, 5, SurvivalUIKind.Speed));
@@ -216,12 +216,12 @@ namespace WitchMendokusai
 				{
 					Tier = 1, Key = "Pillow", Folder = "Pillow", Prefix = "PILLOW", Id = 20000018, CardBase = 750, HitColor = Muted(0.5f, 0.44f, 0.68f),
 					Name = "낮잠 베개", Description = "멈춰 있을수록 주위 졸음 구역이 넓고 강해진다.", Icon = "rear-aura",
-					Cards = StandardCards(1, hasCount: false, hasSpeed: false, hasScale: true),
+					Cards = StandardCards(3, hasCount: false, hasSpeed: false, hasScale: true),
 					Resonance = Resonance("이불 밖은 위험해", "베개 크기 +2, 베개 데미지 +5\n베개 크기 강화 3회와 솥 김 크기 강화 2회 후 등장. 한 판에 1회.", new[] { Req("PILLOW_SCALE_BONUS", 3), Req("STEAM_SCALE_BONUS", 2) }, Fx("PILLOW_SCALE_BONUS", 2), Fx("PILLOW_DAMAGE_BONUS", 5)),
 					BuildObject = (spec, folder) =>
 					{
 						Color color = spec.HitColor;
-						return MakeAura(spec, folder, color, 3.5f, new DamageSpec(3, rehitInterval: 0.5f, knockback: 0f), true, 0.06f, 0.35f, new AmbientSpec(new Color(color.r, color.g, color.b, 0.55f), 5f, 3f, 1.4f, 0.16f, 0.5f));
+						return MakeAura(spec, folder, color, 3.5f, new DamageSpec(8, rehitInterval: 0.5f, knockback: 0f), true, 0.06f, 0.35f, new AmbientSpec(new Color(color.r, color.g, color.b, 0.55f), 5f, 3f, 1.4f, 0.16f, 0.5f));
 					},
 				},
 
@@ -293,12 +293,12 @@ namespace WitchMendokusai
 				{
 					Tier = 2, Key = "Steam", Folder = "Steam", Prefix = "STEAM", Id = 20000023, CardBase = 800, HitColor = Muted(0.68f, 0.68f, 0.66f),
 					Name = "솥 김", Description = "주위에 뜨거운 김을 둘러 적을 데운다.", Icon = "camp-cooking-pot",
-					Cards = StandardCards(1, hasCount: false, hasSpeed: false, hasScale: true),
+					Cards = StandardCards(3, hasCount: false, hasSpeed: false, hasScale: true),
 					Resonance = Resonance("끓어넘친 솥", "김 크기 +2, 김 데미지 +4\n김 크기 강화 3회와 병 공격속도 강화 2회 후 등장. 한 판에 1회.", new[] { Req("STEAM_SCALE_BONUS", 3), Req("FLASK_ATTACK_SPEED_BONUS", 2) }, Fx("STEAM_SCALE_BONUS", 2), Fx("STEAM_DAMAGE_BONUS", 4)),
 					BuildObject = (spec, folder) =>
 					{
 						Color color = spec.HitColor;
-						return MakeAura(spec, folder, color, 3f, new DamageSpec(2, rehitInterval: 0.4f, knockback: 1.5f), false, 0.03f, 0.18f, new AmbientSpec(new Color(color.r, color.g, color.b, 0.5f), 14f, 2.6f, 1.1f, 0.26f, 1.4f));
+						return MakeAura(spec, folder, color, 3f, new DamageSpec(6, rehitInterval: 0.4f, knockback: 1.5f), false, 0.03f, 0.18f, new AmbientSpec(new Color(color.r, color.g, color.b, 0.5f), 14f, 2.6f, 1.1f, 0.26f, 1.4f));
 					},
 				},
 
@@ -309,7 +309,7 @@ namespace WitchMendokusai
 					Cards = new[]
 					{
 						new CardSpec("CHAIN", "튕김 증가", 1, 8, SurvivalUIKind.Count),
-						new CardSpec("DAMAGE_BONUS", "데미지 증가", 2, DAMAGE_BONUS_MAX_STACK, SurvivalUIKind.Damage),
+						new CardSpec("DAMAGE_BONUS", "데미지 증가", 4, DAMAGE_BONUS_MAX_STACK, SurvivalUIKind.Damage),
 						new CardSpec("ATTACK_SPEED_BONUS", "공격속도 증가", 1, 5, SurvivalUIKind.Speed),
 					},
 					Resonance = Resonance("엉킨 실타래", "튕김 +3, 실타래 데미지 +8\n튕김 강화 3회와 공격력 강화 2회 후 등장. 한 판에 1회.", new[] { Req("THREAD_CHAIN", 3), Req("C_4", 2) }, Fx("THREAD_CHAIN", 3), Fx("THREAD_DAMAGE_BONUS", 8)),
@@ -318,7 +318,7 @@ namespace WitchMendokusai
 						Color color = spec.HitColor;
 						GameObject link = MakeChainLink(folder, "ThreadChainLink", color);
 						SpriteSpec sprite = new(IconSprite("wool"), color, 0.7f, flat: true, height: 0.6f);
-						GameObject bullet = MakeBullet(folder, "ThreadBullet", sprite, 16f, false, 1.5f, 0.35f, new DamageSpec(6, hitCount: 1, knockback: 1f), new Color(color.r, color.g, color.b, 0.35f), root => AddChain(root, "THREAD_CHAIN", 2, 6f, link));
+						GameObject bullet = MakeBullet(folder, "ThreadBullet", sprite, 16f, false, 1.5f, 0.35f, new DamageSpec(10, hitCount: 1, knockback: 1f), new Color(color.r, color.g, color.b, 0.35f), root => AddChain(root, "THREAD_CHAIN", 2, 6f, link));
 						return MakeSpawnerObject(spec, folder, bullet, SpawnPositionStrategy.Player, SpawnAimStrategy.NearestEnemy, 1.6f, 0.1f, 0f, 1);
 					},
 				},
@@ -429,12 +429,12 @@ namespace WitchMendokusai
 				{
 					Tier = 4, Key = "Duster", Folder = "Duster", Prefix = "DUSTER", Id = 20000029, CardBase = 860, HitColor = Muted(0.64f, 0.58f, 0.44f),
 					Name = "먼지떨이", Description = "앞쪽 적을 멀리 털어낸다. 임시 판정과 임시 연출.", Icon = "sonic-screech",
-					Cards = StandardCards(1, hasCount: false, hasScale: true),
+					Cards = StandardCards(4, hasCount: false, hasScale: true),
 					Resonance = Resonance("봄맞이 대청소", "먼지떨이 크기 +2, 먼지떨이 데미지 +5\n먼지떨이 크기 강화 3회와 가위 데미지 강화 2회 후 등장. 한 판에 1회.", new[] { Req("DUSTER_SCALE_BONUS", 3), Req("SCISSORS_DAMAGE_BONUS", 2) }, Fx("DUSTER_SCALE_BONUS", 2), Fx("DUSTER_DAMAGE_BONUS", 5)),
 					BuildObject = (spec, folder) =>
 					{
 						Color color = spec.HitColor;
-						GameObject sweep = MakeBeam(folder, "DusterSweep", color, 5f, 3f, 0.18f, new DamageSpec(3, knockback: 30f, hitstop: 0f), root => AddBurst(root, Burst(color, 10, 5f, 0.35f, 0.18f)));
+						GameObject sweep = MakeBeam(folder, "DusterSweep", color, 5f, 3f, 0.18f, new DamageSpec(10, knockback: 30f, hitstop: 0f), root => AddBurst(root, Burst(color, 10, 5f, 0.35f, 0.18f)));
 						return MakeSpawnerObject(spec, folder, sweep, SpawnPositionStrategy.Player, SpawnAimStrategy.Aim, 2f, 0f, 0f, 1);
 					},
 				},
@@ -538,6 +538,8 @@ namespace WitchMendokusai
 
 		// 무기 피해 증가 카드 상한, 수 10 과 속도 5 에 맞춘 값
 		private const int DAMAGE_BONUS_MAX_STACK = 10;
+		// 무기 수 증가 카드 상한, 10 이면 바늘 같은 무기가 80배 넘게 세짐 (2026-11-16)
+		private const int COUNT_MAX_STACK = 4;
 		private const float PAPER_DOLL_SIZE = 0.9f;
 		private const string POTION_ROOT = "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Potion";
 

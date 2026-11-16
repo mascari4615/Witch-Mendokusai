@@ -2515,7 +2515,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b235d746d6b695b48913d2c7e1153692, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.RepeatingDamagingObject
-  damage: 3
+  damage: 8
   isTrigger: 1
   useHitCount: 0
   hitCount: 1

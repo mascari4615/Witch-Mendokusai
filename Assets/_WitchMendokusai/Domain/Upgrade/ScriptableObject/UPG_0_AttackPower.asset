@@ -20,18 +20,18 @@ MonoBehaviour:
   <Type>k__BackingField: 0
   <UnitStatType>k__BackingField: 500
   <MaxLevel>k__BackingField: 10
-  <PricePerLevel>k__BackingField: 280000004600000078000000be0000001801000086010000080200009e0200004803000006040000i
+  <PricePerLevel>k__BackingField: 3c00000064000000b400000018010000a4010000440200000c030000e8030000ec04000004060000i
   <ValuePerLevel>k__BackingField:
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
-  - 1
+  - 3
+  - 3
+  - 3
+  - 3
+  - 3
+  - 3
+  - 3
+  - 3
+  - 3
+  - 3
   <DisplayName>k__BackingField: "\uACF5\uACA9\uB825"
   <DisplayDescription>k__BackingField: "\uACF5\uACA9\uC758 \uD53C\uD574\uAC00 \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
   <Category>k__BackingField: 0

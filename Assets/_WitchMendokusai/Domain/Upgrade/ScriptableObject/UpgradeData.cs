@@ -150,7 +150,8 @@ namespace WitchMendokusai
 
 		public void Load(UpgradeSaveData saveData)
 		{
-			CurLevel = saveData.Level;
+			// 최대 레벨을 줄인 강화 (2026-11-16 공격 횟수 3 -> 1) 의 옛 세이브는 새 최대로 맞춤
+			CurLevel = Mathf.Min(saveData.Level, MaxLevel);
 		}
 
 		public UpgradeSaveData Save()

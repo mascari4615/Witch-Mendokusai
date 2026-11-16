@@ -20,18 +20,13 @@ MonoBehaviour:
   <Type>k__BackingField: 13
   <UnitStatType>k__BackingField: 800
   <MaxLevel>k__BackingField: 5
-  <PricePerLevel>k__BackingField: 280000004600000078000000be0000001801000086010000080200009e0200004803000006040000i
+  <PricePerLevel>k__BackingField: 280000004600000078000000be00000018010000i
   <ValuePerLevel>k__BackingField:
   - 100
   - 100
   - 100
   - 100
   - 100
-  - 0
-  - 0
-  - 0
-  - 0
-  - 0
   <DisplayName>k__BackingField: "\uBB34\uC801 \uC2DC\uAC04"
   <DisplayDescription>k__BackingField: "\uD53C\uACA9 \uB4A4 \uBB34\uC801 \uC2DC\uAC04\uC774 \uB808\uBCA8\uB2F9 0.1\uCD08 \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
   <Category>k__BackingField: 1
