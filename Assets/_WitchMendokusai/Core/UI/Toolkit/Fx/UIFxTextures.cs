@@ -9,7 +9,7 @@ namespace WitchMendokusai
 		private const int SPARKLE_PIXELS = 64;
 		private const int BAND_PIXELS = 128;
 		// 반짝이 십자 빛줄기의 가늘기. 클수록 가늚
-		private const float SPARKLE_RAY_SHARPNESS = 10f;
+		private const float SPARKLE_RAY_SHARPNESS = 6f;
 
 		private static Texture2D glow;
 		private static Texture2D sparkle;
@@ -27,7 +27,7 @@ namespace WitchMendokusai
 		public static Texture2D Sparkle => sparkle != null ? sparkle : (sparkle = Make(SPARKLE_PIXELS, SPARKLE_PIXELS, (horizontal, vertical) =>
 		{
 			float distance = Mathf.Sqrt(horizontal * horizontal + vertical * vertical);
-			float core = Mathf.Pow(Mathf.Clamp01(1f - distance * 2.2f), 2f);
+			float core = Mathf.Pow(Mathf.Clamp01(1f - distance * 1.6f), 1.5f);
 			float rayX = Mathf.Exp(-Mathf.Abs(vertical) * SPARKLE_RAY_SHARPNESS * 2f) * Mathf.Clamp01(1f - Mathf.Abs(horizontal));
 			float rayY = Mathf.Exp(-Mathf.Abs(horizontal) * SPARKLE_RAY_SHARPNESS * 2f) * Mathf.Clamp01(1f - Mathf.Abs(vertical));
 			return Mathf.Clamp01(core + (rayX + rayY) * 0.8f);

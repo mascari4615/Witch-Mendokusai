@@ -52,21 +52,21 @@ namespace WitchMendokusai
 		public float shineBandLength = 2.2f;
 
 		[Header("반짝이 입자 (창 열기, 패널 열기)")]
-		public int sparkleCount = 10;
-		public float sparkleLifeSeconds = 0.8f;
-		public Vector2 sparkleSizeRange = new(6f, 14f);
+		public int sparkleCount = 14;
+		public float sparkleLifeSeconds = 0.9f;
+		public Vector2 sparkleSizeRange = new(16f, 30f);
 		[Tooltip("위로 떠오르는 속도, 픽셀/초")]
 		public float sparkleRiseSpeed = 28f;
 		public Color sparkleColor = new(1f, 0.96f, 0.82f, 1f);
 		[Tooltip("태어날 때 바깥으로 튀는 세기, 입자 크기 배수")]
-		public float sparklePopOut = 1.5f;
+		public float sparklePopOut = 2.5f;
 
 		[Header("떠다니는 빛 입자 (전체 패널 뒤)")]
 		public bool ambientMotes = true;
 		public int moteCount = 22;
-		public Vector2 moteSizeRange = new(3f, 8f);
+		public Vector2 moteSizeRange = new(5f, 12f);
 		public float moteRiseSpeed = 14f;
-		[Range(0f, 1f)] public float moteAlpha = 0.55f;
+		[Range(0f, 1f)] public float moteAlpha = 0.7f;
 		public Color moteColor = new(1f, 0.93f, 0.75f, 1f);
 
 		[Header("자식 순차 등장 (전체 패널)")]
@@ -74,5 +74,9 @@ namespace WitchMendokusai
 		public float staggerStepSeconds = 0.04f;
 		public float staggerItemSeconds = 0.22f;
 		public float staggerRisePixels = 14f;
+		[Tooltip("창 안 격자 칸 (인벤토리 등) 물결 간격")]
+		public float gridStaggerStepSeconds = 0.012f;
+		[Tooltip("이 수 이상 칸을 가진 첫 자손을 격자로 봄")]
+		public int gridStaggerMinItems = 4;
 	}
 }

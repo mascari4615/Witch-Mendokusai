@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -58,12 +59,42 @@ namespace WitchMendokusai
 			}).Every(0).Until(() => done);
 		}
 
-		/// <summary>컨테이너 자식을 위에서부터 차례로 떠오르게</summary>
-		public static void StaggerChildren(VisualElement container)
+		/// <summary>창 안에서 칸이 여럿인 첫 자손 (인벤토리 격자 등) 을 찾아 물결처럼 차례로</summary>
+		public static void StaggerGrid(VisualElement root)
 		{
 			UIFxSettings settings = UIFxSettings.Instance;
 			if (settings.staggerChildren == false)
 				return;
+			VisualElement grid = FindGrid(root, settings.gridStaggerMinItems);
+			if (grid != null)
+				StaggerChildren(grid, settings.gridStaggerStepSeconds);
+		}
+
+		private static VisualElement FindGrid(VisualElement root, int minItems)
+		{
+			Queue<VisualElement> queue = new();
+			queue.Enqueue(root);
+			while (queue.Count > 0)
+			{
+				VisualElement current = queue.Dequeue();
+				if (current != root && current.childCount >= minItems)
+					return current;
+				foreach (VisualElement child in current.Children())
+				{
+					if (child.pickingMode == PickingMode.Position || child.childCount > 0)
+						queue.Enqueue(child);
+				}
+			}
+			return null;
+		}
+
+		/// <summary>컨테이너 자식을 위에서부터 차례로 떠오르게. stepSeconds 0 이하면 설정값</summary>
+		public static void StaggerChildren(VisualElement container, float stepSeconds = 0f)
+		{
+			UIFxSettings settings = UIFxSettings.Instance;
+			if (settings.staggerChildren == false)
+				return;
+			float step = stepSeconds > 0f ? stepSeconds : settings.staggerStepSeconds;
 
 			int index = 0;
 			foreach (VisualElement child in container.Children())
@@ -72,7 +103,7 @@ namespace WitchMendokusai
 				if (child.pickingMode == PickingMode.Ignore)
 					continue;
 				VisualElement item = child;
-				float elapsed = -settings.staggerStepSeconds * index;
+				float elapsed = -step * index;
 				bool done = false;
 				item.style.opacity = 0f;
 				item.style.translate = new Translate(0, settings.staggerRisePixels);

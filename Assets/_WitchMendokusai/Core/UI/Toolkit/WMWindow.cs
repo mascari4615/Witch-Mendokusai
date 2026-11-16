@@ -129,6 +129,7 @@ namespace WitchMendokusai
 			{
 				UIShine.Sweep(this);
 				UISparkle.Burst(this);
+				UIShine.StaggerGrid(Content);
 			}
 			UiSfx.Play(UiSfxEvent.WindowOpen);
 			OnOpened.Invoke();
