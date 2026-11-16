@@ -149,6 +149,8 @@ namespace WitchMendokusai
 			questEachParent.gameObject.SetActive(false);
 
 			cameraManager.SetUICameraMode(UICameraMode.NPC, true);
+			// 대화 없는 NPC 도 카메라 대상. 대화 시작에서만 넣으면 비어 있음
+			cameraManager.SetNPC(curNPC.transform);
 			cameraManager.SetSelecting(isSelecting: false, shouldAnimate: false);
 
 			// 대화 불가 시 바로 선택 모드로 전환
