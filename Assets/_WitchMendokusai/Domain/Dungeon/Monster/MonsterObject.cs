@@ -109,8 +109,9 @@ namespace WitchMendokusai
 
 		private void ApplyEliteHealth()
 		{
+			// UpdateStat 재호출 대신 직접 배율. 재호출하면 던전 제약 효과가 한 번 더 더해짐
 			UnitStat[UnitStatType.HP_MAX_STAT] = Mathf.CeilToInt(UnitStat[UnitStatType.HP_MAX_STAT] * eliteProfile.HealthMultiplier);
-			UpdateStat();
+			UnitStat[UnitStatType.HP_MAX] = Mathf.CeilToInt(UnitStat[UnitStatType.HP_MAX] * eliteProfile.HealthMultiplier);
 			UnitStat[UnitStatType.HP_CUR] = UnitStat[UnitStatType.HP_MAX];
 		}
 

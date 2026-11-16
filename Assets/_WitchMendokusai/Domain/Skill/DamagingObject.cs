@@ -216,6 +216,10 @@ namespace WitchMendokusai
 			{
 				// 시간이 지날수록 적 피해 상승 (SurvivalRunRules), 그 위에 위협 배율
 				calcDamage += dungeonManager.RunRules.EnemyDamageBonus(dungeonManager.Context.ElapsedTime.TotalMinutes);
+				// 공격한 적의 피해 % (던전 제약 DC_2 등). 올림이라 작은 피해에도 체감
+				UnitObject attacker = damageInfo.damageSource as UnitObject;
+				if (attacker != null && attacker.UnitStat[UnitStatType.DAMAGE_BONUS] != 0)
+					calcDamage = Mathf.CeilToInt(calcDamage * (1f + attacker.UnitStat[UnitStatType.DAMAGE_BONUS] / 100f));
 				calcDamage = dungeonManager.CurThreat.ScaleEnemyDamage(calcDamage);
 			}
 
