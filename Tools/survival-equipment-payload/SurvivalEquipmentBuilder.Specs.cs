@@ -113,7 +113,7 @@ namespace WitchMendokusai
 			List<CardSpec> cards = new();
 			if (hasCount)
 				cards.Add(new CardSpec("COUNT", countLabel + " 증가", 1, 10, SurvivalUIKind.Count));
-			cards.Add(new CardSpec("DAMAGE_BONUS", "데미지 증가", damageValue, 100, SurvivalUIKind.Damage));
+			cards.Add(new CardSpec("DAMAGE_BONUS", "데미지 증가", damageValue, DAMAGE_BONUS_MAX_STACK, SurvivalUIKind.Damage));
 			if (hasSpeed)
 				cards.Add(new CardSpec("ATTACK_SPEED_BONUS", "공격속도 증가", 1, 5, SurvivalUIKind.Speed));
 			if (hasScale)
@@ -309,7 +309,7 @@ namespace WitchMendokusai
 					Cards = new[]
 					{
 						new CardSpec("CHAIN", "튕김 증가", 1, 8, SurvivalUIKind.Count),
-						new CardSpec("DAMAGE_BONUS", "데미지 증가", 2, 100, SurvivalUIKind.Damage),
+						new CardSpec("DAMAGE_BONUS", "데미지 증가", 2, DAMAGE_BONUS_MAX_STACK, SurvivalUIKind.Damage),
 						new CardSpec("ATTACK_SPEED_BONUS", "공격속도 증가", 1, 5, SurvivalUIKind.Speed),
 					},
 					Resonance = Resonance("엉킨 실타래", "튕김 +3, 실타래 데미지 +8\n튕김 강화 3회와 공격력 강화 2회 후 등장. 한 판에 1회.", new[] { Req("THREAD_CHAIN", 3), Req("C_4", 2) }, Fx("THREAD_CHAIN", 3), Fx("THREAD_DAMAGE_BONUS", 8)),
@@ -491,7 +491,7 @@ namespace WitchMendokusai
 					Name = "골무 방패", Description = "맞으면 주위 적을 밀쳐 내며 되받아친다.", Icon = "double-ringed-orb",
 					Cards = new[]
 					{
-						new CardSpec("DAMAGE_BONUS", "데미지 증가", 6, 100, SurvivalUIKind.Damage),
+						new CardSpec("DAMAGE_BONUS", "데미지 증가", 6, DAMAGE_BONUS_MAX_STACK, SurvivalUIKind.Damage),
 						new CardSpec("ATTACK_SPEED_BONUS", "재사용 감소", 1, 5, SurvivalUIKind.Speed),
 						new CardSpec("SCALE_BONUS", "크기 증가", 1, 5, SurvivalUIKind.Size),
 					},
@@ -509,7 +509,7 @@ namespace WitchMendokusai
 					Name = "집안일 수첩", Description = "움직인 만큼 쌓였다가 멈추는 순간 주위를 쓸어 낸다.", Icon = "archive-research",
 					Cards = new[]
 					{
-						new CardSpec("DAMAGE_BONUS", "데미지 증가", 5, 100, SurvivalUIKind.Damage),
+						new CardSpec("DAMAGE_BONUS", "데미지 증가", 5, DAMAGE_BONUS_MAX_STACK, SurvivalUIKind.Damage),
 						new CardSpec("ATTACK_SPEED_BONUS", "충전 속도 증가", 1, 5, SurvivalUIKind.Speed),
 						new CardSpec("SCALE_BONUS", "크기 증가", 1, 5, SurvivalUIKind.Size),
 					},
@@ -536,6 +536,8 @@ namespace WitchMendokusai
 			};
 		}
 
+		// 무기 피해 증가 카드 상한, 수 10 과 속도 5 에 맞춘 값
+		private const int DAMAGE_BONUS_MAX_STACK = 10;
 		private const float PAPER_DOLL_SIZE = 0.9f;
 		private const string POTION_ROOT = "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Potion";
 

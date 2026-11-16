@@ -22,7 +22,7 @@ MonoBehaviour:
     Data: {fileID: 11400000, guid: 56606d3209a093242842b03cdc6d2c1c, type: 2}
     ArithmeticOperator: 1
     Value: 1
-  <MaxStack>k__BackingField: 100
+  <MaxStack>k__BackingField: 10
   <Rarity>k__BackingField: 0
   <Requirements>k__BackingField: []
   <AwakeningEffectPrefab>k__BackingField: {fileID: 0}
