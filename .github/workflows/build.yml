@@ -195,6 +195,22 @@ jobs:
           }
           Write-Host 'No untracked plugin files.'
 
+      # 2026-11-17: 취소 직후 다시 돌린 빌드가 3분 만에 종료 (로그가 프로젝트 경로 줄에서 끝남).
+      #   취소된 빌드의 Unity 가 프로젝트를 잡은 채 남아 있었음. 시작 전에 정리하고 잠금 파일이 풀릴 때까지 기다림.
+      - name: Release leftover Unity before build
+        if: steps.gate.outputs.skip != 'true'
+        shell: powershell
+        run: |
+          . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
+          Stop-LeftoverUnity -Workspace $env:GITHUB_WORKSPACE
+          $lock = Join-Path $env:GITHUB_WORKSPACE 'Temp\UnityLockfile'
+          for ($i = 0; $i -lt 30; $i++) {
+            if (-not (Test-Path $lock)) { break }
+            try { Remove-Item $lock -Force -ErrorAction Stop; break } catch { Start-Sleep -Seconds 2 }
+          }
+          if (Test-Path $lock) { throw "Temp/UnityLockfile still held after 60s - another Unity owns this project" }
+          Write-Host 'project lock free'
+
       - name: Memory before build
         if: steps.gate.outputs.skip != 'true'
         shell: powershell
