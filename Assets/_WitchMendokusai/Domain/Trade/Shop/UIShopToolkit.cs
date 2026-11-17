@@ -65,6 +65,9 @@ namespace WitchMendokusai
 			cart = new ShopCart(settings.CartLineLimit);
 			view = new ShopView(settings);
 			root.Add(view);
+			// 배경색은 화면 끝까지 덮는 틀에. 상점 시트는 ShopView 에만 붙어 있어 틀에도 붙임
+			Root.styleSheets.Add(settings.StyleSheet);
+			Root.AddToClassList("wm-shop-backdrop");
 
 			view.RegisterCallback<NavigationMoveEvent>(OnNavigationMove, TrickleDown.TrickleDown);
 			view.RegisterCallback<NavigationSubmitEvent>(OnNavigationSubmit, TrickleDown.TrickleDown);

@@ -20,6 +20,7 @@ namespace WitchMendokusai
 		public const string ACTIVE_CLASS = "wm-magic-book-view--active";
 
 		private VisualElement container;
+		private VisualElement content;
 		private VisualElement chapterListContainer;
 		private VisualElement chapterContentContainer;
 		private QuestDetail questDetail;
@@ -64,20 +65,14 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			container = new VisualElement();
+			// 배경은 화면 끝까지 (container), 목록과 내용은 안전 영역 (content). 기본 닫힘
+			FullScreenFrame frame = uiRoot.CreateFullScreenFrame(uiRoot.ScreenLayer, "MagicBook");
+			container = frame.Root;
+			content = frame.Content;
 			container.AddToClassList(USS_CLASS);
-
-			// inline layout (USS stylesheet 없이도 작동) — 풀스크린 + flex row + default 닫힘
-			container.style.position = Position.Absolute;
-			container.style.left = 0;
-			container.style.top = 0;
-			container.style.right = 0;
-			container.style.bottom = 0;
-			container.style.flexDirection = FlexDirection.Row;
 			container.style.backgroundColor = BACKGROUND_COLOR;
 			container.style.display = DisplayStyle.None;
-
-			uiRoot.ScreenLayer.Add(container);
+			content.style.flexDirection = FlexDirection.Row;
 
 			BuildUI();
 			IsOpen = false;
@@ -107,19 +102,19 @@ namespace WitchMendokusai
 			chapterListContainer.style.paddingBottom = 12;
 			chapterListContainer.style.paddingLeft = 12;
 			chapterListContainer.style.paddingRight = 12;
-			container.Add(chapterListContainer);
+			content.Add(chapterListContainer);
 
 			chapterContentContainer = new VisualElement();
 			chapterContentContainer.AddToClassList("wm-magic-book-content");
 			chapterContentContainer.style.flexGrow = 1;
-			container.Add(chapterContentContainer);
+			content.Add(chapterContentContainer);
 
 			Button btnClose = new Button(Close) { text = "닫기 (M)" };
 			btnClose.AddToClassList("wm-magic-book-close");
 			btnClose.style.position = Position.Absolute;
 			btnClose.style.top = 12;
 			btnClose.style.right = 12;
-			container.Add(btnClose);
+			content.Add(btnClose);
 
 			questDetail = new QuestDetail(questManager);
 			questDetail.style.position = Position.Absolute;
@@ -132,7 +127,7 @@ namespace WitchMendokusai
 			questDetail.style.paddingBottom = 12;
 			questDetail.style.paddingLeft = 12;
 			questDetail.style.paddingRight = 12;
-			container.Add(questDetail);
+			content.Add(questDetail);
 
 			// 부팅 때는 자료 로드 전일 수 있음. Open 에서 다시 모음
 			CollectChapters(warnIfMissing: false);

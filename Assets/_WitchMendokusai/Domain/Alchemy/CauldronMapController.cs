@@ -67,14 +67,12 @@ namespace WitchMendokusai
 
         private void BuildPanel()
         {
-            container = new VisualElement { name = nameof(CauldronMapController) };
-            container.style.position = Position.Absolute;
-            container.style.left = 0;
-            container.style.top = 0;
-            container.style.right = 0;
-            container.style.bottom = 0;
-            container.style.alignItems = Align.Center;
-            container.style.justifyContent = Justify.Center;
+            // 막은 화면 끝까지 (container), 지도는 안전 영역 가운데 (content)
+            FullScreenFrame screenFrame = uiRoot.CreateFullScreenFrame(uiRoot.ScreenLayer, nameof(CauldronMapController));
+            container = screenFrame.Root;
+            VisualElement content = screenFrame.Content;
+            content.style.alignItems = Align.Center;
+            content.style.justifyContent = Justify.Center;
             container.style.backgroundColor = new Color(0f, 0f, 0f, 0.45f); // 뒤 게임을 살짝 가리는 막
             container.style.display = DisplayStyle.None;
 
@@ -91,9 +89,7 @@ namespace WitchMendokusai
             closeButton.style.bottom = Length.Percent(100f);
             frame.Add(closeButton);
 
-            container.Add(frame);
-
-            uiRoot.ScreenLayer.Add(container);
+            content.Add(frame);
 
             string spell = "재료를 갈아 효과 좌표에 닿게 하라.\n질러가면 강하나 부작용, 돌아가면 안전하나 약하다.";
             if (recipeSO != null)

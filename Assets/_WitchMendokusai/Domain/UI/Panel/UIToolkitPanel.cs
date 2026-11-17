@@ -24,7 +24,10 @@ namespace WitchMendokusai
 		// set 불가로 또 폴백(VCON0007) → internal. 정본: Domain/Application/DI/VCONTAINER-MECHANISM.md §3·§6
 		[Inject] internal UIRoot uiRoot;
 		protected IUIPanelGroup PanelGroup { get; private set; }
+		/// <summary> 화면 끝까지 덮는 틀. 배경, 배경 그림, 테마 USS 클래스는 여기 </summary>
 		protected VisualElement Root { get; private set; }
+		/// <summary> 안전 영역 칸. BuildUI 가 받는 곳. 버튼과 글은 여기 </summary>
+		protected VisualElement Content { get; private set; }
 		private bool isBuilt;
 		[Tooltip("이 패널만의 평상시 효과. 비우면 UIFxSettings.idleEffect")]
 		[SerializeField] private UIIdleEffect idleEffect;
@@ -43,31 +46,28 @@ namespace WitchMendokusai
 			if (uiRoot == null || uiRoot.ScreenLayer == null)
 				return;
 
-			Root = new VisualElement { name = GetType().Name };
-			Root.style.position = Position.Absolute;
-
-			// ★ 화면 층 패널은 *화면을 채운다*(사용자 지시: "전체화면으로 안보이고 좁은 화면으로 필요한
-			//   공간만 쓰는데 좀 고쳐주세요"). 절대 배치만 걸고 네 변을 안 잡으면 요소가 *내용 크기*로
-			//   줄어든다 — 안에서 flexGrow 를 아무리 줘도 부모가 작으면 늘어날 자리가 없다.
-			//   네 변을 0 으로 못 박아야 안쪽 레이아웃(좌측 목록 + 우측 상세)이 의도대로 펼쳐진다.
-			Root.style.left = 0;
-			Root.style.right = 0;
-			Root.style.top = 0;
-			Root.style.bottom = 0;
-
+			// 화면 층 패널은 화면을 채운다 (사용자 지시: 좁은 화면 말고 전체 화면). 배경은 노치 쪽 끝까지, 조작은 안전 영역
+			FullScreenFrame frame = uiRoot.CreateFullScreenFrame(uiRoot.ScreenLayer, GetType().Name);
+			Root = frame.Root;
+			Content = frame.Content;
 			Root.AddToClassList(UIMotion.RISE);
 			UIMotion.SetInstant(Root, false);
-			uiRoot.ScreenLayer.Add(Root);
 
-			BuildUI(Root);
+			BuildUI(Content);
 			if (UIFxSettings.Instance.ambientMotes)
 				UISparkle.AttachMotes(Root);
 			UIIdleFx.Attach(Root, () => idleEffect != null ? idleEffect : UIFxSettings.Instance.idleEffect);
 			isBuilt = true;
 		}
 
-		/// <summary>VisualElement 트리 구축 (1회). 서브클래스가 패널 내용 작성.</summary>
-		protected abstract void BuildUI(VisualElement root);
+		/// <summary>VisualElement 트리 구축 (1회). content 는 안전 영역 칸. 화면 끝까지 덮을 배경은 AddBackdrop</summary>
+		protected abstract void BuildUI(VisualElement content);
+
+		/// <summary> 배경 요소를 화면 끝까지 덮는 틀에, 내용 칸보다 뒤에 둠 </summary>
+		protected void AddBackdrop(VisualElement element)
+		{
+			Root.Insert(Root.IndexOf(Content), element);
+		}
 
 		/// <summary>UIPanelGroup.Init 시점 훅 (PanelGroup 설정 후).</summary>
 		protected virtual void OnInit() { }
@@ -84,8 +84,9 @@ namespace WitchMendokusai
 					UIMotion.UseStyle(Root, UIFxSettings.Instance.panelMotion);
 				UIMotion.Show(Root);
 				// 패널 몸통 하나 아래에 실제 칸들이 있으면 그 칸들을 순서대로 (입자와 효과 층은 세지 않음)
-				VisualElement body = SingleBody(Root);
-				VisualElement staggerRoot = body != null && body.childCount > 1 ? body : Root;
+				// 칸 세기는 안전 영역 칸 기준. 화면 끝 틀에는 배경 요소가 섞임
+				VisualElement body = SingleBody(Content);
+				VisualElement staggerRoot = body != null && body.childCount > 1 ? body : Content;
 				UIShine.StaggerChildren(staggerRoot);
 			}
 			else

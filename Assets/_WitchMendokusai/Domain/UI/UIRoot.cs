@@ -197,13 +197,54 @@ namespace WitchMendokusai
 		}
 
 		private readonly List<VisualElement> fullBleedElements = new();
+		private readonly Dictionary<VisualElement, VisualElement> frameContents = new();
 
 		/// <summary>
-		/// 안전 영역 층 안의 전체 화면 요소 (어두운 배경) 를 화면 끝까지 넓힘. 노치 쪽에 안 덮인 띠가 남던 것 (2026-11-17 폰 실기)
-		/// 요소 크기는 화면 전체가 되므로 안의 내용은 스스로 가운데 배치여야 함
+		/// 전체 화면 창의 유일한 만드는 길. 창마다 따로 넓히면 창마다 같은 띠가 다시 생김 (2026-11-17 폰 실기, 설정, 입장창)
+		/// - Root: 화면 끝까지. 배경, 어두운 막, 배경 그림, 테마 USS 클래스
+		/// - Content: 안전 영역. 버튼, 목록, 글처럼 손가락이 닿거나 읽어야 하는 것
+		/// 층 (ScreenLayer, WindowsLayer) 은 안전 영역만큼 줄어 있음. Root 는 그 밖으로 넓히고 Content 는 다시 안으로
+		/// </summary>
+		public FullScreenFrame CreateFullScreenFrame(VisualElement layer, string name)
+		{
+			VisualElement root = new() { name = name };
+			root.style.position = Position.Absolute;
+			root.style.left = 0;
+			root.style.right = 0;
+			root.style.top = 0;
+			root.style.bottom = 0;
+
+			VisualElement content = new() { name = name + "Content" };
+			content.style.position = Position.Absolute;
+			content.style.left = 0;
+			content.style.right = 0;
+			content.style.top = 0;
+			content.style.bottom = 0;
+			content.pickingMode = PickingMode.Ignore;
+			root.Add(content);
+
+			layer.Add(root);
+			frameContents[root] = content;
+			RegisterFullBleed(root);
+			return new FullScreenFrame(root, content);
+		}
+
+		/// <summary>
+		/// 이미 만든 요소 하나를 화면 끝까지. 안의 내용 배치는 바꾸지 않으므로 가운데 배치 내용이나 배경 전용 요소만
+		/// 손가락 닿는 요소가 가장자리에 붙으면 CreateFullScreenFrame
 		/// </summary>
 		public void RegisterFullBleed(VisualElement element)
 		{
+			RegisterFullBleed(element, false);
+		}
+
+		private readonly HashSet<VisualElement> horizontalOnlyBleed = new();
+
+		/// <summary> horizontalOnly: 좌우만 넓힘. 높이가 정해진 위아래 띠처럼 top, bottom 을 건드리면 안 되는 요소 </summary>
+		public void RegisterFullBleed(VisualElement element, bool horizontalOnly)
+		{
+			if (horizontalOnly)
+				horizontalOnlyBleed.Add(element);
 			if (fullBleedElements.Contains(element))
 				return;
 			fullBleedElements.Add(element);
@@ -231,8 +272,18 @@ namespace WitchMendokusai
 			Vector4 bleed = SafeArea.BleedOffsets(safeArea, new Vector2(width, height));
 			element.style.left = -bleed.x;
 			element.style.right = -bleed.y;
-			element.style.top = -bleed.z;
-			element.style.bottom = -bleed.w;
+			if (horizontalOnlyBleed.Contains(element) == false)
+			{
+				element.style.top = -bleed.z;
+				element.style.bottom = -bleed.w;
+			}
+			if (frameContents.TryGetValue(element, out VisualElement content))
+			{
+				content.style.left = bleed.x;
+				content.style.right = bleed.y;
+				content.style.top = bleed.z;
+				content.style.bottom = bleed.w;
+			}
 		}
 
 		private static VisualElement MakeLayer(string name, PickingMode pickingMode)

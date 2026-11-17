@@ -83,5 +83,22 @@ namespace WitchMendokusai.Tests
 				.ToArray();
 			CollectionAssert.IsEmpty(offenders);
 		}
+
+		// 전체 화면 창은 UIRoot.CreateFullScreenFrame 한 길로만. 화면 층에 바로 붙이면 배경이 안전 영역에서 잘림
+		// (2026-11-17 폰 실기: 설정, 던전 입장, 상점의 노치 쪽 띠. 창마다 따로 고치다 같은 문제 반복)
+		[Test]
+		public void Full_screen_windows_go_through_frame()
+		{
+			string root = Path.Combine(Application.dataPath, "_WitchMendokusai");
+			string[] offenders = Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories)
+				.Where(path => Path.GetFileName(path) != "UIRoot.cs" && Path.GetFileName(path) != "SafeAreaTest.cs")
+				.Where(path => File.ReadAllText(path).Contains(SCREEN_LAYER_ADD) || File.ReadAllText(path).Contains(SCREEN_LAYER_INSERT))
+				.Select(path => path.Substring(root.Length + 1))
+				.ToArray();
+			CollectionAssert.IsEmpty(offenders);
+		}
+
+		private const string SCREEN_LAYER_ADD = "ScreenLayer.Add(";
+		private const string SCREEN_LAYER_INSERT = "ScreenLayer.Insert(";
 	}
 }

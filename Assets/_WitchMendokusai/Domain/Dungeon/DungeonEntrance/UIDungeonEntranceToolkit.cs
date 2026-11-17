@@ -70,20 +70,19 @@ namespace WitchMendokusai
 
 		protected override void BuildUI(VisualElement root)
 		{
-			root.AddToClassList(USS_ROOT);
+			// 테마 배경색과 배경 그림은 화면 끝까지 덮는 틀에. 장식 요소도 같은 틀
+			Root.AddToClassList(USS_ROOT);
 
 			backdropTextLabel = AddLabel(root, string.Empty, "__backdrop-text");
-			backdropTextLabel.pickingMode = PickingMode.Ignore;
-			AddBlock(root, "__deco").pickingMode = PickingMode.Ignore;
 			numberLabel = AddLabel(root, string.Empty, "__number");
-			numberLabel.pickingMode = PickingMode.Ignore;
 			heroImage = AddBlock(root, "__hero");
-			heroImage.pickingMode = PickingMode.Ignore;
 			heroScrim = AddBlock(root, "__hero-scrim");
-			heroScrim.pickingMode = PickingMode.Ignore;
 			// 오른쪽 정보 띠 (밤 테마). 그림 위 글 가독용
-			AddBlock(root, "__band").pickingMode = PickingMode.Ignore;
-			AddBlock(root, "__mist").pickingMode = PickingMode.Ignore;
+			foreach (VisualElement decoration in new[] { backdropTextLabel, AddBlock(root, "__deco"), numberLabel, heroImage, heroScrim, AddBlock(root, "__band"), AddBlock(root, "__mist") })
+			{
+				decoration.pickingMode = PickingMode.Ignore;
+				AddBackdrop(decoration);
+			}
 
 			VisualElement top = AddBlock(root, "__top");
 			backButton = AddRoundButton("BackButton", "←");

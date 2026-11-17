@@ -54,18 +54,15 @@ namespace WitchMendokusai.SequenceLibrary
             launcher.style.minWidth = 140;
             launcher.style.minHeight = 44;
             root.OverlayLayer.Add(launcher);
-            panel = new VisualElement { name = "sequence-library-panel" };
-            panel.style.position = Position.Absolute;
-            panel.style.left = 0;
-            panel.style.right = 0;
-            panel.style.top = 0;
-            panel.style.bottom = 0;
-            panel.style.paddingLeft = 24;
-            panel.style.paddingRight = 24;
-            panel.style.paddingTop = 24;
-            panel.style.paddingBottom = 24;
+            // 배경은 화면 끝까지 (panel), 목록은 안전 영역 (panelContent)
+            FullScreenFrame screenFrame = root.CreateFullScreenFrame(root.ScreenLayer, "sequence-library-panel");
+            panel = screenFrame.Root;
+            VisualElement panelContent = screenFrame.Content;
+            panelContent.style.paddingLeft = 24;
+            panelContent.style.paddingRight = 24;
+            panelContent.style.paddingTop = 24;
+            panelContent.style.paddingBottom = 24;
             panel.style.display = DisplayStyle.None;
-            root.ScreenLayer.Add(panel);
             VisualElement header = new VisualElement();
             header.style.flexDirection = FlexDirection.Row;
             header.style.backgroundColor = new Color(.08f, .09f, .12f, .96f);
@@ -77,17 +74,17 @@ namespace WitchMendokusai.SequenceLibrary
             title.style.alignSelf = Align.Center;
             header.Add(title);
             header.Add(new Button(Close) { text = "로비로 돌아가기", name = "sequence-library-close" });
-            panel.Add(header);
+            panelContent.Add(header);
             status = new Label();
             status.style.whiteSpace = WhiteSpace.Normal;
             status.style.color = Color.white;
             status.style.paddingTop = 8;
             status.style.paddingBottom = 8;
             status.style.backgroundColor = new Color(.08f, .09f, .12f, .96f);
-            panel.Add(status);
+            panelContent.Add(status);
             entries = new ScrollView();
             entries.style.flexGrow = 1;
-            panel.Add(entries);
+            panelContent.Add(entries);
             transport = new VisualElement();
             transport.style.flexDirection = FlexDirection.Row;
             transport.style.marginTop = StyleKeyword.Auto;
@@ -106,7 +103,7 @@ namespace WitchMendokusai.SequenceLibrary
             });
             transport.Add(timeline);
             transport.Add(new Button(ShowEntries) { text = "목록으로", name = "sequence-list" });
-            panel.Add(transport);
+            panelContent.Add(transport);
             input.RegisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, Close, CanClose);
             SceneManager.sceneLoaded += OnSceneLoaded;
         }

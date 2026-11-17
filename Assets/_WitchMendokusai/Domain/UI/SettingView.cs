@@ -30,6 +30,7 @@ namespace WitchMendokusai
 		[SerializeField] private float frameOutset = 4f;
 
 		private VisualElement container;
+		private VisualElement safeContent;
 		private VisualElement stage;
 		private VisualElement sidebar;
 		private VisualElement contentArea;
@@ -84,10 +85,11 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			container = new VisualElement();
+			// 어두운 막은 화면 끝까지 (container), 설정판은 안전 영역 (safeContent) 가운데
+			FullScreenFrame frame = uiRoot.CreateFullScreenFrame(uiRoot.ScreenLayer, "SettingView");
+			container = frame.Root;
+			safeContent = frame.Content;
 			container.AddToClassList(USS_CLASS);
-			uiRoot.ScreenLayer.Add(container);
-			uiRoot.RegisterFullBleed(container);
 
 			BuildNavigation();
 			BuildUI();
@@ -112,8 +114,8 @@ namespace WitchMendokusai
 		{
 			stage = new VisualElement();
 			stage.AddToClassList("wm-setting-stage");
-			container.Add(stage);
-			container.RegisterCallback<GeometryChangedEvent>(_ => FitStage());
+			safeContent.Add(stage);
+			safeContent.RegisterCallback<GeometryChangedEvent>(_ => FitStage());
 			stage.RegisterCallback<GeometryChangedEvent>(_ => FitStage());
 
 			Label titleLabel = new Label("환경설정");
@@ -156,10 +158,10 @@ namespace WitchMendokusai
 		{
 			float width = stage.resolvedStyle.width;
 			float height = stage.resolvedStyle.height;
-			float scale = Mathf.Min(container.resolvedStyle.width / width, container.resolvedStyle.height / height);
+			float scale = Mathf.Min(safeContent.resolvedStyle.width / width, safeContent.resolvedStyle.height / height);
 			stage.style.scale = new Scale(new Vector3(scale, scale, 1f));
-			stage.style.left = (container.resolvedStyle.width - width * scale) * .5f;
-			stage.style.top = (container.resolvedStyle.height - height * scale) * .5f;
+			stage.style.left = (safeContent.resolvedStyle.width - width * scale) * .5f;
+			stage.style.top = (safeContent.resolvedStyle.height - height * scale) * .5f;
 		}
 
 		protected void RegisterTab(string tabKey, string title, Func<VisualElement> contentBuilder)

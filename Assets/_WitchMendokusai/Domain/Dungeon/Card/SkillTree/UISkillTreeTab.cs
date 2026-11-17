@@ -115,6 +115,8 @@ namespace WitchMendokusai
 		private Vector2 ToPanel(Vector2 screenPoint) =>
 			RuntimePanelUtils.ScreenToPanel(view.panel, new Vector2(screenPoint.x, Screen.height - screenPoint.y));
 
+		private FullScreenFrame mountFrame;
+
 		private void Mount()
 		{
 			if (view == null)
@@ -124,7 +126,13 @@ namespace WitchMendokusai
 				view.styleSheets.Add(styleSheet);
 				view.NodePointerEntered += OnNodePointerEntered;
 			}
-			UIRoot.Instance.ScreenLayer.Add(view);
+			// 패널 좌표 그대로 놓으려면 화면 전체 기준 틀. 안전 영역 층에 바로 넣으면 노치만큼 밀림
+			if (mountFrame.Root == null)
+			{
+				mountFrame = UIRoot.Instance.CreateFullScreenFrame(UIRoot.Instance.ScreenLayer, nameof(UISkillTreeTab));
+				mountFrame.Root.pickingMode = PickingMode.Ignore;
+			}
+			mountFrame.Root.Add(view);
 		}
 
 		private void Rebuild()

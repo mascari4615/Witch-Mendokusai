@@ -95,6 +95,11 @@ namespace WitchMendokusai
 
 			root.RegisterCallback<PointerDownEvent>(OnRootPointerDown);
 			uiRoot.WindowsLayer.Add(root);
+			// 화면을 덮는 막과 효과는 노치 쪽 끝까지. 대사창, 선택지, 도구는 안전 영역 그대로
+			foreach (string coverName in new[] { "wm-dlg-backdrop", "wm-dlg-fx", "wm-dlg-flash" })
+				uiRoot.RegisterFullBleed(root.Q<VisualElement>(coverName));
+			uiRoot.RegisterFullBleed(root.Q<VisualElement>("wm-dlg-band-top"), true);
+			uiRoot.RegisterFullBleed(root.Q<VisualElement>("wm-dlg-band-bottom"), true);
 		}
 
 		public void Begin(IDialogueStageControls stageControls)

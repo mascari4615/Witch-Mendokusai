@@ -93,14 +93,12 @@ namespace WitchMendokusai
 
         private void BuildPanel()
         {
-            container = new VisualElement { name = nameof(MultiplayerLobbyController) };
-            container.style.position = Position.Absolute;
-            container.style.left = 0;
-            container.style.top = 0;
-            container.style.right = 0;
-            container.style.bottom = 0;
-            container.style.alignItems = Align.Center;
-            container.style.justifyContent = Justify.Center;
+            // 막은 화면 끝까지 (container), 로비 틀은 안전 영역 가운데 (content)
+            FullScreenFrame screenFrame = uiRoot.CreateFullScreenFrame(uiRoot.ScreenLayer, nameof(MultiplayerLobbyController));
+            container = screenFrame.Root;
+            VisualElement content = screenFrame.Content;
+            content.style.alignItems = Align.Center;
+            content.style.justifyContent = Justify.Center;
             container.style.backgroundColor = new Color(0f, 0f, 0f, 0.45f);
             container.style.display = DisplayStyle.None;
 
@@ -158,8 +156,7 @@ namespace WitchMendokusai
             backButton.style.marginTop = 10f;
             frame.Add(backButton);
 
-            container.Add(frame);
-            uiRoot.ScreenLayer.Add(container);
+            content.Add(frame);
         }
 
         private void OnHostClicked()

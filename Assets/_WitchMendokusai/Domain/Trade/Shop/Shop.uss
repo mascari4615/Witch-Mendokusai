@@ -3,6 +3,11 @@
     padding: 0;
 }
 
+/* 상점 배경. 화면 끝까지 덮는 틀 (UIToolkitPanel.Root) 에 붙음 */
+.wm-shop-backdrop {
+    background-color: rgb(12, 10, 16);
+}
+
 .wm-shop {
     --wm-shop-ink: rgb(241, 241, 243);
     --wm-shop-soft: rgb(180, 177, 192);
@@ -23,7 +28,6 @@
     top: 0;
     right: 0;
     bottom: 0;
-    background-color: rgb(12, 10, 16);
     color: var(--wm-shop-ink);
     -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11-Bold.ttf");
     font-size: 20px;

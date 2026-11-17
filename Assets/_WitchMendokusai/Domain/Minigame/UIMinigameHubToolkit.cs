@@ -55,7 +55,8 @@ namespace WitchMendokusai
 			// ★ 바닥 여백이 없었다 (실측) — 그래서 시작 버튼이 화면 끝에 붙어 *잘린 채* 떴다.
 			//   사용자 실증: "시작 버튼이 이상한데". 창의 가장 중요한 손잡이가 화면 밖으로 나가 있었다.
 			root.style.paddingBottom = 36;
-			root.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.985f);
+			// 배경은 화면 끝까지 덮는 틀에, 내용은 안전 영역 칸에
+			Root.style.backgroundColor = new Color(0.04f, 0.05f, 0.08f, 0.985f);
 			// ★ 창을 화면 가득 늘리지 않는다 (실측: 글은 위 1/4 에만 있고 아래가 텅 빈 채 시작 버튼만
 			//   저 멀리 떨어져 있었다). 내용만 한 덩어리로 묶어 화면 가운데 앉히면 눈이 한 번에 담는다.
 			root.style.justifyContent = Justify.Center;

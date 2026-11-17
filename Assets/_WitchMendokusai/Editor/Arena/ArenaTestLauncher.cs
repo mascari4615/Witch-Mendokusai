@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
@@ -88,7 +89,10 @@ namespace WitchMendokusai
 				}
 				else
 				{
-					new TacticEditorView(uiRoot.ScreenLayer, entries, () => match.Begin(config, root));
+					// 편집기 막은 화면 끝까지. 틀 자체는 손가락을 안 잡음 (편집기가 닫힌 뒤 빈 틀이 화면을 막지 않게)
+					FullScreenFrame editorFrame = uiRoot.CreateFullScreenFrame(uiRoot.ScreenLayer, nameof(TacticEditorView));
+					editorFrame.Root.pickingMode = PickingMode.Ignore;
+					new TacticEditorView(editorFrame.Root, entries, () => match.Begin(config, root));
 					Debug.Log("ArenaTestLauncher: 전술 에디터 열림 — 유닛 " + entries.Count
 						+ "기, 행 편집 후 [매치 시작] 클릭. z=" + ARENA_OFFSET_Z + " 관전.");
 				}
