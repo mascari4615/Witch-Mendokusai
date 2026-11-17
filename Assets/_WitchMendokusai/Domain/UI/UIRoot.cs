@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
@@ -143,6 +144,8 @@ namespace WitchMendokusai
 			// 안전 영역: 화면 가장자리에 붙는 층만. Overlay, Tooltip 은 포인터 좌표를 따라가서 화면 전체 기준 유지
 			safeArea = SafeArea.UNSET;
 			ApplySafeArea();
+			WindowsLayer.RegisterCallback<GeometryChangedEvent>(_ => ApplyFullBleed());
+			ScreenLayer.RegisterCallback<GeometryChangedEvent>(_ => ApplyFullBleed());
 
 			// TASK-WM-133 — panel-root 에 UI 서비스 1회 owner-push. UXML-cloned
 			// VisualElement(DiscoveryDetailPanel 등)가 static Instance reach 대신
@@ -190,6 +193,46 @@ namespace WitchMendokusai
 				return;
 			foreach (VisualElement layer in new[] { HudLayer, ModeHudLayer, WindowsLayer, ScreenLayer })
 				SafeArea.ApplyInsets(layer, safeArea);
+			ApplyFullBleed();
+		}
+
+		private readonly List<VisualElement> fullBleedElements = new();
+
+		/// <summary>
+		/// 안전 영역 층 안의 전체 화면 요소 (어두운 배경) 를 화면 끝까지 넓힘. 노치 쪽에 안 덮인 띠가 남던 것 (2026-11-17 폰 실기)
+		/// 요소 크기는 화면 전체가 되므로 안의 내용은 스스로 가운데 배치여야 함
+		/// </summary>
+		public void RegisterFullBleed(VisualElement element)
+		{
+			if (fullBleedElements.Contains(element))
+				return;
+			fullBleedElements.Add(element);
+			element.RegisterCallback<AttachToPanelEvent>(_ => ApplyFullBleed(element));
+			ApplyFullBleed(element);
+		}
+
+		private void ApplyFullBleed()
+		{
+			fullBleedElements.RemoveAll(element => element == null);
+			foreach (VisualElement element in fullBleedElements)
+				ApplyFullBleed(element);
+		}
+
+		private void ApplyFullBleed(VisualElement element)
+		{
+			VisualElement layer = element.parent;
+			if (layer == null || safeArea == SafeArea.UNSET)
+				return;
+			float width = layer.resolvedStyle.width;
+			float height = layer.resolvedStyle.height;
+			// 층 크기 확정 전이면 층의 GeometryChanged 에서 다시
+			if (float.IsNaN(width) || float.IsNaN(height) || width <= 0f || height <= 0f)
+				return;
+			Vector4 bleed = SafeArea.BleedOffsets(safeArea, new Vector2(width, height));
+			element.style.left = -bleed.x;
+			element.style.right = -bleed.y;
+			element.style.top = -bleed.z;
+			element.style.bottom = -bleed.w;
 		}
 
 		private static VisualElement MakeLayer(string name, PickingMode pickingMode)

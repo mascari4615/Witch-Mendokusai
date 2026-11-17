@@ -60,6 +60,17 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(30f / 1080f * 100f, element.style.bottom.value.value, TOLERANCE);
 		}
 
+		// 안전 영역 층 (2300x1050 픽셀) 안의 배경을 화면 전체 (2400x1080) 로 되돌리는 바깥 거리
+		[Test]
+		public void Bleed_offsets_restore_full_screen_from_safe_layer()
+		{
+			Vector4 bleed = SafeArea.BleedOffsets(NotchNormalized, new Vector2(2300f, 1050f));
+			Assert.AreEqual(100f, bleed.x, TOLERANCE);
+			Assert.AreEqual(0f, bleed.y, TOLERANCE);
+			Assert.AreEqual(0f, bleed.z, TOLERANCE);
+			Assert.AreEqual(30f, bleed.w, TOLERANCE);
+		}
+
 		// 중복 금지: 화면 안전 영역은 SafeArea 만 읽음. 다른 자리에서 다시 계산하면 기기마다 어긋남
 		[Test]
 		public void Only_safe_area_reads_screen_safe_area()

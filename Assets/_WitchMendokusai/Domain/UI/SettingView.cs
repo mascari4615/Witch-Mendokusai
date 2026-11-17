@@ -87,6 +87,7 @@ namespace WitchMendokusai
 			container = new VisualElement();
 			container.AddToClassList(USS_CLASS);
 			uiRoot.ScreenLayer.Add(container);
+			uiRoot.RegisterFullBleed(container);
 
 			BuildNavigation();
 			BuildUI();

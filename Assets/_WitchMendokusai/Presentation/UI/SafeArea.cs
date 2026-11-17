@@ -52,6 +52,21 @@ namespace WitchMendokusai.Presentation
 		}
 
 		/// <summary>
+		/// 안전 영역으로 줄어든 층 안에서 화면 전체로 다시 넓힐 때의 바깥 거리 (왼쪽, 오른쪽, 위, 아래, 패널 픽셀).
+		/// 어둡게 덮는 배경이 노치 쪽 띠를 남기지 않게 함. 부모 층 크기에서 역산해 배율 계산 없음
+		/// </summary>
+		public static Vector4 BleedOffsets(Rect normalized, Vector2 layerSize)
+		{
+			float spanX = Mathf.Max(0.0001f, normalized.width);
+			float spanY = Mathf.Max(0.0001f, normalized.height);
+			return new Vector4(
+				normalized.xMin / spanX * layerSize.x,
+				(1f - normalized.xMax) / spanX * layerSize.x,
+				(1f - normalized.yMax) / spanY * layerSize.y,
+				normalized.yMin / spanY * layerSize.y);
+		}
+
+		/// <summary>
 		/// 흐름 배치 루트용. 자기 크기는 그대로 두고 안쪽 여백으로 비킴.
 		/// UI Toolkit 의 퍼센트 여백은 위아래도 폭 기준이라 픽셀로 바꿔 넣음. 크기가 정해진 뒤 (GeometryChanged) 호출
 		/// </summary>
