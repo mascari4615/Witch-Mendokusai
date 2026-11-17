@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		// 계산 해상도 범위. 한 프레임 칸 수가 커지지 않게 묶음
 		private const int MIN_MAP_WIDTH = 16;
 		private const int MAX_MAP_WIDTH = 512;
-		private const int MAX_MAP_HEIGHT = 512;
+		private const int MAX_MAP_ROWS = 512;
 		// 4 x (1 - x) 의 최댓값은 x 가 0.5 일 때 1. 경계 한가운데가 가장 밝게
 		private const float EDGE_PEAK_NORMALIZER = 4f;
 
@@ -46,7 +46,7 @@ namespace WitchMendokusai
 		public void Resize(Vector2 size)
 		{
 			int width = Mathf.Clamp(UIFxSettings.Instance.wipeMapWidth, MIN_MAP_WIDTH, MAX_MAP_WIDTH);
-			int height = Mathf.Clamp(Mathf.RoundToInt(width * size.y / size.x), 1, MAX_MAP_HEIGHT);
+			int height = Mathf.Clamp(Mathf.RoundToInt(width * size.y / size.x), 1, MAX_MAP_ROWS);
 			float aspect = size.x / size.y;
 
 			if (texture != null)
