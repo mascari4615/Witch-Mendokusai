@@ -1,0 +1,447 @@
+/* 전체 메뉴 (ESC, 폰 뒤로가기). 기준 화면 높이 1080, FullMenuView.FitStage 가 화면에 맞춤
+   결: 설정창과 같은 갈무리 글꼴, 평행사변형 판 (Vector.png), 흰 테두리. 강조는 코어의 보라 하나 */
+
+.wm-fullmenu {
+    /* 선형 색 공간이라 반투명이 시안보다 밝게 나옴. 뒤 HUD 글자가 안 읽히는 값 */
+    --wm-fullmenu-veil: rgb(9, 7, 13);
+    --wm-fullmenu-panel: rgb(32, 30, 36);
+    --wm-fullmenu-panel-deep: rgb(22, 21, 26);
+    --wm-fullmenu-line: rgba(255, 255, 255, 0.28);
+    --wm-fullmenu-ink: rgb(244, 242, 246);
+    --wm-fullmenu-ink-soft: rgb(176, 170, 184);
+    --wm-fullmenu-ink-dark: rgb(20, 20, 25);
+    --wm-fullmenu-select: rgb(232, 232, 236);
+    --wm-fullmenu-glow: rgb(180, 108, 255);
+    --wm-fullmenu-value: rgb(242, 226, 122);
+    --wm-fullmenu-teal: rgb(43, 117, 115);
+
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out;
+    display: none;
+    color: var(--wm-fullmenu-ink);
+    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11-Bold.ttf");
+}
+
+.wm-fullmenu--active {
+    opacity: 1;
+}
+
+/* 배경. 기본은 단색 막, 흐림이 켜지면 어둡게 물들인 흐린 게임 화면. 뒤 HUD 는 어느 쪽이든 가려짐 */
+/* 흐림 필터가 요소 가장자리를 투명하게 만들어 밝은 게임 화면이 샘. 화면보다 넓게 */
+.wm-fullmenu__backdrop {
+    position: absolute;
+    left: -32px;
+    top: -32px;
+    right: -32px;
+    bottom: -32px;
+    background-color: var(--wm-fullmenu-veil);
+    background-size: 100% 100%;
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0);
+}
+
+.wm-fullmenu__backdrop--blur {
+    background-color: var(--wm-fullmenu-veil);
+    -unity-background-image-tint-color: rgb(84, 74, 98);
+    filter: blur(7px) grayscale(0.35);
+}
+
+.wm-fullmenu--hidden {
+    display: none;
+}
+
+.wm-fullmenu__stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+    padding: 44px 64px 40px 64px;
+    flex-direction: column;
+}
+
+/* ===== 위 줄: 재화, 제목, 닫기 ===== */
+
+.wm-fullmenu__top {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 72px;
+}
+
+.wm-fullmenu-nyang {
+    flex-direction: row;
+    align-items: center;
+    height: 60px;
+    padding: 0 44px 0 30px;
+    background-image: url("../../../Art/Texture/UI/Vector.png");
+    -unity-slice-left: 30;
+    -unity-slice-right: 30;
+    -unity-slice-scale: 0.72px;
+    -unity-background-image-tint-color: var(--wm-fullmenu-teal);
+}
+
+.wm-fullmenu-nyang__icon {
+    width: 34px;
+    height: 34px;
+    margin-right: 12px;
+    -unity-background-image-tint-color: var(--wm-fullmenu-value);
+}
+
+.wm-fullmenu-nyang__value {
+    font-size: 32px;
+    color: rgb(255, 255, 255);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+}
+
+.wm-fullmenu__spacer {
+    flex-grow: 1;
+}
+
+.wm-fullmenu__title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 44px;
+    height: 72px;
+    padding: 0 0 0 12px;
+    margin: 0;
+    font-size: 40px;
+    -unity-text-align: middle-center;
+    letter-spacing: 12px;
+    color: var(--wm-fullmenu-ink);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+}
+
+.wm-fullmenu-close {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 224px;
+    height: 60px;
+    margin: 0;
+    padding: 0;
+    background-color: rgb(20, 20, 24);
+    color: rgb(255, 255, 255);
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.6);
+    border-radius: 0;
+    font-size: 24px;
+}
+
+/* ===== 가운데 줄: 큰 칸, 코어, 작은 칸 ===== */
+
+.wm-fullmenu__body {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-fullmenu__main {
+    width: 470px;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
+.wm-fullmenu-main {
+    flex-direction: row;
+    align-items: center;
+    height: 116px;
+    margin: 0 0 14px 0;
+    padding: 0 40px 0 44px;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("../../../Art/Texture/UI/Vector.png");
+    -unity-slice-left: 30;
+    -unity-slice-right: 30;
+    -unity-slice-scale: 1.4px;
+    -unity-background-image-tint-color: var(--wm-fullmenu-panel);
+    border-width: 0;
+    border-radius: 0;
+    color: var(--wm-fullmenu-ink);
+    transition-property: translate;
+    transition-duration: 0.1s;
+    transition-timing-function: ease-out;
+}
+
+.wm-fullmenu-main__icon {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    margin-right: 24px;
+    -unity-background-image-tint-color: var(--wm-fullmenu-ink);
+}
+
+.wm-fullmenu-main__texts {
+    flex-grow: 1;
+}
+
+.wm-fullmenu-main__label {
+    font-size: 36px;
+    padding: 0;
+    margin: 0;
+    -unity-text-align: middle-left;
+}
+
+.wm-fullmenu-main__desc {
+    font-size: 20px;
+    padding: 0;
+    margin: 6px 0 0 0;
+    -unity-text-align: middle-left;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-fullmenu-main:focus {
+    -unity-background-image-tint-color: var(--wm-fullmenu-select);
+    color: var(--wm-fullmenu-ink-dark);
+    translate: 18px 0;
+}
+
+.wm-fullmenu-main:focus .wm-fullmenu-main__icon {
+    -unity-background-image-tint-color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-fullmenu-main:focus .wm-fullmenu-main__desc {
+    color: rgb(86, 80, 96);
+}
+
+.wm-fullmenu-key {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 8px;
+    margin: 0;
+    font-size: 22px;
+    -unity-text-align: middle-center;
+    color: var(--wm-fullmenu-ink-soft);
+    border-width: 2px;
+    border-color: var(--wm-fullmenu-line);
+    background-color: rgba(0, 0, 0, 0.35);
+}
+
+.wm-fullmenu-nav:focus .wm-fullmenu-key {
+    color: var(--wm-fullmenu-ink-dark);
+    border-color: rgba(20, 20, 25, 0.55);
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.wm-fullmenu__center {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-fullmenu-core {
+    width: 520px;
+    height: 520px;
+}
+
+.wm-fullmenu-core__glow {
+    position: absolute;
+    left: -150px;
+    top: -150px;
+    right: -150px;
+    bottom: -150px;
+    -unity-background-image-tint-color: rgba(150, 84, 230, 0.34);
+}
+
+.wm-fullmenu-core__model {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.wm-fullmenu-where {
+    width: 600px;
+    height: 110px;
+    margin-top: -58px;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-fullmenu-where__ring {
+    position: absolute;
+    border-width: 2px;
+    border-color: rgba(232, 214, 240, 0.2);
+    border-radius: 50%;
+}
+
+.wm-fullmenu-where__ring--1 {
+    width: 580px;
+    height: 100px;
+}
+
+.wm-fullmenu-where__ring--2 {
+    width: 380px;
+    height: 64px;
+}
+
+.wm-fullmenu-where__ring--3 {
+    width: 180px;
+    height: 30px;
+    border-color: rgba(232, 214, 240, 0.4);
+}
+
+.wm-fullmenu-where__pin {
+    width: 18px;
+    height: 18px;
+    rotate: 45deg;
+    background-color: var(--wm-fullmenu-glow);
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+}
+
+.wm-fullmenu-place {
+    margin-top: 6px;
+    font-size: 44px;
+    -unity-text-align: middle-center;
+    color: rgb(255, 255, 255);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+}
+
+.wm-fullmenu-time {
+    margin-top: 8px;
+    font-size: 24px;
+    -unity-text-align: middle-center;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-fullmenu__tiles {
+    width: 470px;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
+.wm-fullmenu__tile-row {
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.wm-fullmenu-tile {
+    width: 214px;
+    height: 190px;
+    margin: 0 0 14px 14px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--wm-fullmenu-panel-deep);
+    border-width: 2px;
+    border-color: var(--wm-fullmenu-line);
+    border-radius: 0;
+    color: var(--wm-fullmenu-ink);
+}
+
+.wm-fullmenu-tile__icon {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 14px;
+    -unity-background-image-tint-color: var(--wm-fullmenu-ink);
+}
+
+.wm-fullmenu-tile__label {
+    font-size: 28px;
+    padding: 0;
+    margin: 0;
+    -unity-text-align: middle-center;
+}
+
+.wm-fullmenu-tile .wm-fullmenu-key {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+
+.wm-fullmenu-tile:focus {
+    background-color: var(--wm-fullmenu-select);
+    border-color: rgb(255, 255, 255);
+    color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-fullmenu-tile:focus .wm-fullmenu-tile__icon {
+    -unity-background-image-tint-color: var(--wm-fullmenu-ink-dark);
+}
+
+/* ===== 아래 줄: 지금 인형, 설정과 종료 ===== */
+
+.wm-fullmenu__bottom {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 84px;
+}
+
+.wm-fullmenu-me {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.wm-fullmenu-me__portrait {
+    width: 76px;
+    height: 76px;
+    margin-right: 18px;
+    background-color: var(--wm-fullmenu-panel-deep);
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.6);
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-fullmenu-me__name {
+    font-size: 32px;
+    margin-right: 14px;
+    color: rgb(255, 255, 255);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+}
+
+.wm-fullmenu-me__level {
+    font-size: 32px;
+    color: var(--wm-fullmenu-value);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+}
+
+.wm-fullmenu__system {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-fullmenu-system {
+    flex-direction: row;
+    align-items: center;
+    height: 72px;
+    margin: 0 0 0 14px;
+    padding: 0 34px 0 26px;
+    background-color: rgb(20, 20, 24);
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.6);
+    border-radius: 0;
+    color: rgb(255, 255, 255);
+}
+
+.wm-fullmenu-system__icon {
+    width: 34px;
+    height: 34px;
+    margin-right: 14px;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.wm-fullmenu-system__label {
+    font-size: 26px;
+    padding: 0;
+    margin: 0;
+}
+
+.wm-fullmenu-system:focus,
+.wm-fullmenu-close:focus {
+    background-color: var(--wm-fullmenu-select);
+    border-color: rgb(255, 255, 255);
+    color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-fullmenu-system:focus .wm-fullmenu-system__icon {
+    -unity-background-image-tint-color: var(--wm-fullmenu-ink-dark);
+}

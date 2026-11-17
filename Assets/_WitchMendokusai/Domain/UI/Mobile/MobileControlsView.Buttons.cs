@@ -183,17 +183,12 @@ namespace WitchMendokusai
 			RegisterMovable(column);
 		}
 
-		private VisualElement windowMenuColumn;
 		private Label interactButton;
 
 		/// <summary>
-		/// 창으로 가는 길 (TASK-WM-200) — 폰엔 키보드가 없다.
-		///
-		/// ★ 이게 없으면 폰에서 *인벤토리·퀘스트·도감·마도서·인형·스탯이 통째로 없는 기능*이 된다.
-		///   전부 키 하나에만 매달려 있었고(I/J/B/M/K/V), 화면 어디에도 문이 없었다. 조작 장치를
-		///   아무리 잘 만들어도 물건을 못 꺼내면 게임이 성립하지 않는다.
-		/// ★ 왜 접어 두나: 창이 여섯이라 늘 펼쳐 두면 화면 오른쪽 절반이 버튼밭이 된다.
-		///   자주 쓰는 것은 아래 동작 버튼이고, 이건 「가끔 여는 것들」이다.
+		/// 창으로 가는 길. 폰에는 키보드가 없어서 화면에 문이 하나 있어야 함
+		/// 예전에는 이 버튼이 창 버튼 서랍을 펼쳤음. 지금은 전체 메뉴 (FullMenuView) 를 엶
+		/// 창, 시점, 버튼 자리 옮기기 모두 전체 메뉴 안에 있고 PC 의 ESC 와 같은 화면
 		/// </summary>
 		private void BuildWindowMenu(VisualElement parent)
 		{
@@ -204,45 +199,7 @@ namespace WitchMendokusai
 			corner.style.alignItems = Align.FlexEnd;
 			corner.pickingMode = PickingMode.Ignore;
 
-			// ★ 목록이 화면보다 길어질 수 있다. 손끝 크기 바닥을 깔면서 칸이 커졌고, 항목도 늘었다 —
-			//   계산해 보면 여덟 개에 토글까지 872 인데 화면은 800 이다. 넘치면 **아래쪽 항목이
-			//   화면 밖으로 밀려 영영 못 누른다**(잘리는 게 아니라 사라진다).
-			//   그래서 넘칠 때만 스스로 굴러가게 둔다 — 항목이 더 늘어도 같은 문제가 안 난다.
-			ScrollView windowMenuScroll = new ScrollView(ScrollViewMode.Vertical)
-			{
-				name = "MobileWindowMenuScroll",
-			};
-			windowMenuScroll.style.display = DisplayStyle.None;
-			// ★ 백분율로 주면 안 된다 — 이 목록을 담은 상자는 세로가 *내용에 따라 정해지는* 상자라,
-			//   「그 72%」가 가리킬 기준이 없다. 그러면 높이가 0 으로 접혀 **메뉴가 통째로 안 보인다**.
-			//   화면 기준 세로에서 직접 계산한 픽셀로 준다.
-			windowMenuScroll.style.maxHeight = PANEL_REFERENCE_HEIGHT * 0.72f;
-			windowMenuScroll.verticalScrollerVisibility = ScrollerVisibility.Auto;
-			windowMenuScroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
-
-			windowMenuColumn = windowMenuScroll;
-			windowMenuColumn.style.alignItems = Align.FlexEnd;
-			windowMenuScroll.contentContainer.style.alignItems = Align.FlexEnd;
-
-			AddWindowButton("가방", InputEventType.Inventory);
-			AddWindowButton("퀘스트", InputEventType.QuestToggle);
-			AddWindowButton("도감", InputEventType.DiscoveryToggle);
-			AddWindowButton("마도서", InputEventType.MagicBookToggle);
-			AddWindowButton("인형", InputEventType.DollToggle);
-			AddWindowButton("몸 상태", InputEventType.Status);
-			// 건축도 키 하나에만 매달려 있었다 — 폰에서 집을 지을 방법이 0 이었다.
-			AddWindowButton("건축", InputEventType.BuildModeToggle);
-			// 시점 바꾸기(1인칭/3인칭 순환)도 키 하나에만 있었다 — 폰에선 시점을 영영 못 바꿨다.
-			// 자주 쓰는 조작이 아니라 화면에 상시 띄우지 않고 이 서랍에 둔다.
-			AddWindowButton("시점", InputEventType.CameraViewCycle);
-			// 1인칭↔3인칭은 위의 「시점 순환」과 다른 축이다(그건 부감·자유비행을 도는 것).
-			// 이것도 키 하나(F5)에만 있어서 폰에선 1인칭으로 갈 방법이 0 이었다.
-			AddWindowButton("1인칭", InputEventType.CameraPerspectiveToggle);
-			windowMenuColumn.Add(MakeLayoutEditButton());
-
-			Label toggle = MakeMenuToggleButton();
-			corner.Add(toggle);
-			corner.Add(windowMenuColumn);
+			corner.Add(MakeMenuButton());
 			corner.name = "MobileWindowMenu";
 			parent.Add(corner);
 			RegisterMovable(corner);
@@ -250,19 +207,23 @@ namespace WitchMendokusai
 			BuildEditBar(parent);
 		}
 
-		private Label MakeMenuToggleButton()
+		private Label MakeMenuButton()
 		{
 			Label button = new Label { name = "MobileWindowMenuToggle" };
 			StyleRoundButton(button, actionButtonSize * 0.7f);
-			ApplyIcon(button, Icons.WindowMenu, "창");
+			ApplyIcon(button, Icons.WindowMenu, "메뉴");
 			button.RegisterCallback<PointerDownEvent>(evt =>
 			{
-				bool open = windowMenuColumn.style.display == DisplayStyle.None;
-				windowMenuColumn.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
 				evt.StopPropagation();
+				// 자리를 옮기는 중이면 버튼은 손잡이
+				if (layoutEditMode)
+					return;
+				if (UIRoot.TryGetExistingInstance(out UIRoot uiRoot))
+					uiRoot.FullMenuView.Open();
 			});
 			return button;
 		}
+
 
 		/// <summary> 한 번 톡 = 그 키를 한 번 눌렀다 뗀 것 — 창 여닫기처럼 「누르고 있기」가 뜻 없는 것들. </summary>
 		private Label MakeTapButton(string label, InputEventType inputEventType)
@@ -343,13 +304,6 @@ namespace WitchMendokusai
 			image.style.backgroundImage = new StyleBackground(icon);
 			image.style.unityBackgroundImageTintColor = iconTint;
 			button.Add(image);
-		}
-
-		// 창 메뉴 칸. 이 빌드에서 안내하지 않는 기능 (데모의 도감, 마도서, 인형, 건축) 은 F1 창과 같은 기준으로 뺌
-		private void AddWindowButton(string label, InputEventType inputEventType)
-		{
-			if (KeybindRegistry.IsShownInThisBuild(inputEventType))
-				windowMenuColumn.Add(MakeTapButton(label, inputEventType));
 		}
 
 		/// <summary>

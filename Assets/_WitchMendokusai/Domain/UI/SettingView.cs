@@ -247,7 +247,7 @@ namespace WitchMendokusai
 			btnSaveInit.AddToClassList(NAV_CLASS);
 			buttonGroup.Add(btnSaveInit);
 
-			Button btnQuit = new Button(() => AskConfirmWithSound("게임을 종료할까요?", "진행 중인 내용은 저장 시점까지만 남습니다.", "종료", OnQuit)) { text = "게임 종료" };
+			Button btnQuit = new Button(AskQuit) { text = "게임 종료" };
 			btnQuit.AddToClassList("wm-setting-btn");
 			btnQuit.AddToClassList(NAV_CLASS);
 			buttonGroup.Add(btnQuit);
@@ -365,7 +365,7 @@ namespace WitchMendokusai
 
 		private void OnDungeonExit()
 		{
-			Close();
+			Close(false);
 			if (playerObject == null)
 				return;
 			playerObject.ReceiveDamage(new DamageInfo
@@ -381,7 +381,7 @@ namespace WitchMendokusai
 
 		private void OnUnstuck()
 		{
-			Close();
+			Close(false);
 			if (StageManager.TryGetExistingInstance(out StageManager stageManager))
 				stageManager.ReturnToEntry();
 		}
@@ -420,7 +420,10 @@ namespace WitchMendokusai
 			timeManager.Pause(gameObject);
 		}
 
-		public void Close()
+		public void Close() => Close(true);
+
+		// byUser: 사용자가 설정창을 닫은 것. 던전 포기처럼 게임으로 바로 돌아가는 동작은 false
+		private void Close(bool byUser)
 		{
 			if (IsOpen == false) return;
 			if (IsConfirmOpen)
@@ -433,7 +436,23 @@ namespace WitchMendokusai
 			selectFrame.AddToClassList(HIDDEN_FRAME_CLASS);
 			UIMotion.Hide(container, ACTIVE_CLASS);
 			timeManager.Resume(gameObject);
+			closeAfterConfirm = false;
+			Closed(byUser);
 		}
+
+		/// <summary> 설정창이 닫힌 직후. 인자는 사용자가 닫았는지. 전체 메뉴가 받아 그때만 다시 열림 </summary>
+		public event Action<bool> Closed = delegate { };
+
+		/// <summary> 전체 메뉴의 게임 종료. 설정창을 열고 종료 확인 창을 바로 띄움. 취소하면 설정창도 닫혀 메뉴로 돌아감 </summary>
+		public void OpenQuitConfirm()
+		{
+			Open();
+			closeAfterConfirm = true;
+			AskQuit();
+		}
+
+		private void AskQuit()
+			=> AskConfirmWithSound("게임을 종료할까요?", "진행 중인 내용은 저장 시점까지만 남습니다.", "종료", OnQuit);
 
 		public void Toggle()
 		{

@@ -94,10 +94,15 @@ namespace WitchMendokusai
 				target.schedule.Execute(() => target.Focus());
 		}
 
+		// 전체 메뉴에서 확인 창만 보러 들어온 경우 (OpenQuitConfirm). 취소하면 설정창도 같이 닫음
+		private bool closeAfterConfirm;
+
 		private void CancelConfirm()
 		{
 			UiSfx.Play(UiSfxEvent.Cancel);
 			CloseConfirm();
+			if (closeAfterConfirm)
+				Close();
 		}
 
 		private void AcceptConfirm()

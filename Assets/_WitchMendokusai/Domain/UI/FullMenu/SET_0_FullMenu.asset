@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3015a13270264ebe809ad50f45634f15, type: 3}
+  m_Name: SET_0_FullMenu
+  m_EditorClassIdentifier: 
+  <Style>k__BackingField: {fileID: 7433441132597879392, guid: 191d3549f4e64c78ac11e40352cd2020, type: 3}
+  <CoinIcon>k__BackingField: {fileID: 2800000, guid: 24d0e9d32660468989f2db2686d84491, type: 3}
+  <SettingIcon>k__BackingField: {fileID: 2800000, guid: 3557631b8f635064a8a21ab3b9253836, type: 3}
+  <QuitIcon>k__BackingField: {fileID: 2800000, guid: 6cf76a743c75d39488f3fbd04838fab2, type: 3}
+  <KeybindIcon>k__BackingField: {fileID: 2800000, guid: bf5a83dd1283dc54893e51fc7b583401, type: 3}
+  <BlurOutput>k__BackingField: {fileID: 8400000, guid: 4f1f5a32ebefe5041a43447ad1711148, type: 2}
+  <ReferenceHeight>k__BackingField: 1080
+  <MinimumWidth>k__BackingField: 1600
+  <NavOverlapTolerance>k__BackingField: 4
+  <NavAcrossWeight>k__BackingField: 2
+  <CorePrefab>k__BackingField: {fileID: 6988857316963353044, guid: 71f43383e886c644b9dfc76840a882bc, type: 3}
+  <CoreTextureSize>k__BackingField: 768
+  <CoreRotateSpeed>k__BackingField: 16
+  <CoreBobHeight>k__BackingField: 0.035
+  <CoreBobPeriod>k__BackingField: 4.5
+  <CoreCameraDistance>k__BackingField: 2.6
+  <CoreCameraPitch>k__BackingField: 10
+  <CoreCameraFieldOfView>k__BackingField: 26
+  <CorePulsePeriod>k__BackingField: 3.2

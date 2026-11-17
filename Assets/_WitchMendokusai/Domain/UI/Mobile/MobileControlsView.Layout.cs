@@ -116,20 +116,8 @@ namespace WitchMendokusai
 			}
 		}
 
-		/// <summary>자리 옮기기로 들어가는 문 — 창 목록 맨 아래(자주 쓰는 것 아래)에 둔다.</summary>
-		private Label MakeLayoutEditButton()
-		{
-			Label button = new Label { name = "MobileLayoutEditEnter" };
-			StyleRoundButton(button, actionButtonSize * 0.7f);
-			ApplyIcon(button, Icons.LayoutEdit, "자리 옮기기");
-			button.RegisterCallback<PointerDownEvent>(evt =>
-			{
-				windowMenuColumn.style.display = DisplayStyle.None;
-				SetLayoutEditMode(true);
-				evt.StopPropagation();
-			});
-			return button;
-		}
+		/// <summary> 자리 옮기기로 들어가는 문. 전체 메뉴의 "자리 옮기기" 칸이 부름 </summary>
+		public void BeginLayoutEdit() => SetLayoutEditMode(true);
 
 		/// <summary>
 		/// 옮기는 동안만 뜨는 줄 — 「완료」와 「원래대로」.

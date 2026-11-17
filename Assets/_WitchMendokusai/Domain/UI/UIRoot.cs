@@ -35,6 +35,7 @@ namespace WitchMendokusai
 		[SerializeField] private StyleSheet styleSheet;
 		[SerializeField, Tooltip("폰 조작 버튼 그림")] private MobileControlIcons mobileControlIcons;
 		[SerializeField, Tooltip("상호작용 표시 모양")] private StyleSheet interactPromptStyle;
+		[SerializeField, Tooltip("전체 메뉴 (ESC) 모양과 수치")] private FullMenuSettings fullMenuSettings;
 		[field: SerializeField] public WitchMendokusai.Presentation.DamageTextSkin DamageTextSkin { get; private set; }
 		[field: SerializeField] public CreditsInfo Credits { get; private set; }
 
@@ -59,6 +60,7 @@ namespace WitchMendokusai
 			container.Inject(KeybindHelpView);
 			container.Inject(MagicBookView);
 			container.Inject(WorldClockView);
+			container.Inject(FullMenuView);
 		}
 
 		public UIDocument Document { get; private set; }
@@ -79,6 +81,7 @@ namespace WitchMendokusai
 		public KeybindHelpView KeybindHelpView { get; private set; }
 		public MagicBookView MagicBookView { get; private set; }
 		public WorldClockView WorldClockView { get; private set; }
+		public FullMenuView FullMenuView { get; private set; }
 
 		private void Awake()
 		{
@@ -107,6 +110,10 @@ namespace WitchMendokusai
 			KeybindHelpView = gameObject.AddComponent<KeybindHelpView>();
 			MagicBookView = gameObject.AddComponent<MagicBookView>();
 			WorldClockView = gameObject.AddComponent<WorldClockView>();
+			// 전체 메뉴 (ESC, 폰 뒤로가기). 설정창은 이 메뉴 안의 버튼
+			FullMenuView = gameObject.AddComponent<FullMenuView>();
+			FullMenuView.Settings = fullMenuSettings;
+			FullMenuView.Icons = mobileControlIcons;
 			// TASK-WM-200 — 화면 조작(손가락). 씬과 무관하게 늘 있어야 한다: 손가락 기기에서
 			// 조작 장치가 씬마다 있다 없다 하면 「어떤 화면에선 못 움직인다」가 된다.
 			// 마우스를 쓰는 동안은 스스로 숨는다.

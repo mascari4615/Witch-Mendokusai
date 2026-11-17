@@ -300,6 +300,20 @@ namespace WitchMendokusai
 				return;
 			}
 
+			FullMenuView fullMenuView = uiRoot.FullMenuView;
+			if (fullMenuView.IsOpen)
+			{
+				fullMenuView.Close();
+				return;
+			}
+
+			// 마도서는 창 관리자 밖의 전체 화면. 여기서 닫지 않으면 마도서 위에 메뉴가 열림
+			if (uiRoot.MagicBookView.IsOpen)
+			{
+				uiRoot.MagicBookView.Close();
+				return;
+			}
+
 			// UI Toolkit WindowManager가 관리하는 윈도우가 열려있으면 그 쪽이 닫음 (중복 처리 방지)
 			if (windowManager != null && windowManager.GetTopmostOpen() != null)
 				return;
@@ -319,7 +333,8 @@ namespace WitchMendokusai
 				}
 			}
 
-			settingView.Open();
+			// 닫을 것이 없으면 전체 메뉴. 설정창은 메뉴 안의 버튼
+			uiRoot.FullMenuView.Open();
 		}
 
 	}
