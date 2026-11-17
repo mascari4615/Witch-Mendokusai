@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2f4e7c567b53744681f8d23434d7d6a, type: 3}
+  m_Name: Ambience_4_Lamp
+  m_EditorClassIdentifier: WM.Core::WitchMendokusai.LampAmbience
+  position: {x: 0.72, y: 0.25}
+  radius: 0.4
+  color: {r: 1, g: 0.75, b: 0.43, a: 0.5}
+  flickerPerSecond: 2.4
+  flickerLow: 0.55
+  response: 18

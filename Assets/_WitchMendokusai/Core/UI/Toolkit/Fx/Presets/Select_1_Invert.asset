@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd4d9e03cb7617e4a8ec02707b6f39f8, type: 3}
+  m_Name: Select_1_Invert
+  m_EditorClassIdentifier: WM.Core::WitchMendokusai.UISelectStyle
+  scale: 1.08
+  seconds: 0.14
+  overshoot: 1.6
+  invert: 1
+  fillColor: {r: 0.95, g: 0.93, b: 0.99, a: 1}
+  textColor: {r: 0.1, g: 0.08, b: 0.15, a: 1}
+  flashColor: {r: 1, g: 0.84, b: 0.92, a: 1}
+  flashSeconds: 0.06

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 907e69a7c246e9e4fa0787a28a9557ff, type: 3}
+  m_Name: Text_1_Wave
+  m_EditorClassIdentifier: WM.Core::WitchMendokusai.UITextFx
+  amplitude: 4
+  waveSeconds: 1.6
+  phaseStep: 0.08
+  shimmerColor: {r: 1, g: 0.96, b: 0.78, a: 1}
+  shimmerSeconds: 2.4
+  shimmerWidth: 2.5

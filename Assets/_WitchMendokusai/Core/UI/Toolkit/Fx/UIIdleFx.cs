@@ -11,12 +11,15 @@ namespace WitchMendokusai
 	/// - 효과는 root 위 덮개 층에 그림. 대상 요소의 자식과 레이아웃은 건드리지 않음
 	/// - 효과 하나가 끝나야 다음 간격을 셈. root 나 조상이 숨으면 쉬고, root 가 패널에서 떨어진 동안은 일정이 멈춤
 	/// - 안쪽 WMWindow 는 창 자신의 루프가 맡으므로 건너뜀
-	/// - 효과 모양과 수치는 UIIdleEffect 에셋 (기본 UIFxSettings.idleEffect, 패널과 창이 따로 끼울 수 있음). 간격과 대상 거르기는 UIFxSettings 의 평상시 절
+	/// - 효과 모양과 수치는 UIFxProfile 의 idleEffect 에셋. 간격과 대상 거르기는 UIFxSettings 의 평상시 절
+	/// - root 아래에 wm-idle-main 클래스가 하나라도 있으면 그것들에만 (반복 효과는 주 동작에만)
 	/// </summary>
 	public static class UIIdleFx
 	{
 		public const string TARGET_CLASS = "wm-idle-target";
 		public const string SKIP_CLASS = "wm-idle-skip";
+		/// <summary>주 동작. 있으면 평상시 효과가 이것들에만</summary>
+		public const string MAIN_CLASS = "wm-idle-main";
 		/// <summary>효과와 입자 층. 패널 몸통을 셀 때 빼는 표시</summary>
 		public const string LAYER_CLASS = "wm-fx-layer";
 		private const float MILLISECONDS_PER_SECOND = 1000f;
@@ -110,8 +113,8 @@ namespace WitchMendokusai
 			loop.Running += expected;
 		}
 
-		// 자신과 조상 모두 보여야 함 (창 안 Content 는 창이 닫혀도 자기 값은 그대로)
-		private static bool IsShown(VisualElement root)
+		/// <summary>자신과 조상 모두 보이는지. 다른 UI 연출도 숨은 동안 쉬는 데 씀</summary>
+		public static bool IsShown(VisualElement root)
 		{
 			if (root.panel == null)
 				return false;
@@ -147,7 +150,8 @@ namespace WitchMendokusai
 				foreach (VisualElement child in current.Children())
 					stack.Push((child, childClip));
 			}
-			return found;
+			List<VisualElement> main = found.FindAll(element => element.ClassListContains(MAIN_CLASS));
+			return main.Count > 0 ? main : found;
 		}
 
 		private static Rect Intersect(Rect first, Rect second) =>

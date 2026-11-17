@@ -68,6 +68,9 @@ namespace WitchMendokusai
 			return ++state.Generation;
 		}
 
+		/// <summary>예약된 열기, 닫기 마무리를 취소. 다른 움직임 (UIPanelMotion) 이 요소를 넘겨받을 때</summary>
+		public static void CancelPending(VisualElement element) => Cancel(GetState(element));
+
 		/// <summary>display 를 켜고 다음 프레임에 inClass. 닫히는 중이면 그 자리에서 바로 되돌림</summary>
 		public static void Show(VisualElement element, string inClass = IN)
 		{

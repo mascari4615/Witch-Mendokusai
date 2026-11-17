@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceab5003b16ab87449029049135d2dbb, type: 3}
+  m_Name: Motion_4_ZoomFrom
+  m_EditorClassIdentifier: WM.Core::WitchMendokusai.ZoomFromPanelMotion
+  openSeconds: 0.26
+  closeSeconds: 0.2
+  fallbackScale: 0.9
+  overshoot: 0.6
+  startOpacity: 0.4

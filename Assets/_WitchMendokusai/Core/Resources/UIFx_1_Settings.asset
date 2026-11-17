@@ -68,7 +68,8 @@ MonoBehaviour:
   moteRiseSpeed: 22
   moteAlpha: 0.9
   moteColor: {r: 1, g: 0.93, b: 0.75, a: 1}
-  idleEffect: {fileID: 11400000, guid: 74340990887ea4b4f83ba8a7df028e1f, type: 2}
+  panelProfile: {fileID: 11400000, guid: 4073b9cc1e8cce041a7534942f6936f4, type: 2}
+  windowProfile: {fileID: 11400000, guid: 4073b9cc1e8cce041a7534942f6936f4, type: 2}
   idleIntervalRange: {x: 1.6, y: 3.6}
   idleMinTargetSize: 28
   idleMaxTargetAreaRatio: 0.2

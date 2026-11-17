@@ -29,8 +29,10 @@ namespace WitchMendokusai
 		/// <summary> 안전 영역 칸. BuildUI 가 받는 곳. 버튼과 글은 여기 </summary>
 		protected VisualElement Content { get; private set; }
 		private bool isBuilt;
-		[Tooltip("이 패널만의 평상시 효과. 비우면 UIFxSettings.idleEffect")]
-		[SerializeField] private UIIdleEffect idleEffect;
+		[Tooltip("이 패널의 연출 묶음. 비우면 UIFxSettings.panelProfile")]
+		[SerializeField] private UIFxProfile profile;
+
+		protected UIFxProfile Profile => profile != null ? profile : UIFxSettings.Instance.panelProfile;
 
 		public void Init(IUIPanelGroup group)
 		{
@@ -54,9 +56,16 @@ namespace WitchMendokusai
 			UIMotion.SetInstant(Root, false);
 
 			BuildUI(Content);
-			if (UIFxSettings.Instance.ambientMotes)
+			UIFxProfile buildProfile = Profile;
+			bool hasProfile = buildProfile != null;
+			if (hasProfile && buildProfile.ambience != null)
+				buildProfile.ambience.Attach(Root);
+			else if (UIFxSettings.Instance.ambientMotes)
 				UISparkle.AttachMotes(Root);
-			UIIdleFx.Attach(Root, () => idleEffect != null ? idleEffect : UIFxSettings.Instance.idleEffect);
+			if (hasProfile && buildProfile.parallax != null)
+				buildProfile.parallax.Attach(Root);
+			UIIdleFx.Attach(Root, () => Profile != null ? Profile.idleEffect : null);
+			UIFocusFx.Attach(Root, () => Profile);
 			isBuilt = true;
 		}
 
@@ -78,24 +87,52 @@ namespace WitchMendokusai
 			if (Root == null)
 				return;
 
+			UIFxProfile current = Profile;
+			UIPanelMotion motion = current != null ? current.panelMotion : null;
+			UIBackdrop backdrop = current != null ? current.backdrop : null;
 			if (newActive)
 			{
-				if (Root.ClassListContains(UIMotion.IN) == false)
-					UIMotion.UseStyle(Root, UIFxSettings.Instance.panelMotion);
-				UIMotion.Show(Root);
-				// 패널 몸통 하나 아래에 실제 칸들이 있으면 그 칸들을 순서대로 (입자와 효과 층은 세지 않음)
-				// 칸 세기는 안전 영역 칸 기준. 화면 끝 틀에는 배경 요소가 섞임
-				VisualElement body = SingleBody(Content);
-				VisualElement staggerRoot = body != null && body.childCount > 1 ? body : Content;
-				UIShine.StaggerChildren(staggerRoot);
+				// 배경이 있으면 화면을 찍은 다음 프레임에 열어 찍힌 화면에 패널이 안 들어가게
+				if (backdrop != null)
+					backdrop.Show(Root, () => Open(motion));
+				else
+					Open(motion);
 			}
 			else
-				UIMotion.Hide(Root);
+			{
+				UIFocusFx.Reset(Root);
+				if (backdrop != null)
+					backdrop.Hide(Root);
+				if (motion != null)
+					motion.Play(Root, false, null);
+				else
+					UIMotion.Hide(Root);
+			}
 
 			if (newActive)
 				OnOpen();
 			else
 				OnClose();
+		}
+
+		private void Open(UIPanelMotion motion)
+		{
+			if (motion != null)
+				motion.Play(Root, true, null);
+			else
+			{
+				if (Root.ClassListContains(UIMotion.IN) == false)
+					UIMotion.UseStyle(Root, UIFxSettings.Instance.panelMotion);
+				UIMotion.Show(Root);
+			}
+			// 패널 몸통 하나 아래에 실제 칸들이 있으면 그 칸들을 순서대로 (입자와 효과 층은 세지 않음)
+			// 칸 세기는 안전 영역 칸 기준. 화면 끝 틀에는 배경 요소가 섞임
+			VisualElement body = SingleBody(Content);
+			VisualElement staggerRoot = body != null && body.childCount > 1 ? body : Content;
+			UIShine.StaggerChildren(staggerRoot);
+			UIFxProfile current = Profile;
+			if (current != null && current.textFx != null)
+				current.textFx.ApplyAll(Root);
 		}
 
 		// 효과 층을 뺀 자식이 하나면 그 자식

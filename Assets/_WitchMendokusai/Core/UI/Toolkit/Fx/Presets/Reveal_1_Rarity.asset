@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6164cd840934a5459da84158c22a8e5, type: 3}
+  m_Name: Reveal_1_Rarity
+  m_EditorClassIdentifier: WM.Core::WitchMendokusai.UIRewardReveal
+  rarityColors:
+  - {r: 0.44, g: 0.71, b: 1, a: 1}
+  - {r: 0.76, g: 0.55, b: 1, a: 1}
+  - {r: 1, g: 0.83, b: 0.42, a: 1}
+  anticipationSeconds: 0.22
+  squash: 0.9
+  bloomSeconds: 0.26
+  holdSeconds: 0.9
+  upgradeChance: 0.5
+  upgradeFlashSeconds: 0.22
+  upgradeFlashScale: 0.6
+  ringSeconds: 0.52
+  ringScale: 2.4
+  ringStartScale: 0.8
+  ringWidth: 3
+  glowScale: 2.2
+  glowStartScale: 0.6
+  fadeSeconds: 0.3

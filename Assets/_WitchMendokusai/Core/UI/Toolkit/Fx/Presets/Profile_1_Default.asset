@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8455cb34c34071c45afadb4e4fbb77d0, type: 3}
+  m_Name: Profile_1_Default
+  m_EditorClassIdentifier: WM.Core::WitchMendokusai.UIFxProfile
+  panelMotion: {fileID: 0}
+  stackPush: {fileID: 0}
+  backdrop: {fileID: 0}
+  cursor: {fileID: 0}
+  select: {fileID: 0}
+  dim: {fileID: 0}
+  idleEffect: {fileID: 11400000, guid: 74340990887ea4b4f83ba8a7df028e1f, type: 2}
+  ambience: {fileID: 0}
+  parallax: {fileID: 0}
+  textFx: {fileID: 0}
+  characterMotion: {fileID: 0}
+  rewardReveal: {fileID: 0}
+  valueChange: {fileID: 0}

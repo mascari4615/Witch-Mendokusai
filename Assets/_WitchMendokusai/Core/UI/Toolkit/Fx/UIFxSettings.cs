@@ -3,7 +3,7 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	// UI 연출 기본 칸과 공용 수치. Resources/UIFx_1_Settings.asset, 실행 중 인스펙터에서 조절
-	// 화면 전환과 평상시 효과는 에셋 (UIWipe, UIIdleEffect) 을 칸에 끼워 교체. 각 에셋 우클릭 Preview 로 Play 중 확인
+	// 화면 전환은 UIWipe 에셋, 패널과 창 연출은 UIFxProfile 에셋을 칸에 끼워 교체. 전환 에셋 우클릭 Preview 로 Play 중 확인
 	[CreateAssetMenu(fileName = "UIFx_1_Settings", menuName = "WM/UI/UI Fx Settings")]
 	public sealed class UIFxSettings : ScriptableObject
 	{
@@ -80,9 +80,11 @@ namespace WitchMendokusai
 		[Range(0f, 1f)] public float moteAlpha = 0.9f;
 		public Color moteColor = new(1f, 0.93f, 0.75f, 1f);
 
-		[Header("평상시 요소 효과 (가만히 있을 때 버튼, 칸, 아이콘에 가끔)")]
-		[Tooltip("기본 효과 (UIIdleEffect 에셋). 비우면 끔. 패널과 창이 따로 끼우면 그것")]
-		public UIIdleEffect idleEffect;
+		[Header("기본 프로필 (UIFxProfile 에셋). 패널과 창이 따로 끼우면 그것")]
+		public UIFxProfile panelProfile;
+		public UIFxProfile windowProfile;
+
+		[Header("평상시 요소 효과 공용 수치 (효과 모양은 프로필의 idleEffect)")]
 		[Tooltip("효과 사이 간격 범위, 초. 패널마다 따로")]
 		public Vector2 idleIntervalRange = new(1.6f, 3.6f);
 		[Tooltip("이보다 작은 요소는 대상에서 제외, 픽셀")]

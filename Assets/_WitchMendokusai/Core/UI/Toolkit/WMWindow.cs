@@ -38,8 +38,15 @@ namespace WitchMendokusai
 		/// <summary>창이 열릴 때 키 선택을 줄 칸. 없으면 머리 줄 밖 첫 NAV_CLASS 칸.</summary>
 		public Func<VisualElement> InitialFocus { get; set; }
 
-		/// <summary>이 창만의 평상시 효과. null 이면 UIFxSettings.idleEffect</summary>
-		public UIIdleEffect IdleEffect { get; set; }
+		/// <summary>이 창의 연출 묶음. null 이면 UIFxSettings.windowProfile</summary>
+		public UIFxProfile Profile { get; set; }
+
+		private UIFxProfile CurrentProfile => Profile != null ? Profile : UIFxSettings.Instance.windowProfile;
+
+		private UIPanelMotion CurrentMotion => CurrentProfile != null ? CurrentProfile.panelMotion : null;
+
+		/// <summary>열기를 부른 칸. 자식 화면 확대 같은 움직임의 출발점</summary>
+		public VisualElement OpenSource { get; set; }
 
 		public event Action OnOpened = delegate { };
 		public event Action OnClosed = delegate { };
@@ -102,7 +109,8 @@ namespace WitchMendokusai
 
 			IsOpen = false;
 			UIMotion.SetInstant(this, false);
-			UIIdleFx.Attach(Content, () => IdleEffect != null ? IdleEffect : UIFxSettings.Instance.idleEffect);
+			UIIdleFx.Attach(Content, () => CurrentProfile != null ? CurrentProfile.idleEffect : null);
+			UIFocusFx.Attach(Content, () => CurrentProfile);
 		}
 
 		private void OnAttached(AttachToPanelEvent evt)
@@ -127,7 +135,7 @@ namespace WitchMendokusai
 		public void Open()
 		{
 			bool wasOpen = IsOpen;
-			if (wasOpen == false)
+			if (wasOpen == false && CurrentMotion == null)
 				UIMotion.UseStyle(this, UIFxSettings.Instance.windowMotion);
 			SetVisibleInternal(true);
 			BringToFront();
@@ -147,6 +155,7 @@ namespace WitchMendokusai
 			if (focusController?.focusedElement is VisualElement focused && Contains(focused))
 				focused.Blur();
 			SavePosition();
+			UIFocusFx.Reset(Content);
 			SetVisibleInternal(false);
 			UiSfx.Play(UiSfxEvent.WindowClose);
 			windowManager?.NotifyClosed(this);
@@ -221,7 +230,10 @@ namespace WitchMendokusai
 		private void SetVisibleInternal(bool visible)
 		{
 			IsOpen = visible;
-			if (visible)
+			UIPanelMotion motion = CurrentMotion;
+			if (motion != null)
+				motion.Play(this, visible, OpenSource);
+			else if (visible)
 				UIMotion.Show(this);
 			else
 				UIMotion.Hide(this);
