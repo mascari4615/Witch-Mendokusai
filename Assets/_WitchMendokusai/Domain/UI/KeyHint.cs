@@ -30,5 +30,22 @@ namespace WitchMendokusai
 
 		/// <summary> 버튼 글 옆에 붙이는 키 표시. 예: 닫기 (ESC) </summary>
 		public static Label KeyLabel(string key) => KeyOnly(new Label(" (" + key + ")"));
+
+		public const string KEY_BUTTON_CLASS = "wm-key-button";
+
+		/// <summary>
+		/// 글과 키 표시가 나란한 버튼. 예: 닫기 (ESC)
+		/// 버튼의 text 와 자식 글을 같이 쓰면 한 자리에 겹쳐 그려져서 (2026-11-17 설정창 닫기 버튼), 둘 다 자식 글로 나란히
+		/// </summary>
+		public static Button KeyButton(string text, string key, System.Action clicked)
+		{
+			Button button = new Button(clicked);
+			button.AddToClassList(KEY_BUTTON_CLASS);
+			button.Add(new Label(text) { pickingMode = PickingMode.Ignore });
+			Label keyLabel = KeyOnly(new Label("(" + key + ")"));
+			keyLabel.pickingMode = PickingMode.Ignore;
+			button.Add(keyLabel);
+			return button;
+		}
 	}
 }

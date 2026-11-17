@@ -122,8 +122,7 @@ namespace WitchMendokusai
 			titleLabel.AddToClassList("wm-setting-title");
 			stage.Add(titleLabel);
 
-			closeButton = new Button(Close) { text = "닫기" };
-			closeButton.Add(KeyHint.KeyLabel("ESC"));
+			closeButton = KeyHint.KeyButton("닫기", "ESC", Close);
 			closeButton.AddToClassList("wm-setting-close");
 			closeButton.AddToClassList(NAV_CLASS);
 			stage.Add(closeButton);

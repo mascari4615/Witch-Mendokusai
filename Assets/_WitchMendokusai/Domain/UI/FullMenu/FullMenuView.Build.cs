@@ -137,12 +137,7 @@ namespace WitchMendokusai
 			title.AddToClassList("wm-fullmenu__title");
 			stage.Add(title);
 
-			// 버튼 글과 자식 글을 같이 쓰면 한 자리에 겹쳐 그려짐. 둘 다 자식 글로
-			closeButton = new Button(Close);
-			closeButton.Add(new Label("닫기") { pickingMode = PickingMode.Ignore });
-			Label closeKey = KeyHint.KeyLabel("ESC");
-			closeKey.pickingMode = PickingMode.Ignore;
-			closeButton.Add(closeKey);
+			closeButton = KeyHint.KeyButton("닫기", "ESC", Close);
 			closeButton.AddToClassList("wm-fullmenu-close");
 			RegisterNav(closeButton);
 			top.Add(closeButton);

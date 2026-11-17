@@ -1666,3 +1666,20 @@
 .wm-input-touch .wm-key-hint {
     display: none;
 }
+
+/* 글과 키 표시가 나란한 버튼 (KeyHint.KeyButton). 크기와 색은 쓰는 쪽 클래스 */
+.wm-key-button {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-key-button > Label {
+    margin: 0;
+    padding: 0;
+}
+
+/* 글 끝 공백은 그려지지 않아 간격을 여백으로 */
+.wm-key-button > .wm-key-hint {
+    margin-left: 8px;
+}
