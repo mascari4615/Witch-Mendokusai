@@ -70,6 +70,35 @@ namespace WitchMendokusai
 		[Tooltip("Ripple 물결 높이와 촘촘함")]
 		public float wipeRippleAmplitude = 0.035f;
 		public float wipeRippleFrequency = 48f;
+		[Tooltip("Halftone 가로 망점 수와 망점 결 세기 (0 이면 매끈한 대각선)")]
+		public int wipeHalftoneCells = 16;
+		[Range(0f, 1f)] public float wipeHalftoneDotWeight = 0.4f;
+
+		[Header("층 전환 (Shutter, Slash, Glitch, Tube)")]
+		[Tooltip("띠 앞머리와 사선의 강조색")]
+		public Color wipeAccentColor = new(1f, 0.55f, 0.75f, 1f);
+		[Tooltip("강조선 두께, 픽셀")]
+		public float wipeAccentLine = 6f;
+		public Color wipeFlashColor = Color.white;
+		[Range(0f, 1f)] public float wipeFlashAlpha = 0.85f;
+		public int wipeShutterBands = 6;
+		public float wipeShutterAngle = 16f;
+		[Tooltip("첫 띠와 끝 띠의 시작 간격, 전체 시간 비율")]
+		[Range(0f, 0.9f)] public float wipeShutterStagger = 0.45f;
+		[Tooltip("홀수 띠가 강조색 쪽으로 물드는 정도")]
+		[Range(0f, 1f)] public float wipeShutterTint = 0.18f;
+		public float wipeSlashAngle = 24f;
+		public int wipeGlitchSlices = 18;
+		[Tooltip("조각이 어긋나는 최대 거리, 화면 너비 비율")]
+		public float wipeGlitchShift = 0.12f;
+		[Tooltip("색 갈라짐 거리, 픽셀")]
+		public float wipeGlitchSplit = 14f;
+		[Tooltip("색 갈라짐이 튀는 횟수 (전환 한 번)")]
+		public float wipeGlitchSteps = 14f;
+		public Color wipeGlitchWarm = new(1f, 0.2f, 0.45f, 0.85f);
+		public Color wipeGlitchCold = new(0.2f, 0.9f, 1f, 0.85f);
+		[Tooltip("Tube 가 닫힌 뒤 남는 빛줄 두께, 픽셀")]
+		public float wipeTubeLine = 4f;
 
 		[Header("창과 패널 움직임")]
 		public UIMotionStyle windowMotion = UIMotionStyle.Pop;
@@ -119,6 +148,46 @@ namespace WitchMendokusai
 		public float moteRiseSpeed = 22f;
 		[Range(0f, 1f)] public float moteAlpha = 0.9f;
 		public Color moteColor = new(1f, 0.93f, 0.75f, 1f);
+
+		[Header("평상시 요소 효과 (가만히 있을 때 버튼, 칸, 아이콘에 가끔)")]
+		public IdleFxStyle idleFx = IdleFxStyle.Mixed;
+		[Tooltip("효과 사이 간격 범위, 초. 패널마다 따로")]
+		public Vector2 idleIntervalRange = new(1.6f, 3.6f);
+		public Color idleColor = new(1f, 0.95f, 0.8f, 1f);
+		[Tooltip("이보다 작은 요소는 대상에서 제외, 픽셀")]
+		public float idleMinTargetSize = 28f;
+		[Tooltip("패널 넓이 대비 이보다 큰 요소는 제외 (배경, 큰 판)")]
+		[Range(0.01f, 1f)] public float idleMaxTargetAreaRatio = 0.2f;
+		public float idleGlintSeconds = 0.55f;
+		[Tooltip("Mixed 가 고르는 후보. 같은 항목을 여러 번 넣으면 더 자주")]
+		public IdleFxStyle[] idleMixedPool =
+		{
+			IdleFxStyle.Glint, IdleFxStyle.Glint, IdleFxStyle.Twinkle, IdleFxStyle.Twinkle,
+			IdleFxStyle.Pulse, IdleFxStyle.Ring, IdleFxStyle.Wave,
+		};
+		[Range(0f, 1f)] public float idleGlintAlpha = 0.55f;
+		[Tooltip("빛 띠 너비, 요소의 긴 변 대비")]
+		public float idleGlintWidthRatio = 0.35f;
+		public float idleGlintAngle = 18f;
+		[Tooltip("기울인 빛 띠 길이, 요소 높이 대비. 모서리까지 덮도록 1 보다 크게")]
+		public float idleGlintLength = 1.6f;
+		public float idleTwinkleSeconds = 0.75f;
+		public float idleTwinkleSize = 44f;
+		[Tooltip("반짝임 크기 배율 범위")]
+		public Vector2 idleTwinkleSizeJitter = new(0.8f, 1.2f);
+		[Tooltip("반짝임 자리, 모서리에서 안쪽으로 변 길이 비율 범위")]
+		public Vector2 idleTwinkleCornerRange = new(0.05f, 0.3f);
+		[Tooltip("반짝임이 피는 동안 도는 각도")]
+		public float idleTwinkleTurnDegrees = 90f;
+		public float idleOutlineWidth = 2f;
+		public float idlePulseSeconds = 0.9f;
+		[Range(0f, 1f)] public float idlePulseFill = 0.08f;
+		public float idleRingSeconds = 0.8f;
+		[Tooltip("Ring 이 퍼지는 배율")]
+		public float idleRingGrowth = 1.25f;
+		[Tooltip("Wave 가 훑는 칸 수 상한과 칸 사이 간격")]
+		public int idleWaveMaxItems = 8;
+		public float idleWaveStepSeconds = 0.07f;
 
 		[Header("자식 순차 등장 (전체 패널)")]
 		public bool staggerChildren = true;

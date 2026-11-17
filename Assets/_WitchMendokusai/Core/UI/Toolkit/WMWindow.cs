@@ -99,6 +99,7 @@ namespace WitchMendokusai
 
 			IsOpen = false;
 			UIMotion.SetInstant(this, false);
+			UIIdleFx.Attach(Content);
 		}
 
 		private void OnAttached(AttachToPanelEvent evt)

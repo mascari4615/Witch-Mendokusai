@@ -22,6 +22,11 @@ namespace WitchMendokusai
 		Fan = 14,
 		Ripple = 15,
 		Stripes = 16,
+		Halftone = 17,
+		Shutter = 18,
+		Slash = 19,
+		Glitch = 20,
+		Tube = 21,
 		Random = 100,
 	}
 
@@ -75,5 +80,17 @@ namespace WitchMendokusai
 		Sweep = 1,
 		DoubleSweep = 2,
 		EdgeFlash = 3,
+	}
+
+	/// <summary>평상시 요소 효과. Mixed 는 매번 섞어 고름</summary>
+	public enum IdleFxStyle
+	{
+		None = 0,
+		Glint = 1,
+		Twinkle = 2,
+		Pulse = 3,
+		Ring = 4,
+		Wave = 5,
+		Mixed = 100,
 	}
 }

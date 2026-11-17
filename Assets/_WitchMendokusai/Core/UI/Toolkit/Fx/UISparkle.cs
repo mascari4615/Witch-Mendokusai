@@ -251,6 +251,7 @@ namespace WitchMendokusai
 		private static VisualElement MakeLayer(string layerName)
 		{
 			VisualElement layer = new() { name = layerName, pickingMode = PickingMode.Ignore };
+			layer.AddToClassList(UIIdleFx.LAYER_CLASS);
 			layer.style.position = Position.Absolute;
 			layer.style.left = 0;
 			layer.style.top = 0;

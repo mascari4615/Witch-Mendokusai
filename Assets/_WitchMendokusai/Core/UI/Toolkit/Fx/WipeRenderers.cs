@@ -22,6 +22,7 @@ namespace WitchMendokusai
 	/// - Fade: 단색 막 투명도
 	/// - 칸 (Diamond, Dots, Pixels, Blinds): 요소 격자가 순서대로 커지며 덮음
 	/// - 무늬 지도 (Iris 이후): 화면 칸마다 덮일 순서 값을 계산해 두고 진행에 따라 경계를 밀며, 경계에 빛
+	/// - 층 전환 (Shutter, Slash, Glitch, Tube): 여러 요소가 시차를 두고 움직임. LayeredWipes
 	/// </summary>
 	public static class WipeRenderers
 	{
@@ -81,6 +82,11 @@ namespace WitchMendokusai
 			ScreenWipeStyle.Fan => new MapWipe(WipePatterns.Fan),
 			ScreenWipeStyle.Ripple => new MapWipe(WipePatterns.Ripple),
 			ScreenWipeStyle.Stripes => new MapWipe(WipePatterns.Stripes),
+			ScreenWipeStyle.Halftone => new MapWipe(WipePatterns.Halftone),
+			ScreenWipeStyle.Shutter => new ShutterWipe(),
+			ScreenWipeStyle.Slash => new SlashWipe(),
+			ScreenWipeStyle.Glitch => new GlitchWipe(),
+			ScreenWipeStyle.Tube => new TubeWipe(),
 			_ => throw new ArgumentOutOfRangeException(nameof(wipeStyle), wipeStyle, "WipeRenderers.Create 에 등록 안 된 무늬"),
 		};
 

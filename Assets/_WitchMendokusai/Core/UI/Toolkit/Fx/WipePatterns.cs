@@ -15,6 +15,8 @@ namespace WitchMendokusai
 		private const float HEART_FIT = 2.6f;
 		// 배율 이분 탐색 횟수. 14 회면 1/16000 정밀도
 		private const int HEART_SEARCH_STEPS = 14;
+		// 단위 칸 가운데에서 모서리까지 거리
+		private const float HALF_DIAGONAL = 0.7071f;
 
 		private static UIFxSettings Settings => UIFxSettings.Instance;
 
@@ -118,6 +120,21 @@ namespace WitchMendokusai
 			float along = (x * aspect - y + 1f) / (aspect + 1f);
 			bool even = Mathf.FloorToInt(across) % 2 == 0;
 			return even ? along : 1f - along;
+		}
+
+		/// <summary>망점이 대각선을 따라 자라며 이어져 덮음 (인쇄 망점 결)</summary>
+		public static float Halftone(float x, float y, float aspect)
+		{
+			float cells = Mathf.Max(2, Settings.wipeHalftoneCells);
+			float column = x * cells;
+			float row = y * cells / aspect;
+			float localX = column - Mathf.Floor(column) - 0.5f;
+			float localY = row - Mathf.Floor(row) - 0.5f;
+			// 칸 가운데 0, 모서리 1
+			float dot = Mathf.Sqrt(localX * localX + localY * localY) / HALF_DIAGONAL;
+			float sweep = (x * aspect + y) / (aspect + 1f);
+			float weight = Settings.wipeHalftoneDotWeight;
+			return sweep * (1f - weight) + dot * weight;
 		}
 
 		/// <summary>정수 둘을 0~1 의 고정 난수로</summary>

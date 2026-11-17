@@ -60,6 +60,7 @@ namespace WitchMendokusai
 			BuildUI(Root);
 			if (UIFxSettings.Instance.ambientMotes)
 				UISparkle.AttachMotes(Root);
+			UIIdleFx.Attach(Root);
 			isBuilt = true;
 		}
 
@@ -80,8 +81,9 @@ namespace WitchMendokusai
 				if (Root.ClassListContains(UIMotion.IN) == false)
 					UIMotion.UseStyle(Root, UIFxSettings.Instance.panelMotion);
 				UIMotion.Show(Root);
-				// 패널 몸통 하나 아래에 실제 칸들이 있으면 그 칸들을 순서대로
-				VisualElement staggerRoot = Root.childCount == 2 && Root[0].childCount > 1 ? Root[0] : Root;
+				// 패널 몸통 하나 아래에 실제 칸들이 있으면 그 칸들을 순서대로 (입자와 효과 층은 세지 않음)
+				VisualElement body = SingleBody(Root);
+				VisualElement staggerRoot = body != null && body.childCount > 1 ? body : Root;
 				UIShine.StaggerChildren(staggerRoot);
 			}
 			else
@@ -91,6 +93,21 @@ namespace WitchMendokusai
 				OnOpen();
 			else
 				OnClose();
+		}
+
+		// 효과 층을 뺀 자식이 하나면 그 자식
+		private static VisualElement SingleBody(VisualElement root)
+		{
+			VisualElement body = null;
+			foreach (VisualElement child in root.Children())
+			{
+				if (child.ClassListContains(UIIdleFx.LAYER_CLASS))
+					continue;
+				if (body != null)
+					return null;
+				body = child;
+			}
+			return body;
 		}
 
 		protected virtual void OnOpen() { }
