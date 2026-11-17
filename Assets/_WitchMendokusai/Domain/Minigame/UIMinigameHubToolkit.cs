@@ -84,7 +84,7 @@ namespace WitchMendokusai
 			headerSpacer.style.flexGrow = 1;
 			headerRow.Add(headerSpacer);
 
-			Label closeHint = new Label("X 닫기");
+			Label closeHint = KeyHint.KeyOnly(new Label("X 닫기"));
 			closeHint.style.fontSize = 14;
 			closeHint.style.color = new Color(0.5f, 0.56f, 0.66f, 1f);
 			headerRow.Add(closeHint);

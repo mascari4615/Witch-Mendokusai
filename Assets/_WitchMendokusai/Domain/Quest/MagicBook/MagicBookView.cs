@@ -109,7 +109,8 @@ namespace WitchMendokusai
 			chapterContentContainer.style.flexGrow = 1;
 			content.Add(chapterContentContainer);
 
-			Button btnClose = new Button(Close) { text = "닫기 (M)" };
+			Button btnClose = new Button(Close) { text = "닫기" };
+			btnClose.Add(KeyHint.KeyLabel("M"));
 			btnClose.AddToClassList("wm-magic-book-close");
 			btnClose.style.position = Position.Absolute;
 			btnClose.style.top = 12;

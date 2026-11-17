@@ -1653,3 +1653,16 @@
     white-space: normal;
     margin-bottom: 24px;
 }
+
+/* 키 안내와 손가락 안내. 루트 클래스는 UIRoot, 표시 클래스는 KeyHint */
+.wm-touch-hint {
+    display: none;
+}
+
+.wm-input-touch .wm-touch-hint {
+    display: flex;
+}
+
+.wm-input-touch .wm-key-hint {
+    display: none;
+}

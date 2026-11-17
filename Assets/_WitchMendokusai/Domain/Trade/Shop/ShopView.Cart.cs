@@ -39,7 +39,11 @@ namespace WitchMendokusai
 			MakeOutlined("cart-title", body, "< 장바구니 >");
 
 			VisualElement list = Make("cart-list", body);
-			cartEmpty = MakeLabel("cart-empty", list, "Z로 담습니다.\n결제 전까지 지갑은 그대로입니다.");
+			// 담는 법은 조작 장치마다 다름. 키 글자는 키보드와 패드에서만
+			cartEmpty = MakeLabel("cart-empty", list, string.Empty);
+			KeyHint.KeyOnly(MakeLabel("cart-empty-line", cartEmpty, "Z로 담습니다."));
+			KeyHint.TouchOnly(MakeLabel("cart-empty-line", cartEmpty, "눌러서 담습니다."));
+			MakeLabel("cart-empty-line", cartEmpty, "결제 전까지 지갑은 그대로입니다.");
 			cartScroll = new ScrollView(ScrollViewMode.Vertical);
 			cartScroll.AddToClassList(Class("scroll"));
 			cartScroll.AddToClassList(Class("cart-scroll"));
@@ -62,7 +66,7 @@ namespace WitchMendokusai
 			afterShort = MakeLabel("after-short", afterRow);
 
 			payButton = Make("pay", summary, picking: true);
-			MakeLabel("pay-key", payButton, "Z");
+			KeyHint.KeyOnly(MakeLabel("pay-key", payButton, "Z"));
 			payLabel = MakeLabel("pay-label", payButton, "결제");
 			payButton.RegisterCallback<PointerMoveEvent>(evt =>
 			{

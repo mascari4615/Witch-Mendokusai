@@ -159,7 +159,8 @@ namespace WitchMendokusai
 
 		private void BuildKeys()
 		{
-			VisualElement keys = Make("keys", stage);
+			// 키 안내 줄은 키보드와 패드에서만
+			VisualElement keys = KeyHint.KeyOnly(Make("keys", stage));
 			AddKey(keys, "방향키", "이동");
 			AddKey(keys, "Z", "담기, 결제");
 			AddKey(keys, "X", "빼기, 닫기");

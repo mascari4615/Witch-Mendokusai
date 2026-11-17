@@ -77,11 +77,14 @@ namespace WitchMendokusai
 			map.Clicked += focus => LookAtRequested(focus);
 			left.Add(map.Root);
 
-			Label hint = new Label("M 또는 「지도」 버튼으로 닫는다");
-			hint.style.fontSize = 12;
-			hint.style.color = new Color(0.6f, 0.66f, 0.76f, 1f);
-			hint.style.marginTop = 8;
-			left.Add(hint);
+			// 닫는 법은 조작 장치마다 다름. 키 글자는 키보드와 패드에서만
+			foreach (Label hint in new[] { KeyHint.KeyOnly(new Label("M 또는 지도 버튼으로 닫기")), KeyHint.TouchOnly(new Label("지도 버튼으로 닫기")) })
+			{
+				hint.style.fontSize = 12;
+				hint.style.color = new Color(0.6f, 0.66f, 0.76f, 1f);
+				hint.style.marginTop = 8;
+				left.Add(hint);
+			}
 
 			// 범례는 지도 오른쪽에 붙는다 — 지도를 보면서 바로 대조할 수 있어야 뜻이 있다.
 			legendHost = new VisualElement();

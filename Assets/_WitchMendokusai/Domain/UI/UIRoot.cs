@@ -175,6 +175,8 @@ namespace WitchMendokusai
 		private void Update()
 		{
 			ApplySafeArea();
+			// 키 안내와 손가락 안내 전환. 규칙은 KeyHint 와 Slot.uss
+			Document.rootVisualElement.EnableInClassList(KeyHint.TOUCH_ROOT_CLASS, inputManager.IsTouchMode);
 
 			if (inputManager.IsMouseAvailable == false || HoldingOverlay == null || HoldingOverlay.panel == null)
 				return;
