@@ -76,6 +76,27 @@ namespace WitchMendokusai
 		private bool isPointerOverUI;
 		public bool IsPointerOverUI() => isPointerOverUI;
 
+		private readonly List<RaycastResult> screenPointHits = new();
+
+		/// <summary>
+		/// 화면 한 점이 UGUI 창 위인지. 손가락 하나만 물음
+		/// IsPointerOverUI 는 눌린 손가락 전부를 봐서, 스틱을 잡은 왼손 때문에 오른손 시점 끌기까지 막음 (2026-11-17 폰 실기)
+		/// </summary>
+		public bool IsScreenPointOverUGUI(Vector2 screenPosition)
+		{
+			if (EventSystem.current == null)
+				return false;
+			PointerEventData data = new(EventSystem.current) { position = screenPosition };
+			screenPointHits.Clear();
+			EventSystem.current.RaycastAll(data, screenPointHits);
+			for (int i = 0; i < screenPointHits.Count; i++)
+			{
+				if (screenPointHits[i].module is UnityEngine.UI.GraphicRaycaster)
+					return true;
+			}
+			return false;
+		}
+
 		// TASK-WM-200 — 장치를 읽는 유일한 자리. 시간은 unscaled 로 잰다(판이 멈춰도 손가락은 움직인다).
 		private void UpdatePointer()
 		{

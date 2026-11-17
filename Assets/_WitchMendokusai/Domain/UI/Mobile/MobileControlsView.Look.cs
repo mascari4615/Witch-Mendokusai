@@ -141,7 +141,9 @@ namespace WitchMendokusai
 			// ★ 다른 창(UGUI) 위에서 시작한 끌기는 시점이 아니다 — 창은 UI Toolkit 밖에 따로 있어서
 			//   이 판이 그 아래에 깔려 있어도 손가락은 둘 다 닿는다. 창을 만지는 동안 시점이 돌면
 			//   「무엇을 만지고 있는지」가 화면과 어긋난다.
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager) && inputManager.IsPointerOverUI())
+			// 이 손가락 자리만 묻는다. 눌린 손가락 전부를 물으면 스틱 쥔 왼손 때문에 오른손 시점이 막힘
+			if (InputManager.TryGetExistingInstance(out InputManager inputManager)
+				&& inputManager.IsScreenPointOverUGUI(PanelToScreen(evt.position)))
 				return;
 
 			// 왼쪽은 걷기, 오른쪽은 둘러보기. 일반과 던전이 같은 손 배치
@@ -156,6 +158,17 @@ namespace WitchMendokusai
 
 			lookBackdrop.CapturePointer(evt.pointerId);
 			evt.StopPropagation();
+		}
+
+		/// <summary> 패널 좌표 (위가 0) 를 화면 픽셀 (아래가 0) 로 </summary>
+		private Vector2 PanelToScreen(Vector2 panelPosition)
+		{
+			Rect panelRect = lookBackdrop.panel.visualTree.layout;
+			if (panelRect.width <= 0f || panelRect.height <= 0f)
+				return new Vector2(panelPosition.x, Screen.height - panelPosition.y);
+			return new Vector2(
+				panelPosition.x * Screen.width / panelRect.width,
+				Screen.height - panelPosition.y * Screen.height / panelRect.height);
 		}
 
 		private void OnLookMove(PointerMoveEvent evt)
