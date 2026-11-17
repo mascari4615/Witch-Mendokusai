@@ -71,6 +71,10 @@ function Resolve-Adb {
   $onPath = Get-Command adb -ErrorAction SilentlyContinue
   if ($onPath) { return $onPath.Source }
 
+  # desktop platform-tools install (2026-11-17)
+  $local = Join-Path $HOME '.karmoddrine\android\platform-tools\adb.exe'
+  if (Test-Path $local) { return $local }
+
   # Unity Hub 의 안드로이드 모듈이 platform-tools 를 함께 깐다.
   $hubRoots = @(
     "$env:ProgramFiles\Unity\Hub\Editor",
@@ -92,7 +96,7 @@ adb 를 못 찾았다. 셋 중 하나로 해결한다:
   3. -AdbPath 로 adb.exe 경로 직접 지정
 
 참고: 케이블이 필요 없는 정본 경로는 앱 내장 릴레이다(TASK-WM-201).
-      https://yawnbot.mascari4615.com/device-log — 이 스크립트는 네이티브 크래시 전용 보조.
+      https://bot.mascari4615.com/device-log (development 빌드만). release 빌드 실기는 이 스크립트나 wm-phone-test.ps1.
 '@
 }
 
