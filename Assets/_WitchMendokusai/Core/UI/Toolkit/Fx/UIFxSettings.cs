@@ -63,10 +63,10 @@ namespace WitchMendokusai
 
 		[Header("떠다니는 빛 입자 (전체 패널 뒤)")]
 		public bool ambientMotes = true;
-		public int moteCount = 22;
-		public Vector2 moteSizeRange = new(5f, 12f);
-		public float moteRiseSpeed = 14f;
-		[Range(0f, 1f)] public float moteAlpha = 0.7f;
+		public int moteCount = 28;
+		public Vector2 moteSizeRange = new(10f, 24f);
+		public float moteRiseSpeed = 22f;
+		[Range(0f, 1f)] public float moteAlpha = 0.9f;
 		public Color moteColor = new(1f, 0.93f, 0.75f, 1f);
 
 		[Header("자식 순차 등장 (전체 패널)")]
