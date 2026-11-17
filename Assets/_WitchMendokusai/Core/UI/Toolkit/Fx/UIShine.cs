@@ -59,7 +59,7 @@ namespace WitchMendokusai
 			}).Every(0).Until(() => done);
 		}
 
-		/// <summary>창 안에서 칸이 여럿인 첫 자손 (인벤토리 격자 등) 을 찾아 물결처럼 차례로</summary>
+		/// <summary>창 안에서 칸이 가장 많은 자손 (인벤토리 격자 등) 을 찾아 물결처럼 차례로</summary>
 		public static void StaggerGrid(VisualElement root)
 		{
 			UIFxSettings settings = UIFxSettings.Instance;
@@ -74,18 +74,19 @@ namespace WitchMendokusai
 		{
 			Queue<VisualElement> queue = new();
 			queue.Enqueue(root);
+			VisualElement best = null;
 			while (queue.Count > 0)
 			{
 				VisualElement current = queue.Dequeue();
-				if (current != root && current.childCount >= minItems)
-					return current;
+				if (current != root && current.childCount >= minItems && (best == null || current.childCount > best.childCount))
+					best = current;
 				foreach (VisualElement child in current.Children())
 				{
 					if (child.pickingMode == PickingMode.Position || child.childCount > 0)
 						queue.Enqueue(child);
 				}
 			}
-			return null;
+			return best;
 		}
 
 		/// <summary>컨테이너 자식을 위에서부터 차례로 떠오르게. stepSeconds 0 이하면 설정값</summary>

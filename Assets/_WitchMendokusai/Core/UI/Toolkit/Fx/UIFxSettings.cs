@@ -44,17 +44,17 @@ namespace WitchMendokusai
 		public bool windowShine = true;
 		public float shineDelaySeconds = 0.06f;
 		public float shineSeconds = 0.42f;
-		[Range(0f, 1f)] public float shineAlpha = 0.28f;
+		[Range(0f, 1f)] public float shineAlpha = 0.16f;
 		[Tooltip("빛 띠 너비, 창 너비 대비")]
-		[Range(0.05f, 1f)] public float shineWidthRatio = 0.22f;
+		[Range(0.05f, 1f)] public float shineWidthRatio = 0.45f;
 		public float shineAngle = 18f;
 		[Tooltip("기울인 빛 띠 길이, 창 높이 대비. 모서리까지 덮도록 1 보다 크게")]
 		public float shineBandLength = 2.2f;
 
 		[Header("반짝이 입자 (창 열기, 패널 열기)")]
-		public int sparkleCount = 14;
+		public int sparkleCount = 16;
 		public float sparkleLifeSeconds = 0.9f;
-		public Vector2 sparkleSizeRange = new(16f, 30f);
+		public Vector2 sparkleSizeRange = new(26f, 46f);
 		[Tooltip("위로 떠오르는 속도, 픽셀/초")]
 		public float sparkleRiseSpeed = 28f;
 		public Color sparkleColor = new(1f, 0.96f, 0.82f, 1f);
@@ -76,7 +76,7 @@ namespace WitchMendokusai
 		public float staggerRisePixels = 14f;
 		[Tooltip("창 안 격자 칸 (인벤토리 등) 물결 간격")]
 		public float gridStaggerStepSeconds = 0.012f;
-		[Tooltip("이 수 이상 칸을 가진 첫 자손을 격자로 봄")]
+		[Tooltip("이 수 이상 칸을 가진 자손 중 가장 큰 것을 격자로 봄")]
 		public int gridStaggerMinItems = 4;
 	}
 }
