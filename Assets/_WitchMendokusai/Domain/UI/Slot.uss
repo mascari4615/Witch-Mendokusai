@@ -64,6 +64,83 @@
     transition-timing-function: ease-out-cubic, ease-out-cubic;
 }
 
+/* 고를 수 있는 움직임 (UIFxSettings windowMotion, panelMotion). 닫힘은 짧게 ease-in, 열림은 ease-out */
+.wm-motion-drop {
+    opacity: 0;
+    translate: 0 -24px;
+    transition-property: opacity, translate;
+    transition-duration: 0.1s, 0.1s;
+    transition-timing-function: ease-in-cubic, ease-in-cubic;
+}
+
+.wm-motion-drop.wm-motion--in {
+    opacity: 1;
+    translate: 0 0;
+    transition-duration: 0.16s, 0.3s;
+    transition-timing-function: ease-out-cubic, ease-out-bounce;
+}
+
+.wm-motion-unfold {
+    opacity: 0;
+    scale: 1 0.1;
+    transition-property: opacity, scale;
+    transition-duration: 0.1s, 0.12s;
+    transition-timing-function: ease-in-cubic, ease-in-cubic;
+}
+
+.wm-motion-unfold.wm-motion--in {
+    opacity: 1;
+    scale: 1 1;
+    transition-duration: 0.12s, 0.26s;
+    transition-timing-function: ease-out-cubic, ease-out-back;
+}
+
+.wm-motion-swing {
+    opacity: 0;
+    rotate: -8deg;
+    transform-origin: top;
+    transition-property: opacity, rotate;
+    transition-duration: 0.1s, 0.1s;
+    transition-timing-function: ease-in-cubic, ease-in-cubic;
+}
+
+.wm-motion-swing.wm-motion--in {
+    opacity: 1;
+    rotate: 0deg;
+    transition-duration: 0.14s, 0.36s;
+    transition-timing-function: ease-out-cubic, ease-out-elastic;
+}
+
+.wm-motion-zoom {
+    opacity: 0;
+    scale: 1.14 1.14;
+    transition-property: opacity, scale;
+    transition-duration: 0.1s, 0.1s;
+    transition-timing-function: ease-in-cubic, ease-in-cubic;
+}
+
+.wm-motion-zoom.wm-motion--in {
+    opacity: 1;
+    scale: 1 1;
+    transition-duration: 0.16s, 0.22s;
+    transition-timing-function: ease-out-cubic, ease-out-cubic;
+}
+
+.wm-motion-slide {
+    opacity: 0;
+    translate: -48px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.1s, 0.1s;
+    transition-timing-function: ease-in-cubic, ease-in-cubic;
+}
+
+.wm-motion-slide.wm-motion--in {
+    opacity: 1;
+    translate: 0 0;
+    transition-duration: 0.16s, 0.26s;
+    transition-timing-function: ease-out-cubic, ease-out-back;
+}
+
 .wm-window__line {
     position: absolute;
     left: 6px;

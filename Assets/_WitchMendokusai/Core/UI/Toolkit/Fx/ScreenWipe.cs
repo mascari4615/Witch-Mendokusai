@@ -7,30 +7,46 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 화면을 덮고 걷는 막. 씬 교체 (SceneFader) 와 씬 안 전환 (TransitionView) 공용
-	/// - Fade: 단색 막의 투명도
-	/// - Diamond: 마름모 칸이 왼쪽 위에서 대각선으로 커지며 덮고, 같은 방향으로 작아지며 걷힘
-	/// 진행은 실제 시간, 시간 정지 중에도 동작. 수치는 UIFxSettings
+	/// - 무늬는 덮기 시작 때 styleSource 에서 읽음. 걷기는 덮은 무늬 그대로 (Random 도 한 쌍은 같은 무늬)
+	/// - 한 번 만든 무늬는 보관해 다시 씀 (Random 전환마다 다시 계산하는 멈칫 방지). 수치를 바꾸면 다음 덮기에 다시 만듦
+	/// - 진행은 실제 시간, 시간 정지 중에도 동작. 수치는 UIFxSettings, 무늬는 WipeRenderers
+	/// - 주인이 사라질 때 Dispose (무늬 텍스처 해제)
 	/// </summary>
 	public sealed class ScreenWipe : VisualElement
 	{
-		private const float DIAMOND_ROTATION_DEGREES = 45f;
 		// 멈칫 뒤 첫 프레임 dt 로 한 번에 끝나지 않게 하는 한 프레임 상한
 		private const float MAX_STEP_SECONDS = 1f / 30f;
 		private const float MILLISECONDS_PER_SECOND = 1000f;
 
-		private readonly List<VisualElement> tiles = new();
-		private readonly List<float> tileOrder = new();
-		private Vector2 builtSize;
+		private sealed class Built
+		{
+			public IWipeRenderer Renderer;
+			public Vector2 Size;
+			public int SettingsVersion;
+		}
+
+		private readonly Func<ScreenWipeStyle> styleSource;
+		private readonly Dictionary<ScreenWipeStyle, Built> built = new();
+		private Built current;
+		private ScreenWipeStyle currentStyle;
+		private Vector2 size;
 		private IVisualElementScheduledItem running;
+		private Action pendingDone;
 		private int generation;
+		private float lastProgress = 1f;
+		private bool lastCover;
 
 		/// <summary>0 은 비어 있음, 1 은 완전히 덮음</summary>
 		public float Coverage { get; private set; }
 
+		/// <summary>지금 그리는 무늬 (Random 은 고른 결과)</summary>
+		public ScreenWipeStyle CurrentStyle => currentStyle;
+
 		private static UIFxSettings Settings => UIFxSettings.Instance;
 
-		public ScreenWipe()
+		public ScreenWipe(Func<ScreenWipeStyle> styleSource)
 		{
+			this.styleSource = styleSource;
 			name = "screen-wipe";
 			pickingMode = PickingMode.Ignore;
 			style.position = Position.Absolute;
@@ -39,19 +55,21 @@ namespace WitchMendokusai
 			style.right = 0;
 			style.bottom = 0;
 			style.overflow = Overflow.Hidden;
-			RegisterCallback<GeometryChangedEvent>(_ => RebuildIfNeeded());
-			Apply(0f, true);
+			RegisterCallback<GeometryChangedEvent>(_ => OnGeometryChanged());
+			UseStyle(WipeRenderers.Resolve(styleSource()));
+			Apply(1f, false);
 		}
 
-		/// <summary>덮기 (cover true) 또는 걷기. 끝나면 onDone</summary>
-		public void Play(bool cover, Action onDone = null)
+		/// <summary>덮기 (cover true) 또는 걷기. 끝나거나 다음 Play 에 밀리면 onDone. overrideStyle 을 주면 설정 대신 그 무늬</summary>
+		public void Play(bool cover, Action onDone = null, ScreenWipeStyle? overrideStyle = null)
 		{
-			int myGeneration = ++generation;
-			running?.Pause();
+			int myGeneration = Interrupt();
+			pendingDone = onDone;
+			if (cover)
+				UseStyle(WipeRenderers.Resolve(overrideStyle ?? styleSource()));
 			float seconds = cover ? Settings.wipeCoverSeconds : Settings.wipeRevealSeconds;
 			float elapsed = 0f;
 			bool done = false;
-			RebuildIfNeeded();
 
 			running = schedule.Execute(timer =>
 			{
@@ -67,96 +85,94 @@ namespace WitchMendokusai
 					return;
 				done = true;
 				running = null;
-				onDone?.Invoke();
+				Action finished = pendingDone;
+				pendingDone = null;
+				finished?.Invoke();
 			}).Every(0).Until(() => done);
 			Apply(0f, cover);
 		}
 
-		/// <summary>애니메이션 없이 덮음 또는 비움</summary>
+		/// <summary>애니메이션 없이 덮음 또는 비움. 이미 덮여 있으면 그 무늬를 유지</summary>
 		public void SetInstant(bool covered)
 		{
-			generation++;
+			Interrupt();
+			if (covered && Coverage <= 0f)
+				UseStyle(WipeRenderers.Resolve(styleSource()));
+			Apply(1f, covered);
+		}
+
+		/// <summary>보관한 무늬와 텍스처 해제. 주인 OnDestroy 에서</summary>
+		public void Dispose()
+		{
+			Interrupt();
+			foreach (Built entry in built.Values)
+				entry.Renderer.Detach();
+			built.Clear();
+			current = null;
+			RemoveFromHierarchy();
+		}
+
+		// 진행 중 Play 를 멈추고 그 완료 콜백은 바로 부름 (기다리던 쪽이 멈춰 서지 않게)
+		private int Interrupt()
+		{
+			int myGeneration = ++generation;
 			running?.Pause();
 			running = null;
-			RebuildIfNeeded();
-			Apply(1f, covered);
+			Action interrupted = pendingDone;
+			pendingDone = null;
+			interrupted?.Invoke();
+			return myGeneration;
+		}
+
+		private void UseStyle(ScreenWipeStyle wipeStyle)
+		{
+			if (built.TryGetValue(wipeStyle, out Built entry) == false)
+			{
+				entry = new Built { Renderer = WipeRenderers.Create(wipeStyle), SettingsVersion = -1 };
+				entry.Renderer.Attach(this);
+				built[wipeStyle] = entry;
+			}
+			if (current != null && current != entry)
+				current.Renderer.Root.style.display = DisplayStyle.None;
+			current = entry;
+			currentStyle = wipeStyle;
+			entry.Renderer.Root.style.display = DisplayStyle.Flex;
+			BuildIfStale(entry);
+			entry.Renderer.Draw(lastProgress, lastCover);
+		}
+
+		private void BuildIfStale(Built entry)
+		{
+			if (size.x <= 0f)
+				return;
+			if (entry.Size == size && entry.SettingsVersion == UIFxSettings.Version)
+				return;
+			entry.Size = size;
+			entry.SettingsVersion = UIFxSettings.Version;
+			entry.Renderer.Resize(size);
+		}
+
+		private void OnGeometryChanged()
+		{
+			Vector2 newSize = new(layout.width, layout.height);
+			if (float.IsNaN(newSize.x) || newSize.x <= 0f || newSize.y <= 0f || newSize == size)
+				return;
+			size = newSize;
+			BuildIfStale(current);
+			current.Renderer.Draw(lastProgress, lastCover);
 		}
 
 		private void Apply(float progress, bool cover)
 		{
-			Color color = Settings.wipeColor;
-			bool diamond = Settings.wipeStyle == ScreenWipeStyle.Diamond && tiles.Count > 0;
+			lastProgress = progress;
+			lastCover = cover;
 			float eased = Mathf.SmoothStep(0f, 1f, progress);
 			Coverage = cover ? eased : 1f - eased;
-
-			if (diamond)
-			{
-				style.backgroundColor = Color.clear;
-				float spread = Settings.wipeSpread;
-				for (int i = 0; i < tiles.Count; i++)
-				{
-					float local = Mathf.Clamp01(progress * (1f + spread) - tileOrder[i] * spread);
-					float grown = cover ? EaseOutBack(local) : 1f - EaseInQuad(local);
-					float scale = Mathf.Max(0f, grown) * Settings.wipeTileGrowth;
-					tiles[i].style.scale = new Scale(new Vector3(scale, scale, 1f));
-					tiles[i].style.backgroundColor = color;
-				}
-			}
-			else
-			{
-				color.a *= Coverage;
-				style.backgroundColor = color;
-				foreach (VisualElement tile in tiles)
-					tile.style.scale = new Scale(Vector3.zero);
-			}
+			current.Renderer.Draw(progress, cover);
 
 			bool visible = cover || progress < 1f;
 			style.display = visible || Coverage > 0f ? DisplayStyle.Flex : DisplayStyle.None;
 			pickingMode = Coverage > 0f ? PickingMode.Position : PickingMode.Ignore;
 		}
-
-		private void RebuildIfNeeded()
-		{
-			Vector2 size = new(layout.width, layout.height);
-			if (float.IsNaN(size.x) || size.x <= 0f || size.y <= 0f || size == builtSize)
-				return;
-			builtSize = size;
-
-			foreach (VisualElement tile in tiles)
-				tile.RemoveFromHierarchy();
-			tiles.Clear();
-			tileOrder.Clear();
-
-			float cell = Mathf.Max(8f, Settings.wipeCellSize);
-			int columns = Mathf.CeilToInt(size.x / cell) + 1;
-			int rows = Mathf.CeilToInt(size.y / cell) + 1;
-			float maxOrder = Mathf.Max(1, columns + rows - 2);
-			for (int row = 0; row < rows; row++)
-			{
-				for (int column = 0; column < columns; column++)
-				{
-					VisualElement tile = new() { pickingMode = PickingMode.Ignore };
-					tile.style.position = Position.Absolute;
-					tile.style.width = cell;
-					tile.style.height = cell;
-					tile.style.left = column * cell - cell * 0.5f;
-					tile.style.top = row * cell - cell * 0.5f;
-					tile.style.rotate = new UnityEngine.UIElements.Rotate(new UnityEngine.UIElements.Angle(DIAMOND_ROTATION_DEGREES, AngleUnit.Degree));
-					tile.style.scale = new Scale(Vector3.zero);
-					Add(tile);
-					tiles.Add(tile);
-					tileOrder.Add((column + row) / maxOrder);
-				}
-			}
-		}
-
-		private static float EaseOutBack(float progress)
-		{
-			const float OVERSHOOT = 1.4f;
-			float shifted = progress - 1f;
-			return 1f + (OVERSHOOT + 1f) * shifted * shifted * shifted + OVERSHOOT * shifted * shifted;
-		}
-
-		private static float EaseInQuad(float progress) => progress * progress;
 	}
 }

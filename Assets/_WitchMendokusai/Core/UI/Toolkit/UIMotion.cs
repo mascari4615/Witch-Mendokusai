@@ -18,8 +18,33 @@ namespace WitchMendokusai
 		public const string POP = "wm-motion-pop";
 		/// <summary>전체 화면 패널. 아래에서 살짝 올라오며 나타남</summary>
 		public const string RISE = "wm-motion-rise";
-		/// <summary>위 두 기본 클래스의 열린 상태</summary>
+		/// <summary>움직임 클래스의 열린 상태</summary>
 		public const string IN = "wm-motion--in";
+
+		// UIMotionStyle 순서 그대로. 모양은 Slot.uss
+		private static readonly string[] STYLE_CLASSES =
+		{
+			POP,
+			RISE,
+			"wm-motion-drop",
+			"wm-motion-unfold",
+			"wm-motion-swing",
+			"wm-motion-zoom",
+			"wm-motion-slide",
+		};
+
+		public static string ClassOf(UIMotionStyle motionStyle) => STYLE_CLASSES[(int)motionStyle];
+
+		/// <summary>움직임 클래스를 하나로 교체. 닫혀 있을 때 부른다 (열린 채 바꾸면 그 자리에서 다른 시작 값으로 튐)</summary>
+		public static void UseStyle(VisualElement element, UIMotionStyle motionStyle)
+		{
+			string wanted = ClassOf(motionStyle);
+			if (element.ClassListContains(wanted))
+				return;
+			foreach (string styleClass in STYLE_CLASSES)
+				element.RemoveFromClassList(styleClass);
+			element.AddToClassList(wanted);
+		}
 
 		// 판정용 경계값, 조절 대상 아님
 		private const float HIDDEN_OPACITY = 0.001f;

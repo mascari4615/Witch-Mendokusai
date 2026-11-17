@@ -14,6 +14,8 @@ namespace WitchMendokusai
 		private const int SORTING_ORDER = 31000;
 		// 새 씬 첫 프레임들의 멈칫을 막 뒤에 숨김. 실행 중 Hierarchy (DontDestroyOnLoad) 에서 조절
 		[SerializeField] private int revealDelayFrames = 2;
+		// UIFxSettings 우클릭 Preview 에서 덮인 채 머무는 시간
+		[SerializeField] private float previewHoldSeconds = 0.3f;
 
 		private static SceneFader instance;
 
@@ -59,6 +61,31 @@ namespace WitchMendokusai
 				instance.coverOnNextScene = true;
 		}
 
+		/// <summary>미리보기 중인 무늬. 아니면 null (녹화 도구가 읽음)</summary>
+		public static ScreenWipeStyle? PreviewingStyle { get; private set; }
+
+		/// <summary>Play 중 무늬 하나를 덮고 걷어 보임. UIFxSettings 우클릭 메뉴</summary>
+		public static void PreviewWipe(ScreenWipeStyle wipeStyle)
+		{
+			if (CanPreview())
+				instance.Play(instance.PreviewRoutine(new[] { wipeStyle }));
+		}
+
+		/// <summary>Play 중 모든 무늬를 차례로</summary>
+		public static void PreviewAllWipes()
+		{
+			if (CanPreview())
+				instance.Play(instance.PreviewRoutine(WipeRenderers.All));
+		}
+
+		private static bool CanPreview()
+		{
+			if (instance != null && instance.loading == false)
+				return true;
+			Debug.LogWarning("[SceneFader] 미리보기는 Play 중, 씬 교체 중이 아닐 때만");
+			return false;
+		}
+
 		private void Awake()
 		{
 			instance = this;
@@ -69,7 +96,7 @@ namespace WitchMendokusai
 			VisualElement root = document.rootVisualElement;
 			root.pickingMode = PickingMode.Ignore;
 
-			wipe = new ScreenWipe();
+			wipe = new ScreenWipe(() => UIFxSettings.Instance.sceneWipe);
 			root.Add(wipe);
 			wipe.SetInstant(true);
 
@@ -81,6 +108,8 @@ namespace WitchMendokusai
 		private void OnDestroy()
 		{
 			SceneManager.sceneLoaded -= OnSceneLoaded;
+			wipe?.Dispose();
+			PreviewingStyle = null;
 			if (instance == this)
 				instance = null;
 		}
@@ -101,6 +130,8 @@ namespace WitchMendokusai
 
 		private void Play(IEnumerator routine)
 		{
+			// 미리보기가 다른 흐름에 밀리면 표시도 끝
+			PreviewingStyle = null;
 			if (running != null)
 				StopCoroutine(running);
 			running = StartCoroutine(routine);
@@ -114,6 +145,27 @@ namespace WitchMendokusai
 				yield return null;
 			running = null;
 			SceneManager.LoadScene(sceneName);
+		}
+
+		private IEnumerator PreviewRoutine(ScreenWipeStyle[] styles)
+		{
+			foreach (ScreenWipeStyle wipeStyle in styles)
+			{
+				bool covered = false;
+				wipe.Play(true, () => covered = true, wipeStyle);
+				PreviewingStyle = wipe.CurrentStyle;
+				Debug.Log($"[SceneFader] 미리보기 {wipe.CurrentStyle}");
+				while (covered == false)
+					yield return null;
+				yield return new WaitForSecondsRealtime(previewHoldSeconds);
+				bool revealed = false;
+				wipe.Play(false, () => revealed = true);
+				while (revealed == false)
+					yield return null;
+				yield return new WaitForSecondsRealtime(previewHoldSeconds);
+			}
+			PreviewingStyle = null;
+			running = null;
 		}
 
 		private IEnumerator Reveal()

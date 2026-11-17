@@ -77,6 +77,8 @@ namespace WitchMendokusai
 
 			if (newActive)
 			{
+				if (Root.ClassListContains(UIMotion.IN) == false)
+					UIMotion.UseStyle(Root, UIFxSettings.Instance.panelMotion);
 				UIMotion.Show(Root);
 				// 패널 몸통 하나 아래에 실제 칸들이 있으면 그 칸들을 순서대로
 				VisualElement staggerRoot = Root.childCount == 2 && Root[0].childCount > 1 ? Root[0] : Root;

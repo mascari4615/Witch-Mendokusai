@@ -123,6 +123,8 @@ namespace WitchMendokusai
 		public void Open()
 		{
 			bool wasOpen = IsOpen;
+			if (wasOpen == false)
+				UIMotion.UseStyle(this, UIFxSettings.Instance.windowMotion);
 			SetVisibleInternal(true);
 			BringToFront();
 			if (wasOpen == false)
