@@ -8,6 +8,8 @@ namespace WitchMendokusai
 	{
 		[Tooltip("동작 버튼 한 변(픽셀). 손끝이 뭉툭해서 데스크톱 버튼보다 커야 한다.")]
 		[SerializeField, Min(44f)] private float actionButtonSize = 96f;
+		[Tooltip("말걸기 버튼과 동작 버튼 묶음 사이 간격(픽셀). 말걸기는 묶음 바깥 왼쪽에 뜸")]
+		[SerializeField, Min(0f)] private float interactButtonGap = 16f;
 		[Tooltip("부감 시점(개척·도시)에서 뜨는 한 줄 — 두 손가락 조작은 화면에 안 보여서 말해 줘야 한다.")]
 		[SerializeField] private string overheadHintText = "두 손가락으로 밀면 시점 이동 · 비틀면 회전 · 오므리면 확대";
 		private Label overheadHint;
@@ -157,14 +159,15 @@ namespace WitchMendokusai
 			topRow.Add(MakeHoldButton("조준", InputEventType.ChangeMode, actionButtonSize * 0.8f));
 			column.Add(topRow);
 
-			// 말걸기는 *가끔* 뜨는 것이라 늘 있는 버튼들과 줄을 섞지 않는다 — 섞으면 나타날 때마다
-			// 점프·공격이 옆으로 밀려서, 방금 외운 손가락 위치가 어긋난다.
-			VisualElement interactRow = new VisualElement { style = { flexDirection = FlexDirection.Row } };
-			interactRow.pickingMode = PickingMode.Ignore;
+			// 말걸기는 가끔 뜨는 버튼. 묶음 배치에 끼우면 나타날 때마다 다른 버튼이 밀림 (2026-11-17 실기 "기존 버튼이 움직이는 경우는 본 적이 없어")
+			// 묶음 바깥 왼쪽 빈자리에 떠서 아랫줄 높이에 맞춤. 묶음 크기는 그대로
 			interactButton = MakeTapButton("말걸기", InputEventType.Submit);
+			interactButton.style.position = Position.Absolute;
+			interactButton.style.right = Length.Percent(100f);
+			interactButton.style.bottom = 0;
+			interactButton.style.marginRight = interactButtonGap;
 			interactButton.style.display = DisplayStyle.None;
-			interactRow.Add(interactButton);
-			column.Add(interactRow);
+			column.Add(interactButton);
 
 			VisualElement bottomRow = new VisualElement { style = { flexDirection = FlexDirection.Row } };
 			bottomRow.pickingMode = PickingMode.Ignore;

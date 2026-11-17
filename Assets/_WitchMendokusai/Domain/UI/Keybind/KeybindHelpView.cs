@@ -83,6 +83,10 @@ namespace WitchMendokusai
 			yield return null;
 			if (UIRoot.Instance != uiRoot || PlayerPrefs.GetInt(SHOWN_PREF_KEY, 0) == 1)
 				yield break;
+			// 키보드 단축키 창이라 손가락 조작에서는 안 띄움. 기록도 안 남겨 나중에 키보드로 하면 그때 한 번 (2026-11-17 폰)
+			// 폰은 첫 터치 전엔 터치 모드로 안 잡혀서 기기 종류도 같이 봄
+			if (inputManager.IsTouchMode || Application.isMobilePlatform)
+				yield break;
 			StageManager.OnStageChanged -= OnFirstStage;
 			PlayerPrefs.SetInt(SHOWN_PREF_KEY, 1);
 			PlayerPrefs.Save();
