@@ -87,6 +87,10 @@ WMInput.inputactions → InputManager.BindEvents() → On{Start/Performed/Cancel
 ⚠ 색을 `static readonly` 로 옮기는 절반짜리는 룰을 못 채운다 — 리터럴만 이사할 뿐 런타임 tweak 은
 여전히 불가. 그건 「겉만 깨끗해진 것」이다.
 
+### 전체 화면 UI
+
+전체 화면 창은 `UIRoot.CreateFullScreenFrame(layer, name)` 으로만 만든다. `Root` 는 화면 끝까지 (배경, 막, 배경 그림, 테마 USS), `Content` 는 안전 영역 (버튼, 목록, 글). `UIToolkitPanel` 은 `BuildUI(content)` 와 `AddBackdrop`. `ScreenLayer.Add` 직접 호출은 시험 `SafeAreaTest.Full_screen_windows_go_through_frame` 이 막는다. 정본 `memo/wm/systems/ui.md` 계약 절.
+
 ## 에러 처리 — FastFail 유지
 
 방어 코드(TryGet/null체크/기본값 반환)로 증상 덮지 말고, 등록 누락 등 근본 원인 고침. `[]` 직접 접근 등 FastFail 메서드 그대로 유지.
