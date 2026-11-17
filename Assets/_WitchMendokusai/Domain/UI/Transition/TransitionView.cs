@@ -32,14 +32,16 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			wipe = new ScreenWipe();
+			wipe = new ScreenWipe(() => UIFxSettings.Instance.portalWipe);
 			wipe.SetInstant(false);
 			uiRoot.OverlayLayer.Add(wipe);
 		}
 
 		private void OnDestroy()
 		{
-			wipe?.RemoveFromHierarchy();
+			wipe?.Dispose();
+			// 전환 도중 씬이 바뀌면 입력 잠금이 남지 않게
+			IsInTransition = false;
 		}
 
 		public async UniTask Transition(Action aDuringTransition, Action aWhenStart = null, Action aWhenEnd = null)
@@ -61,26 +63,44 @@ namespace WitchMendokusai
 		private async UniTask TransitionCore(Func<UniTask> tDuringTransition, Action aWhenStart, Action aWhenEnd)
 		{
 			IsInTransition = true;
-			aWhenStart?.Invoke();
-			timeManager.Pause(gameObject);
+			bool resumed = false;
+			try
+			{
+				aWhenStart?.Invoke();
+				timeManager.Pause(gameObject);
 
-			UniTaskCompletionSource covered = new();
-			wipe.Play(true, () => covered.TrySetResult());
-			await covered.Task;
+				UniTaskCompletionSource covered = new();
+				wipe.Play(true, () => covered.TrySetResult());
+				await covered.Task;
 
-			await tDuringTransition.Invoke();
-			await UniTask.Delay(ToMilliseconds(holdSeconds), DelayType.Realtime);
+				await tDuringTransition.Invoke();
+				await UniTask.Delay(ToMilliseconds(holdSeconds), DelayType.Realtime);
 
-			UniTaskCompletionSource revealed = new();
-			wipe.Play(false, () => revealed.TrySetResult());
-			float revealSeconds = UIFxSettings.Instance.wipeRevealSeconds;
-			await UniTask.Delay(ToMilliseconds(revealSeconds * earlyResumeRatio), DelayType.Realtime);
+				UniTaskCompletionSource revealed = new();
+				wipe.Play(false, () => revealed.TrySetResult());
+				float revealSeconds = UIFxSettings.Instance.wipeRevealSeconds;
+				await UniTask.Delay(ToMilliseconds(revealSeconds * earlyResumeRatio), DelayType.Realtime);
 
-			IsInTransition = false;
-			timeManager.Resume(gameObject);
-			aWhenEnd?.Invoke();
+				Resume();
+				aWhenEnd?.Invoke();
 
-			await revealed.Task;
+				await revealed.Task;
+			}
+			finally
+			{
+				// 작업이 예외로 끝나도 입력 잠금과 시간 정지가 남지 않게
+				Resume();
+			}
+
+			void Resume()
+			{
+				if (resumed)
+					return;
+				resumed = true;
+				IsInTransition = false;
+				if (this != null)
+					timeManager.Resume(gameObject);
+			}
 		}
 
 		private static int ToMilliseconds(float seconds) => (int)(seconds * 1000);
