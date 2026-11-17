@@ -216,6 +216,11 @@ function Invoke-WmBuild {
         '-wmBuildNumber', $RunNumber,
         '-wmCommit', $Commit
     )
+    # 에디터를 대상 플랫폼으로 실행
+    # - 활성 플랫폼이 다르면 Addressables 카탈로그 경로도 그 플랫폼 기준 (2026-11-17 APK 카탈로그가 StandaloneWindows64)
+    # - WMBuilder 에도 같은 맞춤
+    $unityTarget = @{ windows = 'Win64'; android = 'Android'; macos = 'OSXUniversal'; linux = 'Linux64'; ios = 'iOS' }[$Platform]
+    if ($unityTarget) { $arguments += @('-buildTarget', $unityTarget) }
     if ($BuildType -eq 'development') { $arguments += '-wmDev' }
     if (-not [string]::IsNullOrWhiteSpace($Version)) { $arguments += @('-wmVersion', $Version) }
 
