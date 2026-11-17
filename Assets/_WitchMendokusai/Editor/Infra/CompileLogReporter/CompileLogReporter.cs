@@ -20,10 +20,10 @@ namespace WitchMendokusai.Editor.Infra.CompileLogReporter
 	///     ↓
 	///   compilationFinished (전체 끝)
 	///     ↓
-	///   fingerprint dedup → POST yawnbot.mascari4615.com/webhook/local
+	///   fingerprint dedup → POST bot.mascari4615.com/webhook/local
 	///
 	/// 노브 (EditorPrefs key):
-	///   WitchMendokusai.CompileLogReporter.Url      — endpoint override (default = https://yawnbot.mascari4615.com/webhook/local)
+	///   WitchMendokusai.CompileLogReporter.Url      — endpoint override (default = https://bot.mascari4615.com/webhook/local)
 	///   WitchMendokusai.CompileLogReporter.Secret   — X-Yawnbot-Secret header (yawnbot LOCAL_WEBHOOK_SECRET 와 정합)
 	///   WitchMendokusai.CompileLogReporter.Disabled — true 면 비활성
 	///
@@ -33,7 +33,7 @@ namespace WitchMendokusai.Editor.Infra.CompileLogReporter
 	[InitializeOnLoad]
 	public static class CompileLogReporter
 	{
-		private const string DefaultUrl = "https://yawnbot.mascari4615.com/webhook/local";
+		private const string DefaultUrl = "https://bot.mascari4615.com/webhook/local";
 		private const string EditorPrefsUrlKey = "WitchMendokusai.CompileLogReporter.Url";
 		private const string EditorPrefsSecretKey = "WitchMendokusai.CompileLogReporter.Secret";
 		private const string EditorPrefsDisabledKey = "WitchMendokusai.CompileLogReporter.Disabled";

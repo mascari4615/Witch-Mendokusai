@@ -24,7 +24,7 @@ namespace WitchMendokusai
         [field: SerializeField] public bool EnabledInReleaseBuild { get; private set; } = false;
 
         [field: Tooltip("서버 수신 주소. 노트북 prod yawnbot.")]
-        [field: SerializeField] public string Endpoint { get; private set; } = "https://yawnbot.mascari4615.com/device-log";
+        [field: SerializeField] public string Endpoint { get; private set; } = "https://bot.mascari4615.com/device-log";
 
         [field: Header("주기 · 크기")]
         [field: Tooltip("몇 초마다 모아 보낼지.")]

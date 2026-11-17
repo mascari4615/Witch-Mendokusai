@@ -19,7 +19,7 @@ namespace WitchMendokusai
     /// 설치 조건 = `Resources/DeviceLogSettings` 가 있고 Enabled. 에셋이 없거나 꺼져 있으면
     /// **아무것도 안 한다**(게임 흐름 0 영향). 에디터는 기본 비활성 — 콘솔이 이미 정본이다.
     ///
-    /// 보는 곳: `https://yawnbot.mascari4615.com/device-log?t=<토큰>` (웹) /
+    /// 보는 곳: `https://bot.mascari4615.com/device-log?t=<토큰>` (웹) /
     /// `GET /device-log/tail` (AI) / 에러는 디스코드 채널.
     /// </summary>
     public sealed partial class DeviceLogRelay : MonoBehaviour
