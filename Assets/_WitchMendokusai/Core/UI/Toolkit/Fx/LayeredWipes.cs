@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 여러 층이 시차를 두고 움직이는 전환. 덮기와 걷기가 같은 방향으로 이어짐 (되감기 아님)
-	/// 색은 wipeColor 와 강조색 wipeAccentColor, 수치는 UIFxSettings
+	/// 색과 수치는 각 UIWipe 에셋 (ShutterUIWipe 등)
 	/// </summary>
 	internal static class LayeredWipeMath
 	{
@@ -42,6 +42,9 @@ namespace WitchMendokusai
 	/// <summary>비스듬한 띠들이 차례로 밀려 들어와 덮고, 같은 방향으로 밀려 나가며 걷힘. 띠 앞머리에 강조색 선</summary>
 	internal sealed class ShutterWipe : IWipeRenderer
 	{
+		private readonly ShutterUIWipe preset;
+
+		public ShutterWipe(ShutterUIWipe preset) => this.preset = preset;
 
 		private VisualElement host;
 		private readonly List<VisualElement> bands = new();
@@ -61,26 +64,25 @@ namespace WitchMendokusai
 		public void Resize(Vector2 newSize)
 		{
 			size = newSize;
-			UIFxSettings settings = UIFxSettings.Instance;
 			host.Clear();
 			bands.Clear();
-			int count = Mathf.Max(2, settings.wipeShutterBands);
+			int count = Mathf.Max(2, preset.bands);
 			float slot = size.x / count;
-			float width = slot * settings.wipeShutterOverlap;
-			float radians = Mathf.Abs(settings.wipeShutterAngle) * Mathf.Deg2Rad;
+			float width = slot * preset.overlap;
+			float radians = Mathf.Abs(preset.angle) * Mathf.Deg2Rad;
 			// 기울인 띠가 화면 위아래 끝까지 닿는 높이
 			float height = size.y / Mathf.Cos(radians) + width * Mathf.Sin(radians);
 			// 기울어져 화면 위아래 모서리에서 옆으로 밀린 만큼 양 끝에 띠를 더함
 			int extra = Mathf.CeilToInt(size.y * 0.5f * Mathf.Tan(radians) / slot) + 1;
 			for (int i = -extra; i < count + extra; i++)
 			{
-				Color tone = Color.Lerp(settings.wipeColor, settings.wipeAccentColor, (i & 1) == 0 ? 0f : settings.wipeShutterTint);
-				tone.a = settings.wipeColor.a;
+				Color tone = Color.Lerp(preset.color, preset.accentColor, (i & 1) == 0 ? 0f : preset.tint);
+				tone.a = preset.color.a;
 				VisualElement band = LayeredWipeMath.MakeRect("shutter-band", tone);
 				LayeredWipeMath.Place(band, slot * i - (width - slot) * 0.5f, (size.y - height) * 0.5f, width, height);
-				LayeredWipeMath.Turn(band, settings.wipeShutterAngle);
-				VisualElement edge = LayeredWipeMath.MakeRect("shutter-edge", settings.wipeAccentColor);
-				LayeredWipeMath.Place(edge, 0f, 0f, settings.wipeAccentLine, height);
+				LayeredWipeMath.Turn(band, preset.angle);
+				VisualElement edge = LayeredWipeMath.MakeRect("shutter-edge", preset.accentColor);
+				LayeredWipeMath.Place(edge, 0f, 0f, preset.accentLine, height);
 				band.Add(edge);
 				host.Add(band);
 				bands.Add(band);
@@ -91,15 +93,15 @@ namespace WitchMendokusai
 		{
 			if (bands.Count == 0)
 				return;
-			float stagger = UIFxSettings.Instance.wipeShutterStagger;
+			float stagger = preset.stagger;
 			float each = 1f - stagger;
 			for (int i = 0; i < bands.Count; i++)
 			{
 				float local = LayeredWipeMath.Segment(progress, stagger * i / (bands.Count - 1), each);
 				// 덮기는 오른쪽에서 들어와 멈추고, 걷기는 멈춘 자리에서 왼쪽으로 나감
 				float offset = cover
-					? (1f - LayeredWipeMath.OutExpo(local)) * size.x * UIFxSettings.Instance.wipeShutterTravel
-					: -LayeredWipeMath.InCubic(local) * size.x * UIFxSettings.Instance.wipeShutterTravel;
+					? (1f - LayeredWipeMath.OutExpo(local)) * size.x * preset.travel
+					: -LayeredWipeMath.InCubic(local) * size.x * preset.travel;
 				bands[i].style.translate = new Translate(offset, 0f);
 			}
 		}
@@ -108,6 +110,10 @@ namespace WitchMendokusai
 	/// <summary>사선 한 줄이 그어지고 굵어져 화면을 덮음, 섬광. 걷기는 그 선을 따라 두 쪽으로 갈라져 벌어짐</summary>
 	internal sealed class SlashWipe : IWipeRenderer
 	{
+		private readonly SlashUIWipe preset;
+
+		public SlashWipe(SlashUIWipe preset) => this.preset = preset;
+
 		// 선을 긋는 구간과 굵어지는 구간 비율
 		private const float DRAW_PART = 0.35f;
 		// 굵어지기 곡선 지수. 클수록 끝에서 한 번에 덮음
@@ -140,17 +146,16 @@ namespace WitchMendokusai
 		{
 			size = newSize;
 			diagonal = newSize.magnitude;
-			UIFxSettings settings = UIFxSettings.Instance;
 			host.Clear();
-			band = LayeredWipeMath.MakeRect("slash-band", settings.wipeColor);
-			line = LayeredWipeMath.MakeRect("slash-line", settings.wipeAccentColor);
-			firstHalf = LayeredWipeMath.MakeRect("slash-half", settings.wipeColor);
-			secondHalf = LayeredWipeMath.MakeRect("slash-half", settings.wipeColor);
+			band = LayeredWipeMath.MakeRect("slash-band", preset.color);
+			line = LayeredWipeMath.MakeRect("slash-line", preset.accentColor);
+			firstHalf = LayeredWipeMath.MakeRect("slash-half", preset.color);
+			secondHalf = LayeredWipeMath.MakeRect("slash-half", preset.color);
 			flash = WipeRenderers.MakeFill("slash-flash");
-			flash.style.backgroundColor = settings.wipeFlashColor;
+			flash.style.backgroundColor = preset.flashColor;
 			foreach (VisualElement element in new[] { band, firstHalf, secondHalf, line })
 			{
-				LayeredWipeMath.Turn(element, -settings.wipeSlashAngle);
+				LayeredWipeMath.Turn(element, -preset.angle);
 				host.Add(element);
 			}
 			// 두 쪽은 선을 경계로 맞닿은 반평면
@@ -166,8 +171,7 @@ namespace WitchMendokusai
 		{
 			if (band == null)
 				return;
-			UIFxSettings settings = UIFxSettings.Instance;
-			float accent = settings.wipeAccentLine;
+			float accent = preset.accentLine;
 			if (cover)
 			{
 				SetHalves(false, 0f);
@@ -179,7 +183,7 @@ namespace WitchMendokusai
 				band.style.display = DisplayStyle.Flex;
 				line.style.display = flood >= 1f ? DisplayStyle.None : DisplayStyle.Flex;
 				// 다 덮는 순간 한 번 번쩍. 덮인 상태에는 남지 않음
-				flash.style.opacity = Mathf.Sin(LayeredWipeMath.Segment(progress, FLASH_START, 1f - FLASH_START) * Mathf.PI) * settings.wipeFlashAlpha;
+				flash.style.opacity = Mathf.Sin(LayeredWipeMath.Segment(progress, FLASH_START, 1f - FLASH_START) * Mathf.PI) * preset.flashAlpha;
 				return;
 			}
 			band.style.display = DisplayStyle.None;
@@ -190,7 +194,7 @@ namespace WitchMendokusai
 			// 덮기 끝에 꺼진 선과 섬광이 갈라지는 순간 다시 한 번 켜졌다 짐 (튀지 않게 0 에서 시작)
 			float cut = Mathf.Sin(LayeredWipeMath.Segment(progress, 0f, FLASH_FADE_PART) * Mathf.PI);
 			line.style.opacity = cut;
-			flash.style.opacity = cut * settings.wipeFlashAlpha;
+			flash.style.opacity = cut * preset.flashAlpha;
 		}
 
 		// 화면 가운데를 지나는 길이 length, 두께 thickness 의 띠
@@ -203,7 +207,7 @@ namespace WitchMendokusai
 			firstHalf.style.display = display;
 			secondHalf.style.display = display;
 			// 선의 수직 방향 (부모 좌표) 으로 벌어짐
-			float radians = -UIFxSettings.Instance.wipeSlashAngle * Mathf.Deg2Rad;
+			float radians = -preset.angle * Mathf.Deg2Rad;
 			Vector2 normal = new(-Mathf.Sin(radians), Mathf.Cos(radians));
 			firstHalf.style.translate = new Translate(-normal.x * apart, -normal.y * apart);
 			secondHalf.style.translate = new Translate(normal.x * apart, normal.y * apart);
@@ -213,6 +217,10 @@ namespace WitchMendokusai
 	/// <summary>가로 조각들이 어긋난 채 색이 갈라져 나타나 자리를 잡고, 걷을 때 다시 어긋나며 사라짐</summary>
 	internal sealed class GlitchWipe : IWipeRenderer
 	{
+		private readonly GlitchUIWipe preset;
+
+		public GlitchWipe(GlitchUIWipe preset) => this.preset = preset;
+
 		// 조각마다 나타나는 시점이 흩어지는 비율
 		private const float APPEAR_SPREAD = 0.6f;
 		// 걷기에서 조각이 흐려지기 시작하는 조각 진행
@@ -248,16 +256,15 @@ namespace WitchMendokusai
 		public void Resize(Vector2 newSize)
 		{
 			size = newSize;
-			UIFxSettings settings = UIFxSettings.Instance;
 			host.Clear();
 			slices.Clear();
-			int count = Mathf.Max(2, settings.wipeGlitchSlices);
+			int count = Mathf.Max(2, preset.slices);
 			// 높이가 들쭉날쭉한 조각. 합이 화면 높이
 			float[] weights = new float[count];
 			float total = 0f;
 			for (int i = 0; i < count; i++)
 			{
-				weights[i] = Mathf.Lerp(settings.wipeGlitchSliceWeight.x, settings.wipeGlitchSliceWeight.y, WipePatterns.Hash01(i, 71));
+				weights[i] = Mathf.Lerp(preset.sliceWeight.x, preset.sliceWeight.y, WipePatterns.Hash01(i, 71));
 				total += weights[i];
 			}
 			float top = 0f;
@@ -267,9 +274,9 @@ namespace WitchMendokusai
 				Slice slice = new()
 				{
 					Root = LayeredWipeMath.MakeRect("glitch-slice", Color.clear),
-					Warm = LayeredWipeMath.MakeRect("glitch-warm", settings.wipeGlitchWarm),
-					Cold = LayeredWipeMath.MakeRect("glitch-cold", settings.wipeGlitchCold),
-					Main = LayeredWipeMath.MakeRect("glitch-main", settings.wipeColor),
+					Warm = LayeredWipeMath.MakeRect("glitch-warm", preset.warm),
+					Cold = LayeredWipeMath.MakeRect("glitch-cold", preset.cold),
+					Main = LayeredWipeMath.MakeRect("glitch-main", preset.color),
 					Delay = WipePatterns.Hash01(i, 97) * APPEAR_SPREAD,
 					Direction = WipePatterns.Hash01(i, 13) < 0.5f ? -1f : 1f,
 				};
@@ -287,8 +294,7 @@ namespace WitchMendokusai
 
 		public void Draw(float progress, bool cover)
 		{
-			UIFxSettings settings = UIFxSettings.Instance;
-			float shiftRange = size.x * settings.wipeGlitchShift;
+			float shiftRange = size.x * preset.shift;
 			foreach (Slice slice in slices)
 			{
 				float local = LayeredWipeMath.Segment(progress, slice.Delay, 1f - APPEAR_SPREAD);
@@ -300,10 +306,10 @@ namespace WitchMendokusai
 				slice.Root.style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
 				float shift = slice.Direction * shiftRange * settle * settle;
 				// 색 갈라짐은 어긋남 동안 계단식으로 튐
-				float jitter = Mathf.Floor(progress * settings.wipeGlitchSteps) % 2f == 0f ? 1f : JITTER_BACK_RATIO;
+				float jitter = Mathf.Floor(progress * preset.steps) % 2f == 0f ? 1f : JITTER_BACK_RATIO;
 				slice.Main.style.translate = new Translate(shift, 0f);
-				slice.Warm.style.translate = new Translate(shift + settings.wipeGlitchSplit * settle * jitter, 0f);
-				slice.Cold.style.translate = new Translate(shift - settings.wipeGlitchSplit * settle * jitter, 0f);
+				slice.Warm.style.translate = new Translate(shift + preset.split * settle * jitter, 0f);
+				slice.Cold.style.translate = new Translate(shift - preset.split * settle * jitter, 0f);
 			}
 		}
 	}
@@ -311,6 +317,10 @@ namespace WitchMendokusai
 	/// <summary>브라운관이 꺼지듯 위아래가 닫혀 가로 빛줄이 되고, 그 줄이 점으로 줄어 사라짐. 걷기는 반대 순서로 켜짐</summary>
 	internal sealed class TubeWipe : IWipeRenderer
 	{
+		private readonly TubeUIWipe preset;
+
+		public TubeWipe(TubeUIWipe preset) => this.preset = preset;
+
 		// 위아래가 닫히는 구간 비율. 나머지는 빛줄이 점으로
 		private const float CLOSE_PART = 0.6f;
 		// 닫히기 시작할 때 빛줄 두께, 화면 높이 비율
@@ -336,11 +346,10 @@ namespace WitchMendokusai
 		public void Resize(Vector2 newSize)
 		{
 			size = newSize;
-			UIFxSettings settings = UIFxSettings.Instance;
 			host.Clear();
-			upper = LayeredWipeMath.MakeRect("tube-upper", settings.wipeColor);
-			lower = LayeredWipeMath.MakeRect("tube-lower", settings.wipeColor);
-			line = LayeredWipeMath.MakeRect("tube-line", settings.wipeFlashColor);
+			upper = LayeredWipeMath.MakeRect("tube-upper", preset.color);
+			lower = LayeredWipeMath.MakeRect("tube-lower", preset.color);
+			line = LayeredWipeMath.MakeRect("tube-line", preset.flashColor);
 			line.style.borderTopLeftRadius = Length.Percent(50);
 			line.style.borderTopRightRadius = Length.Percent(50);
 			line.style.borderBottomLeftRadius = Length.Percent(50);
@@ -354,7 +363,6 @@ namespace WitchMendokusai
 		{
 			if (upper == null)
 				return;
-			UIFxSettings settings = UIFxSettings.Instance;
 			// 덮기와 걷기를 같은 시간축 (0 열림, 1 꺼짐) 으로
 			float off = cover ? progress : 1f - progress;
 			float close = LayeredWipeMath.Segment(off, 0f, CLOSE_PART);
@@ -365,7 +373,7 @@ namespace WitchMendokusai
 			LayeredWipeMath.Place(upper, 0f, 0f, size.x, half);
 			LayeredWipeMath.Place(lower, 0f, size.y - half, size.x, half);
 
-			float thickness = Mathf.Lerp(size.y * TUBE_OPEN_LINE_RATIO, settings.wipeTubeLine, eased);
+			float thickness = Mathf.Lerp(size.y * TUBE_OPEN_LINE_RATIO, preset.line, eased);
 			float width = size.x * (1f - LayeredWipeMath.OutExpo(shrink));
 			bool lineShown = close > 0f && off < 1f;
 			line.style.display = lineShown ? DisplayStyle.Flex : DisplayStyle.None;

@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	// 씬 사이 막. 부팅 때 한 번 만들어 씬과 무관하게 유지 (UIFPS 와 같은 방식)
 	// 나갈 때 덮고 씬 교체, 새 씬 첫 프레임 몇 개 지난 뒤 걷음. 씬 안 전환 (포털, 던전) 은 TransitionView
-	// 막 모양과 길이는 UIFxSettings (ScreenWipe)
+	// 막은 UIWipe 에셋. 기본은 UIFxSettings.sceneWipe, 호출한 자리가 에셋을 넘기면 그것
 	public sealed class SceneFader : MonoBehaviour
 	{
 		// 게임 UI 위, FPS 숫자 (32000) 아래
@@ -39,8 +39,8 @@ namespace WitchMendokusai
 			host.SetActive(true);
 		}
 
-		/// <summary>덮은 뒤 씬 교체. 덮는 중 중복 호출은 무시 (키보드 연타)</summary>
-		public static void LoadScene(string sceneName)
+		/// <summary>덮은 뒤 씬 교체. 덮는 중 중복 호출은 무시 (키보드 연타). wipe 를 주면 기본 대신 그 전환</summary>
+		public static void LoadScene(string sceneName, UIWipe wipe = null)
 		{
 			// 방치형 빌드 (WM_IDLE) 는 막을 설치하지 않음
 			if (instance == null)
@@ -51,7 +51,7 @@ namespace WitchMendokusai
 			if (instance.loading)
 				return;
 			instance.loading = true;
-			instance.Play(instance.CoverThenLoad(sceneName));
+			instance.Play(instance.CoverThenLoad(sceneName, wipe));
 		}
 
 		/// <summary>다음 씬 첫 프레임에 막을 바로 씌우고 걷음. 비동기 로딩처럼 교체 시점을 모를 때 사용</summary>
@@ -61,21 +61,21 @@ namespace WitchMendokusai
 				instance.coverOnNextScene = true;
 		}
 
-		/// <summary>미리보기 중인 무늬. 아니면 null (녹화 도구가 읽음)</summary>
-		public static ScreenWipeStyle? PreviewingStyle { get; private set; }
+		/// <summary>미리보기 중인 전환. 아니면 null (녹화 도구가 읽음)</summary>
+		public static UIWipe PreviewingWipe { get; private set; }
 
-		/// <summary>Play 중 무늬 하나를 덮고 걷어 보임. UIFxSettings 우클릭 메뉴</summary>
-		public static void PreviewWipe(ScreenWipeStyle wipeStyle)
+		/// <summary>Play 중 전환 하나를 덮고 걷어 보임. 전환 에셋 우클릭 메뉴</summary>
+		public static void PreviewWipe(UIWipe wipe)
 		{
 			if (CanPreview())
-				instance.Play(instance.PreviewRoutine(new[] { wipeStyle }));
+				instance.Play(instance.PreviewRoutine(new[] { wipe }));
 		}
 
-		/// <summary>Play 중 모든 무늬를 차례로</summary>
-		public static void PreviewAllWipes()
+		/// <summary>Play 중 여러 전환을 차례로</summary>
+		public static void PreviewWipes(UIWipe[] wipes)
 		{
 			if (CanPreview())
-				instance.Play(instance.PreviewRoutine(WipeRenderers.All));
+				instance.Play(instance.PreviewRoutine(wipes));
 		}
 
 		private static bool CanPreview()
@@ -109,7 +109,7 @@ namespace WitchMendokusai
 		{
 			SceneManager.sceneLoaded -= OnSceneLoaded;
 			wipe?.Dispose();
-			PreviewingStyle = null;
+			PreviewingWipe = null;
 			if (instance == this)
 				instance = null;
 		}
@@ -131,30 +131,30 @@ namespace WitchMendokusai
 		private void Play(IEnumerator routine)
 		{
 			// 미리보기가 다른 흐름에 밀리면 표시도 끝
-			PreviewingStyle = null;
+			PreviewingWipe = null;
 			if (running != null)
 				StopCoroutine(running);
 			running = StartCoroutine(routine);
 		}
 
-		private IEnumerator CoverThenLoad(string sceneName)
+		private IEnumerator CoverThenLoad(string sceneName, UIWipe overrideWipe)
 		{
 			bool covered = false;
-			wipe.Play(true, () => covered = true);
+			wipe.Play(true, () => covered = true, overrideWipe);
 			while (covered == false)
 				yield return null;
 			running = null;
 			SceneManager.LoadScene(sceneName);
 		}
 
-		private IEnumerator PreviewRoutine(ScreenWipeStyle[] styles)
+		private IEnumerator PreviewRoutine(UIWipe[] wipes)
 		{
-			foreach (ScreenWipeStyle wipeStyle in styles)
+			foreach (UIWipe previewed in wipes)
 			{
 				bool covered = false;
-				wipe.Play(true, () => covered = true, wipeStyle);
-				PreviewingStyle = wipe.CurrentStyle;
-				Debug.Log($"[SceneFader] 미리보기 {wipe.CurrentStyle}");
+				wipe.Play(true, () => covered = true, previewed);
+				PreviewingWipe = wipe.CurrentWipe;
+				Debug.Log($"[SceneFader] 미리보기 {wipe.CurrentWipe.name}");
 				while (covered == false)
 					yield return null;
 				yield return new WaitForSecondsRealtime(previewHoldSeconds);
@@ -164,7 +164,7 @@ namespace WitchMendokusai
 					yield return null;
 				yield return new WaitForSecondsRealtime(previewHoldSeconds);
 			}
-			PreviewingStyle = null;
+			PreviewingWipe = null;
 			running = null;
 		}
 

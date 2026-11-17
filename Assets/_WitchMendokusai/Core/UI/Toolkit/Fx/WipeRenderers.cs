@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
-	/// <summary>ScreenWipe 가 맡기는 무늬 하나. 새 무늬는 이것을 구현하고 WipeRenderers.Create 에 한 줄</summary>
+	/// <summary>ScreenWipe 가 맡기는 무늬 하나. UIWipe 에셋의 CreateRenderer 가 만듦</summary>
 	public interface IWipeRenderer
 	{
 		/// <summary>Attach 가 host 에 붙인 최상위 요소. 무늬 교체 때 숨김</summary>
@@ -18,78 +18,14 @@ namespace WitchMendokusai
 	}
 
 	/// <summary>
-	/// 무늬 목록. 세 가족
+	/// 렌더러 공용 도구. 무늬 종류는 UIWipe 에셋 클래스가 정함
 	/// - Fade: 단색 막 투명도
-	/// - 칸 (Diamond, Dots, Pixels, Blinds): 요소 격자가 순서대로 커지며 덮음
-	/// - 무늬 지도 (Iris 이후): 화면 칸마다 덮일 순서 값을 계산해 두고 진행에 따라 경계를 밀며, 경계에 빛
+	/// - Tile: 요소 격자가 순서대로 커지며 덮음
+	/// - Pattern: 화면 칸마다 덮일 순서 값을 계산해 두고 진행에 따라 경계를 밀며, 경계에 빛
 	/// - 층 전환 (Shutter, Slash, Glitch, Tube): 여러 요소가 시차를 두고 움직임. LayeredWipes
 	/// </summary>
 	public static class WipeRenderers
 	{
-		private static ScreenWipeStyle[] all;
-		private static ScreenWipeStyle[] patterned;
-
-		/// <summary>Random 과 Fade 를 뺀 무늬들. 빈 후보 목록의 기본값</summary>
-		private static ScreenWipeStyle[] Patterned => patterned ??= System.Array.FindAll(All, wipeStyle => wipeStyle != ScreenWipeStyle.Fade);
-
-		/// <summary>Random 을 뺀 전부</summary>
-		public static ScreenWipeStyle[] All
-		{
-			get
-			{
-				if (all != null)
-					return all;
-				List<ScreenWipeStyle> styles = new();
-				foreach (ScreenWipeStyle wipeStyle in Enum.GetValues(typeof(ScreenWipeStyle)))
-				{
-					if (wipeStyle != ScreenWipeStyle.Random)
-						styles.Add(wipeStyle);
-				}
-				all = styles.ToArray();
-				return all;
-			}
-		}
-
-		/// <summary>Random 이면 후보 중 하나, 아니면 그대로</summary>
-		public static ScreenWipeStyle Resolve(ScreenWipeStyle wipeStyle)
-		{
-			if (wipeStyle != ScreenWipeStyle.Random)
-				return wipeStyle;
-			ScreenWipeStyle[] pool = UIFxSettings.Instance.randomPool;
-			if (pool == null || pool.Length == 0)
-				pool = Patterned;
-			ScreenWipeStyle picked = pool[UnityEngine.Random.Range(0, pool.Length)];
-			Debug.Assert(picked != ScreenWipeStyle.Random, "UIFxSettings.randomPool 에 Random 이 들어 있음");
-			return picked == ScreenWipeStyle.Random ? Patterned[0] : picked;
-		}
-
-		public static IWipeRenderer Create(ScreenWipeStyle wipeStyle) => wipeStyle switch
-		{
-			ScreenWipeStyle.Fade => new FadeWipe(),
-			ScreenWipeStyle.Diamond => new TileWipe(TileWipe.Shape.Diamond, TileWipe.Diagonal, true),
-			ScreenWipeStyle.Dots => new TileWipe(TileWipe.Shape.Circle, TileWipe.CenterOut, true),
-			ScreenWipeStyle.Pixels => new TileWipe(TileWipe.Shape.Square, TileWipe.Scattered, false),
-			ScreenWipeStyle.Blinds => new TileWipe(TileWipe.Shape.Row, TileWipe.TopDown, false),
-			ScreenWipeStyle.Iris => new MapWipe(WipePatterns.Iris),
-			ScreenWipeStyle.Gate => new MapWipe(WipePatterns.Gate),
-			ScreenWipeStyle.Clock => new MapWipe(WipePatterns.Clock),
-			ScreenWipeStyle.Spiral => new MapWipe(WipePatterns.Spiral),
-			ScreenWipeStyle.Dissolve => new MapWipe(WipePatterns.Dissolve),
-			ScreenWipeStyle.Wave => new MapWipe(WipePatterns.Wave),
-			ScreenWipeStyle.Star => new MapWipe(WipePatterns.Star),
-			ScreenWipeStyle.Heart => new MapWipe(WipePatterns.Heart),
-			ScreenWipeStyle.Crystal => new MapWipe(WipePatterns.Crystal),
-			ScreenWipeStyle.Fan => new MapWipe(WipePatterns.Fan),
-			ScreenWipeStyle.Ripple => new MapWipe(WipePatterns.Ripple),
-			ScreenWipeStyle.Stripes => new MapWipe(WipePatterns.Stripes),
-			ScreenWipeStyle.Halftone => new MapWipe(WipePatterns.Halftone),
-			ScreenWipeStyle.Shutter => new ShutterWipe(),
-			ScreenWipeStyle.Slash => new SlashWipe(),
-			ScreenWipeStyle.Glitch => new GlitchWipe(),
-			ScreenWipeStyle.Tube => new TubeWipe(),
-			_ => throw new ArgumentOutOfRangeException(nameof(wipeStyle), wipeStyle, "WipeRenderers.Create 에 등록 안 된 무늬"),
-		};
-
 		internal static VisualElement MakeFill(string elementName)
 		{
 			VisualElement fill = new() { name = elementName, pickingMode = PickingMode.Ignore };
@@ -104,7 +40,10 @@ namespace WitchMendokusai
 
 	internal sealed class FadeWipe : IWipeRenderer
 	{
+		private readonly FadeUIWipe preset;
 		private VisualElement fill;
+
+		public FadeWipe(FadeUIWipe preset) => this.preset = preset;
 
 		public VisualElement Root => fill;
 
@@ -123,7 +62,7 @@ namespace WitchMendokusai
 		public void Draw(float progress, bool cover)
 		{
 			float eased = Mathf.SmoothStep(0f, 1f, progress);
-			Color color = UIFxSettings.Instance.wipeColor;
+			Color color = preset.color;
 			color.a *= cover ? eased : 1f - eased;
 			fill.style.backgroundColor = color;
 		}
@@ -131,14 +70,6 @@ namespace WitchMendokusai
 
 	internal sealed class TileWipe : IWipeRenderer
 	{
-		public enum Shape
-		{
-			Square = 0,
-			Diamond = 1,
-			Circle = 2,
-			Row = 3,
-		}
-
 		/// <summary>칸 (열, 행, 열 수, 행 수) 의 덮이는 순서 0~1</summary>
 		public delegate float Order(int column, int row, int columns, int rows);
 
@@ -161,21 +92,23 @@ namespace WitchMendokusai
 		private const float DIAMOND_ROTATION_DEGREES = 45f;
 		private const float CIRCLE_ROUND_PERCENT = 50f;
 
-		private readonly Shape shape;
-		private readonly Order order;
-		private readonly bool overshoot;
+		private readonly TileUIWipe preset;
 		private readonly List<VisualElement> tiles = new();
 		private readonly List<float> tileOrder = new();
 		private VisualElement container;
 
 		public VisualElement Root => container;
 
-		public TileWipe(Shape shape, Order order, bool overshoot)
+		public TileWipe(TileUIWipe preset) => this.preset = preset;
+
+		private static Order Resolve(TileOrder order) => order switch
 		{
-			this.shape = shape;
-			this.order = order;
-			this.overshoot = overshoot;
-		}
+			TileOrder.Diagonal => Diagonal,
+			TileOrder.CenterOut => CenterOut,
+			TileOrder.Scattered => Scattered,
+			TileOrder.TopDown => TopDown,
+			_ => throw new ArgumentOutOfRangeException(nameof(order), order, "TileWipe 에 등록 안 된 순서"),
+		};
 
 		public void Attach(VisualElement host)
 		{
@@ -190,9 +123,10 @@ namespace WitchMendokusai
 			container.Clear();
 			tiles.Clear();
 			tileOrder.Clear();
-			UIFxSettings settings = UIFxSettings.Instance;
-			float cell = Mathf.Max(MIN_CELL_PIXELS, settings.wipeCellSize);
-			bool row = shape == Shape.Row;
+			// 순서는 만들 때마다 에셋에서 읽음 (실행 중 인스펙터 변경 반영)
+			Order order = Resolve(preset.order);
+			float cell = Mathf.Max(MIN_CELL_PIXELS, preset.cellSize);
+			bool row = preset.shape == TileShape.Row;
 			int columns = row ? 1 : Mathf.CeilToInt(size.x / cell) + 1;
 			int rows = Mathf.CeilToInt(size.y / cell) + 1;
 			for (int rowIndex = 0; rowIndex < rows; rowIndex++)
@@ -205,9 +139,9 @@ namespace WitchMendokusai
 					tile.style.height = cell;
 					tile.style.left = row ? -cell * 0.5f : column * cell - cell * 0.5f;
 					tile.style.top = row ? rowIndex * cell : rowIndex * cell - cell * 0.5f;
-					if (shape == Shape.Diamond)
+					if (preset.shape == TileShape.Diamond)
 						tile.style.rotate = new UnityEngine.UIElements.Rotate(new UnityEngine.UIElements.Angle(DIAMOND_ROTATION_DEGREES, AngleUnit.Degree));
-					if (shape == Shape.Circle)
+					if (preset.shape == TileShape.Circle)
 					{
 						Length radius = Length.Percent(CIRCLE_ROUND_PERCENT);
 						tile.style.borderTopLeftRadius = radius;
@@ -225,21 +159,20 @@ namespace WitchMendokusai
 
 		public void Draw(float progress, bool cover)
 		{
-			UIFxSettings settings = UIFxSettings.Instance;
-			float spread = settings.wipeSpread;
-			float growth = shape == Shape.Square || shape == Shape.Row ? SQUARE_COVER_GROWTH : settings.wipeTileGrowth;
+			float spread = preset.spread;
+			float growth = preset.shape == TileShape.Square || preset.shape == TileShape.Row ? SQUARE_COVER_GROWTH : preset.growth;
 			for (int i = 0; i < tiles.Count; i++)
 			{
 				float local = Mathf.Clamp01(progress * (1f + spread) - tileOrder[i] * spread);
 				float grown;
 				// 픽셀 디졸브: 칸이 한 번에 켜지고 꺼짐. 줄어드는 칸 틈이 격자선처럼 보여서
-				if (shape == Shape.Square)
+				if (preset.shape == TileShape.Square)
 					grown = (local >= 0.5f) == cover ? 1f : 0f;
 				else
-					grown = cover ? (overshoot ? EaseOutBack(local) : EaseOutCubic(local)) : 1f - local * local;
+					grown = cover ? (preset.overshoot ? EaseOutBack(local) : EaseOutCubic(local)) : 1f - local * local;
 				float scale = Mathf.Max(0f, grown) * growth;
-				tiles[i].style.scale = shape == Shape.Row ? new Scale(new Vector3(1f, scale, 1f)) : new Scale(new Vector3(scale, scale, 1f));
-				tiles[i].style.backgroundColor = settings.wipeColor;
+				tiles[i].style.scale = preset.shape == TileShape.Row ? new Scale(new Vector3(1f, scale, 1f)) : new Scale(new Vector3(scale, scale, 1f));
+				tiles[i].style.backgroundColor = preset.color;
 			}
 		}
 

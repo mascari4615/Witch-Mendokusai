@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,7 +11,7 @@ namespace WitchMendokusai
 	/// - 효과는 root 위 덮개 층에 그림. 대상 요소의 자식과 레이아웃은 건드리지 않음
 	/// - 효과 하나가 끝나야 다음 간격을 셈. root 나 조상이 숨으면 쉬고, root 가 패널에서 떨어진 동안은 일정이 멈춤
 	/// - 안쪽 WMWindow 는 창 자신의 루프가 맡으므로 건너뜀
-	/// - 모양과 수치는 UIFxSettings 의 평상시 절
+	/// - 효과 모양과 수치는 UIIdleEffect 에셋 (기본 UIFxSettings.idleEffect, 패널과 창이 따로 끼울 수 있음). 간격과 대상 거르기는 UIFxSettings 의 평상시 절
 	/// </summary>
 	public static class UIIdleFx
 	{
@@ -21,8 +22,6 @@ namespace WitchMendokusai
 		private const float MILLISECONDS_PER_SECOND = 1000f;
 		private const long TICK_MILLISECONDS = 50;
 		private const float MAX_STEP_SECONDS = 0.1f;
-		// Twinkle 이 피는 구간 비율. 나머지는 지는 구간
-		private const float TWINKLE_BLOOM_PART = 0.35f;
 
 		private sealed class Loop
 		{
@@ -32,12 +31,13 @@ namespace WitchMendokusai
 			public float BusySeconds;
 			public int Running;
 			public int Generation;
+			public Func<UIIdleEffect> Source;
 		}
 
-		/// <summary>root 아래 요소에 평상시 효과를 돌림</summary>
-		public static void Attach(VisualElement root)
+		/// <summary>root 아래 요소에 평상시 효과를 돌림. source 가 null 이나 빈 에셋을 주면 쉼</summary>
+		public static void Attach(VisualElement root, Func<UIIdleEffect> source)
 		{
-			Loop loop = new() { Root = root, Wait = NextWait() };
+			Loop loop = new() { Root = root, Wait = NextWait(), Source = source };
 			root.schedule.Execute(timer => Tick(loop, timer)).Every(TICK_MILLISECONDS);
 		}
 
@@ -54,7 +54,8 @@ namespace WitchMendokusai
 				loop.Running = 0;
 				loop.Generation++;
 			}
-			if (settings.idleFx == IdleFxStyle.None || IsShown(loop.Root) == false)
+			UIIdleEffect effect = loop.Source();
+			if (effect == null || IsShown(loop.Root) == false)
 				return;
 			loop.Wait -= deltaSeconds;
 			if (loop.Wait > 0f)
@@ -65,23 +66,17 @@ namespace WitchMendokusai
 				return;
 			EnsureOverlay(loop);
 			loop.BusySeconds = 0f;
-			Play(loop, Pick(settings.idleFx, settings), targets);
+			// 끄기 에셋이나 묶음이 이번엔 쉬라고 하면 null
+			UIIdleEffect picked = effect.Pick();
+			if (picked == null)
+				return;
+			Play(loop, picked, targets);
 		}
 
 		private static float NextWait()
 		{
 			Vector2 range = UIFxSettings.Instance.idleIntervalRange;
-			return Random.Range(range.x, range.y);
-		}
-
-		private static IdleFxStyle Pick(IdleFxStyle style, UIFxSettings settings)
-		{
-			if (style != IdleFxStyle.Mixed)
-				return style;
-			IdleFxStyle[] pool = settings.idleMixedPool;
-			Debug.Assert(pool != null && pool.Length > 0, "UIFxSettings.idleMixedPool 비어 있음");
-			IdleFxStyle picked = pool[Random.Range(0, pool.Length)];
-			return picked == IdleFxStyle.Mixed || picked == IdleFxStyle.None ? IdleFxStyle.Glint : picked;
+			return UnityEngine.Random.Range(range.x, range.y);
 		}
 
 		private static void EnsureOverlay(Loop loop)
@@ -98,41 +93,21 @@ namespace WitchMendokusai
 			loop.Overlay.BringToFront();
 		}
 
-		private static void Play(Loop loop, IdleFxStyle style, List<VisualElement> targets)
+		private static void Play(Loop loop, UIIdleEffect effect, List<VisualElement> targets)
 		{
 			int generation = ++loop.Generation;
-			System.Action finished = () =>
+			Action finished = () =>
 			{
 				if (generation != loop.Generation)
 					return;
 				loop.Running--;
 			};
-			VisualElement target = targets[Random.Range(0, targets.Count)];
-			if (style == IdleFxStyle.Wave)
-			{
-				List<VisualElement> row = SameRow(target, targets);
-				int count = Mathf.Min(row.Count, UIFxSettings.Instance.idleWaveMaxItems);
-				loop.Running = count;
-				for (int i = 0; i < count; i++)
-					Glint(loop.Overlay, row[i], UIFxSettings.Instance.idleWaveStepSeconds * i, finished);
-				return;
-			}
-			loop.Running = 1;
-			switch (style)
-			{
-				case IdleFxStyle.Twinkle:
-					Twinkle(loop.Overlay, target, finished);
-					return;
-				case IdleFxStyle.Pulse:
-					Outline(loop.Overlay, target, false, finished);
-					return;
-				case IdleFxStyle.Ring:
-					Outline(loop.Overlay, target, true, finished);
-					return;
-				default:
-					Glint(loop.Overlay, target, 0f, finished);
-					return;
-			}
+			VisualElement target = targets[UnityEngine.Random.Range(0, targets.Count)];
+			// 그리는 중 바로 완료가 와도 셈이 맞도록 0 에서 시작해 더함
+			// (x += f() 는 f 전에 x 를 읽어 그 사이 감소를 잃으므로 따로 받음)
+			loop.Running = 0;
+			int expected = effect.Play(loop.Overlay, target, targets, finished);
+			loop.Running += expected;
 		}
 
 		// 자신과 조상 모두 보여야 함 (창 안 Content 는 창이 닫혀도 자기 값은 그대로)
@@ -199,8 +174,8 @@ namespace WitchMendokusai
 			return image.texture != null || image.sprite != null || image.renderTexture != null || image.vectorImage != null;
 		}
 
-		// 같은 부모의 대상 형제들. 왼쪽 위부터
-		private static List<VisualElement> SameRow(VisualElement target, List<VisualElement> targets)
+		/// <summary>같은 부모의 대상 형제들. 왼쪽 위부터</summary>
+		public static List<VisualElement> SameRow(VisualElement target, List<VisualElement> targets)
 		{
 			List<VisualElement> row = new();
 			foreach (VisualElement candidate in targets)
@@ -217,8 +192,8 @@ namespace WitchMendokusai
 			return row;
 		}
 
-		// 덮개 층 위에 대상 테두리 상자와 같은 자리, 같은 모서리 둥글기의 층
-		private static VisualElement Cover(VisualElement overlay, VisualElement target, string layerName)
+		/// <summary>덮개 층 위에 대상 테두리 상자와 같은 자리, 같은 모서리 둥글기의 층</summary>
+		public static VisualElement Cover(VisualElement overlay, VisualElement target, string layerName)
 		{
 			Rect bound = target.worldBound;
 			Vector2 topLeft = overlay.WorldToLocal(bound.min);
@@ -237,115 +212,8 @@ namespace WitchMendokusai
 			return layer;
 		}
 
-		// 요소 위를 비스듬한 빛 띠가 한 번 훑음. 크기는 한 번 정하고 이동은 translate
-		private static void Glint(VisualElement overlay, VisualElement target, float delay, System.Action onDone)
-		{
-			UIFxSettings settings = UIFxSettings.Instance;
-			Rect bound = target.worldBound;
-			VisualElement clip = Cover(overlay, target, "idle-glint");
-			clip.style.overflow = Overflow.Hidden;
-
-			float width = Mathf.Max(bound.width, bound.height) * settings.idleGlintWidthRatio;
-			float height = (bound.height + width) * settings.idleGlintLength;
-			VisualElement band = new() { pickingMode = PickingMode.Ignore };
-			band.style.position = Position.Absolute;
-			band.style.width = width;
-			band.style.height = height;
-			band.style.left = 0f;
-			band.style.top = (bound.height - height) * 0.5f;
-			band.style.backgroundImage = new StyleBackground(UIFxTextures.Band);
-			Color tint = settings.idleColor;
-			tint.a *= settings.idleGlintAlpha;
-			band.style.unityBackgroundImageTintColor = tint;
-			band.style.rotate = new UnityEngine.UIElements.Rotate(new UnityEngine.UIElements.Angle(settings.idleGlintAngle, AngleUnit.Degree));
-			band.style.opacity = 0f;
-			clip.Add(band);
-
-			float from = -width * settings.idleGlintTravel.x;
-			float to = bound.width + width * settings.idleGlintTravel.y;
-			Animate(clip, settings.idleGlintSeconds, delay, progress =>
-			{
-				float eased = progress * progress * (3f - 2f * progress);
-				band.style.translate = new Translate(Mathf.Lerp(from, to, eased), 0f);
-				band.style.opacity = Mathf.Sin(progress * Mathf.PI);
-			}, onDone);
-		}
-
-		// 요소 모서리 근처에 십자 반짝임이 돌며 피었다 짐
-		private static void Twinkle(VisualElement overlay, VisualElement target, System.Action onDone)
-		{
-			UIFxSettings settings = UIFxSettings.Instance;
-			Rect bound = target.worldBound;
-			Vector2 jitter = settings.idleTwinkleSizeJitter;
-			float size = settings.idleTwinkleSize * Random.Range(jitter.x, jitter.y);
-			Vector2 inset = settings.idleTwinkleCornerRange;
-			float CornerAxis(float length) => Random.value < 0.5f ? length * Random.Range(inset.x, inset.y) : length * (1f - Random.Range(inset.x, inset.y));
-
-			VisualElement host = Cover(overlay, target, "idle-twinkle");
-			VisualElement star = new() { pickingMode = PickingMode.Ignore };
-			star.style.position = Position.Absolute;
-			star.style.width = size;
-			star.style.height = size;
-			star.style.left = CornerAxis(bound.width) - size * 0.5f;
-			star.style.top = CornerAxis(bound.height) - size * 0.5f;
-			star.style.backgroundImage = new StyleBackground(UIFxTextures.Shape(ParticleShape.Sparkle));
-			star.style.unityBackgroundImageTintColor = settings.idleColor;
-			star.style.scale = new Scale(Vector2.zero);
-			host.Add(star);
-
-			float spin = settings.idleTwinkleTurnDegrees * (Random.value < 0.5f ? -1f : 1f);
-			Animate(host, settings.idleTwinkleSeconds, 0f, progress =>
-			{
-				// 빠르게 피고 천천히 짐
-				float bloom = progress < TWINKLE_BLOOM_PART
-					? progress / TWINKLE_BLOOM_PART
-					: 1f - (progress - TWINKLE_BLOOM_PART) / (1f - TWINKLE_BLOOM_PART);
-				float grown = Mathf.Sin(bloom * Mathf.PI * 0.5f);
-				star.style.scale = new Scale(new Vector2(grown, grown));
-				star.style.rotate = new UnityEngine.UIElements.Rotate(new UnityEngine.UIElements.Angle(spin * progress, AngleUnit.Degree));
-				star.style.opacity = grown;
-			}, onDone);
-		}
-
-		// 테두리 빛. ring 이면 바깥으로 퍼지며 사라짐, 아니면 제자리에서 한 번 숨 쉼
-		private static void Outline(VisualElement overlay, VisualElement target, bool ring, System.Action onDone)
-		{
-			UIFxSettings settings = UIFxSettings.Instance;
-			VisualElement outline = Cover(overlay, target, ring ? "idle-ring" : "idle-pulse");
-			float border = settings.idleOutlineWidth;
-			outline.style.borderTopWidth = border;
-			outline.style.borderBottomWidth = border;
-			outline.style.borderLeftWidth = border;
-			outline.style.borderRightWidth = border;
-			Color edge = settings.idleColor;
-			outline.style.borderTopColor = edge;
-			outline.style.borderBottomColor = edge;
-			outline.style.borderLeftColor = edge;
-			outline.style.borderRightColor = edge;
-			if (ring == false)
-			{
-				Color inner = settings.idleColor;
-				inner.a *= settings.idlePulseFill;
-				outline.style.backgroundColor = inner;
-			}
-			outline.style.opacity = 0f;
-
-			float seconds = ring ? settings.idleRingSeconds : settings.idlePulseSeconds;
-			Animate(outline, seconds, 0f, progress =>
-			{
-				if (ring)
-				{
-					float eased = 1f - (1f - progress) * (1f - progress);
-					float grown = Mathf.Lerp(1f, settings.idleRingGrowth, eased);
-					outline.style.scale = new Scale(new Vector2(grown, grown));
-					outline.style.opacity = 1f - eased;
-					return;
-				}
-				outline.style.opacity = Mathf.Sin(progress * Mathf.PI);
-			}, onDone);
-		}
-
-		private static void Animate(VisualElement layer, float seconds, float delay, System.Action<float> step, System.Action onDone)
+		/// <summary>layer 에 seconds 동안 진행 0~1 을 넘기고, 끝나면 layer 를 떼고 onDone</summary>
+		public static void Animate(VisualElement layer, float seconds, float delay, Action<float> step, Action onDone)
 		{
 			float elapsed = -delay;
 			bool done = false;

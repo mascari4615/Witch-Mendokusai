@@ -9,6 +9,8 @@ namespace WitchMendokusai
 		[field: SerializeField] public Transform TpPos { get; private set; }
 		[field: SerializeField] public Stage TargetStage { get; private set; }
 		[field: SerializeField] private int targetPortalIndex = -1;
+		[Tooltip("이 포털만의 화면 전환. 비우면 UIFxSettings.portalWipe")]
+		[SerializeField] private UIWipe wipe;
 
 		private UIManager uiManager;
 		private StageManager stageManager;
@@ -38,7 +40,8 @@ namespace WitchMendokusai
 					aWhenEnd: () =>
 					{
 						uiManager.StagePopup(TargetStage);
-					}).Forget();
+					},
+					overrideWipe: wipe).Forget();
 			}
 		}
 

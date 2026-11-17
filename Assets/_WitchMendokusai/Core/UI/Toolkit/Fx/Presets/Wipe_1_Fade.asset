@@ -9,6 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a53922911ba419a9c23386c1ddf2d9d, type: 3}
-  m_Name: UIFxSettings
-  m_EditorClassIdentifier: 
+  m_Script: {fileID: 11500000, guid: 88e8eca12f984d446b96e11b9374b02c, type: 3}
+  m_Name: Wipe_1_Fade
+  m_EditorClassIdentifier: WM.Core::WitchMendokusai.FadeUIWipe
+  color: {r: 0.1, g: 0.08, b: 0.16, a: 1}
+  coverSeconds: 0.55
+  revealSeconds: 0.6

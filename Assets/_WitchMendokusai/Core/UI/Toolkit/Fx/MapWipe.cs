@@ -6,7 +6,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 무늬 지도 전환. 화면을 저해상도 칸으로 나눠 칸마다 덮일 순서 값 (0~1) 을 한 번 계산하고,
 	/// 매 프레임 진행 값과 비교해 알파와 경계 빛을 칠한 텍스처를 화면에 늘려 그림 (셰이더 디졸브와 같은 원리, CPU 계산)
-	/// 무늬는 WipePatterns 의 함수 하나. 칸 수와 경계는 UIFxSettings
+	/// 무늬는 PatternUIWipe 상속 클래스의 Order. 칸 수와 경계는 PatternUIWipe 에셋
 	/// </summary>
 	internal sealed class MapWipe : IWipeRenderer
 	{
@@ -17,13 +17,13 @@ namespace WitchMendokusai
 		// 4 x (1 - x) 의 최댓값은 x 가 0.5 일 때 1. 경계 한가운데가 가장 밝게
 		private const float EDGE_PEAK_NORMALIZER = 4f;
 
-		private readonly WipePatterns.Pattern pattern;
+		private readonly PatternUIWipe preset;
 		private VisualElement image;
 		private Texture2D texture;
 		private float[] order;
 		private Color32[] pixels;
 
-		public MapWipe(WipePatterns.Pattern pattern) => this.pattern = pattern;
+		public MapWipe(PatternUIWipe preset) => this.preset = preset;
 
 		public VisualElement Root => image;
 
@@ -45,7 +45,7 @@ namespace WitchMendokusai
 
 		public void Resize(Vector2 size)
 		{
-			int width = Mathf.Clamp(UIFxSettings.Instance.wipeMapWidth, MIN_MAP_WIDTH, MAX_MAP_WIDTH);
+			int width = Mathf.Clamp(preset.mapWidth, MIN_MAP_WIDTH, MAX_MAP_WIDTH);
 			int height = Mathf.Clamp(Mathf.RoundToInt(width * size.y / size.x), 1, MAX_MAP_ROWS);
 			float aspect = size.x / size.y;
 
@@ -70,7 +70,7 @@ namespace WitchMendokusai
 				for (int column = 0; column < width; column++)
 				{
 					float x = (column + 0.5f) / width;
-					float value = pattern(x, y, aspect);
+					float value = preset.Order(x, y, aspect);
 					order[row * width + column] = value;
 					min = Mathf.Min(min, value);
 					max = Mathf.Max(max, value);
@@ -85,12 +85,11 @@ namespace WitchMendokusai
 		{
 			if (order == null)
 				return;
-			UIFxSettings settings = UIFxSettings.Instance;
-			float softness = settings.wipeEdgeSoftness;
+			float softness = preset.edgeSoftness;
 			float threshold = Mathf.SmoothStep(0f, 1f, progress) * (1f + softness);
-			Color baseColor = settings.wipeColor;
-			Color edgeColor = settings.wipeEdgeColor;
-			float glowStrength = settings.wipeEdgeGlow;
+			Color baseColor = preset.color;
+			Color edgeColor = preset.edgeColor;
+			float glowStrength = preset.edgeGlow;
 
 			for (int i = 0; i < order.Length; i++)
 			{

@@ -2,18 +2,13 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	// UI 연출 고르기와 수치 한 곳. Resources/UIFxSettings.asset, 실행 중 인스펙터에서 조절
-	// 무늬와 움직임은 드롭다운 하나로 교체. 우클릭 메뉴 Preview 로 Play 중 바로 확인
-	[CreateAssetMenu(fileName = "UIFxSettings", menuName = "WM/UI/UI Fx Settings")]
+	// UI 연출 기본 칸과 공용 수치. Resources/UIFx_1_Settings.asset, 실행 중 인스펙터에서 조절
+	// 화면 전환과 평상시 효과는 에셋 (UIWipe, UIIdleEffect) 을 칸에 끼워 교체. 각 에셋 우클릭 Preview 로 Play 중 확인
+	[CreateAssetMenu(fileName = "UIFx_1_Settings", menuName = "WM/UI/UI Fx Settings")]
 	public sealed class UIFxSettings : ScriptableObject
 	{
-		private const string RESOURCE = "UIFxSettings";
+		private const string RESOURCE = "UIFx_1_Settings";
 		private static UIFxSettings instance;
-
-		/// <summary>인스펙터에서 값이 바뀔 때마다 증가. 계산해 둔 무늬를 다시 만들 때 비교</summary>
-		public static int Version { get; private set; }
-
-		private void OnValidate() => Version++;
 
 		public static UIFxSettings Instance
 		{
@@ -28,83 +23,13 @@ namespace WitchMendokusai
 			}
 		}
 
-		[Header("화면 전환 (씬 교체, 포털)")]
-		[Tooltip("씬 교체 (타이틀, 로비, 로딩, 월드)")]
-		public ScreenWipeStyle sceneWipe = ScreenWipeStyle.Diamond;
-		[Tooltip("씬 안 이동 (포털, 던전 입장과 귀환)")]
-		public ScreenWipeStyle portalWipe = ScreenWipeStyle.Diamond;
-		[Tooltip("Random 이 고르는 후보. 비우면 Fade 제외 전부")]
-		public ScreenWipeStyle[] randomPool = new ScreenWipeStyle[0];
-		public Color wipeColor = new(0.10f, 0.08f, 0.16f, 1f);
-		[Tooltip("칸 전환 (Diamond, Dots, Pixels, Blinds) 한 칸 크기, 기준 해상도 픽셀")]
-		public float wipeCellSize = 72f;
-		[Tooltip("대각선 끝 칸이 첫 칸보다 늦게 시작하는 비율. 0 이면 동시")]
-		[Range(0f, 3f)] public float wipeSpread = 1.2f;
-		public float wipeCoverSeconds = 0.55f;
-		public float wipeRevealSeconds = 0.6f;
-		[Tooltip("다 자란 마름모 배율. 루트 2 (1.414) 이상이어야 칸 사이 틈이 안 보임")]
-		public float wipeTileGrowth = 1.5f;
-		[Tooltip("무늬 전환 (Iris 이후) 의 계산 해상도 가로 칸 수. 클수록 경계가 또렷하고 무거움")]
-		public int wipeMapWidth = 256;
-		[Tooltip("무늬 경계 번짐 폭, 진행 비율")]
-		[Range(0.01f, 0.5f)] public float wipeEdgeSoftness = 0.07f;
-		[Tooltip("무늬 경계에 도는 빛 색")]
-		public Color wipeEdgeColor = new(1f, 0.82f, 0.5f, 1f);
-		[Range(0f, 1f)] public float wipeEdgeGlow = 0.85f;
-		[Tooltip("Spiral 감김 수")]
-		public float wipeSpiralTurns = 2f;
-		[Tooltip("Fan 날개 수, Star 꼭짓점 수")]
-		public int wipeFanBlades = 8;
-		public int wipeStarPoints = 5;
-		[Tooltip("Crystal 조각 수")]
-		public int wipeCrystalCells = 28;
-		[Tooltip("Stripes 줄 수, Wave 물결 수")]
-		public int wipeStripeCount = 9;
-		public float wipeWaveCount = 3f;
-		[Tooltip("Wave 물결 높이, 화면 높이 비율")]
-		public float wipeWaveAmplitude = 0.07f;
-		[Tooltip("Star 꼭짓점 깊이 0~1")]
-		[Range(0f, 0.9f)] public float wipeStarDepth = 0.35f;
-		[Tooltip("Dissolve 구름 크기. 클수록 잘게")]
-		public float wipeDissolveScale = 5f;
-		[Tooltip("Ripple 물결 높이와 촘촘함")]
-		public float wipeRippleAmplitude = 0.035f;
-		public float wipeRippleFrequency = 48f;
-		[Tooltip("Halftone 가로 망점 수와 망점 결 세기 (0 이면 매끈한 대각선)")]
-		public int wipeHalftoneCells = 16;
-		[Range(0f, 1f)] public float wipeHalftoneDotWeight = 0.4f;
-
-		[Header("층 전환 (Shutter, Slash, Glitch, Tube)")]
-		[Tooltip("띠 앞머리와 사선의 강조색")]
-		public Color wipeAccentColor = new(1f, 0.55f, 0.75f, 1f);
-		[Tooltip("강조선 두께, 픽셀")]
-		public float wipeAccentLine = 6f;
-		public Color wipeFlashColor = Color.white;
-		[Range(0f, 1f)] public float wipeFlashAlpha = 0.85f;
-		public int wipeShutterBands = 6;
-		public float wipeShutterAngle = 16f;
-		[Tooltip("이웃 띠와 겹치는 너비 배율 (경계 틈 방지)")]
-		public float wipeShutterOverlap = 1.2f;
-		[Tooltip("띠가 출발하고 나가는 거리, 화면 너비 배수")]
-		public float wipeShutterTravel = 1.6f;
-		[Tooltip("첫 띠와 끝 띠의 시작 간격, 전체 시간 비율")]
-		[Range(0f, 0.9f)] public float wipeShutterStagger = 0.45f;
-		[Tooltip("홀수 띠가 강조색 쪽으로 물드는 정도")]
-		[Range(0f, 1f)] public float wipeShutterTint = 0.18f;
-		public float wipeSlashAngle = 24f;
-		public int wipeGlitchSlices = 18;
-		[Tooltip("조각 높이 비율 범위 (가장 얇은 것, 가장 굵은 것)")]
-		public Vector2 wipeGlitchSliceWeight = new(0.4f, 2f);
-		[Tooltip("조각이 어긋나는 최대 거리, 화면 너비 비율")]
-		public float wipeGlitchShift = 0.12f;
-		[Tooltip("색 갈라짐 거리, 픽셀")]
-		public float wipeGlitchSplit = 14f;
-		[Tooltip("색 갈라짐이 튀는 횟수 (전환 한 번)")]
-		public float wipeGlitchSteps = 14f;
-		public Color wipeGlitchWarm = new(1f, 0.2f, 0.45f, 0.85f);
-		public Color wipeGlitchCold = new(0.2f, 0.9f, 1f, 0.85f);
-		[Tooltip("Tube 가 닫힌 뒤 남는 빛줄 두께, 픽셀")]
-		public float wipeTubeLine = 4f;
+		[Header("화면 전환 기본 칸 (UIWipe 에셋, Presets 폴더)")]
+		[Tooltip("씬 교체 (타이틀, 로비, 로딩, 월드). SceneFader.LoadScene 이 에셋을 넘기면 그것")]
+		public UIWipe sceneWipe;
+		[Tooltip("씬 안 이동 (포털, 던전 입장과 귀환). Portal 의 wipe 칸이 차 있으면 그것")]
+		public UIWipe portalWipe;
+		[Tooltip("우클릭 Preview/All Wipes 가 차례로 보일 목록")]
+		public UIWipe[] previewWipes = new UIWipe[0];
 
 		[Header("창과 패널 움직임")]
 		public UIMotionStyle windowMotion = UIMotionStyle.Pop;
@@ -156,10 +81,10 @@ namespace WitchMendokusai
 		public Color moteColor = new(1f, 0.93f, 0.75f, 1f);
 
 		[Header("평상시 요소 효과 (가만히 있을 때 버튼, 칸, 아이콘에 가끔)")]
-		public IdleFxStyle idleFx = IdleFxStyle.Mixed;
+		[Tooltip("기본 효과 (UIIdleEffect 에셋). 비우면 끔. 패널과 창이 따로 끼우면 그것")]
+		public UIIdleEffect idleEffect;
 		[Tooltip("효과 사이 간격 범위, 초. 패널마다 따로")]
 		public Vector2 idleIntervalRange = new(1.6f, 3.6f);
-		public Color idleColor = new(1f, 0.95f, 0.8f, 1f);
 		[Tooltip("이보다 작은 요소는 대상에서 제외, 픽셀")]
 		public float idleMinTargetSize = 28f;
 		[Tooltip("패널 넓이 대비 이보다 큰 요소는 제외 (배경, 큰 판)")]
@@ -168,38 +93,6 @@ namespace WitchMendokusai
 		[Range(0f, 1f)] public float idleVisibleOpacity = 0.5f;
 		[Tooltip("대상이 효과 도중 사라져 완료가 안 오면 이 시간 뒤 다음 효과로")]
 		public float idleBusyTimeoutSeconds = 4f;
-		public float idleGlintSeconds = 0.55f;
-		[Tooltip("Mixed 가 고르는 후보. 같은 항목을 여러 번 넣으면 더 자주")]
-		public IdleFxStyle[] idleMixedPool =
-		{
-			IdleFxStyle.Glint, IdleFxStyle.Glint, IdleFxStyle.Twinkle, IdleFxStyle.Twinkle,
-			IdleFxStyle.Pulse, IdleFxStyle.Ring, IdleFxStyle.Wave,
-		};
-		[Range(0f, 1f)] public float idleGlintAlpha = 0.55f;
-		[Tooltip("빛 띠 너비, 요소의 긴 변 대비")]
-		public float idleGlintWidthRatio = 0.35f;
-		public float idleGlintAngle = 18f;
-		[Tooltip("빛 띠가 요소 밖에서 출발하고 밖에서 끝나는 거리, 띠 너비 배수 (출발, 끝)")]
-		public Vector2 idleGlintTravel = new(1.5f, 0.5f);
-		[Tooltip("기울인 빛 띠 길이, 요소 높이 대비. 모서리까지 덮도록 1 보다 크게")]
-		public float idleGlintLength = 1.6f;
-		public float idleTwinkleSeconds = 0.75f;
-		public float idleTwinkleSize = 44f;
-		[Tooltip("반짝임 크기 배율 범위")]
-		public Vector2 idleTwinkleSizeJitter = new(0.8f, 1.2f);
-		[Tooltip("반짝임 자리, 모서리에서 안쪽으로 변 길이 비율 범위")]
-		public Vector2 idleTwinkleCornerRange = new(0.05f, 0.3f);
-		[Tooltip("반짝임이 피는 동안 도는 각도")]
-		public float idleTwinkleTurnDegrees = 90f;
-		public float idleOutlineWidth = 2f;
-		public float idlePulseSeconds = 0.9f;
-		[Range(0f, 1f)] public float idlePulseFill = 0.08f;
-		public float idleRingSeconds = 0.8f;
-		[Tooltip("Ring 이 퍼지는 배율")]
-		public float idleRingGrowth = 1.25f;
-		[Tooltip("Wave 가 훑는 칸 수 상한과 칸 사이 간격")]
-		public int idleWaveMaxItems = 8;
-		public float idleWaveStepSeconds = 0.07f;
 
 		[Header("자식 순차 등장 (전체 패널)")]
 		public bool staggerChildren = true;
@@ -218,6 +111,6 @@ namespace WitchMendokusai
 		private void PreviewPortalWipe() => SceneFader.PreviewWipe(portalWipe);
 
 		[ContextMenu("Preview/All Wipes")]
-		private void PreviewAllWipes() => SceneFader.PreviewAllWipes();
+		private void PreviewAllWipes() => SceneFader.PreviewWipes(previewWipes);
 	}
 }

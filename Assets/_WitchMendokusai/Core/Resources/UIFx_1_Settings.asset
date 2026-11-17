@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a53922911ba419a9c23386c1ddf2d9d, type: 3}
+  m_Name: UIFx_1_Settings
+  m_EditorClassIdentifier: 
+  sceneWipe: {fileID: 11400000, guid: 6555c00035e79b643a6aceea81623f62, type: 2}
+  portalWipe: {fileID: 11400000, guid: 6555c00035e79b643a6aceea81623f62, type: 2}
+  previewWipes:
+  - {fileID: 11400000, guid: 19a0085d5deeb574e801a967ae713607, type: 2}
+  - {fileID: 11400000, guid: 6555c00035e79b643a6aceea81623f62, type: 2}
+  - {fileID: 11400000, guid: c555d1f508aaf3a4789ec10299696c84, type: 2}
+  - {fileID: 11400000, guid: 89cabeec3cb37e24f9c73ec3e5ee6fd0, type: 2}
+  - {fileID: 11400000, guid: bb4742b50b44af443afedb888e59f3d0, type: 2}
+  - {fileID: 11400000, guid: b332c1e215d79cd47863472dd6df5ad3, type: 2}
+  - {fileID: 11400000, guid: 9f3911e05994b4b4f8671aeb4d7f6d3e, type: 2}
+  - {fileID: 11400000, guid: 5dd8500758fd99e46b5039abb2474328, type: 2}
+  - {fileID: 11400000, guid: de122859e64f40e41bf2fc8f82e01aa2, type: 2}
+  - {fileID: 11400000, guid: 657fdddcc6dd905498bfdb1709598011, type: 2}
+  - {fileID: 11400000, guid: 8c689b9556e6b25439ecf40e7a4dee80, type: 2}
+  - {fileID: 11400000, guid: b19a036167973994b8bf0485f9f01572, type: 2}
+  - {fileID: 11400000, guid: 0032f9aed169f0c449dd985e18246c32, type: 2}
+  - {fileID: 11400000, guid: d577ac1224a119c4586dc09f9abc1df6, type: 2}
+  - {fileID: 11400000, guid: f99a3d3854b978e41b03dc5785a63479, type: 2}
+  - {fileID: 11400000, guid: b08f19c730dbb924e917a4c461817a67, type: 2}
+  - {fileID: 11400000, guid: 70a047cce98d696478be2a82bf9877a2, type: 2}
+  - {fileID: 11400000, guid: 6c7a5e3795a607b4f94365a5f514162f, type: 2}
+  - {fileID: 11400000, guid: 2947a76b5ccb87549892beb52ca41049, type: 2}
+  - {fileID: 11400000, guid: 7718c383c0a1c6f499a4eff7d68b6084, type: 2}
+  - {fileID: 11400000, guid: 3a835e341df982e44bbbc32174a44c79, type: 2}
+  - {fileID: 11400000, guid: 234afb44b302fb843aaefde5c8061bf2, type: 2}
+  windowMotion: 0
+  panelMotion: 1
+  shineStyle: 1
+  shineColor: {r: 1, g: 1, b: 1, a: 1}
+  shineDelaySeconds: 0.06
+  shineSeconds: 0.42
+  shineAlpha: 0.16
+  shineWidthRatio: 0.45
+  shineAngle: 18
+  shineBandLength: 2.2
+  shineEdgeWidth: 3
+  sparkleShape: 1
+  sparkleMotion: 0
+  sparkleCount: 16
+  sparkleLifeSeconds: 0.9
+  sparkleSizeRange: {x: 26, y: 46}
+  sparkleRiseSpeed: 28
+  sparkleColor: {r: 1, g: 0.96, b: 0.82, a: 1}
+  sparklePopOut: 2.5
+  sparkleFountainHeight: 0.45
+  sparkleOrbitSpeed: 0.35
+  sparkleFallSpeed: 110
+  particleSpinSpeed: 160
+  ambientMotes: 1
+  moteShape: 0
+  moteMotion: 0
+  moteCount: 28
+  moteSizeRange: {x: 20, y: 44}
+  moteRiseSpeed: 22
+  moteAlpha: 0.9
+  moteColor: {r: 1, g: 0.93, b: 0.75, a: 1}
+  idleEffect: {fileID: 11400000, guid: 74340990887ea4b4f83ba8a7df028e1f, type: 2}
+  idleIntervalRange: {x: 1.6, y: 3.6}
+  idleMinTargetSize: 28
+  idleMaxTargetAreaRatio: 0.2
+  idleVisibleOpacity: 0.5
+  idleBusyTimeoutSeconds: 4
+  staggerChildren: 1
+  staggerStepSeconds: 0.04
+  staggerItemSeconds: 0.22
+  staggerRisePixels: 14
+  gridStaggerStepSeconds: 0.012
+  gridStaggerMinItems: 4

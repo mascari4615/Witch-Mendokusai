@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 씬 안 전환 (포털, 던전 입장과 귀환). ScreenWipe 로 덮고, 작업 뒤 걷음
-	/// 모양과 길이는 UIFxSettings, 머무는 시간과 입력 조기 재개는 여기
+	/// 전환은 UIWipe 에셋 (기본 UIFxSettings.portalWipe, 호출한 자리가 넘기면 그것). 머무는 시간과 입력 조기 재개는 여기
 	/// </summary>
 	public class TransitionView : MonoBehaviour
 	{
@@ -44,23 +44,23 @@ namespace WitchMendokusai
 			IsInTransition = false;
 		}
 
-		public async UniTask Transition(Action aDuringTransition, Action aWhenStart = null, Action aWhenEnd = null)
+		public async UniTask Transition(Action aDuringTransition, Action aWhenStart = null, Action aWhenEnd = null, UIWipe overrideWipe = null)
 		{
 			UniTask ExecuteAction()
 			{
 				aDuringTransition?.Invoke();
 				return UniTask.CompletedTask;
 			}
-			await TransitionCore(ExecuteAction, aWhenStart, aWhenEnd);
+			await TransitionCore(ExecuteAction, aWhenStart, aWhenEnd, overrideWipe);
 		}
 
-		public async UniTask Transition(UniTask tDuringTransition, Action aWhenStart = null, Action aWhenEnd = null)
+		public async UniTask Transition(UniTask tDuringTransition, Action aWhenStart = null, Action aWhenEnd = null, UIWipe overrideWipe = null)
 		{
 			UniTask ExecuteTask() => tDuringTransition;
-			await TransitionCore(ExecuteTask, aWhenStart, aWhenEnd);
+			await TransitionCore(ExecuteTask, aWhenStart, aWhenEnd, overrideWipe);
 		}
 
-		private async UniTask TransitionCore(Func<UniTask> tDuringTransition, Action aWhenStart, Action aWhenEnd)
+		private async UniTask TransitionCore(Func<UniTask> tDuringTransition, Action aWhenStart, Action aWhenEnd, UIWipe overrideWipe)
 		{
 			IsInTransition = true;
 			bool resumed = false;
@@ -70,7 +70,7 @@ namespace WitchMendokusai
 				timeManager.Pause(gameObject);
 
 				UniTaskCompletionSource covered = new();
-				wipe.Play(true, () => covered.TrySetResult());
+				wipe.Play(true, () => covered.TrySetResult(), overrideWipe);
 				await covered.Task;
 
 				await tDuringTransition.Invoke();
@@ -78,7 +78,7 @@ namespace WitchMendokusai
 
 				UniTaskCompletionSource revealed = new();
 				wipe.Play(false, () => revealed.TrySetResult());
-				float revealSeconds = UIFxSettings.Instance.wipeRevealSeconds;
+				float revealSeconds = wipe.CurrentWipe.revealSeconds;
 				await UniTask.Delay(ToMilliseconds(revealSeconds * earlyResumeRatio), DelayType.Realtime);
 
 				Resume();

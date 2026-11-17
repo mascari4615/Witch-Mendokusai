@@ -38,6 +38,9 @@ namespace WitchMendokusai
 		/// <summary>창이 열릴 때 키 선택을 줄 칸. 없으면 머리 줄 밖 첫 NAV_CLASS 칸.</summary>
 		public Func<VisualElement> InitialFocus { get; set; }
 
+		/// <summary>이 창만의 평상시 효과. null 이면 UIFxSettings.idleEffect</summary>
+		public UIIdleEffect IdleEffect { get; set; }
+
 		public event Action OnOpened = delegate { };
 		public event Action OnClosed = delegate { };
 		public event Action<WindowSize> OnSizeChanged = delegate { };
@@ -99,7 +102,7 @@ namespace WitchMendokusai
 
 			IsOpen = false;
 			UIMotion.SetInstant(this, false);
-			UIIdleFx.Attach(Content);
+			UIIdleFx.Attach(Content, () => IdleEffect != null ? IdleEffect : UIFxSettings.Instance.idleEffect);
 		}
 
 		private void OnAttached(AttachToPanelEvent evt)

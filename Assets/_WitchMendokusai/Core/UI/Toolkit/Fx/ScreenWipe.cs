@@ -7,9 +7,9 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 화면을 덮고 걷는 막. 씬 교체 (SceneFader) 와 씬 안 전환 (TransitionView) 공용
-	/// - 무늬는 덮기 시작 때 styleSource 에서 읽음. 걷기는 덮은 무늬 그대로 (Random 도 한 쌍은 같은 무늬)
+	/// - 무늬는 덮기 시작 때 wipeSource 의 UIWipe 에셋. 걷기는 덮은 무늬 그대로 (RandomUIWipe 도 한 쌍은 같은 무늬)
 	/// - 한 번 만든 무늬는 보관해 다시 씀 (Random 전환마다 다시 계산하는 멈칫 방지). 수치를 바꾸면 다음 덮기에 다시 만듦
-	/// - 진행은 실제 시간, 시간 정지 중에도 동작. 수치는 UIFxSettings, 무늬는 WipeRenderers
+	/// - 진행은 실제 시간, 시간 정지 중에도 동작. 무늬, 색, 길이는 UIWipe 에셋
 	/// - 주인이 사라질 때 Dispose (무늬 텍스처 해제)
 	/// </summary>
 	public sealed class ScreenWipe : VisualElement
@@ -25,10 +25,10 @@ namespace WitchMendokusai
 			public int SettingsVersion;
 		}
 
-		private readonly Func<ScreenWipeStyle> styleSource;
-		private readonly Dictionary<ScreenWipeStyle, Built> built = new();
+		private readonly Func<UIWipe> wipeSource;
+		private readonly Dictionary<SingleUIWipe, Built> built = new();
 		private Built current;
-		private ScreenWipeStyle currentStyle;
+		private SingleUIWipe currentWipe;
 		private Vector2 size;
 		private IVisualElementScheduledItem running;
 		private Action pendingDone;
@@ -39,14 +39,12 @@ namespace WitchMendokusai
 		/// <summary>0 은 비어 있음, 1 은 완전히 덮음</summary>
 		public float Coverage { get; private set; }
 
-		/// <summary>지금 그리는 무늬 (Random 은 고른 결과)</summary>
-		public ScreenWipeStyle CurrentStyle => currentStyle;
+		/// <summary>지금 그리는 전환 에셋 (묶음은 고른 결과)</summary>
+		public SingleUIWipe CurrentWipe => currentWipe;
 
-		private static UIFxSettings Settings => UIFxSettings.Instance;
-
-		public ScreenWipe(Func<ScreenWipeStyle> styleSource)
+		public ScreenWipe(Func<UIWipe> wipeSource)
 		{
-			this.styleSource = styleSource;
+			this.wipeSource = wipeSource;
 			name = "screen-wipe";
 			pickingMode = PickingMode.Ignore;
 			style.position = Position.Absolute;
@@ -56,18 +54,18 @@ namespace WitchMendokusai
 			style.bottom = 0;
 			style.overflow = Overflow.Hidden;
 			RegisterCallback<GeometryChangedEvent>(_ => OnGeometryChanged());
-			UseStyle(WipeRenderers.Resolve(styleSource()));
+			UseWipe(Resolve(wipeSource()));
 			Apply(1f, false);
 		}
 
-		/// <summary>덮기 (cover true) 또는 걷기. 끝나거나 다음 Play 에 밀리면 onDone. overrideStyle 을 주면 설정 대신 그 무늬</summary>
-		public void Play(bool cover, Action onDone = null, ScreenWipeStyle? overrideStyle = null)
+		/// <summary>덮기 (cover true) 또는 걷기. 끝나거나 다음 Play 에 밀리면 onDone. overrideWipe 를 주면 기본 칸 대신 그 에셋</summary>
+		public void Play(bool cover, Action onDone = null, UIWipe overrideWipe = null)
 		{
 			int myGeneration = Interrupt();
 			pendingDone = onDone;
 			if (cover)
-				UseStyle(WipeRenderers.Resolve(overrideStyle ?? styleSource()));
-			float seconds = cover ? Settings.wipeCoverSeconds : Settings.wipeRevealSeconds;
+				UseWipe(Resolve(overrideWipe != null ? overrideWipe : wipeSource()));
+			float seconds = cover ? currentWipe.coverSeconds : currentWipe.revealSeconds;
 			float elapsed = 0f;
 			bool done = false;
 
@@ -97,7 +95,7 @@ namespace WitchMendokusai
 		{
 			Interrupt();
 			if (covered && Coverage <= 0f)
-				UseStyle(WipeRenderers.Resolve(styleSource()));
+				UseWipe(Resolve(wipeSource()));
 			Apply(1f, covered);
 		}
 
@@ -124,18 +122,25 @@ namespace WitchMendokusai
 			return myGeneration;
 		}
 
-		private void UseStyle(ScreenWipeStyle wipeStyle)
+		private static SingleUIWipe Resolve(UIWipe wipe)
 		{
-			if (built.TryGetValue(wipeStyle, out Built entry) == false)
+			if (wipe == null)
+				throw new InvalidOperationException("전환 에셋 칸이 비어 있음 (UIFxSettings 또는 호출한 자리)");
+			return wipe.Pick();
+		}
+
+		private void UseWipe(SingleUIWipe wipe)
+		{
+			if (built.TryGetValue(wipe, out Built entry) == false)
 			{
-				entry = new Built { Renderer = WipeRenderers.Create(wipeStyle), SettingsVersion = -1 };
+				entry = new Built { Renderer = wipe.CreateRenderer(), SettingsVersion = -1 };
 				entry.Renderer.Attach(this);
-				built[wipeStyle] = entry;
+				built[wipe] = entry;
 			}
 			if (current != null && current != entry)
 				current.Renderer.Root.style.display = DisplayStyle.None;
 			current = entry;
-			currentStyle = wipeStyle;
+			currentWipe = wipe;
 			entry.Renderer.Root.style.display = DisplayStyle.Flex;
 			BuildIfStale(entry);
 			entry.Renderer.Draw(lastProgress, lastCover);
@@ -145,10 +150,10 @@ namespace WitchMendokusai
 		{
 			if (size.x <= 0f)
 				return;
-			if (entry.Size == size && entry.SettingsVersion == UIFxSettings.Version)
+			if (entry.Size == size && entry.SettingsVersion == UIWipe.Version)
 				return;
 			entry.Size = size;
-			entry.SettingsVersion = UIFxSettings.Version;
+			entry.SettingsVersion = UIWipe.Version;
 			entry.Renderer.Resize(size);
 		}
 

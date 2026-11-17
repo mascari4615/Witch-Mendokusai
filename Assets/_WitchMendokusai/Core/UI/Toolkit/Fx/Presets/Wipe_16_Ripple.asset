@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fa578a4ba7cd2d49b9a3e651e7aefee, type: 3}
+  m_Name: Wipe_16_Ripple
+  m_EditorClassIdentifier: WM.Core::WitchMendokusai.RipplePatternWipe
+  color: {r: 0.1, g: 0.08, b: 0.16, a: 1}
+  coverSeconds: 0.55
+  revealSeconds: 0.6
+  mapWidth: 256
+  edgeSoftness: 0.07
+  edgeColor: {r: 1, g: 0.82, b: 0.5, a: 1}
+  edgeGlow: 0.85
+  amplitude: 0.035
+  frequency: 48

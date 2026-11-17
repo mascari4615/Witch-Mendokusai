@@ -26,6 +26,8 @@ namespace WitchMendokusai
 		protected IUIPanelGroup PanelGroup { get; private set; }
 		protected VisualElement Root { get; private set; }
 		private bool isBuilt;
+		[Tooltip("이 패널만의 평상시 효과. 비우면 UIFxSettings.idleEffect")]
+		[SerializeField] private UIIdleEffect idleEffect;
 
 		public void Init(IUIPanelGroup group)
 		{
@@ -60,7 +62,7 @@ namespace WitchMendokusai
 			BuildUI(Root);
 			if (UIFxSettings.Instance.ambientMotes)
 				UISparkle.AttachMotes(Root);
-			UIIdleFx.Attach(Root);
+			UIIdleFx.Attach(Root, () => idleEffect != null ? idleEffect : UIFxSettings.Instance.idleEffect);
 			isBuilt = true;
 		}
 

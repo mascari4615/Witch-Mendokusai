@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54225999077baf64e99272cab04acabd, type: 3}
+  m_Name: IdleFx_100_Mix
+  m_EditorClassIdentifier: WM.Core::WitchMendokusai.MixIdleEffect
+  pool:
+  - effect: {fileID: 11400000, guid: 0bd116eabb005a14d9cb86e303d006e8, type: 2}
+    weight: 2
+  - effect: {fileID: 11400000, guid: 65e910d4cb7241a46bd0d5a30eeea111, type: 2}
+    weight: 2
+  - effect: {fileID: 11400000, guid: da34d458dc28fe543a48b5d2caf1a6d8, type: 2}
+    weight: 1
+  - effect: {fileID: 11400000, guid: 40c66913aabf0854e9d6bf4bc63ffd8c, type: 2}
+    weight: 1
+  - effect: {fileID: 11400000, guid: 79950c03a6ca806438620a043e19574e, type: 2}
+    weight: 1

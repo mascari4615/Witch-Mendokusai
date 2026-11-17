@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 797f2528c284a0f47aee74d146d8275e, type: 3}
+  m_Name: Wipe_19_Shutter
+  m_EditorClassIdentifier: WM.Core::WitchMendokusai.ShutterUIWipe
+  color: {r: 0.1, g: 0.08, b: 0.16, a: 1}
+  coverSeconds: 0.55
+  revealSeconds: 0.6
+  accentColor: {r: 1, g: 0.55, b: 0.75, a: 1}
+  accentLine: 6
+  bands: 6
+  angle: 16
+  overlap: 1.2
+  travel: 1.6
+  stagger: 0.45
+  tint: 0.18
