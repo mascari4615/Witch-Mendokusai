@@ -47,6 +47,18 @@ namespace WitchMendokusai
 			return card;
 		}
 
+		// 화면에 보이는 설명. 설명 안의 {0}, {1} 자리를 같은 순서의 효과 값으로 채움
+		public string DescriptionText
+		{
+			get
+			{
+				int[] values = new int[Effects.Count];
+				for (int i = 0; i < Effects.Count; i++)
+					values[i] = Effects[i].Value;
+				return CardText.Format(Description, values);
+			}
+		}
+
 		public bool MeetsRequirements(IReadOnlyList<CardData> selectedCards)
 		{
 			foreach (Requirement requirement in Requirements)

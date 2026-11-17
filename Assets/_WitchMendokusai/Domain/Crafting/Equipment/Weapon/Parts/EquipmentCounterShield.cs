@@ -71,7 +71,8 @@ namespace WitchMendokusai
 			if (Time.time < readyTime)
 				return;
 
-			readyTime = Time.time + AttackCadence.Interval(baseCooldown, PlayerStat[cooldownStat], cooldownReductionPerStack, minCooldownRatio);
+			readyTime = Time.time + AttackCadence.WeaponInterval(baseCooldown, PlayerStat[cooldownStat], PlayerStat[UnitStatType.ATTACK_SPEED_BONUS],
+				cooldownReductionPerStack, minCooldownRatio, PlayerStat[UnitStatType.COOLTIME_BONUS]);
 			CounterCount++;
 
 			GameObject counter = objectPoolManager.Spawn(counterPrefab, subscribedPlayer.transform.position, Quaternion.identity);

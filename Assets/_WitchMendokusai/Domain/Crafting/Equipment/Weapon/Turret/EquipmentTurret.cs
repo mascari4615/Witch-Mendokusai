@@ -18,7 +18,6 @@ namespace WitchMendokusai
 		[SerializeField, Range(0.01f, 1f)] private float minCoolTimeRatio = 0.2f;
 
 		private readonly List<Transform> turretTransforms = new();
-		private float coolTime;
 		private int damageBonus;
 
 		private Coroutine loop;
@@ -51,10 +50,8 @@ namespace WitchMendokusai
 			PlayerStat.AddListener(UnitStatType.TURRET_COUNT, UpdateTurret);
 			PlayerStat.AddListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateTurret);
 			PlayerStat.AddListener(UnitStatType.TURRET_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.AddListener(UnitStatType.TURRET_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 			UpdateTurret();
 			UpdateDamageBonus();
-			UpdateAttackSpeedBonus();
 
 			loop = StartCoroutine(Loop());
 
@@ -68,7 +65,6 @@ namespace WitchMendokusai
 			subscribedStat?.RemoveListener(UnitStatType.TURRET_COUNT, UpdateTurret);
 			subscribedStat?.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateTurret);
 			subscribedStat?.RemoveListener(UnitStatType.TURRET_DAMAGE_BONUS, UpdateDamageBonus);
-			subscribedStat?.RemoveListener(UnitStatType.TURRET_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 			subscribedStat = null;
 		}
 
@@ -99,7 +95,7 @@ namespace WitchMendokusai
 
 				bulletObject.SetActive(true);
 
-				yield return new WaitForSeconds(coolTime / turretTransforms.Count);
+				yield return new WaitForSeconds(CoolTime / turretTransforms.Count);
 			}
 		}
 
@@ -136,9 +132,8 @@ namespace WitchMendokusai
 			damageBonus = PlayerStat[UnitStatType.TURRET_DAMAGE_BONUS];
 		}
 
-		private void UpdateAttackSpeedBonus()
-		{
-			coolTime = AttackCadence.Interval(originCoolTime, PlayerStat[UnitStatType.TURRET_ATTACK_SPEED_BONUS], attackSpeedReductionPerStack, minCoolTimeRatio);
-		}
+		// 쓸 때마다 계산. 공용 공격속도 카드와 쿨타임 감소도 같이 받음
+		private float CoolTime => AttackCadence.WeaponInterval(originCoolTime, PlayerStat[UnitStatType.TURRET_ATTACK_SPEED_BONUS], PlayerStat[UnitStatType.ATTACK_SPEED_BONUS],
+			attackSpeedReductionPerStack, minCoolTimeRatio, PlayerStat[UnitStatType.COOLTIME_BONUS]);
 	}
 }

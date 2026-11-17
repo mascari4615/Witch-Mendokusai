@@ -201,7 +201,7 @@ namespace WitchMendokusai
 
 			infoName.text = node.Card.Name;
 			infoState.text = StateText(node);
-			infoDescription.text = node.Card.Description;
+			infoDescription.text = node.Card.DescriptionText;
 			infoCondition.text = ConditionText(node);
 		}
 

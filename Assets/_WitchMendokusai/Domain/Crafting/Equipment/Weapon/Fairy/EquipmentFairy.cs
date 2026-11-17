@@ -22,7 +22,6 @@ namespace WitchMendokusai
 		[SerializeField, Range(0.01f, 1f)] private float minCoolTimeRatio = 0.2f;
 
 		private readonly List<Transform> fairyTransforms = new();
-		private float coolTime;
 		private int damageBonus;
 
 		private Coroutine loop;
@@ -61,11 +60,9 @@ namespace WitchMendokusai
 			subscribedStat = PlayerStat;
 			PlayerStat.AddListener(countStat, UpdateFairy);
 			PlayerStat.AddListener(damageBonusStat, UpdateDamageBonus);
-			PlayerStat.AddListener(attackSpeedBonusStat, UpdateAttackSpeedBonus);
 			PlayerStat.AddListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateFairyByCountBonus);
 			UpdateFairy(PlayerStat[countStat]);
 			UpdateDamageBonus(PlayerStat[damageBonusStat]);
-			UpdateAttackSpeedBonus(PlayerStat[attackSpeedBonusStat]);
 
 			loop = StartCoroutine(Loop());
 		}
@@ -77,7 +74,6 @@ namespace WitchMendokusai
 			// 비활성 정령의 강화 알림 해제
 			subscribedStat?.RemoveListener(countStat, UpdateFairy);
 			subscribedStat?.RemoveListener(damageBonusStat, UpdateDamageBonus);
-			subscribedStat?.RemoveListener(attackSpeedBonusStat, UpdateAttackSpeedBonus);
 			subscribedStat?.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateFairyByCountBonus);
 			subscribedStat = null;
 		}
@@ -117,7 +113,7 @@ namespace WitchMendokusai
 
 				g.SetActive(true);
 
-				yield return new WaitForSeconds(coolTime / fairyTransforms.Count);
+				yield return new WaitForSeconds(CoolTime / fairyTransforms.Count);
 			}
 		}
 
@@ -153,9 +149,8 @@ namespace WitchMendokusai
 			damageBonus = fairyDamageBonus;
 		}
 
-		private void UpdateAttackSpeedBonus(int fairyAttackSpeedBonus)
-		{
-			coolTime = AttackCadence.Interval(originCoolTime, fairyAttackSpeedBonus, attackSpeedReductionPerStack, minCoolTimeRatio);
-		}
+		// 쓸 때마다 계산. 공용 공격속도 카드와 쿨타임 감소도 같이 받음
+		private float CoolTime => AttackCadence.WeaponInterval(originCoolTime, PlayerStat[attackSpeedBonusStat], PlayerStat[UnitStatType.ATTACK_SPEED_BONUS],
+			attackSpeedReductionPerStack, minCoolTimeRatio, PlayerStat[UnitStatType.COOLTIME_BONUS]);
 	}
 }

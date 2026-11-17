@@ -52,8 +52,10 @@ namespace WitchMendokusai
 		{
 			while (true)
 			{
-				int stacks = cooldownStat != UnitStatType.NONE ? playerProvider.Current.UnitStat[cooldownStat] : 0;
-				yield return new WaitForSeconds(AttackCadence.Interval(baseCooldown, stacks, reductionPerStack, minCooldownRatio));
+				UnitStat playerStat = playerProvider.Current.UnitStat;
+				int stacks = cooldownStat != UnitStatType.NONE ? playerStat[cooldownStat] : 0;
+				yield return new WaitForSeconds(AttackCadence.WeaponInterval(baseCooldown, stacks, playerStat[UnitStatType.ATTACK_SPEED_BONUS],
+					reductionPerStack, minCooldownRatio, playerStat[UnitStatType.COOLTIME_BONUS]));
 				Wipe();
 				yield return null;
 				if (destroyDrops)

@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	public class EquipmentSword : SkillComponent
 	{
-		[SerializeField] private float originCoolTime = 1.5f;
+		[SerializeField, Min(0.01f)] private float originCoolTime = 1.5f;
 		// 검 여러 자루가 연속으로 나갈 때의 자루 간 간격.
 		[SerializeField] private float eachAttackDelay = 0.1f;
 		// 조준 위치가 아직 안 잡혔을 때 다시 물어보기까지의 간격.
@@ -24,7 +24,6 @@ namespace WitchMendokusai
 #pragma warning restore CS0414
 
 		private int swingCount = 1;
-		private float coolTime;
 		private int damageBonus;
 
 		private PlayerProvider playerProvider;
@@ -64,10 +63,8 @@ namespace WitchMendokusai
 			PlayerStat.AddListener(UnitStatType.SWORD_COUNT, UpdateSword);
 			PlayerStat.AddListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSwordFromBonus);
 			PlayerStat.AddListener(UnitStatType.SWORD_DAMAGE_BONUS, UpdateDamageBonus);
-			PlayerStat.AddListener(UnitStatType.SWORD_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 			UpdateSword(PlayerStat[UnitStatType.SWORD_COUNT]);
 			UpdateDamageBonus(PlayerStat[UnitStatType.SWORD_DAMAGE_BONUS]);
-			UpdateAttackSpeedBonus(PlayerStat[UnitStatType.SWORD_ATTACK_SPEED_BONUS]);
 
 			StartCoroutine(Loop());
 		}
@@ -78,7 +75,6 @@ namespace WitchMendokusai
 			subscribedStat?.RemoveListener(UnitStatType.SWORD_COUNT, UpdateSword);
 			subscribedStat?.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSwordFromBonus);
 			subscribedStat?.RemoveListener(UnitStatType.SWORD_DAMAGE_BONUS, UpdateDamageBonus);
-			subscribedStat?.RemoveListener(UnitStatType.SWORD_ATTACK_SPEED_BONUS, UpdateAttackSpeedBonus);
 			subscribedStat = null;
 		}
 
@@ -105,7 +101,7 @@ namespace WitchMendokusai
 				UpdateSword(PlayerStat[UnitStatType.SWORD_COUNT]);
 				StartCoroutine(AttackLoop());
 
-				yield return new WaitForSeconds(coolTime);
+				yield return new WaitForSeconds(CoolTime);
 			}
 		}
 
@@ -224,9 +220,8 @@ namespace WitchMendokusai
 			this.damageBonus = damageBonus;
 		}
 
-		private void UpdateAttackSpeedBonus(int attackSpeedBonus)
-		{
-			coolTime = Mathf.Max(minimumCoolTime, originCoolTime * (1 - attackSpeedBonus * attackSpeedBonusPerStack));
-		}
+		// 쓸 때마다 계산. 공용 공격속도 카드와 쿨타임 감소도 같이 받음
+		private float CoolTime => AttackCadence.WeaponInterval(originCoolTime, PlayerStat[UnitStatType.SWORD_ATTACK_SPEED_BONUS], PlayerStat[UnitStatType.ATTACK_SPEED_BONUS],
+			attackSpeedBonusPerStack, minimumCoolTime / originCoolTime, PlayerStat[UnitStatType.COOLTIME_BONUS]);
 	}
 }

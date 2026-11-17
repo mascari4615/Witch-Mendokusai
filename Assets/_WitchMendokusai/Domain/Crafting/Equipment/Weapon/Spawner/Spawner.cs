@@ -76,9 +76,8 @@ namespace WitchMendokusai
 			get
 			{
 				int stacks = attackSpeedBonusStatType != UnitStatType.NONE ? PlayerStat[attackSpeedBonusStatType] : 0;
-				// 공용 공격속도 카드 (ATTACK_SPEED_BONUS) 와 쿨타임 감소 (COOLTIME_BONUS) 도 모든 무기에 (2026-11-16, 그 전엔 효과 없음)
-				stacks += PlayerStat[UnitStatType.ATTACK_SPEED_BONUS];
-				return AttackCadence.Interval(baseInterval, stacks, attackSpeedReductionPerStack, minIntervalRatio, PlayerStat[UnitStatType.COOLTIME_BONUS]);
+				// 공용 공격속도 카드와 쿨타임 감소는 주기형 무기 전부가 같은 식으로 받음
+				return AttackCadence.WeaponInterval(baseInterval, stacks, PlayerStat[UnitStatType.ATTACK_SPEED_BONUS], attackSpeedReductionPerStack, minIntervalRatio, PlayerStat[UnitStatType.COOLTIME_BONUS]);
 			}
 		}
 

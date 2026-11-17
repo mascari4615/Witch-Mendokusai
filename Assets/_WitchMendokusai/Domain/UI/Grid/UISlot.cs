@@ -42,7 +42,8 @@ namespace WitchMendokusai
 				DataSO = dataSO;
 				Sprite = dataSO.Sprite;
 				Name = dataSO.Name;
-				Description = dataSO.Description;
+				// 카드 설명은 수치 자리를 채운 글로
+				Description = dataSO is CardData cardData ? cardData.DescriptionText : dataSO.Description;
 				Amount = amount;
 
 				IsEmpty = false;

@@ -13,7 +13,7 @@ namespace WitchMendokusai
 				return string.Empty;
 
 			int current = Count(card, selectedCards);
-			StringBuilder text = new(card.Description);
+			StringBuilder text = new(card.DescriptionText);
 			text.Append($"\n강화 {current} → {Math.Min(current + 1, card.MaxStack)} / {card.MaxStack}회");
 			if (deckCards == null)
 				return text.ToString();

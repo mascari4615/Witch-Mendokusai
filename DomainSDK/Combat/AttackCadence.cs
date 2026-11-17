@@ -21,6 +21,10 @@ namespace WitchMendokusai
 			return baseInterval * Math.Max(stackRatio * cooldownRatio, minRatio);
 		}
 
+		// 무기 고유 스택에 공용 공격속도 스택을 더하고 공용 쿨타임 감소를 곱함. 주기형 무기의 공통 경로
+		public static float WeaponInterval(float baseInterval, int weaponStacks, int sharedStacks, float reductionPerStack, float minRatio, int cooldownPercent)
+			=> Interval(baseInterval, weaponStacks + sharedStacks, reductionPerStack, minRatio, cooldownPercent);
+
 		public static float ChargeRatio(float stillSeconds, float chargeSeconds)
 		{
 			if (chargeSeconds <= 0f)

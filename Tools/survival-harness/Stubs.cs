@@ -78,7 +78,7 @@ namespace WitchMendokusai
     }
     public sealed class DungeonManager { public DungeonContext Context; }
     public class DataSO { public int ID; public string Name; public string Description; }
-    public struct EffectInfo { }
+    public struct EffectInfo { public int Value; }
     public class EquipmentData { public int ID; public List<CardData> EffectCards = new List<CardData>(); }
     public class CardBuffer
     {

@@ -13,7 +13,7 @@ namespace WitchMendokusai
 
 		public void SetChoice(CardData card, EquipmentData equipment, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards)
 		{
-			choiceDescription = card?.Description;
+			choiceDescription = card?.DescriptionText;
 			ChoiceDetail = CardChoiceText.Description(card, selectedCards, deckCards, true);
 			choiceTooltip.SetData(card?.Sprite, card?.Name, ChoiceDetail);
 			if (card != null)
