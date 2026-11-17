@@ -79,7 +79,9 @@ if ($keyguard -match 'isKeyguardShowing=true') {
 # 5. launch, log, screenshot
 & $adb shell am force-stop $Package | Out-Null
 & $adb logcat -c
-& $adb shell monkey -p $Package -c android.intent.category.LAUNCHER 1 *> $null
+# monkey prints its args to stderr. With ErrorActionPreference=Stop a redirected native stderr line
+# becomes a terminating error (PowerShell 5.1), so run it through cmd.
+cmd /c "`"$adb`" shell monkey -p $Package -c android.intent.category.LAUNCHER 1 >nul 2>&1"
 Start-Sleep -Seconds $WaitSec
 $appPid = (& $adb shell pidof $Package).Trim()
 if (-not $appPid) { Write-Host '[phone-test] process not running (crash?) - dumping crash buffer'; & $adb logcat -d -b crash | Select-Object -Last 60; exit 1 }
