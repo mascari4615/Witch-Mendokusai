@@ -257,6 +257,17 @@ jobs:
           }
           Save-BuiltMarker -BuildRoot $env:BUILD_ROOT -Platform $platform -Sha $env:GITHUB_SHA
 
+      # 폰에 가기 전 APK 검사: 압축 무결성 + Addressables 카탈로그 플랫폼 경로 (2026-11-17 두 사고)
+      - name: Verify APK
+        if: steps.gate.outputs.skip != 'true' && steps.cfg.outputs.platform == 'android'
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $apk = Get-ChildItem '${{ steps.build.outputs.out_dir }}' -Filter *.apk -File | Select-Object -First 1
+          if (-not $apk) { throw 'no apk in build output' }
+          & "$env:GITHUB_WORKSPACE\.github\scripts\wm-verify-apk.ps1" -Apk $apk.FullName -PlatformFolder Android
+          if ($LASTEXITCODE -ne 0) { throw "APK verify failed: $($apk.FullName)" }
+
       # 실패했을 때가 진짜 증거다 - 성공 판에서는 안 보이는 값이 여기 남는다.
       - name: Memory after build (evidence on failure)
         if: always() && steps.gate.outputs.skip != 'true'
