@@ -177,6 +177,15 @@ namespace WitchMendokusai.EditorTools
             WMBuildManager.Validate(platform);
             WMBuildManager.ApplyOutputSettings(platform, development);
 
+            // 빌드 전 활성 플랫폼 맞춤
+            // - Addressables 경로 변수 [BuildTarget] 은 활성 플랫폼 기준
+            // - 어긋나면 번들은 aa/Android, 카탈로그는 StandaloneWindows64 경로 (2026-11-17 폰 실기, 시작 버튼 무반응)
+            if (EnsureActiveTarget(platform, out string switchError) == false)
+            {
+                detail = switchError;
+                return default;
+            }
+
             BuildReport report = BuildPipeline.BuildPlayer(playerOptions);
             BuildSummary summary = report.summary;
 
@@ -187,6 +196,28 @@ namespace WitchMendokusai.EditorTools
             AppendFailedSteps(builder, report);
             detail = builder.ToString();
             return summary;
+        }
+
+        private static bool EnsureActiveTarget(WMPlatform platform, out string error)
+        {
+            error = null;
+            BuildTarget target = platform.Target;
+            if (EditorUserBuildSettings.activeBuildTarget == target)
+            {
+                return true;
+            }
+
+            BuildTargetGroup group = BuildPipeline.GetBuildTargetGroup(target);
+            BuildTarget before = EditorUserBuildSettings.activeBuildTarget;
+            Debug.Log($"[WM-BUILD] 활성 플랫폼 전환 {before} → {target}");
+            if (EditorUserBuildSettings.SwitchActiveBuildTarget(group, target) == false
+                || EditorUserBuildSettings.activeBuildTarget != target)
+            {
+                error = $"활성 플랫폼을 {target} 로 바꾸지 못했다 (현재 {EditorUserBuildSettings.activeBuildTarget}). "
+                    + "Addressables 카탈로그가 다른 플랫폼 경로를 가리키므로 빌드하지 않는다.";
+                return false;
+            }
+            return true;
         }
 
         // 실패 시 어느 step 의 어떤 메시지인지 로그에 남긴다 (CI 로그만 보고 원인 추적).
