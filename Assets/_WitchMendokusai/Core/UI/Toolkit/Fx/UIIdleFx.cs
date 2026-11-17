@@ -21,13 +21,6 @@ namespace WitchMendokusai
 		private const float MILLISECONDS_PER_SECOND = 1000f;
 		private const long TICK_MILLISECONDS = 50;
 		private const float MAX_STEP_SECONDS = 0.1f;
-		// 이보다 덜 보이는 조상이 있으면 숨은 것으로 봄 (닫힘 애니메이션 끝 무렵 포함)
-		private const float VISIBLE_OPACITY_THRESHOLD = 0.5f;
-		// 대상이 효과 도중 사라져 완료가 안 오면 이 시간 뒤 다음 효과로
-		private const float BUSY_TIMEOUT_SECONDS = 4f;
-		// Glint 띠가 요소 밖에서 출발해 밖에서 끝나는 거리, 띠 너비 배수
-		private const float GLINT_START_OFFSET = 1.5f;
-		private const float GLINT_END_OFFSET = 0.5f;
 		// Twinkle 이 피는 구간 비율. 나머지는 지는 구간
 		private const float TWINKLE_BLOOM_PART = 0.35f;
 
@@ -55,7 +48,7 @@ namespace WitchMendokusai
 			if (loop.Running > 0)
 			{
 				loop.BusySeconds += deltaSeconds;
-				if (loop.BusySeconds < BUSY_TIMEOUT_SECONDS)
+				if (loop.BusySeconds < settings.idleBusyTimeoutSeconds)
 					return;
 				// 늦게 오는 완료는 회차가 달라 무시됨
 				loop.Running = 0;
@@ -150,7 +143,7 @@ namespace WitchMendokusai
 			for (VisualElement current = root; current != null; current = current.parent)
 			{
 				IResolvedStyle resolved = current.resolvedStyle;
-				if (resolved.display == DisplayStyle.None || resolved.visibility == Visibility.Hidden || resolved.opacity < VISIBLE_OPACITY_THRESHOLD)
+				if (resolved.display == DisplayStyle.None || resolved.visibility == Visibility.Hidden || resolved.opacity < UIFxSettings.Instance.idleVisibleOpacity)
 					return false;
 			}
 			return true;
@@ -268,8 +261,8 @@ namespace WitchMendokusai
 			band.style.opacity = 0f;
 			clip.Add(band);
 
-			float from = -width * GLINT_START_OFFSET;
-			float to = bound.width + width * GLINT_END_OFFSET;
+			float from = -width * settings.idleGlintTravel.x;
+			float to = bound.width + width * settings.idleGlintTravel.y;
 			Animate(clip, settings.idleGlintSeconds, delay, progress =>
 			{
 				float eased = progress * progress * (3f - 2f * progress);

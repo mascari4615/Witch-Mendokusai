@@ -83,12 +83,18 @@ namespace WitchMendokusai
 		[Range(0f, 1f)] public float wipeFlashAlpha = 0.85f;
 		public int wipeShutterBands = 6;
 		public float wipeShutterAngle = 16f;
+		[Tooltip("이웃 띠와 겹치는 너비 배율 (경계 틈 방지)")]
+		public float wipeShutterOverlap = 1.2f;
+		[Tooltip("띠가 출발하고 나가는 거리, 화면 너비 배수")]
+		public float wipeShutterTravel = 1.6f;
 		[Tooltip("첫 띠와 끝 띠의 시작 간격, 전체 시간 비율")]
 		[Range(0f, 0.9f)] public float wipeShutterStagger = 0.45f;
 		[Tooltip("홀수 띠가 강조색 쪽으로 물드는 정도")]
 		[Range(0f, 1f)] public float wipeShutterTint = 0.18f;
 		public float wipeSlashAngle = 24f;
 		public int wipeGlitchSlices = 18;
+		[Tooltip("조각 높이 비율 범위 (가장 얇은 것, 가장 굵은 것)")]
+		public Vector2 wipeGlitchSliceWeight = new(0.4f, 2f);
 		[Tooltip("조각이 어긋나는 최대 거리, 화면 너비 비율")]
 		public float wipeGlitchShift = 0.12f;
 		[Tooltip("색 갈라짐 거리, 픽셀")]
@@ -158,6 +164,10 @@ namespace WitchMendokusai
 		public float idleMinTargetSize = 28f;
 		[Tooltip("패널 넓이 대비 이보다 큰 요소는 제외 (배경, 큰 판)")]
 		[Range(0.01f, 1f)] public float idleMaxTargetAreaRatio = 0.2f;
+		[Tooltip("이보다 흐린 조상이 있으면 숨은 것으로 봄 (닫힘 애니메이션 끝 무렵 포함)")]
+		[Range(0f, 1f)] public float idleVisibleOpacity = 0.5f;
+		[Tooltip("대상이 효과 도중 사라져 완료가 안 오면 이 시간 뒤 다음 효과로")]
+		public float idleBusyTimeoutSeconds = 4f;
 		public float idleGlintSeconds = 0.55f;
 		[Tooltip("Mixed 가 고르는 후보. 같은 항목을 여러 번 넣으면 더 자주")]
 		public IdleFxStyle[] idleMixedPool =
@@ -169,6 +179,8 @@ namespace WitchMendokusai
 		[Tooltip("빛 띠 너비, 요소의 긴 변 대비")]
 		public float idleGlintWidthRatio = 0.35f;
 		public float idleGlintAngle = 18f;
+		[Tooltip("빛 띠가 요소 밖에서 출발하고 밖에서 끝나는 거리, 띠 너비 배수 (출발, 끝)")]
+		public Vector2 idleGlintTravel = new(1.5f, 0.5f);
 		[Tooltip("기울인 빛 띠 길이, 요소 높이 대비. 모서리까지 덮도록 1 보다 크게")]
 		public float idleGlintLength = 1.6f;
 		public float idleTwinkleSeconds = 0.75f;

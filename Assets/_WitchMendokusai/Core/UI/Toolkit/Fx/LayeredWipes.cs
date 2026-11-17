@@ -42,10 +42,6 @@ namespace WitchMendokusai
 	/// <summary>비스듬한 띠들이 차례로 밀려 들어와 덮고, 같은 방향으로 밀려 나가며 걷힘. 띠 앞머리에 강조색 선</summary>
 	internal sealed class ShutterWipe : IWipeRenderer
 	{
-		// 이웃 띠와 겹치는 너비 배율 (경계 틈 방지)
-		private const float BAND_OVERLAP_SCALE = 1.2f;
-		// 시작과 끝 위치, 화면 너비 배수
-		private const float TRAVEL_SCALE = 1.6f;
 
 		private VisualElement host;
 		private readonly List<VisualElement> bands = new();
@@ -70,7 +66,7 @@ namespace WitchMendokusai
 			bands.Clear();
 			int count = Mathf.Max(2, settings.wipeShutterBands);
 			float slot = size.x / count;
-			float width = slot * BAND_OVERLAP_SCALE;
+			float width = slot * settings.wipeShutterOverlap;
 			float radians = Mathf.Abs(settings.wipeShutterAngle) * Mathf.Deg2Rad;
 			// 기울인 띠가 화면 위아래 끝까지 닿는 높이
 			float height = size.y / Mathf.Cos(radians) + width * Mathf.Sin(radians);
@@ -102,8 +98,8 @@ namespace WitchMendokusai
 				float local = LayeredWipeMath.Segment(progress, stagger * i / (bands.Count - 1), each);
 				// 덮기는 오른쪽에서 들어와 멈추고, 걷기는 멈춘 자리에서 왼쪽으로 나감
 				float offset = cover
-					? (1f - LayeredWipeMath.OutExpo(local)) * size.x * TRAVEL_SCALE
-					: -LayeredWipeMath.InCubic(local) * size.x * TRAVEL_SCALE;
+					? (1f - LayeredWipeMath.OutExpo(local)) * size.x * UIFxSettings.Instance.wipeShutterTravel
+					: -LayeredWipeMath.InCubic(local) * size.x * UIFxSettings.Instance.wipeShutterTravel;
 				bands[i].style.translate = new Translate(offset, 0f);
 			}
 		}
@@ -221,9 +217,6 @@ namespace WitchMendokusai
 		private const float APPEAR_SPREAD = 0.6f;
 		// 걷기에서 조각이 흐려지기 시작하는 조각 진행
 		private const float GLITCH_FADE_START = 0.7f;
-		// 조각 높이 비율 범위 (가장 얇은 조각과 가장 굵은 조각이 약 1:5)
-		private const float SLICE_MIN_WEIGHT = 0.4f;
-		private const float SLICE_WEIGHT_RANGE = 1.6f;
 		// 색 갈라짐이 반대로 튈 때의 비율
 		private const float JITTER_BACK_RATIO = -0.6f;
 
@@ -264,7 +257,7 @@ namespace WitchMendokusai
 			float total = 0f;
 			for (int i = 0; i < count; i++)
 			{
-				weights[i] = SLICE_MIN_WEIGHT + WipePatterns.Hash01(i, 71) * SLICE_WEIGHT_RANGE;
+				weights[i] = Mathf.Lerp(settings.wipeGlitchSliceWeight.x, settings.wipeGlitchSliceWeight.y, WipePatterns.Hash01(i, 71));
 				total += weights[i];
 			}
 			float top = 0f;
