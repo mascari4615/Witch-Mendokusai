@@ -20,7 +20,9 @@ namespace WitchMendokusai
 		{
 			float distance = Mathf.Sqrt(horizontal * horizontal + vertical * vertical);
 			float falloff = Mathf.Clamp01(1f - distance);
-			return falloff * falloff;
+			// 가운데 밝은 심 + 넓은 번짐
+			float core = Mathf.Clamp01(1f - distance * 3f);
+			return Mathf.Clamp01(falloff * falloff * 0.6f + core * 0.8f);
 		}));
 
 		/// <summary>둥근 빛에 가로세로 빛줄기를 더한 반짝임</summary>
