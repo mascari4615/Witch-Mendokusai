@@ -72,6 +72,15 @@ namespace WitchMendokusai
 				forward = follow.forward;
 			}
 
+			// 인형 몸은 2D 그림을 카메라 쪽으로 기울여서 정면이 수평이 아님. 수평으로 눌러야 바닥 위에 놓임
+			forward.y = 0f;
+			if (forward.sqrMagnitude < 0.0001f && Camera.main != null)
+			{
+				forward = Camera.main.transform.forward;
+				forward.y = 0f;
+			}
+			forward = forward.sqrMagnitude < 0.0001f ? Vector3.forward : forward.normalized;
+
 			return Play(new CombatFxContext
 			{
 				Position = origin,

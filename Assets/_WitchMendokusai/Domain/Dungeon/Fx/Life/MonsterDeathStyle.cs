@@ -59,13 +59,21 @@ namespace WitchMendokusai
 		private float previewBillboardMode = 0f;
 
 		/// <summary> 미리보기. 플레이어 앞 Radius 거리에 PreviewSprite 를 세우고 녹임 </summary>
+		// 미리보기 전용. 플레이어 뒤에 가려지지 않게 카메라 기준 오른쪽에 놓음 (실제 몬스터는 MonsterLifeFx 경로)
+		private static Vector3 PreviewSide()
+		{
+			Vector3 side = Camera.main.transform.right;
+			side.y = 0f;
+			return side.normalized;
+		}
+
 		protected override Action Play(CombatFxRunner runner, CombatFxContext context)
 		{
 			MonsterDeathGhostPose pose = new()
 			{
 				Sprite = previewSprite,
 				Color = Color.white,
-				Position = context.Position + context.Direction.normalized * context.Radius,
+				Position = context.Position + PreviewSide() * context.Radius,
 				Rotation = Camera.main.transform.rotation,
 				Scale = Vector3.one * previewSize,
 				BillboardMode = previewBillboardMode,

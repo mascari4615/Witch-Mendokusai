@@ -65,9 +65,17 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 미리보기. 플레이어 앞 Radius 거리에 PreviewSprite 를 세우고 튕김 </summary>
+		// 미리보기 전용. 플레이어 뒤에 가려지지 않게 카메라 기준 오른쪽에 놓음 (실제 몬스터는 MonsterLifeFx 경로)
+		private static Vector3 PreviewSide()
+		{
+			Vector3 side = Camera.main.transform.right;
+			side.y = 0f;
+			return side.normalized;
+		}
+
 		protected override Action Play(CombatFxRunner runner, CombatFxContext context)
 		{
-			Vector3 position = context.Position + context.Direction.normalized * context.Radius;
+			Vector3 position = context.Position + PreviewSide() * context.Radius;
 			MonsterLifeFxDriver driver = MonsterLifeFxDriver.Instance;
 			int puffId = PuffMaterial != null ? driver.AddPuff(position, this, previewSize) : MonsterLifeFxDriver.NONE;
 
