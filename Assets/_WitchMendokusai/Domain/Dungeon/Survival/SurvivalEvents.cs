@@ -38,6 +38,12 @@ namespace WitchMendokusai
 		public float LeadSeconds;
 	}
 
+	// 한 판의 난이도 단계가 올라간 순간
+	public struct DifficultyRaisedEvent
+	{
+		public DungeonDifficulty Difficulty;
+	}
+
 	// 고를 카드가 없어 레벨업이 회복이나 냥으로 바뀐 순간
 	public struct LevelUpConvertedEvent
 	{

@@ -20,7 +20,7 @@ MonoBehaviour:
   <EliteStarted>k__BackingField:
     <Banner>k__BackingField: {fileID: 11400000, guid: 8e461e5fa8f9426197460cf1f2e0eba6, type: 2}
     <Title>k__BackingField: "정예 출현"
-    <Subtitle>k__BackingField: "{1}"
+    <Subtitle>k__BackingField: ""
     <HoldSeconds>k__BackingField: 1.4
   <SwarmAnnounced>k__BackingField:
     <Banner>k__BackingField: {fileID: 11400000, guid: 98be667199014e7cb36bc8a8d269c072, type: 2}
@@ -42,3 +42,8 @@ MonoBehaviour:
     <Title>k__BackingField: "{1}"
     <Subtitle>k__BackingField: ""
     <HoldSeconds>k__BackingField: 0
+  <DifficultyRaised>k__BackingField:
+    <Banner>k__BackingField: {fileID: 11400000, guid: 98be667199014e7cb36bc8a8d269c072, type: 2}
+    <Title>k__BackingField: "난이도 상승"
+    <Subtitle>k__BackingField: "{3}"
+    <HoldSeconds>k__BackingField: 1.4

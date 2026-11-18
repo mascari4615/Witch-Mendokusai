@@ -11,6 +11,17 @@ namespace WitchMendokusai
 		Hard
 	}
 
+	public static class DungeonDifficultyText
+	{
+		/// <summary> 화면에 쓰는 난이도 이름. HUD, 결과창, 알림 띠가 같이 씀 </summary>
+		public static string Name(DungeonDifficulty difficulty) => difficulty switch
+		{
+			DungeonDifficulty.Easy => "쉬움",
+			DungeonDifficulty.Normal => "보통",
+			_ => "어려움",
+		};
+	}
+
 	public class DungeonContext
 	{
 		public static readonly TimeSpan TimeUpdateInterval = new(0, 0, 0, 0, 100);
@@ -42,7 +53,10 @@ namespace WitchMendokusai
 
 		public void UpdateDifficulty()
 		{
+			DungeonDifficulty previous = CurDifficulty;
 			CurDifficulty = (DungeonDifficulty)Math.Min((int)DungeonDifficulty.Hard, (int)(ElapsedTime.TotalMinutes / 3));
+			if (CurDifficulty > previous)
+				EventBusBridge.Publish(new DifficultyRaisedEvent { Difficulty = CurDifficulty });
 		}
 	}
 }

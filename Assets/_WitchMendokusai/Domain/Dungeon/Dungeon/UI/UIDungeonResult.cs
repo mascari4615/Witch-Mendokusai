@@ -116,7 +116,7 @@ namespace WitchMendokusai
 			// 단계 0은 기본 판이라 제목에 단계 미표시
 			titleText.text = dungeonManager.CurDungeon.HasThreatLevels && record.ThreatLevel > 0 ? string.Format(threatTitleFormat, title, record.ThreatLevel) : title;
 			titleText.color = cleared ? clearTitleColor : defeatTitleColor;
-			difficultyText.text = DifficultyName(record.Difficulty);
+			difficultyText.text = DungeonDifficultyText.Name(record.Difficulty);
 			difficultyRing.color = theme.Difficulty(record.Difficulty);
 			totalOutline.color = cleared ? clearOutline : defeatOutline;
 			nyangText.color = cleared ? theme.ValueColor : Color.white;
@@ -234,11 +234,5 @@ namespace WitchMendokusai
 			}
 		}
 
-		private static string DifficultyName(DungeonDifficulty difficulty) => difficulty switch
-		{
-			DungeonDifficulty.Easy => "쉬움",
-			DungeonDifficulty.Normal => "보통",
-			_ => "어려움",
-		};
 	}
 }

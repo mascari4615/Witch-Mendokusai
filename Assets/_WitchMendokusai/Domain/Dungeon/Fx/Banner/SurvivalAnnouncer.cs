@@ -26,6 +26,7 @@ namespace WitchMendokusai
 			EventBusBridge.Subscribe<SurvivalEventStartedEvent>(OnEventStarted);
 			EventBusBridge.Subscribe<BossAnnouncedEvent>(OnBossAnnounced);
 			EventBusBridge.Subscribe<BossSpawnedEvent>(OnBossSpawned);
+			EventBusBridge.Subscribe<DifficultyRaisedEvent>(OnDifficultyRaised);
 		}
 
 		private void OnDestroy()
@@ -34,6 +35,7 @@ namespace WitchMendokusai
 			EventBusBridge.Unsubscribe<SurvivalEventStartedEvent>(OnEventStarted);
 			EventBusBridge.Unsubscribe<BossAnnouncedEvent>(OnBossAnnounced);
 			EventBusBridge.Unsubscribe<BossSpawnedEvent>(OnBossSpawned);
+			EventBusBridge.Unsubscribe<DifficultyRaisedEvent>(OnDifficultyRaised);
 			// 씬을 떠날 때 떠 있던 띠를 치움. 끝난 띠의 중단 함수는 불러도 무해
 			foreach (Action stop in stops.Values)
 				stop.Invoke();
@@ -68,7 +70,14 @@ namespace WitchMendokusai
 			Show(Settings.BossSpawned, 0f, spawned.Monster, 1);
 		}
 
-		private void Show(SurvivalAnnounceLine line, float leadSeconds, Monster monster, int count)
+		private void OnDifficultyRaised(DifficultyRaisedEvent raised)
+		{
+			if (Settings.DifficultyRaised.Banner != null)
+				CombatSfx.Play(CombatSfxEvent.Warning);
+			Show(Settings.DifficultyRaised, 0f, null, 0, DungeonDifficultyText.Name(raised.Difficulty));
+		}
+
+		private void Show(SurvivalAnnounceLine line, float leadSeconds, Monster monster, int count, string difficultyName = "")
 		{
 			if (line.Banner == null)
 				return;
@@ -77,21 +86,22 @@ namespace WitchMendokusai
 			string monsterName = monster == null ? string.Empty : monster.Name;
 			stops[line.Banner] = line.Banner.Play(new CombatFxContext
 			{
-				Title = FillPlaceholders(line.Title, seconds, monsterName, count),
-				Subtitle = FillPlaceholders(line.Subtitle, seconds, monsterName, count),
+				Title = FillPlaceholders(line.Title, seconds, monsterName, count, difficultyName),
+				Subtitle = FillPlaceholders(line.Subtitle, seconds, monsterName, count, difficultyName),
 				Seconds = line.HoldSeconds,
 			});
 		}
 
-		// 에셋 문장의 {0} 초, {1} 이름, {2} 수만 바꿈. 다른 중괄호가 섞여도 예외 없이 그대로 둠
-		private static string FillPlaceholders(string text, int seconds, string monsterName, int count)
+		// 에셋 문장의 {0} 초, {1} 이름, {2} 수, {3} 난이도만 바꿈. 다른 중괄호가 섞여도 예외 없이 그대로 둠
+		private static string FillPlaceholders(string text, int seconds, string monsterName, int count, string difficultyName)
 		{
 			if (string.IsNullOrEmpty(text))
 				return text;
 			return text
 				.Replace("{0}", seconds.ToString())
 				.Replace("{1}", monsterName)
-				.Replace("{2}", count.ToString());
+				.Replace("{2}", count.ToString())
+				.Replace("{3}", difficultyName);
 		}
 	}
 }

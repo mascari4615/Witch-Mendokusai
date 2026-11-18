@@ -236,20 +236,7 @@ namespace WitchMendokusai
 				UIEffects.Punch(difficultyText.transform, theme.PunchAmount, theme.PunchDuration);
 			}
 
-			switch (curDifficulty)
-			{
-				case DungeonDifficulty.Easy:
-					difficultyText.text = "쉬움";
-					break;
-				case DungeonDifficulty.Normal:
-					difficultyText.text = "보통";
-					break;
-				case DungeonDifficulty.Hard:
-					difficultyText.text = "어려움";
-					break;
-				default:
-					break;
-			}
+			difficultyText.text = DungeonDifficultyText.Name(curDifficulty);
 		}
 
 		private void UpdateNextEvent()
