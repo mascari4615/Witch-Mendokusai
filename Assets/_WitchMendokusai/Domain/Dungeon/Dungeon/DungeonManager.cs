@@ -184,6 +184,7 @@ namespace WitchMendokusai
 
 			void InitDungeonAndPlayer()
 			{
+				RunSeed.Begin();
 				gameManager.Init();
 				dataManager.RunLoadout.Begin(runMode, resourceManager.SurvivalRunRules);
 				gameManager.InitEquipment();

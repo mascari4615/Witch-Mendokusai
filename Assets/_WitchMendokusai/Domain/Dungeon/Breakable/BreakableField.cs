@@ -133,7 +133,8 @@ namespace WitchMendokusai
 		{
 			List<BreakableObject> list = new();
 			cells[cell] = list;
-			System.Random random = new(unchecked(settings.Seed ^ cell.x * 73856093 ^ cell.y * 19349663));
+			// 판 시드에서 갈라 쓴 값 + 칸 좌표. 같은 판 왕복은 같은 배치, 판이 바뀌면 다른 배치
+			System.Random random = new(unchecked(RunSeed.Derive(settings.Seed) ^ cell.x * 73856093 ^ cell.y * 19349663));
 			int count = random.Next(settings.CountPerCell.x, settings.CountPerCell.y + 1);
 			float totalWeight = 0f;
 			foreach (BreakableKind kind in settings.Kinds)

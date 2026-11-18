@@ -52,7 +52,8 @@ namespace WitchMendokusai
 		[SerializeField] private DecorationSource[] decorationSources = Array.Empty<DecorationSource>();
 		[SerializeField, Min(1f)] private float decorationChunkSize = 24f;
 		[SerializeField, Range(1, 4)] private int decorationChunkRadius = 2;
-		[SerializeField] private int decorationSeed = 4615;
+		[SerializeField, Tooltip("판 시드와 섞는 장식 갈래 값")] private int decorationSeed = 4615;
+		[SerializeField, Min(0f), Tooltip("판마다 군집 무늬를 옮기는 범위, 무늬 칸 단위")] private float decorationClusterOffsetRange = 1000f;
 		[SerializeField, Min(1f)] private float decorationClusterSize = 12f;
 		[SerializeField, Range(0f, 1f)] private float decorationClusterThreshold = .43f;
 		[SerializeField, Min(0f)] private float decorationSpawnClearRadius = 5f;
@@ -66,6 +67,9 @@ namespace WitchMendokusai
 		private readonly Plane[] decorationPlanes = new Plane[6];
 		private Vector2Int decorationCenter;
 		private bool decorationCenterValid;
+		private int decorationRunSeedVersion = -1;
+		private int decorationRunSeed;
+		private Vector2 decorationClusterOffset;
 
 		public int DecorationVisibleChunks { get; private set; }
 		public int DecorationDrawCalls { get; private set; }
@@ -109,6 +113,18 @@ namespace WitchMendokusai
 				decorationChunks = new DecorationChunk[diameter * diameter];
 				decorationChunkVisible = new bool[decorationChunks.Length];
 				decorationCenterValid = false;
+			}
+			// 판이 바뀌면 판 시드로 장식 전체를 다시 배치
+			if (decorationRunSeedVersion != RunSeed.Version)
+			{
+				decorationRunSeedVersion = RunSeed.Version;
+				decorationRunSeed = RunSeed.Derive(decorationSeed);
+				System.Random offsetRandom = new(decorationRunSeed);
+				decorationClusterOffset = new Vector2((float)offsetRandom.NextDouble(), (float)offsetRandom.NextDouble()) * decorationClusterOffsetRange;
+				decorationCenterValid = false;
+				foreach (DecorationChunk chunk in decorationChunks)
+					if (chunk != null)
+						chunk.Ready = false;
 			}
 			Vector3 position = playerProvider.CurrentObject.UnitMovement.Position;
 			Vector2Int center = new(Mathf.FloorToInt(position.x / decorationChunkSize), Mathf.FloorToInt(position.z / decorationChunkSize));
@@ -173,7 +189,7 @@ namespace WitchMendokusai
 			{
 				DecorationTemplate template = batch.Template;
 				// 좌표 기반 난수. 청크 왕복과 생성 순서에 무관하고 전투 난수 상태 보존
-				System.Random random = new(unchecked(decorationSeed ^ template.SourceSeed ^ key.x * 73856093 ^ key.y * 19349663));
+				System.Random random = new(unchecked(decorationRunSeed ^ template.SourceSeed ^ key.x * 73856093 ^ key.y * 19349663));
 				batch.Count = 0;
 				Bounds bounds = new();
 				for (int index = 0; index < template.Source.CandidatesPerChunk; index++)
@@ -183,7 +199,7 @@ namespace WitchMendokusai
 					float scale = Mathf.Lerp(template.Source.ScaleRange.x, template.Source.ScaleRange.y, (float)random.NextDouble());
 					if (new Vector2(position.x, position.z).sqrMagnitude < decorationSpawnClearRadius * decorationSpawnClearRadius)
 						continue;
-					if (Mathf.PerlinNoise(position.x / decorationClusterSize, position.z / decorationClusterSize) < decorationClusterThreshold)
+					if (Mathf.PerlinNoise(position.x / decorationClusterSize + decorationClusterOffset.x, position.z / decorationClusterSize + decorationClusterOffset.y) < decorationClusterThreshold)
 						continue;
 					Matrix4x4 matrix = Matrix4x4.TRS(position, Quaternion.Euler(0, rotation, 0), Vector3.one * scale) * template.Local;
 					Bounds meshBounds = TransformDecorationBounds(template.Mesh.bounds, matrix);
