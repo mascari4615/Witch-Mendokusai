@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 200
   <Name>k__BackingField: "\uC815\uB839 \uC218 \uC99D\uAC00"
-  <Description>k__BackingField: "\uC815\uB839 \uC218 +"
+  <Description>k__BackingField: "\uc815\ub839 \uc218 +{0}"
   <Sprite>k__BackingField: {fileID: 21300000, guid: a5bf45689a41f1449a847ff1cd602716, type: 3}
   <Sprites>k__BackingField: []
   <Effects>k__BackingField:

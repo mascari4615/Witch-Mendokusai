@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
   <ID>k__BackingField: 830
   <Name>k__BackingField: "\uB5A8\uC5B4\uC9C4 \uD398\uC774\uC9C0 \uD398\uC774\uC9C0 \uC218 \uC99D\uAC00"
-  <Description>k__BackingField: "\uB5A8\uC5B4\uC9C4 \uD398\uC774\uC9C0 \uD398\uC774\uC9C0 \uC218 \uC99D\uAC00 +"
+  <Description>k__BackingField: "\ub5a8\uc5b4\uc9c4 \ud398\uc774\uc9c0 \ud398\uc774\uc9c0 \uc218 \uc99d\uac00 +{0}"
   <Sprite>k__BackingField: {fileID: 21300000, guid: 3830fbbe727ae064abf15d545bd0501f, type: 3}
   <Sprites>k__BackingField: []
   <Effects>k__BackingField:

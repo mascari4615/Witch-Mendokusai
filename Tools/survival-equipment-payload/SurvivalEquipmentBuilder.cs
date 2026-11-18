@@ -105,7 +105,7 @@ namespace WitchMendokusai
 				string statName = absolute ? cardSpec.StatSuffix.Substring(1) : spec.Prefix + "_" + cardSpec.StatSuffix;
 				UnitStatData stat = EnsureStat(statName, icon);
 				string fileSuffix = absolute ? cardSpec.StatSuffix.Substring(1) : cardSpec.StatSuffix;
-				CardData card = EnsureCard(spec.CardBase + cardIndex, spec.Key + fileSuffix, spec.Name + " " + cardSpec.Label, spec.Name + " " + cardSpec.Label + " +", icon,
+				CardData card = EnsureCard(spec.CardBase + cardIndex, spec.Key + fileSuffix, spec.Name + " " + cardSpec.Label, spec.Name + " " + cardSpec.Label + " +{0}", icon,
 					new[] { new EffectSpec(stat, cardSpec.Value) }, cardSpec.MaxStack, 0, cardSpec.UIKind, null, null);
 				cards.Add(card);
 				cardsByKey[statName] = card;
