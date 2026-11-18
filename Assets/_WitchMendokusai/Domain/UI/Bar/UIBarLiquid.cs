@@ -49,6 +49,11 @@ namespace WitchMendokusai
 		private float sloshVelocity;
 		private float writtenSlosh;
 
+		// OnEnable 에서 바꾼 Image 값. OnDisable 에서 복원. 재질 null 은 기본 재질
+		private bool isApplied;
+		private Material originalMaterial;
+		private Image.Type originalType;
+
 		private Image Bar
 		{
 			get
@@ -65,6 +70,14 @@ namespace WitchMendokusai
 			if (Application.isPlaying == false)
 				return;
 
+			if (isApplied == false)
+			{
+				isApplied = true;
+				originalType = Bar.type;
+				Material currentMaterial = Bar.material;
+				bool isDefault = currentMaterial == Bar.defaultMaterial || currentMaterial == Image.defaultETC1GraphicMaterial;
+				originalMaterial = isDefault ? null : currentMaterial;
+			}
 			Bar.type = Image.Type.Simple;
 			Bar.material = liquidMaterial;
 			EnableCanvasChannels();
@@ -73,6 +86,17 @@ namespace WitchMendokusai
 			slosh = 0f;
 			sloshVelocity = 0f;
 			graphic.SetVerticesDirty();
+		}
+
+		protected override void OnDisable()
+		{
+			if (isApplied)
+			{
+				isApplied = false;
+				Bar.type = originalType;
+				Bar.material = originalMaterial;
+			}
+			base.OnDisable();
 		}
 
 		// 꼭짓점의 TEXCOORD1, 2 는 캔버스가 켜 줘야 셰이더까지 감. 중첩 캔버스면 맨 위 캔버스도
@@ -116,6 +140,8 @@ namespace WitchMendokusai
 
 		public override void ModifyMesh(VertexHelper vertexHelper)
 		{
+			// 조기 return 경로에서도 맞춤. 안 맞으면 LateUpdate 가 매 프레임 더티 표시
+			writtenSlosh = slosh;
 			if (IsActive() == false)
 				return;
 
@@ -137,7 +163,6 @@ namespace WitchMendokusai
 				vertex.uv2 = waveData;
 				vertexHelper.SetUIVertex(vertex, i);
 			}
-			writtenSlosh = slosh;
 		}
 	}
 }

@@ -8,17 +8,42 @@ namespace WitchMendokusai
 	public class ComponentLookup<T> where T : Component
 	{
 		private readonly Dictionary<GameObject, T> cache = new();
+		private readonly List<GameObject> destroyedKeys = new();
+		// 마지막 정리 뒤 항목 수. 두 배로 늘면 파괴된 키 정리 (새 항목 추가 비용에 나눠 냄)
+		private int countAfterPrune;
 
 		public bool TryGet(GameObject target, out T component)
 		{
 			if (cache.TryGetValue(target, out component) == false)
 			{
+				if (cache.Count >= countAfterPrune * 2)
+					PruneDestroyed();
 				target.TryGetComponent(out component);
 				cache[target] = component;
 			}
 			return component != null;
 		}
 
-		public void Clear() => cache.Clear();
+		// 파괴된 GameObject 키 제거
+		public void PruneDestroyed()
+		{
+			destroyedKeys.Clear();
+			foreach (GameObject key in cache.Keys)
+			{
+				if (key == null)
+					destroyedKeys.Add(key);
+			}
+			for (int i = 0; i < destroyedKeys.Count; i++)
+				cache.Remove(destroyedKeys[i]);
+			destroyedKeys.Clear();
+			countAfterPrune = cache.Count;
+		}
+
+		public void Clear()
+		{
+			cache.Clear();
+			destroyedKeys.Clear();
+			countAfterPrune = 0;
+		}
 	}
 }

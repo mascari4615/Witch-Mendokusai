@@ -78,6 +78,7 @@ namespace WitchMendokusai
 			EventBusBridge.Unsubscribe<BossSpawnedEvent>(OnBossSpawned);
 			if (root != null)
 				root.RemoveFromHierarchy();
+			itemLookup.Clear();
 		}
 
 		private void OnBossSpawned(BossSpawnedEvent spawned) => FindBosses();

@@ -79,6 +79,15 @@ namespace WitchMendokusai
 				Destroy(dust.gameObject);
 		}
 
+#if UNITY_EDITOR
+		// 에디터에서 인스펙터 값을 Play 중 바꾸면 다음 먼지부터 반영
+		private void OnValidate()
+		{
+			if (dust != null)
+				ConfigureDust(dust);
+		}
+#endif
+
 		private void Update()
 		{
 			float interval = CurrentInterval(out float strength);
@@ -128,7 +137,6 @@ namespace WitchMendokusai
 		private void Emit(float strength)
 		{
 			ParticleSystem system = EnsureDust();
-			ConfigureDust(system);
 
 			int count = UnityEngine.Random.Range(countRange.x, countRange.y + 1);
 			if (system.particleCount + count > maxParticles)
@@ -157,7 +165,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 인스펙터 값이 Play 중 바뀌어도 다음 먼지부터 반영. 모듈 값 대입은 가벼움
+		// 인스펙터 값으로 정하는 모듈 값. 생성 때 한 번, 에디터에서는 OnValidate 때 다시
 		private void ConfigureDust(ParticleSystem system)
 		{
 			ParticleSystem.MainModule main = system.main;
@@ -171,6 +179,9 @@ namespace WitchMendokusai
 
 			ParticleSystem.ColorOverLifetimeModule colorOverLifetime = system.colorOverLifetime;
 			colorOverLifetime.color = new ParticleSystem.MinMaxGradient(fadeOverLifetime);
+
+			ParticleSystemRenderer dustRenderer = system.GetComponent<ParticleSystemRenderer>();
+			dustRenderer.sharedMaterial = dustMaterial;
 		}
 
 		private ParticleSystem EnsureDust()
@@ -210,11 +221,11 @@ namespace WitchMendokusai
 
 			ParticleSystemRenderer dustRenderer = dustObject.GetComponent<ParticleSystemRenderer>();
 			dustRenderer.renderMode = ParticleSystemRenderMode.Billboard;
-			dustRenderer.sharedMaterial = dustMaterial;
 			dustRenderer.shadowCastingMode = ShadowCastingMode.Off;
 			dustRenderer.receiveShadows = false;
 			dustRenderer.sortMode = ParticleSystemSortMode.Distance;
 
+			ConfigureDust(system);
 			system.Play();
 			dust = system;
 			return dust;

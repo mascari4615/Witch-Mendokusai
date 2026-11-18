@@ -25,6 +25,7 @@ namespace WitchMendokusai
 		public StyleSheet Style { private get; set; }
 
 		private VisualElement row;
+		private BlurPanel blurPanel;
 		private Label keyLabel;
 		private Label nameLabel;
 		private Label roleLabel;
@@ -32,6 +33,14 @@ namespace WitchMendokusai
 		private InteractiveObject current;
 		private InteractiveObject shownTarget;
 		private bool shownTouchMode;
+		private bool isShown;
+
+		// 꺼진 동안 줄과 흐림 요청도 숨김
+		private void OnDisable()
+		{
+			if (row != null)
+				Hide();
+		}
 
 		private void OnDestroy()
 		{
@@ -54,8 +63,9 @@ namespace WitchMendokusai
 
 			row = new VisualElement { name = "InteractPrompt", pickingMode = PickingMode.Ignore };
 			row.AddToClassList(USS_ROOT);
-			// 뒤 화면 흐림과 오른쪽 꼬리 (레퍼런스 선택지 줄 결)
-			BlurPanel.AttachBehind(row);
+			// 뒤 화면 흐림과 오른쪽 꼬리 (레퍼런스 선택지 줄 결). 줄은 투명도로만 숨어 붙은 채라 보일 때만 흐림 요청
+			blurPanel = BlurPanel.AttachBehind(row);
+			blurPanel.SetActive(false);
 			VisualElement tail = new VisualElement { pickingMode = PickingMode.Ignore };
 			tail.AddToClassList(USS_ROOT + "__tail");
 			row.Add(tail);
@@ -74,6 +84,7 @@ namespace WitchMendokusai
 			row.RegisterCallback<ClickEvent>(_ => OnRowClicked());
 			layer.Add(row);
 			shownTarget = null;
+			isShown = false;
 			return true;
 		}
 
@@ -127,6 +138,11 @@ namespace WitchMendokusai
 			row.style.left = Mathf.Clamp(left, 0f, Mathf.Max(0f, bounds.width - width));
 			row.style.top = Mathf.Clamp(local.y - height / 2f, 0f, Mathf.Max(0f, bounds.height - height));
 			row.AddToClassList(USS_VISIBLE);
+			if (isShown == false)
+			{
+				isShown = true;
+				blurPanel.SetActive(true);
+			}
 		}
 
 		private void Hide()
@@ -134,6 +150,11 @@ namespace WitchMendokusai
 			row.RemoveFromClassList(USS_VISIBLE);
 			row.pickingMode = PickingMode.Ignore;
 			shownTarget = null;
+			if (isShown)
+			{
+				isShown = false;
+				blurPanel.SetActive(false);
+			}
 		}
 
 		// 대상이나 입력 방식이 바뀔 때만 글자 갱신

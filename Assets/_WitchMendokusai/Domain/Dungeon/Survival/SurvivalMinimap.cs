@@ -60,18 +60,25 @@ namespace WitchMendokusai
 		{
 			if (root != null)
 				root.RemoveFromHierarchy();
+			monsterLookup.Clear();
+			itemLookup.Clear();
 		}
 
-		// UIRoot 는 이 컴포넌트보다 늦게 생길 수 있어 쓸 때 지음
+		// UIRoot 는 이 컴포넌트보다 늦게 생길 수 있어 쓸 때 지음. UIRoot 재활성화로 HUD 층이 새로 생기면 새 층에 다시 지음
 		private bool EnsureBuilt(SurvivalFeelConfig config)
 		{
-			if (root != null)
-				return true;
 			if (UIRoot.Instance == null || UIRoot.Instance.HudLayer == null)
 				return false;
+			if (root != null && root.parent == UIRoot.Instance.HudLayer)
+				return true;
 			if (config.MinimapStyleSheet == null)
+			{
+				// 같은 예외 매 프레임 반복 방지. 한 번 던지고 컴포넌트 끔
+				enabled = false;
 				throw new InvalidOperationException($"{config.name}: MinimapStyleSheet 가 비어 있음. SurvivalMinimap.uss 를 연결해야 함");
+			}
 
+			root?.RemoveFromHierarchy();
 			root = Make(USS_ROOT);
 			root.styleSheets.Add(config.MinimapStyleSheet);
 			VisualElement frame = Make(USS_FRAME);

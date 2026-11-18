@@ -21,6 +21,9 @@ namespace WitchMendokusai
 		private float strength = 1f;
 		private Color plain = Color.clear;
 
+		// 붙어 있고 켜진 동안만 흐림 요청과 매 프레임 재그리기. 기본 켜짐
+		private bool isActive = true;
+		private bool isAttached;
 		private bool isRequesting;
 		private IVisualElementScheduledItem repaintItem;
 
@@ -44,6 +47,15 @@ namespace WitchMendokusai
 			return blurPanel;
 		}
 
+		/// <summary>흐림 요청 켜기와 끄기. 투명도로만 숨기는 판은 숨길 때 끌 것. 켤 때마다 UI 연출 설정 다시 읽음</summary>
+		public void SetActive(bool active)
+		{
+			if (isActive == active)
+				return;
+			isActive = active;
+			RefreshRequest();
+		}
+
 		private void OnStyleResolved(CustomStyleResolvedEvent evt)
 		{
 			ICustomStyle style = evt.customStyle;
@@ -56,30 +68,46 @@ namespace WitchMendokusai
 			MarkDirtyRepaint();
 		}
 
-		// 붙어 있는 동안만 흐림 요청. Add 와 Remove 는 isRequesting 으로 짝
 		private void OnAttach(AttachToPanelEvent evt)
 		{
-			if (isRequesting == false && UIEffects.Enabled)
-			{
-				isRequesting = true;
-				BlurRequest.Add();
-			}
-
-			// 흐린 화면은 매 프레임 바뀌고 조상 이동도 GeometryChanged 로 안 옴. 매 프레임 다시 그림
-			if (repaintItem == null)
-				repaintItem = schedule.Execute(MarkDirtyRepaint).Every(0);
-			else
-				repaintItem.Resume();
+			isAttached = true;
+			RefreshRequest();
 		}
 
 		private void OnDetach(DetachFromPanelEvent evt)
 		{
-			if (isRequesting)
+			isAttached = false;
+			RefreshRequest();
+		}
+
+		// Add 와 Remove 는 isRequesting 으로 짝. UI 연출 설정은 요청 켜는 순간마다 읽음
+		private void RefreshRequest()
+		{
+			bool shouldRequest = isAttached && isActive && UIEffects.Enabled;
+			if (shouldRequest && isRequesting == false)
+			{
+				isRequesting = true;
+				BlurRequest.Add();
+			}
+			else if (shouldRequest == false && isRequesting)
 			{
 				isRequesting = false;
 				BlurRequest.Remove();
 			}
-			repaintItem?.Pause();
+
+			// 흐린 화면은 매 프레임 바뀌고 조상 이동도 GeometryChanged 로 안 옴. 요청 중에만 매 프레임 다시 그림
+			if (isRequesting)
+			{
+				if (repaintItem == null)
+					repaintItem = schedule.Execute(MarkDirtyRepaint).Every(0);
+				else
+					repaintItem.Resume();
+			}
+			else
+			{
+				repaintItem?.Pause();
+			}
+			MarkDirtyRepaint();
 		}
 
 		private void Draw(MeshGenerationContext context)
