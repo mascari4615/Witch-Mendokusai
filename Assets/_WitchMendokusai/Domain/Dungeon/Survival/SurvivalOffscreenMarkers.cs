@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
-	// 화면 밖 정예와 보스의 방향 표시. 화면 가장자리 안쪽에 화살촉과 그 뒤 점
-	// 표식은 처음 한 번 짓고 재사용. 대상은 SurvivalFeel 의 정예 목록과 보스 등장 사건으로 모은 보스 목록
+	// 화면 밖 정예, 보스, 특수 아이템의 방향 표시. 화면 가장자리 안쪽에 화살촉과 그 뒤 점 (아이템은 마름모)
+	// 표식은 처음 한 번 짓고 재사용. 대상은 SurvivalFeel 의 정예 목록, 보스 등장 사건으로 모은 보스 목록, 바닥 전리품 버퍼의 GameItemObject
 	// 모양과 색, 등장 튐은 SurvivalOffscreenMarkers.uss. 거리, 상한, 여백, 튐 대기는 SurvivalFeelConfig 의 화면 밖 표시 묶음
 	public class SurvivalOffscreenMarkers : MonoBehaviour
 	{
@@ -14,6 +14,7 @@ namespace WitchMendokusai
 		private const string USS_MARKER = "wm-offscreen__marker";
 		private const string USS_MARKER_ELITE = "wm-offscreen__marker--elite";
 		private const string USS_MARKER_BOSS = "wm-offscreen__marker--boss";
+		private const string USS_MARKER_ITEM = "wm-offscreen__marker--item";
 		private const string USS_POP = "wm-offscreen__pop";
 		private const string USS_POP_SHOWN = "wm-offscreen__pop--shown";
 		private const string USS_POP_INSTANT = "wm-offscreen__pop--instant";
@@ -22,19 +23,27 @@ namespace WitchMendokusai
 		private const string USS_ARROW_SHADE = "wm-offscreen__arrow-shade";
 		private const string USS_ARROW = "wm-offscreen__arrow";
 
+		// 정렬 순서 겸용. 앞일수록 먼저 표식을 받음
+		private enum MarkerKind
+		{
+			Boss,
+			Elite,
+			Item,
+		}
+
 		private class Marker
 		{
 			public VisualElement Element;
 			public VisualElement Pop;
 			public VisualElement Pivot;
-			public MonsterObject Target;
+			public Component Target;
 			public int AssignedFrame;
 		}
 
 		private struct Candidate
 		{
-			public MonsterObject Monster;
-			public bool IsBoss;
+			public Component Target;
+			public MarkerKind Kind;
 			public float Distance;
 			public Vector2 Position;
 			public float Angle;
@@ -50,6 +59,7 @@ namespace WitchMendokusai
 		private bool[] candidateMatched = Array.Empty<bool>();
 		private readonly List<MonsterObject> bosses = new();
 		private readonly List<Candidate> candidates = new();
+		private readonly ComponentLookup<GameItemObject> itemLookup = new();
 		private readonly Comparison<Candidate> candidateOrder = CompareCandidates;
 
 		private SurvivalFeelConfig Config => resourceManager.SurvivalFeel;
@@ -142,7 +152,8 @@ namespace WitchMendokusai
 			candidates.Clear();
 			Camera camera = Camera.main;
 			PlayerObject player = playerProvider.CurrentObject;
-			bool inRun = DungeonManager.Instance != null && DungeonManager.Instance.IsDungeon;
+			// 시간이 멈춘 동안 (카드 고르기, 상자, 일시정지) 숨김
+			bool inRun = DungeonManager.Instance != null && DungeonManager.Instance.IsDungeon && Time.timeScale > 0f;
 			float width = root.layout.width;
 			float height = root.layout.height;
 			bool hasLayout = float.IsNaN(width) == false && float.IsNaN(height) == false && width > 0f && height > 0f;
@@ -151,6 +162,8 @@ namespace WitchMendokusai
 				Vector3 playerPosition = player.transform.position;
 				CollectBosses(config, camera, playerPosition, width, height);
 				CollectElites(config, camera, playerPosition, width, height);
+				if (config.OffscreenShowItems)
+					CollectItems(config, camera, playerPosition, width, height);
 				candidates.Sort(candidateOrder);
 			}
 			Assign(config);
@@ -166,7 +179,7 @@ namespace WitchMendokusai
 					bosses.RemoveAt(i);
 					continue;
 				}
-				TryAddCandidate(config, camera, boss, true, playerPosition, width, height);
+				TryAddCandidate(config, camera, boss, MarkerKind.Boss, playerPosition, width, height);
 			}
 		}
 
@@ -178,19 +191,32 @@ namespace WitchMendokusai
 				MonsterObject elite = elites[i];
 				if (elite == null || elite.isActiveAndEnabled == false || elite.IsAlive == false || elite.UnitData.Type == MonsterType.Boss)
 					continue;
-				TryAddCandidate(config, camera, elite, false, playerPosition, width, height);
+				TryAddCandidate(config, camera, elite, MarkerKind.Elite, playerPosition, width, height);
 			}
 		}
 
-		private void TryAddCandidate(SurvivalFeelConfig config, Camera camera, MonsterObject monster, bool isBoss, Vector3 playerPosition, float width, float height)
+		// 바닥 전리품 버퍼에서 GameItemObject (상자, 적 정지, 화면 청소, 회복, 자석) 만. 경험치 구슬과 재료는 제외
+		private void CollectItems(SurvivalFeelConfig config, Camera camera, Vector3 playerPosition, float width, float height)
 		{
-			Vector3 worldPosition = monster.transform.position;
+			List<GameObject> drops = ObjectBufferManager.GetObjects(ObjectType.Drop);
+			for (int i = 0; i < drops.Count; i++)
+			{
+				GameObject drop = drops[i];
+				if (drop == null || drop.activeInHierarchy == false || itemLookup.TryGet(drop, out GameItemObject item) == false)
+					continue;
+				TryAddCandidate(config, camera, item, MarkerKind.Item, playerPosition, width, height);
+			}
+		}
+
+		private void TryAddCandidate(SurvivalFeelConfig config, Camera camera, Component target, MarkerKind kind, Vector3 playerPosition, float width, float height)
+		{
+			Vector3 worldPosition = target.transform.position;
 			if (ProjectToEdge(config, camera, worldPosition, width, height, out Vector2 position, out float angle) == false)
 				return;
 			candidates.Add(new Candidate
 			{
-				Monster = monster,
-				IsBoss = isBoss,
+				Target = target,
+				Kind = kind,
 				Distance = Vector3.Distance(playerPosition, worldPosition),
 				Position = position,
 				Angle = angle
@@ -231,11 +257,11 @@ namespace WitchMendokusai
 			return true;
 		}
 
-		// 보스 먼저, 그다음 가까운 순
+		// 보스, 정예, 아이템 순. 같은 종류 안에서는 가까운 순
 		private static int CompareCandidates(Candidate left, Candidate right)
 		{
-			if (left.IsBoss != right.IsBoss)
-				return left.IsBoss ? -1 : 1;
+			if (left.Kind != right.Kind)
+				return ((int)left.Kind).CompareTo((int)right.Kind);
 			return left.Distance.CompareTo(right.Distance);
 		}
 
@@ -253,7 +279,7 @@ namespace WitchMendokusai
 			{
 				for (int markerIndex = 0; markerIndex < markers.Length; markerIndex++)
 				{
-					if (markerUsed[markerIndex] || markers[markerIndex].Target != candidates[candidateIndex].Monster)
+					if (markerUsed[markerIndex] || markers[markerIndex].Target != candidates[candidateIndex].Target)
 						continue;
 					Apply(config, markers[markerIndex], candidates[candidateIndex], false);
 					markerUsed[markerIndex] = true;
@@ -293,12 +319,13 @@ namespace WitchMendokusai
 			// 새 배정: 전환 없이 작게 복귀 (튐 역전 방지). 다음 프레임 전환 켬, 대기 프레임 뒤 튐
 			if (fresh)
 			{
-				marker.Target = candidate.Monster;
+				marker.Target = candidate.Target;
 				marker.AssignedFrame = Time.frameCount;
 				marker.Pop.AddToClassList(USS_POP_INSTANT);
 				marker.Pop.RemoveFromClassList(USS_POP_SHOWN);
-				marker.Element.EnableInClassList(USS_MARKER_BOSS, candidate.IsBoss);
-				marker.Element.EnableInClassList(USS_MARKER_ELITE, candidate.IsBoss == false);
+				marker.Element.EnableInClassList(USS_MARKER_BOSS, candidate.Kind == MarkerKind.Boss);
+				marker.Element.EnableInClassList(USS_MARKER_ELITE, candidate.Kind == MarkerKind.Elite);
+				marker.Element.EnableInClassList(USS_MARKER_ITEM, candidate.Kind == MarkerKind.Item);
 				marker.Element.style.visibility = Visibility.Visible;
 			}
 			else
@@ -312,12 +339,19 @@ namespace WitchMendokusai
 
 			// 1 가까움, 0 멂
 			float nearness = Mathf.InverseLerp(config.OffscreenFarDistance, config.OffscreenNearDistance, candidate.Distance);
-			float scale = Mathf.Lerp(config.OffscreenFarScale, config.OffscreenNearScale, nearness) * (candidate.IsBoss ? config.OffscreenBossScale : 1f);
+			float scale = Mathf.Lerp(config.OffscreenFarScale, config.OffscreenNearScale, nearness) * KindScale(config, candidate.Kind);
 			marker.Element.style.left = candidate.Position.x;
 			marker.Element.style.top = candidate.Position.y;
 			marker.Element.style.scale = new Scale(new Vector2(scale, scale));
 			marker.Element.style.opacity = Mathf.Lerp(config.OffscreenFarOpacity, config.OffscreenNearOpacity, nearness);
 			marker.Pivot.style.rotate = new UnityEngine.UIElements.Rotate(new Angle(candidate.Angle, AngleUnit.Degree));
 		}
+
+		private static float KindScale(SurvivalFeelConfig config, MarkerKind kind) => kind switch
+		{
+			MarkerKind.Boss => config.OffscreenBossScale,
+			MarkerKind.Item => config.OffscreenItemScale,
+			_ => 1f,
+		};
 	}
 }

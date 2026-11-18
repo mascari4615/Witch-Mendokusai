@@ -2772,6 +2772,7 @@ GameObject:
   - component: {fileID: 5333132968538808908}
   - component: {fileID: 5540257295257320610}
   - component: {fileID: 3715744382244872853}
+  - component: {fileID: 7418265093315527741}
   m_Layer: 5
   m_Name: '[Image] Bar'
   m_TagString: Untagged
@@ -5784,6 +5785,30 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7ecf7eabe4d4fe64db0095f2c21383e7, type: 3}
+--- !u!114 &7418265093315527741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 241564191678653769}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e70f1c71e2024b7b81f03a26bcc8a0e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  liquidMaterial: {fileID: 2100000, guid: fa4a7bcbac504236b48093dc1badc21f, type: 2}
+  idleWaveHeight: 1
+  sloshWaveGain: 0.3
+  waveSpeed: 0.5
+  edgeWaveCount: 1.2
+  surfaceWaveCount: 5
+  sloshImpulse: 400
+  sloshStiffness: 120
+  sloshDamping: 5
+  sloshMax: 10
+  sloshRestThreshold: 0.02
+  maxStepSeconds: 0.05
 --- !u!114 &3715744382244872853
 MonoBehaviour:
   m_ObjectHideFlags: 0

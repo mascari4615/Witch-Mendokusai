@@ -1,4 +1,5 @@
 @import url("../../Presentation/FloatingText.uss");
+@import url("Blur/BlurPanel.uss");
 @import url("../Dungeon/DungeonEntrance/DungeonEntrance.uss");
 @import url("../Dungeon/Survival/RunEquipmentHud.uss");
 

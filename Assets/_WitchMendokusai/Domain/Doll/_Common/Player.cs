@@ -11,12 +11,23 @@ namespace WitchMendokusai
 		[SerializeField] private float aimMaxDistance = 100f;
 		[SerializeField, Tooltip("EXP_COLLIDER_SCALE 1당 획득 범위 증가 배율")] private float expColliderScalePerStack = 0.5f;
 
+		[Header("Double Tap Sprint")]
+		[SerializeField, Min(0f), Tooltip("이동 키 두 번 누름으로 달리기. 첫 누름과 두 번째 누름 사이 최대 시간 (초)")]
+		private float doubleTapWindowSeconds = 0.3f;
+		[SerializeField, Range(-1f, 1f), Tooltip("두 번 누른 방향이 같다고 볼 기준. 1 이면 완전히 같은 방향만")]
+		private float doubleTapSameDirectionMinDot = 0.7f;
+		[SerializeField, Range(0.01f, 1f), Tooltip("이동 입력이 이 세기 이상이면 누른 것으로 봄")]
+		private float doubleTapPressThreshold = 0.5f;
+
 		public PlayerObject Object { get; private set; }
 		public PlayerRotation Rotation { get; private set; }
 		[field: SerializeField] public GameObject ExpCollider { get; private set; }
 
 		private PlayerInteraction interaction;
 		private PlayerAim aim;
+		// 달리기 키 누름 여부. 실제 달리기는 ApplySprint 가 던전 여부와 합쳐 정함
+		private bool isSprintRequested;
+		private readonly MoveDoubleTapSprint doubleTapSprint = new();
 
 		public Vector3 AimDirection { get; private set; }
 		public Vector3 AimPos { get; private set; }
@@ -102,11 +113,17 @@ namespace WitchMendokusai
 		private void OnApplicationFocus(bool hasFocus)
 		{
 			if (hasFocus == false && Object != null)
+			{
+				isSprintRequested = false;
+				doubleTapSprint.Cancel();
 				Object.UnitMovement.CancelMovementInput();
+			}
 		}
 
 		private void OnDisable()
 		{
+			isSprintRequested = false;
+			doubleTapSprint.Cancel();
 			if (Object != null)
 				Object.UnitMovement.CancelMovementInput();
 		}
@@ -129,6 +146,10 @@ namespace WitchMendokusai
 			NearestTarget = nearestTarget != null ? nearestTarget.transform : null;
 
 			CalcMoveDirection();
+			// 손가락 조작은 뛰기 버튼이 따로 있고, 스틱을 놓았다 다시 미는 일이 잦아서 두 번 누름 판정 끔
+			doubleTapSprint.Tick(inputManager.MoveInput, Time.unscaledTime, inputManager.IsTouchMode == false,
+				doubleTapWindowSeconds, doubleTapSameDirectionMinDot, doubleTapPressThreshold);
+			ApplySprint();
 		}
 
 		public void UpdatePickupRange()
@@ -179,7 +200,20 @@ namespace WitchMendokusai
 
 		public void SetSprinting(bool isSprinting)
 		{
-			UnitStat[UnitStatType.IS_SPRINTING] = isSprinting ? 1 : 0;
+			isSprintRequested = isSprinting;
+			ApplySprint();
+		}
+
+		/// <summary>
+		/// 달리기 키 또는 이동 두 번 누름이면 달림. 생존 던전 안에서는 둘 다 금지 (사용자 2026-11-18 "던전에서는 못달리게").
+		/// 매 프레임 다시 맞춤. 마을에서 누른 채 던전에 들어가면 멈추고, 누른 채 나오면 다시 달림
+		/// </summary>
+		private void ApplySprint()
+		{
+			bool isRequested = isSprintRequested || doubleTapSprint.IsSprinting;
+			int wanted = isRequested && DungeonManagerBridge.IsDungeon == false ? 1 : 0;
+			if (UnitStat[UnitStatType.IS_SPRINTING] != wanted)
+				UnitStat[UnitStatType.IS_SPRINTING] = wanted;
 		}
 
 		public void SetCrouching(bool isCrouching)

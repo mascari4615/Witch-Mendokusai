@@ -1,14 +1,14 @@
-/* 상호작용 표시 한 줄. 패널 높이 800 기준, 서브컬처 선택지 줄 실측 (1080 값의 0.74배). 2026-11-17 */
+/* 상호작용 표시 한 줄. 패널 높이 800 기준, 서브컬처 선택지 줄 실측 (1080 값의 0.74배). 2026-11-17
+   2026-11-18 사용자 "톤 안맞음": 게임 글꼴 갈무리, 각진 판, 뒤 흐림 (BlurPanel), 오른쪽 꼬리 */
 .wm-interact-prompt {
     position: absolute;
     flex-direction: row;
     align-items: center;
     height: 44px;
     padding: 0 22px 0 8px;
-    background-color: rgba(10, 12, 30, 0.72);
-    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0);
     opacity: 0;
-    -unity-font-definition: url("../Dungeon/DungeonEntrance/Fonts/NotoSansKR-Regular.ttf");
+    -unity-font-definition: url("../../Fonts/갈무리/Galmuri11-Bold.ttf");
     transition-property: opacity, translate;
     transition-duration: 0.15s;
     translate: -8px 0;
@@ -27,7 +27,6 @@
     font-size: 15px;
     color: rgb(16, 18, 40);
     background-color: rgb(244, 244, 248);
-    border-radius: 4px;
     -unity-text-align: middle-center;
     -unity-font-style: bold;
 }
@@ -53,4 +52,21 @@
     font-size: 14px;
     color: rgb(205, 209, 238);
     -unity-text-align: middle-left;
+}
+
+/* 판 뒤 흐림 덮개 색. 판 자체 배경은 투명 */
+.wm-interact-prompt .wm-blur {
+    --wm-blur-tint: rgba(10, 12, 30, 0.66);
+}
+
+/* 오른쪽으로 사라지는 꼬리 */
+.wm-interact-prompt__tail {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    bottom: 0;
+    width: 72px;
+    background-image: url("../Dungeon/Fx/Banner/Art/banner-fade.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: rgba(10, 12, 30, 0.66);
 }

@@ -54,6 +54,11 @@ namespace WitchMendokusai
 
 			row = new VisualElement { name = "InteractPrompt", pickingMode = PickingMode.Ignore };
 			row.AddToClassList(USS_ROOT);
+			// 뒤 화면 흐림과 오른쪽 꼬리 (레퍼런스 선택지 줄 결)
+			BlurPanel.AttachBehind(row);
+			VisualElement tail = new VisualElement { pickingMode = PickingMode.Ignore };
+			tail.AddToClassList(USS_ROOT + "__tail");
+			row.Add(tail);
 			keyLabel = new Label(KEY_LABEL) { pickingMode = PickingMode.Ignore };
 			keyLabel.AddToClassList(USS_ROOT + "__key");
 			row.Add(keyLabel);

@@ -29,6 +29,8 @@ namespace WitchMendokusai
 		public const string USS_KEY = "wm-keybind-help__key";
 
 		private WMWindow window;
+		// 던전 안에서는 달리기가 막혀 있어서 이 줄을 숨김. 창을 열 때마다 다시 맞춤
+		private VisualElement sprintRow;
 		private UIRoot uiRoot;
 		private InputManager inputManager;
 
@@ -90,6 +92,7 @@ namespace WitchMendokusai
 			StageManager.OnStageChanged -= OnFirstStage;
 			PlayerPrefs.SetInt(SHOWN_PREF_KEY, 1);
 			PlayerPrefs.Save();
+			RefreshSprintRow();
 			window.Open();
 		}
 
@@ -136,7 +139,12 @@ namespace WitchMendokusai
 					categoryBox.Add(CreateRow(MOVE_DISPLAY_NAME, MOVE_KEYS));
 
 				foreach (KeybindEntry entry in visibleEntries)
-					categoryBox.Add(CreateRow(entry.DisplayName, FormatPath(entry.CurrentPath)));
+				{
+					VisualElement row = CreateRow(entry.DisplayName, FormatPath(entry.CurrentPath));
+					if (entry.EventType == InputEventType.Sprint)
+						sprintRow = row;
+					categoryBox.Add(row);
+				}
 
 				scrollView.Add(categoryBox);
 			}
@@ -199,6 +207,21 @@ namespace WitchMendokusai
 			};
 		}
 
-		private void OnToggle() => window?.Toggle();
+		private void OnToggle()
+		{
+			if (window == null)
+				return;
+
+			RefreshSprintRow();
+			window.Toggle();
+		}
+
+		private void RefreshSprintRow()
+		{
+			if (sprintRow == null)
+				return;
+
+			sprintRow.style.display = DungeonManagerBridge.IsDungeon ? DisplayStyle.None : DisplayStyle.Flex;
+		}
 	}
 }

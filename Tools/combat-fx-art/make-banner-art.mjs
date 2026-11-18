@@ -137,3 +137,9 @@ writeWhiteAlphaPng("banner-stripe.png", 1024, 16, (x, y) =>
 	const horizontal = 1 - smoothstep(0.55, 1.0, distanceFromCenter(x, 1024));
 	return stripe * horizontal;
 });
+
+// 한쪽 꼬리: 왼쪽 짙고 오른쪽으로 사라짐. 상호작용 표시 줄의 꼬리
+writeWhiteAlphaPng("banner-fade.png", 256, 8, (x) =>
+{
+	return 1 - smoothstep(0.0, 1.0, (x + 0.5) / 256);
+});

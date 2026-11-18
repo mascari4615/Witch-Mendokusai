@@ -153,7 +153,8 @@ namespace WitchMendokusai
 			//   폰에서는 *그 기능이 없는 게임*이다 — 화면에 안 보이니 없는 줄도 모른다.
 			topRow.Add(MakeHoldButton("스킬", InputEventType.Space, actionButtonSize * 0.8f));
 			topRow.Add(MakeHoldButton("보조", InputEventType.Click1, actionButtonSize * 0.8f));
-			topRow.Add(MakeHoldButton("뛰기", InputEventType.Sprint, actionButtonSize * 0.8f));
+			sprintButton = MakeHoldButton("뛰기", InputEventType.Sprint, actionButtonSize * 0.8f);
+			topRow.Add(sprintButton);
 			// 조준 모드도 키 하나(Y)에만 있었다 — 폰에선 조준으로 바꿀 방법이 0 이었다.
 			// 누르는 순간 「바꿔라」가 나가는 종류라 이 버튼으로 그대로 된다(떼는 것은 아무도 안 듣는다).
 			topRow.Add(MakeHoldButton("조준", InputEventType.ChangeMode, actionButtonSize * 0.8f));
@@ -184,6 +185,25 @@ namespace WitchMendokusai
 		}
 
 		private Label interactButton;
+		private VisualElement sprintButton;
+
+		/// <summary>
+		/// 던전 안에서는 달리기가 막혀 있어서 뛰기 버튼도 숨김 (사용자 2026-11-18 "던전에서는 못달리게").
+		/// 자리는 비워 둠. display 를 끄면 옆 버튼이 밀림 (2026-11-17 실기 "기존 버튼이 움직이는 경우는 본 적이 없어")
+		/// </summary>
+		private void UpdateSprintButton()
+		{
+			if (sprintButton == null)
+				return;
+
+			Visibility visibility = DungeonManagerBridge.IsDungeon ? Visibility.Hidden : Visibility.Visible;
+			if (sprintButton.style.visibility != visibility)
+			{
+				sprintButton.style.visibility = visibility;
+				if (visibility == Visibility.Hidden)
+					ReleaseHeld(InputEventType.Sprint, sprintButton);
+			}
+		}
 
 		/// <summary>
 		/// 창으로 가는 길. 폰에는 키보드가 없어서 화면에 문이 하나 있어야 함

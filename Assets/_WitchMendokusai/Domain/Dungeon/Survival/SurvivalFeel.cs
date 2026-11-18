@@ -57,6 +57,7 @@ namespace WitchMendokusai
 			BuildSystems();
 			gameObject.AddComponent<SurvivalLowHealthVignette>().Init(resourceManager, playerProvider);
 			gameObject.AddComponent<SurvivalOffscreenMarkers>().Init(resourceManager, playerProvider, this);
+			gameObject.AddComponent<SurvivalMinimap>().Init(resourceManager, playerProvider, this);
 			gameEventManager.RegisterCallback(GameEventType.OnLevelUp, OnLevelUp);
 			gameEventManager.RegisterCallback(GameEventType.OnPlayerHit, OnPlayerHit);
 		}

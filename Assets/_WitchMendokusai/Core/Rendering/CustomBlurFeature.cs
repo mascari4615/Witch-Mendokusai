@@ -49,10 +49,15 @@ namespace WitchMendokusai
 		public Material BlurMaterial => runtimeMaterial;
 		public RenderTexture TargetRT => targetRT;
 
+		// 지금 렌더러의 흐림 출력. UI 부품 (BlurPanel) 이 찾는 자리, 없으면 null
+		public static RenderTexture ActiveOutput { get; private set; }
+
 		public override void Create()
 		{
 			blurPass = new CustomBlurPass(this);
 			blurPass.renderPassEvent = injectionPoint;
+			if (targetRT != null)
+				ActiveOutput = targetRT;
 		}
 
 		public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
@@ -87,6 +92,8 @@ namespace WitchMendokusai
 		protected override void Dispose(bool disposing)
 		{
 			blurPass?.Dispose();
+			if (ActiveOutput == targetRT)
+				ActiveOutput = null;
 			if (runtimeMaterial != null)
 				CoreUtils.Destroy(runtimeMaterial);
 		}

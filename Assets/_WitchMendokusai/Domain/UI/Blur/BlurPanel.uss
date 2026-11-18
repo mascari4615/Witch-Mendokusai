@@ -1,0 +1,16 @@
+/* 젖빛 유리 칸 (BlurPanel.cs). 판별 값은 더 좁은 선택자로 덮어씀. 예: .wm-fullmenu .wm-blur { --wm-blur-tint: ... } */
+.wm-blur {
+    --wm-blur-tint: rgba(20, 18, 26, 0.35);
+    --wm-blur-strength: 1;
+    --wm-blur-plain: rgba(20, 18, 26, 0.85);
+    border-radius: 0;
+}
+
+/* AttachBehind 로 넣은 칸. 판 크기 전체를 덮음 */
+.wm-blur--behind {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
