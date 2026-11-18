@@ -1,0 +1,74 @@
+/* 확인창 공용 부품 (UIConfirmDialog.cs). 부모 전체를 덮는 막, 가운데 창. 여백 규칙의 가운데 모달 */
+.wm-confirm {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(4, 5, 16, 0.6);
+}
+
+.wm-confirm__box {
+    width: 520px;
+    padding: var(--wm-space-panel-pad);
+    background-color: rgb(16, 18, 48);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.wm-confirm__title {
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.wm-confirm__text {
+    margin: 10px 0 0 0;
+    padding: 0;
+    font-size: 15px;
+    color: rgb(196, 201, 236);
+    white-space: normal;
+}
+
+.wm-confirm__row {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 28px;
+}
+
+.wm-confirm__button {
+    min-width: 120px;
+    height: 42px;
+    margin: 0 0 0 10px;
+    padding: 0 14px;
+    font-size: 15px;
+    color: rgb(242, 243, 251);
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.3);
+    border-radius: 0;
+}
+
+.wm-confirm__button:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.wm-confirm__button--main {
+    color: rgb(21, 23, 46);
+    background-color: rgb(244, 244, 248);
+    -unity-font-style: bold;
+}
+
+.wm-confirm__button--main:hover {
+    background-color: rgb(255, 255, 255);
+}
+
+/* 초점은 파랑. 흰 주 버튼 위에서도 보이게 */
+.wm-confirm__button:focus {
+    border-color: rgb(110, 180, 255);
+}

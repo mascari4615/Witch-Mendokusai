@@ -30,6 +30,11 @@ namespace WitchMendokusai
 		public Monster Monster;
 	}
 
+	public struct BossKilledEvent
+	{
+		public Monster Monster;
+	}
+
 	// 보스 웨이브 시작 전 예고. 웨이브마다 한 번
 	public struct BossAnnouncedEvent
 	{

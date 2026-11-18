@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c39ff0499854d49b6bc295b6ff44414, type: 3}
+  m_Name: WP_MovingWall_Slime
+  m_EditorClassIdentifier: 
+  <Monsters>k__BackingField:
+  - {fileID: 11400000, guid: ab24c2555a737204a9520c2fcf5da203, type: 2}
+  <LaneCount>k__BackingField: 21
+  <GapCount>k__BackingField: 3
+  <GapStepLanes>k__BackingField: 2
+  <LaneSpacing>k__BackingField: 1.6
+  <WaveCount>k__BackingField: 4
+  <WaveInterval>k__BackingField: 0.8
+  <StartDistance>k__BackingField: 14
+  <RandomDirection>k__BackingField: 0
+  <DirectionDegrees>k__BackingField: 90
+  <BothSides>k__BackingField: 1
+  <Lifetime>k__BackingField: 12
+  <SpawnClass>k__BackingField: 1

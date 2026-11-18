@@ -140,19 +140,21 @@ namespace WitchMendokusai
 			// 설정 팝업은 화면 끝까지 덮는 틀 위
 			constraintPopup = new UIDungeonConstraintPopup();
 			constraintPopup.OnClosed += OnConstraintPopupClosed;
-			constraintPopup.OnChanged += constraintUI.UpdateUI;
 			Root.Add(constraintPopup);
+			// 설정 창 내용은 입장 창 안전 영역 칸과 같은 자리
+			Content.RegisterCallback<GeometryChangedEvent>(_ => constraintPopup.SetSafeRect(Content.layout));
 			// 닫기는 왼쪽 위 뒤로가기와 취소 입력 하나. 오른쪽 위 X 없음, 그 자리는 정보 창 (사용자 2026-11-18)
 		}
 
-		public bool OwnsTabInput => false;
+		// 설정 창은 Tab 을 칸 이동에 씀
+		public bool OwnsTabInput => constraintPopup != null && constraintPopup.IsOpen;
 
-		// 팝업이 열려 있으면 취소 키는 팝업만 닫음
+		// 설정 창이 열려 있으면 취소 키는 설정 창 몫 (바꾼 게 있으면 확인창)
 		public bool HandleCancelInput()
 		{
 			if (constraintPopup.IsOpen == false)
 				return false;
-			constraintPopup.Close();
+			constraintPopup.HandleCancel();
 			return true;
 		}
 
@@ -162,7 +164,8 @@ namespace WitchMendokusai
 				return;
 			// 틀 연출 (배경 입자, 시차) 이 뒤에 붙인 요소보다 위로 올 수 있어 열 때마다 맨 앞
 			constraintPopup.BringToFront();
-			constraintPopup.Open(CurDungeon);
+			constraintPopup.SetSafeRect(Content.layout);
+			constraintPopup.Open(CurDungeon, GetTitle(CurDungeon.Name));
 		}
 
 		private void OnConstraintPopupClosed()

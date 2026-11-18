@@ -33,7 +33,7 @@ namespace WitchMendokusai
 	}
 
 	[CreateAssetMenu(fileName = nameof(Dungeon), menuName = "WM/Variable/Dungeon")]
-	public class Dungeon : DataSO, ISavable<DungeonSaveData>
+	public partial class Dungeon : DataSO, ISavable<DungeonSaveData>
 	{
 		[field: Header("_" + nameof(Dungeon))]
 		[PropertyOrder(100)][field: SerializeField] public DungeonObjectiveType ObjectiveType { get; private set; }
@@ -59,6 +59,9 @@ namespace WitchMendokusai
 
 		[Tooltip("입장 화면 대표 그림. 비우면 테마 기본 그림")]
 		[PropertyOrder(113)][field: SerializeField] public Sprite KeyArt { get; private set; }
+
+		[Tooltip("위험도 구간 보상. 비우면 설정 창에 보상 규칙 미정")]
+		[PropertyOrder(114)][field: SerializeField] public DungeonConstraintRewardRule ConstraintRewardRule { get; private set; }
 
 		public int CalculateDefeatNyang(int killCount) => Mathf.Min(DefeatNyangMax, Mathf.FloorToInt(killCount * DefeatNyangPerKill));
 
@@ -93,6 +96,7 @@ namespace WitchMendokusai
 						ConstraintSelected[kvp.Key] = kvp.Value;
 				}
 			}
+			DungeonConstraintRules.Normalize(this, ConstraintSelected);
 		}
 
 		public DungeonSaveData Save()

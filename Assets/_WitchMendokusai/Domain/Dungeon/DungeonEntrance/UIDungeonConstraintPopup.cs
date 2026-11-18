@@ -6,57 +6,56 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 제약 설정 팝업. 제약 전체를 아이콘 칸 격자로, 칸 모서리에 위험도, 켠 칸은 표시
-	/// 초점 칸의 효과 설명, 위험도 합계와 보상 변화, 전부 해제
-	/// 키보드: 방향키 이동, 확인 키로 켜고 끔, 취소 키로 닫기 (입장 창 HandleCancelInput)
-	/// 입장 창 전체 틀 (Root) 위에 덮음. 뒤는 어두운 막 (USS). BlurPanel 은 게임 화면을 흐려 그려 뒤 입장 창을 가려서 안 씀
+	/// 제약 설정 창. 입장 창 틀 전체를 덮는 화면
+	/// - 왼쪽: 제목, 위험도 큰 숫자와 눈금, 위험도 보상 (DungeonConstraintRewardRule)
+	/// - 오른쪽: 제약 표 (줄은 단계, 열은 묶음, 같은 열은 하나만), 초점 칸 설명, 켠 제약 효과 목록, 닫기, 전부 해제, 저장
+	/// 고치는 중 값은 사본. 저장만 던전 값에 씀. 닫기와 취소 키는 버림, 바꾼 게 있으면 확인창
 	/// </summary>
 	public class UIDungeonConstraintPopup : VisualElement
 	{
 		public const string USS_CLASS = "wm-constraint-popup";
-		private const string USS_DIALOG = USS_CLASS + "__dialog";
-		private const string USS_HEAD = USS_CLASS + "__head";
-		private const string USS_TITLE = USS_CLASS + "__title";
-		private const string USS_TOTAL = USS_CLASS + "__total";
-		private const string USS_TOTAL_LABEL = USS_CLASS + "__total-label";
-		private const string USS_TOTAL_VALUE = USS_CLASS + "__total-value";
-		private const string USS_GRID = USS_CLASS + "__grid";
-		private const string USS_TILE = USS_CLASS + "__tile";
-		private const string USS_TILE_ON = USS_TILE + "--on";
-		private const string USS_TILE_ICON = USS_CLASS + "__tile-icon";
-		private const string USS_TILE_RISK = USS_CLASS + "__tile-risk";
-		private const string USS_TILE_CHECK = USS_CLASS + "__tile-check";
-		private const string USS_TILE_NAME = USS_CLASS + "__tile-name";
-		private const string USS_DETAIL = USS_CLASS + "__detail";
-		private const string USS_DETAIL_NAME = USS_CLASS + "__detail-name";
-		private const string USS_DETAIL_STATE = USS_CLASS + "__detail-state";
-		private const string USS_DETAIL_TEXT = USS_CLASS + "__detail-text";
-		private const string USS_FOOT = USS_CLASS + "__foot";
-		private const string USS_SUMMARY = USS_CLASS + "__summary";
-		private const string USS_BUTTON = USS_CLASS + "__button";
-		private const string USS_BUTTON_MAIN = USS_BUTTON + "--main";
+		private const string USS_PART = USS_CLASS + "__";
+		// 표 격자 최소 크기. 제약이 적어도 빈 칸으로 표 모양 유지. 열 수는 USS main 폭 (760) 과 짝, 줄 수는 DungeonConstraint.Level 범위
+		private const int MIN_COLUMNS = 6;
+		private const int MIN_ROWS = 3;
+		private const int REWARD_PLACEHOLDER_ROWS = 4;
 
+		public event Action OnSaved = delegate { };
 		public event Action OnClosed = delegate { };
-		/// <summary> 제약을 켜거나 끌 때마다. 뒤 입장 칸 칩을 바로 맞춤 </summary>
-		public event Action OnChanged = delegate { };
 
 		public bool IsOpen { get; private set; }
 
+		private sealed class Cell
+		{
+			public DungeonConstraint Constraint;
+			public Button Tile;
+			public VisualElement Icon;
+			public Label Name;
+			public int Row;
+			public int Column;
+		}
+
 		private Dungeon dungeon;
-		private int focusedIndex;
-		private int lastTileIndex;
-		private readonly VisualElement grid;
-		private readonly Label totalValue;
+		private readonly Dictionary<int, bool> draft = new();
+		private readonly List<Cell> cells = new();
+		private readonly List<Button> footButtons = new();
+		private Cell[,] grid = new Cell[0, 0];
+		private int focusedOrder;
+		private Cell lastCell;
+
+		private readonly Label dungeonName;
+		private readonly Label riskValue;
+		private readonly VisualElement riskMeter;
+		private readonly ScrollView rewardList;
+		private readonly VisualElement table;
 		private readonly Label detailName;
+		private readonly Label detailLevel;
 		private readonly Label detailState;
 		private readonly Label detailText;
-		private readonly Label summary;
-		private readonly Button clearButton;
-		private readonly Button confirmButton;
-		private readonly List<Button> tiles = new();
-		private readonly List<VisualElement> tileIcons = new();
-		private readonly List<Label> tileRisks = new();
-		private readonly List<Label> tileNames = new();
+		private readonly VisualElement effectList;
+		private readonly Label effectEmpty;
+		private readonly UIConfirmDialog confirm;
+		private readonly VisualElement safeFrame;
 
 		public UIDungeonConstraintPopup()
 		{
@@ -64,190 +63,419 @@ namespace WitchMendokusai
 			AddToClassList(USS_CLASS);
 			AddToClassList(UIMotion.RISE);
 
-			VisualElement center = AddChild(this, new VisualElement { pickingMode = PickingMode.Ignore }, "wm-space-center");
-			VisualElement dialog = AddChild(center, new VisualElement(), USS_DIALOG);
+			// 막은 화면 끝까지, 내용은 안전 영역 (입장 창 Content 와 같은 칸, SetSafeRect)
+			safeFrame = AddChild(this, new VisualElement { pickingMode = PickingMode.Ignore }, USS_PART + "safe");
+			VisualElement body = AddChild(safeFrame, new VisualElement { pickingMode = PickingMode.Ignore }, "wm-space-menu");
+			body.AddToClassList(USS_PART + "body");
 
-			VisualElement head = AddChild(dialog, new VisualElement(), USS_HEAD);
-			AddChild(head, new Label("제약 설정"), USS_TITLE);
-			VisualElement total = AddChild(head, new VisualElement(), USS_TOTAL);
-			AddChild(total, new Label("위험도"), USS_TOTAL_LABEL);
-			totalValue = AddChild(total, new Label(), USS_TOTAL_VALUE);
+			// 왼쪽 정보 기둥
+			VisualElement side = AddChild(body, new VisualElement(), USS_PART + "side");
+			AddChild(side, new Label("제약 설정"), USS_PART + "title");
+			dungeonName = AddChild(side, new Label(), USS_PART + "dungeon");
+			VisualElement riskCard = AddChild(side, new VisualElement(), USS_PART + "risk");
+			AddChild(riskCard, new Label("위험도"), USS_PART + "risk-label");
+			riskValue = AddChild(riskCard, new Label(), USS_PART + "risk-value");
+			riskMeter = AddChild(riskCard, new VisualElement(), USS_PART + "risk-meter");
+			AddChild(side, new Label("위험도 보상"), USS_PART + "side-header");
+			// 구간이 많으면 이 목록만 스크롤
+			rewardList = AddChild(side, new ScrollView(ScrollViewMode.Vertical), USS_PART + "rewards");
 
-			grid = AddChild(dialog, new VisualElement(), USS_GRID);
+			// 오른쪽 제약 표와 효과
+			VisualElement main = AddChild(body, new VisualElement(), USS_PART + "main");
+			VisualElement tableHead = AddChild(main, new VisualElement(), USS_PART + "head");
+			AddChild(tableHead, new Label("제약 목록"), USS_PART + "header");
+			AddChild(tableHead, new Label("확인 키로 켜고 끄기, 같은 열은 하나만"), USS_PART + "hint");
+			table = AddChild(main, new VisualElement(), USS_PART + "table");
 
-			VisualElement detail = AddChild(dialog, new VisualElement(), USS_DETAIL);
-			VisualElement detailHead = AddChild(detail, new VisualElement(), USS_HEAD);
-			detailName = AddChild(detailHead, new Label(), USS_DETAIL_NAME);
-			detailState = AddChild(detailHead, new Label(), USS_DETAIL_STATE);
-			detailText = AddChild(detail, new Label(), USS_DETAIL_TEXT);
+			VisualElement detail = AddChild(main, new VisualElement(), USS_PART + "detail");
+			VisualElement detailHead = AddChild(detail, new VisualElement(), USS_PART + "detail-head");
+			detailName = AddChild(detailHead, new Label(), USS_PART + "detail-name");
+			detailLevel = AddChild(detailHead, new Label(), USS_PART + "level-badge");
+			detailState = AddChild(detailHead, new Label(), USS_PART + "detail-state");
+			detailText = AddChild(detail, new Label(), USS_PART + "detail-text");
 
-			VisualElement foot = AddChild(dialog, new VisualElement(), USS_FOOT);
-			summary = AddChild(foot, new Label(), USS_SUMMARY);
-			clearButton = AddChild(foot, new Button(ClearAll) { name = "ConstraintClearButton", text = "전부 해제" }, USS_BUTTON);
-			confirmButton = AddChild(foot, new Button(Close) { name = "ConstraintConfirmButton", text = "확인" }, USS_BUTTON);
-			confirmButton.AddToClassList(USS_BUTTON_MAIN);
-			clearButton.RegisterCallback<FocusInEvent>(_ => focusedIndex = dungeon.Constraints.Count);
-			confirmButton.RegisterCallback<FocusInEvent>(_ => focusedIndex = dungeon.Constraints.Count + 1);
+			VisualElement effectHead = AddChild(main, new VisualElement(), USS_PART + "head");
+			effectHead.AddToClassList(USS_PART + "head--effects");
+			AddChild(effectHead, new Label("켠 제약"), USS_PART + "header");
+			effectList = AddChild(main, new VisualElement(), USS_PART + "effects");
+			effectEmpty = AddChild(effectList, new Label("켠 제약 없음"), USS_PART + "effect-empty");
+
+			VisualElement foot = AddChild(main, new VisualElement(), USS_PART + "foot");
+			footButtons.Add(AddFootButton(foot, "ConstraintCloseButton", "닫기", RequestClose, false));
+			footButtons.Add(AddFootButton(foot, "ConstraintClearButton", "전부 해제", ClearAll, false));
+			footButtons.Add(AddFootButton(foot, "ConstraintSaveButton", "저장", SaveAndClose, true));
+
+			confirm = AddChild(this, new UIConfirmDialog(), USS_PART + "confirm");
+			for (int i = 0; i < footButtons.Count; i++)
+			{
+				int footIndex = i;
+				footButtons[i].RegisterCallback<FocusInEvent>(_ => focusedOrder = cells.Count + footIndex);
+			}
 
 			RegisterCallback<NavigationMoveEvent>(OnNavigationMove, TrickleDown.TrickleDown);
-			// 막을 눌러도 초점이 팝업 밖으로 빠지지 않게 마지막 칸으로 되돌림
-			RegisterCallback<PointerDownEvent>(evt =>
-			{
-				if (evt.target == this)
-					FocusIndex(focusedIndex, false);
-			});
+			// 창 안 어디를 눌러도 초점은 창 안에. 누른 뒤 초점이 창 밖이면 마지막 자리로
+			RegisterCallback<PointerUpEvent>(_ => schedule.Execute(KeepFocusInside));
 			UIMotion.SetInstant(this, false);
 		}
 
-		public void Open(Dungeon dungeon)
+		/// <summary> 내용 칸을 안전 영역에 맞춤. 입장 창이 Content 크기가 바뀔 때마다 넘김 </summary>
+		public void SetSafeRect(Rect rect)
+		{
+			safeFrame.style.left = rect.x;
+			safeFrame.style.top = rect.y;
+			safeFrame.style.width = rect.width;
+			safeFrame.style.height = rect.height;
+		}
+
+		private void KeepFocusInside()
+		{
+			if (IsOpen == false || confirm.IsOpen)
+				return;
+			VisualElement focused = focusController?.focusedElement as VisualElement;
+			if (focused == null || Contains(focused) == false)
+				FocusOrder(focusedOrder, false);
+		}
+
+		public bool IsDirty
+		{
+			get
+			{
+				foreach (KeyValuePair<int, bool> entry in draft)
+				{
+					if (dungeon.ConstraintSelected[entry.Key] != entry.Value)
+						return true;
+				}
+				return false;
+			}
+		}
+
+		public void Open(Dungeon dungeon, string title)
 		{
 			this.dungeon = dungeon;
-			EnsureTileCount(dungeon.Constraints.Count);
+			draft.Clear();
+			foreach (DungeonConstraint constraint in dungeon.Constraints)
+				draft[constraint.ID] = dungeon.ConstraintSelected[constraint.ID];
+			dungeonName.text = title;
+			BuildTable();
 			IsOpen = true;
 			UiSfx.Play(UiSfxEvent.WindowOpen);
 			UIMotion.Show(this);
-			lastTileIndex = 0;
 			Refresh();
-			FocusIndex(0, false);
+			FocusOrder(0, false);
+			// 같은 프레임에 켠 요소는 초점을 못 받을 수 있어 다음 프레임에 한 번 더
+			schedule.Execute(() =>
+			{
+				if (IsOpen && confirm.IsOpen == false)
+					FocusOrder(focusedOrder, false);
+			});
 		}
 
-		public void Close()
+		/// <summary> 취소 키. 확인창이 있으면 확인창 "계속 편집", 없으면 닫기 요청 </summary>
+		public void HandleCancel()
 		{
-			if (IsOpen == false)
-				return;
-			UiSfx.Play(UiSfxEvent.WindowClose);
-			Dismiss();
-			OnClosed();
+			if (confirm.IsOpen)
+				confirm.Cancel();
+			else
+				RequestClose();
 		}
 
-		/// <summary> 소리와 닫힘 알림 없이 닫기. 입장 창 자체가 닫힐 때 </summary>
+		/// <summary> 소리와 알림 없이 버리고 닫기. 입장 창 자체가 닫힐 때 </summary>
 		public void Dismiss()
 		{
 			if (IsOpen == false)
 				return;
 			IsOpen = false;
+			confirm.Dismiss();
 			UIMotion.Hide(this);
 		}
 
-		private void Toggle(int index)
+		private void RequestClose()
 		{
-			int id = dungeon.Constraints[index].ID;
-			bool isOn = dungeon.ConstraintSelected[id] == false;
-			dungeon.ConstraintSelected[id] = isOn;
+			if (IsDirty == false)
+			{
+				Close();
+				return;
+			}
+			UiSfx.Play(UiSfxEvent.WindowOpen);
+			confirm.Open("저장하지 않고 닫을까요?", "바꾼 제약이 저장되지 않습니다.",
+				new UIConfirmDialog.Choice("저장", SaveAndClose, true),
+				new UIConfirmDialog.Choice("버리고 닫기", Close),
+				new UIConfirmDialog.Choice("계속 편집", () => FocusOrder(focusedOrder, false)));
+		}
+
+		private void Close()
+		{
+			if (IsOpen == false)
+				return;
+			IsOpen = false;
+			UiSfx.Play(UiSfxEvent.WindowClose);
+			UIMotion.Hide(this);
+			OnClosed();
+		}
+
+		private void SaveAndClose()
+		{
+			foreach (KeyValuePair<int, bool> entry in draft)
+				dungeon.ConstraintSelected[entry.Key] = entry.Value;
+			OnSaved();
+			Close();
+		}
+
+		private void Toggle(Cell cell)
+		{
+			bool isOn = draft[cell.Constraint.ID] == false;
+			DungeonConstraintRules.Set(dungeon, draft, cell.Constraint, isOn);
 			UiSfx.Play(isOn ? UiSfxEvent.Confirm : UiSfxEvent.Cancel);
-			focusedIndex = index;
 			Refresh();
-			OnChanged();
 		}
 
 		private void ClearAll()
 		{
 			foreach (DungeonConstraint constraint in dungeon.Constraints)
-				dungeon.ConstraintSelected[constraint.ID] = false;
+				draft[constraint.ID] = false;
 			UiSfx.Play(UiSfxEvent.Cancel);
 			Refresh();
-			OnChanged();
+		}
+
+		// 줄은 있는 단계, 열은 묶음. 데이터만 바꾸면 표가 따라감
+		private void BuildTable()
+		{
+			table.Clear();
+			cells.Clear();
+			List<string> families = DungeonConstraintRules.FamilyOrder(dungeon);
+			int maxLevel = MIN_ROWS;
+			foreach (DungeonConstraint constraint in dungeon.Constraints)
+				maxLevel = Mathf.Max(maxLevel, constraint.Level);
+			List<int> levels = new();
+			for (int level = 1; level <= maxLevel; level++)
+				levels.Add(level);
+			int columnCount = Mathf.Max(MIN_COLUMNS, families.Count);
+			grid = new Cell[levels.Count, columnCount];
+
+			for (int row = 0; row < levels.Count; row++)
+			{
+				VisualElement line = AddChild(table, new VisualElement(), USS_PART + "row");
+				VisualElement rowHead = AddChild(line, new VisualElement(), USS_PART + "row-head");
+				AddChild(rowHead, new Label("단계"), USS_PART + "row-head-label");
+				AddChild(rowHead, new Label(levels[row].ToString()), USS_PART + "row-head-value");
+				for (int column = 0; column < columnCount; column++)
+				{
+					// 묶음 없는 열은 흐린 빈 칸 (격자 모양)
+					if (column >= families.Count)
+					{
+						AddChild(line, new VisualElement(), USS_PART + "cell-empty");
+						continue;
+					}
+					List<DungeonConstraint> matches = dungeon.Constraints.FindAll(candidate => candidate.Level == levels[row] && candidate.FamilyKey == families[column]);
+					if (matches.Count > 1)
+						Debug.LogError($"제약 묶음 {families[column]} 단계 {levels[row]} 이 {matches.Count}개. 표에는 첫 에셋만 ({dungeon.name})");
+					DungeonConstraint constraint = matches.Count > 0 ? matches[0] : null;
+					if (constraint == null)
+					{
+						AddChild(line, new VisualElement(), USS_PART + "cell-empty");
+						continue;
+					}
+					Cell cell = new Cell { Constraint = constraint, Row = row, Column = column };
+					cell.Tile = AddChild(line, new Button(() => Toggle(cell)) { name = "ConstraintTile" + constraint.ID }, USS_PART + "tile");
+					cell.Icon = AddChild(cell.Tile, new VisualElement { pickingMode = PickingMode.Ignore }, USS_PART + "tile-icon");
+					cell.Icon.style.backgroundImage = new StyleBackground(constraint.Sprite);
+					AddChild(cell.Tile, new VisualElement { pickingMode = PickingMode.Ignore }, USS_PART + "tile-check");
+					AddChild(cell.Tile, new Label("배타") { pickingMode = PickingMode.Ignore }, USS_PART + "tile-block");
+					cell.Name = AddChild(cell.Tile, new Label(constraint.Name) { pickingMode = PickingMode.Ignore }, USS_PART + "tile-name");
+					cell.Tile.RegisterCallback<FocusInEvent>(_ => OnCellFocused(cell));
+					// 마우스를 올린 칸은 설명만 보여 줌. 초점과 확인 키 대상은 그대로, 벗어나면 초점 칸 설명
+					cell.Tile.RegisterCallback<PointerEnterEvent>(_ => RefreshDetail(cell));
+					cell.Tile.RegisterCallback<PointerLeaveEvent>(_ =>
+					{
+						if (lastCell != null)
+							RefreshDetail(lastCell);
+					});
+					grid[row, column] = cell;
+					cells.Add(cell);
+				}
+			}
+			lastCell = cells.Count > 0 ? cells[0] : null;
 		}
 
 		private void Refresh()
 		{
-			for (int i = 0; i < tiles.Count; i++)
+			foreach (Cell cell in cells)
 			{
-				bool isUsed = i < dungeon.Constraints.Count;
-				tiles[i].style.display = isUsed ? DisplayStyle.Flex : DisplayStyle.None;
-				if (isUsed == false)
-					continue;
-				DungeonConstraint constraint = dungeon.Constraints[i];
-				tileIcons[i].style.backgroundImage = new StyleBackground(constraint.Sprite);
-				tileRisks[i].text = constraint.Risk.ToString();
-				tileNames[i].text = constraint.Name;
-				tiles[i].EnableInClassList(USS_TILE_ON, dungeon.ConstraintSelected[constraint.ID]);
+				bool isOn = draft[cell.Constraint.ID];
+				cell.Tile.EnableInClassList(USS_PART + "tile--on", isOn);
+				cell.Tile.EnableInClassList(USS_PART + "tile--blocked", isOn == false && DungeonConstraintRules.IsBlockedBySibling(dungeon, draft, cell.Constraint));
 			}
 
-			int totalRisk = DungeonConstraintRisk.Total(dungeon);
-			totalValue.text = totalRisk.ToString();
-			// 제약은 보상 배율에 영향 없음 (현재 규칙). 위협 단계가 보상을 바꿈
-			summary.text = "켠 제약 " + dungeon.SelectedConstraints().Count + "개, 보상 변화 없음";
-			RefreshDetail();
+			int risk = DungeonConstraintRules.TotalRisk(dungeon, draft);
+			int maxRisk = DungeonConstraintRules.MaxRisk(dungeon);
+			riskValue.text = risk.ToString();
+			riskMeter.Clear();
+			for (int i = 0; i < maxRisk; i++)
+				AddChild(riskMeter, new VisualElement(), USS_PART + "risk-pip").EnableInClassList(USS_PART + "risk-pip--on", i < risk);
+
+			RefreshRewards(risk);
+			RefreshEffects();
+			if (lastCell != null)
+				RefreshDetail(lastCell);
 		}
 
-		private void RefreshDetail()
+		private void RefreshRewards(int risk)
 		{
-			int index = Mathf.Clamp(focusedIndex, 0, dungeon.Constraints.Count - 1);
-			DungeonConstraint constraint = dungeon.Constraints[index];
-			bool isOn = dungeon.ConstraintSelected[constraint.ID];
-			detailName.text = constraint.Name;
-			detailState.text = isOn ? "켜짐" : "꺼짐";
-			detailText.text = constraint.Description.Replace("\n", " ");
+			rewardList.Clear();
+			DungeonConstraintRewardRule rule = dungeon.ConstraintRewardRule;
+			if (rule == null || rule.Milestones.Count == 0)
+			{
+				// 구간 표 자리 표시. 규칙이 정해지면 위험도 구간과 보상 칸이 이 자리에
+				AddChild(rewardList, new Label("보상 규칙 미정. 구간과 보상이 정해지면 이 표에"), USS_PART + "reward-empty");
+				for (int i = 0; i < REWARD_PLACEHOLDER_ROWS; i++)
+				{
+					VisualElement placeholder = AddChild(rewardList, new VisualElement(), USS_PART + "reward");
+					placeholder.AddToClassList(USS_PART + "reward--placeholder");
+					AddChild(placeholder, new Label("위험도 ?"), USS_PART + "reward-risk");
+					AddChild(placeholder, new VisualElement(), USS_PART + "reward-slot");
+					AddChild(placeholder, new VisualElement(), USS_PART + "reward-slot");
+				}
+				return;
+			}
+			foreach (DungeonConstraintRewardRule.RiskMilestone milestone in rule.Milestones)
+			{
+				VisualElement line = AddChild(rewardList, new VisualElement(), USS_PART + "reward");
+				line.EnableInClassList(USS_PART + "reward--reached", risk >= milestone.Risk);
+				AddChild(line, new Label("위험도 " + milestone.Risk), USS_PART + "reward-risk");
+				UIRewardsToolkit rewards = AddChild(line, new UIRewardsToolkit(), USS_PART + "reward-items");
+				rewards.UpdateUI(milestone.Rewards);
+			}
 		}
 
+		private void RefreshEffects()
+		{
+			effectList.Clear();
+			bool hasAny = false;
+			foreach (DungeonConstraint constraint in dungeon.Constraints)
+			{
+				if (draft[constraint.ID] == false)
+					continue;
+				hasAny = true;
+				VisualElement line = AddChild(effectList, new VisualElement(), USS_PART + "effect");
+				AddChild(line, new Label(constraint.Level.ToString()), USS_PART + "level-badge");
+				VisualElement icon = AddChild(line, new VisualElement(), USS_PART + "effect-icon");
+				icon.style.backgroundImage = new StyleBackground(constraint.Sprite);
+				VisualElement texts = AddChild(line, new VisualElement(), USS_PART + "effect-texts");
+				VisualElement head = AddChild(texts, new VisualElement(), USS_PART + "effect-head");
+				AddChild(head, new Label(constraint.Name), USS_PART + "effect-name");
+				AddChild(head, new Label(constraint.ShortValue), USS_PART + "effect-value");
+			}
+			if (hasAny == false)
+				effectList.Add(effectEmpty);
+		}
+
+		private void OnCellFocused(Cell cell)
+		{
+			focusedOrder = cells.IndexOf(cell);
+			lastCell = cell;
+			RefreshDetail(cell);
+		}
+
+		private void RefreshDetail(Cell cell)
+		{
+			bool isOn = draft[cell.Constraint.ID];
+			bool isBlocked = isOn == false && DungeonConstraintRules.IsBlockedBySibling(dungeon, draft, cell.Constraint);
+			detailName.text = cell.Constraint.Name;
+			detailLevel.text = cell.Constraint.Level.ToString();
+			detailState.text = isOn ? "켜짐" : isBlocked ? "같은 열 다른 단계 켜짐" : "꺼짐";
+			detailText.text = cell.Constraint.Description.Replace("\n", " ");
+		}
+
+		// 표 안은 줄과 열, 맨 아래 줄에서 아래로 가면 버튼 줄. Tab 은 순서대로. 끝에서 멈춤
 		private void OnNavigationMove(NavigationMoveEvent evt)
 		{
-			int tileCount = dungeon.Constraints.Count;
-			int lastIndex = tileCount + 1;
-			int next = focusedIndex;
+			if (confirm.IsOpen)
+				return;
+			int next = focusedOrder;
+			bool onFoot = focusedOrder >= cells.Count;
+			Cell current = onFoot ? null : cells[focusedOrder];
 			switch (evt.direction)
 			{
-				case NavigationMoveEvent.Direction.Left:
 				case NavigationMoveEvent.Direction.Previous:
-					next = Mathf.Max(0, focusedIndex - 1);
+					next = Mathf.Max(0, focusedOrder - 1);
+					break;
+				case NavigationMoveEvent.Direction.Next:
+					next = Mathf.Min(cells.Count + footButtons.Count - 1, focusedOrder + 1);
+					break;
+				case NavigationMoveEvent.Direction.Left:
+					next = onFoot ? Mathf.Max(cells.Count, focusedOrder - 1) : OrderOf(FindInRow(current.Row, current.Column, -1)) ?? focusedOrder;
 					break;
 				case NavigationMoveEvent.Direction.Right:
-				case NavigationMoveEvent.Direction.Next:
-					next = Mathf.Min(lastIndex, focusedIndex + 1);
-					break;
-				case NavigationMoveEvent.Direction.Down:
-					next = focusedIndex < tileCount ? tileCount : focusedIndex;
+					next = onFoot ? Mathf.Min(cells.Count + footButtons.Count - 1, focusedOrder + 1) : OrderOf(FindInRow(current.Row, current.Column, 1)) ?? focusedOrder;
 					break;
 				case NavigationMoveEvent.Direction.Up:
-					next = focusedIndex >= tileCount ? lastTileIndex : focusedIndex;
+					next = onFoot ? (lastCell != null ? cells.IndexOf(lastCell) : focusedOrder) : OrderOf(FindInColumn(current.Row, current.Column, -1)) ?? focusedOrder;
+					break;
+				case NavigationMoveEvent.Direction.Down:
+					next = onFoot ? focusedOrder : OrderOf(FindInColumn(current.Row, current.Column, 1)) ?? cells.Count;
 					break;
 				default:
 					return;
 			}
-			// 팝업 밖 (뒤 입장 창) 으로 초점이 새지 않게 모든 이동을 여기서 끝냄
+			// 창 밖 (뒤 입장 창) 으로 초점이 새지 않게 모든 이동을 여기서 끝냄
 			evt.StopPropagation();
 			focusController?.IgnoreEvent(evt);
-			if (next != focusedIndex)
-				FocusIndex(next, true);
+			if (next != focusedOrder)
+				FocusOrder(next, true);
 		}
 
-		private void FocusIndex(int index, bool withSound)
+		private int? OrderOf(Cell cell) => cell == null ? null : cells.IndexOf(cell);
+
+		private Cell FindInRow(int row, int column, int step)
 		{
-			focusedIndex = index;
-			int tileCount = dungeon.Constraints.Count;
-			Button target = index < tileCount ? tiles[index] : index == tileCount ? clearButton : confirmButton;
+			for (int scanColumn = column + step; scanColumn >= 0 && scanColumn < grid.GetLength(1); scanColumn += step)
+			{
+				if (grid[row, scanColumn] != null)
+					return grid[row, scanColumn];
+			}
+			return null;
+		}
+
+		// 위아래 줄에서 같은 열, 없으면 가장 가까운 열
+		private Cell FindInColumn(int row, int column, int step)
+		{
+			for (int scanRow = row + step; scanRow >= 0 && scanRow < grid.GetLength(0); scanRow += step)
+			{
+				Cell best = null;
+				int bestDistance = int.MaxValue;
+				for (int scanColumn = 0; scanColumn < grid.GetLength(1); scanColumn++)
+				{
+					if (grid[scanRow, scanColumn] == null)
+						continue;
+					int distance = Mathf.Abs(scanColumn - column);
+					if (distance < bestDistance)
+					{
+						best = grid[scanRow, scanColumn];
+						bestDistance = distance;
+					}
+				}
+				if (best != null)
+					return best;
+			}
+			return null;
+		}
+
+		private void FocusOrder(int order, bool withSound)
+		{
+			order = Mathf.Clamp(order, 0, cells.Count + footButtons.Count - 1);
+			focusedOrder = order;
+			Button target = order < cells.Count ? cells[order].Tile : footButtons[order - cells.Count];
 			if (withSound)
 				WMFocusNavigation.MoveFocus(target);
 			else
 				target.Focus();
-			if (index < tileCount)
-			{
-				lastTileIndex = index;
-				RefreshDetail();
-			}
 		}
 
-		private void EnsureTileCount(int count)
+		private Button AddFootButton(VisualElement parent, string buttonName, string text, Action onClick, bool isMain)
 		{
-			while (tiles.Count < count)
-			{
-				int index = tiles.Count;
-				Button tile = AddChild(grid, new Button(() => Toggle(index)) { name = "ConstraintTile" + index }, USS_TILE);
-				tileIcons.Add(AddChild(tile, new VisualElement { pickingMode = PickingMode.Ignore }, USS_TILE_ICON));
-				tileRisks.Add(AddChild(tile, new Label { pickingMode = PickingMode.Ignore }, USS_TILE_RISK));
-				AddChild(tile, new VisualElement { pickingMode = PickingMode.Ignore }, USS_TILE_CHECK);
-				tileNames.Add(AddChild(tile, new Label { pickingMode = PickingMode.Ignore }, USS_TILE_NAME));
-				tile.RegisterCallback<FocusInEvent>(_ =>
-				{
-					focusedIndex = index;
-					lastTileIndex = index;
-					RefreshDetail();
-				});
-				// 마우스를 올린 칸이 곧 초점 칸. 확인 키와 설명이 같은 칸을 가리키게
-				tile.RegisterCallback<PointerEnterEvent>(_ => tile.Focus());
-				tiles.Add(tile);
-			}
+			Button button = AddChild(parent, new Button(onClick) { name = buttonName, text = text }, USS_PART + "button");
+			button.EnableInClassList(USS_PART + "button--main", isMain);
+			return button;
 		}
 
 		private static T AddChild<T>(VisualElement parent, T child, string ussClass) where T : VisualElement

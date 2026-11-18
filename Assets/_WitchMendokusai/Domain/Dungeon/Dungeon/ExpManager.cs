@@ -26,6 +26,12 @@ namespace WitchMendokusai
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 		private SurvivalRunRules RunRules => resourceManager.SurvivalRunRules;
+		// 던전 선택 규칙의 경험치 요구 배율. 판 시작에 DungeonManager 가 정함
+		private float requirementMultiplier = 1f;
+
+		public void SetRequirementMultiplier(float multiplier) => requirementMultiplier = multiplier;
+
+		private int RequiredExp(int level) => Mathf.CeilToInt(ExpCurveRules.Required(RunRules.ExpCurveBands, RunRules.ExpBaseRequired, level) * requirementMultiplier);
 
 		private void Start()
 		{
@@ -35,7 +41,7 @@ namespace WitchMendokusai
 
 		public void Init()
 		{
-			PlayerStat[UnitStatType.EXP_MAX] = ExpCurveRules.Required(RunRules.ExpCurveBands, RunRules.ExpBaseRequired, 0);
+			PlayerStat[UnitStatType.EXP_MAX] = RequiredExp(0);
 			PlayerStat[UnitStatType.EXP_CUR] = 0;
 			PlayerStat[UnitStatType.LEVEL_CUR] = 0;
 			// Debug.Log(nameof(Init) + PlayerStat[StatType.EXP_CUR] + " / " + PlayerStat[StatType.EXP_MAX]);
@@ -55,7 +61,7 @@ namespace WitchMendokusai
 				{
 					int requiredExp = PlayerStat[UnitStatType.EXP_MAX];
 					int nextLevel = PlayerStat[UnitStatType.LEVEL_CUR] + 1;
-					PlayerStat[UnitStatType.EXP_MAX] = ExpCurveRules.Required(RunRules.ExpCurveBands, RunRules.ExpBaseRequired, nextLevel);
+					PlayerStat[UnitStatType.EXP_MAX] = RequiredExp(nextLevel);
 					PlayerStat[UnitStatType.LEVEL_CUR] = nextLevel;
 					PlayerStat[UnitStatType.EXP_CUR] -= requiredExp;
 

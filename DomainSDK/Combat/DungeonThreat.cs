@@ -65,6 +65,8 @@ namespace WitchMendokusai
 
 		public float ScaleSpawnDelay(float delay) => delay / WaveRate;
 
+		public float ScaleSpawnRate(float perSecond) => perSecond * WaveRate;
+
 		public int ScaleSwarmCount(int count) => ScaleUp(count, WaveRate);
 
 		// 정수 스탯은 1 미만 배율 차이도 체감되도록 올림

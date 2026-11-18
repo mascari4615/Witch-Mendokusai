@@ -189,7 +189,10 @@ namespace WitchMendokusai
 				}
 
 				if (UnitData.Type == MonsterType.Boss)
+				{
 					dataManager.DungeonStat[DungeonStatType.BOSS_KILL]++;
+					EventBusBridge.Publish(new BossKilledEvent { Monster = UnitData });
+				}
 				dataManager.DungeonStat[DungeonStatType.MONSTER_KILL]++;
 			}
 

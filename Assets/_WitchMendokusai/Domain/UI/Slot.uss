@@ -1,6 +1,7 @@
 @import url("Spacing.uss");
 @import url("../../Presentation/FloatingText.uss");
 @import url("Blur/BlurPanel.uss");
+@import url("ConfirmDialog/ConfirmDialog.uss");
 @import url("../Dungeon/DungeonEntrance/DungeonEntrance.uss");
 @import url("../Dungeon/Survival/RunEquipmentHud.uss");
 

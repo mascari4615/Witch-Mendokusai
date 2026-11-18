@@ -59,6 +59,7 @@ namespace WitchMendokusai
 		private float hpRegenElapsed;
 		private Action stopFlowFx;
 		private string objectiveText;
+		private RuntimeQuest dungeonQuest;
 
 		[Inject]
 		public void Construct(SOManager soManager, UIManager uiManager, CameraManager cameraManager, StageManager stageManager, GameEventManager gameEventManager, PlayerProvider playerProvider, DataManager dataManager, GameManager gameManager, ResourceManager resourceManager, IObjectResolver container)
@@ -142,6 +143,7 @@ namespace WitchMendokusai
 		{
 			if (IsDungeon || isTransitioning)
 				return;
+			dungeon.ValidateWaves();
 			isTransitioning = true;
 			Debug.Log($"{nameof(StartDungeon)} ({dungeon.Name})");
 
@@ -190,6 +192,7 @@ namespace WitchMendokusai
 				gameManager.InitEquipment();
 				gameManager.ApplyUpgradeEffects(); // [VamsurLike-Upgrade] - KarmoDDrine 2026-01-12
 
+				expChecker.SetRequirementMultiplier(dungeon.WaveOptions.ExpRequirementMultiplier(CurThreat.WaveRate));
 				expChecker.Init();
 				cardManager.Reset();
 				soManager.DungeonItemBuffer.Clear();
@@ -211,6 +214,7 @@ namespace WitchMendokusai
 				{
 					RuntimeQuest runtimeQuest = dungeonStrategy.CreateRuntimeQuest(dungeon, dataManager.QuestManager.CreateCriteriaContext());
 					dataManager.QuestManager.AddQuest(runtimeQuest);
+					dungeonQuest = runtimeQuest;
 					objectiveText = runtimeQuest.Name;
 				}
 
@@ -275,6 +279,17 @@ namespace WitchMendokusai
 			float progress = total > 0d ? Mathf.Clamp01((float)(Context.ElapsedTime.TotalSeconds / total)) : 0f;
 			SkyTimeOverride.Set(Mathf.Lerp(feel.RunSkyStartHour, feel.RunSkyEndHour, progress));
 		}
+
+		// 원래 목표와 별개로 판의 목표 퀘스트를 완료. 보상과 클리어 집계는 퀘스트 완료 경로 그대로
+		public void CompleteObjective()
+		{
+			if (IsDungeon == false || dungeonQuest.State == RuntimeQuestState.Completed)
+				return;
+			dungeonQuest.Complete();
+		}
+
+		// 개발 확인용. 진행 중인 판에 웨이브 패턴 하나를 지금 발동
+		public void TriggerWavePattern(WavePattern pattern) => monsterSpawner.TriggerPattern(pattern);
 
 		private bool IsClearReached()
 		{
@@ -399,6 +414,8 @@ namespace WitchMendokusai
 				gameManager.Init();
 				dataManager.RunLoadout.End();
 				CurThreat = DungeonThreatEffect.Identity;
+				dungeonQuest = null;
+				expChecker.SetRequirementMultiplier(1f);
 				expChecker.Init();
 				cardManager.Reset();
 			}

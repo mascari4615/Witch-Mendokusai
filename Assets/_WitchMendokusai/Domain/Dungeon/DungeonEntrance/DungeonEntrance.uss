@@ -220,89 +220,6 @@
     bottom: 0;
 }
 
-/* 제약 설정 팝업. 입장 창 틀 전체를 덮고 가운데 창 */
-.wm-constraint-popup {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-}
-
-.wm-constraint-popup__head {
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: space-between;
-}
-
-.wm-constraint-popup__total {
-    flex-direction: row;
-    align-items: flex-end;
-}
-
-.wm-constraint-popup__grid {
-    flex-direction: row;
-    flex-wrap: wrap;
-}
-
-.wm-constraint-popup__tile {
-    align-items: center;
-    margin: 0;
-    padding: 0;
-}
-
-.wm-constraint-popup__tile-icon {
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-.wm-constraint-popup__tile-risk,
-.wm-constraint-popup__tile-check {
-    position: absolute;
-}
-
-.wm-constraint-popup__tile-check {
-    display: none;
-    background-image: url("/Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/game-icons.net/check-mark.png");
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-.wm-constraint-popup__tile--on .wm-constraint-popup__tile-check {
-    display: flex;
-}
-
-.wm-constraint-popup__title,
-.wm-constraint-popup__total-label,
-.wm-constraint-popup__total-value,
-.wm-constraint-popup__tile-risk,
-.wm-constraint-popup__tile-name,
-.wm-constraint-popup__detail-name,
-.wm-constraint-popup__detail-state,
-.wm-constraint-popup__detail-text,
-.wm-constraint-popup__summary {
-    margin: 0;
-    padding: 0;
-}
-
-.wm-constraint-popup__tile-name {
-    white-space: nowrap;
-    -unity-text-align: upper-center;
-}
-
-.wm-constraint-popup__detail-text {
-    white-space: normal;
-}
-
-.wm-constraint-popup__foot {
-    flex-direction: row;
-    align-items: center;
-}
-
-.wm-constraint-popup__summary {
-    flex-grow: 1;
-}
-
-
-
 .wm-dungeon-entrance__enter {
     position: absolute;
     flex-direction: row;
@@ -482,111 +399,348 @@
     color: rgb(150, 156, 200);
 }
 
-/* 제약 설정 팝업. 뒤 입장 창이 비치게 어두운 막만 (BlurPanel 은 게임 화면을 흐려 입장 창을 가림) */
+/* 초점 테두리. 다른 입장 창 버튼과 같은 흰 테두리, 두께는 늘 잡아 두어 초점에 내용이 밀리지 않음 */
+.wm-dungeon-entrance .wm-dungeon-constraint:focus {
+    border-color: rgb(255, 255, 255);
+}
+
+/* 제약 설정 창 (2026-11-18 재설계). 바탕 불투명 (선형 색 공간에서 반투명 막은 뒤 글자가 비침). 화면 전체 메뉴 칸 (wm-space-menu, 가장자리 4vh), 왼쪽 정보 기둥 + 오른쪽 제약 표.
+   정보 위계는 레퍼런스 실측 (memo wm/design/constraint-refs-20261118): 큰 위험도 숫자와 눈금, 단계별 줄 표, 켠 효과 목록, 아래 오른쪽 저장 */
 .wm-dungeon-entrance .wm-constraint-popup {
-    background-color: rgba(5, 6, 20, 0.72);
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(8, 9, 24);
 }
 
-.wm-dungeon-entrance .wm-constraint-popup__dialog {
-    width: 760px;
-    padding: 28px;
-    background-color: rgb(16, 18, 48);
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.12);
+.wm-dungeon-entrance .wm-constraint-popup__safe {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
 }
 
-.wm-dungeon-entrance .wm-constraint-popup__dialog > .wm-constraint-popup__head {
-    margin-bottom: 22px;
+/* 창은 내용 폭 (기둥 300 + 사이 + 표 760) 에 맞추고 가운데 */
+.wm-dungeon-entrance .wm-constraint-popup__body {
+    flex-direction: row;
+    justify-content: center;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__side {
+    width: 300px;
+    flex-shrink: 0;
+    padding-right: 32px;
+    border-width: 0 1px 0 0;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__title,
+.wm-dungeon-entrance .wm-constraint-popup__dungeon,
+.wm-dungeon-entrance .wm-constraint-popup__risk-label,
+.wm-dungeon-entrance .wm-constraint-popup__risk-value,
+.wm-dungeon-entrance .wm-constraint-popup__side-header,
+.wm-dungeon-entrance .wm-constraint-popup__reward-empty,
+.wm-dungeon-entrance .wm-constraint-popup__reward-risk,
+.wm-dungeon-entrance .wm-constraint-popup__header,
+.wm-dungeon-entrance .wm-constraint-popup__hint,
+.wm-dungeon-entrance .wm-constraint-popup__row-head-label,
+.wm-dungeon-entrance .wm-constraint-popup__row-head-value,
+.wm-dungeon-entrance .wm-constraint-popup__tile-name,
+.wm-dungeon-entrance .wm-constraint-popup__tile-block,
+.wm-dungeon-entrance .wm-constraint-popup__detail-name,
+.wm-dungeon-entrance .wm-constraint-popup__level-badge,
+.wm-dungeon-entrance .wm-constraint-popup__detail-state,
+.wm-dungeon-entrance .wm-constraint-popup__detail-text,
+.wm-dungeon-entrance .wm-constraint-popup__effect-text,
+.wm-dungeon-entrance .wm-constraint-popup__effect-empty {
+    margin: 0;
+    padding: 0;
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__title {
-    font-size: 24px;
+    font-size: 28px;
     color: rgb(255, 255, 255);
+    -unity-font-style: bold;
 }
 
-.wm-dungeon-entrance .wm-constraint-popup__total-label {
-    margin-bottom: 7px;
-    font-size: 13px;
+.wm-dungeon-entrance .wm-constraint-popup__dungeon {
+    margin-top: 4px;
+    font-size: 15px;
     color: rgb(185, 189, 220);
 }
 
-.wm-dungeon-entrance .wm-constraint-popup__total-value {
-    margin-left: 10px;
-    font-size: 40px;
+.wm-dungeon-entrance .wm-constraint-popup__risk {
+    margin-top: 48px;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__risk-label {
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: rgb(185, 189, 220);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__risk-value {
+    font-size: 96px;
     color: rgb(247, 227, 155);
     -unity-font-style: bold;
 }
 
-.wm-dungeon-entrance .wm-constraint-popup__grid {
-    margin: -8px;
+.wm-dungeon-entrance .wm-constraint-popup__risk-meter {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__risk-pip {
+    width: 18px;
+    height: 10px;
+    margin: 0 4px 4px 0;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__risk-pip--on {
+    background-color: rgb(247, 227, 155);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__side-header {
+    margin-top: 40px;
+    padding-bottom: 6px;
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: rgb(185, 189, 220);
+    border-width: 0 0 1px 0;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__rewards {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-top: 10px;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__reward-empty {
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: rgb(150, 156, 200);
+    white-space: normal;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__reward--placeholder {
+    opacity: 0.45;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__reward-slot {
+    width: 40px;
+    height: 40px;
+    margin-right: 8px;
+    background-color: rgba(255, 255, 255, 0.07);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__reward {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+    opacity: 0.5;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__reward--reached {
+    opacity: 1;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__reward-risk {
+    width: 72px;
+    font-size: 13px;
+    color: rgb(247, 227, 155);
+}
+
+/* 폭 760 은 표 6 열 (단계 머리 64 + 칸 110 x 6 + 안쪽 28) 과 짝. 바꾸면 UIDungeonConstraintPopup.MIN_COLUMNS 도 */
+.wm-dungeon-entrance .wm-constraint-popup__main {
+    width: 760px;
+    flex-shrink: 0;
+    margin-left: var(--wm-space-panel-gap);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__head {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-width: 0 0 1px 0;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__header {
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: rgb(228, 231, 255);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__hint {
+    font-size: 12px;
+    color: rgb(150, 156, 200);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__table {
+    padding: 14px 14px 4px 14px;
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__row {
+    flex-direction: row;
+    margin-bottom: 10px;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__row-head {
+    width: 64px;
+    height: 106px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__row-head-label {
+    font-size: 11px;
+    color: rgb(185, 189, 220);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__row-head-value {
+    font-size: 32px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile,
+.wm-dungeon-entrance .wm-constraint-popup__cell-empty {
+    width: 100px;
+    height: 106px;
+    margin: 0 0 0 10px;
+}
+
+/* 빈 칸: 표 격자 모양 유지 */
+.wm-dungeon-entrance .wm-constraint-popup__cell-empty {
+    background-color: rgba(255, 255, 255, 0.025);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.06);
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__tile {
-    width: 112px;
-    height: 124px;
-    margin: 8px;
-    padding-top: 16px;
-    background-color: rgba(255, 255, 255, 0.06);
+    align-items: center;
+    padding: 2px 4px 0 4px;
+    background-color: rgba(255, 255, 255, 0.1);
     border-width: 3px;
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(0, 0, 0, 0);
     border-radius: 0;
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__tile:hover {
-    background-color: rgba(255, 255, 255, 0.12);
+    background-color: rgba(255, 255, 255, 0.16);
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__tile--on,
 .wm-dungeon-entrance .wm-constraint-popup__tile--on:hover {
-    background-color: rgba(247, 227, 155, 0.18);
-    border-color: rgb(247, 227, 155);
+    background-color: rgb(247, 227, 155);
 }
 
+.wm-dungeon-entrance .wm-constraint-popup__tile--blocked {
+    opacity: 0.4;
+}
+
+/* 아이콘은 칸 폭의 60% 이상 */
 .wm-dungeon-entrance .wm-constraint-popup__tile-icon {
     width: 60px;
     height: 60px;
-    -unity-background-image-tint-color: rgb(205, 211, 246);
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: rgb(220, 224, 250);
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__tile--on .wm-constraint-popup__tile-icon {
-    -unity-background-image-tint-color: rgb(247, 227, 155);
+    -unity-background-image-tint-color: rgb(21, 23, 46);
 }
 
-.wm-dungeon-entrance .wm-constraint-popup__tile-risk {
-    left: 0;
-    top: 0;
-    padding: 1px 6px;
+.wm-dungeon-entrance .wm-constraint-popup__tile-name {
+    margin-top: 0;
     font-size: 12px;
+    color: rgb(228, 231, 255);
+    white-space: normal;
+    -unity-text-align: upper-center;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile--on .wm-constraint-popup__tile-name {
     color: rgb(21, 23, 46);
-    background-color: rgb(247, 227, 155);
     -unity-font-style: bold;
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__tile-check {
-    right: 6px;
-    top: 6px;
-    width: 18px;
-    height: 18px;
-    -unity-background-image-tint-color: rgb(247, 227, 155);
+    display: none;
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    width: 20px;
+    height: 20px;
+    background-image: url("/Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/game-icons.net/check-mark.png");
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: rgb(21, 23, 46);
 }
 
-.wm-dungeon-entrance .wm-constraint-popup__tile-name {
-    margin-top: 10px;
-    font-size: 13px;
-    color: rgb(228, 231, 255);
+.wm-dungeon-entrance .wm-constraint-popup__tile--on .wm-constraint-popup__tile-check {
+    display: flex;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile-block {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    font-size: 12px;
+    color: rgb(255, 170, 170);
+    background-color: rgba(60, 10, 20, 0.85);
+    -unity-text-align: middle-center;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile--blocked .wm-constraint-popup__tile-block {
+    display: flex;
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__detail {
-    margin-top: 22px;
-    min-height: 84px;
-    padding: 12px 16px;
-    background-color: rgba(255, 255, 255, 0.05);
+    margin-top: 14px;
+    min-height: 76px;
+    padding: 10px 16px;
+    background-color: rgba(255, 255, 255, 0.04);
+    border-width: 0 0 0 3px;
+    border-color: rgb(247, 227, 155);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__detail-head,
+.wm-dungeon-entrance .wm-constraint-popup__effect {
+    flex-direction: row;
+    align-items: center;
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__detail-name {
-    font-size: 16px;
+    flex-grow: 1;
+    font-size: 17px;
     color: rgb(255, 255, 255);
     -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__level-badge {
+    width: 22px;
+    height: 20px;
+    margin: 0 10px 0 10px;
+    font-size: 13px;
+    color: rgb(21, 23, 46);
+    background-color: rgb(247, 227, 155);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__detail-state {
@@ -598,22 +752,89 @@
     margin-top: 6px;
     font-size: 14px;
     color: rgb(196, 201, 236);
+    white-space: normal;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__head--effects {
+    margin-top: 18px;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effects {
+    flex-grow: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    align-items: flex-start;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effect {
+    width: 50%;
+    height: 34px;
+    margin-bottom: 6px;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effect-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    margin-right: 8px;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: rgb(220, 224, 250);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effect-texts {
+    flex-shrink: 1;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effect-head {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effect-name,
+.wm-dungeon-entrance .wm-constraint-popup__effect-value {
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+    white-space: nowrap;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effect-name {
+    color: rgb(242, 243, 251);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effect-value {
+    margin-left: 10px;
+    color: rgb(247, 227, 155);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effect .wm-constraint-popup__level-badge {
+    margin-left: 0;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effect-text {
+    flex-shrink: 1;
+    font-size: 14px;
+    color: rgb(228, 231, 255);
+    white-space: normal;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effect-empty {
+    font-size: 14px;
+    color: rgb(150, 156, 200);
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__foot {
-    margin-top: 22px;
-}
-
-.wm-dungeon-entrance .wm-constraint-popup__summary {
-    font-size: 14px;
-    color: rgb(185, 189, 220);
+    flex-direction: row;
+    justify-content: flex-end;
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__button {
-    width: 128px;
-    height: 42px;
+    width: 140px;
+    height: 46px;
     margin: 0 0 0 12px;
-    font-size: 15px;
+    font-size: 16px;
     color: rgb(242, 243, 251);
     background-color: rgba(0, 0, 0, 0);
     border-width: 2px;
@@ -635,9 +856,8 @@
     background-color: rgb(255, 255, 255);
 }
 
-/* 초점 테두리. 다른 입장 창 버튼과 같은 흰 테두리, 두께는 늘 잡아 두어 초점에 내용이 밀리지 않음 */
-.wm-dungeon-entrance .wm-dungeon-constraint:focus,
+/* 설정 창 초점은 파랑. 흰 주 버튼과 금색 켠 칸 위에서도 보이게 */
 .wm-dungeon-entrance .wm-constraint-popup__tile:focus,
 .wm-dungeon-entrance .wm-constraint-popup__button:focus {
-    border-color: rgb(255, 255, 255);
+    border-color: rgb(110, 180, 255);
 }

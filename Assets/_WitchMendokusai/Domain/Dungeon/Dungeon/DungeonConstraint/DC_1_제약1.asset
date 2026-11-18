@@ -22,5 +22,6 @@ MonoBehaviour:
   - Affiliation: -1
     StatType: 301
     Value: 1
-  <Risk>k__BackingField: 1
+  <Family>k__BackingField: 
+  <Level>k__BackingField: 1
   <ValueUnit>k__BackingField: 

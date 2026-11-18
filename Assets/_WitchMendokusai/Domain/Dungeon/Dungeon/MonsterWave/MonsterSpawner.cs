@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
 {
-	public class MonsterSpawner : MonoBehaviour
+	public partial class MonsterSpawner : MonoBehaviour
 	{
 		public class MonsterWaveInstance
 		{
@@ -77,6 +77,7 @@ namespace WitchMendokusai
 			BuildRunEvents(dungeonManager.CurThreat);
 			nextAnnounceIndex = 0;
 			nextEventIndex = 0;
+			InitPatterns(curDungeon);
 		}
 
 		// 위협 단계를 입힌 이번 판 사건표. 단계 0은 원본 그대로
@@ -92,6 +93,7 @@ namespace WitchMendokusai
 		public void UpdateWaves()
 		{
 			RetireDistantMonsters();
+			UpdatePatterns();
 			for (int i = waves.Count - 1; i >= 0; i--)
 				UpdateWave(i);
 			UpdateEvents();
@@ -156,7 +158,7 @@ namespace WitchMendokusai
 			EventBusBridge.Publish(new SurvivalEventStartedEvent { Type = entry.Type, Monster = entry.Monster, Count = count });
 		}
 
-		private IEnumerator SpawnMonsterAt(Monster monster, Vector3 position, EliteProfile eliteProfile, bool guaranteedChest)
+		private IEnumerator SpawnMonsterAt(Monster monster, Vector3 position, EliteProfile eliteProfile, bool guaranteedChest, WaveMoveOrder moveOrder = null)
 		{
 			pendingSpawns++;
 			GameObject spawnCircle = objectPoolManager.Spawn(spawnCirclePrefab);
@@ -175,6 +177,8 @@ namespace WitchMendokusai
 			monsterObject.SetActive(true);
 			if (eliteProfile != null)
 				monsterObjectComponent.MakeElite(eliteProfile, guaranteedChest);
+			if (moveOrder != null)
+				WaveMoveOverride.Apply(monsterObject, moveOrder);
 		}
 
 		private void RetireDistantMonsters()
@@ -240,6 +244,17 @@ namespace WitchMendokusai
 			waveInstance.SpawnT += DungeonContext.TimeUpdateInterval.Milliseconds / 1000f;
 			// 보스 같은 1회 웨이브는 물량 배율 제외
 			float spawnInterval = waveInstance.Data.Once ? waveInstance.Data.SpawnDelay : dungeonManager.CurThreat.ScaleSpawnDelay(waveInstance.Data.SpawnDelay);
+			// 숨 고르기 패턴과 최종 보스 뒤 배율. 0 이면 주기 생성 멈춤
+			if (waveInstance.Data.Once == false)
+			{
+				// 멈춘 동안 누적을 버림. 재개 직후 몰아서 생성 방지
+				if (PeriodicRateMultiplier <= 0f)
+				{
+					waveInstance.SpawnT = 0f;
+					return;
+				}
+				spawnInterval /= PeriodicRateMultiplier;
+			}
 			if (waveInstance.SpawnT > spawnInterval)
 			{
 				SpawnWaveTick(waveInstance.Data, curDifficulty);
@@ -322,6 +337,7 @@ namespace WitchMendokusai
 			Debug.Log(nameof(StopWave));
 			StopAllCoroutines();
 			pendingSpawns = 0;
+			ResetPatterns();
 			foreach (GameObject obj in ObjectBufferManager.GetObjects(ObjectType.Monster))
 				if (obj != null && obj.TryGetComponent(out MonsterObject monster))
 					monster.UnitMovement.SetSimulationInterval(0f);

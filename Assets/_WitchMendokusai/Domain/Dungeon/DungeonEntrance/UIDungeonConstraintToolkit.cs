@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 입장 창 제약 칸. 제약마다 아이콘과 수치 칩, 꺼진 제약은 흐림, 오른쪽 위 위험도 합계
+	/// 입장 창 제약 칸. 묶음마다 아이콘과 수치 칩, 꺼진 묶음은 흐림, 오른쪽 위 위험도 합계. 칩 5개까지 한 줄
 	/// 칸 전체가 버튼. 누르면 제약 설정 팝업 (UIDungeonConstraintPopup)
 	/// DungeonManager 는 켜진 제약만 판에 적용 (DungeonContext.Constraints)
 	/// </summary>
@@ -47,22 +47,35 @@ namespace WitchMendokusai
 
 		public void SetDungeon(Dungeon dungeon) => this.dungeon = dungeon;
 
+		// 묶음마다 칩 하나. 켠 단계가 있으면 그 단계 아이콘과 수치, 없으면 흐린 아이콘만
 		public void UpdateUI()
 		{
-			EnsureChipCount(dungeon.Constraints.Count);
+			List<string> families = DungeonConstraintRules.FamilyOrder(dungeon);
+			EnsureChipCount(families.Count);
 			for (int i = 0; i < chips.Count; i++)
 			{
-				bool isUsed = i < dungeon.Constraints.Count;
+				bool isUsed = i < families.Count;
 				chips[i].style.display = isUsed ? DisplayStyle.Flex : DisplayStyle.None;
 				if (isUsed == false)
 					continue;
 
-				DungeonConstraint constraint = dungeon.Constraints[i];
-				chipIcons[i].style.backgroundImage = new StyleBackground(constraint.Sprite);
-				chipValues[i].text = constraint.ShortValue;
-				chips[i].EnableInClassList(USS_CHIP_OFF, dungeon.ConstraintSelected[constraint.ID] == false);
+				DungeonConstraint shown = null;
+				DungeonConstraint selected = null;
+				foreach (DungeonConstraint constraint in dungeon.Constraints)
+				{
+					if (constraint.FamilyKey != families[i])
+						continue;
+					shown ??= constraint;
+					if (dungeon.ConstraintSelected[constraint.ID])
+						selected = constraint;
+				}
+				DungeonConstraint target = selected ?? shown;
+				chipIcons[i].style.backgroundImage = new StyleBackground(target.Sprite);
+				chipValues[i].text = selected != null ? selected.ShortValue : string.Empty;
+				chipValues[i].style.display = selected != null ? DisplayStyle.Flex : DisplayStyle.None;
+				chips[i].EnableInClassList(USS_CHIP_OFF, selected == null);
 			}
-			riskLabel.text = "위험도 " + DungeonConstraintRisk.Total(dungeon);
+			riskLabel.text = "위험도 " + DungeonConstraintRules.TotalRisk(dungeon);
 		}
 
 		private void EnsureChipCount(int count)
@@ -81,21 +94,6 @@ namespace WitchMendokusai
 			child.AddToClassList(ussClass);
 			parent.Add(child);
 			return child;
-		}
-	}
-
-	/// <summary> 켠 제약의 위험도 합. 입장 칸과 설정 팝업이 같이 씀 </summary>
-	public static class DungeonConstraintRisk
-	{
-		public static int Total(Dungeon dungeon)
-		{
-			int total = 0;
-			foreach (DungeonConstraint constraint in dungeon.Constraints)
-			{
-				if (dungeon.ConstraintSelected[constraint.ID])
-					total += constraint.Risk;
-			}
-			return total;
 		}
 	}
 }
