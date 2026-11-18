@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   <ID>k__BackingField: 7
   <Name>k__BackingField: "\uD1A0\uB07C"
-  <Description>k__BackingField: "\uAC81 \uB9CE\uC740 \uC18C\uC2DD\uD1B5. \uB3C4\uB9DD \uC18D\uB3C4\uAC00 \uC804\uD22C\uB825. \uC774\uB984\uACFC \uC218\uCE58\uC640 \uC7A5\uBE44\uB294 \uC784\uC2DC."
+  <Description>k__BackingField: "\uAC81 \uB9CE\uC740 \uC18C\uC2DD\uD1B5. \uB3C4\uB9DD \uC18D\uB3C4\uAC00 \uC804\uD22C\uB825."
   <Sprite>k__BackingField: {fileID: 21300000, guid: 279a3de9647e4528b504da27f97dff5c, type: 3}
   <Sprites>k__BackingField:
   - {fileID: 21300000, guid: 97cf8255cddf4d63bcf0acd055b9ce58, type: 3}

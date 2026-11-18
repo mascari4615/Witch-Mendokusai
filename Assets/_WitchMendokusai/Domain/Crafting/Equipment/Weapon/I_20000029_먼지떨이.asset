@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.EquipmentData
   <ID>k__BackingField: 20000029
   <Name>k__BackingField: "\uBA3C\uC9C0\uB5A8\uC774"
-  <Description>k__BackingField: "\uC55E\uCABD \uC801\uC744 \uBA40\uB9AC \uD138\uC5B4\uB0B8\uB2E4. \uC784\uC2DC \uD310\uC815\uACFC \uC784\uC2DC \uC5F0\uCD9C."
+  <Description>k__BackingField: "\uC55E\uCABD \uC801\uC744 \uBA40\uB9AC \uD138\uC5B4\uB0B8\uB2E4."
   <Sprite>k__BackingField: {fileID: 21300000, guid: bd3990a69b0b81142bc3c79442566bf3, type: 3}
   <Sprites>k__BackingField: []
   <Grade>k__BackingField: 0
