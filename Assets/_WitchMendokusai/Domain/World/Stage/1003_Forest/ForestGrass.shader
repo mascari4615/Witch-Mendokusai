@@ -1,4 +1,5 @@
 // 숲 스테이지 풀잎. 정점 색으로 뿌리에서 끝까지 그라데이션, 법선은 위로 고정해 부드러운 명암, 그림자 받음
+// 캐릭터 둘레 원과 카메라 바로 앞 풀잎은 점무늬로 비움 (Core/Shaders/WMOcclusionCutout.hlsl)
 // 원형: 숲 시안 forestz21 연구 셰이더 (memo wm/design/style-pass-20261116)
 Shader "WM/ForestGrass"
 {
@@ -19,16 +20,19 @@ Shader "WM/ForestGrass"
             #pragma multi_compile_fog
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #define _WM_OCCLUDABLE
+            #include "../../../../Core/Shaders/WMOcclusionCutout.hlsl"
             CBUFFER_START(UnityPerMaterial) float _Wrap; CBUFFER_END
             struct A { float4 pos : POSITION; float4 col : COLOR; };
-            struct V { float4 cs : SV_POSITION; float3 ws : TEXCOORD0; float4 col : COLOR; float fog : TEXCOORD1; };
+            struct V { float4 cs : SV_POSITION; float3 ws : TEXCOORD0; float4 col : COLOR; float fog : TEXCOORD1; float4 sp : TEXCOORD2; };
             V vert(A i)
             {
                 V o; VertexPositionInputs p = GetVertexPositionInputs(i.pos.xyz);
-                o.cs = p.positionCS; o.ws = p.positionWS; o.col = i.col; o.fog = ComputeFogFactor(p.positionCS.z); return o;
+                o.cs = p.positionCS; o.ws = p.positionWS; o.col = i.col; o.fog = ComputeFogFactor(p.positionCS.z); o.sp = ComputeScreenPos(p.positionCS); return o;
             }
             half4 frag(V i) : SV_Target
             {
+                WMCutoutClip(WMCutoutCoverage(i.sp, i.ws), i.cs.xy);
                 float3 n = float3(0, 1, 0);
                 Light L = GetMainLight(TransformWorldToShadowCoord(i.ws));
                 float nl = saturate((dot(n, L.direction) + _Wrap) / (1 + _Wrap));
@@ -49,8 +53,11 @@ Shader "WM/ForestGrass"
             #pragma vertex v
             #pragma fragment f
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            float4 v(float4 p : POSITION) : SV_POSITION { return TransformObjectToHClip(p.xyz); }
-            half f() : SV_Target { return 0; }
+            #define _WM_OCCLUDABLE
+            #include "../../../../Core/Shaders/WMOcclusionCutout.hlsl"
+            struct DV { float4 cs : SV_POSITION; float3 ws : TEXCOORD0; float4 sp : TEXCOORD1; };
+            DV v(float4 p : POSITION) { DV o; o.ws = TransformObjectToWorld(p.xyz); o.cs = TransformWorldToHClip(o.ws); o.sp = ComputeScreenPos(o.cs); return o; }
+            half f(DV i) : SV_Target { WMCutoutClip(WMCutoutCoverage(i.sp, i.ws), i.cs.xy); return 0; }
             ENDHLSL
         }
     }

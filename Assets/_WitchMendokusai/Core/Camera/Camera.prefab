@@ -200,6 +200,7 @@ GameObject:
   - component: {fileID: 5527348470732876425}
   - component: {fileID: 3701686339221545077}
   - component: {fileID: 1429713195690589378}
+  - component: {fileID: 4615204811180001237}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -309,6 +310,27 @@ MonoBehaviour:
     DissipationDistance: 100
     PropagationSpeed: 343
   DefaultVelocity: {x: 0, y: 0, z: 3}
+--- !u!114 &4615204811180001237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 825123083814621776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9fe07e9e3364662a0edd5ea4d45a6ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameCamera: {fileID: 3115201440362895077}
+  radius: 0.16
+  softness: 0.08
+  maxCoverage: 1
+  centerHeight: 0.6
+  depthMargin: 0.6
+  floorMargin: 0.15
+  nearDistance: 5
+  nearSoftness: 2
 --- !u!1 &953279963707494152
 GameObject:
   m_ObjectHideFlags: 0

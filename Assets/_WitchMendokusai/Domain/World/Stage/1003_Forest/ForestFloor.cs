@@ -8,6 +8,8 @@ namespace WitchMendokusai
 	// 풀과 꽃은 수백만 장이라 자산으로 저장하지 않음. 생성식은 숲 시안 forestz21 (memo wm/design/style-pass-20261116)
 	// 나무, 바위, 자갈은 같은 높이 함수로 굽은 프리팹 자식 (memo wm/design/lab-forest-stage-20261118)
 	[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
+	// 지형 충돌체를 땅으로 표시. 카메라 가림 해소 (CinemachineComponentDeoccluder) 가 언덕 앞에서 카메라를 당기고 언덕 위로 올림
+	[RequireComponent(typeof(GroundSurface), typeof(CameraLiftGround))]
 	public partial class ForestFloor : MonoBehaviour
 	{
 		[Header("Terrain")]

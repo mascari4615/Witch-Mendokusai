@@ -36,6 +36,12 @@ namespace WitchMendokusai
 		[Range(0f, 2f)]
 		[SerializeField] private float smoothingTime = 0.5f;
 
+		[Header("Ground lift")]
+		[Tooltip("카메라 아래 언덕 땅 (CameraLiftGround) 위로 띄울 높이 (m). 언덕이 카메라 자리를 덮으면 카메라를 위로 올림")]
+		[SerializeField, Min(0f)] private float groundClearance = 1.5f;
+		[Tooltip("땅 높이를 재는 광선 시작 높이. 카메라 위로 (m)")]
+		[SerializeField, Min(0f)] private float groundProbeHeight = 40f;
+
 
 		[Header("Debug")]
 		[Tooltip("Scene view 에 카메라-LookAt 선·hit 지점·구체 표시. Play 중 Scene view 에서 보임. Game view 도 보고 싶으면 Game 탭 상단 Gizmos 토글 ON.")]
@@ -59,6 +65,8 @@ namespace WitchMendokusai
 			public float currentDistance;
 			public float velocity;
 			public Vector3 previousDirection;
+			public float currentLift;
+			public float liftVelocity;
 
 			// Debug 캐시 — OnDrawGizmos 가 Body callback 안에서 그릴 수 없어 마지막 값 보관
 			public Vector3 debugTarget;
@@ -84,7 +92,21 @@ namespace WitchMendokusai
 			float nearWidth = nearHeight * state.Lens.Aspect;
 			float probeRadius = Mathf.Max(cameraRadius, new Vector3(nearWidth, nearHeight, state.Lens.NearClipPlane).magnitude);
 			Vector3 target = ResolveTarget(state.ReferenceLookAt, probeRadius);
-			Vector3 delta = state.RawPosition - target;
+			bool hasState = stateByVcam.TryGetValue(vcam, out VcamState vcamState);
+
+			// 언덕 땅 위로 올림. 올림은 즉시, 내림만 보간
+			float lift = GroundLift(state.RawPosition);
+			if (hasState == false || lift >= vcamState.currentLift || deltaTime <= 0f || smoothingTime <= 0.0001f)
+			{
+				vcamState.currentLift = lift;
+				vcamState.liftVelocity = 0f;
+			}
+			else
+			{
+				vcamState.currentLift = Mathf.SmoothDamp(vcamState.currentLift, lift, ref vcamState.liftVelocity, smoothingTime, Mathf.Infinity, deltaTime);
+			}
+
+			Vector3 delta = state.RawPosition + (Vector3.up * vcamState.currentLift) - target;
 			float desiredDistance = delta.magnitude;
 			if (desiredDistance < 0.0001f)
 				return;
@@ -92,9 +114,11 @@ namespace WitchMendokusai
 
 			float occludedDistance = SafeDistance(target, direction, probeRadius, desiredDistance, true);
 
-			if (stateByVcam.TryGetValue(vcam, out VcamState vcamState) == false)
+			if (hasState == false)
 			{
-				vcamState = new VcamState { currentDistance = desiredDistance, velocity = 0f, previousDirection = direction };
+				vcamState.currentDistance = desiredDistance;
+				vcamState.velocity = 0f;
+				vcamState.previousDirection = direction;
 			}
 
 			// 안전 거리는 첫 프레임부터 적용. 보간은 벽에서 멀어지는 복원에만 사용
@@ -201,6 +225,21 @@ namespace WitchMendokusai
 					distance = Mathf.Min(distance, Mathf.Max(0f, hits[index].distance - collisionPadding));
 			}
 			return distance;
+		}
+
+		// 카메라 자리 위아래의 CameraLiftGround 중 가장 높은 땅 기준, 띄울 높이 (m). 없으면 0
+		private float GroundLift(Vector3 position)
+		{
+			Vector3 origin = position + (Vector3.up * groundProbeHeight);
+			int count = Physics.RaycastNonAlloc(origin, Vector3.down, HIT_BUFFER, groundProbeHeight + groundClearance, broadMask, QueryTriggerInteraction.Ignore);
+			float lift = 0f;
+			for (int index = 0; index < count; index++)
+			{
+				if (HIT_BUFFER[index].collider.GetComponentInParent<CameraLiftGround>() == null)
+					continue;
+				lift = Mathf.Max(lift, HIT_BUFFER[index].point.y + groundClearance - position.y);
+			}
+			return lift;
 		}
 
 		private static bool FadeInsteadOfPull(Collider surface, bool requestFade)
