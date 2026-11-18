@@ -158,7 +158,8 @@ namespace WitchMendokusai
 			topRow.Add(sprintButton);
 			// 조준 모드도 키 하나(Y)에만 있었다 — 폰에선 조준으로 바꿀 방법이 0 이었다.
 			// 누르는 순간 「바꿔라」가 나가는 종류라 이 버튼으로 그대로 된다(떼는 것은 아무도 안 듣는다).
-			topRow.Add(MakeHoldButton("조준", InputEventType.ChangeMode, actionButtonSize * 0.8f));
+			aimButton = MakeHoldButton("조준", InputEventType.ChangeMode, actionButtonSize * 0.8f);
+			topRow.Add(aimButton);
 			column.Add(topRow);
 
 			// 말걸기는 가끔 뜨는 버튼. 묶음 배치에 끼우면 나타날 때마다 다른 버튼이 밀림 (2026-11-17 실기 "기존 버튼이 움직이는 경우는 본 적이 없어")
@@ -181,6 +182,7 @@ namespace WitchMendokusai
 			bottomRow.Add(MakeHoldButton("앉기", InputEventType.Crouch, actionButtonSize * 0.8f));
 			column.Add(bottomRow);
 
+			HideDisabledButtons();
 			column.name = "MobileActionButtons";
 			parent.Add(column);
 			RegisterMovable(column);
@@ -190,17 +192,26 @@ namespace WitchMendokusai
 		private VisualElement sprintButton;
 		private VisualElement attackButton;
 		private VisualElement assistButton;
+		private VisualElement aimButton;
 
 		/// <summary>
-		/// 던전 안에서 안 쓰는 버튼을 숨김. 뛰기는 달리기가 막혀서 (사용자 2026-11-18 "던전에서는 못달리게"),
-		/// 공격과 보조는 클릭 스킬이 없고 장비가 알아서 공격해서 (사용자 2026-11-18 키보드만으로 조작)
+		/// 던전 안에서 뛰기 버튼을 숨김. 달리기가 막혀서 (사용자 2026-11-18 "던전에서는 못달리게")
 		/// 자리는 비워 둠. display 를 끄면 옆 버튼이 밀림 (2026-11-17 실기 "기존 버튼이 움직이는 경우는 본 적이 없어")
 		/// </summary>
 		private void UpdateDungeonButtons()
 		{
 			HideInDungeon(sprintButton, InputEventType.Sprint);
-			HideInDungeon(attackButton, InputEventType.Click0);
-			HideInDungeon(assistButton, InputEventType.Click1);
+		}
+
+		/// <summary>
+		/// 공격, 보조, 조준 버튼은 모든 장면에서 숨김. 클릭과 우클릭 스킬이 꺼져 있고 조준은 늘 가장 가까운 적이라 누를 일이 없음
+		/// (사용자 2026-11-18 키보드만으로 조작, 나중에 재기획). 버튼은 지우지 않고 자리만 비워 둠
+		/// </summary>
+		private void HideDisabledButtons()
+		{
+			attackButton.style.visibility = Visibility.Hidden;
+			assistButton.style.visibility = Visibility.Hidden;
+			aimButton.style.visibility = Visibility.Hidden;
 		}
 
 		private void HideInDungeon(VisualElement button, InputEventType inputEventType)

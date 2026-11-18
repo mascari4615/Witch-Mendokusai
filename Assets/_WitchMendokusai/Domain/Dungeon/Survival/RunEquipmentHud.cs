@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	// 생존 던전 아래 가운데 스킬창. 앞에 Shift 이동 스킬, 뒤에 보유 장비와 레벨 (사용자 2026-11-18 "스킬창에는 장비들")
-	// 클릭과 우클릭 스킬은 던전에서 꺼져서 이 창에 없음. 스타일은 RunEquipmentHud.uss
+	// 클릭과 우클릭 스킬은 모든 장면에서 꺼져서 이 창에 없음. 스타일은 RunEquipmentHud.uss
 	public class RunEquipmentHud : VisualElement
 	{
 		public const string USS_ROOT = "wm-run-equipment";

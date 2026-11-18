@@ -36,8 +36,8 @@ namespace WitchMendokusai
 		// [Min] = 0 입력 시 0-나눗셈 + WaitForSeconds(0) 무한루프 차단. 방어 분기 대신 입력 자체를 막는다.
 		[SerializeField, Min(0.001f)] private float invincibleBlinkInterval = 0.1f;
 
-		[SerializeField, Min(0), Tooltip("생존 던전 안에서 쓰는 스킬 칸 수, 앞 칸부터. 1 이면 Shift 이동 스킬만. 클릭과 우클릭 스킬은 끄고 공격은 장비가 맡음 (사용자 2026-11-18 키보드만으로 조작)")]
-		private int dungeonSkillSlotCount = 1;
+		[SerializeField, Min(0), Tooltip("조종하는 인형이 쓰는 스킬 칸 수, 앞 칸부터. 1 이면 Shift 이동 스킬만. 클릭과 우클릭 스킬은 모든 장면에서 끔, 공격은 장비가 맡음 (사용자 2026-11-18 키보드만으로 조작, 나중에 재기획). 투기장 인형은 제한 없음")]
+		private int activeSkillSlotCount = 1;
 
 		private GameEventManager gameEventManager;
 		private SOManager soManager;
@@ -74,7 +74,9 @@ namespace WitchMendokusai
 		public override void Init(Unit unitData)
 		{
 			base.Init(unitData);
-			SkillHandler.DungeonSlotLimit = dungeonSkillSlotCount;
+			// 투기장 인형도 이 껍데기를 쓰지만 전술 코어가 모든 칸을 써야 해서 조종하는 인형 (Player 부품) 만 제한
+			if (TryGetComponent(out Player _))
+				SkillHandler.ActiveSlotLimit = activeSkillSlotCount;
 
 			headRenderer.sprite = UnitData.Sprites[0];
 			bodyRenderer.sprite = UnitData.Sprites[1];

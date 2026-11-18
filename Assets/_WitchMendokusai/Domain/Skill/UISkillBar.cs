@@ -45,9 +45,14 @@ namespace WitchMendokusai
 				return;
 			}
 
-			IEnumerable<Skill> skills = playerProvider.CurrentObject.SkillHandler.SkillDic.Values;
-			foreach (Skill skill in skills)
+			// 꺼진 칸 (클릭과 우클릭 스킬, 사용자 2026-11-18) 은 표시 안 함
+			SkillHandler skillHandler = playerProvider.CurrentObject.SkillHandler;
+			foreach (KeyValuePair<int, Skill> pair in skillHandler.SkillDic)
 			{
+				if (skillHandler.IsSlotEnabled(pair.Key) == false)
+					continue;
+
+				Skill skill = pair.Value;
 				curSkillSlots[skillCount].SetSlot(skill.Data);
 				curSkillSlots[skillCount].UpdateCooltime(skill);
 

@@ -33,8 +33,6 @@ namespace WitchMendokusai
 		private VisualElement sprintRow;
 		// 큰 지도는 던전 안에서만 쓰므로 던전 밖에서는 이 줄을 숨김
 		private VisualElement minimapRow;
-		// 던전 안에서는 클릭과 우클릭 기본 스킬이 없어서 두 줄을 숨김 (사용자 2026-11-18 키보드만으로 조작)
-		private readonly List<VisualElement> clickRows = new();
 		private UIRoot uiRoot;
 		private InputManager inputManager;
 
@@ -98,13 +96,16 @@ namespace WitchMendokusai
 			PlayerPrefs.Save();
 			RefreshSprintRow();
 			RefreshMinimapRow();
-			RefreshClickRows();
 			window.Open();
 		}
 
 		// 릴리스: 개발자 창 단축키 줄 숨김 (DevWindow 와 같은 조건)
+		// 클릭과 우클릭 스킬, 조준 모드 전환은 모든 장면에서 꺼져 있어서 줄을 숨김 (사용자 2026-11-18 키보드만으로 조작, 나중에 재기획)
 		private static bool IsVisible(KeybindEntry entry)
-			=> KeybindRegistry.IsShownInThisBuild(entry.EventType);
+			=> KeybindRegistry.IsShownInThisBuild(entry.EventType) && IsDisabledControl(entry.EventType) == false;
+
+		private static bool IsDisabledControl(InputEventType eventType)
+			=> eventType == InputEventType.Click0 || eventType == InputEventType.Click1 || eventType == InputEventType.ChangeMode;
 
 		private VisualElement CreateRow(string displayName, string keyText)
 		{
@@ -151,8 +152,6 @@ namespace WitchMendokusai
 						sprintRow = row;
 					if (entry.EventType == InputEventType.MinimapLargeView)
 						minimapRow = row;
-					if (entry.EventType == InputEventType.Click0 || entry.EventType == InputEventType.Click1)
-						clickRows.Add(row);
 					categoryBox.Add(row);
 				}
 
@@ -224,7 +223,6 @@ namespace WitchMendokusai
 
 			RefreshSprintRow();
 			RefreshMinimapRow();
-			RefreshClickRows();
 			window.Toggle();
 		}
 
@@ -234,13 +232,6 @@ namespace WitchMendokusai
 				return;
 
 			sprintRow.style.display = DungeonManagerBridge.IsDungeon ? DisplayStyle.None : DisplayStyle.Flex;
-		}
-
-		private void RefreshClickRows()
-		{
-			DisplayStyle display = DungeonManagerBridge.IsDungeon ? DisplayStyle.None : DisplayStyle.Flex;
-			foreach (VisualElement row in clickRows)
-				row.style.display = display;
 		}
 
 		private void RefreshMinimapRow()

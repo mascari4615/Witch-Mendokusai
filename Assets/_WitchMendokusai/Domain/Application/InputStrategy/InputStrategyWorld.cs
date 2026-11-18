@@ -42,6 +42,7 @@ namespace WitchMendokusai
 							() => EventBusBridge.Publish(new PlayerJumpReleasedEvent()),
 							() => CanExecute(InputEventType.Jump)
 						),
+						// 클릭과 우클릭 스킬은 SkillHandler.ActiveSlotLimit 로 모든 장면에서 꺼짐 (사용자 2026-11-18). 등록은 나중 재기획용으로 둠
 						new(
 							InputEventType.Click0,
 							InputEventResponseType.Get,
@@ -162,8 +163,6 @@ namespace WitchMendokusai
 				InputEventType.Click0,
 				new[]
 				{
-					// 생존 던전은 키보드만으로 조작. 클릭과 우클릭 기본 스킬 없음, 공격은 장비 (사용자 2026-11-18)
-					GameConditionType.IsInDungeon,
 					GameConditionType.IsMouseOnUI,
 					GameConditionType.IsTyping,
 					GameConditionType.IsPaused,
@@ -176,8 +175,6 @@ namespace WitchMendokusai
 				InputEventType.Click1,
 				new[]
 				{
-					// 생존 던전은 키보드만으로 조작. 클릭과 우클릭 기본 스킬 없음, 공격은 장비 (사용자 2026-11-18)
-					GameConditionType.IsInDungeon,
 					GameConditionType.IsMouseOnUI,
 					GameConditionType.IsTyping,
 					GameConditionType.IsPaused,

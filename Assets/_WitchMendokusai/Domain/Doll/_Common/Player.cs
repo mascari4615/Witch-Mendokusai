@@ -141,10 +141,9 @@ namespace WitchMendokusai
 		{
 			// 최근접 대상 탐색은 프레임당 한 번, 조준 위치와 방향은 그 결과로 계산
 			GameObject nearestTarget = aim.GetNearestTarget();
-			// 생존 던전은 키보드만으로 조작 (사용자 2026-11-18). 마우스 대신 가장 가까운 적, 없으면 이동 방향을 조준
-			AimPos = DungeonManagerBridge.IsDungeon
-				? aim.CalcKeyboardAim(nearestTarget, Object.UnitMovement.LookDirection)
-				: aim.CalcAim(nearestTarget, IsAutoAim);
+			// 키보드만으로 조작 (사용자 2026-11-18). 모든 장면에서 마우스 대신 가장 가까운 적, 없으면 이동 방향을 조준
+			// 마우스 조준 (CalcAim) 과 조준 모드 전환 (Y) 은 나중 재기획 때까지 안 씀
+			AimPos = aim.CalcKeyboardAim(nearestTarget, Object.UnitMovement.LookDirection);
 			AimDirection = aim.CalcAimDirection(AimPos);
 			NearestTarget = nearestTarget != null ? nearestTarget.transform : null;
 

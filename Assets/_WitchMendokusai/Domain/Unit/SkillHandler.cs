@@ -21,13 +21,13 @@ namespace WitchMendokusai
 		// 기본 true = 레거시(던전 Auto) 무변경. 아레나 셋업이 false 로 설정.
 		public bool AutoCastEnabled { get; set; } = true;
 
-		// 생존 던전 안에서 쓰는 스킬 칸 수. 앞 칸부터. 조작 캐릭터는 Shift 이동 스킬만 남기고 클릭과 우클릭 스킬을 끔 (사용자 2026-11-18)
-		// 기본은 제한 없음. 값은 PlayerObject 의 SerializeField
-		public int DungeonSlotLimit { get; set; } = int.MaxValue;
+		// 쓰는 스킬 칸 수, 앞 칸부터. 조종하는 인형은 Shift 이동 스킬만 남기고 클릭과 우클릭 스킬을 모든 장면에서 끔 (사용자 2026-11-18, 나중에 재기획)
+		// 기본은 제한 없음 (몬스터, 투기장 인형). 값은 PlayerObject 의 SerializeField
+		public int ActiveSlotLimit { get; set; } = int.MaxValue;
 
 		private static bool IsInDungeon => DungeonManager.Instance != null && DungeonManager.Instance.IsDungeon;
 
-		public bool IsSlotEnabled(int skillIndex) => IsInDungeon == false || skillIndex < DungeonSlotLimit;
+		public bool IsSlotEnabled(int skillIndex) => skillIndex < ActiveSlotLimit;
 
 		public SkillHandler(UnitObject unitObject, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
 		{
