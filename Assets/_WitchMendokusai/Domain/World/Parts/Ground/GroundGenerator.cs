@@ -29,17 +29,20 @@ namespace WitchMendokusai
 
 		private PlayerProvider playerProvider;
 		private ObjectPoolManager objectPoolManager;
+		private GameLogic gameLogic;
 
 		[Inject]
-		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager, GameLogic gameLogic)
 		{
 			this.playerProvider = playerProvider;
 			this.objectPoolManager = objectPoolManager;
+			this.gameLogic = gameLogic;
 		}
 
 		private void OnDisable()
 		{
 			ReleaseDecorations();
+			ReleaseBreakables();
 			foreach (GameObject chunk in chunks.Values)
 				chunk.SetActive(false);
 			chunks.Clear();

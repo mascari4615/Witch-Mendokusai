@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b356c72115e4538a278e3b44873e5e1, type: 3}
+  m_Name: BreakableSettings
+  m_EditorClassIdentifier:
+  CellSize: 16
+  CellRadius: 2
+  CountPerCell: {x: 0, y: 2}
+  ClearRadius: 6
+  MinSpacing: 3
+  CellMargin: 1
+  Seed: 7151
+  GroundHeight: 0
+  VariantsPerKind: 4
+  StripPixels: 4
+  GrainPixels: 32
+  GrainStrength: 0.22
+  GrainPerMeter: 1.4
+  ColorJitter: 0.05
+  TiltDegrees: 5
+  ShakeDistance: 0.07
+  ShakeDegrees: 9
+  ShakeDuration: 0.2
+  ShakeFrequency: 7
+  FlashColor: {r: 2.4, g: 2.4, b: 2.4, a: 1}
+  FlashDuration: 0.1
+  HitSfx: 20
+  BreakSfx: 15
+  ShardCount: {x: 6, y: 9}
+  ShardScale: {x: 0.2, y: 0.38}
+  ShardSpeed: {x: 2.5, y: 5}
+  ShardLift: 5
+  ShardGravity: 20
+  ShardBounce: 0.3
+  ShardLife: 0.9
+  ShardSpin: 540
+  MaxShards: 96
+  BaseMaterial: {fileID: 2100000, guid: f5b346414d1d48e4bf9a6d6abae10864, type: 2}
+  NyangPrefab: {fileID: 4615000000000000004, guid: f0d33b84c3294cbe82f86f55cef9640f, type: 3}
+  Kinds:
+  - Name: Crate
+    Shape: 0
+    Weight: 3
+    Health: 18
+    Size: {x: 0.9, y: 0.9, z: 0.9}
+    SizeJitter: 0.15
+    Palette:
+    - {r: 0.78, g: 0.58, b: 0.36, a: 1}
+    - {r: 0.55, g: 0.38, b: 0.22, a: 1}
+    - {r: 0.3, g: 0.2, b: 0.12, a: 1}
+    Table: {fileID: 11400000, guid: 8172cfe264ee43538528c7cde9bba660, type: 2}
+  - Name: Barrel
+    Shape: 1
+    Weight: 2
+    Health: 24
+    Size: {x: 0.8, y: 1.1, z: 0.8}
+    SizeJitter: 0.12
+    Palette:
+    - {r: 0.72, g: 0.5, b: 0.3, a: 1}
+    - {r: 0.46, g: 0.46, b: 0.52, a: 1}
+    - {r: 0.62, g: 0.43, b: 0.26, a: 1}
+    Table: {fileID: 11400000, guid: 8172cfe264ee43538528c7cde9bba660, type: 2}
+  - Name: Pot
+    Shape: 2
+    Weight: 3
+    Health: 8
+    Size: {x: 0.72, y: 0.85, z: 0.72}
+    SizeJitter: 0.18
+    Palette:
+    - {r: 0.86, g: 0.55, b: 0.38, a: 1}
+    - {r: 0.96, g: 0.88, b: 0.7, a: 1}
+    - {r: 0.25, g: 0.15, b: 0.1, a: 1}
+    Table: {fileID: 11400000, guid: 8172cfe264ee43538528c7cde9bba660, type: 2}
+  - Name: Basket
+    Shape: 3
+    Weight: 2
+    Health: 10
+    Size: {x: 0.8, y: 0.55, z: 0.8}
+    SizeJitter: 0.15
+    Palette:
+    - {r: 0.88, g: 0.74, b: 0.46, a: 1}
+    - {r: 0.7, g: 0.54, b: 0.3, a: 1}
+    - {r: 0.92, g: 0.36, b: 0.3, a: 1}
+    - {r: 0.98, g: 0.76, b: 0.3, a: 1}
+    Table: {fileID: 11400000, guid: 8172cfe264ee43538528c7cde9bba660, type: 2}
+  - Name: BookStack
+    Shape: 4
+    Weight: 1.5
+    Health: 12
+    Size: {x: 0.6, y: 0.6, z: 0.42}
+    SizeJitter: 0.12
+    Palette:
+    - {r: 0.96, g: 0.93, b: 0.82, a: 1}
+    - {r: 0.56, g: 0.32, b: 0.64, a: 1}
+    - {r: 0.3, g: 0.48, b: 0.74, a: 1}
+    - {r: 0.82, g: 0.34, b: 0.38, a: 1}
+    - {r: 0.36, g: 0.64, b: 0.46, a: 1}
+    Table: {fileID: 11400000, guid: 0fcd4d4fb5d74ac796d7063603dc80c9, type: 2}
+  - Name: PotionCrate
+    Shape: 5
+    Weight: 1.5
+    Health: 16
+    Size: {x: 0.95, y: 0.9, z: 0.72}
+    SizeJitter: 0.1
+    Palette:
+    - {r: 0.8, g: 0.62, b: 0.4, a: 1}
+    - {r: 0.58, g: 0.4, b: 0.24, a: 1}
+    - {r: 0.72, g: 0.54, b: 0.34, a: 1}
+    - {r: 0.55, g: 0.86, b: 0.96, a: 1}
+    - {r: 0.96, g: 0.52, b: 0.72, a: 1}
+    - {r: 0.62, g: 0.92, b: 0.5, a: 1}
+    - {r: 0.76, g: 0.62, b: 0.96, a: 1}
+    Table: {fileID: 11400000, guid: 0fcd4d4fb5d74ac796d7063603dc80c9, type: 2}

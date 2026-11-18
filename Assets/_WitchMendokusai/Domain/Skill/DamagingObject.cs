@@ -127,6 +127,11 @@ namespace WitchMendokusai
 						}
 					}
 				}
+				// 부서지는 물건. 주인공 무기만, 관통 횟수는 소모하지 않음
+				else if (damageable is BreakableObject breakable && usedByPlayer)
+				{
+					breakable.ReceiveDamage(CalcDamage());
+				}
 			}
 		}
 
