@@ -617,6 +617,8 @@
 
 .wm-banner--victory .wm-banner__streak {
     display: flex;
+    left: 14%;
+    right: 14%;
 }
 
 /* 기울임 글꼴이 없어 묶음째 조금 돌려 기울어진 결을 냄 */
