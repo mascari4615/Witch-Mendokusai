@@ -199,7 +199,8 @@ namespace WitchMendokusai
 				(
 					initialDungeonTime: new TimeSpan(0, 0, dungeon.TimeBySecond),
 					constraints: dungeon.SelectedConstraints(),
-					dungeonStat: dataManager.DungeonStat
+					dungeonStat: dataManager.DungeonStat,
+					difficultyStepSeconds: resourceManager.SurvivalRunRules.DifficultyStepSeconds
 				);
 
 				dungeonRecorder = new DungeonRecorder(this, dataManager);

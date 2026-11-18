@@ -21,7 +21,6 @@ namespace WitchMendokusai
 		[SerializeField] private float haloPulseSpeed = 2.5f;
 		[SerializeField] private float haloMinAlpha = 0.1f;
 		[SerializeField] private float haloMaxAlpha = 0.3f;
-		[SerializeField] private float difficultyStepSeconds = 180f;
 		[SerializeField] private float hardFontSize = 44f;
 		[SerializeField] private float normalFontSize = 52f;
 		[SerializeField] private SurvivalUITheme theme;
@@ -225,7 +224,8 @@ namespace WitchMendokusai
 			difficultyRing.SetFill(isHard ? 1f : dungeonManager.Context.DifficultyProgress);
 			difficultyText.fontSize = isHard ? hardFontSize : normalFontSize;
 			double elapsedSeconds = dungeonManager.Context.ElapsedTime.TotalSeconds;
-			difficultyRemainText.text = isHard ? string.Empty : TimeSpan.FromSeconds(difficultyStepSeconds - elapsedSeconds % difficultyStepSeconds).ToString(@"m\:ss");
+			double stepSeconds = dungeonManager.Context.DifficultyStepSeconds;
+			difficultyRemainText.text = isHard ? string.Empty : TimeSpan.FromSeconds(stepSeconds - elapsedSeconds % stepSeconds).ToString(@"m\:ss");
 			Color haloColor = difficultyColor;
 			haloColor.a = UIEffects.Enabled ? Mathf.Lerp(haloMinAlpha, haloMaxAlpha, Mathf.PingPong(Time.unscaledTime * haloPulseSpeed, 1f)) : haloMinAlpha;
 			difficultyHalo.color = haloColor;

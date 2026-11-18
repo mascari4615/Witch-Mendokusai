@@ -34,15 +34,19 @@ namespace WitchMendokusai
 
 		private readonly DungeonStat dungeonStat;
 
-		public DungeonContext(TimeSpan initialDungeonTime, List<DungeonConstraint> constraints, DungeonStat dungeonStat)
+		/// <summary> 난이도 단계가 오르는 간격 초. 정본은 SurvivalRunRules.DifficultyStepSeconds </summary>
+		public double DifficultyStepSeconds { get; private set; }
+
+		public DungeonContext(TimeSpan initialDungeonTime, List<DungeonConstraint> constraints, DungeonStat dungeonStat, double difficultyStepSeconds)
 		{
 			this.dungeonStat = dungeonStat;
+			DifficultyStepSeconds = difficultyStepSeconds;
 			Constraints = constraints;
 			InitialDungeonTime = initialDungeonTime;
 			DungeonCurTime = InitialDungeonTime;
 		}
 
-		public float DifficultyProgress => (float)(ElapsedTime.TotalSeconds % 180d / 180d);
+		public float DifficultyProgress => (float)(ElapsedTime.TotalSeconds % DifficultyStepSeconds / DifficultyStepSeconds);
 
 		public void UpdateTime()
 		{
@@ -54,7 +58,7 @@ namespace WitchMendokusai
 		public void UpdateDifficulty()
 		{
 			DungeonDifficulty previous = CurDifficulty;
-			CurDifficulty = (DungeonDifficulty)Math.Min((int)DungeonDifficulty.Hard, (int)(ElapsedTime.TotalMinutes / 3));
+			CurDifficulty = (DungeonDifficulty)Math.Min((int)DungeonDifficulty.Hard, (int)(ElapsedTime.TotalSeconds / DifficultyStepSeconds));
 			if (CurDifficulty > previous)
 				EventBusBridge.Publish(new DifficultyRaisedEvent { Difficulty = CurDifficulty });
 		}

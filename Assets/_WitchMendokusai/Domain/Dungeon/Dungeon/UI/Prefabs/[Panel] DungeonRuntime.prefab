@@ -6513,7 +6513,6 @@ MonoBehaviour:
   haloPulseSpeed: 2.5
   haloMinAlpha: 0.1
   haloMaxAlpha: 0.3
-  difficultyStepSeconds: 180
   hardFontSize: 44
   normalFontSize: 52
   theme: {fileID: 11400000, guid: 03a27beb1f47b364b9337bb8bc633b34, type: 2}

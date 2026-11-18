@@ -111,7 +111,7 @@ internal static class Program
         cases.Add("result elapsed time is positive", () =>
         {
             DataManager data = new DataManager();
-            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat);
+            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat, 180d);
             DungeonManager dungeon = new DungeonManager { Context = context };
             DungeonRecorder recorder = new DungeonRecorder(dungeon, data);
             for (int i = 0; i < 20; i++) { context.UpdateTime(); }
@@ -123,7 +123,7 @@ internal static class Program
         cases.Add("a new run measures only its own elapsed time", () =>
         {
             DataManager data = new DataManager();
-            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat);
+            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat, 180d);
             DungeonManager dungeon = new DungeonManager { Context = context };
             for (int i = 0; i < 20; i++) { context.UpdateTime(); }
             DungeonRecorder recorder = new DungeonRecorder(dungeon, data);
@@ -133,7 +133,7 @@ internal static class Program
         cases.Add("result captures the reached level", () =>
         {
             DataManager data = new DataManager();
-            DungeonManager dungeon = new DungeonManager { Context = new DungeonContext(TimeSpan.FromMinutes(3), new List<DungeonConstraint>(), data.DungeonStat) };
+            DungeonManager dungeon = new DungeonManager { Context = new DungeonContext(TimeSpan.FromMinutes(3), new List<DungeonConstraint>(), data.DungeonStat, 180d) };
             DungeonRecorder recorder = new DungeonRecorder(dungeon, data);
             Check(recorder.CaptureResultRecord(7).Level == 7, "result lost reached level");
         });
@@ -173,7 +173,7 @@ internal static class Program
         cases.Add("boss overtime keeps countdown at zero and total time advancing", () =>
         {
             DataManager data = new DataManager();
-            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat);
+            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat, 180d);
             for (int i = 0; i < 6020; i++) context.UpdateTime();
             Check(context.DungeonCurTime == TimeSpan.Zero, "boss countdown became negative");
             Check(data.DungeonStat[DungeonStatType.DUNGEON_TIME] == 602, "boss overtime disappeared from run time");
@@ -181,7 +181,7 @@ internal static class Program
         cases.Add("late survival difficulty stays within supported hard tier", () =>
         {
             DataManager data = new DataManager();
-            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat);
+            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat, 180d);
             for (int i = 0; i < 6000; i++) context.UpdateTime();
             context.UpdateDifficulty();
             Check(context.CurDifficulty == DungeonDifficulty.Hard, "ten minute difficulty is outside enum tiers");
@@ -189,7 +189,7 @@ internal static class Program
         cases.Add("result includes time spent fighting after survival countdown", () =>
         {
             DataManager data = new DataManager();
-            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat);
+            DungeonContext context = new DungeonContext(TimeSpan.FromMinutes(10), new List<DungeonConstraint>(), data.DungeonStat, 180d);
             DungeonRecorder recorder = new DungeonRecorder(new DungeonManager { Context = context }, data);
             for (int i = 0; i < 6050; i++) context.UpdateTime();
             Check(recorder.CaptureResultRecord(5).PlayTime == TimeSpan.FromSeconds(605), "boss fight time missing from result");

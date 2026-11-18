@@ -48,6 +48,9 @@ namespace WitchMendokusai
 		[Tooltip("덱에 넣지 않는 카드. 조건은 CardData.Requirements, 지급은 상자 첫 보상")] public List<CardData> EvolutionCards = new();
 		[Tooltip("트리 시작 카드를 차단하려 할 때 문구")] public string BanRootDeniedText = "시작 카드는 차단할 수 없어요.";
 
+		[Header("Difficulty")]
+		[Min(1f), Tooltip("난이도 단계 (쉬움, 보통, 어려움) 가 오르는 간격 초. HUD 의 남은 시간 고리도 이 값")] public float DifficultyStepSeconds = 180f;
+
 		[Header("Enemy growth over time (2026-11-16 balance)")]
 		[Min(0f), Tooltip("분당 적 최대 체력 증가 비율. 0.35 면 10분에 4.5배. 생성 시점 경과 분 기준")] public float EnemyHpGrowthPerMinute = 0.35f;
 		[Min(0f), Tooltip("적 피해가 1씩 오르는 간격 분. 0이면 성장 없음")] public float EnemyDamageStepMinutes = 3f;
