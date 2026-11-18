@@ -309,7 +309,7 @@ MonoBehaviour:
   RunSkyEndHour: 16.5
   OffscreenStyleSheet: {fileID: 7433441132597879392, guid: 8b397a77086e4ed5bdafb9d2b00f9610, type: 3}
   OffscreenMaxMarkers: 8
-  OffscreenEdgeMargin: 36
+  OffscreenEdgeMargin: 52
   OffscreenOnScreenInset: 0
   OffscreenNearDistance: 10
   OffscreenFarDistance: 32
