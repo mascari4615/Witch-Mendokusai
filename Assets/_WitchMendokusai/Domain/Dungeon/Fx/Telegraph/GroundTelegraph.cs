@@ -22,35 +22,45 @@ namespace WitchMendokusai
 		private static readonly int FillColorId = Shader.PropertyToID("_FillColor");
 		private static readonly int FrontColorId = Shader.PropertyToID("_FrontColor");
 		private static readonly int EdgeColorId = Shader.PropertyToID("_EdgeColor");
+		private static readonly int CoreColorId = Shader.PropertyToID("_CoreColor");
+		private static readonly int PatternColorId = Shader.PropertyToID("_PatternColor");
+		private static readonly int SparkColorId = Shader.PropertyToID("_SparkColor");
 		private static readonly int FlashColorId = Shader.PropertyToID("_FlashColor");
+		private static readonly int MembraneCenterId = Shader.PropertyToID("_MembraneCenter");
+		private static readonly int FillDepthShadeId = Shader.PropertyToID("_FillDepthShade");
 		private static readonly int EdgeWidthId = Shader.PropertyToID("_EdgeWidth");
-		private static readonly int FrontWidthId = Shader.PropertyToID("_FrontWidth");
+		private static readonly int CoreWidthId = Shader.PropertyToID("_CoreWidth");
+		private static readonly int CoreIntensityId = Shader.PropertyToID("_CoreIntensity");
 		private static readonly int GlowWidthId = Shader.PropertyToID("_GlowWidth");
 		private static readonly int GlowStrengthId = Shader.PropertyToID("_GlowStrength");
-		private static readonly int CornerRadiusId = Shader.PropertyToID("_CornerRadius");
-		private static readonly int ProgressId = Shader.PropertyToID("_Progress");
+		private static readonly int GlowInnerId = Shader.PropertyToID("_GlowInner");
+		private static readonly int GlowOpacityId = Shader.PropertyToID("_GlowOpacity");
+		private static readonly int FrontWidthId = Shader.PropertyToID("_FrontWidth");
+		private static readonly int FrontGlowWidthId = Shader.PropertyToID("_FrontGlowWidth");
+		private static readonly int FrontGlowAddId = Shader.PropertyToID("_FrontGlowAdd");
 		private static readonly int PulseAmountId = Shader.PropertyToID("_PulseAmount");
 		private static readonly int PulseSpeedId = Shader.PropertyToID("_PulseSpeed");
+		private static readonly int PatternFilledBoostId = Shader.PropertyToID("_PatternFilledBoost");
+		private static readonly int PatternGlowId = Shader.PropertyToID("_PatternGlow");
+		private static readonly int SparkSpacingId = Shader.PropertyToID("_SparkSpacing");
+		private static readonly int SparkSizeId = Shader.PropertyToID("_SparkSize");
+		private static readonly int SparkJitterId = Shader.PropertyToID("_SparkJitter");
+		private static readonly int SparkSpeedId = Shader.PropertyToID("_SparkSpeed");
+		private static readonly int SparkTwinkleSpeedId = Shader.PropertyToID("_SparkTwinkleSpeed");
+		private static readonly int SparkStrengthId = Shader.PropertyToID("_SparkStrength");
+		private static readonly int CornerRadiusId = Shader.PropertyToID("_CornerRadius");
+		private static readonly int ProgressId = Shader.PropertyToID("_Progress");
+		private static readonly int AppearId = Shader.PropertyToID("_Appear");
 		private static readonly int FlashId = Shader.PropertyToID("_Flash");
 		private static readonly int FlashStrengthId = Shader.PropertyToID("_FlashStrength");
-		private static readonly int AlphaId = Shader.PropertyToID("_Alpha");
-		private static readonly int PlateSizeId = Shader.PropertyToID("_PlateSize");
-		private static readonly int ShapeHalfSizeId = Shader.PropertyToID("_ShapeHalfSize");
-		private static readonly int InnerRingInsetId = Shader.PropertyToID("_InnerRingInset");
-		private static readonly int InnerRingWidthId = Shader.PropertyToID("_InnerRingWidth");
-		private static readonly int FrontGlowWidthId = Shader.PropertyToID("_FrontGlowWidth");
-		private static readonly int HatchScaleId = Shader.PropertyToID("_HatchScale");
-		private static readonly int HatchStrengthId = Shader.PropertyToID("_HatchStrength");
-		private static readonly int HatchSpeedId = Shader.PropertyToID("_HatchSpeed");
-		private static readonly int TickCountId = Shader.PropertyToID("_TickCount");
-		private static readonly int TickLengthId = Shader.PropertyToID("_TickLength");
-		private static readonly int TickGapId = Shader.PropertyToID("_TickGap");
-		private static readonly int TickSpeedId = Shader.PropertyToID("_TickSpeed");
-		private static readonly int AppearId = Shader.PropertyToID("_Appear");
+		private static readonly int FlashEdgeBoostId = Shader.PropertyToID("_FlashEdgeBoost");
 		private static readonly int ShockId = Shader.PropertyToID("_Shock");
 		private static readonly int ShockDistanceId = Shader.PropertyToID("_ShockDistance");
 		private static readonly int ShockWidthId = Shader.PropertyToID("_ShockWidth");
 		private static readonly int AddStrengthId = Shader.PropertyToID("_AddStrength");
+		private static readonly int AlphaId = Shader.PropertyToID("_Alpha");
+		private static readonly int PlateSizeId = Shader.PropertyToID("_PlateSize");
+		private static readonly int ShapeHalfSizeId = Shader.PropertyToID("_ShapeHalfSize");
 
 		private static Mesh plateMesh;
 		private static MaterialPropertyBlock propertyBlock;
@@ -63,37 +73,55 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("바닥에서 띄우는 높이. 바닥과 겹쳐 깜빡이면 올림")] private float liftHeight = 0.03f;
 
 		[Header("색")]
-		[SerializeField, Tooltip("아직 안 찬 안쪽 색. 알파가 옅을수록 차오른 면과 구분됨")] private Color baseColor = new(0.89f, 0.35f, 0.3f, 0.2f);
-		[SerializeField, Tooltip("차오른 면 색")] private Color fillColor = new(0.93f, 0.36f, 0.3f, 0.5f);
-		[SerializeField, Tooltip("차오르는 맨 앞 선 색")] private Color frontColor = new(1f, 0.86f, 0.8f, 0.9f);
-		[SerializeField, Tooltip("가장자리 선과 바깥 빛 색")] private Color edgeColor = new(0.89f, 0.25f, 0.22f, 1f);
-		[SerializeField, Tooltip("끝나는 순간 번쩍이는 색")] private Color flashColor = new(1f, 0.97f, 0.92f, 1f);
+		[SerializeField, Tooltip("안쪽 얇은 막 색. 알파는 0.08~0.15 정도로 거의 투명하게")] private Color baseColor = new(1f, 0.35f, 0.22f, 0.1f);
+		[SerializeField, Tooltip("차오른 막 색. 얇은 막보다 조금 짙게")] private Color fillColor = new(1f, 0.32f, 0.18f, 0.22f);
+		[SerializeField, Tooltip("차오르는 맨 앞 선 색")] private Color frontColor = new(1f, 0.85f, 0.62f, 1f);
+		[SerializeField, Tooltip("가장자리 색 띠와 번짐 색. 알파는 색 띠의 진하기")] private Color edgeColor = new(1f, 0.38f, 0.2f, 0.85f);
+		[SerializeField, Tooltip("가장자리 가운데 심 색. 거의 흰색에 가깝게")] private Color coreColor = new(1f, 0.93f, 0.82f, 1f);
+		[SerializeField, Tooltip("안쪽 무늬 색 (원은 마법진, 띠는 화살 무늬). 알파를 테두리보다 확실히 낮게")] private Color patternColor = new(1f, 0.55f, 0.35f, 0.22f);
+		[SerializeField, Tooltip("가장자리 위 반짝이는 점 색")] private Color sparkColor = new(1f, 0.85f, 0.6f, 1f);
+		[SerializeField, Tooltip("발동 순간 번쩍임과 충격파 색")] private Color flashColor = new(1f, 0.9f, 0.75f, 1f);
 
-		[Header("선")]
-		[SerializeField, Tooltip("가장자리 선 굵기 (월드 단위)")] private float edgeWidth = 0.08f;
-		[SerializeField, Tooltip("차오르는 맨 앞 선 굵기의 절반 (월드 단위)")] private float frontWidth = 0.04f;
-		[SerializeField, Tooltip("가장자리 바깥으로 번지는 빛의 폭 (월드 단위)")] private float glowWidth = 0.25f;
-		[SerializeField, Range(0f, 1f), Tooltip("바깥 빛 세기")] private float glowStrength = 0.35f;
-		[SerializeField, Range(0f, 1f), Tooltip("가장자리 맥동 깊이. 0 이면 안 뜀")] private float pulseAmount = 0.3f;
-		[SerializeField, Tooltip("가장자리 맥동 빠르기 (초당 라디안)")] private float pulseSpeed = 9f;
+		[Header("막")]
+		[SerializeField, Range(0f, 1f), Tooltip("얇은 막의 가운데 진하기 비율. 가장자리 쪽이 1")] private float membraneCenter = 0.55f;
+		[SerializeField, Range(0f, 1f), Tooltip("차오른 막의 안쪽 진하기 비율. 앞선 쪽이 1")] private float fillDepthShade = 0.65f;
 
-		[Header("안쪽 무늬와 바깥 장식")]
-		[SerializeField, Tooltip("가장자리 안쪽 가는 고리까지의 거리 (월드 단위)")] private float innerRingInset = 0.16f;
-		[SerializeField, Tooltip("안쪽 가는 고리 굵기 (월드 단위)")] private float innerRingWidth = 0.02f;
-		[SerializeField, Tooltip("차오르는 앞선 뒤로 번지는 빛의 폭 (월드 단위)")] private float frontGlowWidth = 0.45f;
-		[SerializeField, Tooltip("빗금 촘촘함 (월드 단위당 줄 수)")] private float hatchScale = 2.4f;
-		[SerializeField, Range(0f, 1f), Tooltip("빗금 진하기. 0 이면 없음")] private float hatchStrength = 0.22f;
-		[SerializeField, Tooltip("빗금이 흐르는 빠르기")] private float hatchSpeed = 0.35f;
-		[SerializeField, Tooltip("바깥 눈금 수. 원은 둘레 전체의 개수, 띠는 월드 단위당 개수")] private float tickCount = 36f;
-		[SerializeField, Tooltip("바깥 눈금 길이 (월드 단위). 0 이면 없음")] private float tickLength = 0.12f;
-		[SerializeField, Tooltip("가장자리에서 눈금까지의 틈 (월드 단위)")] private float tickGap = 0.07f;
-		[SerializeField, Tooltip("눈금이 둘레를 도는 빠르기")] private float tickSpeed = 0.06f;
-		[SerializeField, Range(0f, 2f), Tooltip("밝은 선이 빛나는 세기 (더하기)")] private float addStrength = 0.7f;
+		[Header("가장자리")]
+		[SerializeField, Tooltip("가장자리 색 띠 굵기 (월드 단위)")] private float edgeWidth = 0.06f;
+		[SerializeField, Tooltip("가장자리 가운데 밝은 심 굵기 (월드 단위)")] private float coreWidth = 0.022f;
+		[SerializeField, Tooltip("심과 앞선의 빛 세기. 1 넘으면 HDR 카메라에서 번짐")] private float coreIntensity = 1.6f;
+		[SerializeField, Tooltip("가장자리 번짐 폭 (월드 단위)")] private float glowWidth = 0.3f;
+		[SerializeField, Tooltip("번짐 세기 (더하기)")] private float glowStrength = 0.8f;
+		[SerializeField, Range(0f, 1f), Tooltip("안쪽으로 번지는 비율. 바깥이 1")] private float glowInner = 0.35f;
+		[SerializeField, Range(0f, 1f), Tooltip("번짐이 밝은 바닥 위에서도 보이게 깔리는 덮기 진하기")] private float glowOpacity = 0.2f;
+		[SerializeField, Range(0f, 1f), Tooltip("가장자리 맥동 깊이. 0 이면 안 뜀")] private float pulseAmount = 0.2f;
+		[SerializeField, Tooltip("가장자리 맥동 빠르기 (초당 라디안)")] private float pulseSpeed = 7f;
+
+		[Header("차오르는 앞선")]
+		[SerializeField, Tooltip("앞선 굵기의 절반 (월드 단위)")] private float frontWidth = 0.018f;
+		[SerializeField, Tooltip("앞선 뒤로 번지는 빛의 폭 (월드 단위)")] private float frontGlowWidth = 0.5f;
+		[SerializeField, Tooltip("앞선 뒤 빛의 더하기 세기")] private float frontGlowAdd = 0.35f;
+
+		[Header("무늬 공통")]
+		[SerializeField, Tooltip("차오른 곳에서 무늬가 짙어지는 배율")] private float patternFilledBoost = 1.6f;
+		[SerializeField, Tooltip("무늬의 더하기 빛 세기")] private float patternGlow = 0.25f;
+
+		[Header("반짝이는 점")]
+		[SerializeField, Tooltip("점 사이 간격 (월드 단위). 원은 둘레에 맞게 조금 조정됨")] private float sparkSpacing = 0.55f;
+		[SerializeField, Tooltip("점 크기 (월드 단위)")] private float sparkSize = 0.035f;
+		[SerializeField, Tooltip("점이 가장자리에서 벗어나는 폭 (월드 단위)")] private float sparkJitter = 0.04f;
+		[SerializeField, Tooltip("점이 가장자리를 따라 흐르는 빠르기 (초당 칸)")] private float sparkSpeed = 0.6f;
+		[SerializeField, Tooltip("깜빡임 빠르기 (초당 라디안)")] private float sparkTwinkleSpeed = 5f;
+		[SerializeField, Tooltip("점 밝기. 0 이면 없음")] private float sparkStrength = 1.4f;
+
+		[Header("빛")]
+		[SerializeField, Tooltip("빛 성분 전체 배율 (더하기)")] private float addStrength = 1f;
 
 		[Header("등장과 끝")]
 		[SerializeField, Tooltip("나타날 때 시작 크기 배율. 1 이면 크기 변화 없음")] private float appearStartScale = 0.82f;
-		[SerializeField, Tooltip("끝 충격파가 가장자리에서 퍼지는 거리 (월드 단위)")] private float shockDistance = 0.9f;
-		[SerializeField, Tooltip("끝 충격파 굵기 (월드 단위)")] private float shockWidth = 0.12f;
+		[SerializeField, Tooltip("발동 충격파가 가장자리에서 퍼지는 거리 (월드 단위)")] private float shockDistance = 0.9f;
+		[SerializeField, Tooltip("발동 충격파 굵기의 절반 (월드 단위)")] private float shockWidth = 0.06f;
+		[SerializeField, Tooltip("발동 순간 가장자리가 밝아지는 배율")] private float flashEdgeBoost = 2.5f;
 
 		[Header("동시 재생")]
 		[SerializeField, Min(1), Tooltip("동시에 띄울 수 있는 판 수. 넘으면 새 예고는 생략")] private int maxConcurrentPlates = 24;
@@ -106,13 +134,16 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("차오름 곡선. 가로 0~1 시간 비율, 세로 0~1 진행도")] private AnimationCurve fillCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 		[SerializeField, Tooltip("나타날 때 가장자리가 한 바퀴 그려지는 시간 (초)")] private float appearSeconds = 0.16f;
 		[SerializeField, Tooltip("끝 번쩍임과 충격파가 사라지는 데 걸리는 시간 (초)")] private float flashSeconds = 0.28f;
-		[SerializeField, Range(0f, 1f), Tooltip("끝 번쩍임 세기. 1 이면 안쪽이 번쩍임 색으로 완전히 덮임")] private float flashStrength = 0.85f;
+		[SerializeField, Range(0f, 1f), Tooltip("발동 순간 안쪽 번쩍임 세기. 1 이면 안쪽이 번쩍임 색으로 완전히 덮임")] private float flashStrength = 0.3f;
 
 		/// <summary> 셰이더의 _Shape 값. 0 원, 1 띠 </summary>
 		protected abstract float ShapeValue { get; }
 
 		/// <summary> 띠 모서리 둥글림 (월드 단위). 원은 안 씀 </summary>
 		protected virtual float CornerRadius => 0f;
+
+		/// <summary> 모양 전용 셰이더 값 (원의 마법진, 띠의 화살 무늬). 매 프레임 공통 값 뒤에 부름 </summary>
+		protected abstract void ApplyShapeProperties(MaterialPropertyBlock block);
 
 		/// <summary> 모양의 반크기. x 는 가로 (원은 반지름), y 는 향하는 쪽 </summary>
 		protected abstract Vector2 GetShapeHalfSize(CombatFxContext context);
@@ -148,8 +179,8 @@ namespace WitchMendokusai
 			float groundHeight = context.Position.y + liftHeight;
 			Vector2 halfSize = GetShapeHalfSize(context);
 			Vector3 centerOffset = GetCenterOffset(context, direction);
-			// 판은 바깥 빛, 눈금, 충격파가 다 들어갈 만큼 모양보다 큼
-			float margin = Mathf.Max(glowWidth, tickGap + tickLength, shockDistance + shockWidth) + edgeWidth;
+			// 판은 번짐, 반짝이는 점, 충격파와 그 빛이 다 들어갈 만큼 모양보다 큼
+			float margin = Mathf.Max(glowWidth, sparkJitter + sparkSize * 3f, shockDistance + shockWidth * 4f) + edgeWidth;
 			Vector2 plateSize = (halfSize + new Vector2(margin, margin)) * 2f;
 
 			plate.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
@@ -213,35 +244,46 @@ namespace WitchMendokusai
 			propertyBlock.SetColor(FillColorId, fillColor);
 			propertyBlock.SetColor(FrontColorId, frontColor);
 			propertyBlock.SetColor(EdgeColorId, edgeColor);
+			propertyBlock.SetColor(CoreColorId, coreColor);
+			propertyBlock.SetColor(PatternColorId, patternColor);
+			propertyBlock.SetColor(SparkColorId, sparkColor);
 			propertyBlock.SetColor(FlashColorId, flashColor);
+			propertyBlock.SetFloat(MembraneCenterId, membraneCenter);
+			propertyBlock.SetFloat(FillDepthShadeId, fillDepthShade);
 			propertyBlock.SetFloat(EdgeWidthId, edgeWidth);
-			propertyBlock.SetFloat(FrontWidthId, frontWidth);
+			propertyBlock.SetFloat(CoreWidthId, coreWidth);
+			propertyBlock.SetFloat(CoreIntensityId, coreIntensity);
 			propertyBlock.SetFloat(GlowWidthId, glowWidth);
 			propertyBlock.SetFloat(GlowStrengthId, glowStrength);
-			propertyBlock.SetFloat(CornerRadiusId, CornerRadius);
-			propertyBlock.SetFloat(ProgressId, Mathf.Clamp01(progress));
+			propertyBlock.SetFloat(GlowInnerId, glowInner);
+			propertyBlock.SetFloat(GlowOpacityId, glowOpacity);
+			propertyBlock.SetFloat(FrontWidthId, frontWidth);
+			propertyBlock.SetFloat(FrontGlowWidthId, frontGlowWidth);
+			propertyBlock.SetFloat(FrontGlowAddId, frontGlowAdd);
 			propertyBlock.SetFloat(PulseAmountId, pulseAmount);
 			propertyBlock.SetFloat(PulseSpeedId, pulseSpeed);
+			propertyBlock.SetFloat(PatternFilledBoostId, patternFilledBoost);
+			propertyBlock.SetFloat(PatternGlowId, patternGlow);
+			propertyBlock.SetFloat(SparkSpacingId, sparkSpacing);
+			propertyBlock.SetFloat(SparkSizeId, sparkSize);
+			propertyBlock.SetFloat(SparkJitterId, sparkJitter);
+			propertyBlock.SetFloat(SparkSpeedId, sparkSpeed);
+			propertyBlock.SetFloat(SparkTwinkleSpeedId, sparkTwinkleSpeed);
+			propertyBlock.SetFloat(SparkStrengthId, sparkStrength);
+			propertyBlock.SetFloat(CornerRadiusId, CornerRadius);
+			propertyBlock.SetFloat(ProgressId, Mathf.Clamp01(progress));
+			propertyBlock.SetFloat(AppearId, appear);
 			propertyBlock.SetFloat(FlashId, flash);
 			propertyBlock.SetFloat(FlashStrengthId, flashStrength);
-			propertyBlock.SetFloat(AlphaId, alpha);
-			propertyBlock.SetVector(PlateSizeId, plateSize);
-			propertyBlock.SetVector(ShapeHalfSizeId, halfSize);
-			propertyBlock.SetFloat(InnerRingInsetId, innerRingInset);
-			propertyBlock.SetFloat(InnerRingWidthId, innerRingWidth);
-			propertyBlock.SetFloat(FrontGlowWidthId, frontGlowWidth);
-			propertyBlock.SetFloat(HatchScaleId, hatchScale);
-			propertyBlock.SetFloat(HatchStrengthId, hatchStrength);
-			propertyBlock.SetFloat(HatchSpeedId, hatchSpeed);
-			propertyBlock.SetFloat(TickCountId, tickCount);
-			propertyBlock.SetFloat(TickLengthId, tickLength);
-			propertyBlock.SetFloat(TickGapId, tickGap);
-			propertyBlock.SetFloat(TickSpeedId, tickSpeed);
-			propertyBlock.SetFloat(AppearId, appear);
+			propertyBlock.SetFloat(FlashEdgeBoostId, flashEdgeBoost);
 			propertyBlock.SetFloat(ShockId, shock);
 			propertyBlock.SetFloat(ShockDistanceId, shockDistance);
 			propertyBlock.SetFloat(ShockWidthId, shockWidth);
 			propertyBlock.SetFloat(AddStrengthId, addStrength);
+			propertyBlock.SetFloat(AlphaId, alpha);
+			propertyBlock.SetVector(PlateSizeId, plateSize);
+			propertyBlock.SetVector(ShapeHalfSizeId, halfSize);
+			ApplyShapeProperties(propertyBlock);
 			plateRenderer.SetPropertyBlock(propertyBlock);
 		}
 

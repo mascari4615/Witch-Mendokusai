@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ceffc85d5aa4dcdab195a2d17f4d48c, type: 3}
+  m_Name: Banner_7_Notice
+  m_EditorClassIdentifier: 
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "난이도 상승"
+  previewSubtitle: "어려움"
+  styleSheet: {fileID: 7433441132597879392, guid: 048230dea6744988a05567f5fbf5cbb8, type: 3}
+  styleClass: wm-banner--notice
+  label: "알림"
+  arcCount: 0
+  slot: notice
+  enterSeconds: 0.4
+  holdSeconds: 1.6
+  exitSeconds: 0.3
+  titleStartPortion: 0.3
+  titleSpreadPortion: 0.6
+  sound: 9
+  playSound: 1

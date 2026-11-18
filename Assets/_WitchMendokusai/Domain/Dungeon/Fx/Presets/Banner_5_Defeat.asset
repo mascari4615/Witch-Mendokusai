@@ -19,6 +19,8 @@ MonoBehaviour:
   previewSubtitle: "다음에는 더 멀리"
   styleSheet: {fileID: 7433441132597879392, guid: 048230dea6744988a05567f5fbf5cbb8, type: 3}
   styleClass: wm-banner--defeat
+  label: ""
+  arcCount: 0
   slot: result
   enterSeconds: 0.9
   holdSeconds: 2.4

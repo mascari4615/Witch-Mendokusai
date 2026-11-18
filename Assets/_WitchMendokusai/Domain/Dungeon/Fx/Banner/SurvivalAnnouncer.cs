@@ -72,8 +72,7 @@ namespace WitchMendokusai
 
 		private void OnDifficultyRaised(DifficultyRaisedEvent raised)
 		{
-			if (Settings.DifficultyRaised.Banner != null)
-				CombatSfx.Play(CombatSfxEvent.Warning);
+			// 경고음은 내지 않음. 정예 경고음과 같아 위험처럼 들림. 소리는 알림 띠 에셋의 playSound
 			Show(Settings.DifficultyRaised, 0f, null, 0, DungeonDifficultyText.Name(raised.Difficulty));
 		}
 

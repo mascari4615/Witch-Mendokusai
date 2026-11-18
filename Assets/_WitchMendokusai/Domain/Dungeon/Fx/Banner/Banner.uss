@@ -1,127 +1,321 @@
-/* 전투 화면 띠 (BannerFx). 정예와 무리 예고, 보스 이름, 승패, 던전 도입
-   구조: .wm-banner > __band (__line--left, __plate (__edge, __fill, __title > __char, __subtitle), __line--right), __rule
+/* 전투 화면 띠 (BannerFx). 정예와 무리 예고, 보스 이름, 승패, 던전 입장, 난이도 알림
+   구조: .wm-banner (화면 전체)
+           __tint, __vignette (화면 물들임과 가장자리 어둡게. 보스, 패배만 보임)
+           __group (자리 잡기와 떠오르는 퇴장)
+             __arcs > __arc (보스만 보임)
+             __streak (비스듬한 빛줄기. 승리만 보임)
+             __label (작은 분류 글)
+             __rule--top (__rule-line, __diamond)
+             __band (__title > __side--left, __char, __side--right, __subtitle). __side 는 패배만 보임
+             __rule--bottom
    움직임: BannerFx 가 뿌리에 --in, --out 을, 글자에 --shown 을 실제 시간으로 켬. 여기 transition 이 그 사이를 채움
    transition 길이는 에셋의 enterSeconds, exitSeconds 안에 끝나는 값으로
-   결: 갈무리 글꼴, 평행사변형 판 (Vector.png), 어두운 판과 밝은 테두리. 밝은 전투 화면 위에서 읽히는 색 */
+   결 (2차, 2026-11-18): 상자 없음. 가운데 짙고 양 끝이 투명한 띠 위에 큰 글자, 양 끝이 사라지는 가는 선과 마름모
+   그라데이션은 Art/ 의 흰색 알파 그림 (Tools/combat-fx-art/make-banner-art.mjs) 에 색을 입혀 만듦 */
 
 .wm-banner {
-    --wm-banner-panel: rgb(32, 30, 36);
-    --wm-banner-panel-deep: rgb(22, 21, 26);
-    --wm-banner-ink: rgb(244, 242, 246);
-    --wm-banner-ink-soft: rgb(196, 190, 204);
-    --wm-banner-accent: rgb(242, 226, 122);
-    --wm-banner-danger: rgb(226, 88, 76);
+    /* 종류마다 아래 변수만 바꿈 */
+    --wm-banner-accent: rgb(255, 168, 64);
+    --wm-banner-title: rgb(255, 244, 228);
+    --wm-banner-ink-soft: rgb(222, 214, 206);
+    --wm-banner-band: rgba(14, 10, 16, 0.92);
+    --wm-banner-outline: rgb(18, 12, 16);
+    --wm-banner-shadow: rgba(0, 0, 0, 0.7);
+    --wm-banner-wash: rgba(0, 0, 0, 0);
+    --wm-banner-shade: rgba(0, 0, 0, 0);
+    --wm-banner-arc: rgba(255, 255, 255, 0);
+    --wm-banner-streak: rgba(255, 255, 255, 0);
 
     position: absolute;
     left: 0;
     right: 0;
-    top: 13%;
-    flex-direction: column;
-    align-items: center;
+    top: 0;
+    bottom: 0;
     opacity: 0;
-    translate: 0 -24px;
-    scale: 1 1;
-    transition-property: opacity, translate, scale;
-    transition-duration: 0.16s, 0.3s, 0.3s;
-    transition-timing-function: ease-out, ease-out-cubic, ease-out-back;
-    color: var(--wm-banner-ink);
+    transition-property: opacity;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out;
+    color: var(--wm-banner-title);
     -unity-font-definition: url("../../../../Fonts/갈무리/Galmuri11-Bold.ttf");
 }
 
 .wm-banner--in {
     opacity: 1;
-    translate: 0 0;
-    scale: 1 1;
 }
 
 .wm-banner--in.wm-banner--out {
     opacity: 0;
-    translate: 0 -14px;
-    transition-duration: 0.22s, 0.24s, 0.24s;
-    transition-timing-function: ease-in, ease-in-cubic, ease-in-cubic;
-}
-
-.wm-banner__band {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-}
-
-/* 판 양옆의 선. 판 쪽 끝을 축으로 바깥으로 펼쳐짐 */
-.wm-banner__line {
-    width: 120px;
-    height: 3px;
-    background-color: var(--wm-banner-accent);
-    scale: 0 1;
-    transition-property: scale;
-    transition-duration: 0.34s;
-    transition-delay: 0.08s;
-    transition-timing-function: ease-out-cubic;
-}
-
-.wm-banner__line--left {
-    margin-right: 12px;
-    transform-origin: 100% 50%;
-}
-
-.wm-banner__line--right {
-    margin-left: 12px;
-    transform-origin: 0% 50%;
-}
-
-.wm-banner--in .wm-banner__line {
-    scale: 1 1;
-}
-
-.wm-banner--in.wm-banner--out .wm-banner__line {
-    scale: 0 1;
-    transition-duration: 0.2s;
-    transition-delay: 0s;
-    transition-timing-function: ease-in-cubic;
-}
-
-.wm-banner__plate {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    height: 56px;
-    min-width: 320px;
-    padding: 0 52px;
-}
-
-/* 판 그림 둘. __edge 가 조금 더 커서 __fill 둘레에 테두리로 보임. 가운데에서 좌우로 펼쳐짐 */
-.wm-banner__edge,
-.wm-banner__fill {
-    position: absolute;
-    background-image: url("../../../../Art/Texture/UI/Vector.png");
-    -unity-slice-left: 30;
-    -unity-slice-right: 30;
-    scale: 0 1;
-    transition-property: scale;
     transition-duration: 0.26s;
-    transition-timing-function: ease-out-cubic;
+    transition-timing-function: ease-in;
 }
 
-.wm-banner__edge {
-    left: -5px;
-    right: -5px;
-    top: -3px;
-    bottom: -3px;
-    -unity-slice-scale: 0.78px;
-    -unity-background-image-tint-color: var(--wm-banner-accent);
-}
+/* ===== 화면 물들임과 가장자리 어둡게 ===== */
 
-.wm-banner__fill {
+.wm-banner__tint,
+.wm-banner__vignette {
+    display: none;
+    position: absolute;
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
-    -unity-slice-scale: 0.7px;
-    -unity-background-image-tint-color: var(--wm-banner-panel);
 }
 
-.wm-banner--in .wm-banner__edge,
-.wm-banner--in .wm-banner__fill {
+.wm-banner__tint {
+    background-color: var(--wm-banner-wash);
+}
+
+.wm-banner__vignette {
+    background-image: url("Art/banner-vignette.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--wm-banner-shade);
+}
+
+/* ===== 묶음: 자리와 퇴장 움직임 ===== */
+
+.wm-banner__group {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 12%;
+    flex-direction: column;
+    align-items: center;
+    translate: 0 10px;
+    transition-property: translate;
+    transition-duration: 0.36s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.wm-banner--in .wm-banner__group {
+    translate: 0 0;
+}
+
+.wm-banner--in.wm-banner--out .wm-banner__group {
+    translate: 0 -22px;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-in-cubic;
+}
+
+/* ===== 원호: 띠 가운데를 중심으로 겹친 가는 원. 보스만 보임 ===== */
+
+.wm-banner__arcs {
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+}
+
+.wm-banner__arc {
+    position: absolute;
+    width: 520px;
+    height: 520px;
+    left: -260px;
+    top: -260px;
+    background-image: url("Art/banner-arc.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--wm-banner-arc);
+    opacity: 0;
+    rotate: -50deg;
+    scale: 0.82 0.82;
+    transition-property: opacity, rotate, scale;
+    transition-duration: 0.5s, 1.6s, 0.9s;
+    transition-timing-function: ease-out, ease-out-cubic, ease-out-cubic;
+}
+
+.wm-banner__arc--2 {
+    width: 680px;
+    height: 680px;
+    left: -340px;
+    top: -340px;
+    rotate: 70deg;
+    transition-delay: 0.08s;
+}
+
+.wm-banner__arc--3 {
+    width: 860px;
+    height: 860px;
+    left: -430px;
+    top: -430px;
+    rotate: -100deg;
+    transition-delay: 0.16s;
+}
+
+.wm-banner--in .wm-banner__arc {
+    opacity: 1;
+    rotate: 0deg;
+    scale: 1 1;
+}
+
+.wm-banner--in .wm-banner__arc--2 {
+    opacity: 0.7;
+    rotate: 20deg;
+}
+
+.wm-banner--in .wm-banner__arc--3 {
+    opacity: 0.45;
+    rotate: -30deg;
+}
+
+/* ===== 빛줄기: 화면을 비스듬히 가로지르는 얇은 띠. 승리만 보임 ===== */
+
+.wm-banner__streak {
+    display: none;
+    position: absolute;
+    left: -10%;
+    right: -10%;
+    top: 50%;
+    height: 10px;
+    margin-top: -5px;
+    background-image: url("Art/banner-band.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--wm-banner-streak);
+    rotate: -8deg;
+    opacity: 0;
+    translate: -45% 0;
+    scale: 0.4 1;
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.2s, 0.5s, 0.5s;
+    transition-timing-function: ease-out, ease-out-cubic, ease-out-cubic;
+}
+
+.wm-banner--in .wm-banner__streak {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1 1;
+}
+
+/* ===== 제목 양옆 가는 선. 패배만 보임 ===== */
+
+.wm-banner__side {
+    display: none;
+    width: 180px;
+    height: 2px;
+    background-image: url("Art/banner-line.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--wm-banner-accent);
+    scale: 0 1;
+    transition-property: scale;
+    transition-duration: 0.7s;
+    transition-delay: 0.2s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.wm-banner__side--left {
+    margin-right: 24px;
+    transform-origin: 100% 50%;
+}
+
+.wm-banner__side--right {
+    margin-left: 24px;
+    transform-origin: 0% 50%;
+}
+
+.wm-banner--in .wm-banner__side {
+    scale: 1 1;
+}
+
+/* ===== 분류 글: 자간이 넓게 퍼진 상태에서 좁혀지며 나타남 ===== */
+
+.wm-banner__label {
+    margin: 0 0 4px 0;
+    padding: 0;
+    font-size: 24px;
+    letter-spacing: 22px;
+    color: var(--wm-banner-accent);
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--wm-banner-outline);
+    text-shadow: 0 1px 4px var(--wm-banner-shadow);
+    opacity: 0;
+    transition-property: opacity, letter-spacing;
+    transition-duration: 0.3s, 0.55s;
+    transition-delay: 0.05s, 0s;
+    transition-timing-function: ease-out, ease-out-cubic;
+}
+
+.wm-banner--in .wm-banner__label {
+    opacity: 1;
+    letter-spacing: 9px;
+}
+
+.wm-banner__label--empty {
+    display: none;
+}
+
+/* ===== 가는 선과 마름모. 선은 가운데에서 양옆으로 펼쳐지고 양 끝이 사라짐 ===== */
+
+.wm-banner__rule {
+    width: 62%;
+    height: 10px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-banner__rule--top {
+    margin-bottom: 2px;
+}
+
+.wm-banner__rule--bottom {
+    margin-top: 2px;
+}
+
+.wm-banner__rule-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 4px;
+    height: 2px;
+    background-image: url("Art/banner-line.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--wm-banner-accent);
+    scale: 0 1;
+    transition-property: scale;
+    transition-duration: 0.45s;
+    transition-delay: 0.06s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.wm-banner__diamond {
+    width: 7px;
+    height: 7px;
+    background-color: var(--wm-banner-accent);
+    rotate: 45deg;
+    scale: 0 0;
+    transition-property: scale;
+    transition-duration: 0.22s;
+    transition-delay: 0.2s;
+    transition-timing-function: ease-out-back;
+}
+
+.wm-banner--in .wm-banner__rule-line {
+    scale: 1 1;
+}
+
+.wm-banner--in .wm-banner__diamond {
+    scale: 1 1;
+}
+
+/* ===== 띠: 가운데 짙고 양 끝 투명한 가로 그라데이션. 가운데에서 양옆으로 펼쳐짐 ===== */
+
+.wm-banner__band {
+    width: 76%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+    background-image: url("Art/banner-band.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--wm-banner-band);
+    scale: 0 1;
+    transition-property: scale;
+    transition-duration: 0.34s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.wm-banner--in .wm-banner__band {
     scale: 1 1;
 }
 
@@ -131,19 +325,22 @@
     flex-shrink: 0;
 }
 
-/* 제목 글자 하나. BannerFx 가 순서대로 --shown 을 켬 */
+/* 제목 글자 하나. BannerFx 가 순서대로 --shown 을 켬. 넓은 간격에서 좁혀지며 나타남 */
 .wm-banner__char {
-    margin: 0;
-    padding: 0 1px;
-    font-size: 28px;
-    color: var(--wm-banner-accent);
+    margin: 0 9px;
+    padding: 0;
+    font-size: 34px;
+    color: var(--wm-banner-title);
     -unity-text-align: middle-center;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--wm-banner-outline);
+    text-shadow: 0 2px 6px var(--wm-banner-shadow);
     opacity: 0;
-    translate: 0 10px;
+    translate: 0 0;
     scale: 1 1;
-    transition-property: opacity, translate, scale;
-    transition-duration: 0.1s, 0.2s, 0.2s;
-    transition-timing-function: ease-out, ease-out-back, ease-out-back;
+    transition-property: opacity, margin-left, margin-right, translate, scale;
+    transition-duration: 0.14s, 0.32s, 0.32s, 0.24s, 0.24s;
+    transition-timing-function: ease-out, ease-out-cubic, ease-out-cubic, ease-out-back, ease-out-back;
 }
 
 .wm-banner__char--space {
@@ -151,21 +348,25 @@
 }
 
 .wm-banner__char--shown {
+    margin: 0 1px;
     opacity: 1;
     translate: 0 0;
     scale: 1 1;
 }
 
 .wm-banner__subtitle {
-    margin: 0 0 0 20px;
+    margin: 0 0 0 22px;
     padding: 0;
-    font-size: 20px;
-    color: var(--wm-banner-ink);
+    font-size: 19px;
+    letter-spacing: 2px;
+    color: var(--wm-banner-ink-soft);
     -unity-text-align: middle-center;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--wm-banner-outline);
     opacity: 0;
     transition-property: opacity;
-    transition-duration: 0.2s;
-    transition-delay: 0.22s;
+    transition-duration: 0.24s;
+    transition-delay: 0.24s;
     transition-timing-function: ease-out;
 }
 
@@ -177,93 +378,70 @@
     display: none;
 }
 
-/* 판 아래 가로선. 이름 띠와 승패 띠에서만 보임 */
-.wm-banner__rule {
-    display: none;
-    width: 520px;
-    height: 2px;
-    margin-top: 10px;
-    background-color: var(--wm-banner-accent);
-    scale: 0 1;
-    transition-property: scale;
-    transition-duration: 0.4s;
-    transition-delay: 0.1s;
-    transition-timing-function: ease-out-cubic;
+/* 제목 아래에 부제를 두는 변형들 */
+.wm-banner--boss .wm-banner__band,
+.wm-banner--victory .wm-banner__band,
+.wm-banner--defeat .wm-banner__band,
+.wm-banner--intro .wm-banner__band {
+    flex-direction: column;
 }
 
-.wm-banner--in .wm-banner__rule {
-    scale: 1 1;
+.wm-banner--boss .wm-banner__subtitle,
+.wm-banner--victory .wm-banner__subtitle,
+.wm-banner--defeat .wm-banner__subtitle,
+.wm-banner--intro .wm-banner__subtitle {
+    margin: 2px 0 0 0;
+    letter-spacing: 5px;
 }
 
-.wm-banner--in.wm-banner--out .wm-banner__rule {
-    scale: 0 1;
-    transition-duration: 0.2s;
-    transition-delay: 0s;
-    transition-timing-function: ease-in-cubic;
-}
-
-/* ===== 정예 예고: 화면 위쪽 가운데, 어두운 판에 노랑 ===== */
-/* 기본값이 곧 이 변형. 자리만 다시 적음 */
+/* ===== 정예 예고: 화면 위쪽, 주황 ===== */
+/* 기본값이 곧 이 변형. 색만 다시 적음 */
 
 .wm-banner--warning {
-    top: 13%;
+    --wm-banner-accent: rgb(255, 168, 64);
+    --wm-banner-title: rgb(255, 244, 228);
+    --wm-banner-band: rgba(16, 10, 8, 0.92);
 }
 
-/* ===== 대규모 무리 예고: 같은 자리, 빨강 판, 더 크고 눌러 찍듯 등장 ===== */
+/* ===== 대규모 무리 예고: 같은 자리, 붉은 주황, 더 넓고 두꺼운 띠, 눌러 찍듯 등장 ===== */
 
 .wm-banner--swarm {
-    top: 12%;
-    translate: 0 0;
-    scale: 1.3 1.3;
+    --wm-banner-accent: rgb(255, 98, 52);
+    --wm-banner-title: rgb(255, 238, 226);
+    --wm-banner-band: rgba(72, 14, 6, 0.92);
 }
 
-.wm-banner--swarm.wm-banner--in {
-    scale: 1 1;
+.wm-banner--swarm .wm-banner__group {
+    top: 11%;
 }
 
-.wm-banner--swarm.wm-banner--in.wm-banner--out {
-    translate: 0 0;
-    scale: 1.08 0.2;
+.wm-banner--swarm .wm-banner__rule {
+    width: 76%;
 }
 
-.wm-banner--swarm .wm-banner__plate {
-    height: 72px;
-    min-width: 440px;
-    padding: 0 68px;
+.wm-banner--swarm .wm-banner__rule-line {
+    top: 3px;
+    height: 4px;
 }
 
-.wm-banner--swarm .wm-banner__edge {
-    left: -6px;
-    right: -6px;
-    top: -4px;
-    bottom: -4px;
-    -unity-slice-scale: 1px;
-    -unity-background-image-tint-color: var(--wm-banner-ink);
+.wm-banner--swarm .wm-banner__diamond {
+    width: 9px;
+    height: 9px;
 }
 
-.wm-banner--swarm .wm-banner__fill {
-    -unity-slice-scale: 0.9px;
-    -unity-background-image-tint-color: var(--wm-banner-danger);
-}
-
-.wm-banner--swarm .wm-banner__line {
-    width: 220px;
-    height: 5px;
-    background-color: var(--wm-banner-danger);
+.wm-banner--swarm .wm-banner__band {
+    width: 90%;
+    padding: 10px 0;
 }
 
 .wm-banner--swarm .wm-banner__char {
-    padding: 0 2px;
-    font-size: 36px;
-    color: rgb(255, 255, 255);
-    -unity-text-outline-width: 1px;
-    -unity-text-outline-color: rgb(20, 20, 25);
-    translate: 0 0;
-    scale: 1.8 1.8;
+    font-size: 42px;
+    -unity-text-outline-width: 1.5px;
+    scale: 1.7 1.7;
 }
 
 .wm-banner--swarm .wm-banner__char--space {
-    width: 16px;
+    width: 15px;
 }
 
 .wm-banner--swarm .wm-banner__char--shown {
@@ -271,287 +449,322 @@
 }
 
 .wm-banner--swarm .wm-banner__subtitle {
-    font-size: 24px;
-    color: rgb(255, 255, 255);
-    -unity-text-outline-width: 1px;
-    -unity-text-outline-color: rgb(20, 20, 25);
+    font-size: 22px;
 }
 
-/* ===== 보스 이름: 화면 가운데 약간 아래, 큰 이름과 작은 부제, 좌우로 선이 펼쳐짐 ===== */
+/* ===== 보스 이름: 화면 가운데, 화면 전체 진홍으로 물들이고 가장자리 어둡게, 가장 큰 이름과 뒤의 원호 ===== */
 
 .wm-banner--boss {
-    top: 60%;
-    translate: 0 18px;
+    --wm-banner-accent: rgb(232, 44, 74);
+    --wm-banner-title: rgb(255, 246, 246);
+    --wm-banner-ink-soft: rgb(240, 196, 200);
+    --wm-banner-band: rgba(36, 2, 10, 0.92);
+    --wm-banner-outline: rgb(30, 4, 10);
+    --wm-banner-wash: rgba(140, 0, 28, 0.32);
+    --wm-banner-shade: rgba(22, 0, 6, 0.82);
+    --wm-banner-arc: rgba(255, 92, 112, 0.42);
 }
 
-.wm-banner--boss.wm-banner--in {
+.wm-banner--boss .wm-banner__tint,
+.wm-banner--boss .wm-banner__vignette,
+.wm-banner--boss .wm-banner__arcs {
+    display: flex;
+}
+
+.wm-banner--boss .wm-banner__group {
+    top: 38%;
+    translate: 0 16px;
+    transition-duration: 0.6s;
+}
+
+.wm-banner--boss.wm-banner--in .wm-banner__group {
     translate: 0 0;
 }
 
-.wm-banner--boss.wm-banner--in.wm-banner--out {
-    translate: 0 10px;
+.wm-banner--boss.wm-banner--in.wm-banner--out .wm-banner__group {
+    translate: 0 -24px;
+    transition-duration: 0.4s;
 }
 
-.wm-banner--boss .wm-banner__plate {
-    flex-direction: column;
-    height: auto;
-    min-height: 96px;
-    min-width: 420px;
-    padding: 10px 84px 12px 84px;
+.wm-banner--boss .wm-banner__label {
+    font-size: 28px;
+    letter-spacing: 30px;
 }
 
-.wm-banner--boss .wm-banner__edge {
-    display: none;
+.wm-banner--boss.wm-banner--in .wm-banner__label {
+    letter-spacing: 14px;
 }
 
-.wm-banner--boss .wm-banner__fill {
-    -unity-slice-scale: 1.2px;
-    -unity-background-image-tint-color: rgba(22, 21, 26, 0.86);
+.wm-banner--boss .wm-banner__rule {
+    width: 70%;
 }
 
-.wm-banner--boss .wm-banner__line {
-    width: 280px;
-    height: 2px;
-    background-color: var(--wm-banner-ink);
-    transition-duration: 0.5s;
+.wm-banner--boss .wm-banner__rule-line {
+    transition-duration: 0.7s;
     transition-delay: 0.12s;
 }
 
+.wm-banner--boss .wm-banner__band {
+    width: 100%;
+    padding: 12px 0 14px 0;
+    transition-duration: 0.5s;
+}
+
 .wm-banner--boss .wm-banner__char {
-    padding: 0 4px;
-    font-size: 56px;
-    color: rgb(255, 255, 255);
+    margin: 0 16px;
+    font-size: 66px;
     -unity-text-outline-width: 2px;
-    -unity-text-outline-color: rgb(20, 20, 25);
-    translate: 0 16px;
+    text-shadow: 0 3px 10px var(--wm-banner-shadow);
+    translate: 0 14px;
+    transition-duration: 0.2s, 0.5s, 0.5s, 0.4s, 0.4s;
 }
 
 .wm-banner--boss .wm-banner__char--space {
-    width: 22px;
+    width: 24px;
 }
 
 .wm-banner--boss .wm-banner__char--shown {
+    margin: 0 3px;
     translate: 0 0;
 }
 
 .wm-banner--boss .wm-banner__subtitle {
-    margin: 2px 0 0 0;
     font-size: 22px;
-    letter-spacing: 6px;
-    color: var(--wm-banner-accent);
 }
 
-.wm-banner--boss .wm-banner__rule {
-    display: flex;
-    width: 460px;
-    margin-top: 8px;
-    background-color: var(--wm-banner-danger);
-}
-
-/* ===== 승리: 화면 위쪽 삼분의 일, 노랑 큰 글자, 튀어 오르듯 등장 ===== */
+/* ===== 승리: 굵게 기운 금색 큰 낱말이 한 번 번쩍, 뒤로 노란 빛줄기 ===== */
 
 .wm-banner--victory {
-    top: 26%;
-    translate: 0 0;
-    scale: 0.7 0.7;
+    --wm-banner-accent: rgb(255, 214, 102);
+    --wm-banner-title: rgb(255, 222, 120);
+    --wm-banner-ink-soft: rgb(255, 240, 206);
+    --wm-banner-band: rgba(30, 20, 6, 0.92);
+    --wm-banner-outline: rgb(48, 24, 2);
+    --wm-banner-shadow: rgba(255, 196, 64, 0.55);
+    --wm-banner-streak: rgba(255, 220, 72, 0.8);
 }
 
-.wm-banner--victory.wm-banner--in {
-    scale: 1 1;
+.wm-banner--victory .wm-banner__streak {
+    display: flex;
 }
 
-.wm-banner--victory.wm-banner--in.wm-banner--out {
-    translate: 0 -20px;
+/* 기울임 글꼴이 없어 묶음째 조금 돌려 기울어진 결을 냄 */
+.wm-banner--victory .wm-banner__title {
+    rotate: -4deg;
 }
 
-.wm-banner--victory .wm-banner__plate {
-    flex-direction: column;
-    height: auto;
-    min-height: 116px;
-    min-width: 520px;
-    padding: 10px 96px 12px 96px;
+.wm-banner--victory .wm-banner__group {
+    top: 28%;
 }
 
-.wm-banner--victory .wm-banner__edge {
-    left: -7px;
-    right: -7px;
-    top: -4px;
-    bottom: -4px;
-    -unity-slice-scale: 1.55px;
+.wm-banner--victory .wm-banner__rule {
+    width: 66%;
 }
 
-.wm-banner--victory .wm-banner__fill {
-    -unity-slice-scale: 1.45px;
-}
-
-.wm-banner--victory .wm-banner__line {
-    width: 300px;
-    height: 4px;
-    transition-duration: 0.5s;
+.wm-banner--victory .wm-banner__band {
+    width: 92%;
+    padding: 8px 0 12px 0;
 }
 
 .wm-banner--victory .wm-banner__char {
-    padding: 0 6px;
-    font-size: 68px;
-    -unity-text-outline-width: 2px;
-    -unity-text-outline-color: rgb(20, 20, 25);
-    translate: 0 0;
-    scale: 1.7 1.7;
+    margin: 0 12px;
+    font-size: 88px;
+    color: rgb(255, 255, 255);
+    -unity-text-outline-width: 3px;
+    text-shadow: 0 0 18px var(--wm-banner-shadow);
+    scale: 1.9 1.9;
+    transition-property: opacity, margin-left, margin-right, translate, scale, color;
+    transition-duration: 0.1s, 0.3s, 0.3s, 0.3s, 0.32s, 0.6s;
+    transition-timing-function: ease-out, ease-out-cubic, ease-out-cubic, ease-out-cubic, ease-out-back, ease-out;
 }
 
 .wm-banner--victory .wm-banner__char--space {
-    width: 26px;
+    width: 30px;
 }
 
+/* 흰색으로 번쩍 뜬 뒤 금색으로 가라앉음 */
 .wm-banner--victory .wm-banner__char--shown {
+    margin: 0 4px;
+    color: var(--wm-banner-title);
     scale: 1 1;
 }
 
 .wm-banner--victory .wm-banner__subtitle {
-    margin: 2px 0 0 0;
     font-size: 24px;
-    letter-spacing: 4px;
 }
 
-.wm-banner--victory .wm-banner__rule {
-    display: flex;
-    width: 640px;
-}
-
-/* ===== 패배: 같은 자리, 가라앉은 색, 위에서 천천히 내려옴 ===== */
+/* ===== 패배: 은회색 글자, 채도 낮은 붉은 물들임, 글자 양옆 붉은 선, 천천히 가라앉듯 ===== */
 
 .wm-banner--defeat {
-    top: 26%;
-    translate: 0 -44px;
-    transition-duration: 0.3s, 0.55s, 0.55s;
-    transition-timing-function: ease-out, ease-out-cubic, ease-out-cubic;
+    --wm-banner-accent: rgb(176, 84, 84);
+    --wm-banner-title: rgb(204, 206, 212);
+    --wm-banner-ink-soft: rgb(170, 164, 166);
+    --wm-banner-band: rgba(12, 8, 10, 0.92);
+    --wm-banner-outline: rgb(12, 8, 10);
+    --wm-banner-wash: rgba(72, 22, 26, 0.34);
+    --wm-banner-shade: rgba(0, 0, 0, 0.72);
+    transition-duration: 0.4s;
 }
 
-.wm-banner--defeat.wm-banner--in {
+.wm-banner--defeat .wm-banner__tint,
+.wm-banner--defeat .wm-banner__vignette,
+.wm-banner--defeat .wm-banner__side {
+    display: flex;
+}
+
+.wm-banner--defeat .wm-banner__group {
+    top: 28%;
+    translate: 0 -14px;
+    transition-duration: 0.8s;
+}
+
+.wm-banner--defeat.wm-banner--in .wm-banner__group {
     translate: 0 0;
 }
 
-.wm-banner--defeat.wm-banner--in.wm-banner--out {
-    translate: 0 16px;
+.wm-banner--defeat.wm-banner--in.wm-banner--out .wm-banner__group {
+    translate: 0 -16px;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-in-cubic;
 }
 
-.wm-banner--defeat .wm-banner__plate {
-    flex-direction: column;
-    height: auto;
-    min-height: 108px;
-    min-width: 480px;
-    padding: 10px 88px 12px 88px;
+.wm-banner--defeat .wm-banner__rule {
+    width: 56%;
 }
 
-.wm-banner--defeat .wm-banner__edge {
-    left: -6px;
-    right: -6px;
-    top: -3px;
-    bottom: -3px;
-    -unity-slice-scale: 1.42px;
-    -unity-background-image-tint-color: var(--wm-banner-danger);
+.wm-banner--defeat .wm-banner__rule-line {
+    transition-duration: 0.8s;
 }
 
-.wm-banner--defeat .wm-banner__fill {
-    -unity-slice-scale: 1.35px;
-    -unity-background-image-tint-color: var(--wm-banner-panel-deep);
-}
-
-.wm-banner--defeat .wm-banner__line {
-    width: 220px;
-    height: 2px;
-    background-color: var(--wm-banner-danger);
+.wm-banner--defeat .wm-banner__band {
+    width: 88%;
+    padding: 8px 0 12px 0;
     transition-duration: 0.6s;
 }
 
 .wm-banner--defeat .wm-banner__char {
-    padding: 0 6px;
-    font-size: 60px;
-    color: var(--wm-banner-ink);
-    translate: 0 -12px;
-    transition-duration: 0.24s, 0.4s, 0.4s;
-    transition-timing-function: ease-out, ease-out-cubic, ease-out-cubic;
+    margin: 0 14px;
+    font-size: 74px;
+    translate: 0 -10px;
+    transition-duration: 0.3s, 0.6s, 0.6s, 0.5s, 0.5s;
+    transition-timing-function: ease-out, ease-out-cubic, ease-out-cubic, ease-out-cubic, ease-out-cubic;
 }
 
 .wm-banner--defeat .wm-banner__char--space {
-    width: 24px;
+    width: 28px;
 }
 
 .wm-banner--defeat .wm-banner__char--shown {
+    margin: 0 5px;
     translate: 0 0;
 }
 
 .wm-banner--defeat .wm-banner__subtitle {
-    margin: 2px 0 0 0;
     font-size: 22px;
-    letter-spacing: 4px;
-    color: var(--wm-banner-ink-soft);
 }
 
-.wm-banner--defeat .wm-banner__rule {
-    display: flex;
-    width: 560px;
-    background-color: var(--wm-banner-danger);
+/* ===== 던전 입장: 차분한 청록빛 흰색, 스테이지 이름 ===== */
+
+.wm-banner--intro {
+    --wm-banner-accent: rgb(150, 226, 220);
+    --wm-banner-title: rgb(246, 252, 252);
+    --wm-banner-ink-soft: rgb(196, 230, 228);
+    --wm-banner-band: rgba(6, 18, 22, 0.92);
+    --wm-banner-outline: rgb(6, 16, 20);
 }
 
-/* ===== 던전 도입: 스테이지 이름. 왼쪽에서 미끄러져 들어오고 아래 선이 펼쳐짐 ===== */
-
-.wm-banner--stage {
-    top: 20%;
-    translate: -72px 0;
-    transition-duration: 0.2s, 0.42s, 0.42s;
+.wm-banner--intro .wm-banner__group {
+    top: 18%;
+    transition-duration: 0.5s;
 }
 
-.wm-banner--stage.wm-banner--in {
-    translate: 0 0;
+.wm-banner--intro .wm-banner__rule {
+    width: 58%;
 }
 
-.wm-banner--stage.wm-banner--in.wm-banner--out {
-    translate: 56px 0;
+.wm-banner--intro .wm-banner__rule-line {
+    transition-duration: 0.6s;
 }
 
-.wm-banner--stage .wm-banner__plate {
-    flex-direction: column;
-    height: auto;
-    min-height: 92px;
-    min-width: 440px;
-    padding: 8px 80px 10px 80px;
+.wm-banner--intro .wm-banner__band {
+    width: 84%;
+    padding: 8px 0 10px 0;
+    transition-duration: 0.45s;
 }
 
-.wm-banner--stage .wm-banner__edge {
-    display: none;
+.wm-banner--intro .wm-banner__char {
+    margin: 0 12px;
+    font-size: 50px;
 }
 
-.wm-banner--stage .wm-banner__fill {
-    -unity-slice-scale: 1.15px;
-    -unity-background-image-tint-color: rgba(32, 30, 36, 0.88);
-}
-
-.wm-banner--stage .wm-banner__line {
-    display: none;
-}
-
-.wm-banner--stage .wm-banner__char {
-    padding: 0 3px;
-    font-size: 46px;
-    color: rgb(255, 255, 255);
-    -unity-text-outline-width: 1px;
-    -unity-text-outline-color: rgb(20, 20, 25);
-}
-
-.wm-banner--stage .wm-banner__char--space {
+.wm-banner--intro .wm-banner__char--space {
     width: 18px;
 }
 
-.wm-banner--stage .wm-banner__subtitle {
-    margin: 2px 0 0 0;
-    font-size: 20px;
-    letter-spacing: 4px;
-    color: var(--wm-banner-accent);
+.wm-banner--intro .wm-banner__char--shown {
+    margin: 0 2px;
 }
 
-.wm-banner--stage .wm-banner__rule {
-    display: flex;
-    width: 480px;
-    transition-duration: 0.5s;
+.wm-banner--intro .wm-banner__subtitle {
+    font-size: 19px;
+}
+
+/* ===== 난이도 알림: 청록, 작게. 위쪽 경고 띠와 겹치지 않는 자리 ===== */
+
+.wm-banner--notice {
+    --wm-banner-accent: rgb(84, 214, 204);
+    --wm-banner-title: rgb(232, 252, 250);
+    --wm-banner-ink-soft: rgb(170, 232, 226);
+    --wm-banner-band: rgba(4, 20, 22, 0.92);
+    --wm-banner-outline: rgb(4, 16, 18);
+}
+
+.wm-banner--notice .wm-banner__group {
+    top: 24%;
+}
+
+.wm-banner--notice .wm-banner__label {
+    font-size: 18px;
+    letter-spacing: 14px;
+}
+
+.wm-banner--notice.wm-banner--in .wm-banner__label {
+    letter-spacing: 6px;
+}
+
+.wm-banner--notice .wm-banner__rule {
+    width: 36%;
+    height: 8px;
+}
+
+.wm-banner--notice .wm-banner__rule-line {
+    top: 3px;
+}
+
+.wm-banner--notice .wm-banner__diamond {
+    width: 5px;
+    height: 5px;
+}
+
+.wm-banner--notice .wm-banner__band {
+    width: 46%;
+    padding: 5px 0;
+}
+
+.wm-banner--notice .wm-banner__char {
+    margin: 0 6px;
+    font-size: 24px;
+}
+
+.wm-banner--notice .wm-banner__char--space {
+    width: 9px;
+}
+
+.wm-banner--notice .wm-banner__char--shown {
+    margin: 0 1px;
+}
+
+.wm-banner--notice .wm-banner__subtitle {
+    margin-left: 16px;
+    font-size: 17px;
 }

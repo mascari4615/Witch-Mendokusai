@@ -18,7 +18,9 @@ MonoBehaviour:
   previewTitle: "슬라임 숲"
   previewSubtitle: "던전 입장"
   styleSheet: {fileID: 7433441132597879392, guid: 048230dea6744988a05567f5fbf5cbb8, type: 3}
-  styleClass: wm-banner--stage
+  styleClass: wm-banner--intro
+  label: "던전"
+  arcCount: 0
   slot: top
   enterSeconds: 0.7
   holdSeconds: 2

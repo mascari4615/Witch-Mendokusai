@@ -19,6 +19,8 @@ MonoBehaviour:
   previewSubtitle: "10초 뒤"
   styleSheet: {fileID: 7433441132597879392, guid: 048230dea6744988a05567f5fbf5cbb8, type: 3}
   styleClass: wm-banner--warning
+  label: "경고"
+  arcCount: 0
   slot: top
   enterSeconds: 0.45
   holdSeconds: 2.2

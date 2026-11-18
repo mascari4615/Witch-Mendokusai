@@ -19,6 +19,8 @@ MonoBehaviour:
   previewSubtitle: "숲의 주인"
   styleSheet: {fileID: 7433441132597879392, guid: 048230dea6744988a05567f5fbf5cbb8, type: 3}
   styleClass: wm-banner--boss
+  label: "보스"
+  arcCount: 3
   slot: center
   enterSeconds: 0.7
   holdSeconds: 2.6

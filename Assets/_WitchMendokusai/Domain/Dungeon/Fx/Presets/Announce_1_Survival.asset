@@ -43,7 +43,7 @@ MonoBehaviour:
     <Subtitle>k__BackingField: ""
     <HoldSeconds>k__BackingField: 0
   <DifficultyRaised>k__BackingField:
-    <Banner>k__BackingField: {fileID: 11400000, guid: 98be667199014e7cb36bc8a8d269c072, type: 2}
+    <Banner>k__BackingField: {fileID: 11400000, guid: fea83c20d0ce45abb4a1c516b7e0fa9c, type: 2}
     <Title>k__BackingField: "난이도 상승"
     <Subtitle>k__BackingField: "{3}"
     <HoldSeconds>k__BackingField: 1.4
