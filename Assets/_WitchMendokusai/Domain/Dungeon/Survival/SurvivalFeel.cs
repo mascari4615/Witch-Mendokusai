@@ -56,6 +56,7 @@ namespace WitchMendokusai
 			Instance = this;
 			BuildSystems();
 			gameObject.AddComponent<SurvivalLowHealthVignette>().Init(resourceManager, playerProvider);
+			gameObject.AddComponent<SurvivalOffscreenMarkers>().Init(resourceManager, playerProvider, this);
 			gameEventManager.RegisterCallback(GameEventType.OnLevelUp, OnLevelUp);
 			gameEventManager.RegisterCallback(GameEventType.OnPlayerHit, OnPlayerHit);
 		}
@@ -202,6 +203,7 @@ namespace WitchMendokusai
 			}
 		}
 
+		public IReadOnlyList<MonsterObject> Elites => elites;
 		public void RegisterElite(MonsterObject elite) => elites.Add(elite);
 		public void UnregisterElite(MonsterObject elite) => elites.Remove(elite);
 

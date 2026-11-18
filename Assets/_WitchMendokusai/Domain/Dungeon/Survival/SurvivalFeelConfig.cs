@@ -188,6 +188,19 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("세기 변화 초당 최대량")] public float LowHealthFadeSpeed = 2.5f;
 		[Tooltip("화면 위 캔버스 순서. 전투 UI 보다 아래")] public int LowHealthSortingOrder = -5;
 
+		[Header("화면 밖 표시")]
+		[Tooltip("화면 밖 정예와 보스 방향 표식 모양 (SurvivalOffscreenMarkers.uss)")] public UnityEngine.UIElements.StyleSheet OffscreenStyleSheet;
+		[Min(1), Tooltip("동시에 보이는 표식 상한. 보스 먼저, 그다음 가까운 정예")] public int OffscreenMaxMarkers = 8;
+		[Min(0f), Tooltip("표식 중심과 화면 가장자리 사이 여백 (UI px, 안전 영역 안쪽 기준)")] public float OffscreenEdgeMargin = 36f;
+		[Tooltip("대상이 가장자리에서 이 px 이상 안쪽이면 화면 안으로 보고 숨김. 음수면 화면 밖으로 조금 나가야 표시")] public float OffscreenOnScreenInset = 0f;
+		[Min(0f), Tooltip("이 거리 이하면 가장 크고 진함")] public float OffscreenNearDistance = 10f;
+		[Min(0f), Tooltip("이 거리 이상이면 가장 작고 흐림")] public float OffscreenFarDistance = 32f;
+		[Min(0.01f)] public float OffscreenNearScale = 1.2f;
+		[Min(0.01f)] public float OffscreenFarScale = 0.8f;
+		[Range(0f, 1f)] public float OffscreenNearOpacity = 1f;
+		[Range(0f, 1f)] public float OffscreenFarOpacity = 0.55f;
+		[Min(0.01f), Tooltip("보스 표식 크기 배율")] public float OffscreenBossScale = 1.25f;
+
 		[Header("Upgrade")]
 		public UpgradeTuning Upgrade = new();
 		public FeelMoment PlayerRevive = new() { Shake = 0.5f, Shards = 60, ShardSpeed = 9f, ShardLife = 0.8f, ShardSize = 0.26f, RingSize = 10f, RingLife = 0.7f, Color = new Color(1f, 0.9f, 0.55f, 1f) };
