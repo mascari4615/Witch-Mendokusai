@@ -660,32 +660,50 @@
     color: rgb(21, 23, 46);
 }
 
-/* 정보 창 칸 높이 고정 (사용자 2026-11-18 "간격 크기가 계속 달라지는데 고정되게"). 던전마다 글 길이와 줄 수가 달라도 칸 자리가 같게 */
+/* 정보 창 칸 자리 고정 (사용자 2026-11-18 "간격 크기가 계속 달라지는데 고정되게", "화면 밖으로 잘림").
+   고정 px 대신 정보 창 높이를 비율로 나눔: 던전이 바뀌어도 칸 자리 같음, 화면이 작아도 창 안에 들어감 */
 .wm-dungeon-entrance--night .wm-dungeon-entrance__summary {
-    height: 150px;
-    flex-shrink: 0;
+    flex-grow: 3;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-height: 0;
     overflow: hidden;
 }
 
 .wm-dungeon-entrance--night .wm-dungeon-entrance__description {
-    max-height: 60px;
     overflow: hidden;
 }
 
 .wm-dungeon-entrance--night .wm-dungeon-entrance__section--foes {
-    height: 150px;
-    flex-shrink: 0;
+    flex-grow: 3;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-height: 0;
     overflow: hidden;
 }
 
 .wm-dungeon-entrance--night .wm-dungeon-entrance__section--constraints {
-    height: 128px;
-    flex-shrink: 0;
+    flex-grow: 2.6;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-height: 0;
     overflow: hidden;
 }
 
 .wm-dungeon-entrance--night .wm-dungeon-entrance__section--run {
-    height: 118px;
-    flex-shrink: 0;
+    flex-grow: 2.4;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-height: 0;
     overflow: hidden;
+}
+
+/* 남는 자리는 위 네 칸이 나눠 가짐 */
+.wm-dungeon-entrance--night .wm-dungeon-entrance__spacer {
+    flex-grow: 0;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__section--rewards,
+.wm-dungeon-entrance--night .wm-dungeon-entrance__enter {
+    flex-shrink: 0;
 }
