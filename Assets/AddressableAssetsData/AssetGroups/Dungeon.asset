@@ -51,6 +51,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Dungeon
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ca77cc01107d4d8baa9c261f8f569672
+    m_Address: Dungeon/9000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Dungeon
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
   m_SchemaSet:

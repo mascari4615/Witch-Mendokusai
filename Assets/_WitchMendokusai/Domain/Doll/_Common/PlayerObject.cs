@@ -115,8 +115,14 @@ namespace WitchMendokusai
 			}
 		}
 
+		// 개발자 창 무적. 낙사처럼 무적 관통을 명시한 피해만 받음
+		public bool IsDevInvincible { get; set; }
+
 		public override void ReceiveDamage(DamageInfo damageInfo)
 		{
+			if (damageInfo.ignoreInvincible == false && IsDevInvincible)
+				return;
+
 			// 일반 피해는 피격 뒤 시작된 무적 시간 동안 막는다.
 			// 낙사·검증용 강제 피해처럼 ignoreInvincible을 명시한 호출만 관통한다.
 			if (damageInfo.ignoreInvincible == false && (invincibleRoutine != null || RollDodge() || TryRevive(damageInfo)))

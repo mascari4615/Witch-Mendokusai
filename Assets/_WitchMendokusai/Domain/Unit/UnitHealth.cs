@@ -18,6 +18,9 @@ namespace WitchMendokusai
 
 		public bool IsAlive => Unit != null && Unit.UnitStat[UnitStatType.HP_CUR] > 0;
 
+		// 개발자 진열장 허수아비. 죽을 피해를 받으면 최대 체력으로 다시 참. 켜고 끄는 쪽은 DevShowcaseLease
+		public bool IsImmortal { get; set; }
+
 		public event Action<DamageInfo> OnTakeDamage;
 		public event Action<int> OnHealed;
 		public event Action OnDied;
@@ -81,6 +84,13 @@ namespace WitchMendokusai
 			// 「얼마 남고 죽었나」는 판정 층이 정한다 (TASK-WM-215) — 여기선 그 결과를 씬에 반영만 한다.
 			int maxHp = Unit.UnitStat[UnitStatType.HP_MAX];
 			HealthChange change = HealthResolution.Apply(Unit.UnitStat[UnitStatType.HP_CUR], maxHp, newHp - Unit.UnitStat[UnitStatType.HP_CUR]);
+
+			if (change.Died && IsImmortal)
+			{
+				Unit.UnitStat[UnitStatType.HP_CUR] = maxHp;
+				OnHealthChanged?.Invoke(maxHp, maxHp);
+				return;
+			}
 
 			Unit.UnitStat[UnitStatType.HP_CUR] = change.NewHp;
 			OnHealthChanged?.Invoke(change.NewHp, change.MaxHp);

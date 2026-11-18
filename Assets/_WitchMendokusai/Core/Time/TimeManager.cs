@@ -43,6 +43,9 @@ namespace WitchMendokusai
 
 		public bool IsPaused => pausers.Count > 0;
 
+		// 개발자 창 시간 배율. 정지와 hit stop 위에 곱함
+		public float DebugScale { get; private set; } = 1f;
+
 		private void Awake()
 		{
 			if (Instance != null && Instance != this)
@@ -97,7 +100,14 @@ namespace WitchMendokusai
 
 		private void UpdateTimeScale()
 		{
-			Time.timeScale = IsPaused ? Mathf.Epsilon : hitStop != null ? hitStopScale : 1;
+			Time.timeScale = IsPaused ? Mathf.Epsilon : (hitStop != null ? hitStopScale : 1f) * DebugScale;
+		}
+
+		public void SetDebugScale(float scale)
+		{
+			// 0 은 정지와 같은 이유로 Epsilon (Time.timeScale 0 은 일부 계산이 멈춤)
+			DebugScale = Mathf.Max(Mathf.Epsilon, scale);
+			UpdateTimeScale();
 		}
 
 		// 전역 짧은 정지. 정지 중 더 오면 길이는 늘리고 배율은 더 낮은 쪽. 사망 슬로모션 중에는 무시
@@ -180,8 +190,9 @@ namespace WitchMendokusai
 				Time.timeScale += Time.unscaledDeltaTime * returnSpeed;
 				if (Time.timeScale > 1)
 				{
-					Time.timeScale = Mathf.Clamp(Time.timeScale, 0f, 1f);
 					isSlowMotion = false;
+					// 정지, hit stop, 개발자 시간 배율을 다시 반영
+					UpdateTimeScale();
 					break;
 				}
 

@@ -32,19 +32,20 @@ namespace WitchMendokusai
 			return position + randomOffset;
 		}
 
-		public void SpawnExpOrb(Vector3 position, int rewardMultiplier = 1)
+		// 상한에 닿아 기존 보석에 합쳤으면 null
+		public ExpObject SpawnExpOrb(Vector3 position, int rewardMultiplier = 1)
 		{
 			int value = resourceManager.EXPPrefab.GetComponent<ExpObject>().BaseAmount * Mathf.Max(1, rewardMultiplier);
-			SpawnExpValue(position, value);
+			return SpawnExpValue(position, value);
 		}
 
-		private void SpawnExpValue(Vector3 position, int value)
+		private ExpObject SpawnExpValue(Vector3 position, int value)
 		{
 			SurvivalFeelConfig config = resourceManager.SurvivalFeel;
 			if (activeExpGems.Count >= config.ExpGemCap)
 			{
 				activeExpGems[0].AddValue(value, config);
-				return;
+				return null;
 			}
 			GameObject exp = objectPoolManager.Spawn(
 				resourceManager.EXPPrefab,
@@ -53,6 +54,7 @@ namespace WitchMendokusai
 			ExpObject expObject = exp.GetComponent<ExpObject>();
 			expObject.SetValue(value, config, activeExpGems);
 			exp.SetActive(true);
+			return expObject;
 		}
 
 		public void SpawnEliteReward(EliteProfile profile, Vector3 position, bool guaranteedChest)

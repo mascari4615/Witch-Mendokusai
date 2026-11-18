@@ -25,6 +25,8 @@ namespace WitchMendokusai
 		private InputManager inputManager;
 		[SerializeField] private WorldStage traversalStage;
 		[SerializeField] private WorldStage explorationStage;
+		[SerializeField, Tooltip("개발자 진열장 목록과 배치. 시험 탭과 drop 명령도 씀")] private DevShowcaseSO showcaseData;
+		[SerializeField, Tooltip("시험 탭 배치")] private StyleSheet testBenchStyle;
 
 		[Header("화면 구석 뱃지")]
 		[SerializeField] private Sprite badgeIcon;
@@ -38,12 +40,18 @@ namespace WitchMendokusai
 		private WMWindow window;
 		private DevWindowView view;
 
+		public DevShowcase Showcase { get; private set; }
+		public DevDropSpawner Drops { get; private set; }
+
 		[Inject]
-		public void Construct(InputManager inputManager, UIRoot uiRoot, StageManager stageManager)
+		public void Construct(InputManager inputManager, UIRoot uiRoot, StageManager stageManager, GameEventManager gameEventManager, PlayerProvider playerProvider,
+			ObjectPoolManager objectPoolManager, ResourceManager resourceManager, GameLogic gameLogic)
 		{
 			this.inputManager = inputManager;
 			this.uiRoot = uiRoot;
 			this.stageManager = stageManager;
+			Drops = new DevDropSpawner(objectPoolManager, resourceManager, gameLogic);
+			Showcase = new DevShowcase(showcaseData, gameEventManager, playerProvider, objectPoolManager, Drops);
 		}
 
 		public void EnterTraversalCourse()
@@ -80,6 +88,7 @@ namespace WitchMendokusai
 			if (Debug.isDebugBuild == false)
 				return;
 			BuildBadge();
+			Showcase.Bind();
 			view.RebuildSidebar(DevModeRegistry.Instance.Modes);
 
 			IDevMode firstMode = DevModeRegistry.Instance.FindById("console");
@@ -92,8 +101,17 @@ namespace WitchMendokusai
 			inputManager.RegisterInputEvent(InputEventType.DevWindowToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
+		private void Update()
+		{
+			if (Showcase != null)
+				Showcase.Tick(Time.deltaTime);
+		}
+
 		private void OnDestroy()
 		{
+			// 등록 안 한 콜백 해제도 무시라 릴리스 빌드에서도 안전
+			if (Showcase != null)
+				Showcase.Unbind();
 			if (inputManager != null)
 				inputManager.UnregisterInputEvent(InputEventType.DevWindowToggle, InputEventResponseType.Performed, OnToggle);
 
@@ -167,9 +185,20 @@ namespace WitchMendokusai
 			DevCommandRegistry.Instance.Register(new UnlockQuestCommand());
 			DevCommandRegistry.Instance.Register(new DialogueStageSampleCommand());
 			DevCommandRegistry.Instance.Register(new FxCommand());
+			DevCommandRegistry.Instance.Register(new StatusCommand());
+			DevCommandRegistry.Instance.Register(new DropCommand());
+			DevCommandRegistry.Instance.Register(new LevelUpCommand());
+			DevCommandRegistry.Instance.Register(new ChestCommand());
+			DevCommandRegistry.Instance.Register(new SeedCommand());
+			DevCommandRegistry.Instance.Register(new GodCommand());
+			DevCommandRegistry.Instance.Register(new TimeScaleCommand());
+			DevCommandRegistry.Instance.Register(new ShowcaseCommand());
+			DevCommandRegistry.Instance.Register(new WeaponCommand());
 
 			if (DevModeRegistry.Instance.FindById("console") == null)
 				DevModeRegistry.Instance.Register(new ConsoleMode());
+			if (DevModeRegistry.Instance.FindById("bench") == null)
+				DevModeRegistry.Instance.Register(new TestBenchDevMode(Showcase, testBenchStyle));
 			if (DevModeRegistry.Instance.FindById("items") == null)
 				DevModeRegistry.Instance.Register(new ItemsMode());
 			if (DevModeRegistry.Instance.FindById("mobs") == null)
@@ -196,6 +225,8 @@ namespace WitchMendokusai
 		}
 
 		private void OnModeSelected(IDevMode mode) => view.SetActiveMode(mode);
+
+		public void CloseWindow() => window.Close();
 
 		private void OnToggle()
 		{

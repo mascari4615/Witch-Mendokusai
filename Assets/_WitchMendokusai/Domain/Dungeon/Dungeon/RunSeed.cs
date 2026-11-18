@@ -11,11 +11,17 @@ namespace WitchMendokusai
 		// 판이 바뀔 때마다 증가. 소비자가 이전 판 결과를 버릴지 판단
 		public static int Version { get; private set; }
 
+		// 개발자 창 고정 시드. 값이 있으면 설정 자산보다 우선, 다음 판부터 적용
+		public static int? DevOverride { get; private set; }
+
+		public static void SetDevOverride(int? seed) => DevOverride = seed;
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetState()
 		{
 			Current = 0;
 			Version = 0;
+			DevOverride = null;
 		}
 
 		// 판 시작 (재도전 포함). 설정에 고정값이 켜져 있으면 그 값
@@ -24,9 +30,10 @@ namespace WitchMendokusai
 			RunSeedSettings settings = Resources.Load<RunSeedSettings>(nameof(RunSeedSettings));
 			if (settings == null)
 				throw new System.InvalidOperationException($"Resources/{nameof(RunSeedSettings)} 없음");
-			Current = settings.UseFixedSeed ? settings.FixedSeed : new System.Random().Next();
+			bool isFixed = DevOverride.HasValue || settings.UseFixedSeed;
+			Current = DevOverride ?? (settings.UseFixedSeed ? settings.FixedSeed : new System.Random().Next());
 			Version++;
-			Debug.Log($"[{nameof(RunSeed)}] {Current}{(settings.UseFixedSeed ? " (고정)" : string.Empty)}");
+			Debug.Log($"[{nameof(RunSeed)}] {Current}{(isFixed ? " (고정)" : string.Empty)}");
 		}
 
 		// 용도별 갈래. salt 는 쓰는 쪽의 직렬화 값 (장식 시드, 물건 시드)

@@ -18,6 +18,8 @@ namespace WitchMendokusai
 		private readonly HashSet<Vector2Int> requiredCells = new();
 		private readonly List<Vector2Int> retiredCells = new();
 		private readonly List<Vector3> placedPositions = new();
+		// 칸 배치와 별개로 고정 자리에 둔 것 (개발자 진열장). 부수면 반납만, 부순 기록 없음
+		private readonly HashSet<BreakableObject> fixedPlaced = new();
 		private BreakableLibrary library;
 		private Vector2Int center;
 		private bool centerValid;
@@ -50,14 +52,7 @@ namespace WitchMendokusai
 
 		public void Tick(Vector3 focus)
 		{
-			BreakableSettings settings = Settings;
-			if (library == null)
-			{
-				Validate(settings);
-				library = BreakableLibrary.Build(settings);
-			}
-			if (root.gameObject.activeSelf == false)
-				root.gameObject.SetActive(true);
+			BreakableSettings settings = EnsureReady();
 			shards.Tick(settings, Time.deltaTime);
 
 			Vector2Int next = new(Mathf.FloorToInt(focus.x / settings.CellSize), Mathf.FloorToInt(focus.z / settings.CellSize));
@@ -85,6 +80,41 @@ namespace WitchMendokusai
 			foreach (Vector2Int cell in requiredCells)
 				if (cells.ContainsKey(cell) == false)
 					FillCell(settings, cell);
+		}
+
+		// 메시 묶음과 부모를 준비. 칸 배치 없이 고정 배치만 쓸 때도 호출
+		public BreakableSettings EnsureReady()
+		{
+			BreakableSettings settings = Settings;
+			if (library == null)
+			{
+				Validate(settings);
+				library = BreakableLibrary.Build(settings);
+			}
+			if (root.gameObject.activeSelf == false)
+				root.gameObject.SetActive(true);
+			return settings;
+		}
+
+		// 정해진 종류와 모양을 정해진 자리에. 부서지면 IsFixed 가 false
+		public BreakableObject PlaceFixed(Vector3 position, float yaw, int kindIndex, int variantIndex)
+		{
+			BreakableSettings settings = EnsureReady();
+			BreakableKind kind = settings.Kinds[kindIndex];
+			BreakableObject breakable = pool.Count > 0 ? pool.Pop() : BreakableObject.Create(this, root, library.Material);
+			breakable.Place(position, yaw, Vector2Int.zero, 0L, kindIndex, variantIndex, library.Variants[kindIndex][variantIndex].Mesh, kind.Health);
+			breakable.gameObject.SetActive(true);
+			fixedPlaced.Add(breakable);
+			ActiveCount++;
+			return breakable;
+		}
+
+		public bool IsFixed(BreakableObject breakable) => breakable != null && fixedPlaced.Contains(breakable);
+
+		public void ReturnFixed(BreakableObject breakable)
+		{
+			if (fixedPlaced.Remove(breakable))
+				Return(breakable);
 		}
 
 		// 판 밖 (결과 화면) 에서는 날던 조각만 마저 떨어뜨림
@@ -211,8 +241,11 @@ namespace WitchMendokusai
 			shards.Burst(settings, library.Material, library.Variants[breakable.KindIndex][breakable.VariantIndex].ShardMeshes, worldCenter, bounds.size, breakable.HitDirection);
 			CombatSfx.Play(settings.BreakSfx, worldCenter);
 
-			brokenKeys.Add(breakable.Key);
-			cells[breakable.Cell].Remove(breakable);
+			if (fixedPlaced.Remove(breakable) == false)
+			{
+				brokenKeys.Add(breakable.Key);
+				cells[breakable.Cell].Remove(breakable);
+			}
 			Return(breakable);
 			Drop(settings, kind.Table, breakable.transform.position);
 		}
@@ -262,6 +295,7 @@ namespace WitchMendokusai
 			if (root == null)
 			{
 				cells.Clear();
+				fixedPlaced.Clear();
 				pool.Clear();
 				ActiveCount = 0;
 				return;
@@ -270,6 +304,9 @@ namespace WitchMendokusai
 				foreach (BreakableObject breakable in list)
 					Return(breakable);
 			cells.Clear();
+			foreach (BreakableObject breakable in fixedPlaced)
+				Return(breakable);
+			fixedPlaced.Clear();
 			shards.Clear();
 			root.gameObject.SetActive(false);
 		}

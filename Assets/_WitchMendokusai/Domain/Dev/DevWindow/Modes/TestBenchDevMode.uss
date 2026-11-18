@@ -1,0 +1,17 @@
+/* 개발자 창 시험 탭. 줄 제목 폭을 맞춰 단추 열을 세움 */
+.wm-dev-bench__row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.wm-dev-bench__heading {
+    min-width: 96px;
+    -unity-text-align: middle-left;
+}
+
+.wm-dev-bench__state {
+    white-space: normal;
+    margin-bottom: 6px;
+}

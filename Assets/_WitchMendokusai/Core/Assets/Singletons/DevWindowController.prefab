@@ -47,4 +47,6 @@ MonoBehaviour:
   dontDestroyOnLoad: 1
   traversalStage: {fileID: 11400000, guid: 95cc2fbfba1d5e64b87d895d78f4770d, type: 2}
   explorationStage: {fileID: 11400000, guid: a31adc16e43659e47b4103c368d09c30, type: 2}
+  showcaseData: {fileID: 11400000, guid: 923cb7ee71e649ca9dd056a1468b0b0e, type: 2}
+  testBenchStyle: {fileID: 7433441132597879392, guid: e7b878601d414af5a8d222291731f892, type: 3}
   badgeIcon: {fileID: 21300000, guid: 3557631b8f635064a8a21ab3b9253836, type: 3}

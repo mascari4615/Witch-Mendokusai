@@ -9,6 +9,14 @@ namespace WitchMendokusai
 		private bool breakableRunActive;
 
 		public BreakableField Breakables => breakableField;
+		// 이번 판 정리가 끝나 고정 배치를 받을 수 있는 상태
+		public bool BreakablesReady => breakableField != null && breakableRunActive;
+
+		// 켜면 칸 배치를 멈추고 고정 배치만 둠. 개발자 진열장이 켜고 끔
+		public static bool SuppressScatter { get; set; }
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetSuppressScatter() => SuppressScatter = false;
 
 		private void Update()
 		{
@@ -28,6 +36,12 @@ namespace WitchMendokusai
 			{
 				breakableField.ReleaseAll();
 				breakableRunActive = true;
+			}
+			if (SuppressScatter)
+			{
+				breakableField.EnsureReady();
+				breakableField.TickShards();
+				return;
 			}
 			breakableField.Tick(playerProvider.CurrentObject.UnitMovement.Position);
 		}
