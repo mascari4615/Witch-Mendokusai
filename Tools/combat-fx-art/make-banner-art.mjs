@@ -125,3 +125,15 @@ writeWhiteAlphaPng("banner-arc.png", 256, 256, (x, y) =>
 	const inArc = phase < arcLength ? Math.min(smoothstep(0, 0.15, along), smoothstep(0, 0.15, 1 - along)) : 0;
 	return stroke * inArc;
 });
+
+// 사선 줄무늬: 경고 테이프 결. 45도 줄, 양 끝에서 사라짐. 반복 대신 넓게 굽고 stretch-to-fill
+writeWhiteAlphaPng("banner-stripe.png", 1024, 16, (x, y) =>
+{
+	const period = 24;
+	const stripeWidth = 12;
+	const position = ((x + 0.5 + (15.5 - (y + 0.5))) % period + period) % period;
+	const edge = 0.8;
+	const stripe = smoothstep(0, edge, position) * (1 - smoothstep(stripeWidth - edge, stripeWidth, position));
+	const horizontal = 1 - smoothstep(0.55, 1.0, distanceFromCenter(x, 1024));
+	return stripe * horizontal;
+});

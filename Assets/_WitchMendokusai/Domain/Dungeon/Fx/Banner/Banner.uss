@@ -1,4 +1,4 @@
-/* 전투 화면 띠 (BannerFx). 정예와 무리 예고, 보스 이름, 승패, 던전 입장, 난이도 알림
+/* 전투 화면 띠 (BannerFx). 정예와 무리와 보스 예고, 보스 이름, 승패, 던전 입장, 난이도 알림
    구조: .wm-banner (화면 전체)
            __tint, __vignette (화면 물들임과 가장자리 어둡게. 보스, 패배만 보임)
            __group (자리 잡기와 떠오르는 퇴장)
@@ -449,6 +449,76 @@
 }
 
 .wm-banner--swarm .wm-banner__subtitle {
+    font-size: 22px;
+}
+
+/* ===== 보스 예고: 같은 높이대, 진홍 반투명 띠, 위아래 선 대신 사선 줄무늬 띠 (경고 테이프 결) ===== */
+/* 줄무늬는 Art/banner-stripe.png. 반복 대신 넓게 굽고 tint 로 색 입힘 */
+
+.wm-banner--bosswarn {
+    --wm-banner-accent: rgb(232, 44, 74);
+    --wm-banner-title: rgb(255, 242, 242);
+    --wm-banner-ink-soft: rgb(240, 196, 200);
+    --wm-banner-band: rgba(128, 6, 28, 0.62);
+    --wm-banner-outline: rgb(30, 4, 10);
+}
+
+.wm-banner--bosswarn .wm-banner__group {
+    top: 11%;
+}
+
+.wm-banner--bosswarn .wm-banner__rule {
+    width: 84%;
+    height: 10px;
+    background-image: url("Art/banner-stripe.png");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-image-tint-color: var(--wm-banner-accent);
+    scale: 0 1;
+    transition-property: scale;
+    transition-duration: 0.45s;
+    transition-delay: 0.06s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.wm-banner--bosswarn.wm-banner--in .wm-banner__rule {
+    scale: 1 1;
+}
+
+.wm-banner--bosswarn .wm-banner__rule--top {
+    margin-bottom: 4px;
+}
+
+.wm-banner--bosswarn .wm-banner__rule--bottom {
+    margin-top: 4px;
+}
+
+.wm-banner--bosswarn .wm-banner__rule-line,
+.wm-banner--bosswarn .wm-banner__diamond {
+    display: none;
+}
+
+.wm-banner--bosswarn .wm-banner__band {
+    width: 92%;
+    padding: 10px 0;
+}
+
+.wm-banner--bosswarn .wm-banner__char {
+    margin: 0 12px;
+    font-size: 50px;
+    -unity-text-outline-width: 1.5px;
+    scale: 1.5 1.5;
+}
+
+.wm-banner--bosswarn .wm-banner__char--space {
+    width: 18px;
+}
+
+.wm-banner--bosswarn .wm-banner__char--shown {
+    margin: 0 2px;
+    scale: 1 1;
+}
+
+.wm-banner--bosswarn .wm-banner__subtitle {
     font-size: 22px;
 }
 

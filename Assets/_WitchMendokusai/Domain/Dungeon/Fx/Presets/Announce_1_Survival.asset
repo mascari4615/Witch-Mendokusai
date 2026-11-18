@@ -33,7 +33,7 @@ MonoBehaviour:
     <Subtitle>k__BackingField: ""
     <HoldSeconds>k__BackingField: 1.4
   <BossAnnounced>k__BackingField:
-    <Banner>k__BackingField: {fileID: 11400000, guid: 98be667199014e7cb36bc8a8d269c072, type: 2}
+    <Banner>k__BackingField: {fileID: 11400000, guid: 47eac64d576bfe09de8f3615155551d6, type: 2}
     <Title>k__BackingField: "보스 출현 임박"
     <Subtitle>k__BackingField: "{0}초 뒤"
     <HoldSeconds>k__BackingField: 0
