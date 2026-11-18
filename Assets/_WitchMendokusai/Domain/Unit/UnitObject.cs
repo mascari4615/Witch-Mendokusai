@@ -141,8 +141,8 @@ namespace WitchMendokusai
 			return SkillHandler.UseSkill(index);
 		}
 
-		// 정지 효과 같은 외부 규칙으로 이동과 공격이 막힌 상태
-		public virtual bool IsActionSuspended => false;
+		// 얼음, 기절 상태이상으로 이동과 공격이 막힌 상태. 정본은 UnitStat 의 상태이상 칸
+		public virtual bool IsActionSuspended => UnitStat[UnitStatType.FREEZE] > 0 || UnitStat[UnitStatType.STUN] > 0;
 
 		public virtual void ReceiveHeal(int healAmount)
 		{

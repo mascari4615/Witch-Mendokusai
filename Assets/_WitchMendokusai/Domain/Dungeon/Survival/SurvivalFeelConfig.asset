@@ -14,19 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShardMaterial: {fileID: 2100000, guid: 17a292e140f145cbac0811f94ade3aff, type: 2}
   RingMaterial: {fileID: 2100000, guid: eb82016b91a74ed384b4395c7ab85dd6, type: 2}
-  FreezeStatusIcon: {fileID: -1677760388, guid: fbd184d873518c24aaaa66f4c3d4c2a9, type: 3}
-  FreezeStatusColor: {r: 0.65, g: 0.85, b: 1, a: 0.85}
-  FreezeMarkerSize: 1.8
-  FreezeMarkerHeight: 0.08
-  FreezeMarkerRefreshLife: 0.25
-  FreezeHudOffset: {x: 0, y: -150}
-  FreezeHudSize: {x: 420, y: 36}
-  FreezeHudFontSize: 22
-  FreezeHudIconSize: 30
-  FreezeHudIconSpacing: 8
-  FreezeStatusLabel: "\uC2DC\uAC04\uC815\uC9C0"
-  FreezeBossLabel: "\uBCF4\uC2A4"
-  FreezeBossReleasedLabel: "\uBCF4\uC2A4 \uD574\uC81C"
   PlayerHitFlashController: {fileID: 9100000, guid: 1ae115b1e79be68498f7e37998498e3e, type: 2}
   PlayerHitFlashStrength: 0.12
   ShakeCap: 0.9

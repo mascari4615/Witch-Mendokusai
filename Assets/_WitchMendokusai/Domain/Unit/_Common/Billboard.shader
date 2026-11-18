@@ -9,6 +9,12 @@ Shader "WitchMendokusai/BillboardShader"
         _Emission("Emission", float) = 0 
         _RotateVector("RotateVector", Vector) = (0,0,0,0)
         _BillboardMode("Billboard Mode", Range(0, 2)) = 0
+        // 상태이상 물들임 (알파가 세기), 가장자리 테두리 (알파 0이면 없음), 테두리 두께 화소
+        _StatusTint("Status Tint", Color) = (0, 0, 0, 0)
+        _StatusRim("Status Rim", Color) = (0, 0, 0, 0)
+        _StatusRimWidth("Status Rim Width", Float) = 2.5
+        // 피격 좌우 흔들림. x 시작 시각 (_Time.y), y 폭, z 시간, w 초당 왕복
+        _HitShake("Hit Shake", Vector) = (0, 0, 0, 0)
     }
 
     SubShader
@@ -74,12 +80,17 @@ Shader "WitchMendokusai/BillboardShader"
 
             CBUFFER_START(UnityPerMaterial)
                 half4 _MainTex_ST;
+                float4 _MainTex_TexelSize;
                 float4 _Color;
                 float _Cutoff;
                 float4 _EmissionColor;
                 float _Emission;
                 float3 _RotateVector;
                 float _BillboardMode;
+                float4 _StatusTint;
+                float4 _StatusRim;
+                float _StatusRimWidth;
+                float4 _HitShake;
             CBUFFER_END
 
             v2f vert(appdata v)
@@ -156,6 +167,15 @@ Shader "WitchMendokusai/BillboardShader"
 
                 float4x4 modelMatrix = mul(mul(moveMatrix, rotationMatrix), scaleMatrix);
                 float4 positionWS = mul(modelMatrix, float4(positionOS.xyz, 1));
+
+                // 피격 흔들림: 카메라 기준 좌우, 감쇠 사인. 위치와 충돌체는 그대로, 그림만
+                float shakeTime = _Time.y - _HitShake.x;
+                if (_HitShake.y > 0 && shakeTime >= 0 && shakeTime < _HitShake.z)
+                {
+                    float shakeDecay = 1 - shakeTime / _HitShake.z;
+                    float shakeOffset = _HitShake.y * shakeDecay * shakeDecay * sin(shakeTime * _HitShake.w * 6.2831853);
+                    positionWS.xyz += UNITY_MATRIX_V[0].xyz * shakeOffset;
+                }
                 float4 positionVS = mul(UNITY_MATRIX_V, positionWS);
                 float4 positionCS = mul(UNITY_MATRIX_P, positionVS);
                 
@@ -169,11 +189,28 @@ Shader "WitchMendokusai/BillboardShader"
             {
                 float2 mainTexUV = i.uv.xy * _MainTex_ST.xy + _MainTex_ST.zw;
                 float4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV);
+                float textureAlpha = col.a;
 
                 col *= _Color;
                 col *= i.color;
                 
                 clip(col.a - _Cutoff  * _Emission);
+
+                // 상태이상 물들임. 밝기를 남겨 형태 유지
+                float luminance = dot(col.rgb, float3(0.299, 0.587, 0.114));
+                col.rgb = lerp(col.rgb, _StatusTint.rgb * (0.45 + 0.75 * luminance), _StatusTint.a);
+
+                // 서리 테두리. 이웃 화소가 비어 있으면 가장자리
+                if (_StatusRim.a > 0)
+                {
+                    float2 rimStep = _MainTex_TexelSize.xy * _StatusRimWidth;
+                    float neighborAlpha = min(
+                        min(SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV + float2(rimStep.x, 0)).a, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV - float2(rimStep.x, 0)).a),
+                        min(SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV + float2(0, rimStep.y)).a, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV - float2(0, rimStep.y)).a));
+                    float rimEdge = step(0.5, textureAlpha) * (1 - step(0.5, neighborAlpha));
+                    col.rgb = lerp(col.rgb, _StatusRim.rgb, rimEdge * _StatusRim.a);
+                }
+
                 // 피격 점멸: 더하기 대신 섞기. 1이면 기존과 같은 완전 흰색, 0.5면 형태가 남음
                 col.rgb = lerp(col.rgb, _EmissionColor.rgb, saturate(_Emission));
                 return col;

@@ -1,0 +1,116 @@
+using UnityEngine;
+
+namespace WitchMendokusai
+{
+	// 유닛 하나의 상태이상. 남은 시간 정본은 UnitStat 의 상태이상 칸 (밀리초)
+	// - 처음 걸릴 때 유닛에 붙음. 풀 재사용 몸이라 꺼질 때 전부 해제
+	// - 시간 감소, 틱 피해, 표시는 UnitStatusDriver 한 곳
+	public sealed class UnitStatus : MonoBehaviour
+	{
+		public UnitObject Unit { get; private set; }
+
+		internal readonly float[] TickTimers = new float[UnitStatusRules.Count];
+		internal readonly IDamageSource[] Sources = new IDamageSource[UnitStatusRules.Count];
+		internal float MillisecondCarry;
+		// 유닛마다 효과 위상을 달리하는 값. 무리가 같이 깜빡이지 않게
+		internal float PhaseSeed;
+		internal bool IsTracked;
+		internal UnitStatusView View;
+
+		private Animator animator;
+		private bool animatorSearched;
+		private bool animatorStopped;
+		private float animatorSpeed;
+
+		private static UnitStatusConfig Config => ResourceManager.Instance.UnitStatus;
+
+		public static void Apply(UnitObject target, UnitStatusType type, IDamageSource source)
+		{
+			UnitStatusStyle style = Config.Style(type);
+			Apply(target, type, source, style.Seconds);
+		}
+
+		public static void Apply(UnitObject target, UnitStatusType type, IDamageSource source, float seconds)
+		{
+			UnitStatusStyle style = Config.Style(type);
+			Engage(target, type, source, seconds, style.SlowRatio);
+		}
+
+		// 둔화 비율을 거는 쪽이 정함 (무기 부품)
+		public static void ApplySlow(UnitObject target, IDamageSource source, float seconds, float slowRatio) => Engage(target, UnitStatusType.Slow, source, seconds, slowRatio);
+
+		public static bool Has(UnitObject target, UnitStatusType type) => target.UnitStat[UnitStatusRules.StatType(type)] > 0;
+
+		private static void Engage(UnitObject target, UnitStatusType type, IDamageSource source, float seconds, float slowRatio)
+		{
+			if (target.IsAlive == false || target.isActiveAndEnabled == false)
+				return;
+			if (target is MonsterObject monster && monster.UnitData.Type == MonsterType.Boss)
+				seconds = UnitStatusRules.BossSeconds(seconds, Config.Style(type).BossRatio);
+			int milliseconds = UnitStatusRules.Milliseconds(seconds);
+			if (milliseconds <= 0)
+				return;
+
+			if (target.TryGetComponent(out UnitStatus status) == false)
+			{
+				status = target.gameObject.AddComponent<UnitStatus>();
+				status.PhaseSeed = Random.value;
+			}
+			status.Unit = target;
+
+			int index = (int)type;
+			UnitStatType statType = UnitStatusRules.StatType(type);
+			int current = target.UnitStat[statType];
+			if (current <= 0)
+				status.TickTimers[index] = 0f;
+			target.UnitStat[statType] = UnitStatusRules.Refresh(current, milliseconds);
+			status.Sources[index] = source;
+
+			if (type == UnitStatusType.Slow && slowRatio > 0f)
+				UnitSlow.Apply(target, slowRatio, seconds);
+
+			UnitStatusDriver.Instance.Track(status);
+		}
+
+		// 얼음처럼 그림 움직임을 멈추는 종류가 하나라도 걸렸으면 정지
+		internal void SetAnimationStopped(bool stopped)
+		{
+			if (stopped == animatorStopped)
+				return;
+			if (animatorSearched == false)
+			{
+				animator = GetComponentInChildren<Animator>(true);
+				animatorSearched = true;
+			}
+			// 그림 움직임이 없는 유닛
+			if (animator == null)
+				return;
+			animatorStopped = stopped;
+			if (stopped)
+			{
+				animatorSpeed = animator.speed;
+				animator.speed = 0f;
+			}
+			else
+				animator.speed = animatorSpeed;
+		}
+
+		internal void ClearAll()
+		{
+			if (Unit != null)
+				foreach (UnitStatusType type in UnitStatusRules.ALL)
+					Unit.UnitStat[UnitStatusRules.StatType(type)] = 0;
+			for (int i = 0; i < Sources.Length; i++)
+				Sources[i] = null;
+			MillisecondCarry = 0f;
+			SetAnimationStopped(false);
+			if (UnitStatusDriver.HasInstance)
+				UnitStatusDriver.Instance.Untrack(this);
+			// 구동기가 먼저 사라진 경우 (씬 정리 순서) 에도 다음 판에 다시 등록되게
+			IsTracked = false;
+			View = null;
+		}
+
+		private void OnDisable() => ClearAll();
+	}
+}

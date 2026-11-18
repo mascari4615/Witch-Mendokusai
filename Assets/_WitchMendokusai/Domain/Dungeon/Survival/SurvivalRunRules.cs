@@ -65,10 +65,11 @@ namespace WitchMendokusai
 		[Min(0), Tooltip("임시값. 최소 적 수 보충 한 번에 만들 최대 마릿수. 0이면 부족분 전부")] public int RefillBurstMax = 30;
 
 		[Header("Floor items (provisional values)")]
-		[Min(0f), Tooltip("임시값. 적 처치마다 적 정지 아이템이 나올 확률, 퍼센트. Luck 배율 적용")] public float FreezeDropPercent = 0.25f;
-		[Min(0f), Tooltip("임시값. 적 처치마다 화면 청소 아이템이 나올 확률, 퍼센트. Luck 배율 적용")] public float ClearDropPercent = 0.15f;
-		[Min(0f), Tooltip("임시값. 적 정지 지속 시간 초")] public float FreezeSeconds = 8f;
-		[Range(0f, 1f), Tooltip("임시값. 보스 정지 시간 비율. 0이면 보스 면역")] public float FreezeBossRatio = 0.25f;
+		[Min(0f), Tooltip("적 처치마다 회복 아이템이 나올 확률, 퍼센트. Luck 배율 적용 (2026-11-18 0.5 에서 낮춤)")] public float HealDropPercent = 0.2f;
+		[Min(0f), Tooltip("적 처치마다 자석 아이템이 나올 확률, 퍼센트. Luck 배율 적용 (2026-11-18 0.25 에서 낮춤)")] public float MagnetDropPercent = 0.1f;
+		[Min(0f), Tooltip("적 처치마다 적 정지 아이템이 나올 확률, 퍼센트. Luck 배율 적용 (2026-11-18 0.25 에서 낮춤)")] public float FreezeDropPercent = 0.08f;
+		[Min(0f), Tooltip("적 처치마다 화면 청소 아이템이 나올 확률, 퍼센트. Luck 배율 적용 (2026-11-18 0.15 에서 낮춤)")] public float ClearDropPercent = 0.05f;
+		[Min(0f), Tooltip("임시값. 적 정지 아이템이 화면 안 몬스터에 거는 얼음 시간 초. 보스 비율은 UnitStatusConfig 얼음 줄")] public float FreezeSeconds = 8f;
 
 		[Header("Threat levels (provisional values)")]
 		[Tooltip("임시값. 한 줄이 한 단계. 줄 추가로 단계 추가, 단계 0은 줄 없음")] public List<DungeonThreatLevel> ThreatLevels = new();

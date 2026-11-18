@@ -31,6 +31,7 @@ namespace WitchMendokusai
 
 		[field: SerializeField] public SurvivalFeelConfig SurvivalFeel { get; private set; } = null;
 		[field: SerializeField] public SurvivalRunRules SurvivalRunRules { get; private set; } = null;
+		[field: SerializeField, Tooltip("상태이상 규칙과 표시 (화상, 독, 얼음, 둔화, 기절)")] public UnitStatusConfig UnitStatus { get; private set; } = null;
 		[field: SerializeField, Tooltip("생존 모드 화면 알림 (정예, 무리, 보스 띠)")] public SurvivalAnnounceSettings SurvivalAnnounce { get; private set; } = null;
 	}
 }

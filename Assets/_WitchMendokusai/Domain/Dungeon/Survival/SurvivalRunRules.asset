@@ -52,10 +52,11 @@ MonoBehaviour:
   EnemySoftCap: 300
   EnemyHardCap: 500
   RefillBurstMax: 30
-  FreezeDropPercent: 0.25
-  ClearDropPercent: 0.15
+  HealDropPercent: 0.2
+  MagnetDropPercent: 0.1
+  FreezeDropPercent: 0.08
+  ClearDropPercent: 0.05
   FreezeSeconds: 8
-  FreezeBossRatio: 0.25
   ThreatLevels:
   - EnemyHealth: 1.5
     EnemyDamage: 1

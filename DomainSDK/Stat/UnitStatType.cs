@@ -213,6 +213,13 @@ namespace WitchMendokusai
 		IS_SPRINTING = 100_000_101,
 		IS_CROUCHING = 100_000_102,
 		IS_JUMPING = 100_000_103,
+
+		// 상태이상. 값은 남은 시간 밀리초, 0이면 없음. 정본 UnitStatusRules
+		BURN = 100_000_200,
+		POISON = 100_000_201,
+		FREEZE = 100_000_202,
+		SLOW = 100_000_203,
+		STUN = 100_000_204,
 		#endregion
 	}
 }

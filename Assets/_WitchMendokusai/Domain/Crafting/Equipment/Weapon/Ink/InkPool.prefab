@@ -2430,8 +2430,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b15b058f40b5264299132d6aa5ead8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.StatusOnHit
+  statusType: 3
+  statusSeconds: 0.8
   slowFactor: 0.4
-  slowSeconds: 0.8
   bossResistance: 0.5
 --- !u!114 &5717389483468625667
 MonoBehaviour:
