@@ -340,7 +340,7 @@ namespace WitchMendokusai
 		// 스킬창 장비 레벨. 1 에 이번 판 고른 그 장비 카드 수를 더함
 		public int EquipmentLevel(EquipmentData equipment)
 		{
-			HashSet<int> cardIds = skillTrees.CardsFor(equipment).Where(card => card != null).Select(card => card.ID).ToHashSet();
+			HashSet<int> cardIds = new HashSet<int>(skillTrees.CardsFor(equipment).Where(card => card != null).Select(card => card.ID));
 			return 1 + soManager.SelectedCardBuffer.Data.Count(selected => cardIds.Contains(selected.ID));
 		}
 
