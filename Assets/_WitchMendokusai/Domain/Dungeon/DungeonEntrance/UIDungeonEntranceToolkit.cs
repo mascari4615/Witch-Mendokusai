@@ -135,10 +135,7 @@ namespace WitchMendokusai
 
 			horizontalFocusOrder.AddRange(new[] { backButton, equippedButton, randomButton, dungeonEnterButton });
 			SelectRunMode(selectedRunMode);
-
-			Button closeButton = AddRoundButton("CloseButton", "×");
-			closeButton.AddToClassList(USS_ROOT + "__close");
-			root.Add(closeButton);
+			// 닫기는 왼쪽 위 뒤로가기와 취소 입력 하나. 오른쪽 위 X 없음, 그 자리는 정보 창 (사용자 2026-11-18)
 		}
 
 		private Button AddRunModeButton(VisualElement parent, DungeonRunMode mode, string text)

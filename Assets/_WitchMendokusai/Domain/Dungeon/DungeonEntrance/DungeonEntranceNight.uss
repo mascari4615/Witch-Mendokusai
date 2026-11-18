@@ -660,50 +660,115 @@
     color: rgb(21, 23, 46);
 }
 
-/* 정보 창 칸 자리 고정 (사용자 2026-11-18 "간격 크기가 계속 달라지는데 고정되게", "화면 밖으로 잘림").
-   고정 px 대신 정보 창 높이를 비율로 나눔: 던전이 바뀌어도 칸 자리 같음, 화면이 작아도 창 안에 들어감 */
+
+/* 정보 창 칸 자리 고정 (사용자 2026-11-18 "간격 크기가 계속 달라지는데 고정되게", "요소들이 안보이잖아").
+   패널 배율: PanelSettings Expand 1200x800, 어느 화면이든 논리 높이 800 이상.
+   오른쪽 위 X 를 없애 정보 창을 위로 올림 (닫기는 왼쪽 위 뒤로가기와 취소 입력).
+   정보 창 높이 예산: 800 - 위 40 - 아래 32 = 728. 칸마다 최대 내용 기준 고정 높이, 합계 716.
+   위 네 칸은 위에서, 보상과 입장은 아래에서 고정. 높이가 남는 화면 (4:3) 은 사이 빈칸이 받음.
+   잘라서 숨기지 않음. 최대 내용: 설명 2줄, 적 4, 제약 3, 위협 효과 2줄. 칸 높이는 에디터 실측 */
+.wm-dungeon-entrance--night .wm-dungeon-entrance__detail {
+    top: 40px;
+    bottom: 32px;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__summary,
+.wm-dungeon-entrance--night .wm-dungeon-entrance__section--foes,
+.wm-dungeon-entrance--night .wm-dungeon-entrance__section--constraints,
+.wm-dungeon-entrance--night .wm-dungeon-entrance__section--run,
+.wm-dungeon-entrance--night .wm-dungeon-entrance__section--rewards,
+.wm-dungeon-entrance--night .wm-dungeon-entrance__enter {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__section {
+    margin-top: 14px;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__header {
+    flex-shrink: 0;
+    margin-bottom: 6px;
+}
+
+/* 이름과 시간 태그 한 줄, 설명 2줄 */
 .wm-dungeon-entrance--night .wm-dungeon-entrance__summary {
-    flex-grow: 3;
-    flex-shrink: 1;
-    flex-basis: 0;
-    min-height: 0;
-    overflow: hidden;
+    height: 128px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    align-content: flex-start;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__tag {
+    margin: 0 0 9px 12px;
 }
 
 .wm-dungeon-entrance--night .wm-dungeon-entrance__description {
-    overflow: hidden;
+    width: 100%;
 }
 
+/* 머리 + 초상 56 + 이름 + 시각 */
 .wm-dungeon-entrance--night .wm-dungeon-entrance__section--foes {
-    flex-grow: 3;
-    flex-shrink: 1;
-    flex-basis: 0;
-    min-height: 0;
-    overflow: hidden;
+    height: 122px;
 }
 
+.wm-dungeon-entrance--night .wm-dungeon-foes__pic {
+    width: 56px;
+    height: 56px;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-foes__image {
+    width: 38px;
+    height: 38px;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-foes__name,
+.wm-dungeon-entrance--night .wm-dungeon-foes__time {
+    white-space: nowrap;
+}
+
+/* 머리 + 제약 3줄 */
 .wm-dungeon-entrance--night .wm-dungeon-entrance__section--constraints {
-    flex-grow: 2.6;
-    flex-shrink: 1;
-    flex-basis: 0;
-    min-height: 0;
-    overflow: hidden;
+    height: 132px;
 }
 
+/* 머리 + 모드와 위협 단계 한 줄 + 효과 2줄 */
 .wm-dungeon-entrance--night .wm-dungeon-entrance__section--run {
-    flex-grow: 2.4;
-    flex-shrink: 1;
-    flex-basis: 0;
-    min-height: 0;
-    overflow: hidden;
+    height: 112px;
 }
 
-/* 남는 자리는 위 네 칸이 나눠 가짐 */
-.wm-dungeon-entrance--night .wm-dungeon-entrance__spacer {
-    flex-grow: 0;
+/* 위협 단계 버튼을 모드 탭 오른쪽 줄로 올림, 효과 글은 창 폭 전체 */
+.wm-dungeon-entrance--night .wm-dungeon-entrance__threat {
+    flex-direction: column;
+    margin-top: 6px;
 }
 
-.wm-dungeon-entrance--night .wm-dungeon-entrance__section--rewards,
+.wm-dungeon-entrance--night .wm-dungeon-entrance__threat-steps {
+    position: absolute;
+    right: 0;
+    top: -37px;
+    height: 28px;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__threat-level {
+    width: 104px;
+    -unity-text-align: middle-center;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__threat-effect {
+    margin-left: 0;
+}
+
+/* 머리 + 칸 58 */
+.wm-dungeon-entrance--night .wm-dungeon-entrance__section--rewards {
+    height: 96px;
+}
+
 .wm-dungeon-entrance--night .wm-dungeon-entrance__enter {
-    flex-shrink: 0;
+    margin-top: 14px;
+}
+
+.wm-dungeon-entrance--night .wm-dungeon-entrance__spacer {
+    flex-grow: 1;
 }
