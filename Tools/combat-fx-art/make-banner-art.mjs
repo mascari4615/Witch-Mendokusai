@@ -84,11 +84,11 @@ function smoothstep(edge0, edge1, value)
 // 가운데 0, 양 끝 1 인 가로 위치
 const distanceFromCenter = (x, width) => Math.abs((x + 0.5) / width * 2 - 1);
 
-// 띠: 가운데 짙고 양 끝으로 부드럽게 사라짐. 위아래 가장자리는 살짝만 흐림
-writeWhiteAlphaPng("banner-band.png", 512, 32, (x, y) =>
+// 띠: 가운데 짙고 양 끝과 위아래로 부드럽게 사라짐
+writeWhiteAlphaPng("banner-band.png", 512, 64, (x, y) =>
 {
 	const horizontal = 1 - smoothstep(0.18, 1.0, distanceFromCenter(x, 512));
-	const vertical = 1 - 0.25 * Math.pow(Math.abs((y + 0.5) / 32 * 2 - 1), 3);
+	const vertical = 1 - smoothstep(0.45, 1.0, Math.abs((y + 0.5) / 64 * 2 - 1));
 	return horizontal * vertical;
 });
 

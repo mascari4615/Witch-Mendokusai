@@ -46,12 +46,12 @@ MonoBehaviour:
     m_RotationOrder: 4
   appearSeconds: 0.16
   flashSeconds: 0.28
-  baseColor: {r: 1, g: 0.35, b: 0.22, a: 0.1}
-  fillColor: {r: 1, g: 0.32, b: 0.18, a: 0.22}
+  baseColor: {r: 1, g: 0.3, b: 0.24, a: 0.12}
+  fillColor: {r: 1, g: 0.26, b: 0.2, a: 0.38}
   frontColor: {r: 1, g: 0.85, b: 0.62, a: 1}
   edgeColor: {r: 1, g: 0.38, b: 0.2, a: 0.85}
   coreColor: {r: 1, g: 0.93, b: 0.82, a: 1}
-  patternColor: {r: 1, g: 0.55, b: 0.35, a: 0.22}
+  patternColor: {r: 1, g: 0.72, b: 0.5, a: 0.42}
   sparkColor: {r: 1, g: 0.85, b: 0.6, a: 1}
   flashColor: {r: 1, g: 0.9, b: 0.75, a: 1}
   membraneCenter: 0.55
