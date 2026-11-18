@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -39,26 +38,15 @@ namespace WitchMendokusai
 				return;
 			spawnStyle.PlayPuff(transform.position, puffSizeMultiplier);
 			if (spawnStyle.PopSeconds > 0f)
-				StartCoroutine(PopRoutine());
+				MonsterLifeFxDriver.Instance.AddPop(popTarget, popBaseScale, spawnStyle);
 		}
 
 		private void OnDisable()
 		{
 			health.OnHealthChanged -= CaptureDeathPose;
-			// 코루틴은 비활성화로 멈춤. 도중에 꺼졌어도 다음 사용 때 제 크기
-			popTarget.localScale = popBaseScale;
-		}
-
-		private IEnumerator PopRoutine()
-		{
-			float seconds = spawnStyle.PopSeconds;
-			float elapsed = 0f;
-			while (elapsed < seconds)
-			{
-				popTarget.localScale = Vector3.Scale(popBaseScale, spawnStyle.EvaluatePop(elapsed / seconds));
-				yield return null;
-				elapsed += Time.deltaTime;
-			}
+			// 도중에 꺼졌어도 다음 사용 때 제 크기
+			if (spawnStyle != null && MonsterLifeFxDriver.HasInstance)
+				MonsterLifeFxDriver.Instance.StopPop(popTarget);
 			popTarget.localScale = popBaseScale;
 		}
 
@@ -71,11 +59,14 @@ namespace WitchMendokusai
 			hasDeathPose = true;
 		}
 
+		/// <summary> 사망 때 공용 사망음 (MonsterPop) 을 이쪽이 내는지. 참이면 DamageAudioFeedback 의 옛 사망음은 생략 </summary>
+		public bool PlaysDeathSfx => deathStyle != null;
+
 		public void OnDeath()
 		{
-			CombatSfx.Play(CombatSfxEvent.MonsterPop, transform.position);
 			if (deathStyle == null)
 				return;
+			CombatSfx.Play(CombatSfxEvent.MonsterPop, transform.position);
 			if (hasDeathPose == false)
 				deathPose = MonsterDeathGhost.Capture(body);
 			hasDeathPose = false;

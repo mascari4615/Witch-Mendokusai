@@ -27,6 +27,7 @@ namespace WitchMendokusai
 	public class Spawner : SkillComponent
 	{
 		[SerializeField] private GameObject prefabToSpawn;
+		[SerializeField, Tooltip("내보낼 때 공용 던지기 효과음 (CombatSfx WeaponThrow)")] private bool playThrowSfx = true;
 		[SerializeField] private SpawnPositionStrategy spawnPositionStrategy = SpawnPositionStrategy.Random;
 		[SerializeField] private SpawnAimStrategy spawnAimStrategy = SpawnAimStrategy.None;
 
@@ -141,6 +142,8 @@ namespace WitchMendokusai
 			bool hasDirection = direction != Vector3.zero;
 			Quaternion rotation = hasDirection ? Quaternion.LookRotation(direction, Vector3.up) : Quaternion.identity;
 			GameObject g = objectPoolManager.Spawn(prefabToSpawn, position, rotation);
+			if (playThrowSfx)
+				CombatSfx.Play(CombatSfxEvent.WeaponThrow, position);
 
 			// 풀 재사용이라 프리팹 크기로 되돌린 뒤 공격 범위 강화, 장비 크기 카드 순서로 곱함
 			g.transform.localScale = prefabToSpawn.transform.localScale;

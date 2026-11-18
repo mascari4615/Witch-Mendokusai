@@ -13,7 +13,9 @@ namespace WitchMendokusai
 	public class ScreenTintFx : CombatFx
 	{
 		private const string ELEMENT_NAME = "screen-tint-fx";
+		private const string VEIL_CLASS = "wm-screen-tint";
 
+		[SerializeField, Tooltip("막 모양 (ScreenTint.uss). 위치와 크기를 정함")] private StyleSheet styleSheet;
 		[SerializeField, Tooltip("덮는 색. 알파는 아래 최대 불투명도가 정함")] private Color color = Color.white;
 		[SerializeField, Range(0f, 1f), Tooltip("가장 짙을 때 불투명도")] private float maxAlpha = 0.5f;
 		[SerializeField, Tooltip("들어오는 시간, 머무는 시간, 나가는 시간, 곡선")] private FlowEnvelope envelope = new();
@@ -21,12 +23,13 @@ namespace WitchMendokusai
 
 		protected override Action Play(CombatFxRunner runner, CombatFxContext context)
 		{
+			if (styleSheet == null)
+				throw new InvalidOperationException($"{name}: styleSheet 가 비어 있음. 막 모양 USS (ScreenTint.uss) 를 연결해야 함");
+
 			VisualElement veil = new() { name = ELEMENT_NAME, pickingMode = PickingMode.Ignore };
-			veil.style.position = Position.Absolute;
-			veil.style.left = 0;
-			veil.style.top = 0;
-			veil.style.right = 0;
-			veil.style.bottom = 0;
+			veil.styleSheets.Add(styleSheet);
+			veil.AddToClassList(VEIL_CLASS);
+			// 색은 에셋 값이고 시간에 따라 바뀌는 투명도라 코드가 정함. 위치와 크기는 USS
 			veil.style.backgroundColor = new Color(color.r, color.g, color.b, 0f);
 
 			VisualElement layer = UIRoot.Instance.OverlayLayer;

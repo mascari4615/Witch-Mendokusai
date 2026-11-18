@@ -86,6 +86,7 @@ namespace WitchMendokusai
 				Vector3 bulletSpawnPos = turretTransforms[turretIndex].position;
 				bulletSpawnPos.y = 0;
 				bulletObject.transform.position = bulletSpawnPos;
+				CombatSfx.Play(CombatSfxEvent.WeaponThrow, bulletSpawnPos);
 
 				if (bulletObject.TryGetComponent(out SkillObject skillObject))
 					skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager, usedEquipment));

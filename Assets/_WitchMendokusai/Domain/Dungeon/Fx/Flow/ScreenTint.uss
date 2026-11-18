@@ -1,0 +1,9 @@
+/* 화면 전체 색 덮개 (ScreenTintFx). 색과 투명도는 코드가 시간에 맞춰 바꿈 */
+
+.wm-screen-tint {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}

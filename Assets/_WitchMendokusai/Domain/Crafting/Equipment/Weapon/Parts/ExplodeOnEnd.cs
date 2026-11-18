@@ -9,6 +9,7 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject explosionPrefab;
 		[SerializeField, Min(0f)] private float fuseSeconds = 0f;
 		[SerializeField] private bool explodeOnContact = false;
+		[SerializeField, Tooltip("터질 때 공용 물보라 효과음 (CombatSfx WeaponSplash)")] private bool playSplashSfx = true;
 
 		private int damageBonus;
 		private SkillObject owner;
@@ -67,6 +68,8 @@ namespace WitchMendokusai
 				return;
 			exploded = true;
 
+			if (playSplashSfx)
+				CombatSfx.Play(CombatSfxEvent.WeaponSplash, transform.position);
 			GameObject g = objectPoolManager.Spawn(explosionPrefab, transform.position, Quaternion.identity);
 			g.transform.localScale = explosionPrefab.transform.localScale * transform.lossyScale.x;
 			if (g.TryGetComponent(out SkillObject skillObject) && owner != null)

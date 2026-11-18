@@ -66,13 +66,6 @@ namespace WitchMendokusai
 			return () => ReleaseZoomPunch(punch);
 		}
 
-		/// <summary> 걸린 당김을 풀림 연출 없이 전부 치움 </summary>
-		public void ClearZoomPunches()
-		{
-			zoomPunches.Clear();
-			RemoveZoomPunches();
-		}
-
 		private static void ReleaseZoomPunch(ZoomPunch punch)
 		{
 			if (punch.Releasing || punch.Finished)

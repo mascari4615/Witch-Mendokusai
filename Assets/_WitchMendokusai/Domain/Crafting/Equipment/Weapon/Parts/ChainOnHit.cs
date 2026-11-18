@@ -48,6 +48,8 @@ namespace WitchMendokusai
 
 				visited.Add(next.gameObject);
 				Vector3 to = next.position;
+				if (i == 0)
+					CombatSfx.Play(CombatSfxEvent.WeaponZap, from);
 				SpawnLink(from, to);
 				source.DealDirectDamage(nextUnit);
 				from = to;

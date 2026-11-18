@@ -139,6 +139,7 @@ namespace WitchMendokusai
 			spawnPosition.y = 0;
 			g.transform.position = spawnPosition;
 			g.transform.rotation = Quaternion.LookRotation(direction);
+			CombatSfx.Play(CombatSfxEvent.WeaponSwing, spawnPosition);
 
 			if (g.TryGetComponent(out SkillObject skillObject))
 				skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager, usedEquipment));

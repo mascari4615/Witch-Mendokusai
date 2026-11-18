@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0805a8a6eaa24c518f3b042641c931c1, type: 3}
   m_Name: Tint_1_VictoryFlash
   m_EditorClassIdentifier: 
+  styleSheet: {fileID: 7433441132597879392, guid: 7c1e4d2a9b3f4056a8d1e5f0c6b29a37, type: 3}
   color: {r: 1, g: 0.97, b: 0.86, a: 1}
   maxAlpha: 0.55
   envelope:

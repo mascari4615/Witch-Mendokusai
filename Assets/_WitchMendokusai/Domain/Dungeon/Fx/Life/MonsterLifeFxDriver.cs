@@ -33,6 +33,8 @@ namespace WitchMendokusai
 
 		private static MonsterLifeFxDriver instance;
 
+		public static bool HasInstance => instance != null;
+
 		public static MonsterLifeFxDriver Instance
 		{
 			get
@@ -68,6 +70,16 @@ namespace WitchMendokusai
 			public float Radius;
 		}
 
+		// 등장 튕김. 몬스터마다 코루틴을 만들지 않으려고 같은 Update 에서 갱신
+		private struct Pop
+		{
+			public Transform Target;
+			public Vector3 BaseScale;
+			public MonsterSpawnStyle Style;
+			public float Elapsed;
+		}
+
+		private readonly List<Pop> pops = new();
 		private readonly List<Ghost> ghosts = new();
 		private readonly List<Puff> puffs = new();
 		private CombatFxRunner runner;
@@ -112,6 +124,21 @@ namespace WitchMendokusai
 				}
 				ghosts[i] = ghost;
 				ApplyGhost(ghost);
+			}
+
+			for (int i = pops.Count - 1; i >= 0; i--)
+			{
+				Pop pop = pops[i];
+				pop.Elapsed += deltaTime;
+				if (pop.Target == null || pop.Elapsed >= pop.Style.PopSeconds)
+				{
+					if (pop.Target != null)
+						pop.Target.localScale = pop.BaseScale;
+					RemovePop(i);
+					continue;
+				}
+				pops[i] = pop;
+				pop.Target.localScale = Vector3.Scale(pop.BaseScale, pop.Style.EvaluatePop(pop.Elapsed / pop.Style.PopSeconds));
 			}
 
 			for (int i = puffs.Count - 1; i >= 0; i--)
@@ -174,6 +201,29 @@ namespace WitchMendokusai
 				if (ghosts[i].Id == ghostId)
 				{
 					ReleaseGhost(i);
+					return;
+				}
+			}
+		}
+
+		/// <summary> 등장 튕김 시작. 같은 target 이 이미 튕기는 중이면 처음부터 다시. 크기는 baseScale 에서 출발해 baseScale 로 끝남 </summary>
+		public void AddPop(Transform target, Vector3 baseScale, MonsterSpawnStyle style)
+		{
+			StopPop(target);
+			Pop pop = new() { Target = target, BaseScale = baseScale, Style = style, Elapsed = 0f };
+			pops.Add(pop);
+			target.localScale = Vector3.Scale(baseScale, style.EvaluatePop(0f));
+		}
+
+		/// <summary> 튕김을 도중에 멈추고 크기를 원래대로. 튕기는 중이 아니면 아무 일 없음 </summary>
+		public void StopPop(Transform target)
+		{
+			for (int i = 0; i < pops.Count; i++)
+			{
+				if (pops[i].Target == target)
+				{
+					target.localScale = pops[i].BaseScale;
+					RemovePop(i);
 					return;
 				}
 			}
@@ -257,6 +307,13 @@ namespace WitchMendokusai
 			properties.SetColor(COLOR_ID, color);
 			properties.SetVector(SHAPE_ID, new Vector4(style.PuffHollowCurve.Evaluate(progress), style.PuffSoftness, 0f, 0f));
 			puff.Renderer.SetPropertyBlock(properties);
+		}
+
+		private void RemovePop(int index)
+		{
+			int last = pops.Count - 1;
+			pops[index] = pops[last];
+			pops.RemoveAt(last);
 		}
 
 		private void ReleaseGhost(int index)
