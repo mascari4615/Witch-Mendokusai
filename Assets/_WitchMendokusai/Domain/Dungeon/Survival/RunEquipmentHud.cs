@@ -3,7 +3,8 @@ using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
-	// 생존 던전 아래 가운데 스킬창. 앞에 Shift 이동 스킬, 뒤에 보유 장비와 레벨 (사용자 2026-11-18 "스킬창에는 장비들")
+	// 아래 가운데 스킬창. 앞에 Shift 이동 스킬, 던전에서는 뒤에 보유 장비와 레벨 (사용자 2026-11-18 "스킬창에는 장비들")
+	// 칸은 예전 uGUI 스킬 칸과 같은 마름모 (사용자 2026-11-18 "기존 마름모 디자인 처럼"). 마을은 UISkillBar, 던전은 UIDungeonRuntime 이 띄움
 	// 클릭과 우클릭 스킬은 모든 장면에서 꺼져서 이 창에 없음. 스타일은 RunEquipmentHud.uss
 	public class RunEquipmentHud : VisualElement
 	{
@@ -15,6 +16,8 @@ namespace WitchMendokusai
 		public const string USS_SLOT_SIGNATURE = USS_SLOT + "--signature";
 		public const string USS_SLOT_SKILL = USS_SLOT + "--skill";
 		public const string USS_SLOT_POP = USS_SLOT + "--pop";
+		public const string USS_FRAME = USS_ROOT + "__frame";
+		public const string USS_OUTLINE = USS_ROOT + "__outline";
 		public const string USS_ICON = USS_ROOT + "__icon";
 		public const string USS_LEVEL = USS_ROOT + "__level";
 		public const string USS_LEVEL_EMPTY = USS_LEVEL + "--empty";
@@ -132,6 +135,9 @@ namespace WitchMendokusai
 		private class HudSlot
 		{
 			public readonly VisualElement Root = new() { pickingMode = PickingMode.Ignore };
+			// 45도 돌린 마름모 바탕. 쿨다운 덮개를 마름모 모양으로 자르고, 아이콘은 안에서 되돌려 바로 세움
+			private readonly VisualElement frame = new() { pickingMode = PickingMode.Ignore };
+			private readonly VisualElement outline = new() { pickingMode = PickingMode.Ignore };
 			private readonly VisualElement icon = new() { pickingMode = PickingMode.Ignore };
 			private readonly VisualElement cooldown = new() { pickingMode = PickingMode.Ignore };
 			private readonly Label level = new() { pickingMode = PickingMode.Ignore };
@@ -140,11 +146,16 @@ namespace WitchMendokusai
 			{
 				Root.AddToClassList(USS_SLOT);
 				Root.EnableInClassList(USS_SLOT_SKILL, isSkill);
+				frame.AddToClassList(USS_FRAME);
+				outline.AddToClassList(USS_OUTLINE);
 				icon.AddToClassList(USS_ICON);
 				cooldown.AddToClassList(USS_COOLDOWN);
 				level.AddToClassList(USS_LEVEL);
-				Root.Add(icon);
-				Root.Add(cooldown);
+				// 예전 칸과 같은 순서: 아이콘 위에 쿨다운 덮개
+				frame.Add(icon);
+				frame.Add(cooldown);
+				Root.Add(frame);
+				Root.Add(outline);
 				Root.Add(level);
 				// 튀는 연출은 USS 전환. 커진 뒤 전환이 끝나면 원래 크기로 돌아감
 				Root.RegisterCallback<TransitionEndEvent>(_ => Root.RemoveFromClassList(USS_SLOT_POP));

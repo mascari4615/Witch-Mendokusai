@@ -2,7 +2,8 @@ using System.Collections.Generic;
 
 namespace WitchMendokusai
 {
-	// 판 상태를 스킬창 (RunEquipmentHud) 에 옮김. 장비 레벨은 고른 카드 수나 장비가 바뀔 때만 다시 셈
+	// 스킬창 (RunEquipmentHud) 에 상태를 옮김. 던전은 이동 스킬과 장비 (Refresh), 마을은 이동 스킬만 (RefreshSkills)
+	// 장비 레벨은 고른 카드 수나 장비가 바뀔 때만 다시 셈
 	public class RunEquipmentHudBinder
 	{
 		private readonly RunEquipmentHud hud = new();
@@ -15,8 +16,7 @@ namespace WitchMendokusai
 
 		public void Refresh(DungeonManager dungeonManager, PlayerProvider playerProvider, CardManager cardManager)
 		{
-			if (hud.parent == null)
-				UIRoot.Instance.HudLayer.Add(hud);
+			Attach();
 
 			RunLoadout loadout = dungeonManager.RunLoadout;
 			List<EquipmentData> equipments = loadout.Equipments();
@@ -33,7 +33,13 @@ namespace WitchMendokusai
 					levels.Add(equipment != null ? cardManager.EquipmentLevel(equipment) : 0);
 			}
 			hud.RefreshEquipments(equipments, levels, slotCount);
+			RefreshSkills(playerProvider);
+		}
 
+		// 켜진 스킬 칸만. 마을 스킬 바 (UISkillBar) 도 이것만 부름
+		public void RefreshSkills(PlayerProvider playerProvider)
+		{
+			Attach();
 			skills.Clear();
 			SkillHandler skillHandler = playerProvider.CurrentObject.SkillHandler;
 			foreach (KeyValuePair<int, Skill> pair in skillHandler.SkillDic)
@@ -45,6 +51,12 @@ namespace WitchMendokusai
 		}
 
 		public void SetVisible(bool isVisible) => hud.SetVisible(isVisible);
+
+		private void Attach()
+		{
+			if (hud.parent == null)
+				UIRoot.Instance.HudLayer.Add(hud);
+		}
 
 		public void Hide()
 		{
