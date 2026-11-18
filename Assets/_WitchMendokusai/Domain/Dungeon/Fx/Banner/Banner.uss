@@ -671,7 +671,7 @@
 .wm-banner--defeat {
     --wm-banner-accent: rgb(176, 84, 84);
     --wm-banner-title: rgb(204, 206, 212);
-    --wm-banner-ink-soft: rgb(170, 164, 166);
+    --wm-banner-ink-soft: rgb(214, 208, 210);
     --wm-banner-band: rgba(12, 8, 10, 0.92);
     --wm-banner-outline: rgb(12, 8, 10);
     --wm-banner-wash: rgba(72, 22, 26, 0.18);
