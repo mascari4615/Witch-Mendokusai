@@ -27,6 +27,7 @@ namespace WitchMendokusai
 			EventBusBridge.Subscribe<BossAnnouncedEvent>(OnBossAnnounced);
 			EventBusBridge.Subscribe<BossSpawnedEvent>(OnBossSpawned);
 			EventBusBridge.Subscribe<DifficultyRaisedEvent>(OnDifficultyRaised);
+			EventBusBridge.Subscribe<EliteKilledEvent>(OnEliteKilled);
 		}
 
 		private void OnDestroy()
@@ -36,6 +37,7 @@ namespace WitchMendokusai
 			EventBusBridge.Unsubscribe<BossAnnouncedEvent>(OnBossAnnounced);
 			EventBusBridge.Unsubscribe<BossSpawnedEvent>(OnBossSpawned);
 			EventBusBridge.Unsubscribe<DifficultyRaisedEvent>(OnDifficultyRaised);
+			EventBusBridge.Unsubscribe<EliteKilledEvent>(OnEliteKilled);
 			// 씬을 떠날 때 떠 있던 띠를 치움. 끝난 띠의 중단 함수는 불러도 무해
 			foreach (Action stop in stops.Values)
 				stop.Invoke();
@@ -75,6 +77,8 @@ namespace WitchMendokusai
 			// 경고음은 내지 않음. 정예 경고음과 같아 위험처럼 들림. 소리는 알림 띠 에셋의 playSound
 			Show(Settings.DifficultyRaised, 0f, null, 0, DungeonDifficultyText.Name(raised.Difficulty));
 		}
+
+		private void OnEliteKilled(EliteKilledEvent killed) => Show(Settings.EliteKilled, 0f, killed.Monster, 1);
 
 		private void Show(SurvivalAnnounceLine line, float leadSeconds, Monster monster, int count, string difficultyName = "")
 		{

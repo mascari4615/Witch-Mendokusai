@@ -23,6 +23,7 @@ namespace WitchMendokusai
 		[field: Header("정예")]
 		[field: SerializeField, Tooltip("정예 예고 (사건표의 예고 시점)")] public SurvivalAnnounceLine EliteAnnounced { get; private set; } = new();
 		[field: SerializeField, Tooltip("정예가 실제로 나온 순간")] public SurvivalAnnounceLine EliteStarted { get; private set; } = new();
+		[field: SerializeField, Tooltip("정예를 처치한 순간")] public SurvivalAnnounceLine EliteKilled { get; private set; } = new();
 
 		[field: Header("대규모 무리")]
 		[field: SerializeField, Tooltip("무리 예고 (사건표의 예고 시점)")] public SurvivalAnnounceLine SwarmAnnounced { get; private set; } = new();
