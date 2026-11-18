@@ -57,29 +57,29 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("파편 재질 (URP Particles/Unlit 가산). 비우면 파편 없음. 같은 재질끼리 ParticleSystem 하나를 나눠 씀")]
 		public Material SparkMaterial { get; private set; }
 		[field: SerializeField, Range(0, 32), Tooltip("한 번에 튀는 파편 수. 0 이면 파편 없음")]
-		public int SparkCount { get; private set; } = 8;
+		public int SparkCount { get; private set; } = 10;
 		[field: SerializeField, Min(1), Tooltip("동시에 떠 있을 수 있는 입자 수 (흰 심 포함). 넘으면 새 입자는 생략")]
 		public int SparkMaxParticles { get; private set; } = 2048;
 		[field: SerializeField, Min(0f), Tooltip("처음 속도 최소 (월드 단위/초)")]
-		public float SparkSpeedMin { get; private set; } = 6f;
+		public float SparkSpeedMin { get; private set; } = 5f;
 		[field: SerializeField, Min(0f), Tooltip("처음 속도 최대 (월드 단위/초)")]
-		public float SparkSpeedMax { get; private set; } = 10f;
+		public float SparkSpeedMax { get; private set; } = 9f;
 		[field: SerializeField, Min(0f), Tooltip("감속. 초당 속도가 줄어드는 비율. 클수록 빨리 멈춤")]
-		public float SparkDrag { get; private set; } = 9f;
+		public float SparkDrag { get; private set; } = 2.5f;
 		[field: SerializeField, Min(0.01f), Tooltip("수명 최소 (초)")]
-		public float SparkLifetimeMin { get; private set; } = 0.25f;
+		public float SparkLifetimeMin { get; private set; } = 0.32f;
 		[field: SerializeField, Min(0.01f), Tooltip("수명 최대 (초)")]
-		public float SparkLifetimeMax { get; private set; } = 0.4f;
+		public float SparkLifetimeMax { get; private set; } = 0.5f;
 		[field: SerializeField, Min(0f), Tooltip("굵기 최소 (월드 단위)")]
-		public float SparkSizeMin { get; private set; } = 0.1f;
+		public float SparkSizeMin { get; private set; } = 0.16f;
 		[field: SerializeField, Min(0f), Tooltip("굵기 최대 (월드 단위)")]
-		public float SparkSizeMax { get; private set; } = 0.16f;
+		public float SparkSizeMax { get; private set; } = 0.26f;
 		[field: SerializeField, Tooltip("수명 동안 크기 비율. 가로축 수명 0 ~ 1")]
 		public AnimationCurve SparkSizeCurve { get; private set; } = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
 		[field: SerializeField, Min(0f), Tooltip("속도 방향 늘림. 속도 1 당 길이")]
 		public float SparkStretch { get; private set; } = 0.05f;
 		[field: SerializeField, Min(0f), Tooltip("굵기 대비 기본 길이")]
-		public float SparkLengthScale { get; private set; } = 1.2f;
+		public float SparkLengthScale { get; private set; } = 2f;
 		[field: SerializeField, Tooltip("위쪽 성분 최소 (수평 1 기준)")]
 		public float SparkUpwardMin { get; private set; } = 0.1f;
 		[field: SerializeField, Tooltip("위쪽 성분 최대 (수평 1 기준)")]
@@ -92,6 +92,10 @@ namespace WitchMendokusai
 		public float SparkBodyColorWeight { get; private set; } = 0.65f;
 		[field: SerializeField, Range(0f, 1f), Tooltip("몸 색을 흰색 쪽으로 밝히는 정도")]
 		public float SparkBodyColorLift { get; private set; } = 0.35f;
+		[field: SerializeField, Min(0), Tooltip("몸 색을 기억해 둘 그림 수 (읽는 중 포함). 넘으면 새 그림은 기본 색")]
+		public int SparkColorCacheLimit { get; private set; } = 256;
+		[field: SerializeField, Min(0), Tooltip("한 프레임에 새로 읽을 그림 수. 넘으면 다음 처치 때 읽음")]
+		public int SparkColorSamplesPerFrame { get; private set; } = 2;
 		[field: SerializeField, Tooltip("파편 가운데 심 색")]
 		public Color SparkCoreColor { get; private set; } = Color.white;
 		[field: SerializeField, Range(0f, 1f), Tooltip("심 굵기 비율. 0 이면 심 없음")]
@@ -101,7 +105,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("발밑 고리 재질 (WM/GroundPuff 셰이더). 비우면 고리 없음")]
 		public Material RingMaterial { get; private set; }
 		[field: SerializeField, Min(0.01f), Tooltip("고리가 사라질 때까지 걸리는 시간 (초)")]
-		public float RingSeconds { get; private set; } = 0.25f;
+		public float RingSeconds { get; private set; } = 0.32f;
 		[field: SerializeField, Min(1), Tooltip("동시에 떠 있을 수 있는 처치 고리 수. 넘으면 새 고리는 생략")]
 		public int MaxRings { get; private set; } = 48;
 		[field: SerializeField, Min(0f), Tooltip("고리의 최대 반지름 (월드 단위). 몬스터의 고리 크기 배율이 곱해짐")]

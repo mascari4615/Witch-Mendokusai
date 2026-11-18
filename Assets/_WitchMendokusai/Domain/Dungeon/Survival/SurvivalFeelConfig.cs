@@ -195,11 +195,12 @@ namespace WitchMendokusai
 		[Tooltip("대상이 가장자리에서 이 px 이상 안쪽이면 화면 안으로 보고 숨김. 음수면 화면 밖으로 조금 나가야 표시")] public float OffscreenOnScreenInset = 0f;
 		[Min(0f), Tooltip("이 거리 이하면 가장 크고 진함")] public float OffscreenNearDistance = 10f;
 		[Min(0f), Tooltip("이 거리 이상이면 가장 작고 흐림")] public float OffscreenFarDistance = 32f;
-		[Min(0.01f)] public float OffscreenNearScale = 1.2f;
-		[Min(0.01f)] public float OffscreenFarScale = 0.8f;
+		[Min(0.01f)] public float OffscreenNearScale = 2f;
+		[Min(0.01f)] public float OffscreenFarScale = 1.5f;
 		[Range(0f, 1f)] public float OffscreenNearOpacity = 1f;
 		[Range(0f, 1f)] public float OffscreenFarOpacity = 0.55f;
 		[Min(0.01f), Tooltip("보스 표식 크기 배율")] public float OffscreenBossScale = 1.25f;
+		[Min(1), Tooltip("표식이 새로 잡힌 뒤 튀기 시작할 때까지 기다리는 프레임 수")] public int OffscreenPopDelayFrames = 2;
 
 		[Header("Upgrade")]
 		public UpgradeTuning Upgrade = new();

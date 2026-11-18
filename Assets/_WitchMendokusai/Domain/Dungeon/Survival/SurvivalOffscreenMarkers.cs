@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	// 화면 밖 정예와 보스의 방향 표시. 화면 가장자리 안쪽에 화살촉과 그 뒤 점
 	// 표식은 처음 한 번 짓고 재사용. 대상은 SurvivalFeel 의 정예 목록과 보스 등장 사건으로 모은 보스 목록
-	// 모양과 색, 등장 튐은 SurvivalOffscreenMarkers.uss. 거리, 상한, 여백은 SurvivalFeelConfig 의 화면 밖 표시 묶음
+	// 모양과 색, 등장 튐은 SurvivalOffscreenMarkers.uss. 거리, 상한, 여백, 튐 대기는 SurvivalFeelConfig 의 화면 밖 표시 묶음
 	public class SurvivalOffscreenMarkers : MonoBehaviour
 	{
 		private const string USS_ROOT = "wm-offscreen";
@@ -16,11 +16,11 @@ namespace WitchMendokusai
 		private const string USS_MARKER_BOSS = "wm-offscreen__marker--boss";
 		private const string USS_POP = "wm-offscreen__pop";
 		private const string USS_POP_SHOWN = "wm-offscreen__pop--shown";
+		private const string USS_POP_INSTANT = "wm-offscreen__pop--instant";
 		private const string USS_PIVOT = "wm-offscreen__pivot";
 		private const string USS_DOT = "wm-offscreen__dot";
 		private const string USS_ARROW_SHADE = "wm-offscreen__arrow-shade";
 		private const string USS_ARROW = "wm-offscreen__arrow";
-		[SerializeField, Min(1), Tooltip("튐 대기 프레임 수")] private int popDelayFrames = 2;
 
 		private class Marker
 		{
@@ -283,24 +283,31 @@ namespace WitchMendokusai
 				Marker marker = markers[i];
 				marker.Target = null;
 				marker.Element.style.visibility = Visibility.Hidden;
+				marker.Pop.AddToClassList(USS_POP_INSTANT);
 				marker.Pop.RemoveFromClassList(USS_POP_SHOWN);
 			}
 		}
 
 		private void Apply(SurvivalFeelConfig config, Marker marker, Candidate candidate, bool fresh)
 		{
+			// 새 배정: 전환 없이 작게 복귀 (튐 역전 방지). 다음 프레임 전환 켬, 대기 프레임 뒤 튐
 			if (fresh)
 			{
 				marker.Target = candidate.Monster;
 				marker.AssignedFrame = Time.frameCount;
+				marker.Pop.AddToClassList(USS_POP_INSTANT);
 				marker.Pop.RemoveFromClassList(USS_POP_SHOWN);
 				marker.Element.EnableInClassList(USS_MARKER_BOSS, candidate.IsBoss);
 				marker.Element.EnableInClassList(USS_MARKER_ELITE, candidate.IsBoss == false);
 				marker.Element.style.visibility = Visibility.Visible;
 			}
-			else if (Time.frameCount >= marker.AssignedFrame + popDelayFrames && marker.Pop.ClassListContains(USS_POP_SHOWN) == false)
+			else
 			{
-				marker.Pop.AddToClassList(USS_POP_SHOWN);
+				int framesSinceAssigned = Time.frameCount - marker.AssignedFrame;
+				if (framesSinceAssigned >= 1 && marker.Pop.ClassListContains(USS_POP_INSTANT))
+					marker.Pop.RemoveFromClassList(USS_POP_INSTANT);
+				if (framesSinceAssigned >= config.OffscreenPopDelayFrames && marker.Pop.ClassListContains(USS_POP_SHOWN) == false)
+					marker.Pop.AddToClassList(USS_POP_SHOWN);
 			}
 
 			// 1 가까움, 0 멂

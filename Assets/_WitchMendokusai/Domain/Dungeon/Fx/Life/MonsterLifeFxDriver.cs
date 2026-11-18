@@ -107,6 +107,8 @@ namespace WitchMendokusai
 				instance = null;
 			if (puffMesh != null)
 				Destroy(puffMesh);
+			// 판이 끝남. 그림 색 기억을 비움
+			SpriteColorSampler.Clear();
 		}
 
 		private void Update()

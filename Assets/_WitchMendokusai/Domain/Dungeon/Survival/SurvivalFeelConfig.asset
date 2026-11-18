@@ -318,3 +318,4 @@ MonoBehaviour:
   OffscreenNearOpacity: 1
   OffscreenFarOpacity: 0.55
   OffscreenBossScale: 1.25
+  OffscreenPopDelayFrames: 2

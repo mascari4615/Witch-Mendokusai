@@ -5,9 +5,10 @@ using UnityEngine.Rendering;
 namespace WitchMendokusai
 {
 	// 처치 순간의 파편과 발밑 고리
-	// - 파편: 재질마다 공유 ParticleSystem 하나. 몬스터마다 오브젝트 없이 Emit 만. 상한은 MaxParticles, 넘으면 엔진이 생략
+	// - 파편: 재질마다 공유 ParticleSystem 하나. 몬스터마다 오브젝트 없이 Emit 만. 상한 (SparkMaxParticles) 에 못 담으면 그 처치의 파편 전부 생략
 	// - 고리: 등장 고리와 같은 판과 셰이더, 목록과 상한만 따로
 	// - 파편 모양 값 (감속, 늘림, 크기 곡선) 은 시스템 공용이라 마지막에 쏜 스타일 값. 스타일이 같은 재질을 나눠 쓰면 서로 덮음
+	// - 그리기 순서는 잔상보다 1 위. 공유 시스템이라 마지막 처치의 몬스터 기준
 	public partial class MonsterLifeFxDriver
 	{
 		private const string SPARK_KEY = "MonsterDeathSparks";
@@ -16,6 +17,7 @@ namespace WitchMendokusai
 		{
 			public ParticleSystem Particles;
 			public ParticleSystemRenderer Renderer;
+			public MonsterDeathStyle ConfiguredStyle;
 		}
 
 		private readonly Dictionary<Material, SparkEmitter> sparkEmitters = new();
@@ -32,13 +34,19 @@ namespace WitchMendokusai
 			SparkEmitter emitter = GetSparkEmitter(style.SparkMaterial);
 			ConfigureSparks(emitter, style);
 
+			bool hasCore = style.SparkCoreSizeRatio > 0f;
+			int needed = style.SparkCount * (hasCore ? 2 : 1);
+			if (emitter.Particles.particleCount + needed > style.SparkMaxParticles)
+				return;
+
+			SetSparkSorting(emitter.Renderer, pose);
+
 			Vector3 origin = pose.Position;
 			if (pose.Sprite != null)
 				origin += Vector3.up * (pose.Sprite.bounds.center.y * pose.Scale.y);
 
 			Color32 sparkColor = SparkColorFor(pose, style);
 			Color32 coreColor = style.SparkCoreColor;
-			bool hasCore = style.SparkCoreSizeRatio > 0f;
 			float angleStep = 360f / style.SparkCount;
 			float baseAngle = UnityEngine.Random.Range(0f, 360f);
 			ParticleSystem.EmitParams emitParams = new() { position = origin };
@@ -71,7 +79,7 @@ namespace WitchMendokusai
 		private static Color SparkColorFor(in MonsterDeathGhostPose pose, MonsterDeathStyle style)
 		{
 			Color body = pose.Color;
-			if (pose.Sprite != null && SpriteColorSampler.TryGet(pose.Sprite, out Color spriteColor))
+			if (pose.Sprite != null && SpriteColorSampler.TryGet(pose.Sprite, style.SparkColorCacheLimit, style.SparkColorSamplesPerFrame, out Color spriteColor))
 				body *= spriteColor;
 
 			float brightest = Mathf.Max(body.r, Mathf.Max(body.g, body.b));
@@ -83,9 +91,15 @@ namespace WitchMendokusai
 			return spark;
 		}
 
-		// Play 중 에셋을 고쳐도 다음 처치부터 반영되게 매번 넣음
+		// 마지막으로 넣은 스타일과 다를 때만. 에디터에서는 Play 중 에셋 수정이 다음 처치부터 반영되게 매번
 		private static void ConfigureSparks(SparkEmitter emitter, MonsterDeathStyle style)
 		{
+#if UNITY_EDITOR == false
+			if (emitter.ConfiguredStyle == style)
+				return;
+#endif
+			emitter.ConfiguredStyle = style;
+
 			ParticleSystem.MainModule main = emitter.Particles.main;
 			main.maxParticles = style.SparkMaxParticles;
 
@@ -97,6 +111,16 @@ namespace WitchMendokusai
 
 			emitter.Renderer.velocityScale = style.SparkStretch;
 			emitter.Renderer.lengthScale = style.SparkLengthScale;
+		}
+
+		// 잔상과 같은 층, 1 위. 값이 같으면 안 씀
+		private static void SetSparkSorting(ParticleSystemRenderer sparkRenderer, in MonsterDeathGhostPose pose)
+		{
+			int sortingOrder = pose.SortingOrder + 1;
+			if (sparkRenderer.sortingLayerID != pose.SortingLayerId)
+				sparkRenderer.sortingLayerID = pose.SortingLayerId;
+			if (sparkRenderer.sortingOrder != sortingOrder)
+				sparkRenderer.sortingOrder = sortingOrder;
 		}
 
 		private SparkEmitter GetSparkEmitter(Material material)
