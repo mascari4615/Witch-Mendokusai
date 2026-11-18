@@ -20,8 +20,7 @@ namespace WitchMendokusai
 		private const string USS_DOT = "wm-offscreen__dot";
 		private const string USS_ARROW_SHADE = "wm-offscreen__arrow-shade";
 		private const string USS_ARROW = "wm-offscreen__arrow";
-		// 튐 대기 프레임 수
-		private const int POP_DELAY_FRAMES = 2;
+		[SerializeField, Min(1), Tooltip("튐 대기 프레임 수")] private int popDelayFrames = 2;
 
 		private class Marker
 		{
@@ -299,7 +298,7 @@ namespace WitchMendokusai
 				marker.Element.EnableInClassList(USS_MARKER_ELITE, candidate.IsBoss == false);
 				marker.Element.style.visibility = Visibility.Visible;
 			}
-			else if (Time.frameCount >= marker.AssignedFrame + POP_DELAY_FRAMES && marker.Pop.ClassListContains(USS_POP_SHOWN) == false)
+			else if (Time.frameCount >= marker.AssignedFrame + popDelayFrames && marker.Pop.ClassListContains(USS_POP_SHOWN) == false)
 			{
 				marker.Pop.AddToClassList(USS_POP_SHOWN);
 			}
