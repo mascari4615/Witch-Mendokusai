@@ -24,6 +24,8 @@ namespace WitchMendokusai
 		/// <summary> 띠에 쓸 글 (이름, 경고 문구) </summary>
 		public string Title;
 		public string Subtitle;
+		/// <summary> 묶음 (SequenceFx) 안에서 재생된 깊이. 쓰는 쪽은 안 채움 </summary>
+		public int NestingDepth;
 	}
 
 	/// <summary>

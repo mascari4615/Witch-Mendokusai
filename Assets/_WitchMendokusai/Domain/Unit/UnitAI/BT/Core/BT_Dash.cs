@@ -21,6 +21,8 @@ namespace WitchMendokusai
 		// 준비를 시작할 때 고정한 돌진 방향 (수평 단위 벡터). 방향이 없으면 zero 이고 돌진 안 함
 		private Vector3 dashDirection = Vector3.zero;
 		private float dashReadyTime;
+		// 준비 예고의 중단 함수. 준비가 도중에 끊기면 예고도 같이 치움
+		private Action stopTelegraph;
 
 		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null, float dashPreDelay = 0.2f, float dashPostDelay = 0.5f, CombatFx telegraph = null, float telegraphWidth = 0f) : base(unitObject)
 		{
@@ -97,6 +99,7 @@ namespace WitchMendokusai
 		/// <summary> 돌진 방향을 지금 플레이어 쪽으로 고정하고 멈춰서 예고를 띄움. 돌진은 이 방향 그대로 </summary>
 		private BTState PrepareDash()
 		{
+			CancelTelegraph();
 			UpdateDestinationToPlayer();
 			Vector3 direction = moveDest - unitObject.transform.position;
 			direction.y = 0f;
@@ -107,7 +110,7 @@ namespace WitchMendokusai
 
 			if (telegraph != null && dashDirection != Vector3.zero)
 			{
-				telegraph.Play(new CombatFxContext
+				stopTelegraph = telegraph.Play(new CombatFxContext
 				{
 					Position = unitObject.transform.position,
 					Direction = dashDirection,
@@ -120,10 +123,19 @@ namespace WitchMendokusai
 			return BTState.Success;
 		}
 
+		/// <summary> 준비 중이던 예고를 치움. 상태 전환과 AI 리셋 등으로 돌진 준비가 끊길 때 부름 (끝난 뒤 불러도 무해) </summary>
+		public void CancelTelegraph()
+		{
+			stopTelegraph?.Invoke();
+			stopTelegraph = null;
+		}
+
 		private bool IsDashReady() => Time.time >= dashReadyTime;
 
 		private BTState Dash()
 		{
+			// 예고는 준비가 끝나며 스스로 마무리 (번쩍임). 돌진부터는 끊을 대상이 아님
+			stopTelegraph = null;
 			if (dashDirection == Vector3.zero)
 				return BTState.Success;
 

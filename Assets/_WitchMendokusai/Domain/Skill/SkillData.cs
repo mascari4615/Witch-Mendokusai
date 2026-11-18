@@ -36,6 +36,9 @@ namespace WitchMendokusai
 
 	public abstract class SkillData : DataSO
 	{
+		// 예고 방향의 수평 성분 제곱 길이가 이보다 작으면 방향 없음으로 봄
+		private const float MIN_DIRECTION_SQR = 0.0001f;
+
 		[field: SerializeField] public SkillPlayMode PlayMode { get; set; }
 		[field: SerializeField] public float Cooltime { get; set; }
 		[field: SerializeField] public float PrevDelay { get; set; } = 0;
@@ -64,9 +67,19 @@ namespace WitchMendokusai
 			if (PrevDelay > 0)
 			{
 				unitObject.UnitStat[UnitStatType.CASTING_SKILL]++;
-				if (HasTelegraph)
-					PlayTelegraph(context);
-				yield return new WaitForSeconds(PrevDelay);
+				Action stopTelegraph = HasTelegraph ? PlayTelegraph(context) : null;
+				// 선딜이 도중에 끊기면 (코루틴 종료, 시전자 비활성) 예고도 치움
+				bool completed = false;
+				try
+				{
+					yield return new WaitForSeconds(PrevDelay);
+					completed = true;
+				}
+				finally
+				{
+					if (completed == false)
+						stopTelegraph?.Invoke();
+				}
 				unitObject.UnitStat[UnitStatType.CASTING_SKILL]--;
 			}
 
@@ -81,13 +94,17 @@ namespace WitchMendokusai
 		}
 
 		/// <summary> 시전자 자리에서 PrevDelay 길이로 예고 재생. 방향은 이 순간의 대상 쪽으로 고정 </summary>
-		private void PlayTelegraph(SkillContext context)
+		private Action PlayTelegraph(SkillContext context)
 		{
 			Transform userTransform = context.User.transform;
-			Telegraph.Play(new CombatFxContext
+			Vector3 direction = ResolveTelegraphDirection(context);
+			// 수평 방향이 없으면 예고를 생략 (선형 예고가 예외를 던져 스킬이 끊기지 않게)
+			if (direction.sqrMagnitude < MIN_DIRECTION_SQR)
+				return null;
+			return Telegraph.Play(new CombatFxContext
 			{
 				Position = userTransform.position,
-				Direction = ResolveTelegraphDirection(context),
+				Direction = direction,
 				Follow = userTransform,
 				Radius = TelegraphRadius,
 				Length = TelegraphLength,
@@ -109,8 +126,12 @@ namespace WitchMendokusai
 					: context.PlayerProvider.Current.transform.position - userTransform.position;
 
 			direction.y = 0f;
-			// 대상과 겹쳐 방향이 없으면 시전자가 보는 쪽
-			return direction.sqrMagnitude > 0f ? direction : userTransform.forward;
+			if (direction.sqrMagnitude >= MIN_DIRECTION_SQR)
+				return direction;
+			// 대상과 겹쳐 방향이 없으면 시전자가 보는 쪽. 기울어진 몸의 forward 는 수평으로 눌러서 씀
+			Vector3 forward = userTransform.forward;
+			forward.y = 0f;
+			return forward;
 		}
 
 		public abstract void ActualUse(SkillContext context);

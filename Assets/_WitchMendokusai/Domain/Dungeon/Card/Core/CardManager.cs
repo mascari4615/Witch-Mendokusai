@@ -218,6 +218,10 @@ namespace WitchMendokusai
 
 		public void LevelUp()
 		{
+			if (DungeonManagerBridge.IsEnding)
+			{
+				return;
+			}
 			if (choiceQueue.AddLevelUp() == false)
 			{
 				return;

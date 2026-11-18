@@ -83,6 +83,8 @@ namespace WitchMendokusai
 		private VisualElement Build(CombatFxContext context, List<VisualElement> characters)
 		{
 			VisualElement root = Make(USS_ROOT);
+			if (styleSheet == null)
+				throw new InvalidOperationException($"{name}: styleSheet 가 비어 있음. 띠 모양 USS (Banner.uss) 를 연결해야 함");
 			root.styleSheets.Add(styleSheet);
 			if (string.IsNullOrEmpty(styleClass) == false)
 				root.AddToClassList(styleClass);

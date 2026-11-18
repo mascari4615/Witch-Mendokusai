@@ -19,11 +19,7 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <PlayMode>k__BackingField: 0
   <Cooltime>k__BackingField: 1
-  <PrevDelay>k__BackingField: 0.6
+  <PrevDelay>k__BackingField: 0
   <AfterDelay>k__BackingField: 0
-  <Telegraph>k__BackingField: {fileID: 11400000, guid: b2cf3055dd844fe0a41d025984b7dc1e, type: 2}
-  <TelegraphRadius>k__BackingField: 1.6
-  <TelegraphLength>k__BackingField: 0
-  <TelegraphWidth>k__BackingField: 0
   <Prefab>k__BackingField: {fileID: 1521986667925735823, guid: 4be811328880fec4cbef21872bdb9c79, type: 3}
   <SetRotation>k__BackingField: 0

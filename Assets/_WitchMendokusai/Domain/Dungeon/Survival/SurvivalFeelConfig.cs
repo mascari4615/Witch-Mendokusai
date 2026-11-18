@@ -125,7 +125,7 @@ namespace WitchMendokusai
 		public FeelMoment ResonanceBurst = new() { Shake = 0.2f, Shards = 16, ShardSpeed = 8f, ShardLife = 0.4f, ShardSize = 0.2f, RingSize = 9f, RingLife = 0.35f, Color = new Color(0.6f, 0.8f, 1f, 1f) };
 
 		[Header("Clear")]
-		[Min(0f), Tooltip("보스 클리어 뒤 결과창까지 실제 시간 초")] public float BossClearResultDelay = 1f;
+		[Min(0f), Tooltip("클리어 뒤 결과창까지 지연 (모든 목표, 실제 시간 초)")] public float BossClearResultDelay = 1f;
 		[Min(0f), Tooltip("사망 뒤 결과창까지 실제 시간 초")] public float DefeatResultDelay = 1f;
 
 		[Header("Run flow (판의 시작과 끝 연출)")]

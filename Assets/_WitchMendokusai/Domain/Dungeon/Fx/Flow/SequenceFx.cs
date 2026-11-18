@@ -22,10 +22,18 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "Sequence_0_New", menuName = "WM/CombatFx/" + nameof(SequenceFx))]
 	public class SequenceFx : CombatFx
 	{
+		// 묶음이 서로를 참조해도 무한히 이어지지 않게 하는 구조 상한
+		private const int MAX_NESTING_DEPTH = 4;
+
 		[SerializeField, Tooltip("재생할 부품과 시간차. 지연이 짧은 것부터 적음")] private List<SequenceFxStep> steps = new();
 
 		protected override Action Play(CombatFxRunner runner, CombatFxContext context)
 		{
+			if (context.NestingDepth >= MAX_NESTING_DEPTH)
+			{
+				Debug.LogError($"{name}: 묶음이 {MAX_NESTING_DEPTH} 단계를 넘게 겹쳐 재생됨. 서로 참조하는 묶음이 없는지 확인", this);
+				return delegate { };
+			}
 			List<Action> stops = new();
 			Action stopRoutine = runner.Run(PlaySteps(context, stops));
 			return () =>
@@ -52,6 +60,7 @@ namespace WitchMendokusai
 					continue;
 
 				CombatFxContext stepContext = context;
+				stepContext.NestingDepth = context.NestingDepth + 1;
 				if (string.IsNullOrEmpty(step.Title) == false)
 					stepContext.Title = step.Title;
 				if (string.IsNullOrEmpty(step.Subtitle) == false)

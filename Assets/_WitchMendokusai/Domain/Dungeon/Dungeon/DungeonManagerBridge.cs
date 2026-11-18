@@ -7,5 +7,6 @@ namespace WitchMendokusai
 		private static DungeonManager _instance;
 		public static void Register(DungeonManager dm) => _instance = dm;
 		public static bool IsDungeon => _instance != null && _instance.IsDungeon;
+		public static bool IsEnding => _instance != null && _instance.IsEnding;
 	}
 }

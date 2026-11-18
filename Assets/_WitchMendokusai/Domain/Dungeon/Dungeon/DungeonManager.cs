@@ -22,6 +22,8 @@ namespace WitchMendokusai
 		public DungeonRecord Result => dungeonRecorder.ResultRecord;
 
 		public bool IsDungeon { get; private set; }
+		// 승패 연출 중 (결과창 지연 대기). 이 동안 새 레벨업 카드와 상자 보상은 열지 않음
+		public bool IsEnding => clearDelayRoutine != null;
 		public RunLoadout RunLoadout => dataManager.RunLoadout;
 		public SurvivalRunRules RunRules => resourceManager.SurvivalRunRules;
 		public int RunEquipmentSlotCount => resourceManager.SurvivalRunRules.RandomModeSlotCount;
@@ -289,6 +291,7 @@ namespace WitchMendokusai
 			if (IsDungeon == false || clearDelayRoutine != null)
 				return;
 			SurvivalFeelConfig feel = resourceManager.SurvivalFeel;
+			cardManager.CancelSelection();
 			CombatSfx.Play(CombatSfxEvent.Defeat);
 			PlayFlowFx(feel.DefeatFx, feel.DefeatTitle, CurDungeon.Name);
 			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(feel.DefeatResultDelay, false));
@@ -302,6 +305,7 @@ namespace WitchMendokusai
 				StopCoroutine(clearDelayRoutine);
 				clearDelayRoutine = null;
 			}
+			cardManager.CancelSelection();
 			SurvivalFeelConfig feel = resourceManager.SurvivalFeel;
 			float delay = feel.BossClearResultDelay;
 			if (delay <= 0f)

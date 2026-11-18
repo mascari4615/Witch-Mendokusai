@@ -29,12 +29,16 @@ namespace WitchMendokusai
 		private AttackPattern _currentPattern;
 
 		private PlayerProvider playerProvider;
+		private BT_Dash dashBehavior;
 
 		[Inject]
 		public void Construct(PlayerProvider playerProvider)
 		{
 			this.playerProvider = playerProvider;
 		}
+
+		// 풀로 돌아가거나 꺼져서 돌진 준비가 끊기면 예고도 치움
+		private void OnDisable() => dashBehavior?.CancelTelegraph();
 
 		protected override FSMStateCommon DefaultState => FSMStateCommon.Idle;
 
@@ -44,7 +48,7 @@ namespace WitchMendokusai
 			BT_Idle _idle = new(UnitObject, isSpriteLookLeft: isSpriteLookLeft);
 			BT_MoveToPlayer _moveToPlayer = new(UnitObject, playerProvider, isSpriteLookLeft);
 			BT_Skill _projectileAttack = new(UnitObject, playerProvider, 0, attackRange, () => ChangeState(FSMStateCommon.Wait));
-			BT_Dash _dash = new(UnitObject, playerProvider, attackRange, dashSpeed: dashSpeed, dashDuration: dashDuration, onDashEnd: () => ChangeState(FSMStateCommon.Wait), dashPreDelay: dashPreDelay, dashPostDelay: dashPostDelay, telegraph: dashTelegraph, telegraphWidth: dashTelegraphWidth);
+			BT_Dash _dash = dashBehavior = new(UnitObject, playerProvider, attackRange, dashSpeed: dashSpeed, dashDuration: dashDuration, onDashEnd: () => ChangeState(FSMStateCommon.Wait), dashPreDelay: dashPreDelay, dashPostDelay: dashPostDelay, telegraph: dashTelegraph, telegraphWidth: dashTelegraphWidth);
 
 			// --- 상태별 이벤트 설정 ---
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
@@ -66,6 +70,7 @@ namespace WitchMendokusai
 					return;
 				}
 			});
+			SetStateEvent(FSMStateCommon.Attack, StateEvent.Exit, _dash.CancelTelegraph);
 			BTRunner GetCurrentBehaviorTree()
 			{
 				return _currentPattern switch

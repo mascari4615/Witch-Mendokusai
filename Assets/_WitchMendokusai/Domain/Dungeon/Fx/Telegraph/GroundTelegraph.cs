@@ -54,6 +54,9 @@ namespace WitchMendokusai
 
 		private static Mesh plateMesh;
 		private static MaterialPropertyBlock propertyBlock;
+		private static readonly Action NoStop = delegate { };
+		// 재생 중인 판. 씬이 바뀌어 실행기와 함께 파괴된 판은 세지 않음 (null 로 걸러냄)
+		private static readonly System.Collections.Generic.List<GameObject> activePlates = new();
 
 		[Header("그리기")]
 		[SerializeField, Tooltip("GroundTelegraph 셰이더를 쓰는 재질. 색과 굵기는 이 에셋의 값이 덮어씀")] private Material material;
@@ -92,6 +95,9 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("끝 충격파가 가장자리에서 퍼지는 거리 (월드 단위)")] private float shockDistance = 0.9f;
 		[SerializeField, Tooltip("끝 충격파 굵기 (월드 단위)")] private float shockWidth = 0.12f;
 
+		[Header("동시 재생")]
+		[SerializeField, Min(1), Tooltip("동시에 띄울 수 있는 판 수. 넘으면 새 예고는 생략")] private int maxConcurrentPlates = 24;
+
 		[Header("소리")]
 		[SerializeField, Tooltip("끄면 이 예고는 시작음과 끝음이 없음")] private bool playSfx = true;
 
@@ -121,8 +127,16 @@ namespace WitchMendokusai
 		{
 			// 방향 오류는 판을 꺼내기 전에 터지게 먼저 풂
 			Vector3 direction = ResolveDirection(context);
+			activePlates.RemoveAll(activePlate => activePlate == null);
+			if (activePlates.Count >= maxConcurrentPlates)
+				return NoStop;
 			GameObject plate = runner.Rent(PLATE_KEY, CreatePlate);
-			return runner.Run(Animate(plate, context, direction), () => runner.Return(PLATE_KEY, plate));
+			activePlates.Add(plate);
+			return runner.Run(Animate(plate, context, direction), () =>
+			{
+				activePlates.Remove(plate);
+				runner.Return(PLATE_KEY, plate);
+			});
 		}
 
 		private IEnumerator Animate(GameObject plate, CombatFxContext context, Vector3 direction)

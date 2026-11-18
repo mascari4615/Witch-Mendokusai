@@ -74,13 +74,24 @@ namespace WitchMendokusai
 				return;
 
 			int seconds = Mathf.CeilToInt(leadSeconds);
-			string monsterName = monster.Name;
+			string monsterName = monster == null ? string.Empty : monster.Name;
 			stops[line.Banner] = line.Banner.Play(new CombatFxContext
 			{
-				Title = string.Format(line.Title, seconds, monsterName, count),
-				Subtitle = string.Format(line.Subtitle, seconds, monsterName, count),
+				Title = FillPlaceholders(line.Title, seconds, monsterName, count),
+				Subtitle = FillPlaceholders(line.Subtitle, seconds, monsterName, count),
 				Seconds = line.HoldSeconds,
 			});
+		}
+
+		// 에셋 문장의 {0} 초, {1} 이름, {2} 수만 바꿈. 다른 중괄호가 섞여도 예외 없이 그대로 둠
+		private static string FillPlaceholders(string text, int seconds, string monsterName, int count)
+		{
+			if (string.IsNullOrEmpty(text))
+				return text;
+			return text
+				.Replace("{0}", seconds.ToString())
+				.Replace("{1}", monsterName)
+				.Replace("{2}", count.ToString());
 		}
 	}
 }

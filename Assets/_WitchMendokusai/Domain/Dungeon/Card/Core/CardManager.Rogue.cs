@@ -184,7 +184,7 @@ namespace WitchMendokusai
 
 		private void HandleChestPickedUp(ChestPickedUpEvent chestEvent)
 		{
-			if (DungeonManagerBridge.IsDungeon == false)
+			if (DungeonManagerBridge.IsDungeon == false || DungeonManagerBridge.IsEnding)
 				return;
 			choiceQueue.AddChest();
 			TryOpenNextChest();

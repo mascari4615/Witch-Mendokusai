@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("덮는 색. 알파는 아래 최대 불투명도가 정함")] private Color color = Color.white;
 		[SerializeField, Range(0f, 1f), Tooltip("가장 짙을 때 불투명도")] private float maxAlpha = 0.5f;
 		[SerializeField, Tooltip("들어오는 시간, 머무는 시간, 나가는 시간, 곡선")] private FlowEnvelope envelope = new();
+		[SerializeField, Min(1), Tooltip("실행기가 사라졌는지 살피는 간격 (밀리초). 씬이 내려가 걷는 연출이 끊기면 막을 바로 치움")] private int orphanCheckMilliseconds = 100;
 
 		protected override Action Play(CombatFxRunner runner, CombatFxContext context)
 		{
@@ -31,6 +32,12 @@ namespace WitchMendokusai
 			VisualElement layer = UIRoot.Instance.OverlayLayer;
 			layer.Add(veil);
 			veil.SendToBack();
+			// 실행기가 먼저 파괴되면 걷는 코루틴이 죽어 막이 남음. 화면 쪽 스케줄러로 따로 살핌
+			veil.schedule.Execute(() =>
+			{
+				if (runner == null)
+					veil.RemoveFromHierarchy();
+			}).Every(orphanCheckMilliseconds);
 
 			return envelope.Play(
 				runner,
