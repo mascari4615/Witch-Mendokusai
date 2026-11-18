@@ -18,6 +18,7 @@ Shader "WM/Occludable Lit"
         _EmissionMap ("Emission map", 2D) = "white" {}
         [Toggle(_EMISSION)] _EmissionOn ("Emission", Float) = 0
         [Toggle(_WM_OCCLUDABLE)] _WM_Occludable ("Occludable (cut out in front of the character)", Float) = 1
+        [HideInInspector] _WM_ObjectFade ("Object fade (set per renderer)", Float) = 0
         [HideInInspector] _Cull ("Cull", Float) = 2
         [HideInInspector] _Surface ("Surface", Float) = 0
         [HideInInspector] _SrcBlend ("Src blend", Float) = 1
@@ -46,7 +47,18 @@ Shader "WM/Occludable Lit"
             half _Smoothness;
             half _Cutoff;
             half4 _EmissionColor;
+            half _WM_ObjectFade;
         CBUFFER_END
+
+        // 원과 카메라 앞 비움 + 물체 단위 페이드 (OcclusionFadeTarget 이 렌더러마다 넣는 _WM_ObjectFade)
+        float Coverage(float4 screenPosition, float3 positionWS)
+        {
+            float coverage = WMCutoutCoverage(screenPosition, positionWS);
+            #if defined(_WM_OCCLUDABLE)
+                coverage = max(coverage, _WM_ObjectFade);
+            #endif
+            return coverage;
+        }
 
         // 알파 잘라내기 (잎 판처럼 _ALPHATEST_ON 재질)
         void AlphaTest(float2 uv)
@@ -124,7 +136,7 @@ Shader "WM/Occludable Lit"
                 #if defined(_ALPHATEST_ON)
                     clip(base.a - _Cutoff);
                 #endif
-                float coverage = WMCutoutCoverage(input.screenPosition, input.positionWS);
+                float coverage = Coverage(input.screenPosition, input.positionWS);
                 #if defined(_SURFACE_TYPE_TRANSPARENT)
                     base.a *= 1.0 - coverage;
                 #else
@@ -279,7 +291,7 @@ Shader "WM/Occludable Lit"
             half fragDepth(DepthVaryings input) : SV_Target
             {
                 AlphaTest(input.uv);
-                WMCutoutClip(WMCutoutCoverage(input.screenPosition, input.positionWS), input.positionCS.xy);
+                WMCutoutClip(Coverage(input.screenPosition, input.positionWS), input.positionCS.xy);
                 return input.positionCS.z;
             }
             ENDHLSL
@@ -332,7 +344,7 @@ Shader "WM/Occludable Lit"
             half4 fragDepthNormals(DepthNormalsVaryings input, bool isFrontFace : SV_IsFrontFace) : SV_Target
             {
                 AlphaTest(input.uv);
-                WMCutoutClip(WMCutoutCoverage(input.screenPosition, input.positionWS), input.positionCS.xy);
+                WMCutoutClip(Coverage(input.screenPosition, input.positionWS), input.positionCS.xy);
                 float3 normalWS = normalize(input.normalWS);
                 normalWS = isFrontFace ? normalWS : -normalWS;
                 return half4(NormalizeNormalPerPixel(normalWS), 0.0);

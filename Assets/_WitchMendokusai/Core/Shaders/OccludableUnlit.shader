@@ -8,6 +8,7 @@ Shader "WM/Occludable Unlit"
         [MainTexture] _BaseMap ("Base map", 2D) = "white" {}
         [MainColor] _BaseColor ("Base color", Color) = (1, 1, 1, 1)
         [Toggle(_WM_OCCLUDABLE)] _WM_Occludable ("Occludable (cut out in front of the character)", Float) = 1
+        [HideInInspector] _WM_ObjectFade ("Object fade (set per renderer)", Float) = 0
         [HideInInspector] _Cull ("Cull", Float) = 2
         [HideInInspector] _Surface ("Surface", Float) = 0
         [HideInInspector] _SrcBlend ("Src blend", Float) = 1
@@ -31,7 +32,18 @@ Shader "WM/Occludable Unlit"
         CBUFFER_START(UnityPerMaterial)
             float4 _BaseMap_ST;
             half4 _BaseColor;
+            half _WM_ObjectFade;
         CBUFFER_END
+
+        // 원과 카메라 앞 비움 + 물체 단위 페이드 (OcclusionFadeTarget 이 렌더러마다 넣는 _WM_ObjectFade)
+        float Coverage(float4 screenPosition, float3 positionWS)
+        {
+            float coverage = WMCutoutCoverage(screenPosition, positionWS);
+            #if defined(_WM_OCCLUDABLE)
+                coverage = max(coverage, _WM_ObjectFade);
+            #endif
+            return coverage;
+        }
 
         struct Attributes
         {
@@ -76,7 +88,7 @@ Shader "WM/Occludable Unlit"
             half4 frag(Varyings input) : SV_Target
             {
                 half4 color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor;
-                float coverage = WMCutoutCoverage(input.screenPosition, input.positionWS);
+                float coverage = Coverage(input.screenPosition, input.positionWS);
                 #if defined(_SURFACE_TYPE_TRANSPARENT)
                     color.a *= 1.0 - coverage;
                 #else
@@ -103,7 +115,7 @@ Shader "WM/Occludable Unlit"
 
             half fragDepth(Varyings input) : SV_Target
             {
-                WMCutoutClip(WMCutoutCoverage(input.screenPosition, input.positionWS), input.positionCS.xy);
+                WMCutoutClip(Coverage(input.screenPosition, input.positionWS), input.positionCS.xy);
                 return input.positionCS.z;
             }
             ENDHLSL

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -39,6 +40,16 @@ namespace WitchMendokusai
 		[Tooltip("위 거리에서 점이 줄어드는 폭 (m)")]
 		[SerializeField, Min(0.01f)] private float nearSoftness = 2f;
 
+		[Header("물체 단위 페이드 (OcclusionFadeTarget)")]
+		[Tooltip("카메라와 캐릭터 사이 선분에 걸린 물체 (나무 한 그루 전체) 를 비우는 비율. 1 이면 다 비움")]
+		[SerializeField, Range(0f, 1f)] private float objectFadeCoverage = 0.9f;
+		[Tooltip("선분 굵기 (m). 캐릭터 몸 폭만큼 넓혀 가장자리 잎까지 잡음")]
+		[SerializeField, Min(0f)] private float objectFadePadding = 0.4f;
+		[Tooltip("카메라에서 이 거리 (m) 안에 걸친 물체도 통째로 비움")]
+		[SerializeField, Min(0f)] private float objectNearDistance = 4f;
+		[Tooltip("비우기와 되돌리기에 걸리는 시간 (초)")]
+		[SerializeField, Min(0.01f)] private float objectFadeTime = 0.25f;
+
 		private CommandBuffer commandBuffer;
 
 		private void OnEnable()
@@ -76,10 +87,28 @@ namespace WitchMendokusai
 				commandBuffer.SetGlobalFloat(DEPTH_ID, depth - depthMargin);
 				commandBuffer.SetGlobalFloat(FLOOR_ID, feet.y + floorMargin);
 			}
+			if (renderingCamera == gameCamera)
+				UpdateObjectFades(renderingCamera.transform.position, active ? player.position + Vector3.up * centerHeight : renderingCamera.transform.position, active);
 			commandBuffer.SetGlobalFloat(RADIUS_ID, active ? radius : 0f);
 			commandBuffer.SetGlobalFloat(NEAR_DISTANCE_ID, active ? nearDistance : 0f);
 			commandBuffer.SetGlobalFloat(NEAR_SOFTNESS_ID, nearSoftness);
 			context.ExecuteCommandBuffer(commandBuffer);
+		}
+
+		// 선분이나 카메라 근처에 걸린 대상은 objectFadeCoverage 로, 나머지는 0 으로 objectFadeTime 동안 이동
+		private void UpdateObjectFades(Vector3 cameraPosition, Vector3 center, bool active)
+		{
+			Vector3 offset = center - cameraPosition;
+			float length = offset.magnitude;
+			Ray ray = new(cameraPosition, length > 0.0001f ? offset / length : Vector3.forward);
+			float step = Time.unscaledDeltaTime / objectFadeTime;
+			IReadOnlyList<OcclusionFadeTarget> targets = OcclusionFadeTarget.ActiveTargets;
+			for (int i = 0; i < targets.Count; i++)
+			{
+				OcclusionFadeTarget target = targets[i];
+				bool blocking = active && target.Overlaps(ray, length, objectFadePadding, cameraPosition, objectNearDistance);
+				target.SetFade(Mathf.MoveTowards(target.Fade, blocking ? objectFadeCoverage : 0f, step));
+			}
 		}
 
 		// 매 프레임 조회. 스테이지 전환 뒤 새 플레이어
