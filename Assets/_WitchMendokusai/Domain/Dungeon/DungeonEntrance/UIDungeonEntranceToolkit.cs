@@ -189,7 +189,8 @@ namespace WitchMendokusai
 			selectedThreatLevel = Mathf.Clamp(selectedThreatLevel, 0, highestUnlocked);
 
 			bool isVisible = maxLevel > 0;
-			threatRow.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
+			// 칸 높이 유지 (사용자 2026-11-18 정보 창 간격 고정). 빼지 않고 감춤
+			threatRow.style.visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
 			horizontalFocusOrder.Remove(threatPrevButton);
 			horizontalFocusOrder.Remove(threatNextButton);
 			if (isVisible == false)
@@ -368,14 +369,14 @@ namespace WitchMendokusai
 			backdropTextLabel.text = nameLabel.text;
 			numberLabel.text = GetRowNumber(curDungeonIndex);
 			timeLabel.text = CurDungeon.TimeBySecond / SECONDS_PER_MINUTE + "분";
-			timeLabel.style.display = CurDungeon.TimeBySecond > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+			timeLabel.style.visibility = CurDungeon.TimeBySecond > 0 ? Visibility.Visible : Visibility.Hidden;
 			descriptionLabel.text = CurDungeon.Description;
 
 			rewardUI.UpdateUI(CurDungeon.Rewards);
 
 			constraintUI.SetDungeon(CurDungeon);
 			constraintUI.UpdateUI();
-			constraintSection.style.display = CurDungeon.Constraints.Count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+			constraintSection.style.visibility = CurDungeon.Constraints.Count > 0 ? Visibility.Visible : Visibility.Hidden;
 
 			UpdateThreatRow();
 		}
