@@ -1,0 +1,145 @@
+/* 화면 여백 규칙. 정본 memo wm/systems/ui.md 여백 규칙 절, 근거 wm/design/ui-spacing-refs-20261118
+   기본 값은 패널 기준 세로 800 (1vh 8px). 1920x1080 무대 (상점, 설정, 전체 메뉴) 는 무대 요소에 wm-stage-1080
+   uGUI (CanvasScaler 1920x1080) 는 같은 vh 를 1080 기준 px 로 프리팹에 적음 */
+
+:root {
+    /* 화면 끝에서 머리줄, 닫기, 하단 버튼까지. 최소 3vh, 기본 4vh */
+    --wm-space-edge-min: 24px;
+    --wm-space-edge: 32px;
+
+    /* 가운데 묶음 (모달, 고르기, 정보 창). 위 15vh, 아래 10vh, 좌우 15vh, 폭 75% 이하 */
+    --wm-space-center-top: 120px;
+    --wm-space-center-bottom: 80px;
+    --wm-space-center-side: 120px;
+    --wm-space-center-max-width: 1066px;
+
+    /* 결과 판. 위 15vh, 아래 12vh, 안쪽 6vh, 폭 71.6% */
+    --wm-space-result-top: 120px;
+    --wm-space-result-bottom: 96px;
+    --wm-space-result-pad: 48px;
+    --wm-space-result-max-width: 1018px;
+
+    /* 제목과 내용 사이 7vh */
+    --wm-space-title-gap: 56px;
+
+    /* 큰 선택 카드 사이 5vh. 칸 격자와 다른 값 */
+    --wm-space-card-gap: 40px;
+    --wm-space-card-gap-half: 20px;
+
+    /* 판과 판 사이 6vh, 창 안쪽 3.5vh */
+    --wm-space-panel-gap: 48px;
+    --wm-space-panel-gap-half: 24px;
+    --wm-space-panel-pad: 28px;
+
+    /* 칸 격자 사이 2vh (가방, 보상 칸), 목록 줄 사이 1.5vh */
+    --wm-space-grid-gap: 16px;
+    --wm-space-grid-gap-half: 8px;
+    --wm-space-row-gap: 12px;
+    --wm-space-row-gap-half: 6px;
+}
+
+/* 1920x1080 고정 무대 안. 같은 vh 를 1080 기준 px 로 */
+.wm-stage-1080 {
+    --wm-space-edge-min: 32px;
+    --wm-space-edge: 43px;
+    --wm-space-center-top: 162px;
+    --wm-space-center-bottom: 108px;
+    --wm-space-center-side: 162px;
+    --wm-space-center-max-width: 1440px;
+    --wm-space-result-top: 162px;
+    --wm-space-result-bottom: 130px;
+    --wm-space-result-pad: 65px;
+    --wm-space-result-max-width: 1374px;
+    --wm-space-title-gap: 76px;
+    --wm-space-card-gap: 54px;
+    --wm-space-card-gap-half: 27px;
+    --wm-space-panel-gap: 65px;
+    --wm-space-panel-gap-half: 32px;
+    --wm-space-panel-pad: 38px;
+    --wm-space-grid-gap: 22px;
+    --wm-space-grid-gap-half: 11px;
+    --wm-space-row-gap: 16px;
+    --wm-space-row-gap-half: 8px;
+}
+
+/* 가운데 묶음 칸. FullScreenFrame.Content 안에 하나. 내용은 가운데, 폭 상한 */
+.wm-space-center {
+    position: absolute;
+    left: var(--wm-space-center-side);
+    right: var(--wm-space-center-side);
+    top: var(--wm-space-center-top);
+    bottom: var(--wm-space-center-bottom);
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-space-center > * {
+    max-width: var(--wm-space-center-max-width);
+}
+
+/* 결과 판 칸 */
+.wm-space-result {
+    position: absolute;
+    left: var(--wm-space-center-side);
+    right: var(--wm-space-center-side);
+    top: var(--wm-space-result-top);
+    bottom: var(--wm-space-result-bottom);
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-space-result > * {
+    max-width: var(--wm-space-result-max-width);
+    padding: var(--wm-space-result-pad);
+}
+
+/* 화면 전체 메뉴 (목록과 상세). 가장자리 4vh 까지, 판 사이는 wm-space-panels */
+.wm-space-menu {
+    position: absolute;
+    left: var(--wm-space-edge);
+    right: var(--wm-space-edge);
+    top: var(--wm-space-edge);
+    bottom: var(--wm-space-edge);
+}
+
+/* 자식 사이 간격. USS 에 gap 이 없어 자식 양쪽에 반씩 */
+.wm-space-cards {
+    flex-direction: row;
+    justify-content: center;
+}
+
+.wm-space-cards > * {
+    margin-left: var(--wm-space-card-gap-half);
+    margin-right: var(--wm-space-card-gap-half);
+}
+
+.wm-space-panels {
+    flex-direction: row;
+}
+
+.wm-space-panels > * {
+    margin-left: var(--wm-space-panel-gap-half);
+    margin-right: var(--wm-space-panel-gap-half);
+}
+
+.wm-space-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.wm-space-grid > * {
+    margin: var(--wm-space-grid-gap-half);
+}
+
+.wm-space-rows > * {
+    margin-top: var(--wm-space-row-gap-half);
+    margin-bottom: var(--wm-space-row-gap-half);
+}
+
+.wm-space-pad {
+    padding: var(--wm-space-panel-pad);
+}
+
+.wm-space-title {
+    margin-bottom: var(--wm-space-title-gap);
+}

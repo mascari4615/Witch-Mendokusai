@@ -68,7 +68,10 @@ namespace WitchMendokusai
 			// 배경은 화면 끝까지 (container), 목록과 내용은 안전 영역 (content). 기본 닫힘
 			FullScreenFrame frame = uiRoot.CreateFullScreenFrame(uiRoot.ScreenLayer, "MagicBook");
 			container = frame.Root;
-			content = frame.Content;
+			// 여백 규칙의 전체 화면 메뉴 칸. 가장자리 4vh (Spacing.uss)
+			content = new VisualElement { name = "MagicBookBody" };
+			content.AddToClassList("wm-space-menu");
+			frame.Content.Add(content);
 			container.AddToClassList(USS_CLASS);
 			container.style.backgroundColor = BACKGROUND_COLOR;
 			container.style.display = DisplayStyle.None;

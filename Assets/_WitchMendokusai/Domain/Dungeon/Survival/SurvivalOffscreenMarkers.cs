@@ -153,7 +153,8 @@ namespace WitchMendokusai
 			Camera camera = Camera.main;
 			PlayerObject player = playerProvider.CurrentObject;
 			// 시간이 멈춘 동안 (카드 고르기, 상자, 일시정지) 숨김
-			bool inRun = DungeonManager.Instance != null && DungeonManager.Instance.IsDungeon && Time.timeScale > 0f;
+			bool inRun = DungeonManager.Instance != null && DungeonManager.Instance.IsDungeon && Time.timeScale > 0f
+				&& (TimeManager.TryGetExistingInstance(out TimeManager timeManager) == false || timeManager.IsPaused == false);
 			float width = root.layout.width;
 			float height = root.layout.height;
 			bool hasLayout = float.IsNaN(width) == false && float.IsNaN(height) == false && width > 0f && height > 0f;

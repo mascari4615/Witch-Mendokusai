@@ -121,7 +121,7 @@ namespace WitchMendokusai
 			PlayerObject player = playerProvider.CurrentObject;
 			bool inRun = DungeonManager.Instance != null && DungeonManager.Instance.IsDungeon;
 			// 카드 고르기, 상자, 일시정지처럼 시간이 멈춘 동안 숨김 (창 위에 겹침)
-			bool isPaused = Time.timeScale <= 0f;
+			bool isPaused = Time.timeScale <= 0f || (TimeManager.TryGetExistingInstance(out TimeManager timeManager) && timeManager.IsPaused);
 			bool visible = config.UseMinimap && inRun && isPaused == false && camera != null && player != null;
 			root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
 			if (visible == false)
