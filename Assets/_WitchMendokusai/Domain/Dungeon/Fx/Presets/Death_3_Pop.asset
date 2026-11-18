@@ -216,6 +216,138 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  <SparkMaterial>k__BackingField: {fileID: 2100000, guid: 98d4b1602e054aefad62c339e5256356, type: 2}
+  <SparkCount>k__BackingField: 10
+  <SparkMaxParticles>k__BackingField: 2048
+  <SparkSpeedMin>k__BackingField: 5
+  <SparkSpeedMax>k__BackingField: 9
+  <SparkDrag>k__BackingField: 2.5
+  <SparkLifetimeMin>k__BackingField: 0.32
+  <SparkLifetimeMax>k__BackingField: 0.5
+  <SparkSizeMin>k__BackingField: 0.16
+  <SparkSizeMax>k__BackingField: 0.26
+  <SparkSizeCurve>k__BackingField:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.55
+      value: 0.75
+      inSlope: -1
+      outSlope: -1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -2.2
+      outSlope: -2.2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  <SparkStretch>k__BackingField: 0.05
+  <SparkLengthScale>k__BackingField: 2
+  <SparkUpwardMin>k__BackingField: 0.1
+  <SparkUpwardMax>k__BackingField: 0.6
+  <SparkAngleJitter>k__BackingField: 0.7
+  <SparkColor>k__BackingField: {r: 1, g: 0.9, b: 0.6, a: 1}
+  <SparkBodyColorWeight>k__BackingField: 0.65
+  <SparkBodyColorLift>k__BackingField: 0.35
+  <SparkCoreColor>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+  <SparkCoreSizeRatio>k__BackingField: 0.45
+  <RingMaterial>k__BackingField: {fileID: 2100000, guid: b74448617bc74b5997f7d2a589a751ac, type: 2}
+  <RingSeconds>k__BackingField: 0.32
+  <MaxRings>k__BackingField: 48
+  <RingRadius>k__BackingField: 1.1
+  <RingRadiusCurve>k__BackingField:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.2
+      inSlope: 2.6
+      outSlope: 2.6
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0.2
+      outSlope: 0.2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  <RingHollowCurve>k__BackingField:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.7
+      inSlope: 0.22
+      outSlope: 0.22
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0.92
+      inSlope: 0.22
+      outSlope: 0.22
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  <RingAlphaCurve>k__BackingField:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: -0.5
+      outSlope: -0.5
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -1.5
+      outSlope: -1.5
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  <RingColor>k__BackingField: {r: 1, g: 0.96, b: 0.82, a: 0.85}
+  <RingSoftness>k__BackingField: 0.06
+  <RingGroundOffset>k__BackingField: 0.03
   previewSprite: {fileID: -1225876615, guid: 050d103a09fcd5e46a88776ad78dfb28, type: 3}
   previewSize: 1
   previewBillboardMode: 0

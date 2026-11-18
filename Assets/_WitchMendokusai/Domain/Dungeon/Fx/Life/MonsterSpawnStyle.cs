@@ -11,7 +11,7 @@ namespace WitchMendokusai
 	/// - 미리보기 (fx 명령, 우클릭 Preview) 는 PreviewSprite 로 재생
 	/// </summary>
 	[CreateAssetMenu(fileName = "Spawn_0_New", menuName = "WM/CombatFx/Monster Spawn Style")]
-	public class MonsterSpawnStyle : CombatFx
+	public class MonsterSpawnStyle : CombatFx, IGroundPuffStyle
 	{
 		private const string PREVIEW_KEY = "MonsterSpawnPreview";
 

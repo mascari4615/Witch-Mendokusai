@@ -9,10 +9,11 @@ namespace WitchMendokusai
 	/// 몬스터 등장과 사망 연출의 구동기. 사망 잔상과 발밑 고리를 한곳에서 매 프레임 갱신
 	/// - 몬스터마다 코루틴이나 Update 를 두지 않으려고 모음. 초당 수십 마리가 죽어도 갱신은 이 Update 하나
 	/// - CombatFxRunner 와 같은 오브젝트에 처음 쓸 때 붙음. 오브젝트는 실행기의 Rent, Return 으로 재사용
-	/// - 수는 스타일 에셋의 상한 (MaxGhosts, MaxPuffs) 까지. 넘으면 NONE 을 돌려주고 아무것도 안 만듦
+	/// - 수는 스타일 에셋의 상한 (MaxGhosts, MaxPuffs, MaxRings) 까지. 넘으면 NONE 을 돌려주고 아무것도 안 만듦
 	/// - 게임 시간으로 흐름. 히트스톱과 일시정지 동안 같이 멈춤
+	/// - 처치 파편과 처치 고리는 MonsterLifeFxDriver.Burst.cs
 	/// </summary>
-	public class MonsterLifeFxDriver : MonoBehaviour
+	public partial class MonsterLifeFxDriver : MonoBehaviour
 	{
 		/// <summary> 재생하지 않았을 때 돌려주는 번호 </summary>
 		public const int NONE = 0;
@@ -65,7 +66,7 @@ namespace WitchMendokusai
 			public int Id;
 			public GameObject Object;
 			public MeshRenderer Renderer;
-			public MonsterSpawnStyle Style;
+			public IGroundPuffStyle Style;
 			public float Elapsed;
 			public float Radius;
 		}
@@ -141,16 +142,22 @@ namespace WitchMendokusai
 				pop.Target.localScale = Vector3.Scale(pop.BaseScale, pop.Style.EvaluatePop(pop.Elapsed / pop.Style.PopSeconds));
 			}
 
-			for (int i = puffs.Count - 1; i >= 0; i--)
+			UpdatePuffs(puffs, deltaTime);
+			UpdatePuffs(rings, deltaTime);
+		}
+
+		private void UpdatePuffs(List<Puff> list, float deltaTime)
+		{
+			for (int i = list.Count - 1; i >= 0; i--)
 			{
-				Puff puff = puffs[i];
+				Puff puff = list[i];
 				puff.Elapsed += deltaTime;
 				if (puff.Elapsed >= puff.Style.PuffSeconds)
 				{
-					ReleasePuff(i);
+					ReleasePuff(list, i);
 					continue;
 				}
-				puffs[i] = puff;
+				list[i] = puff;
 				ApplyPuff(puff);
 			}
 		}
@@ -229,10 +236,13 @@ namespace WitchMendokusai
 			}
 		}
 
-		/// <summary> 발밑 고리 하나 추가. 상한을 넘으면 NONE </summary>
-		public int AddPuff(Vector3 groundPosition, MonsterSpawnStyle style, float sizeMultiplier)
+		/// <summary> 등장 발밑 고리 하나 추가. 상한을 넘으면 NONE </summary>
+		public int AddPuff(Vector3 groundPosition, MonsterSpawnStyle style, float sizeMultiplier) => AddGroundPuff(puffs, groundPosition, style, sizeMultiplier);
+
+		// 등장 고리와 처치 고리가 같이 씀. 상한은 목록별 (몰살 때 처치 고리가 등장 고리 자리를 뺏지 않게)
+		private int AddGroundPuff(List<Puff> list, Vector3 groundPosition, IGroundPuffStyle style, float sizeMultiplier)
 		{
-			if (puffs.Count >= style.MaxPuffs)
+			if (list.Count >= style.MaxPuffs)
 				return NONE;
 
 			GameObject rented = runner.Rent(PUFF_KEY, createPuffObject);
@@ -250,23 +260,31 @@ namespace WitchMendokusai
 				Elapsed = 0f,
 				Radius = style.PuffRadius * sizeMultiplier,
 			};
-			puffs.Add(puff);
+			list.Add(puff);
 			ApplyPuff(puff);
 			return puff.Id;
 		}
 
+		/// <summary> 등장 고리나 처치 고리를 도중에 치움. 이미 끝났거나 NONE 이면 아무 일 없음 </summary>
 		public void StopPuff(int puffId)
 		{
 			if (puffId == NONE)
 				return;
-			for (int i = 0; i < puffs.Count; i++)
+			if (StopPuffIn(puffs, puffId) == false)
+				StopPuffIn(rings, puffId);
+		}
+
+		private bool StopPuffIn(List<Puff> list, int puffId)
+		{
+			for (int i = 0; i < list.Count; i++)
 			{
-				if (puffs[i].Id == puffId)
+				if (list[i].Id == puffId)
 				{
-					ReleasePuff(i);
-					return;
+					ReleasePuff(list, i);
+					return true;
 				}
 			}
+			return false;
 		}
 
 		private void ApplyGhost(in Ghost ghost)
@@ -295,7 +313,7 @@ namespace WitchMendokusai
 
 		private void ApplyPuff(in Puff puff)
 		{
-			MonsterSpawnStyle style = puff.Style;
+			IGroundPuffStyle style = puff.Style;
 			float progress = puff.Elapsed / style.PuffSeconds;
 
 			puff.Object.transform.localScale = Vector3.one * (puff.Radius * style.PuffRadiusCurve.Evaluate(progress));
@@ -324,12 +342,12 @@ namespace WitchMendokusai
 			ghosts.RemoveAt(last);
 		}
 
-		private void ReleasePuff(int index)
+		private void ReleasePuff(List<Puff> list, int index)
 		{
-			runner.Return(PUFF_KEY, puffs[index].Object);
-			int last = puffs.Count - 1;
-			puffs[index] = puffs[last];
-			puffs.RemoveAt(last);
+			runner.Return(PUFF_KEY, list[index].Object);
+			int last = list.Count - 1;
+			list[index] = list[last];
+			list.RemoveAt(last);
 		}
 
 		private static GameObject CreateGhostObject()

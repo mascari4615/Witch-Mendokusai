@@ -16,7 +16,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("사망 연출. 비우면 없음")] private MonsterDeathStyle deathStyle;
 		[SerializeField, Tooltip("사망 때 잔상으로 복사할 몸 그림")] private SpriteRenderer body;
 		[SerializeField, Tooltip("등장 때 크기를 튕길 트랜스폼. UnitObject.MeshParent 의 자식 (다른 코드가 크기를 안 건드리는 것)")] private Transform popTarget;
-		[SerializeField, Min(0f), Tooltip("발밑 고리 크기 배율. 큰 몸은 키움")] private float puffSizeMultiplier = 1f;
+		[SerializeField, Min(0f), Tooltip("발밑 고리 크기 배율 (등장 고리, 처치 고리). 큰 몸은 키움")] private float puffSizeMultiplier = 1f;
 
 		private UnitHealth health;
 		private Vector3 popBaseScale;
@@ -71,6 +71,7 @@ namespace WitchMendokusai
 				deathPose = MonsterDeathGhost.Capture(body);
 			hasDeathPose = false;
 			MonsterDeathGhost.Play(deathPose, deathStyle);
+			deathStyle.PlayBurst(deathPose, transform.position, puffSizeMultiplier);
 		}
 	}
 }
