@@ -55,3 +55,32 @@
     border-color: rgba(14, 10, 16, 0.9);
     background-color: rgb(120, 220, 255);
 }
+
+/* 큰 지도 (SurvivalMinimap.MinimapLargeView 를 누르는 동안, 폰은 작은 지도 터치)
+   구조: .wm-minimap-large (화면 전체 자리, 클릭 통과, 판을 가운데에)
+           __frame (원형 판. 안쪽 맨 뒤에 BlurPanel 이 뒤 화면을 흐림. 점 색과 내 위치는 작은 지도와 같은 클래스)
+   반경은 SurvivalFeelConfig.MinimapLargeRadius */
+.wm-minimap-large {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-minimap-large__frame {
+    --wm-blur-tint: rgba(14, 10, 16, 0.6);
+
+    width: 640px;
+    height: 640px;
+    overflow: hidden;
+    border-radius: 320px;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.wm-minimap-large__frame .wm-blur {
+    border-radius: 320px;
+}

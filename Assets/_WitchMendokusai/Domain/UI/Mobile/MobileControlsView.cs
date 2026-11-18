@@ -111,7 +111,7 @@ namespace WitchMendokusai
 			UpdateOverheadHint(show, touch);
 			UpdateArenaExitButton(touch);
 			UpdateInteractButton(show, playerProvider);
-			UpdateSprintButton();
+			UpdateDungeonButtons();
 			UpdateLookBackdropBlocking();
 			UpdateLookHintVisibility();
 			// 화면을 돌렸을 때의 처리는 위(다시 세우기) 한 곳뿐이다. 여기에 「여백만 다시 재기」를

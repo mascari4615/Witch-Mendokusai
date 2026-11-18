@@ -37,6 +37,14 @@ namespace WitchMendokusai
 		{
 			int skillCount = 0;
 
+			// 생존 던전은 UI Toolkit 스킬창 (RunEquipmentHud) 이 이동 스킬과 장비를 보임. 이 바는 마을 전용
+			if (DungeonManagerBridge.IsDungeon)
+			{
+				foreach (UISkillSlot skillSlot in curSkillSlots)
+					skillSlot.gameObject.SetActive(false);
+				return;
+			}
+
 			IEnumerable<Skill> skills = playerProvider.CurrentObject.SkillHandler.SkillDic.Values;
 			foreach (Skill skill in skills)
 			{

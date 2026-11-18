@@ -31,6 +31,10 @@ namespace WitchMendokusai
 		private WMWindow window;
 		// 던전 안에서는 달리기가 막혀 있어서 이 줄을 숨김. 창을 열 때마다 다시 맞춤
 		private VisualElement sprintRow;
+		// 큰 지도는 던전 안에서만 쓰므로 던전 밖에서는 이 줄을 숨김
+		private VisualElement minimapRow;
+		// 던전 안에서는 클릭과 우클릭 기본 스킬이 없어서 두 줄을 숨김 (사용자 2026-11-18 키보드만으로 조작)
+		private readonly List<VisualElement> clickRows = new();
 		private UIRoot uiRoot;
 		private InputManager inputManager;
 
@@ -93,6 +97,8 @@ namespace WitchMendokusai
 			PlayerPrefs.SetInt(SHOWN_PREF_KEY, 1);
 			PlayerPrefs.Save();
 			RefreshSprintRow();
+			RefreshMinimapRow();
+			RefreshClickRows();
 			window.Open();
 		}
 
@@ -143,6 +149,10 @@ namespace WitchMendokusai
 					VisualElement row = CreateRow(entry.DisplayName, FormatPath(entry.CurrentPath));
 					if (entry.EventType == InputEventType.Sprint)
 						sprintRow = row;
+					if (entry.EventType == InputEventType.MinimapLargeView)
+						minimapRow = row;
+					if (entry.EventType == InputEventType.Click0 || entry.EventType == InputEventType.Click1)
+						clickRows.Add(row);
 					categoryBox.Add(row);
 				}
 
@@ -213,6 +223,8 @@ namespace WitchMendokusai
 				return;
 
 			RefreshSprintRow();
+			RefreshMinimapRow();
+			RefreshClickRows();
 			window.Toggle();
 		}
 
@@ -222,6 +234,21 @@ namespace WitchMendokusai
 				return;
 
 			sprintRow.style.display = DungeonManagerBridge.IsDungeon ? DisplayStyle.None : DisplayStyle.Flex;
+		}
+
+		private void RefreshClickRows()
+		{
+			DisplayStyle display = DungeonManagerBridge.IsDungeon ? DisplayStyle.None : DisplayStyle.Flex;
+			foreach (VisualElement row in clickRows)
+				row.style.display = display;
+		}
+
+		private void RefreshMinimapRow()
+		{
+			if (minimapRow == null)
+				return;
+
+			minimapRow.style.display = DungeonManagerBridge.IsDungeon ? DisplayStyle.Flex : DisplayStyle.None;
 		}
 	}
 }

@@ -39,21 +39,18 @@ namespace WitchMendokusai
 		private bool isSelecting;
 		private UIQuestGrid questGrid;
 		private Coroutine loop;
-		private RunEquipmentHud runEquipmentHud;
-		private RectTransform freezeHud;
-		private Image freezeIcon;
-		private TextMeshProUGUI freezeText;
-		private int lastFreezeSeconds = -1;
-		private int lastBossFreezeSeconds = -1;
-		private ResourceManager resourceManager;
+		// VisualElement 는 MonoBehaviour 생성 때 못 만들어서 처음 쓸 때 만듦
+		private RunEquipmentHudBinder runEquipmentBinder;
+		private RunEquipmentHudBinder RunEquipment => runEquipmentBinder ??= new RunEquipmentHudBinder();
 
 		private DungeonManager dungeonManager;
+		private PlayerProvider playerProvider;
 
 		[Inject]
-		public void Construct(DungeonManager dungeonManager, ResourceManager resourceManager)
+		public void Construct(DungeonManager dungeonManager, PlayerProvider playerProvider)
 		{
 			this.dungeonManager = dungeonManager;
-			this.resourceManager = resourceManager;
+			this.playerProvider = playerProvider;
 		}
 
 		public override bool IsFullscreen => false;
@@ -72,84 +69,20 @@ namespace WitchMendokusai
 
 		protected override void OnClose()
 		{
-			if (freezeHud != null)
-				freezeHud.gameObject.SetActive(false);
 			StopLoop();
 			isSelecting = false;
 			SetHudVisible(true);
-			runEquipmentHud?.RemoveFromHierarchy();
+			RunEquipment.Hide();
 		}
 
 		private void Update()
 		{
-			UpdateFreezeStatus();
-			if (cardManager == null)
-				cardManager = FindAnyObjectByType<CardManager>(FindObjectsInactive.Include);
+			EnsureCardManager();
 			bool selecting = cardManager.CurPanelType != CardPanelType.None;
 			if (selecting == isSelecting)
 				return;
 			isSelecting = selecting;
 			SetHudVisible(selecting == false);
-		}
-
-		private void BuildFreezeStatus()
-		{
-			GameObject status = new("Freeze status", typeof(RectTransform));
-			status.layer = header.layer;
-			freezeHud = (RectTransform)status.transform;
-			freezeHud.SetParent(header.transform, false);
-			freezeHud.anchorMin = freezeHud.anchorMax = new Vector2(.5f, 1f);
-			GameObject icon = new("Icon", typeof(RectTransform), typeof(Image));
-			icon.layer = header.layer;
-			freezeIcon = icon.GetComponent<Image>();
-			freezeIcon.rectTransform.SetParent(freezeHud, false);
-			freezeIcon.rectTransform.anchorMin = freezeIcon.rectTransform.anchorMax = new Vector2(0f, .5f);
-			freezeIcon.rectTransform.pivot = new Vector2(0f, .5f);
-			freezeIcon.preserveAspect = true;
-			freezeIcon.raycastTarget = false;
-			GameObject text = new("Remaining game time", typeof(RectTransform), typeof(TextMeshProUGUI));
-			text.layer = header.layer;
-			freezeText = text.GetComponent<TextMeshProUGUI>();
-			freezeText.rectTransform.SetParent(freezeHud, false);
-			freezeText.rectTransform.anchorMin = Vector2.zero;
-			freezeText.rectTransform.anchorMax = Vector2.one;
-			freezeText.font = nextEventText.font;
-			freezeText.fontSharedMaterial = nextEventText.fontSharedMaterial;
-			freezeText.alignment = TextAlignmentOptions.MidlineLeft;
-			freezeText.raycastTarget = false;
-		}
-
-		private void UpdateFreezeStatus()
-		{
-			int remaining = Mathf.CeilToInt(EnemyFreezeState.NormalRemainingSeconds);
-			int bossRemaining = Mathf.CeilToInt(EnemyFreezeState.BossRemainingSeconds);
-			bool visible = dungeonManager.IsDungeon && (remaining > 0 || bossRemaining > 0);
-			if (visible == false)
-			{
-				if (freezeHud != null)
-					freezeHud.gameObject.SetActive(false);
-				lastFreezeSeconds = lastBossFreezeSeconds = -1;
-				return;
-			}
-			if (freezeHud == null)
-				BuildFreezeStatus();
-			freezeHud.gameObject.SetActive(true);
-			if (remaining == lastFreezeSeconds && bossRemaining == lastBossFreezeSeconds)
-				return;
-			lastFreezeSeconds = remaining;
-			lastBossFreezeSeconds = bossRemaining;
-			SurvivalFeelConfig config = resourceManager.SurvivalFeel;
-			freezeHud.anchoredPosition = config.FreezeHudOffset;
-			freezeHud.sizeDelta = config.FreezeHudSize;
-			freezeIcon.sprite = config.FreezeStatusIcon;
-			freezeIcon.color = config.FreezeStatusColor;
-			freezeIcon.rectTransform.sizeDelta = Vector2.one * config.FreezeHudIconSize;
-			freezeText.rectTransform.offsetMin = new Vector2(config.FreezeHudIconSize + config.FreezeHudIconSpacing, 0f);
-			freezeText.rectTransform.offsetMax = Vector2.zero;
-			freezeText.fontSize = config.FreezeHudFontSize;
-			freezeText.color = config.FreezeStatusColor;
-			string boss = bossRemaining > 0 ? $"{config.FreezeBossLabel} {bossRemaining}s" : config.FreezeBossReleasedLabel;
-			freezeText.text = $"{config.FreezeStatusLabel} {remaining}s / {boss}";
 		}
 
 		private void SetHudVisible(bool isVisible)
@@ -163,21 +96,20 @@ namespace WitchMendokusai
 			battleHudGroup.blocksRaycasts = isVisible;
 			battleHudGroup.interactable = isVisible;
 			headerGroup.interactable = isVisible;
-			runEquipmentHud?.SetVisible(isVisible);
+			RunEquipment.SetVisible(isVisible);
 		}
 
+		// 스킬창: 이동 스킬과 장비. 장착 모드와 랜덤 모드 둘 다 (사용자 2026-11-18 "스킬창에는 장비들")
 		private void UpdateRunEquipment()
 		{
-			RunLoadout loadout = dungeonManager.RunLoadout;
-			if (loadout.UsesRunSlots == false)
-			{
-				runEquipmentHud?.RemoveFromHierarchy();
-				return;
-			}
-			runEquipmentHud ??= new RunEquipmentHud();
-			if (runEquipmentHud.parent == null)
-				UIRoot.Instance.HudLayer.Add(runEquipmentHud);
-			runEquipmentHud.Refresh(loadout.Signature, loadout.Acquired, dungeonManager.RunEquipmentSlotCount);
+			EnsureCardManager();
+			RunEquipment.Refresh(dungeonManager, playerProvider, cardManager);
+		}
+
+		private void EnsureCardManager()
+		{
+			if (cardManager == null)
+				cardManager = FindAnyObjectByType<CardManager>(FindObjectsInactive.Include);
 		}
 
 		private static CanvasGroup EnsureGroup(GameObject target)

@@ -1,32 +1,103 @@
-/* 랜덤 모드 장비 칸. 색은 핫바와 같은 값 */
+/* 생존 던전 스킬창 (RunEquipmentHud). 아래 가운데, 예전 uGUI 스킬 바 자리
+   구조: .wm-run-equipment (자리)
+           __skills (Shift 이동 스킬 칸)
+           __slots (고유 장비 + 보유 장비 칸)
+             __slot > __icon, __cooldown, __level
+   크기: 패널 기준 세로 800 이라 1vh 8px. 칸 6vh. 아래 여백은 왼쪽 체력바 아래 끝과 같은 줄 (1080 기준 40px)
+   폭: 랜덤 모드 최대 8칸 (스킬 1 + 고유 1 + 획득 6) 이 약 470px. 1280x800 에서도 왼쪽 체력바와 오른쪽 재화 칸 사이에 들어감
+   색은 핫바와 같은 값 */
+
 .wm-run-equipment {
+    --wm-run-equipment-slot: 48px;
+    --wm-run-equipment-gap: 3px;
+
     position: absolute;
-    left: 16px;
-    top: 50%;
-    translate: 0 -50%;
-    flex-direction: column;
-    background-color: rgba(20, 20, 24, 0.85);
+    left: 50%;
+    bottom: 30px;
+    translate: -50% 0;
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.wm-run-equipment__skills,
+.wm-run-equipment__slots {
+    flex-direction: row;
+    background-color: rgba(20, 20, 24, 0.92);
     border-color: rgba(255, 255, 255, 0.35);
     border-width: 1px;
     padding: 4px;
 }
 
+.wm-run-equipment__skills {
+    margin-right: 8px;
+}
+
 .wm-run-equipment__slot {
-    width: 48px;
-    height: 48px;
-    margin: 2px;
-    background-color: rgba(255, 255, 255, 0.06);
+    width: var(--wm-run-equipment-slot);
+    height: var(--wm-run-equipment-slot);
+    margin-left: var(--wm-run-equipment-gap);
+    margin-right: var(--wm-run-equipment-gap);
+    background-color: rgba(0, 0, 0, 0.35);
     border-color: rgba(255, 255, 255, 0.2);
     border-width: 1px;
-    -unity-background-scale-mode: scale-to-fit;
+    overflow: hidden;
+    scale: 1 1;
+    transition-property: scale, border-color;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out-back;
 }
 
 .wm-run-equipment__slot--filled {
-    background-color: rgba(255, 255, 255, 0.14);
+    background-color: rgba(44, 42, 54, 1);
     border-color: rgba(255, 255, 255, 0.6);
 }
 
 .wm-run-equipment__slot--signature {
-    margin-bottom: 8px;
-    border-color: rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 220, 140, 0.95);
+}
+
+/* 새 장비 등장. 커졌다가 전환이 끝나면 클래스가 빠져 원래 크기로. 옆 칸을 덮지 않게 칸 사이 여백 안에서만 커짐 */
+.wm-run-equipment__slot--pop {
+    scale: 1.12 1.12;
+    border-color: rgba(255, 236, 160, 1);
+}
+
+.wm-run-equipment__icon {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    top: 4px;
+    bottom: 4px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* 남은 재사용 시간. 높이 % 는 코드가 매김 */
+.wm-run-equipment__cooldown {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.wm-run-equipment__level {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    min-width: 14px;
+    padding: 0 2px;
+    background-color: rgba(0, 0, 0, 0.85);
+    -unity-text-align: middle-center;
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.9);
+    margin: 0;
+}
+
+/* 빈 칸과 스킬 칸은 레벨 없음 */
+.wm-run-equipment__level--empty {
+    display: none;
 }

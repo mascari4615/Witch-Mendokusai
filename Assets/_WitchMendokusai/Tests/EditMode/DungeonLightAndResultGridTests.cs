@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace WitchMendokusai.Tests
 {
@@ -74,12 +75,32 @@ namespace WitchMendokusai.Tests
 		{
 			EquipmentData signature = ScriptableObject.CreateInstance<EquipmentData>();
 			RunEquipmentHud hud = new();
-			hud.Refresh(signature, new EquipmentData[0], 4);
-			Assert.AreEqual(5, hud.childCount);
-			Assert.IsTrue(hud[0].ClassListContains("wm-run-equipment__slot--signature"));
-			Assert.IsTrue(hud[0].ClassListContains("wm-run-equipment__slot--filled"));
-			Assert.IsFalse(hud[1].ClassListContains("wm-run-equipment__slot--filled"));
+			hud.RefreshEquipments(new[] { signature }, new[] { 1 }, 5);
+			VisualElement slots = hud.SlotRow;
+			Assert.AreEqual(5, slots.childCount);
+			Assert.IsTrue(slots[0].ClassListContains(RunEquipmentHud.USS_SLOT_SIGNATURE));
+			Assert.IsTrue(slots[0].ClassListContains(RunEquipmentHud.USS_SLOT_FILLED));
+			Assert.IsFalse(slots[1].ClassListContains(RunEquipmentHud.USS_SLOT_FILLED));
 			Object.DestroyImmediate(signature);
+		}
+
+		[Test]
+		public void RunEquipmentHud_PopsOnlyEquipmentGainedDuringRun()
+		{
+			EquipmentData signature = ScriptableObject.CreateInstance<EquipmentData>();
+			EquipmentData gained = ScriptableObject.CreateInstance<EquipmentData>();
+			RunEquipmentHud hud = new();
+			hud.RefreshEquipments(new[] { signature }, new[] { 1 }, 3);
+			Assert.IsFalse(hud.SlotRow[0].ClassListContains(RunEquipmentHud.USS_SLOT_POP));
+
+			hud.SetVisible(false);
+			hud.RefreshEquipments(new[] { signature, gained }, new[] { 1, 1 }, 3);
+			Assert.IsFalse(hud.SlotRow[1].ClassListContains(RunEquipmentHud.USS_SLOT_POP));
+			hud.SetVisible(true);
+			Assert.IsTrue(hud.SlotRow[1].ClassListContains(RunEquipmentHud.USS_SLOT_POP));
+			Assert.IsFalse(hud.SlotRow[0].ClassListContains(RunEquipmentHud.USS_SLOT_POP));
+			Object.DestroyImmediate(signature);
+			Object.DestroyImmediate(gained);
 		}
 	}
 }

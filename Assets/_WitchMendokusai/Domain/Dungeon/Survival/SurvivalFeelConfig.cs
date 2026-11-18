@@ -64,21 +64,6 @@ namespace WitchMendokusai
 		public Material ShardMaterial;
 		public Material RingMaterial;
 
-		[Header("Freeze status")]
-		public Sprite FreezeStatusIcon;
-		public Color FreezeStatusColor = new(.65f, .85f, 1f, .85f);
-		[Min(.01f)] public float FreezeMarkerSize = 1.8f;
-		[Min(0f)] public float FreezeMarkerHeight = .08f;
-		[Min(.01f)] public float FreezeMarkerRefreshLife = .25f;
-		public Vector2 FreezeHudOffset = new(0f, -150f);
-		public Vector2 FreezeHudSize = new(420f, 36f);
-		[Min(1f)] public float FreezeHudFontSize = 22f;
-		[Min(1f)] public float FreezeHudIconSize = 30f;
-		[Min(0f)] public float FreezeHudIconSpacing = 8f;
-		public string FreezeStatusLabel = "시간정지";
-		public string FreezeBossLabel = "보스";
-		public string FreezeBossReleasedLabel = "보스 해제";
-
 		[Header("Player hit flash")]
 		public RuntimeAnimatorController PlayerHitFlashController;
 		[Range(0f, 1f), Tooltip("피격 때 화면 전체 빨강의 세기 배율")] public float PlayerHitFlashStrength = 0.3f;
@@ -208,6 +193,7 @@ namespace WitchMendokusai
 		[Tooltip("작은 지도 모양과 자리, 점 색 (SurvivalMinimap.uss)")] public UnityEngine.UIElements.StyleSheet MinimapStyleSheet;
 		[Tooltip("작은 지도 표시")] public bool UseMinimap = true;
 		[Min(1f), Tooltip("내 위치에서 지도 가장자리까지 거리. 이 안의 몬스터와 아이템만 보임")] public float MinimapRadius = 24f;
+		[Min(1f), Tooltip("큰 지도 (T 를 누르는 동안, 폰은 작은 지도 터치) 의 내 위치에서 가장자리까지 거리. 작은 지도 반경보다 크게")] public float MinimapLargeRadius = 60f;
 		[Min(0f), Tooltip("점 다시 그리는 간격 (실제 시간 초). 0 이면 매 프레임")] public float MinimapRefreshInterval = 0.05f;
 		[Range(1, 16000), Tooltip("일반 몬스터 점 상한. 넘으면 몬스터 목록 앞쪽부터 그림. 정예, 보스, 아이템은 상한 밖")] public int MinimapMaxDots = 600;
 		[Min(0.5f), Tooltip("일반 몬스터 점 크기 (UI px)")] public float MinimapMonsterDotSize = 3f;

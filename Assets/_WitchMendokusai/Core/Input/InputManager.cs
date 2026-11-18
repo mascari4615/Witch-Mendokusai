@@ -93,6 +93,8 @@ namespace WitchMendokusai
 		DialogueAuto,
 		[InputEvent("대화", "대화 기록", "<Keyboard>/l")]
 		DialogueLog,
+		[InputEvent("월드", "큰 지도 (누르는 동안)", "<Keyboard>/t")]
+		MinimapLargeView,
 	}
 
 	public enum InputEventResponseType

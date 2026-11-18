@@ -152,7 +152,8 @@ namespace WitchMendokusai
 			// ★ 스킬은 손가락으로 닿는 길이 아예 없었다 (2026-08-07 도달성 점검). 키보드에만 있으면
 			//   폰에서는 *그 기능이 없는 게임*이다 — 화면에 안 보이니 없는 줄도 모른다.
 			topRow.Add(MakeHoldButton("스킬", InputEventType.Space, actionButtonSize * 0.8f));
-			topRow.Add(MakeHoldButton("보조", InputEventType.Click1, actionButtonSize * 0.8f));
+			assistButton = MakeHoldButton("보조", InputEventType.Click1, actionButtonSize * 0.8f);
+			topRow.Add(assistButton);
 			sprintButton = MakeHoldButton("뛰기", InputEventType.Sprint, actionButtonSize * 0.8f);
 			topRow.Add(sprintButton);
 			// 조준 모드도 키 하나(Y)에만 있었다 — 폰에선 조준으로 바꿀 방법이 0 이었다.
@@ -173,7 +174,8 @@ namespace WitchMendokusai
 			VisualElement bottomRow = new VisualElement { style = { flexDirection = FlexDirection.Row } };
 			bottomRow.pickingMode = PickingMode.Ignore;
 			bottomRow.Add(MakeHoldButton("점프", InputEventType.Jump, actionButtonSize));
-			bottomRow.Add(MakeHoldButton("공격", InputEventType.Click0, actionButtonSize * 1.25f));
+			attackButton = MakeHoldButton("공격", InputEventType.Click0, actionButtonSize * 1.25f);
+			bottomRow.Add(attackButton);
 			// 앉기도 키 하나(C)에만 있었다. 「누르는 동안 앉는다」라서 누름·뗌을 그대로 넘기는
 			// 이 버튼이 맞다 — 톡 버튼에 걸면 켜지자마자 꺼져 아무 일도 안 일어난다.
 			bottomRow.Add(MakeHoldButton("앉기", InputEventType.Crouch, actionButtonSize * 0.8f));
@@ -186,22 +188,32 @@ namespace WitchMendokusai
 
 		private Label interactButton;
 		private VisualElement sprintButton;
+		private VisualElement attackButton;
+		private VisualElement assistButton;
 
 		/// <summary>
-		/// 던전 안에서는 달리기가 막혀 있어서 뛰기 버튼도 숨김 (사용자 2026-11-18 "던전에서는 못달리게").
+		/// 던전 안에서 안 쓰는 버튼을 숨김. 뛰기는 달리기가 막혀서 (사용자 2026-11-18 "던전에서는 못달리게"),
+		/// 공격과 보조는 클릭 스킬이 없고 장비가 알아서 공격해서 (사용자 2026-11-18 키보드만으로 조작)
 		/// 자리는 비워 둠. display 를 끄면 옆 버튼이 밀림 (2026-11-17 실기 "기존 버튼이 움직이는 경우는 본 적이 없어")
 		/// </summary>
-		private void UpdateSprintButton()
+		private void UpdateDungeonButtons()
 		{
-			if (sprintButton == null)
+			HideInDungeon(sprintButton, InputEventType.Sprint);
+			HideInDungeon(attackButton, InputEventType.Click0);
+			HideInDungeon(assistButton, InputEventType.Click1);
+		}
+
+		private void HideInDungeon(VisualElement button, InputEventType inputEventType)
+		{
+			if (button == null)
 				return;
 
 			Visibility visibility = DungeonManagerBridge.IsDungeon ? Visibility.Hidden : Visibility.Visible;
-			if (sprintButton.style.visibility != visibility)
+			if (button.style.visibility != visibility)
 			{
-				sprintButton.style.visibility = visibility;
+				button.style.visibility = visibility;
 				if (visibility == Visibility.Hidden)
-					ReleaseHeld(InputEventType.Sprint, sprintButton);
+					ReleaseHeld(inputEventType, button);
 			}
 		}
 

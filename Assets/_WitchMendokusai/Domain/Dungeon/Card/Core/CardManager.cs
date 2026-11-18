@@ -337,6 +337,15 @@ namespace WitchMendokusai
 			EventBusBridge.Publish(new LevelUpConvertedEvent { Heal = heal, Nyang = nyang });
 		}
 
+		// 스킬창 장비 레벨. 1 에 이번 판 고른 그 장비 카드 수를 더함
+		public int EquipmentLevel(EquipmentData equipment)
+		{
+			HashSet<int> cardIds = skillTrees.CardsFor(equipment).Where(card => card != null).Select(card => card.ID).ToHashSet();
+			return 1 + soManager.SelectedCardBuffer.Data.Count(selected => cardIds.Contains(selected.ID));
+		}
+
+		public int SelectedCardCount => soManager.SelectedCardBuffer.Data.Count;
+
 		private float RarityWeight(CardData card) => card.Rarity switch
 		{
 			CardRarity.Rare => rareWeight * UpgradeData.LuckMultiplier,

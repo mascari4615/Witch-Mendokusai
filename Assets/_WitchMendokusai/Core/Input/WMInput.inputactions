@@ -1106,6 +1106,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "MinimapLargeView",
+                    "type": "Button",
+                    "id": "aa7c1a50-0000-4b00-0000-000000000001",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "QuestToggle",
                     "type": "Button",
                     "id": "adc4d35c-c4bb-4fed-b53c-20856dcdf571",
@@ -1708,6 +1717,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "CauldronMapToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "aa7c1a50-0000-4b00-0000-000000000002",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MinimapLargeView",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

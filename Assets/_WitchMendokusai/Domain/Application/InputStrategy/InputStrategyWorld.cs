@@ -162,6 +162,8 @@ namespace WitchMendokusai
 				InputEventType.Click0,
 				new[]
 				{
+					// 생존 던전은 키보드만으로 조작. 클릭과 우클릭 기본 스킬 없음, 공격은 장비 (사용자 2026-11-18)
+					GameConditionType.IsInDungeon,
 					GameConditionType.IsMouseOnUI,
 					GameConditionType.IsTyping,
 					GameConditionType.IsPaused,
@@ -174,6 +176,8 @@ namespace WitchMendokusai
 				InputEventType.Click1,
 				new[]
 				{
+					// 생존 던전은 키보드만으로 조작. 클릭과 우클릭 기본 스킬 없음, 공격은 장비 (사용자 2026-11-18)
+					GameConditionType.IsInDungeon,
 					GameConditionType.IsMouseOnUI,
 					GameConditionType.IsTyping,
 					GameConditionType.IsPaused,
