@@ -73,6 +73,7 @@ namespace WitchMendokusai
 
 		public void OnDeath()
 		{
+			CombatSfx.Play(CombatSfxEvent.MonsterPop, transform.position);
 			if (deathStyle == null)
 				return;
 			if (hasDeathPose == false)

@@ -12,7 +12,7 @@ namespace WitchMendokusai
 
 		protected override void OnEffect()
 		{
-			RuntimeManager.PlayOneShot("event:/SFX/EXP", transform.position);
+			CombatSfx.Play(CombatSfxEvent.ClearBlast);
 			Camera camera = Camera.main;
 			if (camera == null)
 				return;

@@ -289,6 +289,7 @@ namespace WitchMendokusai
 			if (IsDungeon == false || clearDelayRoutine != null)
 				return;
 			SurvivalFeelConfig feel = resourceManager.SurvivalFeel;
+			CombatSfx.Play(CombatSfxEvent.Defeat);
 			PlayFlowFx(feel.DefeatFx, feel.DefeatTitle, CurDungeon.Name);
 			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(feel.DefeatResultDelay, false));
 		}
@@ -309,6 +310,7 @@ namespace WitchMendokusai
 				return;
 			}
 			// 패배 연출 중에 클리어가 뒤따르면 여기서 승리 연출로 바뀜
+			CombatSfx.Play(CombatSfxEvent.Victory);
 			PlayFlowFx(feel.VictoryFx, feel.VictoryTitle, CurDungeon.Name);
 			playerProvider.CurrentObject.GrantInvincibility(delay);
 			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(delay, true));

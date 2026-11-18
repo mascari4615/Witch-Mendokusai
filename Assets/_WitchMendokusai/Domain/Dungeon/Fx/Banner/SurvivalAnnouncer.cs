@@ -43,6 +43,7 @@ namespace WitchMendokusai
 		private void OnEventAnnounced(SurvivalEventAnnouncedEvent announced)
 		{
 			SurvivalAnnounceLine line = announced.Type == SurvivalEventType.Elite ? Settings.EliteAnnounced : Settings.SwarmAnnounced;
+			CombatSfx.Play(announced.Type == SurvivalEventType.Elite ? CombatSfxEvent.Warning : CombatSfxEvent.SwarmWarning);
 			Show(line, announced.LeadSeconds, announced.Monster, announced.Count);
 		}
 
@@ -55,9 +56,17 @@ namespace WitchMendokusai
 			Show(line, 0f, started.Monster, started.Count);
 		}
 
-		private void OnBossAnnounced(BossAnnouncedEvent announced) => Show(Settings.BossAnnounced, announced.LeadSeconds, announced.Monster, 1);
+		private void OnBossAnnounced(BossAnnouncedEvent announced)
+		{
+			CombatSfx.Play(CombatSfxEvent.BossWarning);
+			Show(Settings.BossAnnounced, announced.LeadSeconds, announced.Monster, 1);
+		}
 
-		private void OnBossSpawned(BossSpawnedEvent spawned) => Show(Settings.BossSpawned, 0f, spawned.Monster, 1);
+		private void OnBossSpawned(BossSpawnedEvent spawned)
+		{
+			CombatSfx.Play(CombatSfxEvent.BossAppear);
+			Show(Settings.BossSpawned, 0f, spawned.Monster, 1);
+		}
 
 		private void Show(SurvivalAnnounceLine line, float leadSeconds, Monster monster, int count)
 		{

@@ -174,7 +174,10 @@ namespace WitchMendokusai
 				DropLoot();
 
 				if (UnitData.Type == MonsterType.Boss)
+				{
+					CombatSfx.Play(CombatSfxEvent.BossKill);
 					SurvivalFeel.Instance.OnBossKilled(transform.position);
+				}
 				else if (eliteProfile != null)
 					SurvivalFeel.Instance.OnEliteKilled(transform.position);
 				else

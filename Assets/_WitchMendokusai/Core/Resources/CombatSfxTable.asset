@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 033c9d2f4be0473180f5cd5be83039da, type: 3}
+  m_Name: CombatSfxTable
+  m_EditorClassIdentifier: 
+  entries:
+  - sfxEvent: 0
+    eventPath: event:/SFX/Combat/Warning
+    minIntervalSeconds: 0.5
+    playAtPosition: 0
+  - sfxEvent: 1
+    eventPath: event:/SFX/Combat/SwarmWarning
+    minIntervalSeconds: 0.5
+    playAtPosition: 0
+  - sfxEvent: 2
+    eventPath: event:/SFX/Combat/BossWarning
+    minIntervalSeconds: 0.5
+    playAtPosition: 0
+  - sfxEvent: 3
+    eventPath: event:/SFX/Combat/BossAppear
+    minIntervalSeconds: 0.5
+    playAtPosition: 0
+  - sfxEvent: 4
+    eventPath: event:/SFX/Combat/BossKill
+    minIntervalSeconds: 0.5
+    playAtPosition: 0
+  - sfxEvent: 5
+    eventPath: event:/SFX/Combat/TelegraphCharge
+    minIntervalSeconds: 0.1
+    playAtPosition: 1
+  - sfxEvent: 6
+    eventPath: event:/SFX/Combat/TelegraphFire
+    minIntervalSeconds: 0.1
+    playAtPosition: 1
+  - sfxEvent: 7
+    eventPath: event:/SFX/Combat/PlayerHit
+    minIntervalSeconds: 0.1
+    playAtPosition: 0
+  - sfxEvent: 8
+    eventPath: event:/SFX/Combat/PlayerDeath
+    minIntervalSeconds: 0.5
+    playAtPosition: 0
+  - sfxEvent: 9
+    eventPath: event:/SFX/Combat/Heal
+    minIntervalSeconds: 0.2
+    playAtPosition: 0
+  - sfxEvent: 10
+    eventPath: event:/SFX/Combat/Freeze
+    minIntervalSeconds: 0.5
+    playAtPosition: 0
+  - sfxEvent: 11
+    eventPath: event:/SFX/Combat/ClearBlast
+    minIntervalSeconds: 0.5
+    playAtPosition: 0
+  - sfxEvent: 12
+    eventPath: event:/SFX/Combat/MagnetPull
+    minIntervalSeconds: 0.3
+    playAtPosition: 0
+  - sfxEvent: 13
+    eventPath: event:/SFX/Combat/Victory
+    minIntervalSeconds: 0.5
+    playAtPosition: 0
+  - sfxEvent: 14
+    eventPath: event:/SFX/Combat/Defeat
+    minIntervalSeconds: 0.5
+    playAtPosition: 0
+  - sfxEvent: 15
+    eventPath: event:/SFX/Combat/MonsterPop
+    minIntervalSeconds: 0.04
+    playAtPosition: 1
+  - sfxEvent: 16
+    eventPath: event:/SFX/Combat/WeaponThrow
+    minIntervalSeconds: 0.05
+    playAtPosition: 1
+  - sfxEvent: 17
+    eventPath: event:/SFX/Combat/WeaponSwing
+    minIntervalSeconds: 0.05
+    playAtPosition: 1
+  - sfxEvent: 18
+    eventPath: event:/SFX/Combat/WeaponZap
+    minIntervalSeconds: 0.05
+    playAtPosition: 1
+  - sfxEvent: 19
+    eventPath: event:/SFX/Combat/WeaponSplash
+    minIntervalSeconds: 0.05
+    playAtPosition: 1
+  - sfxEvent: 20
+    eventPath: event:/SFX/Combat/WeaponHitLight
+    minIntervalSeconds: 0.04
+    playAtPosition: 1

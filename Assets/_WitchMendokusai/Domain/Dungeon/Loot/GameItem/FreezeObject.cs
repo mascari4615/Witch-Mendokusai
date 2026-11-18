@@ -11,7 +11,7 @@ namespace WitchMendokusai
 
 		protected override void OnEffect()
 		{
-			RuntimeManager.PlayOneShot("event:/SFX/EXP", transform.position);
+			CombatSfx.Play(CombatSfxEvent.Freeze);
 			SurvivalRunRules rules = resourceManager.SurvivalRunRules;
 			EnemyFreezeState.Start(rules.FreezeSeconds, rules.FreezeBossRatio);
 			if (SurvivalFeel.Instance != null)

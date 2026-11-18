@@ -92,6 +92,9 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("끝 충격파가 가장자리에서 퍼지는 거리 (월드 단위)")] private float shockDistance = 0.9f;
 		[SerializeField, Tooltip("끝 충격파 굵기 (월드 단위)")] private float shockWidth = 0.12f;
 
+		[Header("소리")]
+		[SerializeField, Tooltip("끄면 이 예고는 시작음과 끝음이 없음")] private bool playSfx = true;
+
 		[Header("시간")]
 		[SerializeField, Tooltip("Seconds 를 안 넘겼을 때 차오르는 시간 (초)")] private float defaultSeconds = 1f;
 		[SerializeField, Tooltip("차오름 곡선. 가로 0~1 시간 비율, 세로 0~1 진행도")] private AnimationCurve fillCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
@@ -140,6 +143,8 @@ namespace WitchMendokusai
 
 			float seconds = context.Seconds > 0f ? context.Seconds : defaultSeconds;
 			float elapsed = 0f;
+			if (playSfx)
+				CombatSfx.Play(CombatSfxEvent.TelegraphCharge, GetSoundPosition(context, hasFollow));
 			while (elapsed < seconds)
 			{
 				if (hasFollow && IsAlive(context.Follow) == false)
@@ -156,6 +161,8 @@ namespace WitchMendokusai
 			}
 
 			// 끝: 가득 찬 채로 번쩍이고 사라짐
+			if (playSfx)
+				CombatSfx.Play(CombatSfxEvent.TelegraphFire, GetSoundPosition(context, hasFollow));
 			elapsed = 0f;
 			while (elapsed < flashSeconds)
 			{
@@ -172,6 +179,8 @@ namespace WitchMendokusai
 				elapsed += Time.deltaTime;
 			}
 		}
+
+		private static Vector3 GetSoundPosition(CombatFxContext context, bool hasFollow) => hasFollow ? context.Follow.position : context.Position;
 
 		private static bool IsAlive(Transform follow) => follow != null && follow.gameObject.activeInHierarchy;
 

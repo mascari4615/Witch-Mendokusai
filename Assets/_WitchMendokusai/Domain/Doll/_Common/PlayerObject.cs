@@ -160,7 +160,7 @@ namespace WitchMendokusai
 			if (invincibleRoutine != null)
 				return;
 
-			RuntimeManager.PlayOneShot("event:/SFX/Monster/Hit", transform.position);
+			CombatSfx.Play(CombatSfxEvent.PlayerHit);
 			gameEventManager.Raise(GameEventType.OnPlayerHit);
 			// 카메라 셰이크는 PlayerKnockbackCameraGlue가 force 비례로 처리 — 여기서 호출 X.
 
@@ -193,6 +193,7 @@ namespace WitchMendokusai
 			// HandleDamageEffects 는 이미 IsDungeon 가드 — death 만 누락이었음(비대칭 해소).
 			if (DungeonManagerBridge.IsDungeon)
 			{
+				CombatSfx.Play(CombatSfxEvent.PlayerDeath);
 				SurvivalFeel.Instance.OnPlayerDied(transform.position);
 				gameEventManager.Raise(GameEventType.OnPlayerDied);
 				timeManager.DoSlowMotion();

@@ -12,6 +12,7 @@ namespace WitchMendokusai
 
 		protected override void OnEffect()
 		{
+			CombatSfx.Play(CombatSfxEvent.MagnetPull);
 			List<MagnetObject> magnetObjects = new();
 
 			ObjectBufferManager.GetObjects(ObjectType.Drop).ForEach(item =>
