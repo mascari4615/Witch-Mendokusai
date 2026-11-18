@@ -841,3 +841,13 @@
     margin-left: 16px;
     font-size: 17px;
 }
+
+/* 보스 예고 깜빡임. BannerFx 의 pulseCount 동안 켜졌다 꺼짐 */
+.wm-banner--bosswarn .wm-banner__band {
+    transition-property: scale, opacity;
+    transition-duration: 0.34s, 0.12s;
+}
+
+.wm-banner--bosswarn.wm-banner--pulse .wm-banner__band {
+    opacity: 0.35;
+}

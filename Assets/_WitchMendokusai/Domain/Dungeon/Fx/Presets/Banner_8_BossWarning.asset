@@ -29,3 +29,5 @@ MonoBehaviour:
   titleSpreadPortion: 0.6
   sound: 12
   playSound: 0
+  pulseCount: 3
+  pulsePeriod: 0.4

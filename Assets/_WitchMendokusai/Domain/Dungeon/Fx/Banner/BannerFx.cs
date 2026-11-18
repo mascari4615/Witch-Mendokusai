@@ -21,6 +21,7 @@ namespace WitchMendokusai
 		private const string USS_ROOT = "wm-banner";
 		private const string USS_IN = "wm-banner--in";
 		private const string USS_OUT = "wm-banner--out";
+		private const string USS_PULSE = "wm-banner--pulse";
 		private const string USS_TINT = "wm-banner__tint";
 		private const string USS_VIGNETTE = "wm-banner__vignette";
 		private const string USS_GROUP = "wm-banner__group";
@@ -62,6 +63,8 @@ namespace WitchMendokusai
 		[SerializeField, Range(0f, 1f), Tooltip("첫 글자부터 끝 글자까지 걸리는 시간. 등장 시간에 대한 비율")] private float titleSpreadPortion = 0.6f;
 		[SerializeField, Tooltip("등장 때 낼 소리")] private UiSfxEvent sound = UiSfxEvent.Blocked;
 		[SerializeField, Tooltip("등장 때 소리를 낼지")] private bool playSound = false;
+		[SerializeField, Min(0), Tooltip("다 나타난 뒤 깜빡임 횟수. 0 이면 없음. 모양은 USS 의 --pulse")] private int pulseCount = 0;
+		[SerializeField, Min(0f), Tooltip("깜빡임 한 번의 길이 (초)")] private float pulsePeriod = 0.4f;
 
 		private string SlotKey => string.IsNullOrEmpty(slot) ? styleClass : slot;
 
@@ -193,6 +196,11 @@ namespace WitchMendokusai
 			{
 				while (shown < characters.Count && elapsed >= firstCharacterAt + characterStep * shown)
 					characters[shown++].AddToClassList(USS_CHARACTER_SHOWN);
+				if (pulseCount > 0 && pulsePeriod > 0f && elapsed >= enterSeconds)
+				{
+					int pulseIndex = Mathf.FloorToInt((elapsed - enterSeconds) / pulsePeriod * 2f);
+					root.EnableInClassList(USS_PULSE, pulseIndex < pulseCount * 2 && pulseIndex % 2 == 0);
+				}
 				yield return null;
 				elapsed += Time.unscaledDeltaTime;
 			}
