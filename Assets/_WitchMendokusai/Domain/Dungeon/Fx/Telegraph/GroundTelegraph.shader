@@ -193,6 +193,8 @@ Shader "WM/Fx/GroundTelegraph"
 				// 차오른 면: 앞선 쪽이 밝음
 				half fillShade = lerp(0.75, 1.0, saturate(1.0 + fillDistance / max(_FrontGlowWidth * 2.0, 1e-4)));
 				color = Over(color, _FillColor.rgb * fillShade, _FillColor.a * filled);
+				// 빗금은 차오른 면 위에도 옅게 비침
+				color = Over(color, _FrontColor.rgb, hatch * _HatchStrength * 0.35 * filled);
 
 				// 앞선과 그 뒤로 번지는 빛 (진행도 0 근처에서는 숨김)
 				half frontOn = saturate(_Progress * 20.0) * inside;
