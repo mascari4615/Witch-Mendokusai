@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cc75b9e8d9e488b9374de5080a6f9a1, type: 3}
+  m_Name: Sequence_4_BossIntro
+  m_EditorClassIdentifier:
+  previewTitle: "아쿠아쿠"
+  previewSubtitle: ""
+  steps:
+  - Fx: {fileID: 11400000, guid: 3279f8d049694df5a3cc6cd954cae4e5, type: 2}
+    DelaySeconds: 0
+    Title:
+    Subtitle:
+  - Fx: {fileID: 11400000, guid: 479509922d2f4671abe5b15d030e58c9, type: 2}
+    DelaySeconds: 0.15
+    Title:
+    Subtitle:

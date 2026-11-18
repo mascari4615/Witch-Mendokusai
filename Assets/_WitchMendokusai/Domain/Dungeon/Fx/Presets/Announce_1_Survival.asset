@@ -38,7 +38,7 @@ MonoBehaviour:
     <Subtitle>k__BackingField: "{0}초 뒤"
     <HoldSeconds>k__BackingField: 0
   <BossSpawned>k__BackingField:
-    <Banner>k__BackingField: {fileID: 11400000, guid: 479509922d2f4671abe5b15d030e58c9, type: 2}
+    <Banner>k__BackingField: {fileID: 11400000, guid: 841d552410e142fa943610e1aed8dc15, type: 2}
     <Title>k__BackingField: "{1}"
     <Subtitle>k__BackingField: ""
     <HoldSeconds>k__BackingField: 0
