@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cc75b9e8d9e488b9374de5080a6f9a1, type: 3}
+  m_Name: Sequence_1_Victory
+  m_EditorClassIdentifier:
+  previewTitle: "승리"
+  previewSubtitle: "미리보기 던전"
+  steps:
+  - Fx: {fileID: 11400000, guid: 33aa9256865349cf8c8cf9d8aa741e2b, type: 2}
+    DelaySeconds: 0
+    Title:
+    Subtitle:
+  - Fx: {fileID: 11400000, guid: 7a11cacc4bad49bf93b7da38ff7a990d, type: 2}
+    DelaySeconds: 0
+    Title:
+    Subtitle:
+  - Fx: {fileID: 11400000, guid: 85e51e372480481180173fedea2f4703, type: 2}
+    DelaySeconds: 0.3
+    Title:
+    Subtitle:

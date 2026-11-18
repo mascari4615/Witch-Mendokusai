@@ -13,6 +13,10 @@ namespace WitchMendokusai
 		[Header("Dash Attack")]
 		[SerializeField] private float dashSpeed = 15f;
 		[SerializeField] private float dashDuration = 0.5f;
+		[SerializeField, Tooltip("돌진 전 준비 시간 (초). 이 동안 멈춰서 선형 예고가 차오름")] private float dashPreDelay = 0.8f;
+		[SerializeField, Tooltip("돌진 후 숨 고르는 시간 (초)")] private float dashPostDelay = 0.5f;
+		[SerializeField, Tooltip("돌진 전 바닥 선형 예고 부품. 비우면 예고 없음")] private CombatFx dashTelegraph;
+		[SerializeField, Tooltip("돌진 예고의 폭 (월드 단위). 길이는 dashSpeed x dashDuration")] private float dashTelegraphWidth = 2.4f;
 
 		[Header("Wait")]
 		[SerializeField] private float waitDuration = 2f;
@@ -40,7 +44,7 @@ namespace WitchMendokusai
 			BT_Idle _idle = new(UnitObject, isSpriteLookLeft: isSpriteLookLeft);
 			BT_MoveToPlayer _moveToPlayer = new(UnitObject, playerProvider, isSpriteLookLeft);
 			BT_Skill _projectileAttack = new(UnitObject, playerProvider, 0, attackRange, () => ChangeState(FSMStateCommon.Wait));
-			BT_Dash _dash = new(UnitObject, playerProvider, attackRange, dashSpeed: dashSpeed, dashDuration: dashDuration, onDashEnd: () => ChangeState(FSMStateCommon.Wait));
+			BT_Dash _dash = new(UnitObject, playerProvider, attackRange, dashSpeed: dashSpeed, dashDuration: dashDuration, onDashEnd: () => ChangeState(FSMStateCommon.Wait), dashPreDelay: dashPreDelay, dashPostDelay: dashPostDelay, telegraph: dashTelegraph, telegraphWidth: dashTelegraphWidth);
 
 			// --- 상태별 이벤트 설정 ---
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
@@ -80,7 +84,6 @@ namespace WitchMendokusai
 				if (timer >= waitDuration)
 				{
 					timer = 0f;
-					Debug.Log("Wait Over, Attack!");
 					ChangeState(FSMStateCommon.Attack);
 				}
 			});
@@ -92,7 +95,6 @@ namespace WitchMendokusai
 		{
 			System.Array patterns = Enum.GetValues(typeof(AttackPattern));
 			_currentPattern = (AttackPattern)patterns.GetValue(Random.Range(0, patterns.Length));
-			Debug.Log($"Next Pattern: {_currentPattern}");
 		}
 
 		private void CanSeePlayer()

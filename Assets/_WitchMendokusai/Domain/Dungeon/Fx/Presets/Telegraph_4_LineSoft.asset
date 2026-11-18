@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c1a698e47924cf1951778818679d3d7, type: 3}
+  m_Name: Telegraph_4_LineSoft
+  m_EditorClassIdentifier:
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle:
+  material: {fileID: 2100000, guid: 187f61d0b77d4ce2b19ad9b99bad5da6, type: 2}
+  liftHeight: 0.03
+  baseColor: {r: 1, g: 1, b: 1, a: 0.16}
+  fillColor: {r: 1, g: 1, b: 1, a: 0.42}
+  frontColor: {r: 1, g: 1, b: 1, a: 0.95}
+  edgeColor: {r: 1, g: 1, b: 1, a: 0.95}
+  flashColor: {r: 0.95, g: 0.89, b: 0.48, a: 1}
+  edgeWidth: 0.08
+  frontWidth: 0.04
+  glowWidth: 0.25
+  glowStrength: 0.35
+  pulseAmount: 0.3
+  pulseSpeed: 9
+  defaultSeconds: 1
+  fillCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  appearSeconds: 0.16
+  flashSeconds: 0.28
+  flashStrength: 0.85
+  cornerRadius: 0.12

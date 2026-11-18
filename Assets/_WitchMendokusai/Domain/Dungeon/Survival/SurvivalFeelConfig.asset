@@ -194,8 +194,14 @@ MonoBehaviour:
     RingSize: 9
     RingLife: 0.35
     Color: {r: 0.6, g: 0.8, b: 1, a: 1}
-  BossClearResultDelay: 1
-  DefeatResultDelay: 1
+  BossClearResultDelay: 2.4
+  DefeatResultDelay: 2.8
+  VictoryFx: {fileID: 11400000, guid: 0179ebf70e7f477b9609c04286c70a02, type: 2}
+  DefeatFx: {fileID: 11400000, guid: 93147a88c05a412e8e01f4db3f1a7ccd, type: 2}
+  DungeonIntroFx: {fileID: 11400000, guid: 8ff4844aeca040c5b580904eac4dea24, type: 2}
+  DungeonEnterWipe: {fileID: 0}
+  VictoryTitle: "승리"
+  DefeatTitle: "패배"
   LevelUpPopScale: 1.35
   LevelUpPopTime: 0.28
   DefaultHitColor: {r: 1, g: 0.95, b: 0.8, a: 1}

@@ -128,6 +128,14 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("보스 클리어 뒤 결과창까지 실제 시간 초")] public float BossClearResultDelay = 1f;
 		[Min(0f), Tooltip("사망 뒤 결과창까지 실제 시간 초")] public float DefeatResultDelay = 1f;
 
+		[Header("Run flow (판의 시작과 끝 연출)")]
+		[Tooltip("클리어 순간부터 결과창까지 재생. 비우면 연출 없이 기다림. 결과창이 뜰 때 남은 것은 걷음")] public CombatFx VictoryFx;
+		[Tooltip("사망 순간부터 결과창까지 재생. 비우면 연출 없이 기다림")] public CombatFx DefeatFx;
+		[Tooltip("던전 입장 전환이 걷힌 뒤 재생. 제목은 던전 이름, 아랫줄은 목표. 비우면 기존 스테이지 팝업")] public CombatFx DungeonIntroFx;
+		[Tooltip("던전 입장과 재도전 때 화면 전환. 비우면 UIFxSettings 의 portalWipe")] public UIWipe DungeonEnterWipe;
+		[Tooltip("승리 띠에 쓸 글. 아랫줄은 던전 이름")] public string VictoryTitle = "승리";
+		[Tooltip("패배 띠에 쓸 글. 아랫줄은 던전 이름")] public string DefeatTitle = "패배";
+
 		[Header("Level up pop")]
 		[Min(1f)] public float LevelUpPopScale = 1.35f;
 		[Min(0.01f)] public float LevelUpPopTime = 0.28f;

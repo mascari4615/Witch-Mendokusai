@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: GroundTelegraph
+  m_Shader: {fileID: 4800000, guid: 4437874190d14972a85f1067a8946f21, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _Alpha: 1
+    - _CornerRadius: 0.12
+    - _EdgeWidth: 0.08
+    - _Flash: 0
+    - _FlashStrength: 0.85
+    - _FrontWidth: 0.04
+    - _GlowStrength: 0.35
+    - _GlowWidth: 0.25
+    - _Progress: 0.5
+    - _PulseAmount: 0.3
+    - _PulseSpeed: 9
+    - _Shape: 0
+    m_Colors:
+    - _BaseColor: {r: 0.89, g: 0.35, b: 0.3, a: 0.2}
+    - _EdgeColor: {r: 0.89, g: 0.25, b: 0.22, a: 1}
+    - _FillColor: {r: 0.93, g: 0.36, b: 0.3, a: 0.5}
+    - _FlashColor: {r: 1, g: 0.97, b: 0.92, a: 1}
+    - _FrontColor: {r: 1, g: 0.86, b: 0.8, a: 0.9}
+    - _PlateSize: {r: 2, g: 2, b: 0, a: 0}
+    - _ShapeHalfSize: {r: 0.8, g: 0.8, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

@@ -113,6 +113,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1111111111111111003}
+    - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5910405173498759654}
   m_SourcePrefab: {fileID: 100100000, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
 --- !u!1 &1848531686881178565 stripped
 GameObject:
@@ -138,6 +141,8 @@ MonoBehaviour:
   updateRotation: 0
   acceleration: 40
   hpBar: {fileID: 5591941910199305167}
+  healthPerExperienceTier: 10
+  maxExperienceMultiplier: 5
 --- !u!114 &5389770000558939686
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -167,6 +172,9 @@ MonoBehaviour:
   useHitCount: 0
   hitCount: 1
   disableWhenInvalid: 0
+  knockbackForce: 12
+  knockbackDuration: 0.15
+  hitstopDuration: 0.05
   usedByPlayer: 0
 --- !u!114 &4601275114766011727
 MonoBehaviour:
@@ -180,6 +188,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb34caf6f1e8b7d4d92f7b134bddf22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.UnitHealth
+  hitScaleMultiplier: 1.4
+  hitScaleUpDuration: 0.1
+  hitScaleDownDuration: 0.2
 --- !u!114 &8342628594283025483
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -207,6 +218,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DamageFlashFeedback
   spriteRenderer: {fileID: 3636146261913355018}
+  flashDuration: 0.1
+  flashStrength: 1
 --- !u!114 &6030215928482858114
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -233,6 +246,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DamageVFXFeedback
   hitEffectPrefab: {fileID: 3897986288003847520, guid: e6c8d67a42fcd034d80aea1d4d278914, type: 3}
   dieEffectPrefab: {fileID: 3897986288003847520, guid: 92ac45d0fb1c10f4da81674f06b26486, type: 3}
+  effectOffsetDistance: 0.5
 --- !u!114 &1111111111111111001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -243,7 +257,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: df875c7811e84e45b3018f593c30bccf, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DamageReaction
 --- !u!114 &1111111111111111002
 MonoBehaviour:
@@ -255,7 +269,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e6fbd2d3b3a94e64dbc7063017c06d97, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.HitstopFeedback
 --- !u!114 &1111111111111111003
 MonoBehaviour:
@@ -267,8 +281,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fa8447fa523215040a21411030cdd401, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.KnockbackFeedback
+--- !u!114 &5910405173498759654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848531686881178565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4eb028311eb14df9a1a4fecf151f20d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MonsterLifeFx
+  spawnStyle: {fileID: 11400000, guid: b832db029b7047c2aac2750d04cba40c, type: 2}
+  deathStyle: {fileID: 11400000, guid: a2b7df0150764967b858bb0de188eaf8, type: 2}
+  body: {fileID: 3636146261913355018}
+  popTarget: {fileID: 4101190477955112521}
+  puffSizeMultiplier: 1
 --- !u!4 &2186457573704370070 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4097506783380236002, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
@@ -277,6 +308,11 @@ Transform:
 --- !u!212 &3636146261913355018 stripped
 SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 1512278065530053246, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
+  m_PrefabInstance: {fileID: 2777207088424509812}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &4101190477955112521 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2188965074839273277, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
   m_PrefabInstance: {fileID: 2777207088424509812}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &5591941910199305167 stripped

@@ -1,0 +1,41 @@
+using System;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace WitchMendokusai
+{
+	/// <summary>
+	/// 화면 전체를 한 색으로 덮는 연출. 번쩍임 (밝은 색이 빠르게 떴다 사라짐) 과 물들임 (색이 천천히 깔림)
+	/// - 떠 있는 층의 맨 아래에 깔려서 띠와 화면 전환보다 뒤에 그려짐. 입력은 통과
+	/// - 실제 시간. 멈춤 함수를 부르면 나가는 시간에 걸쳐 걷음
+	/// </summary>
+	[CreateAssetMenu(fileName = "Tint_0_New", menuName = "WM/CombatFx/" + nameof(ScreenTintFx))]
+	public class ScreenTintFx : CombatFx
+	{
+		private const string ELEMENT_NAME = "screen-tint-fx";
+
+		[SerializeField, Tooltip("덮는 색. 알파는 아래 최대 불투명도가 정함")] private Color color = Color.white;
+		[SerializeField, Range(0f, 1f), Tooltip("가장 짙을 때 불투명도")] private float maxAlpha = 0.5f;
+		[SerializeField, Tooltip("들어오는 시간, 머무는 시간, 나가는 시간, 곡선")] private FlowEnvelope envelope = new();
+
+		protected override Action Play(CombatFxRunner runner, CombatFxContext context)
+		{
+			VisualElement veil = new() { name = ELEMENT_NAME, pickingMode = PickingMode.Ignore };
+			veil.style.position = Position.Absolute;
+			veil.style.left = 0;
+			veil.style.top = 0;
+			veil.style.right = 0;
+			veil.style.bottom = 0;
+			veil.style.backgroundColor = new Color(color.r, color.g, color.b, 0f);
+
+			VisualElement layer = UIRoot.Instance.OverlayLayer;
+			layer.Add(veil);
+			veil.SendToBack();
+
+			return envelope.Play(
+				runner,
+				weight => veil.style.backgroundColor = new Color(color.r, color.g, color.b, maxAlpha * Mathf.Clamp01(weight)),
+				veil.RemoveFromHierarchy);
+		}
+	}
+}

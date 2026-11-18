@@ -100,6 +100,14 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 7241926e841025945a87bb7e3d1511f5, type: 2}
+    - target: {fileID: 5910405173498759654, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
+      propertyPath: deathStyle
+      value: 
+      objectReference: {fileID: 11400000, guid: ceb5f0381fe74a63baa7453aebf6139f, type: 2}
+    - target: {fileID: 5910405173498759654, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
+      propertyPath: puffSizeMultiplier
+      value: 2.5
+      objectReference: {fileID: 0}
     - target: {fileID: 6547949991324373500, guid: 6eb3e2a012ddb864ab9e88e453c405ea, type: 3}
       propertyPath: flashStrength
       value: 0.5
@@ -133,4 +141,8 @@ MonoBehaviour:
   isSpriteLookLeft: 0
   dashSpeed: 15
   dashDuration: 0.5
+  dashPreDelay: 0.8
+  dashPostDelay: 0.5
+  dashTelegraph: {fileID: 11400000, guid: 46b2e5f4c13145e29c3f172dad86148e, type: 2}
+  dashTelegraphWidth: 2.4
   waitDuration: 2

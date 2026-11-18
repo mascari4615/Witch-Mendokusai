@@ -125,7 +125,10 @@ namespace WitchMendokusai
 			builder.RegisterComponentOnNewGameObject<DialogueRunner>(Lifetime.Scoped, nameof(DialogueRunner));
 			bool hasDungeon = IsInScene<DungeonManager>();
 			if (hasDungeon)
+			{
 				builder.RegisterComponentOnNewGameObject<SurvivalFeel>(Lifetime.Scoped, nameof(SurvivalFeel));
+				builder.RegisterComponentOnNewGameObject<SurvivalAnnouncer>(Lifetime.Scoped, nameof(SurvivalAnnouncer));
+			}
 
 			// Lazy 등록 강제 instantiate + raw Instance accessor 셋 트리거 (caller transitional 보존).
 			// hierarchy 등록은 존재 확인 후에만 Resolve (부재 시 skip — abort 없음).
@@ -140,7 +143,10 @@ namespace WitchMendokusai
 				ResolveIfPresent<UIManager>(container);
 				ResolveIfPresent<CameraManager>(container);
 				if (hasDungeon)
+				{
 					BootGuard.EagerResolve<SurvivalFeel>(container, "Scene");
+					BootGuard.EagerResolve<SurvivalAnnouncer>(container, "Scene");
+				}
 				ResolveIfPresent<BuildManager>(container);
 				ResolveIfPresent<CityPaintManager>(container); // TASK-WM-164 step5 — 등록↔해소 짝
 				ResolveIfPresent<FreeFlyCameraController>(container);

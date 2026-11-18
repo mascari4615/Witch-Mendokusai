@@ -30,6 +30,14 @@ namespace WitchMendokusai
 		public Monster Monster;
 	}
 
+	// 보스 웨이브 시작 전 예고. 웨이브마다 한 번
+	public struct BossAnnouncedEvent
+	{
+		public Monster Monster;
+		public float StartTime;
+		public float LeadSeconds;
+	}
+
 	// 고를 카드가 없어 레벨업이 회복이나 냥으로 바뀐 순간
 	public struct LevelUpConvertedEvent
 	{

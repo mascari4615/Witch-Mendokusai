@@ -30,7 +30,10 @@ namespace WitchMendokusai
 		[SerializeField] private float despawnDistance = 50f;
 		[SerializeField, Min(0f)] private float visibilityPadding = 2f;
 		[SerializeField, Min(0f)] private float offscreenMovementInterval = 0.1f;
+		[SerializeField, Min(0f), Tooltip("보스 웨이브 시작 몇 초 전에 예고 이벤트를 낼지")] private float bossAnnounceLeadSeconds = 5f;
 		private readonly Plane[] visibilityPlanes = new Plane[6];
+		// 아직 예고하지 않은 보스 웨이브
+		private readonly List<MonsterWave> unannouncedBossWaves = new();
 		private SurvivalEventTable eventTable;
 		private readonly List<SurvivalEventEntry> runEvents = new();
 		private int nextAnnounceIndex;
@@ -61,8 +64,14 @@ namespace WitchMendokusai
 			waves.Clear();
 			pendingSpawns = 0;
 
+			unannouncedBossWaves.Clear();
+
 			foreach (MonsterWave monsterWave in curDungeon.MonsterWaves)
+			{
 				waves.Add(new MonsterWaveInstance(monsterWave, 0f));
+				if (FindBoss(monsterWave) != null)
+					unannouncedBossWaves.Add(monsterWave);
+			}
 
 			eventTable = curDungeon.EventTable;
 			BuildRunEvents(dungeonManager.CurThreat);
@@ -86,6 +95,28 @@ namespace WitchMendokusai
 			for (int i = waves.Count - 1; i >= 0; i--)
 				UpdateWave(i);
 			UpdateEvents();
+			UpdateBossAnnounces();
+		}
+
+		private static Monster FindBoss(MonsterWave wave) => Array.Find(wave.Monsters, monster => monster.Type == MonsterType.Boss);
+
+		// 보스는 사건표가 아니라 웨이브로 나옴. 웨이브 시작 전에 예고를 한 번 발행
+		private void UpdateBossAnnounces()
+		{
+			float elapsed = (float)dungeonManager.Context.ElapsedTime.TotalSeconds;
+			for (int i = unannouncedBossWaves.Count - 1; i >= 0; i--)
+			{
+				MonsterWave wave = unannouncedBossWaves[i];
+				if (elapsed < wave.StartTime - bossAnnounceLeadSeconds)
+					continue;
+
+				unannouncedBossWaves.RemoveAt(i);
+				float leadSeconds = wave.StartTime - elapsed;
+				// 판 시작과 함께 나오는 보스는 예고할 틈이 없음. 등장 띠만
+				if (leadSeconds <= 0f)
+					continue;
+				EventBusBridge.Publish(new BossAnnouncedEvent { Monster = FindBoss(wave), StartTime = wave.StartTime, LeadSeconds = leadSeconds });
+			}
 		}
 
 		private int CurrentMonsterCount => ObjectBufferManager.GetObjects(ObjectType.Monster).Count + pendingSpawns;

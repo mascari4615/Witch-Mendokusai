@@ -55,6 +55,8 @@ namespace WitchMendokusai
 		private Coroutine clearDelayRoutine;
 		private int targetClearCount;
 		private float hpRegenElapsed;
+		private Action stopFlowFx;
+		private string objectiveText;
 
 		[Inject]
 		public void Construct(SOManager soManager, UIManager uiManager, CameraManager cameraManager, StageManager stageManager, GameEventManager gameEventManager, PlayerProvider playerProvider, DataManager dataManager, GameManager gameManager, ResourceManager resourceManager, IObjectResolver container)
@@ -102,6 +104,30 @@ namespace WitchMendokusai
 				Instance = null;
 			DungeonManagerBridge.Register(null);
 			SkyTimeOverride.Clear();
+			StopFlowFx();
+		}
+
+		// 판의 시작과 끝 연출 (입장, 승리, 패배). 한 번에 하나, 새로 틀면 앞의 것은 걷음
+		private void PlayFlowFx(CombatFx fx, string title, string subtitle)
+		{
+			StopFlowFx();
+			if (fx == null)
+				return;
+			Transform playerTransform = playerProvider.CurrentObject.transform;
+			stopFlowFx = fx.Play(new CombatFxContext
+			{
+				Position = playerTransform.position,
+				Direction = playerTransform.forward,
+				Follow = playerTransform,
+				Title = title,
+				Subtitle = subtitle,
+			});
+		}
+
+		private void StopFlowFx()
+		{
+			stopFlowFx?.Invoke();
+			stopFlowFx = null;
 		}
 
 		private void Start()
@@ -124,7 +150,11 @@ namespace WitchMendokusai
 
 			Stage stage = dungeon.Stages[0];
 
-			// TODO: 던전 Transition
+			// 재도전은 결과창에서 바로 옴. 남은 승패 연출을 덮기 전에 걷음
+			StopFlowFx();
+			SurvivalFeelConfig feel = resourceManager.SurvivalFeel;
+
+			// 던전 전용 전환. 칸이 비면 기본 (portalWipe)
 			uiManager.Transition.Transition(
 				aDuringTransition: () =>
 				{
@@ -142,9 +172,13 @@ namespace WitchMendokusai
 				aWhenEnd: () =>
 				{
 					isTransitioning = false;
-					uiManager.StagePopup(stage);
-					// TODO: 던전 Intro?
-				}).Forget();
+					// 도입 연출이 있으면 그 띠가 던전 이름을 보이므로 스테이지 팝업은 생략
+					if (feel.DungeonIntroFx != null)
+						PlayFlowFx(feel.DungeonIntroFx, dungeon.Name, objectiveText);
+					else
+						uiManager.StagePopup(stage);
+				},
+				overrideWipe: feel.DungeonEnterWipe).Forget();
 
 			void InitDungeonAndPlayer()
 			{
@@ -174,6 +208,7 @@ namespace WitchMendokusai
 				{
 					RuntimeQuest runtimeQuest = dungeonStrategy.CreateRuntimeQuest(dungeon, dataManager.QuestManager.CreateCriteriaContext());
 					dataManager.QuestManager.AddQuest(runtimeQuest);
+					objectiveText = runtimeQuest.Name;
 				}
 
 				monsterSpawner.transform.position = playerProvider.Current.transform.position;
@@ -253,10 +288,12 @@ namespace WitchMendokusai
 		{
 			if (IsDungeon == false || clearDelayRoutine != null)
 				return;
-			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(resourceManager.SurvivalFeel.DefeatResultDelay, false));
+			SurvivalFeelConfig feel = resourceManager.SurvivalFeel;
+			PlayFlowFx(feel.DefeatFx, feel.DefeatTitle, CurDungeon.Name);
+			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(feel.DefeatResultDelay, false));
 		}
 
-		// 보스 클리어는 처치 연출을 보인 뒤 결과창으로
+		// 클리어는 승리 연출을 보인 뒤 결과창으로. 보스가 아닌 목표 (시간 생존 등) 도 같음
 		private void HandleClear()
 		{
 			if (clearDelayRoutine != null)
@@ -264,12 +301,15 @@ namespace WitchMendokusai
 				StopCoroutine(clearDelayRoutine);
 				clearDelayRoutine = null;
 			}
-			float delay = resourceManager.SurvivalFeel.BossClearResultDelay;
-			if (CurDungeon.ObjectiveType != DungeonObjectiveType.Boss || delay <= 0f)
+			SurvivalFeelConfig feel = resourceManager.SurvivalFeel;
+			float delay = feel.BossClearResultDelay;
+			if (delay <= 0f)
 			{
 				EndDungeon(isCleared: true);
 				return;
 			}
+			// 패배 연출 중에 클리어가 뒤따르면 여기서 승리 연출로 바뀜
+			PlayFlowFx(feel.VictoryFx, feel.VictoryTitle, CurDungeon.Name);
 			playerProvider.CurrentObject.GrantInvincibility(delay);
 			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(delay, true));
 		}
@@ -313,6 +353,8 @@ namespace WitchMendokusai
 			dataManager.GameStat[GameStatType.NYANG] += dungeonRecorder.NyangSinceStart * playerProvider.Current.UnitStat[UnitStatType.GOLD_BONUS] / UnitStat.PERCENT;
 			dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR], isCleared);
 
+			// 결과창을 가리지 않게 남은 승패 연출 (물들임, 띠, 카메라 당김) 을 걷음
+			StopFlowFx();
 			dungeonUI.SetPanel(DungeonPanelType.DungeonResult);
 		}
 
@@ -328,6 +370,7 @@ namespace WitchMendokusai
 			if (IsDungeon || dungeonRecorder == null || isTransitioning)
 				return;
 			isTransitioning = true;
+			StopFlowFx();
 			// 집으로 돌아가기
 			uiManager.Transition.Transition(
 				aDuringTransition: () =>

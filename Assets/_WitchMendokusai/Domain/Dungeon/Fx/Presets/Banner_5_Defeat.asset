@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ceffc85d5aa4dcdab195a2d17f4d48c, type: 3}
+  m_Name: Banner_5_Defeat
+  m_EditorClassIdentifier: 
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "패배"
+  previewSubtitle: "다음에는 더 멀리"
+  styleSheet: {fileID: 7433441132597879392, guid: 048230dea6744988a05567f5fbf5cbb8, type: 3}
+  styleClass: wm-banner--defeat
+  slot: result
+  enterSeconds: 0.9
+  holdSeconds: 2.4
+  exitSeconds: 0.5
+  titleStartPortion: 0.3
+  titleSpreadPortion: 0.6
+  sound: 12
+  playSound: 0
