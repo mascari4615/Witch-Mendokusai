@@ -242,40 +242,6 @@
     border-radius: 7px;
 }
 
-.wm-dungeon-entrance--gosu .wm-dungeon-constraint__row {
-    height: 34px;
-}
-
-.wm-dungeon-entrance--gosu .wm-dungeon-constraint__row:hover {
-    background-color: rgba(47, 125, 116, 0.08);
-}
-
-.wm-dungeon-entrance--gosu .wm-dungeon-constraint__line {
-    display: flex;
-    background-image: url("Art/dungeon-entry-gosu-dash.png");
-    -unity-background-scale-mode: stretch-to-fill;
-}
-
-.wm-dungeon-entrance--gosu .wm-dungeon-constraint__check {
-    width: 19px;
-    height: 19px;
-    border-width: 1.5px;
-    border-color: rgb(185, 154, 98);
-    border-radius: 10px;
-}
-
-.wm-dungeon-entrance--gosu .wm-dungeon-constraint__row--selected .wm-dungeon-constraint__check {
-    background-color: var(--gosu-seal);
-    border-color: var(--gosu-seal-dark);
-    background-image: url("Art/dungeon-entry-gosu-check.png");
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-.wm-dungeon-entrance--gosu .wm-dungeon-constraint__text {
-    font-size: 14px;
-    color: rgb(91, 75, 52);
-}
-
 .wm-dungeon-entrance--gosu .wm-dungeon-entrance__enter {
     left: 37px;
     right: 37px;
@@ -385,4 +351,23 @@
 .wm-dungeon-entrance--gosu .wm-dungeon-foes__time {
     font-size: 10px;
     color: var(--gosu-ink);
+}
+
+/* 제약 칩 (공통 모양은 DungeonEntrance.uss, 밤 색 기준). 밝은 종이 바탕에 맞춘 색만 */
+.wm-dungeon-entrance.wm-dungeon-entrance--gosu .wm-dungeon-constraint__chip {
+    background-color: rgba(47, 125, 116, 0.12);
+    border-color: var(--gosu-seal);
+}
+
+.wm-dungeon-entrance.wm-dungeon-entrance--gosu .wm-dungeon-constraint__chip-icon {
+    -unity-background-image-tint-color: var(--gosu-ink);
+}
+
+.wm-dungeon-entrance.wm-dungeon-entrance--gosu .wm-dungeon-constraint__chip-value,
+.wm-dungeon-entrance.wm-dungeon-entrance--gosu .wm-dungeon-constraint__risk {
+    color: var(--gosu-ink);
+}
+
+.wm-dungeon-entrance.wm-dungeon-entrance--gosu .wm-dungeon-constraint__edit {
+    color: var(--gosu-ink-soft);
 }

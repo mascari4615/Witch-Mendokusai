@@ -255,32 +255,6 @@
     -unity-background-scale-mode: stretch-to-fill;
 }
 
-.wm-dungeon-entrance--cut .wm-dungeon-constraint__row {
-    height: 33px;
-}
-
-.wm-dungeon-entrance--cut .wm-dungeon-constraint__row:hover {
-    background-color: rgba(255, 255, 255, 0.06);
-}
-
-.wm-dungeon-entrance--cut .wm-dungeon-constraint__check {
-    margin-left: -4px;
-    width: 24px;
-    height: 19px;
-    background-image: url("Art/dungeon-entry-cut-check.png");
-    -unity-background-scale-mode: stretch-to-fill;
-}
-
-.wm-dungeon-entrance--cut .wm-dungeon-constraint__row--selected .wm-dungeon-constraint__check {
-    background-image: url("Art/dungeon-entry-cut-check-on.png");
-}
-
-.wm-dungeon-entrance--cut .wm-dungeon-constraint__text {
-    margin-left: 5px;
-    font-size: 13px;
-    color: rgb(222, 219, 210);
-}
-
 .wm-dungeon-entrance--cut .wm-dungeon-entrance__enter {
     right: 0;
     bottom: 36px;

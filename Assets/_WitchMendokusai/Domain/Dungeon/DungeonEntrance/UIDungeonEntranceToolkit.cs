@@ -18,7 +18,7 @@ namespace WitchMendokusai
 	/// 최후). **시각 폴리시(USS 레이아웃·anchored 위치 미세)는 S3-E/F Play 시각검증
 	/// (사용자 영역, WM-113 로드맵 명시) — 본 클래스는 구조·데이터흐름·compile.**
 	/// </summary>
-	public class UIDungeonEntranceToolkit : UIToolkitPanel
+	public class UIDungeonEntranceToolkit : UIToolkitPanel, IUIPanelInputOwner
 	{
 		public override string Name => "던전 입장";
 		public override bool IsFullscreen => true;
@@ -44,6 +44,7 @@ namespace WitchMendokusai
 		private VisualElement heroScrim;
 		private UIRewardsToolkit rewardUI;
 		private UIDungeonConstraintToolkit constraintUI;
+		private UIDungeonConstraintPopup constraintPopup;
 		private VisualElement constraintSection;
 		private Button dungeonEnterButton;
 		private Button backButton;
@@ -104,9 +105,9 @@ namespace WitchMendokusai
 			foesUI = new UIDungeonFoesToolkit();
 			foes.Add(foesUI);
 
+			// 제약 칸은 머리줄까지 버튼 하나. 누르면 설정 팝업
 			constraintSection = AddSection(detail, "__section--constraints");
-			AddHeader(constraintSection, "제약");
-			constraintUI = new UIDungeonConstraintToolkit();
+			constraintUI = new UIDungeonConstraintToolkit(OpenConstraintPopup);
 			constraintSection.Add(constraintUI);
 
 			// 진행 방식 (장착, 랜덤) 과 위협 단계. 보상, 제약과 같은 섹션 모양
@@ -133,9 +134,41 @@ namespace WitchMendokusai
 			AddLabel(dungeonEnterButton, "입장", "__enter-text").pickingMode = PickingMode.Ignore;
 			detail.Add(dungeonEnterButton);
 
-			horizontalFocusOrder.AddRange(new[] { backButton, equippedButton, randomButton, dungeonEnterButton });
+			horizontalFocusOrder.AddRange(new Button[] { backButton, constraintUI, equippedButton, randomButton, dungeonEnterButton });
 			SelectRunMode(selectedRunMode);
+
+			// 설정 팝업은 화면 끝까지 덮는 틀 위
+			constraintPopup = new UIDungeonConstraintPopup();
+			constraintPopup.OnClosed += OnConstraintPopupClosed;
+			constraintPopup.OnChanged += constraintUI.UpdateUI;
+			Root.Add(constraintPopup);
 			// 닫기는 왼쪽 위 뒤로가기와 취소 입력 하나. 오른쪽 위 X 없음, 그 자리는 정보 창 (사용자 2026-11-18)
+		}
+
+		public bool OwnsTabInput => false;
+
+		// 팝업이 열려 있으면 취소 키는 팝업만 닫음
+		public bool HandleCancelInput()
+		{
+			if (constraintPopup.IsOpen == false)
+				return false;
+			constraintPopup.Close();
+			return true;
+		}
+
+		private void OpenConstraintPopup()
+		{
+			if (CurDungeon.Constraints.Count == 0)
+				return;
+			// 틀 연출 (배경 입자, 시차) 이 뒤에 붙인 요소보다 위로 올 수 있어 열 때마다 맨 앞
+			constraintPopup.BringToFront();
+			constraintPopup.Open(CurDungeon);
+		}
+
+		private void OnConstraintPopupClosed()
+		{
+			constraintUI.UpdateUI();
+			constraintUI.Focus();
 		}
 
 		private Button AddRunModeButton(VisualElement parent, DungeonRunMode mode, string text)
@@ -305,6 +338,13 @@ namespace WitchMendokusai
 
 		private void OnNavigationMove(NavigationMoveEvent evt)
 		{
+			// 팝업이 열린 동안 뒤 창은 이동을 받지 않음
+			if (constraintPopup.IsOpen)
+			{
+				evt.StopPropagation();
+				Root.focusController?.IgnoreEvent(evt);
+				return;
+			}
 			switch (evt.direction)
 			{
 				case NavigationMoveEvent.Direction.Up:
@@ -339,6 +379,7 @@ namespace WitchMendokusai
 		protected override void OnClose()
 		{
 			DungeonEntranceThemes.OnChanged -= ApplyTheme;
+			constraintPopup.Dismiss();
 			Root.panel?.focusController?.focusedElement?.Blur();
 		}
 
@@ -373,7 +414,13 @@ namespace WitchMendokusai
 
 			constraintUI.SetDungeon(CurDungeon);
 			constraintUI.UpdateUI();
-			constraintSection.style.visibility = CurDungeon.Constraints.Count > 0 ? Visibility.Visible : Visibility.Hidden;
+			// 제약 없는 던전: 칸 자리는 두고 감춤, 키보드 초점 순서에서도 뺌
+			bool hasConstraints = CurDungeon.Constraints.Count > 0;
+			constraintSection.style.visibility = hasConstraints ? Visibility.Visible : Visibility.Hidden;
+			constraintUI.focusable = hasConstraints;
+			horizontalFocusOrder.Remove(constraintUI);
+			if (hasConstraints)
+				horizontalFocusOrder.Insert(horizontalFocusOrder.IndexOf(backButton) + 1, constraintUI);
 
 			UpdateThreatRow();
 		}

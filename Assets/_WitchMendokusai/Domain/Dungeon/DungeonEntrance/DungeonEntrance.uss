@@ -18,9 +18,7 @@
 .wm-dungeon-entrance__row-number,
 .wm-dungeon-entrance__enter-glow,
 .wm-dungeon-entrance__enter-ring,
-.wm-dungeon-entrance__enter-arrow,
-.wm-dungeon-constraint__knob,
-.wm-dungeon-constraint__line {
+.wm-dungeon-entrance__enter-arrow {
     display: none;
 }
 
@@ -176,38 +174,134 @@
     flex-grow: 1;
 }
 
-.wm-dungeon-constraint__row {
-    flex-direction: row;
-    align-items: center;
-    margin: 0;
+/* 제약 칸: 머리줄과 칩 줄이 버튼 하나. 누르면 설정 팝업 */
+.wm-dungeon-constraint {
+    flex-direction: column;
+    margin: 0 -4px;
     padding: 0;
     background-color: rgba(0, 0, 0, 0);
-    border-width: 0;
+    border-width: 4px;
+    border-color: rgba(0, 0, 0, 0);
     border-radius: 0;
+    -unity-text-align: upper-left;
 }
 
-.wm-dungeon-constraint__check {
+.wm-dungeon-constraint__risk {
+    margin: 0 0 0 9px;
+    padding: 0;
+}
+
+.wm-dungeon-constraint__chips {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-dungeon-constraint__chip {
+    flex-direction: row;
+    align-items: center;
     flex-shrink: 0;
 }
 
-.wm-dungeon-constraint__knob {
-    position: absolute;
+.wm-dungeon-constraint__chip-icon {
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
-.wm-dungeon-constraint__line {
+.wm-dungeon-constraint__chip-value,
+.wm-dungeon-constraint__edit {
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.wm-dungeon-constraint__edit {
     position: absolute;
-    left: 0;
     right: 0;
     bottom: 0;
-    height: 1px;
 }
 
-.wm-dungeon-constraint__text {
-    flex-shrink: 1;
-    margin: 0 0 0 10px;
+/* 제약 설정 팝업. 입장 창 틀 전체를 덮고 가운데 창 */
+.wm-constraint-popup {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.wm-constraint-popup__head {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.wm-constraint-popup__total {
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.wm-constraint-popup__grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.wm-constraint-popup__tile {
+    align-items: center;
+    margin: 0;
     padding: 0;
+}
+
+.wm-constraint-popup__tile-icon {
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-constraint-popup__tile-risk,
+.wm-constraint-popup__tile-check {
+    position: absolute;
+}
+
+.wm-constraint-popup__tile-check {
+    display: none;
+    background-image: url("/Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/game-icons.net/check-mark.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-constraint-popup__tile--on .wm-constraint-popup__tile-check {
+    display: flex;
+}
+
+.wm-constraint-popup__title,
+.wm-constraint-popup__total-label,
+.wm-constraint-popup__total-value,
+.wm-constraint-popup__tile-risk,
+.wm-constraint-popup__tile-name,
+.wm-constraint-popup__detail-name,
+.wm-constraint-popup__detail-state,
+.wm-constraint-popup__detail-text,
+.wm-constraint-popup__summary {
+    margin: 0;
+    padding: 0;
+}
+
+.wm-constraint-popup__tile-name {
+    white-space: nowrap;
+    -unity-text-align: upper-center;
+}
+
+.wm-constraint-popup__detail-text {
     white-space: normal;
 }
+
+.wm-constraint-popup__foot {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-constraint-popup__summary {
+    flex-grow: 1;
+}
+
+
 
 .wm-dungeon-entrance__enter {
     position: absolute;
@@ -344,4 +438,206 @@
     margin: 0;
     padding: 0;
     -unity-text-align: upper-center;
+}
+/* 제약 칸 칩과 설정 팝업 모양 (2026-11-18 사용자 "아이콘이랑 제약 수치 간단히, 누르면 설정 팝업"). 세 테마 공통, 밤 테마 색 기준. 꺼진 제약은 흐림 */
+.wm-dungeon-entrance .wm-dungeon-constraint:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.wm-dungeon-entrance .wm-dungeon-constraint__risk {
+    font-size: 12px;
+    color: rgb(247, 227, 155);
+}
+
+.wm-dungeon-entrance .wm-dungeon-constraint__chip {
+    height: 30px;
+    margin-right: 8px;
+    padding: 0 9px 0 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-width: 0 0 2px 0;
+    border-color: rgb(247, 227, 155);
+}
+
+.wm-dungeon-entrance .wm-dungeon-constraint__chip--off {
+    opacity: 0.35;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+.wm-dungeon-entrance .wm-dungeon-constraint__chip-icon {
+    width: 22px;
+    height: 22px;
+    margin-right: 5px;
+    -unity-background-image-tint-color: rgb(242, 243, 251);
+}
+
+.wm-dungeon-entrance .wm-dungeon-constraint__chip-value {
+    font-size: 13px;
+    color: rgb(242, 243, 251);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance .wm-dungeon-constraint__edit {
+    bottom: 7px;
+    font-size: 11px;
+    color: rgb(150, 156, 200);
+}
+
+/* 제약 설정 팝업. 뒤 입장 창이 비치게 어두운 막만 (BlurPanel 은 게임 화면을 흐려 입장 창을 가림) */
+.wm-dungeon-entrance .wm-constraint-popup {
+    background-color: rgba(5, 6, 20, 0.72);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__dialog {
+    width: 760px;
+    padding: 28px;
+    background-color: rgb(16, 18, 48);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__dialog > .wm-constraint-popup__head {
+    margin-bottom: 22px;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__title {
+    font-size: 24px;
+    color: rgb(255, 255, 255);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__total-label {
+    margin-bottom: 7px;
+    font-size: 13px;
+    color: rgb(185, 189, 220);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__total-value {
+    margin-left: 10px;
+    font-size: 40px;
+    color: rgb(247, 227, 155);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__grid {
+    margin: -8px;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile {
+    width: 112px;
+    height: 124px;
+    margin: 8px;
+    padding-top: 16px;
+    background-color: rgba(255, 255, 255, 0.06);
+    border-width: 3px;
+    border-color: rgba(255, 255, 255, 0.1);
+    border-radius: 0;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile--on,
+.wm-dungeon-entrance .wm-constraint-popup__tile--on:hover {
+    background-color: rgba(247, 227, 155, 0.18);
+    border-color: rgb(247, 227, 155);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile-icon {
+    width: 60px;
+    height: 60px;
+    -unity-background-image-tint-color: rgb(205, 211, 246);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile--on .wm-constraint-popup__tile-icon {
+    -unity-background-image-tint-color: rgb(247, 227, 155);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile-risk {
+    left: 0;
+    top: 0;
+    padding: 1px 6px;
+    font-size: 12px;
+    color: rgb(21, 23, 46);
+    background-color: rgb(247, 227, 155);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile-check {
+    right: 6px;
+    top: 6px;
+    width: 18px;
+    height: 18px;
+    -unity-background-image-tint-color: rgb(247, 227, 155);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile-name {
+    margin-top: 10px;
+    font-size: 13px;
+    color: rgb(228, 231, 255);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__detail {
+    margin-top: 22px;
+    min-height: 84px;
+    padding: 12px 16px;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__detail-name {
+    font-size: 16px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__detail-state {
+    font-size: 13px;
+    color: rgb(247, 227, 155);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__detail-text {
+    margin-top: 6px;
+    font-size: 14px;
+    color: rgb(196, 201, 236);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__foot {
+    margin-top: 22px;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__summary {
+    font-size: 14px;
+    color: rgb(185, 189, 220);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__button {
+    width: 128px;
+    height: 42px;
+    margin: 0 0 0 12px;
+    font-size: 15px;
+    color: rgb(242, 243, 251);
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.3);
+    border-radius: 0;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__button:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__button--main {
+    color: rgb(21, 23, 46);
+    background-color: rgb(244, 244, 248);
+    -unity-font-style: bold;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__button--main:hover {
+    background-color: rgb(255, 255, 255);
+}
+
+/* 초점 테두리. 다른 입장 창 버튼과 같은 흰 테두리, 두께는 늘 잡아 두어 초점에 내용이 밀리지 않음 */
+.wm-dungeon-entrance .wm-dungeon-constraint:focus,
+.wm-dungeon-entrance .wm-constraint-popup__tile:focus,
+.wm-dungeon-entrance .wm-constraint-popup__button:focus {
+    border-color: rgb(255, 255, 255);
 }

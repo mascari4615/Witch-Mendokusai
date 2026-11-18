@@ -243,45 +243,6 @@
     border-radius: 4px;
 }
 
-.wm-dungeon-entrance--night .wm-dungeon-constraint__row {
-    height: 33px;
-}
-
-.wm-dungeon-entrance--night .wm-dungeon-constraint__row:hover {
-    background-color: rgba(255, 255, 255, 0.02);
-}
-
-.wm-dungeon-entrance--night .wm-dungeon-constraint__check {
-    width: 33px;
-    height: 18px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 9px;
-}
-
-.wm-dungeon-entrance--night .wm-dungeon-constraint__knob {
-    display: flex;
-    left: 2px;
-    top: 2px;
-    width: 14px;
-    height: 14px;
-    background-color: rgb(255, 255, 255);
-    border-radius: 7px;
-}
-
-.wm-dungeon-entrance--night .wm-dungeon-constraint__row--selected .wm-dungeon-constraint__check {
-    background-color: rgb(247, 227, 155);
-}
-
-.wm-dungeon-entrance--night .wm-dungeon-constraint__row--selected .wm-dungeon-constraint__knob {
-    left: 17px;
-    background-color: rgb(42, 42, 110);
-}
-
-.wm-dungeon-entrance--night .wm-dungeon-constraint__text {
-    font-size: 13px;
-    color: rgb(215, 219, 247);
-}
-
 .wm-dungeon-entrance--night .wm-dungeon-entrance__enter {
     left: 0;
     right: 0;
@@ -389,7 +350,7 @@
     background-color: rgba(9, 10, 30, 0.6);
 }
 
-/* 2026-11-17 스타레일식 재배치 (시안 dungeon-entrance-hsr-mock-20261117, 1080 값의 0.74배).
+/* 2026-11-17 재배치 (memo 시안 2026-11-17, 1080 값의 0.74배).
    오른쪽은 테두리 없는 띠 하나, 섹션은 제목과 선만, 보상은 버튼 위, 흰 사각 입장 버튼 */
 .wm-dungeon-entrance--night .wm-dungeon-entrance__band {
     display: flex;
@@ -544,25 +505,6 @@
     color: rgb(185, 189, 220);
 }
 
-.wm-dungeon-entrance--night .wm-dungeon-constraint__row {
-    height: 30px;
-}
-
-.wm-dungeon-entrance--night .wm-dungeon-constraint__check {
-    width: 33px;
-    height: 18px;
-    background-color: rgba(255, 255, 255, 0.22);
-}
-
-.wm-dungeon-entrance--night .wm-dungeon-constraint__text {
-    font-size: 13px;
-    color: rgb(185, 189, 220);
-}
-
-.wm-dungeon-entrance--night .wm-dungeon-constraint__row--selected .wm-dungeon-constraint__text {
-    color: rgb(242, 243, 251);
-}
-
 .wm-dungeon-entrance--night .wm-dungeon-entrance__mode {
     height: 34px;
     padding: 2px;
@@ -660,13 +602,12 @@
     color: rgb(21, 23, 46);
 }
 
-
 /* 정보 창 칸 자리 고정 (사용자 2026-11-18 "간격 크기가 계속 달라지는데 고정되게", "요소들이 안보이잖아").
    패널 배율: PanelSettings Expand 1200x800, 어느 화면이든 논리 높이 800 이상.
    오른쪽 위 X 를 없애 정보 창을 위로 올림 (닫기는 왼쪽 위 뒤로가기와 취소 입력).
-   정보 창 높이 예산: 800 - 위 40 - 아래 32 = 728. 칸마다 최대 내용 기준 고정 높이, 합계 716.
+   정보 창 높이 예산: 800 - 위 40 - 아래 32 = 728. 칸마다 최대 내용 기준 고정 높이, 합계 664.
    위 네 칸은 위에서, 보상과 입장은 아래에서 고정. 높이가 남는 화면 (4:3) 은 사이 빈칸이 받음.
-   잘라서 숨기지 않음. 최대 내용: 설명 2줄, 적 4, 제약 3, 위협 효과 2줄. 칸 높이는 에디터 실측 */
+   잘라서 숨기지 않음. 최대 내용: 설명 2줄, 적 4, 제약 칩 한 줄 (6개까지), 위협 효과 2줄. 칸 높이는 에디터 실측 */
 .wm-dungeon-entrance--night .wm-dungeon-entrance__detail {
     top: 40px;
     bottom: 32px;
@@ -728,9 +669,9 @@
     white-space: nowrap;
 }
 
-/* 머리 + 제약 3줄 */
+/* 머리 + 제약 칩 한 줄 + 초점 테두리 위아래 4, 화면 배율 반올림 여유. 자세한 설정은 팝업 */
 .wm-dungeon-entrance--night .wm-dungeon-entrance__section--constraints {
-    height: 132px;
+    height: 80px;
 }
 
 /* 머리 + 모드와 위협 단계 한 줄 + 효과 2줄 */
@@ -741,6 +682,7 @@
 /* 위협 단계 버튼을 모드 탭 오른쪽 줄로 올림, 효과 글은 창 폭 전체 */
 .wm-dungeon-entrance--night .wm-dungeon-entrance__threat {
     flex-direction: column;
+    align-items: stretch;
     margin-top: 6px;
 }
 
