@@ -89,6 +89,9 @@ namespace WitchMendokusai
 		private Action<UISlot> clickAction = delegate { };
 
 		public Button Button => button;
+		public Image IconImage => iconImage;
+		public TextMeshProUGUI NameText => nameText;
+		public TextMeshProUGUI DescriptionText => descriptionText;
 		public Selectable Selectable => button;
 		public DataSO DataSO => Data.DataSO;
 		private bool IsInit => iconImage != null;

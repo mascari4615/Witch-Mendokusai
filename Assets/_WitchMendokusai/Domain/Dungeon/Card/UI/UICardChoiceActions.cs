@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -27,6 +28,8 @@ namespace WitchMendokusai
 		private CardManager cardManager;
 		private Selectable upTarget;
 		private string normalTitle;
+		// 카드 등장 연출 중 입력 관문. 참이면 입력 소비
+		private Func<bool> consumeBlocked = () => false;
 
 		public bool IsBanMode { get; private set; }
 
@@ -44,6 +47,8 @@ namespace WitchMendokusai
 				UITermIcon.Attach(banLabel, theme, SurvivalTerm.Ban);
 			}
 		}
+
+		public void SetInputGate(Func<bool> gate) => consumeBlocked = gate;
 
 		public Selectable FirstEnabled
 		{
@@ -90,12 +95,16 @@ namespace WitchMendokusai
 
 		private void OnSkip()
 		{
+			if (consumeBlocked())
+				return;
 			if (cardManager.SkipLevelUp())
 				UiSfx.Play(UiSfxEvent.Cancel);
 		}
 
 		private void OnReroll()
 		{
+			if (consumeBlocked())
+				return;
 			ExitBanMode();
 			if (cardManager.RerollCards())
 				UiSfx.Play(UiSfxEvent.Reroll);
@@ -105,6 +114,8 @@ namespace WitchMendokusai
 
 		private void OnBanToggle()
 		{
+			if (consumeBlocked())
+				return;
 			IsBanMode = IsBanMode == false;
 			UiSfx.Play(IsBanMode ? UiSfxEvent.Confirm : UiSfxEvent.Cancel);
 			title.text = IsBanMode ? banTitle : normalTitle;

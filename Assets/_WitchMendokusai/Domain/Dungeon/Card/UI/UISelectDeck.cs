@@ -14,6 +14,10 @@ namespace WitchMendokusai
 		[SerializeField] private UICardChoiceActions actions;
 
 		private UICardFocusSound focusSound;
+		private UICardRevealSequence reveal;
+		private readonly List<CardRevealSymbol> revealSymbols = new();
+		private readonly List<CardRevealEntry> revealEntries = new();
+		private readonly HashSet<UISlot> newDeckSlots = new();
 
 		public override bool IsFullscreen => true;
 		public int ChoiceCount => deckSelectButtons.Count;
@@ -36,18 +40,47 @@ namespace WitchMendokusai
 					choiceCard.PlayAppear(i);
 					choiceCard.PlayOpenBurst(i);
 				}
+			PlayReveal();
+		}
+
+		private void PlayReveal()
+		{
+			revealEntries.Clear();
+			UIChoiceCard firstCard = null;
+			foreach (UISlot slot in deckSelectButtons)
+			{
+				if (slot.gameObject.activeInHierarchy == false || slot.DataSO == null)
+					continue;
+				UIDeckChoiceView view = slot.GetComponent<UIDeckChoiceView>();
+				List<GameObject> details = new();
+				if (slot.DescriptionText != null)
+					details.Add(slot.DescriptionText.gameObject);
+				view.CollectRevealDetails(details);
+				CardRevealTier tier = newDeckSlots.Contains(slot) ? CardRevealTier.Rare : CardRevealTier.Common;
+				revealEntries.Add(new CardRevealEntry(slot.IconImage, slot.NameText, slot.transform, view.ChoiceCard, tier, details));
+				firstCard ??= view.ChoiceCard;
+			}
+			if (firstCard != null)
+				reveal.Play(revealEntries, revealSymbols, firstCard.Theme.CardReveal);
 		}
 
 		protected override void OnInit()
 		{
 			CardManager cardManager = PanelGroup as CardManager;
 			focusSound = UICardFocusSound.AttachTo(gameObject);
+			reveal = UICardRevealSequence.AttachTo(gameObject);
 			actions.Init(cardManager);
+			actions.SetInputGate(reveal.ConsumeBlockedChoice);
 			for (int i = 0; i < deckSelectButtons.Count; i++)
 			{
 				deckSelectButtons[i].Init();
 				deckSelectButtons[i].SetSlotIndex(i);
-				deckSelectButtons[i].SetClickAction((slot) => { cardManager.SelectDeck(slot.Index); });
+				deckSelectButtons[i].SetClickAction((slot) =>
+				{
+					if (reveal.ConsumeBlockedChoice())
+						return;
+					cardManager.SelectDeck(slot.Index);
+				});
 			}
 		}
 
@@ -72,8 +105,16 @@ namespace WitchMendokusai
 
 		public void SetDeckSelectButtons(List<EquipmentData> equipmentList, IReadOnlyList<CardData> selectedCards, ICollection<EquipmentData> newEquipments, SkillTreeCatalog skillTrees)
 		{
+			reveal.Cancel();
+			newDeckSlots.Clear();
+			revealSymbols.Clear();
+			foreach (EquipmentData equipment in equipmentList)
+				if (equipment.Sprite != null)
+					revealSymbols.Add(new CardRevealSymbol(equipment.Sprite, equipment.Name));
 			for (int i = 0; i < deckSelectButtons.Count; i++)
 			{
+				if (i < equipmentList.Count && newEquipments.Contains(equipmentList[i]))
+					newDeckSlots.Add(deckSelectButtons[i]);
 				deckSelectButtons[i].transform.parent.gameObject.SetActive(i < equipmentList.Count);
 				deckSelectButtons[i].SetActive(i < equipmentList.Count);
 				if (i < equipmentList.Count)

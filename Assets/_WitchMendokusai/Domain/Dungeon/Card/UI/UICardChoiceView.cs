@@ -45,6 +45,18 @@ namespace WitchMendokusai
 
 		public UIChoiceCard ChoiceCard => choiceCard;
 
+		// 슬롯 회전 중 숨길 정보. 희귀도와 진화 표식, 강화 수, 조건
+		public void CollectRevealDetails(List<GameObject> details)
+		{
+			details.Add(rarityRoot);
+			if (evolutionBadge != null)
+				details.Add(evolutionBadge);
+			details.Add(stackText.gameObject);
+			details.Add(pipParent.gameObject);
+			details.Add(barRoot);
+			details.Add(conditionRoot);
+		}
+
 		public void Set(CardData card, EquipmentData equipment, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards)
 		{
 			SurvivalUITheme.KindStyle style = theme.Style(card.UIKind);

@@ -24,6 +24,8 @@ namespace WitchMendokusai
 		private bool isSelected;
 		private Tween moveTween;
 
+		public SurvivalUITheme Theme => theme;
+
 		public void SetKind(SurvivalUIKind newKind)
 		{
 			kind = newKind;
@@ -39,6 +41,16 @@ namespace WitchMendokusai
 		{
 			DOVirtual.DelayedCall(order * theme.CardAppearInterval, () => burst.Play(theme.Style(kind).Main, openBurstCount)).SetUpdate(true).SetTarget(transform);
 		}
+
+		// 슬롯 멈춤 번쩍. 테두리를 번쩍 색에서 현재 상태 색으로
+		public void PlayRevealFlash(Color flashColor, float duration)
+		{
+			outline.DOKill();
+			outline.color = flashColor;
+			outline.DOColor(OutlineColor(), duration).SetEase(Ease.OutQuad).SetUpdate(true);
+		}
+
+		public void PlayRevealBurst(Color burstColor, int count) => burst.Play(burstColor, count);
 
 		public void PlayConfirm()
 		{
@@ -95,11 +107,14 @@ namespace WitchMendokusai
 		private void ApplyState()
 		{
 			SurvivalUITheme.KindStyle style = theme.Style(kind);
-			outline.color = isSelected ? theme.SelectedLine : kind == SurvivalUIKind.Advanced ? style.Main : theme.IdleLine;
+			outline.DOKill();
+			outline.color = OutlineColor();
 			band.color = isSelected ? style.Main : style.Dark;
 			bandText.color = isSelected ? theme.SelectedBandText : theme.BandText;
 			selectedFrame.SetActive(isSelected);
 			sheen.SetActive(isSelected && UIEffects.Enabled);
 		}
+
+		private Color OutlineColor() => isSelected ? theme.SelectedLine : kind == SurvivalUIKind.Advanced ? theme.Style(kind).Main : theme.IdleLine;
 	}
 }

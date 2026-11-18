@@ -26,12 +26,24 @@ namespace WitchMendokusai
 		private float autoCloseSeconds;
 		private float openedAt;
 		private RectTransform rewardLayout;
+		private UICardRevealSequence reveal;
+		private UIChestOpenEffect openEffect;
+		private CanvasGroup cellsGroup;
+		private readonly List<CardRevealEntry> revealEntries = new();
+		private readonly List<CardRevealSymbol> revealSymbols = new();
 
 		public bool IsOpen => content.activeSelf;
+		// 개봉 예고와 슬롯 회전 중. 자동 닫기 대기 기준
+		public bool IsRevealing => openEffect.IsPlaying || reveal.IsRevealing;
 
 		private void Awake()
 		{
 			BuildRewardLayout();
+			reveal = UICardRevealSequence.AttachTo(gameObject);
+			RectTransform cellsRect = (RectTransform)cellsParent;
+			openEffect = UIChestOpenEffect.Create((RectTransform)cellsRect.parent, cellsRect.localPosition + (Vector3)cellsRect.rect.center, (RectTransform)content.transform, theme.TermIcon(SurvivalTerm.ChestReward));
+			if (cellsParent.TryGetComponent(out cellsGroup) == false)
+				cellsGroup = cellsParent.gameObject.AddComponent<CanvasGroup>();
 			closeButton.onClick.AddListener(Close);
 			UITermIcon.Attach(title, theme, SurvivalTerm.ChestReward);
 			content.SetActive(false);
@@ -89,6 +101,9 @@ namespace WitchMendokusai
 		{
 			if (content.activeSelf == false || autoCloseSeconds <= 0f)
 				return;
+			// 자동 닫기 시간은 연출이 끝난 뒤부터
+			if (IsRevealing)
+				openedAt = Time.unscaledTime;
 			closeTimer.fillAmount = Mathf.Clamp01(1f - (Time.unscaledTime - openedAt) / autoCloseSeconds);
 		}
 
@@ -96,18 +111,28 @@ namespace WitchMendokusai
 
 		private void Close()
 		{
+			if (openEffect.IsPlaying || reveal.BlocksChoice)
+			{
+				openEffect.Skip();
+				reveal.SkipAll();
+				return;
+			}
 			UiSfx.Play(UiSfxEvent.Confirm);
 			cardManager.CloseChest();
 		}
 
 		private void OnChestClosed(ChestClosedEvent closedEvent)
 		{
+			openEffect.Cancel();
+			reveal.Cancel();
 			content.SetActive(false);
 			UIHideWhileChatting.Request(this, false);
 		}
 
 		private void OnChestOpened(ChestOpenedEvent openedEvent)
 		{
+			openEffect.Cancel();
+			reveal.Cancel();
 			foreach (GameObject cell in cells)
 			{
 				cell.SetActive(false);
@@ -124,6 +149,12 @@ namespace WitchMendokusai
 			closeTimer.fillAmount = 1f;
 
 			bool hasEvolution = false;
+			revealEntries.Clear();
+			revealSymbols.Clear();
+			revealSymbols.Add(new CardRevealSymbol(nyangSprite, nyangName));
+			HashSet<int> symbolIds = new();
+			foreach (CardData owned in SOManagerBridge.SelectedCardBuffer.Data)
+				UICardRevealSequence.AddSymbol(revealSymbols, symbolIds, owned);
 			for (int i = 0; i < openedEvent.Rewards.Count; i++)
 			{
 				ChestReward reward = openedEvent.Rewards[i];
@@ -132,13 +163,45 @@ namespace WitchMendokusai
 				cell.SetActive(true);
 				cells.Add(cell);
 				FillCell(cell.transform, reward);
-				UIEffects.PopIn(cell.transform, theme.CardAppearDuration, i * theme.CardAppearInterval);
+				UICardRevealSequence.AddSymbol(revealSymbols, symbolIds, reward.Card);
+				revealEntries.Add(new CardRevealEntry(
+					cell.transform.Find("[Image] Icon").GetComponent<Image>(),
+					cell.transform.Find("[Text] Name").GetComponent<TextMeshProUGUI>(),
+					cell.transform, null, RevealTier(reward),
+					new List<GameObject> { cell.transform.Find("[Block] Tag").gameObject }));
 			}
 
-			if (hasEvolution)
-				UiSfx.Play(UiSfxEvent.Evolve);
-			burst.Play(hasEvolution ? theme.Style(SurvivalUIKind.Advanced).Main : theme.MaxColor);
+			CardRevealTier bestTier = CardRevealTier.Common;
+			foreach (CardRevealEntry entry in revealEntries)
+				if (entry.Tier > bestTier)
+					bestTier = entry.Tier;
+			cellsGroup.alpha = 0f;
 			closeButton.Select();
+			openEffect.Play(theme.CardReveal, theme.CardReveal.TierColor(bestTier), skipped => ShowRewards(hasEvolution, skipped));
+		}
+
+		// 상자 열림 순간. 칸 등장, 튀는 조각, 슬롯 회전
+		private void ShowRewards(bool hasEvolution, bool skipped)
+		{
+			cellsGroup.alpha = 1f;
+			for (int i = 0; i < cells.Count; i++)
+				UIEffects.PopIn(cells[i].transform, theme.CardAppearDuration, i * theme.CardAppearInterval);
+			reveal.Play(revealEntries, revealSymbols, theme.CardReveal);
+			if (skipped)
+				reveal.SkipAll();
+			// 슬롯 연출 중이면 진화음은 멈춤 때 재생
+			if (hasEvolution && UIEffects.Enabled == false)
+				UiSfx.Play(UiSfxEvent.Evolve);
+			Color burstColor = hasEvolution ? theme.Style(SurvivalUIKind.Advanced).Main : theme.MaxColor;
+			if (UIEffects.Enabled)
+				burst.Play(burstColor, theme.CardReveal.ChestBurstCount);
+			else
+				burst.Play(burstColor);
+		}
+
+		private static CardRevealTier RevealTier(ChestReward reward)
+		{
+			return reward.Card != null ? UICardRevealSequence.TierOf(reward.Card, reward.IsEvolution) : CardRevealTier.Common;
 		}
 
 		private void FillCell(Transform cell, ChestReward reward)

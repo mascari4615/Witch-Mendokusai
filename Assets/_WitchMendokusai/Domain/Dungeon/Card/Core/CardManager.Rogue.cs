@@ -197,6 +197,7 @@ namespace WitchMendokusai
 				return;
 
 			timeManager.Pause(gameObject);
+			EnsureCardPanels();
 			SurvivalFeel.Instance.OnChestOpened(playerProvider.Current.transform.position);
 			float autoCloseSeconds = RunRules.ChestAutoCloseSeconds;
 			EventBusBridge.Publish(new ChestOpenedEvent { Rewards = RollChestRewards(), AutoCloseSeconds = autoCloseSeconds });
@@ -206,6 +207,11 @@ namespace WitchMendokusai
 
 		private IEnumerator CloseChestAfterDelay(float seconds)
 		{
+			// 개봉 연출과 슬롯 회전이 끝난 뒤부터 셈
+			UISelectCard selectCardPanel = Panels[CardPanelType.SelectCard] as UISelectCard;
+			yield return null;
+			while (selectCardPanel.IsChestRevealing)
+				yield return null;
 			yield return new WaitForSecondsRealtime(seconds);
 			chestCloseRoutine = null;
 			CloseChest();

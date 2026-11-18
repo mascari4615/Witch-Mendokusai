@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace WitchMendokusai
@@ -17,8 +18,12 @@ namespace WitchMendokusai
 		[SerializeField] private UIChestReward chestReward;
 
 		private UICardFocusSound focusSound;
+		private UICardRevealSequence reveal;
+		private readonly List<CardRevealSymbol> revealSymbols = new();
+		private readonly List<CardRevealEntry> revealEntries = new();
 
 		public override bool IsFullscreen => true;
+		public bool IsChestRevealing => chestReward.IsRevealing;
 
 		public override void UpdateUI()
 		{
@@ -35,13 +40,41 @@ namespace WitchMendokusai
 			for (int i = 0; i < cardSelectButtons.Count; i++)
 				if (cardSelectButtons[i].gameObject.activeSelf)
 					cardSelectButtons[i].ChoiceView.ChoiceCard.PlayAppear(i);
+			PlayReveal();
+		}
+
+		private void PlayReveal()
+		{
+			revealEntries.Clear();
+			foreach (UICardSlot slot in cardSelectButtons)
+			{
+				if (slot.gameObject.activeSelf == false || slot.DataSO is not CardData card)
+					continue;
+				List<GameObject> details = new();
+				if (slot.DescriptionText != null)
+					details.Add(slot.DescriptionText.gameObject);
+				slot.ChoiceView.CollectRevealDetails(details);
+				revealEntries.Add(new CardRevealEntry(slot.IconImage, slot.NameText, slot.transform, slot.ChoiceView.ChoiceCard, UICardRevealSequence.TierOf(card), details));
+			}
+			reveal.Play(revealEntries, revealSymbols, cardSelectButtons[0].ChoiceView.ChoiceCard.Theme.CardReveal);
+		}
+
+		private void ShowSelectedInfo()
+		{
+			GameObject selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+			foreach (UICardSlot slot in cardSelectButtons)
+				if (slot.gameObject == selected && slot.DataSO is CardData card)
+					deckTabs.ShowInfo(card, slot.ChoiceDetail);
 		}
 
 		protected override void OnInit()
 		{
 			CardManager cardManager = PanelGroup as CardManager;
 			focusSound = UICardFocusSound.AttachTo(gameObject, selected => chestReward.IsOpen || deckTabs.IsTabButton(selected));
+			reveal = UICardRevealSequence.AttachTo(gameObject);
+			reveal.Finished += ShowSelectedInfo;
 			actions.Init(cardManager);
+			actions.SetInputGate(reveal.ConsumeBlockedChoice);
 			chestReward.Bind(cardManager);
 			for (int i = 0; i < cardSelectButtons.Count; i++)
 			{
@@ -50,6 +83,8 @@ namespace WitchMendokusai
 				cardSelectButtons[i].Init();
 				cardSelectButtons[i].SetClickAction((slot) =>
 				{
+					if (reveal.ConsumeBlockedChoice())
+						return;
 					if (actions.IsBanMode)
 					{
 						CardData target = slot.DataSO as CardData;
@@ -68,7 +103,8 @@ namespace WitchMendokusai
 				});
 				cardSelectButtons[i].SetSelectAction((slot) =>
 				{
-					if (slot.DataSO is CardData card)
+					// 회전 중 정보 표시는 결과 노출, 멈춘 뒤로 미룸
+					if (reveal.IsRevealing == false && slot.DataSO is CardData card)
 						deckTabs.ShowInfo(card, (slot as UICardSlot).ChoiceDetail);
 				});
 			}
@@ -99,6 +135,16 @@ namespace WitchMendokusai
 
 		public void SetCardSelectButtons(List<CardData> cardDataList, EquipmentData equipment, IReadOnlyList<EquipmentData> equipments, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards, SkillTreeCatalog skillTrees)
 		{
+			reveal.Cancel();
+			revealSymbols.Clear();
+			// 같은 장비 카드는 그림이 같아 다른 장비 카드까지 후보로
+			HashSet<int> symbolIds = new();
+			foreach (CardData deckCard in deckCards)
+				UICardRevealSequence.AddSymbol(revealSymbols, symbolIds, deckCard);
+			foreach (EquipmentData other in equipments)
+				if (other != null)
+					foreach (CardData otherCard in skillTrees.CardsFor(other))
+						UICardRevealSequence.AddSymbol(revealSymbols, symbolIds, otherCard);
 			deckTabs.SetOverview(equipments, selectedCards, skillTrees);
 			ApplyNavigation(cardDataList.Count);
 			for (int i = 0; i < cardSelectButtons.Count; i++)
