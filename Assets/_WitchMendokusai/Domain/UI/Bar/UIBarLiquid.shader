@@ -121,7 +121,6 @@ Shader "WM/UI/LiquidBar"
 				float waveHeight = input.waveData.x;
 				float edgeWaveCount = input.waveData.y;
 				float waveSpeed = input.waveData.z;
-				float surfaceWaveCount = input.waveData.w;
 
 				// 화면 한 픽셀이 바 안 좌표로 얼마인지. 물결 높이를 픽셀로 받기 위함
 				float pixelX = max(fwidth(position.x), 0.00001);
@@ -139,15 +138,13 @@ Shader "WM/UI/LiquidBar"
 				float insidePixels = (edgeX - position.x) / pixelX;
 				float fillAlpha = saturate(insidePixels + 0.5);
 
-				// 윗면: 가로로 흐르는 잔물결 띠. 가득 찬 바에서도 보이는 평소 물결
-				float surfaceLine = 1.0 - (_SurfaceWidth + sin((position.x * surfaceWaveCount - phase) * WM_TAU) * waveHeight) * pixelY;
-				float surfaceHighlight = saturate((position.y - surfaceLine) / pixelY + 0.5);
+				// 윗면 물결 없음 (사용자 2026-11-18 "끝부분만, 상하는 왜"). 출렁임은 오른쪽 끝 경계만
 
 				// 끝 경계 바로 안쪽 밝은 띠
 				float edgeHighlight = saturate(1.0 - insidePixels / max(_EdgeWidth, 0.00001)) * endFade;
 
 				half4 color = (tex2D(_MainTex, input.texcoord) + _TextureSampleAdd) * input.color;
-				float highlight = max(surfaceHighlight, edgeHighlight) * _SurfaceColor.a;
+				float highlight = edgeHighlight * _SurfaceColor.a;
 				color.rgb = lerp(color.rgb, _SurfaceColor.rgb, highlight);
 				color.a *= fillAlpha;
 

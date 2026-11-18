@@ -26,9 +26,9 @@ namespace WitchMendokusai
 		// 정렬 순서 겸용. 앞일수록 먼저 표식을 받음
 		private enum MarkerKind
 		{
-			Boss,
-			Elite,
-			Item,
+			Boss = 0,
+			Elite = 1,
+			Item = 2,
 		}
 
 		private class Marker
