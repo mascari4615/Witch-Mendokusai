@@ -267,8 +267,14 @@ namespace WitchMendokusai
 
 		public void PopDamage(DamageInfo damageInfo, Vector3? pos = null, ulong targetId = 0)
 		{
+			// 상태이상 틱은 종류별 색과 아이콘. 피해마다 코루틴을 만들지 않고 바로 띄움
+			if (damageInfo.type == DamageType.StatusTick)
+			{
+				floatingText.ShowStatusTick(damageInfo.statusType, damageInfo.damage.ToString(), pos, targetId);
+				return;
+			}
 			TextType textType = DamageUtil.DamageTypeToTextType(damageInfo.type);
-			StartCoroutine(floatingText.AniTextUI(textType, damageInfo.damage.ToString(), pos, targetId));
+			floatingText.Show(textType, damageInfo.damage.ToString(), pos, targetId);
 		}
 
 		public void PopText(string msg, TextType textType, Vector3? pos = null)

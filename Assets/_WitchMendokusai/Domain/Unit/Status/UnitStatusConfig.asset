@@ -38,6 +38,13 @@ MonoBehaviour:
     EffectSize: 0.2
     EffectRate: 1
     EffectSpread: 0.5
+    TickTextColor: {r: 0.62, g: 0.88, b: 1, a: 1}
+    TickTextScale: 0.85
+    TickTextRiseScale: 1
+    TickTextSway: 0
+    TickTextSwayRate: 0
+    TickTextFlicker: 0
+    TickTextFlickerRate: 0
   - Type: 4
     Seconds: 1.5
     BossRatio: 0.3
@@ -63,6 +70,13 @@ MonoBehaviour:
     EffectSize: 0.2
     EffectRate: 0.9
     EffectSpread: 0.4
+    TickTextColor: {r: 1, g: 0.88, b: 0.3, a: 1}
+    TickTextScale: 0.85
+    TickTextRiseScale: 1
+    TickTextSway: 0
+    TickTextSwayRate: 0
+    TickTextFlicker: 0
+    TickTextFlickerRate: 0
   - Type: 1
     Seconds: 4
     BossRatio: 1
@@ -88,6 +102,13 @@ MonoBehaviour:
     EffectSize: 0.16
     EffectRate: 0.7
     EffectSpread: 0.6
+    TickTextColor: {r: 0.6, g: 1, b: 0.4, a: 1}
+    TickTextScale: 0.85
+    TickTextRiseScale: 0.7
+    TickTextSway: 6
+    TickTextSwayRate: 1.5
+    TickTextFlicker: 0
+    TickTextFlickerRate: 0
   - Type: 0
     Seconds: 3
     BossRatio: 1
@@ -113,6 +134,13 @@ MonoBehaviour:
     EffectSize: 0.14
     EffectRate: 1.6
     EffectSpread: 0.7
+    TickTextColor: {r: 1, g: 0.6, b: 0.2, a: 1}
+    TickTextScale: 0.9
+    TickTextRiseScale: 1.25
+    TickTextSway: 0
+    TickTextSwayRate: 0
+    TickTextFlicker: 0.35
+    TickTextFlickerRate: 9
   - Type: 3
     Seconds: 2
     BossRatio: 1
@@ -138,6 +166,13 @@ MonoBehaviour:
     EffectSize: 0.2
     EffectRate: 1
     EffectSpread: 0.5
+    TickTextColor: {r: 0.55, g: 0.7, b: 1, a: 1}
+    TickTextScale: 0.85
+    TickTextRiseScale: 1
+    TickTextSway: 0
+    TickTextSwayRate: 0
+    TickTextFlicker: 0
+    TickTextFlickerRate: 0
   MaxViews: 256
   OverlayMaterial: {fileID: 2100000, guid: eec525faef7048b4b666c12c86d2606f, type: 2}
   IconSize: 0.5
@@ -154,6 +189,8 @@ MonoBehaviour:
   RiseStart: 0.2
   RiseHeight: 0.85
   RiseShrink: 0.45
+  TickTextIconSize: 1.1
+  TickTextIconGap: 0.15
   HitShakeAmplitude: 0.08
   HitShakeMaxAmplitude: 0.14
   HitShakeSeconds: 0.12

@@ -139,6 +139,7 @@ namespace WitchMendokusai
 			unit.ReceiveDamage(new DamageInfo
 			{
 				type = DamageType.StatusTick,
+				statusType = type,
 				damage = damage,
 				damageSource = status.Sources[(int)type],
 				equipmentDataId = DamageInfo.NO_DATA_ID,

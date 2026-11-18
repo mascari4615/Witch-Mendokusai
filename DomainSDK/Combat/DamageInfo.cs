@@ -14,6 +14,8 @@ namespace WitchMendokusai
 		public int equipmentDataId;
 		public int skillDataId;
 		public bool ignoreInvincible;
+		// type 이 StatusTick 일 때만 뜻이 있음. 어떤 상태이상의 틱인지 (숫자 색과 아이콘)
+		public UnitStatusType statusType;
 
 		// Knockback / hit-stop 채널 — caller가 매 hit 채움. 0이면 효과 없음.
 		// SO 디폴트(무기/스킬)값 + caller 동적 보정 (charge / 약점 / 페이즈) 둘 다 가능 (dual 구조).

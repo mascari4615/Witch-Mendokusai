@@ -27,6 +27,8 @@ namespace WitchMendokusai
 			public GameObject Object;
 			public RectTransform Rect;
 			public TextMeshProUGUI Label;
+			// 상태이상 틱 숫자 옆 아이콘. 평소에는 꺼짐
+			public Image Icon;
 		}
 
 		private struct ActiveText
@@ -38,6 +40,9 @@ namespace WitchMendokusai
 			public float Age;
 			public int Lane;
 			public ulong TargetId;
+			// 상태이상 틱이면 그 종류 줄, 아니면 null
+			public UnitStatusStyle Status;
+			public float Phase;
 		}
 
 		[Inject]
@@ -101,14 +106,53 @@ namespace WitchMendokusai
 			label.raycastTarget = false;
 			foreach (CanvasGroup group in instance.GetComponentsInChildren<CanvasGroup>(true))
 				group.alpha = 1f;
+			GameObject iconObject = new GameObject("Status icon", typeof(RectTransform), typeof(Image));
+			iconObject.transform.SetParent(label.rectTransform, false);
+			Image icon = iconObject.GetComponent<Image>();
+			icon.raycastTarget = false;
+			icon.preserveAspect = true;
+			icon.enabled = false;
 			instance.SetActive(false);
-			return new TextInstance { Prefab = prefab, Object = instance, Rect = instance.GetComponent<RectTransform>(), Label = label };
+			return new TextInstance { Prefab = prefab, Object = instance, Rect = instance.GetComponent<RectTransform>(), Label = label, Icon = icon };
 		}
 
 		public IEnumerator AniTextUI(TextType textType, string message, Vector3? worldPosition = null, ulong targetId = 0)
 		{
+			Show(textType, message, worldPosition, targetId);
+			yield break;
+		}
+
+		// 화상, 독 같은 상태이상 틱. 크리티컬처럼 색과 크기를 바꾸고 종류 아이콘을 붙임. 값은 UnitStatusConfig
+		public void ShowStatusTick(UnitStatusType statusType, string message, Vector3? worldPosition, ulong targetId)
+		{
+			UnitStatusConfig config = ResourceManager.Instance.UnitStatus;
+			TextInstance item = ShowItem(TextType.Normal, message, worldPosition, targetId);
+			if (item == null)
+				return;
+			UnitStatusStyle style = config.Style(statusType);
+			item.Label.color = style.TickTextColor;
+			item.Label.fontSize = ActiveSkin.FontSize * style.TickTextScale;
+			ActiveText text = active[active.Count - 1];
+			text.Status = style;
+			text.Phase = Random.value;
+			active[active.Count - 1] = text;
+			if (style.Icon == null)
+				return;
+			float fontSize = item.Label.fontSize;
+			float iconSize = fontSize * config.TickTextIconSize;
+			item.Icon.sprite = style.Icon;
+			item.Icon.color = style.IconColor;
+			item.Icon.rectTransform.sizeDelta = new Vector2(iconSize, iconSize);
+			item.Icon.rectTransform.anchoredPosition = new Vector2(-(item.Label.preferredWidth * 0.5f + fontSize * config.TickTextIconGap + iconSize * 0.5f), 0f);
+			item.Icon.enabled = true;
+		}
+
+		public void Show(TextType textType, string message, Vector3? worldPosition = null, ulong targetId = 0) => ShowItem(textType, message, worldPosition, targetId);
+
+		private TextInstance ShowItem(TextType textType, string message, Vector3? worldPosition, ulong targetId)
+		{
 			if (GameConditionBridge.Get(GameConditionType.IsViewingUI))
-				yield break;
+				return null;
 			if (worldPosition.HasValue)
 			{
 				for (int i = active.Count - 1; i >= 0; i--)
@@ -137,9 +181,10 @@ namespace WitchMendokusai
 				TextType.Warning => ActiveSkin.WarningColor,
 				_ => ActiveSkin.NormalColor,
 			};
+			item.Icon.enabled = false;
 			item.Object.SetActive(true);
 			active.Add(new ActiveText { Instance = item, Skin = ActiveSkin, WorldPosition = worldPosition.GetValueOrDefault(), HasWorldPosition = worldPosition.HasValue, TargetId = targetId });
-			yield break;
+			return item;
 		}
 
 		private void LateUpdate()
@@ -165,9 +210,22 @@ namespace WitchMendokusai
 				float spacing = text.Skin.LaneSpacing;
 				float horizontal = text.Lane == 0 ? 0f : (text.Lane % 2 == 0 ? -spacing : spacing);
 				RectTransformUtility.ScreenPointToLocalPointInRectangle((RectTransform)canvas.transform, screen, null, out Vector2 position);
-				text.Instance.Rect.anchoredPosition = position + new Vector2(horizontal, 18f + text.Lane * spacing + text.Skin.Rise * progress);
+				float rise = text.Skin.Rise * progress;
+				float alpha = 1f - Mathf.Clamp01((progress - 0.65f) / 0.35f);
+				UnitStatusStyle status = text.Status;
+				if (status != null)
+				{
+					// 상태이상 틱: 떠오르는 높이, 좌우 흔들림, 깜빡임이 종류마다 다름
+					rise *= status.TickTextRiseScale;
+					horizontal += status.TickTextSway * Mathf.Sin((text.Age * status.TickTextSwayRate + text.Phase) * Mathf.PI * 2f);
+					alpha *= 1f - status.TickTextFlicker * (0.5f + 0.5f * Mathf.Sin((text.Age * status.TickTextFlickerRate + text.Phase) * Mathf.PI * 2f));
+					Color iconColor = status.IconColor;
+					iconColor.a *= alpha;
+					text.Instance.Icon.color = iconColor;
+				}
+				text.Instance.Rect.anchoredPosition = position + new Vector2(horizontal, 18f + text.Lane * spacing + rise);
 				text.Instance.Rect.localScale = Vector3.one * Mathf.Lerp(text.Skin.ImpactScale, 1f, Mathf.Clamp01(progress / 0.18f));
-				text.Instance.Label.alpha = 1f - Mathf.Clamp01((progress - 0.65f) / 0.35f);
+				text.Instance.Label.alpha = alpha;
 				active[i] = text;
 			}
 		}
@@ -175,6 +233,7 @@ namespace WitchMendokusai
 		private void Retire(int index)
 		{
 			TextInstance item = active[index].Instance;
+			item.Icon.enabled = false;
 			item.Object.SetActive(false);
 			if (ActiveSkin != null && item.Prefab == ActiveSkin.TextPrefab)
 				pool.Push(item);

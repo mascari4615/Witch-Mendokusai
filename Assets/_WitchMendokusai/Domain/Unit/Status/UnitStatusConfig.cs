@@ -48,6 +48,15 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("한 개 크기")] public float EffectSize = 0.2f;
 		[Min(0f), Tooltip("초당 한 바퀴 수")] public float EffectRate = 1f;
 		[Min(0f), Tooltip("떠오름은 퍼지는 폭, 공전은 반지름. 몸 크기 비율")] public float EffectSpread = 0.5f;
+
+		[Header("Tick number")]
+		[Tooltip("틱 피해 숫자 색. 크리티컬처럼 일반 피해와 구분")] public Color TickTextColor = Color.white;
+		[Min(0.1f), Tooltip("틱 피해 숫자 크기, 일반 숫자 크기 비율")] public float TickTextScale = 0.85f;
+		[Min(0f), Tooltip("틱 피해 숫자가 떠오르는 높이 배율")] public float TickTextRiseScale = 1f;
+		[Min(0f), Tooltip("좌우로 흔들리는 폭, 화면 단위")] public float TickTextSway;
+		[Min(0f), Tooltip("좌우 흔들림, 초당 왕복 수")] public float TickTextSwayRate;
+		[Range(0f, 1f), Tooltip("밝기 깜빡임 깊이")] public float TickTextFlicker;
+		[Min(0f), Tooltip("밝기 깜빡임, 초당 횟수")] public float TickTextFlickerRate;
 	}
 
 	// 상태이상 규칙과 표시. 같은 종류는 한 줄
@@ -75,6 +84,10 @@ namespace WitchMendokusai
 		[Range(0f, 1f), Tooltip("떠오름 시작 높이, 몸 높이 비율")] public float RiseStart = 0.2f;
 		[Min(0f), Tooltip("떠오름 이동 높이, 몸 높이 비율")] public float RiseHeight = 0.85f;
 		[Range(0f, 1f), Tooltip("떠오르며 작아지는 비율")] public float RiseShrink = 0.45f;
+
+		[Header("Tick number icon")]
+		[Min(0f), Tooltip("틱 피해 숫자 옆 아이콘 크기, 글자 크기 비율")] public float TickTextIconSize = 1.1f;
+		[Min(0f), Tooltip("숫자와 아이콘 사이 간격, 글자 크기 비율")] public float TickTextIconGap = 0.15f;
 
 		[Header("Hit shake")]
 		[Min(0f), Tooltip("피격 때 그림이 좌우로 흔들리는 폭")] public float HitShakeAmplitude = 0.08f;
