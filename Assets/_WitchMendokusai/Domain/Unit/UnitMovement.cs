@@ -216,7 +216,8 @@ namespace WitchMendokusai
 		// 화면 밖 이동도 누적 시간만큼 진행. 0은 원래의 매 물리 tick 갱신.
 		public void SetSimulationInterval(float interval) => SimulationInterval = Mathf.Max(0f, interval);
 
-		public void SetMoveDirection(Vector2 input) => SetInputDirection(input.normalized);
+		// 공포 상태이상이면 AI 가 준 방향 대신 플레이어 반대 방향 (UnitStatus.ApplyFear)
+		public void SetMoveDirection(Vector2 input) => SetInputDirection(UnitStatus.ApplyFear(unitObject, input.normalized));
 
 		// 플레이어 스틱 크기 보존. AI 방향 명령은 기존 단위 벡터 계약 유지
 		public void SetAnalogMoveDirection(Vector2 input) => SetInputDirection(Vector2.ClampMagnitude(input, 1f));

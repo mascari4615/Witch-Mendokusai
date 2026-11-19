@@ -42,6 +42,10 @@ namespace WitchMendokusai
 		{
 			if (IsAlive == false) return;
 
+			// 표식 상태이상. 상태이상 틱은 제외 (표식이 틱까지 불리면 틱 숫자가 과해짐)
+			if (damageInfo.type != DamageType.StatusTick)
+				damageInfo.damage = UnitStatusRules.AmplifiedDamage(damageInfo.damage, UnitStatus.DamageTakenPercent(Unit));
+
 			SetHp(Unit.UnitStat[UnitStatType.HP_CUR] - damageInfo.damage);
 
 			// Pivot 스케일 잠깐 키웠다가 줄이기 (기존 UnitObject의 연출 이동)

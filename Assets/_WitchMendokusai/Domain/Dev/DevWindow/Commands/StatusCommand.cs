@@ -4,7 +4,7 @@ using System.Linq;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// status &lt;burn|poison|freeze|slow|stun|all&gt; [near|screen] [seconds]
+	/// status &lt;burn|poison|freeze|slow|stun|bleed|shock|mark|fear|silence|all&gt; [near|screen] [seconds]
 	/// 가장 가까운 적 또는 화면 안 적 전부에 상태이상. 초를 비우면 상태이상 설정의 기본 지속.
 	/// </summary>
 	public class StatusCommand : IDevCommand
@@ -14,7 +14,7 @@ namespace WitchMendokusai
 		private const string SCREEN_ARG = "screen";
 
 		public string Name => "status";
-		public string Usage => "status <burn|poison|freeze|slow|stun|all> [near|screen] [seconds]";
+		public string Usage => "status <burn|poison|freeze|slow|stun|bleed|shock|mark|fear|silence|all> [near|screen] [seconds]";
 
 		public void Execute(DevCommandContext context, string[] args)
 		{

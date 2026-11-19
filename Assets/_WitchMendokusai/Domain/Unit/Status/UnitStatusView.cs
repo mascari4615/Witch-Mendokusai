@@ -4,7 +4,9 @@ using UnityEngine.Rendering;
 
 namespace WitchMendokusai
 {
-	// 유닛 하나의 상태이상 표시 묶음. 머리 위 아이콘 줄, 작은 효과 (불티, 거품, 별), 둔화 잔상
+	// 유닛 하나의 상태이상 표시 묶음. 머리 위 칸 줄 (RoR2식 칸), 작은 효과 (불티, 거품, 별), 둔화 잔상
+	// - 칸 하나: 어두운 칸, 줄어드는 테두리 (시계 방향), 상태색 실루엣, 쌓임 숫자 (오른쪽 아래). 같은 자리라 LayerBias 로 앞뒤를 가름
+	// - 칸은 종류마다가 아니라 자리 (IconSlots) 마다. 걸린 순서 (Styles 위 줄 먼저) 로 앞 자리부터 채움
 	// - 정렬: 그림 정렬값은 몸과 같고, 정렬용 경계 중심을 몸 정렬점에서 카메라 쪽으로 SortBias 만큼
 	//   몸 그림은 정렬점이 발밑 (Sprite Sort Point 는 Pivot, UnitBase.prefab) 이라 몸 위치 기준
 	//   투명 물체는 먼 것부터 그림. 표시는 자기 몸 다음 차례라 몸 위, 더 가까운 앞 몬스터 차례보다 먼저라 그 아래
@@ -18,25 +20,59 @@ namespace WitchMendokusai
 		private static readonly Dictionary<Sprite, Vector2> paintedRange = new();
 
 		private readonly GameObject root;
-		private readonly SpriteRenderer[] icons;
+		private readonly Slot[] slots;
 		private readonly float[] iconShown;
 		private readonly SpriteRenderer[][] effects;
+		private readonly Sprite[] ringFrames;
+		private readonly Sprite[] digitSprites;
 		private readonly SpriteRenderer ghost;
 		private Vector3 ghostPosition;
 		private bool ghostPlaced;
+
+		// 칸 하나의 그림 넷. 아래부터 칸, 테두리, 실루엣, 숫자
+		private readonly struct Slot
+		{
+			public readonly SpriteRenderer Back;
+			public readonly SpriteRenderer Ring;
+			public readonly SpriteRenderer Glyph;
+			public readonly SpriteRenderer Digit;
+
+			public Slot(SpriteRenderer back, SpriteRenderer ring, SpriteRenderer glyph, SpriteRenderer digit)
+			{
+				Back = back;
+				Ring = ring;
+				Glyph = glyph;
+				Digit = digit;
+			}
+
+			public void Hide()
+			{
+				Back.enabled = false;
+				Ring.enabled = false;
+				Glyph.enabled = false;
+				Digit.enabled = false;
+			}
+		}
 
 		public UnitStatusView(Transform parent, UnitStatusConfig config)
 		{
 			root = new GameObject(nameof(UnitStatusView));
 			root.transform.SetParent(parent, false);
 			int count = UnitStatusRules.Count;
-			icons = new SpriteRenderer[count];
+			ringFrames = UnitStatusSheets.Ring(config);
+			digitSprites = UnitStatusSheets.Digits(config);
+			slots = new Slot[Mathf.Max(1, config.IconSlots)];
+			for (int i = 0; i < slots.Length; i++)
+				slots[i] = new Slot(
+					CreateRenderer($"Slot {i} back", config.OverlayMaterial),
+					CreateRenderer($"Slot {i} ring", config.OverlayMaterial),
+					CreateRenderer($"Slot {i} glyph", config.OverlayMaterial),
+					CreateRenderer($"Slot {i} digit", config.OverlayMaterial));
 			iconShown = new float[count];
 			effects = new SpriteRenderer[count][];
 			for (int i = 0; i < count; i++)
 			{
 				UnitStatusType type = UnitStatusRules.ALL[i];
-				icons[i] = CreateRenderer($"Icon {type}", config.OverlayMaterial);
 				UnitStatusStyle style = config.Style(type);
 				effects[i] = new SpriteRenderer[style.EffectCount];
 				for (int j = 0; j < style.EffectCount; j++)
@@ -69,12 +105,11 @@ namespace WitchMendokusai
 
 		public void End()
 		{
-			for (int i = 0; i < icons.Length; i++)
-			{
-				icons[i].enabled = false;
+			foreach (Slot slot in slots)
+				slot.Hide();
+			for (int i = 0; i < effects.Length; i++)
 				foreach (SpriteRenderer effect in effects[i])
 					effect.enabled = false;
-			}
 			ghost.enabled = false;
 			root.SetActive(false);
 		}
@@ -94,7 +129,7 @@ namespace WitchMendokusai
 
 			// 정렬과 화면 밖 판정에 쓰는 경계. 중심은 정렬점, 크기는 몸과 머리 위 아이콘을 다 덮게. 화면 밖 판정이 표시를 자르지 않게 넉넉히
 			float cover = (Vector3.Distance(sortPoint, bodyBounds.center) + bodyBounds.extents.magnitude + config.IconGap + config.IconSize * 2f) * 2f;
-			Bounds frontBounds = new(sortPoint + toCamera * config.SortBias, Vector3.one * cover);
+			Bounds frontBounds = LayerBounds(sortPoint, toCamera, config, cover, 0);
 			Bounds backBounds = new(sortPoint - toCamera * config.SortBias, Vector3.one * cover);
 
 			int activeIcons = 0;
@@ -111,7 +146,7 @@ namespace WitchMendokusai
 			float orbitLift = orbiting ? config.IconSize * config.OrbitIconLift : 0f;
 			Vector3 iconCenter = top + up * (config.IconGap + orbitLift + config.IconSize * 0.5f);
 			float step = config.IconSize * config.IconSpacing;
-			float offset = -(activeIcons - 1) * 0.5f * step;
+			float offset = -(Mathf.Min(activeIcons, slots.Length) - 1) * 0.5f * step;
 
 			int order = 0;
 			for (int i = 0; i < config.Styles.Count; i++)
@@ -119,10 +154,8 @@ namespace WitchMendokusai
 				UnitStatusStyle style = config.Styles[i];
 				int index = (int)style.Type;
 				bool active = UnitStatus.Has(unit, style.Type);
-				SpriteRenderer icon = icons[index];
 				if (active == false)
 				{
-					icon.enabled = false;
 					iconShown[index] = -1f;
 					HideEffects(index);
 					continue;
@@ -136,14 +169,50 @@ namespace WitchMendokusai
 					float popProgress = Mathf.Clamp01((time - iconShown[index]) / config.IconPopSeconds);
 					pop = Mathf.Sin(popProgress * Mathf.PI) * config.IconPopScale;
 				}
-				Place(icon, body, style.Icon, style.IconColor, iconCenter + right * (offset + order * step), config.IconSize * (1f + pop), frontBounds);
-				order++;
+				if (order < slots.Length)
+				{
+					Vector3 center = iconCenter + right * (offset + order * step);
+					DrawSlot(slots[order], status, style, config, body, center, right, up, config.IconSize * (1f + pop), sortPoint, toCamera, cover);
+					order++;
+				}
 
 				DrawEffects(index, style, config, status, body, top, bottom, right, up, bodyHeight, bodyWidth, time, frontBounds);
 			}
 
+			for (int i = order; i < slots.Length; i++)
+				slots[i].Hide();
+
 			DrawGhost(unit, body, config, deltaTime, backBounds);
 		}
+
+		private void DrawSlot(Slot slot, UnitStatus status, UnitStatusStyle style, UnitStatusConfig config, SpriteRenderer body, Vector3 center, Vector3 right, Vector3 up, float size,
+			Vector3 sortPoint, Vector3 toCamera, float cover)
+		{
+			int index = (int)style.Type;
+			UnitObject unit = status.Unit;
+			Place(slot.Back, body, config.CellBack, config.CellColor, center, size, LayerBounds(sortPoint, toCamera, config, cover, 0));
+
+			Sprite ring = null;
+			if (ringFrames.Length > 0)
+				ring = ringFrames[UnitStatusRules.RingFrame(unit.UnitStat[UnitStatusRules.StatType(style.Type)], status.TotalMilliseconds[index], ringFrames.Length)];
+			Place(slot.Ring, body, ring, style.IconColor, center, size, LayerBounds(sortPoint, toCamera, config, cover, 1));
+
+			Place(slot.Glyph, body, style.Icon, style.IconColor, center, size * config.SilhouetteScale, LayerBounds(sortPoint, toCamera, config, cover, 2));
+
+			int stacks = style.MaxStacks > 1 ? status.Stacks[index] : 0;
+			if (stacks >= 2 && digitSprites.Length > 0)
+			{
+				float digitSize = size * config.StackDigitScale;
+				Vector3 digitCenter = center + right * (size * 0.5f - digitSize * 0.5f) - up * (size * 0.5f - digitSize * 0.5f);
+				Place(slot.Digit, body, digitSprites[Mathf.Min(stacks, 9)], Color.white, digitCenter, digitSize, LayerBounds(sortPoint, toCamera, config, cover, 3));
+			}
+			else
+				slot.Digit.enabled = false;
+		}
+
+		// 같은 자리 겹침의 앞뒤. 몸 정렬점에서 카메라 쪽으로 SortBias + 층 * LayerBias. 층이 클수록 앞
+		private static Bounds LayerBounds(Vector3 sortPoint, Vector3 toCamera, UnitStatusConfig config, float cover, int layer) =>
+			new(sortPoint + toCamera * (config.SortBias + layer * config.LayerBias), Vector3.one * cover);
 
 		private void DrawEffects(int index, UnitStatusStyle style, UnitStatusConfig config, UnitStatus status, SpriteRenderer body, Vector3 top, Vector3 bottom, Vector3 right, Vector3 up,
 			float bodyHeight, float bodyWidth, float time, Bounds frontBounds)

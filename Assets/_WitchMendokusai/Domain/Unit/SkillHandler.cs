@@ -61,6 +61,9 @@ namespace WitchMendokusai
 		{
 			if (IsSlotEnabled(skillIndex) == false)
 				return false;
+			// 침묵 상태이상. 스킬 사용 봉쇄
+			if (UnitStatus.IsSkillBlocked(unitObject))
+				return false;
 
 			if (skillDic.TryGetValue(skillIndex, out Skill skill))
 			{
@@ -85,6 +88,8 @@ namespace WitchMendokusai
 			if (unitObject.IsActionSuspended)
 				return;
 
+			// 침묵 중에도 쿨타임은 흐름. 자동 시전만 막음
+			bool silenced = UnitStatus.IsSkillBlocked(unitObject);
 			foreach (KeyValuePair<int, Skill> pair in SkillDic)
 			{
 				Skill skill = pair.Value;
@@ -100,7 +105,7 @@ namespace WitchMendokusai
 					_ => false,
 				};
 
-				if (isAutoUse && skill.IsReady)
+				if (isAutoUse && skill.IsReady && silenced == false)
 					skill.Use(new SkillContext(unitObject, playerProvider, objectPoolManager));
 			}
 		}

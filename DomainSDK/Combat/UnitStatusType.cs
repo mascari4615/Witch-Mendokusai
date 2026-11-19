@@ -8,5 +8,10 @@ namespace WitchMendokusai
 		Freeze = 2,
 		Slow = 3,
 		Stun = 4,
+		Bleed = 5,
+		Shock = 6,
+		Mark = 7,
+		Fear = 8,
+		Silence = 9,
 	}
 }

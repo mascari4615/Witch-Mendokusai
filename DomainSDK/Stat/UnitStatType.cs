@@ -220,6 +220,11 @@ namespace WitchMendokusai
 		FREEZE = 100_000_202,
 		SLOW = 100_000_203,
 		STUN = 100_000_204,
+		BLEED = 100_000_205,
+		SHOCK = 100_000_206,
+		MARK = 100_000_207,
+		FEAR = 100_000_208,
+		SILENCE = 100_000_209,
 		#endregion
 	}
 }

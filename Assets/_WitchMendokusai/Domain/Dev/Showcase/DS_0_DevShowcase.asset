@@ -51,6 +51,21 @@ MonoBehaviour:
   - Label: "\uAE30\uC808"
     Statuses:
     - 4
+  - Label: "\uCD9C\uD608"
+    Statuses:
+    - 5
+  - Label: "\uAC10\uC804"
+    Statuses:
+    - 6
+  - Label: "\uD45C\uC2DD"
+    Statuses:
+    - 7
+  - Label: "\uACF5\uD3EC"
+    Statuses:
+    - 8
+  - Label: "\uCE68\uBB35"
+    Statuses:
+    - 9
   - Label: "\uD654\uC0C1 + \uB3C5"
     Statuses:
     - 0
@@ -67,6 +82,18 @@ MonoBehaviour:
     Statuses:
     - 4
     - 0
+  - Label: "\uCD9C\uD608 + \uD45C\uC2DD"
+    Statuses:
+    - 5
+    - 7
+  - Label: "\uAC10\uC804 + \uACF5\uD3EC"
+    Statuses:
+    - 6
+    - 8
+  - Label: "\uCE68\uBB35 + \uD654\uC0C1"
+    Statuses:
+    - 9
+    - 0
   - Label: "\uC804\uBD80"
     Statuses:
     - 0
@@ -74,6 +101,11 @@ MonoBehaviour:
     - 2
     - 3
     - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
   <MonsterSectionTitle>k__BackingField: "\uBAAC\uC2A4\uD130"
   <ShowAllMonsters>k__BackingField: 1
   <Monsters>k__BackingField: []

@@ -173,23 +173,228 @@ MonoBehaviour:
     TickTextSwayRate: 0
     TickTextFlicker: 0
     TickTextFlickerRate: 0
+  - Type: 5
+    Seconds: 5
+    BossRatio: 1
+    TickSeconds: 0.6
+    TickMaxHealthPercent: 0.8
+    TickMinDamage: 1
+    SlowRatio: 0
+    MaxStacks: 5
+    DamageTakenPercent: 0
+    ChainCount: 0
+    ChainRadius: 4.5
+    ChainDamagePercent: 50
+    FleeFromPlayer: 0
+    BlockSkills: 0
+    StopAnimation: 0
+    HitShakeScale: 1
+    HitShakeFrequencyScale: 1
+    Icon: {fileID: 21300000, guid: 16c90c2508ac43f182105d5910a7c052, type: 3}
+    IconColor: {r: 0.85, g: 0.16, b: 0.24, a: 1}
+    Tint: {r: 0.8, g: 0.1, b: 0.15, a: 0.3}
+    TintPulseRate: 0
+    TintPulseDepth: 0
+    Rim: {r: 1, g: 1, b: 1, a: 0}
+    GhostAlpha: 0
+    GhostLagSeconds: 0.12
+    EffectMotion: 1
+    EffectSprite: {fileID: 21300000, guid: bf5764c720eb4c438536393efb3674bf, type: 3}
+    EffectColor: {r: 0.85, g: 0.1, b: 0.15, a: 0.95}
+    EffectCount: 2
+    EffectSize: 0.12
+    EffectRate: 0.9
+    EffectSpread: 0.5
+    TickTextColor: {r: 0.95, g: 0.25, b: 0.3, a: 1}
+    TickTextScale: 0.85
+    TickTextRiseScale: 0.8
+    TickTextSway: 0
+    TickTextSwayRate: 0
+    TickTextFlicker: 0
+    TickTextFlickerRate: 0
+  - Type: 6
+    Seconds: 3.5
+    BossRatio: 0.5
+    TickSeconds: 0.8
+    TickMaxHealthPercent: 1
+    TickMinDamage: 1
+    SlowRatio: 0
+    MaxStacks: 1
+    DamageTakenPercent: 0
+    ChainCount: 2
+    ChainRadius: 4.5
+    ChainDamagePercent: 60
+    FleeFromPlayer: 0
+    BlockSkills: 0
+    StopAnimation: 0
+    HitShakeScale: 1
+    HitShakeFrequencyScale: 1
+    Icon: {fileID: 21300000, guid: ba99e011c6994a958799d5fa90e945c2, type: 3}
+    IconColor: {r: 0.71, g: 0.94, b: 0.24, a: 1}
+    Tint: {r: 0.9, g: 1, b: 0.4, a: 0.3}
+    TintPulseRate: 14
+    TintPulseDepth: 0.8
+    Rim: {r: 1, g: 1, b: 1, a: 0}
+    GhostAlpha: 0
+    GhostLagSeconds: 0.12
+    EffectMotion: 1
+    EffectSprite: {fileID: 21300000, guid: b5cc98c15f27460abc7221bf1fe8feec, type: 3}
+    EffectColor: {r: 0.8, g: 1, b: 0.35, a: 1}
+    EffectCount: 3
+    EffectSize: 0.13
+    EffectRate: 2.4
+    EffectSpread: 0.8
+    TickTextColor: {r: 0.75, g: 1, b: 0.3, a: 1}
+    TickTextScale: 0.85
+    TickTextRiseScale: 1
+    TickTextSway: 4
+    TickTextSwayRate: 8
+    TickTextFlicker: 0.5
+    TickTextFlickerRate: 14
+  - Type: 7
+    Seconds: 6
+    BossRatio: 1
+    TickSeconds: 0
+    TickMaxHealthPercent: 0
+    TickMinDamage: 0
+    SlowRatio: 0
+    MaxStacks: 1
+    DamageTakenPercent: 30
+    ChainCount: 0
+    ChainRadius: 4.5
+    ChainDamagePercent: 50
+    FleeFromPlayer: 0
+    BlockSkills: 0
+    StopAnimation: 0
+    HitShakeScale: 1
+    HitShakeFrequencyScale: 1
+    Icon: {fileID: 21300000, guid: bfd3f26f0bdf44528b98d8f89df2f5b6, type: 3}
+    IconColor: {r: 1, g: 0.35, b: 0.61, a: 1}
+    Tint: {r: 1, g: 1, b: 1, a: 0}
+    TintPulseRate: 0
+    TintPulseDepth: 0
+    Rim: {r: 1, g: 0.35, b: 0.61, a: 1}
+    GhostAlpha: 0
+    GhostLagSeconds: 0.12
+    EffectMotion: 0
+    EffectSprite: {fileID: 0}
+    EffectColor: {r: 1, g: 1, b: 1, a: 1}
+    EffectCount: 0
+    EffectSize: 0.2
+    EffectRate: 1
+    EffectSpread: 0.5
+    TickTextColor: {r: 1, g: 0.35, b: 0.61, a: 1}
+    TickTextScale: 0.85
+    TickTextRiseScale: 1
+    TickTextSway: 0
+    TickTextSwayRate: 0
+    TickTextFlicker: 0
+    TickTextFlickerRate: 0
+  - Type: 8
+    Seconds: 2.5
+    BossRatio: 0
+    TickSeconds: 0
+    TickMaxHealthPercent: 0
+    TickMinDamage: 0
+    SlowRatio: 0
+    MaxStacks: 1
+    DamageTakenPercent: 0
+    ChainCount: 0
+    ChainRadius: 4.5
+    ChainDamagePercent: 50
+    FleeFromPlayer: 1
+    BlockSkills: 0
+    StopAnimation: 0
+    HitShakeScale: 1
+    HitShakeFrequencyScale: 1
+    Icon: {fileID: 21300000, guid: 7d1c5afccd7544e6870edce267cae906, type: 3}
+    IconColor: {r: 0.18, g: 0.77, b: 0.63, a: 1}
+    Tint: {r: 0.2, g: 0.8, b: 0.65, a: 0.3}
+    TintPulseRate: 3
+    TintPulseDepth: 0.5
+    Rim: {r: 1, g: 1, b: 1, a: 0}
+    GhostAlpha: 0
+    GhostLagSeconds: 0.12
+    EffectMotion: 1
+    EffectSprite: {fileID: 21300000, guid: bf5764c720eb4c438536393efb3674bf, type: 3}
+    EffectColor: {r: 0.4, g: 0.95, b: 0.8, a: 0.9}
+    EffectCount: 2
+    EffectSize: 0.1
+    EffectRate: 1.8
+    EffectSpread: 0.6
+    TickTextColor: {r: 0.3, g: 0.9, b: 0.75, a: 1}
+    TickTextScale: 0.85
+    TickTextRiseScale: 1
+    TickTextSway: 0
+    TickTextSwayRate: 0
+    TickTextFlicker: 0
+    TickTextFlickerRate: 0
+  - Type: 9
+    Seconds: 4
+    BossRatio: 0.5
+    TickSeconds: 0
+    TickMaxHealthPercent: 0
+    TickMinDamage: 0
+    SlowRatio: 0
+    MaxStacks: 1
+    DamageTakenPercent: 0
+    ChainCount: 0
+    ChainRadius: 4.5
+    ChainDamagePercent: 50
+    FleeFromPlayer: 0
+    BlockSkills: 1
+    StopAnimation: 0
+    HitShakeScale: 1
+    HitShakeFrequencyScale: 1
+    Icon: {fileID: 21300000, guid: 027c9f3ad8714434a54eb13d9f730f3a, type: 3}
+    IconColor: {r: 0.89, g: 0.89, b: 0.93, a: 1}
+    Tint: {r: 0.55, g: 0.55, b: 0.6, a: 0.35}
+    TintPulseRate: 0
+    TintPulseDepth: 0
+    Rim: {r: 1, g: 1, b: 1, a: 0}
+    GhostAlpha: 0
+    GhostLagSeconds: 0.12
+    EffectMotion: 0
+    EffectSprite: {fileID: 0}
+    EffectColor: {r: 1, g: 1, b: 1, a: 1}
+    EffectCount: 0
+    EffectSize: 0.2
+    EffectRate: 1
+    EffectSpread: 0.5
+    TickTextColor: {r: 0.89, g: 0.89, b: 0.93, a: 1}
+    TickTextScale: 0.85
+    TickTextRiseScale: 1
+    TickTextSway: 0
+    TickTextSwayRate: 0
+    TickTextFlicker: 0
+    TickTextFlickerRate: 0
   MaxViews: 256
   OverlayMaterial: {fileID: 2100000, guid: eec525faef7048b4b666c12c86d2606f, type: 2}
-  IconSize: 0.5
+  IconSlots: 6
+  IconSize: 0.43
   IconGap: 0.08
   IconSpacing: 1.1
   IconPopSeconds: 0.18
   IconPopScale: 0.35
   SortBias: 0.03
   RimWidth: 2.5
-  ViewsCreatedPerFrame: 24
+  ViewsCreatedPerFrame: 12
+  CellBack: {fileID: 21300000, guid: 40d4d85882e04ae6851f5947ecd70e61, type: 3}
+  CellColor: {r: 0.1, g: 0.08, b: 0.13, a: 0.94}
+  RingSheet: {fileID: 2800000, guid: 0490e40f27984b0ab2fefc207032518a, type: 3}
+  RingColumns: 8
+  RingFrames: 48
+  DigitSheet: {fileID: 2800000, guid: cc49e795aa14418d848acce84c5b697f, type: 3}
+  SilhouetteScale: 0.78
+  StackDigitScale: 0.62
+  LayerBias: 0.0015
   OrbitIconLift: 0.6
   OrbitSquash: 0.3
   OrbitSizeWobble: 0.2
   RiseStart: 0.2
   RiseHeight: 0.85
   RiseShrink: 0.45
-  TickTextIconSize: 1.1
+  TickTextIconSize: 0.95
   TickTextIconGap: 0.15
   HitShakeAmplitude: 0.08
   HitShakeMaxAmplitude: 0.14

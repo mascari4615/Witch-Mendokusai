@@ -121,9 +121,15 @@ namespace WitchMendokusai
 				int next = UnitStatusRules.Elapse(remaining, elapsed);
 				unit.UnitStat[statType] = next;
 				if (next <= 0)
+				{
+					status.Stacks[index] = 0;
 					continue;
+				}
 				anyActive = true;
 				stopAnimation |= style.StopAnimation;
+				// 공포. AI 가 방향을 안 줘도 계속 도망치게 매 프레임 한 번 방향을 다시 줌 (UnitMovement 가 플레이어 반대로 덮어씀)
+				if (style.FleeFromPlayer && unit is not PlayerObject)
+					unit.UnitMovement.SetMoveDirection(Vector2.zero);
 			}
 			status.SetAnimationStopped(stopAnimation);
 			if (anyActive == false)
@@ -133,19 +139,57 @@ namespace WitchMendokusai
 		private static void DealTick(UnitStatus status, UnitStatusType type, UnitStatusStyle style)
 		{
 			UnitObject unit = status.Unit;
-			int damage = UnitStatusRules.TickDamage(unit.UnitStat[UnitStatType.HP_MAX], style.TickMaxHealthPercent, style.TickMinDamage);
+			int damage = UnitStatusRules.StackedTickDamage(unit.UnitStat[UnitStatType.HP_MAX], style.TickMaxHealthPercent, style.TickMinDamage, status.Stacks[(int)type]);
 			if (damage <= 0 || unit.IsAlive == false)
 				return;
-			unit.ReceiveDamage(new DamageInfo
+			IDamageSource source = status.Sources[(int)type];
+			Vector3 origin = unit.transform.position;
+			StrikeTick(unit, type, damage, source);
+			if (style.ChainCount > 0)
+				Chain(unit, origin, type, style, damage, source);
+		}
+
+		private static void StrikeTick(UnitObject target, UnitStatusType type, int damage, IDamageSource source)
+		{
+			if (target.IsAlive == false)
+				return;
+			target.ReceiveDamage(new DamageInfo
 			{
 				type = DamageType.StatusTick,
 				statusType = type,
 				damage = damage,
-				damageSource = status.Sources[(int)type],
+				damageSource = source,
 				equipmentDataId = DamageInfo.NO_DATA_ID,
 				skillDataId = DamageInfo.NO_DATA_ID,
 				ignoreInvincible = true,
 			});
+		}
+
+		private static readonly List<(float Distance, MonsterObject Monster)> chainCandidates = new();
+
+		// 감전. 틱을 맞은 몬스터 가까이의 다른 몬스터 ChainCount 마리에 틱 피해의 일부. 튄 피해는 상태이상을 새로 걸지 않음 (연쇄 폭주 방지)
+		private static void Chain(UnitObject from, Vector3 origin, UnitStatusType type, UnitStatusStyle style, int tickDamage, IDamageSource source)
+		{
+			int chainDamage = UnitStatusRules.ChainDamage(tickDamage, style.ChainDamagePercent);
+			if (chainDamage <= 0)
+				return;
+			float radiusSquared = style.ChainRadius * style.ChainRadius;
+			chainCandidates.Clear();
+			foreach (GameObject monsterObject in ObjectBufferManager.GetObjects(ObjectType.Monster))
+			{
+				if (monsterObject == null || monsterObject.activeInHierarchy == false)
+					continue;
+				if (monsterObject.TryGetComponent(out MonsterObject monster) == false || monster == from || monster.IsAlive == false)
+					continue;
+				float distanceSquared = (monster.transform.position - origin).sqrMagnitude;
+				if (distanceSquared <= radiusSquared)
+					chainCandidates.Add((distanceSquared, monster));
+			}
+			chainCandidates.Sort((left, right) => left.Distance.CompareTo(right.Distance));
+			int count = Mathf.Min(style.ChainCount, chainCandidates.Count);
+			for (int i = 0; i < count; i++)
+				StrikeTick(chainCandidates[i].Monster, type, chainDamage, source);
+			chainCandidates.Clear();
 		}
 
 		private void LateUpdate()
