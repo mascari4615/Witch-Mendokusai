@@ -72,7 +72,7 @@ namespace WitchMendokusai
 				return;
 			}
 			ultimates[0].PlayPreview();
-			context.LogSuccess($"{ultimates[0].name} 재생 (예고, 충전, 임팩트, 잔여 약 {ultimates[0].TelegraphSeconds + ultimates[0].ChargeSeconds + ultimates[0].AftermathSeconds:0.0}초)");
+			context.LogSuccess($"{ultimates[0].name} 재생 (약 {ultimates[0].DurationSeconds:0.0}초)");
 		}
 
 		public IEnumerable<string> Suggest(string[] partial)

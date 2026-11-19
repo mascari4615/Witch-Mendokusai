@@ -5,12 +5,13 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 궁극기 연출의 월드 쪽 공통 도구. 재질, 바닥판과 세로판 메시, 입자계 생성, 바닥 높이
-	/// 연출 종류와 무관. 새 궁극기는 UltimateFx 에셋만 더 만들면 됨
+	/// 연출 종류와 무관. 연출마다 다른 진행은 UltimateFx 의 파생 클래스가 짬
 	/// </summary>
 	public static class UltimateFxStage
 	{
 		private static Mesh groundQuad;
 		private static Mesh standingQuad;
+		private static Mesh centerQuad;
 
 		/// <summary> 빛 판 재질. additive 면 더하기, 아니면 알파 합성 </summary>
 		public static Material CreateMaterial(Shader shader, Texture texture, bool additive, Color color)
@@ -56,6 +57,23 @@ namespace WitchMendokusai
 				standingQuad.triangles = new[] { 0, 1, 2, 0, 2, 3 };
 				standingQuad.RecalculateBounds();
 				return standingQuad;
+			}
+		}
+
+		/// <summary> 가운데가 원점인 세운 정사각 (XY, 한 변 1, UV 0~1). 하늘의 달, 카드, 블랙홀, 화면 덮개 판 </summary>
+		public static Mesh CenterQuad
+		{
+			get
+			{
+				if (centerQuad != null)
+					return centerQuad;
+				centerQuad = new Mesh { name = "UltimateCenterQuad" };
+				centerQuad.vertices = new[] { new Vector3(-0.5f, -0.5f, 0f), new Vector3(-0.5f, 0.5f, 0f), new Vector3(0.5f, 0.5f, 0f), new Vector3(0.5f, -0.5f, 0f) };
+				centerQuad.uv = new[] { new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(1f, 0f) };
+				centerQuad.colors = new[] { Color.white, Color.white, Color.white, Color.white };
+				centerQuad.triangles = new[] { 0, 1, 2, 0, 2, 3 };
+				centerQuad.RecalculateBounds();
+				return centerQuad;
 			}
 		}
 

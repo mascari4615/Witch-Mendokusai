@@ -2,54 +2,38 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 궁극기 한 번의 진행. 시간선 (트랙) 에 효과를 올려 매 프레임 평가
-	/// - 실제 시간 트랙 (화면 층, 카메라) 과 게임 시간 트랙 (월드 효과) 을 나눔. 히트스톱 동안 월드 효과는 같이 멈추고 화면 층은 계속 감
-	/// - 이 파일: 진행, 트랙, 예고와 충전, 임팩트의 화면과 카메라. 월드 효과는 UltimateFxRun.World.cs
+	/// 궁극기 한 번의 진행기. 파생 연출 (UltimateFx.Compose) 이 시간선 (트랙) 에 효과를 올리면 매 프레임 평가
+	/// - 시간은 실제 시간 (녹화 중에는 고정 간격). 히트스톱 중에도 화면 연출은 계속 감, 입자는 게임 시간이라 같이 멈춤
+	/// - 이 파일: 진행, 트랙, 재질과 판 생성, 화면 섬광, 카메라. 여러 연출이 같이 쓰는 월드 부품은 UltimateFxRun.Parts.cs
+	/// - 끝나면 만든 물체, 재질, 화면 층, 배경 장악 판, 카메라 설정을 전부 되돌림
 	/// </summary>
 	public sealed partial class UltimateFxRun
 	{
-		private sealed class Track
+		private sealed class TimelineEntry
 		{
-			public bool Real;
 			public float Start;
 			public float Duration;
 			public Action<float> Apply;
 			public Action End;
+			public bool Finished;
+			public bool Shown;
 		}
 
 		private readonly UltimateFx fx;
 		private readonly CombatFxContext context;
-		private readonly List<Track> tracks = new();
-		private readonly List<Track> added = new();
+		private readonly List<TimelineEntry> tracks = new();
+		private readonly List<TimelineEntry> added = new();
 		private readonly List<Material> materials = new();
-		private readonly List<UnityEngine.Object> owned = new();
 		private readonly List<Action> releases = new();
 
 		private GameObject root;
-		private UltimateScreenLayer layer;
-		private Vector3 center;
-		private Camera mainCamera;
-		private UniversalAdditionalCameraData cameraData;
-		private CameraOverrideOption previousColorOption;
 		private bool disposed;
-		private bool impacted;
 		private float realTime;
-		private float worldTime;
 		private float realDelta;
-		private float worldDelta;
-		private Action releaseChargeZoom;
-		private Action stopTelegraph;
-
-		private float ImpactTime => fx.TelegraphSeconds + fx.ChargeSeconds;
-		private UltimateFx.Palette Colors => fx.Colors;
-
-		private Vector3 CasterPosition => context.Follow != null ? context.Follow.position : center;
 
 		public UltimateFxRun(UltimateFx fx, CombatFxContext context)
 		{
@@ -57,22 +41,35 @@ namespace WitchMendokusai
 			this.context = context;
 		}
 
+		public UltimateScreenLayer Layer { get; private set; }
+		public UltimateGradeLayer Grade { get; private set; }
+		public Camera MainCamera { get; private set; }
+		public Transform Root => root.transform;
+		/// <summary> 연출 중심 (바닥 높이) </summary>
+		public Vector3 Center { get; private set; }
+		/// <summary> 시전자 발 위치. 따라갈 대상이 없으면 중심 </summary>
+		public Vector3 Caster => context.Follow != null ? context.Follow.position : Center;
+		/// <summary> 화면 오른쪽을 바닥에 눕힌 방향 </summary>
+		public Vector3 ScreenRight { get; private set; }
+		/// <summary> 화면 위쪽 (카메라가 보는 쪽) 을 바닥에 눕힌 방향 </summary>
+		public Vector3 ScreenForward { get; private set; }
+		/// <summary> 시작부터 흐른 실제 시간 (초) </summary>
+		public float Now => realTime;
+		public float Delta => realDelta;
+		public UltimateFx Settings => fx;
+
 		public IEnumerator Routine()
 		{
 			Setup();
-			float endGuard = ImpactTime + fx.AftermathSeconds + fx.HitStopSeconds + 2f;
-			while (realTime < endGuard)
+			fx.Compose(this);
+			float end = fx.DurationSeconds + fx.TailSeconds;
+			while (realTime < end || (tracks.Count > 0 && realTime < end * 2f))
 			{
 				// 프레임 녹화 중에는 고정 간격 (DevFrameRecorder), 아니면 실제 경과
 				realDelta = Time.captureDeltaTime > 0f ? Time.captureDeltaTime : Time.unscaledDeltaTime;
-				worldDelta = Time.deltaTime;
 				realTime += realDelta;
-				worldTime += worldDelta;
-				if (impacted == false && realTime >= ImpactTime)
-					Impact();
 				EvaluateTracks();
-				if (impacted && tracks.Count == 0)
-					break;
+				Grade.Follow();
 				yield return null;
 			}
 		}
@@ -82,56 +79,108 @@ namespace WitchMendokusai
 			if (disposed)
 				return;
 			disposed = true;
-			releaseChargeZoom?.Invoke();
-			stopTelegraph?.Invoke();
 			foreach (Action release in releases)
 				release();
-			if (cameraData != null)
-				cameraData.requiresColorOption = previousColorOption;
-			layer?.Dispose();
+			Layer?.Dispose();
+			Grade?.Dispose();
 			if (root != null)
 				UnityEngine.Object.Destroy(root);
 			foreach (Material material in materials)
 				UnityEngine.Object.Destroy(material);
-			foreach (UnityEngine.Object item in owned)
-				UnityEngine.Object.Destroy(item);
+		}
+
+		private void Setup()
+		{
+			MainCamera = Camera.main;
+			Vector3 position = context.Position;
+			position.y = UltimateFxStage.GroundHeight(position);
+			Center = position;
+			root = new GameObject("UltimateFxRun");
+			root.transform.position = Center;
+			Layer = new UltimateScreenLayer(fx.SpriteShader, fx.ScreenSortingOrder);
+			Grade = new UltimateGradeLayer(fx.GradeShader, MainCamera, UltimateFxStage.CenterQuad);
+			Vector3 right = MainCamera != null ? MainCamera.transform.right : Vector3.right;
+			Vector3 forward = MainCamera != null ? MainCamera.transform.forward : Vector3.forward;
+			right.y = 0f;
+			forward.y = 0f;
+			ScreenRight = right.sqrMagnitude > 0.0001f ? right.normalized : Vector3.right;
+			ScreenForward = forward.sqrMagnitude > 0.0001f ? forward.normalized : Vector3.forward;
+			if (fx.SpawnTemporaryFoliage)
+				SpawnFoliage();
 		}
 
 		// ---- 트랙 ----
-		private void AddTrack(bool real, float start, float duration, Action<float> apply, Action end = null)
-			=> added.Add(new Track { Real = real, Start = start, Duration = duration, Apply = apply, End = end });
 
+		/// <summary> start 초부터 duration 초 동안 매 프레임 apply(0~1). 끝나면 end </summary>
+		public void Track(float start, float duration, Action<float> apply, Action end = null)
+			=> added.Add(new TimelineEntry { Start = start, Duration = duration, Apply = apply, End = end });
+
+		/// <summary> time 초에 한 번 </summary>
+		public void At(float time, Action action) => Track(time, 0f, _ => action());
+
+		/// <summary> 진행이 끝날 때 (도중 중단 포함) 부를 정리 </summary>
+		public void OnRelease(Action release) => releases.Add(release);
+
+		// 올린 순서대로 평가. 같은 시각에 만드는 트랙 (At) 과 쓰는 트랙 (Track) 이 있으면 먼저 올린 쪽이 먼저 돎
 		private void EvaluateTracks()
 		{
-			if (added.Count > 0)
+			MergeAdded();
+			int count = tracks.Count;
+			for (int i = 0; i < count; i++)
 			{
-				tracks.AddRange(added);
-				added.Clear();
-			}
-			for (int i = tracks.Count - 1; i >= 0; i--)
-			{
-				Track track = tracks[i];
-				float clock = track.Real ? realTime : worldTime;
-				if (clock < track.Start)
+				TimelineEntry track = tracks[i];
+				if (realTime < track.Start)
 					continue;
-				float t = track.Duration <= 0f ? 1f : Mathf.Min(1f, (clock - track.Start) / track.Duration);
-				track.Apply?.Invoke(t);
-				if (t >= 1f)
+				float progress = track.Duration <= 0f ? 1f : Mathf.Min(1f, (realTime - track.Start) / track.Duration);
+				// 한 장짜리 트랙이 프레임 사이에 끼어 그려지지 않는 일을 막음: 길이가 있으면 적어도 한 프레임은 끝내지 않고 보여 줌
+				if (track.Duration > 0f && track.Shown == false && progress >= 1f)
+				{
+					track.Shown = true;
+					track.Apply?.Invoke(0.5f);
+					continue;
+				}
+				track.Shown = true;
+				track.Apply?.Invoke(progress);
+				if (progress >= 1f)
 				{
 					track.End?.Invoke();
-					tracks.Remove(track);
+					track.Finished = true;
 				}
 			}
-			if (added.Count > 0)
-			{
-				tracks.AddRange(added);
-				added.Clear();
-			}
+			tracks.RemoveAll(entry => entry.Finished);
+			MergeAdded();
 		}
 
-		private static float EaseOut(float t) => 1f - Mathf.Pow(1f - t, 3f);
+		private void MergeAdded()
+		{
+			if (added.Count == 0)
+				return;
+			tracks.AddRange(added);
+			added.Clear();
+		}
 
-		private static float EaseIn(float t) => t * t * t;
+		// ---- 곡선 ----
+		public static float EaseOut(float progress) => 1f - Mathf.Pow(1f - Mathf.Clamp01(progress), 3f);
+
+		public static float EaseIn(float progress) => Mathf.Pow(Mathf.Clamp01(progress), 3f);
+
+		public static float EaseInOut(float progress) => Mathf.SmoothStep(0f, 1f, progress);
+
+		/// <summary> 0 에서 attack 비율까지 올라가고 끝까지 내려오는 종 모양 </summary>
+		public static float Bell(float progress, float attack)
+		{
+			if (progress < attack)
+				return attack <= 0f ? 1f : progress / attack;
+			return 1f - Mathf.Clamp01((progress - attack) / Mathf.Max(0.0001f, 1f - attack));
+		}
+
+		/// <summary> 구간 [from, to] 안 위치 0~1 </summary>
+		public static float Span(float value, float from, float to) => Mathf.Clamp01((value - from) / Mathf.Max(0.0001f, to - from));
+
+		// ---- 재질과 판 ----
+		public Material Additive(Texture texture, Color color) => NewMaterial(texture, true, color);
+
+		public Material Alpha(Texture texture, Color color) => NewMaterial(texture, false, color);
 
 		private Material NewMaterial(Texture texture, bool additive, Color color)
 		{
@@ -140,175 +189,125 @@ namespace WitchMendokusai
 			return material;
 		}
 
-		private Material NewShockwaveMaterial()
+		public Material Shockwave()
 		{
-			if (fx.ShockwaveShader == null)
-				return null;
 			Material material = new(fx.ShockwaveShader) { name = "UltimateFx_Shockwave" };
 			materials.Add(material);
 			return material;
 		}
 
-		// ---- 준비 ----
-		private void Setup()
+		/// <summary> 바닥에 눕힌 판. order 가 클수록 나중에 그림. 인물 (큐 3000) 보다 먼저 그려 인물이 위에 옴 </summary>
+		public GameObject Plate(string name, Material material, Vector3 position, float size, int order)
 		{
-			mainCamera = Camera.main;
-			center = context.Position;
-			center.y = UltimateFxStage.GroundHeight(center);
-			root = new GameObject("UltimateFxRun");
-			root.transform.position = center;
-			layer = new UltimateScreenLayer(fx.SpriteShader, 2400);
-
-			// 충격파 굴절은 카메라의 Opaque Texture 를 읽음. 끝나면 원래대로
-			if (mainCamera != null)
-			{
-				cameraData = mainCamera.GetUniversalAdditionalCameraData();
-				previousColorOption = cameraData.requiresColorOption;
-				cameraData.requiresColorOption = CameraOverrideOption.On;
-			}
-
-			if (fx.SpawnTemporaryFoliage)
-				SpawnFoliage();
-
-			BuildTelegraph();
-			BuildCharge();
+			GameObject plate = UltimateFxStage.CreateMeshObject(name, root.transform, UltimateFxStage.GroundQuad, material);
+			material.renderQueue = 2940 + order;
+			plate.transform.position = position;
+			plate.transform.localScale = new Vector3(size, 1f, size);
+			return plate;
 		}
 
-		// ---- 예고 ----
-		private void BuildTelegraph()
+		/// <summary>
+		/// 카메라를 향한 판. upright 면 발 중심 원점으로 세워 좌우만 돌림 (기둥, 검), 아니면 가운데 원점으로 카메라 면과 나란히 (달, 카드, 블랙홀)
+		/// - overWorld 면 깊이 검사 없이 배경과 바닥 위에, 인물 (큐 3000) 보다는 먼저 그림 (하늘의 큰 물체가 인물을 가리지 않게)
+		/// </summary>
+		public GameObject Billboard(string name, Material material, Vector3 position, float width, float height, bool upright, bool overWorld, int order)
 		{
-			if (fx.Telegraph != null)
-			{
-				stopTelegraph = fx.Telegraph.Play(new CombatFxContext
-				{
-					Position = center,
-					Direction = context.Direction,
-					Radius = fx.ImpactRadius,
-					Seconds = fx.TelegraphSeconds + fx.ChargeSeconds * 0.92f,
-					Title = context.Title,
-					Subtitle = context.Subtitle,
-				});
-			}
-
-			// 지면 룬 마법진. 예고 동안 켜지며 천천히 돌고 임팩트에서 번쩍이고 사라짐
-			Material runeMaterial = NewMaterial(UltimateFxTextures.Rune, true, Color.clear);
-			GameObject rune = UltimateFxStage.CreateMeshObject("Rune", root.transform, UltimateFxStage.GroundQuad, runeMaterial);
-			runeMaterial.renderQueue = 2938;
-			rune.transform.position = center + Vector3.up * 0.05f;
-			rune.transform.localScale = new Vector3(fx.ImpactRadius * 2.15f, 1f, fx.ImpactRadius * 2.15f);
-			AddTrack(true, 0f, ImpactTime + 0.5f, t =>
-			{
-				float appear = Mathf.Clamp01(realTime / Mathf.Max(0.01f, fx.TelegraphSeconds));
-				float charge = Mathf.Clamp01((realTime - fx.TelegraphSeconds) / fx.ChargeSeconds);
-				float fade = realTime > ImpactTime ? 1f - Mathf.Clamp01((realTime - ImpactTime) / 0.5f) : 1f;
-				float brightness = Mathf.Lerp(0.45f, 1.5f, charge) * EaseOut(appear) * fade;
-				Color color = Color.Lerp(Colors.Mid, Colors.Core, charge);
-				color.a = 0.9f;
-				runeMaterial.SetColor("_Color", color * brightness);
-				rune.transform.rotation = Quaternion.Euler(0f, realTime * 14f * (1f + charge * 3f), 0f);
-			}, () => UnityEngine.Object.Destroy(rune));
+			Mesh mesh = upright ? UltimateFxStage.StandingQuad : UltimateFxStage.CenterQuad;
+			GameObject board = UltimateFxStage.CreateMeshObject(name, root.transform, mesh, material, order);
+			if (overWorld)
+				material.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.Always);
+			material.renderQueue = overWorld ? 2960 + order : 3000 + order;
+			board.transform.position = position;
+			board.transform.localScale = new Vector3(width, height, 1f);
+			UltimateBillboard billboard = board.AddComponent<UltimateBillboard>();
+			billboard.Upright = upright;
+			return board;
 		}
 
-		// ---- 충전 ----
-		private void BuildCharge()
+		public ParticleSystem Particles(string name, Material material, int maxParticles, float gravity, bool stretched = false)
+			=> UltimateFxStage.CreateParticles(name, root.transform, material, maxParticles, gravity, stretched);
+
+		public Light PointLight(string name, Color color, float range)
 		{
-			float start = fx.TelegraphSeconds;
-			float duration = fx.ChargeSeconds;
+			GameObject lightObject = new(name);
+			lightObject.transform.SetParent(root.transform, false);
+			Light light = lightObject.AddComponent<Light>();
+			light.type = LightType.Point;
+			light.color = color;
+			light.range = range;
+			light.intensity = 0f;
+			light.shadows = LightShadows.None;
+			return light;
+		}
 
-			// 화면: 시네마 바, 가장자리 어둠, 마지막에 하얗게 차오름
-			AddTrack(true, start, duration, t =>
-			{
-				layer.SetBars(EaseOut(Mathf.Clamp01(t * 3f)), fx.BarRatio);
-				layer.SetVignette(fx.ChargeDarken * EaseOut(t), Colors.Shade);
-				float build = Mathf.Pow(t, 4f);
-				layer.SetWash(build * 0.55f, Colors.Mid);
-			});
+		public void Destroy(UnityEngine.Object target)
+		{
+			if (target != null)
+				UnityEngine.Object.Destroy(target);
+		}
 
-			// 카메라 줌인: 임팩트까지 머묾
-			AddTrack(true, start, 0f, _ =>
-			{
-				if (CameraManager.TryGetExistingInstance(out CameraManager cameraManager))
-					releaseChargeZoom = cameraManager.PunchZoom(fx.ChargeZoomScale, fx.ChargeFieldOfView, fx.ChargeSeconds * 0.9f, float.PositiveInfinity, 0.25f, AnimationCurve.EaseInOut(0f, 0f, 1f, 1f));
-			});
+		// ---- 화면 ----
 
-			// 떨림: 시간이 갈수록 커짐
-			float nextTremor = start;
-			AddTrack(true, start, duration, t =>
+		/// <summary> 섬광. 배경은 상한까지 섬광 색으로, 인물 위 화면 층은 더 낮은 상한으로 (인물이 묻히지 않게) </summary>
+		public void Flash(float amount, Color color)
+		{
+			float clamped = Mathf.Clamp01(amount);
+			Grade.SetFlashColor(color);
+			Grade.Flash = clamped * fx.BackgroundFlashCap;
+			Layer.SetFlash(clamped * fx.OverlayFlashCap, color);
+		}
+
+		// ---- 카메라 ----
+
+		/// <summary> 카메라 거리 배율과 시야각 변화. 돌려받은 함수를 부르면 복귀 시작, 진행이 끝나면 자동 복귀 </summary>
+		public Action Zoom(float distanceScale, float fieldOfView, float inSeconds, float holdSeconds, float outSeconds)
+		{
+			if (CameraManager.TryGetExistingInstance(out CameraManager cameraManager) == false)
+				return delegate { };
+			Action release = cameraManager.PunchZoom(distanceScale, fieldOfView, inSeconds, holdSeconds, outSeconds, AnimationCurve.EaseInOut(0f, 0f, 1f, 1f));
+			bool released = false;
+			Action once = () =>
 			{
-				if (realTime < nextTremor)
+				if (released)
 					return;
-				nextTremor = realTime + 0.09f;
-				if (CameraManager.TryGetExistingInstance(out CameraManager cameraManager))
-					cameraManager.GenerateCameraImpulse(Mathf.Lerp(0.04f, 1f, t * t) * fx.ChargeTremor);
-			});
-
-			BuildChargeParticles(start, duration);
+				released = true;
+				release?.Invoke();
+			};
+			releases.Add(once);
+			return once;
 		}
 
-		// ---- 임팩트: 화면과 카메라 ----
-		private void Impact()
+		public void Shake(float strength)
 		{
-			impacted = true;
-			releaseChargeZoom?.Invoke();
-			releaseChargeZoom = null;
-			float impactReal = realTime;
+			if (CameraManager.TryGetExistingInstance(out CameraManager cameraManager))
+				cameraManager.GenerateCameraImpulse(strength);
+		}
 
-			if (TimeManager.TryGetExistingInstance(out TimeManager timeManager))
-				timeManager.HitStop(fx.HitStopSeconds, fx.HitStopScale);
-
-			// 섬광: 한 프레임에 정점, 잠깐 유지, 감쇠. 정점 뒤 반감 약 0.2초
-			AddTrack(true, impactReal, fx.FlashHoldSeconds + fx.FlashDecaySeconds, t =>
+		/// <summary> 줄어드는 연속 흔들림 </summary>
+		public void ShakeSeries(float start, int count, float interval, float strength, float decay)
+		{
+			float amplitude = strength;
+			for (int i = 0; i < count; i++)
 			{
-				float elapsed = t * (fx.FlashHoldSeconds + fx.FlashDecaySeconds);
-				float amount = elapsed < fx.FlashHoldSeconds ? 1f : Mathf.Pow(1f - (elapsed - fx.FlashHoldSeconds) / fx.FlashDecaySeconds, 2.4f);
-				layer.SetFlash(amount * fx.FlashPeak, Color.Lerp(Color.white, Colors.Core, 0.2f));
-			}, () => layer.SetFlash(0f, Color.white));
-
-			// 색 번짐과 가장자리 어둠: 빠르게 들어와 오래 머물고 서서히 빠짐
-			AddTrack(true, impactReal, fx.WashSeconds, t =>
-			{
-				float envelope = t < 0.06f ? t / 0.06f : Mathf.Pow(1f - (t - 0.06f) / 0.94f, 1.6f);
-				layer.SetWash(envelope * fx.WashPeak, Color.Lerp(Colors.Mid, Colors.Core, 0.45f));
-				layer.SetVignette(Mathf.Lerp(fx.ImpactVignette, 0f, EaseOut(t)) * (1f - Mathf.Clamp01(t * 0.2f)), Colors.Shade);
-			}, () =>
-			{
-				layer.SetWash(0f, Colors.Mid);
-				layer.SetVignette(0f, Colors.Shade);
-			});
-
-			// 시네마 바: 임팩트 뒤 잠시 있다가 걷힘
-			AddTrack(true, impactReal + 0.5f, 0.55f, t => layer.SetBars(1f - EaseIn(t), fx.BarRatio), () => layer.SetBars(0f));
-
-			// 방사 속도선: 짧게 번쩍이며 천천히 돎
-			AddTrack(true, impactReal, fx.StreakSeconds + fx.HitStopSeconds, t =>
-				layer.SetStreaks(Mathf.Pow(1f - t, 1.6f) * fx.StreakAlpha, Color.Lerp(Color.white, Colors.Core, 0.5f), t * 40f, Mathf.Lerp(1.05f, 2.3f, EaseOut(t))),
-				() => layer.SetStreaks(0f, Color.white, 0f));
-
-			// 줌 킥: 히트스톱이 끝난 뒤 한 번 밀려났다 돌아옴
-			AddTrack(true, impactReal + fx.HitStopSeconds * 0.5f, 0f, _ =>
-			{
-				if (CameraManager.TryGetExistingInstance(out CameraManager cameraManager))
-				{
-					Action release = cameraManager.PunchZoom(fx.KickDistanceScale, fx.KickFieldOfView, 0.05f, 0.1f, 0.7f, AnimationCurve.EaseInOut(0f, 0f, 1f, 1f));
-					AddTrack(true, realTime + 0.16f, 0f, __ => release?.Invoke());
-				}
-			});
-
-			// 흔들림: 감쇠하는 연속 충격
-			float amplitude = fx.ShakeAmplitude;
-			for (int i = 0; i < fx.ShakeCount; i++)
-			{
-				float strength = amplitude;
-				AddTrack(true, impactReal + fx.HitStopSeconds * 0.4f + i * fx.ShakeInterval, 0f, _ =>
-				{
-					if (CameraManager.TryGetExistingInstance(out CameraManager cameraManager))
-						cameraManager.GenerateCameraImpulse(strength);
-				});
-				amplitude *= fx.ShakeDecay;
+				float current = amplitude;
+				At(start + i * interval, () => Shake(current));
+				amplitude *= decay;
 			}
+		}
 
-			BuildImpactWorld();
-			BuildAftermath();
+		public void HitStop(float seconds, float scale)
+		{
+			if (TimeManager.TryGetExistingInstance(out TimeManager timeManager))
+				timeManager.HitStop(seconds, scale);
+		}
+
+		/// <summary> 월드 위치의 화면 좌표 (0~1). 카메라가 없으면 가운데 </summary>
+		public Vector2 Viewport(Vector3 position)
+		{
+			if (MainCamera == null)
+				return new Vector2(0.5f, 0.5f);
+			Vector3 viewport = MainCamera.WorldToViewportPoint(position);
+			return new Vector2(viewport.x, viewport.y);
 		}
 	}
 }
