@@ -1,0 +1,97 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3837cf930a512354c9250fe7fe969e4b, type: 3}
+  m_Name: Ultimate_1_Thunder
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.UltimateFx
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle: 
+  spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
+  shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
+  telegraph: {fileID: 11400000, guid: 7d0f0ab6735b4a2ab8fb739bbb4cd564, type: 2}
+  palette:
+    Core: {r: 1.5, g: 1.55, b: 1.8, a: 1}
+    Mid: {r: 1.6, g: 1.3, b: 0.3, a: 1}
+    Deep: {r: 0.75, g: 0.45, b: 0.06, a: 1}
+    Shade: {r: 0.02, g: 0.02, b: 0.07, a: 1}
+    Dust: {r: 0.5, g: 0.46, b: 0.42, a: 0.8}
+    Rock: {r: 0.6, g: 0.56, b: 0.52, a: 1}
+  telegraphSeconds: 0.55
+  chargeSeconds: 1.15
+  aftermathSeconds: 7.5
+  impactRadius: 7
+  chargeDarken: 0.5
+  barRatio: 0.12
+  chargeZoomScale: 0.78
+  chargeFieldOfView: -7
+  chargeSparksPerSecond: 120
+  chargeSparkRadius: 9
+  chargeTremor: 0.3
+  hitStopSeconds: 0.14
+  hitStopScale: 0.02
+  flashPeak: 1
+  flashHoldSeconds: 0.07
+  flashDecaySeconds: 0.55
+  washPeak: 0.34
+  washSeconds: 1.8
+  impactVignette: 0.6
+  shakeAmplitude: 1.6
+  shakeCount: 8
+  shakeInterval: 0.06
+  shakeDecay: 0.78
+  kickDistanceScale: 1.16
+  kickFieldOfView: 8
+  streakSeconds: 0.5
+  streakAlpha: 0.85
+  ringCount: 3
+  ringDelay: 0.12
+  ringSeconds: 0.95
+  ringReach: 1.5
+  distortion: 0.06
+  ringWidth: 0.16
+  crackSeed: 7
+  crackRevealSeconds: 0.22
+  crackHeatSeconds: 4
+  dustCount: 150
+  debrisCount: 52
+  sparkCount: 140
+  debrisSpeed: 15
+  pillarHeight: 22
+  pillarWidth: 4.2
+  pillarSeconds: 0.85
+  lightIntensity: 40
+  lightRange: 24
+  lightSeconds: 2.2
+  foliageBend: 62
+  foliageDecaySeconds: 1.1
+  foliageHertz: 1.9
+  spawnTemporaryFoliage: 1
+  foliage:
+  - Prefab: {fileID: 6107932506994862601, guid: a26a53e463177194db6585765f564431, type: 3}
+    Count: 150
+    Flexibility: 1
+    ScaleRange: {x: 1, y: 1.7}
+    MinDistance: 1.6
+  - Prefab: {fileID: 5350839332914572334, guid: 3540440509c30ba49b2125f242729c46, type: 3}
+    Count: 14
+    Flexibility: 0.7
+    ScaleRange: {x: 0.8, y: 1.3}
+    MinDistance: 3.5
+  - Prefab: {fileID: 2871132453943284833, guid: c0c27574d0d91ea44894908f417f36d4, type: 3}
+    Count: 5
+    Flexibility: 0.22
+    ScaleRange: {x: 0.45, y: 0.7}
+    MinDistance: 6.5
+  emberCount: 70
+  smokeCount: 26

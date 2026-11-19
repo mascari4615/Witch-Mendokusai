@@ -12,7 +12,7 @@ namespace WitchMendokusai
 	public class FxCommand : IDevCommand
 	{
 		public string Name => "fx";
-		public string Usage => "fx [nameFragment]";
+		public string Usage => "fx [nameFragment] | fx ultimate [nameFragment]";
 
 		public void Execute(DevCommandContext context, string[] args)
 		{
@@ -22,6 +22,12 @@ namespace WitchMendokusai
 				context.LogInfo($"전투 연출 부품 {all.Count}개:");
 				foreach (CombatFx fx in all)
 					context.LogInfo("  " + fx.name);
+				return;
+			}
+
+			if (string.Equals(args[0], "ultimate", StringComparison.OrdinalIgnoreCase))
+			{
+				PlayUltimate(context, all, args.Length > 1 ? args[1] : null);
 				return;
 			}
 
@@ -45,6 +51,28 @@ namespace WitchMendokusai
 
 			matches[0].PlayPreview();
 			context.LogSuccess($"{matches[0].name} 재생");
+		}
+
+		// fx ultimate [이름 일부]: 궁극기 연출 (UltimateFx) 을 주인공 자리에서 처음부터 끝까지 재생. 이름이 없으면 첫 번째
+		private static void PlayUltimate(DevCommandContext context, List<CombatFx> all, string fragment)
+		{
+			List<UltimateFx> ultimates = all.OfType<UltimateFx>()
+				.Where(fx => string.IsNullOrEmpty(fragment) || fx.name.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0)
+				.ToList();
+			if (ultimates.Count == 0)
+			{
+				context.LogError($"궁극기 연출 부품 없음: '{fragment}'. 메뉴 WM/CombatFx/Build Ultimate Presets 로 만들기");
+				return;
+			}
+			if (ultimates.Count > 1 && string.IsNullOrEmpty(fragment) == false)
+			{
+				context.LogWarn($"여러 후보 ({ultimates.Count}):");
+				foreach (UltimateFx fx in ultimates)
+					context.LogWarn("  " + fx.name);
+				return;
+			}
+			ultimates[0].PlayPreview();
+			context.LogSuccess($"{ultimates[0].name} 재생 (예고, 충전, 임팩트, 잔여 약 {ultimates[0].TelegraphSeconds + ultimates[0].ChargeSeconds + ultimates[0].AftermathSeconds:0.0}초)");
 		}
 
 		public IEnumerable<string> Suggest(string[] partial)
