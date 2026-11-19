@@ -137,12 +137,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c6cbeef1a9a0d54ea11c617307ec8ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.FSMSlimeKing
-  attackRange: 15
   isSpriteLookLeft: 0
-  dashSpeed: 15
-  dashDuration: 0.5
-  dashPreDelay: 0.8
-  dashPostDelay: 0.5
-  dashTelegraph: {fileID: 11400000, guid: 46b2e5f4c13145e29c3f172dad86148e, type: 2}
-  dashTelegraphWidth: 2.4
-  waitDuration: 2
+  attackConfig: {fileID: 11400000, guid: 325bde587b630aa44be8662f5c969ecc, type: 2}

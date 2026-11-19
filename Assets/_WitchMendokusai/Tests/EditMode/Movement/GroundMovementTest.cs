@@ -19,6 +19,8 @@ namespace WitchMendokusai.Tests
 			System.Reflection.FieldInfo impulseField = typeof(UnitMovement).GetField("externalImpulse",
 				System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 			impulseField.SetValue(movement, new ExternalImpulseContributor());
+			InputContributor input = new(unit, 2f) { MinimumHorizontalSpeed = 3f };
+			typeof(UnitMovement).GetField("inputContributor", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).SetValue(movement, input);
 			movement.ApplyImpulse(Vector3.right * 10f, impulseSeconds);
 			movement.Pause(pauseSeconds);
 			Assert.That(movement.IsExternallyDriven, Is.True);
@@ -31,6 +33,7 @@ namespace WitchMendokusai.Tests
 
 			Assert.That(movement.IsExternallyDriven, Is.False);
 			Assert.That(movement.IsPaused, Is.False);
+			Assert.That(input.MinimumHorizontalSpeed, Is.Zero, "Pooled movement must not retain an attack state's speed floor");
 			movement.ApplyImpulse(Vector3.left * 5f, impulseSeconds);
 			movement.Pause(pauseSeconds);
 			Assert.That(movement.IsExternallyDriven, Is.True, "New impulse must still work after reuse");
@@ -119,10 +122,40 @@ namespace WitchMendokusai.Tests
 			Assert.That(context.Velocity.z, Is.EqualTo(3f).Within(EPSILON));
 		}
 
+		[TestCase(20, 0, 3f)]
+		[TestCase(50, 0, 5f)]
+		[TestCase(20, 20, 4f)]
+		public void TemporaryMinimumSpeed_PreservesNaturalAndBonusStats(int natural, int bonus, float expected)
+		{
+			unit.UnitStat[UnitStatType.MOVEMENT_SPEED] = natural;
+			unit.UnitStat[UnitStatType.MOVEMENT_SPEED_BONUS] = bonus;
+			InputContributor input = new(unit, 2f) { MinimumHorizontalSpeed = 3f };
+			MotorContext context = new() { MoveDirection = Vector3.forward };
+			input.Contribute(context, STEP);
+			Assert.That(context.Velocity.z, Is.EqualTo(expected).Within(EPSILON));
+			Assert.That(unit.UnitStat[UnitStatType.MOVEMENT_SPEED], Is.EqualTo(natural));
+			Assert.That(unit.UnitStat[UnitStatType.MOVEMENT_SPEED_BONUS], Is.EqualTo(bonus));
+		}
+
+		[Test]
+		public void StatReinitialization_DoesNotSubtractAnExpiredApproachBonus()
+		{
+			InputContributor input = new(unit, 2f) { MinimumHorizontalSpeed = 3f };
+			MotorContext context = new() { MoveDirection = Vector3.forward };
+			input.Contribute(context, STEP);
+			UnitStat replacement = new();
+			replacement[UnitStatType.MOVEMENT_SPEED] = 20;
+			unit.UnitStat.Set(replacement);
+			input.MinimumHorizontalSpeed = 0f;
+			input.Contribute(context, STEP);
+			Assert.That(context.Velocity.z, Is.EqualTo(2f).Within(EPSILON));
+			Assert.That(unit.UnitStat[UnitStatType.MOVEMENT_SPEED_BONUS], Is.Zero);
+		}
+
 		[Test]
 		public void ExternalImpulse_IsNotOverwrittenBySteering()
 		{
-			InputContributor input = new(unit, 2f, Tuning());
+			InputContributor input = new(unit, 2f, Tuning()) { MinimumHorizontalSpeed = 100f };
 			MotorContext context = new() { IsExternallyDriven = true, MoveDirection = Vector3.back, Velocity = Vector3.forward * 9f };
 			input.Contribute(context, STEP);
 			Assert.That(context.Velocity.z, Is.EqualTo(9f));

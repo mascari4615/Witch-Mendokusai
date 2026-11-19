@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b999e8918db4266b9647b7978eee573, type: 3}
+  m_Name: Telegraph_5_BossCircle
+  m_EditorClassIdentifier:
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle:
+  material: {fileID: 2100000, guid: 187f61d0b77d4ce2b19ad9b99bad5da6, type: 2}
+  liftHeight: 0.03
+  defaultSeconds: 1
+  fillCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  appearSeconds: 0.16
+  flashSeconds: 0.28
+  baseColor: {r: 1, g: 0.42, b: 0.3, a: 0.3}
+  fillColor: {r: 1, g: 0.45, b: 0.3, a: 0.55}
+  frontColor: {r: 1, g: 0.85, b: 0.62, a: 1}
+  edgeColor: {r: 1, g: 0.6, b: 0.35, a: 1}
+  coreColor: {r: 1, g: 0.97, b: 0.9, a: 1}
+  patternColor: {r: 1, g: 0.78, b: 0.6, a: 0.5}
+  sparkColor: {r: 1, g: 0.85, b: 0.6, a: 1}
+  flashColor: {r: 1, g: 0.9, b: 0.75, a: 1}
+  membraneCenter: 0.75
+  fillDepthShade: 0.8
+  edgeWidth: 0.24
+  coreWidth: 0.08
+  coreIntensity: 1.6
+  glowWidth: 0.5
+  glowStrength: 1
+  glowInner: 0.35
+  glowOpacity: 0.4
+  pulseAmount: 0.2
+  pulseSpeed: 7
+  frontWidth: 0.04
+  frontGlowWidth: 0.5
+  frontGlowAdd: 0.35
+  patternFilledBoost: 1.6
+  patternGlow: 0.25
+  sparkSpacing: 0.55
+  sparkSize: 0.06
+  sparkJitter: 0.04
+  sparkSpeed: 0.6
+  sparkTwinkleSpeed: 5
+  sparkStrength: 1.4
+  addStrength: 1
+  appearStartScale: 0.82
+  shockDistance: 0.9
+  shockWidth: 0.1
+  flashEdgeBoost: 2.5
+  flashStrength: 0.3
+  innerRingInset: 0.32
+  innerRingWidth: 0.016
+  patternLineWidth: 0.016
+  runeCount: 32
+  runeLength: 0.16
+  runeLengthMin: 0.4
+  runeCrossChance: 0.35
+  runeCrossWidth: 0.07
+  starPoints: 6
+  starStep: 2
+  starRadius: 0.72
+  patternSpeed: 0.12

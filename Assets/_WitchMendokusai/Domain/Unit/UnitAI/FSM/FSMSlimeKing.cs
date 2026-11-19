@@ -1,35 +1,38 @@
-using System;
 using UnityEngine;
 using VContainer;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
 {
+	/// <summary>
+	/// 슬라임 왕. 사거리 밖이면 추적, 안이면 패턴 하나 -> 대기 -> 거리 다시 판단
+	/// - 패턴: 투사체, 돌진, 슬라임 발사, 빨아들이기. 처음 하나만 무작위, 이후 SlimeKingAttackConfig.PatternOrder 순서
+	/// - 돌진은 준비 때 방향 고정. 도주 계산이 안 맞으면 (너무 멂) 돌진 대신 더 다가감
+	/// - 개발 창 boss 명령이 ForcePattern 으로 다음 패턴을 지정
+	/// </summary>
 	public class FSMSlimeKing : FSM<FSMStateCommon>
 	{
-		[SerializeField] private float attackRange = 15f;
 		[SerializeField] private bool isSpriteLookLeft = false;
-
-		[Header("Dash Attack")]
-		[SerializeField] private float dashSpeed = 15f;
-		[SerializeField] private float dashDuration = 0.5f;
-		[SerializeField, Tooltip("돌진 전 준비 시간 (초). 이 동안 멈춰서 선형 예고가 차오름")] private float dashPreDelay = 0.8f;
-		[SerializeField, Tooltip("돌진 후 숨 고르는 시간 (초)")] private float dashPostDelay = 0.5f;
-		[SerializeField, Tooltip("돌진 전 바닥 선형 예고 부품. 비우면 예고 없음")] private CombatFx dashTelegraph;
-		[SerializeField, Tooltip("돌진 예고의 폭 (월드 단위). 길이는 dashSpeed x dashDuration")] private float dashTelegraphWidth = 2.4f;
-
-		[Header("Wait")]
-		[SerializeField] private float waitDuration = 2f;
-
-		// 공격 패턴 정의
-		private enum AttackPattern
-		{
-			Projectile, Dash,
-		}
-		private AttackPattern _currentPattern;
+		[SerializeField, Tooltip("공격 수치 한 벌")] private SlimeKingAttackConfig attackConfig;
 
 		private PlayerProvider playerProvider;
+		private BT_Skill projectileBehavior;
 		private BT_Dash dashBehavior;
+		private SlimeKingLaunchPattern launchPattern;
+		private SlimeKingPullPattern pullPattern;
+		private SlimeKingPattern currentPattern;
+		private int patternIndex;
+		private bool hasPreviousPattern;
+		// 첫 패턴 무작위 칸. 엿보기와 고르기가 같은 값을 보게 한 번만 굴림 (-1 이면 아직)
+		private int firstIndex = -1;
+		private bool hasForcedPattern;
+		private bool forcedLoop;
+		private SlimeKingPattern forcedPattern;
+		private float plannedDashDuration;
+		private float plannedDashPreDelay;
+
+		public SlimeKingAttackConfig Config => attackConfig;
+		public SlimeKingPattern CurrentPattern => currentPattern;
 
 		[Inject]
 		public void Construct(PlayerProvider playerProvider)
@@ -37,86 +40,262 @@ namespace WitchMendokusai
 			this.playerProvider = playerProvider;
 		}
 
-		// 풀로 돌아가거나 꺼져서 돌진 준비가 끊기면 예고도 치움
-		private void OnDisable() => dashBehavior?.CancelTelegraph();
-
 		protected override FSMStateCommon DefaultState => FSMStateCommon.Idle;
+
+		/// <summary> 다음 공격을 이 패턴으로. loop 면 해제 전까지 계속 이 패턴. 사거리와 무관하게 바로 공격 상태 </summary>
+		public void ForcePattern(SlimeKingPattern pattern, bool loop)
+		{
+			forcedPattern = pattern;
+			hasForcedPattern = true;
+			forcedLoop = loop;
+			ChangeState(FSMStateCommon.Attack);
+		}
+
+		public void ClearForcedPattern()
+		{
+			hasForcedPattern = false;
+			forcedLoop = false;
+		}
 
 		protected override void InitFSMEvent()
 		{
-			// BT 노드 인스턴스 생성
-			BT_Idle _idle = new(UnitObject, isSpriteLookLeft: isSpriteLookLeft);
-			BT_MoveToPlayer _moveToPlayer = new(UnitObject, playerProvider, isSpriteLookLeft);
-			BT_Skill _projectileAttack = new(UnitObject, playerProvider, 0, attackRange, () => ChangeState(FSMStateCommon.Wait));
-			BT_Dash _dash = dashBehavior = new(UnitObject, playerProvider, attackRange, dashSpeed: dashSpeed, dashDuration: dashDuration, onDashEnd: () => ChangeState(FSMStateCommon.Wait), dashPreDelay: dashPreDelay, dashPostDelay: dashPostDelay, telegraph: dashTelegraph, telegraphWidth: dashTelegraphWidth);
+			BT_MoveToPlayer moveToPlayer = new(UnitObject, playerProvider, isSpriteLookLeft);
+			launchPattern = new SlimeKingLaunchPattern(UnitObject, playerProvider, attackConfig);
+			pullPattern = new SlimeKingPullPattern(UnitObject, playerProvider, attackConfig);
 
-			// --- 상태별 이벤트 설정 ---
+			SetStateEvent(FSMStateCommon.Idle, StateEvent.Enter, CancelPatterns);
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
 			{
-				_idle.UpdateBT();
+				if (playerProvider.Current == null)
+				{
+					RemoveApproachSpeed();
+					UnitObject.UnitMovement.SetMoveDirection(Vector3.zero);
+					return;
+				}
+				UpdateApproachSpeed();
+				moveToPlayer.UpdateBT();
 				CanSeePlayer();
 			});
 
-			SetStateEvent(FSMStateCommon.Attack, StateEvent.Enter, ChooseNextAttackPattern);
-			SetStateEvent(FSMStateCommon.Attack, StateEvent.Update, () =>
+			SetStateEvent(FSMStateCommon.Attack, StateEvent.Enter, EnterAttack);
+			SetStateEvent(FSMStateCommon.Attack, StateEvent.Update, UpdateAttack);
+			SetStateEvent(FSMStateCommon.Attack, StateEvent.Exit, () =>
 			{
-				BTRunner currentBT = GetCurrentBehaviorTree();
-
-				// 현재 선택된 패턴 실행
-				currentBT.UpdateBT();
-
-				if (currentBT.CanChangeState == false)
-				{
-					return;
-				}
+				// 돌진 도중 끊기면 밀림도 같이 멈춤
+				if (currentPattern == SlimeKingPattern.Dash)
+					UnitObject.UnitMovement.CancelImpulse();
+				CancelPatterns();
 			});
-			SetStateEvent(FSMStateCommon.Attack, StateEvent.Exit, _dash.CancelTelegraph);
-			BTRunner GetCurrentBehaviorTree()
-			{
-				return _currentPattern switch
-				{
-					AttackPattern.Projectile => _projectileAttack,
-					AttackPattern.Dash => _dash,
-					_ => throw new ArgumentOutOfRangeException()
-				};
-			}
 
 			float timer = 0f;
-			SetStateEvent(FSMStateCommon.Wait, StateEvent.Enter, () => timer = 0f);
+			SetStateEvent(FSMStateCommon.Wait, StateEvent.Enter, () =>
+			{
+				timer = 0f;
+				RemoveApproachSpeed();
+				UnitObject.UnitMovement.SetMoveDirection(Vector3.zero);
+			});
 			SetStateEvent(FSMStateCommon.Wait, StateEvent.Update, () =>
 			{
 				timer += BTRunner.TICK;
-				if (timer >= waitDuration)
+				if (timer < attackConfig.WaitDuration)
+					return;
+				timer = 0f;
+				if (hasForcedPattern)
 				{
-					timer = 0f;
 					ChangeState(FSMStateCommon.Attack);
+					return;
 				}
+				if (CanSeePlayer() == false && IsCurState(FSMStateCommon.Wait))
+					ChangeState(FSMStateCommon.Idle);
 			});
 			SetStateEvent(FSMStateCommon.Wait, StateEvent.Exit, () => timer = 0f);
 		}
 
-		/// <summary> 다음 공격 패턴을 랜덤하게 선택하고 타이머를 리셋합니다. </summary>
-		private void ChooseNextAttackPattern()
+		private void EnterAttack()
 		{
-			System.Array patterns = Enum.GetValues(typeof(AttackPattern));
-			_currentPattern = (AttackPattern)patterns.GetValue(Random.Range(0, patterns.Length));
+			RemoveApproachSpeed();
+			int previousIndex = patternIndex;
+			bool previousExists = hasPreviousPattern;
+			bool forced = ChooseNextPattern();
+			Vector3 target = playerProvider.Current != null ? playerProvider.Current.transform.position : transform.position;
+
+			if (currentPattern == SlimeKingPattern.Dash && TryPlanDash(target) == false)
+			{
+				if (forced)
+				{
+					// 지정 돌진은 멀어도 실행. 시간과 거리 상한까지만
+					plannedDashDuration = Mathf.Min(plannedDashDuration, attackConfig.MaximumDashDuration, attackConfig.MaximumDashDistance / attackConfig.DashSpeed);
+				}
+				else
+				{
+					// 너무 멀어 도주 보장이 안 됨. 순서를 되돌리고 더 다가감. 첫 패턴이면 그 칸을 유지 (다시 굴리면 공격과 추적을 오감)
+					if (previousExists == false)
+						firstIndex = patternIndex;
+					patternIndex = previousIndex;
+					hasPreviousPattern = previousExists;
+					ChangeState(FSMStateCommon.Idle);
+					return;
+				}
+			}
+
+			switch (currentPattern)
+			{
+				case SlimeKingPattern.Projectile:
+					projectileBehavior = new BT_Skill(UnitObject, playerProvider, 0, attackConfig.AttackRange, GoWait);
+					break;
+				case SlimeKingPattern.Dash:
+					dashBehavior = new BT_Dash(UnitObject, playerProvider, attackConfig.AttackRange, attackConfig.DashSpeed, plannedDashDuration,
+						onDashEnd: GoWait,
+						dashPreDelay: plannedDashPreDelay,
+						dashPostDelay: attackConfig.DashPostDelay,
+						telegraph: attackConfig.DashTelegraph,
+						telegraphWidth: attackConfig.DashTelegraphWidth);
+					break;
+				case SlimeKingPattern.Launch:
+					launchPattern.Begin();
+					break;
+				case SlimeKingPattern.Pull:
+					pullPattern.Begin();
+					break;
+			}
 		}
 
-		private void CanSeePlayer()
+		private void UpdateAttack()
 		{
-			if (playerProvider.Current == null) return;
+			if (playerProvider.Current == null)
+			{
+				UnitObject.UnitMovement.CancelImpulse();
+				UnitObject.UnitMovement.SetMoveDirection(Vector3.zero);
+				ChangeState(FSMStateCommon.Idle);
+				return;
+			}
+
+			switch (currentPattern)
+			{
+				case SlimeKingPattern.Projectile:
+					UpdateApproachSpeed();
+					projectileBehavior.UpdateBT();
+					break;
+				case SlimeKingPattern.Dash:
+					dashBehavior.UpdateBT();
+					break;
+				case SlimeKingPattern.Launch:
+					if (launchPattern.Tick(BTRunner.TICK))
+						GoWait();
+					break;
+				case SlimeKingPattern.Pull:
+					if (pullPattern.Tick(BTRunner.TICK))
+						GoWait();
+					break;
+			}
+		}
+
+		private void GoWait() => ChangeState(FSMStateCommon.Wait);
+
+		/// <summary> 다음 패턴 고르기. 지정 패턴이면 true </summary>
+		private bool ChooseNextPattern()
+		{
+			if (hasForcedPattern)
+			{
+				currentPattern = forcedPattern;
+				if (forcedLoop == false)
+					hasForcedPattern = false;
+				return true;
+			}
+
+			int count = SlimeKingPatternMath.OrderCount(attackConfig.PatternOrder);
+			patternIndex = hasPreviousPattern ? SlimeKingPatternMath.NextIndex(patternIndex, count) : RollFirstIndex(count);
+			hasPreviousPattern = true;
+			firstIndex = -1;
+			currentPattern = SlimeKingPatternMath.PatternAt(attackConfig.PatternOrder, patternIndex);
+			return false;
+		}
+
+		private SlimeKingPattern PeekNextPattern()
+		{
+			if (hasForcedPattern)
+				return forcedPattern;
+			int count = SlimeKingPatternMath.OrderCount(attackConfig.PatternOrder);
+			if (hasPreviousPattern == false)
+				return SlimeKingPatternMath.PatternAt(attackConfig.PatternOrder, RollFirstIndex(count));
+			return SlimeKingPatternMath.PatternAt(attackConfig.PatternOrder, SlimeKingPatternMath.NextIndex(patternIndex, count));
+		}
+
+		private int RollFirstIndex(int count)
+		{
+			if (firstIndex < 0 || firstIndex >= count)
+				firstIndex = Random.Range(0, count);
+			return firstIndex;
+		}
+
+		private void CancelPatterns()
+		{
+			dashBehavior?.CancelTelegraph();
+			launchPattern?.Cancel();
+			pullPattern?.Cancel();
+		}
+
+		protected override void OnFSMDisabled()
+		{
+			CancelPatterns();
+			RemoveApproachSpeed();
+			hasPreviousPattern = false;
+			firstIndex = -1;
+			ClearForcedPattern();
+		}
+
+		private void UpdateApproachSpeed() => UnitObject.UnitMovement.SetMinimumInputSpeed(attackConfig.ApproachMinimumSpeed);
+
+		private void RemoveApproachSpeed()
+		{
+			if (UnitObject != null)
+				UnitObject.UnitMovement.SetMinimumInputSpeed(0f);
+		}
+
+		/// <summary>
+		/// 돌진 시간과 준비 시간 계획. 플레이어가 최대 도주 속도로 달아나도 닿고, 최소 탈출 속도로 옆으로 피할 수 있는 시간
+		/// 최대 시간이나 거리를 넘으면 false (돌진 대신 다가감)
+		/// </summary>
+		private bool TryPlanDash(Vector3 target)
+		{
+			SlimeKingAttackConfig config = attackConfig;
+			plannedDashDuration = config.DashDuration;
+			plannedDashPreDelay = config.DashPreDelay;
+			if (playerProvider.CurrentObject == null || config.DashSpeed <= config.MaximumFleeSpeed)
+				return false;
+			float escapeDistance = UnitObject.UnitMovement.BodyRadius + playerProvider.CurrentObject.UnitMovement.BodyRadius + config.EscapePadding;
+			float escapeSeconds = escapeDistance / config.MinimumEscapeSpeed + config.MinimumEscapeSpeed / (2f * config.EscapeAcceleration) + config.EscapeReactionSeconds + BTRunner.TICK;
+			plannedDashPreDelay = Mathf.Max(plannedDashPreDelay, escapeSeconds);
+			Vector3 delta = target - UnitObject.UnitMovement.Position;
+			delta.y = 0f;
+			float duration = (delta.magnitude + config.MaximumFleeSpeed * (plannedDashPreDelay + BTRunner.TICK)) / (config.DashSpeed - config.MaximumFleeSpeed);
+			plannedDashDuration = Mathf.Max(config.DashDuration, duration);
+			return plannedDashDuration <= config.MaximumDashDuration && plannedDashDuration * config.DashSpeed <= config.MaximumDashDistance;
+		}
+
+		/// <summary> 사거리 안이면 공격, 밖이면 추적. 사거리 안이면 true </summary>
+		private bool CanSeePlayer()
+		{
+			if (playerProvider.Current == null)
+				return false;
 			float distanceToPlayer = Vector3.Distance(UnitObject.transform.position, playerProvider.Current.transform.position);
 
-			if (distanceToPlayer < attackRange)
+			if (distanceToPlayer < attackConfig.AttackRange)
 			{
+				if (PeekNextPattern() == SlimeKingPattern.Dash && TryPlanDash(playerProvider.Current.transform.position) == false)
+				{
+					if (IsCurState(FSMStateCommon.Idle) == false)
+						ChangeState(FSMStateCommon.Idle);
+					return false;
+				}
 				if (IsCurState(FSMStateCommon.Attack) == false)
 					ChangeState(FSMStateCommon.Attack);
+				return true;
 			}
-			else
-			{
-				if (IsCurState(FSMStateCommon.Idle) == false)
-					ChangeState(FSMStateCommon.Idle);
-			}
+
+			if (IsCurState(FSMStateCommon.Idle) == false)
+				ChangeState(FSMStateCommon.Idle);
+			return false;
 		}
 	}
 }

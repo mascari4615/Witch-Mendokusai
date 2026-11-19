@@ -12,6 +12,8 @@ namespace WitchMendokusai
 		private readonly UnitObject unitObject;
 		private readonly float sprintSpeedMultiplier;
 		private readonly GroundMovementTuning tuning;
+		// 공격 상태가 잠깐 거는 최소 이동 속도 (초당 월드 단위). 스탯은 안 바꿈. 0 이면 없음
+		public float MinimumHorizontalSpeed { get; set; }
 
 		public InputContributor(UnitObject unitObject, float sprintSpeedMultiplier, GroundMovementTuning tuning = null)
 		{
@@ -57,9 +59,23 @@ namespace WitchMendokusai
 		/// </summary>
 		public const float STAT_PER_UNIT_PER_SECOND = 10f;
 
+		/// <summary> 스탯 기준 걷기 속도 (초당 월드 단위). 달리기, 웅크리기, 최소 속도 제외. 끌어당김 세기 기준 </summary>
+		public static float GetBaseSpeed(UnitObject unit) => (unit.UnitStat[UnitStatType.MOVEMENT_SPEED] + unit.UnitStat[UnitStatType.MOVEMENT_SPEED_BONUS]) / STAT_PER_UNIT_PER_SECOND;
+
+		/// <summary> 걷기 속도. 웅크리기 반영, 달리기와 최소 속도 제외 </summary>
+		public float GetWalkSpeed()
+		{
+			float moveSpeed = GetBaseSpeed(unitObject);
+			if (tuning != null && tuning.Enabled && unitObject.UnitStat[UnitStatType.IS_CROUCHING] > 0)
+				return moveSpeed * tuning.CrouchSpeedMultiplier;
+			return moveSpeed;
+		}
+
 		private float GetHorizontalSpeed()
 		{
-			float moveSpeed = (unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED] + unitObject.UnitStat[UnitStatType.MOVEMENT_SPEED_BONUS]) / STAT_PER_UNIT_PER_SECOND;
+			float moveSpeed = GetBaseSpeed(unitObject);
+			if (MinimumHorizontalSpeed > 0f)
+				moveSpeed = Mathf.Max(moveSpeed, MinimumHorizontalSpeed);
 			if (tuning != null && tuning.Enabled && unitObject.UnitStat[UnitStatType.IS_CROUCHING] > 0)
 				return moveSpeed * tuning.CrouchSpeedMultiplier;
 			if (unitObject.UnitStat[UnitStatType.IS_SPRINTING] > 0)

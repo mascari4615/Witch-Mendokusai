@@ -58,6 +58,11 @@ Shader "WM/Fx/GroundTelegraph"
 		_ChevronSpeed ("Chevron Speed", Float) = 1.2
 		_ChevronStrength ("Chevron Strength", Range(0, 1)) = 0.6
 		_ChevronMargin ("Chevron Margin (world)", Float) = 0.18
+		[ToggleUI] _InwardArrows ("Circle Inward Arrows (pull)", Float) = 0
+		_ArrowSectors ("Inward Arrow Sectors", Float) = 8
+		_ArrowArmWidth ("Inward Arrow Arm Width (sector ratio)", Range(0, 0.5)) = 0.36
+		_ArrowInnerClear ("Inward Arrow Inner Clear Radius (world)", Float) = 1
+		_ArrowArmSoftness ("Inward Arrow Arm Edge Softness (sector ratio)", Range(0, 0.2)) = 0.05
 		_LineEndEdge ("Line End Edge Ratio", Range(0, 1)) = 0.45
 		_CornerRadius ("Line Corner Radius (world)", Float) = 0.1
 		_SparkSpacing ("Spark Spacing (world)", Float) = 0.55
@@ -148,6 +153,11 @@ Shader "WM/Fx/GroundTelegraph"
 				float _ChevronSpeed;
 				float _ChevronStrength;
 				float _ChevronMargin;
+				float _InwardArrows;
+				float _ArrowSectors;
+				float _ArrowArmWidth;
+				float _ArrowInnerClear;
+				float _ArrowArmSoftness;
 				float _LineEndEdge;
 				float _CornerRadius;
 				float _SparkSpacing;
@@ -277,6 +287,21 @@ Shader "WM/Fx/GroundTelegraph"
 				return Band(stripe, _ChevronWidth * 0.5, aa) * chevronMask * _ChevronStrength;
 			}
 
+			// 안쪽 화살 무늬 (끌어당김 원): 부채 칸마다 중심을 향한 V 줄이 안쪽으로 흐름. 화살 값은 띠 화살과 같은 _Chevron 값. 0~1
+			float InwardArrows(float radial, float turn, float shapeDistance, float aa)
+			{
+				float sectors = max(floor(_ArrowSectors), 1.0);
+				float sectorCoord = frac(turn * sectors) - 0.5;
+				float arcOffset = sectorCoord * TWO_PI * radial / sectors;
+				float spacing = max(_ChevronSpacing, 1e-4);
+				float arrowCoord = (-radial + abs(arcOffset) * _ChevronSlope) / spacing - _Time.y * _ChevronSpeed;
+				float stripe = (frac(arrowCoord) - 0.5) * spacing / sqrt(1.0 + _ChevronSlope * _ChevronSlope);
+				float edgeMask = 1.0 - smoothstep(-_ChevronMargin - aa, -_ChevronMargin + aa, shapeDistance);
+				float innerMask = smoothstep(_ArrowInnerClear, _ArrowInnerClear + spacing, radial);
+				float armMask = 1.0 - smoothstep(_ArrowArmWidth - _ArrowArmSoftness, _ArrowArmWidth + _ArrowArmSoftness, abs(sectorCoord));
+				return Band(stripe, _ChevronWidth * 0.5, aa) * edgeMask * innerMask * armMask * _ChevronStrength;
+			}
+
 			float4 Frag(Varyings input) : SV_Target
 			{
 				// 판 중심 기준 월드 단위 좌표. y 가 차오르는 축 (띠)
@@ -336,7 +361,9 @@ Shader "WM/Fx/GroundTelegraph"
 				color = Over(color, _FillColor.rgb, _FillColor.a * filled * lerp(_FillDepthShade, 1.0, frontNear));
 
 				// 3. 무늬
-				float pattern = isCircle ? MagicCircle(position, radial, turn, halfSize.x, aa) : Chevrons(position, shapeDistance, aa);
+				float pattern = isCircle
+					? (_InwardArrows > 0.5 ? InwardArrows(radial, turn, shapeDistance, aa) : MagicCircle(position, radial, turn, halfSize.x, aa))
+					: Chevrons(position, shapeDistance, aa);
 				pattern *= inside * appearFade * lerp(1.0, _PatternFilledBoost, filled);
 				color = Over(color, _PatternColor.rgb, _PatternColor.a * pattern);
 

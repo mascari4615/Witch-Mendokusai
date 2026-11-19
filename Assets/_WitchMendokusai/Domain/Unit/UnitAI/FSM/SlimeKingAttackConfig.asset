@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae5ce0301af83b843b6eb0ba07681ca6, type: 3}
+  m_Name: SlimeKingAttackConfig
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SlimeKingAttackConfig
+  AttackRange: 15
+  WaitDuration: 2
+  ApproachMinimumSpeed: 3
+  PatternOrder:
+  - 0
+  - 1
+  - 2
+  - 3
+  DashSpeed: 15
+  DashDuration: 0.5
+  DashPreDelay: 0.8
+  DashPostDelay: 0.5
+  DashTelegraph: {fileID: 11400000, guid: d546be139c4e4d1aa3cc73e1ada5eb44, type: 2}
+  DashTelegraphWidth: 2.4
+  MinimumEscapeSpeed: 0.96
+  EscapeAcceleration: 100
+  EscapeReactionSeconds: 0.5
+  EscapePadding: 0.2
+  MaximumFleeSpeed: 4
+  MaximumDashDuration: 2.5
+  MaximumDashDistance: 37.5
+  LaunchMonster: {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
+  LaunchCount: 4
+  LaunchWindup: 0.4
+  LaunchInterval: 0.25
+  LaunchFlightSeconds: 0.9
+  LaunchArcHeight: 3
+  LaunchLandMinDistance: 1.5
+  LaunchLandMaxDistance: 5
+  LaunchAngleJitter: 0.5
+  LaunchMaxAlive: 8
+  LaunchMarkerRadius: 1.1
+  LaunchLandingDamage: 2
+  LaunchRecovery: 0.6
+  LaunchTelegraph: {fileID: 11400000, guid: fb85769a4b1c42d78fc107c2b728451c, type: 2}
+  PullRadius: 9
+  PullCoreRadius: 1.6
+  PullWarningSeconds: 1
+  PullSeconds: 2.5
+  PullSpeedRatio: 0.8
+  PullCoreDamage: 3
+  PullCoreDamageInterval: 0.5
+  PullStunSeconds: 1.2
+  PullHoldSeconds: 0.2
+  PullTelegraph: {fileID: 11400000, guid: 21b6bcde32c7480885ec85e59dbfbd8a, type: 2}
+  PullCoreTelegraph: {fileID: 11400000, guid: fb85769a4b1c42d78fc107c2b728451c, type: 2}

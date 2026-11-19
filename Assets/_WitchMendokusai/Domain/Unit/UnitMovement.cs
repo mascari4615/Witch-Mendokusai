@@ -130,7 +130,12 @@ namespace WitchMendokusai
 			// IsExternallyDriven=true 표시. Input은 그 플래그 보고 자기 기여 보류.
 			externalImpulse = new ExternalImpulseContributor();
 			motor.AddContributor(externalImpulse);
-			motor.AddContributor(new InputContributor(unitObject, sprintSpeedMultiplier, groundMovementTuning));
+			// 끌어당김은 Input 앞뒤에 걸침. 앞에서 직전 몫을 빼고 뒤에서 더함
+			externalPull = new ExternalPullContributor(unitObject);
+			motor.AddContributor(externalPull.Before);
+			inputContributor = new InputContributor(unitObject, sprintSpeedMultiplier, groundMovementTuning);
+			motor.AddContributor(inputContributor);
+			motor.AddContributor(externalPull.After);
 			motor.AddContributor(new GravityContributor());
 
 			jumpContributor = new JumpContributor(
@@ -158,6 +163,10 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
+			// 풀 재사용 시 공격 상태의 최소 속도와 끌림 제거
+			if (inputContributor != null)
+				inputContributor.MinimumHorizontalSpeed = 0f;
+			externalPull?.Clear();
 			ClearCollisionContacts();
 			// 풀 재사용 시 이전 생명의 밀림과 피격 정지 제거
 			externalImpulse?.Cancel();
@@ -210,6 +219,22 @@ namespace WitchMendokusai
 
 			unitObject.UnitStat[UnitStatType.IS_JUMPING] = jumpContributor.IsJumping ? 1 : 0;
 		}
+
+		private InputContributor inputContributor;
+		private ExternalPullContributor externalPull;
+
+		/// <summary> 입력 이동의 최소 속도 (초당 월드 단위). 스탯은 그대로 두고 이동만 올림. 0 이면 해제 </summary>
+		public void SetMinimumInputSpeed(float speed) => inputContributor.MinimumHorizontalSpeed = speed;
+
+		/// <summary> 입력 위에 더하는 외부 수평 속도 (끌어당김). duration 안에 다시 안 부르면 풀림 </summary>
+		public void SetExternalPull(Vector3 worldHorizontalVelocity, float duration) => externalPull.Set(worldHorizontalVelocity, duration);
+
+		public void ClearExternalPull() => externalPull?.Clear();
+
+		public Vector3 ExternalPullVelocity => externalPull != null ? externalPull.Velocity : Vector3.zero;
+
+		/// <summary> 지금 걷기 속도 (초당 월드 단위). 웅크리기 반영, 달리기와 최소 속도 제외. 끌어당김 세기 기준 </summary>
+		public float WalkSpeed => inputContributor.GetWalkSpeed();
 
 		public void SetMoveDirection(Vector3 input) => SetMoveDirection(new Vector2(input.x, input.z));
 
@@ -323,7 +348,11 @@ namespace WitchMendokusai
 				unitObject.UnitStat[UnitStatType.IS_CROUCHING] > 0;
 			bool overridden = Traversal.Apply(context, deltaTime);
 			if (overridden)
+			{
 				jumpContributor.Reset(false);
+				// 오르기, 매달리기가 속도를 직접 정함. 끌림 몫을 다음 tick 에 빼지 않게 비움
+				externalPull.ForgetApplied();
+			}
 			return overridden;
 		}
 
@@ -333,6 +362,7 @@ namespace WitchMendokusai
 			accumulatedSimulationTime = 0f;
 			CancelMovementInput();
 			externalImpulse.Cancel();
+			externalPull.Clear();
 			Traversal.Reset();
 			jumpContributor.Reset(false);
 			pauseRemaining = 0f;
