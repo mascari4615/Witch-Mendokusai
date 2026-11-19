@@ -77,6 +77,9 @@ namespace WitchMendokusai
 		[field: SerializeField, Min(0f), Tooltip("건너뛰기 직후 고르기 입력 차단 시간")] public float SkipChoiceLock { get; private set; } = 0.25f;
 
 		[field: Header("Card")]
+		[field: SerializeField, Range(0f, 45f), Tooltip("카드 위 빛 줄 기울기 (도)")] public float ShineAngle { get; private set; } = 20f;
+		[field: SerializeField, Range(0f, 60f), Tooltip("상자 뚜껑이 열리는 각도 (도)")] public float LidOpenAngle { get; private set; } = 24f;
+		[field: SerializeField, Range(0.02f, 0.2f), Tooltip("꾸러미 위 찢김 띠 높이, 꾸러미 대비")] public float PackTearRatio { get; private set; } = 0.07f;
 		[field: SerializeField, Min(1f), Tooltip("카드 뒤 오라 크기, 카드 대비")] public float AuraSizeRatio { get; private set; } = 1.55f;
 		[field: SerializeField, Range(0f, 1f), Tooltip("공개 뒤 희귀 이상 오라 밝기")] public float IdleAuraAlpha { get; private set; } = 0.5f;
 		[field: SerializeField, Min(0.1f), Tooltip("영웅 오라 숨쉬기 주기")] public float IdleAuraPeriod { get; private set; } = 1.2f;

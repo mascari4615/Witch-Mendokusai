@@ -10,7 +10,6 @@ namespace WitchMendokusai
 		private const int BLOOM_SIZE = 256;
 		private const int RING_SIZE = 256;
 		private const int BEAM_WIDTH = 64;
-		private const int BEAM_HEIGHT = 256;
 
 		private static Sprite softDot;
 		private static Sprite bloom;
@@ -49,6 +48,7 @@ namespace WitchMendokusai
 		// 가로는 가운데 밝은 심과 넓은 번짐, 세로는 위쪽 22% 가 흐려지며 사라짐
 		private static Sprite BuildBeam()
 		{
+			const int BEAM_HEIGHT = 256;
 			Texture2D texture = NewTexture(BEAM_WIDTH, BEAM_HEIGHT);
 			Color32[] pixels = new Color32[BEAM_WIDTH * BEAM_HEIGHT];
 			float half = (BEAM_WIDTH - 1) * 0.5f;

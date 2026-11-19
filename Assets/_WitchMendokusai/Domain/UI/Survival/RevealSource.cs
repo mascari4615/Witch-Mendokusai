@@ -10,10 +10,8 @@ namespace WitchMendokusai
 	{
 		private const float LID_RATIO = 0.43f;
 		private const float LID_HINGE_X = 0.12f;
-		private const float LID_OPEN_ANGLE = 24f;
 		private const float LID_RISE_RATIO = 0.3f;
 		private const float PACK_BORDER = 4f;
-		private const float TEAR_HEIGHT_RATIO = 0.07f;
 
 		private RectTransform lid;
 		private RectTransform tear;
@@ -35,7 +33,7 @@ namespace WitchMendokusai
 			Image foil = AddImage(frame.rectTransform, RevealTextures.Beam, new Color(1f, 0.95f, 0.75f, 0.45f), new Vector2(size.x * 0.5f, size.y * 1.4f), Vector2.zero);
 			foil.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -28f);
 			frame.gameObject.AddComponent<RectMask2D>();
-			float tearHeight = size.y * TEAR_HEIGHT_RATIO;
+			float tearHeight = size.y * run.Skin.PackTearRatio;
 			source.tear = AddImage(source.Root, null, gold, new Vector2(size.x, tearHeight), new Vector2(0f, (size.y - tearHeight) * 0.5f)).rectTransform;
 			return source;
 		}
@@ -76,7 +74,7 @@ namespace WitchMendokusai
 			if (lid != null)
 			{
 				Vector2 lidHome = lid.anchoredPosition;
-				run.Play(burstAt - 0.08f, lid.DOLocalRotate(new Vector3(0f, 0f, LID_OPEN_ANGLE), 0.18f).SetEase(Ease.OutBack));
+				run.Play(burstAt - 0.08f, lid.DOLocalRotate(new Vector3(0f, 0f, run.Skin.LidOpenAngle), 0.18f).SetEase(Ease.OutBack));
 				run.Play(burstAt - 0.08f, lid.DOAnchorPos(lidHome + new Vector2(0f, Size.y * LID_RISE_RATIO), 0.18f).SetEase(Ease.OutBack));
 				run.Play(burstAt - 0.08f, seam.DOFade(1f, 0.1f));
 				run.Play(burstAt + 0.02f, seam.rectTransform.DOScaleY(3f, 0.3f).SetEase(Ease.OutQuad));

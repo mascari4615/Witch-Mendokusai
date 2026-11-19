@@ -31,10 +31,10 @@ namespace WitchMendokusai
 		}
 
 		// 불꽃 줄 길이. 속도 비례, 상한
-		private const float SPARK_LENGTH_PER_SPEED = 0.035f;
+		[SerializeField, Min(0f)] private float sparkLengthPerSpeed = 0.035f;
 		private const float SPARK_MAX_LENGTH = 54f;
 		private const float SPARK_WIDTH_RATIO = 0.5f;
-		private const float COIN_SPIN_SPEED = 9f;
+		[SerializeField, Min(0f)] private float coinSpinSpeed = 9f;
 		private const float FADE_IN_RATIO = 0.1f;
 
 		private static readonly Color COIN_FRONT = new(1f, 0.82f, 0.29f, 1f);
@@ -116,7 +116,7 @@ namespace WitchMendokusai
 				// UI 좌표는 위가 +, 중력은 아래로
 				particle.Velocity.y -= particle.Gravity * deltaTime;
 				particle.Position += particle.Velocity * deltaTime;
-				particle.Spin += deltaTime * COIN_SPIN_SPEED;
+				particle.Spin += deltaTime * coinSpinSpeed;
 				particles[i] = particle;
 			}
 			SetVerticesDirty();
@@ -137,7 +137,7 @@ namespace WitchMendokusai
 					{
 						float speed = particle.Velocity.magnitude;
 						Vector2 direction = speed > 0.01f ? particle.Velocity / speed : Vector2.up;
-						float length = Mathf.Min(SPARK_MAX_LENGTH, particle.Size + speed * SPARK_LENGTH_PER_SPEED);
+						float length = Mathf.Min(SPARK_MAX_LENGTH, particle.Size + speed * sparkLengthPerSpeed);
 						AddQuad(vertexHelper, middle - direction * length * 0.5f, direction, length, particle.Size * SPARK_WIDTH_RATIO, WithAlpha(particle.Tint, fade));
 						break;
 					}

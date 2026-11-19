@@ -16,7 +16,6 @@ namespace WitchMendokusai
 		private const float BACK_BORDER = 5f;
 		private const float EMBLEM_RATIO = 0.36f;
 		private const float SHINE_WIDTH_RATIO = 0.42f;
-		private const float SHINE_ANGLE = 20f;
 
 		private readonly RectTransform card;
 		private readonly CanvasGroup group;
@@ -45,7 +44,7 @@ namespace WitchMendokusai
 		}
 
 		// 시작 전 상태 기억, 뒷면 덮기, 숨김
-		public void Prepare(Color tierColor, float auraSizeRatio)
+		public void Prepare(Color tierColor, float auraSizeRatio, float shineAngle)
 		{
 			Dispose();
 			homePosition = card.localPosition;
@@ -56,7 +55,7 @@ namespace WitchMendokusai
 			aura = NewImage("[Reveal] Aura", RevealTextures.Ring, new Color(tierColor.r, tierColor.g, tierColor.b, 0f), size * auraSizeRatio);
 			aura.transform.SetAsFirstSibling();
 			shade = NewImage("[Reveal] Shade", null, new Color(SHADE.r, SHADE.g, SHADE.b, 0f), size);
-			shine = BuildShine(size);
+			shine = BuildShine(size, shineAngle);
 			back.transform.SetAsLastSibling();
 			// 영웅 감기 때 뒷면 카드도 어두워지게 맨 앞
 			shade.transform.SetAsLastSibling();
@@ -170,11 +169,11 @@ namespace WitchMendokusai
 			return frame.gameObject;
 		}
 
-		private RectTransform BuildShine(Vector2 size)
+		private RectTransform BuildShine(Vector2 size, float shineAngle)
 		{
 			Image mask = NewImage("[Reveal] Shine", null, Color.clear, size);
 			mask.gameObject.AddComponent<RectMask2D>();
-			Image band = NewChild(mask.rectTransform, new Color(1f, 1f, 1f, 0.5f), new Vector2(size.x * SHINE_WIDTH_RATIO, size.y * 1.6f), SHINE_ANGLE);
+			Image band = NewChild(mask.rectTransform, new Color(1f, 1f, 1f, 0.5f), new Vector2(size.x * SHINE_WIDTH_RATIO, size.y * 1.6f), shineAngle);
 			band.sprite = RevealTextures.Beam;
 			mask.gameObject.SetActive(false);
 			return mask.rectTransform;

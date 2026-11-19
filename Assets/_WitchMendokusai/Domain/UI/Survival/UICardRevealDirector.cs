@@ -61,7 +61,7 @@ namespace WitchMendokusai
 			foreach (CardRevealEntry entry in entries)
 			{
 				CardRevealCard card = new(entry);
-				card.Prepare(skin.TierColor(entry.Tier), skin.AuraSizeRatio);
+				card.Prepare(skin.TierColor(entry.Tier), skin.AuraSizeRatio, skin.ShineAngle);
 				cards.Add(card);
 			}
 			Vector2 originPosition = origin != null ? stage.ToLocal(origin) : CardsCenter();
