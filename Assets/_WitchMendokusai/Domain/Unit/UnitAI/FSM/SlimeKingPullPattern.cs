@@ -15,10 +15,10 @@ namespace WitchMendokusai
 	{
 		private enum Phase
 		{
-			Warning,
-			Pulling,
-			Stun,
-			Done,
+			Warning = 0,
+			Pulling = 1,
+			Stun = 2,
+			Done = 3,
 		}
 
 		private readonly UnitObject boss;

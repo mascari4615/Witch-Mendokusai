@@ -18,8 +18,6 @@ namespace WitchMendokusai
 
 		private const string LOOP_ARG = "loop";
 		private const string STOP_ARG = "stop";
-		// 새로 꺼낼 때 플레이어에서 떨어뜨리는 거리 (월드 단위). 패턴 사거리 안
-		private const float SPAWN_DISTANCE = 7f;
 
 		public void Execute(DevCommandContext context, string[] args)
 		{
@@ -100,7 +98,9 @@ namespace WitchMendokusai
 
 			Transform player = PlayerProvider.Instance.Current != null ? PlayerProvider.Instance.Current.transform : null;
 			Vector3 origin = player != null ? player.position : Vector3.zero;
-			Vector3 spawnPosition = origin + Vector3.forward * SPAWN_DISTANCE;
+			// 떨어뜨리는 거리는 그 보스의 공격 수치 에셋 (DevSpawnDistance)
+			FSMSlimeKing prefabKing = kingData.Prefab.GetComponent<FSMSlimeKing>();
+			Vector3 spawnPosition = origin + Vector3.forward * prefabKing.Config.DevSpawnDistance;
 
 			GameObject spawned = ObjectPoolManager.Instance.Spawn(kingData.Prefab);
 			spawned.transform.position = spawnPosition;

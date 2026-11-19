@@ -6,10 +6,10 @@ namespace WitchMendokusai
 	/// <summary> 슬라임 왕 공격 패턴. 순서 목록과 개발 창 boss 명령의 이름 </summary>
 	public enum SlimeKingPattern
 	{
-		Projectile,
-		Dash,
-		Launch,
-		Pull,
+		Projectile = 0,
+		Dash = 1,
+		Launch = 2,
+		Pull = 3,
 	}
 
 	/// <summary>
@@ -24,6 +24,7 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("이 거리 안이면 공격 상태")] public float AttackRange = 15f;
 		[Min(0f), Tooltip("패턴 사이 쉬는 시간 (초)")] public float WaitDuration = 2f;
 		[Min(0f), Tooltip("추적 중 최소 이동 속도 (초당 월드 단위). 0 이면 스탯 그대로")] public float ApproachMinimumSpeed = 3f;
+		[Min(0f), Tooltip("개발 창 boss 명령이 새로 꺼낼 때 플레이어에서 떨어뜨리는 거리 (월드 단위)")] public float DevSpawnDistance = 7f;
 		[Tooltip("패턴 순서. 비면 투사체와 돌진")] public List<SlimeKingPattern> PatternOrder = new() { SlimeKingPattern.Projectile, SlimeKingPattern.Dash, SlimeKingPattern.Launch, SlimeKingPattern.Pull };
 
 		[Header("돌진")]

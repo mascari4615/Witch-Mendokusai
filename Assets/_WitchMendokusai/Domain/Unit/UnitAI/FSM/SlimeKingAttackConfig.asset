@@ -15,6 +15,7 @@ MonoBehaviour:
   AttackRange: 15
   WaitDuration: 2
   ApproachMinimumSpeed: 3
+  DevSpawnDistance: 7
   PatternOrder:
   - 0
   - 1
