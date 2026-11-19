@@ -41,6 +41,7 @@ namespace WitchMendokusai
 
 		private Light directionalLight;
 		private float cachedNormalizedTime = -1f;
+		private bool survivalLightingActive;
 
 		private void Awake()
 		{
@@ -160,11 +161,14 @@ namespace WitchMendokusai
 			float normalizedTime = SkyTimeOverride.IsActive
 				? Mathf.Repeat(SkyTimeOverride.Hour / worldClock.Config.HoursPerDay, 1f)
 				: ComputeNormalizedTime(worldClock);
+			DungeonManager dungeonManager = DungeonManager.Instance;
+			bool isSurvivalLighting = ActivePreset.UseSurvivalReadability && dungeonManager != null && dungeonManager.IsDungeon && dungeonManager.CurDungeon != null && dungeonManager.CurDungeon.MapType == DungeonMapType.SurvivorsLike;
 
-			if (force == false && Mathf.Approximately(normalizedTime, cachedNormalizedTime) == true)
+			if (force == false && Mathf.Approximately(normalizedTime, cachedNormalizedTime) == true && survivalLightingActive == isSurvivalLighting)
 				return;
 
 			cachedNormalizedTime = normalizedTime;
+			survivalLightingActive = isSurvivalLighting;
 
 			ApplySky(normalizedTime);
 			ApplyShaderGlobals(normalizedTime);
@@ -198,13 +202,13 @@ namespace WitchMendokusai
 					return;
 			}
 
-			SkyPresetApplier.ApplyDirectionalLight(ActivePreset, directionalLight, t, sunAzimuth);
+			SkyPresetApplier.ApplyDirectionalLight(ActivePreset, directionalLight, t, sunAzimuth, survivalLightingActive);
 		}
 
 		// 밤의 달빛 겸용. 해가 지평선 아래여도 빛 방향은 위쪽
 		public static float ComputeLightPitch(float altitude, float minPitch) => SkyPresetApplier.ComputeLightPitch(altitude, minPitch);
 
-		private void ApplyEnvironment(float t) => SkyPresetApplier.ApplyEnvironment(ActivePreset, t);
+		private void ApplyEnvironment(float t) => SkyPresetApplier.ApplyEnvironment(ActivePreset, t, survivalLightingActive);
 
 		[ContextMenu("Debug/Reapply Now")]
 		private void DebugReapplyNow()

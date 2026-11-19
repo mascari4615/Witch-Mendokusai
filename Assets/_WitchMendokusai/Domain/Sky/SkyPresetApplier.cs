@@ -64,19 +64,28 @@ namespace WitchMendokusai
 			skyboxMaterial.SetFloat(CloudSpeedId, preset.CloudSpeed);
 		}
 
-		public static void ApplyDirectionalLight(SkyPresetSO preset, Light directionalLight, float t, float sunAzimuth)
+		public static void ApplyDirectionalLight(SkyPresetSO preset, Light directionalLight, float t, float sunAzimuth, bool survivalLighting = false)
 		{
 			directionalLight.color = preset.SunLightColor.Evaluate(t);
 			directionalLight.intensity = preset.SunIntensity.Evaluate(t);
+			if (survivalLighting)
+				directionalLight.intensity = Mathf.Max(directionalLight.intensity, preset.SurvivalSunMinimumIntensity);
 
 			float altitude = preset.SunAltitude.Evaluate(t);
 			float pitchDegrees = ComputeLightPitch(altitude, preset.MinLightPitch);
 			directionalLight.transform.rotation = Quaternion.Euler(pitchDegrees, sunAzimuth, 0f);
 		}
 
-		public static void ApplyEnvironment(SkyPresetSO preset, float t)
+		public static void ApplyEnvironment(SkyPresetSO preset, float t, bool survivalLighting = false)
 		{
 			Color ambient = preset.AmbientColor.Evaluate(t);
+			if (survivalLighting)
+			{
+				ambient *= preset.SurvivalAmbientMultiplier;
+				float luminance = ambient.r * .2126f + ambient.g * .7152f + ambient.b * .0722f;
+				if (luminance > .0001f && luminance < preset.SurvivalAmbientMinimumLuminance)
+					ambient *= preset.SurvivalAmbientMinimumLuminance / luminance;
+			}
 			RenderSettings.ambientMode = preset.UseHemisphereAmbient ? AmbientMode.Trilight : AmbientMode.Flat;
 			if (preset.UseHemisphereAmbient)
 			{
