@@ -1611,50 +1611,140 @@
     -unity-font-style: bold;
 }
 
+/* 크레딧 탭. 분류 머리줄, 항목 줄, 펼친 상세. 목록만 스크롤 */
+.wm-setting-credit-hint {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+    color: rgb(170, 170, 178);
+    font-size: 20px;
+}
+
+.wm-setting-credit-scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-height: 0;
+}
+
+.wm-setting-credit-group {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 62px;
+    margin: 0 0 6px 0;
+    padding: 0 22px;
+    background-color: rgb(46, 44, 52);
+    border-width: 0;
+    border-left-width: 6px;
+    border-left-color: rgba(0, 0, 0, 0);
+    border-radius: 0;
+}
+
+.wm-setting-credit-group--open {
+    background-color: rgb(62, 60, 70);
+    border-left-color: rgb(232, 232, 236);
+}
+
+.wm-setting-credit-group__title {
+    flex-grow: 1;
+    color: rgb(226, 226, 230);
+    font-size: 26px;
+    -unity-text-align: middle-left;
+}
+
+.wm-setting-credit-group__count {
+    color: rgb(170, 170, 178);
+    font-size: 22px;
+}
+
+.wm-setting-credit-group--open .wm-setting-credit-group__title,
+.wm-setting-credit-group--open .wm-setting-credit-group__count {
+    color: rgb(255, 255, 255);
+}
+
+.wm-setting-credit-body {
+    flex-shrink: 0;
+    margin: 0 0 12px 0;
+}
+
 .wm-setting-credit {
     flex-direction: row;
     align-items: center;
     flex-shrink: 0;
-    min-height: 82px;
-    margin-bottom: 6px;
-    padding: 10px 36px 10px 22px;
+    min-height: 58px;
+    margin: 0 0 4px 0;
+    padding: 8px 22px;
     background-color: rgb(22, 21, 26);
+    border-width: 0;
+    border-radius: 0;
+}
+
+.wm-setting-credit--open {
+    background-color: rgb(40, 38, 46);
 }
 
 .wm-setting-credit__name {
-    width: 320px;
+    width: 34%;
     color: rgb(240, 240, 242);
-    font-size: 28px;
-}
-
-.wm-setting-credit__note {
-    flex-grow: 1;
-    flex-shrink: 1;
-    color: rgb(170, 170, 178);
-    font-size: 20px;
+    font-size: 24px;
+    -unity-text-align: middle-left;
     white-space: normal;
 }
 
-.wm-setting-credit-buttons {
-    flex-direction: row;
-    justify-content: flex-end;
-    flex-shrink: 0;
-    margin: 12px 0;
-}
-
-.wm-setting-license {
+.wm-setting-credit__author {
     flex-grow: 1;
     flex-shrink: 1;
-    min-height: 200px;
-    padding: 16px 22px;
+    flex-basis: 0;
+    color: rgb(190, 190, 196);
+    font-size: 20px;
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.wm-setting-credit__license {
+    width: 30%;
+    color: rgb(170, 170, 178);
+    font-size: 20px;
+    -unity-text-align: middle-right;
+    white-space: normal;
+}
+
+.wm-setting-credit-detail {
+    flex-shrink: 0;
+    margin: 0 0 10px 0;
+    padding: 14px 22px;
     background-color: rgb(14, 14, 18);
 }
 
+.wm-setting-credit-detail__line {
+    flex-direction: row;
+    margin-bottom: 6px;
+}
+
+.wm-setting-credit-detail__title {
+    width: 170px;
+    flex-shrink: 0;
+    color: rgb(150, 150, 158);
+    font-size: 20px;
+    -unity-text-align: upper-left;
+}
+
+.wm-setting-credit-detail__value {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    color: rgb(220, 220, 226);
+    font-size: 20px;
+    white-space: normal;
+    -unity-text-align: upper-left;
+}
+
 .wm-setting-license__text {
+    margin-top: 10px;
     color: rgb(200, 200, 206);
     font-size: 18px;
     white-space: normal;
-    margin-bottom: 24px;
+    -unity-text-align: upper-left;
 }
 
 /* 키 안내와 손가락 안내. 루트 클래스는 UIRoot, 표시 클래스는 KeyHint */

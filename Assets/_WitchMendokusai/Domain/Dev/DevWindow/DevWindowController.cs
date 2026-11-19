@@ -196,6 +196,7 @@ namespace WitchMendokusai
 			DevCommandRegistry.Instance.Register(new WeaponCommand());
 			DevCommandRegistry.Instance.Register(new SurvivalCheckCommand());
 			DevCommandRegistry.Instance.Register(new BossCommand());
+			DevCommandRegistry.Instance.Register(new CreditsCommand());
 
 			if (DevModeRegistry.Instance.FindById("console") == null)
 				DevModeRegistry.Instance.Register(new ConsoleMode());

@@ -11,14 +11,478 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d043b8d36a56489ab64a22c12ab49c67, type: 3}
   m_Name: CREDIT_0_Fonts
-  m_EditorClassIdentifier: 
-  <Fonts>k__BackingField:
-  - <Name>k__BackingField: Gowun Batang
-    <LicenseName>k__BackingField: SIL Open Font License 1.1
+  m_EditorClassIdentifier:
+  <Entries>k__BackingField:
+  - <Id>k__BackingField: gowun-batang
+    <Category>k__BackingField: 0
+    <Name>k__BackingField: 'Gowun Batang'
+    <Author>k__BackingField: 'The Gowun Batang Project Authors'
+    <SourceUrl>k__BackingField: 'https://github.com/yangheeryu/Gowun-Batang'
+    <LicenseName>k__BackingField: 'SIL Open Font License 1.1'
+    <LicenseUrl>k__BackingField: 'https://openfontlicense.org'
     <License>k__BackingField: {fileID: 4900000, guid: aa6efee638e14cc4add662bfdc1b4fac, type: 3}
-  - <Name>k__BackingField: Black Han Sans
-    <LicenseName>k__BackingField: SIL Open Font License 1.1
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '던전 입장 화면 제목'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Domain/Dungeon/DungeonEntrance/Fonts/GowunBatang-Bold.ttf'
+    - 'Assets/_WitchMendokusai/Domain/Dungeon/DungeonEntrance/Fonts/OFL-GowunBatang.txt'
+  - <Id>k__BackingField: black-han-sans
+    <Category>k__BackingField: 0
+    <Name>k__BackingField: 'Black Han Sans'
+    <Author>k__BackingField: 'The Black Han Sans Project Authors'
+    <SourceUrl>k__BackingField: 'https://github.com/zesstype/Black-Han-Sans'
+    <LicenseName>k__BackingField: 'SIL Open Font License 1.1'
+    <LicenseUrl>k__BackingField: 'https://openfontlicense.org'
     <License>k__BackingField: {fileID: 4900000, guid: 09d627c91f9f464dbaf59795bbbf20ea, type: 3}
-  - <Name>k__BackingField: Noto Sans KR
-    <LicenseName>k__BackingField: SIL Open Font License 1.1
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '던전 입장 화면 강조 글자'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Domain/Dungeon/DungeonEntrance/Fonts/BlackHanSans-Regular.ttf'
+    - 'Assets/_WitchMendokusai/Domain/Dungeon/DungeonEntrance/Fonts/OFL-BlackHanSans.txt'
+  - <Id>k__BackingField: noto-sans-kr
+    <Category>k__BackingField: 0
+    <Name>k__BackingField: 'Noto Sans KR'
+    <Author>k__BackingField: 'Google, Adobe (Noto Project Authors)'
+    <SourceUrl>k__BackingField: 'https://fonts.google.com/noto/specimen/Noto+Sans+KR'
+    <LicenseName>k__BackingField: 'SIL Open Font License 1.1'
+    <LicenseUrl>k__BackingField: 'https://openfontlicense.org'
     <License>k__BackingField: {fileID: 4900000, guid: e0d28bcfc8d21225d627f65358b84577, type: 3}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '던전 입장 화면 본문'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Domain/Dungeon/DungeonEntrance/Fonts/NotoSansKR-Regular.ttf'
+    - 'Assets/_WitchMendokusai/Domain/Dungeon/DungeonEntrance/Fonts/OFL-Noto.txt'
+  - <Id>k__BackingField: galmuri
+    <Category>k__BackingField: 0
+    <Name>k__BackingField: 'Galmuri'
+    <Author>k__BackingField: 'Lee Minseo (quiple)'
+    <SourceUrl>k__BackingField: 'https://github.com/quiple/galmuri'
+    <LicenseName>k__BackingField: 'SIL Open Font License 1.1'
+    <LicenseUrl>k__BackingField: 'https://openfontlicense.org'
+    <License>k__BackingField: {fileID: 4900000, guid: d74d3fa5c6de4ad6a28739775550bf13, type: 3}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '대화창, 스킬창, 전투 띠, 상태이상 숫자 등 게임 기본 글꼴'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Fonts/갈무리'
+  - <Id>k__BackingField: barlow-condensed
+    <Category>k__BackingField: 0
+    <Name>k__BackingField: 'Barlow Condensed'
+    <Author>k__BackingField: 'The Barlow Project Authors'
+    <SourceUrl>k__BackingField: 'https://github.com/jpt/barlow'
+    <LicenseName>k__BackingField: 'SIL Open Font License 1.1'
+    <LicenseUrl>k__BackingField: 'https://openfontlicense.org'
+    <License>k__BackingField: {fileID: 4900000, guid: 010b93a50fb4513498b1e98f911f8372, type: 3}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '방치형 화면 숫자'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Idle/Data/Assets/UI/Fonts'
+  - <Id>k__BackingField: liberation-sans
+    <Category>k__BackingField: 0
+    <Name>k__BackingField: 'Liberation Sans'
+    <Author>k__BackingField: 'Google, Red Hat'
+    <SourceUrl>k__BackingField: 'https://github.com/liberationfonts/liberation-fonts'
+    <LicenseName>k__BackingField: 'SIL Open Font License 1.1'
+    <LicenseUrl>k__BackingField: 'https://openfontlicense.org'
+    <License>k__BackingField: {fileID: 4900000, guid: 6e59c59b81ab47f9b6ec5781fa725d2c, type: 3}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: 'TextMesh Pro 기본 글꼴'
+    <AssetPaths>k__BackingField:
+    - 'Assets/TextMesh Pro/Fonts'
+  - <Id>k__BackingField: game-icons
+    <Category>k__BackingField: 1
+    <Name>k__BackingField: 'game-icons.net 아이콘'
+    <Author>k__BackingField: 'Lorc, Delapouite, Carl Olsen, Skoll, Sbed'
+    <SourceUrl>k__BackingField: 'https://game-icons.net'
+    <LicenseName>k__BackingField: 'CC BY 3.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/licenses/by/3.0/'
+    <License>k__BackingField: {fileID: 4900000, guid: 70c6e4643e8d81146a0e0f541e2e5c69, type: 3}
+    <CopyrightNotice>k__BackingField: 'Icons made by Lorc, Delapouite, Carl Olsen, Skoll, Sbed. Available on https://game-icons.net'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 1
+    <ModificationNote>k__BackingField: 'SVG 를 흰색 PNG 로 렌더, 일부 90도 회전, 상태이상 아이콘은 검은 테 실루엣으로 가공'
+    <UsedIn>k__BackingField: '아이템, 영구 강화, 폰 조작 버튼, 상태이상, 던전 제약, 용어 아이콘, 처치 표시'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/game-icons.net'
+    - 'Assets/_WitchMendokusai/Domain/Unit/Status'
+    - 'Assets/_WitchMendokusai/Domain/UI/Survival/Art/TermIcons'
+    - 'Assets/_WitchMendokusai/Domain/Unit/Marker/DiedX'
+  - <Id>k__BackingField: lucid-icons
+    <Category>k__BackingField: 1
+    <Name>k__BackingField: 'Lucid Icons 1.2'
+    <Author>k__BackingField: 'Midhil M (Leo Red)'
+    <SourceUrl>k__BackingField: 'https://leo-red.itch.io/lucid-icon-pack'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 4900000, guid: 851eee7906c0a1643a5c10c1dab0c60d, type: 3}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '공용 UI 아이콘'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Core/UI/Common/Sprites/Lucid V1.2'
+  - <Id>k__BackingField: merchant-shade-mixed
+    <Category>k__BackingField: 1
+    <Name>k__BackingField: '16x16 Mixed RPG Icons'
+    <Author>k__BackingField: 'Havi Averilla Xavier (merchant-shade)'
+    <SourceUrl>k__BackingField: 'https://merchant-shade.itch.io/16x16-mixed-rpg-icons'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '아이템 아이콘'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/16x16 Assorted RPG Icons'
+  - <Id>k__BackingField: merchant-shade-weapons
+    <Category>k__BackingField: 1
+    <Name>k__BackingField: 'Free 16x16 Weapon RPG Icons'
+    <Author>k__BackingField: 'Havi Averilla Xavier (merchant-shade)'
+    <SourceUrl>k__BackingField: 'https://merchant-shade.itch.io/free-16x16-weapon-rpg-icons'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '무기 아이템 아이콘'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/16x16 Weapons RPG Icons'
+  - <Id>k__BackingField: beast-pixels-crafting
+    <Category>k__BackingField: 1
+    <Name>k__BackingField: 'Crafting Materials'
+    <Author>k__BackingField: 'Beast Pixels'
+    <SourceUrl>k__BackingField: 'https://beast-pixels.itch.io/crafting-materials'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '재료 아이템 아이콘'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/crafting_materials'
+  - <Id>k__BackingField: beast-pixels-weapons
+    <Category>k__BackingField: 1
+    <Name>k__BackingField: 'Weapons and Tools'
+    <Author>k__BackingField: 'Beast Pixels'
+    <SourceUrl>k__BackingField: 'https://beast-pixels.itch.io/weapons-and-tools'
+    <LicenseName>k__BackingField: 'CC BY 4.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/licenses/by/4.0/'
+    <License>k__BackingField: {fileID: 4900000, guid: 0011b23a8a3ea6846acd80183e7ad4c0, type: 3}
+    <CopyrightNotice>k__BackingField: 'Weapons and Tools by Beast Pixels (https://beast-pixels.itch.io/)'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '무기와 도구 아이템 아이콘'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/weapons_and_tools'
+  - <Id>k__BackingField: grafxkid-sprite-pack-1
+    <Category>k__BackingField: 2
+    <Name>k__BackingField: 'Sprite Pack 1'
+    <Author>k__BackingField: 'GrafxKid'
+    <SourceUrl>k__BackingField: 'https://grafxkid.itch.io/sprite-pack-1'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 4900000, guid: 39fcfb3e1783dc844b25a7866953fa54, type: 3}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '몬스터 그림'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Domain/Dungeon/Monster/Impl/Sprite Pack 1'
+  - <Id>k__BackingField: quaternius-claymore
+    <Category>k__BackingField: 3
+    <Name>k__BackingField: 'Claymore'
+    <Author>k__BackingField: 'Quaternius'
+    <SourceUrl>k__BackingField: 'https://poly.pizza/m/BBhN1O6TOL'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 1
+    <ModificationNote>k__BackingField: 'glb 를 obj 로 변환, 칼끝 원점과 길이 1 로 정규화'
+    <UsedIn>k__BackingField: '궁극기 3D 하늘 검'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Domain/Dungeon/Fx/Ultimate/World3D/Meshes/SkySwordClaymore.obj'
+    - 'Assets/_WitchMendokusai/Domain/Dungeon/Fx/Ultimate/World3D/Meshes/SkySwordClaymore.mtl'
+  - <Id>k__BackingField: quaternius-ual
+    <Category>k__BackingField: 4
+    <Name>k__BackingField: 'Universal Animation Library (Standard)'
+    <Author>k__BackingField: 'Quaternius'
+    <SourceUrl>k__BackingField: 'https://quaternius.com'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 4900000, guid: f16d9ced45172d042a6a4f77ddda895b, type: 3}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '플레이어와 인형 애니메이션 클립'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Lab/Animation/Universal Animation Library[Standard]'
+  - <Id>k__BackingField: kenney-pattern-pack-2
+    <Category>k__BackingField: 5
+    <Name>k__BackingField: 'Pattern Pack 2'
+    <Author>k__BackingField: 'Kenney'
+    <SourceUrl>k__BackingField: 'https://kenney.nl/assets/pattern-pack-2'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 4900000, guid: 3be90b2a155ce2d4bbf6f54b941982c5, type: 3}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 1
+    <ModificationNote>k__BackingField: '생존 UI 타일은 thick 무늬에서 절차로 자른 그림'
+    <UsedIn>k__BackingField: 'UI 배경 무늬, 생존 UI 타일'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Art/Texture/UI/kenney_pattern-pack-2'
+  - <Id>k__BackingField: ambientcg-forest
+    <Category>k__BackingField: 5
+    <Name>k__BackingField: 'Grass004, Ground037, Rock051, Rock022'
+    <Author>k__BackingField: 'ambientCG'
+    <SourceUrl>k__BackingField: 'https://ambientcg.com'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 1
+    <ModificationNote>k__BackingField: '축소판'
+    <UsedIn>k__BackingField: '숲 스테이지 지면과 바위'
+    <AssetPaths>k__BackingField:
+    - 'Assets/_WitchMendokusai/Domain/World/Stage/1003_Forest/Art/Grass004_deep48b.png'
+    - 'Assets/_WitchMendokusai/Domain/World/Stage/1003_Forest/Art/Ground037_deep48b.png'
+    - 'Assets/_WitchMendokusai/Domain/World/Stage/1003_Forest/Art/Rock051_deep48b.png'
+    - 'Assets/_WitchMendokusai/Domain/World/Stage/1003_Forest/Art/Rock022_raw64.png'
+  - <Id>k__BackingField: ui-soundpack
+    <Category>k__BackingField: 7
+    <Name>k__BackingField: 'Universal UI Soundpack'
+    <Author>k__BackingField: 'Nathan Gibson'
+    <SourceUrl>k__BackingField: 'https://nathangibson.myportfolio.com'
+    <LicenseName>k__BackingField: 'CC BY 4.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/licenses/by/4.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: 'Universal UI Soundpack by Nathan Gibson (https://nathangibson.myportfolio.com)'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 1
+    <ModificationNote>k__BackingField: '전투 경고, 회복, 승패 효과음은 음높이 변경, 자르기, 역재생, 겹치기로 가공 (Combat SFX)'
+    <UsedIn>k__BackingField: 'UI 효과음, 전투 경고와 결과 효과음'
+    <AssetPaths>k__BackingField:
+    - 'FMODAssets/Assets/UI Soundpack'
+    - 'FMODAssets/Assets/Combat SFX'
+  - <Id>k__BackingField: rpg-sound-pack
+    <Category>k__BackingField: 7
+    <Name>k__BackingField: 'RPG Sound Pack'
+    <Author>k__BackingField: 'ArtisticDude'
+    <SourceUrl>k__BackingField: 'https://opengameart.org/content/rpg-sound-pack'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 1
+    <ModificationNote>k__BackingField: '타격, 피격, 얼음, 번개 효과음은 음높이 변경, 자르기, 겹치기로 가공 (Combat SFX)'
+    <UsedIn>k__BackingField: '전투 효과음'
+    <AssetPaths>k__BackingField:
+    - 'FMODAssets/Assets/RPG Sound Pack'
+  - <Id>k__BackingField: protodome-bluenoise
+    <Category>k__BackingField: 8
+    <Name>k__BackingField: 'BLUENOISE'
+    <Author>k__BackingField: 'PROTODOME'
+    <SourceUrl>k__BackingField: 'https://protodome.bandcamp.com/album/bluenoise'
+    <LicenseName>k__BackingField: 'CC BY-NC-ND 3.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/licenses/by-nc-nd/3.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: 'BLUENOISE by PROTODOME (https://protodome.com/)'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '배경음악'
+    <AssetPaths>k__BackingField:
+    - 'FMODAssets/Assets/PROTODOME'
+  - <Id>k__BackingField: fmod
+    <Category>k__BackingField: 9
+    <Name>k__BackingField: 'FMOD Studio'
+    <Author>k__BackingField: 'Firelight Technologies Pty Ltd.'
+    <SourceUrl>k__BackingField: 'https://www.fmod.com'
+    <LicenseName>k__BackingField: 'FMOD End User Licence Agreement'
+    <LicenseUrl>k__BackingField: 'https://www.fmod.com/licensing'
+    <License>k__BackingField: {fileID: 4900000, guid: 61092a89a8323c146b56ebb22fa58c4e, type: 3}
+    <CopyrightNotice>k__BackingField: 'Made with FMOD Studio by Firelight Technologies Pty Ltd.'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '소리 재생'
+    <AssetPaths>k__BackingField:
+    - 'Assets/Plugins/FMOD'
+  - <Id>k__BackingField: dotween
+    <Category>k__BackingField: 9
+    <Name>k__BackingField: 'DOTween'
+    <Author>k__BackingField: 'Daniele Giardini - Demigiant'
+    <SourceUrl>k__BackingField: 'http://dotween.demigiant.com'
+    <LicenseName>k__BackingField: 'DOTween License'
+    <LicenseUrl>k__BackingField: 'http://dotween.demigiant.com/license.php'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: 'DOTween and DOTween Pro are copyright (c) 2014-2026 Daniele Giardini - Demigiant'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: 'UI 움직임'
+    <AssetPaths>k__BackingField:
+    - 'Assets/Plugins/Demigiant'
+  - <Id>k__BackingField: unirx
+    <Category>k__BackingField: 9
+    <Name>k__BackingField: 'UniRx'
+    <Author>k__BackingField: 'Yoshifumi Kawai (neuecc)'
+    <SourceUrl>k__BackingField: 'https://github.com/neuecc/UniRx'
+    <LicenseName>k__BackingField: 'MIT License'
+    <LicenseUrl>k__BackingField: 'https://github.com/neuecc/UniRx/blob/master/LICENSE'
+    <License>k__BackingField: {fileID: 4900000, guid: 7bb77a78bb0d46369f3747f60a2a8f0a, type: 3}
+    <CopyrightNotice>k__BackingField: 'Copyright (c) 2018 Yoshifumi Kawai'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '이벤트 흐름'
+    <AssetPaths>k__BackingField:
+    - 'Assets/Plugins/UniRx'
+  - <Id>k__BackingField: r3
+    <Category>k__BackingField: 9
+    <Name>k__BackingField: 'R3'
+    <Author>k__BackingField: 'Cysharp, Inc.'
+    <SourceUrl>k__BackingField: 'https://github.com/Cysharp/R3'
+    <LicenseName>k__BackingField: 'MIT License'
+    <LicenseUrl>k__BackingField: 'https://github.com/Cysharp/R3/blob/main/LICENSE'
+    <License>k__BackingField: {fileID: 4900000, guid: 7bb77a78bb0d46369f3747f60a2a8f0a, type: 3}
+    <CopyrightNotice>k__BackingField: 'Copyright (c) 2024 Cysharp, Inc.'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '이벤트 흐름'
+    <AssetPaths>k__BackingField:
+    - 'Assets/Plugins/R3'
+  - <Id>k__BackingField: unitask
+    <Category>k__BackingField: 9
+    <Name>k__BackingField: 'UniTask'
+    <Author>k__BackingField: 'Yoshifumi Kawai, Cysharp, Inc.'
+    <SourceUrl>k__BackingField: 'https://github.com/Cysharp/UniTask'
+    <LicenseName>k__BackingField: 'MIT License'
+    <LicenseUrl>k__BackingField: 'https://github.com/Cysharp/UniTask/blob/master/LICENSE'
+    <License>k__BackingField: {fileID: 4900000, guid: 7bb77a78bb0d46369f3747f60a2a8f0a, type: 3}
+    <CopyrightNotice>k__BackingField: 'Copyright (c) 2019 Yoshifumi Kawai / Cysharp, Inc.'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '비동기 처리'
+    <AssetPaths>k__BackingField: []
+  - <Id>k__BackingField: messagepipe
+    <Category>k__BackingField: 9
+    <Name>k__BackingField: 'MessagePipe'
+    <Author>k__BackingField: 'Cysharp, Inc.'
+    <SourceUrl>k__BackingField: 'https://github.com/Cysharp/MessagePipe'
+    <LicenseName>k__BackingField: 'MIT License'
+    <LicenseUrl>k__BackingField: 'https://github.com/Cysharp/MessagePipe/blob/master/LICENSE'
+    <License>k__BackingField: {fileID: 4900000, guid: 7bb77a78bb0d46369f3747f60a2a8f0a, type: 3}
+    <CopyrightNotice>k__BackingField: 'Copyright (c) 2021 Cysharp, Inc.'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '이벤트 전달'
+    <AssetPaths>k__BackingField: []
+  - <Id>k__BackingField: vcontainer
+    <Category>k__BackingField: 9
+    <Name>k__BackingField: 'VContainer'
+    <Author>k__BackingField: 'hadashiA'
+    <SourceUrl>k__BackingField: 'https://github.com/hadashiA/VContainer'
+    <LicenseName>k__BackingField: 'MIT License'
+    <LicenseUrl>k__BackingField: 'https://github.com/hadashiA/VContainer/blob/master/LICENSE'
+    <License>k__BackingField: {fileID: 4900000, guid: 7bb77a78bb0d46369f3747f60a2a8f0a, type: 3}
+    <CopyrightNotice>k__BackingField: 'Copyright (c) 2020 hadashiA'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '의존성 주입'
+    <AssetPaths>k__BackingField:
+    - 'Assets/Plugins/VContainer'
+  - <Id>k__BackingField: facepunch-steamworks
+    <Category>k__BackingField: 9
+    <Name>k__BackingField: 'Facepunch.Steamworks'
+    <Author>k__BackingField: 'Facepunch Studios LTD'
+    <SourceUrl>k__BackingField: 'https://github.com/Facepunch/Facepunch.Steamworks'
+    <LicenseName>k__BackingField: 'MIT License'
+    <LicenseUrl>k__BackingField: 'https://github.com/Facepunch/Facepunch.Steamworks/blob/master/LICENSE'
+    <License>k__BackingField: {fileID: 4900000, guid: 7bb77a78bb0d46369f3747f60a2a8f0a, type: 3}
+    <CopyrightNotice>k__BackingField: 'Copyright (c) 2016 Facepunch Studios LTD'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: 'Steam 연동'
+    <AssetPaths>k__BackingField:
+    - 'Assets/Plugins/Facepunch.Steamworks.2.5.2'
+  - <Id>k__BackingField: dotnet-bcl
+    <Category>k__BackingField: 9
+    <Name>k__BackingField: 'Microsoft.Bcl.AsyncInterfaces, Microsoft.Bcl.TimeProvider, System.Threading.Channels'
+    <Author>k__BackingField: '.NET Foundation and Contributors'
+    <SourceUrl>k__BackingField: 'https://github.com/dotnet/runtime'
+    <LicenseName>k__BackingField: 'MIT License'
+    <LicenseUrl>k__BackingField: 'https://github.com/dotnet/runtime/blob/main/LICENSE.TXT'
+    <License>k__BackingField: {fileID: 4900000, guid: 7bb77a78bb0d46369f3747f60a2a8f0a, type: 3}
+    <CopyrightNotice>k__BackingField: 'Copyright (c) .NET Foundation and Contributors'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: 'R3 의존 라이브러리'
+    <AssetPaths>k__BackingField:
+    - 'Assets/Plugins/R3'
+  - <Id>k__BackingField: newtonsoft-json
+    <Category>k__BackingField: 9
+    <Name>k__BackingField: 'Json.NET'
+    <Author>k__BackingField: 'James Newton-King'
+    <SourceUrl>k__BackingField: 'https://www.newtonsoft.com/json'
+    <LicenseName>k__BackingField: 'MIT License'
+    <LicenseUrl>k__BackingField: 'https://github.com/JamesNK/Newtonsoft.Json/blob/master/LICENSE.md'
+    <License>k__BackingField: {fileID: 4900000, guid: 7bb77a78bb0d46369f3747f60a2a8f0a, type: 3}
+    <CopyrightNotice>k__BackingField: 'Copyright (c) 2007 James Newton-King'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '저장 자료 변환'
+    <AssetPaths>k__BackingField: []
+  - <Id>k__BackingField: playfab-sdk
+    <Category>k__BackingField: 9
+    <Name>k__BackingField: 'PlayFab Unity SDK'
+    <Author>k__BackingField: 'PlayFab Inc. (Microsoft)'
+    <SourceUrl>k__BackingField: 'https://github.com/PlayFab/UnitySDK'
+    <LicenseName>k__BackingField: 'Apache License 2.0'
+    <LicenseUrl>k__BackingField: 'https://www.apache.org/licenses/LICENSE-2.0'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: 'Copyright 2015 PlayFab Inc.'
+    <AttributionRequired>k__BackingField: 1
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '온라인 저장'
+    <AssetPaths>k__BackingField:
+    - 'Assets/PlayFabSDK'
