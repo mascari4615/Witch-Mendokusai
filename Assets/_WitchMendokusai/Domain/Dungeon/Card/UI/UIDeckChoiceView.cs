@@ -28,13 +28,6 @@ namespace WitchMendokusai
 
 		public UIChoiceCard ChoiceCard => choiceCard;
 
-		// 슬롯 회전 중 숨길 정보. 카드 목록과 강화 합계
-		public void CollectRevealDetails(List<GameObject> details)
-		{
-			details.Add(miniParent.gameObject);
-			details.Add(totalText.gameObject);
-		}
-
 		public void Set(EquipmentData equipment, IReadOnlyList<CardData> equipmentCards, IReadOnlyList<CardData> selectedCards, bool isNewEquipment)
 		{
 			SurvivalUITheme.KindStyle style = theme.Style(equipment.UIKind);

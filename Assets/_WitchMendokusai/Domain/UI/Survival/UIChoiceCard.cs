@@ -18,7 +18,6 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject sheen;
 		[SerializeField] private UIBurst burst;
 		[SerializeField] private Button button;
-		[SerializeField] private int openBurstCount = 36;
 
 		private SurvivalUIKind kind;
 		private bool isSelected;
@@ -31,26 +30,6 @@ namespace WitchMendokusai
 			kind = newKind;
 			ApplyState();
 		}
-
-		public void PlayAppear(int order)
-		{
-			UIEffects.PopIn(transform, theme.CardAppearDuration, order * theme.CardAppearInterval);
-		}
-
-		public void PlayOpenBurst(int order)
-		{
-			DOVirtual.DelayedCall(order * theme.CardAppearInterval, () => burst.Play(theme.Style(kind).Main, openBurstCount)).SetUpdate(true).SetTarget(transform);
-		}
-
-		// 슬롯 멈춤 번쩍. 테두리를 번쩍 색에서 현재 상태 색으로
-		public void PlayRevealFlash(Color flashColor, float duration)
-		{
-			outline.DOKill();
-			outline.color = flashColor;
-			outline.DOColor(OutlineColor(), duration).SetEase(Ease.OutQuad).SetUpdate(true);
-		}
-
-		public void PlayRevealBurst(Color burstColor, int count) => burst.Play(burstColor, count);
 
 		public void PlayConfirm()
 		{

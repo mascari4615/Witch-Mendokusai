@@ -207,7 +207,7 @@ namespace WitchMendokusai
 
 		private IEnumerator CloseChestAfterDelay(float seconds)
 		{
-			// 개봉 연출과 슬롯 회전이 끝난 뒤부터 셈
+			// 상자 공개 연출이 끝난 뒤부터 셈
 			UISelectCard selectCardPanel = Panels[CardPanelType.SelectCard] as UISelectCard;
 			yield return null;
 			while (selectCardPanel.IsChestRevealing)
