@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f2aa8eba9f74ee88504459a3fe55e3f, type: 3}
+  m_Name: Ultimate_05_SkySword
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SkySwordUltimateFx
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle: 
+  spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
+  shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
+  gradeShader: {fileID: 4800000, guid: 1ebe1525f751440ea76b9cca2137b714, type: 3}
+  overlayFlashCap: 0.32
+  backgroundFlashCap: 0.85
+  spawnTemporaryFoliage: 1
+  foliageAreaRadius: 14
+  foliage:
+  - Prefab: {fileID: 6107932506994862601, guid: a26a53e463177194db6585765f564431, type: 3}
+    Count: 220
+    Flexibility: 1
+    ScaleRange: {x: 1.2, y: 2}
+    MinDistance: 1.2
+  - Prefab: {fileID: 5350839332914572334, guid: 3540440509c30ba49b2125f242729c46, type: 3}
+    Count: 18
+    Flexibility: 0.75
+    ScaleRange: {x: 0.9, y: 1.4}
+    MinDistance: 3
+  - Prefab: {fileID: 2871132453943284833, guid: c0c27574d0d91ea44894908f417f36d4, type: 3}
+    Count: 6
+    Flexibility: 0.3
+    ScaleRange: {x: 0.45, y: 0.7}
+    MinDistance: 6.5
+  foliageResponse:
+    Bend: 78
+    DecaySeconds: 1.2
+    Hertz: 1.7
+    BladeCount: 70
+    BladeSpeed: 11
+    BladeColor: {r: 0.45, g: 0.7, b: 0.3, a: 1}
+  tailSeconds: 1.5
+  screenSortingOrder: 2400
+  nightTint: {r: 0.3, g: 0.36, b: 0.75, a: 1}
+  nightTop: {r: 0.03, g: 0.04, b: 0.12, a: 1}
+  nightBottom: {r: 0.08, g: 0.1, b: 0.25, a: 1}
+  glint: {r: 2, g: 2, b: 2.2, a: 1}
+  halo: {r: 1.6, g: 1.5, b: 1.2, a: 1}
+  smoke: {r: 0.95, g: 0.96, b: 1, a: 0.8}
+  raiseSeconds: 0.4
+  glintSeconds: 0.27
+  nightSeconds: 2
+  whiteSeconds: 0.067
+  silhouetteSeconds: 0.067
+  plantSeconds: 0.33
+  smokeSeconds: 2
+  remainSeconds: 1
+  vanishSeconds: 0.5
+  swordHeight: 7.5
+  targetDistance: 0.6
+  sinkRatio: 0
+  haloSize: 9
+  impactRadius: 9
+  smokeCount: 70
+  smokeSpeed: 7
+  crackSeed: 23
+  crackHeatSeconds: 2.4
+  tintAmount: 0.45
+  darken: 0.55
+  starAmount: 0
+  flashPeak: 1
+  plantShake: 2
+  nightZoom: 1.22
