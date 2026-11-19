@@ -4,7 +4,7 @@ using UnityEngine.UI;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 궁극기 동안 화면 위에 덮는 층. 전부 화면 위 이미지 (후처리 Volume 은 이 카메라에서 반영되지 않음)
+	/// 궁극기 동안 화면 위에 덮는 층. 전부 화면 위 이미지. 후처리 Volume 은 이 카메라에 반영됨 (2026-11-20 실측, 장면에 Volume 이 없었을 뿐). 3D 판은 UltimateWorldLighting 의 Volume 을 씀
 	/// - 섬광 (더하기), 색 번짐 (더하기), 가장자리 어둠 (알파), 방사 속도선 (더하기, 회전), 위아래 검은 띠 (시네마 바), 사선 띠 셋 (멈춘 화면을 가르는 띠, 빛줄)
 	/// - 배경만 바꾸는 효과는 UltimateGradeLayer. 이 층은 인물까지 덮으므로 섬광 알파는 UltimateFx 의 상한을 거쳐 들어옴
 	/// - 값은 UltimateFx 가 매 프레임 넣음. 이 클래스는 그리기만

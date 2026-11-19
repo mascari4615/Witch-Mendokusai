@@ -1,0 +1,11 @@
+# origin: Claymore by Quaternius (CC0 1.0), https://poly.pizza/m/BBhN1O6TOL, material names from the source glb
+newmtl DarkSteel
+Kd 0.213 0.213 0.179
+newmtl Black
+Kd 0.025 0.020 0.018
+newmtl DarkBrown
+Kd 0.073 0.056 0.052
+newmtl LightRed
+Kd 0.432 0.104 0.098
+newmtl Red
+Kd 0.352 0.034 0.049
