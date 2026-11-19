@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49c0cb593cf247bca6f05b3ea3d5ce68, type: 3}
+  m_Name: Ultimate_10_Thunder
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.ThunderUltimateFx
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle: 
+  spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
+  shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
+  gradeShader: {fileID: 4800000, guid: 1ebe1525f751440ea76b9cca2137b714, type: 3}
+  overlayFlashCap: 0.32
+  backgroundFlashCap: 0.85
+  spawnTemporaryFoliage: 1
+  foliageAreaRadius: 14
+  foliage:
+  - Prefab: {fileID: 6107932506994862601, guid: a26a53e463177194db6585765f564431, type: 3}
+    Count: 220
+    Flexibility: 1
+    ScaleRange: {x: 1.2, y: 2}
+    MinDistance: 1.2
+  - Prefab: {fileID: 5350839332914572334, guid: 3540440509c30ba49b2125f242729c46, type: 3}
+    Count: 18
+    Flexibility: 0.75
+    ScaleRange: {x: 0.9, y: 1.4}
+    MinDistance: 3
+  - Prefab: {fileID: 2871132453943284833, guid: c0c27574d0d91ea44894908f417f36d4, type: 3}
+    Count: 6
+    Flexibility: 0.3
+    ScaleRange: {x: 0.45, y: 0.7}
+    MinDistance: 6.5
+  foliageResponse:
+    Bend: 78
+    DecaySeconds: 1.2
+    Hertz: 1.7
+    BladeCount: 70
+    BladeSpeed: 11
+    BladeColor: {r: 0.45, g: 0.7, b: 0.3, a: 1}
+  tailSeconds: 1.5
+  screenSortingOrder: 2400
+  boltColor: {r: 1.9, g: 1.8, b: 1.1, a: 1}
+  ringColor: {r: 1.6, g: 1.3, b: 0.3, a: 1}
+  bandColor: {r: 0.02, g: 0.02, b: 0.03, a: 1}
+  lineColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  stormTint: {r: 0.55, g: 0.55, b: 0.7, a: 1}
+  telegraphSeconds: 0.53
+  freezeSeconds: 1.47
+  freezeScale: 0.02
+  strikeSpanSeconds: 0.7
+  boltSeconds: 0.26
+  ringSeconds: 0.5
+  lingerSeconds: 3
+  boltCount: 7
+  strikeRadius: 3.5
+  boltHeight: 16
+  boltWidth: 1.3
+  ringStartRadius: 4.5
+  ringEndRadius: 6.5
+  stormDarken: 0.45
+  stormDesaturate: 0.6
+  flashPeak: 0.75
+  bandAngle: 18
+  strikeShake: 1.2
+  strikeFlash: 0.15
