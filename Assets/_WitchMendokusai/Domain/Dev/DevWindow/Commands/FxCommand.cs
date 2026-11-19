@@ -54,25 +54,56 @@ namespace WitchMendokusai
 		}
 
 		// fx ultimate [이름 일부]: 궁극기 연출 (UltimateFx) 을 주인공 자리에서 처음부터 끝까지 재생. 이름이 없으면 첫 번째
+		// - 연출의 개발 키 (DevKey) 와 정확히 같으면 그것, 다음은 에셋 이름 정확히 일치, 다음은 이름 일부
+		// - 'a+b' 는 차례로 재생 (앞 연출과 꼬리가 끝난 뒤 다음). 같은 자리 비교용 (예: fx ultimate ult3d+ult3d_heavy)
 		private static void PlayUltimate(DevCommandContext context, List<CombatFx> all, string fragment)
 		{
-			List<UltimateFx> ultimates = all.OfType<UltimateFx>()
-				.Where(fx => string.IsNullOrEmpty(fragment) || fx.name.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0)
-				.ToList();
+			List<UltimateFx> every = all.OfType<UltimateFx>().ToList();
+			string[] parts = string.IsNullOrEmpty(fragment) ? new[] { string.Empty } : fragment.Split('+');
+			List<UltimateFx> sequence = new();
+			foreach (string part in parts)
+			{
+				UltimateFx resolved = Resolve(context, every, part);
+				if (resolved == null)
+					return;
+				sequence.Add(resolved);
+			}
+			// 개발 창은 명령 뒤 닫힐 수 있어 연출 진행기 (CombatFxRunner) 에 붙임
+			CombatFxRunner.Instance.StartCoroutine(PlaySequence(context, sequence));
+		}
+
+		private static UltimateFx Resolve(DevCommandContext context, List<UltimateFx> every, string fragment)
+		{
+			UltimateFx keyed = string.IsNullOrEmpty(fragment) ? null : every.FirstOrDefault(fx => string.Equals(fx.DevKey, fragment, StringComparison.OrdinalIgnoreCase))
+				?? every.FirstOrDefault(fx => string.Equals(fx.name, fragment, StringComparison.OrdinalIgnoreCase));
+			if (keyed != null)
+				return keyed;
+			List<UltimateFx> ultimates = every.Where(fx => string.IsNullOrEmpty(fragment) || fx.name.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
 			if (ultimates.Count == 0)
 			{
 				context.LogError($"궁극기 연출 부품 없음: '{fragment}'. 메뉴 WM/CombatFx/Build Ultimate Presets 로 만들기");
-				return;
+				return null;
 			}
 			if (ultimates.Count > 1 && string.IsNullOrEmpty(fragment) == false)
 			{
 				context.LogWarn($"여러 후보 ({ultimates.Count}):");
 				foreach (UltimateFx fx in ultimates)
 					context.LogWarn("  " + fx.name);
-				return;
+				return null;
 			}
-			ultimates[0].PlayPreview();
-			context.LogSuccess($"{ultimates[0].name} 재생 (약 {ultimates[0].DurationSeconds:0.0}초)");
+			return ultimates[0];
+		}
+
+		private static System.Collections.IEnumerator PlaySequence(DevCommandContext context, List<UltimateFx> sequence)
+		{
+			for (int i = 0; i < sequence.Count; i++)
+			{
+				UltimateFx fx = sequence[i];
+				fx.PlayPreview();
+				context.LogSuccess($"{fx.name} 재생 (약 {fx.DurationSeconds:0.0}초)");
+				if (i < sequence.Count - 1)
+					yield return new UnityEngine.WaitForSecondsRealtime(fx.DurationSeconds + fx.TailSeconds);
+			}
 		}
 
 		public IEnumerable<string> Suggest(string[] partial)

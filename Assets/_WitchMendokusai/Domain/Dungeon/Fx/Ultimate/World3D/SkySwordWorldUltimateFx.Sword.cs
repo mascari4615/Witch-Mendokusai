@@ -122,8 +122,9 @@ namespace WitchMendokusai
 			{
 				swordTransform.position = plantedPosition;
 				// 충돌 뒤에는 지면 광원 하나만. 광원이 겹치면 바닥 판마다 받는 광원 (물체당 4개 상한) 이 달라 사각 얼룩이 생김 (2026-11-20 밤 촬영)
-				run.Destroy(spot.gameObject);
-				run.Destroy(swordLight.gameObject);
+				// 끄기만 함. 지운 프레임에 바닥 판이 사각으로 번쩍이는 것 방지 (지면 광원과 같은 이유)
+				spot.enabled = false;
+				swordLight.enabled = false;
 			});
 			ComposeFallTrail(run, hangPosition, target);
 

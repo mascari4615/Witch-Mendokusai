@@ -67,15 +67,15 @@ namespace WitchMendokusai
 			}, () => Destroy(ring));
 		}
 
-		/// <summary> 굴절 띠와 빛 고리가 함께 퍼지는 충격파. 같은 속도로 풀이 휨 </summary>
-		public void Shockwave(float start, Vector3 origin, float maxRadius, float seconds, float distortion, float bandWidth, Color rimColor)
+		/// <summary> 굴절 띠와 빛 고리가 함께 퍼지는 충격파. 같은 속도로 풀이 휨. tearBlades 가 거짓이면 풀잎 뜯김 입자 없이 휘기만 </summary>
+		public void Shockwave(float start, Vector3 origin, float maxRadius, float seconds, float distortion, float bandWidth, Color rimColor, bool tearBlades = true)
 		{
 			Material shock = Shockwave();
 			Material glow = Additive(UltimateFxTextures.Ring, Color.clear);
 			float diameter = maxRadius * 2.2f;
 			GameObject shockObject = null;
 			GameObject glowObject = null;
-			At(start, () => React(origin, maxRadius / seconds * 0.8f, maxRadius));
+			At(start, () => React(origin, maxRadius / seconds * 0.8f, maxRadius, tearBlades));
 			Track(start, seconds, progress =>
 			{
 				if (shockObject == null)

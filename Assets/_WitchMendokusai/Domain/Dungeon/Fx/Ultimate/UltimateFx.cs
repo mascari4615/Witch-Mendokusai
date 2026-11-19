@@ -33,6 +33,9 @@ namespace WitchMendokusai
 			public Color BladeColor;
 		}
 
+		[Header("개발 창")]
+		[SerializeField, Tooltip("fx ultimate 뒤에 쓰는 정확한 이름. 이름 일부 검색보다 먼저 맞춤 (예: ult3d, ult3d_heavy)")] private string devKey = string.Empty;
+
 		[Header("연결")]
 		[SerializeField] private Shader spriteShader;
 		[SerializeField] private Shader shockwaveShader;
@@ -52,6 +55,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f), Tooltip("마지막 효과 뒤 입자가 사라질 때까지 붙드는 시간")] private float tailSeconds = 1.5f;
 		[SerializeField, Min(100), Tooltip("화면 층 정렬 순서")] private int screenSortingOrder = 2400;
 
+		public string DevKey => devKey;
 		public Shader SpriteShader => spriteShader;
 		public Shader ShockwaveShader => shockwaveShader;
 		public Shader GradeShader => gradeShader;

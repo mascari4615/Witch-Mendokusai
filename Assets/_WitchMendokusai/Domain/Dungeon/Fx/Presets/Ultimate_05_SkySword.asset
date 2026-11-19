@@ -17,6 +17,7 @@ MonoBehaviour:
   previewWidth: 2
   previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
   previewSubtitle: 
+  devKey: 
   spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
   shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
   gradeShader: {fileID: 4800000, guid: 1ebe1525f751440ea76b9cca2137b714, type: 3}

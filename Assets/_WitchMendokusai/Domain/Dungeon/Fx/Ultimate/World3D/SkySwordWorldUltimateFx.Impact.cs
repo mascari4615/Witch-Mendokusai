@@ -21,7 +21,8 @@ namespace WitchMendokusai
 				float rise = Mathf.Lerp(contactRatio, 1f, Mathf.Clamp01(age / flashDelay));
 				float fall = age <= flashDelay ? 1f : Mathf.Pow(0.5f, (age - flashDelay) / impactHalfLife);
 				impactLight.intensity = impactLightIntensity * rise * fall;
-			}, () => run.Destroy(impactLight.gameObject));
+			}, () => impactLight.enabled = false);
+			// 끄기만 하고 지우지 않음 (연출 끝에 Root 와 함께 정리). 지운 프레임에 바닥 판 하나가 밝은 사각으로 번쩍임 (2026-11-20 밤 촬영, 지운 시각과 일치)
 
 			run.At(ImpactTime, () =>
 			{
@@ -205,11 +206,16 @@ namespace WitchMendokusai
 		}
 
 		// 그을림과 균열을 바닥에 붙인 메시 데칼 (바닥 판) 로. 풀잎 메시가 위를 가림. 빛이 꺼지고 검이 사라진 뒤에도 남음
-		// - URP DecalProjector 는 이 장면에서 그려지지 않음 (2026-11-20 MOIS2, 바닥은 URP Lit, 원인 미확인). 메시 데칼로 대체
+		// - projectorDecal 이 켜진 에셋 (강한 검) 은 URP DecalProjector 로 지형 굴곡을 따라 투영 (ProjectorDecal)
 		private void CrackDecal(UltimateFxRun run, Vector3 target)
 		{
 			Texture2D texture = ScorchTexture();
 			run.OnRelease(() => Object.Destroy(texture));
+			if (projectorDecal)
+			{
+				ProjectorDecal(run, target, texture);
+				return;
+			}
 			Material material = run.Alpha(texture, new Color(1f, 1f, 1f, 0f));
 			GameObject plate = run.Plate("CrackDecal", material, target + Vector3.up * 0.03f, decalSize, 0);
 			plate.transform.rotation = Quaternion.Euler(0f, Random.value * 360f, 0f);

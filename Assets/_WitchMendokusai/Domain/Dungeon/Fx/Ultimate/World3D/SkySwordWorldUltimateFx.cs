@@ -137,6 +137,9 @@ namespace WitchMendokusai
 			ComposeGather(run, lighting);
 			Transform sword = ComposeSword(run, lighting, target);
 			ComposeImpact(run, lighting, target, sword);
+			// 강한 검 에셋만 켬. 약한 검 에셋은 꺼져 있어 위 구성 그대로
+			if (heavyLayers)
+				ComposeHeavy(run, target);
 
 			// 하늘 감독 Update 뒤에 매 프레임 덮음. 트랙 하나로 끝까지
 			run.Track(0f, DurationSeconds, _ => lighting.Apply(run.Delta));
@@ -188,7 +191,8 @@ namespace WitchMendokusai
 			{
 				float pulse = UltimateFxRun.Bell(progress, 0.55f);
 				casterLight.intensity = casterLightIntensity * pulse * (0.85f + 0.15f * Mathf.Sin(run.Now * 40f));
-			}, () => run.Destroy(casterLight.gameObject));
+			}, () => casterLight.enabled = false);
+			// 끄기만 함. 광원을 지운 프레임에 바닥 판 하나가 밝은 사각으로 번쩍임 (2026-11-20 촬영 두 번, 지운 시각 0.5초와 3.95초에 일치)
 
 			ParticleSystem motes = run.Particles("GatherMotes", run.Additive(UltimateFxTextures.Soft, Color.white), gatherCount + 8, -0.2f);
 			UltimateFxStage.SetLifetimeLook(motes, UltimateFxStage.FadeGradient(Color.white, 0.1f, 0.5f), AnimationCurve.Linear(0f, 1f, 1f, 0.3f));
