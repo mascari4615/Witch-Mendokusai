@@ -79,7 +79,7 @@ namespace WitchMendokusai
 		}
 
 		private static IEnumerable<FSMSlimeKing> FindKings() =>
-			UnityEngine.Object.FindObjectsByType<FSMSlimeKing>(FindObjectsSortMode.None)
+			UnityEngine.Object.FindObjectsByType<FSMSlimeKing>()
 				.Where(king => king.isActiveAndEnabled);
 
 		private static FSMSlimeKing SpawnKing(DevCommandContext context)
