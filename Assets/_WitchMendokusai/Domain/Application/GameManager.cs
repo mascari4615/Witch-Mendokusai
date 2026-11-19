@@ -143,7 +143,7 @@ namespace WitchMendokusai
 				if (upgrade.CurLevel <= 0)
 					continue;
 
-				// 대응 스탯이 없는 강화 (Luck). UpgradeData.LuckMultiplier 로 직접 읽음
+				// 대응 스탯이 없는 강화 (Luck). UpgradeData.Luck 로 직접 읽음
 				if (upgrade.UnitStatType == UnitStatType.NONE)
 					continue;
 

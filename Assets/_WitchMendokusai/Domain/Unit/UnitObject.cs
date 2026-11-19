@@ -118,7 +118,7 @@ namespace WitchMendokusai
 			if (isActiveAndEnabled)
 				timeManager.RegisterCallback(SkillHandler.Tick);
 
-			UnitStat.Set(UnitData.InitStatInfos.GetUnitStat());
+			UnitStat.Set(UnitData.InitStatInfos.GetUnitStat(ResourceManager.Instance.UnitBaseStats));
 			UpdateStat();
 
 			// if (NavMeshAgent)

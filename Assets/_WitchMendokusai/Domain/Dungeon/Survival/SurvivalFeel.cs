@@ -27,9 +27,8 @@ namespace WitchMendokusai
 		private float nextEliteRingTime;
 		private float burstWindowEnd;
 		private int burstCount;
-		private float expSoundWindowEnd;
 		private UnityEngine.UI.Image hitFlashImage;
-		private int expSoundCount;
+		private readonly Dictionary<string, int> lastSoundFrames = new();
 
 		private SurvivalFeelConfig Config => resourceManager.SurvivalFeel;
 
@@ -194,16 +193,14 @@ namespace WitchMendokusai
 				EmitShards(shards, position, Config.ExpPickup, Config.ExpPickup.Color);
 		}
 
-		public bool TakeExpSound()
+		// 같은 소리는 SameSoundFrameInterval 프레임에 한 번. 줍기 소리가 한 프레임에 겹쳐 커지는 것 방지
+		public bool TakeSound(string soundKey)
 		{
-			SurvivalFeelConfig config = Config;
-			if (Time.unscaledTime >= expSoundWindowEnd)
-			{
-				expSoundWindowEnd = Time.unscaledTime + config.ExpSoundWindow;
-				expSoundCount = 0;
-			}
-			expSoundCount++;
-			return expSoundCount <= config.ExpSoundsPerWindow;
+			int frame = Time.frameCount;
+			if (lastSoundFrames.TryGetValue(soundKey, out int lastFrame) && frame - lastFrame < Config.SameSoundFrameInterval)
+				return false;
+			lastSoundFrames[soundKey] = frame;
+			return true;
 		}
 
 		public void OnWeaponBurst(Vector3 position, FeelMoment moment)

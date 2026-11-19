@@ -63,8 +63,8 @@ namespace WitchMendokusai
 
 		[field: NonSerialized] public int CurLevel { get; set; }
 
-		// 스탯 칸 없는 행운의 배율, 희귀 카드 가중치와 회복, 자석 획득 확률에 곱함
-		public static float LuckMultiplier => 1f + (float)Get<UpgradeData>((int)UpgradeType.Luck).TotalValue / UnitStat.PERCENT;
+		// 스탯 칸 없는 영구 행운, 0~1 비율. 닿는 곳과 계수는 SurvivalRunRules 의 Luck 칸
+		public static float Luck => (float)Get<UpgradeData>((int)UpgradeType.Luck).TotalValue / UnitStat.PERCENT;
 
 		public static int BonusOf(UpgradeType type) => Get<UpgradeData>((int)type).TotalValue;
 

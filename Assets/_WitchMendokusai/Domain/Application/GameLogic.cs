@@ -110,13 +110,14 @@ namespace WitchMendokusai
 			lootItem.GetComponent<ItemObject>().Init(dropItem);
 		}
 
+		// 처치 바닥 아이템. 회복과 자석은 부서지는 물건 표 전용이라 여기 없음 (mc10)
 		public void SpawnGameItem(Vector3 position)
 		{
-			Probability<GameItemObject> gameItemProbability = new(shouldFill100Percent: true);
-			float luckMultiplier = UpgradeData.LuckMultiplier;
 			SurvivalRunRules rules = resourceManager.SurvivalRunRules;
-			gameItemProbability.Add(resourceManager.HealObjectPrefab, rules.HealDropPercent * luckMultiplier);
-			gameItemProbability.Add(resourceManager.MagnetObjectPrefab, rules.MagnetDropPercent * luckMultiplier);
+			if (rules.KillDropFreezeAndClear == false)
+				return;
+			Probability<GameItemObject> gameItemProbability = new(shouldFill100Percent: true);
+			float luckMultiplier = rules.FloorItemLuckMultiplier(UpgradeData.Luck);
 			if (resourceManager.FreezeObjectPrefab != null)
 				gameItemProbability.Add(resourceManager.FreezeObjectPrefab, rules.FreezeDropPercent * luckMultiplier);
 			if (resourceManager.ClearScreenObjectPrefab != null)

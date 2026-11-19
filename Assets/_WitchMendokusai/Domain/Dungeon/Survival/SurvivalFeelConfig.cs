@@ -86,8 +86,12 @@ namespace WitchMendokusai
 		[Range(0f, 1f), Tooltip("조각 방향 칸 안 흔들림. 0이면 등간격")] public float ShardAngleJitter = 0.8f;
 
 		[Header("Sound limit")]
-		[Min(1)] public int ExpSoundsPerWindow = 3;
-		[Min(0.01f)] public float ExpSoundWindow = 0.1f;
+		[Min(1), Tooltip("같은 줍기 소리는 이 프레임 수에 한 번 (mc29)")] public int SameSoundFrameInterval = 5;
+
+		[Header("Pickup pull (mc28)")]
+		[Tooltip("줍기 범위에 닿은 전리품이 끌려오는 곡선. 가로는 시간 비율, 세로 0 은 처음 자리, 1 은 플레이어, 음수는 바깥으로 튐. 기본 최저 -0.34")]
+		public AnimationCurve PickupPullCurve = new(new Keyframe(0f, 0f, 0f, 0f), new Keyframe(0.35f, -0.34f, 0f, 0f), new Keyframe(1f, 1f, 3f, 0f));
+		[Min(0.01f), Tooltip("줍기 범위에서 플레이어까지 끌려오는 시간 초. 자석으로 끌리는 것은 LootObject 속도")] public float PickupPullSeconds = 0.2f;
 
 		[Header("Moments")]
 		public FeelMoment Hit = new() { Shake = 0.02f, Shards = 2, ShardSpeed = 3f, ShardLife = 0.18f, ShardSize = 0.1f };

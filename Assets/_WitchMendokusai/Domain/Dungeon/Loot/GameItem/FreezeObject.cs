@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using VContainer;
 
 namespace WitchMendokusai
 {
@@ -9,8 +8,6 @@ namespace WitchMendokusai
 	{
 		private static readonly Plane[] viewPlanes = new Plane[6];
 		private static readonly List<GameObject> targets = new();
-
-		[Inject] internal ResourceManager resourceManager;
 
 		protected override void OnEffect()
 		{

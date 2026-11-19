@@ -37,7 +37,9 @@ namespace WitchMendokusai
 
 		protected override void OnEffect()
 		{
-			UiSfx.Play(pickupSfx);
+			SurvivalFeel feel = SurvivalFeel.Instance;
+			if (feel == null || feel.TakeSound(nameof(NyangObject)))
+				UiSfx.Play(pickupSfx);
 			dataManager.GameStat[GameStatType.NYANG] += amount;
 		}
 	}

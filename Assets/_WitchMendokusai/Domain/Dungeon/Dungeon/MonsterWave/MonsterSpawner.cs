@@ -29,7 +29,6 @@ namespace WitchMendokusai
 		[SerializeField] private Vector2 spawnDistanceRange = new(10f, 15f);
 		[SerializeField] private float despawnDistance = 50f;
 		[SerializeField, Min(0f)] private float visibilityPadding = 2f;
-		[SerializeField, Min(0f)] private float offscreenMovementInterval = 0.1f;
 		[SerializeField, Min(0f), Tooltip("보스 웨이브 시작 몇 초 전에 예고 이벤트를 낼지")] private float bossAnnounceLeadSeconds = 5f;
 		private readonly Plane[] visibilityPlanes = new Plane[6];
 		// 아직 예고하지 않은 보스 웨이브
@@ -181,26 +180,30 @@ namespace WitchMendokusai
 				WaveMoveOverride.Apply(monsterObject, moveOrder);
 		}
 
+		// 화면 밖 일반 적은 거리 단계별로 이동 갱신을 낮추고, 오래 화면 밖이면 드롭 없이 반납 (mc36). 보스와 정예는 매 틱, 반납 없음
 		private void RetireDistantMonsters()
 		{
 			Camera camera = Camera.main;
 			bool useVisibility = camera != null && dungeonManager.CurDungeon.MapType == DungeonMapType.SurvivorsLike;
 			if (useVisibility)
 				GeometryUtility.CalculateFrustumPlanes(camera, visibilityPlanes);
+			SurvivalRunRules rules = dungeonManager.RunRules;
 			Vector3 playerPosition = playerProvider.Current.transform.position;
 			float maxDistanceSquared = despawnDistance * despawnDistance;
+			float now = Time.time;
 			List<GameObject> monsters = ObjectBufferManager.GetObjects(ObjectType.Monster);
 			for (int i = monsters.Count - 1; i >= 0; i--)
 			{
 				GameObject obj = monsters[i];
 				if (obj == null || obj.TryGetComponent(out MonsterObject monster) == false || monster.UnitData == null)
 					continue;
-				if (monster.UnitData.Type == MonsterType.Boss)
+				if (monster.UnitData.Type == MonsterType.Boss || monster.IsElite)
 				{
 					monster.UnitMovement.SetSimulationInterval(0f);
 					continue;
 				}
-				if ((obj.transform.position - playerPosition).sqrMagnitude > maxDistanceSquared)
+				float distanceSquared = (obj.transform.position - playerPosition).sqrMagnitude;
+				if (distanceSquared > maxDistanceSquared)
 				{
 					obj.SetActive(false);
 					continue;
@@ -208,8 +211,22 @@ namespace WitchMendokusai
 
 				Bounds bounds = monster.SpriteRenderer.bounds;
 				bounds.Expand(visibilityPadding * 2f);
-				bool fullRate = useVisibility == false || GeometryUtility.TestPlanesAABB(visibilityPlanes, bounds);
-				monster.UnitMovement.SetSimulationInterval(fullRate ? 0f : offscreenMovementInterval);
+				bool onScreen = useVisibility == false || GeometryUtility.TestPlanesAABB(visibilityPlanes, bounds);
+				if (onScreen)
+				{
+					monster.OffscreenSinceTime = -1f;
+					monster.UnitMovement.SetSimulationInterval(0f);
+					continue;
+				}
+
+				if (monster.OffscreenSinceTime < 0f)
+					monster.OffscreenSinceTime = now;
+				else if (rules.OffscreenRetireSeconds > 0f && now - monster.OffscreenSinceTime >= rules.OffscreenRetireSeconds)
+				{
+					obj.SetActive(false);
+					continue;
+				}
+				monster.UnitMovement.SetSimulationInterval(rules.OffscreenUpdateInterval(Mathf.Sqrt(distanceSquared)));
 			}
 		}
 

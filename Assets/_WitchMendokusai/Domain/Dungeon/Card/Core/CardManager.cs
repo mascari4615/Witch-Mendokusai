@@ -65,9 +65,6 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f), Tooltip("선택 직후 무적 초")] private float postSelectionInvincibility = 1f;
 		[SerializeField, Min(0), Tooltip("고를 카드가 없을 때 체력이 닳아 있으면 레벨업 하나당 회복량")] private int maxedLevelUpHeal = 5;
 		[SerializeField, Min(0), Tooltip("고를 카드가 없고 체력이 가득이면 레벨업 하나당 냥")] private int maxedLevelUpNyang = 10;
-		[SerializeField, Min(0f)] private float commonWeight = 1f;
-		[SerializeField, Min(0f)] private float rareWeight = 0.5f;
-		[SerializeField, Min(0f)] private float epicWeight = 0.2f;
 
 		// TASK-WM-115 R1 — 카드 선택 UI = 던전전용 (사용자 확정: World 부재=정상).
 		// 구: Init(World Awake) 이 eager Find → 미발견 LogError + Panels 에 null 저장
@@ -346,22 +343,46 @@ namespace WitchMendokusai
 
 		public int SelectedCardCount => soManager.SelectedCardBuffer.Data.Count;
 
-		private float RarityWeight(CardData card) => card.Rarity switch
+        // 희귀, 영웅은 운 배율. 영구 행운에 그 카드 장비 레벨 곱하기 계수를 더한 값 (mc16, mc18)
+		private float RarityWeight(CardData card, float permanentLuck)
 		{
-			CardRarity.Rare => rareWeight * UpgradeData.LuckMultiplier,
-			CardRarity.Epic => epicWeight * UpgradeData.LuckMultiplier,
-			_ => commonWeight,
-		};
+			SurvivalRunRules rules = resourceManager.SurvivalRunRules;
+			return card.Rarity switch
+			{
+				CardRarity.Rare => rules.RareCardWeight * rules.RarityLuckMultiplier(permanentLuck, DeckEquipmentLevel(card)),
+				CardRarity.Epic => rules.EpicCardWeight * rules.RarityLuckMultiplier(permanentLuck, DeckEquipmentLevel(card)),
+				_ => rules.CommonCardWeight,
+			};
+		}
+
+		// 카드가 든 덱의 장비 레벨. 어느 덱에도 없는 카드 (진화) 는 0
+		private int DeckEquipmentLevel(CardData card)
+		{
+			List<EquipmentData> equipments = Loadout.Equipments();
+			int deckCount = Math.Min(equipments.Count, cardDataBuffers.Count);
+			for (int i = 0; i < deckCount; i++)
+			{
+				if (equipments[i] != null && cardDataBuffers[i].Contains(card))
+					return EquipmentLevel(equipments[i]);
+			}
+			return 0;
+		}
 
 		private int PickWeightedIndex(List<CardData> candidates)
 		{
+			float permanentLuck = UpgradeData.Luck;
+			List<float> weights = new(candidates.Count);
 			float total = 0f;
 			foreach (CardData card in candidates)
-				total += RarityWeight(card);
+			{
+				float weight = RarityWeight(card, permanentLuck);
+				weights.Add(weight);
+				total += weight;
+			}
 			float roll = Random.value * total;
 			for (int i = 0; i < candidates.Count; i++)
 			{
-				roll -= RarityWeight(candidates[i]);
+				roll -= weights[i];
 				if (roll <= 0f)
 					return i;
 			}

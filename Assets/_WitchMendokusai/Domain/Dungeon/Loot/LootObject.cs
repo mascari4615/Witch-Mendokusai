@@ -7,11 +7,8 @@ namespace WitchMendokusai
 {
 	public abstract class LootObject : MonoBehaviour
 	{
-		[SerializeField] private float moveSpeed = 1f;
-		[SerializeField, Min(0f)] private float pickupDistance = 0.3f;
-#pragma warning disable CS0414 // 베지어 커브 이동 미구현 예약 필드
-		[SerializeField] private bool useBezierCurve = false;
-#pragma warning restore CS0414
+		[SerializeField, Tooltip("자석으로 끌려올 때 초당 이동 거리")] private float moveSpeed = 1f;
+		[SerializeField, Min(0f), Tooltip("자석으로 끌려올 때 이 거리 안이면 획득")] private float pickupDistance = 0.3f;
 
 		private Coroutine _moveLoop;
 		private Collider pickupCollider;
@@ -23,6 +20,7 @@ namespace WitchMendokusai
 		// (private 이면 같은 dll 에서 set 이 안 돼 또 폴백 = VCON0007. internal 이 최소 가시성.)
 		// 정본: Domain/Application/DI/VCONTAINER-MECHANISM.md §3·§6
 		[Inject] internal PlayerProvider playerProvider;
+		[Inject] internal ResourceManager resourceManager;
 
 		private void Awake()
 		{
@@ -46,11 +44,14 @@ namespace WitchMendokusai
 
 			if (other.CompareTag("PlayerExpCollider"))
 			{
-				Equip();
+				BeginPull(PullLoop());
 			}
 		}
 
-		public void Equip()
+		// 자석. 거리가 멀어 곡선 대신 일정 속도로 끌림
+		public void Equip() => BeginPull(MoveLoop());
+
+		private void BeginPull(IEnumerator loop)
 		{
 			if (_moveLoop != null)
 				return;
@@ -58,7 +59,29 @@ namespace WitchMendokusai
 			// 흡수 중인 전리품의 중복 접촉 검사 생략
 			if (pickupCollider != null)
 				pickupCollider.enabled = false;
-			_moveLoop = StartCoroutine(MoveLoop());
+			_moveLoop = StartCoroutine(loop);
+		}
+
+		// 줍기 범위 안. 처음 바깥으로 살짝 튀었다가 빨려 옴 (mc28)
+		private IEnumerator PullLoop()
+		{
+			Vector3 startOffset = transform.position - playerProvider.Current.transform.position;
+			float elapsed = 0f;
+			while (true)
+			{
+				SurvivalFeelConfig config = resourceManager.SurvivalFeel;
+				elapsed += Time.deltaTime;
+				float ratio = Mathf.Clamp01(elapsed / config.PickupPullSeconds);
+				float progress = config.PickupPullCurve.Evaluate(ratio);
+				transform.position = playerProvider.Current.transform.position + startOffset * (1f - progress);
+				if (ratio >= 1f)
+				{
+					Effect();
+					_moveLoop = null;
+					yield break;
+				}
+				yield return null;
+			}
 		}
 
 		private IEnumerator MoveLoop()

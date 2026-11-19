@@ -21,9 +21,10 @@ namespace WitchMendokusai
 			new() { unitStat = UnitStatType.MOVEMENT_SPEED, value = 30 },
 		};
 
-		public UnitStat GetUnitStat()
+		public UnitStat GetUnitStat(UnitBaseStats baseStats)
 		{
 			UnitStat unitStat = new();
+			baseStats.ApplyTo(unitStat);
 			foreach (UnitStatInfo statInfo in initStats)
 				unitStat[statInfo.unitStat] = statInfo.value;
 

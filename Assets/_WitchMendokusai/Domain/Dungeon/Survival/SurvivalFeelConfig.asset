@@ -29,8 +29,8 @@ MonoBehaviour:
   ShardDrag: 2.5
   ShardLift: 0.35
   ShardAngleJitter: 0.8
-  ExpSoundsPerWindow: 3
-  ExpSoundWindow: 0.1
+  SameSoundFrameInterval: 5
+  PickupPullSeconds: 0.2
   Hit:
     Shake: 0.02
     Hitstop: 0

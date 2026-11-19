@@ -1105,7 +1105,6 @@ MonoBehaviour:
   spawnDistanceRange: {x: 10, y: 15}
   despawnDistance: 50
   visibilityPadding: 2
-  offscreenMovementInterval: 0.1
 --- !u!114 &1032405774
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1168,9 +1167,6 @@ MonoBehaviour:
   postSelectionInvincibility: 1
   maxedLevelUpHeal: 5
   maxedLevelUpNyang: 10
-  commonWeight: 1
-  rareWeight: 0.5
-  epicWeight: 0.2
 --- !u!1 &1200864839
 GameObject:
   m_ObjectHideFlags: 0

@@ -15,6 +15,8 @@ namespace WitchMendokusai
 
 		public new Monster UnitData => base.UnitData as Monster;
 		public bool IsElite => eliteProfile != null;
+		// 화면 밖으로 나간 게임 시각. 화면 안이면 음수. MonsterSpawner 가 자동 소멸 판정에 씀
+		public float OffscreenSinceTime { get; set; } = -1f;
 
 		// TASK-WM-107 Slice 4 — playerProvider 는 base UnitObject.playerProvider (protected) 재사용 (CS0108 hide 해소).
 		private SOManager soManager;
@@ -48,6 +50,7 @@ namespace WitchMendokusai
 		protected override void OnEnable()
 		{
 			base.OnEnable();
+			OffscreenSinceTime = -1f;
 			if (UnitData.Type == MonsterType.Boss)
 				GroundGenerator.RegisterAnchor(UnitMovement);
 			SpriteRenderer.sharedMaterial = UnitData.Material;

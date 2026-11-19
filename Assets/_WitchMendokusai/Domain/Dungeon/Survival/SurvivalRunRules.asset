@@ -33,10 +33,13 @@ MonoBehaviour:
   ChestRewardCounts:
   - Count: 1
     Weight: 70
+    LuckWeight: 0
   - Count: 3
     Weight: 25
+    LuckWeight: 0
   - Count: 5
     Weight: 5
+    LuckWeight: 0
   ChestFallbackNyang: 20
   ChestAutoCloseSeconds: 1.5
   RandomModeStartEquipment: {fileID: 11400000, guid: 16c3f6495ee810747993a8bb3009abdd, type: 2}
@@ -52,11 +55,24 @@ MonoBehaviour:
   EnemySoftCap: 300
   EnemyHardCap: 500
   RefillBurstMax: 30
-  HealDropPercent: 0.2
-  MagnetDropPercent: 0.1
+  OffscreenMidDistance: 20
+  OffscreenFarDistance: 35
+  OffscreenNearInterval: 0.1
+  OffscreenMidInterval: 0.2
+  OffscreenFarInterval: 0.4
+  OffscreenRetireSeconds: 30
+  KillDropFreezeAndClear: 1
   FreezeDropPercent: 0.08
   ClearDropPercent: 0.05
   FreezeSeconds: 8
+  CommonCardWeight: 1
+  RareCardWeight: 0.5
+  EpicCardWeight: 0.2
+  RarityLuckScale: 1
+  EquipmentLevelLuck: 0.1
+  FloorItemLuckScale: 1
+  ExtraChoiceChancePerLuck: 0
+  ExtraChoiceCount: 1
   ThreatLevels:
   - EnemyHealth: 1.5
     EnemyDamage: 1

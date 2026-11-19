@@ -12,12 +12,12 @@ namespace WitchMendokusai.Tests
 	public sealed class UnitStatEngineFreeTests
 	{
 		[Test]
-		public void 새_능력치는_치명타_기본값을_갖는다()
+		public void 새_능력치는_전부_0_치명타_기본값은_자산이_채운다()
 		{
 			UnitStat stat = new UnitStat();
 
-			Assert.AreEqual(5, stat[UnitStatType.CRITICAL_CHANCE], "치명타 확률 기본값");
-			Assert.AreEqual(30, stat[UnitStatType.CRITICAL_DAMAGE], "치명타 피해 기본값");
+			Assert.AreEqual(0, stat[UnitStatType.CRITICAL_CHANCE], "치명타 확률 기본값은 UnitBaseStats 자산");
+			Assert.AreEqual(0, stat[UnitStatType.CRITICAL_DAMAGE], "치명타 피해 기본값은 UnitBaseStats 자산");
 			Assert.AreEqual(0, stat[UnitStatType.HP_CUR], "채우기 전 체력은 0");
 		}
 

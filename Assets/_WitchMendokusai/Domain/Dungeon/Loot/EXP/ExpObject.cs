@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
-using VContainer;
 
 namespace WitchMendokusai
 {
 	public class ExpObject : LootObject
 	{
+		private const string EXP_SOUND = "event:/SFX/EXP";
 		private static readonly int BASE_COLOR_ID = Shader.PropertyToID("_BaseColor");
 		private static readonly int LEGACY_COLOR_ID = Shader.PropertyToID("_Color");
 		private static readonly int EMISSION_COLOR_ID = Shader.PropertyToID("_EmissionColor");
@@ -25,8 +25,6 @@ namespace WitchMendokusai
 
 		public int BaseAmount => amount;
 		public int Value => value;
-
-		[Inject] internal ResourceManager resourceManager;
 
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 
@@ -100,8 +98,8 @@ namespace WitchMendokusai
 		protected override void OnEffect()
 		{
 			SurvivalFeel feel = SurvivalFeel.Instance;
-			if (feel == null || feel.TakeExpSound())
-				RuntimeManager.PlayOneShot("event:/SFX/EXP", transform.position);
+			if (feel == null || feel.TakeSound(EXP_SOUND))
+				RuntimeManager.PlayOneShot(EXP_SOUND, transform.position);
 			if (feel != null && DungeonManagerBridge.IsDungeon)
 				feel.OnExpPicked(transform.position);
 			PlayerStat[UnitStatType.EXP_CUR] += RollExpGain();
