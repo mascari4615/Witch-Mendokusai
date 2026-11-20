@@ -70,6 +70,19 @@ namespace WitchMendokusai.Tests
 			Assert.IsNotNull(config.OrbitMaterial, "3D 궤도 재질");
 		}
 
+		// 사용자 판정 2026-11-20: 감전은 노랑, 기절 대표색은 연보라, 독은 보라
+		[Test]
+		public void StatusColorsFollowUserDecision()
+		{
+			UnitStatusConfig config = LoadConfig();
+			UnityEngine.Color shock = config.Style(UnitStatusType.Shock).IconColor;
+			Assert.IsTrue(shock.r > 0.9f && shock.g > 0.85f && shock.b < 0.4f, "감전은 노랑");
+			UnityEngine.Color stun = config.Style(UnitStatusType.Stun).IconColor;
+			Assert.IsTrue(stun.b > stun.r && stun.r > stun.g && stun.g > 0.5f, "기절은 연보라");
+			UnityEngine.Color poison = config.Style(UnitStatusType.Poison).IconColor;
+			Assert.IsTrue(poison.b > poison.g && poison.r > poison.g && poison.g < 0.5f, "독은 보라");
+		}
+
 		[Test]
 		public void CellSheetsMatchFrameCounts()
 		{
