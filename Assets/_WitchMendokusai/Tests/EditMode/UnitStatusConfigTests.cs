@@ -66,6 +66,8 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(config.Style(UnitStatusType.Silence).BlockSkills, "침묵은 스킬 봉쇄");
 			Assert.IsTrue(config.Style(UnitStatusType.Freeze).StopAnimation);
 			Assert.Greater(config.Style(UnitStatusType.Slow).SlowRatio, 0f);
+			Assert.Greater(config.Style(UnitStatusType.Stun).OrbitStars, 0, "기절은 머리 위 3D 별 궤도");
+			Assert.IsNotNull(config.OrbitMaterial, "3D 궤도 재질");
 		}
 
 		[Test]

@@ -23,6 +23,7 @@ namespace WitchMendokusai
 		private readonly Slot[] slots;
 		private readonly float[] iconShown;
 		private readonly SpriteRenderer[][] effects;
+		private readonly UnitStatusOrbit3D[] orbits;
 		private readonly Sprite[] ringFrames;
 		private readonly Sprite[] digitSprites;
 		private readonly SpriteRenderer ghost;
@@ -69,6 +70,9 @@ namespace WitchMendokusai
 					CreateRenderer($"Slot {i} glyph", config.OverlayMaterial),
 					CreateRenderer($"Slot {i} digit", config.OverlayMaterial));
 			iconShown = new float[count];
+			orbits = new UnitStatusOrbit3D[count];
+			for (int i = 0; i < count; i++)
+				orbits[i] = new UnitStatusOrbit3D(root.transform);
 			effects = new SpriteRenderer[count][];
 			for (int i = 0; i < count; i++)
 			{
@@ -110,6 +114,8 @@ namespace WitchMendokusai
 			for (int i = 0; i < effects.Length; i++)
 				foreach (SpriteRenderer effect in effects[i])
 					effect.enabled = false;
+			foreach (UnitStatusOrbit3D orbit in orbits)
+				orbit.Hide();
 			ghost.enabled = false;
 			root.SetActive(false);
 		}
@@ -134,16 +140,20 @@ namespace WitchMendokusai
 
 			int activeIcons = 0;
 			bool orbiting = false;
+			float orbit3DLift = 0f;
 			foreach (UnitStatusType type in UnitStatusRules.ALL)
 			{
 				if (UnitStatus.Has(unit, type) == false)
 					continue;
 				activeIcons++;
-				orbiting |= config.Style(type).EffectMotion == UnitStatusEffectMotion.Orbit;
+				UnitStatusStyle activeStyle = config.Style(type);
+				orbiting |= activeStyle.EffectMotion == UnitStatusEffectMotion.Orbit;
+				if (activeStyle.OrbitStars > 0)
+					orbit3DLift = Mathf.Max(orbit3DLift, activeStyle.OrbitHeight + activeStyle.OrbitBob + activeStyle.OrbitStarSize * 0.5f + config.OrbitIconGap);
 			}
 
-			// 별이 머리를 돌면 아이콘은 그 위로
-			float orbitLift = orbiting ? config.IconSize * config.OrbitIconLift : 0f;
+			// 별이 머리를 돌면 아이콘은 그 위로. 3D 궤도는 별 높이만큼
+			float orbitLift = Mathf.Max(orbiting ? config.IconSize * config.OrbitIconLift : 0f, orbit3DLift);
 			Vector3 iconCenter = top + up * (config.IconGap + orbitLift + config.IconSize * 0.5f);
 			float step = config.IconSize * config.IconSpacing;
 			float offset = -(Mathf.Min(activeIcons, slots.Length) - 1) * 0.5f * step;
@@ -158,6 +168,7 @@ namespace WitchMendokusai
 				{
 					iconShown[index] = -1f;
 					HideEffects(index);
+					orbits[index].Hide();
 					continue;
 				}
 				if (iconShown[index] < 0f)
@@ -177,6 +188,7 @@ namespace WitchMendokusai
 				}
 
 				DrawEffects(index, style, config, status, body, top, bottom, right, up, bodyHeight, bodyWidth, time, frontBounds);
+				orbits[index].Draw(style, config, top, bodyWidth, toCamera, time, status.PhaseSeed);
 			}
 
 			for (int i = order; i < slots.Length; i++)

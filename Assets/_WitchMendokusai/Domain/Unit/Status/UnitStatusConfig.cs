@@ -56,6 +56,20 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("초당 한 바퀴 수")] public float EffectRate = 1f;
 		[Min(0f), Tooltip("떠오름은 퍼지는 폭, 공전은 반지름. 몸 크기 비율")] public float EffectSpread = 0.5f;
 
+		[Header("Head orbit 3D")]
+		[Min(0), Tooltip("머리 위를 도는 3D 별 수 (월드 공간 메시). 0이면 없음. 기절의 별 고리")] public int OrbitStars;
+		[Min(0f), Tooltip("궤도 반지름, 몸 폭 비율")] public float OrbitRadius = 0.45f;
+		[Min(0f), Tooltip("궤도 중심 높이, 그림 위 끝에서 월드 단위")] public float OrbitHeight = 0.1f;
+		[Min(0f), Tooltip("별 한 개 크기, 월드 단위")] public float OrbitStarSize = 0.2f;
+		[Tooltip("궤도 회전, 초당 바퀴")] public float OrbitSpinRate = 0.8f;
+		[Tooltip("별 자체 회전, 초당 바퀴")] public float OrbitStarSpinRate = 1.2f;
+		[Range(0f, 90f), Tooltip("궤도 면을 카메라 쪽으로 세우는 각도. 0이면 땅과 평행")] public float OrbitTilt = 20f;
+		[Min(0f), Tooltip("궤도 위아래 흔들림 폭, 월드 단위")] public float OrbitBob = 0.03f;
+		[Min(0f), Tooltip("위아래 흔들림, 초당 왕복 수")] public float OrbitBobRate = 2f;
+		[Min(0f), Tooltip("고리 굵기, 반지름 비율. 0이면 고리 없이 별만")] public float OrbitRingWidth = 0.08f;
+		public Color OrbitStarColor = new(1f, 0.85f, 0.25f, 1f);
+		public Color OrbitRingColor = new(1f, 0.95f, 0.6f, 1f);
+
 		[Header("Tick number")]
 		[Tooltip("틱 피해 숫자 색. 크리티컬처럼 일반 피해와 구분")] public Color TickTextColor = Color.white;
 		[Min(0.1f), Tooltip("틱 피해 숫자 크기, 일반 숫자 크기 비율")] public float TickTextScale = 0.85f;
@@ -103,6 +117,14 @@ namespace WitchMendokusai
 		[Range(0f, 1f), Tooltip("떠오름 시작 높이, 몸 높이 비율")] public float RiseStart = 0.2f;
 		[Min(0f), Tooltip("떠오름 이동 높이, 몸 높이 비율")] public float RiseHeight = 0.85f;
 		[Range(0f, 1f), Tooltip("떠오르며 작아지는 비율")] public float RiseShrink = 0.45f;
+
+		[Header("Head orbit 3D shape")]
+		[Tooltip("머리 위 3D 별과 고리 재질. 불투명, 색은 _Color")] public Material OrbitMaterial;
+		[Min(3), Tooltip("별 뾰족한 끝 수")] public int OrbitStarPoints = 5;
+		[Range(0.1f, 0.9f), Tooltip("별 안쪽 꼭짓점 반지름 비율")] public float OrbitStarInnerRatio = 0.45f;
+		[Min(0f), Tooltip("별 두께, 크기 비율. 가운데가 볼록")] public float OrbitStarDepth = 0.4f;
+		[Min(8), Tooltip("고리 둘레 조각 수")] public int OrbitRingSegments = 40;
+		[Min(0f), Tooltip("머리 위 3D 궤도가 있을 때 아이콘 칸을 궤도 위로 더 올리는 간격, 월드 단위")] public float OrbitIconGap = 0.06f;
 
 		[Header("Tick number icon")]
 		[Min(0f), Tooltip("틱 피해 숫자 옆 아이콘 크기, 글자 크기 비율. 1080p 에서 약 18px")] public float TickTextIconSize = 0.95f;
