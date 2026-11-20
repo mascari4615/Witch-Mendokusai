@@ -77,6 +77,14 @@ namespace WitchMendokusai.Tests
 			UnitStatusConfig config = LoadConfig();
 			UnityEngine.Color shock = config.Style(UnitStatusType.Shock).IconColor;
 			Assert.IsTrue(shock.r > 0.9f && shock.g > 0.85f && shock.b < 0.4f, "감전은 노랑");
+			// 감전 몸, 불꽃, 틱 숫자도 같은 노랑. 몸 물들임이 약하면 풀색 몸과 섞여 연두로 보임 (2026-11-20 사용자 지적)
+			UnitStatusStyle shockStyle = config.Style(UnitStatusType.Shock);
+			foreach (UnityEngine.Color part in new[] { shockStyle.Tint, shockStyle.EffectColor, shockStyle.TickTextColor })
+				Assert.IsTrue(part.r > 0.9f && part.g > 0.85f && part.b < 0.2f, "감전 몸, 불꽃, 틱 숫자는 노랑");
+			Assert.GreaterOrEqual(shockStyle.Tint.a, 0.6f, "감전 몸 물들임이 연두로 섞이지 않게 진하게");
+			UnityEngine.Color burn = config.Style(UnitStatusType.Burn).IconColor;
+			float shockBurn = UnityEngine.Mathf.Abs(shock.r - burn.r) + UnityEngine.Mathf.Abs(shock.g - burn.g) + UnityEngine.Mathf.Abs(shock.b - burn.b);
+			Assert.Greater(shockBurn, 0.4f, "감전 노랑과 화상 주황 구분");
 			UnityEngine.Color stun = config.Style(UnitStatusType.Stun).IconColor;
 			Assert.IsTrue(stun.b > stun.r && stun.r > stun.g && stun.g > 0.5f, "기절은 연보라");
 			UnityEngine.Color poison = config.Style(UnitStatusType.Poison).IconColor;

@@ -242,21 +242,21 @@ MonoBehaviour:
     HitShakeScale: 1
     HitShakeFrequencyScale: 1
     Icon: {fileID: 21300000, guid: ba99e011c6994a958799d5fa90e945c2, type: 3}
-    IconColor: {r: 1, g: 0.93, b: 0.2, a: 1}
-    Tint: {r: 1, g: 0.95, b: 0.3, a: 0.3}
+    IconColor: {r: 1, g: 0.91, b: 0, a: 1}
+    Tint: {r: 1, g: 0.91, b: 0, a: 0.8}
     TintPulseRate: 14
-    TintPulseDepth: 0.8
+    TintPulseDepth: 0.3
     Rim: {r: 1, g: 1, b: 1, a: 0}
     GhostAlpha: 0
     GhostLagSeconds: 0.12
     EffectMotion: 1
     EffectSprite: {fileID: 21300000, guid: b5cc98c15f27460abc7221bf1fe8feec, type: 3}
-    EffectColor: {r: 1, g: 0.95, b: 0.35, a: 1}
+    EffectColor: {r: 1, g: 0.93, b: 0.1, a: 1}
     EffectCount: 3
     EffectSize: 0.13
     EffectRate: 2.4
     EffectSpread: 0.8
-    TickTextColor: {r: 1, g: 0.93, b: 0.3, a: 1}
+    TickTextColor: {r: 1, g: 0.91, b: 0.05, a: 1}
     TickTextScale: 0.85
     TickTextRiseScale: 1
     TickTextSway: 4
