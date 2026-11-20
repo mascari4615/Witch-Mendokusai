@@ -37,11 +37,14 @@ namespace WitchMendokusai
 		}
 
 		// 용도별 갈래. salt 는 쓰는 쪽의 직렬화 값 (장식 시드, 물건 시드)
-		public static int Derive(int salt)
+		public static int Derive(int salt) => Derive(Current, salt);
+
+		// 정해진 판 시드의 갈래. 개발자 창 예산 시뮬레이션처럼 현재 판이 아닌 시드
+		public static int Derive(int runSeed, int salt)
 		{
 			unchecked
 			{
-				uint hash = (uint)Current * 0x9E3779B1u ^ (uint)salt * 0x85EBCA77u;
+				uint hash = (uint)runSeed * 0x9E3779B1u ^ (uint)salt * 0x85EBCA77u;
 				hash ^= hash >> 16;
 				hash *= 0x7FEB352Du;
 				hash ^= hash >> 15;

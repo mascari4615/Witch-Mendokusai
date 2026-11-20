@@ -43,12 +43,14 @@ namespace WitchMendokusai
 		private DungeonManager dungeonManager;
 		private PlayerProvider playerProvider;
 		private ObjectPoolManager objectPoolManager;
+		private GameLogic gameLogic;
 
 		[Inject]
-		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
+		public void Construct(PlayerProvider playerProvider, ObjectPoolManager objectPoolManager, GameLogic gameLogic)
 		{
 			this.playerProvider = playerProvider;
 			this.objectPoolManager = objectPoolManager;
+			this.gameLogic = gameLogic;
 		}
 
 		// dungeonManager 는 owner DungeonManager 가 직접 주입 (DungeonManager.Construct).
@@ -77,6 +79,7 @@ namespace WitchMendokusai
 			nextAnnounceIndex = 0;
 			nextEventIndex = 0;
 			InitPatterns(curDungeon);
+			InitMapObjects(curDungeon);
 		}
 
 		// 위협 단계를 입힌 이번 판 사건표. 단계 0은 원본 그대로
@@ -97,6 +100,7 @@ namespace WitchMendokusai
 				UpdateWave(i);
 			UpdateEvents();
 			UpdateBossAnnounces();
+			UpdateMapObjects();
 		}
 
 		private static Monster FindBoss(MonsterWave wave) => Array.Find(wave.Monsters, monster => monster.Type == MonsterType.Boss);
@@ -355,6 +359,7 @@ namespace WitchMendokusai
 			StopAllCoroutines();
 			pendingSpawns = 0;
 			ResetPatterns();
+			StopMapObjects();
 			foreach (GameObject obj in ObjectBufferManager.GetObjects(ObjectType.Monster))
 				if (obj != null && obj.TryGetComponent(out MonsterObject monster))
 					monster.UnitMovement.SetSimulationInterval(0f);

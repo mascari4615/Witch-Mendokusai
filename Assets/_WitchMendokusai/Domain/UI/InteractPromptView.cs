@@ -175,6 +175,12 @@ namespace WitchMendokusai
 				nameLabel.text = split > 0 ? dataName.Substring(0, split) : dataName;
 				roleLabel.text = split > 0 ? dataName.Substring(split + 1) : string.Empty;
 			}
+			else if (target.TryGetComponent(out MapObjectSite site))
+			{
+				// 맵 오브젝트는 데이터의 이름과 설명
+				nameLabel.text = site.Data.DisplayName;
+				roleLabel.text = site.Data.Role;
+			}
 			else
 			{
 				nameLabel.text = target.name.Replace(CLONE_SUFFIX, string.Empty).Trim();

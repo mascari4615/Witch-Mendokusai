@@ -73,6 +73,13 @@ namespace WitchMendokusai
 			SurvivalRunRules rules = resourceManager.SurvivalRunRules;
 			if (RunChoiceRules.DropsEliteChest(guaranteedChest, Random.value, rules.EliteChestChance) == false)
 				return;
+			SpawnChest(position);
+		}
+
+		// 바닥 상자 하나. 정예 처치와 맵 오브젝트 상자 효과
+		public void SpawnChest(Vector3 position)
+		{
+			SurvivalRunRules rules = resourceManager.SurvivalRunRules;
 			if (rules.ChestPrefab == null)
 			{
 				Debug.LogWarning($"{nameof(SurvivalRunRules.ChestPrefab)} 미연결, 처치 자리에서 바로 개봉");

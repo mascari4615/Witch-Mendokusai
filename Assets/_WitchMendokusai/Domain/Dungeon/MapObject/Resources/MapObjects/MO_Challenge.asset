@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a55f00570599471f9f7021e190d974ea, type: 3}
+  m_Name: MO_Challenge
+  m_EditorClassIdentifier: 
+  <DisplayName>k__BackingField: 정예 도전
+  <Role>k__BackingField: 처치하면 상자
+  <Category>k__BackingField: 1
+  <Prefab>k__BackingField: {fileID: 0}
+  <MarkerShape>k__BackingField: 0
+  <MarkerColor>k__BackingField: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  <MarkerRadius>k__BackingField: 0
+  <MarkerWidth>k__BackingField: 0.2
+  <Signal>k__BackingField: 3
+  <RewardPreview>k__BackingField: 1
+  <CostType>k__BackingField: 1
+  <CostValue>k__BackingField: 0
+  <CostGrowth>k__BackingField: 1
+  <Uses>k__BackingField: 1
+  <Effects>k__BackingField:
+  - <Type>k__BackingField: 0
+    <Monster>k__BackingField: {fileID: 0}
+    <GuaranteedChest>k__BackingField: 1
+    <Count>k__BackingField: 1
+  <PlacementCost>k__BackingField: 10
+  <Weight>k__BackingField: 1
+  <CountRange>k__BackingField: {x: 1, y: 1}
+  <SpawnTime>k__BackingField: {x: 0, y: 0}
+  <PlayerDistance>k__BackingField: {x: 11, y: 11}
+  <MinSpacing>k__BackingField: 6
+  <RequireRoute>k__BackingField: 1

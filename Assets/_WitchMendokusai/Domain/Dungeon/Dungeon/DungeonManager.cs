@@ -34,6 +34,8 @@ namespace WitchMendokusai
 
 		[SerializeField] private CardManager cardManager;
 		[SerializeField] private MonsterSpawner monsterSpawner;
+		// 개발자 창 맵 오브젝트 배치 (mapobj)
+		public MonsterSpawner MonsterSpawner => monsterSpawner;
 		[SerializeField] private ResourceNodeSpawner resourceNodeSpawner;
 		[SerializeField] private ExpManager expChecker;
 
@@ -144,6 +146,7 @@ namespace WitchMendokusai
 			if (IsDungeon || isTransitioning)
 				return;
 			dungeon.ValidateWaves();
+			dungeon.ValidateMapObjects();
 			isTransitioning = true;
 			Debug.Log($"{nameof(StartDungeon)} ({dungeon.Name})");
 
