@@ -8,15 +8,14 @@ namespace WitchMendokusai
 	// - 모양 값 (뾰족 수, 안쪽 비율, 두께, 고리 굵기) 이 같으면 한 메시를 같이 씀. 값이 바뀌면 새로 만듦
 	internal static class UnitStatusMeshes
 	{
-		private static readonly Dictionary<Vector3Int, Mesh> stars = new();
-		private static readonly Dictionary<Vector2Int, Mesh> rings = new();
-		private const float KEY_SCALE = 1000f;
+		private static readonly Dictionary<(int, float, float), Mesh> stars = new();
+		private static readonly Dictionary<(int, float), Mesh> rings = new();
 
 		// 별: 앞뒤 면 (가운데가 볼록) 과 옆면. 앞은 -z (카메라를 볼 때 LookRotation 의 앞)
 		public static Mesh Star(int points, float innerRatio, float depth)
 		{
 			points = Mathf.Max(3, points);
-			Vector3Int key = new(points, Mathf.RoundToInt(innerRatio * KEY_SCALE), Mathf.RoundToInt(depth * KEY_SCALE));
+			(int, float, float) key = (points, innerRatio, depth);
 			if (stars.TryGetValue(key, out Mesh cached) && cached != null)
 				return cached;
 
@@ -74,7 +73,7 @@ namespace WitchMendokusai
 		public static Mesh Ring(int segments, float widthRatio)
 		{
 			segments = Mathf.Max(8, segments);
-			Vector2Int key = new(segments, Mathf.RoundToInt(widthRatio * KEY_SCALE));
+			(int, float) key = (segments, widthRatio);
 			if (rings.TryGetValue(key, out Mesh cached) && cached != null)
 				return cached;
 
