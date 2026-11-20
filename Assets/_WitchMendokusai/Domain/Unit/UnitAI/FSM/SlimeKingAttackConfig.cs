@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	/// <summary> 슬라임 왕 공격 패턴. 순서 목록과 개발 창 boss 명령의 이름 </summary>
+	/// <summary> 슬라임 왕 공격 패턴. 순서 목록과 개발 창 boss 명령의 이름. Projectile 은 직선 투척 </summary>
 	public enum SlimeKingPattern
 	{
 		Projectile = 0,
@@ -26,6 +26,22 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("추적 중 최소 이동 속도 (초당 월드 단위). 0 이면 스탯 그대로")] public float ApproachMinimumSpeed = 3f;
 		[Min(0f), Tooltip("개발 창 boss 명령이 새로 꺼낼 때 플레이어에서 떨어뜨리는 거리 (월드 단위)")] public float DevSpawnDistance = 7f;
 		[Tooltip("패턴 순서. 비면 투사체와 돌진")] public List<SlimeKingPattern> PatternOrder = new() { SlimeKingPattern.Projectile, SlimeKingPattern.Dash, SlimeKingPattern.Launch, SlimeKingPattern.Pull };
+
+		[Header("직선 투척 (패턴 이름 Projectile)")]
+		[Min(0.05f), Tooltip("조준 시간 (초). 이 동안 멈춰서 조준 띠가 차오름. 방향은 시작 때 고정")] public float ShotWindup = 0.9f;
+		[Min(0.1f), Tooltip("던지는 거리 (월드 단위). 조준 띠 길이")] public float ShotRange = 11f;
+		[Min(0.1f), Tooltip("조준 띠 폭 (월드 단위). 맞는 폭 (ShotHitRadius x 2) 보다 조금 넓게")] public float ShotWidth = 1.6f;
+		[Min(0.05f), Tooltip("끝까지 날아가는 시간 (초)")] public float ShotFlightSeconds = 0.55f;
+		[Min(0f), Tooltip("낮은 포물선 최고 높이 (월드 단위)")] public float ShotArcHeight = 0.6f;
+		[Min(0.05f), Tooltip("날아가는 슬라임에 닿는 반지름 (월드 단위)")] public float ShotHitRadius = 0.7f;
+		[Min(0), Tooltip("닿았을 때 피해. 0 이면 없음")] public int ShotDamage = 3;
+		[Min(0f), Tooltip("던진 뒤 회복 (초)")] public float ShotRecovery = 0.5f;
+		[Tooltip("끝에 닿으면 슬라임 소환 (발사와 같은 살아 있는 수 상한)")] public bool ShotSummonsSlime = true;
+		[Tooltip("조준 띠 예고")] public CombatFx ShotTelegraph;
+
+		[Header("반격 창 (돌진 회복, 빨아들이기 경직)")]
+		[Tooltip("보스가 빈틈을 보이는 동안 발밑에 띄우는 예고. 두 패턴이 같이 씀. 비우면 표시 없음")] public CombatFx CounterWindowFx;
+		[Min(0.1f), Tooltip("반격 창 원 반지름 (월드 단위)")] public float CounterWindowRadius = 2.2f;
 
 		[Header("돌진")]
 		[Min(0.01f)] public float DashSpeed = 15f;

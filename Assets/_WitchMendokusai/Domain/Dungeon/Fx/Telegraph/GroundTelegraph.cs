@@ -8,10 +8,10 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 바닥 예고의 공통 부분. 바닥에 눕힌 사각판 하나에 GroundTelegraph 셰이더로 모양을 그림
 	/// - 차오름: Seconds 동안 진행도 0 -> 1 (채움 곡선). 게임 시간 (판정과 맞아야 함)
-	/// - 끝: 진행도 1 이 되는 순간 번쩍이고 flashSeconds 동안 사라짐
+	/// - 끝: 진행도 1 이 되는 순간 번쩍이고 겉모습의 FlashSeconds 동안 사라짐
 	/// - Follow 가 있으면 그 자리를 따라가고, Follow 가 꺼지거나 없어지면 바로 치움 (시전자 사망)
 	/// - 판은 실행기의 Rent, Return 으로 재사용. 값은 MaterialPropertyBlock (재질 에셋은 하나를 같이 씀)
-	/// 모양 (원, 띠) 은 파생 클래스가 정함
+	/// 모양 (원, 띠) 은 파생 클래스, 색과 굵기와 채움 방식은 겉모습 에셋 (TelegraphStyle) 이 정함
 	/// </summary>
 	public abstract class GroundTelegraph : CombatFx
 	{
@@ -68,73 +68,15 @@ namespace WitchMendokusai
 		// 재생 중인 판. 씬이 바뀌어 실행기와 함께 파괴된 판은 세지 않음 (null 로 걸러냄)
 		private static readonly System.Collections.Generic.List<GameObject> activePlates = new();
 
-		[Header("그리기")]
-		[SerializeField, Tooltip("GroundTelegraph 셰이더를 쓰는 재질. 색과 굵기는 이 에셋의 값이 덮어씀")] private Material material;
+		[Header("겉모습")]
+		[SerializeField, Tooltip("색, 굵기, 채움 방식, 끝 번쩍임 한 벌. 원과 띠가 같은 겉모습 에셋을 같이 씀")] private TelegraphStyle style;
+
+		[Header("놓기")]
 		[SerializeField, Tooltip("바닥에서 띄우는 높이. 바닥과 겹쳐 깜빡이면 올림")] private float liftHeight = 0.03f;
-
-		[Header("색")]
-		[SerializeField, Tooltip("안쪽 얇은 막 색. 알파는 0.08~0.15 정도로 거의 투명하게")] private Color baseColor = new(1f, 0.35f, 0.22f, 0.1f);
-		[SerializeField, Tooltip("차오른 막 색. 얇은 막보다 조금 짙게")] private Color fillColor = new(1f, 0.32f, 0.18f, 0.22f);
-		[SerializeField, Tooltip("차오르는 맨 앞 선 색")] private Color frontColor = new(1f, 0.85f, 0.62f, 1f);
-		[SerializeField, Tooltip("가장자리 색 띠와 번짐 색. 알파는 색 띠의 진하기")] private Color edgeColor = new(1f, 0.38f, 0.2f, 0.85f);
-		[SerializeField, Tooltip("가장자리 가운데 심 색. 거의 흰색에 가깝게")] private Color coreColor = new(1f, 0.93f, 0.82f, 1f);
-		[SerializeField, Tooltip("안쪽 무늬 색 (원은 마법진, 띠는 화살 무늬). 알파를 테두리보다 확실히 낮게")] private Color patternColor = new(1f, 0.55f, 0.35f, 0.22f);
-		[SerializeField, Tooltip("가장자리 위 반짝이는 점 색")] private Color sparkColor = new(1f, 0.85f, 0.6f, 1f);
-		[SerializeField, Tooltip("발동 순간 번쩍임과 충격파 색")] private Color flashColor = new(1f, 0.9f, 0.75f, 1f);
-
-		[Header("막")]
-		[SerializeField, Range(0f, 1f), Tooltip("얇은 막의 가운데 진하기 비율. 가장자리 쪽이 1")] private float membraneCenter = 0.55f;
-		[SerializeField, Range(0f, 1f), Tooltip("차오른 막의 안쪽 진하기 비율. 앞선 쪽이 1")] private float fillDepthShade = 0.65f;
-
-		[Header("가장자리")]
-		[SerializeField, Tooltip("가장자리 색 띠 굵기 (월드 단위)")] private float edgeWidth = 0.06f;
-		[SerializeField, Tooltip("가장자리 가운데 밝은 심 굵기 (월드 단위)")] private float coreWidth = 0.022f;
-		[SerializeField, Tooltip("심과 앞선의 빛 세기. 1 넘으면 HDR 카메라에서 번짐")] private float coreIntensity = 1.6f;
-		[SerializeField, Tooltip("가장자리 번짐 폭 (월드 단위)")] private float glowWidth = 0.3f;
-		[SerializeField, Tooltip("번짐 세기 (더하기)")] private float glowStrength = 0.8f;
-		[SerializeField, Range(0f, 1f), Tooltip("안쪽으로 번지는 비율. 바깥이 1")] private float glowInner = 0.35f;
-		[SerializeField, Range(0f, 1f), Tooltip("번짐이 밝은 바닥 위에서도 보이게 깔리는 덮기 진하기")] private float glowOpacity = 0.2f;
-		[SerializeField, Range(0f, 1f), Tooltip("가장자리 맥동 깊이. 0 이면 안 뜀")] private float pulseAmount = 0.2f;
-		[SerializeField, Tooltip("가장자리 맥동 빠르기 (초당 라디안)")] private float pulseSpeed = 7f;
-
-		[Header("차오르는 앞선")]
-		[SerializeField, Tooltip("앞선 굵기의 절반 (월드 단위)")] private float frontWidth = 0.018f;
-		[SerializeField, Tooltip("앞선 뒤로 번지는 빛의 폭 (월드 단위)")] private float frontGlowWidth = 0.5f;
-		[SerializeField, Tooltip("앞선 뒤 빛의 더하기 세기")] private float frontGlowAdd = 0.35f;
-
-		[Header("무늬 공통")]
-		[SerializeField, Tooltip("차오른 곳에서 무늬가 짙어지는 배율")] private float patternFilledBoost = 1.6f;
-		[SerializeField, Tooltip("무늬의 더하기 빛 세기")] private float patternGlow = 0.25f;
-
-		[Header("반짝이는 점")]
-		[SerializeField, Tooltip("점 사이 간격 (월드 단위). 원은 둘레에 맞게 조금 조정됨")] private float sparkSpacing = 0.55f;
-		[SerializeField, Tooltip("점 크기 (월드 단위)")] private float sparkSize = 0.035f;
-		[SerializeField, Tooltip("점이 가장자리에서 벗어나는 폭 (월드 단위)")] private float sparkJitter = 0.04f;
-		[SerializeField, Tooltip("점이 가장자리를 따라 흐르는 빠르기 (초당 칸)")] private float sparkSpeed = 0.6f;
-		[SerializeField, Tooltip("깜빡임 빠르기 (초당 라디안)")] private float sparkTwinkleSpeed = 5f;
-		[SerializeField, Tooltip("점 밝기. 0 이면 없음")] private float sparkStrength = 1.4f;
-
-		[Header("빛")]
-		[SerializeField, Tooltip("빛 성분 전체 배율 (더하기)")] private float addStrength = 1f;
-
-		[Header("등장과 끝")]
-		[SerializeField, Tooltip("나타날 때 시작 크기 배율. 1 이면 크기 변화 없음")] private float appearStartScale = 0.82f;
-		[SerializeField, Tooltip("발동 충격파가 가장자리에서 퍼지는 거리 (월드 단위)")] private float shockDistance = 0.9f;
-		[SerializeField, Tooltip("발동 충격파 굵기의 절반 (월드 단위)")] private float shockWidth = 0.06f;
-		[SerializeField, Tooltip("발동 순간 가장자리가 밝아지는 배율")] private float flashEdgeBoost = 2.5f;
-
-		[Header("동시 재생")]
 		[SerializeField, Min(1), Tooltip("동시에 띄울 수 있는 판 수. 넘으면 새 예고는 생략")] private int maxConcurrentPlates = 24;
-
-		[Header("소리")]
-		[SerializeField, Tooltip("끄면 이 예고는 시작음과 끝음이 없음")] private bool playSfx = true;
-
-		[Header("시간")]
 		[SerializeField, Tooltip("Seconds 를 안 넘겼을 때 차오르는 시간 (초)")] private float defaultSeconds = 1f;
-		[SerializeField, Tooltip("차오름 곡선. 가로 0~1 시간 비율, 세로 0~1 진행도")] private AnimationCurve fillCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
-		[SerializeField, Tooltip("나타날 때 가장자리가 한 바퀴 그려지는 시간 (초)")] private float appearSeconds = 0.16f;
-		[SerializeField, Tooltip("끝 번쩍임과 충격파가 사라지는 데 걸리는 시간 (초)")] private float flashSeconds = 0.28f;
-		[SerializeField, Range(0f, 1f), Tooltip("발동 순간 안쪽 번쩍임 세기. 1 이면 안쪽이 번쩍임 색으로 완전히 덮임")] private float flashStrength = 0.3f;
+
+		public TelegraphStyle Style => style;
 
 		/// <summary> 셰이더의 _Shape 값. 0 원, 1 띠 </summary>
 		protected abstract float ShapeValue { get; }
@@ -173,14 +115,14 @@ namespace WitchMendokusai
 		private IEnumerator Animate(GameObject plate, CombatFxContext context, Vector3 direction)
 		{
 			MeshRenderer plateRenderer = plate.GetComponent<MeshRenderer>();
-			plateRenderer.sharedMaterial = material;
+			plateRenderer.sharedMaterial = style.Material;
 
 			bool hasFollow = context.Follow != null;
 			float groundHeight = context.Position.y + liftHeight;
 			Vector2 halfSize = GetShapeHalfSize(context);
 			Vector3 centerOffset = GetCenterOffset(context, direction);
 			// 판은 번짐, 반짝이는 점, 충격파와 그 빛이 다 들어갈 만큼 모양보다 큼
-			float margin = Mathf.Max(glowWidth, sparkJitter + sparkSize * 3f, shockDistance + shockWidth * 4f) + edgeWidth;
+			float margin = Mathf.Max(style.GlowWidth, style.SparkJitter + style.SparkSize * 3f, style.ShockDistance + style.ShockWidth * 4f) + style.EdgeWidth;
 			Vector2 plateSize = (halfSize + new Vector2(margin, margin)) * 2f;
 
 			plate.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
@@ -188,7 +130,7 @@ namespace WitchMendokusai
 
 			float seconds = context.Seconds > 0f ? context.Seconds : defaultSeconds;
 			float elapsed = 0f;
-			if (playSfx)
+			if (style.PlaySfx)
 				CombatSfx.Play(CombatSfxEvent.TelegraphCharge, GetSoundPosition(context, hasFollow));
 			while (elapsed < seconds)
 			{
@@ -196,26 +138,26 @@ namespace WitchMendokusai
 					yield break;
 
 				PlacePlate(plate, context, hasFollow, groundHeight, centerOffset);
-				float appear = appearSeconds > 0f ? Mathf.Clamp01(elapsed / appearSeconds) : 1f;
+				float appear = style.AppearSeconds > 0f ? Mathf.Clamp01(elapsed / style.AppearSeconds) : 1f;
 				// 등장: 가장자리가 그려지면서 작은 크기에서 제 크기로 (끝이 느려지는 곡선)
 				float appearEased = 1f - (1f - appear) * (1f - appear);
-				plate.transform.localScale = Vector3.Scale(fullScale, new Vector3(Mathf.Lerp(appearStartScale, 1f, appearEased), 1f, Mathf.Lerp(appearStartScale, 1f, appearEased)));
-				ApplyProperties(plateRenderer, halfSize, plateSize, fillCurve.Evaluate(elapsed / seconds), 0f, 0f, appearEased, Mathf.Clamp01(appear * 2f));
+				plate.transform.localScale = Vector3.Scale(fullScale, new Vector3(Mathf.Lerp(style.AppearStartScale, 1f, appearEased), 1f, Mathf.Lerp(style.AppearStartScale, 1f, appearEased)));
+				ApplyProperties(plateRenderer, halfSize, plateSize, style.FillCurve.Evaluate(elapsed / seconds), 0f, 0f, appearEased, Mathf.Clamp01(appear * 2f));
 				yield return null;
 				elapsed += Time.deltaTime;
 			}
 
 			// 끝: 가득 찬 채로 번쩍이고 사라짐
-			if (playSfx)
+			if (style.PlaySfx)
 				CombatSfx.Play(CombatSfxEvent.TelegraphFire, GetSoundPosition(context, hasFollow));
 			elapsed = 0f;
-			while (elapsed < flashSeconds)
+			while (elapsed < style.FlashSeconds)
 			{
 				if (hasFollow && IsAlive(context.Follow) == false)
 					yield break;
 
 				PlacePlate(plate, context, hasFollow, groundHeight, centerOffset);
-				float fade = elapsed / flashSeconds;
+				float fade = elapsed / style.FlashSeconds;
 				plate.transform.localScale = fullScale;
 				// 충격파는 처음에 빠르게 퍼지고 느려짐
 				float shock = 1f - (1f - fade) * (1f - fade);
@@ -240,46 +182,46 @@ namespace WitchMendokusai
 		{
 			propertyBlock ??= new MaterialPropertyBlock();
 			propertyBlock.SetFloat(ShapeId, ShapeValue);
-			propertyBlock.SetColor(BaseColorId, baseColor);
-			propertyBlock.SetColor(FillColorId, fillColor);
-			propertyBlock.SetColor(FrontColorId, frontColor);
-			propertyBlock.SetColor(EdgeColorId, edgeColor);
-			propertyBlock.SetColor(CoreColorId, coreColor);
-			propertyBlock.SetColor(PatternColorId, patternColor);
-			propertyBlock.SetColor(SparkColorId, sparkColor);
-			propertyBlock.SetColor(FlashColorId, flashColor);
-			propertyBlock.SetFloat(MembraneCenterId, membraneCenter);
-			propertyBlock.SetFloat(FillDepthShadeId, fillDepthShade);
-			propertyBlock.SetFloat(EdgeWidthId, edgeWidth);
-			propertyBlock.SetFloat(CoreWidthId, coreWidth);
-			propertyBlock.SetFloat(CoreIntensityId, coreIntensity);
-			propertyBlock.SetFloat(GlowWidthId, glowWidth);
-			propertyBlock.SetFloat(GlowStrengthId, glowStrength);
-			propertyBlock.SetFloat(GlowInnerId, glowInner);
-			propertyBlock.SetFloat(GlowOpacityId, glowOpacity);
-			propertyBlock.SetFloat(FrontWidthId, frontWidth);
-			propertyBlock.SetFloat(FrontGlowWidthId, frontGlowWidth);
-			propertyBlock.SetFloat(FrontGlowAddId, frontGlowAdd);
-			propertyBlock.SetFloat(PulseAmountId, pulseAmount);
-			propertyBlock.SetFloat(PulseSpeedId, pulseSpeed);
-			propertyBlock.SetFloat(PatternFilledBoostId, patternFilledBoost);
-			propertyBlock.SetFloat(PatternGlowId, patternGlow);
-			propertyBlock.SetFloat(SparkSpacingId, sparkSpacing);
-			propertyBlock.SetFloat(SparkSizeId, sparkSize);
-			propertyBlock.SetFloat(SparkJitterId, sparkJitter);
-			propertyBlock.SetFloat(SparkSpeedId, sparkSpeed);
-			propertyBlock.SetFloat(SparkTwinkleSpeedId, sparkTwinkleSpeed);
-			propertyBlock.SetFloat(SparkStrengthId, sparkStrength);
+			propertyBlock.SetColor(BaseColorId, style.BaseColor);
+			propertyBlock.SetColor(FillColorId, style.FillColor);
+			propertyBlock.SetColor(FrontColorId, style.FrontColor);
+			propertyBlock.SetColor(EdgeColorId, style.EdgeColor);
+			propertyBlock.SetColor(CoreColorId, style.CoreColor);
+			propertyBlock.SetColor(PatternColorId, style.PatternColor);
+			propertyBlock.SetColor(SparkColorId, style.SparkColor);
+			propertyBlock.SetColor(FlashColorId, style.FlashColor);
+			propertyBlock.SetFloat(MembraneCenterId, style.MembraneCenter);
+			propertyBlock.SetFloat(FillDepthShadeId, style.FillDepthShade);
+			propertyBlock.SetFloat(EdgeWidthId, style.EdgeWidth);
+			propertyBlock.SetFloat(CoreWidthId, style.CoreWidth);
+			propertyBlock.SetFloat(CoreIntensityId, style.CoreIntensity);
+			propertyBlock.SetFloat(GlowWidthId, style.GlowWidth);
+			propertyBlock.SetFloat(GlowStrengthId, style.GlowStrength);
+			propertyBlock.SetFloat(GlowInnerId, style.GlowInner);
+			propertyBlock.SetFloat(GlowOpacityId, style.GlowOpacity);
+			propertyBlock.SetFloat(FrontWidthId, style.FrontWidth);
+			propertyBlock.SetFloat(FrontGlowWidthId, style.FrontGlowWidth);
+			propertyBlock.SetFloat(FrontGlowAddId, style.FrontGlowAdd);
+			propertyBlock.SetFloat(PulseAmountId, style.PulseAmount);
+			propertyBlock.SetFloat(PulseSpeedId, style.PulseSpeed);
+			propertyBlock.SetFloat(PatternFilledBoostId, style.PatternFilledBoost);
+			propertyBlock.SetFloat(PatternGlowId, style.PatternGlow);
+			propertyBlock.SetFloat(SparkSpacingId, style.SparkSpacing);
+			propertyBlock.SetFloat(SparkSizeId, style.SparkSize);
+			propertyBlock.SetFloat(SparkJitterId, style.SparkJitter);
+			propertyBlock.SetFloat(SparkSpeedId, style.SparkSpeed);
+			propertyBlock.SetFloat(SparkTwinkleSpeedId, style.SparkTwinkleSpeed);
+			propertyBlock.SetFloat(SparkStrengthId, style.SparkStrength);
 			propertyBlock.SetFloat(CornerRadiusId, CornerRadius);
 			propertyBlock.SetFloat(ProgressId, Mathf.Clamp01(progress));
 			propertyBlock.SetFloat(AppearId, appear);
 			propertyBlock.SetFloat(FlashId, flash);
-			propertyBlock.SetFloat(FlashStrengthId, flashStrength);
-			propertyBlock.SetFloat(FlashEdgeBoostId, flashEdgeBoost);
+			propertyBlock.SetFloat(FlashStrengthId, style.FlashStrength);
+			propertyBlock.SetFloat(FlashEdgeBoostId, style.FlashEdgeBoost);
 			propertyBlock.SetFloat(ShockId, shock);
-			propertyBlock.SetFloat(ShockDistanceId, shockDistance);
-			propertyBlock.SetFloat(ShockWidthId, shockWidth);
-			propertyBlock.SetFloat(AddStrengthId, addStrength);
+			propertyBlock.SetFloat(ShockDistanceId, style.ShockDistance);
+			propertyBlock.SetFloat(ShockWidthId, style.ShockWidth);
+			propertyBlock.SetFloat(AddStrengthId, style.AddStrength);
 			propertyBlock.SetFloat(AlphaId, alpha);
 			propertyBlock.SetVector(PlateSizeId, plateSize);
 			propertyBlock.SetVector(ShapeHalfSizeId, halfSize);

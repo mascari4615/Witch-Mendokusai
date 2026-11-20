@@ -6,7 +6,8 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 슬라임 왕. 사거리 밖이면 추적, 안이면 패턴 하나 -> 대기 -> 거리 다시 판단
-	/// - 패턴: 투사체, 돌진, 슬라임 발사, 빨아들이기. 처음 하나만 무작위, 이후 SlimeKingAttackConfig.PatternOrder 순서
+	/// - 패턴: 직선 투척 (Projectile), 돌진, 슬라임 발사, 빨아들이기. 처음 하나만 무작위, 이후 SlimeKingAttackConfig.PatternOrder 순서
+	/// - 돌진 회복과 빨아들이기 경직에 같은 반격 창 표시 (CounterWindowFx)
 	/// - 돌진은 준비 때 방향 고정. 도주 계산이 안 맞으면 (너무 멂) 돌진 대신 더 다가감
 	/// - 개발 창 boss 명령이 ForcePattern 으로 다음 패턴을 지정
 	/// </summary>
@@ -16,7 +17,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("공격 수치 한 벌")] private SlimeKingAttackConfig attackConfig;
 
 		private PlayerProvider playerProvider;
-		private BT_Skill projectileBehavior;
+		private SlimeKingShotPattern shotPattern;
 		private BT_Dash dashBehavior;
 		private SlimeKingLaunchPattern launchPattern;
 		private SlimeKingPullPattern pullPattern;
@@ -60,7 +61,9 @@ namespace WitchMendokusai
 		protected override void InitFSMEvent()
 		{
 			BT_MoveToPlayer moveToPlayer = new(UnitObject, playerProvider, isSpriteLookLeft);
-			launchPattern = new SlimeKingLaunchPattern(UnitObject, playerProvider, attackConfig);
+			SlimeKingSummons summons = new(attackConfig);
+			shotPattern = new SlimeKingShotPattern(UnitObject, playerProvider, attackConfig, summons);
+			launchPattern = new SlimeKingLaunchPattern(UnitObject, playerProvider, attackConfig, summons);
 			pullPattern = new SlimeKingPullPattern(UnitObject, playerProvider, attackConfig);
 
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Enter, CancelPatterns);
@@ -141,7 +144,7 @@ namespace WitchMendokusai
 			switch (currentPattern)
 			{
 				case SlimeKingPattern.Projectile:
-					projectileBehavior = new BT_Skill(UnitObject, playerProvider, 0, attackConfig.AttackRange, GoWait);
+					shotPattern.Begin();
 					break;
 				case SlimeKingPattern.Dash:
 					dashBehavior = new BT_Dash(UnitObject, playerProvider, attackConfig.AttackRange, attackConfig.DashSpeed, plannedDashDuration,
@@ -149,7 +152,9 @@ namespace WitchMendokusai
 						dashPreDelay: plannedDashPreDelay,
 						dashPostDelay: attackConfig.DashPostDelay,
 						telegraph: attackConfig.DashTelegraph,
-						telegraphWidth: attackConfig.DashTelegraphWidth);
+						telegraphWidth: attackConfig.DashTelegraphWidth,
+						recoveryFx: attackConfig.CounterWindowFx,
+						recoveryRadius: attackConfig.CounterWindowRadius);
 					break;
 				case SlimeKingPattern.Launch:
 					launchPattern.Begin();
@@ -173,8 +178,8 @@ namespace WitchMendokusai
 			switch (currentPattern)
 			{
 				case SlimeKingPattern.Projectile:
-					UpdateApproachSpeed();
-					projectileBehavior.UpdateBT();
+					if (shotPattern.Tick(BTRunner.TICK))
+						GoWait();
 					break;
 				case SlimeKingPattern.Dash:
 					dashBehavior.UpdateBT();
@@ -231,6 +236,7 @@ namespace WitchMendokusai
 		private void CancelPatterns()
 		{
 			dashBehavior?.CancelTelegraph();
+			shotPattern?.Cancel();
 			launchPattern?.Cancel();
 			pullPattern?.Cancel();
 		}

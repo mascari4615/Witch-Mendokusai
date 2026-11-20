@@ -15,6 +15,9 @@ namespace WitchMendokusai
 		// 돌진 전 바닥 선형 예고. 비우면 예고 없음. 길이는 dashSpeed x dashDuration
 		private readonly CombatFx telegraph;
 		private readonly float telegraphWidth;
+		// 돌진 뒤 숨 고르기 동안 발밑 표시 (반격 창). 비우면 표시 없음
+		private readonly CombatFx recoveryFx;
+		private readonly float recoveryRadius;
 		private event Action OnDashEnd;
 
 		private Vector3 moveDest = Vector3.zero;
@@ -23,8 +26,10 @@ namespace WitchMendokusai
 		private float dashReadyTime;
 		// 준비 예고의 중단 함수. 준비가 도중에 끊기면 예고도 같이 치움
 		private Action stopTelegraph;
+		// 반격 창 표시의 중단 함수. 숨 고르기가 도중에 끊기면 같이 치움
+		private Action stopRecovery;
 
-		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null, float dashPreDelay = 0.2f, float dashPostDelay = 0.5f, CombatFx telegraph = null, float telegraphWidth = 0f) : base(unitObject)
+		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null, float dashPreDelay = 0.2f, float dashPostDelay = 0.5f, CombatFx telegraph = null, float telegraphWidth = 0f, CombatFx recoveryFx = null, float recoveryRadius = 0f) : base(unitObject)
 		{
 			this.playerProvider = playerProvider;
 			this.attackRange = attackRange;
@@ -34,6 +39,8 @@ namespace WitchMendokusai
 			this.dashPostDelay = dashPostDelay;
 			this.telegraph = telegraph;
 			this.telegraphWidth = telegraphWidth;
+			this.recoveryFx = recoveryFx;
+			this.recoveryRadius = recoveryRadius;
 			OnDashEnd = onDashEnd;
 		}
 
@@ -123,11 +130,13 @@ namespace WitchMendokusai
 			return BTState.Success;
 		}
 
-		/// <summary> 준비 중이던 예고를 치움. 상태 전환과 AI 리셋 등으로 돌진 준비가 끊길 때 부름 (끝난 뒤 불러도 무해) </summary>
+		/// <summary> 준비 중이던 예고와 반격 창 표시를 치움. 상태 전환과 AI 리셋 등으로 돌진이 끊길 때 부름 (끝난 뒤 불러도 무해) </summary>
 		public void CancelTelegraph()
 		{
 			stopTelegraph?.Invoke();
 			stopTelegraph = null;
+			stopRecovery?.Invoke();
+			stopRecovery = null;
 		}
 
 		private bool IsDashReady() => Time.time >= dashReadyTime;
@@ -147,11 +156,23 @@ namespace WitchMendokusai
 		{
 			unitObject.UnitMovement.CancelImpulse();
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
+			if (recoveryFx != null && dashPostDelay > 0f)
+			{
+				stopRecovery = recoveryFx.Play(new CombatFxContext
+				{
+					Position = unitObject.transform.position,
+					Follow = unitObject.transform,
+					Radius = recoveryRadius,
+					Seconds = dashPostDelay,
+				});
+			}
 			return BTState.Success;
 		}
 
 		private BTState EndDash()
 		{
+			// 반격 창 표시는 숨 고르기와 같은 길이라 스스로 마무리
+			stopRecovery = null;
 			OnDashEnd?.Invoke();
 			return BTState.Success;
 		}

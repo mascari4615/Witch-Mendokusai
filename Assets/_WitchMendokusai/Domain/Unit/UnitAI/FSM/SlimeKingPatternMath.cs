@@ -8,6 +8,9 @@ namespace WitchMendokusai
 	{
 		private const float CENTER_EPSILON = 0.05f;
 
+		/// <summary> 수평 방향 제곱 길이가 이보다 작으면 방향 없음 </summary>
+		public const float DIRECTION_EPSILON_SQR = 0.0001f;
+
 		/// <summary> 순서 목록에서 다음 칸. 목록이 비면 0 </summary>
 		public static int NextIndex(int current, int count) => count <= 0 ? 0 : (current + 1) % count;
 

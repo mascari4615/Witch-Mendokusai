@@ -8,7 +8,7 @@ namespace WitchMendokusai
 	/// - 예고: 보스 둘레 넓은 원 (안쪽으로 흐르는 화살) 이 차오름. 안쪽 접촉 피해 원도 같이
 	/// - 끌어당김: 범위 안 플레이어를 보스 쪽으로. 세기는 플레이어 걷기 속도보다 약간 낮아 반대로 걸으면 벗어남
 	///   안쪽 원에 닿으면 간격마다 피해. 같은 원 예고가 남은 시간만큼 다시 차오름
-	/// - 경직: 보스가 멈춰 서 있음. 끌림은 바로 풀림
+	/// - 경직: 보스가 멈춰 서 있음. 끌림은 바로 풀림. 발밑에 반격 창 표시 (돌진 회복과 같은 CounterWindowFx)
 	/// - 끌림은 짧은 유지 시간으로 매 tick 다시 걺. 보스가 사라지면 그 시간 뒤 저절로 풀림
 	/// </summary>
 	public sealed class SlimeKingPullPattern
@@ -29,6 +29,7 @@ namespace WitchMendokusai
 		private float damageCooldown;
 		private Action stopZone;
 		private Action stopCore;
+		private Action stopCounter;
 		// 이 패턴이 플레이어에게 끌림을 걸었는지. 다른 보스의 끌림은 안 건드림
 		private bool holdsPull;
 
@@ -71,7 +72,11 @@ namespace WitchMendokusai
 					break;
 				case Phase.Stun:
 					if (phaseElapsed >= config.PullStunSeconds)
+					{
+						// 반격 창 표시는 경직과 같은 길이라 스스로 마무리
+						stopCounter = null;
 						phase = Phase.Done;
+					}
 					break;
 			}
 			return phase == Phase.Done;
@@ -96,6 +101,7 @@ namespace WitchMendokusai
 			phase = Phase.Stun;
 			phaseElapsed = 0f;
 			ReleasePlayer();
+			stopCounter = PlayCounter(config.PullStunSeconds);
 		}
 
 		private void PullPlayer(float deltaTime)
@@ -157,12 +163,27 @@ namespace WitchMendokusai
 			});
 		}
 
+		private Action PlayCounter(float seconds)
+		{
+			if (config.CounterWindowFx == null || seconds <= 0f)
+				return null;
+			return config.CounterWindowFx.Play(new CombatFxContext
+			{
+				Position = boss.transform.position,
+				Follow = boss.transform,
+				Radius = config.CounterWindowRadius,
+				Seconds = seconds,
+			});
+		}
+
 		private void StopTelegraphs()
 		{
 			stopZone?.Invoke();
 			stopZone = null;
 			stopCore?.Invoke();
 			stopCore = null;
+			stopCounter?.Invoke();
+			stopCounter = null;
 		}
 	}
 }

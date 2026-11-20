@@ -17,71 +17,9 @@ MonoBehaviour:
   previewWidth: 2
   previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
   previewSubtitle:
-  material: {fileID: 2100000, guid: 187f61d0b77d4ce2b19ad9b99bad5da6, type: 2}
+  style: {fileID: 11400000, guid: b93600f16ec94ecf9a0fa98fdd63efa3, type: 2}
   liftHeight: 0.03
   defaultSeconds: 1
-  fillCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 1
-      outSlope: 1
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 1
-      outSlope: 1
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  appearSeconds: 0.16
-  flashSeconds: 0.28
-  baseColor: {r: 1, g: 0.3, b: 0.24, a: 0.12}
-  fillColor: {r: 1, g: 0.26, b: 0.2, a: 0.38}
-  frontColor: {r: 1, g: 0.85, b: 0.62, a: 1}
-  edgeColor: {r: 1, g: 0.38, b: 0.2, a: 0.85}
-  coreColor: {r: 1, g: 0.93, b: 0.82, a: 1}
-  patternColor: {r: 1, g: 0.72, b: 0.5, a: 0.42}
-  sparkColor: {r: 1, g: 0.85, b: 0.6, a: 1}
-  flashColor: {r: 1, g: 0.9, b: 0.75, a: 1}
-  membraneCenter: 0.55
-  fillDepthShade: 0.65
-  edgeWidth: 0.06
-  coreWidth: 0.022
-  coreIntensity: 1.6
-  glowWidth: 0.3
-  glowStrength: 0.8
-  glowInner: 0.35
-  glowOpacity: 0.2
-  pulseAmount: 0.2
-  pulseSpeed: 7
-  frontWidth: 0.018
-  frontGlowWidth: 0.5
-  frontGlowAdd: 0.35
-  patternFilledBoost: 1.6
-  patternGlow: 0.25
-  sparkSpacing: 0.55
-  sparkSize: 0.035
-  sparkJitter: 0.04
-  sparkSpeed: 0.6
-  sparkTwinkleSpeed: 5
-  sparkStrength: 1.4
-  addStrength: 1
-  appearStartScale: 0.82
-  shockDistance: 0.9
-  shockWidth: 0.06
-  flashEdgeBoost: 2.5
-  flashStrength: 0.3
   cornerRadius: 0.12
   lineEndEdge: 0.45
   chevronSpacing: 0.7

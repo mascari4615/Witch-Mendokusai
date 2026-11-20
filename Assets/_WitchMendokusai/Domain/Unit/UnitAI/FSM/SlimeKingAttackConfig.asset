@@ -21,6 +21,18 @@ MonoBehaviour:
   - 1
   - 2
   - 3
+  ShotWindup: 0.9
+  ShotRange: 11
+  ShotWidth: 1.6
+  ShotFlightSeconds: 0.55
+  ShotArcHeight: 0.6
+  ShotHitRadius: 0.7
+  ShotDamage: 3
+  ShotRecovery: 0.5
+  ShotSummonsSlime: 1
+  ShotTelegraph: {fileID: 11400000, guid: 9b854ca860f44479be35a06b95aef26f, type: 2}
+  CounterWindowFx: {fileID: 11400000, guid: e653203c5fcd4dbd9743fbc7093afa91, type: 2}
+  CounterWindowRadius: 2.2
   DashSpeed: 15
   DashDuration: 0.5
   DashPreDelay: 0.8
