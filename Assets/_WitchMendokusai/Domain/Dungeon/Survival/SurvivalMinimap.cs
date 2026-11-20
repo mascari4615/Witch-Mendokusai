@@ -7,6 +7,7 @@ namespace WitchMendokusai
 {
 	// 생존 던전 HUD 의 작은 지도. 내 위치가 가운데, 반경 안 몬스터 점과 특수 아이템 마름모
 	// 일반 몬스터 작은 점, 정예 주황, 보스 진홍, 아이템 금색. 경험치 구슬은 제외
+	// 발견한 맵 오브젝트 (MapObjectSite.IsKnown, 신호 범주 있음) 는 그 데이터의 표식 색 네모. 크기는 MapObjectSettings
 	// 점은 몬스터마다 요소를 만들지 않고 generateVisualContent 로 한 번에 그림
 	// 자리, 모양, 점 색은 SurvivalMinimap.uss. 반경, 갱신 간격, 점 크기, 상한은 SurvivalFeelConfig 의 작은 지도 묶음
 	// 위쪽은 카메라 시선 방향 (화면 위와 같은 방향)
@@ -38,9 +39,13 @@ namespace WitchMendokusai
 			public readonly List<Vector2> BossDots = new();
 			public readonly List<Vector2> ItemDots = new();
 			public readonly List<Vector2> ChestDots = new();
+			public readonly List<Vector2> MapObjectDots = new();
+			public readonly List<Color> MapObjectColors = new();
 
 			public void Clear()
 			{
+				MapObjectDots.Clear();
+				MapObjectColors.Clear();
 				MonsterDots.Clear();
 				EliteDots.Clear();
 				BossDots.Clear();
@@ -287,6 +292,14 @@ namespace WitchMendokusai
 				else
 					view.ItemDots.Add(point);
 			}
+
+			foreach (MapObjectSite site in DungeonManager.Instance.MonsterSpawner.MapObjectSites)
+			{
+				if (site == null || site.IsSignaled == false || TryToMap(site.transform.position, center, forward, right, inverseRadius, out Vector2 point) == false)
+					continue;
+				view.MapObjectDots.Add(point);
+				view.MapObjectColors.Add(site.Data.MarkerColor);
+			}
 		}
 
 		// 반경 원 안이면 true 와 지도 좌표
@@ -297,7 +310,7 @@ namespace WitchMendokusai
 			return point.sqrMagnitude <= 1f;
 		}
 
-		// 아래에서 위로: 일반 몬스터, 아이템, 상자, 정예, 보스
+		// 아래에서 위로: 일반 몬스터, 아이템, 상자, 맵 오브젝트, 정예, 보스
 		private void DrawView(MeshGenerationContext context, MapView view)
 		{
 			if (resourceManager == null)
@@ -312,20 +325,23 @@ namespace WitchMendokusai
 			DrawSet(context, view.MonsterDots, middle, radius, config.MinimapMonsterDotSize, monsterColor, false);
 			DrawSet(context, view.ItemDots, middle, radius, config.MinimapItemDotSize, itemColor, true);
 			DrawSet(context, view.ChestDots, middle, radius, config.MinimapChestDotSize, chestColor, true);
+			DrawSet(context, view.MapObjectDots, middle, radius, MapObjectSettings.Load().MinimapDotSize, Color.white, false, view.MapObjectColors);
 			DrawSet(context, view.EliteDots, middle, radius, config.MinimapEliteDotSize, eliteColor, false);
 			DrawSet(context, view.BossDots, middle, radius, config.MinimapBossDotSize, bossColor, false);
 		}
 
-		// 점 하나에 꼭짓점 넷. 네모 (몬스터) 또는 마름모 (아이템)
-		private static void DrawSet(MeshGenerationContext context, List<Vector2> points, Vector2 middle, float radius, float size, Color color, bool diamond)
+		// 점 하나에 꼭짓점 넷. 네모 (몬스터) 또는 마름모 (아이템). colors 가 있으면 점마다 그 색
+		private static void DrawSet(MeshGenerationContext context, List<Vector2> points, Vector2 middle, float radius, float size, Color color, bool diamond, List<Color> colors = null)
 		{
-			if (points.Count == 0 || color.a <= 0f)
+			if (points.Count == 0 || (colors == null && color.a <= 0f))
 				return;
 			MeshWriteData mesh = context.Allocate(points.Count * 4, points.Count * 6);
 			float half = size * 0.5f;
 			for (int i = 0; i < points.Count; i++)
 			{
 				Vector2 position = middle + points[i] * radius;
+				if (colors != null)
+					color = colors[i];
 				if (diamond)
 				{
 					mesh.SetNextVertex(MakeVertex(position.x, position.y - half, color));

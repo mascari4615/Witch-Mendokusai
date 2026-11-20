@@ -28,9 +28,16 @@ MonoBehaviour:
   <Uses>k__BackingField: 1
   <Effects>k__BackingField:
   - <Type>k__BackingField: 0
+    <Timing>k__BackingField: 0
     <Monster>k__BackingField: {fileID: 0}
     <GuaranteedChest>k__BackingField: 1
     <Count>k__BackingField: 1
+    <Value>k__BackingField: 0
+    <FailPercent>k__BackingField: 0
+  <HoldSeconds>k__BackingField: 0
+  <HoldOutside>k__BackingField: 0
+  <HoldDecayPerSecond>k__BackingField: 1
+  <HoldTimeLimit>k__BackingField: 0
   <PlacementCost>k__BackingField: 10
   <Weight>k__BackingField: 1
   <CountRange>k__BackingField: {x: 1, y: 1}

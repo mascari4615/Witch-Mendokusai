@@ -12,8 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a11485658234e7eb453e22901cb055b, type: 3}
   m_Name: MOB_SlimeForest
   m_EditorClassIdentifier: 
-  <Credits>k__BackingField: 10
+  <Credits>k__BackingField: 35
   <Candidates>k__BackingField:
+  - {fileID: 11400000, guid: af44e521048f42f8b90eefa21a37d5ff, type: 2}
   - {fileID: 11400000, guid: a7ebf439eee34cf8a1166e6784f5f2c4, type: 2}
+  - {fileID: 11400000, guid: 4a72975e098c40f3a700a457d33bf0d7, type: 2}
+  - {fileID: 11400000, guid: 53f35e869fe0476981b31319d67561b0, type: 2}
+  - {fileID: 11400000, guid: bf4eafe566b64592a7ed27f09d6fc205, type: 2}
+  - {fileID: 11400000, guid: de03413e7de542c89aa7f4abe547b617, type: 2}
   <SeedSalt>k__BackingField: 7301
   <MaxPicks>k__BackingField: 32

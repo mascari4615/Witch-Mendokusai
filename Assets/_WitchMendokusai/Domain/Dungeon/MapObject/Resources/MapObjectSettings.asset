@@ -27,6 +27,42 @@ MonoBehaviour:
   <RouteGroundDeviation>k__BackingField: 0.2
   <MarkerMaterial>k__BackingField: {fileID: 2100000, guid: 4f6b547898f8475d96e593174a241bc7, type: 2}
   <RingSegments>k__BackingField: 32
+  <HoldProgressRadiusRatio>k__BackingField: 0.82
+  <HoldProgressWidthRatio>k__BackingField: 1.6
+  <HoldProgressColor>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+  <DiscoverDistance>k__BackingField: 10
+  <MinimapDotSize>k__BackingField: 9
+  <OffscreenScale>k__BackingField: 0.95
+  <RewardPreviews>k__BackingField:
+  - <Preview>k__BackingField: 1
+    <Label>k__BackingField: 상자
+    <Color>k__BackingField: {r: 1, g: 0.84, b: 0.36, a: 1}
+  - <Preview>k__BackingField: 2
+    <Label>k__BackingField: 회복
+    <Color>k__BackingField: {r: 0.55, g: 1, b: 0.7, a: 1}
+  - <Preview>k__BackingField: 3
+    <Label>k__BackingField: 운
+    <Color>k__BackingField: {r: 0.72, g: 1, b: 0.45, a: 1}
+  - <Preview>k__BackingField: 4
+    <Label>k__BackingField: 정보
+    <Color>k__BackingField: {r: 0.78, g: 0.82, b: 1, a: 1}
+  <HealthCostFormat>k__BackingField: "체력 {0}"
+  <NyangCostFormat>k__BackingField: "{0}냥 (보유 {1})"
+  <RiskCostText>k__BackingField: 위험 수락
+  <HoldProgressFormat>k__BackingField: "머무름 {0}/{1}초"
+  <CostAffordableColor>k__BackingField: {r: 1, g: 0.92, b: 0.62, a: 1}
+  <CostShortColor>k__BackingField: {r: 1, g: 0.42, b: 0.42, a: 1}
+  <TextHeight>k__BackingField: 1.6
+  <ShortNyangText>k__BackingField: 냥이 모자람
+  <ShortHealthText>k__BackingField: 체력이 모자람
+  <HealthFullText>k__BackingField: 체력이 가득
+  <BusyText>k__BackingField: 지금은 못 씀
+  <LuckFailText>k__BackingField: 꽝
+  <LuckWinText>k__BackingField: 당첨
+  <HoldStartText>k__BackingField: 원 안에 머물기
+  <HoldCompleteText>k__BackingField: 완료
+  <HoldFailText>k__BackingField: 시간 초과
+  <RevealFormat>k__BackingField: "맵 오브젝트 {0}개 표시"
   <FallbackElite>k__BackingField:
     <HealthMultiplier>k__BackingField: 12
     <ScaleMultiplier>k__BackingField: 1.8

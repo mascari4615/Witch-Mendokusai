@@ -26,6 +26,38 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("선 표식 공유 재질")] public Material MarkerMaterial { get; private set; }
 		[field: SerializeField, Tooltip("원 표식 꼭짓점 수"), Min(8)] public int RingSegments { get; private set; } = 32;
 
+		[field: Header("머무름 진행 호")]
+		[field: SerializeField, Tooltip("표식 반경 대비 진행 호 반경"), Range(0.1f, 1f)] public float HoldProgressRadiusRatio { get; private set; } = 0.82f;
+		[field: SerializeField, Tooltip("표식 선 폭 대비 진행 호 폭"), Min(0.1f)] public float HoldProgressWidthRatio { get; private set; } = 1.6f;
+		[field: SerializeField] public Color HoldProgressColor { get; private set; } = Color.white;
+
+		[field: Header("발견 신호 (작은 지도, 화면 밖 화살표)")]
+		[field: SerializeField, Tooltip("이 거리 안에 들어온 오브젝트는 발견됨 (m). 스캐너는 거리 무관"), Min(0f)] public float DiscoverDistance { get; private set; } = 10f;
+		[field: SerializeField, Tooltip("작은 지도 점 크기 (px)"), Min(1f)] public float MinimapDotSize { get; private set; } = 9f;
+		[field: SerializeField, Tooltip("화면 밖 화살표 크기 배율"), Min(0.1f)] public float OffscreenScale { get; private set; } = 0.95f;
+
+		[field: Header("상호작용 표시 (보상 예고, 비용)")]
+		[field: SerializeField, Tooltip("보상 범주별 글자와 색. None 은 표시 안 함")] public List<MapObjectRewardPreviewStyle> RewardPreviews { get; private set; } = new();
+		[field: SerializeField, Tooltip("{0} = 체력 비용")] public string HealthCostFormat { get; private set; } = "체력 {0}";
+		[field: SerializeField, Tooltip("{0} = 냥 비용, {1} = 판 안 냥")] public string NyangCostFormat { get; private set; } = "{0}냥 (보유 {1})";
+		[field: SerializeField] public string RiskCostText { get; private set; } = "위험 수락";
+		[field: SerializeField, Tooltip("{0} = 진행 초, {1} = 필요 초")] public string HoldProgressFormat { get; private set; } = "머무름 {0}/{1}초";
+		[field: SerializeField] public Color CostAffordableColor { get; private set; } = new(1f, 0.92f, 0.62f, 1f);
+		[field: SerializeField] public Color CostShortColor { get; private set; } = new(1f, 0.42f, 0.42f, 1f);
+
+		[field: Header("반응 글자")]
+		[field: SerializeField, Tooltip("오브젝트 위 반응 글자 높이 (m)"), Min(0f)] public float TextHeight { get; private set; } = 1.6f;
+		[field: SerializeField] public string ShortNyangText { get; private set; } = "냥이 모자람";
+		[field: SerializeField] public string ShortHealthText { get; private set; } = "체력이 모자람";
+		[field: SerializeField] public string HealthFullText { get; private set; } = "체력이 가득";
+		[field: SerializeField] public string BusyText { get; private set; } = "지금은 못 씀";
+		[field: SerializeField] public string LuckFailText { get; private set; } = "꽝";
+		[field: SerializeField] public string LuckWinText { get; private set; } = "당첨";
+		[field: SerializeField] public string HoldStartText { get; private set; } = "원 안에 머물기";
+		[field: SerializeField] public string HoldCompleteText { get; private set; } = "완료";
+		[field: SerializeField] public string HoldFailText { get; private set; } = "시간 초과";
+		[field: SerializeField, Tooltip("{0} = 드러난 수")] public string RevealFormat { get; private set; } = "맵 오브젝트 {0}개 표시";
+
 		[field: Header("효과")]
 		[field: SerializeField, Tooltip("사건표가 없는 던전 (진열장) 의 정예 설정")] public EliteProfile FallbackElite { get; private set; } = new();
 		[field: SerializeField, Tooltip("효과에 몬스터가 비어 있고 사건표에 확정 상자 정예도 없을 때 쓸 정예")] public Monster FallbackEliteMonster { get; private set; }
@@ -45,6 +77,20 @@ namespace WitchMendokusai
 			return loaded;
 		}
 
+		public bool TryGetRewardPreview(MapObjectRewardPreview preview, out MapObjectRewardPreviewStyle style)
+		{
+			foreach (MapObjectRewardPreviewStyle entry in RewardPreviews)
+			{
+				if (entry.Preview == preview)
+				{
+					style = entry;
+					return true;
+				}
+			}
+			style = null;
+			return false;
+		}
+
 		// Resources/MapObjects 의 모든 오브젝트 자산. 개발자 창 목록과 데이터 검사
 		public static MapObjectData[] LoadAllData() => Resources.LoadAll<MapObjectData>(RESOURCE_FOLDER);
 
@@ -58,6 +104,42 @@ namespace WitchMendokusai
 				errors.Add($"{name}: {nameof(ObstacleMask)} 비어 있음");
 			if (FallbackEliteMonster == null)
 				errors.Add($"{name}: {nameof(FallbackEliteMonster)} 미연결");
+			foreach (MapObjectRewardPreview preview in System.Enum.GetValues(typeof(MapObjectRewardPreview)))
+			{
+				if (preview == MapObjectRewardPreview.None)
+					continue;
+				if (TryGetRewardPreview(preview, out MapObjectRewardPreviewStyle style) == false || string.IsNullOrWhiteSpace(style.Label))
+					errors.Add($"{name}: 보상 예고 {preview} 글자 없음");
+				else if (style.Color.a <= 0f)
+					errors.Add($"{name}: 보상 예고 {preview} 색이 투명 (목록에 새로 넣은 칸은 알파 0)");
+			}
+			// 자리 표시 개수가 틀리면 상호작용 표시가 매 프레임 예외. 입장 전에 잡음
+			CheckFormat(errors, nameof(HealthCostFormat), HealthCostFormat, 1);
+			CheckFormat(errors, nameof(NyangCostFormat), NyangCostFormat, 2);
+			CheckFormat(errors, nameof(HoldProgressFormat), HoldProgressFormat, 2);
+			CheckFormat(errors, nameof(RevealFormat), RevealFormat, 1);
+			if (DefaultBudget == null)
+				errors.Add($"{name}: {nameof(DefaultBudget)} 미연결 (예산 없는 던전의 굴림 시드)");
 		}
+
+		private void CheckFormat(List<string> errors, string fieldName, string format, int argumentCount)
+		{
+			try
+			{
+				string.Format(format, new object[argumentCount]);
+			}
+			catch (System.FormatException)
+			{
+				errors.Add($"{name}: {fieldName} '{format}' 자리 표시는 {argumentCount}개까지");
+			}
+		}
+	}
+
+	[System.Serializable]
+	public class MapObjectRewardPreviewStyle
+	{
+		[field: SerializeField] public MapObjectRewardPreview Preview { get; private set; }
+		[field: SerializeField] public string Label { get; private set; } = string.Empty;
+		[field: SerializeField] public Color Color { get; private set; } = Color.white;
 	}
 }

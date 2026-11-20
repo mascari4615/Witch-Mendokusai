@@ -5,7 +5,8 @@ using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
-	// 화면 밖 정예, 보스, 특수 아이템의 방향 표시. 화면 가장자리 안쪽에 화살촉과 그 뒤 점 (아이템은 마름모)
+	// 화면 밖 정예, 보스, 발견한 맵 오브젝트, 특수 아이템의 방향 표시. 화면 가장자리 안쪽에 화살촉과 그 뒤 점 (아이템은 마름모, 맵 오브젝트는 네모)
+	// 맵 오브젝트 색은 데이터의 표식 색 (MapObjectData.MarkerColor), 크기 배율은 MapObjectSettings.OffscreenScale
 	// 표식은 처음 한 번 짓고 재사용. 대상은 SurvivalFeel 의 정예 목록, 보스 등장 사건으로 모은 보스 목록, 바닥 전리품 버퍼의 GameItemObject
 	// 모양과 색, 등장 튐은 SurvivalOffscreenMarkers.uss. 거리, 상한, 여백, 튐 대기는 SurvivalFeelConfig 의 화면 밖 표시 묶음
 	public class SurvivalOffscreenMarkers : MonoBehaviour
@@ -15,6 +16,7 @@ namespace WitchMendokusai
 		private const string USS_MARKER_ELITE = "wm-offscreen__marker--elite";
 		private const string USS_MARKER_BOSS = "wm-offscreen__marker--boss";
 		private const string USS_MARKER_ITEM = "wm-offscreen__marker--item";
+		private const string USS_MARKER_MAP_OBJECT = "wm-offscreen__marker--mapobject";
 		private const string USS_POP = "wm-offscreen__pop";
 		private const string USS_POP_SHOWN = "wm-offscreen__pop--shown";
 		private const string USS_POP_INSTANT = "wm-offscreen__pop--instant";
@@ -29,6 +31,7 @@ namespace WitchMendokusai
 			Boss = 0,
 			Elite = 1,
 			Item = 2,
+			MapObject = 3,
 		}
 
 		private class Marker
@@ -36,6 +39,8 @@ namespace WitchMendokusai
 			public VisualElement Element;
 			public VisualElement Pop;
 			public VisualElement Pivot;
+			public VisualElement Dot;
+			public VisualElement Arrow;
 			public Component Target;
 			public int AssignedFrame;
 		}
@@ -44,6 +49,7 @@ namespace WitchMendokusai
 		{
 			public Component Target;
 			public MarkerKind Kind;
+			public Color Color;
 			public float Distance;
 			public Vector2 Position;
 			public float Angle;
@@ -125,14 +131,16 @@ namespace WitchMendokusai
 			VisualElement element = Make(USS_MARKER);
 			VisualElement pop = Make(USS_POP);
 			VisualElement pivot = Make(USS_PIVOT);
-			pivot.Add(Make(USS_DOT));
+			VisualElement dot = Make(USS_DOT);
+			VisualElement arrow = Make(USS_ARROW);
+			pivot.Add(dot);
 			pivot.Add(Make(USS_ARROW_SHADE));
-			pivot.Add(Make(USS_ARROW));
+			pivot.Add(arrow);
 			pop.Add(pivot);
 			element.Add(pop);
 			element.style.visibility = Visibility.Hidden;
 			root.Add(element);
-			return new Marker { Element = element, Pop = pop, Pivot = pivot };
+			return new Marker { Element = element, Pop = pop, Pivot = pivot, Dot = dot, Arrow = arrow };
 		}
 
 		private static VisualElement Make(string className)
@@ -164,6 +172,7 @@ namespace WitchMendokusai
 				Vector3 playerPosition = player.transform.position;
 				CollectBosses(config, camera, playerPosition, width, height);
 				CollectElites(config, camera, playerPosition, width, height);
+				CollectMapObjects(config, camera, playerPosition, width, height);
 				if (config.OffscreenShowItems)
 					CollectItems(config, camera, playerPosition, width, height);
 				candidates.Sort(candidateOrder);
@@ -197,6 +206,16 @@ namespace WitchMendokusai
 			}
 		}
 
+		private void CollectMapObjects(SurvivalFeelConfig config, Camera camera, Vector3 playerPosition, float width, float height)
+		{
+			foreach (MapObjectSite site in DungeonManager.Instance.MonsterSpawner.MapObjectSites)
+			{
+				if (site == null || site.IsSignaled == false)
+					continue;
+				TryAddCandidate(config, camera, site, MarkerKind.MapObject, playerPosition, width, height, site.Data.MarkerColor);
+			}
+		}
+
 		// 바닥 전리품 버퍼에서 GameItemObject (상자, 적 정지, 화면 청소, 회복, 자석) 만. 경험치 구슬과 재료는 제외
 		private void CollectItems(SurvivalFeelConfig config, Camera camera, Vector3 playerPosition, float width, float height)
 		{
@@ -210,7 +229,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		private void TryAddCandidate(SurvivalFeelConfig config, Camera camera, Component target, MarkerKind kind, Vector3 playerPosition, float width, float height)
+		private void TryAddCandidate(SurvivalFeelConfig config, Camera camera, Component target, MarkerKind kind, Vector3 playerPosition, float width, float height, Color color = default)
 		{
 			Vector3 worldPosition = target.transform.position;
 			if (ProjectToEdge(config, camera, worldPosition, width, height, out Vector2 position, out float angle) == false)
@@ -219,6 +238,7 @@ namespace WitchMendokusai
 			{
 				Target = target,
 				Kind = kind,
+				Color = color,
 				Distance = Vector3.Distance(playerPosition, worldPosition),
 				Position = position,
 				Angle = angle
@@ -259,7 +279,7 @@ namespace WitchMendokusai
 			return true;
 		}
 
-		// 보스, 정예, 아이템 순. 같은 종류 안에서는 가까운 순
+		// 보스, 정예, 아이템, 맵 오브젝트 순. 맵 오브젝트는 쓸 때까지 남아 있어 아이템 화살표를 밀어내지 않게 맨 뒤. 같은 종류 안에서는 가까운 순
 		private static int CompareCandidates(Candidate left, Candidate right)
 		{
 			if (left.Kind != right.Kind)
@@ -328,6 +348,12 @@ namespace WitchMendokusai
 				marker.Element.EnableInClassList(USS_MARKER_BOSS, candidate.Kind == MarkerKind.Boss);
 				marker.Element.EnableInClassList(USS_MARKER_ELITE, candidate.Kind == MarkerKind.Elite);
 				marker.Element.EnableInClassList(USS_MARKER_ITEM, candidate.Kind == MarkerKind.Item);
+				bool isMapObject = candidate.Kind == MarkerKind.MapObject;
+				marker.Element.EnableInClassList(USS_MARKER_MAP_OBJECT, isMapObject);
+				// 맵 오브젝트만 데이터 색. 나머지는 USS 의 종류 색으로 되돌림
+				marker.Dot.style.backgroundColor = isMapObject ? new StyleColor(candidate.Color) : new StyleColor(StyleKeyword.Null);
+				marker.Arrow.style.borderTopColor = isMapObject ? new StyleColor(candidate.Color) : new StyleColor(StyleKeyword.Null);
+				marker.Arrow.style.borderRightColor = isMapObject ? new StyleColor(candidate.Color) : new StyleColor(StyleKeyword.Null);
 				marker.Element.style.visibility = Visibility.Visible;
 			}
 			else
@@ -353,6 +379,7 @@ namespace WitchMendokusai
 		{
 			MarkerKind.Boss => config.OffscreenBossScale,
 			MarkerKind.Item => config.OffscreenItemScale,
+			MarkerKind.MapObject => MapObjectSettings.Load().OffscreenScale,
 			_ => 1f,
 		};
 	}

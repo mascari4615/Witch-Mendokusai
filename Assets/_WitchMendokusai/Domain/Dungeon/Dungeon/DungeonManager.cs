@@ -29,6 +29,20 @@ namespace WitchMendokusai
 		public int RunEquipmentSlotCount => resourceManager.SurvivalRunRules.RandomModeSlotCount;
 		public DungeonThreatEffect CurThreat { get; private set; } = DungeonThreatEffect.Identity;
 
+		// 판 안 냥. 이번 판에 주운 냥만 맵 오브젝트 비용으로 씀, 들고 온 냥은 못 씀. 안 쓴 냥은 기존대로 가져감
+		// 판 안에서만 부름. 판 밖이면 기록이 없어 예외
+		public int RunNyang => IsDungeon ? Mathf.Max(0, dungeonRecorder.NyangSinceStart) : throw new InvalidOperationException("판 밖에서 판 안 냥 조회");
+
+		public bool TrySpendRunNyang(int amount)
+		{
+			if (amount < 0)
+				throw new ArgumentOutOfRangeException(nameof(amount), amount, "냥 비용은 0 이상");
+			if (RunNyang < amount)
+				return false;
+			dataManager.GameStat[GameStatType.NYANG] -= amount;
+			return true;
+		}
+
 		public int GetMaxThreatLevel(Dungeon dungeon) => dungeon.HasThreatLevels ? DungeonThreatRules.MaxLevel(resourceManager.SurvivalRunRules.ThreatLevels) : 0;
 		public DungeonThreatEffect ResolveThreat(Dungeon dungeon, int level) => dungeon.HasThreatLevels ? DungeonThreatRules.Resolve(resourceManager.SurvivalRunRules.ThreatLevels, level) : DungeonThreatEffect.Identity;
 

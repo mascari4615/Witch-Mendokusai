@@ -29,6 +29,12 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("사용 횟수. 0 이면 무한"), Min(0)] public int Uses { get; private set; } = 1;
 		[field: SerializeField] public List<MapObjectEffect> Effects { get; private set; } = new();
 
+		[field: Header("머무름 (구역은 표식 원)")]
+		[field: SerializeField, Tooltip("표식 반경 안에 머물 시간 (초). 0 이면 머무름 없음, 효과는 상호작용 즉시"), Min(0f)] public float HoldSeconds { get; private set; }
+		[field: SerializeField, Tooltip("구역 밖일 때 진행")] public MapObjectHoldOutside HoldOutside { get; private set; }
+		[field: SerializeField, Tooltip("Decay 일 때 밖에서 초당 잃는 진행 (초)"), Min(0f)] public float HoldDecayPerSecond { get; private set; } = 1f;
+		[field: SerializeField, Tooltip("시작부터 실패까지 (초). 0 이면 제한 없음"), Min(0f)] public float HoldTimeLimit { get; private set; }
+
 		[field: Header("배치")]
 		[field: SerializeField, Tooltip("배치 예산에서 가격"), Min(0)] public int PlacementCost { get; private set; } = 10;
 		[field: SerializeField, Tooltip("예산 뽑기 가중치. 0 이면 최소 개수만"), Min(0f)] public float Weight { get; private set; } = 1f;
@@ -39,6 +45,8 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("주인공 자리에서 걸어갈 수 있는 자리만")] public bool RequireRoute { get; private set; } = true;
 
 		public float ResolveMarkerRadius(float interactionDistance) => MarkerRadius > 0f ? MarkerRadius : interactionDistance;
+
+		public bool HasHold => HoldSeconds > 0f;
 
 		// 판 시작 전에 부르는 데이터 검사. 오류 문구를 모아 돌려줌
 		public void Validate(List<string> errors)
@@ -60,7 +68,31 @@ namespace WitchMendokusai
 					errors.Add($"{name}: 효과 {effect.Type} 미지원");
 				if (effect.Count < 1)
 					errors.Add($"{name}: 효과 {effect.Type} 개수 {effect.Count}");
+				if (effect.Type == MapObjectEffectType.Heal && effect.Value <= 0f)
+					errors.Add($"{name}: 회복 효과 값 {effect.Value}");
+				if (effect.FailPercent < 0f || effect.FailPercent >= 100f)
+					errors.Add($"{name}: 효과 {effect.Type} 꽝 확률 {effect.FailPercent}");
+				if (effect.Timing == MapObjectEffectTiming.OnHoldComplete && HasHold == false)
+					errors.Add($"{name}: 효과 {effect.Type} 이 머무름 완료 시점인데 {nameof(HoldSeconds)} 0");
 			}
+			if ((CostType == MapObjectCostType.HealthPercent || CostType == MapObjectCostType.RunNyang) && CostValue <= 0f)
+				errors.Add($"{name}: 비용 {CostType} 값 {CostValue}");
+			if (CostType == MapObjectCostType.HealthPercent && CostValue >= 100f)
+				errors.Add($"{name}: 체력 비용 {CostValue}% 는 낼 수 없음");
+			if (HasHold && HoldTimeLimit > 0f && HoldTimeLimit <= HoldSeconds)
+				errors.Add($"{name}: {nameof(HoldTimeLimit)} {HoldTimeLimit} 이 {nameof(HoldSeconds)} {HoldSeconds} 이하");
+			if (HasHold && Effects.Exists(effect => effect != null && effect.Timing == MapObjectEffectTiming.OnHoldComplete) == false)
+				errors.Add($"{name}: 머무름이 있는데 완료 효과 없음");
+			if (CostType == MapObjectCostType.HealthPercent && CostGrowth > 1f)
+			{
+				// 마지막 사용 비용까지 100% 미만이어야 낼 수 있음. 무한 사용이면 언젠가 넘음
+				if (Uses == 0)
+					errors.Add($"{name}: 체력 비용 배율 {CostGrowth} 에 무한 사용");
+				else if (CostValue * MapObjectRules.CostMultiplier(CostGrowth, Uses - 1) >= 100f)
+					errors.Add($"{name}: 체력 비용이 {Uses} 번째 사용에서 100% 이상");
+			}
+			if (HasHold && Prefab != null)
+				errors.Add($"{name}: 머무름 진행 표시는 선 표식만 지원, {nameof(Prefab)} 비워야 함");
 			if (CountRange.x < 0 || CountRange.y < 1 || CountRange.x > CountRange.y)
 				errors.Add($"{name}: {nameof(CountRange)} 범위 오류 {CountRange}");
 			if (SpawnTime.x < 0f || SpawnTime.y < SpawnTime.x)

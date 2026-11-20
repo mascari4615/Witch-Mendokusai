@@ -29,6 +29,10 @@ namespace WitchMendokusai
 		private Label keyLabel;
 		private Label nameLabel;
 		private Label roleLabel;
+		// 맵 오브젝트 전용. 보상 예고 칸과 비용 글자 (MapObjectSettings)
+		private Label previewLabel;
+		private Label costLabel;
+		private int shownSiteStamp;
 		private VisualElement layer;
 		private InteractiveObject current;
 		private InteractiveObject shownTarget;
@@ -81,6 +85,12 @@ namespace WitchMendokusai
 			roleLabel = new Label { pickingMode = PickingMode.Ignore };
 			roleLabel.AddToClassList(USS_ROOT + "__role");
 			row.Add(roleLabel);
+			previewLabel = new Label { pickingMode = PickingMode.Ignore };
+			previewLabel.AddToClassList(USS_ROOT + "__preview");
+			row.Add(previewLabel);
+			costLabel = new Label { pickingMode = PickingMode.Ignore };
+			costLabel.AddToClassList(USS_ROOT + "__cost");
+			row.Add(costLabel);
 			row.RegisterCallback<ClickEvent>(_ => OnRowClicked());
 			layer.Add(row);
 			shownTarget = null;
@@ -122,8 +132,9 @@ namespace WitchMendokusai
 			}
 
 			bool isTouchMode = IsTouchMode();
-			if (current != shownTarget || isTouchMode != shownTouchMode)
-				ApplyContent(current, isTouchMode);
+			int siteStamp = current.TryGetComponent(out MapObjectSite currentSite) ? currentSite.PromptStamp() : 0;
+			if (current != shownTarget || isTouchMode != shownTouchMode || siteStamp != shownSiteStamp)
+				ApplyContent(current, isTouchMode, siteStamp);
 
 			Vector2 panelPoint = RuntimePanelUtils.ScreenToPanel(row.panel, new Vector2(screen.x, Screen.height - screen.y));
 			Vector2 local = layer.WorldToLocal(panelPoint);
@@ -158,10 +169,13 @@ namespace WitchMendokusai
 		}
 
 		// 대상이나 입력 방식이 바뀔 때만 글자 갱신
-		private void ApplyContent(InteractiveObject target, bool isTouchMode)
+		private void ApplyContent(InteractiveObject target, bool isTouchMode, int siteStamp)
 		{
 			shownTarget = target;
 			shownTouchMode = isTouchMode;
+			shownSiteStamp = siteStamp;
+			previewLabel.style.display = DisplayStyle.None;
+			costLabel.style.display = DisplayStyle.None;
 			keyLabel.text = isTouchMode ? TOUCH_LABEL : KEY_LABEL;
 			// 숨긴 동안과 마우스 모드는 클릭을 잡지 않음 (월드 클릭 보호)
 			row.pickingMode = isTouchMode ? PickingMode.Position : PickingMode.Ignore;
@@ -180,6 +194,7 @@ namespace WitchMendokusai
 				// 맵 오브젝트는 데이터의 이름과 설명
 				nameLabel.text = site.Data.DisplayName;
 				roleLabel.text = site.Data.Role;
+				ApplyMapObjectContent(site);
 			}
 			else
 			{
@@ -187,6 +202,24 @@ namespace WitchMendokusai
 				roleLabel.text = string.Empty;
 			}
 			roleLabel.style.display = roleLabel.text.Length > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
+		// 보상 예고 (수락 전 범주) 와 비용. 못 내는 비용은 다른 색
+		private void ApplyMapObjectContent(MapObjectSite site)
+		{
+			MapObjectSettings settings = MapObjectSettings.Load();
+			if (site.IsHolding == false && settings.TryGetRewardPreview(site.Data.RewardPreview, out MapObjectRewardPreviewStyle preview))
+			{
+				previewLabel.text = preview.Label;
+				previewLabel.style.backgroundColor = preview.Color;
+				previewLabel.style.display = DisplayStyle.Flex;
+			}
+			string cost = site.DescribeCost();
+			if (cost.Length == 0)
+				return;
+			costLabel.text = cost;
+			costLabel.style.color = site.IsHolding || site.CanAfford() ? settings.CostAffordableColor : settings.CostShortColor;
+			costLabel.style.display = DisplayStyle.Flex;
 		}
 
 		// 키 입력이 막히는 상황 (일시정지, 글 입력, 전체 화면 창, 시전, 사망, 건설, 전환) 에는 표시도 숨김

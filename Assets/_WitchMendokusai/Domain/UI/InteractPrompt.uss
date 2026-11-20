@@ -70,3 +70,21 @@
     -unity-background-scale-mode: stretch-to-fill;
     -unity-background-image-tint-color: rgba(10, 12, 30, 0.66);
 }
+
+/* 맵 오브젝트 보상 예고 칸. 바탕색은 MapObjectSettings.RewardPreviews 의 범주 색 (코드가 넣음) */
+.wm-interact-prompt__preview {
+    height: 22px;
+    margin: 0 0 0 10px;
+    padding: 0 7px;
+    font-size: 13px;
+    color: rgb(16, 18, 40);
+    -unity-text-align: middle-center;
+}
+
+/* 맵 오브젝트 비용 (체력, 냥, 위험) 과 머무름 진행. 글자색은 낼 수 있음과 모자람 두 색 (MapObjectSettings) */
+.wm-interact-prompt__cost {
+    margin: 0 0 0 10px;
+    padding: 0;
+    font-size: 14px;
+    -unity-text-align: middle-left;
+}

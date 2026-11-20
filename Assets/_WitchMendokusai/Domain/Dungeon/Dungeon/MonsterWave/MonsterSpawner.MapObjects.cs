@@ -12,6 +12,11 @@ namespace WitchMendokusai
 		private readonly List<MapObjectSite> mapObjectSites = new();
 		private readonly List<Vector3> mapObjectPositions = new();
 		private System.Random mapObjectRandom;
+		// 운 성소 굴림. 자리 고르기와 다른 갈래라 굴림 수가 배치를 바꾸지 않음
+		private System.Random mapObjectRollRandom;
+		private float lastMapObjectTickTime;
+		// 판 전체 스캐너를 쓴 뒤. 나중에 나오는 오브젝트도 놓일 때 발견
+		private bool mapObjectsRevealAll;
 		private Coroutine pendingMapObjectStart;
 		private int nextMapObjectPlan;
 		// 지금 계획의 배치 실패 횟수. 착지 전, 몸통 겹침 같은 일시 실패는 다음 틱에 다시
@@ -25,13 +30,16 @@ namespace WitchMendokusai
 		private void InitMapObjects(Dungeon dungeon)
 		{
 			StopMapObjects();
+			// 예산 없는 던전 (진열장) 도 틱과 굴림은 돌림. 개발자 창 mapobj 로 놓은 오브젝트가 움직이게
 			MapObjectBudget budget = dungeon.MapObjectBudget;
-			if (budget == null)
-				return;
-
-			mapObjectPlans.AddRange(MapObjectPlanner.Plan(budget, RunSeed.Derive(budget.SeedSalt), out int remaining));
-			mapObjectRandom = new System.Random(RunSeed.Derive(budget.SeedSalt + 1));
-			Debug.Log($"[MapObject] 예산 {budget.Credits}, 남음 {remaining}, 계획 {mapObjectPlans.Count}개");
+			int seedSalt = budget != null ? budget.SeedSalt : MapObjectSettings.Load().DefaultBudget.SeedSalt;
+			mapObjectRandom = new System.Random(RunSeed.Derive(seedSalt + 1));
+			mapObjectRollRandom = new System.Random(RunSeed.Derive(seedSalt + 2));
+			if (budget != null)
+			{
+				mapObjectPlans.AddRange(MapObjectPlanner.Plan(budget, RunSeed.Derive(budget.SeedSalt), out int remaining));
+				Debug.Log($"[MapObject] 예산 {budget.Credits}, 남음 {remaining}, 계획 {mapObjectPlans.Count}개");
+			}
 			pendingMapObjectStart = StartCoroutine(StartMapObjectsAfterPhysics(mapObjectGeneration));
 		}
 
@@ -45,13 +53,74 @@ namespace WitchMendokusai
 			if (dungeonManager.IsDungeon == false || isActiveAndEnabled == false)
 				yield break;
 			mapObjectsReady = true;
+			lastMapObjectTickTime = (float)dungeonManager.Context.ElapsedTime.TotalSeconds;
 			SpawnDueMapObjects();
 		}
 
 		private void UpdateMapObjects()
 		{
-			if (mapObjectsReady)
-				SpawnDueMapObjects();
+			if (mapObjectsReady == false)
+				return;
+			SpawnDueMapObjects();
+			float elapsed = (float)dungeonManager.Context.ElapsedTime.TotalSeconds;
+			float delta = Mathf.Max(0f, elapsed - lastMapObjectTickTime);
+			lastMapObjectTickTime = elapsed;
+			TickMapObjectSites(delta);
+		}
+
+		// 발견 거리 판정과 머무름 진행. 판 시간 (카드 고르는 동안 멈춤) 기준
+		private void TickMapObjectSites(float deltaSeconds)
+		{
+			PlayerObject player = playerProvider.CurrentObject;
+			if (player == null || player.IsAlive == false)
+				return;
+			MapObjectSettings settings = MapObjectSettings.Load();
+			Vector3 playerPosition = player.transform.position;
+			float discoverSquared = settings.DiscoverDistance * settings.DiscoverDistance;
+			foreach (MapObjectSite site in mapObjectSites)
+			{
+				if (site == null || site.IsSpent)
+					continue;
+				if (site.IsKnown == false)
+				{
+					Vector3 offset = site.transform.position - playerPosition;
+					offset.y = 0f;
+					if (offset.sqrMagnitude <= discoverSquared)
+						site.Reveal();
+				}
+				if (site.IsHolding)
+					TickHold(site, deltaSeconds, playerPosition, settings);
+			}
+		}
+
+		// 완료인데 효과를 못 내면 (적 상한, 체력 가득) 다음 틱에 다시. 반응 글자는 처음 한 번
+		// 구역 밖 감소 (Decay) 면 그사이 진행이 줄 수 있음
+		private void TickHold(MapObjectSite site, float deltaSeconds, Vector3 playerPosition, MapObjectSettings settings)
+		{
+			switch (site.TickHold(deltaSeconds, playerPosition))
+			{
+				case MapObjectHoldResult.Running:
+					return;
+				case MapObjectHoldResult.Failed:
+					PopMapObjectText(site, settings.HoldFailText);
+					Debug.Log($"[MapObject] {site.Data.name} 머무름 실패 (제한 {site.Data.HoldTimeLimit}초)");
+					return;
+				case MapObjectHoldResult.Completed:
+					if (TryFindBlockedEffect(site.Data, MapObjectEffectTiming.OnHoldComplete, site.transform.position, out string blocked))
+					{
+						if (site.MarkCompletionBlocked())
+						{
+							Debug.Log($"[MapObject] {site.Data.name} 완료 보류: {blocked}");
+							PopMapObjectText(site, blocked);
+						}
+						return;
+					}
+					ApplyMapObjectEffects(site, MapObjectEffectTiming.OnHoldComplete);
+					PopMapObjectText(site, settings.HoldCompleteText);
+					Debug.Log($"[MapObject] {site.Data.name} 머무름 완료");
+					site.CompleteHold();
+					return;
+			}
 		}
 
 		private void SpawnDueMapObjects()
@@ -119,13 +188,15 @@ namespace WitchMendokusai
 			owner.transform.SetParent(mapObjectRoot, false);
 			owner.transform.position = position;
 			MapObjectSite site = owner.AddComponent<MapObjectSite>();
-			site.Init(data, TryActivateMapObject);
+			site.Init(data, this, data.ResolveMarkerRadius(PlayerInteraction.InteractionDistance));
 			owner.AddComponent<InteractiveObject>();
 			if (data.Prefab != null)
 				Instantiate(data.Prefab, owner.transform, false);
 			else
-				MapObjectSite.BuildMarker(owner, data, settings, data.ResolveMarkerRadius(PlayerInteraction.InteractionDistance));
+				site.BuildMarker(settings);
 			owner.SetActive(true);
+			if (mapObjectsRevealAll)
+				site.Reveal();
 			mapObjectSites.Add(site);
 			mapObjectPositions.Add(position);
 			return site;
@@ -140,6 +211,30 @@ namespace WitchMendokusai
 			}
 			ground = position;
 			return false;
+		}
+
+		// 개발자 창 mapobj reveal. 판 전체 스캐너와 같은 처리
+		public int RevealAllMapObjects() => RevealMapObjectSites(null, Vector3.zero, 0f);
+
+		// 스캐너. 반경 0 이면 판 전체, 이후 나올 오브젝트도 발견. source 는 자기 자신 제외
+		private int RevealMapObjectSites(MapObjectSite source, Vector3 center, float radius)
+		{
+			if (radius <= 0f)
+				mapObjectsRevealAll = true;
+			int revealed = 0;
+			float radiusSquared = radius * radius;
+			foreach (MapObjectSite site in mapObjectSites)
+			{
+				if (site == null || site == source || site.IsSpent || site.IsKnown)
+					continue;
+				Vector3 offset = site.transform.position - center;
+				offset.y = 0f;
+				if (radius > 0f && offset.sqrMagnitude > radiusSquared)
+					continue;
+				site.Reveal();
+				revealed++;
+			}
+			return revealed;
 		}
 
 		// 판 끝, 재도전, 재초기화. 대기 중 배치 취소와 놓인 것 제거
@@ -164,6 +259,7 @@ namespace WitchMendokusai
 			nextMapObjectPlan = 0;
 			mapObjectFailedRounds = 0;
 			mapObjectsReady = false;
+			mapObjectsRevealAll = false;
 		}
 	}
 }

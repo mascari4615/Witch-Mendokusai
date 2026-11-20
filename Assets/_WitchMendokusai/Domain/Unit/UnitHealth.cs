@@ -81,6 +81,14 @@ namespace WitchMendokusai
 			OnHealed?.Invoke(healAmount);
 		}
 
+		// 피해가 아닌 체력 지불 (맵 오브젝트 체력 비용). 피격 이벤트, 무적, 반격, 증폭 없음. 체력 1 은 남겨야 함
+		public void SpendHealth(int amount)
+		{
+			if (amount < 0 || Unit.UnitStat[UnitStatType.HP_CUR] - amount < 1)
+				throw new ArgumentOutOfRangeException(nameof(amount), amount, $"체력 {Unit.UnitStat[UnitStatType.HP_CUR]} 에서 낼 수 없는 값");
+			SetHp(Unit.UnitStat[UnitStatType.HP_CUR] - amount);
+		}
+
 		private void SetHp(int newHp)
 		{
 			if (Unit == null) return;

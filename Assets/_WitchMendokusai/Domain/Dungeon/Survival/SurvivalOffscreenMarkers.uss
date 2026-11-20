@@ -122,3 +122,12 @@
     border-radius: 1px;
     rotate: 45deg;
 }
+
+/* 맵 오브젝트: 점을 각진 네모로. 색은 코드가 데이터의 표식 색으로 넣음 */
+.wm-offscreen__marker--mapobject .wm-offscreen__dot {
+    left: 3px;
+    width: 12px;
+    height: 12px;
+    margin-top: -6px;
+    border-radius: 1px;
+}
