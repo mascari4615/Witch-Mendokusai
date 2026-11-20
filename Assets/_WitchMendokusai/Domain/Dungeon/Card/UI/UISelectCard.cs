@@ -44,11 +44,54 @@ namespace WitchMendokusai
 
 		private bool PlayReveal()
 		{
+			if (devPending != null)
+			{
+				DevRevealRequest request = devPending;
+				devPending = null;
+				DevReplay(request);
+				return true;
+			}
 			revealEntries.Clear();
 			foreach (UICardSlot slot in cardSelectButtons)
 				if (slot.gameObject.activeSelf && slot.DataSO is CardData card)
 					revealEntries.Add(new CardRevealEntry((RectTransform)slot.transform, UICardRevealDirector.TierOf(card)));
-			return reveal.Play(cardSelectButtons[0].ChoiceView.ChoiceCard.Theme.Reveal.SelectCard, revealEntries);
+			CardManager cardManager = PanelGroup as CardManager;
+			return reveal.Play(Theme.Reveal.SelectCard, revealEntries, chained: cardManager.IsChainedChoice);
+		}
+
+		public SurvivalUITheme Theme => cardSelectButtons[0].ChoiceView.ChoiceCard.Theme;
+		public bool IsShowing => gameObject.activeInHierarchy;
+
+		// 개발 창 reveal. 다음 공개를 이 스킨과 등급으로
+		public sealed class DevRevealRequest
+		{
+			public CardRevealSkin Skin;
+			public bool Chained;
+			// null 이면 실제 카드 등급
+			public CardRevealTier? Best;
+		}
+
+		private static DevRevealRequest devPending;
+
+		public static void DevQueue(DevRevealRequest request) => devPending = request;
+
+		// 지금 열린 카드로 다시 공개. 등급을 정하면 가운데 칸이 그 등급, 영웅이면 왼쪽 희귀
+		public void DevReplay(DevRevealRequest request)
+		{
+			revealEntries.Clear();
+			int index = 0;
+			foreach (UICardSlot slot in cardSelectButtons)
+			{
+				CardData card = slot.DataSO as CardData;
+				if (slot.gameObject.activeSelf == false || card == null)
+					continue;
+				CardRevealTier tier = UICardRevealDirector.TierOf(card);
+				if (request.Best.HasValue)
+					tier = index == 1 ? request.Best.Value : index == 0 && request.Best.Value == CardRevealTier.Epic ? CardRevealTier.Rare : CardRevealTier.Common;
+				revealEntries.Add(new CardRevealEntry((RectTransform)slot.transform, tier));
+				index++;
+			}
+			reveal.PlayExact(request.Skin, revealEntries, chained: request.Chained);
 		}
 
 		private void ShowSelectedInfo()

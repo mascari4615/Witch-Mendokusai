@@ -8,6 +8,7 @@ namespace WitchMendokusai
 	// 카드 공개 감독. 화면마다 하나, 연출은 테마의 스킨 에셋
 	// - 공통: 배경 어둡게, 전투 카메라 당김, 카드 층 확대, 아무 키로 건너뛰기, 고르기 입력 관문
 	// - 스킨: 박자, 등급 예고, 터짐 (CardRevealSkin.Build)
+	// - 처음 몇 번만 풀 연출: 스킨의 RepeatSkin, FullPlays 와 세이브의 본 횟수
 	public sealed class UICardRevealDirector : MonoBehaviour
 	{
 		private readonly List<CardRevealCard> cards = new();
@@ -46,9 +47,32 @@ namespace WitchMendokusai
 			return card.Rarity == CardRarity.Rare ? CardRevealTier.Rare : CardRevealTier.Common;
 		}
 
-		// chestSprite 가 있으면 origin 자리 상자에서 나옴, 없으면 카드 가운데의 꾸러미
+		// chestSprite 가 있으면 origin 자리 상자에서 나옴, 없으면 카드 가운데의 꾸러미. chained 는 연속 레벨업
 		// 연출을 시작했으면 true. 효과 끔, 빈 목록, 스킨 없음이면 false 이고 부르는 쪽이 기본 공개
-		public bool Play(CardRevealSkin revealSkin, IReadOnlyList<CardRevealEntry> entries, Sprite chestSprite = null, RectTransform origin = null)
+		public bool Play(CardRevealSkin revealSkin, IReadOnlyList<CardRevealEntry> entries, Sprite chestSprite = null, RectTransform origin = null, bool chained = false)
+		{
+			if (UIEffects.Enabled == false || entries.Count == 0)
+			{
+				Cancel();
+				return false;
+			}
+			return PlayExact(Resolve(revealSkin), entries, chestSprite, origin, chained);
+		}
+
+		// 처음 FullPlays 번은 그 스킨, 뒤로는 RepeatSkin. 고른 순간 본 횟수 1 올림 (건너뛰어도 본 것). 빈 스킨은 그대로 넘겨 PlayExact 가 기본 공개로
+		public static CardRevealSkin Resolve(CardRevealSkin requested)
+		{
+			if (requested == null || requested.RepeatSkin == null || DataManager.TryGetExistingInstance(out DataManager dataManager) == false)
+				return requested;
+			int seen = dataManager.GameStat[GameStatType.CARD_PACK_FULL_REVEAL_SEEN];
+			if (seen >= requested.FullPlays)
+				return requested.RepeatSkin;
+			dataManager.GameStat[GameStatType.CARD_PACK_FULL_REVEAL_SEEN] = seen + 1;
+			return requested;
+		}
+
+		// 반복 판정 없이 이 스킨 그대로. 개발 창 비교용
+		public bool PlayExact(CardRevealSkin revealSkin, IReadOnlyList<CardRevealEntry> entries, Sprite chestSprite = null, RectTransform origin = null, bool chained = false)
 		{
 			Cancel();
 			if (CanPlay(revealSkin, entries) == false)
@@ -67,11 +91,11 @@ namespace WitchMendokusai
 			foreach (CardRevealEntry entry in entries)
 			{
 				CardRevealCard card = new(entry);
-				card.Prepare(skin.TierColor(entry.Tier), skin.AuraSizeRatio, skin.ShineAngle);
+				card.Prepare(skin.TierColor(entry.Tier), skin.AuraSizeRatio, skin.ShineAngle, skin.BackSprite(entry.Tier));
 				cards.Add(card);
 			}
 			Vector2 originPosition = origin != null ? stage.ToLocal(origin) : CardsCenter();
-			run = new CardRevealRun(skin, stage, content, cards, CardRevealSkin.Best(entries), chestSprite, originPosition);
+			run = new CardRevealRun(skin, stage, content, cards, CardRevealSkin.Best(entries), chestSprite, originPosition, chained);
 			BuildScreen(run, chestSprite != null);
 			skin.Build(run);
 			run.Start(OnRunFinished);
@@ -179,6 +203,8 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
+			if (IsRevealing && run != null)
+				run.Tick(RevealClock.Delta);
 			bool hasInput = InputManager.TryGetExistingInstance(out InputManager inputManager);
 			// 연 입력과 같은 프레임은 건너뛰기 제외
 			if (IsRevealing && Time.frameCount > startedFrame && hasInput && inputManager.IsAnyKeyPressedThisFrame)

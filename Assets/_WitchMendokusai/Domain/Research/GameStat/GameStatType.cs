@@ -21,5 +21,8 @@ namespace WitchMendokusai
 
 		// 임시
 		POT_COUNT = 3000, // 솥 개수 (솥 시너지)
+
+		// UI 연출 기록
+		CARD_PACK_FULL_REVEAL_SEEN = 4000, // 카드팩 풀 연출 본 횟수
 	}
 }

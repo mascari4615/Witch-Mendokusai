@@ -102,7 +102,7 @@ namespace WitchMendokusai
 		{
 			if (particles.Count == 0)
 				return;
-			float deltaTime = Time.unscaledDeltaTime;
+			float deltaTime = RevealClock.Delta;
 			for (int i = particles.Count - 1; i >= 0; i--)
 			{
 				Particle particle = particles[i];

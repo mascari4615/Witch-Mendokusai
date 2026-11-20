@@ -58,6 +58,10 @@ namespace WitchMendokusai
 	// 카드 공개 연출 하나. 박자와 수치는 에셋 값, 효과는 UICardRevealStage 와 CardRevealCard 부품
 	public abstract class CardRevealSkin : ScriptableObject
 	{
+		[field: Header("Repeat")]
+		[field: SerializeField, Tooltip("처음 FullPlays 번 뒤에 쓸 스킨. 비우면 늘 이 스킨")] public CardRevealSkin RepeatSkin { get; private set; }
+		[field: SerializeField, Min(0), Tooltip("이 스킨을 보여 줄 횟수. 세이브의 카드팩 풀 연출 본 횟수로 셈")] public int FullPlays { get; private set; } = 1;
+
 		[field: Header("Tier")]
 		[field: SerializeField] public Color CommonColor { get; private set; } = new(0.91f, 0.89f, 0.86f, 1f);
 		[field: SerializeField] public Color RareColor { get; private set; } = new(0.373f, 0.831f, 1f, 1f);
@@ -97,6 +101,9 @@ namespace WitchMendokusai
 
 		public Color TierColor(CardRevealTier tier) => tier == CardRevealTier.Epic ? EpicColor : tier == CardRevealTier.Rare ? RareColor : CommonColor;
 		public UiSfxEvent TierSfx(CardRevealTier tier) => tier == CardRevealTier.Epic ? EpicSfx : tier == CardRevealTier.Rare ? RareSfx : CommonSfx;
+
+		// 카드 뒷면 그림. null 이면 도형 뒷면
+		public virtual Sprite BackSprite(CardRevealTier tier) => null;
 
 		// run 의 시간축에 사건과 움직임을 넣는다. 화면 정지, 카메라는 감독이 공통으로 처리
 		public abstract void Build(CardRevealRun run);

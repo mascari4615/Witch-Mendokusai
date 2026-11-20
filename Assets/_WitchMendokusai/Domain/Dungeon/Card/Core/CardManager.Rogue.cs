@@ -41,6 +41,8 @@ namespace WitchMendokusai
 		public int BansLeft { get; private set; }
 		public bool IsChestOpen => choiceQueue.IsChestOpen;
 		public int PendingChestCount => choiceQueue.PendingChests;
+		// 대기 레벨업이 남아 이어 열린 고르기. 카드 공개가 짧은 일괄 공개 길을 고름
+		public bool IsChainedChoice { get; private set; }
 		public int OfferedCardCount => offeredCards.Count;
 		public IReadOnlyList<RunDeckOffer> DeckOffers => deckOffers;
 
@@ -174,9 +176,11 @@ namespace WitchMendokusai
 		{
 			if (choiceQueue.PendingLevelUps > 0)
 			{
+				IsChainedChoice = true;
 				StartCoroutine(StartSelectCard());
 				return;
 			}
+			IsChainedChoice = false;
 			timeManager.Resume(gameObject);
 			playerProvider.CurrentObject.GrantInvincibility(postSelectionInvincibility);
 			TryOpenNextChest();

@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7c300bd52144f21b12055da6f07379a, type: 3}
+  m_Name: RevealSkin_PackOpenQuick
+  m_EditorClassIdentifier: 
+  <RepeatSkin>k__BackingField: {fileID: 0}
+  <FullPlays>k__BackingField: 0
+  <DimIn>k__BackingField: 0.2
+  <CameraDistance>k__BackingField: 0.93
+  <CameraIn>k__BackingField: 0.3
+  <PackArt>k__BackingField:
+  - {fileID: 21300000, guid: 7039047e89064bf291584d32bc88d5c8, type: 3}
+  - {fileID: 21300000, guid: 58c742ae28924f1ebbca245ce3da7ec6, type: 3}
+  - {fileID: 21300000, guid: 69f21f479e4c49c5b63f782208bc762e, type: 3}
+  <Backs>k__BackingField:
+  - {fileID: 21300000, guid: a7920cf93b9b409381f2390f69492a37, type: 3}
+  - {fileID: 21300000, guid: 2f4497d64749475c970cc075b96a6aa7, type: 3}
+  - {fileID: 21300000, guid: 43ec53128bfc40518a807a48267d2045, type: 3}
+  <PackHeightRatio>k__BackingField: 0.42
+  <Enter>k__BackingField: 0.18
+  <EnterDrop>k__BackingField: 0
+  <EnterStartScale>k__BackingField: 0.7
+  <EnterTilt>k__BackingField: 0
+  <TeaseAt>k__BackingField: 0.06
+  <TeaseIn>k__BackingField: 0.2
+  <PulseGap>k__BackingField: 0
+  <MoteGap>k__BackingField: 0.1
+  <MotesPerWave>k__BackingField: 4
+  <SheenTime>k__BackingField: 0
+  <PushAt>k__BackingField: 0.15
+  <PushScale>k__BackingField: 1.05
+  <PushCameraDistance>k__BackingField: 1
+  <PushDim>k__BackingField: 0.86
+  <TrembleMax>k__BackingField: 8
+  <TrembleTicks>k__BackingField: 3
+  <SeamAt>k__BackingField: 0.2
+  <BurstAt>k__BackingField: {x: 0.38, y: 0.55, z: 0.85}
+  <BloomRadiusRatio>k__BackingField: 0.42
+  <CommonBloomRadiusRatio>k__BackingField: 0.3
+  <BurstShake>k__BackingField: {x: 6, y: 9, z: 12}
+  <SparkCount>k__BackingField: {x: 25, y: 45, z: 65}
+  <PillarTime>k__BackingField: 0.35
+  <KickCameraDistance>k__BackingField: 0.92
+  <Fly>k__BackingField: 0.3
+  <FlyStagger>k__BackingField: 0.03
+  <FlipDelay>k__BackingField: 0.05
+  <Flip>k__BackingField: 0.22
+  <BatchCommons>k__BackingField: 1
+  <EpicHold>k__BackingField: 0.4
+  <ChainPath>k__BackingField: 1

@@ -9,6 +9,7 @@ namespace WitchMendokusai
 	// 공개 한 번의 시간축. 스킨이 사건과 움직임을 넣고 감독이 돌림
 	// - 모든 움직임은 하나의 실제 시간 Sequence. 건너뛰기는 끝까지 감은 뒤 끝 상태로
 	// - 소리와 입자는 건너뛰는 동안 내지 않음
+	// - 시간은 감독이 Tick 으로 넣음 (RevealClock, 녹화 중 고정 간격)
 	public sealed class CardRevealRun
 	{
 		private readonly Sequence sequence;
@@ -25,10 +26,13 @@ namespace WitchMendokusai
 		// 꾸러미나 상자 자리 (무대 좌표)
 		public Vector2 Origin { get; }
 		public bool Skipping { get; private set; }
+		// 연속 레벨업으로 이어 열린 공개. 스킨이 짧은 길을 고름
+		public bool Chained { get; }
 		public float End { get; private set; }
 
-		public CardRevealRun(CardRevealSkin skin, UICardRevealStage stage, Transform content, IReadOnlyList<CardRevealCard> cards, CardRevealTier best, Sprite chestSprite, Vector2 origin)
+		public CardRevealRun(CardRevealSkin skin, UICardRevealStage stage, Transform content, IReadOnlyList<CardRevealCard> cards, CardRevealTier best, Sprite chestSprite, Vector2 origin, bool chained = false)
 		{
+			Chained = chained;
 			Skin = skin;
 			Stage = stage;
 			Content = content;
@@ -37,7 +41,7 @@ namespace WitchMendokusai
 			ChestSprite = chestSprite;
 			Origin = origin;
 			contentHome = content.localPosition;
-			sequence = DOTween.Sequence().SetUpdate(true).SetAutoKill(false).Pause();
+			sequence = DOTween.Sequence().SetUpdate(UpdateType.Manual, true).SetAutoKill(false).Pause();
 		}
 
 		public Color TierColor(CardRevealTier tier) => Skin.TierColor(tier);
@@ -122,6 +126,8 @@ namespace WitchMendokusai
 			sequence.InsertCallback(End, () => finished());
 			sequence.Play();
 		}
+
+		public void Tick(float deltaTime) => sequence.ManualUpdate(deltaTime, deltaTime);
 
 		public void Skip()
 		{

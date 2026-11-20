@@ -44,14 +44,15 @@ namespace WitchMendokusai
 		}
 
 		// 시작 전 상태 기억, 뒷면 덮기, 숨김
-		public void Prepare(Color tierColor, float auraSizeRatio, float shineAngle)
+		// backSprite 가 있으면 그 그림 뒷면, 없으면 도형 뒷면
+		public void Prepare(Color tierColor, float auraSizeRatio, float shineAngle, Sprite backSprite = null)
 		{
 			Dispose();
 			homePosition = card.localPosition;
 			homeRotation = card.localRotation;
 			homeScale = card.localScale;
 			Vector2 size = card.rect.size;
-			back = BuildBack(size);
+			back = backSprite != null ? NewImage("[Reveal] Back", backSprite, Color.white, size).gameObject : BuildBack(size);
 			aura = NewImage("[Reveal] Aura", RevealTextures.Ring, new Color(tierColor.r, tierColor.g, tierColor.b, 0f), size * auraSizeRatio);
 			aura.transform.SetAsFirstSibling();
 			shade = NewImage("[Reveal] Shade", null, new Color(SHADE.r, SHADE.g, SHADE.b, 0f), size);

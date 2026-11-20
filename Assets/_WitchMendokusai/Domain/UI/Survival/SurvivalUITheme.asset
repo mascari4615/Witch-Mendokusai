@@ -74,9 +74,9 @@ MonoBehaviour:
   <PunchDuration>k__BackingField: 0.3
   <MinCardNameFontSize>k__BackingField: 22
   <Reveal>k__BackingField:
-    <SelectCard>k__BackingField: {fileID: 11400000, guid: b7c7989b5e61430f8c358821bbe89f38, type: 2}
+    <SelectCard>k__BackingField: {fileID: 11400000, guid: cc98b82cb4904c30ade7a91681ad184a, type: 2}
     <SelectDeck>k__BackingField: {fileID: 11400000, guid: 989ae14bb3144096901c847f2d92689c, type: 2}
-    <Chest>k__BackingField: {fileID: 11400000, guid: b7c7989b5e61430f8c358821bbe89f38, type: 2}
+    <Chest>k__BackingField: {fileID: 11400000, guid: cc98b82cb4904c30ade7a91681ad184a, type: 2}
   <Terms>k__BackingField:
   - Term: 0
     Icon: {fileID: 21300000, guid: 185d994b6cd84cd88a3ef51932ccb71e, type: 3}

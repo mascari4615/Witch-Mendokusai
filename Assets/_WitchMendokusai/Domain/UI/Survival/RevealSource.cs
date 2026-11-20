@@ -6,6 +6,7 @@ namespace WitchMendokusai
 {
 	// 카드가 나오는 자리. 레벨업은 금박 꾸러미, 상자 보상은 뚜껑이 열리는 상자
 	// - 상자는 같은 그림을 뚜껑 (위 43%) 과 몸통으로 나눠 그림
+	// - 팩 그림은 같은 그림을 위 봉인 띠와 몸통으로 나눠 그림. 띠가 찢겨 날아감
 	public sealed class RevealSource
 	{
 		private const float LID_RATIO = 0.43f;
@@ -18,6 +19,10 @@ namespace WitchMendokusai
 		private Image seam;
 
 		public RectTransform Root { get; private set; }
+		// 팩 그림의 봉인선 빛, 상자의 틈 빛
+		public Image Seam => seam;
+		// 팩 그림 몸통. 광택 훑기를 씌울 자리
+		public RectTransform Body { get; private set; }
 		public CanvasGroup Group { get; private set; }
 		public Vector2 Size { get; private set; }
 
@@ -35,6 +40,33 @@ namespace WitchMendokusai
 			frame.gameObject.AddComponent<RectMask2D>();
 			float tearHeight = size.y * run.Skin.PackTearRatio;
 			source.tear = AddImage(source.Root, null, gold, new Vector2(size.x, tearHeight), new Vector2(0f, (size.y - tearHeight) * 0.5f)).rectTransform;
+			return source;
+		}
+
+		// 생성 그림 팩. height 는 팩 높이, tearRatio 는 위 봉인 띠 비율
+		public static RevealSource PackArt(CardRevealRun run, Sprite art, float height, float tearRatio, Color seamColor)
+		{
+			float aspect = art.rect.width / art.rect.height;
+			Vector2 size = new(height * aspect, height);
+			RevealSource source = NewRoot(run, size, "[Reveal] Pack art");
+			Image body = AddImage(source.Root, art, Color.white, size, Vector2.zero);
+			body.type = Image.Type.Filled;
+			body.fillMethod = Image.FillMethod.Vertical;
+			body.fillOrigin = (int)Image.OriginVertical.Bottom;
+			body.fillAmount = 1f - tearRatio;
+			source.Body = body.rectTransform;
+			Image top = AddImage(source.Root, art, Color.white, size, Vector2.zero);
+			top.type = Image.Type.Filled;
+			top.fillMethod = Image.FillMethod.Vertical;
+			top.fillOrigin = (int)Image.OriginVertical.Top;
+			top.fillAmount = tearRatio;
+			// 오른쪽 끝 봉인선을 축으로 돌며 날아감
+			RectTransform topRect = top.rectTransform;
+			Vector2 pivot = new(0.92f, 1f - tearRatio);
+			topRect.pivot = pivot;
+			topRect.anchoredPosition = (pivot - new Vector2(0.5f, 0.5f)) * size;
+			source.tear = topRect;
+			source.seam = AddImage(source.Root, RevealTextures.Bloom, new Color(seamColor.r, seamColor.g, seamColor.b, 0f), new Vector2(size.x * 1.1f, size.y * 0.06f), new Vector2(0f, size.y * (0.5f - tearRatio)));
 			return source;
 		}
 

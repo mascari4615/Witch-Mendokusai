@@ -1,0 +1,6 @@
+origin: KarmoAI Codex 구독 이미지 생성 (codex exec 내장 생성), 2026-11-20
+license: 우리 소유 (생성 그림, 외부 저작물 없음)
+files:
+- pack-common.png, pack-rare.png, pack-epic.png: 카드팩 봉투 앞면 3등급. 세로 3:4, 상하 톱니 봉인, 박막 호일과 금박, 가운데 여덟 갈래 별 인장과 레이스 받침. 일반 진주 흰색과 은, 희귀 하늘색과 금, 영웅 금과 호박색. 배경 제거 후처리
+- back-common.png, back-rare.png, back-epic.png: 카드 뒷면 3등급. 세로 2:3, 같은 별 인장과 레이스 문양, 등급 색. 둥근 모서리 알파 후처리
+prompt: 글자, 숫자, 로고, 얼굴 금지. 실존 작품명과 캐릭터명 없음. 원문 프롬프트와 작업 번호는 비공개 memo wm/design/card-pack-v2-20261120
