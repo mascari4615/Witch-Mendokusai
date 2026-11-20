@@ -47,13 +47,13 @@ namespace WitchMendokusai
 
 		public enum ImpactFrameKind
 		{
-			None,
+			None = 0,
 			/// <summary> 흑백, 대비 올림 </summary>
-			Mono,
+			Mono = 1,
 			/// <summary> 색 반전 </summary>
-			Invert,
+			Invert = 2,
 			/// <summary> 어두운 바탕에 밝은 곳만 흰 실루엣 </summary>
-			Silhouette,
+			Silhouette = 3,
 		}
 
 		[Serializable]

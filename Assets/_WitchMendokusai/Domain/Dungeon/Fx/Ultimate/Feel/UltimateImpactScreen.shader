@@ -70,14 +70,17 @@ Shader "WM/Fx/UltimateImpactScreen"
 				float strength = saturate(_WMImpactFrame.y);
 				if (kind > 0.5 && strength > 0.0)
 				{
-					float luminance = dot(color, half3(0.2126, 0.7152, 0.0722));
+					// 후처리 뒤 색은 선형 값이라 화면 밝기 (감마) 로 바꿔 판정하고 되돌림
+					half3 display = pow(saturate(color), 0.4545);
+					float luminance = dot(display, half3(0.2126, 0.7152, 0.0722));
 					half3 frame;
 					if (kind < 1.5)
-						frame = saturate((luminance - 0.45) * 1.9 + 0.45).xxx;
+						frame = saturate((luminance - 0.3) * 2.0 + 0.42).xxx;
 					else if (kind < 2.5)
-						frame = saturate(1.0 - color);
+						frame = 1.0 - display;
 					else
-						frame = lerp(half3(0.03, 0.02, 0.05), half3(1.0, 0.98, 0.94), smoothstep(0.5, 0.62, luminance));
+						frame = lerp(half3(0.05, 0.04, 0.08), half3(1.0, 0.98, 0.94), smoothstep(0.55, 0.72, luminance));
+					frame = pow(frame, 2.2);
 					color = lerp(color, frame, strength);
 				}
 				return half4(color, 1.0);

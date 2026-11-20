@@ -45,7 +45,7 @@ namespace WitchMendokusai
 				foreach (VolumeParameter parameter in component.parameters)
 					parameter.overrideState = false;
 			}
-			colorAdjustments.postExposure.overrideState = true;
+			colorAdjustments.colorFilter.overrideState = true;
 			colorAdjustments.saturation.overrideState = true;
 			colorAdjustments.contrast.overrideState = true;
 			bloom.intensity.overrideState = true;
@@ -61,7 +61,10 @@ namespace WitchMendokusai
 			if (disposed)
 				return;
 			CollectLower();
-			colorAdjustments.postExposure.value = Lower<ColorAdjustments>(component => component.postExposure, 0f) + exposure;
+			// 노출 더하기는 색 필터 곱으로 (2026-11-20 MOIS2 실측: 이 카메라에서 postExposure 덮기가 화면 밝기에 반영되지 않음, 채도는 반영)
+			Color filter = LowerColor(component => component.colorFilter, Color.white) * Mathf.Pow(2f, exposure);
+			filter.a = 1f;
+			colorAdjustments.colorFilter.value = filter;
 			colorAdjustments.saturation.value = Mathf.Clamp(Lower<ColorAdjustments>(component => component.saturation, 0f) + saturation, -100f, 100f);
 			colorAdjustments.contrast.value = Mathf.Clamp(Lower<ColorAdjustments>(component => component.contrast, 0f) + contrast, -100f, 100f);
 			bloom.intensity.value = Mathf.Max(0f, Lower<Bloom>(component => component.intensity, 0f) + bloomAdd);
@@ -91,6 +94,22 @@ namespace WitchMendokusai
 				lower.Add(candidate);
 			}
 			lower.Sort((left, right) => left.priority.CompareTo(right.priority));
+		}
+
+		private Color LowerColor(Func<ColorAdjustments, VolumeParameter<Color>> pick, Color fallback)
+		{
+			Color value = fallback;
+			foreach (Volume candidate in lower)
+			{
+				VolumeProfile candidateProfile = candidate.HasInstantiatedProfile() ? candidate.profile : candidate.sharedProfile;
+				if (candidateProfile == null || candidateProfile.TryGet(out ColorAdjustments component) == false || component.active == false)
+					continue;
+				VolumeParameter<Color> parameter = pick(component);
+				if (parameter.overrideState == false)
+					continue;
+				value = Color.Lerp(value, parameter.value, Mathf.Clamp01(candidate.weight));
+			}
+			return value;
 		}
 
 		/// <summary> 기본 프로필부터 우선순위 순으로 겹친 값 (이 Volume 제외) </summary>
