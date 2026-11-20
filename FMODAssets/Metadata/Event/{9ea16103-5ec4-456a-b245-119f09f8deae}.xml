@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{9ea16103-5ec4-456a-b245-119f09f8deae}">
 		<property name="name">
-			<value>PROTODOME - BLUENOISE - 02 9am Skies.</value>
+			<value>Stage 2</value>
 		</property>
 		<property name="outputFormat">
 			<value>1</value>
@@ -90,7 +90,7 @@
 	<object class="MixerBusPanner" id="{baa46eee-fd9c-4665-ae7a-3106f7a0e502}" />
 	<object class="SingleSound" id="{acfd65a1-637e-4a0b-b642-d5135360abf0}">
 		<property name="length">
-			<value>138.10938775510203</value>
+			<value>56.1039</value>
 		</property>
 		<relationship name="audioFile">
 			<destination>{edba22e9-294c-42fd-a7f8-89d1bab67b48}</destination>

@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.02.00">
 	<object class="AudioFile" id="{2af14b3d-b471-4df9-a123-1b373ba08aae}">
 		<property name="assetPath">
-			<value>PROTODOME/PROTODOME - BLUENOISE/PROTODOME - BLUENOISE - 03 Blueberry Jam!.mp3</value>
+			<value>Juhani Junkala/Chiptune Adventures/Juhani Junkala [Chiptune Adventures] 3. Boss Fight.ogg</value>
 		</property>
 		<property name="isStreaming">
 			<value>true</value>
@@ -14,7 +14,7 @@
 			<value>2</value>
 		</property>
 		<property name="length">
-			<value>133.12</value>
+			<value>71.72415</value>
 		</property>
 		<relationship name="masterAssetFolder">
 			<destination>{2ab7eb1a-0a54-4fe3-ac6e-745e6f870bc3}</destination>

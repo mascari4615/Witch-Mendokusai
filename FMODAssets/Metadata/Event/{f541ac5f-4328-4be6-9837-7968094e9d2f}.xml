@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{f541ac5f-4328-4be6-9837-7968094e9d2f}">
 		<property name="name">
-			<value>PROTODOME - BLUENOISE - 05 Heat Death.</value>
+			<value>Level 1</value>
 		</property>
 		<property name="outputFormat">
 			<value>1</value>
@@ -90,7 +90,7 @@
 	<object class="MixerBusPanner" id="{f7728312-a3b6-4edb-9d71-252583f2677d}" />
 	<object class="SingleSound" id="{89a1b013-e9ef-4ccf-8a12-f0c50879ccb8}">
 		<property name="length">
-			<value>171.54612244897959</value>
+			<value>74.25415</value>
 		</property>
 		<relationship name="audioFile">
 			<destination>{efc09183-b108-47db-b087-75e66a32a18f}</destination>

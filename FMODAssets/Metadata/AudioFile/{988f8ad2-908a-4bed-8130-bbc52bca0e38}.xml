@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.02.00">
 	<object class="AudioFile" id="{988f8ad2-908a-4bed-8130-bbc52bca0e38}">
 		<property name="assetPath">
-			<value>PROTODOME/PROTODOME - BLUENOISE/PROTODOME - BLUENOISE - 07 Zero-G Lemonade..mp3</value>
+			<value>Juhani Junkala/Retro Game Music Pack/Juhani Junkala [Retro Game Music Pack] Level 3.ogg</value>
 		</property>
 		<property name="isStreaming">
 			<value>true</value>
@@ -14,7 +14,7 @@
 			<value>2</value>
 		</property>
 		<property name="length">
-			<value>126.24979591836734</value>
+			<value>81.89576</value>
 		</property>
 		<relationship name="masterAssetFolder">
 			<destination>{2ab7eb1a-0a54-4fe3-ac6e-745e6f870bc3}</destination>

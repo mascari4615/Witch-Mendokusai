@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{39b1c3e9-f09a-450f-a296-534ffaea5ddf}">
 		<property name="name">
-			<value>PROTODOME - BLUENOISE - 07 Zero-G Lemonade.</value>
+			<value>Level 3</value>
 		</property>
 		<property name="outputFormat">
 			<value>1</value>
@@ -90,7 +90,7 @@
 	<object class="MixerBusPanner" id="{2101395f-87de-4885-80d2-3019b145ef4c}" />
 	<object class="SingleSound" id="{754ab88e-dd35-4704-b8fa-e48a04df5699}">
 		<property name="length">
-			<value>126.24979591836734</value>
+			<value>81.89576</value>
 		</property>
 		<relationship name="audioFile">
 			<destination>{988f8ad2-908a-4bed-8130-bbc52bca0e38}</destination>

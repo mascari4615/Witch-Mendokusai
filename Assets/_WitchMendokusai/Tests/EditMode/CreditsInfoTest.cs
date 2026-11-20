@@ -66,17 +66,15 @@ namespace WitchMendokusai.Tests
 				Assert.IsTrue(entry.AttributionRequired, entry.Id);
 		}
 
-		// 비영리, 변경 금지 조건은 상업 출시와 충돌. 사용자 결정 대기 목록에 있는 것만 허용 (memo wm/design/credits-20261120/inventory.md 위험 절)
-		private static readonly string[] RESTRICTED_LICENSE_PENDING_DECISION = { "protodome-bluenoise" };
-
+		// 비영리, 변경 금지 조건은 상업 출시와 충돌. 예외 없음 (2026-11-20 결정, memo wm/design/credits-20261120/protodome-removal.md)
 		[Test]
-		public void Non_commercial_or_no_derivative_licenses_are_pending_decision()
+		public void No_non_commercial_or_no_derivative_licenses()
 		{
 			string[] restricted = Credits.Entries
 				.Where(entry => entry.LicenseName.Contains("-NC", System.StringComparison.Ordinal) || entry.LicenseName.Contains("-ND", System.StringComparison.Ordinal))
 				.Select(entry => entry.Id)
 				.ToArray();
-			CollectionAssert.AreEquivalent(RESTRICTED_LICENSE_PENDING_DECISION, restricted);
+			Assert.IsEmpty(restricted, string.Join(", ", restricted));
 		}
 
 		[Test]

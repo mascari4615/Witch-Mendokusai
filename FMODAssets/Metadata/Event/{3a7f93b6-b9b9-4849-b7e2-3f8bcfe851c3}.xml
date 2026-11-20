@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.02.00">
 	<object class="Event" id="{3a7f93b6-b9b9-4849-b7e2-3f8bcfe851c3}">
 		<property name="name">
-			<value>PROTODOME - BLUENOISE - 04 Bitmap_Blues.</value>
+			<value>Stage Select</value>
 		</property>
 		<property name="outputFormat">
 			<value>1</value>
@@ -90,7 +90,7 @@
 	<object class="MixerBusPanner" id="{9a12f624-d279-40db-9ec2-958829444ad3}" />
 	<object class="SingleSound" id="{87abb61f-d258-4d45-82b3-910a88ba85b3}">
 		<property name="length">
-			<value>109.84489795918367</value>
+			<value>21.333356</value>
 		</property>
 		<relationship name="audioFile">
 			<destination>{57fd7dba-962b-4664-9ec3-dcd573cd6d3a}</destination>

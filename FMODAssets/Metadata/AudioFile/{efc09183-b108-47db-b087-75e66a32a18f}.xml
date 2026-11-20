@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.02.00">
 	<object class="AudioFile" id="{efc09183-b108-47db-b087-75e66a32a18f}">
 		<property name="assetPath">
-			<value>PROTODOME/PROTODOME - BLUENOISE/PROTODOME - BLUENOISE - 05 Heat Death..mp3</value>
+			<value>Juhani Junkala/Retro Game Music Pack/Juhani Junkala [Retro Game Music Pack] Level 1.ogg</value>
 		</property>
 		<property name="isStreaming">
 			<value>true</value>
@@ -14,7 +14,7 @@
 			<value>2</value>
 		</property>
 		<property name="length">
-			<value>171.54612244897959</value>
+			<value>74.25415</value>
 		</property>
 		<relationship name="masterAssetFolder">
 			<destination>{2ab7eb1a-0a54-4fe3-ac6e-745e6f870bc3}</destination>
