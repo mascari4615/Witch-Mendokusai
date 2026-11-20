@@ -37,6 +37,7 @@ MonoBehaviour:
   DashDuration: 0.5
   DashPreDelay: 0.8
   DashPostDelay: 0.5
+  DashBlockedProgressRatio: 0.3
   DashTelegraph: {fileID: 11400000, guid: d546be139c4e4d1aa3cc73e1ada5eb44, type: 2}
   DashTelegraphWidth: 2.4
   MinimumEscapeSpeed: 0.96

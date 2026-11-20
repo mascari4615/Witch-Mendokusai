@@ -58,6 +58,8 @@ namespace WitchMendokusai
 		private float accumulatedSimulationTime;
 		public float SimulationInterval { get; private set; }
 		public float LastSimulationDeltaTime { get; private set; }
+		// 실제로 돈 이동 계산 횟수. 직전 이동 값 (LastMoveDelta) 이 어떤 명령 뒤의 것인지 가를 때 씀
+		public int SimulationTicks { get; private set; }
 
 		private System.Collections.Generic.HashSet<Collider> currentHits = new();
 		private System.Collections.Generic.HashSet<Collider> previousHits = new();
@@ -211,6 +213,7 @@ namespace WitchMendokusai
 			}
 
 			motor.Tick(deltaTime);
+			SimulationTicks++;
 
 			if (jumpContributor.HasPendingLanded)
 			{

@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 슬라임 왕. 사거리 밖이면 추적, 안이면 패턴 하나 -> 대기 -> 거리 다시 판단
 	/// - 패턴: 직선 투척 (Projectile), 돌진, 슬라임 발사, 빨아들이기. 처음 하나만 무작위, 이후 SlimeKingAttackConfig.PatternOrder 순서
-	/// - 돌진 회복과 빨아들이기 경직에 같은 반격 창 표시 (CounterWindowFx)
+	/// - 돌진 회복과 빨아들이기 경직에 같은 반격 창 표시 (CounterWindowFx). 돌진은 캐릭터나 벽에 부딪히면 그 자리에서 바로 회복
 	/// - 돌진은 준비 때 방향 고정. 도주 계산이 안 맞으면 (너무 멂) 돌진 대신 더 다가감
 	/// - 개발 창 boss 명령이 ForcePattern 으로 다음 패턴을 지정
 	/// </summary>
@@ -158,7 +158,8 @@ namespace WitchMendokusai
 						telegraph: attackConfig.DashTelegraph,
 						telegraphWidth: attackConfig.DashTelegraphWidth,
 						recoveryFx: attackConfig.CounterWindowFx,
-						recoveryRadius: attackConfig.CounterWindowRadius);
+						recoveryRadius: attackConfig.CounterWindowRadius,
+						blockedProgressRatio: attackConfig.DashBlockedProgressRatio);
 					break;
 				case SlimeKingPattern.Launch:
 					launchPattern.Begin();

@@ -24,12 +24,17 @@ namespace WitchMendokusai
 		// 준비를 시작할 때 고정한 돌진 방향 (수평 단위 벡터). 방향이 없으면 zero 이고 돌진 안 함
 		private Vector3 dashDirection = Vector3.zero;
 		private float dashReadyTime;
+		// 돌진을 건 시점의 이동 계산 횟수. 그 뒤 한 번이라도 돌아야 직전 이동 값이 돌진의 것
+		private int dashStartTick;
+		private float recoveryEndTime;
+		// 한 tick 에 계획 이동의 이 비율도 못 나가고 무언가에 닿아 있으면 부딪혀 멈춘 것으로 봄. 0 이면 막힘 판정 없음
+		private readonly float blockedProgressRatio;
 		// 준비 예고의 중단 함수. 준비가 도중에 끊기면 예고도 같이 치움
 		private Action stopTelegraph;
 		// 반격 창 표시의 중단 함수. 숨 고르기가 도중에 끊기면 같이 치움
 		private Action stopRecovery;
 
-		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null, float dashPreDelay = 0.2f, float dashPostDelay = 0.5f, CombatFx telegraph = null, float telegraphWidth = 0f, CombatFx recoveryFx = null, float recoveryRadius = 0f) : base(unitObject)
+		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null, float dashPreDelay = 0.2f, float dashPostDelay = 0.5f, CombatFx telegraph = null, float telegraphWidth = 0f, CombatFx recoveryFx = null, float recoveryRadius = 0f, float blockedProgressRatio = 0f) : base(unitObject)
 		{
 			this.playerProvider = playerProvider;
 			this.attackRange = attackRange;
@@ -41,6 +46,7 @@ namespace WitchMendokusai
 			this.telegraphWidth = telegraphWidth;
 			this.recoveryFx = recoveryFx;
 			this.recoveryRadius = recoveryRadius;
+			this.blockedProgressRatio = blockedProgressRatio;
 			OnDashEnd = onDashEnd;
 		}
 
@@ -59,9 +65,9 @@ namespace WitchMendokusai
 						Action(PrepareDash), // 방향 고정, 예고 시작
 						WaitUntil(IsDashReady), // 대쉬 전 딜레이 (예고와 맞게 게임 시간으로 잼)
 						Action(Dash),
-						Wait(dashDuration), // 대쉬 시간
+						WaitUntil(IsDashOver), // 계획 시간이 다 가거나 무언가에 부딪혀 멈추면 끝
 						Action(StopDash),
-						Wait(dashPostDelay), // 대쉬 후 딜레이
+						WaitUntil(IsRecoveryOver), // 대쉬 후 딜레이 (반격 창 표시와 같은 게임 시간)
 						Action(EndDash)
 					)
 				);
@@ -145,6 +151,7 @@ namespace WitchMendokusai
 		{
 			// 예고는 준비가 끝나며 스스로 마무리 (번쩍임). 돌진부터는 끊을 대상이 아님
 			stopTelegraph = null;
+			dashStartTick = unitObject.UnitMovement.SimulationTicks;
 			if (dashDirection == Vector3.zero)
 				return BTState.Success;
 
@@ -152,8 +159,34 @@ namespace WitchMendokusai
 			return BTState.Success;
 		}
 
+		/// <summary> 밀림이 다 소모됐거나 (피격 정지 동안은 소모 안 됨) 부딪혀 멈췄으면 돌진 끝 </summary>
+		private bool IsDashOver()
+		{
+			UnitMovement movement = unitObject.UnitMovement;
+			if (movement.IsExternallyDriven == false)
+				return true;
+			return IsBlocked(movement);
+		}
+
+		/// <summary> 캐릭터나 벽에 막혀 직전 tick 에 돌진 방향으로 거의 못 나갔는가 </summary>
+		private bool IsBlocked(UnitMovement movement)
+		{
+			if (blockedProgressRatio <= 0f || movement.IsPaused || movement.SimulationTicks <= dashStartTick)
+				return false;
+			if (movement.WallContactCount == 0)
+				return false;
+			float expected = dashSpeed * movement.LastSimulationDeltaTime;
+			if (expected <= 0f)
+				return false;
+			float progress = Vector3.Dot(movement.LastMoveDelta, dashDirection);
+			return progress < expected * blockedProgressRatio;
+		}
+
+		private bool IsRecoveryOver() => Time.time >= recoveryEndTime;
+
 		private BTState StopDash()
 		{
+			recoveryEndTime = Time.time + dashPostDelay;
 			unitObject.UnitMovement.CancelImpulse();
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
 			if (recoveryFx != null && dashPostDelay > 0f)

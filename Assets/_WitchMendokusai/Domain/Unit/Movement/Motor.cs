@@ -26,6 +26,7 @@ namespace WitchMendokusai
 		private const float MIN_REMAINING_SQR = 0.00000001f;
 		private const int MAX_DEPENETRATION_ITERATIONS = 4;
 		private const float MIN_CREASE_SIN_SQR = 0.01f;      // 두 wall normal 외적 크기 제곱이 이 값 이상이면 crease 처리
+		private const float MIN_FLAT_NORMAL_SQR = 0.01f;     // 유닛 몸 법선을 수평으로 편 길이 제곱이 이보다 작으면 (머리 꼭대기) 진행 반대 방향을 벽으로
 		private const float MIN_STEP_MAGNITUDE = 0.001f;     // step offset 시도할 잔여 horizontal 이동 최소량
 
 		// 조작감 수치 — 매 사용 시 read (캐싱하면 인스펙터 변경이 런타임에 안 먹는다).

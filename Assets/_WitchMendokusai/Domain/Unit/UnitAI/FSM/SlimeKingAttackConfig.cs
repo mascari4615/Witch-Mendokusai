@@ -48,6 +48,7 @@ namespace WitchMendokusai
 		[Min(0.01f), Tooltip("기본 돌진 시간 (초). 도주 계산으로 늘어날 수 있음")] public float DashDuration = 0.5f;
 		[Min(0f), Tooltip("돌진 전 준비 시간 (초). 이 동안 멈춰서 예고가 차오름")] public float DashPreDelay = 0.8f;
 		[Min(0f), Tooltip("돌진 후 회복 시간 (초)")] public float DashPostDelay = 0.5f;
+		[Range(0f, 1f), Tooltip("한 tick 에 계획 이동의 이 비율도 못 나가고 무언가에 닿아 있으면 부딪혀 멈춘 것으로 보고 바로 회복으로")] public float DashBlockedProgressRatio = 0.3f;
 		[Tooltip("돌진 예고 (띠). 비우면 예고 없음")] public CombatFx DashTelegraph;
 		[Min(0f), Tooltip("돌진 예고 폭 (월드 단위)")] public float DashTelegraphWidth = 2.4f;
 

@@ -32,17 +32,19 @@ namespace WitchMendokusai
 				Vector3 used = direction * moveDistance;
 				Vector3 leftover = remaining - used;
 
-				bool isWall = Mathf.Abs(hit.normal.y) < WallNormalYMax;
-				bool isFloor = hit.normal.y >= GroundNormalYMin;
+				// 다른 유닛의 몸은 기울기와 무관하게 벽. 둥근 몸 윗면을 바닥으로 보면 돌진하던 보스가 캐릭터 위로 타고 넘음 (2026-11-21 실측)
+				bool hitUnit = hit.rigidbody != null && hit.rigidbody.TryGetComponent(out UnitMovement _);
+				bool isWall = hitUnit || Mathf.Abs(hit.normal.y) < WallNormalYMax;
+				bool isFloor = hitUnit == false && hit.normal.y >= GroundNormalYMin;
 
 				if (isWall)
 				{
 					// 무엇이 막았는지 남긴다 — 「격자는 갈 수 있다는데 몸은 못 간다」의 범인을 이름으로 묻기 위해.
 					context.LastWallCollider = hit.collider;
+					Vector3 wallNormal = WallNormalOf(hit, hitUnit, direction);
 
 					// Step offset 시도 (한 sweep 당 한 번만): wall hit을 stepHeight 위로 들어올려 재sweep, walkable이면 step-up.
 					// 다른 유닛의 몸은 계단 대상 아님. 군집에서 실패할 턱 질의 생략
-					bool hitUnit = hit.rigidbody != null && hit.rigidbody.TryGetComponent(out UnitMovement otherMovement);
 					if (stepOffsetAttempted == false && hitUnit == false)
 					{
 						stepOffsetAttempted = true;
@@ -58,31 +60,33 @@ namespace WitchMendokusai
 					if (context.WallContactNormals.Count > 0)
 					{
 						Vector3 previousWallNormal = context.WallContactNormals[context.WallContactNormals.Count - 1];
-						Vector3 creaseDirection = Vector3.Cross(previousWallNormal, hit.normal);
+						Vector3 creaseDirection = Vector3.Cross(previousWallNormal, wallNormal);
 						if (creaseDirection.sqrMagnitude > MIN_CREASE_SIN_SQR)
 						{
 							creaseDirection.Normalize();
 							leftover = Vector3.Dot(leftover, creaseDirection) * creaseDirection;
+							if (hitUnit)
+								leftover.y = 0f;
 
 							Vector3 horizontalVelocity = new(context.Velocity.x, 0f, context.Velocity.z);
 							Vector3 horizontalVelocityProjected = Vector3.Dot(horizontalVelocity, creaseDirection) * creaseDirection;
 							context.Velocity.x = horizontalVelocityProjected.x;
 							context.Velocity.z = horizontalVelocityProjected.z;
 
-							context.WallContactNormals.Add(hit.normal);
+							context.WallContactNormals.Add(wallNormal);
 							remaining = leftover;
 							continue;
 						}
 					}
 
-					context.WallContactNormals.Add(hit.normal);
+					context.WallContactNormals.Add(wallNormal);
 
 					// Wall tangent projection
-					leftover -= Vector3.Dot(leftover, hit.normal) * hit.normal;
+					leftover -= Vector3.Dot(leftover, wallNormal) * wallNormal;
 					leftover.y = 0f;
 
 					Vector3 horizontalVelocityWall = new(context.Velocity.x, 0f, context.Velocity.z);
-					horizontalVelocityWall -= Vector3.Dot(horizontalVelocityWall, hit.normal) * hit.normal;
+					horizontalVelocityWall -= Vector3.Dot(horizontalVelocityWall, wallNormal) * wallNormal;
 					context.Velocity.x = horizontalVelocityWall.x;
 					context.Velocity.z = horizontalVelocityWall.z;
 
@@ -103,6 +107,24 @@ namespace WitchMendokusai
 			}
 
 			return currentPosition;
+		}
+
+		/// <summary>
+		/// 벽 법선. 다른 유닛의 몸은 둥글어 법선이 기울어 있으니 수평으로 펴서 옆으로만 밀어냄 (위로 타고 넘지 않게).
+		/// 머리 꼭대기처럼 거의 수직이면 수평 성분이 없어 진행 반대 방향을 씀
+		/// </summary>
+		private static Vector3 WallNormalOf(RaycastHit hit, bool hitUnit, Vector3 direction)
+		{
+			if (hitUnit == false)
+				return hit.normal;
+			Vector3 flat = Vector3.ProjectOnPlane(hit.normal, Vector3.up);
+			if (flat.sqrMagnitude < MIN_FLAT_NORMAL_SQR)
+			{
+				Vector3 back = -direction;
+				back.y = 0f;
+				return back.normalized;
+			}
+			return flat.normalized;
 		}
 
 		/// <summary>
