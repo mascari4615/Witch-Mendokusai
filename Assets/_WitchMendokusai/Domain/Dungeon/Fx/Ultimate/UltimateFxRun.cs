@@ -7,7 +7,8 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 궁극기 한 번의 진행기. 파생 연출 (UltimateFx.Compose) 이 시간선 (트랙) 에 효과를 올리면 매 프레임 평가
-	/// - 시간은 실제 시간 (녹화 중에는 고정 간격). 히트스톱 중에도 화면 연출은 계속 감, 입자는 게임 시간이라 같이 멈춤
+	/// - 시간은 실제 시간 (녹화 중에는 고정 간격) 에 시계 배율 (ClockScale, 화면 연출 구동기의 정지와 느려짐) 을 곱한 연출 시간. 히트스톱 중에도 화면 연출은 계속 감, 입자는 게임 시간이라 같이 멈춤
+	/// - 트랙에서 예외가 나면 정리 (Dispose) 를 먼저 하고 다시 던짐
 	/// - 이 파일: 진행, 트랙, 재질과 판 생성, 화면 섬광, 카메라. 여러 연출이 같이 쓰는 월드 부품은 UltimateFxRun.Parts.cs
 	/// - 끝나면 만든 물체, 재질, 화면 층, 배경 장악 판, 카메라 설정을 전부 되돌림
 	/// </summary>
@@ -53,9 +54,14 @@ namespace WitchMendokusai
 		public Vector3 ScreenRight { get; private set; }
 		/// <summary> 화면 위쪽 (카메라가 보는 쪽) 을 바닥에 눕힌 방향 </summary>
 		public Vector3 ScreenForward { get; private set; }
-		/// <summary> 시작부터 흐른 실제 시간 (초) </summary>
+		/// <summary> 시작부터 흐른 연출 시간 (초). 시계 배율 (ClockScale) 이 1 이면 실제 시간과 같음 </summary>
 		public float Now => realTime;
 		public float Delta => realDelta;
+		/// <summary> 시계 배율과 무관한 실제 경과 (초). 화면 연출 구동기 (정지, 느려짐) 가 씀 </summary>
+		public float RealNow { get; private set; }
+		public float RealDelta { get; private set; }
+		/// <summary> 연출 시간의 흐름 배율. 정지 한 박은 0, 느려짐은 1 미만. 화면 연출 구동기만 바꿈, 기본 1 </summary>
+		public float ClockScale { get; set; } = 1f;
 		public UltimateFx Settings => fx;
 
 		public IEnumerator Routine()
@@ -66,9 +72,19 @@ namespace WitchMendokusai
 			while (realTime < end || (tracks.Count > 0 && realTime < end * 2f))
 			{
 				// 프레임 녹화 중에는 고정 간격 (DevFrameRecorder), 아니면 실제 경과
-				realDelta = Time.captureDeltaTime > 0f ? Time.captureDeltaTime : Time.unscaledDeltaTime;
+				RealDelta = Time.captureDeltaTime > 0f ? Time.captureDeltaTime : Time.unscaledDeltaTime;
+				RealNow += RealDelta;
+				realDelta = RealDelta * Mathf.Max(0f, ClockScale);
 				realTime += realDelta;
-				EvaluateTracks();
+				try
+				{
+					EvaluateTracks();
+				}
+				catch
+				{
+					Dispose();
+					throw;
+				}
 				Grade.Follow();
 				yield return null;
 			}

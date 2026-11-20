@@ -29,11 +29,16 @@ namespace WitchMendokusai
 		}
 
 		private readonly Dictionary<string, Stack<GameObject>> idle = new();
+		private readonly List<Action> running = new();
 
 		private void OnDestroy()
 		{
 			if (instance == this)
 				instance = null;
+			// 씬 전환이나 종료로 코루틴이 끊겨도 정리 (시간 배율, 카메라, 전역 화면 값 복원) 는 돎
+			foreach (Action finish in running.ToArray())
+				finish();
+			running.Clear();
 		}
 
 		/// <summary> 코루틴을 돌리고 중단 함수를 돌려줌. onStop 은 끝났든 중단됐든 한 번만 불림 (오브젝트 반납 자리) </summary>
@@ -47,6 +52,7 @@ namespace WitchMendokusai
 				if (finished)
 					return;
 				finished = true;
+				running.Remove(Finish);
 				if (coroutine != null && this != null)
 					StopCoroutine(coroutine);
 				onStop?.Invoke();
@@ -59,6 +65,7 @@ namespace WitchMendokusai
 				Finish();
 			}
 
+			running.Add(Finish);
 			coroutine = StartCoroutine(Wrapped());
 			return Finish;
 		}

@@ -98,9 +98,21 @@ namespace WitchMendokusai
 			this.callback -= callback;
 		}
 
+		// 연출 시간 배율 (궁극기 화면 연출의 정지와 느려짐). 정지와 hit stop, 개발자 배율 위에 곱함
+		public float EffectScale { get; private set; } = 1f;
+
 		private void UpdateTimeScale()
 		{
-			Time.timeScale = IsPaused ? Mathf.Epsilon : (hitStop != null ? hitStopScale : 1f) * DebugScale;
+			Time.timeScale = IsPaused ? Mathf.Epsilon : (hitStop != null ? hitStopScale : 1f) * DebugScale * EffectScale;
+		}
+
+		public void SetEffectScale(float scale)
+		{
+			// 0 은 정지와 같은 이유로 Epsilon
+			EffectScale = Mathf.Clamp(scale, Mathf.Epsilon, 1f);
+			if (isSlowMotion)
+				return;
+			UpdateTimeScale();
 		}
 
 		public void SetDebugScale(float scale)
