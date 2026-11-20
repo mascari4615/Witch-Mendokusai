@@ -31,6 +31,8 @@ namespace WitchMendokusai
 		private SlimeKingPattern forcedPattern;
 		private float plannedDashDuration;
 		private float plannedDashPreDelay;
+		// 패턴과 대기의 경과 시간 기준. FSM tick 은 프레임에 맞춰 0.1초보다 길게 돌 수 있어 실제 게임 시간을 잼 (예고와 맞춤)
+		private float lastStepTime;
 
 		public SlimeKingAttackConfig Config => attackConfig;
 		public SlimeKingPattern CurrentPattern => currentPattern;
@@ -94,12 +96,13 @@ namespace WitchMendokusai
 			SetStateEvent(FSMStateCommon.Wait, StateEvent.Enter, () =>
 			{
 				timer = 0f;
+				lastStepTime = Time.time;
 				RemoveApproachSpeed();
 				UnitObject.UnitMovement.SetMoveDirection(Vector3.zero);
 			});
 			SetStateEvent(FSMStateCommon.Wait, StateEvent.Update, () =>
 			{
-				timer += BTRunner.TICK;
+				timer += ConsumeStep();
 				if (timer < attackConfig.WaitDuration)
 					return;
 				timer = 0f;
@@ -116,6 +119,7 @@ namespace WitchMendokusai
 
 		private void EnterAttack()
 		{
+			lastStepTime = Time.time;
 			RemoveApproachSpeed();
 			int previousIndex = patternIndex;
 			bool previousExists = hasPreviousPattern;
@@ -178,24 +182,33 @@ namespace WitchMendokusai
 			switch (currentPattern)
 			{
 				case SlimeKingPattern.Projectile:
-					if (shotPattern.Tick(BTRunner.TICK))
+					if (shotPattern.Tick(ConsumeStep()))
 						GoWait();
 					break;
 				case SlimeKingPattern.Dash:
 					dashBehavior.UpdateBT();
 					break;
 				case SlimeKingPattern.Launch:
-					if (launchPattern.Tick(BTRunner.TICK))
+					if (launchPattern.Tick(ConsumeStep()))
 						GoWait();
 					break;
 				case SlimeKingPattern.Pull:
-					if (pullPattern.Tick(BTRunner.TICK))
+					if (pullPattern.Tick(ConsumeStep()))
 						GoWait();
 					break;
 			}
 		}
 
 		private void GoWait() => ChangeState(FSMStateCommon.Wait);
+
+		/// <summary> 지난 단계부터 흐른 게임 시간 </summary>
+		private float ConsumeStep()
+		{
+			float now = Time.time;
+			float step = now - lastStepTime;
+			lastStepTime = now;
+			return step;
+		}
 
 		/// <summary> 다음 패턴 고르기. 지정 패턴이면 true </summary>
 		private bool ChooseNextPattern()
