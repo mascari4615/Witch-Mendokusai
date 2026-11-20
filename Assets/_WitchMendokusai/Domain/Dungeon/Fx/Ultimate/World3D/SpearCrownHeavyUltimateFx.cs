@@ -76,6 +76,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f), Tooltip("흰 실루엣 노출 (EV, 한 장)")] private float silhouetteExposure = 1.6f;
 		[SerializeField, Tooltip("흑백 임팩트 노출 (EV, 한 장)")] private float impactExposure = -0.5f;
 		[SerializeField, Range(-100f, 100f)] private float impactContrast = 60f;
+		[SerializeField, Range(0f, 1f), Tooltip("흑백 임팩트 한 장 세기. 화면 연출 구동기가 정지와 느려짐을 얹으면 한 장이 늘어나 회색 씻김으로 보여 0 으로 끔")] private float impactMono = 1f;
 		[SerializeField, Min(0f)] private float shakeStrength = 1.4f;
 		[SerializeField, Min(1)] private int shakeCount = 5;
 		[SerializeField, Min(0.01f)] private float shakeInterval = 0.07f;
@@ -102,6 +103,30 @@ namespace WitchMendokusai
 		private float BreakTime => CrownTime + holdSeconds;
 
 		public override float DurationSeconds => BreakTime + breakSeconds + shardLinger;
+
+		/// <summary> 고리 셋, 결정, 균열, 빛 범위를 같은 배율로. 창은 그대로 (하늘에서 떨어지는 창이 카메라 앞에서 흰 판으로 보임, 독립 검토). 가운데 거대 결정 높이는 화면 위로 잘리지 않게 배율의 0.6 제곱만 </summary>
+		public override void ScaleWorld(float scale)
+		{
+			ScaleShards(scale);
+			innerRadius *= scale;
+			middleRadius *= scale;
+			outerRadius *= scale;
+			innerHeight *= scale;
+			middleHeight *= scale;
+			outerHeight *= scale;
+			crystalWidth *= scale;
+			giantHeight *= Mathf.Pow(scale, 0.6f);
+			giantWidth *= scale;
+			casterClearance *= scale;
+			crackSize *= scale;
+			windReach *= scale;
+			coreRange *= scale;
+			middleCount = Mathf.RoundToInt(middleCount * scale);
+			outerCount = Mathf.RoundToInt(outerCount * scale);
+			rootRockCount = Mathf.RoundToInt(rootRockCount * scale);
+			sparkleCount = Mathf.RoundToInt(sparkleCount * scale);
+			dustCount = Mathf.RoundToInt(dustCount * scale);
+		}
 
 		protected override void ComposeWorld(Stage stage)
 		{
@@ -311,9 +336,9 @@ namespace WitchMendokusai
 			stage.AmbientScale = now => Mathf.Lerp(1f, ambientDim, Plateau(now, 0f, 0.4f, restore, restoreSeconds));
 			stage.Vignette = now => vignette * Plateau(now, 0f, 0.4f, restore, restoreSeconds);
 			// 흑백 임팩트 1장 (정점 프레임), 그 다음 장 흰 실루엣 1장 (m02 #11, #17)
-			stage.Saturation = now => -100f * Window(now, crown, FRAME);
-			stage.Contrast = now => impactContrast * Window(now, crown, FRAME);
-			stage.Exposure = now => impactExposure * Window(now, crown, FRAME) + silhouetteExposure * Window(now, crown + FRAME * 2f, FRAME);
+			stage.Saturation = now => -100f * impactMono * Window(now, crown, FRAME);
+			stage.Contrast = now => impactContrast * impactMono * Window(now, crown, FRAME);
+			stage.Exposure = now => impactExposure * impactMono * Window(now, crown, FRAME) + silhouetteExposure * Window(now, crown + FRAME * 2f, FRAME);
 			stage.Chromatic = now => 0.15f * Spike(now, crown, 0.02f, 0.12f);
 			stage.Bloom = now =>
 			{

@@ -15,9 +15,11 @@ namespace WitchMendokusai
 		[Header("구성")]
 		[SerializeField, Tooltip("주제 연출 에셋. 자기 자신이나 다른 FeelUltimateFx 금지")] private UltimateFx body;
 		[SerializeField] private UltimateScreenFeel feel;
+		[SerializeField, Range(0.5f, 2.5f), Tooltip("주제 연출 크기 배율 (반경, 높이, 물체 크기). 1 이면 body 그대로. 실행용 복제본에만 적용")] private float worldSize = 1f;
 
 		public UltimateFx Body => body;
 		public UltimateScreenFeel Feel => feel;
+		public float WorldSize => worldSize;
 
 		public override float DurationSeconds => body != null ? body.DurationSeconds : 0f;
 
@@ -27,12 +29,23 @@ namespace WitchMendokusai
 				throw new InvalidOperationException($"{name}: body 또는 feel 미연결. 메뉴 WM/CombatFx/Build Ultimate Feel V2");
 			if (body is FeelUltimateFx)
 				throw new InvalidOperationException($"{name}: body 가 FeelUltimateFx (겹쳐 입히기 금지)");
-			body.Compose(run);
+			float length = DurationSeconds + TailSeconds + feel.TotalHoldSeconds;
+			UltimateFx source = body;
+			if (Mathf.Approximately(worldSize, 1f) == false)
+			{
+				// 트랙이 끝까지 복제본 값을 읽으므로 실행이 끝날 때 지움
+				source = Instantiate(body);
+				source.hideFlags = HideFlags.DontSave;
+				source.ScaleWorld(worldSize);
+				UltimateFx scaled = source;
+				run.Track(0f, length, _ => { }, () => Destroy(scaled));
+			}
+			source.Compose(run);
 			Vector3 target = run.Center + run.ScreenForward * feel.TargetForward;
 			target.y = UltimateFxStage.GroundHeight(target);
 			UltimateScreenFeelDriver driver = new(run, feel, target);
 			// body 의 트랙 (장면 빛 곡선 포함) 뒤에 올려 같은 프레임에 그 값 위로 더함
-			run.Track(0f, DurationSeconds + TailSeconds + feel.TotalHoldSeconds, _ => driver.Update());
+			run.Track(0f, length, _ => driver.Update());
 		}
 	}
 }

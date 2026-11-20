@@ -52,3 +52,4 @@ MonoBehaviour:
   screenSortingOrder: 2400
   body: {fileID: 11400000, guid: 0b99df4f9d5cdd44985876b707d57f81, type: 2}
   feel: {fileID: 11400000, guid: fa549f955f8380844bafca1f42ac0f51, type: 2}
+  worldSize: 1.45

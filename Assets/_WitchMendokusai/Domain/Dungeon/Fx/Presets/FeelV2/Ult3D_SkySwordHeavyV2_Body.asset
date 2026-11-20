@@ -113,7 +113,7 @@ MonoBehaviour:
   swordLength: 8.5
   swordWidthScale: 3
   swordThicknessScale: 1.6
-  targetDistance: 2.2
+  targetDistance: 1.6
   spawnHeight: 30
   hangHeight: 1.8
   sinkRatio: 0.16

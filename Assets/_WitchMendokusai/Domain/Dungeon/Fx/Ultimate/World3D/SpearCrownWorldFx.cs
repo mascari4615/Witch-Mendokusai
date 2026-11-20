@@ -34,6 +34,9 @@ namespace WitchMendokusai
 		[SerializeField, Range(0f, 0.5f), Tooltip("솟을 때 넘쳤다 줄어드는 정도")] private float riseOvershoot = 0.14f;
 		[SerializeField, Min(0.05f), Tooltip("조각 하나의 최대 크기. 거대 결정 조각이 통나무처럼 커지지 않게")] private float shardMaxSize = 0.9f;
 
+		/// <summary> 크기 배율 (ScaleWorld) 에서 깨진 조각 상한도 같이 </summary>
+		protected void ScaleShards(float scale) => shardMaxSize *= scale;
+
 		[Header("빛과 입자 색")]
 		[SerializeField] private Color coreLightColor = new(1f, 0.45f, 0.78f, 1f);
 		[SerializeField, ColorUsage(true, true)] private Color sparkleColor = new(2.6f, 1.1f, 2f, 1f);

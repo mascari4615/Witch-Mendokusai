@@ -33,6 +33,9 @@ namespace WitchMendokusai
 		[SerializeField] private int crackSeed = 71;
 
 		protected float CardScale => cardScale;
+
+		/// <summary> 크기 배율 (ScaleWorld) 에서 카드 한 장 크기를 키움 </summary>
+		protected void ScaleCards(float scale) => cardScale *= scale;
 		protected Color GoldGlow => goldGlow;
 		protected Color LightColor => lightColor;
 		protected Color SparkColor => sparkColor;

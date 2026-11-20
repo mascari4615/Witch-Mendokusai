@@ -11,6 +11,28 @@ namespace WitchMendokusai
 	/// </summary>
 	public sealed partial class SkySwordWorldUltimateFx
 	{
+		/// <summary> 기둥 굵기, 검, 고리, 충격파, 바위, 먼지, 그을림을 같은 배율로. 기둥 높이는 이미 화면 위로 넘어가 그대로 </summary>
+		public override void ScaleWorld(float scale)
+		{
+			beamFullRadius *= scale;
+			crownSpikeRadius *= scale;
+			goldRingRadius *= scale;
+			shockRadius *= scale;
+			swordLength *= scale;
+			hangHeight *= scale;
+			upheavalRadius *= scale;
+			upheavalScale *= scale;
+			dustRadius *= scale;
+			decalSize *= scale;
+			windReach *= scale;
+			impactLightHeight *= scale;
+			crownSpikeCount = Mathf.RoundToInt(crownSpikeCount * scale);
+			rayCount = Mathf.RoundToInt(rayCount * scale);
+			dustCount = Mathf.RoundToInt(dustCount * scale);
+			upheavalCount = Mathf.RoundToInt(upheavalCount * scale);
+			debrisCount = Mathf.RoundToInt(debrisCount * scale);
+		}
+
 		private static readonly int BEAM_COLOR_ID = Shader.PropertyToID("_Color");
 		private static readonly int BEAM_CORE_COLOR_ID = Shader.PropertyToID("_CoreColor");
 		private static readonly int BEAM_INTENSITY_ID = Shader.PropertyToID("_Intensity");

@@ -55,7 +55,7 @@ MonoBehaviour:
   spriteLightGain: 0.12
   spriteTintCap: 2.2
   spriteRefreshSeconds: 0.3
-  targetDistance: 2.8
+  targetDistance: 2
   surfaceSeed: 7
   surfaceRings: 40
   surfaceSegments: 96
@@ -74,14 +74,16 @@ MonoBehaviour:
   craterColor: {r: 0.07, g: 0.07, b: 0.09, a: 0.88}
   craterLineColor: {r: 0.55, g: 0.75, b: 1, a: 1}
   craterSeed: 13
-  diameter: 4.4
-  behindDistance: 1
-  riseHeight: {x: 0.8, y: 2.3}
+  diameter: 3.8
+  behindDistance: -0.6
+  riseHeight: {x: 1.2, y: 3}
   riseScale: {x: 0.6, y: 1}
   idleSpin: 7
-  slideDistance: 0.18
-  splitDistance: 0.32
-  splitRoll: 4
+  slideDistance: 0.3
+  splitDistance: 0.8
+  splitRoll: 9
+  driftSpread: 0.7
+  moonPullPerScale: 3
   riseSeconds: 1.4
   holdSeconds: 0.2
   monoDelay: 0.08
@@ -94,7 +96,7 @@ MonoBehaviour:
   moonLightAfterCut: 4
   moonLightRange: 24
   moonLightOffset: {x: -5, y: 3.5, z: 2.5}
-  sectionIntensity: 30
+  sectionIntensity: 18
   sectionRange: 16
   sectionHalfLife: 0.7
   sunDim: 0.4

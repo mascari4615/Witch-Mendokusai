@@ -10,6 +10,7 @@ namespace WitchMendokusai
 	/// 강한 판 V2 넷의 화면 연출 박자표 처음 값. 생성기가 에셋이 없을 때 (또는 다시 넣기 메뉴) 한 번 넣음. 그 뒤 정본은 에셋
 	/// - 연출 시간 (FxTime, FxStart, FxEnd) 은 body (V1 강한 판 복사) 의 시간선 기준. 정지 한 박은 닿기 0.005초 전에 둠 (V1 의 한 장 효과가 정지 동안 늘어나지 않게)
 	/// - 넷이 서로 다른 박자: 하늘 검 짧고 무거운 한 방, 창 왕관 쌓이는 연타, 카드 화려한 원진과 마지막 한 장의 대조, 달 느리고 장엄한 절단과 여운
+	/// - 섬광 (노출, 빛 번짐) 은 처음 값의 0.7배. 독립 검토 넷이 눈부심을 지적 (memo wm/design/ult3d-feel-v2-20261120)
 	/// - 수치 근거: memo wm/design/ult-feel-20261120 (흔들림 0.73~3.19% 폭, 펀치 줌 2.2~6.1% 를 67ms 에, 정지 50~280ms, 섬광 1.46배 반치 133ms, 방사 흐림 0.15~0.30)
 	/// </summary>
 	public static class UltimateFeelV2Seeds
@@ -50,7 +51,7 @@ namespace WitchMendokusai
 				Label = "접지", FxTime = 1.745f, HoldSeconds = 0.15f, HoldTimeScale = 0f,
 				SlowScale = 0.28f, SlowSeconds = 0.6f, SlowRecovery = LateRelease(),
 				Trauma = 0.95f, Zoom = P(0.1f, 0.05f, 0.08f, 0.2f), Dolly = P(0.07f, 0.05f, 0.06f, 0.22f),
-				Exposure = P(1.5f, 0.02f, 0.05f, 0.13f), Bloom = P(3f, 0.03f, 0.1f, 0.3f), Saturation = P(35f, 0.05f, 0.2f, 0.4f), Contrast = P(25f, 0.03f, 0.12f, 0.3f),
+				Exposure = P(1.05f, 0.02f, 0.05f, 0.13f), Bloom = P(2.1f, 0.03f, 0.1f, 0.3f), Saturation = P(35f, 0.05f, 0.2f, 0.4f), Contrast = P(25f, 0.03f, 0.12f, 0.3f),
 				LensDistortion = P(-0.35f, 0.04f, 0.04f, 0.16f), Vignette = P(0.12f, 0.05f, 0.1f, 0.3f),
 				RadialBlur = P(0.85f, 0.02f, 0.06f, 0.12f), Ripple = P(0.035f, 0.02f, 0f, 0.25f), RippleSpeed = 1.5f,
 				ImpactFrame = Kind.Mono, ImpactFrameSeconds = 0.084f, ImpactFrameStrength = 0.85f,
@@ -75,7 +76,7 @@ namespace WitchMendokusai
 				Label = "왕관", FxTime = 0.745f, HoldSeconds = 0.12f, HoldTimeScale = 0f,
 				SlowScale = 0.35f, SlowSeconds = 0.5f, SlowRecovery = LateRelease(),
 				Trauma = 1f, Zoom = P(0.11f, 0.04f, 0.1f, 0.22f), Dolly = P(0.06f, 0.04f, 0.08f, 0.25f),
-				Exposure = P(1.2f, 0.02f, 0.05f, 0.14f), Bloom = P(2.6f, 0.03f, 0.12f, 0.35f), Saturation = P(45f, 0.04f, 0.25f, 0.4f), Contrast = P(20f, 0.03f, 0.1f, 0.3f),
+				Exposure = P(0.84f, 0.02f, 0.05f, 0.14f), Bloom = P(1.8f, 0.03f, 0.12f, 0.35f), Saturation = P(45f, 0.04f, 0.25f, 0.4f), Contrast = P(20f, 0.03f, 0.1f, 0.3f),
 				LensDistortion = P(-0.3f, 0.03f, 0.05f, 0.15f), Vignette = P(0.1f, 0.05f, 0.1f, 0.3f),
 				RadialBlur = P(0.7f, 0.02f, 0.06f, 0.14f), Ripple = P(0.04f, 0.02f, 0f, 0.28f), RippleSpeed = 1.7f,
 				ImpactFrame = Kind.Silhouette, ImpactFrameSeconds = 0.084f, ImpactFrameStrength = 0.8f,
@@ -83,7 +84,7 @@ namespace WitchMendokusai
 			new Beat
 			{
 				Label = "분해", FxTime = 1.6f, SlowScale = 0.6f, SlowSeconds = 0.25f, SlowRecovery = EarlyRelease(),
-				Trauma = 0.4f, Zoom = P(0.03f, 0.03f, 0.03f, 0.15f), Exposure = P(0.45f, 0.02f, 0.03f, 0.12f), Bloom = P(1f, 0.03f, 0.05f, 0.25f),
+				Trauma = 0.4f, Zoom = P(0.03f, 0.03f, 0.03f, 0.15f), Exposure = P(0.32f, 0.02f, 0.03f, 0.12f), Bloom = P(0.7f, 0.03f, 0.05f, 0.25f),
 				RadialBlur = P(0.35f, 0.02f, 0.03f, 0.1f), Ripple = P(0.02f, 0.02f, 0f, 0.2f), RippleSpeed = 1.3f,
 			},
 		};
@@ -96,6 +97,7 @@ namespace WitchMendokusai
 		};
 
 		// ---- 카드: 원진 동안 밝고 화려 (채도 올림), 연사 잔타격, 정적 (어둡고 탈색, 느려짐) 뒤 마지막 한 장에서 색이 터짐 ----
+		// 임팩트 프레임은 흑백. 반전은 어두운 정적 장면을 뒤집어 회백색 전체 화면 (독립 검토 1차, 2차), 실루엣은 어두운 장면에 밝은 곳이 없어 검은 화면 (3회차 촬영)
 
 		public static Swell[] CardSwells() => new[]
 		{
@@ -114,15 +116,15 @@ namespace WitchMendokusai
 				Label = "마지막 한 장", FxTime = 2.695f, HoldSeconds = 0.2f, HoldTimeScale = 0f,
 				SlowScale = 0.25f, SlowSeconds = 0.7f, SlowRecovery = LateRelease(),
 				Trauma = 0.85f, Zoom = P(0.11f, 0.05f, 0.1f, 0.25f), Dolly = P(0.05f, 0.05f, 0.1f, 0.25f),
-				Exposure = P(1.3f, 0.02f, 0.06f, 0.14f), Bloom = P(3f, 0.03f, 0.12f, 0.35f), Saturation = P(70f, 0.03f, 0.3f, 0.45f), Contrast = P(25f, 0.03f, 0.12f, 0.3f),
+				Exposure = P(0.9f, 0.02f, 0.06f, 0.14f), Bloom = P(2.1f, 0.03f, 0.12f, 0.35f), Saturation = P(70f, 0.03f, 0.3f, 0.45f), Contrast = P(25f, 0.03f, 0.12f, 0.3f),
 				LensDistortion = P(-0.3f, 0.04f, 0.05f, 0.16f), Vignette = P(0.1f, 0.04f, 0.1f, 0.3f),
 				RadialBlur = P(0.6f, 0.02f, 0.06f, 0.14f), Ripple = P(0.03f, 0.02f, 0f, 0.25f), RippleSpeed = 1.4f,
-				ImpactFrame = Kind.Invert, ImpactFrameSeconds = 0.042f, ImpactFrameStrength = 0.55f,
+				ImpactFrame = Kind.Mono, ImpactFrameSeconds = 0.084f, ImpactFrameStrength = 0.85f,
 			},
 			new Beat
 			{
 				Label = "폭산", FxTime = 3.1f, SlowScale = 0.7f, SlowSeconds = 0.3f, SlowRecovery = EarlyRelease(),
-				Trauma = 0.35f, Zoom = P(0.025f, 0.03f, 0.04f, 0.15f), Exposure = P(0.4f, 0.02f, 0.03f, 0.12f), Saturation = P(20f, 0.03f, 0.2f, 0.4f),
+				Trauma = 0.35f, Zoom = P(0.025f, 0.03f, 0.04f, 0.15f), Exposure = P(0.28f, 0.02f, 0.03f, 0.12f), Saturation = P(20f, 0.03f, 0.2f, 0.4f),
 				Ripple = P(0.02f, 0.02f, 0f, 0.2f), RippleSpeed = 1.2f,
 			},
 		};
@@ -141,14 +143,14 @@ namespace WitchMendokusai
 				Label = "검기", FxTime = 1.595f, HoldSeconds = 0.18f, HoldTimeScale = 0f,
 				SlowScale = 0.35f, SlowSeconds = 0.5f, SlowRecovery = LateRelease(),
 				Trauma = 0.35f, Zoom = P(0.05f, 0.04f, 0.1f, 0.3f),
-				Exposure = P(0.7f, 0.02f, 0.04f, 0.12f), Bloom = P(1.5f, 0.03f, 0.1f, 0.3f), Contrast = P(20f, 0.03f, 0.15f, 0.35f),
+				Exposure = P(0.5f, 0.02f, 0.04f, 0.12f), Bloom = P(1.05f, 0.03f, 0.1f, 0.3f), Contrast = P(20f, 0.03f, 0.15f, 0.35f),
 				RadialBlur = P(0.4f, 0.02f, 0.05f, 0.12f),
 			},
 			new Beat
 			{
 				Label = "절단", FxTime = 1.76f, SlowScale = 0.3f, SlowSeconds = 1.4f, SlowRecovery = LateRelease(),
 				Trauma = 0.8f, Zoom = P(0.08f, 0.06f, 0.2f, 0.45f), Dolly = P(0.05f, 0.06f, 0.2f, 0.5f),
-				Exposure = P(1f, 0.03f, 0.08f, 0.2f), Bloom = P(2.5f, 0.05f, 0.25f, 0.6f), Saturation = P(35f, 0.05f, 0.4f, 0.6f), Contrast = P(15f, 0.05f, 0.2f, 0.5f),
+				Exposure = P(0.7f, 0.03f, 0.08f, 0.2f), Bloom = P(1.75f, 0.05f, 0.25f, 0.6f), Saturation = P(35f, 0.05f, 0.4f, 0.6f), Contrast = P(15f, 0.05f, 0.2f, 0.5f),
 				LensDistortion = P(-0.25f, 0.06f, 0.1f, 0.3f), Vignette = P(0.15f, 0.1f, 0.3f, 0.6f),
 				RadialBlur = P(0.5f, 0.03f, 0.1f, 0.25f), Ripple = P(0.03f, 0.03f, 0f, 0.4f), RippleSpeed = 0.9f,
 			},

@@ -16,13 +16,15 @@ namespace WitchMendokusai
 	{
 		[Header("달")]
 		[SerializeField, Min(1f), Tooltip("설계 지름 6. 쿼터뷰 화면 위 끝 (높이 약 7.5) 안에 들게 5")] private float diameter = 4.4f;
-		[SerializeField, Min(0f), Tooltip("표적에서 화면 위쪽으로 달까지. 멀면 화면 위로 잘림 (v8 촬영)")] private float behindDistance = 1f;
+		[SerializeField, Tooltip("표적에서 화면 위쪽으로 달까지. 멀면 화면 위로 잘림 (v8 촬영). 음수면 표적보다 카메라 쪽")] private float behindDistance = 1f;
 		[SerializeField, Tooltip("떠오르는 중심 높이 (시작, 끝). 꼭대기가 시야 위쪽 7.5 안")] private Vector2 riseHeight = new(0.8f, 2.3f);
 		[SerializeField, Tooltip("떠오르며 커지는 배율 (시작, 끝)")] private Vector2 riseScale = new(0.6f, 1f);
 		[SerializeField, Tooltip("천천히 도는 속도 (도/초). 구덩이 음영이 움직여 구로 읽힘")] private float idleSpin = 7f;
 		[SerializeField, Min(0f), Tooltip("두 반쪽이 단면을 따라 미끄러지는 거리 (반지름 1 기준)")] private float slideDistance = 0.18f;
 		[SerializeField, Min(0f), Tooltip("두 반쪽이 단면 바깥으로 벌어지는 거리 (반지름 1 기준)")] private float splitDistance = 0.32f;
 		[SerializeField, Tooltip("벌어지며 도는 각도")] private float splitRoll = 4f;
+		[SerializeField, Min(0f), Tooltip("벌어진 뒤 사라질 때까지 더 벌어지는 비율")] private float driftSpread = 0.25f;
+		[SerializeField, Min(0f), Tooltip("크기 배율 1 증가당 달을 표적 쪽으로 당기는 거리. 커진 달이 화면 위로 잘리지 않게")] private float moonPullPerScale = 2f;
 
 		[Header("시간 (초)")]
 		[SerializeField, Min(0.2f), Tooltip("m04 등장과 성장 1.4s")] private float riseSeconds = 1.4f;
@@ -79,6 +81,20 @@ namespace WitchMendokusai
 		private float RestoreStart => VanishStart - restoreSeconds * 0.3f;
 
 		public override float DurationSeconds => VanishStart + vanishSeconds + 0.3f;
+
+		/// <summary> 달, 높이, 빛줄기, 조각, 구덩이를 같은 배율로. 커진 만큼 표적 쪽으로 당겨 화면 위로 잘리지 않게 </summary>
+		public override void ScaleWorld(float scale)
+		{
+			diameter *= scale;
+			riseHeight *= scale;
+			behindDistance -= (scale - 1f) * moonPullPerScale;
+			shaftRadius *= scale;
+			bigFragmentSize *= scale;
+			bigFragmentSpread *= scale;
+			craterSize *= scale;
+			grainCount = Mathf.RoundToInt(grainCount * scale);
+			smallFragmentCount = Mathf.RoundToInt(smallFragmentCount * scale);
+		}
 
 		protected override void ComposeWorld(Stage stage)
 		{
@@ -180,7 +196,7 @@ namespace WitchMendokusai
 			});
 			run.Track(CutTime + splitSeconds, driftSeconds + vanishSeconds, progress =>
 			{
-				float drift = 1f + 0.25f * progress;
+				float drift = 1f + driftSpread * progress;
 				moon.Upper.localPosition = (moon.CutLine * slideDistance + moon.CutNormal * splitDistance) * drift;
 				moon.Lower.localPosition = -(moon.CutLine * slideDistance + moon.CutNormal * splitDistance) * drift;
 			});

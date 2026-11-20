@@ -55,7 +55,7 @@ MonoBehaviour:
   spriteLightGain: 0.12
   spriteTintCap: 2.2
   spriteRefreshSeconds: 0.3
-  targetDistance: 2.8
+  targetDistance: 1.4
   faceTone: {r: 0.95, g: 0.92, b: 0.84, a: 1}
   pipTone: {r: 0.85, g: 0.12, b: 0.2, a: 1}
   backTone: {r: 0.32, g: 0.08, b: 0.3, a: 1}
@@ -86,11 +86,13 @@ MonoBehaviour:
   volleyRadius: {x: 0.9, y: 3.4}
   volleyFlightSeconds: 0.17
   volleyPitch: 48
-  giantScale: 4.8
+  giantScale: 3.9
   giantDropHeight: 12
   giantSpinTurns: 2.25
   giantSink: 0.2
-  giantYaw: 26
+  giantYaw: 34
+  giantPitch: 14
+  giantThickness: 4
   snowCount: 120
   snowSpeed: 5
   snowGravity: 0.6

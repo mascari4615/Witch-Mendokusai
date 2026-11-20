@@ -132,12 +132,12 @@ MonoBehaviour:
       Hold: 0.06
       HalfLife: 0.22
     Exposure:
-      Amount: 1.5
+      Amount: 1.05
       Attack: 0.02
       Hold: 0.05
       HalfLife: 0.13
     Bloom:
-      Amount: 3
+      Amount: 2.1
       Attack: 0.03
       Hold: 0.1
       HalfLife: 0.3
@@ -183,4 +183,4 @@ MonoBehaviour:
   radialBlurReach: 0.07
   rippleWidth: 0.06
   lensScaleCompensation: 0.18
-  targetForward: 2.2
+  targetForward: 1.6

@@ -48,6 +48,8 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("떨어지며 도는 바퀴 수")] private float giantSpinTurns = 2.25f;
 		[SerializeField, Range(0f, 0.5f), Tooltip("박히는 깊이 (높이 비율)")] private float giantSink = 0.2f;
 		[SerializeField, Range(-60f, 60f), Tooltip("선 거대 카드가 카메라 정면에서 돌아간 각도. 0 이면 얇은 판으로만 읽힘")] private float giantYaw = 26f;
+		[SerializeField, Range(-30f, 30f), Tooltip("선 거대 카드가 카메라 반대쪽으로 눕는 각도. 내려다보는 카메라에서 앞면이 더 보임")] private float giantPitch;
+		[SerializeField, Min(1f), Tooltip("거대 카드 두께 배율. 옆면이 보여 판 한 장이 아니라 덩어리로 읽힘")] private float giantThickness = 1f;
 		[SerializeField, Min(0)] private int snowCount = 120;
 		[SerializeField, Min(0f)] private float snowSpeed = 5f;
 		[SerializeField, Range(0f, 1f)] private float snowGravity = 0.6f;
@@ -101,6 +103,23 @@ namespace WitchMendokusai
 		private float RestoreStart => BurstTime + snowSeconds * 0.5f;
 
 		public override float DurationSeconds => BurstTime + snowSeconds + restSeconds;
+
+		/// <summary> 카드, 원진, 꽂힘 범위, 균열을 같은 배율로. 거대 카드는 화면 위로 잘리지 않게 배율의 0.6 제곱만 </summary>
+		public override void ScaleWorld(float scale)
+		{
+			ScaleCards(scale);
+			giantScale *= Mathf.Pow(scale, -0.4f);
+			ringRadius *= scale;
+			ringHeight *= Mathf.Sqrt(scale);
+			volleyRadius *= scale;
+			knockRadius *= scale;
+			crackSize *= scale;
+			windReach *= scale;
+			spotAimHeight *= Mathf.Pow(scale, 0.6f);
+			ringCount = Mathf.RoundToInt(ringCount * scale);
+			snowCount = Mathf.RoundToInt(snowCount * scale);
+			coneDustCount = Mathf.RoundToInt(coneDustCount * scale);
+		}
 
 		protected override void ComposeWorld(Stage stage)
 		{
@@ -236,8 +255,9 @@ namespace WitchMendokusai
 			float height = 0.88f * CardScale * giantScale;
 			Material material = CardMaterial(run);
 			Transform giant = CardObject(run, mesh, material, giantScale, true);
+			giant.localScale = Vector3.Scale(giant.localScale, new Vector3(1f, 1f, giantThickness));
 			giant.gameObject.SetActive(false);
-			Quaternion facing = Quaternion.LookRotation(-stage.ToCamera) * Quaternion.Euler(0f, giantYaw, 0f);
+			Quaternion facing = Quaternion.LookRotation(-stage.ToCamera) * Quaternion.Euler(giantPitch, giantYaw, 0f);
 			Vector3 planted = target + Vector3.up * height * (0.5f - giantSink);
 			Vector3 sky = planted + Vector3.up * giantDropHeight;
 			float fallStart = LandTime - giantFallSeconds;

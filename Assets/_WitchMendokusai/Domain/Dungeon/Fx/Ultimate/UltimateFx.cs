@@ -74,6 +74,14 @@ namespace WitchMendokusai
 		/// <summary> 시간선에 효과를 올림. 진행기가 준비를 마친 뒤 한 번 부름 </summary>
 		public abstract void Compose(UltimateFxRun run);
 
+		/// <summary>
+		/// 주제 연출 크기 배율 (반경, 높이, 물체 크기). 화면 연출 래퍼 (FeelUltimateFx) 가 실행용 복제본에만 부름, 에셋 원본은 그대로
+		/// - 기본은 크기 조절 없음. 지원하는 연출만 재정의
+		/// </summary>
+		public virtual void ScaleWorld(float scale)
+		{
+		}
+
 		protected override Action Play(CombatFxRunner runner, CombatFxContext context)
 		{
 			UltimateFxRun run = new(this, context);

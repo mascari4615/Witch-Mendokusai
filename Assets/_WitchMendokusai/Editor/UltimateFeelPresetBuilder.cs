@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		private const string PRESET_FOLDER = "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Presets";
 		private const string FEEL_FOLDER = PRESET_FOLDER + "/FeelV2";
 		private const string COMFORT_PATH = FEEL_FOLDER + "/UltFeel_Comfort.asset";
+		private const float WORLD_SIZE = 1.45f;
 
 		private sealed class Entry
 		{
@@ -26,6 +27,8 @@ namespace WitchMendokusai
 			public string DevKey;
 			public string SourceBody;
 			public float TargetForward;
+			// 사용자 판정 2026-11-21 "작아": 주제 연출 크기 배율 (래퍼 worldSize). 처음 만들 때와 다시 넣기 때만
+			public float WorldSize = WORLD_SIZE;
 			public Func<UltimateScreenFeel.Swell[]> Swells;
 			public Func<UltimateScreenFeel.Beat[]> Beats;
 			public UltimateScreenFeel.TraumaSettings Trauma;
@@ -36,7 +39,7 @@ namespace WitchMendokusai
 		{
 			new Entry
 			{
-				Name = "SkySwordHeavyV2", DevKey = "ult3d_heavy_v2", SourceBody = "Ult3D_02_SkySwordHeavy", TargetForward = 2.2f,
+				Name = "SkySwordHeavyV2", DevKey = "ult3d_heavy_v2", SourceBody = "Ult3D_02_SkySwordHeavy", TargetForward = 1.6f,
 				Swells = UltimateFeelV2Seeds.SkySwordSwells, Beats = UltimateFeelV2Seeds.SkySwordBeats,
 				Trauma = UltimateFeelV2Seeds.Trauma(0.022f, 15f, 2f, 0.75f),
 				TuneBody = body =>
@@ -51,29 +54,49 @@ namespace WitchMendokusai
 					SetFloat(body, "shakeStrength", 0f);
 					SetFloat(body, "exposureFlash", 0.6f);
 					SetFloat(body, "chromaticImpact", 0.1f);
+					// 크기 배율로 커진 검과 주제 물체가 화면 위로 잘리지 않게 표적을 시전자 쪽으로 (독립 검토 크기 1.45)
+					SetFloat(body, "targetDistance", 1.6f);
 				},
 			},
 			new Entry
 			{
-				Name = "SpearCrownHeavyV2", DevKey = "crown_heavy_v2", SourceBody = "Ult3D_SpearCrownHeavy", TargetForward = 2.8f,
+				Name = "SpearCrownHeavyV2", DevKey = "crown_heavy_v2", SourceBody = "Ult3D_SpearCrownHeavy", TargetForward = 1.4f,
 				Swells = UltimateFeelV2Seeds.CrownSwells, Beats = UltimateFeelV2Seeds.CrownBeats,
 				Trauma = UltimateFeelV2Seeds.Trauma(0.02f, 16f, 2.4f, 0.65f),
 				TuneBody = body =>
 				{
 					SetFloat(body, "shakeStrength", 0f);
 					SetFloat(body, "silhouetteExposure", 0f);
+					// 흑백 한 장은 정지와 느려짐에 늘어나 회녹색 씻김이 됨. 임팩트 프레임은 구동기 실루엣으로
+					SetFloat(body, "impactMono", 0f);
+					// 고리 셋이 거대 결정에 묻히지 않게 간격을 벌림
+					SetFloat(body, "middleRadius", 2.8f);
+					SetFloat(body, "outerRadius", 4.6f);
+					SetInt(body, "outerCount", 18);
+					SetFloat(body, "targetDistance", 1.4f);
+					// 왕관 정점의 마젠타 번짐 (독립 검토): 구동기 빛 번짐과 겹쳐 body 쪽을 낮춤
+					SetFloat(body, "bloomCrown", 0.9f);
 				},
 			},
 			new Entry
 			{
-				Name = "CardHeavyV2", DevKey = "card_heavy_v2", SourceBody = "Ult3D_CardHeavy", TargetForward = 2.8f,
+				Name = "CardHeavyV2", DevKey = "card_heavy_v2", SourceBody = "Ult3D_CardHeavy", TargetForward = 1.4f,
 				Swells = UltimateFeelV2Seeds.CardSwells, Beats = UltimateFeelV2Seeds.CardBeats,
 				Trauma = UltimateFeelV2Seeds.Trauma(0.02f, 14f, 2.2f, 0.7f),
-				TuneBody = body => SetFloat(body, "shakeStrength", 0f),
+				TuneBody = body =>
+				{
+					SetFloat(body, "shakeStrength", 0f);
+					// 납작한 판과 윗변 잘림 (독립 검토 2차): 작게, 뒤로 눕히고, 두께를 줘 덩어리로
+					SetFloat(body, "giantScale", 3.9f);
+					SetFloat(body, "giantPitch", 14f);
+					SetFloat(body, "giantYaw", 34f);
+					SetFloat(body, "giantThickness", 4f);
+					SetFloat(body, "targetDistance", 1.4f);
+				},
 			},
 			new Entry
 			{
-				Name = "MoonHeavyV2", DevKey = "moon_heavy_v2", SourceBody = "Ult3D_MoonHeavy", TargetForward = 2.8f,
+				Name = "MoonHeavyV2", DevKey = "moon_heavy_v2", SourceBody = "Ult3D_MoonHeavy", TargetForward = 2f,
 				Swells = UltimateFeelV2Seeds.MoonSwells, Beats = UltimateFeelV2Seeds.MoonBeats,
 				Trauma = UltimateFeelV2Seeds.Trauma(0.02f, 10f, 1.4f, 0.8f),
 				TuneBody = body =>
@@ -81,6 +104,20 @@ namespace WitchMendokusai
 					SetFloat(body, "shakeStrength", 0f);
 					SetFloat(body, "flashExposure", 0.4f);
 					SetFloat(body, "secondFlashExposure", 0.3f);
+					// 땅 위 공처럼 놓임 (독립 검토 2차): 작게 해서 땅에서 띄움. 갈라짐이 결과로 보이게 더 벌림
+					SetFloat(body, "diameter", 3.8f);
+					SetVector2(body, "riseHeight", new Vector2(1.2f, 3f));
+					// 높이 띄운 만큼 화면 위로 잘려 (3회차 촬영) 표적 쪽으로 당김
+					SetFloat(body, "behindDistance", -0.6f);
+					// 크기 배율로 커진 달도 화면 안에 (3회차 위쪽 여백 약 12%)
+					SetFloat(body, "moonPullPerScale", 3f);
+					SetFloat(body, "targetDistance", 2f);
+					// 갈라진 뒤 청백 눈부심 (독립 검토)
+					SetFloat(body, "sectionIntensity", 18f);
+					SetFloat(body, "slideDistance", 0.3f);
+					SetFloat(body, "splitDistance", 0.8f);
+					SetFloat(body, "splitRoll", 9f);
+					SetFloat(body, "driftSpread", 0.7f);
 				},
 			},
 		};
@@ -140,6 +177,8 @@ namespace WitchMendokusai
 			bool copyCommon = wrapperCreated || reseed || wrapper.Body == null;
 			foreach (string field in copyCommon ? new[] { "spriteShader", "shockwaveShader", "gradeShader", "overlayFlashCap", "backgroundFlashCap", "spawnTemporaryFoliage", "foliageAreaRadius", "foliage", "foliageResponse", "tailSeconds", "screenSortingOrder" } : Array.Empty<string>())
 				wrapperSerialized.CopyFromSerializedProperty(Property(sourceSerialized, field));
+			if (copyCommon)
+				SetFloat(wrapperSerialized, "worldSize", entry.WorldSize);
 			SetString(wrapperSerialized, "devKey", entry.DevKey);
 			Property(wrapperSerialized, "body").objectReferenceValue = body;
 			Property(wrapperSerialized, "feel").objectReferenceValue = feel;
@@ -203,6 +242,8 @@ namespace WitchMendokusai
 		private static void SetFloat(SerializedObject target, string name, float value) => Property(target, name).floatValue = value;
 
 		private static void SetInt(SerializedObject target, string name, int value) => Property(target, name).intValue = value;
+
+		private static void SetVector2(SerializedObject target, string name, Vector2 value) => Property(target, name).vector2Value = value;
 
 		private static void SetString(SerializedObject target, string name, string value) => Property(target, name).stringValue = value;
 	}
