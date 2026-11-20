@@ -62,8 +62,8 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("궤도 중심 높이, 그림 위 끝에서 월드 단위")] public float OrbitHeight = 0.1f;
 		[Min(0f), Tooltip("별 한 개 크기, 월드 단위")] public float OrbitStarSize = 0.2f;
 		[Tooltip("궤도 회전, 초당 바퀴")] public float OrbitSpinRate = 0.8f;
-		[Tooltip("별 자체 회전, 초당 바퀴")] public float OrbitStarSpinRate = 1.2f;
-		[Range(0f, 90f), Tooltip("궤도 면을 카메라 쪽으로 세우는 각도. 0이면 땅과 평행")] public float OrbitTilt = 20f;
+		[Tooltip("별 자체 회전 (카메라를 본 면 안에서), 초당 바퀴")] public float OrbitStarSpinRate = 0.6f;
+		[Range(0.1f, 1f), Tooltip("화면에서 보이는 궤도의 세로 대 가로 비율. 1이면 원, 작을수록 납작한 타원. 카메라 각도와 무관")] public float OrbitFlatten = 0.4f;
 		[Min(0f), Tooltip("궤도 위아래 흔들림 폭, 월드 단위")] public float OrbitBob = 0.03f;
 		[Min(0f), Tooltip("위아래 흔들림, 초당 왕복 수")] public float OrbitBobRate = 2f;
 		[Min(0f), Tooltip("고리 굵기, 반지름 비율. 0이면 고리 없이 별만")] public float OrbitRingWidth = 0.08f;

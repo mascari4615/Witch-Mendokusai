@@ -71,12 +71,12 @@ MonoBehaviour:
     EffectRate: 0.9
     EffectSpread: 0.4
     OrbitStars: 4
-    OrbitRadius: 0.42
-    OrbitHeight: 0.12
-    OrbitStarSize: 0.2
+    OrbitRadius: 0.26
+    OrbitHeight: 0.03
+    OrbitStarSize: 0.3
     OrbitSpinRate: 0.9
-    OrbitStarSpinRate: 1.2
-    OrbitTilt: 25
+    OrbitStarSpinRate: 0.6
+    OrbitFlatten: 0.4
     OrbitBob: 0.03
     OrbitBobRate: 2
     OrbitRingWidth: 0.08

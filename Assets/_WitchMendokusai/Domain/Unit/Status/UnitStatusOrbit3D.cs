@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	// 상태이상 하나의 머리 위 3D 궤도. 기절처럼 별 여러 개가 고리를 따라 머리 위를 돎
 	// - 월드 공간 메시 (UnitStatusMeshes). 화면 위 2D 오버레이가 아님. 불투명이라 앞 몬스터 그림 뒤로 가려짐
-	// - 궤도 면은 땅과 평행에서 OrbitTilt 만큼 카메라 쪽으로 세움. 위에서 내려다보는 카메라에서도 원이 납작하게 안 눌림
+	// - 궤도 면은 화면에서 세로 대 가로가 OrbitFlatten 인 타원으로 보이게 세움. 몸 그림 면보다 카메라 쪽에 둠
 	// - 별 수가 SO 에서 늘면 그때 렌더러를 더 만듦. 줄면 남는 것은 숨김
 	internal sealed class UnitStatusOrbit3D
 	{
@@ -44,20 +44,20 @@ namespace WitchMendokusai
 			EnsureStars(style.OrbitStars, config.OrbitMaterial);
 			EnsureRing(config.OrbitMaterial);
 
-			// 궤도 면: 땅과 평행한 면을 카메라 쪽 수평 방향 축으로 OrbitTilt 만큼 세움
-			Vector3 flatToCamera = Vector3.ProjectOnPlane(toCamera, Vector3.up);
-			if (flatToCamera.sqrMagnitude < 0.0001f)
-				flatToCamera = Vector3.back;
-			flatToCamera.Normalize();
-			Vector3 side = Vector3.Cross(Vector3.up, flatToCamera).normalized;
-			// side 축 양의 회전이 면의 위 방향을 카메라 쪽으로 기울임
-			Quaternion tilt = Quaternion.AngleAxis(style.OrbitTilt, side);
-			Vector3 planeUp = tilt * Vector3.up;
-			Vector3 planeForward = tilt * flatToCamera;
+			// 궤도 면의 법선: 카메라 방향과 이루는 코사인이 OrbitFlatten. 화면에서 세로 대 가로 비율이 카메라 각도와 무관하게 같음
+			Vector3 screenUp = Vector3.ProjectOnPlane(Vector3.up, toCamera);
+			if (screenUp.sqrMagnitude < 0.0001f)
+				screenUp = Vector3.forward;
+			screenUp.Normalize();
+			float flatten = Mathf.Clamp01(style.OrbitFlatten);
+			Vector3 planeUp = toCamera * flatten + screenUp * Mathf.Sqrt(1f - flatten * flatten);
+			Vector3 side = Vector3.Cross(toCamera, planeUp).normalized;
+			Vector3 planeForward = Vector3.Cross(side, planeUp).normalized;
 
 			float radius = bodyWidth * style.OrbitRadius;
 			float bob = Mathf.Sin((time + seed) * style.OrbitBobRate * Mathf.PI * 2f) * style.OrbitBob;
-			Vector3 center = top + Vector3.up * (style.OrbitHeight + bob);
+			// 궤도 전체를 카메라 쪽으로 반지름과 별 크기만큼 당김. 화면 위치는 그대로, 몸 그림 면보다 앞이라 몸에 안 가려짐
+			Vector3 center = top + Vector3.up * (style.OrbitHeight + bob) + toCamera * (radius + style.OrbitStarSize);
 
 			Mesh starMesh = UnitStatusMeshes.Star(config.OrbitStarPoints, config.OrbitStarInnerRatio, config.OrbitStarDepth);
 			block.SetColor(COLOR_ID, style.OrbitStarColor);
@@ -71,9 +71,9 @@ namespace WitchMendokusai
 				}
 				float angle = ((time + seed) * style.OrbitSpinRate + (float)i / style.OrbitStars) * Mathf.PI * 2f;
 				Vector3 position = center + (side * Mathf.Cos(angle) + planeForward * Mathf.Sin(angle)) * radius;
-				// 별 앞면이 카메라를 보고 제자리에서 돎
+				// 별 앞면이 늘 카메라를 보고 그 면 안에서 돎. 세로축으로 돌리면 옆면이 보일 때 선처럼 얇아져 안 읽힘 (2026-11-20 Play 촬영)
 				Quaternion facing = Quaternion.LookRotation(-toCamera, Vector3.up);
-				Quaternion spin = Quaternion.AngleAxis((time + seed + i * 0.37f) * style.OrbitStarSpinRate * 360f, Vector3.up);
+				Quaternion spin = Quaternion.AngleAxis((time + seed + i * 0.37f) * style.OrbitStarSpinRate * 360f, Vector3.forward);
 				starFilters[i].sharedMesh = starMesh;
 				star.transform.SetPositionAndRotation(position, facing * spin);
 				star.transform.localScale = Vector3.one * style.OrbitStarSize;
