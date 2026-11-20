@@ -1,0 +1,186 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05a6d572f1e341448faa9ed229c35a61, type: 3}
+  m_Name: UltFeel_SkySwordHeavyV2
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.UltimateScreenFeel
+  comfort: {fileID: 11400000, guid: c0c2512a90f980549a6c29f16d2e048b, type: 2}
+  trauma:
+    MaxOffset: 0.022
+    MaxRoll: 1.2
+    Frequency: 15
+    DecayPerSecond: 2
+    VerticalBias: 0.75
+    Response:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  swells:
+  - Label: "\uAC80\uC774 \uB5A0 \uC788\uC74C"
+    FxStart: 0.9
+    FxEnd: 1.745
+    ReleaseSeconds: 0.18
+    Shape:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 2.4
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    TimeScale: 0.75
+    Exposure: -0.8
+    Saturation: -30
+    Contrast: 12
+    Vignette: 0.3
+    Zoom: 0.08
+    Dolly: 0.03
+    Rumble: 0.14
+  beats:
+  - Label: "\uC811\uC9C0"
+    FxTime: 1.745
+    HoldSeconds: 0.15
+    HoldTimeScale: 0
+    SlowScale: 0.28
+    SlowSeconds: 0.6
+    SlowRecovery:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.6
+        value: 0.25
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 3
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Trauma: 0.95
+    Zoom:
+      Amount: 0.1
+      Attack: 0.05
+      Hold: 0.08
+      HalfLife: 0.2
+    Dolly:
+      Amount: 0.07
+      Attack: 0.05
+      Hold: 0.06
+      HalfLife: 0.22
+    Exposure:
+      Amount: 1.5
+      Attack: 0.02
+      Hold: 0.05
+      HalfLife: 0.13
+    Bloom:
+      Amount: 3
+      Attack: 0.03
+      Hold: 0.1
+      HalfLife: 0.3
+    Saturation:
+      Amount: 35
+      Attack: 0.05
+      Hold: 0.2
+      HalfLife: 0.4
+    Contrast:
+      Amount: 25
+      Attack: 0.03
+      Hold: 0.12
+      HalfLife: 0.3
+    Chromatic:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    LensDistortion:
+      Amount: -0.35
+      Attack: 0.04
+      Hold: 0.04
+      HalfLife: 0.16
+    Vignette:
+      Amount: 0.12
+      Attack: 0.05
+      Hold: 0.1
+      HalfLife: 0.3
+    RadialBlur:
+      Amount: 0.85
+      Attack: 0.02
+      Hold: 0.06
+      HalfLife: 0.12
+    Ripple:
+      Amount: 0.035
+      Attack: 0.02
+      Hold: 0
+      HalfLife: 0.25
+    RippleSpeed: 1.5
+    ImpactFrame: 1
+    ImpactFrameSeconds: 0.084
+    ImpactFrameStrength: 0.85
+  radialBlurReach: 0.07
+  rippleWidth: 0.06
+  lensScaleCompensation: 0.18
+  targetForward: 2.2

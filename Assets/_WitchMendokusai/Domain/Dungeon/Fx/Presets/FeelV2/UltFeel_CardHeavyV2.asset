@@ -1,0 +1,600 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05a6d572f1e341448faa9ed229c35a61, type: 3}
+  m_Name: UltFeel_CardHeavyV2
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.UltimateScreenFeel
+  comfort: {fileID: 11400000, guid: c0c2512a90f980549a6c29f16d2e048b, type: 2}
+  trauma:
+    MaxOffset: 0.02
+    MaxRoll: 1.2
+    Frequency: 14
+    DecayPerSecond: 2.2
+    VerticalBias: 0.7
+    Response:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  swells:
+  - Label: "\uC6D0\uC9C4"
+    FxStart: 0
+    FxEnd: 1.8
+    ReleaseSeconds: 0.3
+    Shape:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0.6
+        outSlope: 0.6
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1.4
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    TimeScale: 1
+    Exposure: 0.25
+    Saturation: 30
+    Contrast: 10
+    Vignette: 0
+    Zoom: 0.03
+    Dolly: 0
+    Rumble: 0
+  - Label: "\uC815\uC801"
+    FxStart: 2.2
+    FxEnd: 2.695
+    ReleaseSeconds: 0.12
+    Shape:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 2.4
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    TimeScale: 0.45
+    Exposure: -1.1
+    Saturation: -65
+    Contrast: 5
+    Vignette: 0.45
+    Zoom: 0.1
+    Dolly: 0.02
+    Rumble: 0
+  beats:
+  - Label: "\uC5F0\uC0AC 1"
+    FxTime: 1.86
+    HoldSeconds: 0
+    HoldTimeScale: 0
+    SlowScale: 1
+    SlowSeconds: 0
+    SlowRecovery:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Trauma: 0.14
+    Zoom:
+      Amount: 0.01
+      Attack: 0.03
+      Hold: 0.02
+      HalfLife: 0.1
+    Dolly:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Exposure:
+      Amount: 0.2
+      Attack: 0.015
+      Hold: 0.02
+      HalfLife: 0.08
+    Bloom:
+      Amount: 0.4
+      Attack: 0.02
+      Hold: 0.02
+      HalfLife: 0.15
+    Saturation:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Contrast:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Chromatic:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    LensDistortion:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Vignette:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RadialBlur:
+      Amount: 0
+      Attack: 0.015
+      Hold: 0.02
+      HalfLife: 0.07
+    Ripple:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RippleSpeed: 0
+    ImpactFrame: 0
+    ImpactFrameSeconds: 0
+    ImpactFrameStrength: 0
+  - Label: "\uC5F0\uC0AC 2"
+    FxTime: 1.96
+    HoldSeconds: 0
+    HoldTimeScale: 0
+    SlowScale: 1
+    SlowSeconds: 0
+    SlowRecovery:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Trauma: 0.16
+    Zoom:
+      Amount: 0.01
+      Attack: 0.03
+      Hold: 0.02
+      HalfLife: 0.1
+    Dolly:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Exposure:
+      Amount: 0.2
+      Attack: 0.015
+      Hold: 0.02
+      HalfLife: 0.08
+    Bloom:
+      Amount: 0.4
+      Attack: 0.02
+      Hold: 0.02
+      HalfLife: 0.15
+    Saturation:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Contrast:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Chromatic:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    LensDistortion:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Vignette:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RadialBlur:
+      Amount: 0
+      Attack: 0.015
+      Hold: 0.02
+      HalfLife: 0.07
+    Ripple:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RippleSpeed: 0
+    ImpactFrame: 0
+    ImpactFrameSeconds: 0
+    ImpactFrameStrength: 0
+  - Label: "\uC5F0\uC0AC 3"
+    FxTime: 2.06
+    HoldSeconds: 0
+    HoldTimeScale: 0
+    SlowScale: 1
+    SlowSeconds: 0
+    SlowRecovery:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Trauma: 0.18
+    Zoom:
+      Amount: 0.014
+      Attack: 0.03
+      Hold: 0.02
+      HalfLife: 0.1
+    Dolly:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Exposure:
+      Amount: 0.25
+      Attack: 0.015
+      Hold: 0.02
+      HalfLife: 0.08
+    Bloom:
+      Amount: 0.5
+      Attack: 0.02
+      Hold: 0.02
+      HalfLife: 0.15
+    Saturation:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Contrast:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Chromatic:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    LensDistortion:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Vignette:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RadialBlur:
+      Amount: 0.1
+      Attack: 0.015
+      Hold: 0.02
+      HalfLife: 0.07
+    Ripple:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RippleSpeed: 0
+    ImpactFrame: 0
+    ImpactFrameSeconds: 0
+    ImpactFrameStrength: 0
+  - Label: "\uC5F0\uC0AC 4"
+    FxTime: 2.16
+    HoldSeconds: 0
+    HoldTimeScale: 0
+    SlowScale: 1
+    SlowSeconds: 0
+    SlowRecovery:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Trauma: 0.2
+    Zoom:
+      Amount: 0.018
+      Attack: 0.03
+      Hold: 0.02
+      HalfLife: 0.1
+    Dolly:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Exposure:
+      Amount: 0.3
+      Attack: 0.015
+      Hold: 0.02
+      HalfLife: 0.08
+    Bloom:
+      Amount: 0.6
+      Attack: 0.02
+      Hold: 0.02
+      HalfLife: 0.15
+    Saturation:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Contrast:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Chromatic:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    LensDistortion:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Vignette:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RadialBlur:
+      Amount: 0.12
+      Attack: 0.015
+      Hold: 0.02
+      HalfLife: 0.07
+    Ripple:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RippleSpeed: 0
+    ImpactFrame: 0
+    ImpactFrameSeconds: 0
+    ImpactFrameStrength: 0
+  - Label: "\uB9C8\uC9C0\uB9C9 \uD55C \uC7A5"
+    FxTime: 2.695
+    HoldSeconds: 0.2
+    HoldTimeScale: 0
+    SlowScale: 0.25
+    SlowSeconds: 0.7
+    SlowRecovery:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.6
+        value: 0.25
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 3
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Trauma: 0.85
+    Zoom:
+      Amount: 0.11
+      Attack: 0.05
+      Hold: 0.1
+      HalfLife: 0.25
+    Dolly:
+      Amount: 0.05
+      Attack: 0.05
+      Hold: 0.1
+      HalfLife: 0.25
+    Exposure:
+      Amount: 1.3
+      Attack: 0.02
+      Hold: 0.06
+      HalfLife: 0.14
+    Bloom:
+      Amount: 3
+      Attack: 0.03
+      Hold: 0.12
+      HalfLife: 0.35
+    Saturation:
+      Amount: 70
+      Attack: 0.03
+      Hold: 0.3
+      HalfLife: 0.45
+    Contrast:
+      Amount: 25
+      Attack: 0.03
+      Hold: 0.12
+      HalfLife: 0.3
+    Chromatic:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    LensDistortion:
+      Amount: -0.3
+      Attack: 0.04
+      Hold: 0.05
+      HalfLife: 0.16
+    Vignette:
+      Amount: 0.1
+      Attack: 0.04
+      Hold: 0.1
+      HalfLife: 0.3
+    RadialBlur:
+      Amount: 0.6
+      Attack: 0.02
+      Hold: 0.06
+      HalfLife: 0.14
+    Ripple:
+      Amount: 0.03
+      Attack: 0.02
+      Hold: 0
+      HalfLife: 0.25
+    RippleSpeed: 1.4
+    ImpactFrame: 2
+    ImpactFrameSeconds: 0.042
+    ImpactFrameStrength: 0.55
+  - Label: "\uD3ED\uC0B0"
+    FxTime: 3.1
+    HoldSeconds: 0
+    HoldTimeScale: 0
+    SlowScale: 0.7
+    SlowSeconds: 0.3
+    SlowRecovery:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 2.5
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0.2
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Trauma: 0.35
+    Zoom:
+      Amount: 0.025
+      Attack: 0.03
+      Hold: 0.04
+      HalfLife: 0.15
+    Dolly:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Exposure:
+      Amount: 0.4
+      Attack: 0.02
+      Hold: 0.03
+      HalfLife: 0.12
+    Bloom:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Saturation:
+      Amount: 20
+      Attack: 0.03
+      Hold: 0.2
+      HalfLife: 0.4
+    Contrast:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Chromatic:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    LensDistortion:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Vignette:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RadialBlur:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Ripple:
+      Amount: 0.02
+      Attack: 0.02
+      Hold: 0
+      HalfLife: 0.2
+    RippleSpeed: 1.2
+    ImpactFrame: 0
+    ImpactFrameSeconds: 0
+    ImpactFrameStrength: 0
+  radialBlurReach: 0.07
+  rippleWidth: 0.06
+  lensScaleCompensation: 0.18
+  targetForward: 2.8

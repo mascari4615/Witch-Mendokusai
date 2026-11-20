@@ -1,0 +1,125 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8a6395d17be7174c80812e81cd8ffc3, type: 3}
+  m_Name: Ult3D_MoonHeavyV2_Body
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MoonHeavyUltimateFx
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle: 
+  devKey: 
+  spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
+  shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
+  gradeShader: {fileID: 4800000, guid: 1ebe1525f751440ea76b9cca2137b714, type: 3}
+  overlayFlashCap: 0.32
+  backgroundFlashCap: 0.85
+  spawnTemporaryFoliage: 1
+  foliageAreaRadius: 14
+  foliage:
+  - Prefab: {fileID: 6107932506994862601, guid: a26a53e463177194db6585765f564431, type: 3}
+    Count: 220
+    Flexibility: 1
+    ScaleRange: {x: 1.2, y: 2}
+    MinDistance: 1.2
+  - Prefab: {fileID: 5350839332914572334, guid: 3540440509c30ba49b2125f242729c46, type: 3}
+    Count: 18
+    Flexibility: 0.75
+    ScaleRange: {x: 0.9, y: 1.4}
+    MinDistance: 3
+  - Prefab: {fileID: 2871132453943284833, guid: c0c27574d0d91ea44894908f417f36d4, type: 3}
+    Count: 6
+    Flexibility: 0.3
+    ScaleRange: {x: 0.45, y: 0.7}
+    MinDistance: 6.5
+  foliageResponse:
+    Bend: 78
+    DecaySeconds: 1.2
+    Hertz: 1.7
+    BladeCount: 70
+    BladeSpeed: 11
+    BladeColor: {r: 0.45, g: 0.7, b: 0.3, a: 1}
+  tailSeconds: 1.5
+  screenSortingOrder: 2400
+  meshGlowShader: {fileID: 4800000, guid: 4d07b8e2c11b28449a3f241e98f42971, type: 3}
+  litParticleShader: {fileID: 4800000, guid: ebe2a5585f6714b4a807c9a0a60454ed, type: 3}
+  spriteLightGain: 0.12
+  spriteTintCap: 2.2
+  spriteRefreshSeconds: 0.3
+  targetDistance: 2.8
+  surfaceSeed: 7
+  surfaceRings: 40
+  surfaceSegments: 96
+  craterDepth: 0.55
+  surfaceColor: {r: 0.6, g: 0.61, b: 0.66, a: 1}
+  surfaceRim: {r: 0.12, g: 0.2, b: 0.4, a: 1}
+  surfaceSpecular: 0.08
+  capGlow: {r: 3.2, g: 3.6, b: 4.4, a: 1}
+  cutAngle: 35
+  moonLightColor: {r: 0.62, g: 0.78, b: 1, a: 1}
+  sectionLightColor: {r: 0.92, g: 0.96, b: 1, a: 1}
+  slashColor: {r: 2.4, g: 2.8, b: 3.6, a: 1}
+  grainColor: {r: 2.2, g: 2.5, b: 3.2, a: 1}
+  rockColor: {r: 0.55, g: 0.56, b: 0.6, a: 1}
+  dustColor: {r: 0.62, g: 0.62, b: 0.66, a: 0.7}
+  craterColor: {r: 0.07, g: 0.07, b: 0.09, a: 0.88}
+  craterLineColor: {r: 0.55, g: 0.75, b: 1, a: 1}
+  craterSeed: 13
+  diameter: 4.4
+  behindDistance: 1
+  riseHeight: {x: 0.8, y: 2.3}
+  riseScale: {x: 0.6, y: 1}
+  idleSpin: 7
+  slideDistance: 0.18
+  splitDistance: 0.32
+  splitRoll: 4
+  riseSeconds: 1.4
+  holdSeconds: 0.2
+  monoDelay: 0.08
+  cutDelay: 0.16
+  splitSeconds: 1.2
+  driftSeconds: 1.1
+  vanishSeconds: 0.7
+  restoreSeconds: 1.4
+  moonLightIntensity: 6
+  moonLightAfterCut: 4
+  moonLightRange: 24
+  moonLightOffset: {x: -5, y: 3.5, z: 2.5}
+  sectionIntensity: 30
+  sectionRange: 16
+  sectionHalfLife: 0.7
+  sunDim: 0.4
+  ambientDim: 0.55
+  paleFilter: {r: 0.84, g: 0.92, b: 1.08, a: 1}
+  flashExposure: 0.4
+  secondFlashExposure: 0.3
+  monoContrast: 50
+  bloomRise: 0.5
+  bloomCut: 1.8
+  vignette: 0.3
+  pullBack: 1.25
+  shakeStrength: 0
+  shakeCount: 4
+  shaftRadius: 1.4
+  shaftColor: {r: 0.8, g: 0.9, b: 1.25, a: 1}
+  shaftGrowSeconds: 0.15
+  grainCount: 120
+  shaftDustCount: 50
+  slashCount: 60
+  smallFragmentCount: 12
+  bigFragmentCount: 3
+  bigFragmentSize: {x: 1.3, y: 1.9}
+  bigFragmentFallSeconds: 0.55
+  bigFragmentSpread: 2.6
+  craterSize: 3.4
+  windSpeed: 12
+  cutBurstCount: 90

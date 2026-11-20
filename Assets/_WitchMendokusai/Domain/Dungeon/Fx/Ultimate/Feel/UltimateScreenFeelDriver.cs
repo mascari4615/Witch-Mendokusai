@@ -245,8 +245,14 @@ namespace WitchMendokusai
 				float age = BeatAge(i, realNow);
 				if (age < 0f)
 					continue;
-				flash += beats[i].Exposure.Evaluate(age);
-				bloom += beats[i].Bloom.Evaluate(age);
+				// 임팩트 프레임 동안은 섬광을 미룸 (흑백과 실루엣이 하얗게 날아가 눈부심, 독립 검토 4건 공통). 프레임이 끝난 뒤부터 섬광 곡선 시작
+				float frameSeconds = beats[i].ImpactFrame == UltimateScreenFeel.ImpactFrameKind.None ? 0f : Mathf.Min(beats[i].ImpactFrameSeconds, ImpactFrameMaxSeconds) * ComfortImpactFrame;
+				float flashAge = age - frameSeconds;
+				if (flashAge >= 0f)
+				{
+					flash += beats[i].Exposure.Evaluate(flashAge);
+					bloom += beats[i].Bloom.Evaluate(flashAge);
+				}
 				saturation += beats[i].Saturation.Evaluate(age);
 				contrast += beats[i].Contrast.Evaluate(age);
 				chromatic += beats[i].Chromatic.Evaluate(age);

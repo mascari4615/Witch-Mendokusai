@@ -137,7 +137,7 @@ namespace WitchMendokusai
 		};
 		[SerializeField] private Swell[] swells = Array.Empty<Swell>();
 		[SerializeField] private Beat[] beats = Array.Empty<Beat>();
-		[SerializeField, Min(0f), Tooltip("방사 흐림 표본 거리 상한 (화면 비율)")] private float radialBlurReach = 0.12f;
+		[SerializeField, Min(0f), Tooltip("방사 흐림 표본 거리 상한 (화면 비율)")] private float radialBlurReach = 0.07f;
 		[SerializeField, Min(0.001f), Tooltip("굴절 고리 띠 폭 (화면 높이 비율)")] private float rippleWidth = 0.06f;
 		[SerializeField, Range(0f, 0.5f), Tooltip("렌즈 왜곡 세기 1 당 확대 보정 (가장자리 빈 곳 방지)")] private float lensScaleCompensation = 0.18f;
 		[SerializeField, Tooltip("표적의 화면 위쪽 거리 (시전자 기준). 화면 왜곡 중심과 카메라 기준점")] private float targetForward = 2.8f;
