@@ -29,29 +29,30 @@ namespace WitchMendokusai
 
 		[Header("원진")]
 		[SerializeField, Min(1)] private int ringCount = 36;
-		[SerializeField, Min(0.5f)] private float ringRadius = 2.6f;
-		[SerializeField, Min(0f), Tooltip("원진 중심 높이 (시전자 발 기준)")] private float ringHeight = 3.4f;
-		[SerializeField, Tooltip("원진 중심의 화면 위쪽 거리 (시전자 기준)")] private float ringForward = 0.8f;
+		[SerializeField, Min(0.5f)] private float ringRadius = 2.2f;
+		[SerializeField, Min(0f), Tooltip("원진 중심 높이 (시전자 발 기준)")] private float ringHeight = 2.5f;
+		[SerializeField, Tooltip("원진 중심의 화면 위쪽 거리 (시전자 기준)")] private float ringForward = 0.2f;
 		[SerializeField, Range(0f, 90f), Tooltip("원 면이 수평에서 카메라 쪽으로 기우는 각도")] private float ringTilt = 38f;
 		[SerializeField, Tooltip("공전 속도 (도/초). m03 실측 140")] private float orbitSpeed = 140f;
 		[SerializeField, Tooltip("카드 자전 속도 (도/초)")] private float spinSpeed = 260f;
 		[SerializeField, Min(0.05f)] private float joinSeconds = 0.3f;
-		[SerializeField, Min(0f), Tooltip("해 반사 각도에서 번쩍이는 세기")] private float glintGain = 5f;
+		[SerializeField, Min(0f), Tooltip("해 반사 각도에서 번쩍이는 세기")] private float glintGain = 2.5f;
 		[SerializeField, Range(1f, 256f), Tooltip("번쩍임이 맞는 각도 폭 (클수록 좁음)")] private float glintSharpness = 40f;
 
 		[Header("연사와 거대 카드")]
 		[SerializeField, Tooltip("표적 둘레 꽂히는 반지름 범위")] private Vector2 volleyRadius = new(0.9f, 3.4f);
 		[SerializeField, Min(0.05f)] private float volleyFlightSeconds = 0.17f;
 		[SerializeField, Range(0f, 80f)] private float volleyPitch = 48f;
-		[SerializeField, Min(1f), Tooltip("거대 카드 배율. 높이 약 7")] private float giantScale = 7f;
+		[SerializeField, Min(1f), Tooltip("거대 카드 배율. 높이 약 7")] private float giantScale = 4.8f;
 		[SerializeField, Min(2f)] private float giantDropHeight = 12f;
 		[SerializeField, Tooltip("떨어지며 도는 바퀴 수")] private float giantSpinTurns = 2.25f;
 		[SerializeField, Range(0f, 0.5f), Tooltip("박히는 깊이 (높이 비율)")] private float giantSink = 0.2f;
-		[SerializeField, Range(-60f, 60f), Tooltip("선 거대 카드가 카메라 정면에서 돌아간 각도. 0 이면 얇은 판으로만 읽힘")] private float giantYaw = 14f;
+		[SerializeField, Range(-60f, 60f), Tooltip("선 거대 카드가 카메라 정면에서 돌아간 각도. 0 이면 얇은 판으로만 읽힘")] private float giantYaw = 26f;
 		[SerializeField, Min(0)] private int snowCount = 120;
 		[SerializeField, Min(0f)] private float snowSpeed = 5f;
-		[SerializeField, Range(0f, 1f)] private float snowGravity = 0.28f;
+		[SerializeField, Range(0f, 1f)] private float snowGravity = 0.6f;
 		[SerializeField, Min(0.1f)] private float snowScale = 0.95f;
+		[SerializeField, Tooltip("카드 눈 바탕색 보정")] private Color snowTint = new(1f, 0.86f, 0.74f, 1f);
 
 		[Header("시간 (초)")]
 		[SerializeField, Min(0.2f), Tooltip("m03 고리 형성 1.8s")] private float ringSeconds = 1.8f;
@@ -60,16 +61,18 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.05f), Tooltip("거대 카드가 화면 위에서 땅까지")] private float giantFallSeconds = 0.26f;
 		[SerializeField, Min(0.05f)] private float trembleSeconds = 0.4f;
 		[SerializeField, Min(0.1f), Tooltip("m03 종이눈 1.8s")] private float snowSeconds = 1.8f;
-		[SerializeField, Min(0f), Tooltip("눈이 쌓여 남는 시간")] private float restSeconds = 1.2f;
+		[SerializeField, Min(0f), Tooltip("눈이 쌓여 남는 시간")] private float restSeconds = 0.8f;
 		[SerializeField, Min(0.1f)] private float restoreSeconds = 1.2f;
 
 		[Header("빛")]
 		[SerializeField] private Color ringLightColor = new(0.75f, 0.45f, 1f, 1f);
 		[SerializeField, Min(0f)] private float ringLightIntensity = 9f;
 		[SerializeField, Min(1f)] private float ringLightRange = 7f;
-		[SerializeField, Min(0f)] private float spotIntensity = 34f;
+		[SerializeField, Min(0f)] private float spotIntensity = 50f;
 		[SerializeField, Range(5f, 90f), Tooltip("설계 34도")] private float spotAngle = 34f;
 		[SerializeField, Min(2f)] private float spotHeight = 11f;
+		[SerializeField, Min(0f), Tooltip("스포트를 카메라 쪽으로 빼는 거리. 위에서 바로 비추면 세운 거대 카드 앞면이 빛을 못 받아 회색 판으로 읽힘")] private float spotFront = 4.5f;
+		[SerializeField, Min(0f), Tooltip("스포트가 겨누는 높이 (거대 카드 가운데)")] private float spotAimHeight = 2.4f;
 		[SerializeField, Min(0.05f)] private float spotHalfLife = 0.9f;
 		[SerializeField, Range(0f, 1f)] private float sunDim = 0.45f;
 		[SerializeField, Range(0f, 1f)] private float ambientDim = 0.55f;
@@ -257,8 +260,10 @@ namespace WitchMendokusai
 			Light spot = WorldLight(stage, "StageSpot", LightType.Spot, LightColor, spotHeight + 4f);
 			spot.spotAngle = spotAngle;
 			spot.innerSpotAngle = spotAngle * 0.7f;
-			spot.transform.position = target + Vector3.up * spotHeight;
-			spot.transform.rotation = Quaternion.LookRotation(Vector3.down);
+			Vector3 spotPosition = target + Vector3.up * spotHeight + stage.ToCamera * spotFront;
+			Vector3 spotAxis = (target + Vector3.up * spotAimHeight - spotPosition).normalized;
+			spot.transform.position = spotPosition;
+			spot.transform.rotation = Quaternion.LookRotation(spotAxis);
 			float spotStart = LandTime - telegraphSeconds;
 			run.Track(spotStart, RestoreStart + restoreSeconds - spotStart, _ =>
 			{
@@ -279,9 +284,10 @@ namespace WitchMendokusai
 				float time = spotStart + i / (float)coneDustCount * telegraphSeconds * 2f;
 				run.At(time, () =>
 				{
-					float drop = Random.Range(0.5f, spotHeight - 1f);
-					Vector3 offset = UltimateFxStage.RandomRingPoint(0f, drop * coneSlope * 0.85f);
-					Vector3 position = target + Vector3.up * (spotHeight - drop) + offset;
+					// 스포트 축을 따라 원뿔 안 한 점
+					float along = Random.Range(1f, spotHeight - 0.5f);
+					Vector3 side = Vector3.Cross(spotAxis, Random.onUnitSphere).normalized;
+					Vector3 position = spotPosition + spotAxis * along + side * Random.Range(0f, along * coneSlope * 0.85f);
 					UltimateFxStage.Emit(coneDust, position, Vector3.down * Random.Range(0.05f, 0.25f), Random.Range(0.05f, 0.12f), Random.Range(2.2f, 3.2f), new Color(1f, 0.95f, 0.85f, 0.9f));
 				});
 			}
@@ -329,7 +335,10 @@ namespace WitchMendokusai
 			UltimateFxRun run = stage.Run;
 			float height = 0.88f * CardScale * giantScale;
 			float width = 0.63f * CardScale * giantScale;
-			ParticleSystem snow = CardBits(run, mesh, CardMaterial(run), snowCount, snowGravity, true);
+			Material snowMaterial = CardMaterial(run);
+			// 바닥에 누운 카드는 하늘 환경광 (파랑) 을 위에서 받아 청록으로 변색. 바탕색을 따뜻하게 보정
+			snowMaterial.SetColor(BASE_COLOR_ID, snowTint);
+			ParticleSystem snow = CardBits(run, mesh, snowMaterial, snowCount, snowGravity, true);
 			UltimateFxStage.SetLifetimeLook(snow, null, new AnimationCurve(new Keyframe(0f, 1f), new Keyframe(0.9f, 1f), new Keyframe(1f, 0f)));
 			ParticleSystem.CollisionModule collision = snow.collision;
 			collision.bounce = 0f;
@@ -344,7 +353,8 @@ namespace WitchMendokusai
 				{
 					Vector3 local = new(Random.Range(-0.5f, 0.5f) * width, Random.Range(-0.5f, 0.5f) * height, 0f);
 					Vector3 origin = giant.position + giant.rotation * local;
-					Vector3 velocity = (origin - (giant.position - Vector3.up * height * 0.3f)).normalized * snowSpeed * Random.Range(0.3f, 1f) + Vector3.up * Random.Range(1f, 3f);
+					// 카드 면 안 방향만이면 거대 카드 발자국 선을 따라 한 줄로 쌓임 (v10 촬영). 면 앞뒤로도 흩뿌림
+					Vector3 velocity = (origin - (giant.position - Vector3.up * height * 0.3f)).normalized * snowSpeed * Random.Range(0.3f, 1f) + giant.forward * snowSpeed * Random.Range(-0.9f, 0.9f) + Vector3.up * Random.Range(1f, 3f);
 					EmitMesh(snow, origin, velocity, CardScale * snowScale * Random.Range(0.8f, 1.1f), snowLife * Random.Range(0.92f, 1f), Color.white, Random.insideUnitSphere * 180f, Random.insideUnitSphere * 420f);
 				}
 				GoldSparks(run, giant.position, impactSparks, 6f);

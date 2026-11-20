@@ -23,13 +23,15 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("날며 도는 바퀴 수")] private float flightSpin = 2f;
 		[SerializeField, Range(0f, 80f), Tooltip("꽂힌 카드가 진행 방향으로 눕는 각도")] private float stuckPitch = 38f;
 		[SerializeField, Range(0f, 0.6f), Tooltip("땅에 묻히는 깊이 (카드 높이 비율)")] private float sinkRatio = 0.25f;
+		[SerializeField, Min(0.2f), Tooltip("던지는 카드 배율. 쿼터뷰 거리에서 카드로 읽히는 크기")] private float thrownScale = 1.5f;
 
 		[Header("시간 (초)")]
 		[SerializeField, Min(0.1f), Tooltip("터지는 시각")] private float burstTime = 0.62f;
 		[SerializeField, Min(0.05f)] private float burstSeconds = 0.2f;
 
 		[Header("빛과 입자")]
-		[SerializeField, Min(0f)] private float lightIntensity = 6f;
+		[SerializeField, Min(0f)] private float lightIntensity = 2f;
+		[SerializeField, Range(0f, 1f), Tooltip("던진 카드 금 테두리 발광 배율")] private float glowScale = 0.3f;
 		[SerializeField, Min(1f)] private float lightRange = 5f;
 		[SerializeField, Min(0f)] private float burstLightBoost = 1.8f;
 		[SerializeField, Min(0f)] private float bloom = 0.6f;
@@ -45,12 +47,12 @@ namespace WitchMendokusai
 		{
 			UltimateFxRun run = stage.Run;
 			Mesh mesh = CardMesh(run);
-			Material material = CardMaterial(run);
+			Material material = CardMaterial(run, glowScale);
 			Vector3 forward = stage.Target - run.Caster;
 			forward.y = 0f;
 			forward = forward.sqrMagnitude > 0.0001f ? forward.normalized : run.ScreenForward;
 			Vector3 hand = run.Caster + Vector3.up * handHeight + forward * 0.3f;
-			float cardHeight = 0.88f * CardScale;
+			float cardHeight = 0.88f * CardScale * thrownScale;
 
 			Texture2D crack = CrackTexture(run, 0);
 			List<Transform> cards = new();
@@ -66,7 +68,7 @@ namespace WitchMendokusai
 				Quaternion stuck = StuckRotation(direction, stuckPitch, Random.Range(-8f, 8f));
 				// 꽂힌 자세에서 카드 아래 끝이 sinkRatio 만큼 땅속
 				Vector3 planted = landing + stuck * Vector3.up * cardHeight * (0.5f - sinkRatio);
-				Transform card = CardObject(run, mesh, material, 1f, true);
+				Transform card = CardObject(run, mesh, material, thrownScale, true);
 				card.gameObject.SetActive(false);
 				cards.Add(card);
 				landings.Add(landing);
@@ -98,7 +100,7 @@ namespace WitchMendokusai
 				Vector3 sum = Vector3.zero;
 				foreach (Transform card in cards)
 					sum += card.position;
-				bundle.transform.position = sum / Mathf.Max(1, cards.Count) + Vector3.up * 0.5f;
+				bundle.transform.position = sum / Mathf.Max(1, cards.Count) + Vector3.up * 1.2f;
 				float now = run.Now;
 				float glow = Mathf.Clamp01(now / 0.06f) * 0.6f + burstLightBoost * Spike(now, burstTime, 0.03f, 0.1f);
 				bundle.intensity = lightIntensity * glow * (1f - UltimateFxRun.Span(now, burstTime + 0.15f, DurationSeconds));

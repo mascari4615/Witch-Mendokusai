@@ -12,8 +12,8 @@ namespace WitchMendokusai
 	public sealed class MoonLightUltimateFx : MoonWorldFx
 	{
 		[Header("달")]
-		[SerializeField, Min(0.2f), Tooltip("설계 지름 1.6")] private float diameter = 1.6f;
-		[SerializeField, Min(0.5f)] private float hoverHeight = 2.5f;
+		[SerializeField, Min(0.2f), Tooltip("설계 지름 1.6")] private float diameter = 2.4f;
+		[SerializeField, Min(0.5f)] private float hoverHeight = 2.2f;
 		[SerializeField, Min(0f), Tooltip("두 반쪽이 떨어지는 옆 거리")] private float fallSpread = 1.1f;
 		[SerializeField, Tooltip("떨어지며 도는 각도")] private float fallSpin = 160f;
 
@@ -24,10 +24,11 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.05f)] private float shatterSeconds = 0.25f;
 
 		[Header("빛과 입자")]
-		[SerializeField, Min(0f)] private float sectionIntensity = 12f;
+		[SerializeField, Min(0f)] private float sectionIntensity = 6f;
 		[SerializeField, Min(1f)] private float sectionRange = 6f;
 		[SerializeField, Min(0.05f)] private float sectionHalfLife = 0.25f;
 		[SerializeField, Min(0f)] private float bloom = 0.8f;
+		[SerializeField, Range(0f, 1f), Tooltip("단면 발광 배율. 작은 달이라 강한 판 값 그대로면 흰 덩어리로 읽힘")] private float capGlowScale = 0.4f;
 		[SerializeField, Min(0)] private int slashCount = 18;
 		[SerializeField, Min(0)] private int grainCount = 30;
 		[SerializeField, Min(0)] private int fragmentsPerHalf = 8;
@@ -69,7 +70,7 @@ namespace WitchMendokusai
 				section.intensity = sectionIntensity * (Spike(run.Now, CutTime, 0.04f, sectionHalfLife) + 0.7f * Spike(run.Now, LandTime, 0.03f, 0.12f));
 				section.transform.position = Vector3.Lerp(center - Vector3.up * 0.4f, stage.Target + Vector3.up * 0.5f, UltimateFxRun.Span(run.Now, FallStart, LandTime));
 			}, () => section.enabled = false);
-			run.Track(CutTime, DurationSeconds - CutTime, _ => moon.Cap.SetColor(EMISSION_ID, CapGlow * (0.3f + 0.7f * Spike(run.Now, CutTime, 0.03f, 0.2f))));
+			run.Track(CutTime, DurationSeconds - CutTime, _ => moon.Cap.SetColor(EMISSION_ID, CapGlow * capGlowScale * (0.3f + 0.7f * Spike(run.Now, CutTime, 0.03f, 0.2f))));
 			run.At(CutTime, () => run.Shake(shakeStrength * 0.6f));
 
 			// 두 반쪽이 단면 양쪽으로 벌어지며 표적 양옆 땅에 떨어짐

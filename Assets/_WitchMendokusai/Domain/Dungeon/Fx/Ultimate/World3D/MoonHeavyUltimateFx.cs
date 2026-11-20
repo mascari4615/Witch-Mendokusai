@@ -15,13 +15,13 @@ namespace WitchMendokusai
 	public sealed class MoonHeavyUltimateFx : MoonWorldFx
 	{
 		[Header("달")]
-		[SerializeField, Min(1f), Tooltip("설계 지름 6 (인물 약 7.5배)")] private float diameter = 6f;
-		[SerializeField, Min(0f), Tooltip("표적에서 화면 위쪽으로 달까지")] private float behindDistance = 6.5f;
-		[SerializeField, Tooltip("떠오르는 중심 높이 (시작, 끝). 꼭대기가 시야 위쪽 7.5 안")] private Vector2 riseHeight = new(1.5f, 4.2f);
+		[SerializeField, Min(1f), Tooltip("설계 지름 6. 쿼터뷰 화면 위 끝 (높이 약 7.5) 안에 들게 5")] private float diameter = 4.4f;
+		[SerializeField, Min(0f), Tooltip("표적에서 화면 위쪽으로 달까지. 멀면 화면 위로 잘림 (v8 촬영)")] private float behindDistance = 1f;
+		[SerializeField, Tooltip("떠오르는 중심 높이 (시작, 끝). 꼭대기가 시야 위쪽 7.5 안")] private Vector2 riseHeight = new(0.8f, 2.3f);
 		[SerializeField, Tooltip("떠오르며 커지는 배율 (시작, 끝)")] private Vector2 riseScale = new(0.6f, 1f);
 		[SerializeField, Tooltip("천천히 도는 속도 (도/초). 구덩이 음영이 움직여 구로 읽힘")] private float idleSpin = 7f;
-		[SerializeField, Min(0f), Tooltip("두 반쪽이 단면을 따라 미끄러지는 거리 (반지름 1 기준)")] private float slideDistance = 0.32f;
-		[SerializeField, Min(0f), Tooltip("두 반쪽이 단면 바깥으로 벌어지는 거리 (반지름 1 기준)")] private float splitDistance = 0.12f;
+		[SerializeField, Min(0f), Tooltip("두 반쪽이 단면을 따라 미끄러지는 거리 (반지름 1 기준)")] private float slideDistance = 0.18f;
+		[SerializeField, Min(0f), Tooltip("두 반쪽이 단면 바깥으로 벌어지는 거리 (반지름 1 기준)")] private float splitDistance = 0.32f;
 		[SerializeField, Tooltip("벌어지며 도는 각도")] private float splitRoll = 4f;
 
 		[Header("시간 (초)")]
@@ -35,12 +35,12 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.1f)] private float restoreSeconds = 1.4f;
 
 		[Header("빛")]
-		[SerializeField, Min(0f)] private float moonLightIntensity = 9f;
+		[SerializeField, Min(0f)] private float moonLightIntensity = 6f;
 		[SerializeField, Min(0f), Tooltip("단면 점광이 켜진 뒤 달빛 세기")] private float moonLightAfterCut = 4f;
 		[SerializeField, Min(1f)] private float moonLightRange = 24f;
-		[SerializeField, Tooltip("달빛 점광 자리 (달 기준: 화면 오른쪽, 위, 카메라 쪽). 옆에서 비춰 위상 경계가 생기게")] private Vector3 moonLightOffset = new(-5.5f, 1.5f, 2f);
+		[SerializeField, Tooltip("달빛 점광 자리 (달 기준: 화면 오른쪽, 위, 카메라 쪽). 옆에서 비춰 위상 경계가 생기게")] private Vector3 moonLightOffset = new(-5f, 3.5f, 2.5f);
 		[SerializeField, Min(0f)] private float sectionIntensity = 30f;
-		[SerializeField, Min(1f)] private float sectionRange = 14f;
+		[SerializeField, Min(1f)] private float sectionRange = 16f;
 		[SerializeField, Min(0.05f), Tooltip("실측 반감 0.5~1.8s")] private float sectionHalfLife = 0.7f;
 		[SerializeField, Range(0f, 1f)] private float sunDim = 0.4f;
 		[SerializeField, Range(0f, 1f)] private float ambientDim = 0.55f;
@@ -50,7 +50,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float flashExposure = 1.2f;
 		[SerializeField, Min(0f)] private float secondFlashExposure = 0.8f;
 		[SerializeField, Range(-100f, 100f)] private float monoContrast = 50f;
-		[SerializeField, Min(0f)] private float bloomRise = 0.8f;
+		[SerializeField, Min(0f)] private float bloomRise = 0.5f;
 		[SerializeField, Min(0f)] private float bloomCut = 1.8f;
 		[SerializeField, Range(0f, 1f)] private float vignette = 0.3f;
 		[SerializeField, Range(1f, 1.6f), Tooltip("달 전체가 들어오게 물러나는 배율")] private float pullBack = 1.25f;
@@ -58,19 +58,20 @@ namespace WitchMendokusai
 		[SerializeField, Min(1)] private int shakeCount = 4;
 
 		[Header("빛줄기와 조각")]
-		[SerializeField, Min(0.1f)] private float shaftRadius = 1.1f;
-		[SerializeField, ColorUsage(true, true)] private Color shaftColor = new(0.55f, 0.65f, 0.9f, 1f);
+		[SerializeField, Min(0.1f)] private float shaftRadius = 1.4f;
+		[SerializeField, ColorUsage(true, true)] private Color shaftColor = new(0.8f, 0.9f, 1.25f, 1f);
 		[SerializeField, Min(0.05f)] private float shaftGrowSeconds = 0.15f;
 		[SerializeField, Min(0)] private int grainCount = 120;
 		[SerializeField, Min(0)] private int shaftDustCount = 50;
 		[SerializeField, Min(0)] private int slashCount = 60;
 		[SerializeField, Min(0)] private int smallFragmentCount = 12;
 		[SerializeField, Min(0)] private int bigFragmentCount = 3;
-		[SerializeField, Tooltip("큰 조각 크기 범위")] private Vector2 bigFragmentSize = new(0.9f, 1.3f);
+		[SerializeField, Tooltip("큰 조각 크기 범위")] private Vector2 bigFragmentSize = new(1.3f, 1.9f);
 		[SerializeField, Min(0.1f)] private float bigFragmentFallSeconds = 0.55f;
 		[SerializeField, Min(0.2f), Tooltip("큰 조각이 떨어지는 표적 둘레 반지름")] private float bigFragmentSpread = 2.6f;
-		[SerializeField, Min(0.2f)] private float craterSize = 3f;
+		[SerializeField, Min(0.2f)] private float craterSize = 3.4f;
 		[SerializeField, Min(1f)] private float windSpeed = 12f;
+		[SerializeField, Min(0), Tooltip("절단 순간 단면에서 사방으로 튀는 빛 줄 수 (정점)")] private int cutBurstCount = 90;
 
 		private float SlashTime => riseSeconds + holdSeconds;
 		private float CutTime => SlashTime + cutDelay;
@@ -185,6 +186,7 @@ namespace WitchMendokusai
 			});
 			run.At(CutTime, () =>
 			{
+				run.SparkBurst(center, cutBurstCount, new Vector2(8f, 22f), new Vector2(0.25f, 0.6f), new Vector2(0.12f, 0.3f), GrainColor, Color.white, 0.6f);
 				run.ShakeSeries(run.Now, shakeCount, 0.08f, shakeStrength, 0.7f);
 				run.React(stage.Target, windSpeed, 10f, false);
 			});

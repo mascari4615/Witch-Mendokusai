@@ -28,8 +28,8 @@ namespace WitchMendokusai
 		[SerializeField, Min(8)] private int surfaceRings = 40;
 		[SerializeField, Min(16)] private int surfaceSegments = 96;
 		[SerializeField, Min(0f), Tooltip("구덩이 깊이 배율")] private float craterDepth = 0.55f;
-		[SerializeField] private Color surfaceColor = new(0.86f, 0.88f, 0.95f, 1f);
-		[SerializeField, ColorUsage(false, true)] private Color surfaceRim = new(0.25f, 0.4f, 0.7f);
+		[SerializeField] private Color surfaceColor = new(0.6f, 0.61f, 0.66f, 1f);
+		[SerializeField, ColorUsage(false, true)] private Color surfaceRim = new(0.12f, 0.2f, 0.4f);
 		[SerializeField, Range(0f, 1f)] private float surfaceSpecular = 0.08f;
 		[SerializeField, ColorUsage(false, true)] private Color capGlow = new(3.2f, 3.6f, 4.4f);
 		[SerializeField, Range(0f, 90f), Tooltip("단면이 화면 가로에서 기운 각도")] private float cutAngle = 35f;

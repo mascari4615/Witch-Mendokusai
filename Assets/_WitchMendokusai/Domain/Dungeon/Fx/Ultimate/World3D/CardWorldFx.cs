@@ -16,8 +16,8 @@ namespace WitchMendokusai
 		[SerializeField] private Color pipTone = new(0.85f, 0.12f, 0.2f, 1f);
 		[SerializeField] private Color backTone = new(0.32f, 0.08f, 0.3f, 1f);
 		[SerializeField] private Color goldTone = new(1f, 0.78f, 0.36f, 1f);
-		[SerializeField, ColorUsage(false, true)] private Color goldGlow = new(1.3f, 0.85f, 0.3f);
-		[SerializeField, ColorUsage(false, true)] private Color cardRim = new(0.6f, 0.45f, 0.75f);
+		[SerializeField, ColorUsage(false, true)] private Color goldGlow = new(0.6f, 0.4f, 0.12f);
+		[SerializeField, ColorUsage(false, true)] private Color cardRim = new(0.25f, 0.18f, 0.3f);
 		[SerializeField, Range(0f, 1f)] private float cardSpecular = 1f;
 		[SerializeField, Range(1f, 128f)] private float cardSmoothness = 24f;
 		[SerializeField, Tooltip("앞면 재질 교체 자리. 비우면 코드 무늬 (꼭짓점 색). 하위 메시 구분이 없어 카드 전체에 씀")] private Material faceMaterial;
@@ -40,7 +40,10 @@ namespace WitchMendokusai
 
 		protected Mesh CardMesh(UltimateFxRun run) => Keep(run, UltimateMeshFactory.Card(faceTone, pipTone, backTone, goldTone));
 
-		protected Material CardMaterial(UltimateFxRun run)
+		protected Material CardMaterial(UltimateFxRun run) => CardMaterial(run, 1f);
+
+		/// <summary> glowScale: 금 테두리 발광 배율. 해 아래 작은 카드는 낮춰야 흰 덩어리로 뭉개지지 않음 </summary>
+		protected Material CardMaterial(UltimateFxRun run, float glowScale)
 		{
 			if (faceMaterial != null)
 			{
@@ -48,7 +51,7 @@ namespace WitchMendokusai
 				run.OnRelease(() => Object.Destroy(replaced));
 				return replaced;
 			}
-			Material material = Glow(run, Color.white, goldGlow, cardRim, true);
+			Material material = Glow(run, Color.white, goldGlow * glowScale, cardRim, true);
 			material.SetFloat(SPECULAR_ID, cardSpecular);
 			material.SetFloat(SMOOTHNESS_ID, cardSmoothness);
 			material.SetFloat(RIM_POWER_ID, 3f);

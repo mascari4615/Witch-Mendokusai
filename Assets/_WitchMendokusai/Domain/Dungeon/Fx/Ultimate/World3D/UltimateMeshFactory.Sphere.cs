@@ -58,23 +58,43 @@ namespace WitchMendokusai
 				shell.Add(lowerLeft);
 			}
 
-			// 단면 뚜껑: 테두리 고리 점을 복제해 법선을 따로. 가운데 점은 평면 위
+			// 단면 뚜껑: 테두리 고리 점을 복제해 법선을 따로. 가운데가 가장 밝고 바깥으로 어두워지는 고리 여럿, 고리마다 밝기 얼룩 (평평한 흰 판으로 읽히지 않게)
+			const int CAP_RINGS = 6;
+			System.Random capRandom = new(seed * 7 + (positiveSide ? 1 : 2));
 			int capCenter = vertices.Count;
 			vertices.Add(Vector3.zero);
 			colors.Add(new Color(1f, 1f, 1f, 1f));
 			int capStart = vertices.Count;
-			for (int segment = 0; segment < segments; segment++)
+			for (int capRing = 1; capRing <= CAP_RINGS; capRing++)
 			{
-				Vector3 rim = vertices[RingIndex(rings, segment)];
-				// 표면 요철이 테두리를 들쭉날쭉하게 해도 뚜껑은 평면에
-				vertices.Add(rim - pole * Vector3.Dot(rim, pole));
-				colors.Add(new Color(1f, 1f, 1f, 0.6f));
+				float fraction = capRing / (float)CAP_RINGS;
+				for (int segment = 0; segment < segments; segment++)
+				{
+					Vector3 rim = vertices[RingIndex(rings, segment)];
+					// 표면 요철이 테두리를 들쭉날쭉하게 해도 뚜껑은 평면에
+					Vector3 flat = rim - pole * Vector3.Dot(rim, pole);
+					vertices.Add(flat * fraction);
+					float glow = Mathf.Pow(1f - fraction, 1.4f) * (0.6f + 0.4f * (float)capRandom.NextDouble()) + 0.12f;
+					float shade = Mathf.Lerp(1f, 0.55f, fraction);
+					colors.Add(new Color(shade, shade, Mathf.Min(1f, shade * 1.15f), glow));
+				}
 			}
+			int CapIndex(int capRing, int segment) => capStart + (capRing - 1) * segments + (segment % segments);
 			for (int segment = 0; segment < segments; segment++)
 			{
 				cap.Add(capCenter);
-				cap.Add(capStart + segment);
-				cap.Add(capStart + (segment + 1) % segments);
+				cap.Add(CapIndex(1, segment));
+				cap.Add(CapIndex(1, segment + 1));
+			}
+			for (int capRing = 1; capRing < CAP_RINGS; capRing++)
+			for (int segment = 0; segment < segments; segment++)
+			{
+				cap.Add(CapIndex(capRing, segment));
+				cap.Add(CapIndex(capRing + 1, segment));
+				cap.Add(CapIndex(capRing, segment + 1));
+				cap.Add(CapIndex(capRing, segment + 1));
+				cap.Add(CapIndex(capRing + 1, segment));
+				cap.Add(CapIndex(capRing + 1, segment + 1));
 			}
 
 			OrientTriangles(vertices, shell, centroid => centroid);
@@ -88,9 +108,8 @@ namespace WitchMendokusai
 			mesh.RecalculateNormals();
 			// 뚜껑 법선은 평면 바깥쪽 (반쪽의 반대 방향) 으로 고정
 			Vector3[] normals = mesh.normals;
-			normals[capCenter] = -pole;
-			for (int segment = 0; segment < segments; segment++)
-				normals[capStart + segment] = -pole;
+			for (int index = capCenter; index < normals.Length; index++)
+				normals[index] = -pole;
 			mesh.normals = normals;
 			mesh.RecalculateBounds();
 			return mesh;
