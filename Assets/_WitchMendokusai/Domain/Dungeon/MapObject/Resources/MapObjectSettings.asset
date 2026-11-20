@@ -25,7 +25,7 @@ MonoBehaviour:
   <RouteSampleSpacing>k__BackingField: 0.2
   <RouteMaxSamples>k__BackingField: 128
   <RouteGroundDeviation>k__BackingField: 0.2
-  <MarkerMaterial>k__BackingField: {fileID: 2100000, guid: 17a292e140f145cbac0811f94ade3aff, type: 2}
+  <MarkerMaterial>k__BackingField: {fileID: 2100000, guid: 4f6b547898f8475d96e593174a241bc7, type: 2}
   <RingSegments>k__BackingField: 32
   <FallbackElite>k__BackingField:
     <HealthMultiplier>k__BackingField: 12

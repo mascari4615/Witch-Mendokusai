@@ -45,7 +45,8 @@ namespace WitchMendokusai
 		{
 			GameObject marker = new("Marker");
 			marker.transform.SetParent(owner.transform, false);
-			marker.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+			// 면 법선 (자식 Z) 이 위
+			marker.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
 			LineRenderer line = marker.AddComponent<LineRenderer>();
 			line.alignment = LineAlignment.TransformZ;
 			line.useWorldSpace = false;
