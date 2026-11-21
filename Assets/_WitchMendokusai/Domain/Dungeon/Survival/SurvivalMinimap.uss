@@ -49,11 +49,13 @@
     top: 100%;
     margin-top: 6px;
     padding: 0;
-    font-size: 15px;
+    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11-Bold.ttf");
+    font-size: 17px;
+    -unity-font-style: bold;
     color: rgb(255, 236, 160);
     -unity-text-align: middle-center;
-    -unity-text-outline-width: 1px;
-    -unity-text-outline-color: rgba(14, 10, 16, 0.9);
+    -unity-text-outline-width: 1.4px;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.95);
 }
 
 /* 내 위치: 가운데 흰 점과 어두운 테두리 */

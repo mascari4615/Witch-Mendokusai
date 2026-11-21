@@ -173,7 +173,7 @@ namespace WitchMendokusai.Tests
 			HashSet<MapObjectCategory> seen = new();
 			for (int seed = 0; seed < 40; seed++)
 			{
-				List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, seed, out _);
+				List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, seed, MapObjectPacing.None, out _);
 				Assert.AreEqual(1, plans.Count(plan => plan.Data.Category == MapObjectCategory.Info), $"시드 {seed} 스캐너");
 				Assert.AreEqual(1, plans.Count(plan => plan.Data.Category == MapObjectCategory.Challenge), $"시드 {seed} 도전");
 				foreach (MapObjectPlan plan in plans)
@@ -181,6 +181,52 @@ namespace WitchMendokusai.Tests
 			}
 			// 판마다 다른 조합이어도 40판 안에 2단계 분류가 전부 나옴
 			CollectionAssert.IsSubsetOf(new[] { MapObjectCategory.HoldZone, MapObjectCategory.Exchange, MapObjectCategory.Luck, MapObjectCategory.HealSpring }, seen);
+		}
+
+		[Test]
+		public void Slime_forest_pacing_spreads_spawns()
+		{
+			MapObjectBudget budget = AssetDatabase.LoadAssetAtPath<MapObjectBudget>(BUDGET_PATH);
+			MapObjectSettings settings = MapObjectSettings.Load();
+			Assert.Greater(settings.SpawnGapSeconds, 0f);
+			int total = 0;
+			for (int seed = 0; seed < 100; seed++)
+			{
+				List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, seed, settings.Pacing, out _);
+				total += plans.Count;
+				for (int i = 1; i < plans.Count; i++)
+					Assert.GreaterOrEqual(plans[i].SpawnTime - plans[i - 1].SpawnTime, settings.SpawnGapSeconds - 0.001f, $"시드 {seed} {i}번째 간격");
+				Assert.LessOrEqual(plans.Count(plan => plan.SpawnTime < settings.SpawnGapSeconds), 1, $"시드 {seed} 판 시작에 하나만");
+			}
+			Assert.LessOrEqual(total / 100f, 4f, "판당 평균 개수 (사용자 2026-11-21 '너무 자주 보임')");
+		}
+
+		[Test]
+		public void Pacing_avoids_same_kind_in_row()
+		{
+			MapObjectData first = MakeData(MapObjectCostType.None, 0f, MapObjectEffectType.SpawnChest, MapObjectEffectTiming.OnActivate, 0f, 0f);
+			MapObjectData second = MakeData(MapObjectCostType.None, 0f, MapObjectEffectType.SpawnChest, MapObjectEffectTiming.OnActivate, 0f, 0f);
+			foreach (MapObjectData data in new[] { first, second })
+			{
+				SerializedObject serialized = new(data);
+				serialized.FindProperty("<CountRange>k__BackingField").vector2IntValue = new Vector2Int(0, 10);
+				serialized.FindProperty("<PlacementCost>k__BackingField").intValue = 1;
+				serialized.ApplyModifiedPropertiesWithoutUndo();
+			}
+			MapObjectBudget budget = ScriptableObject.CreateInstance<MapObjectBudget>();
+			created.Add(budget);
+			SerializedObject budgetSerialized = new(budget);
+			budgetSerialized.FindProperty("<Credits>k__BackingField").intValue = 10;
+			SerializedProperty candidates = budgetSerialized.FindProperty("<Candidates>k__BackingField");
+			candidates.arraySize = 2;
+			candidates.GetArrayElementAtIndex(0).objectReferenceValue = first;
+			candidates.GetArrayElementAtIndex(1).objectReferenceValue = second;
+			budgetSerialized.ApplyModifiedPropertiesWithoutUndo();
+			List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, 5, new MapObjectPacing(0f, true), out _);
+			List<MapObjectPlan> byOrder = plans.OrderBy(plan => plan.Order).ToList();
+			Assert.AreEqual(10, byOrder.Count);
+			for (int i = 1; i < byOrder.Count; i++)
+				Assert.AreNotSame(byOrder[i - 1].Data, byOrder[i].Data, $"{i}번째 뽑기가 앞과 같음");
 		}
 
 		[Test]

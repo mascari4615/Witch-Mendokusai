@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a11485658234e7eb453e22901cb055b, type: 3}
   m_Name: MOB_SlimeForest
   m_EditorClassIdentifier: 
-  <Credits>k__BackingField: 35
+  <Credits>k__BackingField: 26
   <Candidates>k__BackingField:
   - {fileID: 11400000, guid: af44e521048f42f8b90eefa21a37d5ff, type: 2}
   - {fileID: 11400000, guid: a7ebf439eee34cf8a1166e6784f5f2c4, type: 2}

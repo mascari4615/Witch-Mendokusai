@@ -14,7 +14,8 @@ namespace WitchMendokusai
 		[field: SerializeField] public MapObjectCategory Category { get; private set; }
 
 		[field: Header("표시")]
-		[field: SerializeField, Tooltip("비우면 선 표식")] public GameObject Prefab { get; private set; }
+		[field: SerializeField, Tooltip("저폴리 외형 (제단, 기둥, 샘). 비우면 바닥 선 표식만")] public MapObjectModel Model { get; private set; }
+		[field: SerializeField, Tooltip("바닥 선 표식. 외형이 있으면 범위 표시 (머무름 원) 로만 켬")] public bool ShowMarker { get; private set; } = true;
 		[field: SerializeField] public MapObjectMarkerShape MarkerShape { get; private set; }
 		[field: SerializeField] public Color MarkerColor { get; private set; } = Color.yellow;
 		[field: SerializeField, Tooltip("표식 반경 (m). 0 이면 상호작용 거리"), Min(0f)] public float MarkerRadius { get; private set; }
@@ -91,8 +92,12 @@ namespace WitchMendokusai
 				else if (CostValue * MapObjectRules.CostMultiplier(CostGrowth, Uses - 1) >= 100f)
 					errors.Add($"{name}: 체력 비용이 {Uses} 번째 사용에서 100% 이상");
 			}
-			if (HasHold && Prefab != null)
-				errors.Add($"{name}: 머무름 진행 표시는 선 표식만 지원, {nameof(Prefab)} 비워야 함");
+			if (HasHold && ShowMarker == false)
+				errors.Add($"{name}: 머무름 진행 호는 선 표식에 그려서 {nameof(ShowMarker)} 를 켜야 함");
+			if (Model == null && ShowMarker == false)
+				errors.Add($"{name}: 외형도 선 표식도 없음");
+			if (Model != null)
+				Model.Validate(errors);
 			if (CountRange.x < 0 || CountRange.y < 1 || CountRange.x > CountRange.y)
 				errors.Add($"{name}: {nameof(CountRange)} 범위 오류 {CountRange}");
 			if (SpawnTime.x < 0f || SpawnTime.y < SpawnTime.x)

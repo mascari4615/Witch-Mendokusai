@@ -15,7 +15,8 @@ MonoBehaviour:
   <DisplayName>k__BackingField: 결계
   <Role>k__BackingField: 원 안에 머물면 상자
   <Category>k__BackingField: 2
-  <Prefab>k__BackingField: {fileID: 0}
+  <Model>k__BackingField: {fileID: 11400000, guid: ff77467acec040e59b666c12d3fe969a, type: 2}
+  <ShowMarker>k__BackingField: 1
   <MarkerShape>k__BackingField: 2
   <MarkerColor>k__BackingField: {r: 0.35, g: 0.85, b: 1, a: 1}
   <MarkerRadius>k__BackingField: 4

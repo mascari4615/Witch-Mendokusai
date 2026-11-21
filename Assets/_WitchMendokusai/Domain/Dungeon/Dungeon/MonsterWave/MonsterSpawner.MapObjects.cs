@@ -11,6 +11,7 @@ namespace WitchMendokusai
 		private readonly List<MapObjectPlan> mapObjectPlans = new();
 		private readonly List<MapObjectSite> mapObjectSites = new();
 		private readonly List<Vector3> mapObjectPositions = new();
+		private readonly List<Vector3> sameKindPositions = new();
 		private System.Random mapObjectRandom;
 		// 운 성소 굴림. 자리 고르기와 다른 갈래라 굴림 수가 배치를 바꾸지 않음
 		private System.Random mapObjectRollRandom;
@@ -37,7 +38,7 @@ namespace WitchMendokusai
 			mapObjectRollRandom = new System.Random(RunSeed.Derive(seedSalt + 2));
 			if (budget != null)
 			{
-				mapObjectPlans.AddRange(MapObjectPlanner.Plan(budget, RunSeed.Derive(budget.SeedSalt), out int remaining));
+				mapObjectPlans.AddRange(MapObjectPlanner.Plan(budget, RunSeed.Derive(budget.SeedSalt), MapObjectSettings.Load().Pacing, out int remaining));
 				Debug.Log($"[MapObject] 예산 {budget.Credits}, 남음 {remaining}, 계획 {mapObjectPlans.Count}개");
 			}
 			pendingMapObjectStart = StartCoroutine(StartMapObjectsAfterPhysics(mapObjectGeneration));
@@ -155,7 +156,11 @@ namespace WitchMendokusai
 			}
 			float radius = data.ResolveMarkerRadius(PlayerInteraction.InteractionDistance);
 			MapObjectProbe probe = (Vector3 candidate, out Vector3 ground) => ProbeMapObjectSite(candidate, playerGround, radius, data.RequireRoute, settings, out ground);
-			if (MapObjectPlanner.TryPickPosition(random, data, origin, mapObjectPositions, settings.PlacementAttempts, probe, out Vector3 position, out MapObjectPlacementTally tally) == false)
+			sameKindPositions.Clear();
+			foreach (MapObjectSite placed in mapObjectSites)
+				if (placed != null && placed.Data == data)
+					sameKindPositions.Add(placed.transform.position);
+			if (MapObjectPlanner.TryPickPosition(random, data, origin, mapObjectPositions, sameKindPositions, settings.SameKindSpacing, settings.PlacementAttempts, probe, out Vector3 position, out MapObjectPlacementTally tally) == false)
 			{
 				failure = tally.ToString();
 				return false;
@@ -197,9 +202,9 @@ namespace WitchMendokusai
 			MapObjectSite site = owner.AddComponent<MapObjectSite>();
 			site.Init(data, this, data.ResolveMarkerRadius(PlayerInteraction.InteractionDistance));
 			owner.AddComponent<InteractiveObject>();
-			if (data.Prefab != null)
-				Instantiate(data.Prefab, owner.transform, false);
-			else
+			if (data.Model != null)
+				MapObjectModelBuilder.Build(data.Model, owner.transform, settings);
+			if (data.ShowMarker)
 				site.BuildMarker(settings);
 			owner.SetActive(true);
 			if (mapObjectsRevealAll)
