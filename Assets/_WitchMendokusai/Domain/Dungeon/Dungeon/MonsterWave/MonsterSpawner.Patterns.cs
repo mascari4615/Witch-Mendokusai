@@ -34,6 +34,8 @@ namespace WitchMendokusai
 		public Vector3 PlayerPosition => playerProvider.Current.transform.position;
 		public Transform PlayerTransform => playerProvider.Current.transform;
 
+		public Vector3 PlayerMoveVelocity => SurvivalThreatRules.MoveVelocity(playerProvider.CurrentObject.UnitMovement);
+
 		private float ElapsedSeconds => (float)dungeonManager.Context.ElapsedTime.TotalSeconds;
 
 		private void OnEnable()

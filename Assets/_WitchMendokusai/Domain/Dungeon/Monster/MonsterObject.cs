@@ -54,6 +54,7 @@ namespace WitchMendokusai
 			if (UnitData.Type == MonsterType.Boss)
 				GroundGenerator.RegisterAnchor(UnitMovement);
 			SpriteRenderer.sharedMaterial = UnitData.Material;
+			SpriteRenderer.color = UnitData.Tint;
 			ObjectBufferManager.AddObject(ObjectType.Monster, gameObject);
 			hpBar.localScale = Vector3.one;
 			HpBarView.SetRatio(1f);
@@ -101,7 +102,8 @@ namespace WitchMendokusai
 			eliteGuaranteedChest = guaranteedChest;
 			ApplyEliteHealth();
 			Health.SetScaleMultiplier(profile.ScaleMultiplier);
-			SpriteRenderer.color = profile.Tint;
+			// 변종 색 위에 정예 색을 곱함. 정예 돌진, 정예 장판도 종류가 보이게
+			SpriteRenderer.color = UnitData.Tint * profile.Tint;
 			// 바 판은 지면에 눕혀져 있어 z가 두께
 			hpBar.localScale = new Vector3(profile.HpBarScale, 1f, profile.HpBarThickness);
 			HpBarView.SetRatio(1f);
@@ -124,7 +126,7 @@ namespace WitchMendokusai
 			eliteProfile = null;
 			eliteGuaranteedChest = false;
 			Health.SetScaleMultiplier(1f);
-			SpriteRenderer.color = Color.white;
+			SpriteRenderer.color = UnitData.Tint;
 			if (SurvivalFeel.Instance != null)
 				SurvivalFeel.Instance.UnregisterElite(this);
 		}

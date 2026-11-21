@@ -111,7 +111,7 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(9, MapObjectRules.HealthCost(20, 30f, 1.5f), "재사용 배율은 % 에 곱함");
 			Assert.IsTrue(MapObjectRules.CanPayHealth(7, 6));
 			Assert.IsFalse(MapObjectRules.CanPayHealth(6, 6), "체력 0 이 되는 지불은 불가");
-			Assert.AreEqual(8, MapObjectRules.HealAmount(20, 40f));
+			Assert.AreEqual(8, MapObjectRules.PercentOfMaxHealth(20, 40f));
 		}
 
 		[Test]
@@ -184,7 +184,7 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void Every_reward_preview_has_a_label()
+		public void Every_reward_preview_has_a_label_and_icon()
 		{
 			MapObjectSettings settings = MapObjectSettings.Load();
 			foreach (MapObjectData data in MapObjectSettings.LoadAllData())
@@ -193,6 +193,7 @@ namespace WitchMendokusai.Tests
 					continue;
 				Assert.IsTrue(settings.TryGetRewardPreview(data.RewardPreview, out MapObjectRewardPreviewStyle style), $"{data.name} {data.RewardPreview}");
 				Assert.IsNotEmpty(style.Label);
+				Assert.IsNotNull(style.Icon, $"{data.name} {data.RewardPreview} 아이콘");
 			}
 		}
 	}

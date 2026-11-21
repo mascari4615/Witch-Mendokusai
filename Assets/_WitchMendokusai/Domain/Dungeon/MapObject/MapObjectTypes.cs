@@ -156,7 +156,8 @@ namespace WitchMendokusai
 
 		public static bool CanPayHealth(int currentHp, int cost) => currentHp - cost >= 1;
 
-		public static int HealAmount(int maxHp, float percent) => Mathf.Max(1, Mathf.RoundToInt(maxHp * percent / 100f));
+		// 최대 체력의 % (반올림, 최소 1). 회복 샘 회복량, 경계 밖 피해
+		public static int PercentOfMaxHealth(int maxHp, float percent) => Mathf.Max(1, Mathf.RoundToInt(maxHp * percent / 100f));
 
 		// 꽝 굴림. roll 은 [0, 1)
 		public static bool RollSucceeds(float failPercent, double roll) => roll * 100.0 >= failPercent;

@@ -36,20 +36,25 @@ MonoBehaviour:
   <RewardPreviews>k__BackingField:
   - <Preview>k__BackingField: 1
     <Label>k__BackingField: 상자
+    <Icon>k__BackingField: {fileID: 21300000, guid: 5d805cc54a16205479379bb1d4772545, type: 3}
     <Color>k__BackingField: {r: 1, g: 0.84, b: 0.36, a: 1}
   - <Preview>k__BackingField: 2
     <Label>k__BackingField: 회복
+    <Icon>k__BackingField: {fileID: 21300000, guid: 66645eb5e68dbaf42b7dd5fff2fa0bca, type: 3}
     <Color>k__BackingField: {r: 0.55, g: 1, b: 0.7, a: 1}
   - <Preview>k__BackingField: 3
     <Label>k__BackingField: 운
+    <Icon>k__BackingField: {fileID: 21300000, guid: 1d82f068531c4a9c8356475edddf3f3c, type: 3}
     <Color>k__BackingField: {r: 0.72, g: 1, b: 0.45, a: 1}
   - <Preview>k__BackingField: 4
     <Label>k__BackingField: 정보
+    <Icon>k__BackingField: {fileID: 21300000, guid: 9dd58b05ac201334fb38de094708b62a, type: 3}
     <Color>k__BackingField: {r: 0.78, g: 0.82, b: 1, a: 1}
   <HealthCostFormat>k__BackingField: "체력 {0}"
   <NyangCostFormat>k__BackingField: "{0}냥 (보유 {1})"
   <RiskCostText>k__BackingField: 위험 수락
   <HoldProgressFormat>k__BackingField: "머무름 {0}/{1}초"
+  <RunNyangHudFormat>k__BackingField: "이번 판 {0}냥"
   <CostAffordableColor>k__BackingField: {r: 1, g: 0.92, b: 0.62, a: 1}
   <CostShortColor>k__BackingField: {r: 1, g: 0.42, b: 0.42, a: 1}
   <TextHeight>k__BackingField: 1.6

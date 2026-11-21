@@ -41,6 +41,21 @@
     bottom: 0;
 }
 
+/* 지도 아래 이번 판 냥 (맵 오브젝트 비용으로 쓰는 돈). 글자는 MapObjectSettings.RunNyangHudFormat */
+.wm-minimap__run-nyang {
+    position: absolute;
+    left: -20px;
+    right: -20px;
+    top: 100%;
+    margin-top: 6px;
+    padding: 0;
+    font-size: 15px;
+    color: rgb(255, 236, 160);
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgba(14, 10, 16, 0.9);
+}
+
 /* 내 위치: 가운데 흰 점과 어두운 테두리 */
 .wm-minimap__player {
     position: absolute;

@@ -21,6 +21,7 @@ namespace WitchMendokusai
 			}
 			if (WaveOptions.ClearOnFinalBossKill)
 				WaveOptions.ResolveFinalBoss(MonsterWaves);
+			ValidateThreat();
 		}
 	}
 }

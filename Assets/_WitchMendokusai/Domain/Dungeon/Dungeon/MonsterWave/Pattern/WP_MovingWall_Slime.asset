@@ -21,8 +21,11 @@ MonoBehaviour:
   <WaveCount>k__BackingField: 4
   <WaveInterval>k__BackingField: 0.8
   <StartDistance>k__BackingField: 14
-  <RandomDirection>k__BackingField: 0
+  <DirectionMode>k__BackingField: 1
   <DirectionDegrees>k__BackingField: 90
+  <LeadSeconds>k__BackingField: 0
   <BothSides>k__BackingField: 1
   <Lifetime>k__BackingField: 12
   <SpawnClass>k__BackingField: 1
+  <WarnSeconds>k__BackingField: 0
+  <WarnTelegraph>k__BackingField: {fileID: 0}

@@ -181,6 +181,7 @@ namespace WitchMendokusai
 		[Tooltip("화면 밖 정예, 보스, 특수 아이템 방향 표식 모양 (SurvivalOffscreenMarkers.uss)")] public UnityEngine.UIElements.StyleSheet OffscreenStyleSheet;
 		[Min(1), Tooltip("동시에 보이는 표식 상한. 보스, 가까운 정예, 가까운 특수 아이템 순")] public int OffscreenMaxMarkers = 8;
 		[Min(0f), Tooltip("표식 중심과 화면 가장자리 사이 여백 (UI px, 안전 영역 안쪽 기준)")] public float OffscreenEdgeMargin = 36f;
+		[Range(0f, 0.4f), Tooltip("아래 HUD (체력 막대, 스킬 칸, 냥) 띠 높이. 화면 높이 비율. 표식은 이 띠 위에서 멈춤")] public float OffscreenBottomReserve = 0.14f;
 		[Tooltip("대상이 가장자리에서 이 px 이상 안쪽이면 화면 안으로 보고 숨김. 음수면 화면 밖으로 조금 나가야 표시")] public float OffscreenOnScreenInset = 0f;
 		[Min(0f), Tooltip("이 거리 이하면 가장 크고 진함")] public float OffscreenNearDistance = 10f;
 		[Min(0f), Tooltip("이 거리 이상이면 가장 작고 흐림")] public float OffscreenFarDistance = 32f;

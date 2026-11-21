@@ -217,19 +217,24 @@ namespace WitchMendokusai
 				if (outcome.IsCritical)
 					damageInfo.type = DamageType.Critical;
 			}
-			else if (DungeonManager.TryGetExistingInstance(out DungeonManager dungeonManager) && dungeonManager.IsDungeon)
-			{
-				// 시간이 지날수록 적 피해 상승 (SurvivalRunRules), 그 위에 위협 배율
-				calcDamage += dungeonManager.RunRules.EnemyDamageBonus(dungeonManager.Context.ElapsedTime.TotalMinutes);
-				// 공격한 적의 피해 % (던전 제약 DC_2 등). 올림이라 작은 피해에도 체감
-				UnitObject attacker = damageInfo.damageSource as UnitObject;
-				if (attacker != null && attacker.UnitStat[UnitStatType.DAMAGE_BONUS] != 0)
-					calcDamage = Mathf.CeilToInt(calcDamage * (1f + attacker.UnitStat[UnitStatType.DAMAGE_BONUS] / 100f));
-				calcDamage = dungeonManager.CurThreat.ScaleEnemyDamage(calcDamage);
-			}
+			else
+				calcDamage = ScaleEnemyDamage(calcDamage, damageInfo.damageSource as UnitObject);
 
 			damageInfo.damage = calcDamage;
 			return damageInfo;
+		}
+
+		// 던전 판 안 적 피해. 몸 접촉, 탄, 일반 적 장판 (MonsterAttack) 이 같은 길. 던전 밖이면 그대로
+		public static int ScaleEnemyDamage(int calcDamage, UnitObject attacker)
+		{
+			if (DungeonManager.TryGetExistingInstance(out DungeonManager dungeonManager) == false || dungeonManager.IsDungeon == false)
+				return calcDamage;
+			// 시간이 지날수록 적 피해 상승 (SurvivalRunRules), 그 위에 위협 배율
+			calcDamage += dungeonManager.RunRules.EnemyDamageBonus(dungeonManager.Context.ElapsedTime.TotalMinutes);
+			// 공격한 적의 피해 % (던전 제약 DC_2 등). 올림이라 작은 피해에도 체감
+			if (attacker != null && attacker.UnitStat[UnitStatType.DAMAGE_BONUS] != 0)
+				calcDamage = Mathf.CeilToInt(calcDamage * (1f + attacker.UnitStat[UnitStatType.DAMAGE_BONUS] / 100f));
+			return dungeonManager.CurThreat.ScaleEnemyDamage(calcDamage);
 		}
 
 		public void SetDamageBonus(int damageBonus)

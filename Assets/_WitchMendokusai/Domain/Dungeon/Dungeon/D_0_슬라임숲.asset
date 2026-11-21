@@ -154,6 +154,15 @@ MonoBehaviour:
     <SpawnDelay>k__BackingField: 0.25
     <Once>k__BackingField: 0
     <MinOnScreen>k__BackingField: 0
+  - <Monsters>k__BackingField:
+    - {fileID: 11400000, guid: ba81b4cedffb421abe18329dd80d7ee5, type: 2}
+    - {fileID: 11400000, guid: 474bbf1a7d124067a6da9006b53af87a, type: 2}
+    - {fileID: 11400000, guid: 25abc5db2f2b4df48a690bde1dca3df7, type: 2}
+    <StartTime>k__BackingField: 150
+    <EndTime>k__BackingField: 600
+    <SpawnDelay>k__BackingField: 6
+    <Once>k__BackingField: 0
+    <MinOnScreen>k__BackingField: 0
   <ResourceNodeWaves>k__BackingField:
   - <ResourceNodes>k__BackingField:
     - {fileID: 11400000, guid: a4b5c6d7e8f9012345678901bcdef234, type: 2}
@@ -172,3 +181,8 @@ MonoBehaviour:
   <ConstraintRewardRule>k__BackingField: {fileID: 11400000, guid: 4d2e52acaa0646b1ae5d4a09aa5c29f0, type: 2}
   <ConstraintsNeedFirstClear>k__BackingField: 1
   <MapObjectBudget>k__BackingField: {fileID: 11400000, guid: 7fb7130c134c4f17a50d1b467b19e59c, type: 2}
+  <WavePatterns>k__BackingField:
+  - <Pattern>k__BackingField: {fileID: 11400000, guid: 9ad4e4b06cbd412a88505a6fd0f7d7ce, type: 2}
+    <StartTime>k__BackingField: 200
+  - <Pattern>k__BackingField: {fileID: 11400000, guid: 204dafff82554a23befb643c7c07c775, type: 2}
+    <StartTime>k__BackingField: 330

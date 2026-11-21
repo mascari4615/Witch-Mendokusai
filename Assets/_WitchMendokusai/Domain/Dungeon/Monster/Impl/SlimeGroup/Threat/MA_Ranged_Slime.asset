@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc7fb72618504a03945dbd50aae9d571, type: 3}
+  m_Name: MA_Ranged_Slime
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 9
+  <WindupSeconds>k__BackingField: 0.7
+  <RecoverySeconds>k__BackingField: 0.5
+  <Cooldown>k__BackingField: 1
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 7d0f0ab6735b4a2ab8fb739bbb4cd564, type: 2}
+  <SkillIndex>k__BackingField: 0
+  <TelegraphRadius>k__BackingField: 1.2

@@ -52,6 +52,7 @@ namespace WitchMendokusai
 			pendingMapObjectStart = null;
 			if (dungeonManager.IsDungeon == false || isActiveAndEnabled == false)
 				yield break;
+			EnsureArena();
 			mapObjectsReady = true;
 			lastMapObjectTickTime = (float)dungeonManager.Context.ElapsedTime.TotalSeconds;
 			SpawnDueMapObjects();
@@ -167,6 +168,12 @@ namespace WitchMendokusai
 
 		private MapObjectProbeResult ProbeMapObjectSite(Vector3 candidate, Vector3 playerGround, float radius, bool requireRoute, MapObjectSettings settings, out Vector3 ground)
 		{
+			// 유한 경계 밖이나 벽에 걸치는 자리
+			if (IsInsideArena(candidate, radius + arena.SpawnInset) == false)
+			{
+				ground = candidate;
+				return MapObjectProbeResult.Blocked;
+			}
 			if (TryMapObjectGround(candidate, settings, out ground) == false)
 				return MapObjectProbeResult.NoGround;
 			// 지면 위로 띄운 구. 지면 자체는 안 닿음
