@@ -31,6 +31,7 @@ namespace WitchMendokusai
 		[SerializeField] private Color idleLine = Color.gray;
 
 		private readonly List<GameObject> rows = new();
+		private readonly Dictionary<int, UIMiniCard> miniCards = new();
 		private bool initialized;
 		private bool isDeckTab = true;
 		private Selectable cardNeighbor;
@@ -52,6 +53,7 @@ namespace WitchMendokusai
 			foreach (GameObject row in rows)
 				Destroy(row);
 			rows.Clear();
+			miniCards.Clear();
 			bool isCompact = equipments.Count(item => item != null) > compactRowThreshold;
 			foreach (EquipmentData equipment in equipments.Where(item => item != null))
 			{
@@ -70,10 +72,18 @@ namespace WitchMendokusai
 				{
 					UIMiniCard mini = Instantiate(template, list);
 					mini.gameObject.SetActive(true);
+					miniCards[card.ID] = mini;
 					mini.SetCard(card, selectedCards.Count(selected => selected.ID == card.ID));
 				}
 				template.gameObject.SetActive(false);
 			}
+		}
+
+		public RectTransform ReceiptTarget(CardData card)
+		{
+			if (isDeckTab && miniCards.TryGetValue(card.ID, out UIMiniCard mini))
+				return (RectTransform)mini.transform;
+			return (RectTransform)deckTabButton.transform;
 		}
 
 		public bool IsTabButton(GameObject selected) => selected == deckTabButton.gameObject || selected == treeTabButton.gameObject;

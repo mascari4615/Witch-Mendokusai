@@ -19,6 +19,10 @@ namespace WitchMendokusai
 
 		private UICardFocusSound focusSound;
 		private UICardRevealDirector reveal;
+		private Sequence receipt;
+		private UICardSlot receivingSlot;
+		private Vector3 receiptHome;
+		private Vector3 receiptScale;
 		private readonly List<CardRevealEntry> revealEntries = new();
 
 		public override bool IsFullscreen => true;
@@ -88,6 +92,7 @@ namespace WitchMendokusai
 				CardRevealTier tier = UICardRevealDirector.TierOf(card);
 				if (request.Best.HasValue)
 					tier = index == 1 ? request.Best.Value : index == 0 && request.Best.Value >= CardRevealTier.Epic ? CardRevealTier.Rare : CardRevealTier.Common;
+				slot.ChoiceView.ShowTier(tier);
 				revealEntries.Add(new CardRevealEntry((RectTransform)slot.transform, tier));
 				index++;
 			}
@@ -109,7 +114,7 @@ namespace WitchMendokusai
 			reveal = UICardRevealDirector.AttachTo(gameObject, (RectTransform)transform, deckPanelContent);
 			reveal.Finished += ShowSelectedInfo;
 			actions.Init(cardManager);
-			actions.SetInputGate(reveal.ConsumeBlockedChoice);
+			actions.SetInputGate(ConsumeInput);
 			chestReward.Bind(cardManager);
 			for (int i = 0; i < cardSelectButtons.Count; i++)
 			{
@@ -118,7 +123,7 @@ namespace WitchMendokusai
 				cardSelectButtons[i].Init();
 				cardSelectButtons[i].SetClickAction((slot) =>
 				{
-					if (reveal.ConsumeBlockedChoice())
+					if (ConsumeInput())
 						return;
 					if (actions.IsBanMode)
 					{
@@ -134,12 +139,12 @@ namespace WitchMendokusai
 						}
 					}
 					else
-						cardManager.SelectCard(slot.DataSO as CardData);
+						ReceiveCard((UICardSlot)slot, cardManager);
 				});
 				cardSelectButtons[i].SetSelectAction((slot) =>
 				{
 					// 공개 중 정보 표시는 결과 노출, 끝난 뒤로 미룸
-					if (reveal.IsRevealing == false && slot.DataSO is CardData card)
+					if (receipt == null && reveal.IsRevealing == false && slot.DataSO is CardData card)
 						deckTabs.ShowInfo(card, (slot as UICardSlot).ChoiceDetail);
 				});
 			}
@@ -147,7 +152,71 @@ namespace WitchMendokusai
 		
 		private void OnEnable() => UIHideWhileChatting.Request(this, true);
 
-		private void OnDisable() => UIHideWhileChatting.Request(this, false);
+		private bool ConsumeInput() => receipt != null || reveal.ConsumeBlockedChoice();
+
+		private void ReceiveCard(UICardSlot slot, CardManager manager)
+		{
+			CardData card = slot.DataSO as CardData;
+			if (card == null)
+				return;
+			if (UIEffects.Enabled == false)
+			{
+				manager.SelectCard(card);
+				return;
+			}
+
+			Canvas canvas = GetComponentInParent<Canvas>().rootCanvas;
+			int before = manager.HeldCount(card);
+			RectTransform rect = (RectTransform)slot.transform;
+			RectTransform target = deckTabs.ReceiptTarget(card);
+			receivingSlot = slot;
+			receiptHome = rect.localPosition;
+			receiptScale = rect.localScale;
+			receipt = DOTween.Sequence().SetUpdate(true);
+			slot.ChoiceView.ChoiceCard.PlayConfirm();
+			foreach (UICardSlot other in cardSelectButtons)
+			{
+				if (other == slot || other.gameObject.activeSelf == false)
+					continue;
+				if (other.TryGetComponent(out CanvasGroup group) == false)
+					group = other.gameObject.AddComponent<CanvasGroup>();
+				receipt.Insert(0f, group.DOFade(0.26f, 0.16f));
+			}
+
+			receipt.Insert(0f, rect.DOScale(receiptScale * 1.1f, 0.17f).SetEase(Ease.OutQuad));
+			receipt.Insert(0f, rect.DOLocalMoveY(receiptHome.y + 16f, 0.17f));
+			receipt.Insert(0.36f, rect.DOMove(target.TransformPoint(target.rect.center), 0.38f).SetEase(Ease.InOutCubic));
+			receipt.Insert(0.36f, rect.DOScale(receiptScale * 0.14f, 0.38f).SetEase(Ease.InQuad));
+			receipt.OnComplete(() =>
+			{
+				receipt = null;
+				RestoreChoice();
+				manager.SelectCard(card);
+				int count = manager.HeldCount(card);
+				if (count > before && canvas != null)
+					slot.ChoiceView.ShowReceipt(card, count, canvas);
+			});
+		}
+
+		private void RestoreChoice()
+		{
+			if (receivingSlot == null)
+				return;
+			receipt?.Kill();
+			receipt = null;
+			receivingSlot.transform.localPosition = receiptHome;
+			receivingSlot.transform.localScale = receiptScale;
+			receivingSlot = null;
+			foreach (UICardSlot slot in cardSelectButtons)
+				if (slot.TryGetComponent(out CanvasGroup group))
+					group.alpha = 1f;
+		}
+
+		private void OnDisable()
+		{
+			RestoreChoice();
+			UIHideWhileChatting.Request(this, false);
+		}
 
 		private void ApplyNavigation(int count)
 		{
@@ -170,6 +239,7 @@ namespace WitchMendokusai
 
 		public void SetCardSelectButtons(List<CardData> cardDataList, EquipmentData equipment, IReadOnlyList<EquipmentData> equipments, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards, SkillTreeCatalog skillTrees)
 		{
+			RestoreChoice();
 			reveal.Cancel();
 			deckTabs.SetOverview(equipments, selectedCards, skillTrees);
 			ApplyNavigation(cardDataList.Count);

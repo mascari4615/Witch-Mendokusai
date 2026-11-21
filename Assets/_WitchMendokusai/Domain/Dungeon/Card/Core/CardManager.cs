@@ -304,7 +304,7 @@ namespace WitchMendokusai
 				awakeningEffect.Play(playerProvider.Current.transform, timeManager);
 			}
 
-			int sameCardCount = selectedCardBuffer.Data.Where(m => m.ID == card.ID).Count();
+			int sameCardCount = HeldCount(card);
 			if (card.MaxStack == sameCardCount)
 			{
 				List<CardData> curDeckBuffer = cardDataBuffers[curDeckIndex];
@@ -342,6 +342,8 @@ namespace WitchMendokusai
 			HashSet<int> cardIds = new HashSet<int>(skillTrees.CardsFor(equipment).Where(card => card != null).Select(card => card.ID));
 			return 1 + soManager.SelectedCardBuffer.Data.Count(selected => cardIds.Contains(selected.ID));
 		}
+
+		public int HeldCount(CardData card) => soManager.SelectedCardBuffer.Data.Count(selected => selected.ID == card.ID);
 
 		public int SelectedCardCount => soManager.SelectedCardBuffer.Data.Count;
 
