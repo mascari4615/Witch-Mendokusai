@@ -18,7 +18,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("배치 실패 시 다시 시도할 판 틱 수 (0.1초 간격). 다 쓰면 그 오브젝트 포기"), Min(1)] public int PlacementRounds { get; private set; } = 50;
 
 		[field: Header("등장 빈도")]
-		[field: SerializeField, Tooltip("앞 오브젝트와 등장 시각 최소 간격 (판 경과 초). 판 시작에 몰려 보이지 않게"), Min(0f)] public float SpawnGapSeconds { get; private set; } = 45f;
+		[field: SerializeField, Tooltip("앞 오브젝트와 등장 시각 최소 간격 (판 경과 초). 판 시작에 몰려 보이지 않게"), Min(0f)] public float SpawnGapSeconds { get; private set; } = 75f;
 		[field: SerializeField, Tooltip("같은 종류 오브젝트끼리 최소 거리 (m). 이미 쓴 것도 셈 (같은 자리 근처 반복 방지)"), Min(0f)] public float SameKindSpacing { get; private set; } = 40f;
 		[field: SerializeField, Tooltip("예산 뽑기에서 바로 앞과 같은 종류를 피함")] public bool AvoidSameKindInRow { get; private set; } = true;
 
