@@ -68,14 +68,12 @@ namespace WitchMendokusai
 			swordLight.transform.SetParent(swordTransform, false);
 			// 칼날 안에 두면 칼날이 하얗게 타서 형태가 사라짐. 칼끝 아래에 두어 바닥과 주변을 비춤
 			swordLight.transform.localPosition = new Vector3(0f, -0.12f, 0f);
-			lighting.Track(swordLight);
 
 			Light spot = run.PointLight("SwordSpot", swordLightColor, spawnHeight + 4f);
 			spot.type = LightType.Spot;
 			spot.spotAngle = spotAngle;
 			spot.innerSpotAngle = spotAngle * 0.55f;
 			spot.transform.rotation = Quaternion.LookRotation(Vector3.down);
-			lighting.Track(spot);
 
 			Vector3 hangPosition = target + Vector3.up * hangHeight;
 			Vector3 plantedPosition = target - Vector3.up * swordLength * sinkRatio;

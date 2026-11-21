@@ -77,9 +77,8 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float impactLightHeight = 2f;
 		[SerializeField, Range(0f, 1f), Tooltip("접지 순간 세기 비율")] private float contactRatio = 0.4f;
 		[SerializeField, Min(0.05f), Tooltip("실측 반감 0.5~1.8초")] private float impactHalfLife = 0.7f;
-		[SerializeField, Min(0f), Tooltip("빛 안 받는 인형 그림이 연출 광원을 받는 배율")] private float spriteLightGain = 0.12f;
+		[SerializeField, Min(0f), Tooltip("연출 동안 인형 그림이 추가 광원을 받는 배율 (빌보드 셰이더 전역값)")] private float spriteLightGain = 0.12f;
 		[SerializeField, Min(1f)] private float spriteTintCap = 2.2f;
-		[SerializeField, Min(0.05f)] private float spriteRefreshSeconds = 0.3f;
 
 		[Header("바닥 반응")]
 		[SerializeField, Min(0), Tooltip("검 둘레에서 솟는 바위 수")] private int upheavalCount = 11;
@@ -128,7 +127,7 @@ namespace WitchMendokusai
 
 		public override void Compose(UltimateFxRun run)
 		{
-			UltimateWorldLighting lighting = new(run.MainCamera, spriteLightGain, spriteTintCap, spriteRefreshSeconds);
+			UltimateWorldLighting lighting = new(run.MainCamera, spriteLightGain, spriteTintCap);
 			run.OnRelease(lighting.Dispose);
 			Vector3 target = run.Center + run.ScreenForward * targetDistance;
 			target.y = UltimateFxStage.GroundHeight(target);
@@ -142,7 +141,7 @@ namespace WitchMendokusai
 				ComposeHeavy(run, target);
 
 			// 하늘 감독 Update 뒤에 매 프레임 덮음. 트랙 하나로 끝까지
-			run.Track(0f, DurationSeconds, _ => lighting.Apply(run.Delta));
+			run.Track(0f, DurationSeconds, _ => lighting.Apply());
 		}
 
 		private void ComposeSky(UltimateFxRun run, UltimateWorldLighting lighting)
@@ -185,7 +184,6 @@ namespace WitchMendokusai
 			Vector3 hand = run.Caster + Vector3.up * 1.5f;
 			Light casterLight = run.PointLight("CasterLight", swordLightColor, casterLightRange);
 			casterLight.transform.position = hand;
-			lighting.Track(casterLight);
 			// 검이 나타나면 끔. 장면에 이미 추가 광원 2개 (점광, 보조 직사광) 가 있어 연출 광원은 동시에 2개까지 (물체당 4개 상한)
 			run.Track(0f, summonStart + casterLightOverlap, progress =>
 			{

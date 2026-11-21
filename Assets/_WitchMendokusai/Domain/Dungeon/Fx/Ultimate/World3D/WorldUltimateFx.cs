@@ -56,9 +56,8 @@ namespace WitchMendokusai
 		[SerializeField] private Shader litParticleShader;
 
 		[Header("인형 빛 반응")]
-		[SerializeField, Min(0f), Tooltip("빛 안 받는 인형 그림이 연출 광원을 받는 배율")] private float spriteLightGain = 0.12f;
+		[SerializeField, Min(0f), Tooltip("연출 동안 인형 그림이 추가 광원을 받는 배율 (빌보드 셰이더 전역값)")] private float spriteLightGain = 0.12f;
 		[SerializeField, Min(1f)] private float spriteTintCap = 2.2f;
-		[SerializeField, Min(0.05f)] private float spriteRefreshSeconds = 0.3f;
 
 		[Header("배치")]
 		[SerializeField, Tooltip("표적의 화면 위쪽 거리 (시전자 기준). 연출이 인물을 가리지 않게")] private float targetDistance = 2.8f;
@@ -70,7 +69,7 @@ namespace WitchMendokusai
 			Stage stage = new()
 			{
 				Run = run,
-				Lighting = new UltimateWorldLighting(run.MainCamera, spriteLightGain, spriteTintCap, spriteRefreshSeconds),
+				Lighting = new UltimateWorldLighting(run.MainCamera, spriteLightGain, spriteTintCap),
 				Grade = new UltimateWorldGrade(60f),
 			};
 			run.OnRelease(stage.Lighting.Dispose);
@@ -94,7 +93,7 @@ namespace WitchMendokusai
 				stage.Lighting.SetChromatic(stage.Chromatic(now));
 				stage.Lighting.SetVignette(stage.Vignette(now), Color.black);
 				stage.Grade.Set(stage.Saturation(now), stage.Contrast(now), stage.Filter(now));
-				stage.Lighting.Apply(run.Delta);
+				stage.Lighting.Apply();
 			});
 		}
 
@@ -211,12 +210,11 @@ namespace WitchMendokusai
 
 		// ---- 광원 ----
 
-		/// <summary> 연출 광원. 인형 물들임에 반영됨. 끌 때는 enabled = false </summary>
+		/// <summary> 연출 광원. 인형 그림은 빌보드 셰이더가 직접 받음. 끌 때는 enabled = false </summary>
 		protected static Light WorldLight(Stage stage, string name, LightType type, Color color, float range)
 		{
 			Light light = stage.Run.PointLight(name, color, range);
 			light.type = type;
-			stage.Lighting.Track(light);
 			return light;
 		}
 
