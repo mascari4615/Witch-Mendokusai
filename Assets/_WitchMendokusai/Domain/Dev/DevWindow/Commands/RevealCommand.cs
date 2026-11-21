@@ -77,8 +77,9 @@ namespace WitchMendokusai
 				UnitStat stat = PlayerProvider.Instance.Current.UnitStat;
 				stat[UnitStatType.EXP_CUR] += stat[UnitStatType.EXP_MAX];
 			}
-			DevWindowController.Instance.StartCoroutine(PassDeckChoice(cardManager));
-			context.LogSuccess($"레벨업 열고 공개 예약: {skin.name}");
+			if (DevWindowController.Instance.isActiveAndEnabled)
+				DevWindowController.Instance.StartCoroutine(PassDeckChoice(cardManager));
+			context.LogSuccess($"레벨업 열고 공개 예약: {skin.name}. 장비 고르기 뒤 공개");
 		}
 
 		// 장비 고르기가 뜨면 첫 칸을 골라 카드 고르기로 넘김

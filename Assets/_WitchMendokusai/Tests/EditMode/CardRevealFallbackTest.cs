@@ -59,6 +59,12 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Resolve_passes_missing_skin_through()
+		{
+			Assert.IsNull(UICardRevealDirector.Resolve(null));
+		}
+
+		[Test]
 		public void Theme_reveal_slots_are_assigned()
 		{
 			SurvivalUITheme theme = AssetDatabase.LoadAssetAtPath<SurvivalUITheme>(THEME_PATH);
