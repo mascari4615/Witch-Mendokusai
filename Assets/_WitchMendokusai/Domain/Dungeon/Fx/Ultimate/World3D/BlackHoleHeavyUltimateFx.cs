@@ -41,7 +41,8 @@ namespace WitchMendokusai
 		[SerializeField, Range(0f, 80f), Tooltip("원반을 카메라 쪽으로 기울이는 각도 (15도면 바닥 고리처럼 납작, 크면 앞 가장자리가 땅에 묻힘)")] private float discTilt = 32f;
 		[SerializeField, Min(0.5f), Tooltip("멈춘 높이 (표적 위). 원반 앞 가장자리 (반지름 x sin 기울기) 보다 높게")] private float hoverHeight = 1.9f;
 		[SerializeField, Min(1f), Tooltip("원반 둘레 아지랑이 반지름 / 원반 반지름")] private float hazeRatio = 1.1f;
-		[SerializeField, Range(0f, 0.5f), Tooltip("아지랑이 밝기. 높으면 원반이 희뿌연 안개 고리로 읽힘 (1회차 촬영)")] private float hazeBrightness = 0.05f;
+		[SerializeField, Min(0f), Tooltip("원반 밝기")] private float discBrightness = 1.1f;
+		[SerializeField, Range(0f, 0.5f), Tooltip("아지랑이 밝기. 높으면 원반이 희뿌연 안개 고리로 읽힘 (1회차 촬영)")] private float hazeBrightness = 0f;
 		[SerializeField, Min(2f)] private float fallHeight = 14f;
 		[SerializeField, Min(0.5f)] private float circleRadius = 4.5f;
 
@@ -221,7 +222,7 @@ namespace WitchMendokusai
 				haze.transform.localRotation = discRotation * Quaternion.Euler(0f, -spinAngle * 0.6f, 0f);
 				haze.transform.localScale = Vector3.one * discScale * hazeRatio;
 				float glow = Mathf.Lerp(0.5f, 1f, fall) * (1f + 0.8f * suck + 2.5f * collapse);
-				discMaterial.SetColor("_Color", discColor * 0.75f * glow);
+				discMaterial.SetColor("_Color", discColor * discBrightness * glow);
 				hazeMaterial.SetColor("_Color", discColor * hazeBrightness * glow);
 				Vector3 toCamera = run.MainCamera != null ? (run.MainCamera.transform.position - position).normalized : stage.ToCamera;
 				photon.transform.rotation = Quaternion.FromToRotation(Vector3.up, toCamera);
@@ -327,8 +328,7 @@ namespace WitchMendokusai
 					float life = Random.Range(0.55f, 0.85f);
 					Vector3 velocity = (hover - from) / life + tangent * Random.Range(3f, 5f) * sizeScale;
 					UltimateFxStage.Emit(clods, from, velocity, Random.Range(0.15f, 0.3f) * sizeScale, life * 0.85f, clodColor, Random.value * 360f, Random.Range(-200f, 200f));
-					if (Random.value < 0.5f)
-						UltimateFxStage.Emit(streaks, from + Vector3.up * Random.Range(0.3f, 1.5f), velocity * 1.2f, Random.Range(0.06f, 0.12f), life * 0.8f, new Color(0.6f, 1f, 1f, 1f));
+					UltimateFxStage.Emit(streaks, from + Vector3.up * Random.Range(0.3f, 1.5f), velocity * 1.2f, Random.Range(0.06f, 0.12f), life * 0.8f, new Color(0.6f, 1f, 1f, 1f));
 				}
 			});
 		}
