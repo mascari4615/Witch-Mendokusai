@@ -10,13 +10,15 @@ namespace WitchMendokusai
 	/// - 시야각은 좁히는 쪽만 (넓히면 카메라 앞 화면 판 (배경 장악 판) 가장자리가 비어 보임). 물러남 (궁극기 물림 포함) 은 전진 음수로
 	/// - 실제 시간 곡선을 구동기가 계산해 Set 으로 넣음
 	/// - 여럿이 같은 카메라에 동시에 얹을 수 있음 (궁극기 구동기와 플레이어 피격 연출). 처음 얹는 손이 원래 값을 저장하고, 그린 뒤 처음 불린 손이 원래 값으로 되돌림. 손마다 따로 되돌리면 구독 순서에 따라 얹은 값이 다음 프레임으로 샘
-	/// - 얹을 값이 전부 0 이면 아무것도 안 함
+	/// - 화면 왜곡 중심을 넣지 않는 손 (피격 연출) 은 얹을 값이 전부 0 이면 아무것도 안 함. 궁극기 손은 예전처럼 매 프레임 중심을 넣음
+	/// - 겹칠 때 뒤에 얹는 손은 앞 손이 옮긴 카메라 위에서 계산 (구독 순서 따름). 피격 흔들림이 없으면 궁극기 결과는 혼자일 때와 같음
 	/// </summary>
 	public sealed class UltimateFeelCamera
 	{
 		/// <summary> 카메라마다 이번 그리기에 얹은 손과 원래 값 </summary>
 		private sealed class SharedState
 		{
+			public int Frame;
 			public Vector3 Position;
 			public Quaternion Rotation;
 			public float FieldOfView;
@@ -71,7 +73,7 @@ namespace WitchMendokusai
 
 		private void OnBegin(ScriptableRenderContext context, Camera rendering)
 		{
-			if (rendering != camera || camera == null || applied || IsIdle)
+			if (rendering != camera || camera == null || applied || (IsIdle && publishImpactCenter == false))
 				return;
 			Transform cameraTransform = camera.transform;
 			if (states.TryGetValue(camera, out SharedState state) == false)
@@ -79,8 +81,16 @@ namespace WitchMendokusai
 				state = new SharedState();
 				states[camera] = state;
 			}
+			// 앞 프레임에서 되돌리지 못하고 남은 기록 (그리기 사이 예외, 도메인 재로드 끈 Play) 은 버림. 낡은 원래 값으로 되돌리지 않게
+			if (state.Appliers.Count > 0 && state.Frame != Time.frameCount)
+			{
+				foreach (UltimateFeelCamera stale in state.Appliers)
+					stale.applied = false;
+				state.Appliers.Clear();
+			}
 			if (state.Appliers.Count == 0)
 			{
+				state.Frame = Time.frameCount;
 				state.Position = cameraTransform.position;
 				state.Rotation = cameraTransform.rotation;
 				state.FieldOfView = camera.fieldOfView;

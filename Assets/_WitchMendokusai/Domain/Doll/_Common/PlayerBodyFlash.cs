@@ -35,16 +35,16 @@ namespace WitchMendokusai
 
 		public bool IsFlashing => captured;
 
-		/// <summary> 세기 0 이면 쉬는 색으로 되돌리고 잡은 그림을 놓음 </summary>
+		/// <summary> 세기 0 이면 쉬는 색. 잡은 그림은 Release 까지 유지 (깜빡임마다 다시 찾지 않게) </summary>
 		public void Set(Transform meshParent, SpriteRenderer[] sprites, Color flashColor, float weight)
 		{
-			if (weight <= 0f)
-			{
-				Release();
-				return;
-			}
 			if (captured == false)
+			{
+				if (weight <= 0f)
+					return;
 				Capture(meshParent, sprites);
+			}
+			weight = Mathf.Max(0f, weight);
 			Color meshMultiplier = Color.Lerp(Color.white, flashColor, weight);
 			meshMultiplier.a = 1f;
 			for (int i = 0; i < meshSlots.Count; i++)

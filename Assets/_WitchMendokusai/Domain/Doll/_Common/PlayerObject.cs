@@ -208,12 +208,14 @@ namespace WitchMendokusai
 			CombatSfx.Play(CombatSfxEvent.PlayerHit);
 			gameEventManager.Raise(GameEventType.OnPlayerHit);
 			// 화면 흔들림, 정지, 가장자리 빨강은 SurvivalFeel 의 PlayerHitFeel. 무적 시간 중 피격은 위에서 걸러져 새 연출 없음
-			SurvivalFeel.Instance.OnPlayerHit(this, damageInfo.damage);
+			// 상태이상 틱은 몸 물들임이 이미 보여 화면 연출과 몸 번쩍임 없음
+			bool statusTick = damageInfo.type == DamageType.StatusTick;
+			SurvivalFeel.Instance.OnPlayerHit(this, damageInfo.damage, statusTick);
 
 			if (invincibleRoutine != null)
 				StopCoroutine(invincibleRoutine);
 			float bonusSeconds = UnitStat[UnitStatType.INVINCIBLE_TIME] / resourceManager.SurvivalFeel.Upgrade.InvincibleTimeStatPerSecond;
-			invincibleRoutine = StartCoroutine(InvincibleTime(soManager.InvincibleTime.RuntimeValue + bonusSeconds, true));
+			invincibleRoutine = StartCoroutine(InvincibleTime(soManager.InvincibleTime.RuntimeValue + bonusSeconds, statusTick == false));
 
 			switch (UnitStat[UnitStatType.HP_CUR])
 			{

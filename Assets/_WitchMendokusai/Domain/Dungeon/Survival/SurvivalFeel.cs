@@ -215,12 +215,13 @@ namespace WitchMendokusai
 		}
 
 		// 무적 시간이 아닌 피격만 옴 (PlayerObject 가 거름). 화면 전체 빨강은 애니메이션 색 알파에 곱셈, 나머지 화면 연출은 PlayerHitFeel
-		public void OnPlayerHit(PlayerObject player, int damage)
+		public void OnPlayerHit(PlayerObject player, int damage, bool statusTick)
 		{
 			if (hitFlashImage == null)
 				hitFlashImage = FindHitFlashImage();
 			hitFlashImage.canvasRenderer.SetAlpha(Config.PlayerHitFlashStrength);
-			playerHitFeel.Play(player, damage);
+			if (statusTick == false)
+				playerHitFeel.Play(player, damage);
 		}
 
 		private UnityEngine.UI.Image FindHitFlashImage()

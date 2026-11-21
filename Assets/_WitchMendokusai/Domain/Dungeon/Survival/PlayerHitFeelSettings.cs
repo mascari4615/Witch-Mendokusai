@@ -13,7 +13,7 @@ namespace WitchMendokusai
 	{
 		[Header("세기")]
 		[Range(0.01f, 1f), Tooltip("이 피해 비율 (피해 / 최대 체력) 이상이면 세기 1")] public float FullStrengthDamageRatio = 0.25f;
-		[Min(0f), Tooltip("앞 피격 뒤 이 초 안의 피격은 정지와 가장자리 번쩍임을 새로 시작하지 않고 흔들림만 상한까지 더함. 무적 시간을 관통하는 피해 (낙사 등) 연타 대비")] public float MinInterval = 0.3f;
+		[Min(0f), Tooltip("앞 피격 뒤 이 초 안의 피격은 정지와 가장자리 번쩍임을 새로 시작하지 않고 흔들림만 상한까지 더함. 평소에는 무적 시간 (0.5초) 이 먼저 거름. 무적 시간을 이보다 짧게 줄일 때 대비")] public float MinInterval = 0.3f;
 
 		[Header("화면 흔들림")]
 		[Range(0f, 1f), Tooltip("세기 0 일 때 더하는 트라우마")] public float TraumaAtMin = 0.45f;
@@ -22,12 +22,13 @@ namespace WitchMendokusai
 		[Tooltip("트라우마 흔들림 모양. 궁극기 박자표와 같은 칸")]
 		public UltimateScreenFeel.TraumaSettings Trauma = new()
 		{
-			MaxOffset = 0.03f,
+			MaxOffset = 0.045f,
 			MaxRoll = 1.2f,
 			Frequency = 15f,
 			DecayPerSecond = 2.4f,
 			VerticalBias = 0.5f,
-			Response = new AnimationCurve(new Keyframe(0f, 0f, 0f, 0f), new Keyframe(1f, 1f, 2f, 2f)),
+			// 궁극기는 제곱, 피격은 직선. 한 번 맞는 짧은 흔들림이라 작은 피격도 보이게
+			Response = AnimationCurve.Linear(0f, 0f, 1f, 1f),
 		};
 
 		[Header("정지")]

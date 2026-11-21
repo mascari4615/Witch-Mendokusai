@@ -55,7 +55,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Hit_shake_peak_is_visible_size()
 		{
-			// 실측 쿼터뷰 흔들림 0.8~1.5% 화면 폭 (ult-feel-20261120). 가장 큰 피격의 첫 몇 프레임 최대 이동이 0.3% 이상
+			// 실측 쿼터뷰 흔들림 0.8~1.5% 화면 폭 (ult-feel-20261120). 가장 큰 피격의 첫 몇 프레임 최대 이동이 0.5% 이상
 			UltimateScreenFeel.TraumaSettings settings = Settings();
 			PlayerHitFeelSettings hit = new();
 			TraumaShake shake = new(73.1f);
@@ -66,7 +66,7 @@ namespace WitchMendokusai.Tests
 				shake.Step(settings, i / 60f, 1f / 60f, 0f, 1f, out Vector2 offset, out _);
 				peak = Mathf.Max(peak, offset.magnitude);
 			}
-			Assert.That(peak, Is.GreaterThan(0.003f));
+			Assert.That(peak, Is.GreaterThan(0.005f));
 			Assert.That(peak, Is.LessThan(settings.MaxOffset * 1.5f));
 		}
 
@@ -161,7 +161,11 @@ namespace WitchMendokusai.Tests
 				meshRenderer.GetPropertyBlock(block, 0);
 				Assert.That(block.GetColor("_BaseColor"), Is.EqualTo(tint));
 				Assert.That(sprite.color, Is.EqualTo(spriteRest));
+				// 깜빡임 사이 (세기 0) 는 잡은 채, Release 에서 놓음
+				Assert.That(flash.IsFlashing, Is.True);
+				flash.Release();
 				Assert.That(flash.IsFlashing, Is.False);
+				Assert.That(sprite.color, Is.EqualTo(spriteRest));
 			}
 			finally
 			{
