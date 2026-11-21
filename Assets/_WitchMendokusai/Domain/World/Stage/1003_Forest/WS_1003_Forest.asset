@@ -21,4 +21,5 @@ MonoBehaviour:
   <Prefab>k__BackingField: {fileID: 7817080695715772627, guid: 93200fad98a023547869d04b0d0f9de9, type: 3}
   <ShareWorldPosition>k__BackingField: 0
   <DevOnly>k__BackingField: 0
+  <DisplayName>k__BackingField: "숲길"
   <RealSecondsPerGrowthMinute>k__BackingField: 60

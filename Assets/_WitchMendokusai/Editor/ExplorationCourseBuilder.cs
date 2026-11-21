@@ -94,6 +94,7 @@ namespace WitchMendokusai.EditorTools
 				stage.Name = "금빛 기둥 탐험";
 				stage.Description = "약 3분 목표의 벽길, 회랑, 등반과 활공 탐험";
 				SerializedObject stageData = new(stage);
+				stageData.FindProperty("<DisplayName>k__BackingField").stringValue = stage.Name;
 				stageData.FindProperty("<Type>k__BackingField").enumValueIndex = 0;
 				stageData.FindProperty("<ShareWorldPosition>k__BackingField").boolValue = false;
 				stageData.FindProperty("<Prefab>k__BackingField").objectReferenceValue = prefab.GetComponent<StageObject>();

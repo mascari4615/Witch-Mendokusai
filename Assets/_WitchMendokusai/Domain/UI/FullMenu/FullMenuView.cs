@@ -227,7 +227,7 @@ namespace WitchMendokusai
 			nyangLabel.text = dataManager.GameStat[GameStatType.NYANG].ToString("N0") + "냥";
 
 			bool hasStage = StageManager.TryGetExistingInstance(out StageManager stageManager) && stageManager.CurStage != null;
-			placeLabel.text = hasStage ? stageManager.CurStage.ShownName : string.Empty;
+			placeLabel.text = hasStage ? stageManager.CurStage.DisplayName : string.Empty;
 
 			string weather = WeatherSystem.TryGetExistingInstance(out WeatherSystem weatherSystem)
 				? ", " + WeatherDisplayName.Of(weatherSystem.Current)
