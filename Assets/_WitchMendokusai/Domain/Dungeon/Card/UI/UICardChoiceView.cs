@@ -7,18 +7,19 @@ using UnityEngine.UI;
 
 namespace WitchMendokusai
 {
+	// 카드 선택 칸: 종류 색, 장비 띠, 강화 칸, 조건
 	public class UICardChoiceView : MonoBehaviour
 	{
+		[SerializeField] private SurvivalUITheme theme;
 		[SerializeField] private UIChoiceCard choiceCard;
-		[SerializeField] private Image face;
-		[SerializeField] private Image seal;
-		[SerializeField] private Sprite[] seals;
-		[SerializeField] private GameObject symbolRoot;
-		[SerializeField] private Sprite plain, sword, flame, stride;
-		[SerializeField] private EquipmentData swordEquipment, flameEquipment;
-		[SerializeField] private CardData strideCard;
-		[SerializeField] private TextMeshProUGUI bandText, nameText, stackText;
-
+		[SerializeField] private Image diamond;
+		[SerializeField] private Image diamondLine;
+		[SerializeField] private Image tile;
+		[SerializeField] private Image bandIcon;
+		[SerializeField] private TextMeshProUGUI bandText;
+		[SerializeField] private TextMeshProUGUI nameText;
+		[SerializeField] private float nameFontSize = 28f;
+		[SerializeField] private TextMeshProUGUI stackText;
 		[SerializeField] private Transform pipParent;
 		[SerializeField] private Image pipTemplate;
 		[SerializeField] private Color pipEmpty = new(0.05f, 0.05f, 0.07f, 1f);
@@ -27,29 +28,67 @@ namespace WitchMendokusai
 		[SerializeField] private RectTransform barFill;
 		[SerializeField] private RectTransform barNext;
 		[SerializeField] private GameObject barRoot;
+		[SerializeField] private GameObject conditionRoot;
+		[SerializeField] private Image conditionIcon;
+		[SerializeField] private TextMeshProUGUI conditionText;
+		[SerializeField] private GameObject rarityRoot;
+		[SerializeField] private Image rarityBack;
+		[SerializeField] private TextMeshProUGUI rarityText;
+		[SerializeField] private Sprite[] seals;
+		[SerializeField] private string evolutionLabel = "진화";
+		[SerializeField] private float evolutionBadgeGap = 4f;
+
 		private readonly List<Image> pips = new();
+		private GameObject evolutionBadge;
 
 		public UIChoiceCard ChoiceCard => choiceCard;
 
-		public void Set(CardData card, EquipmentData equipment, IReadOnlyList<CardData> selectedCards)
+		public void Set(CardData card, EquipmentData equipment, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards)
 		{
+			SurvivalUITheme.KindStyle style = theme.Style(card.UIKind);
 			choiceCard.SetKind(card.UIKind);
-			Sprite illustration = plain;
-			if (card == strideCard)
-				illustration = stride;
-			else if (equipment == swordEquipment)
-				illustration = sword;
-			else if (equipment == flameEquipment)
-				illustration = flame;
-			face.sprite = illustration;
-			symbolRoot.SetActive(illustration == plain);
-			ShowTier(UICardRevealDirector.TierOf(card));
+			diamond.color = style.Dark;
+			diamondLine.color = style.Main;
+			tile.sprite = style.Tile;
+			bandIcon.sprite = equipment.Sprite;
 			bandText.text = equipment.Name;
+
+			nameText.fontSize = nameFontSize;
 			nameText.text = card.Name;
+			UIEffects.AvoidOrphan(nameText, theme.MinCardNameFontSize);
+
+			SetEvolutionBadge(card);
+			ShowTier(UICardRevealDirector.TierOf(card));
+
 			int current = selectedCards.Count(selected => selected.ID == card.ID);
-			UpdateMeter(card.MaxStack, current, choiceCard.Theme.Style(card.UIKind).Main);
 			string action = current == 0 ? "획득" : "강화";
-			stackText.text = $"{action}  {current} → {Mathf.Min(current + 1, card.MaxStack)} / {card.MaxStack}";
+			stackText.text = $"{action} {current} → {Mathf.Min(current + 1, card.MaxStack)} / {card.MaxStack}회";
+			UpdateMeter(card.MaxStack, current, style.Main);
+
+			bool hasCondition = CardChoiceText.TryGetCondition(card, selectedCards, deckCards, out CardData advanced, out string condition);
+			conditionRoot.SetActive(hasCondition);
+			if (hasCondition)
+			{
+				conditionIcon.sprite = advanced.Sprite;
+				conditionText.text = condition;
+			}
+		}
+
+		// 진화 표식. 희귀도 표식의 사본을 그 아래에 배치, 첫 Set에서 UITermIcon 부착 전에 복제
+		private void SetEvolutionBadge(CardData card)
+		{
+			if (evolutionBadge == null)
+			{
+				evolutionBadge = Instantiate(rarityRoot, rarityRoot.transform.parent);
+				evolutionBadge.transform.SetSiblingIndex(rarityRoot.transform.GetSiblingIndex() + 1);
+				RectTransform source = rarityRoot.GetComponent<RectTransform>();
+				evolutionBadge.GetComponent<RectTransform>().anchoredPosition = source.anchoredPosition - new Vector2(0f, source.sizeDelta.y + evolutionBadgeGap);
+				evolutionBadge.GetComponent<Image>().color = theme.Style(SurvivalUIKind.Advanced).Main;
+				TextMeshProUGUI label = evolutionBadge.GetComponentInChildren<TextMeshProUGUI>(true);
+				label.text = evolutionLabel;
+				UITermIcon.Attach(label, theme, SurvivalTerm.Evolution);
+			}
+			evolutionBadge.SetActive(card.UIKind == SurvivalUIKind.Advanced);
 		}
 
 		public void ShowReceipt(CardData card, int count, Canvas canvas)
@@ -71,6 +110,16 @@ namespace WitchMendokusai
 			rect.anchoredPosition = Vector2.zero;
 			label.gameObject.AddComponent<CanvasGroup>().DOFade(0f, 0.3f).SetDelay(1.05f).SetUpdate(true)
 				.SetLink(label.gameObject).OnComplete(() => Destroy(label.gameObject));
+		}
+
+		public void ShowTier(CardRevealTier tier)
+		{
+			rarityRoot.SetActive(true);
+			rarityText.gameObject.SetActive(false);
+			rarityBack.type = Image.Type.Simple;
+			rarityBack.preserveAspect = true;
+			rarityBack.color = Color.white;
+			rarityBack.sprite = seals[(int)tier];
 		}
 
 		private void UpdateMeter(int maxStack, int current, Color fillColor)
@@ -99,7 +148,5 @@ namespace WitchMendokusai
 					pips[i].color = i < current ? fillColor : i == current ? pipNext : pipEmpty;
 			}
 		}
-
-		public void ShowTier(CardRevealTier tier) => seal.sprite = seals[(int)tier];
 	}
 }

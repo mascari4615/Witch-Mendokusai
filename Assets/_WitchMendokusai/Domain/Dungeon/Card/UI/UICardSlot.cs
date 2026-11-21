@@ -17,7 +17,7 @@ namespace WitchMendokusai
 			ChoiceDetail = CardChoiceText.Description(card, selectedCards, deckCards, true);
 			choiceTooltip.SetData(card?.Sprite, card?.Name, ChoiceDetail);
 			if (card != null)
-				choiceView.Set(card, equipment, selectedCards);
+				choiceView.Set(card, equipment, selectedCards, deckCards);
 			SetSlot(card);
 		}
 
