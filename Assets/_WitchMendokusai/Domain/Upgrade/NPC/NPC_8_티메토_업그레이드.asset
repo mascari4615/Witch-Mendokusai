@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 8
   <Name>k__BackingField: "검댕이"
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 21300000, guid: 265c77f526eb504408310d9d51c65e69, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 462afd08a4944b2ebb31a6764ca395d1, type: 3}
   <Sprites>k__BackingField: []
   <Affiliation>k__BackingField: -1
   <Prefab>k__BackingField: {fileID: 0}
