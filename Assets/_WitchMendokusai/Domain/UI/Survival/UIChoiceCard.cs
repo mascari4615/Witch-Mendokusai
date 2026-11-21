@@ -88,8 +88,8 @@ namespace WitchMendokusai
 			SurvivalUITheme.KindStyle style = theme.Style(kind);
 			outline.DOKill();
 			outline.color = OutlineColor();
-			band.color = isSelected ? style.Main : style.Dark;
-			bandText.color = isSelected ? theme.SelectedBandText : theme.BandText;
+			band.color = style.Dark;
+			bandText.color = theme.BandText;
 			selectedFrame.SetActive(isSelected);
 			sheen.SetActive(isSelected && UIEffects.Enabled);
 		}

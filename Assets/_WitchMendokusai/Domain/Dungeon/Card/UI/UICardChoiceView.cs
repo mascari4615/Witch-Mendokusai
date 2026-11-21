@@ -19,6 +19,16 @@ namespace WitchMendokusai
 		[SerializeField] private CardData strideCard;
 		[SerializeField] private TextMeshProUGUI bandText, nameText, stackText;
 
+		[SerializeField] private Transform pipParent;
+		[SerializeField] private Image pipTemplate;
+		[SerializeField] private Color pipEmpty = new(0.05f, 0.05f, 0.07f, 1f);
+		[SerializeField] private Color pipNext = new(1f, 1f, 1f, 0.5f);
+		[SerializeField] private int maxPips = 10;
+		[SerializeField] private RectTransform barFill;
+		[SerializeField] private RectTransform barNext;
+		[SerializeField] private GameObject barRoot;
+		private readonly List<Image> pips = new();
+
 		public UIChoiceCard ChoiceCard => choiceCard;
 
 		public void Set(CardData card, EquipmentData equipment, IReadOnlyList<CardData> selectedCards)
@@ -37,6 +47,7 @@ namespace WitchMendokusai
 			bandText.text = equipment.Name;
 			nameText.text = card.Name;
 			int current = selectedCards.Count(selected => selected.ID == card.ID);
+			UpdateMeter(card.MaxStack, current, choiceCard.Theme.Style(card.UIKind).Main);
 			string action = current == 0 ? "획득" : "강화";
 			stackText.text = $"{action}  {current} → {Mathf.Min(current + 1, card.MaxStack)} / {card.MaxStack}";
 		}
@@ -60,6 +71,33 @@ namespace WitchMendokusai
 			rect.anchoredPosition = Vector2.zero;
 			label.gameObject.AddComponent<CanvasGroup>().DOFade(0f, 0.3f).SetDelay(1.05f).SetUpdate(true)
 				.SetLink(label.gameObject).OnComplete(() => Destroy(label.gameObject));
+		}
+
+		private void UpdateMeter(int maxStack, int current, Color fillColor)
+		{
+			bool usePips = maxStack <= maxPips;
+			pipParent.gameObject.SetActive(usePips);
+			barRoot.SetActive(usePips == false);
+			pipTemplate.gameObject.SetActive(false);
+
+			if (usePips == false)
+			{
+				barFill.anchorMax = new Vector2((float)current / maxStack, 1f);
+				float next = (float)(current + 1) / maxStack;
+				barNext.anchorMin = new Vector2(next, 0f);
+				barNext.anchorMax = new Vector2(next, 1f);
+				return;
+			}
+
+			while (pips.Count < maxStack)
+				pips.Add(Instantiate(pipTemplate, pipParent));
+			for (int i = 0; i < pips.Count; i++)
+			{
+				bool visible = i < maxStack;
+				pips[i].gameObject.SetActive(visible);
+				if (visible)
+					pips[i].color = i < current ? fillColor : i == current ? pipNext : pipEmpty;
+			}
 		}
 
 		public void ShowTier(CardRevealTier tier) => seal.sprite = seals[(int)tier];
