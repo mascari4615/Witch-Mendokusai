@@ -175,9 +175,9 @@ namespace WitchMendokusai
 
 	public enum CompanionPhase
 	{
-		Follow,
-		Approach,
-		Dash,
+		Follow = 0,
+		Approach = 1,
+		Dash = 2,
 	}
 
 	/// <summary>

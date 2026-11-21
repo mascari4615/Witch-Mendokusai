@@ -7,9 +7,9 @@ namespace WitchMendokusai
 	public enum DollPassiveKind
 	{
 		// 피격할 때마다 스탯 상승, 판 내내 유지
-		HitStack,
+		HitStack = 0,
 		// 레벨 구간에 도달할 때마다 스탯 상승
-		LevelTiers,
+		LevelTiers = 1,
 	}
 
 	[Serializable]
