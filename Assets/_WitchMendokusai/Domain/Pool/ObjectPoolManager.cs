@@ -58,8 +58,9 @@ namespace WitchMendokusai
 			string objectName = GetActualObjectName(targetObject);
 
 			if (poolDic.ContainsKey(objectName) == false)
-				poolDic[objectName] = new ObjectPool(targetObject, this, transform);
+				poolDic[objectName] = new ObjectPool(targetObject, objectName, this, transform);
 
+			poolDic[objectName].ReplaceDeadTemplate(targetObject);
 			poolDic[objectName].Push(targetObject);
 		}
 
@@ -69,11 +70,12 @@ namespace WitchMendokusai
 
 			if (poolDic.TryGetValue(objectName, out ObjectPool pool))
 			{
+				pool.ReplaceDeadTemplate(targetObject);
 				return pool.Pop();
 			}
 			else
 			{
-				poolDic[objectName] = new ObjectPool(targetObject, this, transform);
+				poolDic[objectName] = new ObjectPool(targetObject, objectName, this, transform);
 				poolDic[objectName].CreateObject(1);
 				return poolDic[objectName].Pop();
 			}
@@ -106,19 +108,28 @@ namespace WitchMendokusai
 		{
 			private static readonly Dictionary<ObjectPool, Transform> ObjectParent = new();
 
-			private readonly GameObject prefab;
+			// 처음 Despawn 된 씬 물체가 원본이 될 수 있음. 그 씬이 내려가면 (월드에서 로비로) 파괴돼 ReplaceDeadTemplate 로 바꿈
+			private GameObject prefab;
+			private readonly string poolName;
 			private readonly Stack<GameObject> stack;
 			// container 를 manager 참조로 — SetContainer 갱신 자동 반영. 생성 시점 캐시 = SceneLifetimeScope.Build 전 root container race.
 			private readonly ObjectPoolManager manager;
 			private IObjectResolver Container => manager.container;
 			private readonly Transform managerTransform;
 
-			public ObjectPool(GameObject prefab, ObjectPoolManager manager, Transform managerTransform)
+			public ObjectPool(GameObject prefab, string poolName, ObjectPoolManager manager, Transform managerTransform)
 			{
 				this.prefab = prefab;
+				this.poolName = poolName;
 				this.manager = manager;
 				this.managerTransform = managerTransform;
 				stack = new();
+			}
+
+			public void ReplaceDeadTemplate(GameObject template)
+			{
+				if (prefab == null)
+					prefab = template;
 			}
 
 			public void CreateObject(int count = 1)
@@ -170,6 +181,12 @@ namespace WitchMendokusai
 						return;
 					}
 
+					// 씬 물체가 씬과 함께 파괴되며 들어온 경우 (월드에서 로비로). 꺼낼 때 Pop 이 버림
+					if (targetObject == null)
+					{
+						return;
+					}
+
 					if (targetObject.transform.parent != GetObjectParent(this))
 					{
 						targetObject.transform.SetParent(GetObjectParent(this));
@@ -179,6 +196,11 @@ namespace WitchMendokusai
 
 			public GameObject Pop()
 			{
+				// 씬과 함께 파괴된 물체는 버림 (Push 참고)
+				while (stack.Count > 0 && stack.Peek() == null)
+				{
+					stack.Pop();
+				}
 				if (stack.Count == 0)
 				{
 					CreateObject(5);
@@ -194,7 +216,7 @@ namespace WitchMendokusai
 			{
 				if (ObjectParent.ContainsKey(objectPool) == false)
 				{
-					GameObject poolParentObject = new($"[{nameof(ObjectPool)}] {objectPool.prefab.name}");
+					GameObject poolParentObject = new($"[{nameof(ObjectPool)}] {objectPool.poolName}");
 					poolParentObject.transform.SetParent(objectPool.managerTransform);
 
 					ObjectParent[objectPool] = poolParentObject.transform;

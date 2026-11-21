@@ -66,5 +66,8 @@ namespace WitchMendokusai
 			timeManager.RemoveCallback(UpdateUI);
 			villageHudBinder?.Hud.RemoveFromHierarchy();
 		}
+
+		// 열린 채 월드가 내려가면 (로비로) 닫힘 없이 파괴됨. 남은 콜백이 시간 루프를 예외로 멈추게 함
+		private void OnDestroy() => timeManager.RemoveCallback(UpdateUI);
 	}
 }

@@ -22,6 +22,9 @@ namespace WitchMendokusai
 		{
 			if (playerProvider.CurrentObject == null)
 				return;
+			// 월드가 내려가며 부모와 물건이 함께 파괴된 묶음은 버리고 다음 판에 새로 만듦
+			if (breakableField != null && breakableField.IsRootLost)
+				breakableField = null;
 			bool inDungeon = DungeonManager.TryGetExistingInstance(out DungeonManager dungeonManager) && dungeonManager.IsDungeon;
 			if (inDungeon == false)
 			{
