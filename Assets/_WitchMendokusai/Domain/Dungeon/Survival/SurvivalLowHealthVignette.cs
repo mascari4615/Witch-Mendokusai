@@ -17,7 +17,8 @@ namespace WitchMendokusai
 		private Image hitImage;
 		private float weight;
 		private float hitPeak;
-		private float hitStartTime = float.NegativeInfinity;
+		// 피격 뒤 경과 (FeelTime). 녹화 중에도 실제 속도
+		private float hitAge = float.PositiveInfinity;
 
 		private SurvivalFeelConfig Config => resourceManager.SurvivalFeel;
 
@@ -40,16 +41,16 @@ namespace WitchMendokusai
 		/// <summary> 피격 직후 가장자리 번쩍임. 사라지는 중에 오면 더 짙은 쪽으로 다시 시작 </summary>
 		public void Hit(float alpha)
 		{
-			float current = HitAlpha(Time.unscaledTime);
+			float current = HitAlpha();
 			hitPeak = Mathf.Clamp01(Mathf.Max(alpha, current));
-			hitStartTime = Time.unscaledTime;
+			hitAge = 0f;
 		}
 
-		public float HitAlpha(float now)
+		public float HitAlpha()
 		{
 			PlayerHitFeelSettings settings = Config.PlayerHit;
-			float age = now - hitStartTime;
-			if (age < 0f || hitPeak <= 0f)
+			float age = hitAge;
+			if (hitPeak <= 0f || float.IsInfinity(age))
 				return 0f;
 			if (age <= settings.EdgeHoldSeconds)
 				return hitPeak;
@@ -118,7 +119,8 @@ namespace WitchMendokusai
 			image.color = color;
 
 			Color hitColor = config.LowHealthColor;
-			hitColor.a *= inRun ? HitAlpha(Time.unscaledTime) : 0f;
+			hitColor.a *= inRun ? HitAlpha() : 0f;
+			hitAge += FeelTime.Delta;
 			hitImage.color = hitColor;
 		}
 	}

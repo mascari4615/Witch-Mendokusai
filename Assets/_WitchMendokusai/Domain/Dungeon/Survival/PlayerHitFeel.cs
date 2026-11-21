@@ -22,6 +22,8 @@ namespace WitchMendokusai
 		private UltimateFeelCamera feelCamera;
 		private Camera boundCamera;
 		private Transform focus;
+		// 연출 시계 (FeelTime). 녹화 중에도 실제 속도
+		private float clock;
 		private float lastPlayTime = float.NegativeInfinity;
 
 		private SurvivalFeelConfig Config => resourceManager.SurvivalFeel;
@@ -45,10 +47,9 @@ namespace WitchMendokusai
 			focus = player.transform;
 			shake.Add(Mathf.Lerp(settings.TraumaAtMin, settings.TraumaAtMax, strength), settings.TraumaCap);
 
-			float now = Time.unscaledTime;
-			if (now - lastPlayTime < settings.MinInterval)
+			if (clock - lastPlayTime < settings.MinInterval)
 				return;
-			lastPlayTime = now;
+			lastPlayTime = clock;
 			float hitStop = Mathf.Lerp(settings.HitStopAtMin, settings.HitStopAtMax, strength) * ComfortTimeWarp;
 			if (hitStop > 0f)
 				timeManager.HitStop(hitStop, settings.HitStopScale);
@@ -60,6 +61,8 @@ namespace WitchMendokusai
 		{
 			if (resourceManager == null)
 				return;
+			float delta = FeelTime.Delta;
+			clock += delta;
 			if (shake.Trauma <= 0f)
 			{
 				feelCamera?.Set(Vector3.zero, Vector2.zero, 0f, 0f, 0f);
@@ -67,7 +70,7 @@ namespace WitchMendokusai
 			}
 			BindCamera();
 			float strength = CombatEffectSettings.ScreenShake ? ComfortShake : 0f;
-			shake.Step(Config.PlayerHit.Trauma, Time.unscaledTime, Time.unscaledDeltaTime, 0f, strength, out Vector2 offset, out float roll);
+			shake.Step(Config.PlayerHit.Trauma, clock, delta, 0f, strength, out Vector2 offset, out float roll);
 			Vector3 target = focus != null ? focus.position : Vector3.zero;
 			feelCamera?.Set(target, offset, roll, 0f, 0f);
 		}

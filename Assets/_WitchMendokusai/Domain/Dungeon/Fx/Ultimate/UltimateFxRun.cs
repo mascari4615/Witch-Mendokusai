@@ -72,7 +72,7 @@ namespace WitchMendokusai
 			while (realTime < end || (tracks.Count > 0 && realTime < end * 2f))
 			{
 				// 프레임 녹화 중에는 고정 간격 (DevFrameRecorder), 아니면 실제 경과
-				RealDelta = Time.captureDeltaTime > 0f ? Time.captureDeltaTime : Time.unscaledDeltaTime;
+				RealDelta = FeelTime.Delta;
 				RealNow += RealDelta;
 				realDelta = RealDelta * Mathf.Max(0f, ClockScale);
 				realTime += realDelta;
