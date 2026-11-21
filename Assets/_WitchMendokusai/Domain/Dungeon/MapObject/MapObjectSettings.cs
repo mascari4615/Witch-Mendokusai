@@ -17,13 +17,21 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("자리 하나에 시도할 후보 수"), Min(1)] public int PlacementAttempts { get; private set; } = 8;
 		[field: SerializeField, Tooltip("배치 실패 시 다시 시도할 판 틱 수 (0.1초 간격). 다 쓰면 그 오브젝트 포기"), Min(1)] public int PlacementRounds { get; private set; } = 50;
 
+		[field: Header("등장 빈도")]
+		[field: SerializeField, Tooltip("앞 오브젝트와 등장 시각 최소 간격 (판 경과 초). 판 시작에 몰려 보이지 않게"), Min(0f)] public float SpawnGapSeconds { get; private set; } = 45f;
+		[field: SerializeField, Tooltip("같은 종류 오브젝트끼리 최소 거리 (m)"), Min(0f)] public float SameKindSpacing { get; private set; } = 40f;
+		[field: SerializeField, Tooltip("예산 뽑기에서 바로 앞과 같은 종류를 피함")] public bool AvoidSameKindInRow { get; private set; } = true;
+
+		public MapObjectPacing Pacing => new(SpawnGapSeconds, AvoidSameKindInRow);
+
 		[field: Header("걸어갈 길 검사")]
 		[field: SerializeField, Tooltip("경로 표본 간격 (m)"), Min(0.01f)] public float RouteSampleSpacing { get; private set; } = 0.2f;
 		[field: SerializeField, Tooltip("경로 표본 상한"), Min(1)] public int RouteMaxSamples { get; private set; } = 128;
 		[field: SerializeField, Tooltip("경로 지면 높이 허용 차이 (m)"), Min(0f)] public float RouteGroundDeviation { get; private set; } = 0.2f;
 
 		[field: Header("표식")]
-		[field: SerializeField, Tooltip("선 표식 공유 재질")] public Material MarkerMaterial { get; private set; }
+		[field: SerializeField, Tooltip("선 표식 공유 재질. 외형의 빛 부품도 이 재질 (정점 색)")] public Material MarkerMaterial { get; private set; }
+		[field: SerializeField, Tooltip("외형의 돌 부품 재질. 지면 바위와 같은 텍스처")] public Material StoneMaterial { get; private set; }
 		[field: SerializeField, Tooltip("원 표식 꼭짓점 수"), Min(8)] public int RingSegments { get; private set; } = 32;
 
 		[field: Header("머무름 진행 호")]
@@ -99,6 +107,8 @@ namespace WitchMendokusai
 		{
 			if (MarkerMaterial == null)
 				errors.Add($"{name}: {nameof(MarkerMaterial)} 미연결");
+			if (StoneMaterial == null)
+				errors.Add($"{name}: {nameof(StoneMaterial)} 미연결");
 			if (GroundMask.value == 0)
 				errors.Add($"{name}: {nameof(GroundMask)} 비어 있음");
 			if (ObstacleMask.value == 0)

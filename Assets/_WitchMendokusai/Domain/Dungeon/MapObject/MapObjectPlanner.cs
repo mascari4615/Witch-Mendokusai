@@ -42,12 +42,30 @@ namespace WitchMendokusai
 		public override string ToString() => $"시도 {Attempts}, 간격 {Spacing}, 지면 없음 {NoGround}, 막힘 {Blocked}, 길 막힘 {RouteBlocked}";
 	}
 
+	// 등장 빈도 규칙 (MapObjectSettings). 체감 빈도를 예산과 따로 조절
+	public readonly struct MapObjectPacing
+	{
+		// 앞 오브젝트와 등장 시각 최소 간격 (초). 0 이면 계획 시각 그대로
+		public readonly float GapSeconds;
+		// 가중치 뽑기에서 바로 앞과 같은 종류를 피함 (다른 후보가 있을 때)
+		public readonly bool AvoidRepeat;
+
+		public static readonly MapObjectPacing None = new(0f, false);
+
+		public MapObjectPacing(float gapSeconds, bool avoidRepeat)
+		{
+			GapSeconds = gapSeconds;
+			AvoidRepeat = avoidRepeat;
+		}
+	}
+
 	// 판 시작 배치 예산 계산. 엔진 물리 없음, 같은 시드면 같은 결과
 	public static class MapObjectPlanner
 	{
 		// 1. 최소 개수를 후보 순서대로 예산 안에서 채움
-		// 2. 남은 크레딧으로 살 수 있고 상한이 남은 후보를 가중치로 뽑기, 살 것이 없을 때까지
-		public static List<MapObjectPlan> Plan(MapObjectBudget budget, int seed, out int remainingCredits)
+		// 2. 남은 크레딧으로 살 수 있고 상한이 남은 후보를 가중치로 뽑기, 살 것이 없을 때까지. 바로 앞과 같은 종류는 피함 (pacing)
+		// 3. 시각순으로 놓고 앞 오브젝트와 간격이 GapSeconds 보다 좁으면 뒤로 미룸
+		public static List<MapObjectPlan> Plan(MapObjectBudget budget, int seed, MapObjectPacing pacing, out int remainingCredits)
 		{
 			System.Random random = new(seed);
 			Dictionary<MapObjectData, int> counts = new();
@@ -61,6 +79,7 @@ namespace WitchMendokusai
 			}
 
 			List<MapObjectData> affordable = new();
+			MapObjectData previous = null;
 			for (int pick = 0; pick < budget.MaxPicks; pick++)
 			{
 				affordable.Clear();
@@ -74,7 +93,10 @@ namespace WitchMendokusai
 				}
 				if (affordable.Count == 0)
 					break;
-				Buy(PickWeighted(affordable, totalWeight, random), random, counts, plans, ref remaining);
+				if (pacing.AvoidRepeat && affordable.Count > 1 && affordable.Remove(previous))
+					totalWeight -= previous.Weight;
+				previous = PickWeighted(affordable, totalWeight, random);
+				Buy(previous, random, counts, plans, ref remaining);
 			}
 
 			plans.Sort((left, right) =>
@@ -82,6 +104,12 @@ namespace WitchMendokusai
 				int byTime = left.SpawnTime.CompareTo(right.SpawnTime);
 				return byTime != 0 ? byTime : left.Order.CompareTo(right.Order);
 			});
+			for (int i = 1; i < plans.Count; i++)
+			{
+				float earliest = plans[i - 1].SpawnTime + pacing.GapSeconds;
+				if (plans[i].SpawnTime < earliest)
+					plans[i] = new MapObjectPlan(plans[i].Data, earliest, plans[i].Order);
+			}
 			remainingCredits = remaining;
 			return plans;
 		}
@@ -109,18 +137,19 @@ namespace WitchMendokusai
 
 		private static float RangeValue(System.Random random, float min, float max) => max > min ? min + (float)random.NextDouble() * (max - min) : min;
 
-		// 주인공 둘레 거리 범위의 무작위 자리. 다른 오브젝트 간격을 먼저 보고 물리 검사는 그다음
-		public static bool TryPickPosition(System.Random random, MapObjectData data, Vector3 origin, IReadOnlyList<Vector3> placed, int attempts, MapObjectProbe probe, out Vector3 position, out MapObjectPlacementTally tally)
+		// 주인공 둘레 거리 범위의 무작위 자리. 다른 오브젝트 간격 (같은 종류는 sameKindSpacing) 을 먼저 보고 물리 검사는 그다음
+		public static bool TryPickPosition(System.Random random, MapObjectData data, Vector3 origin, IReadOnlyList<Vector3> placed, IReadOnlyList<Vector3> sameKind, float sameKindSpacing, int attempts, MapObjectProbe probe, out Vector3 position, out MapObjectPlacementTally tally)
 		{
 			tally = new MapObjectPlacementTally();
 			float spacingSquared = data.MinSpacing * data.MinSpacing;
+			float sameKindSquared = sameKindSpacing * sameKindSpacing;
 			for (int attempt = 0; attempt < attempts; attempt++)
 			{
 				tally.Attempts++;
 				float angle = (float)(random.NextDouble() * Math.PI * 2.0);
 				float distance = RangeValue(random, data.PlayerDistance.x, data.PlayerDistance.y);
 				Vector3 candidate = origin + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * distance;
-				if (IsCrowded(candidate, placed, spacingSquared))
+				if (IsCrowded(candidate, placed, spacingSquared) || IsCrowded(candidate, sameKind, sameKindSquared))
 				{
 					tally.Spacing++;
 					continue;

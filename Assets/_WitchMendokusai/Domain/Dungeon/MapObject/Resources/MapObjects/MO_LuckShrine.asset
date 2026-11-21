@@ -15,7 +15,8 @@ MonoBehaviour:
   <DisplayName>k__BackingField: 운의 성소
   <Role>k__BackingField: 냥을 내고 운에 맡김
   <Category>k__BackingField: 4
-  <Prefab>k__BackingField: {fileID: 0}
+  <Model>k__BackingField: {fileID: 0}
+  <ShowMarker>k__BackingField: 1
   <MarkerShape>k__BackingField: 0
   <MarkerColor>k__BackingField: {r: 0.45, g: 1, b: 0.45, a: 1}
   <MarkerRadius>k__BackingField: 0

@@ -77,7 +77,7 @@ namespace WitchMendokusai
 				context.LogError(error);
 			if (errors.Count > 0)
 				return;
-			List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, RunSeed.Derive(runSeed, budget.SeedSalt), out int remaining);
+			List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, RunSeed.Derive(runSeed, budget.SeedSalt), MapObjectSettings.Load().Pacing, out int remaining);
 			foreach (MapObjectPlan plan in plans)
 				context.LogInfo($"{plan.Order + 1}. {plan.Data.name} ({plan.Data.DisplayName}) {plan.SpawnTime:0.#}초, 가격 {plan.Data.PlacementCost}");
 			context.LogSuccess($"{budget.name} 시드 {runSeed}: {plans.Count}개, 크레딧 {budget.Credits} 중 남음 {remaining}");

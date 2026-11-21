@@ -66,7 +66,7 @@ namespace WitchMendokusai.Tests
 			MapObjectBudget budget = MakeBudget(100, MakeData("A", 10, 1f, new Vector2Int(0, 5), spawnTime: new Vector2(0f, 60f)), MakeData("B", 15, 2f, new Vector2Int(0, 5)), MakeData("C", 5, 0.5f, new Vector2Int(0, 5)));
 
 			for (int seed = 0; seed < 20; seed++)
-				Assert.AreEqual(Signature(MapObjectPlanner.Plan(budget, seed, out _)), Signature(MapObjectPlanner.Plan(budget, seed, out _)), $"시드 {seed}");
+				Assert.AreEqual(Signature(MapObjectPlanner.Plan(budget, seed, MapObjectPacing.None, out _)), Signature(MapObjectPlanner.Plan(budget, seed, MapObjectPacing.None, out _)), $"시드 {seed}");
 		}
 
 		[Test]
@@ -76,7 +76,7 @@ namespace WitchMendokusai.Tests
 
 			HashSet<string> signatures = new();
 			for (int seed = 0; seed < 20; seed++)
-				signatures.Add(Signature(MapObjectPlanner.Plan(budget, seed, out _)));
+				signatures.Add(Signature(MapObjectPlanner.Plan(budget, seed, MapObjectPacing.None, out _)));
 			Assert.Greater(signatures.Count, 1);
 		}
 
@@ -89,7 +89,7 @@ namespace WitchMendokusai.Tests
 
 			for (int seed = 0; seed < 50; seed++)
 			{
-				List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, seed, out int remaining);
+				List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, seed, MapObjectPacing.None, out int remaining);
 				int spent = plans.Sum(plan => plan.Data.PlacementCost);
 				Assert.LessOrEqual(spent, 50);
 				Assert.AreEqual(50 - spent, remaining);
@@ -108,7 +108,7 @@ namespace WitchMendokusai.Tests
 			MapObjectData filler = MakeData("Filler", 1, 10f, new Vector2Int(0, 100));
 			MapObjectBudget budget = MakeBudget(15, required, filler);
 
-			List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, 3, out int remaining);
+			List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, 3, MapObjectPacing.None, out int remaining);
 
 			Assert.AreEqual(1, plans.Count(plan => plan.Data == required));
 			Assert.AreEqual(5, plans.Count(plan => plan.Data == filler));
@@ -120,7 +120,7 @@ namespace WitchMendokusai.Tests
 		{
 			MapObjectBudget budget = MakeBudget(100, MakeData("Late", 10, 1f, new Vector2Int(0, 5), spawnTime: new Vector2(100f, 200f)), MakeData("Early", 10, 1f, new Vector2Int(0, 5)));
 
-			List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, 11, out _);
+			List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, 11, MapObjectPacing.None, out _);
 
 			for (int i = 1; i < plans.Count; i++)
 				Assert.LessOrEqual(plans[i - 1].SpawnTime, plans[i].SpawnTime);
@@ -141,7 +141,7 @@ namespace WitchMendokusai.Tests
 
 			for (int i = 0; i < 6; i++)
 			{
-				if (MapObjectPlanner.TryPickPosition(random, data, Vector3.zero, placed, 64, flatGround, out Vector3 position, out _) == false)
+				if (MapObjectPlanner.TryPickPosition(random, data, Vector3.zero, placed, new List<Vector3>(), 0f, 64, flatGround, out Vector3 position, out _) == false)
 					continue;
 				float distance = new Vector2(position.x, position.z).magnitude;
 				Assert.That(distance, Is.InRange(5f - 0.001f, 10f + 0.001f));
@@ -162,7 +162,7 @@ namespace WitchMendokusai.Tests
 				return MapObjectProbeResult.NoGround;
 			};
 
-			bool found = MapObjectPlanner.TryPickPosition(new System.Random(1), data, Vector3.zero, new List<Vector3>(), 8, noGround, out _, out MapObjectPlacementTally tally);
+			bool found = MapObjectPlanner.TryPickPosition(new System.Random(1), data, Vector3.zero, new List<Vector3>(), new List<Vector3>(), 0f, 8, noGround, out _, out MapObjectPlacementTally tally);
 
 			Assert.IsFalse(found);
 			Assert.AreEqual(8, tally.Attempts);
@@ -188,7 +188,7 @@ namespace WitchMendokusai.Tests
 			Dungeon dungeon = AssetDatabase.LoadAssetAtPath<Dungeon>(DUNGEON_PATH);
 			Assert.IsNotNull(dungeon.MapObjectBudget);
 
-			List<MapObjectPlan> plans = MapObjectPlanner.Plan(dungeon.MapObjectBudget, 1, out _);
+			List<MapObjectPlan> plans = MapObjectPlanner.Plan(dungeon.MapObjectBudget, 1, MapObjectPacing.None, out _);
 
 			Assert.AreEqual(1, plans.Count(plan => plan.Data.Category == MapObjectCategory.Challenge));
 			Assert.IsTrue(plans.Where(plan => plan.Data.Category == MapObjectCategory.Challenge).All(plan => plan.SpawnTime == 0f), "판 시작 배치");

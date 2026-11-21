@@ -15,7 +15,8 @@ MonoBehaviour:
   <DisplayName>k__BackingField: 피의 성소
   <Role>k__BackingField: 체력을 내고 상자
   <Category>k__BackingField: 3
-  <Prefab>k__BackingField: {fileID: 0}
+  <Model>k__BackingField: {fileID: 11400000, guid: 84a371d318bd4daba5dd0054e2c1c99a, type: 2}
+  <ShowMarker>k__BackingField: 0
   <MarkerShape>k__BackingField: 1
   <MarkerColor>k__BackingField: {r: 0.9, g: 0.18, b: 0.22, a: 1}
   <MarkerRadius>k__BackingField: 0
