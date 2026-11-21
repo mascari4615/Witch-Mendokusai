@@ -80,21 +80,21 @@ namespace WitchMendokusai.Tests
 		// 쿨감, 치명타 확률과 피해는 566c5d5b6 에서 의도적으로 조정됨 (옛 20 -> 3, 20 -> 9, 20 -> 10)
 		private static readonly Dictionary<int, (UnitStatType stat, int? value)[]> OLD_EFFECTS = new()
 		{
-			[0] = new[] { (UnitStatType.ATTACK_SPEED_BONUS, 1) },
-			[1] = new[] { (UnitStatType.MOVEMENT_SPEED_BONUS, 1) },
-			[2] = new[] { (UnitStatType.COOLTIME_BONUS, null) },
-			[3] = new[] { (UnitStatType.HP_MAX, 5), (UnitStatType.HP_CUR, 5) },
-			[4] = new[] { (UnitStatType.DAMAGE_BONUS, 5) },
-			[5] = new[] { (UnitStatType.EXP_COLLIDER_SCALE, 1) },
-			[6] = new[] { (UnitStatType.CRITICAL_CHANCE, null) },
-			[7] = new[] { (UnitStatType.CRITICAL_DAMAGE, null) },
-			[100] = new[] { (UnitStatType.SATELLITE_COUNT, 1) },
-			[101] = new[] { (UnitStatType.SATELLITE_ROTATE_SPEED_BONUS, 1) },
-			[102] = new[] { (UnitStatType.SATELLITE_DAMAGE_BONUS, 2) },
-			[103] = new[] { (UnitStatType.SATELLITE_SCALE_BONUS, 1) },
-			[200] = new[] { (UnitStatType.FAIRY_COUNT, 1) },
-			[201] = new[] { (UnitStatType.FAIRY_DAMAGE_BONUS, 1) },
-			[202] = new[] { (UnitStatType.FAIRY_ATTACK_SPEED_BONUS, 1) },
+			[0] = new (UnitStatType stat, int? value)[] { (UnitStatType.ATTACK_SPEED_BONUS, 1) },
+			[1] = new (UnitStatType stat, int? value)[] { (UnitStatType.MOVEMENT_SPEED_BONUS, 1) },
+			[2] = new (UnitStatType stat, int? value)[] { (UnitStatType.COOLTIME_BONUS, null) },
+			[3] = new (UnitStatType stat, int? value)[] { (UnitStatType.HP_MAX, 5), (UnitStatType.HP_CUR, 5) },
+			[4] = new (UnitStatType stat, int? value)[] { (UnitStatType.DAMAGE_BONUS, 5) },
+			[5] = new (UnitStatType stat, int? value)[] { (UnitStatType.EXP_COLLIDER_SCALE, 1) },
+			[6] = new (UnitStatType stat, int? value)[] { (UnitStatType.CRITICAL_CHANCE, null) },
+			[7] = new (UnitStatType stat, int? value)[] { (UnitStatType.CRITICAL_DAMAGE, null) },
+			[100] = new (UnitStatType stat, int? value)[] { (UnitStatType.SATELLITE_COUNT, 1) },
+			[101] = new (UnitStatType stat, int? value)[] { (UnitStatType.SATELLITE_ROTATE_SPEED_BONUS, 1) },
+			[102] = new (UnitStatType stat, int? value)[] { (UnitStatType.SATELLITE_DAMAGE_BONUS, 2) },
+			[103] = new (UnitStatType stat, int? value)[] { (UnitStatType.SATELLITE_SCALE_BONUS, 1) },
+			[200] = new (UnitStatType stat, int? value)[] { (UnitStatType.FAIRY_COUNT, 1) },
+			[201] = new (UnitStatType stat, int? value)[] { (UnitStatType.FAIRY_DAMAGE_BONUS, 1) },
+			[202] = new (UnitStatType stat, int? value)[] { (UnitStatType.FAIRY_ATTACK_SPEED_BONUS, 1) },
 		};
 
 		private AssetSkillTreeDataSource dataSource;
