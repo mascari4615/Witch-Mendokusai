@@ -60,9 +60,9 @@ namespace WitchMendokusai
 
 		private static float HorizontalSquared(Vector3 left, Vector3 right)
 		{
-			float x = left.x - right.x;
-			float z = left.z - right.z;
-			return x * x + z * z;
+			float deltaX = left.x - right.x;
+			float deltaZ = left.z - right.z;
+			return deltaX * deltaX + deltaZ * deltaZ;
 		}
 	}
 }

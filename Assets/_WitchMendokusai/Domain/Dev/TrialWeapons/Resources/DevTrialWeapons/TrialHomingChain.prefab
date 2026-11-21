@@ -71,7 +71,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d492e87d06f23b14e8f7f9a3ad7ddb04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.Spawner
-  prefabToSpawn: {fileID: 4433883458386433472, guid: bc70949883c34b4bada3a22a9ea75704, type: 3}
+  prefabToSpawn: {fileID: 8891603708961370830, guid: bc70949883c34b4bada3a22a9ea75704, type: 3}
   spawnPositionStrategy: 4
   spawnAimStrategy: 2
   <RandomRange>k__BackingField: 0

@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("한 번 낼 때마다 시작각에 더하는 각도")] private float volleyStepDegrees = 0f;
 
 		private readonly MoveAimTracker moveAim = new();
+		private readonly System.Collections.Generic.List<IShotReceiver> shotReceiverBuffer = new();
 		private float angleCursor;
 
 		private bool UsesMoveAim => spawnAimStrategy == SpawnAimStrategy.LastMoveDirection || spawnPositionStrategy == SpawnPositionStrategy.BehindPlayer || silhouettePrefab != null;
@@ -32,7 +33,7 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
-			if (UsesMoveAim && playerProvider.HasPlayer)
+			if (UsesMoveAim && playerProvider.HasPlayer && playerProvider.HasObject)
 				TickMoveAim(Time.deltaTime);
 		}
 

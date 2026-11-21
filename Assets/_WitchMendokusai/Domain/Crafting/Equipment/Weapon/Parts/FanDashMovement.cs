@@ -8,6 +8,8 @@ namespace WitchMendokusai
 	// 3 돌진: 겨눈 표적의 마지막 자리로 빠르게. 지나쳐도 수명이 끝날 때까지 직진
 	public class FanDashMovement : SkillComponent, IShotReceiver
 	{
+		private const float MIN_DIRECTION_SQUARED = 0.0001f;
+
 		private enum Phase
 		{
 			Spread = 0,
@@ -22,6 +24,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f), Tooltip("발 하나당 벌어지는 각도")] private float fanDegreesPerShot = 30f;
 		[SerializeField, Min(0f), Tooltip("부채꼴 전체 상한 각도")] private float maxFanDegrees = 180f;
 		[SerializeField, Min(0f), Tooltip("표적을 찾는 반지름")] private float targetRange = 14f;
+		[SerializeField, Tooltip("퍼짐 방향의 중심. 조준 방향에서 이만큼 돌린 쪽 (180 이면 반대쪽)")] private float spreadCenterDegrees = 180f;
 
 		private Phase phase;
 		private float phaseTime;
@@ -46,7 +49,7 @@ namespace WitchMendokusai
 		{
 			shotIndex = shot.Index;
 			shotCount = shot.Count;
-			if (shot.Direction.sqrMagnitude > 0.0001f)
+			if (shot.Direction.sqrMagnitude > MIN_DIRECTION_SQUARED)
 				aimDirection = shot.Direction;
 			BeginSpread();
 		}
@@ -66,7 +69,7 @@ namespace WitchMendokusai
 			phaseTime = 0f;
 			target = null;
 			float angle = FanAngle(shotIndex, shotCount, fanDegreesPerShot, maxFanDegrees);
-			moveDirection = Quaternion.Euler(0f, 180f + angle, 0f) * aimDirection;
+			moveDirection = Quaternion.Euler(0f, spreadCenterDegrees + angle, 0f) * aimDirection;
 			Face(moveDirection);
 		}
 
@@ -96,16 +99,20 @@ namespace WitchMendokusai
 			phase = Phase.Aim;
 			phaseTime = 0f;
 			target = SurvivalTargeting.Nearest(transform.position, targetRange, null);
+			targetPosition = target != null ? target.position : transform.position;
 		}
 
 		private void TurnToTarget()
 		{
 			if (target == null || target.gameObject.activeInHierarchy == false)
+			{
+				target = null;
 				return;
+			}
 			targetPosition = target.position;
 			Vector3 toTarget = targetPosition - transform.position;
 			toTarget.y = 0f;
-			if (toTarget.sqrMagnitude > 0.0001f)
+			if (toTarget.sqrMagnitude > MIN_DIRECTION_SQUARED)
 				Face(toTarget);
 		}
 
@@ -124,7 +131,7 @@ namespace WitchMendokusai
 		private void Face(Vector3 direction)
 		{
 			direction.y = 0f;
-			if (direction.sqrMagnitude > 0.0001f)
+			if (direction.sqrMagnitude > MIN_DIRECTION_SQUARED)
 				transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
 		}
 	}

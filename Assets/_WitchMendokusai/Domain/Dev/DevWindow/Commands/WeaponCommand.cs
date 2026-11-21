@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace WitchMendokusai
 {
@@ -33,7 +35,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (args[0].StartsWith(TRIAL_PREFIX, System.StringComparison.OrdinalIgnoreCase))
+			if (args[0].StartsWith(TRIAL_PREFIX, StringComparison.OrdinalIgnoreCase))
 			{
 				ExecuteTrial(context, args[0].Substring(TRIAL_PREFIX.Length));
 				return;
@@ -53,7 +55,7 @@ namespace WitchMendokusai
 		// 새 동작 부품 시험 무기. 이름 조각이 하나만 맞아야 함
 		private static void ExecuteTrial(DevCommandContext context, string name)
 		{
-			List<UnityEngine.GameObject> matches = DevCombatTools.TrialWeapons().Where(weapon => weapon.name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+			List<GameObject> matches = DevCombatTools.TrialWeapons().Where(weapon => weapon.name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
 			if (matches.Count != 1)
 			{
 				context.LogError(matches.Count == 0 ? $"맞는 시험 무기 없음: '{name}'" : $"후보 {matches.Count}개, 더 정확히: {string.Join(", ", matches.Select(weapon => weapon.name))}");
@@ -68,9 +70,9 @@ namespace WitchMendokusai
 		{
 			if (int.TryParse(reference, out int id))
 				return weapon.ID == id;
-			if (reference.StartsWith(CODE_PREFIX, System.StringComparison.OrdinalIgnoreCase) && int.TryParse(reference.Substring(CODE_PREFIX.Length), out int codeId))
+			if (reference.StartsWith(CODE_PREFIX, StringComparison.OrdinalIgnoreCase) && int.TryParse(reference.Substring(CODE_PREFIX.Length), out int codeId))
 				return weapon.ID == codeId;
-			return weapon.Name != null && weapon.Name.IndexOf(reference, System.StringComparison.OrdinalIgnoreCase) >= 0;
+			return weapon.Name != null && weapon.Name.IndexOf(reference, StringComparison.OrdinalIgnoreCase) >= 0;
 		}
 
 		public IEnumerable<string> Suggest(string[] partial)

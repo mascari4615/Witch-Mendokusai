@@ -27,7 +27,7 @@ namespace WitchMendokusai
 			moveAim.Reset();
 			if (silhouettePrefab == null || prefabToSpawn == null)
 				return;
-			if (playerProvider.HasPlayer)
+			if (playerProvider.HasPlayer && playerProvider.HasObject)
 				TickMoveAim(0f);
 			footprint = SwordSwingArea.FromHitbox(prefabToSpawn.transform);
 			hasMeasuredFootprint = true;
@@ -49,7 +49,7 @@ namespace WitchMendokusai
 
 		private void LateUpdate()
 		{
-			if (silhouettes.Count == 0 || hasMeasuredFootprint == false || playerProvider.HasPlayer == false)
+			if (silhouettes.Count == 0 || hasMeasuredFootprint == false || playerProvider.HasPlayer == false || playerProvider.HasObject == false)
 				return;
 			bool hasDirection = TryGetPreviewDirection(out Vector3 direction);
 			float scale = FootprintScale();
@@ -94,7 +94,9 @@ namespace WitchMendokusai
 		// 계획한 자리마다 원형 예고. 뒤에 발사되는 발은 SpawnDelay 만큼 더 오래 보임
 		private void ShowNextSpotTelegraph(ShotPlan[] plan, float leadSeconds)
 		{
-			telegraphStops.Clear();
+			// 끝난 예고의 중단 함수는 불러도 무해. 오래된 것만 덜어 냄
+			if (telegraphStops.Count > 32)
+				telegraphStops.RemoveRange(0, 16);
 			float radius = telegraphRadius * FootprintScale();
 			for (int i = 0; i < plan.Length; i++)
 			{

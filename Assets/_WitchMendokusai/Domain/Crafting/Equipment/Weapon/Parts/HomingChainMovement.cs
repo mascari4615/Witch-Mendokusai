@@ -8,6 +8,8 @@ namespace WitchMendokusai
 	// 피해는 같은 오브젝트의 DamagingObject 가 줌 (useHitCount 는 끄고 횟수는 여기서 셈)
 	public class HomingChainMovement : SkillComponent, IShotReceiver, IHitEffect
 	{
+		private const float MIN_DIRECTION_SQUARED = 0.0001f;
+
 		[SerializeField, Min(0f)] private float moveSpeed = 14f;
 		[SerializeField, Min(0f), Tooltip("처음 표적을 찾는 반지름")] private float acquireRange = 14f;
 		[SerializeField, Min(0f), Tooltip("맞힌 뒤 다음 적을 찾는 반지름")] private float retargetRange = 5f;
@@ -32,7 +34,7 @@ namespace WitchMendokusai
 
 		public void OnShot(ShotInfo shot)
 		{
-			if (shot.Direction.sqrMagnitude > 0.0001f)
+			if (shot.Direction.sqrMagnitude > MIN_DIRECTION_SQUARED)
 				direction = shot.Direction.normalized;
 		}
 
@@ -72,7 +74,7 @@ namespace WitchMendokusai
 			{
 				Vector3 toTarget = target.position - transform.position;
 				toTarget.y = 0f;
-				if (toTarget.sqrMagnitude > 0.0001f)
+				if (toTarget.sqrMagnitude > MIN_DIRECTION_SQUARED)
 					direction = toTarget.normalized;
 			}
 			transform.position += moveSpeed * Time.deltaTime * direction;
