@@ -64,7 +64,8 @@ namespace WitchMendokusai
 	{
 		// 1. 최소 개수를 후보 순서대로 예산 안에서 채움
 		// 2. 남은 크레딧으로 살 수 있고 상한이 남은 후보를 가중치로 뽑기, 살 것이 없을 때까지. 바로 앞과 같은 종류는 피함 (pacing)
-		// 3. 시각순으로 놓고 앞 오브젝트와 간격이 GapSeconds 보다 좁으면 뒤로 미룸
+		// 3. 시각순으로 놓고 같은 종류가 붙으면 뒤의 다른 종류와 자리를 바꿈
+		// 4. 앞 오브젝트와 간격이 GapSeconds 보다 좁으면 뒤로 미룸. 판 시작 필수 오브젝트 (IsStartFixed) 는 0초 그대로
 		public static List<MapObjectPlan> Plan(MapObjectBudget budget, int seed, MapObjectPacing pacing, out int remainingCredits)
 		{
 			System.Random random = new(seed);
@@ -104,17 +105,48 @@ namespace WitchMendokusai
 				int byTime = left.SpawnTime.CompareTo(right.SpawnTime);
 				return byTime != 0 ? byTime : left.Order.CompareTo(right.Order);
 			});
-			for (int i = 1; i < plans.Count; i++)
+			if (pacing.AvoidRepeat)
+				SeparateSameKind(plans);
+			float previousTime = float.NegativeInfinity;
+			for (int i = 0; i < plans.Count; i++)
 			{
-				float earliest = plans[i - 1].SpawnTime + pacing.GapSeconds;
+				if (IsStartFixed(plans[i].Data))
+				{
+					previousTime = Mathf.Max(previousTime, plans[i].SpawnTime);
+					continue;
+				}
+				float earliest = previousTime + pacing.GapSeconds;
 				if (plans[i].SpawnTime < earliest)
 					plans[i] = new MapObjectPlan(plans[i].Data, earliest, plans[i].Order);
+				previousTime = plans[i].SpawnTime;
 			}
 			remainingCredits = remaining;
 			return plans;
 		}
 
 		private static int Count(Dictionary<MapObjectData, int> counts, MapObjectData data) => counts.TryGetValue(data, out int count) ? count : 0;
+
+		// 판 시작에 꼭 놓는 것 (최소 개수 있고 등장 시각 0). 도전 사이트, 탐지기. 간격으로 미루지 않음
+		public static bool IsStartFixed(MapObjectData data) => data.CountRange.x > 0 && data.SpawnTime.y <= 0f;
+
+		// 등장 순서에서 같은 종류가 붙으면 뒤쪽 다른 종류와 종류만 바꿈 (시각은 자리 그대로). 바꿀 것이 없으면 그대로
+		private static void SeparateSameKind(List<MapObjectPlan> plans)
+		{
+			for (int i = 1; i < plans.Count; i++)
+			{
+				if (plans[i].Data != plans[i - 1].Data)
+					continue;
+				for (int j = i + 1; j < plans.Count; j++)
+				{
+					if (plans[j].Data == plans[i].Data || IsStartFixed(plans[j].Data) || IsStartFixed(plans[i].Data))
+						continue;
+					MapObjectPlan swapped = plans[i];
+					plans[i] = new MapObjectPlan(plans[j].Data, swapped.SpawnTime, swapped.Order);
+					plans[j] = new MapObjectPlan(swapped.Data, plans[j].SpawnTime, plans[j].Order);
+					break;
+				}
+			}
+		}
 
 		private static void Buy(MapObjectData data, System.Random random, Dictionary<MapObjectData, int> counts, List<MapObjectPlan> plans, ref int remaining)
 		{

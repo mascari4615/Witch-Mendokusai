@@ -16,22 +16,35 @@ namespace WitchMendokusai
 			private readonly List<Color> colors = new();
 			private readonly List<int> triangles = new();
 			private readonly Color color;
+			private readonly float uvPerMeter;
+			private readonly float facetShade;
 
-			public Builder(Color color) => this.color = color;
+			public Builder(Color color, float uvPerMeter, float facetShade)
+			{
+				this.color = color;
+				this.uvPerMeter = uvPerMeter;
+				this.facetShade = facetShade;
+			}
 
-			// 볼록 다각형 한 면 (바깥에서 보면 시계 방향). 면 평면에 투영한 UV
+			// 볼록 다각형 한 면 (바깥에서 보면 시계 방향). UV 는 면 평면 투영, 옆면은 가로가 수평 위가 위 (바깥에서 봐서 안 뒤집힘)
 			public void Face(params Vector3[] corners)
 			{
 				Vector3 normal = Vector3.Cross(corners[1] - corners[0], corners[2] - corners[0]).normalized;
-				Vector3 tangent = (corners[1] - corners[0]).normalized;
-				Vector3 bitangent = Vector3.Cross(normal, tangent);
+				Vector3 tangent = Vector3.Cross(normal, Vector3.up);
+				if (tangent.sqrMagnitude < 0.0001f)
+					tangent = Vector3.right;
+				tangent.Normalize();
+				Vector3 bitangent = Vector3.Cross(tangent, normal);
+				// 조명 없는 빛 재질용 면 밝기. 위를 볼수록 밝게
+				float brightness = 1f - facetShade * (0.5f - 0.5f * normal.y);
+				Color faceColor = new(color.r * brightness, color.g * brightness, color.b * brightness, color.a);
 				int start = vertices.Count;
 				foreach (Vector3 corner in corners)
 				{
 					vertices.Add(corner);
 					normals.Add(normal);
-					uvs.Add(new Vector2(Vector3.Dot(corner, tangent), Vector3.Dot(corner, bitangent)) * UV_PER_METER);
-					colors.Add(color);
+					uvs.Add(new Vector2(Vector3.Dot(corner, tangent), Vector3.Dot(corner, bitangent)) * uvPerMeter);
+					colors.Add(faceColor);
 				}
 				for (int i = 1; i < corners.Length - 1; i++)
 				{
@@ -54,12 +67,12 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 바위 텍스처 한 장이 덮는 넓이 (1 / m)
-		private const float UV_PER_METER = 0.5f;
+		// 결정 허리 높이 비율. 위아래 대칭 쌍뿔
+		private const float CRYSTAL_WAIST = 0.5f;
 
-		public static Mesh Build(MapObjectPartShape shape, Vector3 size, int sides, float topScale, Color color)
+		public static Mesh Build(MapObjectPartShape shape, Vector3 size, int sides, float topScale, Color color, float uvPerMeter, float facetShade)
 		{
-			Builder builder = new(color);
+			Builder builder = new(color, uvPerMeter, facetShade);
 			switch (shape)
 			{
 				case MapObjectPartShape.Box:
@@ -112,7 +125,7 @@ namespace WitchMendokusai
 			Vector3 foot = Vector3.zero;
 			Vector3[] middle = new Vector3[sides];
 			for (int i = 0; i < sides; i++)
-				middle[i] = Ring(size, sides, i, 0f, 1f, 1f, size.y * 0.5f);
+				middle[i] = Ring(size, sides, i, 0f, 1f, 1f, size.y * CRYSTAL_WAIST);
 			for (int i = 0; i < sides; i++)
 			{
 				int next = (i + 1) % sides;

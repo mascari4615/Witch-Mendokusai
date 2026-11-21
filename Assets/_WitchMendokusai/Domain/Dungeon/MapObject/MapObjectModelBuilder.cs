@@ -17,7 +17,7 @@ namespace WitchMendokusai
 			MapObjectModelMotion motion = null;
 			foreach (MapObjectModelPart part in model.Parts)
 			{
-				Mesh mesh = GetMesh(part);
+				Mesh mesh = GetMesh(part, settings);
 				for (int i = 0; i < part.RadialCount; i++)
 				{
 					GameObject piece = new(part.Shape.ToString());
@@ -36,7 +36,8 @@ namespace WitchMendokusai
 					{
 						meshRenderer.sharedMaterial = settings.StoneMaterial;
 						propertyBlock ??= new MaterialPropertyBlock();
-						propertyBlock.SetColor(BaseColorId, part.Color);
+						// 재질 색 (바위 텍스처 색) 에 부품 색을 곱함
+						propertyBlock.SetColor(BaseColorId, settings.StoneMaterial.GetColor(BaseColorId) * part.Color);
 						meshRenderer.SetPropertyBlock(propertyBlock);
 					}
 					if (part.Solid)
@@ -55,12 +56,13 @@ namespace WitchMendokusai
 			}
 		}
 
-		private static Mesh GetMesh(MapObjectModelPart part)
+		private static Mesh GetMesh(MapObjectModelPart part, MapObjectSettings settings)
 		{
-			string key = $"{part.Shape}|{part.Sides}|{part.TopScale}|{part.Size}|{part.Color}";
+			float shade = part.Surface == MapObjectPartSurface.Glow ? settings.ModelGlowFacetShade : 0f;
+			string key = string.Join("|", part.Shape, part.Sides, part.TopScale.ToString("R"), part.Size.x.ToString("R"), part.Size.y.ToString("R"), part.Size.z.ToString("R"), part.Color.ToString("F4"), shade.ToString("R"), settings.ModelUvPerMeter.ToString("R"));
 			if (meshes.TryGetValue(key, out Mesh cached) && cached != null)
 				return cached;
-			Mesh mesh = MapObjectModelMesh.Build(part.Shape, part.Size, part.Sides, part.TopScale, part.Color);
+			Mesh mesh = MapObjectModelMesh.Build(part.Shape, part.Size, part.Sides, part.TopScale, part.Color, settings.ModelUvPerMeter, shade);
 			mesh.name = "MapObjectPart " + key;
 			mesh.hideFlags = HideFlags.DontSave;
 			meshes[key] = mesh;

@@ -31,7 +31,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("도")] public Vector3 Rotation { get; private set; }
 		[field: SerializeField, Tooltip("가로, 높이, 세로 (m)")] public Vector3 Size { get; private set; } = Vector3.one;
 		[field: SerializeField, Tooltip("Prism, Crystal 옆면 수"), Range(3, 16)] public int Sides { get; private set; } = 6;
-		[field: SerializeField, Tooltip("Prism 윗면 크기 배율"), Min(0f)] public float TopScale { get; private set; } = 1f;
+		[field: SerializeField, Tooltip("Prism 윗면 크기 배율"), Min(0.01f)] public float TopScale { get; private set; } = 1f;
 		[field: SerializeField, Tooltip("같은 부품을 중심 둘레에 몇 개. 1 이면 Position 그대로")] [field: Min(1)] public int RadialCount { get; private set; } = 1;
 		[field: SerializeField, Tooltip("RadialCount 2 이상일 때 둘레 반지름 (m)"), Min(0f)] public float RadialRadius { get; private set; }
 		[field: SerializeField, Tooltip("둘레 첫 자리 각도 (도)")] public float RadialStartAngle { get; private set; }
@@ -58,6 +58,16 @@ namespace WitchMendokusai
 					errors.Add($"{name}: 부품 크기 {part.Size}");
 				if (part.RadialCount > 1 && part.RadialRadius <= 0f)
 					errors.Add($"{name}: 둘레 {part.RadialCount}개인데 반지름 0");
+				if (part.RadialCount == 1 && (part.RadialRadius != 0f || part.RadialStartAngle != 0f))
+					errors.Add($"{name}: 둘레 1개인데 반지름이나 시작 각도가 있음 (무시됨, Position 으로)");
+				if (part.Shape != MapObjectPartShape.Box && part.Sides < 3)
+					errors.Add($"{name}: 옆면 {part.Sides}");
+				if (part.Shape == MapObjectPartShape.Prism && part.TopScale <= 0f)
+					errors.Add($"{name}: 윗면 배율 {part.TopScale} (0 이면 면이 접힘. 뾰족한 것은 Crystal)");
+				if (part.BobPeriod <= 0f)
+					errors.Add($"{name}: 흔들림 주기 {part.BobPeriod}");
+				if (part.Solid && (part.SpinSpeed != 0f || part.BobHeight > 0f))
+					errors.Add($"{name}: 충돌체 부품은 움직이지 않음 (회전, 흔들림 끄기)");
 			}
 		}
 	}

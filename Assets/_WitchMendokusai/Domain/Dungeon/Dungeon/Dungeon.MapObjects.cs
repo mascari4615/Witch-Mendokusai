@@ -16,6 +16,7 @@ namespace WitchMendokusai
 			List<string> errors = new();
 			MapObjectBudget.Validate(errors);
 			MapObjectSettings.Load().Validate(errors);
+			MapObjectSettings.Load().ValidateBudget(MapObjectBudget, errors);
 			if (errors.Count > 0)
 				throw new System.InvalidOperationException($"{name} 맵 오브젝트 설정 오류: {string.Join(", ", errors)}");
 		}
