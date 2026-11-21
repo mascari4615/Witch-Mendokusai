@@ -1,0 +1,100 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 886df8f91313453d87d2811d9132b9b5, type: 3}
+  m_Name: Ult3D_SunBeamHeavy
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SunBeamHeavyUltimateFx
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle: 
+  devKey: 
+  spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
+  shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
+  gradeShader: {fileID: 4800000, guid: 1ebe1525f751440ea76b9cca2137b714, type: 3}
+  overlayFlashCap: 0.32
+  backgroundFlashCap: 0.85
+  spawnTemporaryFoliage: 1
+  foliageAreaRadius: 14
+  foliage:
+  - Prefab: {fileID: 6107932506994862601, guid: a26a53e463177194db6585765f564431, type: 3}
+    Count: 220
+    Flexibility: 1
+    ScaleRange: {x: 1.2, y: 2}
+    MinDistance: 1.2
+  - Prefab: {fileID: 5350839332914572334, guid: 3540440509c30ba49b2125f242729c46, type: 3}
+    Count: 18
+    Flexibility: 0.75
+    ScaleRange: {x: 0.9, y: 1.4}
+    MinDistance: 3
+  - Prefab: {fileID: 2871132453943284833, guid: c0c27574d0d91ea44894908f417f36d4, type: 3}
+    Count: 6
+    Flexibility: 0.3
+    ScaleRange: {x: 0.45, y: 0.7}
+    MinDistance: 6.5
+  foliageResponse:
+    Bend: 78
+    DecaySeconds: 1.2
+    Hertz: 1.7
+    BladeCount: 70
+    BladeSpeed: 11
+    BladeColor: {r: 0.45, g: 0.7, b: 0.3, a: 1}
+  tailSeconds: 1.5
+  screenSortingOrder: 2400
+  meshGlowShader: {fileID: 4800000, guid: 4d07b8e2c11b28449a3f241e98f42971, type: 3}
+  litParticleShader: {fileID: 4800000, guid: ebe2a5585f6714b4a807c9a0a60454ed, type: 3}
+  spriteLightGain: 0.12
+  spriteTintCap: 2.2
+  spriteRefreshSeconds: 0.3
+  targetDistance: 1.6
+  sunColor: {r: 3, g: 1.6, b: 0.4, a: 1}
+  beamCore: {r: 2.2, g: 1.6, b: 0.7, a: 1}
+  beamMiddle: {r: 2, g: 1, b: 0.15, a: 1}
+  beamOuter: {r: 2, g: 0.65, b: 0.12, a: 1}
+  sunLightColor: {r: 1, g: 0.9, b: 0.6, a: 1}
+  contactLightColor: {r: 1, g: 0.6, b: 0.25, a: 1}
+  meltColor: {r: 2.2, g: 0.8, b: 0.2, a: 1}
+  steamColor: {r: 0.75, g: 0.7, b: 0.68, a: 0.6}
+  tintColor: {r: 0.93, g: 0.9, b: 1, a: 1}
+  aimDown: 15
+  aimSide: -1
+  sunDiameter: 1.5
+  sunEmission: 1.1
+  sunHeight: 2.4
+  beamRadii: {x: 0.2, y: 0.5, z: 0.85}
+  sweepReach: {x: 2, y: 6}
+  sweepAngle: 15
+  sweepPeriod: 2.8
+  beamLayerAlpha: {x: 0.45, y: 0.35, z: 0.3}
+  chargeSeconds: 0.6
+  omenSeconds: 1.6
+  sweepSeconds: 2.8
+  meltLinger: 2.4
+  restoreSeconds: 1.2
+  sunDim: 0.55
+  ambientDim: 0.6
+  sunIntensity: 14
+  sunRange: 9
+  contactIntensity: 26
+  blastIntensity: 42
+  contactRange: 11
+  bloom: 1.6
+  vignette: 0.25
+  gatherCount: 80
+  flowPerSecond: 180
+  sparkPerSecond: 150
+  steamPerSecond: 22
+  meltSpacing: 0.22
+  meltWidth: 1.3
+  blastPuffs: 44
+  blastRadius: 3.2
+  windSpeed: 12

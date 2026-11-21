@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c40b097ba2d14597915116f3c7cf6439, type: 3}
+  m_Name: Ult3D_NightBladeHeavyV2
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.FeelUltimateFx
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle: 
+  devKey: nightblade_heavy_v2
+  spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
+  shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
+  gradeShader: {fileID: 4800000, guid: 1ebe1525f751440ea76b9cca2137b714, type: 3}
+  overlayFlashCap: 0.32
+  backgroundFlashCap: 0.85
+  spawnTemporaryFoliage: 1
+  foliageAreaRadius: 14
+  foliage:
+  - Prefab: {fileID: 6107932506994862601, guid: a26a53e463177194db6585765f564431, type: 3}
+    Count: 220
+    Flexibility: 1
+    ScaleRange: {x: 1.2, y: 2}
+    MinDistance: 1.2
+  - Prefab: {fileID: 5350839332914572334, guid: 3540440509c30ba49b2125f242729c46, type: 3}
+    Count: 18
+    Flexibility: 0.75
+    ScaleRange: {x: 0.9, y: 1.4}
+    MinDistance: 3
+  - Prefab: {fileID: 2871132453943284833, guid: c0c27574d0d91ea44894908f417f36d4, type: 3}
+    Count: 6
+    Flexibility: 0.3
+    ScaleRange: {x: 0.45, y: 0.7}
+    MinDistance: 6.5
+  foliageResponse:
+    Bend: 78
+    DecaySeconds: 1.2
+    Hertz: 1.7
+    BladeCount: 70
+    BladeSpeed: 11
+    BladeColor: {r: 0.45, g: 0.7, b: 0.3, a: 1}
+  tailSeconds: 1.5
+  screenSortingOrder: 2400
+  body: {fileID: 11400000, guid: 0392e50a4c9e903499824f8feb8f6af6, type: 2}
+  feel: {fileID: 11400000, guid: ddce285e722ad2f419639fee1ca6fb2e, type: 2}
+  worldSize: 1.45

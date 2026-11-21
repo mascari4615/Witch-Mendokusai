@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e022a4090928ff40b7bbcf3ca474cde, type: 3}
+  m_Name: Ult3D_ConstellationHeavy
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.ConstellationHeavyUltimateFx
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle: 
+  devKey: 
+  spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
+  shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
+  gradeShader: {fileID: 4800000, guid: 1ebe1525f751440ea76b9cca2137b714, type: 3}
+  overlayFlashCap: 0.32
+  backgroundFlashCap: 0.85
+  spawnTemporaryFoliage: 1
+  foliageAreaRadius: 14
+  foliage:
+  - Prefab: {fileID: 6107932506994862601, guid: a26a53e463177194db6585765f564431, type: 3}
+    Count: 220
+    Flexibility: 1
+    ScaleRange: {x: 1.2, y: 2}
+    MinDistance: 1.2
+  - Prefab: {fileID: 5350839332914572334, guid: 3540440509c30ba49b2125f242729c46, type: 3}
+    Count: 18
+    Flexibility: 0.75
+    ScaleRange: {x: 0.9, y: 1.4}
+    MinDistance: 3
+  - Prefab: {fileID: 2871132453943284833, guid: c0c27574d0d91ea44894908f417f36d4, type: 3}
+    Count: 6
+    Flexibility: 0.3
+    ScaleRange: {x: 0.45, y: 0.7}
+    MinDistance: 6.5
+  foliageResponse:
+    Bend: 78
+    DecaySeconds: 1.2
+    Hertz: 1.7
+    BladeCount: 70
+    BladeSpeed: 11
+    BladeColor: {r: 0.45, g: 0.7, b: 0.3, a: 1}
+  tailSeconds: 1.5
+  screenSortingOrder: 2400
+  meshGlowShader: {fileID: 4800000, guid: 4d07b8e2c11b28449a3f241e98f42971, type: 3}
+  litParticleShader: {fileID: 4800000, guid: ebe2a5585f6714b4a807c9a0a60454ed, type: 3}
+  spriteLightGain: 0.12
+  spriteTintCap: 2.2
+  spriteRefreshSeconds: 0.3
+  targetDistance: 0.9
+  starColor: {r: 1.5, g: 1.9, b: 3, a: 1}
+  lineColor: {r: 0.45, g: 0.75, b: 1.7, a: 1}
+  pillarCore: {r: 2.6, g: 2.8, b: 3.4, a: 1}
+  pillarOuter: {r: 0.5, g: 0.9, b: 2.4, a: 1}
+  lightColor: {r: 0.75, g: 0.85, b: 1, a: 1}
+  tintColor: {r: 0.72, g: 0.8, b: 1, a: 1}
+  dustColor: {r: 0.4, g: 0.42, b: 0.5, a: 0.8}
+  starCount: 9
+  linkHop: 1
+  layoutSeed: 7
+  ringRadius: 2.9
+  starHeight: {x: 1.5, y: 3.4}
+  starSize: 0.36
+  glintRatio: 3.4
+  lineRadius: 0.03
+  groundDotSize: 1.5
+  stemBrightness: 0.32
+  pillarHeight: 9
+  pillarRadius: {x: 0.22, y: 0.8}
+  pillarBrightness: {x: 0.5, y: 0.7}
+  firstStarTime: 0.3
+  starInterval: 0.13
+  hushSeconds: 0.26
+  pillarFallSeconds: 0.1
+  pourSeconds: 1.2
+  lingerSeconds: 1.8
+  restoreSeconds: 1.2
+  sunDim: 0.5
+  ambientDim: 0.55
+  hushSunDim: 0.3
+  starLightIntensity: 11
+  starLightRange: 9
+  strikeLightIntensity: 30
+  pourLightIntensity: 13
+  burstLightIntensity: 42
+  strikeLightRange: 13
+  bloom: 1.5
+  vignette: 0.3
+  nightSaturation: -15
+  shardsPerStar: 30
+  flowPerSecond: 240
+  sparkPerSecond: 110
+  fragmentCount: 30
+  crossLength: 6
+  scorchSize: 5
+  windSpeed: 12
+  windReach: 8

@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd6f8a9e9c7146418f7317aa936b1de9, type: 3}
+  m_Name: Ult3D_FlameHeavy
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.FlameHeavyUltimateFx
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle: 
+  devKey: 
+  spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
+  shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
+  gradeShader: {fileID: 4800000, guid: 1ebe1525f751440ea76b9cca2137b714, type: 3}
+  overlayFlashCap: 0.32
+  backgroundFlashCap: 0.85
+  spawnTemporaryFoliage: 1
+  foliageAreaRadius: 14
+  foliage:
+  - Prefab: {fileID: 6107932506994862601, guid: a26a53e463177194db6585765f564431, type: 3}
+    Count: 220
+    Flexibility: 1
+    ScaleRange: {x: 1.2, y: 2}
+    MinDistance: 1.2
+  - Prefab: {fileID: 5350839332914572334, guid: 3540440509c30ba49b2125f242729c46, type: 3}
+    Count: 18
+    Flexibility: 0.75
+    ScaleRange: {x: 0.9, y: 1.4}
+    MinDistance: 3
+  - Prefab: {fileID: 2871132453943284833, guid: c0c27574d0d91ea44894908f417f36d4, type: 3}
+    Count: 6
+    Flexibility: 0.3
+    ScaleRange: {x: 0.45, y: 0.7}
+    MinDistance: 6.5
+  foliageResponse:
+    Bend: 78
+    DecaySeconds: 1.2
+    Hertz: 1.7
+    BladeCount: 70
+    BladeSpeed: 11
+    BladeColor: {r: 0.45, g: 0.7, b: 0.3, a: 1}
+  tailSeconds: 1.5
+  screenSortingOrder: 2400
+  meshGlowShader: {fileID: 4800000, guid: 4d07b8e2c11b28449a3f241e98f42971, type: 3}
+  litParticleShader: {fileID: 4800000, guid: ebe2a5585f6714b4a807c9a0a60454ed, type: 3}
+  spriteLightGain: 0.12
+  spriteTintCap: 2.2
+  spriteRefreshSeconds: 0.3
+  targetDistance: 1.6
+  fireTint: {r: 1.2, g: 0.52, b: 0.18, a: 1}
+  coreTint: {r: 1.5, g: 0.85, b: 0.3, a: 1}
+  fireLightColor: {r: 1, g: 0.55, b: 0.2, a: 1}
+  smokeColor: {r: 0.17, g: 0.15, b: 0.14, a: 0.95}
+  emberColor: {r: 1, g: 0.6, b: 0.2, a: 1}
+  scorchColor: {r: 0.06, g: 0.04, b: 0.03, a: 0.85}
+  scorchLine: {r: 1, g: 0.45, b: 0.1, a: 1}
+  aimDown: 10
+  aimSide: -1
+  muzzleForward: 0.8
+  muzzleHeight: 0.9
+  flameLength: 4.8
+  flameEndRadius: 2.3
+  firePerSecond: 300
+  corePerSecond: 50
+  smokePerSecond: 34
+  fireSize: {x: 0.7, y: 1.1}
+  fireGrowth: 3.4
+  fireLifetime: 0.5
+  coneBrightness: 0.35
+  verticalSpread: 0.35
+  upwardBias: 0.06
+  gatherSeconds: 0.9
+  flameSeconds: 1.6
+  reachSeconds: 0.45
+  smokeSeconds: 2.4
+  emberLinger: 1.6
+  restoreSeconds: 1.2
+  sunDim: 0.55
+  ambientDim: 0.65
+  handIntensity: 10
+  handRange: {x: 3, y: 6}
+  flameIntensity: 24
+  flameRange: 12
+  bloom: 0.9
+  vignette: 0.22
+  fireSaturation: 15
+  gatherCount: 70
+  gatherRadius: {x: 2.5, y: 6}
+  pillarCount: 4
+  pillarPuffs: 34
+  pillarHeight: 4.5
+  pillarInterval: 0.22
+  mushroomPuffs: 56
+  mushroomHeight: 5.5
+  groundEmbers: 70
+  windSpeed: 12
