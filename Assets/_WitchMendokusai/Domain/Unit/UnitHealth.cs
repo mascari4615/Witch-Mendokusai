@@ -18,6 +18,12 @@ namespace WitchMendokusai
 
 		public bool IsAlive => Unit != null && Unit.UnitStat[UnitStatType.HP_CUR] > 0;
 
+		// 마지막으로 피해가 들어간 게임 시각. 피격 무적 판정용
+		private float lastHitTime = float.NegativeInfinity;
+
+		// 피격 무적 중. 같은 유닛이 맞은 직후라 다음 타격이 안 들어감. 값은 UnitObject.HitInvincibleSeconds
+		public bool IsHitInvincible => Unit != null && HitInvincibilityRules.IsActive(lastHitTime, Time.time, Unit.HitInvincibleSeconds);
+
 		// 개발자 진열장 허수아비. 죽을 피해를 받으면 최대 체력으로 다시 참. 켜고 끄는 쪽은 DevShowcaseLease
 		public bool IsImmortal { get; set; }
 
@@ -29,6 +35,7 @@ namespace WitchMendokusai
 		public void Init(UnitObject unitObject)
 		{
 			Unit = unitObject;
+			lastHitTime = float.NegativeInfinity;
 
 			Unit.MeshParent.DOKill();
 			if (originScale != Vector3.zero)
@@ -42,11 +49,29 @@ namespace WitchMendokusai
 		{
 			if (IsAlive == false) return;
 
+			// 피격 무적. 상태이상 틱과 강제 피해는 통과
+			bool passesInvincible = damageInfo.ignoreInvincible || damageInfo.type == DamageType.StatusTick;
+			if (passesInvincible == false && IsHitInvincible)
+				return;
+			// 통과한 피해 (틱, 강제) 는 무적 시간을 다시 시작시키지 않음
+			if (passesInvincible == false)
+				lastHitTime = Time.time;
+
 			// 표식 상태이상. 상태이상 틱은 제외 (표식이 틱까지 불리면 틱 숫자가 과해짐)
 			if (damageInfo.type != DamageType.StatusTick)
 				damageInfo.damage = UnitStatusRules.AmplifiedDamage(damageInfo.damage, UnitStatus.DamageTakenPercent(Unit));
 
+			// 상태 틱으로 죽으면 전염. 죽으면 곧 꺼지며 상태가 지워지므로 세대는 미리 받아 둠
+			StatusContagion.Origin contagionOrigin = default;
+			bool contagious = damageInfo.type == DamageType.StatusTick
+				&& Unit.UnitStat[UnitStatType.HP_CUR] - damageInfo.damage <= 0
+				&& IsImmortal == false
+				&& StatusContagion.Begin(Unit, damageInfo.statusType, damageInfo.damageSource, out contagionOrigin);
+
 			SetHp(Unit.UnitStat[UnitStatType.HP_CUR] - damageInfo.damage);
+
+			if (contagious)
+				StatusContagion.Spread(contagionOrigin);
 
 			// Pivot 스케일 잠깐 키웠다가 줄이기 (기존 UnitObject의 연출 이동)
 			Unit.MeshParent.DOScale(BaseScale * hitScaleMultiplier, hitScaleUpDuration).OnComplete(() =>
