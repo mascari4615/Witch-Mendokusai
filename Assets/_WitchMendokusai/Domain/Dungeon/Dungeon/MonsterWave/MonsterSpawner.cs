@@ -172,6 +172,8 @@ namespace WitchMendokusai
 					yield break;
 				position = ClampToArena(position);
 			}
+			// 경계 안 자리도 장애물 속이면 가장자리 밖으로
+			position = ClearOfObstacles(position);
 			pendingSpawns++;
 			GameObject spawnCircle = objectPoolManager.Spawn(spawnCirclePrefab);
 			spawnCircle.transform.position = position;

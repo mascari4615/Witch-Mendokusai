@@ -43,7 +43,7 @@ MonoBehaviour:
       MaterialOverride: {fileID: 2100000, guid: 8a4faf22147a68c40bca1f4d9419546d, type: 2}
       ScaleRange: {x: 3.2, y: 4.8}
       ColliderRadius: 0.11
-      ColliderHeight: 1.2
+      ColliderHeight: 0.3
       Weight: 2
       CameraFade: 0
     SeedSalt: 7919

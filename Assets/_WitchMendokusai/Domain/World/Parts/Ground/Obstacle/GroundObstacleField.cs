@@ -8,6 +8,9 @@ namespace WitchMendokusai
 	// 몸 이동은 Motor 의 캡슐 쓸기가 충돌체를 벽으로 읽어 미끄러짐 (넉백과 돌진 포함)
 	public sealed class GroundObstacleField : IDisposable
 	{
+		// 내장 층 "Ignore Raycast"
+		private const int IGNORE_RAYCAST_LAYER = 2;
+
 		private sealed class Instance
 		{
 			public GameObject Object;
@@ -136,8 +139,12 @@ namespace WitchMendokusai
 				capsule.center = new Vector3(0f, capsule.height * .5f, 0f);
 			}
 			foreach (Collider collider in obstacle.GetComponentsInChildren<Collider>(true))
+			{
+				// 기본 광선 질의에 안 걸리게 (맵 오브젝트 지면 탐지가 나무 꼭대기를 지면으로 잡지 않음). 이동 쓸기와 겹침 밀어내기는 모든 층을 봄
+				collider.gameObject.layer = IGNORE_RAYCAST_LAYER;
 				if (collider.TryGetComponent(out GroundObstacleBody _) == false)
 					collider.gameObject.AddComponent<GroundObstacleBody>();
+			}
 			obstacle.SetActive(false);
 			if (kind.CameraFade && obstacle.TryGetComponent(out OcclusionFadeTarget _) == false)
 				obstacle.AddComponent<OcclusionFadeTarget>();
