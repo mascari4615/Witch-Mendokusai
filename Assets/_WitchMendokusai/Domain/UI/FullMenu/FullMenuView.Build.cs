@@ -28,6 +28,7 @@ namespace WitchMendokusai
 
 		private Label nyangLabel;
 		private Label placeLabel;
+		private Label placeSubLabel;
 		private Label timeLabel;
 		private Label dollNameLabel;
 		private Label dollLevelLabel;
@@ -182,6 +183,11 @@ namespace WitchMendokusai
 			placeLabel = new Label { pickingMode = PickingMode.Ignore };
 			placeLabel.AddToClassList("wm-fullmenu-place");
 			center.Add(placeLabel);
+
+			// 던전 안에서는 큰 글이 던전 이름, 이 줄이 그 던전이 쓰는 스테이지 이름
+			placeSubLabel = new Label { pickingMode = PickingMode.Ignore };
+			placeSubLabel.AddToClassList("wm-fullmenu-place-sub");
+			center.Add(placeSubLabel);
 
 			timeLabel = new Label { pickingMode = PickingMode.Ignore };
 			timeLabel.AddToClassList("wm-fullmenu-time");

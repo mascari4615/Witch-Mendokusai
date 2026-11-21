@@ -302,6 +302,13 @@
     -unity-text-outline-color: rgb(0, 0, 0);
 }
 
+.wm-fullmenu-place-sub {
+    margin-top: 2px;
+    font-size: 24px;
+    -unity-text-align: middle-center;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
 .wm-fullmenu-time {
     margin-top: 8px;
     font-size: 24px;

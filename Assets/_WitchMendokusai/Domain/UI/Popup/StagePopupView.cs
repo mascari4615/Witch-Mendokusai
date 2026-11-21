@@ -49,8 +49,9 @@ namespace WitchMendokusai
 
 		private IEnumerator Play(Stage stage)
 		{
-			bool inDungeon = DungeonManager.TryGetExistingInstance(out DungeonManager dungeonManager) && dungeonManager.IsDungeon;
-			card.SetData(stage.Sprite, inDungeon ? dungeonManager.CurDungeon.Name : stage.DisplayName, inDungeon ? string.Empty : stage.Description);
+			// 던전 안이면 설명 자리에 그 던전이 쓰는 스테이지 이름
+			(string place, string placeSub) = StagePlaceText.Of(stage);
+			card.SetData(stage.Sprite, place, string.IsNullOrEmpty(placeSub) ? stage.Description : placeSub);
 			card.SetActive(true);
 			yield return new WaitForSecondsRealtime(HOLD_SECONDS);
 			card.SetActive(false);
