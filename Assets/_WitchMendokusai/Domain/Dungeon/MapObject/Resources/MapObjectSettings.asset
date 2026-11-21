@@ -22,7 +22,7 @@ MonoBehaviour:
   <GroundLift>k__BackingField: 0.02
   <PlacementAttempts>k__BackingField: 8
   <PlacementRounds>k__BackingField: 50
-  <SpawnGapSeconds>k__BackingField: 45
+  <SpawnGapSeconds>k__BackingField: 75
   <SameKindSpacing>k__BackingField: 40
   <AvoidSameKindInRow>k__BackingField: 1
   <RouteSampleSpacing>k__BackingField: 0.2
