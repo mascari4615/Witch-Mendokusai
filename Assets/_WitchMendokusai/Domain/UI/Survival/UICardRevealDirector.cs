@@ -47,11 +47,17 @@ namespace WitchMendokusai
 		}
 
 		// chestSprite 가 있으면 origin 자리 상자에서 나옴, 없으면 카드 가운데의 꾸러미
-		public void Play(CardRevealSkin revealSkin, IReadOnlyList<CardRevealEntry> entries, Sprite chestSprite = null, RectTransform origin = null)
+		// 연출을 시작했으면 true. 효과 끔, 빈 목록, 스킨 없음이면 false 이고 부르는 쪽이 기본 공개
+		public bool Play(CardRevealSkin revealSkin, IReadOnlyList<CardRevealEntry> entries, Sprite chestSprite = null, RectTransform origin = null)
 		{
 			Cancel();
-			if (UIEffects.Enabled == false || entries.Count == 0)
-				return;
+			if (CanPlay(revealSkin, entries) == false)
+			{
+				// 스킨만 빈 경우는 설정 오류. 판을 멈추는 예외 대신 오류 로그와 기본 공개
+				if (revealSkin == null && UIEffects.Enabled && entries != null && entries.Count > 0)
+					Debug.LogError($"카드 공개 스킨이 비어 기본 공개로 대체: {name}. SurvivalUITheme.Reveal 슬롯 확인", this);
+				return false;
+			}
 			skin = revealSkin;
 			// 화면 맞춤 배율이 바뀌었을 수 있어 매번 기억. Cancel 이 확대를 되돌린 뒤라 원래 크기
 			contentScale = content.localScale;
@@ -72,6 +78,13 @@ namespace WitchMendokusai
 			IsRevealing = true;
 			choiceUnlockAt = 0f;
 			startedFrame = Time.frameCount;
+			return true;
+		}
+
+		// 연출 조건. 스킨이 비는 경우: 테마 Reveal 슬롯 미지정, 또는 켜진 에디터가 새 스킨 에셋보다 테마를 먼저 다시 읽어 참조가 비어 고정 (2026-11-21 MOIS2 실측)
+		public static bool CanPlay(CardRevealSkin revealSkin, IReadOnlyList<CardRevealEntry> entries)
+		{
+			return UIEffects.Enabled && revealSkin != null && entries != null && entries.Count > 0;
 		}
 
 		// 화면 공통: 어둡게, 카메라, 카드 층 확대

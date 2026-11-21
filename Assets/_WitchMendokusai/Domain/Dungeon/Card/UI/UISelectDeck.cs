@@ -28,18 +28,16 @@ namespace WitchMendokusai
 			actions.SetUpTarget(deckSelectButtons[0].Selectable);
 			ApplyNavigation();
 
-			// 연출을 끈 설정이면 예전 튀어나오기
-			if (UIEffects.Enabled == false)
+			// 연출을 끈 설정이나 공개 스킨 없음이면 예전 튀어나오기
+			if (UIEffects.Enabled == false || PlayReveal() == false)
 			{
 				selectDeckPanelContent.localScale = Vector3.zero;
 				selectDeckPanelContent.DOScale(Vector3.one, openAnimDuration).SetEase(Ease.OutBack).SetUpdate(true);
 			}
-			else
-				PlayReveal();
 			deckSelectButtons[0].Select();
 		}
 
-		private void PlayReveal()
+		private bool PlayReveal()
 		{
 			revealEntries.Clear();
 			UIChoiceCard firstCard = null;
@@ -52,7 +50,8 @@ namespace WitchMendokusai
 				revealEntries.Add(new CardRevealEntry((RectTransform)slot.transform, tier));
 				firstCard ??= slot.GetComponent<UIDeckChoiceView>().ChoiceCard;
 			}
-			reveal.Play(firstCard.Theme.Reveal.SelectDeck, revealEntries);
+			CardRevealSkin skin = firstCard != null ? firstCard.Theme.Reveal.SelectDeck : null;
+			return reveal.Play(skin, revealEntries);
 		}
 
 		protected override void OnInit()

@@ -155,10 +155,10 @@ namespace WitchMendokusai
 			{
 				// 칸 자리가 정해진 뒤 공개. 상자는 칸 묶음 가운데에서 열림
 				LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)cellsParent);
-				reveal.Play(theme.Reveal.Chest, revealEntries, theme.TermIcon(SurvivalTerm.ChestReward), chestAnchor);
-				return;
+				if (reveal.Play(theme.Reveal.Chest, revealEntries, theme.TermIcon(SurvivalTerm.ChestReward), chestAnchor) || revealEntries.Count == 0)
+					return;
 			}
-			// 연출을 끈 설정
+			// 연출을 끈 설정이나 공개 스킨 없음
 			for (int i = 0; i < cells.Count; i++)
 				UIEffects.PopIn(cells[i].transform, theme.CardAppearDuration, i * theme.CardAppearInterval);
 			if (hasEvolution)

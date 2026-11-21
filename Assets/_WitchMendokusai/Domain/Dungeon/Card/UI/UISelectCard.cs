@@ -32,25 +32,23 @@ namespace WitchMendokusai
 			actions.ExitBanMode();
 			ApplyNavigation(cardManager.OfferedCardCount);
 
-			// 연출을 끈 설정이면 예전 튀어나오기
-			if (UIEffects.Enabled == false)
+			// 연출을 끈 설정이나 공개 스킨 없음이면 예전 튀어나오기
+			if (UIEffects.Enabled == false || PlayReveal() == false)
 			{
 				deckPanelContent.localScale = Vector3.zero;
 				deckPanelContent.DOScale(Vector3.one, openAnimDuration).SetEase(Ease.OutBack).SetUpdate(true);
 			}
-			else
-				PlayReveal();
 			// 첫 카드 포커스. 공개가 먼저 시작돼야 선택 정보가 공개 전에 뜨지 않음
 			cardSelectButtons[0].Select();
 		}
 
-		private void PlayReveal()
+		private bool PlayReveal()
 		{
 			revealEntries.Clear();
 			foreach (UICardSlot slot in cardSelectButtons)
 				if (slot.gameObject.activeSelf && slot.DataSO is CardData card)
 					revealEntries.Add(new CardRevealEntry((RectTransform)slot.transform, UICardRevealDirector.TierOf(card)));
-			reveal.Play(cardSelectButtons[0].ChoiceView.ChoiceCard.Theme.Reveal.SelectCard, revealEntries);
+			return reveal.Play(cardSelectButtons[0].ChoiceView.ChoiceCard.Theme.Reveal.SelectCard, revealEntries);
 		}
 
 		private void ShowSelectedInfo()
