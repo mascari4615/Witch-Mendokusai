@@ -54,7 +54,6 @@ namespace WitchMendokusai
 		private float readyInterval;
 		public CooldownState Cooldown => CooldownState.FromReadyTime(readyTime, readyInterval);
 
-
 		public override void InitContext(SkillObject skillObject)
 		{
 			usedEquipment = skillObject.Context.UsedEquipment;

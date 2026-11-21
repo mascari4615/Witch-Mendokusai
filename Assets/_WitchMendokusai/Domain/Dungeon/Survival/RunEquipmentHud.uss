@@ -1,11 +1,11 @@
-/* 아래 가운데 스킬창 (RunEquipmentHud). 마을은 이동 스킬만, 던전은 이동 스킬 + 장비
+/* 아래 가운데 스킬창 (RunEquipmentHud). 마을은 스킬 칸만, 던전은 스킬 칸 + 장비
    칸 모양은 예전 uGUI 스킬 칸 ([Block] SkillSlot.prefab, World 씬 [Block] SkillBar) 실측 그대로 (사용자 2026-11-18 "기존 마름모 디자인 처럼")
      예전 값 (1080 기준, 프리팹 칸 70): 마름모 바탕 60 을 45도, 바탕색 (0.055, 0.161, 0.192, 0.784)
      아이콘 50 을 -45도로 되돌림, 테두리 UI_OutLine 9칸 늘이기 흰색 0.196 을 바탕의 1.2 배, 쿨다운 회색 (0.519, 0.519, 0.519, 0.588) 이 마름모 안 아래에서 차오름
      칸 중심 간격 94 (격자 칸 100, 간격 -6). 실제 화면 실측으로 확인 (scratchpad equip diamond-old-fhd)
    여기 값은 패널 기준 세로 800 으로 옮긴 값 (1080 값 x 0.7407)
    구조: .wm-run-equipment (자리)
-           __skills (Shift 이동 스킬 칸)
+           __skills (스킬 칸: Shift 이동, 좌클릭, 우클릭)
            __slots (고유 장비 + 보유 장비 칸)
              __slot > __frame (45도 마름모, 넘친 것 자름) > __icon (-45도), __cooldown
                     > __outline (45도 테두리), __level (레벨 숫자, 마름모 아래 꼭지 안)
@@ -22,7 +22,9 @@
     /* 이 주기 (초) 보다 짧은 대기는 숫자와 번쩍임 없이 덮개만 (코드가 읽음) */
     --wm-run-equipment-number-min-interval: 1.5;
     /* 번쩍임을 켜 둔 시간 (밀리초, 코드가 읽음). 사라지는 시간은 __flash 의 transition */
-    --wm-run-equipment-flash-hold-ms: 60;
+    --wm-run-equipment-flash-hold-milliseconds: 60;
+    /* 1초 아래 남은 시간 서식 (코드가 읽음, .NET 숫자 서식) */
+    --wm-run-equipment-subsecond-format: "0.0";
 
     position: absolute;
     left: 50%;

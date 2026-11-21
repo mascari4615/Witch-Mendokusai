@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace WitchMendokusai
 {
-	// 스킬창 (RunEquipmentHud) 에 상태를 옮김. 던전은 이동 스킬과 장비 (Refresh), 마을은 이동 스킬만 (RefreshSkills)
+	// 스킬창 (RunEquipmentHud) 에 상태를 옮김. 던전은 스킬 칸과 장비 (Refresh), 마을은 스킬 칸만 (RefreshSkills)
 	// 장비 레벨은 고른 카드 수나 장비가 바뀔 때만 다시 셈
 	public class RunEquipmentHudBinder
 	{

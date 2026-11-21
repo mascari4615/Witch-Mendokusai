@@ -31,7 +31,7 @@ namespace WitchMendokusai
 		public static CooldownState FromCharge(float charged) => new(1f - charged, -1f, 0f);
 	}
 
-	// 재사용 대기가 있는 무기 부품이 구현. 상시로 붙어 있는 장비 (오라, 훌라후프, 자석, 능력치만 주는 도구) 는 구현 안 함
+	// 재사용 대기나 충전이 있는 무기 부품이 구현. 상시로 붙어 있는 장비 (상시 오라, 훌라후프, 자석, 능력치만 주는 도구) 는 등록 안 함
 	public interface IEquipmentCooldown
 	{
 		CooldownState Cooldown { get; }
@@ -43,21 +43,18 @@ namespace WitchMendokusai
 	{
 		private static readonly Dictionary<int, IEquipmentCooldown> sources = new();
 
-		public static void Register(IItemData equipment, IEquipmentCooldown source)
-		{
-			if (equipment != null)
-				sources[equipment.ID] = source;
-		}
+		// 장비 무기 부품만 부름. 장비 문맥이 비면 등록 누락이라 바로 실패 (NullReferenceException)
+		public static void Register(IItemData equipment, IEquipmentCooldown source) => sources[equipment.ID] = source;
 
 		public static void Unregister(IItemData equipment, IEquipmentCooldown source)
 		{
-			if (equipment != null && sources.TryGetValue(equipment.ID, out IEquipmentCooldown registered) && ReferenceEquals(registered, source))
+			if (sources.TryGetValue(equipment.ID, out IEquipmentCooldown registered) && ReferenceEquals(registered, source))
 				sources.Remove(equipment.ID);
 		}
 
 		public static bool TryGet(IItemData equipment, out CooldownState state)
 		{
-			if (equipment != null && sources.TryGetValue(equipment.ID, out IEquipmentCooldown source))
+			if (sources.TryGetValue(equipment.ID, out IEquipmentCooldown source))
 			{
 				state = source.Cooldown;
 				return true;

@@ -21,6 +21,10 @@ namespace WitchMendokusai
 		private readonly List<GameObject> targets = new();
 		private Coroutine loop;
 		private SkillObject owner;
+		// 스킬창 장비 칸의 대기 표시용. 다음 공격 시각과 그 주기 (EquipmentCooldowns)
+		private float readyTime;
+		private float readyInterval;
+		public CooldownState Cooldown => CooldownState.FromReadyTime(readyTime, readyInterval);
 
 		private PlayerProvider playerProvider;
 		private ObjectPoolManager objectPoolManager;
@@ -36,11 +40,6 @@ namespace WitchMendokusai
 		{
 			owner = skillObject;
 		}
-
-		// 스킬창 장비 칸의 대기 표시용. 다음 공격 시각과 그 주기 (EquipmentCooldowns)
-		private float readyTime;
-		private float readyInterval;
-		public CooldownState Cooldown => CooldownState.FromReadyTime(readyTime, readyInterval);
 
 		private void OnEnable()
 		{

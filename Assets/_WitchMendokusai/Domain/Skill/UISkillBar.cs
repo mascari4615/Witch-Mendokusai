@@ -36,7 +36,7 @@ namespace WitchMendokusai
 				skillSlot.Init();
 		}
 
-		// 마을 스킬 바. 던전 스킬창과 같은 UI Toolkit 부품 (RunEquipmentHud) 의 이동 스킬 줄만 씀 (사용자 2026-11-18 "기존 마름모 디자인 처럼")
+		// 마을 스킬 바. 던전 스킬창과 같은 UI Toolkit 부품 (RunEquipmentHud) 의 스킬 칸 줄만 씀 (사용자 2026-11-18 "기존 마름모 디자인 처럼")
 		// 던전에서는 UIDungeonRuntime 이 띄우는 스킬창이 대신하므로 숨김
 		// 예전 uGUI 칸 ([Block] SkillSlot) 은 씬에 남아 있지만 늘 꺼 둠. 씬에서 지우는 일은 남음
 		public override void UpdateUI()

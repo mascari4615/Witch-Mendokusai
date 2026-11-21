@@ -142,7 +142,10 @@ namespace WitchMendokusai
 			// 최근접 대상 탐색은 프레임당 한 번, 조준 위치와 방향은 그 결과로 계산
 			GameObject nearestTarget = aim.GetNearestTarget();
 			// 마우스 조준, 조준 모드 (Y) 를 켜면 가장 가까운 적. 클릭 공격 복구와 함께 되살림 (사용자 2026-11-21)
-			AimPos = aim.CalcAim(nearestTarget, IsAutoAim);
+			// 손가락 모드는 마우스 자리가 마지막 터치 (공격 버튼 자리) 라서 가장 가까운 적, 없으면 바라보는 방향
+			AimPos = inputManager.IsTouchMode
+				? aim.CalcNearestOrLookAim(nearestTarget, Object.UnitMovement.LookDirection)
+				: aim.CalcAim(nearestTarget, IsAutoAim);
 			AimDirection = aim.CalcAimDirection(AimPos);
 			NearestTarget = nearestTarget != null ? nearestTarget.transform : null;
 

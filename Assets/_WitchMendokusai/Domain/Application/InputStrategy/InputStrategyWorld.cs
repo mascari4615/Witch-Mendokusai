@@ -168,7 +168,11 @@ namespace WitchMendokusai
 					GameConditionType.IsPaused,
 					GameConditionType.IsDied,
 					GameConditionType.IsBuilding,
-					GameConditionType.IsFreeCameraMode
+					GameConditionType.IsFreeCameraMode,
+					// 전체 화면 창 (ESC 메뉴, 설정) 의 빈 곳, 장면 전환, 투기장 관전 중 클릭은 공격 아님 (2026-11-21 클릭 공격 복구)
+					GameConditionType.IsViewingUI,
+					GameConditionType.IsInTransition,
+					GameConditionType.IsSpectating
 				}
 			},
 			{
@@ -180,7 +184,11 @@ namespace WitchMendokusai
 					GameConditionType.IsPaused,
 					GameConditionType.IsDied,
 					GameConditionType.IsBuilding,
-					GameConditionType.IsFreeCameraMode
+					GameConditionType.IsFreeCameraMode,
+					// 전체 화면 창 (ESC 메뉴, 설정) 의 빈 곳, 장면 전환, 투기장 관전 중 클릭은 공격 아님 (2026-11-21 클릭 공격 복구)
+					GameConditionType.IsViewingUI,
+					GameConditionType.IsInTransition,
+					GameConditionType.IsSpectating
 				}
 			},
 			{ InputEventType.ChangeMode, new[] { GameConditionType.IsTyping } },

@@ -92,6 +92,14 @@ namespace WitchMendokusai
 				inputManager.MouseWorldPosition;
 		}
 
+		// 마우스 없는 조준 (손가락 모드). 가장 가까운 적, 없으면 바라보는 방향
+		public Vector3 CalcNearestOrLookAim(GameObject nearestTarget, Vector3 lookDirection)
+		{
+			return nearestTarget != null ?
+				nearestTarget.transform.position :
+				playerTr.position + lookDirection;
+		}
+
 		public Vector3 CalcAimDirection(Vector3 aimPosition)
 		{
 			return (aimPosition - playerTr.position).normalized;
