@@ -12,6 +12,10 @@ namespace WitchMendokusai
 		RandomEnemy = 2,
 		Ring = 3,
 		Player = 4,
+		// 적이 가장 몰린 지점 (DensityTargeting)
+		DenseCluster = 5,
+		// 마지막 이동 방향의 반대쪽, 플레이어 뒤 (자취)
+		BehindPlayer = 6,
 	}
 
 	public enum SpawnAimStrategy
@@ -22,9 +26,13 @@ namespace WitchMendokusai
 		RandomEnemy = 3,
 		Clock = 4,
 		RandomDirection = 5,
+		// 마지막 이동 방향. 입력이 멈춰도 유지, 방향이 바뀌면 부드럽게 따라 돎
+		LastMoveDirection = 6,
+		// 적이 가장 몰린 지점 쪽
+		DenseCluster = 7,
 	}
 
-	public class Spawner : SkillComponent, IEquipmentCooldown
+	public partial class Spawner : SkillComponent, IEquipmentCooldown
 	{
 		[SerializeField] private GameObject prefabToSpawn;
 		[SerializeField, Tooltip("내보낼 때 공용 던지기 효과음 (CombatSfx WeaponThrow)")] private bool playThrowSfx = true;
@@ -98,6 +106,8 @@ namespace WitchMendokusai
 			clockAngle = 0f;
 			readyTime = 0f;
 			EquipmentCooldowns.Register(usedEquipment, this);
+			angleCursor = 0f;
+			EnablePreview();
 			spawnCoroutine = StartCoroutine(Loop());
 		}
 
@@ -109,6 +119,7 @@ namespace WitchMendokusai
 			if (damageBonusStatType != UnitStatType.NONE)
 				subscribedStat?.RemoveListener(damageBonusStatType, UpdateDamageBonus);
 			subscribedStat = null;
+			DisablePreview();
 		}
 
 		private IEnumerator Loop()
@@ -117,37 +128,57 @@ namespace WitchMendokusai
 			{
 				readyInterval = CurrentInterval;
 				readyTime = Time.time + readyInterval;
-				yield return new WaitForSeconds(readyInterval);
-				StartCoroutine(SpawnLoop());
+				if (HasNextSpotTelegraph == false)
+				{
+					yield return new WaitForSeconds(readyInterval);
+					StartCoroutine(SpawnLoop(null));
+					continue;
+				}
+
+				// 다음 자리를 미리 정해 바닥에 보이고, 예고가 끝나는 순간 그 자리에 냄
+				float lead = Mathf.Min(telegraphLeadSeconds, readyInterval);
+				yield return new WaitForSeconds(readyInterval - lead);
+				ShotPlan[] plan = PlanVolley();
+				ShowNextSpotTelegraph(plan, lead);
+				yield return new WaitForSeconds(lead);
+				StartCoroutine(SpawnLoop(plan));
 			}
 		}
 
-		private IEnumerator SpawnLoop()
+		// plan 이 null 이면 발마다 그 순간 자리를 정함
+		private IEnumerator SpawnLoop(ShotPlan[] plan)
 		{
-			int count = SpawnCount;
+			int count = plan != null ? plan.Length : SpawnCount;
+			float baseAngle = angleCursor;
+			if (plan == null)
+				AdvanceAngle(count);
 			for (int i = 0; i < count; i++)
 			{
-				Spawn(i, count);
+				if (plan != null)
+					Spawn(i, count, plan[i].Angle, plan[i].HasPosition, plan[i].Position);
+				else
+					Spawn(i, count, baseAngle + shotStepDegrees * i, false, Vector3.zero);
 				if (SpawnDelay > 0f)
 					yield return new WaitForSeconds(SpawnDelay);
 			}
 		}
 
-		private void Spawn(int index, int count)
+		private void Spawn(int index, int count, float angle, bool hasPlannedPosition, Vector3 plannedPosition)
 		{
 			transform.position = playerProvider.Current.transform.position;
 
-			if (TryGetSpawnPosition(index, count, out Vector3 position) == false)
+			Vector3 position = plannedPosition;
+			if (hasPlannedPosition == false && TryGetSpawnPosition(index, count, angle, out position) == false)
 				return;
-			if (TryGetSpawnDirection(position, out Vector3 direction) == false)
+			if (TryGetSpawnDirection(position, angle, out Vector3 direction) == false)
 				return;
 
-			SpawnOne(position, direction);
+			SpawnOne(position, direction, index, count);
 			if (spawnOpposite && direction != Vector3.zero)
-				SpawnOne(position, -direction);
+				SpawnOne(position, -direction, index, count);
 		}
 
-		private void SpawnOne(Vector3 position, Vector3 direction)
+		private void SpawnOne(Vector3 position, Vector3 direction, int index, int count)
 		{
 			bool hasDirection = direction != Vector3.zero;
 			Quaternion rotation = hasDirection ? Quaternion.LookRotation(direction, Vector3.up) : Quaternion.identity;
@@ -172,6 +203,10 @@ namespace WitchMendokusai
 			else if (g.TryGetComponent(out ExplodeOnEnd explodeOnEnd))
 				explodeOnEnd.SetDamageBonus(damageBonus);
 
+			ShotInfo shot = new(index, count, direction);
+			foreach (IShotReceiver receiver in g.GetComponents<IShotReceiver>())
+				receiver.OnShot(shot);
+
 			g.SetActive(true);
 		}
 
@@ -182,7 +217,7 @@ namespace WitchMendokusai
 			return 1f + PlayerStat[scaleBonusStatType] * scalePerStack;
 		}
 
-		private bool TryGetSpawnPosition(int index, int count, out Vector3 position)
+		private bool TryGetSpawnPosition(int index, int count, float angle, out Vector3 position)
 		{
 			Vector3 origin = transform.position;
 			switch (spawnPositionStrategy)
@@ -192,11 +227,16 @@ namespace WitchMendokusai
 				case SpawnPositionStrategy.RandomEnemy:
 					return TryGetEnemyPosition(SurvivalTargeting.RandomInRange(origin, targetRange), out position);
 				case SpawnPositionStrategy.Ring:
-					float angle = count > 0 ? 360f * index / count : 0f;
-					position = origin + Quaternion.Euler(0f, angle, 0f) * (Vector3.forward * RandomRange);
+					float ringAngle = (count > 0 ? 360f * index / count : 0f) + angle;
+					position = origin + Quaternion.Euler(0f, ringAngle, 0f) * (Vector3.forward * RandomRange);
 					return true;
 				case SpawnPositionStrategy.Player:
 					position = origin;
+					return true;
+				case SpawnPositionStrategy.DenseCluster:
+					return TryGetDensePoint(origin, out position);
+				case SpawnPositionStrategy.BehindPlayer:
+					position = origin - moveAim.Current * behindDistance;
 					return true;
 				default:
 					position = origin + new Vector3(Random.Range(-RandomRange, RandomRange), 0f, Random.Range(-RandomRange, RandomRange));
@@ -210,7 +250,7 @@ namespace WitchMendokusai
 			return enemy != null;
 		}
 
-		private bool TryGetSpawnDirection(Vector3 position, out Vector3 direction)
+		private bool TryGetSpawnDirection(Vector3 position, float angle, out Vector3 direction)
 		{
 			direction = Vector3.zero;
 			switch (spawnAimStrategy)
@@ -237,6 +277,14 @@ namespace WitchMendokusai
 				case SpawnAimStrategy.RandomDirection:
 					direction = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f) * Vector3.forward;
 					break;
+				case SpawnAimStrategy.LastMoveDirection:
+					direction = reverseAim ? -moveAim.Current : moveAim.Current;
+					break;
+				case SpawnAimStrategy.DenseCluster:
+					if (TryGetDensePoint(position, out Vector3 densePoint) == false)
+						return false;
+					direction = densePoint - position;
+					break;
 				default:
 					return true;
 			}
@@ -248,6 +296,8 @@ namespace WitchMendokusai
 			direction = direction.normalized;
 			if (spreadDegrees > 0f)
 				direction = Quaternion.Euler(0f, Random.Range(-spreadDegrees, spreadDegrees), 0f) * direction;
+			if (angle != 0f)
+				direction = Quaternion.Euler(0f, angle, 0f) * direction;
 			return true;
 		}
 

@@ -11,9 +11,10 @@ namespace WitchMendokusai
 	{
 		private const string NONE_ARG = "none";
 		private const string CODE_PREFIX = "I_";
+		private const string TRIAL_PREFIX = "trial:";
 
 		public string Name => "weapon";
-		public string Usage => "weapon <itemRef|none>";
+		public string Usage => "weapon <itemRef|none|trial:이름>";
 
 		public void Execute(DevCommandContext context, string[] args)
 		{
@@ -32,6 +33,12 @@ namespace WitchMendokusai
 				return;
 			}
 
+			if (args[0].StartsWith(TRIAL_PREFIX, System.StringComparison.OrdinalIgnoreCase))
+			{
+				ExecuteTrial(context, args[0].Substring(TRIAL_PREFIX.Length));
+				return;
+			}
+
 			List<EquipmentData> matches = DevCombatTools.AllWeapons().Where(weapon => Matches(weapon, args[0])).ToList();
 			if (matches.Count != 1)
 			{
@@ -41,6 +48,20 @@ namespace WitchMendokusai
 
 			DevCombatTools.EquipOnly(matches[0]);
 			context.LogSuccess($"{matches[0].Name} 하나만 장착");
+		}
+
+		// 새 동작 부품 시험 무기. 이름 조각이 하나만 맞아야 함
+		private static void ExecuteTrial(DevCommandContext context, string name)
+		{
+			List<UnityEngine.GameObject> matches = DevCombatTools.TrialWeapons().Where(weapon => weapon.name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+			if (matches.Count != 1)
+			{
+				context.LogError(matches.Count == 0 ? $"맞는 시험 무기 없음: '{name}'" : $"후보 {matches.Count}개, 더 정확히: {string.Join(", ", matches.Select(weapon => weapon.name))}");
+				return;
+			}
+
+			DevCombatTools.EquipTrialOnly(matches[0]);
+			context.LogSuccess($"{matches[0].name} 하나만 장착");
 		}
 
 		private static bool Matches(EquipmentData weapon, string reference)
@@ -56,7 +77,7 @@ namespace WitchMendokusai
 		{
 			if (partial.Length != 1)
 				return Enumerable.Empty<string>();
-			return DevCommandArgs.StartsWith(DevCombatTools.AllWeapons().Select(weapon => CODE_PREFIX + weapon.ID).Append(NONE_ARG), partial[0]);
+			return DevCommandArgs.StartsWith(DevCombatTools.AllWeapons().Select(weapon => CODE_PREFIX + weapon.ID).Concat(DevCombatTools.TrialWeapons().Select(weapon => TRIAL_PREFIX + weapon.name)).Append(NONE_ARG), partial[0]);
 		}
 	}
 }
