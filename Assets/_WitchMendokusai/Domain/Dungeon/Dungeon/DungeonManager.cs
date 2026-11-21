@@ -7,7 +7,7 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	public class DungeonManager : MonoBehaviour
+	public partial class DungeonManager : MonoBehaviour
 	{
 		public static DungeonManager Instance { get; private set; }
 
@@ -446,76 +446,6 @@ namespace WitchMendokusai
 				Reward.GetReward(milestone.Rewards, soManager.ItemInventory, dataManager.GameStat);
 			}
 		}
-
-		public void Retry()
-		{
-			if (CurDungeon == null || dungeonRecorder == null)
-				return;
-			StartDungeon(CurDungeon, restart: true, runMode: dataManager.RunLoadout.Mode, threatLevel: CurThreat.Level);
-		}
-
-		public void Continue()
-		{
-			if (IsDungeon || dungeonRecorder == null || isTransitioning)
-				return;
-			isTransitioning = true;
-			StopFlowFx();
-			// 집으로 돌아가기
-			uiManager.Transition.Transition(
-				aDuringTransition: () =>
-				{
-					stageManager.LoadStage(stageManager.LastStage, isBackToLastStage: true);
-					ResetDungeonAndPlayer();
-				},
-				aWhenEnd: () =>
-				{
-					isTransitioning = false;
-					gameEventManager.Raise(GameEventType.OnDungeonReturn);
-				}).Forget();
-		}
-
-		/// <summary>
-		/// 판을 보상 없이 버리고 마을 기준 상태로 되돌림. 로비로 나갈 때 (LobbyReturn). 결과창과 귀환 전환은 없음
-		/// 결과창이 떠 있는 동안 (보상은 이미 받음) 불려도 귀환 초기화만 함
-		/// </summary>
-		public void AbandonRun()
-		{
-			if (isRunActive == false)
-				return;
-			if (IsDungeon)
-			{
-				IsDungeon = false;
-				if (clearDelayRoutine != null)
-				{
-					StopCoroutine(clearDelayRoutine);
-					clearDelayRoutine = null;
-				}
-				cardManager.CancelSelection();
-				dungeonLoopSubscription?.Dispose();
-				dungeonLoopSubscription = null;
-				monsterSpawner.StopWave();
-				resourceNodeSpawner.StopWave();
-				Debug.Log($"{nameof(AbandonRun)} ({CurDungeon.Name})");
-			}
-			StopFlowFx();
-			ResetDungeonAndPlayer();
-		}
-
-		private void ResetDungeonAndPlayer()
-		{
-			isRunActive = false;
-			dungeonUI.ClosePanel();
-			cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
-			SkyTimeOverride.Clear();
-
-			gameManager.Init();
-			dataManager.RunLoadout.End();
-			CurThreat = DungeonThreatEffect.Identity;
-			ConstraintEffect = DungeonConstraintRunEffect.Identity;
-			dungeonQuest = null;
-			expChecker.SetRequirementMultiplier(1f);
-			expChecker.Init();
-			cardManager.Reset();
-		}
 	}
 }
+
