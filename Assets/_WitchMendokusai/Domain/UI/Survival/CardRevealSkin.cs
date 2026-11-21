@@ -8,7 +8,8 @@ namespace WitchMendokusai
 	{
 		Common = 0,
 		Rare = 1,
-		Epic = 2
+		Epic = 2,
+		Legend = 3
 	}
 
 	// 공개할 칸 하나. 레벨업 카드, 덱 카드, 상자 보상 칸
@@ -74,11 +75,12 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("전투 카메라 시야각 더함 (도)")] public float CameraFieldOfView { get; private set; } = -3f;
 		[field: SerializeField, Min(0.01f)] public float CameraIn { get; private set; } = 0.45f;
 		[field: SerializeField, Min(0.01f)] public float CameraOut { get; private set; } = 0.4f;
-		[field: SerializeField, Min(1f), Tooltip("카드 층 확대")] public float ContentZoom { get; private set; } = 1.08f;
+		[field: SerializeField, Min(1f), Tooltip("카드 층 확대. 고르는 동안 유지되므로 1 이면 카드가 레이아웃 크기 그대로")] public float ContentZoom { get; private set; } = 1f;
 		[field: SerializeField, Min(1f), Tooltip("상자 보상 카드 층 확대. 카드가 한 장이라 화면에서 작음")] public float ChestContentZoom { get; private set; } = 1.45f;
 		[field: SerializeField, Min(0.1f), Tooltip("영웅 감기 때 카메라 거리 배율 (곱)")] public float EpicCameraDistance { get; private set; } = 0.92f;
 		[field: SerializeField, Range(0f, 1f), Tooltip("고르는 동안 남기는 어둡게 비율")] public float HoldDimRatio { get; private set; } = 0.55f;
 		[field: SerializeField, Min(0f), Tooltip("건너뛰기 직후 고르기 입력 차단 시간")] public float SkipChoiceLock { get; private set; } = 0.25f;
+		[field: SerializeField, Min(0f), Tooltip("공개 시작 뒤 입력이 고르기도 건너뛰기도 하지 않는 시간. 이동 중 누른 키로 연출이 넘어가지 않게")] public float SkipGuard { get; private set; } = 0.3f;
 
 		[field: Header("Card")]
 		[field: SerializeField, Range(0f, 45f), Tooltip("카드 위 빛 줄 기울기 (도)")] public float ShineAngle { get; private set; } = 20f;
@@ -99,8 +101,16 @@ namespace WitchMendokusai
 		[field: SerializeField] public UiSfxEvent CoinSfx { get; private set; } = UiSfxEvent.Purchase;
 		[field: SerializeField] public UiSfxEvent ChestSfx { get; private set; } = UiSfxEvent.Chest;
 
-		public Color TierColor(CardRevealTier tier) => tier == CardRevealTier.Epic ? EpicColor : tier == CardRevealTier.Rare ? RareColor : CommonColor;
-		public UiSfxEvent TierSfx(CardRevealTier tier) => tier == CardRevealTier.Epic ? EpicSfx : tier == CardRevealTier.Rare ? RareSfx : CommonSfx;
+		[field: SerializeField] public Color LegendColor { get; private set; } = new(0.89f, 0.63f, 1f);
+
+		public Color TierColor(CardRevealTier tier) => tier switch
+		{
+			CardRevealTier.Rare => RareColor,
+			CardRevealTier.Epic => EpicColor,
+			CardRevealTier.Legend => LegendColor,
+			_ => CommonColor,
+		};
+		public UiSfxEvent TierSfx(CardRevealTier tier) => tier >= CardRevealTier.Epic ? EpicSfx : tier == CardRevealTier.Rare ? RareSfx : CommonSfx;
 
 		// 카드 뒷면 그림. null 이면 도형 뒷면
 		public virtual Sprite BackSprite(CardRevealTier tier) => null;

@@ -18,7 +18,25 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 7039047e89064bf291584d32bc88d5c8, type: 3}
   - {fileID: 21300000, guid: 58c742ae28924f1ebbca245ce3da7ec6, type: 3}
   - {fileID: 21300000, guid: 69f21f479e4c49c5b63f782208bc762e, type: 3}
+  - {fileID: 21300000, guid: a4ed9ee8d2495e36bd751e7e28788993, type: 3}
   <Backs>k__BackingField:
   - {fileID: 21300000, guid: a7920cf93b9b409381f2390f69492a37, type: 3}
   - {fileID: 21300000, guid: 2f4497d64749475c970cc075b96a6aa7, type: 3}
   - {fileID: 21300000, guid: 43ec53128bfc40518a807a48267d2045, type: 3}
+  - {fileID: 21300000, guid: fc5a78736199580694684a040393dfab, type: 3}
+  <SkipGuard>k__BackingField: 0.5
+  <PackBands>k__BackingField:
+  - {fileID: 21300000, guid: 06b159993c11585990d9269416afe452, type: 3}
+  - {fileID: 21300000, guid: f7b26662d2425bca8cf3171a6d1abbf3, type: 3}
+  - {fileID: 21300000, guid: 948617d8d94f5aacb76b84a08f5bde74, type: 3}
+  - {fileID: 21300000, guid: 83aa1c0ced7f55fba14fa2a632045186, type: 3}
+  <BackEffects>k__BackingField:
+  - {fileID: 2800000, guid: 84d3fc8556745af0b38541cf730c3a03, type: 3}
+  - {fileID: 2800000, guid: 43f3173d097d5e8796c1184c1f33b28e, type: 3}
+  - {fileID: 2800000, guid: 08211c6a500f5b518a89e220be936ddb, type: 3}
+  - {fileID: 2800000, guid: 114575aa15a253b6b4e94a544faf707c, type: 3}
+  <CommonColor>k__BackingField: {r: 0.92, g: 0.91, b: 0.78, a: 1}
+  <RareColor>k__BackingField: {r: 0.47, g: 0.95, b: 0.83, a: 1}
+  <EpicColor>k__BackingField: {r: 1, g: 0.47, b: 0.42, a: 1}
+  <LegendColor>k__BackingField: {r: 0.89, g: 0.63, b: 1, a: 1}
+  <BackEffectSeconds>k__BackingField: {x: 0.43, y: 0.64, z: 0.82, w: 1.08}

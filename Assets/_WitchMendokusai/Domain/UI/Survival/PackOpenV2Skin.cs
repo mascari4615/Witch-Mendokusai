@@ -5,15 +5,18 @@ using UnityEngine.UI;
 namespace WitchMendokusai
 {
 	// 카드팩 개봉 2판. 등급 팩 그림이 떨어지고, 등급 색 예고 (번짐, 고리 박동, 오르는 빛, 회전 광선), 밀어 들어가기와 떨림,
-	// 위 봉인 띠가 찢기며 폭발, 등급 뒷면 카드가 팩 입구에서 날아가 자리 잡고 뒤집힘
+	// 종이 띠가 빠지며 폭발, 등급 뒷면 카드가 팩 입구에서 날아가 자리 잡고 뒤집힘
 	// - 풀 연출과 빠른 연출은 같은 코드, 에셋 수치만 다름 (PackOpenFullSkin, PackOpenQuickSkin)
 	// - 연속 레벨업 (run.Chained) 이고 ChainPath 이면 일괄 공개 길: 작은 팩, 예고 생략, 한꺼번에 뒤집기
 	// 설계 memo wm/design/card-pack-v2-20261120
 	public abstract partial class PackOpenV2Skin : CardRevealSkin
 	{
 		[field: Header("Art")]
-		[field: SerializeField, Tooltip("일반, 희귀, 영웅 팩 앞면")] public Sprite[] PackArt { get; private set; } = new Sprite[3];
-		[field: SerializeField, Tooltip("일반, 희귀, 영웅 카드 뒷면")] public Sprite[] Backs { get; private set; } = new Sprite[3];
+		[field: SerializeField, Tooltip("일반, 희귀, 영웅, 전설 팩 몸통")] public Sprite[] PackArt { get; private set; } = new Sprite[4];
+		[field: SerializeField, Tooltip("팩 몸통과 같은 크기의 투명 종이 띠")] public Sprite[] PackBands { get; private set; } = new Sprite[4];
+		[field: SerializeField, Tooltip("등급별 뒷면 광택, 6열 4행")] public Texture2D[] BackEffects { get; private set; } = new Texture2D[4];
+		[field: SerializeField, Tooltip("등급별 뒷면 광택 시간")] public Vector4 BackEffectSeconds { get; private set; } = new(0.43f, 0.64f, 0.82f, 1.08f);
+		[field: SerializeField, Tooltip("일반, 희귀, 영웅, 전설 카드 뒷면")] public Sprite[] Backs { get; private set; } = new Sprite[4];
 		[field: SerializeField, Range(0.05f, 0.3f), Tooltip("팩 그림 위 봉인 띠 비율")] public float TearRatio { get; private set; } = 0.11f;
 		[field: SerializeField, Min(1f)] public float ChestSize { get; private set; } = 300f;
 
@@ -98,11 +101,29 @@ namespace WitchMendokusai
 		[field: SerializeField, Range(0f, 1f), Tooltip("일괄 공개 폭발 크기 비율")] public float ChainBurstRatio { get; private set; } = 0.7f;
 		[field: SerializeField, Min(0.01f)] public float ChainFly { get; private set; } = 0.22f;
 
-		public override Sprite BackSprite(CardRevealTier tier) => Backs[(int)tier];
+		public override Sprite BackSprite(CardRevealTier tier) => TierArt(Backs, tier);
+
+		private static T TierArt<T>(T[] variants, CardRevealTier tier) where T : UnityEngine.Object
+		{
+			return variants == null || variants.Length == 0 ? null : variants[Mathf.Clamp((int)tier, 0, variants.Length - 1)];
+		}
+
+		private float BackEffect(CardRevealRun run, CardRevealCard card, float at)
+		{
+			Texture2D texture = TierArt(BackEffects, card.Tier);
+			if (texture == null)
+				return 0f;
+			float seconds = BackEffectSeconds[(int)card.Tier];
+			if (IsChain(run))
+				seconds *= 0.75f;
+			if (seconds > 0f)
+				run.Play(at, card.BackEffect(texture, seconds));
+			return Mathf.Max(0f, seconds);
+		}
 
 		private bool IsChain(CardRevealRun run) => ChainPath && run.Chained;
 		private float PackHeight(CardRevealRun run) => run.Stage.Size.y * (IsChain(run) ? ChainPackHeightRatio : PackHeightRatio);
-		private float TierValue(Vector3 values, CardRevealTier tier) => tier == CardRevealTier.Epic ? values.z : tier == CardRevealTier.Rare ? values.y : values.x;
+		private float TierValue(Vector3 values, CardRevealTier tier) => tier >= CardRevealTier.Epic ? values.z : tier == CardRevealTier.Rare ? values.y : values.x;
 
 		public override void Build(CardRevealRun run)
 		{
@@ -111,7 +132,7 @@ namespace WitchMendokusai
 			float packHeight = PackHeight(run);
 			RevealSource source = run.ChestSprite != null
 				? RevealSource.Chest(run, run.ChestSprite, ChestSize)
-				: RevealSource.PackArt(run, PackArt[(int)run.Best], packHeight, TearRatio, top);
+				: RevealSource.PackArt(run, TierArt(PackArt, run.Best), packHeight, TearRatio, top, TierArt(PackBands, run.Best));
 			float burstAt = chain ? ChainBurstAt : TierValue(BurstAt, run.Best);
 			Vector2 home = source.Root.anchoredPosition;
 
@@ -147,7 +168,7 @@ namespace WitchMendokusai
 			float landed = burstAt + fly + FlyStagger * (run.Cards.Count - 1);
 			foreach (CardRevealCard card in run.Cards)
 				if (card.Tier != CardRevealTier.Common)
-					run.Play(landed, card.Aura.DOFade(card.Tier == CardRevealTier.Epic ? EpicAuraAlpha : RareAuraAlpha, AuraIn));
+					run.Play(landed, card.Aura.DOFade(card.Tier >= CardRevealTier.Epic ? EpicAuraAlpha : RareAuraAlpha, AuraIn));
 
 			// 6. 뒤집기
 			BuildFlips(run, landed);
@@ -163,7 +184,7 @@ namespace WitchMendokusai
 			if (chain)
 				return;
 
-			int rays = run.Best == CardRevealTier.Epic ? EpicRays : run.Best == CardRevealTier.Rare ? RareRays : 0;
+			int rays = run.Best >= CardRevealTier.Epic ? EpicRays : run.Best == CardRevealTier.Rare ? RareRays : 0;
 			if (rays > 0)
 			{
 				Image holder = run.Stage.NewImage(false, null, Color.clear, run.Origin, Vector2.one, "[Reveal] Rays");

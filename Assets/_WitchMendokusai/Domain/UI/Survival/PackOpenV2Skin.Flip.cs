@@ -61,7 +61,7 @@ namespace WitchMendokusai
 			// 감기는 마지막 영웅 한 장만. 앞의 영웅은 희귀 박자에 영웅 색
 			int lastEpic = -1;
 			for (int i = 0; i < run.Cards.Count; i++)
-				if (run.Cards[i].Tier == CardRevealTier.Epic)
+				if (run.Cards[i].Tier >= CardRevealTier.Epic && (lastEpic < 0 || run.Cards[i].Tier >= run.Cards[lastEpic].Tier))
 					lastEpic = i;
 			float start = landed + FlipDelay;
 			if (BatchCommons == false && IsChain(run) == false)
@@ -99,6 +99,7 @@ namespace WitchMendokusai
 		private float FlipNormal(CardRevealRun run, CardRevealCard card, float at)
 		{
 			bool rare = card.Tier != CardRevealTier.Common;
+			at += BackEffect(run, card, at);
 			RectTransform rect = card.Rect;
 			Vector3 home = card.HomePosition;
 			Vector2 center = run.Stage.ToLocal(rect);
@@ -125,8 +126,8 @@ namespace WitchMendokusai
 			Vector3 home = card.HomePosition;
 			Vector2 center = run.Stage.ToLocal(rect);
 			float cardHeight = rect.rect.height;
-			Color gold = run.TierColor(CardRevealTier.Epic);
-			float hold = IsChain(run) ? ChainEpicHold : EpicHold;
+			Color gold = run.TierColor(card.Tier);
+			float hold = Mathf.Max(IsChain(run) ? ChainEpicHold : EpicHold, BackEffect(run, card, at));
 			foreach (CardRevealCard other in run.Cards)
 				if (other != card)
 					run.Play(at, other.Shade.DOFade(OtherShade, AuraIn));
@@ -154,7 +155,7 @@ namespace WitchMendokusai
 			run.Bloom(reveal, center, cardHeight * EpicBloomRatio * 0.35f, Color.white, 0.8f, EpicBloomTime * 0.7f);
 			run.Ring(reveal, center, cardHeight, RingScale, gold, RingTime);
 			run.Shake(reveal, EpicShake, EpicBloomTime);
-			run.Sfx(reveal, EpicSfx);
+			run.Sfx(reveal, TierSfx(card.Tier));
 			run.Sfx(reveal, BurstSfx);
 			for (int coin = 0; coin < CoinSounds; coin++)
 				run.Sfx(reveal + (coin + 1) * CoinSoundGap, CoinSfx);
@@ -171,12 +172,8 @@ namespace WitchMendokusai
 		// 0도에서 90도, 뒷면 끄고 -90도에서 0도. 앞면 효과 시각을 돌려줌
 		private float AddFlip(CardRevealRun run, CardRevealCard card, float at, float duration)
 		{
-			RectTransform rect = card.Rect;
-			Quaternion homeRotation = card.HomeRotation;
-			float half = duration * 0.5f;
-			run.Play(at, DOVirtual.Float(0f, 90f, half, angle => rect.localRotation = homeRotation * Quaternion.Euler(0f, angle, 0f)).SetEase(Ease.InCubic));
-			run.At(at + half, card.ShowFront);
-			run.Play(at + half, DOVirtual.Float(-90f, 0f, half, angle => rect.localRotation = homeRotation * Quaternion.Euler(0f, angle, 0f)).SetEase(Ease.OutCubic));
+			card.BuildFlipEdge(run.TierColor(card.Tier));
+			run.Play(at, DOVirtual.Float(0f, 1f, duration, card.SetFlipPose).SetEase(Ease.InOutSine));
 			return at + duration * RevealRatio;
 		}
 

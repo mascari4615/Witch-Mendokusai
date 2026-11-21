@@ -15,10 +15,10 @@ namespace WitchMendokusai
 	{
 		private const float WAIT_SECONDS = 10f;
 		private static readonly string[] MODES = { "full", "quick", "chain", "old" };
-		private static readonly string[] TIERS = { "common", "rare", "epic" };
+		private static readonly string[] TIERS = { "common", "rare", "epic", "legend" };
 
 		public string Name => "reveal";
-		public string Usage => "reveal pack <full|quick|chain|old> [common|rare|epic] | reveal reset";
+		public string Usage => "reveal pack <full|quick|chain|old> [common|rare|epic|legend] | reveal reset";
 
 		public void Execute(DevCommandContext context, string[] args)
 		{
@@ -62,6 +62,11 @@ namespace WitchMendokusai
 					return;
 				}
 				best = (CardRevealTier)tierIndex;
+				if (mode == "old" && best == CardRevealTier.Legend)
+				{
+					context.LogError("전설 시안은 최신 카드팩 스킨에서 볼 수 있습니다.");
+					return;
+				}
 			}
 
 			UISelectCard.DevRevealRequest request = new() { Skin = skin, Chained = mode == "chain", Best = best };

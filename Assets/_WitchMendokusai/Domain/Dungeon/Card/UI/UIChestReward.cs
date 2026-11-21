@@ -26,6 +26,8 @@ namespace WitchMendokusai
 		private float autoCloseSeconds;
 		private float openedAt;
 		private RectTransform rewardLayout;
+		// 공개 연출의 확대 층. 화면 맞춤 배율 (rewardLayout) 과 따로 둬야 연출 중 창 크기가 바뀌어도 확대가 덮이지 않음
+		private RectTransform rewardZoom;
 		private UICardRevealDirector reveal;
 		private RectTransform chestAnchor;
 		private readonly List<CardRevealEntry> revealEntries = new();
@@ -37,7 +39,7 @@ namespace WitchMendokusai
 		private void Awake()
 		{
 			BuildRewardLayout();
-			reveal = UICardRevealDirector.AttachTo(gameObject, (RectTransform)content.transform, rewardLayout);
+			reveal = UICardRevealDirector.AttachTo(gameObject, (RectTransform)content.transform, rewardZoom);
 			chestAnchor = (RectTransform)cellsParent;
 			closeButton.onClick.AddListener(Close);
 			UITermIcon.Attach(title, theme, SurvivalTerm.ChestReward);
@@ -52,9 +54,15 @@ namespace WitchMendokusai
 			foreach (Transform child in viewport)
 				if (child is RectTransform rect)
 					children.Add(rect);
+			GameObject zoom = new("Reward zoom", typeof(RectTransform));
+			rewardZoom = (RectTransform)zoom.transform;
+			rewardZoom.SetParent(viewport, false);
+			rewardZoom.anchorMin = Vector2.zero;
+			rewardZoom.anchorMax = Vector2.one;
+			rewardZoom.offsetMin = rewardZoom.offsetMax = Vector2.zero;
 			GameObject layout = new("Reward layout", typeof(RectTransform));
 			rewardLayout = (RectTransform)layout.transform;
-			rewardLayout.SetParent(viewport, false);
+			rewardLayout.SetParent(rewardZoom, false);
 			rewardLayout.anchorMin = rewardLayout.anchorMax = new Vector2(.5f, .5f);
 			rewardLayout.sizeDelta = new Vector2(1920f, 1080f);
 			foreach (RectTransform child in children)

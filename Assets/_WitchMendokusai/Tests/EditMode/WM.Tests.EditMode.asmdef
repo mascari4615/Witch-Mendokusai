@@ -29,6 +29,7 @@
         "WitchMendokusai.DomainSDK.World",
         "UnityEditor.TestRunner",
         "UnityEngine.TestRunner",
+        "UnityEngine.UI",
         "VContainer",
         "WM.Core",
         "WM.Domain",

@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		private RectTransform lid;
 		private RectTransform tear;
 		private Image seam;
+		private bool horizontalSeal;
 
 		public RectTransform Root { get; private set; }
 		// 팩 그림의 봉인선 빛, 상자의 틈 빛
@@ -44,17 +45,27 @@ namespace WitchMendokusai
 		}
 
 		// 생성 그림 팩. height 는 팩 높이, tearRatio 는 위 봉인 띠 비율
-		public static RevealSource PackArt(CardRevealRun run, Sprite art, float height, float tearRatio, Color seamColor)
+		public static RevealSource PackArt(CardRevealRun run, Sprite art, float height, float tearRatio, Color seamColor, Sprite band = null)
 		{
+			if (art == null)
+				return Pack(run, new Vector2(height * 0.72f, height), seamColor, new Color(0.12f, 0.19f, 0.15f));
 			float aspect = art.rect.width / art.rect.height;
 			Vector2 size = new(height * aspect, height);
 			RevealSource source = NewRoot(run, size, "[Reveal] Pack art");
 			Image body = AddImage(source.Root, art, Color.white, size, Vector2.zero);
+			source.Body = body.rectTransform;
+			if (band != null)
+			{
+				source.horizontalSeal = true;
+				source.tear = AddImage(source.Root, band, Color.white, size, Vector2.zero).rectTransform;
+				source.seam = AddImage(source.Root, RevealTextures.Bloom, new Color(seamColor.r, seamColor.g, seamColor.b, 0f),
+					new Vector2(size.x * 0.9f, size.y * 0.07f), new Vector2(0f, -size.y * 0.14f));
+				return source;
+			}
 			body.type = Image.Type.Filled;
 			body.fillMethod = Image.FillMethod.Vertical;
 			body.fillOrigin = (int)Image.OriginVertical.Bottom;
 			body.fillAmount = 1f - tearRatio;
-			source.Body = body.rectTransform;
 			Image top = AddImage(source.Root, art, Color.white, size, Vector2.zero);
 			top.type = Image.Type.Filled;
 			top.fillMethod = Image.FillMethod.Vertical;
@@ -99,9 +110,12 @@ namespace WitchMendokusai
 			if (tear != null)
 			{
 				Image tearImage = tear.GetComponent<Image>();
-				run.Play(burstAt - 0.06f, tear.DOAnchorPos(tear.anchoredPosition + new Vector2(Size.x * 0.6f, Size.y * 0.4f), 0.3f).SetEase(Ease.OutCubic));
-				run.Play(burstAt - 0.06f, tear.DOLocalRotate(new Vector3(0f, 0f, -38f), 0.3f).SetEase(Ease.OutCubic));
-				run.Play(burstAt - 0.06f, tearImage.DOFade(0f, 0.3f));
+				const float TearTime = 0.3f;
+				float release = Mathf.Max(0f, burstAt - 0.06f);
+				Vector2 travel = horizontalSeal ? new Vector2(Size.x * 0.87f, -Size.y * 0.04f) : new Vector2(Size.x * 0.6f, Size.y * 0.4f);
+				run.Play(release, tear.DOAnchorPos(tear.anchoredPosition + travel, TearTime).SetEase(Ease.OutCubic));
+				run.Play(release, tear.DOLocalRotate(new Vector3(0f, 0f, horizontalSeal ? -11f : -38f), TearTime).SetEase(Ease.OutCubic));
+				run.Play(release, tearImage.DOFade(0f, TearTime));
 			}
 			if (lid != null)
 			{

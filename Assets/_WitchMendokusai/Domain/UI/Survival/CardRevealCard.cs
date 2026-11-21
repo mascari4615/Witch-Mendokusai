@@ -23,6 +23,11 @@ namespace WitchMendokusai
 		private Quaternion homeRotation;
 		private Vector3 homeScale;
 		private GameObject back;
+		private Image flipEdge;
+		private const int EffectColumns = 6;
+		private const int EffectRows = 4;
+		private const float FlipPitch = 13f;
+		private const float FlipRoll = 6f;
 		private Image aura;
 		private RectTransform shine;
 		private Image shade;
@@ -78,6 +83,53 @@ namespace WitchMendokusai
 				back.SetActive(false);
 		}
 
+		public Tween BackEffect(Texture2D atlas, float duration)
+		{
+			GameObject overlay = new("[Reveal] Back effect", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
+			RawImage image = overlay.GetComponent<RawImage>();
+			image.texture = atlas;
+			image.raycastTarget = false;
+			RectTransform rect = image.rectTransform;
+			rect.SetParent(back.transform, false);
+			rect.anchorMin = Vector2.zero;
+			rect.anchorMax = Vector2.one;
+			rect.offsetMin = rect.offsetMax = Vector2.zero;
+			image.uvRect = EffectFrame(0);
+			return DOVirtual.Float(0f, 1f, duration, progress =>
+			{
+				int index = Mathf.Min(EffectColumns * EffectRows - 1, (int)(progress * EffectColumns * EffectRows));
+				image.uvRect = EffectFrame(index);
+			}).SetEase(Ease.Linear);
+		}
+
+		private static Rect EffectFrame(int index)
+		{
+			const float Width = 1f / EffectColumns;
+			const float Height = 1f / EffectRows;
+			return new Rect(index % EffectColumns * Width, 1f - (index / EffectColumns + 1) * Height, Width, Height);
+		}
+
+		public void BuildFlipEdge(Color tint)
+		{
+			Vector2 size = card.rect.size;
+			flipEdge = NewImage("[Reveal] Card stock edge", null, tint, new Vector2(size.x * 0.023f, size.y));
+			flipEdge.rectTransform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+			flipEdge.gameObject.SetActive(false);
+			shade.transform.SetAsLastSibling();
+		}
+
+		public void SetFlipPose(float turn)
+		{
+			bool front = turn >= 0.5f;
+			float angle = turn * 180f - (front ? 180f : 0f);
+			float lift = Mathf.Sin(turn * Mathf.PI);
+			card.localRotation = homeRotation * Quaternion.Euler(-FlipPitch * lift, angle, FlipRoll * lift);
+			flipEdge.gameObject.SetActive(turn > 0.22f && turn < 0.78f);
+			flipEdge.rectTransform.localPosition = new Vector3(card.rect.width * (front ? -0.5f : 0.5f), 0f, 0f);
+			if (front)
+				ShowFront();
+		}
+
 		// 광택이 왼쪽에서 오른쪽으로 한 번
 		public Tween Sweep(float duration)
 		{
@@ -101,6 +153,9 @@ namespace WitchMendokusai
 			group.blocksRaycasts = true;
 			if (back != null)
 				Object.Destroy(back);
+			if (flipEdge != null)
+				Object.Destroy(flipEdge.gameObject);
+			flipEdge = null;
 			if (shine != null)
 			{
 				shine.GetChild(0).DOKill();
@@ -123,7 +178,7 @@ namespace WitchMendokusai
 			Color color = aura.color;
 			aura.color = new Color(color.r, color.g, color.b, idleAlpha);
 			aura.transform.localScale = Vector3.one;
-			if (Tier == CardRevealTier.Epic)
+			if (Tier >= CardRevealTier.Epic)
 				auraIdle = aura.DOFade(idleAlpha * 0.55f, idlePeriod * 0.5f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine).SetUpdate(true);
 		}
 

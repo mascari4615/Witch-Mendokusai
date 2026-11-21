@@ -87,7 +87,7 @@ namespace WitchMendokusai
 					continue;
 				CardRevealTier tier = UICardRevealDirector.TierOf(card);
 				if (request.Best.HasValue)
-					tier = index == 1 ? request.Best.Value : index == 0 && request.Best.Value == CardRevealTier.Epic ? CardRevealTier.Rare : CardRevealTier.Common;
+					tier = index == 1 ? request.Best.Value : index == 0 && request.Best.Value >= CardRevealTier.Epic ? CardRevealTier.Rare : CardRevealTier.Common;
 				revealEntries.Add(new CardRevealEntry((RectTransform)slot.transform, tier));
 				index++;
 			}
