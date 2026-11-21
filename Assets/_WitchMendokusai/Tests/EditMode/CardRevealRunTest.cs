@@ -110,6 +110,35 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Input_never_skips_a_skin_that_is_not_skippable()
+		{
+			UICardRevealDirector director = NewDirector(out _);
+			Assert.IsTrue(director.PlayExact(NewSkin(1f, 0f, 1f), Entries()));
+			Assert.IsFalse(director.InSkipGuard);
+
+			Assert.IsTrue(director.ConsumeBlockedChoice(), "입력은 소비");
+			director.SkipAll();
+			Assert.IsTrue(director.IsRevealing, "건너뛸 수 없는 스킨은 입력으로 끝나지 않음");
+
+			CardRevealRun run = Run(director);
+			for (int i = 0; i < 30 && director.IsRevealing; i++)
+				run.Tick(STEP);
+			Assert.IsFalse(director.IsRevealing, "연출은 끝까지 돌아 자연 종료");
+			director.Cancel();
+		}
+
+		[Test]
+		public void Input_after_skip_guard_skips_a_skippable_skin()
+		{
+			UICardRevealDirector director = NewDirector(out _);
+			Assert.IsTrue(director.PlayExact(NewSkin(1f, 0f, 1f, skippable: true), Entries()));
+
+			Assert.IsTrue(director.ConsumeBlockedChoice());
+			Assert.IsFalse(director.IsRevealing, "건너뛸 수 있는 스킨은 기존대로 건너뜀");
+			director.Cancel();
+		}
+
+		[Test]
 		public void Card_layer_zoom_is_kept_after_finish_and_restored_on_cancel()
 		{
 			UICardRevealDirector director = NewDirector(out RectTransform content);
@@ -187,17 +216,18 @@ namespace WitchMendokusai.Tests
 			return UICardRevealDirector.AttachTo(panel, (RectTransform)panel.transform, content);
 		}
 
-		private StubSkin NewSkin(float length, float guard, float zoom)
+		private StubSkin NewSkin(float length, float guard, float zoom, bool skippable = false)
 		{
 			StubSkin skin = ScriptableObject.CreateInstance<StubSkin>();
 			skin.Length = length;
 			SetBacking(skin, "SkipGuard", guard);
 			SetBacking(skin, "ContentZoom", zoom);
+			SetBacking(skin, "Skippable", skippable);
 			assets.Add(skin);
 			return skin;
 		}
 
-		private static void SetBacking(CardRevealSkin skin, string property, float value) =>
+		private static void SetBacking(CardRevealSkin skin, string property, object value) =>
 			typeof(CardRevealSkin).GetField($"<{property}>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(skin, value);
 
 		private GameObject NewRect(string objectName, Transform parent)

@@ -165,6 +165,12 @@ namespace WitchMendokusai
 		{
 			if (IsRevealing == false || run == null)
 				return;
+			// 건너뛸 수 없는 스킨은 입력을 소비만. 누른 클릭은 연출이 끝난 뒤 고르기가 되지 않게 뗄 때까지 막음
+			if (skin.Skippable == false)
+			{
+				HoldPointerUntilRelease();
+				return;
+			}
 			UiSfx.Play(skin.TierSfx(run.Best));
 			// 잠금을 먼저. Skip 이 Finished 를 불러 그 처리기가 새 공개를 시작해도 새 공개의 잠금을 덮지 않게
 			choiceUnlockAt = Time.unscaledTime + skin.SkipChoiceLock;

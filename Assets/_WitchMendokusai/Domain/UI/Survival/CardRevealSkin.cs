@@ -79,6 +79,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Min(1f), Tooltip("상자 보상 카드 층 확대. 카드가 한 장이라 화면에서 작음")] public float ChestContentZoom { get; private set; } = 1.45f;
 		[field: SerializeField, Min(0.1f), Tooltip("영웅 감기 때 카메라 거리 배율 (곱)")] public float EpicCameraDistance { get; private set; } = 0.92f;
 		[field: SerializeField, Range(0f, 1f), Tooltip("고르는 동안 남기는 어둡게 비율")] public float HoldDimRatio { get; private set; } = 0.55f;
+		[field: SerializeField, Tooltip("켜면 아무 키나 클릭으로 연출을 건너뜀. 끄면 연출이 끝까지 돎. 이동 키와 클릭이 연출을 끊어 의미가 없어서 기본은 끔 (사용자 2026-11-21)")] public bool Skippable { get; private set; }
 		[field: SerializeField, Min(0f), Tooltip("건너뛰기 직후 고르기 입력 차단 시간")] public float SkipChoiceLock { get; private set; } = 0.25f;
 		[field: SerializeField, Min(0f), Tooltip("공개 시작 뒤 입력이 고르기도 건너뛰기도 하지 않는 시간. 이동 중 누른 키로 연출이 넘어가지 않게")] public float SkipGuard { get; private set; } = 0.3f;
 
