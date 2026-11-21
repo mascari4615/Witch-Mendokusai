@@ -53,7 +53,7 @@ namespace WitchMendokusai
 		private readonly Label detailLevel;
 		private readonly Label detailState;
 		private readonly Label detailText;
-		private readonly VisualElement effectList;
+		private readonly ScrollView effectList;
 		private readonly Label effectEmpty;
 		private readonly UIConfirmDialog confirm;
 		private readonly VisualElement safeFrame;
@@ -101,7 +101,9 @@ namespace WitchMendokusai
 			VisualElement effectHead = AddChild(main, new VisualElement(), USS_PART + "head");
 			effectHead.AddToClassList(USS_PART + "head--effects");
 			AddChild(effectHead, new Label("켠 제약"), USS_PART + "header");
-			effectList = AddChild(main, new VisualElement(), USS_PART + "effects");
+			// 켠 제약이 많으면 이 목록만 세로 스크롤. 아래 버튼 줄이 밀려 잘리지 않게
+			effectList = AddChild(main, new ScrollView(ScrollViewMode.Vertical), USS_PART + "effects");
+			effectList.contentContainer.AddToClassList(USS_PART + "effects-content");
 			effectEmpty = AddChild(effectList, new Label("켠 제약 없음"), USS_PART + "effect-empty");
 
 			VisualElement foot = AddChild(main, new VisualElement(), USS_PART + "foot");

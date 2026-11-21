@@ -48,8 +48,14 @@ namespace WitchMendokusai
 
 		public float WaveMultiplier => (float)Ratio(WavePercent);
 
-		// 회복은 0 까지 줄 수 있음 (회복 -100% 제약)
-		public int ScaleHeal(int heal) => Math.Max(0, (int)Math.Floor(heal * Ratio(HealPercent) + ROUNDING_TOLERANCE));
+		// 회복은 0 까지 줄 수 있음 (회복 -100% 제약). carry: 앞 회복에서 남은 소수. 재생 1 같은 작은 회복이 0 으로 사라지지 않고 비율대로 쌓임
+		public int ScaleHeal(int heal, ref double carry)
+		{
+			double scaled = heal * Ratio(HealPercent) + carry;
+			int whole = (int)Math.Floor(scaled + ROUNDING_TOLERANCE);
+			carry = Math.Max(0d, scaled - whole);
+			return whole;
+		}
 
 		// 선택지는 최소 1장
 		public int ChoiceCount(int baseCount) => Math.Max(1, baseCount + ChoiceDelta);
@@ -61,11 +67,11 @@ namespace WitchMendokusai
 
 		// 위협 단계 효과에 물량과 정예를 얹은 판 효과. 단계 번호와 보상 배율은 그대로
 		public DungeonThreatEffect ApplyTo(DungeonThreatEffect threat) => new DungeonThreatEffect(
-			threat.Level, threat.EnemyHealth, threat.EnemyDamage, threat.EliteExtraPerGap + Math.Max(0, EliteExtraPerGap),
+			threat.Level, threat.EnemyHealth, threat.EnemyDamage, threat.EliteExtraPerGap + EliteExtraPerGap,
 			threat.EnemySpeed, threat.WaveRate * WaveMultiplier, threat.RewardMultiplier);
 
-		// 0 이상 비율. 정수 % 를 double 로 계산해 0.8 같은 값의 소수 오차를 피함
-		private static double Ratio(int percent) => Math.Max(0d, 1d + percent / (double)PERCENT);
+		// 정수 % 를 double 로 계산해 0.8 같은 값의 소수 오차를 피함. 음수가 되는 합은 Resolve 가 막음
+		private static double Ratio(int percent) => 1d + percent / (double)PERCENT;
 	}
 
 	public static class DungeonConstraintRunRules
@@ -118,9 +124,16 @@ namespace WitchMendokusai
 						throw new ArgumentOutOfRangeException(nameof(entries), entry.Kind, "처리하지 않는 제약 효과 종류");
 				}
 			}
-			// 물량과 난이도 간격은 0 이 되면 생성 간격 나누기와 난이도 계산이 깨짐. 제약 데이터 잘못
+			// 제약 데이터 잘못은 조용히 보정하지 않고 실패
+			// 물량과 난이도 간격이 0 이면 생성 간격 나누기와 난이도 계산이 깨짐, 시작 체력은 0 이하나 늘리기 불가, 회복은 음수 불가, 정예는 빼기 불가
 			if (wave <= -DungeonConstraintRunEffect.PERCENT || pace <= -DungeonConstraintRunEffect.PERCENT)
 				throw new ArgumentOutOfRangeException(nameof(entries), $"물량 {wave}%, 난이도 간격 {pace}% 합은 -100 보다 커야 함");
+			if (startHealth <= -DungeonConstraintRunEffect.PERCENT || startHealth > 0)
+				throw new ArgumentOutOfRangeException(nameof(entries), $"시작 체력 {startHealth}% 합은 -100 초과 0 이하");
+			if (heal < -DungeonConstraintRunEffect.PERCENT)
+				throw new ArgumentOutOfRangeException(nameof(entries), $"회복 {heal}% 합은 -100 이상");
+			if (elite < 0)
+				throw new ArgumentOutOfRangeException(nameof(entries), $"정예 추가 {elite} 는 0 이상");
 			return new DungeonConstraintRunEffect(wave, heal, choice, startHealth, pace, elite);
 		}
 	}
