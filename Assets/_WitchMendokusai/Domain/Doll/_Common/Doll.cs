@@ -18,6 +18,8 @@ namespace WitchMendokusai
 		[field: SerializeField] public List<EquipmentData> DefaultEquipments { get; private set; }
 		// 몸체 모델 색 배율. 흰색이면 모델 원색
 		[field: SerializeField] public Color BodyTint { get; private set; } = Color.white;
+		// 고유 패시브. 없으면 null
+		[field: SerializeField] public DollPassiveData Passive { get; private set; }
 		// 옛 시험 인형. 자산은 다른 콘텐츠가 참조하므로 두고 인형 창과 조작 대상에서만 뺌
 		[field: SerializeField] public bool IsTestOnly { get; private set; }
 

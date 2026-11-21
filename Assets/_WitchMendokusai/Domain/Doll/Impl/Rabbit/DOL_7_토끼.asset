@@ -38,4 +38,5 @@ MonoBehaviour:
   <DefaultEquipments>k__BackingField:
   - {fileID: 11400000, guid: 74d3e8187141ada43be1d2e304d9c9fb, type: 2}
   - {fileID: 11400000, guid: ae6768da4402a3145b91966c578624d4, type: 2}
+  <Passive>k__BackingField: {fileID: 11400000, guid: 4944989c8e3f413fad05c260580b0a01, type: 2}
   <BodyTint>k__BackingField: {r: 1, g: 0.9, b: 0.96, a: 1}

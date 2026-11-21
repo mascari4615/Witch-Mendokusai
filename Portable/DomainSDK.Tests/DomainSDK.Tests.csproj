@@ -62,6 +62,7 @@
     <Compile Include="$(TestsRoot)Combat/RunChoiceRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/SurvivalChoiceQueueTests.cs" />
     <Compile Include="$(TestsRoot)Combat/AttackCadenceTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/CompanionRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/CardTextTests.cs" />
     <Compile Include="$(TestsRoot)Item/InventoryCoreTests.cs" />
     <Compile Include="$(TestsRoot)Item/InventoryCanReceiveTests.cs" />
