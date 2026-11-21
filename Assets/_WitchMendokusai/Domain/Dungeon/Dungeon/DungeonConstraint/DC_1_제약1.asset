@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "DC_1_\uC81C\uC57D1"
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 1
-  <Name>k__BackingField: "\uc801 \uc774\ub3d9\uc18d\ub3c4"
+  <Name>k__BackingField: "조급함"
   <Description>k__BackingField: "\uBAAC\uC2A4\uD130\uB4E4\uC758 \uC774\uB3D9\uC18D\uB3C4\uAC00
     1 \uBE68\uB77C\uC9D1\uB2C8\uB2E4."
   <Sprite>k__BackingField: {fileID: 21300000, guid: b1c4444c99a5bd44888ddfaa2d69d83d, type: 3}

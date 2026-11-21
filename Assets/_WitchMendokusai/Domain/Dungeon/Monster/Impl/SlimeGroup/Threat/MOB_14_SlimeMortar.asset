@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MOB_14_SlimeMortar
   m_EditorClassIdentifier:
   <ID>k__BackingField: 14
-  <Name>k__BackingField: SlimeMortar
+  <Name>k__BackingField: "씨앗 슬라임"
   <Description>k__BackingField:
   <Sprite>k__BackingField: {fileID: 695418822, guid: 9ab49a49da694cb499b4bcad4f133d1a, type: 3}
   <Sprites>k__BackingField: []

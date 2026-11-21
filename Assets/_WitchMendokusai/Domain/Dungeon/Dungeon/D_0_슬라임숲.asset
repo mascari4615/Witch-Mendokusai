@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "D_0_\uC2AC\uB77C\uC784\uC232"
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 0
-  <Name>k__BackingField: "\uC2AC\uB77C\uC784 \uC232 (10\uBD84)"
+  <Name>k__BackingField: "슬라임 숲"
   <Description>k__BackingField: "10\uBD84\uC744 \uBC84\uD2F0\uACE0 \uC232\uC758 \uC8FC\uC778\uC744 \uC4F0\uB7EC\uB728\uB824\uB77C."
   <Sprite>k__BackingField: {fileID: 21300000, guid: c7a51b0d85c056048b11aa66440abaad, type: 3}
   <Sprites>k__BackingField: []

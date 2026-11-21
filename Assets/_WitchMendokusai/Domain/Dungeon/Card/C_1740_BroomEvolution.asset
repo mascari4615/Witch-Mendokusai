@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: C_1740_BroomEvolution
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.CardData
   <ID>k__BackingField: 1740
-  <Name>k__BackingField: "빗자루 진화 2"
+  <Name>k__BackingField: "알아서 쓸고 와"
   <Description>k__BackingField: "빗자루 수 +2, 빗자루 데미지 +12, 빗자루 공격속도 +2\n돌아오기 귀찮아와 빗자루 공격속도 최대 뒤 상자에서 획득. 한 판에 1회."
   <Sprite>k__BackingField: {fileID: 21300000, guid: e4d65d3171c8eab4ab77d78faa0212b4, type: 3}
   <Sprites>k__BackingField: []

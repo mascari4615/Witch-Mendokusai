@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "NPC_8_\uD2F0\uBA54\uD1A0_\uC5C5\uADF8\uB808\uC774\uB4DC"
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 8
-  <Name>k__BackingField: "\uD2F0\uBA54\uD1A0_\uC5C5\uADF8\uB808\uC774\uB4DC"
+  <Name>k__BackingField: "검댕이"
   <Description>k__BackingField: 
   <Sprite>k__BackingField: {fileID: 21300000, guid: 265c77f526eb504408310d9d51c65e69, type: 3}
   <Sprites>k__BackingField: []
