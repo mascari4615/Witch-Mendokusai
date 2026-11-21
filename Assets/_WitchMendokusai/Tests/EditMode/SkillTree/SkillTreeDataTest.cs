@@ -76,17 +76,18 @@ namespace WitchMendokusai.Tests
 			[20000004] = new[] { 0, 1, 2, 3, 4, 5, 6, 7 },
 		};
 
-		// 같은 커밋의 카드 자산 효과. (스탯, Add 값)
-		private static readonly Dictionary<int, (UnitStatType stat, int value)[]> OLD_EFFECTS = new()
+		// 옛 프리팹 이전 카드 효과. (스탯, Add 값). 값이 null 이면 밸런스 조정 대상이라 스탯 종류와 Add 연산, 양수만 검증
+		// 쿨감, 치명타 확률과 피해는 566c5d5b6 에서 의도적으로 조정됨 (옛 20 -> 3, 20 -> 9, 20 -> 10)
+		private static readonly Dictionary<int, (UnitStatType stat, int? value)[]> OLD_EFFECTS = new()
 		{
 			[0] = new[] { (UnitStatType.ATTACK_SPEED_BONUS, 1) },
 			[1] = new[] { (UnitStatType.MOVEMENT_SPEED_BONUS, 1) },
-			[2] = new[] { (UnitStatType.COOLTIME_BONUS, 20) },
+			[2] = new[] { (UnitStatType.COOLTIME_BONUS, null) },
 			[3] = new[] { (UnitStatType.HP_MAX, 5), (UnitStatType.HP_CUR, 5) },
 			[4] = new[] { (UnitStatType.DAMAGE_BONUS, 5) },
 			[5] = new[] { (UnitStatType.EXP_COLLIDER_SCALE, 1) },
-			[6] = new[] { (UnitStatType.CRITICAL_CHANCE, 20) },
-			[7] = new[] { (UnitStatType.CRITICAL_DAMAGE, 20) },
+			[6] = new[] { (UnitStatType.CRITICAL_CHANCE, null) },
+			[7] = new[] { (UnitStatType.CRITICAL_DAMAGE, null) },
 			[100] = new[] { (UnitStatType.SATELLITE_COUNT, 1) },
 			[101] = new[] { (UnitStatType.SATELLITE_ROTATE_SPEED_BONUS, 1) },
 			[102] = new[] { (UnitStatType.SATELLITE_DAMAGE_BONUS, 2) },
@@ -210,14 +211,21 @@ namespace WitchMendokusai.Tests
 
 		private static void AssertSameEffects(CardData card)
 		{
-			(UnitStatType stat, int value)[] expected = OLD_EFFECTS[card.ID];
+			(UnitStatType stat, int? value)[] expected = OLD_EFFECTS[card.ID];
 			Assert.That(card.Effects.Count, Is.EqualTo(expected.Length), card.ID.ToString());
 			for (int i = 0; i < expected.Length; i++)
 			{
 				Assert.That(card.Effects[i].Type, Is.EqualTo(EffectType.UnitStat), card.ID.ToString());
 				Assert.That(card.Effects[i].ArithmeticOperator, Is.EqualTo(ArithmeticOperator.Add), card.ID.ToString());
 				Assert.That((card.Effects[i].Data as UnitStatData).Type, Is.EqualTo(expected[i].stat), card.ID.ToString());
-				Assert.That(card.Effects[i].Value, Is.EqualTo(expected[i].value), card.ID.ToString());
+				if (expected[i].value.HasValue)
+				{
+					Assert.That(card.Effects[i].Value, Is.EqualTo(expected[i].value.Value), card.ID.ToString());
+				}
+				else
+				{
+					Assert.That(card.Effects[i].Value, Is.GreaterThan(0), card.ID.ToString());
+				}
 			}
 		}
 	}
