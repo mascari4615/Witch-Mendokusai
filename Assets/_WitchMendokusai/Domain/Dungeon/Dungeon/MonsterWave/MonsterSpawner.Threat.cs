@@ -9,6 +9,7 @@ namespace WitchMendokusai
 	// 정본 memo wm/design/crossing-threat-20261119, memo wm/design/map-objects-20261119/decisions.md 3단계
 	public partial class MonsterSpawner
 	{
+		[SerializeField, Min(0f), Tooltip("장애물 밖으로 밀어낼 때 쓰는 몹 몸 반지름 (m)")] private float spawnBodyRadius = .5f;
 		private DungeonThreatPolicy threatPolicy = new();
 		private DungeonArenaOptions arena = new();
 		private int visibilityPlanesFrame = -1;
@@ -141,7 +142,11 @@ namespace WitchMendokusai
 
 		// 생성 자리를 경계 안쪽으로. 경계가 없으면 그대로. 벽 쪽으로 달리는 중이면 끌어온 자리가 화면 안일 수 있음 (경계 판의 한계)
 		public Vector3 ClampToArena(Vector3 position) =>
-			HasArena ? SurvivalThreatRules.Clamp(arena.Shape, arenaCenter, arena.HalfSize, position, arena.SpawnInset) : position;
+			ClearOfObstacles(HasArena ? SurvivalThreatRules.Clamp(arena.Shape, arenaCenter, arena.HalfSize, position, arena.SpawnInset) : position);
+
+		// 막는 지형 장애물 속에 생성되지 않게 가장자리 밖으로. 장애물 없는 판은 그대로
+		private Vector3 ClearOfObstacles(Vector3 position) =>
+			GroundGenerator.ActiveObstacles != null ? GroundGenerator.ActiveObstacles.PushOut(position, spawnBodyRadius) : position;
 
 		// 주기 웨이브 한 마리 자리. 정책에 따라 앞 부채꼴 또는 화면 밖 둘레
 		private Vector3 PickPeriodicSpawnPosition()

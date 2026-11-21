@@ -19,6 +19,7 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <ObjectiveType>k__BackingField: 0
   <MapType>k__BackingField: 0
+  <GroundObstacles>k__BackingField: {fileID: 11400000, guid: d2ee9313878196cfcdf05bf805d3b62d, type: 2}
   <ClearValue>k__BackingField: 30
   <TimeBySecond>k__BackingField: 180
   <Constraints>k__BackingField:

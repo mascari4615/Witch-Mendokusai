@@ -26,6 +26,7 @@ namespace WitchMendokusai
 			if (breakableField != null && breakableField.IsRootLost)
 				breakableField = null;
 			bool inDungeon = DungeonManager.TryGetExistingInstance(out DungeonManager dungeonManager) && dungeonManager.IsDungeon;
+			TickObstacles(inDungeon);
 			if (inDungeon == false)
 			{
 				// 결과 화면에서도 날던 조각은 마저 떨어짐
