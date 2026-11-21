@@ -45,12 +45,17 @@ namespace WitchMendokusai
 		[Tooltip("표면과 띄워 두는 여유(m). 너무 작으면 지면에 끼고, 너무 크면 떠 보인다.")]
 		[SerializeField, Min(0.001f)] private float skinWidth = 0.02f;
 
+		[Header("둥근 장애물")]
+		[Tooltip("GroundObstacleBody 가 붙은 둥근 장애물에 정면으로 부딪힐 때 옆으로 비껴 가는 양 (남은 이동량 대비 비율). 0 이면 정면에서 멈춤.")]
+		[SerializeField, Range(0f, 2f)] private float roundObstacleSidestep = 0.6f;
+
 		// 매 사용 시 read — 캐싱하면 인스펙터에서 바꿔도 런타임에 안 먹는다(수치 노출 룰).
 		public float StepOffsetHeight => stepOffsetHeight;
 		public float GroundSnapDistance => groundSnapDistance;
 		public float GroundTouchDistance => groundTouchDistance;
 		public float StabilityProbeDistance => stabilityProbeDistance;
 		public float SkinWidth => skinWidth;
+		public float RoundObstacleSidestep => roundObstacleSidestep;
 
 		/// <summary>걸을 수 있는 바닥의 normal.y 하한. 60° → 0.5.</summary>
 		public float GroundNormalYMin => Mathf.Cos(maxWalkableSlopeDegrees * Mathf.Deg2Rad);

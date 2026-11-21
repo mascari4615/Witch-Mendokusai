@@ -82,8 +82,13 @@ namespace WitchMendokusai
 					context.WallContactNormals.Add(wallNormal);
 
 					// Wall tangent projection
+					Vector3 beforeProjection = leftover;
 					leftover -= Vector3.Dot(leftover, wallNormal) * wallNormal;
 					leftover.y = 0f;
+					// 둥근 기둥에 정면으로 부딪히면 접선 성분이 0 이라 영영 멈춤. 한쪽으로 비껴 가게 접선을 보탬
+					if (RoundObstacleSidestep > 0f && hitUnit == false && leftover.sqrMagnitude < beforeProjection.sqrMagnitude * HEAD_ON_TANGENT_SQR
+						&& hit.collider.TryGetComponent(out GroundObstacleBody _))
+						leftover += Vector3.Cross(Vector3.up, wallNormal) * (sidestepSide * beforeProjection.magnitude * RoundObstacleSidestep);
 
 					Vector3 horizontalVelocityWall = new(context.Velocity.x, 0f, context.Velocity.z);
 					horizontalVelocityWall -= Vector3.Dot(horizontalVelocityWall, wallNormal) * wallNormal;

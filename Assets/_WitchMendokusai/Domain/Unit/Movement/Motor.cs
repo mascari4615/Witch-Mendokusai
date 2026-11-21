@@ -27,6 +27,7 @@ namespace WitchMendokusai
 		private const int MAX_DEPENETRATION_ITERATIONS = 4;
 		private const float MIN_CREASE_SIN_SQR = 0.01f;      // 두 wall normal 외적 크기 제곱이 이 값 이상이면 crease 처리
 		private const float MIN_FLAT_NORMAL_SQR = 0.01f;     // 유닛 몸 법선을 수평으로 편 길이 제곱이 이보다 작으면 (머리 꼭대기) 진행 반대 방향을 벽으로
+		private const float HEAD_ON_TANGENT_SQR = 0.04f;      // 벽 접선 성분이 원래 이동량의 20% 미만이면 정면 충돌
 		private const float MIN_STEP_MAGNITUDE = 0.001f;     // step offset 시도할 잔여 horizontal 이동 최소량
 
 		// 조작감 수치 — 매 사용 시 read (캐싱하면 인스펙터 변경이 런타임에 안 먹는다).
@@ -37,6 +38,7 @@ namespace WitchMendokusai
 		private float GroundTouchDistance => tuning.GroundTouchDistance;
 		private float StepOffsetHeight => tuning.StepOffsetHeight;
 		private float StabilityProbeDistance => tuning.StabilityProbeDistance;
+		private float RoundObstacleSidestep => tuning.RoundObstacleSidestep;
 
 		private static readonly RaycastHit[] HIT_BUFFER = new RaycastHit[8];
 		private static RaycastHit[] rayHitBuffer = new RaycastHit[8];
@@ -53,6 +55,8 @@ namespace WitchMendokusai
 		private Vector3 capsuleCenterOffset;
 		private float capsuleHalfSegment;
 		private float capsuleRadius;
+		// 정면 충돌에서 비껴 가는 쪽. 유닛마다 고정해 프레임마다 좌우가 바뀌며 떨지 않게 함
+		private readonly float sidestepSide;
 
 		public MotorContext Context => context;
 		public System.Func<MotorContext, float, bool> OverrideVelocity { get; set; }
@@ -65,6 +69,7 @@ namespace WitchMendokusai
 			// 다른 Transform의 캡슐을 받는 호출은 기존 계층 필터를 유지.
 			ownCapsuleIsOnRoot = unitCapsule.transform == unitTransform;
 			this.tuning = tuning;
+			sidestepSide = (System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(unitTransform) & 1) == 0 ? 1f : -1f;
 		}
 
 		public void AddContributor(IVelocityContributor contributor) => contributors.Add(contributor);
