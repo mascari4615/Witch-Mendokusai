@@ -58,6 +58,9 @@ namespace WitchMendokusai
 		{
 			if (Instance == this)
 				Instance = null;
+			// 스테이지 물체는 풀 (씬 밖, DontDestroyOnLoad) 소속. 월드가 내려갈 때 끄지 않으면 로비에 남고 다시 들어오면 둘이 됨
+			if (CurStageObject != null)
+				CurStageObject.gameObject.SetActive(false);
 		}
 
 		private void Start()

@@ -48,6 +48,8 @@ namespace WitchMendokusai
 			}
 		}
 		public int ActiveCount { get; private set; }
+		// 부모는 그때 씬에 생겨 씬과 함께 파괴됨. 소유자 GroundGenerator 는 풀 (DontDestroyOnLoad) 의 스테이지라 남음 (월드에서 로비로)
+		public bool IsRootLost => root == null;
 		public int BrokenCount => brokenKeys.Count;
 
 		public void Tick(Vector3 focus)
