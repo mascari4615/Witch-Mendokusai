@@ -74,7 +74,9 @@ MonoBehaviour:
   planeTilt: 30
   aimSide: -1
   firstSwing: {x: -70, y: 105}
-  windBack: 14
+  windBack: 20
+  slashOvershoot: 10
+  chopWindBack: 14
   raiseAngle: -22
   bladeRim: 1.6
   trailBrightness: {x: 0.14, y: 0.18}
@@ -91,11 +93,13 @@ MonoBehaviour:
   nightRadius: 8
   nightDarkness: 0.9
   windupSeconds: 0.42
-  slashSeconds: 0.16
-  slitSeconds: 0.4
-  openSeconds: 0.4
-  nightSeconds: 1.4
-  chopSeconds: 0.14
+  slashSeconds: 0.09
+  slitSeconds: 0.25
+  openSeconds: 0.16
+  nightSeconds: 1
+  chopSeconds: 0.07
+  raiseSeconds: 0.14
+  chopWindSeconds: 0.14
   lingerSeconds: 1.7
   restoreSeconds: 0.5
   sunDim: 0.22

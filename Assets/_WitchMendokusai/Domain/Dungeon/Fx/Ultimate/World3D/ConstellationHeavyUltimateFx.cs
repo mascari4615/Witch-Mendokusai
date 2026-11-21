@@ -4,9 +4,10 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 별자리 강한 판 (강력 스킬용). 표적 위 공중에 별이 하나씩 켜지고 빛줄로 이어진 뒤, 별빛 기둥이 내리꽂히고 별들이 부서져 기둥을 따라 쏟아지다 마지막에 땅에서 네 갈래로 터짐
-	/// - 흐름: 별 켜짐 (하나씩, 빛줄이 따라 이어짐) -> 숨 멎음 (가장 어두움) -> 별빛 기둥 낙하 -> 쏟아짐 (별이 차례로 부서져 기둥으로) -> 네 갈래 터짐 -> 잔류
-	/// - 별은 서로 다른 높이에 뜬 발광 다면체, 빛줄은 월드 관 메시. 별마다 땅의 빛 점과 옅은 세로 빛줄로 높이를 읽게 함
+	/// 별자리 강한 판 (강력 스킬용). 하늘에서 별이 하나씩 떨어져 땅에 박히고 땅 위 빛줄로 이어져 별자리가 된 뒤, 별빛 기둥이 내리꽂히고 별들이 부서져 기둥을 따라 쏟아지다 마지막에 땅에서 네 갈래로 터짐
+	/// - 흐름: 별 박힘 (하나씩 떨어져 꽂힘, 빛줄이 따라 이어짐) -> 숨 멎음 (가장 어두움) -> 별빛 기둥 낙하 -> 쏟아짐 (별이 차례로 부서져 기둥으로) -> 네 갈래 터짐 -> 잔류
+	/// - 별은 땅에 비스듬히 박힌 발광 결정, 빛줄은 땅 위에 누운 관 메시. 모양은 pattern (기본 국자 꼴 일곱 별)
+	/// - 사용자 판정 2026-11-22: 공중에 뜬 별과 불규칙한 꺾인 줄이 어색함 -> 땅에 박힌 별, 알아볼 수 있는 모양
 	/// - 연출 광원은 별자리 점광 (새로 켜진 별을 따라감) 과 접지 점광 둘. 접지 순간 별자리 점광을 끔
 	/// - 흔들림, 정지, 섬광은 화면 연출 박자표 (FeelUltimateFx) 몫. 여기는 월드 안 물체와 빛만
 	/// - 설계 memo wm/design/ult3d-all-20261120/07_constellation.md, 제작 기록 ult3d-batch3-20261121
@@ -25,8 +26,7 @@ namespace WitchMendokusai
 			public Material BodyMaterial;
 			public Material GlintMaterial;
 			public Material DotMaterial;
-			public Material StemMaterial;
-			public Vector3 Spin;
+			public Quaternion Lean;
 		}
 
 		[Header("색")]
@@ -39,16 +39,19 @@ namespace WitchMendokusai
 		[SerializeField] private Color dustColor = new(0.4f, 0.42f, 0.5f, 0.8f);
 
 		[Header("별자리")]
-		[SerializeField, Range(3, 14)] private int starCount = 9;
-		[SerializeField, Min(1), Tooltip("별을 잇는 순서. 둘레의 별을 이만큼 건너뛰며 이음 (별 수와 서로소여야 전부 이어짐)")] private int linkHop = 1;
-		[SerializeField, Tooltip("별 배치 씨앗. 같은 값이면 같은 별자리")] private int layoutSeed = 7;
-		[SerializeField, Min(1f), Tooltip("별자리 둘레 반지름 (표적 중심)")] private float ringRadius = 2.9f;
-		[SerializeField, Tooltip("별 높이 (가장 낮은 별, 가장 높은 별). 시야 위쪽 7.5 안")] private Vector2 starHeight = new(1.5f, 3.4f);
-		[SerializeField, Min(0.05f)] private float starSize = 0.36f;
-		[SerializeField, Min(0.5f), Tooltip("별 반짝임 판 크기 / 별 크기")] private float glintRatio = 3.4f;
-		[SerializeField, Min(0.005f)] private float lineRadius = 0.03f;
-		[SerializeField, Min(0.1f), Tooltip("별 아래 땅의 빛 점 지름")] private float groundDotSize = 1.5f;
-		[SerializeField, Range(0f, 1f), Tooltip("별에서 땅까지 세로 빛줄 밝기. 높으면 기둥 여럿으로 읽힘")] private float stemBrightness = 0.32f;
+		[SerializeField, Tooltip("별 자리 (화면 오른쪽, 화면 위쪽). -1~1 을 patternRadius 배. 적힌 순서대로 박히고 이어짐. 기본은 국자 꼴 일곱 별")] private Vector2[] pattern =
+		{
+			new(-1f, 0.42f), new(-0.6f, 0.56f), new(-0.24f, 0.4f), new(0.08f, 0.2f), new(0.16f, -0.36f), new(0.78f, -0.42f), new(0.86f, 0.18f),
+		};
+		[SerializeField, Tooltip("마지막 별에서 이 번호의 별로 줄을 하나 더 이음 (국자 닫기). -1 이면 없음")] private int closeTo = 3;
+		[SerializeField, Min(1f), Tooltip("별자리 반지름 (표적 중심)")] private float patternRadius = 4.2f;
+		[SerializeField, Min(0.1f), Tooltip("박힌 별 결정 높이")] private float starSize = 1.1f;
+		[SerializeField, Range(0f, 50f), Tooltip("결정이 기우는 최대 각도")] private float starLean = 22f;
+		[SerializeField, Min(0.5f), Tooltip("별 반짝임 판 크기 / 별 크기")] private float glintRatio = 1.6f;
+		[SerializeField, Min(0.005f)] private float lineRadius = 0.05f;
+		[SerializeField, Min(0.1f), Tooltip("별 아래 땅의 빛 점 지름")] private float groundDotSize = 2.2f;
+		[SerializeField, Min(1f), Tooltip("별이 떨어지기 시작하는 높이")] private float fallHeight = 9f;
+		[SerializeField, Min(0.02f), Tooltip("별 하나가 떨어지는 시간. 짧을수록 꽂히는 느낌")] private float fallSeconds = 0.09f;
 
 		[Header("기둥")]
 		[SerializeField, Min(2f)] private float pillarHeight = 9f;
@@ -57,8 +60,8 @@ namespace WitchMendokusai
 
 		[Header("시간 (초)")]
 		[SerializeField, Min(0f)] private float firstStarTime = 0.3f;
-		[SerializeField, Min(0.03f), Tooltip("별 하나가 켜지는 간격 (m07 별자리 1.2s / 9)")] private float starInterval = 0.13f;
-		[SerializeField, Min(0.05f), Tooltip("다 이어진 뒤 기둥 전의 숨 멎음 (가장 어두움)")] private float hushSeconds = 0.26f;
+		[SerializeField, Min(0.03f), Tooltip("별 하나가 박히는 간격")] private float starInterval = 0.15f;
+		[SerializeField, Min(0.05f), Tooltip("다 이어진 뒤 기둥 전의 숨 멎음 (가장 어두움)")] private float hushSeconds = 0.22f;
 		[SerializeField, Min(0.03f), Tooltip("기둥이 땅에 닿기까지")] private float pillarFallSeconds = 0.1f;
 		[SerializeField, Min(0.3f), Tooltip("별이 부서져 기둥으로 쏟아지는 시간 (m07 1.4s)")] private float pourSeconds = 1.2f;
 		[SerializeField, Min(0.1f)] private float lingerSeconds = 1.8f;
@@ -93,7 +96,8 @@ namespace WitchMendokusai
 		// ScaleWorld 배율. 실행용 복제본에서만 1 이 아님 (리터럴 크기 값에 곱함)
 		[System.NonSerialized] private float sizeScale = 1f;
 
-		private float LinkedTime => firstStarTime + starInterval * starCount;
+		private int StarCount => pattern.Length;
+		private float LinkedTime => firstStarTime + starInterval * StarCount;
 		private float PillarTime => LinkedTime + hushSeconds;
 		private float StrikeTime => PillarTime + pillarFallSeconds;
 		private float BurstTime => StrikeTime + pourSeconds;
@@ -104,9 +108,7 @@ namespace WitchMendokusai
 		public override void ScaleWorld(float scale)
 		{
 			sizeScale = scale;
-			ringRadius *= scale;
-			// 높이는 덜 키움 (시야 위쪽 7.5)
-			starHeight *= Mathf.Pow(scale, 0.4f);
+			patternRadius *= scale;
 			starSize *= scale;
 			lineRadius *= scale;
 			groundDotSize *= scale;
@@ -134,133 +136,148 @@ namespace WitchMendokusai
 			ComposeGrade(stage);
 		}
 
-		// 별 자리: 둘레를 고르게 나눈 뒤 반지름과 높이를 흔듦. 켜지는 순서는 linkHop 씩 건너뛰어 빛줄이 가운데를 가로지르게
+		// 별 자리: pattern 을 화면 축에 맞춰 땅에 놓음 (어느 방향에서 시전해도 화면에서 같은 모양)
 		private List<Star> LayOut(Stage stage, Vector3 center)
 		{
-			System.Random random = new(layoutSeed);
-			float Range(float min, float max) => min + (float)random.NextDouble() * (max - min);
-			float twist = Range(0f, Mathf.PI * 2f);
+			UltimateFxRun run = stage.Run;
 			List<Star> stars = new();
-			for (int order = 0; order < starCount; order++)
+			for (int order = 0; order < pattern.Length; order++)
 			{
-				int slot = order * linkHop % starCount;
-				float angle = twist + (slot + Range(-0.22f, 0.22f)) / starCount * Mathf.PI * 2f;
-				// 반지름을 크게 흔듦. 고르면 정다각형 별 그림 (2D 도형) 으로 읽힘 (1회차 촬영)
-				Vector3 offset = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * ringRadius * Range(0.4f, 1f);
-				// 카메라에서 먼 별일수록 높게 (가까운 별이 먼 별을 가리지 않고, 높이 차가 화면에서 겹치지 않게)
-				float far = Mathf.Clamp01(0.5f - Vector3.Dot(offset, stage.ToCamera) / (ringRadius * 2f));
-				float height = Mathf.Lerp(starHeight.x, starHeight.y, Mathf.Clamp01(far * 0.6f + Range(0f, 0.4f)));
-				Vector3 ground = center + offset;
+				Vector3 ground = center + (run.ScreenRight * pattern[order].x + run.ScreenForward * pattern[order].y) * patternRadius;
 				ground.y = UltimateFxStage.GroundHeight(ground);
 				stars.Add(new Star
 				{
 					Ground = ground,
-					Position = ground + Vector3.up * height,
+					Position = ground + Vector3.up * starSize * 0.55f,
 					LightTime = firstStarTime + order * starInterval,
-					BreakTime = StrikeTime + 0.06f + order * pourSeconds * 0.72f / starCount,
-					Spin = new Vector3(Range(-60f, 60f), Range(40f, 120f), Range(-60f, 60f)),
+					BreakTime = StrikeTime + 0.06f + order * pourSeconds * 0.72f / pattern.Length,
+					Lean = Quaternion.Euler(Random.Range(-starLean, starLean), Random.value * 360f, Random.Range(-starLean, starLean)),
 				});
 			}
 			return stars;
 		}
 
-		// 별: 발광 다면체가 튀어나오듯 켜지고 천천히 돎. 반짝임 판, 땅의 빛 점, 세로 빛줄. 별자리 점광이 새 별로 옮겨 감
+		// 별: 하늘에서 빛줄기로 떨어져 땅에 꽂힘. 꽂히는 순간 결정이 솟고 불티와 먼지, 땅의 빛 점. 별자리 점광이 새 별로 옮겨 감
 		private void ComposeStars(Stage stage, List<Star> stars, Light light)
 		{
 			UltimateFxRun run = stage.Run;
-			Mesh[] meshes = { Keep(run, UltimateMeshFactory.Rock(1201, Color.white, 0.25f)), Keep(run, UltimateMeshFactory.Rock(1207, Color.white, 0.35f)) };
-			Mesh stemMesh = Keep(run, UltimateMeshFactory.OpenCylinder(8, 0f, 1f));
-			ParticleSystem motes = Motes(run, "ConstellationStarMotes", starCount * 14 + 20, -0.05f, 0.3f);
+			Mesh[] meshes = { Keep(run, UltimateMeshFactory.Crystal(1201, 5)), Keep(run, UltimateMeshFactory.Crystal(1207, 6)) };
+			Mesh fallMesh = Keep(run, UltimateMeshFactory.OpenCylinder(8, 1f, 0f));
+			ParticleSystem sparks = run.Particles("ConstellationStarSparks", run.Additive(UltimateFxTextures.Spark, Color.white), stars.Count * 22 + 20, 1.2f, true);
+			UltimateFxStage.SetLifetimeLook(sparks, UltimateFxStage.FadeGradient(Color.white, 0.02f, 0.5f), AnimationCurve.Linear(0f, 1f, 1f, 0.3f));
 			for (int i = 0; i < stars.Count; i++)
 			{
 				Star star = stars[i];
-				star.BodyMaterial = Glow(run, new Color(0.7f, 0.8f, 1f, 1f), Color.black, starColor * 0.5f, false);
+				star.BodyMaterial = Glow(run, new Color(0.7f, 0.8f, 1f, 1f), Color.black, starColor * 0.5f, true);
 				star.BodyMaterial.SetFloat(SPECULAR_ID, 0.6f);
 				star.Body = UltimateFxStage.CreateMeshObject("ConstellationStar", run.Root, meshes[i % meshes.Length], star.BodyMaterial);
-				Solid(star.Body, false);
-				star.Body.transform.position = star.Position;
-				star.Body.transform.rotation = Random.rotation;
+				Solid(star.Body, true);
+				// 결정 메시는 바닥 중심 원점, 높이 1. 뿌리를 땅에 조금 묻음
+				star.Body.transform.SetPositionAndRotation(star.Ground - Vector3.up * starSize * 0.12f, star.Lean);
 				star.Body.SetActive(false);
 
 				star.GlintMaterial = run.Additive(UltimateFxTextures.CrossGlint, Color.clear);
 				GameObject glint = run.Billboard("ConstellationGlint", star.GlintMaterial, star.Position, starSize * glintRatio, starSize * glintRatio, false, false, 3);
 				star.DotMaterial = run.Additive(UltimateFxTextures.Soft, Color.clear);
 				run.Plate("ConstellationGroundDot", star.DotMaterial, star.Ground + Vector3.up * 0.05f, groundDotSize, 5);
-				star.StemMaterial = run.Additive(UltimateFxTextures.White, Color.clear);
-				GameObject stem = UltimateFxStage.CreateMeshObject("ConstellationStem", run.Root, stemMesh, star.StemMaterial);
-				stem.transform.position = star.Ground;
-				stem.transform.localScale = new Vector3(lineRadius * 1.6f, star.Position.y - star.Ground.y, lineRadius * 1.6f);
+
+				// 낙하 빛줄기: 위가 옅은 가는 원기둥이 하늘에서 내려와 꽂히는 순간 사라짐
+				Material fallMaterial = run.Additive(UltimateFxTextures.White, Color.clear);
+				GameObject fall = UltimateFxStage.CreateMeshObject("ConstellationStarFall", run.Root, fallMesh, fallMaterial);
+				fall.SetActive(false);
+				float fallStart = Mathf.Max(0f, star.LightTime - fallSeconds);
+				run.At(fallStart, () => fall.SetActive(true));
+				run.Track(fallStart, star.LightTime - fallStart + 0.1f, _ =>
+				{
+					float now = run.Now;
+					float drop = UltimateFxRun.EaseIn(UltimateFxRun.Span(now, fallStart, star.LightTime));
+					float fade = 1f - UltimateFxRun.Span(now, star.LightTime, star.LightTime + 0.1f);
+					float height = Mathf.Lerp(fallHeight, 0f, drop);
+					fall.transform.position = star.Ground + Vector3.up * height;
+					fall.transform.localScale = new Vector3(starSize * 0.35f * fade, fallHeight * 0.6f, starSize * 0.35f * fade);
+					fallMaterial.SetColor("_Color", starColor * 1.4f * fade);
+				}, () => run.Destroy(fall));
 
 				run.At(star.LightTime, () =>
 				{
 					star.Body.SetActive(true);
-					for (int mote = 0; mote < 12; mote++)
-						UltimateFxStage.Emit(motes, star.Position, Random.onUnitSphere * Random.Range(0.6f, 2.2f) * sizeScale, Random.Range(0.06f, 0.14f) * sizeScale, Random.Range(0.4f, 0.9f), new Color(0.8f, 0.9f, 1f, 1f));
+					for (int spark = 0; spark < 20; spark++)
+					{
+						Vector3 direction = (Random.onUnitSphere + Vector3.up * 1.3f).normalized;
+						UltimateFxStage.Emit(sparks, star.Ground + Vector3.up * 0.15f, direction * Random.Range(3f, 8f) * sizeScale, Random.Range(0.05f, 0.1f), Random.Range(0.25f, 0.55f), new Color(0.8f, 0.9f, 1f, 1f));
+					}
+					run.Dust(star.Ground, 1.1f * sizeScale, 5, dustColor);
 				});
 				run.Track(star.LightTime, star.BreakTime - star.LightTime, _ =>
 				{
 					float now = run.Now;
-					float pop = OverShoot((now - star.LightTime) / 0.16f, 0.5f);
-					float flare = 1f + 2.5f * Spike(now, star.LightTime, 0.02f, 0.12f);
+					// 꽂히며 눌렸다 솟음 (짧게 넘쳤다 자리 잡음)
+					float pop = OverShoot((now - star.LightTime) / 0.12f, 0.6f);
+					float flare = 1f + 3f * Spike(now, star.LightTime, 0.01f, 0.1f);
 					float twinkle = 0.85f + 0.15f * Mathf.Sin(now * 9f + star.LightTime * 31f);
-					star.Body.transform.localScale = Vector3.one * starSize * pop;
-					star.Body.transform.Rotate(star.Spin * run.Delta, Space.World);
+					star.Body.transform.localScale = new Vector3(starSize, starSize * pop, starSize);
 					star.BodyMaterial.SetColor(EMISSION_ID, starColor * flare * twinkle);
-					star.GlintMaterial.SetColor("_Color", starColor * 0.35f * flare * twinkle);
-					glint.transform.localScale = new Vector3(starSize * glintRatio, starSize * glintRatio, 1f) * (0.8f + 0.5f * Spike(now, star.LightTime, 0.02f, 0.15f));
-					float settle = UltimateFxRun.EaseOut(UltimateFxRun.Span(now, star.LightTime, star.LightTime + 0.2f));
-					star.DotMaterial.SetColor("_Color", lineColor * 0.5f * settle * twinkle);
-					star.StemMaterial.SetColor("_Color", lineColor * stemBrightness * settle);
+					star.GlintMaterial.SetColor("_Color", starColor * 0.3f * flare * twinkle);
+					glint.transform.localScale = new Vector3(starSize * glintRatio, starSize * glintRatio, 1f) * (0.8f + 0.9f * Spike(now, star.LightTime, 0.01f, 0.12f));
+					float settle = UltimateFxRun.EaseOut(UltimateFxRun.Span(now, star.LightTime, star.LightTime + 0.1f));
+					star.DotMaterial.SetColor("_Color", lineColor * 0.6f * settle * twinkle * (1f + 2f * Spike(now, star.LightTime, 0.01f, 0.12f)));
 				}, () =>
 				{
 					star.Body.SetActive(false);
 					star.GlintMaterial.SetColor("_Color", Color.clear);
-					star.StemMaterial.SetColor("_Color", Color.clear);
 					run.Destroy(glint);
-					run.Destroy(stem);
 				});
 				// 땅의 빛 점은 별이 부서진 뒤 잠깐 남았다 꺼짐
-				run.Track(star.BreakTime, 0.4f, progress => star.DotMaterial.SetColor("_Color", lineColor * 0.5f * (1f - progress)));
+				run.Track(star.BreakTime, 0.4f, progress => star.DotMaterial.SetColor("_Color", lineColor * 0.6f * (1f - progress)));
 			}
 
 			run.Track(firstStarTime, StrikeTime - firstStarTime, _ =>
 			{
 				float now = run.Now;
 				int newest = Mathf.Clamp(Mathf.FloorToInt((now - firstStarTime) / starInterval), 0, stars.Count - 1);
-				Vector3 goal = stars[newest].Position + stage.ToCamera * 0.6f - Vector3.up * 0.4f;
-				light.transform.position = now <= firstStarTime + run.Delta ? goal : Vector3.Lerp(light.transform.position, goal, Mathf.Clamp01(run.Delta * 18f));
+				// 새 별로 바로 옮김 (꽂힘마다 빛이 튀게)
+				light.transform.position = stars[newest].Ground + Vector3.up * 1.2f + stage.ToCamera * 0.6f;
 				float rise = Mathf.Lerp(0.5f, 1f, UltimateFxRun.Span(now, firstStarTime, LinkedTime));
 				float hush = 1f - 0.5f * UltimateFxRun.Span(now, LinkedTime, PillarTime);
-				light.intensity = starLightIntensity * rise * hush * (1f + 0.6f * Spike(now, stars[newest].LightTime, 0.02f, 0.08f));
+				light.intensity = starLightIntensity * rise * hush * (1f + 1.5f * Spike(now, stars[newest].LightTime, 0.01f, 0.08f));
 			}, () => light.enabled = false);
 		}
 
-		// 빛줄: 별이 켜지면 앞 별에서 그 별까지 관이 자라 이어짐. 앞끝에 빛 알갱이. 잇는 두 별 중 하나가 부서지면 꺼짐
+		// 빛줄: 별이 박히면 앞 별에서 그 별까지 땅 위로 관이 달려 이어짐. 앞끝에 빛 알갱이. 잇는 두 별 중 하나가 부서지면 꺼짐
 		private void ComposeLinks(Stage stage, List<Star> stars)
 		{
 			UltimateFxRun run = stage.Run;
-			ParticleSystem tips = Motes(run, "ConstellationLinkTip", starCount * 30 + 20, 0f, 0.1f);
+			ParticleSystem tips = Motes(run, "ConstellationLinkTip", stars.Count * 30 + 40, 0f, 0.1f);
 			for (int i = 1; i < stars.Count; i++)
+				ComposeLink(run, tips, stars[i - 1], stars[i], stars[i - 1].LightTime + starInterval * 0.3f, stars[i].LightTime);
+			// 닫는 줄: 마지막 별이 박힌 직후 한 번 더
+			if (closeTo >= 0 && closeTo < stars.Count - 1)
 			{
-				Star from = stars[i - 1];
-				Star to = stars[i];
-				Mesh mesh = Keep(run, new Mesh { name = "ConstellationLink" });
-				Material material = run.Additive(UltimateFxTextures.White, lineColor);
-				GameObject link = UltimateFxStage.CreateMeshObject("ConstellationLink", run.Root, mesh, material);
-				link.SetActive(false);
-				float start = from.LightTime + starInterval * 0.25f;
-				float grow = to.LightTime - start;
-				run.At(start, () => link.SetActive(true));
-				run.Track(start, grow, progress =>
-				{
-					Vector3 head = Vector3.Lerp(from.Position, to.Position, UltimateFxRun.EaseInOut(progress));
-					FillLink(mesh, from.Position, head);
-					UltimateFxStage.Emit(tips, head, Random.onUnitSphere * 0.5f * sizeScale, Random.Range(0.08f, 0.16f) * sizeScale, Random.Range(0.15f, 0.3f), Color.white);
-				}, () => FillLink(mesh, from.Position, to.Position));
-				float breakTime = Mathf.Min(from.BreakTime, to.BreakTime);
-				run.Track(to.LightTime, breakTime - to.LightTime, _ => material.SetColor("_Color", lineColor * (1f + 1.5f * Spike(run.Now, to.LightTime, 0.02f, 0.12f)) * (0.85f + 0.15f * Mathf.Sin(run.Now * 13f + start * 17f))));
-				run.Track(breakTime, 0.15f, progress => material.SetColor("_Color", lineColor * (1f - progress) * 2f), () => run.Destroy(link));
+				Star last = stars[stars.Count - 1];
+				ComposeLink(run, tips, last, stars[closeTo], last.LightTime + 0.02f, last.LightTime + starInterval * 0.6f);
 			}
+		}
+
+		private void ComposeLink(UltimateFxRun run, ParticleSystem tips, Star from, Star to, float start, float arrive)
+		{
+			Vector3 lift = Vector3.up * (0.1f * sizeScale);
+			Vector3 origin = from.Ground + lift;
+			Vector3 target = to.Ground + lift;
+			Mesh mesh = Keep(run, new Mesh { name = "ConstellationLink" });
+			Material material = run.Additive(UltimateFxTextures.White, lineColor);
+			GameObject link = UltimateFxStage.CreateMeshObject("ConstellationLink", run.Root, mesh, material);
+			link.SetActive(false);
+			run.At(start, () => link.SetActive(true));
+			run.Track(start, arrive - start, progress =>
+			{
+				// 느리게 출발해 끝에서 가장 빠름 (다음 별이 꽂히는 순간에 닿음)
+				Vector3 head = Vector3.Lerp(origin, target, UltimateFxRun.EaseIn(progress));
+				FillLink(mesh, origin, head);
+				UltimateFxStage.Emit(tips, head, Random.onUnitSphere * 0.5f * sizeScale, Random.Range(0.08f, 0.16f) * sizeScale, Random.Range(0.15f, 0.3f), Color.white);
+			}, () => FillLink(mesh, origin, target));
+			float breakTime = Mathf.Min(from.BreakTime, to.BreakTime);
+			run.Track(arrive, breakTime - arrive, _ => material.SetColor("_Color", lineColor * (1f + 2f * Spike(run.Now, arrive, 0.01f, 0.12f)) * (0.85f + 0.15f * Mathf.Sin(run.Now * 13f + start * 17f))));
+			run.Track(breakTime, 0.15f, progress => material.SetColor("_Color", lineColor * (1f - progress) * 2f), () => run.Destroy(link));
 		}
 
 		private void FillLink(Mesh mesh, Vector3 from, Vector3 to)
@@ -347,12 +364,12 @@ namespace WitchMendokusai
 			{
 				run.At(star.BreakTime, () =>
 				{
-					// 기둥 축 위, 별보다 조금 높은 점으로 모임
-					Vector3 gather = new(center.x, star.Position.y + 1.2f * sizeScale, center.z);
+					// 기둥 축의 허리 높이로 모임 (땅을 스치며 기둥으로)
+					Vector3 gather = new(center.x, center.y + 1.6f * sizeScale, center.z);
 					for (int i = 0; i < shardsPerStar; i++)
 					{
-						float life = Random.Range(0.16f, 0.3f);
-						Vector3 from = star.Position + Random.insideUnitSphere * starSize;
+						float life = Random.Range(0.14f, 0.26f);
+						Vector3 from = star.Position + Random.insideUnitSphere * starSize * 0.4f;
 						UltimateFxStage.Emit(shards, from, (gather - from) / life, Random.Range(0.08f, 0.16f) * sizeScale, life, new Color(0.8f, 0.9f, 1f, 1f));
 					}
 					run.SparkBurst(star.Position, 14, new Vector2(2f, 6f), new Vector2(0.2f, 0.45f), new Vector2(0.05f, 0.1f), Color.white, new Color(0.6f, 0.8f, 1f, 1f), 0.4f);

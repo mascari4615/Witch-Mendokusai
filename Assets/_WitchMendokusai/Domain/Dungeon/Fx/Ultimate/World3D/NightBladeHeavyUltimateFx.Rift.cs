@@ -7,14 +7,16 @@ namespace WitchMendokusai
 	{
 		private Vector3 RiftCenter(Frame frame) => frame.Pivot + frame.Aim(riftAngle) * frame.Length * riftReach;
 
-		// 시각 -> 틈 폭. 검은 사선, 열림 (살짝 넘쳤다 자리 잡음), 둘째 베기에 닫힘
+		// 시각 -> 틈 폭. 검은 사선으로 버티다 탄성으로 벌어짐 (넘쳤다 되돌아오며 자리 잡음), 둘째 베기에 한 번에 닫힘
 		private float RiftWidth(float now)
 		{
-			float slit = riftSlitWidth * UltimateFxRun.EaseOut(UltimateFxRun.Span(now, SlashTime, SlashTime + 0.06f));
-			float open = Mathf.LerpUnclamped(slit, riftWidth, OverShoot(UltimateFxRun.Span(now, OpenStart, OpenEnd), 0.15f) * UltimateFxRun.Span(now, OpenStart, OpenStart + 0.02f));
-			float breathe = 1f + 0.04f * Mathf.Sin(now * 5f) * UltimateFxRun.Span(now, OpenEnd, OpenEnd + 0.3f);
-			float close = 1f - UltimateFxRun.EaseIn(UltimateFxRun.Span(now, ChopTime - 0.03f, ChopTime + 0.1f));
-			return (now < OpenStart ? slit : open * breathe) * close;
+			float slit = riftSlitWidth * UltimateFxRun.EaseOut(UltimateFxRun.Span(now, SlashTime, SlashTime + 0.04f));
+			if (now < OpenStart)
+				return slit;
+			float progress = (now - OpenStart) / openSeconds;
+			float elastic = 1f - Mathf.Exp(-4f * progress) * Mathf.Cos(progress * 9f);
+			float close = 1f - UltimateFxRun.EaseIn(UltimateFxRun.Span(now, ChopTime - 0.02f, ChopTime + 0.04f));
+			return Mathf.LerpUnclamped(slit, riftWidth, elastic) * close;
 		}
 
 		// 틈: 휘두름 면에 선 방추형 판 (별밭 창, 가장자리 빛). 가장자리에서 빛 알갱이가 떨어지고 틈 점광이 땅을 비춤. 아래 땅에서 밤이 번짐
@@ -44,6 +46,18 @@ namespace WitchMendokusai
 			}, () => run.Destroy(rift));
 
 			ParticleSystem motes = Motes(run, "NightRiftMotes", Mathf.CeilToInt(edgeMotesPerSecond * 1.6f) + 30, 0.25f, 0.25f);
+			// 벌어지는 순간 가장자리에서 양옆으로 튀는 빛 줄
+			ParticleSystem tear = Streaks(run, "NightRiftTear", 110, 0.05f);
+			run.At(OpenStart, () =>
+			{
+				for (int i = 0; i < 90; i++)
+				{
+					float position = Random.Range(-0.45f, 0.45f);
+					float sign = Random.value < 0.5f ? 1f : -1f;
+					Vector3 point = center + along * position * riftLength;
+					UltimateFxStage.Emit(tear, point, across * sign * Random.Range(5f, 13f) * sizeScale + Random.insideUnitSphere, Random.Range(0.08f, 0.16f) * sizeScale, Random.Range(0.15f, 0.3f), new Color(0.85f, 0.75f, 1f, 1f));
+				}
+			});
 			float carry = 0f;
 			run.Track(SlashTime, ChopTime - SlashTime, _ =>
 			{
@@ -82,7 +96,7 @@ namespace WitchMendokusai
 			Material material = run.Alpha(UltimateFxTextures.Soft, new Color(0f, 0f, 0f, 0f));
 			GameObject shade = run.Plate("NightShade", material, ground + Vector3.up * 0.06f, 0.01f, 4);
 			ParticleSystem motes = Motes(run, "NightShadeMotes", 260, -0.12f, 0.2f);
-			float spreadSeconds = openSeconds + 0.2f;
+			float spreadSeconds = openSeconds + 0.14f;
 			float carry = 0f;
 			run.Track(OpenStart, ChopTime + 0.25f - OpenStart, _ =>
 			{

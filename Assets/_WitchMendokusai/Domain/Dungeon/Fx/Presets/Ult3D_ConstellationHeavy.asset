@@ -63,22 +63,29 @@ MonoBehaviour:
   lightColor: {r: 0.75, g: 0.85, b: 1, a: 1}
   tintColor: {r: 0.72, g: 0.8, b: 1, a: 1}
   dustColor: {r: 0.4, g: 0.42, b: 0.5, a: 0.8}
-  starCount: 9
-  linkHop: 1
-  layoutSeed: 7
-  ringRadius: 2.9
-  starHeight: {x: 1.5, y: 3.4}
-  starSize: 0.36
-  glintRatio: 3.4
-  lineRadius: 0.03
-  groundDotSize: 1.5
-  stemBrightness: 0.32
+  pattern:
+  - {x: -1, y: 0.42}
+  - {x: -0.6, y: 0.56}
+  - {x: -0.24, y: 0.4}
+  - {x: 0.08, y: 0.2}
+  - {x: 0.16, y: -0.36}
+  - {x: 0.78, y: -0.42}
+  - {x: 0.86, y: 0.18}
+  closeTo: 3
+  patternRadius: 4.2
+  starSize: 1.1
+  starLean: 22
+  glintRatio: 1.6
+  lineRadius: 0.05
+  groundDotSize: 2.2
+  fallHeight: 9
+  fallSeconds: 0.09
   pillarHeight: 9
   pillarRadius: {x: 0.22, y: 0.8}
   pillarBrightness: {x: 0.5, y: 0.7}
   firstStarTime: 0.3
-  starInterval: 0.13
-  hushSeconds: 0.26
+  starInterval: 0.15
+  hushSeconds: 0.22
   pillarFallSeconds: 0.1
   pourSeconds: 1.2
   lingerSeconds: 1.8

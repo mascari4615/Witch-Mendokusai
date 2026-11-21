@@ -7,6 +7,7 @@ namespace WitchMendokusai
 	/// - 흐름: 칼 나타남과 당김 -> 첫 베기 (빠른 단타) -> 검은 사선 -> 틈 열림과 번지는 밤 -> 별빛 흡수 (날이 희게) -> 둘째 베기 (땅을 그음, 틈 닫힘, 낮 복귀) -> 잔류
 	/// - 칼과 틈은 같은 재질 (별밭 창, UltimateStarWindow). 별이 시선 방향으로 정해져 메시가 움직이면 안쪽 별이 따로 움직임. 틈은 화면 덧칠이 아니라 휘두름 면에 선 월드 판
 	/// - 휘두름 면은 화면 오른쪽 축과 뒤로 기운 위 축이 만드는 평면. 칼은 이 면 위에서 시곗바늘처럼 돎 (각도 0 이 위, 양수가 aimSide 쪽)
+	/// - 움직임은 버팀과 순간 이동의 반복 (사용자 판정 2026-11-22: 느리게 흐르는 움직임이 둥둥 뜬 느낌). 칼은 당겨 멈춘 뒤 한 번에 베고 넘쳤다 멈춤, 틈은 탄성으로 벌어짐. 느려짐은 정지 한 박에만
 	/// - 연출 광원은 칼날 점광과 틈 점광 둘. 흔들림, 정지, 섬광은 화면 연출 박자표 (FeelUltimateFx) 몫
 	/// - 설계 memo wm/design/ult3d-all-20261120/08_night-blade.md, 제작 기록 ult3d-batch3-20261121
 	/// - 재생: 개발 창 fx ultimate NightBladeHeavy
@@ -58,7 +59,9 @@ namespace WitchMendokusai
 		[SerializeField, Range(0f, 60f), Tooltip("휘두름 면을 뒤로 눕히는 각도. 0 이면 수직면, 크면 내려다보는 카메라 정면")] private float planeTilt = 30f;
 		[SerializeField, Tooltip("1 이면 화면 오른쪽으로 벰, -1 이면 왼쪽. 오른쪽은 작은 지도 HUD 밑")] private float aimSide = -1f;
 		[SerializeField, Tooltip("첫 베기 각도 (시작, 끝). 0 이 위, 양수가 베는 쪽")] private Vector2 firstSwing = new(-70f, 105f);
-		[SerializeField, Range(0f, 40f), Tooltip("베기 전 뒤로 당기는 각도")] private float windBack = 14f;
+		[SerializeField, Range(0f, 40f), Tooltip("베기 전 뒤로 당기는 각도")] private float windBack = 20f;
+		[SerializeField, Range(0f, 30f), Tooltip("베기 끝에서 넘쳤다 돌아오는 각도")] private float slashOvershoot = 10f;
+		[SerializeField, Range(0f, 30f), Tooltip("둘째 베기 전 뒤로 당기는 각도")] private float chopWindBack = 14f;
 		[SerializeField, Range(-90f, 90f), Tooltip("별빛을 모으는 동안 칼을 치켜든 각도")] private float raiseAngle = -22f;
 		[SerializeField, Range(0f, 4f), Tooltip("칼날 테두리 (프레넬) 세기. 낮으면 멀리서 검은 판으로 읽힘")] private float bladeRim = 1.6f;
 		[SerializeField, Tooltip("휘두름 자취 세기 (첫 베기 별밭 투명도, 둘째 베기 흰 빛). 높으면 자취가 흰 원판으로 읽힘 (1회차 촬영)")] private Vector2 trailBrightness = new(0.14f, 0.18f);
@@ -79,11 +82,13 @@ namespace WitchMendokusai
 
 		[Header("시간 (초)")]
 		[SerializeField, Min(0.1f), Tooltip("칼이 나타나 뒤로 당기는 시간")] private float windupSeconds = 0.42f;
-		[SerializeField, Min(0.04f), Tooltip("첫 베기 (m08 휘두름 0.4s 를 단타로)")] private float slashSeconds = 0.16f;
-		[SerializeField, Min(0.05f), Tooltip("검은 사선으로 머무는 시간 (m08 0.4s)")] private float slitSeconds = 0.4f;
-		[SerializeField, Min(0.05f), Tooltip("틈이 열리는 시간 (m08 0.4s)")] private float openSeconds = 0.4f;
-		[SerializeField, Min(0.5f), Tooltip("밤 (별빛 흡수와 흰 날 포함). 어두운 구간은 열림 + 이 값")] private float nightSeconds = 1.4f;
-		[SerializeField, Min(0.04f), Tooltip("둘째 베기")] private float chopSeconds = 0.14f;
+		[SerializeField, Min(0.04f), Tooltip("첫 베기. 짧을수록 끊어 치는 느낌")] private float slashSeconds = 0.09f;
+		[SerializeField, Min(0.05f), Tooltip("검은 사선으로 머무는 시간 (m08 0.4s)")] private float slitSeconds = 0.25f;
+		[SerializeField, Min(0.05f), Tooltip("틈이 열리는 시간 (m08 0.4s)")] private float openSeconds = 0.16f;
+		[SerializeField, Min(0.5f), Tooltip("밤 (별빛 흡수와 흰 날 포함). 어두운 구간은 열림 + 이 값")] private float nightSeconds = 1f;
+		[SerializeField, Min(0.04f), Tooltip("둘째 베기")] private float chopSeconds = 0.07f;
+		[SerializeField, Min(0.02f), Tooltip("칼을 치켜드는 시간 (틈이 열릴 때)")] private float raiseSeconds = 0.14f;
+		[SerializeField, Min(0.02f), Tooltip("둘째 베기 전 뒤로 당기는 시간")] private float chopWindSeconds = 0.14f;
 		[SerializeField, Min(0.1f)] private float lingerSeconds = 1.7f;
 		[SerializeField, Min(0.1f)] private float restoreSeconds = 0.5f;
 
@@ -114,7 +119,8 @@ namespace WitchMendokusai
 		[System.NonSerialized] private float sizeScale = 1f;
 
 		private float SlashEnd => windupSeconds + slashSeconds;
-		private float SlashTime => windupSeconds + slashSeconds * 0.5f;
+		// 베기는 끝에서 가장 빠름. 칼이 틈 자리를 지나는 때
+		private float SlashTime => windupSeconds + slashSeconds * 0.85f;
 		private float OpenStart => SlashTime + slitSeconds;
 		private float OpenEnd => OpenStart + openSeconds;
 		private float ChopTime => OpenEnd + nightSeconds;
@@ -170,17 +176,23 @@ namespace WitchMendokusai
 		/// <summary> 둘째 베기가 땅에 닿는 각도. 칼끝 높이가 땅이 되는 곳 </summary>
 		private float GroundAngle(Frame frame) => Mathf.Acos(Mathf.Clamp(-pivotHeight / (frame.Length * Mathf.Max(0.1f, frame.PlaneUp.y)), -1f, 1f)) * Mathf.Rad2Deg;
 
-		// 시각 -> 칼 각도. 당김, 첫 베기, 치켜듦, 둘째 베기
+		// 시각 -> 칼 각도. 구간마다 버팀과 순간 이동: 빨리 당겨 멈춤, 한 번에 베고 넘쳤다 멈춤, 한 번에 치켜듦, 당겼다 내리침
 		private float SwordAngle(Frame frame, float now)
 		{
 			float back = firstSwing.x - windBack;
 			if (now < windupSeconds)
-				return Mathf.Lerp(firstSwing.x, back, UltimateFxRun.EaseOut(UltimateFxRun.Span(now, 0.05f, windupSeconds)));
+				return Mathf.Lerp(firstSwing.x, back, UltimateFxRun.EaseOut(UltimateFxRun.Span(now, 0.05f, windupSeconds * 0.45f)));
 			if (now < SlashEnd)
-				return Mathf.Lerp(back, firstSwing.y, UltimateFxRun.EaseInOut(UltimateFxRun.Span(now, windupSeconds, SlashEnd)));
+				return Mathf.Lerp(back, firstSwing.y + slashOvershoot, UltimateFxRun.EaseIn(UltimateFxRun.Span(now, windupSeconds, SlashEnd)));
+			if (now < OpenStart)
+				return Mathf.Lerp(firstSwing.y + slashOvershoot, firstSwing.y, UltimateFxRun.EaseOut(UltimateFxRun.Span(now, SlashEnd, SlashEnd + 0.08f)));
+			float windStart = ChopStart - chopWindSeconds;
+			if (now < windStart)
+				return Mathf.LerpUnclamped(firstSwing.y, raiseAngle, OverShoot(UltimateFxRun.Span(now, OpenStart, OpenStart + raiseSeconds), 0.12f));
+			float chopBack = raiseAngle - chopWindBack;
 			if (now < ChopStart)
-				return Mathf.Lerp(firstSwing.y, raiseAngle, UltimateFxRun.EaseInOut(UltimateFxRun.Span(now, SlashEnd + 0.1f, OpenEnd)));
-			return Mathf.Lerp(raiseAngle, GroundAngle(frame), UltimateFxRun.EaseIn(UltimateFxRun.Span(now, ChopStart, ChopTime)));
+				return Mathf.Lerp(raiseAngle, chopBack, UltimateFxRun.EaseOut(UltimateFxRun.Span(now, windStart, ChopStart)));
+			return Mathf.Lerp(chopBack, GroundAngle(frame), UltimateFxRun.EaseIn(UltimateFxRun.Span(now, ChopStart, ChopTime)));
 		}
 
 		private Material StarWindow(UltimateFxRun run, float rimAmount, float edgeAmount)
@@ -224,7 +236,9 @@ namespace WitchMendokusai
 				float appear = UltimateFxRun.EaseOut(UltimateFxRun.Span(now, 0.05f, windupSeconds * 0.7f));
 				float fade = 1f - UltimateFxRun.Span(now, fadeStart, fadeStart + fadeSeconds);
 				float white = UltimateFxRun.EaseInOut(UltimateFxRun.Span(now, AbsorbStart + (AbsorbEnd - AbsorbStart) * 0.3f, AbsorbEnd));
-				sword.transform.SetPositionAndRotation(frame.Pivot, frame.Pose(SwordAngle(frame, now)));
+				// 별빛을 모으는 동안 칼이 점점 크게 떨림
+				float tremble = Mathf.Sin(now * 73f) * 1.4f * UltimateFxRun.Span(now, AbsorbStart, AbsorbEnd) * (now < ChopStart - chopWindSeconds ? 1f : 0f);
+				sword.transform.SetPositionAndRotation(frame.Pivot, frame.Pose(SwordAngle(frame, now) + tremble));
 				sword.transform.localScale = Vector3.one * frame.Length * Mathf.Lerp(0.7f, 1f, appear);
 				bladeMaterial.SetFloat(ALPHA_ID, appear * fade);
 				bladeMaterial.SetFloat(WHITE_ID, white * Mathf.Lerp(1f, 0.6f, UltimateFxRun.Span(now, ChopTime, fadeStart)));
@@ -234,8 +248,8 @@ namespace WitchMendokusai
 				hilt.SetActive(fade > 0.5f);
 			}, () => run.Destroy(sword));
 
-			ComposeTrail(stage, frame, firstSwing.x - windBack, firstSwing.y, windupSeconds + slashSeconds * 0.3f, 0.5f, false);
-			ComposeTrail(stage, frame, raiseAngle, GroundAngle(frame), ChopStart + chopSeconds * 0.3f, 0.45f, true);
+			ComposeTrail(stage, frame, firstSwing.x - windBack, firstSwing.y, windupSeconds + slashSeconds * 0.5f, 0.3f, false);
+			ComposeTrail(stage, frame, raiseAngle - chopWindBack, GroundAngle(frame), ChopStart + chopSeconds * 0.3f, 0.3f, true);
 
 			run.Track(0.05f, ChopTime + 1.2f - 0.05f, _ =>
 			{
