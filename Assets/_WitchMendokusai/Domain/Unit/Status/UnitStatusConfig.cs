@@ -86,6 +86,22 @@ namespace WitchMendokusai
 	{
 		[Tooltip("위 줄이 몸 물들임 우선")] public List<UnitStatusStyle> Styles = new();
 
+		[Header("Detonation")]
+		[Tooltip("상태 폭발 우선순위. 위 줄부터 하나만 소모. 무기가 터뜨릴 수 있는 상태 중 걸려 있는 첫 것")] public List<UnitStatusType> DetonationPriority = new() { UnitStatusType.Burn, UnitStatusType.Freeze, UnitStatusType.Poison, UnitStatusType.Stun };
+		[Min(1f), Tooltip("상태 폭발 피해 배율")] public float DetonationMultiplier = 5f;
+		[Min(1f), Tooltip("치명타와 겹칠 때 더 곱하는 배율. 치명타 피해는 이미 계산돼 있어 1이면 폭발 배율만 곱해져 겹친 효과가 나옴")] public float DetonationCriticalMultiplier = 1f;
+
+		[Header("Contagion")]
+		[Tooltip("처치 시 전염하는 상태. 그 상태의 틱 피해로 죽었을 때만")] public List<UnitStatusType> ContagionStatuses = new() { UnitStatusType.Poison };
+		[Min(0f), Tooltip("전염 반경, 월드 단위")] public float ContagionRadius = 2.5f;
+		[Min(0), Tooltip("한 번에 퍼지는 최대 수")] public int ContagionMaxTargets = 3;
+		[Min(0), Tooltip("연쇄 세대 상한. 무기가 직접 건 상태가 0세대. 이 세대에 닿은 유닛은 더 안 퍼뜨림")] public int ContagionMaxGenerations = 3;
+		[Min(1), Tooltip("한 유닛이 전염을 받는 횟수 상한. 무기가 직접 걸면 0으로 돌아감")] public int ContagionMaxReceives = 3;
+
+		[Header("Hit invincibility")]
+		[Min(0f), Tooltip("보스 피격 무적 초. 맞은 뒤 이 시간 동안 같은 보스가 다시 안 맞음. Monster 데이터가 따로 정하면 그 값")] public float BossHitInvincibleSeconds = 0.1f;
+		[Min(0f), Tooltip("일반 몬스터 피격 무적 초. 0이면 없음")] public float NormalHitInvincibleSeconds;
+
 		[Header("View")]
 		[Min(0), Tooltip("아이콘과 몸 효과를 동시에 보이는 유닛 수 상한. 넘으면 물들임만")] public int MaxViews = 256;
 		[Tooltip("아이콘, 효과 그림 재질. 카메라를 보는 재질")] public Material OverlayMaterial;

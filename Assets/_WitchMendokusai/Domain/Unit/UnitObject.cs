@@ -149,6 +149,9 @@ namespace WitchMendokusai
 			Health.ReceiveHeal(healAmount);
 		}
 
+		// 피격 무적 초. 0이면 없음. 몬스터가 데이터와 상태이상 설정에서 정함
+		public virtual float HitInvincibleSeconds => 0f;
+
 		public virtual void ReceiveDamage(DamageInfo damageInfo)
 		{
 			Health.ReceiveDamage(damageInfo);

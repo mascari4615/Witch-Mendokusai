@@ -15,6 +15,17 @@ namespace WitchMendokusai
 
 		public new Monster UnitData => base.UnitData as Monster;
 		public bool IsElite => eliteProfile != null;
+
+		public override float HitInvincibleSeconds
+		{
+			get
+			{
+				UnitStatusConfig config = ResourceManager.Instance.UnitStatus;
+				if (config == null || UnitData == null)
+					return 0f;
+				return HitInvincibilityRules.Seconds(UnitData.HitInvincibleSeconds, UnitData.Type == MonsterType.Boss, config.BossHitInvincibleSeconds, config.NormalHitInvincibleSeconds);
+			}
+		}
 		// 화면 밖으로 나간 게임 시각. 화면 안이면 음수. MonsterSpawner 가 자동 소멸 판정에 씀
 		public float OffscreenSinceTime { get; set; } = -1f;
 

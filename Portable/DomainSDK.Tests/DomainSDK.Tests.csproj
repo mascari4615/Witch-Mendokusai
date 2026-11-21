@@ -48,6 +48,11 @@
     <Compile Include="$(TestsRoot)FreshnessTest.cs" />
     <Compile Include="$(TestsRoot)Combat/UnitStatEngineFreeTests.cs" />
     <Compile Include="$(TestsRoot)Combat/HealthResolutionTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/StatusDetonationRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/StatusContagionRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/HitRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/HitComboRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/HitInvincibilityRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonRunModeRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonThreatRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/WaveDensityRulesTests.cs" />
