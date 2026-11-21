@@ -29,7 +29,8 @@ namespace WitchMendokusai
 		[SerializeField] private Color tintColor = new(0.93f, 0.9f, 1f);
 
 		[Header("방향과 크기")]
-		[SerializeField, Range(-60f, 60f), Tooltip("화면 오른쪽 기준 아래 (카메라 쪽) 로 꺾는 각도")] private float aimDown = 15f;
+		[SerializeField, Range(-60f, 60f), Tooltip("화면 옆 기준 아래 (카메라 쪽) 로 꺾는 각도")] private float aimDown = 15f;
+		[SerializeField, Tooltip("1 이면 화면 오른쪽, -1 이면 왼쪽. 오른쪽은 작은 지도 HUD 밑에서 고리 깨짐과 끝 폭발이 가림 (독립 검토 5회차)")] private float aimSide = -1f;
 		[SerializeField, Min(0.3f)] private float sunDiameter = 1.5f;
 		[SerializeField, Min(0f), Tooltip("태양 구 자체 발광 배율. 낮으면 빛 받는 회색 원판으로 읽힘 (1회차 촬영)")] private float sunEmission = 1.1f;
 		[SerializeField, Min(0.5f), Tooltip("태양 구 높이 (시전자 위)")] private float sunHeight = 2.4f;
@@ -105,7 +106,7 @@ namespace WitchMendokusai
 		{
 			UltimateFxRun run = stage.Run;
 			float angle = aimDown * Mathf.Deg2Rad;
-			Vector3 direction = (run.ScreenRight * Mathf.Cos(angle) - run.ScreenForward * Mathf.Sin(angle)).normalized;
+			Vector3 direction = (run.ScreenRight * Mathf.Cos(angle) * Mathf.Sign(aimSide) - run.ScreenForward * Mathf.Sin(angle)).normalized;
 			// 시전 순간 자리에 고정. 시전자가 움직여도 태양 구, 고리, 닿는 점 경로가 어긋나지 않게
 			Vector3 origin = run.Caster;
 			Vector3 sun = origin + Vector3.up * sunHeight;
