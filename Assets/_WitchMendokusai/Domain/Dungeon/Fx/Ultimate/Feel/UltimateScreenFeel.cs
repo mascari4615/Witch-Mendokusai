@@ -125,6 +125,27 @@ namespace WitchMendokusai
 			[Tooltip("트라우마 -> 흔들림 세기. 보통 제곱")] public AnimationCurve Response;
 		}
 
+		/// <summary> 궁극기 동안 카메라를 뒤로 물림. 쿼터뷰에서 높이 솟는 주제 물체 (검, 거대 결정, 거대 카드, 달) 의 위 끝 잘림을 줄임 </summary>
+		[Serializable]
+		public struct PullBackSettings
+		{
+			[Range(0f, 0.6f), Tooltip("가장 물렸을 때 표적까지 거리 증가 비율. 0.2 면 20% 멀어짐, 0 이면 없음")] public float Amount;
+			[Min(0f), Tooltip("연출 시간. 시작부터 최대까지 물리는 초")] public float InSeconds;
+			[Min(0f), Tooltip("연출 시간. 끝 (body 길이) 에 정확히 원위치가 되도록 되돌아오는 초")] public float OutSeconds;
+			[Tooltip("가로 0~1 진행, 세로 0~1 물림. 들어올 때 그대로, 나갈 때 거꾸로")] public AnimationCurve Curve;
+
+			/// <summary> 연출 시간 now 의 물림 0~1. end 이후와 시작 전은 0 </summary>
+			public float Evaluate(float now, float end)
+			{
+				if (Amount <= 0f || now <= 0f || now >= end)
+					return 0f;
+				float rise = InSeconds > 0f ? Mathf.Clamp01(now / InSeconds) : 1f;
+				float fall = OutSeconds > 0f ? Mathf.Clamp01((end - now) / OutSeconds) : 1f;
+				float progress = Mathf.Min(rise, fall);
+				return Curve != null && Curve.length > 0 ? Mathf.Clamp01(Curve.Evaluate(progress)) : UltimateFxRun.EaseInOut(progress);
+			}
+		}
+
 		[SerializeField, Tooltip("광과민 대비 세기 줄이기. 비우면 그대로")] private UltimateFeelComfort comfort;
 		[SerializeField] private TraumaSettings trauma = new()
 		{
@@ -135,6 +156,13 @@ namespace WitchMendokusai
 			VerticalBias = 0.7f,
 			Response = new AnimationCurve(new Keyframe(0f, 0f, 0f, 0f), new Keyframe(1f, 1f, 2f, 2f)),
 		};
+		[SerializeField, Tooltip("궁극기 동안 카메라 물림 (위 끝 잘림 줄이기)")] private PullBackSettings pullBack = new()
+		{
+			Amount = 0f,
+			InSeconds = 0.6f,
+			OutSeconds = 0.8f,
+			Curve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f),
+		};
 		[SerializeField] private Swell[] swells = Array.Empty<Swell>();
 		[SerializeField] private Beat[] beats = Array.Empty<Beat>();
 		[SerializeField, Min(0f), Tooltip("방사 흐림 표본 거리 상한 (화면 비율)")] private float radialBlurReach = 0.07f;
@@ -144,6 +172,7 @@ namespace WitchMendokusai
 
 		public UltimateFeelComfort Comfort => comfort;
 		public TraumaSettings Trauma => trauma;
+		public PullBackSettings PullBack => pullBack;
 		public Swell[] Swells => swells;
 		public Beat[] Beats => beats;
 		public float RadialBlurReach => radialBlurReach;
@@ -153,10 +182,11 @@ namespace WitchMendokusai
 
 #if UNITY_EDITOR
 		/// <summary> 프리셋 생성기 (UltimateFeelPresetBuilder) 가 처음 값을 한 번 넣을 때만. 그 뒤 정본은 인스펙터 </summary>
-		public void EditorSeed(UltimateFeelComfort comfortAsset, TraumaSettings traumaSettings, Swell[] swellList, Beat[] beatList, float targetForwardDistance)
+		public void EditorSeed(UltimateFeelComfort comfortAsset, TraumaSettings traumaSettings, PullBackSettings pullBackSettings, Swell[] swellList, Beat[] beatList, float targetForwardDistance)
 		{
 			comfort = comfortAsset;
 			trauma = traumaSettings;
+			pullBack = pullBackSettings;
 			swells = swellList;
 			beats = beatList;
 			targetForward = targetForwardDistance;

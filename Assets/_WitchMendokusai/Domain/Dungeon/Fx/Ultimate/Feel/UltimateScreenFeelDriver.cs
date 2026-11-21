@@ -5,7 +5,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 궁극기 화면 연출 구동기. 박자표 (UltimateScreenFeel) 하나를 진행기 (UltimateFxRun) 하나 위에서 매 프레임 구동. 강한 판 넷이 같이 씀
 	/// - 시간: 정지 한 박과 느려짐을 진행기 시계 배율 (주제 메시와 연출 트랙) 과 게임 시간 배율 (입자, 인물, 적) 에 같은 값으로 넣음. 화면 장치 곡선은 실제 시간이라 정지 중에도 흐름
-	/// - 카메라: 시야각 펀치, 전진, 트라우마 흔들림. 그리기 직전에만 얹고 그린 뒤 되돌림 (UltimateFeelCamera)
+	/// - 카메라: 시야각 펀치, 전진, 트라우마 흔들림, 궁극기 동안 물림. 그리기 직전에만 얹고 그린 뒤 되돌림 (UltimateFeelCamera)
 	/// - 후처리: 아래 Volume 값에 더하는 방식 (UltimateFeelVolume). 기존 연출의 장면 빛 곡선을 지우지 않음
 	/// - 화면 왜곡: 방사 흐림, 굴절 고리, 임팩트 프레임 (UltimateImpactScreen, 렌더러 기능)
 	/// - 끝나면 (도중 중단 포함) 시간 배율, 카메라, Volume, 화면 왜곡 전부 되돌림
@@ -20,6 +20,7 @@ namespace WitchMendokusai
 		private readonly UltimateFxRun run;
 		private readonly UltimateScreenFeel feel;
 		private readonly Vector3 target;
+		private readonly float pullBackEnd;
 		private readonly UltimateFeelCamera feelCamera;
 		private readonly UltimateFeelVolume feelVolume;
 		private readonly float[] impactReal;
@@ -29,11 +30,13 @@ namespace WitchMendokusai
 		private float trauma;
 		private bool disposed;
 
-		public UltimateScreenFeelDriver(UltimateFxRun run, UltimateScreenFeel feel, Vector3 target)
+		/// <param name="pullBackEnd"> 물림이 0 으로 돌아오는 연출 시간 (보통 body 길이) </param>
+		public UltimateScreenFeelDriver(UltimateFxRun run, UltimateScreenFeel feel, Vector3 target, float pullBackEnd)
 		{
 			this.run = run;
 			this.feel = feel;
 			this.target = target;
+			this.pullBackEnd = pullBackEnd;
 			impactReal = new float[feel.Beats.Length];
 			swellEndReal = new float[feel.Swells.Length];
 			traumaGiven = new bool[feel.Beats.Length];
@@ -216,7 +219,9 @@ namespace WitchMendokusai
 				(Mathf.PerlinNoise(noiseSeed, time) * 2f - 1f) * horizontal * settings.MaxOffset * shake,
 				(Mathf.PerlinNoise(noiseSeed + 17.3f, time) * 2f - 1f) * vertical * settings.MaxOffset * shake);
 			float roll = (Mathf.PerlinNoise(noiseSeed + 41.7f, time) * 2f - 1f) * settings.MaxRoll * shake;
-			feelCamera.Set(target, offset, roll, zoom * ComfortZoom, dolly * ComfortZoom);
+			// 물림은 움직임을 줄이는 쪽이라 세기 줄이기 대상 아님. 연출 시간 기준이라 정지 동안 그대로 머묾
+			float pullBack = feel.PullBack.Amount * feel.PullBack.Evaluate(fxNow, pullBackEnd);
+			feelCamera.Set(target, offset, roll, zoom * ComfortZoom, dolly * ComfortZoom - pullBack);
 		}
 
 		// ---- 후처리 ----
