@@ -22,6 +22,9 @@ namespace WitchMendokusai
 		[Tooltip("위험도 점수. 0 이면 Level 값. 강한 단계를 비싸게 할 때만")]
 		[field: SerializeField, Min(0)] public int RiskOverride { get; private set; } = 0;
 
+		[Tooltip("해금 조건. 전부 채워야 켤 수 있음, 비면 처음부터 (DungeonConstraintUnlockRules)")]
+		[field: SerializeField] public List<DungeonConstraintUnlock> Unlocks { get; private set; } = new();
+
 		[Tooltip("입장 창 칩의 수치 단위. 예: %")]
 		[field: SerializeField] public string ValueUnit { get; private set; } = string.Empty;
 

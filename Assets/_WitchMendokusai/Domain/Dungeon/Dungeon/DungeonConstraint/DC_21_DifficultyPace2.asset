@@ -25,4 +25,14 @@ MonoBehaviour:
   <Family>k__BackingField: "\uBE60\uB978 \uB09C\uC774\uB3C4"
   <Level>k__BackingField: 2
   <RiskOverride>k__BackingField: 0
+  <Unlocks>k__BackingField:
+  - Type: 2
+    Target: {fileID: 0}
+    Value: 12
+    Criteria:
+      Type: 0
+      Data: {fileID: 0}
+      ComparisonOperator: 0
+      Value: 0
+      JustOnce: 0
   <ValueUnit>k__BackingField: "%"

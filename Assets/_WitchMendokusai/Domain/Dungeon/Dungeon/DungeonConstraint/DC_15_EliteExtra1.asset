@@ -25,4 +25,14 @@ MonoBehaviour:
   <Family>k__BackingField: "\uC815\uC608 \uCD94\uAC00"
   <Level>k__BackingField: 1
   <RiskOverride>k__BackingField: 0
+  <Unlocks>k__BackingField:
+  - Type: 3
+    Target: {fileID: 11400000, guid: 2ceb99060a689664cac66fc04dc07a75, type: 2}
+    Value: 0
+    Criteria:
+      Type: 0
+      Data: {fileID: 0}
+      ComparisonOperator: 0
+      Value: 0
+      JustOnce: 0
   <ValueUnit>k__BackingField: ""

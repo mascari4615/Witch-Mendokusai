@@ -120,8 +120,15 @@ namespace WitchMendokusai
 				dungeonUI = FindAnyObjectByType<UIDungeon>(FindObjectsInactive.Include);
 		}
 
+		private void OnBossKilled(BossKilledEvent killed)
+		{
+			if (IsDungeon)
+				CurDungeon.RecordBossKill(killed.Monster.ID);
+		}
+
 		private void OnDestroy()
 		{
+			EventBusBridge.Unsubscribe<BossKilledEvent>(OnBossKilled);
 			if (Instance == this)
 				Instance = null;
 			DungeonManagerBridge.Register(null);
@@ -156,6 +163,8 @@ namespace WitchMendokusai
 		{
 			// 당장 게임 이벤트 변화가 많아서, 인스펙터에서 GameEventListener 넣는 것보다, 이렇게 하드 코딩하는게 나은 듯
 			gameEventManager.RegisterCallback(GameEventType.OnPlayerDied, EndDungeonByDefeat);
+			// 보스 처치 기록 (제약 해금 조건). 패배한 판의 처치도 기록
+			EventBusBridge.Subscribe<BossKilledEvent>(OnBossKilled);
 		}
 
 		public void StartDungeon(Dungeon dungeon, bool restart = false, DungeonRunMode runMode = DungeonRunMode.Equipped, int threatLevel = 0)
@@ -164,7 +173,8 @@ namespace WitchMendokusai
 				return;
 			dungeon.ValidateWaves();
 			dungeon.ValidateMapObjects();
-			// 제약 데이터가 잘못이면 여기서 실패. 전환 표시 전이라 다음 입장이 막히지 않음
+			// 해금 다시 판정 (다시 하기는 입장 창을 안 거침). 제약 데이터가 잘못이면 여기서 실패, 전환 표시 전이라 다음 입장이 막히지 않음
+			dungeon.RefreshConstraintUnlocks(dataManager.QuestManager.CreateCriteriaContext());
 			DungeonConstraintRunEffect constraintEffect = DungeonConstraintRules.RunEffect(dungeon.SelectedConstraints());
 			isTransitioning = true;
 			Debug.Log($"{nameof(StartDungeon)} ({dungeon.Name})");
@@ -418,8 +428,7 @@ namespace WitchMendokusai
 
 		private void GrantRiskRewards()
 		{
-			int risk = DungeonConstraintRules.TotalRisk(Context.Constraints);
-			foreach (DungeonConstraintRewardRule.RiskMilestone milestone in CurDungeon.RecordClear(risk))
+			foreach (DungeonConstraintRewardRule.RiskMilestone milestone in CurDungeon.RecordClear(Context.Constraints, dataManager.CurDollID))
 			{
 				Debug.Log($"위험도 {milestone.Risk} 첫 클리어 보상 ({CurDungeon.name})");
 				Reward.GetReward(milestone.Rewards, soManager.ItemInventory, dataManager.GameStat);

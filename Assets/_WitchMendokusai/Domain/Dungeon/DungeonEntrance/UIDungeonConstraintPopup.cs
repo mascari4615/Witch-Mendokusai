@@ -11,7 +11,7 @@ namespace WitchMendokusai
 	/// - 오른쪽: 제약 표 (줄은 단계, 열은 묶음, 같은 열은 하나만), 초점 칸 설명, 켠 제약 효과 목록, 닫기, 전부 해제, 저장
 	/// 고치는 중 값은 사본. 저장만 던전 값에 씀. 닫기와 취소 키는 버림, 바꾼 게 있으면 확인창
 	/// </summary>
-	public class UIDungeonConstraintPopup : VisualElement
+	public partial class UIDungeonConstraintPopup : VisualElement
 	{
 		public const string USS_CLASS = "wm-constraint-popup";
 		private const string USS_PART = USS_CLASS + "__";
@@ -35,6 +35,7 @@ namespace WitchMendokusai
 		}
 
 		private Dungeon dungeon;
+		private CriteriaContext criteriaContext;
 		private readonly Dictionary<int, bool> draft = new();
 		private readonly List<Cell> cells = new();
 		private readonly List<Button> footButtons = new();
@@ -154,9 +155,11 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void Open(Dungeon dungeon, string title)
+		/// <summary> criteriaContext: 잠긴 칸의 조건 문장 (누적 처치 진행 등) </summary>
+		public void Open(Dungeon dungeon, string title, CriteriaContext criteriaContext)
 		{
 			this.dungeon = dungeon;
+			this.criteriaContext = criteriaContext;
 			draft.Clear();
 			foreach (DungeonConstraint constraint in dungeon.Constraints)
 				draft[constraint.ID] = dungeon.ConstraintSelected[constraint.ID];
@@ -228,6 +231,12 @@ namespace WitchMendokusai
 
 		private void Toggle(Cell cell)
 		{
+			// 잠긴 칸은 설명만 (조건은 상세 칸)
+			if (dungeon.IsConstraintUnlocked(cell.Constraint) == false)
+			{
+				UiSfx.Play(UiSfxEvent.Cancel);
+				return;
+			}
 			bool isOn = draft[cell.Constraint.ID] == false;
 			DungeonConstraintRules.Set(dungeon, draft, cell.Constraint, isOn);
 			UiSfx.Play(isOn ? UiSfxEvent.Confirm : UiSfxEvent.Cancel);
@@ -286,6 +295,7 @@ namespace WitchMendokusai
 					cell.Icon.style.backgroundImage = new StyleBackground(constraint.Sprite);
 					AddChild(cell.Tile, new VisualElement { pickingMode = PickingMode.Ignore }, USS_PART + "tile-check");
 					AddChild(cell.Tile, new Label("배타") { pickingMode = PickingMode.Ignore }, USS_PART + "tile-block");
+					AddChild(cell.Tile, new Label("잠김") { pickingMode = PickingMode.Ignore }, USS_PART + "tile-lock");
 					cell.Name = AddChild(cell.Tile, new Label(constraint.Name) { pickingMode = PickingMode.Ignore }, USS_PART + "tile-name");
 					cell.Tile.RegisterCallback<FocusInEvent>(_ => OnCellFocused(cell));
 					// 마우스를 올린 칸은 설명만 보여 줌. 초점과 확인 키 대상은 그대로, 벗어나면 초점 칸 설명
@@ -309,6 +319,7 @@ namespace WitchMendokusai
 				bool isOn = draft[cell.Constraint.ID];
 				cell.Tile.EnableInClassList(USS_PART + "tile--on", isOn);
 				cell.Tile.EnableInClassList(USS_PART + "tile--blocked", isOn == false && DungeonConstraintRules.IsBlockedBySibling(dungeon, draft, cell.Constraint));
+				cell.Tile.EnableInClassList(USS_PART + "tile--locked", dungeon.IsConstraintUnlocked(cell.Constraint) == false);
 			}
 
 			int risk = DungeonConstraintRules.TotalRisk(dungeon, draft);
@@ -394,93 +405,10 @@ namespace WitchMendokusai
 			bool isBlocked = isOn == false && DungeonConstraintRules.IsBlockedBySibling(dungeon, draft, cell.Constraint);
 			detailName.text = cell.Constraint.Name;
 			detailLevel.text = cell.Constraint.Level.ToString();
-			detailState.text = isOn ? "켜짐" : isBlocked ? "같은 열 다른 단계 켜짐" : "꺼짐";
-			detailText.text = cell.Constraint.Description.Replace("\n", " ");
-		}
-
-		// 표 안은 줄과 열, 맨 아래 줄에서 아래로 가면 버튼 줄. Tab 은 순서대로. 끝에서 멈춤
-		private void OnNavigationMove(NavigationMoveEvent evt)
-		{
-			if (confirm.IsOpen)
-				return;
-			int next = focusedOrder;
-			bool onFoot = focusedOrder >= cells.Count;
-			Cell current = onFoot ? null : cells[focusedOrder];
-			switch (evt.direction)
-			{
-				case NavigationMoveEvent.Direction.Previous:
-					next = Mathf.Max(0, focusedOrder - 1);
-					break;
-				case NavigationMoveEvent.Direction.Next:
-					next = Mathf.Min(cells.Count + footButtons.Count - 1, focusedOrder + 1);
-					break;
-				case NavigationMoveEvent.Direction.Left:
-					next = onFoot ? Mathf.Max(cells.Count, focusedOrder - 1) : OrderOf(FindInRow(current.Row, current.Column, -1)) ?? focusedOrder;
-					break;
-				case NavigationMoveEvent.Direction.Right:
-					next = onFoot ? Mathf.Min(cells.Count + footButtons.Count - 1, focusedOrder + 1) : OrderOf(FindInRow(current.Row, current.Column, 1)) ?? focusedOrder;
-					break;
-				case NavigationMoveEvent.Direction.Up:
-					next = onFoot ? (lastCell != null ? cells.IndexOf(lastCell) : focusedOrder) : OrderOf(FindInColumn(current.Row, current.Column, -1)) ?? focusedOrder;
-					break;
-				case NavigationMoveEvent.Direction.Down:
-					next = onFoot ? focusedOrder : OrderOf(FindInColumn(current.Row, current.Column, 1)) ?? cells.Count;
-					break;
-				default:
-					return;
-			}
-			// 창 밖 (뒤 입장 창) 으로 초점이 새지 않게 모든 이동을 여기서 끝냄
-			evt.StopPropagation();
-			focusController?.IgnoreEvent(evt);
-			if (next != focusedOrder)
-				FocusOrder(next, true);
-		}
-
-		private int? OrderOf(Cell cell) => cell == null ? null : cells.IndexOf(cell);
-
-		private Cell FindInRow(int row, int column, int step)
-		{
-			for (int scanColumn = column + step; scanColumn >= 0 && scanColumn < grid.GetLength(1); scanColumn += step)
-			{
-				if (grid[row, scanColumn] != null)
-					return grid[row, scanColumn];
-			}
-			return null;
-		}
-
-		// 위아래 줄에서 같은 열, 없으면 가장 가까운 열
-		private Cell FindInColumn(int row, int column, int step)
-		{
-			for (int scanRow = row + step; scanRow >= 0 && scanRow < grid.GetLength(0); scanRow += step)
-			{
-				Cell best = null;
-				int bestDistance = int.MaxValue;
-				for (int scanColumn = 0; scanColumn < grid.GetLength(1); scanColumn++)
-				{
-					if (grid[scanRow, scanColumn] == null)
-						continue;
-					int distance = Mathf.Abs(scanColumn - column);
-					if (distance < bestDistance)
-					{
-						best = grid[scanRow, scanColumn];
-						bestDistance = distance;
-					}
-				}
-				if (best != null)
-					return best;
-			}
-			return null;
-		}
-
-		private void FocusOrder(int order, bool withSound)
-		{
-			order = Mathf.Clamp(order, 0, cells.Count + footButtons.Count - 1);
-			focusedOrder = order;
-			Button target = order < cells.Count ? cells[order].Tile : footButtons[order - cells.Count];
-			if (withSound)
-				WMFocusNavigation.MoveFocus(target);
-			else
-				target.Focus();
+			bool isLocked = dungeon.IsConstraintUnlocked(cell.Constraint) == false;
+			detailState.text = isLocked ? "잠김" : isOn ? "켜짐" : isBlocked ? "같은 열 다른 단계 켜짐" : "꺼짐";
+			string description = cell.Constraint.Description.Replace("\n", " ");
+			detailText.text = isLocked ? description + "\n열리는 조건: " + DungeonConstraintUnlockRules.Describe(dungeon, cell.Constraint, criteriaContext) : description;
 		}
 
 		private Button AddFootButton(VisualElement parent, string buttonName, string text, Action onClick, bool isMain)

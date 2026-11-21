@@ -476,6 +476,7 @@
 .wm-dungeon-entrance .wm-constraint-popup__row-head-value,
 .wm-dungeon-entrance .wm-constraint-popup__tile-name,
 .wm-dungeon-entrance .wm-constraint-popup__tile-block,
+.wm-dungeon-entrance .wm-constraint-popup__tile-lock,
 .wm-dungeon-entrance .wm-constraint-popup__detail-name,
 .wm-dungeon-entrance .wm-constraint-popup__level-badge,
 .wm-dungeon-entrance .wm-constraint-popup__detail-state,
@@ -749,6 +750,27 @@
 }
 
 .wm-dungeon-entrance .wm-constraint-popup__tile--blocked .wm-constraint-popup__tile-block {
+    display: flex;
+}
+
+/* 해금 조건을 못 채운 칸. 조건 문장은 상세 칸 */
+.wm-dungeon-entrance .wm-constraint-popup__tile-lock {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    font-size: 12px;
+    color: rgb(228, 231, 255);
+    background-color: rgba(10, 12, 30, 0.85);
+    -unity-text-align: middle-center;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile--locked {
+    opacity: 0.55;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile--locked .wm-constraint-popup__tile-lock {
     display: flex;
 }
 

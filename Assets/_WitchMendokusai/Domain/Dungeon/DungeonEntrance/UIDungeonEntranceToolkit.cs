@@ -64,9 +64,17 @@ namespace WitchMendokusai
 		private List<Dungeon> dungeons;
 
 		private DungeonManager dungeonManager;
+		private DataManager dataManager;
 
 		[Inject]
-		public void Construct(DungeonManager dungeonManager) => this.dungeonManager = dungeonManager;
+		public void Construct(DungeonManager dungeonManager, DataManager dataManager)
+		{
+			this.dungeonManager = dungeonManager;
+			this.dataManager = dataManager;
+		}
+
+		// 제약 해금 판정과 조건 문장용. 쓸 때마다 새로 (퀘스트 쪽 공급 지점 하나)
+		private CriteriaContext CriteriaContext => dataManager.QuestManager.CreateCriteriaContext();
 
 		private Dungeon CurDungeon => dungeons[curDungeonIndex];
 
@@ -163,16 +171,10 @@ namespace WitchMendokusai
 		{
 			if (CurDungeon.Constraints.Count == 0)
 				return;
-			// 첫 클리어 전에는 잠김. 칸 글이 해금 조건을 보여 줌
-			if (CurDungeon.ConstraintsUnlocked == false)
-			{
-				UiSfx.Play(UiSfxEvent.Cancel);
-				return;
-			}
 			// 틀 연출 (배경 입자, 시차) 이 뒤에 붙인 요소보다 위로 올 수 있어 열 때마다 맨 앞
 			constraintPopup.BringToFront();
 			constraintPopup.SetSafeRect(Content.layout);
-			constraintPopup.Open(CurDungeon, GetTitle(CurDungeon.Name));
+			constraintPopup.Open(CurDungeon, GetTitle(CurDungeon.Name), CriteriaContext);
 		}
 
 		private void OnConstraintPopupClosed()
@@ -425,6 +427,7 @@ namespace WitchMendokusai
 
 			rewardUI.UpdateUI(CurDungeon.Rewards);
 
+			CurDungeon.RefreshConstraintUnlocks(CriteriaContext);
 			constraintUI.SetDungeon(CurDungeon);
 			constraintUI.UpdateUI();
 			// 제약 없는 던전: 칸 자리는 두고 감춤, 키보드 초점 순서에서도 뺌

@@ -25,4 +25,14 @@ MonoBehaviour:
   <Family>k__BackingField: "\uC801 \uC218"
   <Level>k__BackingField: 1
   <RiskOverride>k__BackingField: 0
+  <Unlocks>k__BackingField:
+  - Type: 5
+    Target: {fileID: 0}
+    Value: 0
+    Criteria:
+      Type: 2
+      Data: {fileID: 11400000, guid: 9948788b3ea276745a148387bcd15fd5, type: 2}
+      ComparisonOperator: 4
+      Value: 3000
+      JustOnce: 0
   <ValueUnit>k__BackingField: "%"

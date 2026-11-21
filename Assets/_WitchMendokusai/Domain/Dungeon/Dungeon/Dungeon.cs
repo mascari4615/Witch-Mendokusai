@@ -24,20 +24,27 @@ namespace WitchMendokusai
 		public Dictionary<int, bool> ConstraintSelected;
 		// 아래부터 승리한 위협 단계 수, 최고 승리 단계 + 1. 옛 저장은 0
 		public int ClearedThreatCount;
-		// 한 번이라도 깼는지. 제약 설정 해금 조건. 옛 저장은 false (ClearedThreatCount 로 보충)
+		// 한 번이라도 깼는지. 옛 저장은 false (ClearedThreatCount 로 보충)
 		public bool HasCleared;
 		// 최고 클리어 위험도. 표시용. 옛 저장은 0
 		public int BestRisk;
 		// 받은 위험도 보상 구간의 위험도. 옛 저장은 null
 		public List<int> ClaimedRiskMilestones;
+		// 제약 해금 기록: 켜고 깬 제약 ID, 깬 인형 ID, 이 던전에서 잡은 보스 ID. 옛 저장은 null
+		public List<int> ClearedConstraints;
+		public List<int> ClearedDolls;
+		public List<int> KilledBosses;
 
-		public DungeonSaveData(Dictionary<int, bool> constraintSelected, int clearedThreatCount, bool hasCleared, int bestRisk, List<int> claimedRiskMilestones)
+		public DungeonSaveData(Dictionary<int, bool> constraintSelected, int clearedThreatCount, bool hasCleared, int bestRisk, List<int> claimedRiskMilestones, List<int> clearedConstraints, List<int> clearedDolls, List<int> killedBosses)
 		{
 			ConstraintSelected = constraintSelected;
 			ClearedThreatCount = clearedThreatCount;
 			HasCleared = hasCleared;
 			BestRisk = bestRisk;
 			ClaimedRiskMilestones = claimedRiskMilestones;
+			ClearedConstraints = clearedConstraints;
+			ClearedDolls = clearedDolls;
+			KilledBosses = killedBosses;
 		}
 	}
 
@@ -72,9 +79,6 @@ namespace WitchMendokusai
 		[Tooltip("위험도 단계 첫 클리어 보상. 비우면 보상 없는 순수 도전 (최고 기록만)")]
 		[PropertyOrder(114)][field: SerializeField] public DungeonConstraintRewardRule ConstraintRewardRule { get; private set; }
 
-		[Tooltip("켜면 첫 클리어 전에는 제약 설정이 잠기고 제약이 적용되지 않음")]
-		[PropertyOrder(115)][field: SerializeField] public bool ConstraintsNeedFirstClear { get; private set; } = true;
-
 		public int CalculateDefeatNyang(int killCount) => Mathf.Min(DefeatNyangMax, Mathf.FloorToInt(killCount * DefeatNyangPerKill));
 
 		[field: NonSerialized] public Dictionary<int, bool> ConstraintSelected { get; private set; } = new();
@@ -82,19 +86,43 @@ namespace WitchMendokusai
 		[field: NonSerialized] public bool HasCleared { get; private set; }
 		[field: NonSerialized] public int BestRisk { get; private set; }
 		[field: NonSerialized] public HashSet<int> ClaimedRiskMilestones { get; private set; } = new();
+		[field: NonSerialized] public HashSet<int> ClearedConstraints { get; private set; } = new();
+		[field: NonSerialized] public HashSet<int> ClearedDolls { get; private set; } = new();
+		[field: NonSerialized] public HashSet<int> KilledBosses { get; private set; } = new();
+		// 해금된 제약 ID. RefreshConstraintUnlocks 가 채움 (조건 판정에 CriteriaContext 가 필요해 저장값이 아니라 갱신값)
+		[field: NonSerialized] public HashSet<int> UnlockedConstraints { get; private set; } = new();
 
 		// 위협 단계 승리 기록이 있으면 클리어한 것 (HasCleared 이전 저장)
 		public bool IsCleared => HasCleared || ClearedThreatCount > 0;
-		public bool ConstraintsUnlocked => ConstraintsNeedFirstClear == false || IsCleared;
+		public bool IsConstraintUnlocked(DungeonConstraint constraint) => UnlockedConstraints.Contains(constraint.ID);
 
-		// 입장 창에서 켠 제약만 판에 적용. 잠긴 동안은 없음
-		public List<DungeonConstraint> SelectedConstraints() => ConstraintsUnlocked ? Constraints.FindAll(constraint => ConstraintSelected[constraint.ID]) : new List<DungeonConstraint>();
+		// 입장 창에서 켠 제약 중 해금된 것만 판에 적용
+		public List<DungeonConstraint> SelectedConstraints() => Constraints.FindAll(constraint => ConstraintSelected[constraint.ID] && IsConstraintUnlocked(constraint));
+
+		/// <summary> 해금 다시 판정. 잠긴 제약은 켬 상태도 끔 (보이지 않는 제약이 다시 하기에 적용되지 않게). 입장 창 열 때와 판 시작 때 </summary>
+		public void RefreshConstraintUnlocks(CriteriaContext context)
+		{
+			UnlockedConstraints.Clear();
+			foreach (DungeonConstraint constraint in Constraints)
+			{
+				if (DungeonConstraintUnlockRules.IsUnlocked(this, constraint, context))
+					UnlockedConstraints.Add(constraint.ID);
+				else
+					ConstraintSelected[constraint.ID] = false;
+			}
+		}
+
+		public void RecordBossKill(int bossId) => KilledBosses.Add(bossId);
 
 		public void RecordThreatClear(int level) => ClearedThreatCount = DungeonThreatRules.AfterClear(ClearedThreatCount, level);
 
 		/// <summary> 클리어 기록. 이번 위험도로 처음 닿은 보상 구간을 돌려줌 (지급은 부르는 쪽) </summary>
-		public List<DungeonConstraintRewardRule.RiskMilestone> RecordClear(int risk)
+		public List<DungeonConstraintRewardRule.RiskMilestone> RecordClear(IReadOnlyList<DungeonConstraint> applied, int dollId)
 		{
+			int risk = DungeonConstraintRules.TotalRisk(applied);
+			foreach (DungeonConstraint constraint in applied)
+				ClearedConstraints.Add(constraint.ID);
+			ClearedDolls.Add(dollId);
 			List<DungeonConstraintRewardRule.RiskMilestone> reached = new();
 			if (ConstraintRewardRule != null)
 			{
@@ -114,6 +142,10 @@ namespace WitchMendokusai
 			HasCleared = false;
 			BestRisk = 0;
 			ClaimedRiskMilestones = new();
+			ClearedConstraints = new();
+			ClearedDolls = new();
+			KilledBosses = new();
+			UnlockedConstraints = new();
 			ConstraintSelected = new();
 			foreach (DungeonConstraint constraint in Constraints)
 				ConstraintSelected.Add(constraint.ID, false);
@@ -129,6 +161,12 @@ namespace WitchMendokusai
 			BestRisk = saveData.BestRisk;
 			if (saveData.ClaimedRiskMilestones != null)
 				ClaimedRiskMilestones.UnionWith(saveData.ClaimedRiskMilestones);
+			if (saveData.ClearedConstraints != null)
+				ClearedConstraints.UnionWith(saveData.ClearedConstraints);
+			if (saveData.ClearedDolls != null)
+				ClearedDolls.UnionWith(saveData.ClearedDolls);
+			if (saveData.KilledBosses != null)
+				KilledBosses.UnionWith(saveData.KilledBosses);
 
 			if (saveData.ConstraintSelected != null)
 			{
@@ -139,17 +177,12 @@ namespace WitchMendokusai
 				}
 			}
 			DungeonConstraintRules.Normalize(this, ConstraintSelected);
-			// 잠긴 던전에 옛 저장의 켠 제약이 남으면 첫 클리어 직후 다시 하기에서 보이지 않게 적용됨. 잠긴 동안은 전부 끔
-			if (ConstraintsUnlocked == false)
-			{
-				foreach (DungeonConstraint constraint in Constraints)
-					ConstraintSelected[constraint.ID] = false;
-			}
 		}
 
 		public DungeonSaveData Save()
 		{
-			return new DungeonSaveData(ConstraintSelected, ClearedThreatCount, HasCleared, BestRisk, new List<int>(ClaimedRiskMilestones));
+			return new DungeonSaveData(ConstraintSelected, ClearedThreatCount, HasCleared, BestRisk, new List<int>(ClaimedRiskMilestones),
+				new List<int>(ClearedConstraints), new List<int>(ClearedDolls), new List<int>(KilledBosses));
 		}
 	}
 }
