@@ -306,6 +306,8 @@ namespace WitchMendokusai
 					// 이 제약을 켜고 깬 적 있음 (칸별 첫 클리어 표)
 					AddChild(cell.Tile, new Label("깸") { pickingMode = PickingMode.Ignore }, USS_PART + "tile-cleared");
 					cell.Name = AddChild(cell.Tile, new Label(constraint.Name) { pickingMode = PickingMode.Ignore }, USS_PART + "tile-name");
+					// 이름 (단단함) 아래 무엇이 얼마나 바뀌는지 (적 최대 체력 +10)
+					AddChild(cell.Tile, new Label(DungeonConstraintEffectText.Compact(constraint)) { pickingMode = PickingMode.Ignore }, USS_PART + "tile-effect");
 					cell.Tile.RegisterCallback<FocusInEvent>(_ => OnCellFocused(cell));
 					// 마우스를 올린 칸은 설명만 보여 줌. 초점과 확인 키 대상은 그대로, 벗어나면 초점 칸 설명
 					cell.Tile.RegisterCallback<PointerEnterEvent>(_ => RefreshDetail(cell));
@@ -338,7 +340,7 @@ namespace WitchMendokusai
 			DungeonConstraintRewardRule rule = dungeon.ConstraintRewardRule;
 			riskTier.text = rule != null ? rule.TierName(risk) : string.Empty;
 			riskWarning.style.display = rule != null && rule.IsWarning(risk) ? DisplayStyle.Flex : DisplayStyle.None;
-			effectSummary.text = DungeonConstraintSummary.Describe(dungeon.Constraints.FindAll(constraint => draft[constraint.ID]), dungeon.Constraints);
+			effectSummary.text = DungeonConstraintSummary.Describe(dungeon.Constraints.FindAll(constraint => draft[constraint.ID]));
 			riskMeter.Clear();
 			for (int i = 0; i < maxRisk; i++)
 				AddChild(riskMeter, new VisualElement(), USS_PART + "risk-pip").EnableInClassList(USS_PART + "risk-pip--on", i < risk);
@@ -399,7 +401,7 @@ namespace WitchMendokusai
 				VisualElement texts = AddChild(line, new VisualElement(), USS_PART + "effect-texts");
 				VisualElement head = AddChild(texts, new VisualElement(), USS_PART + "effect-head");
 				AddChild(head, new Label(constraint.Name), USS_PART + "effect-name");
-				AddChild(head, new Label(constraint.ShortValue), USS_PART + "effect-value");
+				AddChild(head, new Label(DungeonConstraintEffectText.Of(constraint)), USS_PART + "effect-value");
 			}
 			if (hasAny == false)
 				effectList.Add(effectEmpty);

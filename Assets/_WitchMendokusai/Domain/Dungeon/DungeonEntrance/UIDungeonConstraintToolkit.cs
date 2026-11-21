@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 입장 창 제약 칸. 묶음마다 아이콘과 수치 칩, 꺼진 묶음은 흐림, 오른쪽 위 위험도 합계
+	/// 입장 창 제약 칸. 묶음마다 아이콘과 효과 칩 (체력 +10, 이름은 설정 창), 꺼진 묶음은 흐림, 오른쪽 위 위험도 합계
 	/// 칩은 CHIP_MAX 개까지 한 줄 (오른쪽 아래 글과 안 겹치는 수). 켠 묶음 먼저, 넘친 켠 묶음은 "+N"
 	/// 칸 전체가 버튼. 누르면 제약 설정 팝업 (UIDungeonConstraintPopup). 해금 안 된 제약은 꺼진 칩, 하나도 안 열렸으면 안내 글
 	/// DungeonManager 는 켜진 제약만 판에 적용 (DungeonContext.Constraints)
@@ -59,7 +59,7 @@ namespace WitchMendokusai
 
 		public void SetDungeon(Dungeon dungeon) => this.dungeon = dungeon;
 
-		// 묶음마다 칩 하나. 켠 단계가 있으면 그 단계 아이콘과 수치, 없으면 흐린 아이콘만
+		// 묶음마다 칩 하나. 켠 단계가 있으면 그 단계 아이콘과 효과, 없으면 흐린 아이콘만
 		// 켠 묶음 먼저 (묶음 순서 유지), 다음 꺼진 묶음. 앞에서 CHIP_MAX 개만, 넘친 켠 묶음 수는 "+N"
 		public void UpdateUI()
 		{
@@ -96,7 +96,7 @@ namespace WitchMendokusai
 				DungeonConstraint selected = ordered[i].Selected;
 				DungeonConstraint target = selected ?? ordered[i].Shown;
 				chipIcons[i].style.backgroundImage = new StyleBackground(target.Sprite);
-				chipValues[i].text = selected != null ? selected.ShortValue : string.Empty;
+				chipValues[i].text = selected != null ? DungeonConstraintEffectText.Compact(selected) : string.Empty;
 				chipValues[i].style.display = selected != null ? DisplayStyle.Flex : DisplayStyle.None;
 				chips[i].EnableInClassList(USS_CHIP_OFF, selected == null);
 			}

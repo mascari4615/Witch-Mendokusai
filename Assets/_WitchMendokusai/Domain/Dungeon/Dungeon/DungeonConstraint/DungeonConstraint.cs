@@ -25,16 +25,10 @@ namespace WitchMendokusai
 		[Tooltip("해금 조건. 전부 채워야 켤 수 있음, 비면 처음부터 (DungeonConstraintUnlockRules)")]
 		[field: SerializeField] public List<DungeonConstraintUnlock> Unlocks { get; private set; } = new();
 
-		[Tooltip("입장 창 칩의 수치 단위. 예: %")]
-		[field: SerializeField] public string ValueUnit { get; private set; } = string.Empty;
-
 		/// <summary> 위험도 합에 더하는 점수 </summary>
 		public int Risk => RiskOverride > 0 ? RiskOverride : Level;
 
 		/// <summary> 열 묶음 키. Family 가 비면 에셋마다 다른 키 </summary>
 		public string FamilyKey => string.IsNullOrEmpty(Family) ? "#" + ID : Family;
-
-		/// <summary> 칩 글. 첫 효과 수치와 단위 </summary>
-		public string ShortValue => Effects.Count == 0 ? string.Empty : (Effects[0].Value >= 0 ? "+" : string.Empty) + Effects[0].Value + ValueUnit;
 	}
 }
