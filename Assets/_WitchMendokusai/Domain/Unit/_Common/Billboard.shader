@@ -15,6 +15,8 @@ Shader "WitchMendokusai/BillboardShader"
         _StatusRimWidth("Status Rim Width", Float) = 2.5
         // 피격 좌우 흔들림. x 시작 시각 (_Time.y), y 폭, z 시간, w 초당 왕복
         _HitShake("Hit Shake", Vector) = (0, 0, 0, 0)
+        // 장면 빛 반응 배율. 0이면 빛 무시, 1이면 하늘 설정 (SpriteLightingSettings) 그대로
+        _LightResponse("Light Response", Range(0, 1)) = 1
     }
 
     SubShader
@@ -26,10 +28,11 @@ Shader "WitchMendokusai/BillboardShader"
 
         Pass
         {
-            Name "URPUnlit"
+            // 장면 빛 (해, 환경광, 추가 광원) 을 받으려면 UniversalForward. 물체당 추가 광원 목록이 이 패스에만 온다
+            Name "SpriteForward"
             Tags
             {
-                "LightMode" = "SRPDefaultUnlit"
+                "LightMode" = "UniversalForward"
             }
             Cull Off
             
@@ -59,6 +62,10 @@ Shader "WitchMendokusai/BillboardShader"
 
             #pragma vertex vert
             #pragma fragment frag
+            // 추가 광원은 정점에서 계산. 판 그림은 정점이 적어 화소마다 반복하지 않음
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             struct appdata
             {
@@ -73,6 +80,7 @@ Shader "WitchMendokusai/BillboardShader"
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
                 float4 color : COLOR;
+                half3 light : TEXCOORD1;
             };
 
             TEXTURE2D(_MainTex);
@@ -91,7 +99,44 @@ Shader "WitchMendokusai/BillboardShader"
                 float4 _StatusRim;
                 float _StatusRimWidth;
                 float4 _HitShake;
+                float _LightResponse;
             CBUFFER_END
+
+            // 하늘 설정이 넣는 전역값 (SpriteLighting.Apply). 안 넣은 장면은 0이라 빛 반응 없음
+            float _WMSpriteLightResponse;
+            float _WMSpriteLightReference;
+            float _WMSpriteSunWeight;
+            float _WMSpriteLightFloor;
+            float _WMSpritePointGain;
+            float _WMSpriteLightCap;
+            float _WMSpriteLightMaxCount;
+
+            // 그림에 곱할 빛 배율. 낮은 1에 막혀 지금과 같고, 밤은 바닥값까지만 어두워짐, 추가 광원은 그 위에 더함
+            half3 SpriteLight(float3 positionWS, float3 normalWS)
+            {
+                half response = saturate(_LightResponse * _WMSpriteLightResponse);
+                if (response <= 0)
+                    return half3(1, 1, 1);
+
+                Light mainLight = GetMainLight();
+                half3 scene = SampleSH(normalWS) + mainLight.color * _WMSpriteSunWeight;
+                scene = min(scene / max(_WMSpriteLightReference, 0.001), 1);
+                half sceneLuminance = dot(scene, half3(0.2126, 0.7152, 0.0722));
+                scene = sceneLuminance > 0.0001 ? scene * max(1, _WMSpriteLightFloor / sceneLuminance) : _WMSpriteLightFloor.xxx;
+
+                half3 points = 0;
+                #if defined(_ADDITIONAL_LIGHTS) || defined(_ADDITIONAL_LIGHTS_VERTEX)
+                uint lightCount = min(GetAdditionalLightsCount(), (uint)_WMSpriteLightMaxCount);
+                for (uint lightIndex = 0; lightIndex < lightCount; lightIndex++)
+                {
+                    Light light = GetAdditionalLight(lightIndex, positionWS);
+                    points += light.color * light.distanceAttenuation;
+                }
+                #endif
+
+                half3 lit = min(scene + points * _WMSpritePointGain, _WMSpriteLightCap);
+                return lerp(half3(1, 1, 1), lit, response);
+            }
 
             v2f vert(appdata v)
             {
@@ -182,6 +227,8 @@ Shader "WitchMendokusai/BillboardShader"
                 o.positionCS = positionCS;
                 o.uv = v.uv;
                 o.color = v.color;
+                // 그림은 늘 카메라를 보므로 법선은 카메라 쪽. 방향 음영 없음
+                o.light = SpriteLight(positionWS.xyz, normalize(_WorldSpaceCameraPos - positionWS.xyz));
                 return o;
             }
 
@@ -195,6 +242,9 @@ Shader "WitchMendokusai/BillboardShader"
                 col *= i.color;
                 
                 clip(col.a - _Cutoff  * _Emission);
+
+                // 장면 빛. 상태 물들임, 테두리, 피격 점멸은 빛 뒤라 밤에도 그대로 읽힘
+                col.rgb *= i.light;
 
                 // 상태이상 물들임. 밝기를 남겨 형태 유지
                 float luminance = dot(col.rgb, float3(0.299, 0.587, 0.114));

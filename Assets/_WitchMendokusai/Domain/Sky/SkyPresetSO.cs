@@ -34,6 +34,10 @@ namespace WitchMendokusai
 		public float SurvivalAmbientMinimumLuminance { get; private set; } = .5f;
 		[field: SerializeField, Min(0f)] public float SurvivalSunMinimumIntensity { get; private set; } = 1f;
 
+		[field: Header("Sprite lighting")]
+		[field: SerializeField, Tooltip("빌보드 그림이 해, 환경광, 추가 광원을 받는 정도")]
+		public SpriteLightingSettings SpriteLighting { get; private set; } = new();
+
 		[field: Header("Curves (0~1 → scalar)")]
 		[field: Tooltip("DirLight intensity (0=꺼짐, 1=정오 강함)")]
 		[field: SerializeField] public AnimationCurve SunIntensity { get; private set; } = DefaultSunIntensity();

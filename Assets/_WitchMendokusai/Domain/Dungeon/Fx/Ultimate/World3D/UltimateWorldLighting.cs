@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -9,20 +8,15 @@ namespace WitchMendokusai
 	/// 궁극기 3D 연출 한 번 동안 장면 빛을 다루는 도구. 진행기 (UltimateFxRun) 하나에 하나, 끝나면 전부 되돌림
 	/// - 해와 환경광 낮추기: 하늘 감독이 매 Update 에 넣는 값을 연출 코루틴 (Update 뒤) 이 배율로 덮음. 연출 광원이 주 광원이 됨
 	/// - 후처리 Volume: 전역 Volume 을 하나 만들어 빛 번짐, 노출, 색수차, 가장자리 어둡게. 이 카메라는 Volume 을 반영함 (2026-11-20 MOIS2 실측, 이전 주석의 "반영 안 됨" 은 장면에 Volume 이 없던 탓)
-	/// - 빛 안 받는 인형 그림 (빌보드 셰이더) 에 연출 광원 세기를 색 배율로 넣음. 해가 낮아지면 인형도 같이 어두워지고 광원 근처면 물듦
+	/// - 인형 그림 (빌보드 셰이더) 은 셰이더가 해, 환경광, 연출 광원을 직접 받음 (SpriteLighting). 여기서는 연출 동안 추가 광원 배율과 상한만 덮음
 	/// - 카메라 깊이 텍스처 켜기 (소프트 입자용)
 	/// </summary>
 	public sealed class UltimateWorldLighting
 	{
-		private const string BILLBOARD_SHADER = "WitchMendokusai/BillboardShader";
-		private static readonly int COLOR_ID = Shader.PropertyToID("_Color");
-
-		private readonly List<Light> lights = new();
-		private readonly List<SpriteRenderer> sprites = new();
-		private readonly MaterialPropertyBlock block = new();
 		private readonly float spriteLightGain;
 		private readonly float spriteTintCap;
-		private readonly float spriteRefreshSeconds;
+		private readonly float savedPointGain;
+		private readonly float savedCap;
 
 		private Light sun;
 		private float sunIntensity;
@@ -42,14 +36,14 @@ namespace WitchMendokusai
 
 		private UniversalAdditionalCameraData cameraData;
 		private bool depthWasRequested;
-		private float spriteRefreshTimer;
 		private bool disposed;
 
-		public UltimateWorldLighting(Camera camera, float spriteLightGain, float spriteTintCap, float spriteRefreshSeconds)
+		public UltimateWorldLighting(Camera camera, float spriteLightGain, float spriteTintCap)
 		{
 			this.spriteLightGain = spriteLightGain;
 			this.spriteTintCap = spriteTintCap;
-			this.spriteRefreshSeconds = spriteRefreshSeconds;
+			savedPointGain = Shader.GetGlobalFloat(SpriteLighting.POINT_GAIN_ID);
+			savedCap = Shader.GetGlobalFloat(SpriteLighting.CAP_ID);
 			sun = RenderSettings.sun;
 			CaptureSky();
 			CreateVolume();
@@ -85,22 +79,13 @@ namespace WitchMendokusai
 			vignette.color.value = color;
 		}
 
-		/// <summary> 인형 그림 물들임에 반영할 연출 광원 </summary>
-		public void Track(Light light) => lights.Add(light);
-
 		/// <summary> 매 프레임 (하늘 감독 Update 뒤) 부름 </summary>
-		public void Apply(float delta)
+		public void Apply()
 		{
 			if (disposed)
 				return;
 			ApplySky();
-			spriteRefreshTimer -= delta;
-			if (spriteRefreshTimer <= 0f)
-			{
-				spriteRefreshTimer = spriteRefreshSeconds;
-				CollectSprites();
-			}
-			ApplySprites();
+			SpriteLighting.OverridePoint(spriteLightGain, spriteTintCap);
 		}
 
 		public void Dispose()
@@ -114,9 +99,7 @@ namespace WitchMendokusai
 			RenderSettings.ambientEquatorColor = ambientEquator;
 			RenderSettings.ambientGroundColor = ambientGround;
 			RenderSettings.ambientLight = ambientFlat;
-			foreach (SpriteRenderer sprite in sprites)
-				RestoreSprite(sprite);
-			sprites.Clear();
+			SpriteLighting.OverridePoint(savedPointGain, savedCap);
 			if (cameraData != null)
 				cameraData.requiresDepthTexture = depthWasRequested;
 			if (volumeObject != null)
@@ -166,78 +149,6 @@ namespace WitchMendokusai
 			RenderSettings.ambientEquatorColor = ambientEquator * ambientFactor;
 			RenderSettings.ambientGroundColor = ambientGround * ambientFactor;
 			RenderSettings.ambientLight = ambientFlat * ambientFactor;
-		}
-
-		private void CollectSprites()
-		{
-			foreach (SpriteRenderer sprite in Object.FindObjectsByType<SpriteRenderer>())
-			{
-				if (sprite == null || sprites.Contains(sprite))
-					continue;
-				Material material = sprite.sharedMaterial;
-				if (material == null || material.shader == null || material.shader.name != BILLBOARD_SHADER)
-					continue;
-				sprites.Add(sprite);
-			}
-		}
-
-		private void ApplySprites()
-		{
-			// 해와 환경광이 낮아진 만큼 인형도 어둡게. 해 기여는 대략 절반
-			float sceneScale = Mathf.Lerp(ambientFactor, sunFactor, 0.5f);
-			for (int i = sprites.Count - 1; i >= 0; i--)
-			{
-				SpriteRenderer sprite = sprites[i];
-				if (sprite == null)
-				{
-					sprites.RemoveAt(i);
-					continue;
-				}
-				Color baseColor = sprite.sharedMaterial.GetColor(COLOR_ID);
-				Color received = ReceivedLight(sprite.bounds.center) * spriteLightGain;
-				Color tint = new(
-					Mathf.Min(spriteTintCap, sceneScale + received.r),
-					Mathf.Min(spriteTintCap, sceneScale + received.g),
-					Mathf.Min(spriteTintCap, sceneScale + received.b),
-					1f);
-				sprite.GetPropertyBlock(block);
-				block.SetColor(COLOR_ID, baseColor * tint);
-				sprite.SetPropertyBlock(block);
-			}
-		}
-
-		// URP 점광 감쇠와 같은 꼴 (거리 제곱 역수 x 범위 끝 창). 스포트는 원뿔 각도 감쇠를 곱함
-		private Color ReceivedLight(Vector3 position)
-		{
-			Color sum = Color.black;
-			foreach (Light light in lights)
-			{
-				if (light == null || light.isActiveAndEnabled == false || light.intensity <= 0f)
-					continue;
-				Vector3 offset = position - light.transform.position;
-				float distanceSquared = Mathf.Max(0.0001f, offset.sqrMagnitude);
-				float rangeRatio = distanceSquared / (light.range * light.range);
-				float window = Mathf.Clamp01(1f - rangeRatio * rangeRatio);
-				float attenuation = window * window / distanceSquared;
-				if (light.type == LightType.Spot)
-				{
-					float cosine = Vector3.Dot(light.transform.forward, offset / Mathf.Sqrt(distanceSquared));
-					float outer = Mathf.Cos(light.spotAngle * 0.5f * Mathf.Deg2Rad);
-					float inner = Mathf.Cos(light.innerSpotAngle * 0.5f * Mathf.Deg2Rad);
-					attenuation *= Mathf.Clamp01((cosine - outer) / Mathf.Max(0.0001f, inner - outer));
-				}
-				sum += light.color * light.intensity * attenuation;
-			}
-			return sum;
-		}
-
-		private void RestoreSprite(SpriteRenderer sprite)
-		{
-			if (sprite == null)
-				return;
-			sprite.GetPropertyBlock(block);
-			block.SetColor(COLOR_ID, sprite.sharedMaterial.GetColor(COLOR_ID));
-			UnitBodyProperties.Commit(sprite, block);
 		}
 	}
 }

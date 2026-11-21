@@ -13,7 +13,6 @@ namespace WitchMendokusai
 		{
 			Light impactLight = run.PointLight("ImpactLight", impactLightColor, impactLightRange);
 			impactLight.transform.position = target + Vector3.up * impactLightHeight;
-			lighting.Track(impactLight);
 			float lightSeconds = VanishStart - ImpactTime + vanishSeconds;
 			run.Track(ImpactTime, lightSeconds, progress =>
 			{

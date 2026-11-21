@@ -40,6 +40,7 @@ namespace WitchMendokusai
 			Shader.SetGlobalVector(WMSunDirectionId, ComputeSunDirection(altitude));
 
 			Shader.SetGlobalFloat(WMNormalizedTimeId, normalizedTime);
+			SpriteLighting.Apply(preset.SpriteLighting);
 		}
 
 		public static void ApplySky(SkyPresetSO preset, Material skyboxMaterial, float t)
