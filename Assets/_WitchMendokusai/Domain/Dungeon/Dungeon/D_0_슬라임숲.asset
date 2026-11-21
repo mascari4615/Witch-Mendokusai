@@ -169,4 +169,6 @@ MonoBehaviour:
   <HasThreatLevels>k__BackingField: 1
   <DevBuildOnly>k__BackingField: 0
   <KeyArt>k__BackingField: {fileID: 21300000, guid: 83cdfd9e40b22384ebe2c5743ef88e46, type: 3}
+  <ConstraintRewardRule>k__BackingField: {fileID: 11400000, guid: 4d2e52acaa0646b1ae5d4a09aa5c29f0, type: 2}
+  <ConstraintsNeedFirstClear>k__BackingField: 1
   <MapObjectBudget>k__BackingField: {fileID: 11400000, guid: 7fb7130c134c4f17a50d1b467b19e59c, type: 2}

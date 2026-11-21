@@ -34,6 +34,7 @@ namespace WitchMendokusai
 		private readonly List<Button> dungeonSelectButtons = new();
 		private readonly List<Label> dungeonRowNames = new();
 		private readonly List<VisualElement> dungeonRowIcons = new();
+		private readonly List<Label> dungeonRowRecords = new();
 		private UIDungeonFoesToolkit foesUI;
 		private Label nameLabel;
 		private Label timeLabel;
@@ -162,6 +163,12 @@ namespace WitchMendokusai
 		{
 			if (CurDungeon.Constraints.Count == 0)
 				return;
+			// 첫 클리어 전에는 잠김. 칸 글이 해금 조건을 보여 줌
+			if (CurDungeon.ConstraintsUnlocked == false)
+			{
+				UiSfx.Play(UiSfxEvent.Cancel);
+				return;
+			}
 			// 틀 연출 (배경 입자, 시차) 이 뒤에 붙인 요소보다 위로 올 수 있어 열 때마다 맨 앞
 			constraintPopup.BringToFront();
 			constraintPopup.SetSafeRect(Content.layout);
@@ -399,6 +406,9 @@ namespace WitchMendokusai
 		{
 			for (int i = 0; i < dungeonSelectButtons.Count; i++)
 				dungeonSelectButtons[i].EnableInClassList(USS_ROW_SELECTED, i == curDungeonIndex);
+			// 판에서 돌아오면 기록이 바뀌어 있음. 열 때마다 다시
+			for (int i = 0; i < dungeons.Count; i++)
+				dungeonRowRecords[i].text = GetRowRecord(dungeons[i]);
 
 			foesUI.UpdateUI(CurDungeon);
 			// 던전 대표 그림이 있으면 테마 캐릭터 그림 대신 화면 전체에
@@ -426,6 +436,14 @@ namespace WitchMendokusai
 				horizontalFocusOrder.Insert(horizontalFocusOrder.IndexOf(backButton) + 1, constraintUI);
 
 			UpdateThreatRow();
+		}
+
+		// 목록 칸 기록 배지. 최고 클리어 위험도, 위험도 없이 깼으면 클리어만
+		private static string GetRowRecord(Dungeon dungeon)
+		{
+			if (dungeon.IsCleared == false)
+				return string.Empty;
+			return dungeon.BestRisk > 0 ? "위험도 " + dungeon.BestRisk : "클리어";
 		}
 
 		private static string GetRowNumber(int index) => (index + 1).ToString("00");
@@ -464,6 +482,9 @@ namespace WitchMendokusai
 				icon.pickingMode = PickingMode.Ignore;
 				Label rowName = AddLabel(row, string.Empty, "__row-name");
 				rowName.pickingMode = PickingMode.Ignore;
+				Label rowRecord = AddLabel(row, string.Empty, "__row-record");
+				rowRecord.pickingMode = PickingMode.Ignore;
+				dungeonRowRecords.Add(rowRecord);
 
 				dungeonRowIcons.Add(icon);
 				dungeonRowNames.Add(rowName);

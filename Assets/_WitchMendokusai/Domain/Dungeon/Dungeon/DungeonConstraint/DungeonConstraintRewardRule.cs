@@ -5,9 +5,9 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 위험도와 보상의 연결 자리. 위험도 구간을 처음 깨면 받는 보상 목록
-	/// 값은 사용자 결정 전. 던전에 이 에셋이 없으면 설정 창에 "보상 규칙 미정"
-	/// 지급과 최고 위험도 기록은 아직 없음 (표시만)
+	/// 위험도 단계 첫 클리어 보상 (사용자 판정 2026-11-20). 위험도 N 을 처음 깨면 N 이하의 안 받은 구간을 한 번씩
+	/// 낮은 구간을 크게, 높은 구간을 작게. 마지막 구간 위는 보상 없이 최고 기록만 (상한 없는 도전)
+	/// 던전에 이 에셋이 없으면 보상 없는 순수 도전. 지급은 DungeonManager.EndDungeon, 판정은 DungeonRiskRewardRules
 	/// </summary>
 	[CreateAssetMenu(fileName = "DCR_", menuName = "WM/Variable/" + nameof(DungeonConstraintRewardRule))]
 	public class DungeonConstraintRewardRule : ScriptableObject
@@ -21,5 +21,7 @@ namespace WitchMendokusai
 		}
 
 		[field: SerializeField] public List<RiskMilestone> Milestones { get; private set; } = new();
+
+		public List<int> MilestoneRisks() => Milestones.ConvertAll(milestone => milestone.Risk);
 	}
 }

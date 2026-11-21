@@ -389,11 +389,24 @@ namespace WitchMendokusai
 			// 위협 배율과 냥 보너스, 클리어 보상과 패배 보상과 레벨업 전환을 포함한 이번 판 획득분 기준
 			dataManager.GameStat[GameStatType.NYANG] += DungeonThreatRules.BonusNyang(dungeonRecorder.NyangSinceStart, CurThreat.RewardMultiplier);
 			dataManager.GameStat[GameStatType.NYANG] += dungeonRecorder.NyangSinceStart * playerProvider.Current.UnitStat[UnitStatType.GOLD_BONUS] / UnitStat.PERCENT;
+			// 위험도 단계 첫 클리어 보상. 위협 배율과 냥 보너스에 안 섞이게 그 뒤, 결과창 합계에는 들어가게 기록 전
+			if (isCleared)
+				GrantRiskRewards();
 			dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR], isCleared);
 
 			// 결과창을 가리지 않게 남은 승패 연출 (물들임, 띠, 카메라 당김) 을 걷음
 			StopFlowFx();
 			dungeonUI.SetPanel(DungeonPanelType.DungeonResult);
+		}
+
+		private void GrantRiskRewards()
+		{
+			int risk = DungeonConstraintRules.TotalRisk(Context.Constraints);
+			foreach (DungeonConstraintRewardRule.RiskMilestone milestone in CurDungeon.RecordClear(risk))
+			{
+				Debug.Log($"위험도 {milestone.Risk} 첫 클리어 보상 ({CurDungeon.name})");
+				Reward.GetReward(milestone.Rewards, soManager.ItemInventory, dataManager.GameStat);
+			}
 		}
 
 		public void Retry()

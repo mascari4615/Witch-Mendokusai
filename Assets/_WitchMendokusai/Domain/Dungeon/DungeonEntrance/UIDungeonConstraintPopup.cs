@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 제약 설정 창. 입장 창 틀 전체를 덮는 화면
-	/// - 왼쪽: 제목, 위험도 큰 숫자와 눈금, 위험도 보상 (DungeonConstraintRewardRule)
+	/// - 왼쪽: 제목, 위험도 큰 숫자와 눈금, 최고 기록, 위험도 단계 첫 클리어 보상 (DungeonConstraintRewardRule, 받음 / 이번에 받음 / 못 받음)
 	/// - 오른쪽: 제약 표 (줄은 단계, 열은 묶음, 같은 열은 하나만), 초점 칸 설명, 켠 제약 효과 목록, 닫기, 전부 해제, 저장
 	/// 고치는 중 값은 사본. 저장만 던전 값에 씀. 닫기와 취소 키는 버림, 바꾼 게 있으면 확인창
 	/// </summary>
@@ -18,7 +18,6 @@ namespace WitchMendokusai
 		// 표 격자 최소 크기. 제약이 적어도 빈 칸으로 표 모양 유지. 열 수는 USS main 폭 (760) 과 짝, 줄 수는 DungeonConstraint.Level 범위
 		private const int MIN_COLUMNS = 6;
 		private const int MIN_ROWS = 3;
-		private const int REWARD_PLACEHOLDER_ROWS = 4;
 
 		public event Action OnSaved = delegate { };
 		public event Action OnClosed = delegate { };
@@ -46,6 +45,7 @@ namespace WitchMendokusai
 		private readonly Label dungeonName;
 		private readonly Label riskValue;
 		private readonly VisualElement riskMeter;
+		private readonly Label bestRisk;
 		private readonly ScrollView rewardList;
 		private readonly VisualElement table;
 		private readonly Label detailName;
@@ -76,6 +76,7 @@ namespace WitchMendokusai
 			AddChild(riskCard, new Label("위험도"), USS_PART + "risk-label");
 			riskValue = AddChild(riskCard, new Label(), USS_PART + "risk-value");
 			riskMeter = AddChild(riskCard, new VisualElement(), USS_PART + "risk-meter");
+			bestRisk = AddChild(riskCard, new Label(), USS_PART + "best");
 			AddChild(side, new Label("위험도 보상"), USS_PART + "side-header");
 			// 구간이 많으면 이 목록만 스크롤
 			rewardList = AddChild(side, new ScrollView(ScrollViewMode.Vertical), USS_PART + "rewards");
@@ -322,30 +323,36 @@ namespace WitchMendokusai
 		private void RefreshRewards(int risk)
 		{
 			rewardList.Clear();
+			bestRisk.text = dungeon.IsCleared ? "최고 기록 위험도 " + dungeon.BestRisk : "클리어 기록 없음";
 			DungeonConstraintRewardRule rule = dungeon.ConstraintRewardRule;
 			if (rule == null || rule.Milestones.Count == 0)
 			{
-				// 구간 표 자리 표시. 규칙이 정해지면 위험도 구간과 보상 칸이 이 자리에
-				AddChild(rewardList, new Label("보상 규칙 미정. 구간과 보상이 정해지면 이 표에"), USS_PART + "reward-empty");
-				for (int i = 0; i < REWARD_PLACEHOLDER_ROWS; i++)
-				{
-					VisualElement placeholder = AddChild(rewardList, new VisualElement(), USS_PART + "reward");
-					placeholder.AddToClassList(USS_PART + "reward--placeholder");
-					AddChild(placeholder, new Label("위험도 ?"), USS_PART + "reward-risk");
-					AddChild(placeholder, new VisualElement(), USS_PART + "reward-slot");
-					AddChild(placeholder, new VisualElement(), USS_PART + "reward-slot");
-				}
+				AddChild(rewardList, new Label("이 던전은 위험도 보상 없음. 최고 기록만 남음"), USS_PART + "reward-empty");
 				return;
 			}
 			foreach (DungeonConstraintRewardRule.RiskMilestone milestone in rule.Milestones)
 			{
+				DungeonRiskMilestoneState state = DungeonRiskRewardRules.State(milestone.Risk, dungeon.ClaimedRiskMilestones, risk);
 				VisualElement line = AddChild(rewardList, new VisualElement(), USS_PART + "reward");
-				line.EnableInClassList(USS_PART + "reward--reached", risk >= milestone.Risk);
-				AddChild(line, new Label("위험도 " + milestone.Risk), USS_PART + "reward-risk");
+				line.EnableInClassList(USS_PART + "reward--reached", state == DungeonRiskMilestoneState.ThisClear);
+				line.EnableInClassList(USS_PART + "reward--claimed", state == DungeonRiskMilestoneState.Claimed);
+				VisualElement head = AddChild(line, new VisualElement(), USS_PART + "reward-head");
+				AddChild(head, new Label("위험도 " + milestone.Risk), USS_PART + "reward-risk");
+				AddChild(head, new Label(StateText(state)), USS_PART + "reward-state");
 				UIRewardsToolkit rewards = AddChild(line, new UIRewardsToolkit(), USS_PART + "reward-items");
 				rewards.UpdateUI(milestone.Rewards);
 			}
+			// 마지막 구간 위는 상한 없는 도전. 보상 없이 기록만
+			int top = DungeonRiskRewardRules.TopMilestone(rule.MilestoneRisks());
+			AddChild(rewardList, new Label($"위험도 {top} 초과는 보상 없이 기록만"), USS_PART + "reward-empty");
 		}
+
+		private static string StateText(DungeonRiskMilestoneState state) => state switch
+		{
+			DungeonRiskMilestoneState.Claimed => "받음",
+			DungeonRiskMilestoneState.ThisClear => "이번 클리어로",
+			_ => string.Empty,
+		};
 
 		private void RefreshEffects()
 		{

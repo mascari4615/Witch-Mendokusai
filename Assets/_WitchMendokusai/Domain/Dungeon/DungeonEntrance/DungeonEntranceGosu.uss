@@ -132,6 +132,16 @@
     -unity-font-definition: url("Fonts/GowunBatang-Bold.ttf");
 }
 
+/* 줄 오른쪽 끝이 반원 (반지름 34). 배지를 반원 안으로 */
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row-record {
+    right: 36px;
+    color: rgb(91, 69, 36);
+}
+
+.wm-dungeon-entrance--gosu .wm-dungeon-entrance__row--selected .wm-dungeon-entrance__row-record {
+    color: var(--gosu-seal-dark);
+}
+
 .wm-dungeon-entrance--gosu .wm-dungeon-entrance__row--selected .wm-dungeon-entrance__row-name {
     color: var(--gosu-seal-dark);
 }

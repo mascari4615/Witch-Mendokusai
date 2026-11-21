@@ -24,11 +24,20 @@ namespace WitchMendokusai
 		public Dictionary<int, bool> ConstraintSelected;
 		// 아래부터 승리한 위협 단계 수, 최고 승리 단계 + 1. 옛 저장은 0
 		public int ClearedThreatCount;
+		// 한 번이라도 깼는지. 제약 설정 해금 조건. 옛 저장은 false (ClearedThreatCount 로 보충)
+		public bool HasCleared;
+		// 최고 클리어 위험도. 표시용. 옛 저장은 0
+		public int BestRisk;
+		// 받은 위험도 보상 구간의 위험도. 옛 저장은 null
+		public List<int> ClaimedRiskMilestones;
 
-		public DungeonSaveData(Dictionary<int, bool> constraintSelected, int clearedThreatCount)
+		public DungeonSaveData(Dictionary<int, bool> constraintSelected, int clearedThreatCount, bool hasCleared, int bestRisk, List<int> claimedRiskMilestones)
 		{
 			ConstraintSelected = constraintSelected;
 			ClearedThreatCount = clearedThreatCount;
+			HasCleared = hasCleared;
+			BestRisk = bestRisk;
+			ClaimedRiskMilestones = claimedRiskMilestones;
 		}
 	}
 
@@ -60,22 +69,51 @@ namespace WitchMendokusai
 		[Tooltip("입장 화면 대표 그림. 비우면 테마 기본 그림")]
 		[PropertyOrder(113)][field: SerializeField] public Sprite KeyArt { get; private set; }
 
-		[Tooltip("위험도 구간 보상. 비우면 설정 창에 보상 규칙 미정")]
+		[Tooltip("위험도 단계 첫 클리어 보상. 비우면 보상 없는 순수 도전 (최고 기록만)")]
 		[PropertyOrder(114)][field: SerializeField] public DungeonConstraintRewardRule ConstraintRewardRule { get; private set; }
+
+		[Tooltip("켜면 첫 클리어 전에는 제약 설정이 잠기고 제약이 적용되지 않음")]
+		[PropertyOrder(115)][field: SerializeField] public bool ConstraintsNeedFirstClear { get; private set; } = true;
 
 		public int CalculateDefeatNyang(int killCount) => Mathf.Min(DefeatNyangMax, Mathf.FloorToInt(killCount * DefeatNyangPerKill));
 
 		[field: NonSerialized] public Dictionary<int, bool> ConstraintSelected { get; private set; } = new();
 		[field: NonSerialized] public int ClearedThreatCount { get; private set; }
+		[field: NonSerialized] public bool HasCleared { get; private set; }
+		[field: NonSerialized] public int BestRisk { get; private set; }
+		[field: NonSerialized] public HashSet<int> ClaimedRiskMilestones { get; private set; } = new();
 
-		// 입장 창에서 켠 제약만 판에 적용
-		public List<DungeonConstraint> SelectedConstraints() => Constraints.FindAll(constraint => ConstraintSelected[constraint.ID]);
+		// 위협 단계 승리 기록이 있으면 클리어한 것 (HasCleared 이전 저장)
+		public bool IsCleared => HasCleared || ClearedThreatCount > 0;
+		public bool ConstraintsUnlocked => ConstraintsNeedFirstClear == false || IsCleared;
+
+		// 입장 창에서 켠 제약만 판에 적용. 잠긴 동안은 없음
+		public List<DungeonConstraint> SelectedConstraints() => ConstraintsUnlocked ? Constraints.FindAll(constraint => ConstraintSelected[constraint.ID]) : new List<DungeonConstraint>();
 
 		public void RecordThreatClear(int level) => ClearedThreatCount = DungeonThreatRules.AfterClear(ClearedThreatCount, level);
+
+		/// <summary> 클리어 기록. 이번 위험도로 처음 닿은 보상 구간을 돌려줌 (지급은 부르는 쪽) </summary>
+		public List<DungeonConstraintRewardRule.RiskMilestone> RecordClear(int risk)
+		{
+			List<DungeonConstraintRewardRule.RiskMilestone> reached = new();
+			if (ConstraintRewardRule != null)
+			{
+				foreach (int index in DungeonRiskRewardRules.NewlyReached(ConstraintRewardRule.MilestoneRisks(), ClaimedRiskMilestones, risk))
+					reached.Add(ConstraintRewardRule.Milestones[index]);
+			}
+			foreach (DungeonConstraintRewardRule.RiskMilestone milestone in reached)
+				ClaimedRiskMilestones.Add(milestone.Risk);
+			HasCleared = true;
+			BestRisk = DungeonRiskRewardRules.AfterClear(BestRisk, risk);
+			return reached;
+		}
 
 		public void Init()
 		{
 			ClearedThreatCount = 0;
+			HasCleared = false;
+			BestRisk = 0;
+			ClaimedRiskMilestones = new();
 			ConstraintSelected = new();
 			foreach (DungeonConstraint constraint in Constraints)
 				ConstraintSelected.Add(constraint.ID, false);
@@ -87,6 +125,10 @@ namespace WitchMendokusai
 			// 새로 추가된 던전이나 Constraint가 세이브에 없어도 안전하게 동작
 			Init();
 			ClearedThreatCount = saveData.ClearedThreatCount;
+			HasCleared = saveData.HasCleared;
+			BestRisk = saveData.BestRisk;
+			if (saveData.ClaimedRiskMilestones != null)
+				ClaimedRiskMilestones.UnionWith(saveData.ClaimedRiskMilestones);
 
 			if (saveData.ConstraintSelected != null)
 			{
@@ -97,11 +139,17 @@ namespace WitchMendokusai
 				}
 			}
 			DungeonConstraintRules.Normalize(this, ConstraintSelected);
+			// 잠긴 던전에 옛 저장의 켠 제약이 남으면 첫 클리어 직후 다시 하기에서 보이지 않게 적용됨. 잠긴 동안은 전부 끔
+			if (ConstraintsUnlocked == false)
+			{
+				foreach (DungeonConstraint constraint in Constraints)
+					ConstraintSelected[constraint.ID] = false;
+			}
 		}
 
 		public DungeonSaveData Save()
 		{
-			return new DungeonSaveData(ConstraintSelected, ClearedThreatCount);
+			return new DungeonSaveData(ConstraintSelected, ClearedThreatCount, HasCleared, BestRisk, new List<int>(ClaimedRiskMilestones));
 		}
 	}
 }

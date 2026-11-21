@@ -118,6 +118,10 @@
     color: rgb(228, 231, 255);
 }
 
+.wm-dungeon-entrance--night .wm-dungeon-entrance__row-record {
+    color: rgb(228, 231, 255);
+}
+
 .wm-dungeon-entrance--night .wm-dungeon-entrance__row--selected .wm-dungeon-entrance__row-name {
     color: rgb(22, 26, 62);
     -unity-font-style: bold;
@@ -398,7 +402,8 @@
     -unity-background-image-tint-color: rgb(242, 243, 251);
 }
 
-.wm-dungeon-entrance--night .wm-dungeon-entrance__row--selected .wm-dungeon-entrance__row-name {
+.wm-dungeon-entrance--night .wm-dungeon-entrance__row--selected .wm-dungeon-entrance__row-name,
+.wm-dungeon-entrance--night .wm-dungeon-entrance__row--selected .wm-dungeon-entrance__row-record {
     color: rgb(242, 243, 251);
 }
 

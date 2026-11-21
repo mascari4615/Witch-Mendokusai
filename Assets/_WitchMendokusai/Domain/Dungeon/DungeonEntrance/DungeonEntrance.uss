@@ -80,6 +80,17 @@
     justify-content: center;
 }
 
+/* 목록 칸 최고 기록 배지. 이름 한 줄 아래 오른쪽 구석. 이름이 두 줄로 넘치면 겹칠 수 있음 (현재 이름은 한 줄) */
+.wm-dungeon-entrance__row-record {
+    position: absolute;
+    right: 10px;
+    bottom: 3px;
+    margin: 0;
+    padding: 0;
+    font-size: 11px;
+    opacity: 0.8;
+}
+
 .wm-dungeon-entrance__row-icon {
     -unity-background-scale-mode: scale-to-fit;
 }
@@ -361,6 +372,11 @@
     background-color: rgba(255, 255, 255, 0.04);
 }
 
+/* 첫 클리어 전 잠김. 칩은 꺼진 모양, 눌러도 안 열려 강조 없음 */
+.wm-dungeon-entrance .wm-dungeon-constraint--locked:hover {
+    background-color: rgba(0, 0, 0, 0);
+}
+
 .wm-dungeon-entrance .wm-dungeon-constraint__risk {
     font-size: 12px;
     color: rgb(247, 227, 155);
@@ -444,6 +460,8 @@
 .wm-dungeon-entrance .wm-constraint-popup__side-header,
 .wm-dungeon-entrance .wm-constraint-popup__reward-empty,
 .wm-dungeon-entrance .wm-constraint-popup__reward-risk,
+.wm-dungeon-entrance .wm-constraint-popup__reward-state,
+.wm-dungeon-entrance .wm-constraint-popup__best,
 .wm-dungeon-entrance .wm-constraint-popup__header,
 .wm-dungeon-entrance .wm-constraint-popup__hint,
 .wm-dungeon-entrance .wm-constraint-popup__row-head-label,
@@ -505,6 +523,12 @@
     background-color: rgb(247, 227, 155);
 }
 
+.wm-dungeon-entrance .wm-constraint-popup__best {
+    margin-top: 6px;
+    font-size: 13px;
+    color: rgb(185, 189, 220);
+}
+
 .wm-dungeon-entrance .wm-constraint-popup__side-header {
     margin-top: 40px;
     padding-bottom: 6px;
@@ -528,19 +552,6 @@
     white-space: normal;
 }
 
-.wm-dungeon-entrance .wm-constraint-popup__reward--placeholder {
-    opacity: 0.45;
-}
-
-.wm-dungeon-entrance .wm-constraint-popup__reward-slot {
-    width: 40px;
-    height: 40px;
-    margin-right: 8px;
-    background-color: rgba(255, 255, 255, 0.07);
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.12);
-}
-
 .wm-dungeon-entrance .wm-constraint-popup__reward {
     flex-direction: row;
     align-items: center;
@@ -552,9 +563,27 @@
     opacity: 1;
 }
 
+/* 이미 받은 구간. 못 받는 구간보다 진하고 이번에 받을 구간보다 흐림 */
+.wm-dungeon-entrance .wm-constraint-popup__reward--claimed {
+    opacity: 0.75;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__reward-head {
+    width: 84px;
+    flex-shrink: 0;
+}
+
 .wm-dungeon-entrance .wm-constraint-popup__reward-risk {
-    width: 72px;
     font-size: 13px;
+    color: rgb(247, 227, 155);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__reward-state {
+    font-size: 11px;
+    color: rgb(185, 189, 220);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__reward--reached .wm-constraint-popup__reward-state {
     color: rgb(247, 227, 155);
 }
 

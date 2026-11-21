@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 입장 창 제약 칸. 묶음마다 아이콘과 수치 칩, 꺼진 묶음은 흐림, 오른쪽 위 위험도 합계. 칩 5개까지 한 줄
-	/// 칸 전체가 버튼. 누르면 제약 설정 팝업 (UIDungeonConstraintPopup)
+	/// 칸 전체가 버튼. 누르면 제약 설정 팝업 (UIDungeonConstraintPopup). 첫 클리어 전 잠긴 던전은 흐린 칩과 해금 조건 글
 	/// DungeonManager 는 켜진 제약만 판에 적용 (DungeonContext.Constraints)
 	/// </summary>
 	public class UIDungeonConstraintToolkit : Button
@@ -23,10 +23,14 @@ namespace WitchMendokusai
 		private const string USS_CHIP_ICON = USS_CLASS + "__chip-icon";
 		private const string USS_CHIP_VALUE = USS_CLASS + "__chip-value";
 		private const string USS_EDIT = USS_CLASS + "__edit";
+		private const string USS_LOCKED = USS_CLASS + "--locked";
+		private const string EDIT_TEXT = "눌러서 설정";
+		private const string LOCKED_TEXT = "첫 클리어 뒤 열림";
 
 		private Dungeon dungeon;
 		private readonly Label riskLabel;
 		private readonly VisualElement chipRow;
+		private readonly Label editLabel;
 		private readonly List<VisualElement> chips = new();
 		private readonly List<VisualElement> chipIcons = new();
 		private readonly List<Label> chipValues = new();
@@ -42,7 +46,7 @@ namespace WitchMendokusai
 			riskLabel = AddChild(head, new Label(), USS_RISK);
 
 			chipRow = AddChild(this, new VisualElement(), USS_CHIPS);
-			AddChild(this, new Label("눌러서 설정"), USS_EDIT);
+			editLabel = AddChild(this, new Label(EDIT_TEXT), USS_EDIT);
 		}
 
 		public void SetDungeon(Dungeon dungeon) => this.dungeon = dungeon;
@@ -50,6 +54,9 @@ namespace WitchMendokusai
 		// 묶음마다 칩 하나. 켠 단계가 있으면 그 단계 아이콘과 수치, 없으면 흐린 아이콘만
 		public void UpdateUI()
 		{
+			bool isUnlocked = dungeon.ConstraintsUnlocked;
+			EnableInClassList(USS_LOCKED, isUnlocked == false);
+			editLabel.text = isUnlocked ? EDIT_TEXT : LOCKED_TEXT;
 			List<string> families = DungeonConstraintRules.FamilyOrder(dungeon);
 			EnsureChipCount(families.Count);
 			for (int i = 0; i < chips.Count; i++)
@@ -66,7 +73,7 @@ namespace WitchMendokusai
 					if (constraint.FamilyKey != families[i])
 						continue;
 					shown ??= constraint;
-					if (dungeon.ConstraintSelected[constraint.ID])
+					if (isUnlocked && dungeon.ConstraintSelected[constraint.ID])
 						selected = constraint;
 				}
 				DungeonConstraint target = selected ?? shown;
@@ -75,7 +82,7 @@ namespace WitchMendokusai
 				chipValues[i].style.display = selected != null ? DisplayStyle.Flex : DisplayStyle.None;
 				chips[i].EnableInClassList(USS_CHIP_OFF, selected == null);
 			}
-			riskLabel.text = "위험도 " + DungeonConstraintRules.TotalRisk(dungeon);
+			riskLabel.text = "위험도 " + DungeonConstraintRules.TotalRisk(dungeon.SelectedConstraints());
 		}
 
 		private void EnsureChipCount(int count)

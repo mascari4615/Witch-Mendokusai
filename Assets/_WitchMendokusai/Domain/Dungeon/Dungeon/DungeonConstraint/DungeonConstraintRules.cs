@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 제약 규칙 한 곳. 위험도 합, 같은 묶음 배타, 열 순서
+	/// 제약 규칙 한 곳. 위험도 합, 같은 묶음 배타, 열 순서. 보상 구간 판정은 DungeonRiskRewardRules (DomainSDK)
 	/// 켬 상태는 넘겨받은 사전 (던전 저장값이나 설정 창의 고치는 중 사본)
 	/// </summary>
 	public static class DungeonConstraintRules
@@ -14,26 +14,35 @@ namespace WitchMendokusai
 			foreach (DungeonConstraint constraint in dungeon.Constraints)
 			{
 				if (selected[constraint.ID])
-					total += constraint.Level;
+					total += constraint.Risk;
 			}
+			return total;
+		}
+
+		/// <summary> 판에 적용된 제약 목록의 위험도 합 (DungeonContext.Constraints) </summary>
+		public static int TotalRisk(IReadOnlyList<DungeonConstraint> applied)
+		{
+			int total = 0;
+			foreach (DungeonConstraint constraint in applied)
+				total += constraint.Risk;
 			return total;
 		}
 
 		public static int TotalRisk(Dungeon dungeon) => TotalRisk(dungeon, dungeon.ConstraintSelected);
 
-		/// <summary> 묶음마다 가장 높은 단계의 합. 위험도 눈금 칸 수 </summary>
+		/// <summary> 묶음마다 가장 높은 위험도 점수의 합. 위험도 눈금 칸 수 </summary>
 		public static int MaxRisk(Dungeon dungeon)
 		{
 			Dictionary<string, int> highest = new();
 			foreach (DungeonConstraint constraint in dungeon.Constraints)
 			{
-				highest.TryGetValue(constraint.FamilyKey, out int level);
-				if (constraint.Level > level)
-					highest[constraint.FamilyKey] = constraint.Level;
+				highest.TryGetValue(constraint.FamilyKey, out int risk);
+				if (constraint.Risk > risk)
+					highest[constraint.FamilyKey] = constraint.Risk;
 			}
 			int total = 0;
-			foreach (int level in highest.Values)
-				total += level;
+			foreach (int risk in highest.Values)
+				total += risk;
 			return total;
 		}
 
