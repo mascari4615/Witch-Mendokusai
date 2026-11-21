@@ -205,6 +205,16 @@ namespace WitchMendokusai
 			uiRoot.SettingView.OpenQuitConfirm();
 		}
 
+		// 던전 판이 진행 중이면 포기 확인 창 (설정창 위) 을 거침. 취소하면 메뉴로 돌아옴. 마을에서는 바로 로비로
+		private void GoToLobby()
+		{
+			if (LobbyManager.IsRunInProgress)
+				LeaveForSetting();
+			else
+				Close();
+			uiRoot.SettingView.RequestReturnToLobby();
+		}
+
 		private void LeaveForSetting()
 		{
 			focusOnReturn = container.focusController?.focusedElement as VisualElement;

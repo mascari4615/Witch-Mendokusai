@@ -153,8 +153,25 @@ namespace WitchMendokusai
 	public static class DialogueHistoryBridge
 	{
 		private static DialogueHistory history;
+		// 대화 시스템이 없는 동안 (로비에서 불러올 때, 월드에서 로비로 나간 뒤) 보관할 기록. 다음 등록 때 넘김
+		private static DialogueHistorySaveData? held;
 
-		public static void Register(DialogueHistory dialogueHistory) => history = dialogueHistory;
+		// 도메인 재로드를 끈 Play 에서 이전 Play 의 기록이 남지 않게
+		[UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics()
+		{
+			history = null;
+			held = null;
+		}
+
+		public static void Register(DialogueHistory dialogueHistory)
+		{
+			history = dialogueHistory;
+			if (held.HasValue == false)
+				return;
+			dialogueHistory.FromSaveData(held.Value);
+			held = null;
+		}
 
 		/// <summary>자기 자신만 해제 — 다른 인스턴스가 이미 갱신했으면 안 건드린다(race 안전).</summary>
 		public static void Clear(DialogueHistory dialogueHistory)
@@ -174,16 +191,35 @@ namespace WitchMendokusai
 		/// 다음 저장이 옛 기록을 덮어써서 **봤던 대화가 통째로 사라진다.**
 		/// </summary>
 		public static DialogueHistorySaveData CaptureSaveData() =>
-			history == null
-				? new DialogueHistorySaveData
+			history != null
+				? history.ToSaveData()
+				: held ?? new DialogueHistorySaveData
 				{
 					StartedDialogueIds = new List<int>(),
 					CompletedDialogueIds = new List<int>(),
 					Choices = new List<DialogueChoiceRecord>(),
-				}
-				: history.ToSaveData();
+				};
 
 		/// <summary>불러온 것을 되돌린다. 이력이 아직 없으면 아무 일도 안 한다(등록 뒤 다시 부르면 된다).</summary>
 		public static void RestoreSaveData(DialogueHistorySaveData saveData) => history?.FromSaveData(saveData);
+
+		/// <summary>
+		/// 불러온 것을 되돌리되, 대화 시스템이 아직 없으면 보관했다가 등록 때 넘김 (SaveManager 의 로비 불러오기).
+		/// 같은 기록을 저장 때도 써서, 대화 시스템 없이 저장해도 봤던 대화가 남음
+		/// </summary>
+		public static void RestoreOrHold(DialogueHistorySaveData saveData)
+		{
+			if (history != null)
+				history.FromSaveData(saveData);
+			else
+				held = saveData;
+		}
+
+		/// <summary>월드에서 로비로 나갈 때. 사라질 대화 시스템의 기록을 다음 월드의 대화 시스템까지 들고 있는다</summary>
+		public static void HoldCurrent()
+		{
+			if (history != null)
+				held = history.ToSaveData();
+		}
 	}
 }

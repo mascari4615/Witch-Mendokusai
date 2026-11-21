@@ -9,6 +9,9 @@ namespace WitchMendokusai.Net
 		/// <summary>멀티, 멀리 있는 세계로 입장. 이미 접속 중이면 그대로.</summary>
 		void EnterShared();
 
+		/// <summary>세계에서 나온다. 내 안의 세계는 저장하고, 멀리 있는 세계는 접속을 끊는다. 다음 입장은 새로 붙는다.</summary>
+		void Leave();
+
 		/// <summary>지금 이어진 줄 — 아직 안 들어갔으면 null.</summary>
 		IWorldLink Current { get; }
 	}
@@ -40,5 +43,8 @@ namespace WitchMendokusai.Net
 
 		/// <summary>멀티 입장.</summary>
 		public static void EnterShared() => door?.EnterShared();
+
+		/// <summary>나가기 — 월드에서 로비로 돌아갈 때.</summary>
+		public static void Leave() => door?.Leave();
 	}
 }

@@ -79,6 +79,8 @@ namespace WitchMendokusai
 		private Action stopFlowFx;
 		private string objectiveText;
 		private RuntimeQuest dungeonQuest;
+		// 판 시작부터 귀환 초기화까지. 결과창이 떠 있는 동안도 참 (IsDungeon 은 거짓)
+		private bool isRunActive;
 
 		[Inject]
 		public void Construct(SOManager soManager, UIManager uiManager, CameraManager cameraManager, StageManager stageManager, GameEventManager gameEventManager, PlayerProvider playerProvider, DataManager dataManager, GameManager gameManager, ResourceManager resourceManager, IObjectResolver container)
@@ -233,6 +235,7 @@ namespace WitchMendokusai
 				dungeonRecorder = new DungeonRecorder(this, dataManager);
 
 				IsDungeon = true;
+				isRunActive = true;
 
 				// Create Dungeon Quest
 				{
@@ -451,22 +454,50 @@ namespace WitchMendokusai
 					isTransitioning = false;
 					gameEventManager.Raise(GameEventType.OnDungeonReturn);
 				}).Forget();
+		}
 
-			void ResetDungeonAndPlayer()
+		/// <summary>
+		/// 판을 보상 없이 버리고 마을 기준 상태로 되돌림. 로비로 나갈 때 (LobbyReturn). 결과창과 귀환 전환은 없음
+		/// 결과창이 떠 있는 동안 (보상은 이미 받음) 불려도 귀환 초기화만 함
+		/// </summary>
+		public void AbandonRun()
+		{
+			if (isRunActive == false)
+				return;
+			if (IsDungeon)
 			{
-				dungeonUI.ClosePanel();
-				cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
-				SkyTimeOverride.Clear();
-
-				gameManager.Init();
-				dataManager.RunLoadout.End();
-				CurThreat = DungeonThreatEffect.Identity;
-				ConstraintEffect = DungeonConstraintRunEffect.Identity;
-				dungeonQuest = null;
-				expChecker.SetRequirementMultiplier(1f);
-				expChecker.Init();
-				cardManager.Reset();
+				IsDungeon = false;
+				if (clearDelayRoutine != null)
+				{
+					StopCoroutine(clearDelayRoutine);
+					clearDelayRoutine = null;
+				}
+				cardManager.CancelSelection();
+				dungeonLoopSubscription?.Dispose();
+				dungeonLoopSubscription = null;
+				monsterSpawner.StopWave();
+				resourceNodeSpawner.StopWave();
+				Debug.Log($"{nameof(AbandonRun)} ({CurDungeon.Name})");
 			}
+			StopFlowFx();
+			ResetDungeonAndPlayer();
+		}
+
+		private void ResetDungeonAndPlayer()
+		{
+			isRunActive = false;
+			dungeonUI.ClosePanel();
+			cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
+			SkyTimeOverride.Clear();
+
+			gameManager.Init();
+			dataManager.RunLoadout.End();
+			CurThreat = DungeonThreatEffect.Identity;
+			ConstraintEffect = DungeonConstraintRunEffect.Identity;
+			dungeonQuest = null;
+			expChecker.SetRequirementMultiplier(1f);
+			expChecker.Init();
+			cardManager.Reset();
 		}
 	}
 }
