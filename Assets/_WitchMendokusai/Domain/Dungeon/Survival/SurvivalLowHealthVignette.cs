@@ -118,7 +118,7 @@ namespace WitchMendokusai
 			color.a *= weight * config.LowHealthMaxAlpha;
 			image.color = color;
 
-			Color hitColor = config.LowHealthColor;
+			Color hitColor = config.PlayerHit.EdgeColor;
 			hitColor.a *= inRun ? HitAlpha() : 0f;
 			hitAge += FeelTime.Delta;
 			hitImage.color = hitColor;

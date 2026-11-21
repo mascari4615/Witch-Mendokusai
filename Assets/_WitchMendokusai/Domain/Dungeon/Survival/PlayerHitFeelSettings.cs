@@ -13,7 +13,7 @@ namespace WitchMendokusai
 	{
 		[Header("세기")]
 		[Range(0.01f, 1f), Tooltip("이 피해 비율 (피해 / 최대 체력) 이상이면 세기 1")] public float FullStrengthDamageRatio = 0.25f;
-		[Min(0f), Tooltip("앞 피격 뒤 이 초 안의 피격은 정지와 가장자리 번쩍임을 새로 시작하지 않고 흔들림만 상한까지 더함. 평소에는 무적 시간 (0.5초) 이 먼저 거름. 무적 시간을 이보다 짧게 줄일 때 대비")] public float MinInterval = 0.3f;
+		[Min(0f), Tooltip("앞 피격 뒤 이 초 안의 피격은 정지와 가장자리 번쩍임을 새로 시작하지 않고 흔들림만 상한까지 더함. 평소에는 무적 시간 (0.5초) 이 먼저 거름. 무적 시간을 이보다 짧게 줄일 때 대비. 0.34 이상이면 가장자리 재점등이 초당 3회 미만 (광과민 기준)")] public float MinInterval = 0.35f;
 
 		[Header("화면 흔들림")]
 		[Range(0f, 1f), Tooltip("세기 0 일 때 더하는 트라우마")] public float TraumaAtMin = 0.45f;
@@ -37,10 +37,11 @@ namespace WitchMendokusai
 		[Range(0.0001f, 1f), Tooltip("정지 동안 시간 배율")] public float HitStopScale = 0.05f;
 
 		[Header("가장자리 빨강")]
+		[Tooltip("피격 가장자리 색. 저체력 경고 색보다 밝고 짙게 (풀밭 위에서 갈색으로 섞이지 않게)")] public Color EdgeColor = new(1f, 0.04f, 0.06f, 1f);
 		[Range(0f, 1f), Tooltip("세기 0 일 때 피격 직후 가장자리 불투명도")] public float EdgeAlphaAtMin = 0.55f;
 		[Range(0f, 1f), Tooltip("세기 1 일 때 피격 직후 가장자리 불투명도")] public float EdgeAlphaAtMax = 0.9f;
-		[Min(0f), Tooltip("가장 짙은 채로 머무는 초")] public float EdgeHoldSeconds = 0.06f;
-		[Min(0.01f), Tooltip("짙음에서 사라지기까지 초")] public float EdgeFadeSeconds = 0.45f;
+		[Min(0f), Tooltip("가장 짙은 채로 머무는 초")] public float EdgeHoldSeconds = 0.1f;
+		[Min(0.01f), Tooltip("짙음에서 사라지기까지 초")] public float EdgeFadeSeconds = 0.6f;
 		[Range(0f, 1f), Tooltip("피격 번쩍임용 가장자리 투명 반경 (모서리 기준 비율). 저체력 경고보다 안쪽까지")] public float EdgeInnerRadius = 0.32f;
 
 		[Header("몸 번쩍임")]
