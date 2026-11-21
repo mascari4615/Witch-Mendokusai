@@ -151,8 +151,15 @@ namespace WitchMendokusai
 			return true;
 		}
 
-		// 회복 감소 제약은 플레이어가 받는 회복에만
-		public override void ReceiveHeal(int healAmount) => base.ReceiveHeal(DungeonManagerBridge.ConstraintEffect.ScaleHeal(healAmount));
+		// 회복 감소 제약은 플레이어가 받는 회복에만. 남은 소수는 다음 회복에 (작은 회복이 0 으로 사라지지 않게)
+		private double healCarry;
+
+		public override void ReceiveHeal(int healAmount)
+		{
+			int scaled = DungeonManagerBridge.ConstraintEffect.ScaleHeal(healAmount, ref healCarry);
+			if (scaled > 0)
+				base.ReceiveHeal(scaled);
+		}
 
 		protected override void OnEnable()
 		{

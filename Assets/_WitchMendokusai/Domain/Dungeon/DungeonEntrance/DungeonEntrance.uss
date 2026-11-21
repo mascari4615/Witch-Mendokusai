@@ -803,6 +803,11 @@
 
 .wm-dungeon-entrance .wm-constraint-popup__effects {
     flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__effects-content {
     flex-direction: row;
     flex-wrap: wrap;
     align-content: flex-start;

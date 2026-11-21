@@ -18,7 +18,8 @@ namespace WitchMendokusai.Tests
 		{
 			DungeonConstraintRunEffect effect = Resolve((DungeonConstraintEffectKind.Stat, 50));
 			Assert.AreEqual(1f, effect.WaveMultiplier);
-			Assert.AreEqual(10, effect.ScaleHeal(10));
+			double carry = 0d;
+			Assert.AreEqual(10, effect.ScaleHeal(10, ref carry));
 			Assert.AreEqual(3, effect.ChoiceCount(3));
 			Assert.AreEqual(100, effect.StartHealth(100));
 			Assert.AreEqual(180d, effect.ScaleDifficultyStep(180d));
@@ -32,13 +33,36 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void HealCanDropToZeroButChoiceAndHealthKeepOne()
+		public void HealCanDropToZeroAndChoiceKeepsOne()
 		{
-			Assert.AreEqual(0, Resolve((DungeonConstraintEffectKind.HealRate, -100)).ScaleHeal(10));
-			Assert.AreEqual(5, Resolve((DungeonConstraintEffectKind.HealRate, -50)).ScaleHeal(10));
+			double carry = 0d;
+			Assert.AreEqual(0, Resolve((DungeonConstraintEffectKind.HealRate, -100)).ScaleHeal(10, ref carry));
+			carry = 0d;
+			Assert.AreEqual(5, Resolve((DungeonConstraintEffectKind.HealRate, -50)).ScaleHeal(10, ref carry));
 			Assert.AreEqual(1, Resolve((DungeonConstraintEffectKind.ChoiceCount, -5)).ChoiceCount(3));
-			Assert.AreEqual(1, Resolve((DungeonConstraintEffectKind.StartHealth, -100)).StartHealth(100));
 			Assert.AreEqual(80, Resolve((DungeonConstraintEffectKind.StartHealth, -20)).StartHealth(100));
+		}
+
+		[Test]
+		public void SmallHealsAccumulateInsteadOfVanishing()
+		{
+			// 재생 1 에 회복 -25%: 네 번에 세 번 회복
+			DungeonConstraintRunEffect effect = Resolve((DungeonConstraintEffectKind.HealRate, -25));
+			double carry = 0d;
+			int total = 0;
+			for (int i = 0; i < 4; i++)
+				total += effect.ScaleHeal(1, ref carry);
+			Assert.AreEqual(3, total);
+		}
+
+		[Test]
+		public void InvalidSumsFailFast()
+		{
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => Resolve((DungeonConstraintEffectKind.StartHealth, -100)));
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => Resolve((DungeonConstraintEffectKind.StartHealth, 10)));
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => Resolve((DungeonConstraintEffectKind.HealRate, -150)));
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => Resolve((DungeonConstraintEffectKind.EliteExtra, -1)));
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => Resolve((DungeonConstraintEffectKind.WaveRate, -100)));
 		}
 
 		[Test]

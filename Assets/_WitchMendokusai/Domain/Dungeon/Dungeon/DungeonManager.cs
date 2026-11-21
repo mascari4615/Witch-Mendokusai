@@ -164,12 +164,14 @@ namespace WitchMendokusai
 				return;
 			dungeon.ValidateWaves();
 			dungeon.ValidateMapObjects();
+			// 제약 데이터가 잘못이면 여기서 실패. 전환 표시 전이라 다음 입장이 막히지 않음
+			DungeonConstraintRunEffect constraintEffect = DungeonConstraintRules.RunEffect(dungeon.SelectedConstraints());
 			isTransitioning = true;
 			Debug.Log($"{nameof(StartDungeon)} ({dungeon.Name})");
 
 			EnsureDungeonUI();
 			CurDungeon = dungeon;
-			ConstraintEffect = DungeonConstraintRules.RunEffect(dungeon.SelectedConstraints());
+			ConstraintEffect = constraintEffect;
 			CurThreat = ConstraintEffect.ApplyTo(ResolveThreat(dungeon, threatLevel));
 			dungeonStrategy = DungeonObjectiveStrategyFactory.Create(dungeon);
 
