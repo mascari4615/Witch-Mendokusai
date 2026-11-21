@@ -14,23 +14,23 @@ namespace WitchMendokusai
 	public sealed class FlameHeavyUltimateFx : WorldUltimateFx
 	{
 		[Header("색")]
-		[SerializeField, ColorUsage(false, true)] private Color fireTint = new(2.4f, 1.25f, 0.45f);
-		[SerializeField, ColorUsage(false, true)] private Color coreTint = new(3f, 2.4f, 1.4f);
+		[SerializeField, ColorUsage(false, true)] private Color fireTint = new(1.2f, 0.52f, 0.18f);
+		[SerializeField, ColorUsage(false, true)] private Color coreTint = new(2.2f, 1.6f, 0.9f);
 		[SerializeField] private Color fireLightColor = new(1f, 0.55f, 0.2f, 1f);
-		[SerializeField] private Color smokeColor = new(0.28f, 0.26f, 0.25f, 0.85f);
+		[SerializeField] private Color smokeColor = new(0.17f, 0.15f, 0.14f, 0.95f);
 		[SerializeField] private Color emberColor = new(1f, 0.6f, 0.2f, 1f);
 		[SerializeField] private Color scorchColor = new(0.06f, 0.04f, 0.03f, 0.85f);
 		[SerializeField] private Color scorchLine = new(1f, 0.45f, 0.1f, 1f);
 
 		[Header("방향")]
-		[SerializeField, Range(-60f, 60f), Tooltip("화면 오른쪽 기준 아래 (카메라 쪽) 로 꺾는 각도")] private float aimDown = 22f;
+		[SerializeField, Range(-60f, 60f), Tooltip("화면 오른쪽 기준 아래 (카메라 쪽) 로 꺾는 각도")] private float aimDown = 10f;
 		[SerializeField, Min(0f), Tooltip("불길 시작점을 손 앞으로 빼는 거리 (인물을 가리지 않게)")] private float muzzleForward = 0.8f;
 		[SerializeField, Min(0f)] private float muzzleHeight = 0.9f;
 
 		[Header("불길")]
-		[SerializeField, Min(1f), Tooltip("불길 길이 (인물 키 0.8 의 약 11배)")] private float flameLength = 9f;
+		[SerializeField, Min(1f), Tooltip("불길 길이 (인물 키 0.8 의 약 11배)")] private float flameLength = 6.5f;
 		[SerializeField, Min(0.2f), Tooltip("끝 반지름")] private float flameEndRadius = 2.3f;
-		[SerializeField, Min(0)] private int firePerSecond = 360;
+		[SerializeField, Min(0)] private int firePerSecond = 300;
 		[SerializeField, Min(0)] private int corePerSecond = 90;
 		[SerializeField, Min(0)] private int smokePerSecond = 34;
 		[SerializeField] private Vector2 fireSize = new(0.7f, 1.1f);
@@ -44,8 +44,8 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.1f), Tooltip("역류 모음 (m01 0.8s)")] private float gatherSeconds = 0.9f;
 		[SerializeField, Min(0.2f), Tooltip("불길 지속 (m01 거대 화염 1.5s)")] private float flameSeconds = 1.6f;
 		[SerializeField, Min(0.1f), Tooltip("뼈대 원뿔이 다 뻗는 시간. 입자가 끝까지 가는 시간 (불길 수명) 과 맞춤")] private float reachSeconds = 0.45f;
-		[SerializeField, Min(0.1f)] private float smokeSeconds = 1.6f;
-		[SerializeField, Min(0.1f)] private float emberLinger = 2.4f;
+		[SerializeField, Min(0.1f)] private float smokeSeconds = 1.8f;
+		[SerializeField, Min(0.1f)] private float emberLinger = 1.6f;
 		[SerializeField, Min(0.1f)] private float restoreSeconds = 1.2f;
 
 		[Header("빛")]
@@ -57,7 +57,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(1f)] private float flameRange = 12f;
 
 		[Header("후처리")]
-		[SerializeField, Min(0f)] private float bloom = 1.4f;
+		[SerializeField, Min(0f)] private float bloom = 0.9f;
 		[SerializeField, Range(0f, 1f)] private float vignette = 0.22f;
 		[SerializeField, Range(0f, 60f)] private float fireSaturation = 15f;
 
@@ -129,8 +129,8 @@ namespace WitchMendokusai
 		{
 			Gradient gradient = new();
 			gradient.SetKeys(
-				new[] { new GradientColorKey(new Color(1f, 0.95f, 0.75f), 0f), new GradientColorKey(new Color(1f, 0.55f, 0.15f), 0.35f), new GradientColorKey(new Color(0.6f, 0.12f, 0.04f), 0.8f), new GradientColorKey(new Color(0.2f, 0.05f, 0.03f), 1f) },
-				new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.06f), new GradientAlphaKey(0.75f, 0.55f), new GradientAlphaKey(0f, 1f) });
+				new[] { new GradientColorKey(new Color(1f, 0.95f, 0.75f), 0f), new GradientColorKey(new Color(1f, 0.55f, 0.15f), 0.35f), new GradientColorKey(new Color(0.45f, 0.1f, 0.03f), 0.7f), new GradientColorKey(Color.black, 1f) },
+				new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(0.6f, 0.06f), new GradientAlphaKey(0.35f, 0.5f), new GradientAlphaKey(0f, 1f) });
 			return gradient;
 		}
 
@@ -146,7 +146,7 @@ namespace WitchMendokusai
 				{
 					Vector3 from = run.Caster + UltimateFxStage.RandomRingPoint(gatherRadius.x, gatherRadius.y) + Vector3.up * Random.Range(0.1f, 1.6f);
 					float life = Random.Range(0.3f, 0.45f);
-					UltimateFxStage.Emit(embers, from, (muzzle - from) / life, Random.Range(0.08f, 0.16f), life, emberColor);
+					UltimateFxStage.Emit(embers, from, (muzzle - from) / life, Random.Range(0.16f, 0.3f) * sizeScale, life, emberColor);
 				});
 			}
 
@@ -161,7 +161,7 @@ namespace WitchMendokusai
 				float pop = now > ReleaseTime ? 1f - UltimateFxRun.Span(now, ReleaseTime, ReleaseTime + 0.25f) : 1f;
 				float pulse = 1f + 0.12f * Mathf.Sin(now * 38f);
 				ball.transform.localScale = Vector3.one * Mathf.Lerp(0.15f, 1.1f, grow) * pulse * pop;
-				ballMaterial.SetColor("_Color", coreTint * 0.5f * grow * pop);
+				ballMaterial.SetColor("_Color", fireTint * grow * pop);
 			}, () => run.Destroy(ball));
 
 			Light hand = WorldLight(stage, "FlameHand", LightType.Point, fireLightColor, handRange.y);

@@ -27,20 +27,21 @@ namespace WitchMendokusai
 
 		[Header("색")]
 		[SerializeField, ColorUsage(false, true)] private Color circleColor = new(0.4f, 1.6f, 1.8f);
-		[SerializeField, ColorUsage(false, true)] private Color discColor = new(1.2f, 2.4f, 2.6f);
+		[SerializeField, ColorUsage(false, true)] private Color discColor = new(0.45f, 1.9f, 2.6f);
 		[SerializeField, ColorUsage(false, true)] private Color photonColor = new(2.6f, 3f, 3f);
 		[SerializeField] private Color lightColor = new(0.55f, 0.95f, 1f, 1f);
 		[SerializeField, ColorUsage(false, true)] private Color blastColor = new(0.7f, 2.2f, 2.4f);
-		[SerializeField] private Color rockColor = new(0.34f, 0.32f, 0.33f, 1f);
-		[SerializeField] private Color clodColor = new(0.3f, 0.26f, 0.23f, 0.9f);
+		[SerializeField] private Color rockColor = new(0.24f, 0.22f, 0.21f, 1f);
+		[SerializeField] private Color clodColor = new(0.16f, 0.13f, 0.11f, 0.9f);
 
 		[Header("크기")]
 		[SerializeField, Min(0.3f)] private float coreDiameter = 2.2f;
-		[SerializeField, Min(0.5f), Tooltip("원반 바깥 반지름")] private float discRadius = 3.6f;
+		[SerializeField, Min(0.5f), Tooltip("원반 바깥 반지름")] private float discRadius = 2.8f;
 		[SerializeField, Range(0.05f, 0.9f), Tooltip("원반 안 반지름 / 바깥")] private float discInner = 0.36f;
 		[SerializeField, Range(0f, 80f), Tooltip("원반을 카메라 쪽으로 기울이는 각도 (15도면 바닥 고리처럼 납작, 크면 앞 가장자리가 땅에 묻힘)")] private float discTilt = 32f;
-		[SerializeField, Min(0.5f), Tooltip("멈춘 높이 (표적 위). 원반 앞 가장자리 (반지름 x sin 기울기) 보다 높게")] private float hoverHeight = 2.8f;
+		[SerializeField, Min(0.5f), Tooltip("멈춘 높이 (표적 위). 원반 앞 가장자리 (반지름 x sin 기울기) 보다 높게")] private float hoverHeight = 1.9f;
 		[SerializeField, Min(1f), Tooltip("원반 둘레 아지랑이 반지름 / 원반 반지름")] private float hazeRatio = 1.1f;
+		[SerializeField, Range(0f, 0.5f), Tooltip("아지랑이 밝기. 높으면 원반이 희뿌연 안개 고리로 읽힘 (1회차 촬영)")] private float hazeBrightness = 0.05f;
 		[SerializeField, Min(2f)] private float fallHeight = 14f;
 		[SerializeField, Min(0.5f)] private float circleRadius = 4.5f;
 
@@ -63,13 +64,13 @@ namespace WitchMendokusai
 		[Header("후처리")]
 		[SerializeField, Min(0f)] private float bloom = 1.5f;
 		[SerializeField, Range(0f, 1f)] private float vignette = 0.3f;
-		[SerializeField, Range(-100f, 0f)] private float suckSaturation = -25f;
+		[SerializeField, Range(-100f, 0f)] private float suckSaturation = 0f;
 
 		[Header("반응")]
 		[SerializeField, Min(0)] private int rockCount = 14;
 		[SerializeField, Min(10f), Tooltip("혜성 하나가 초당 남기는 꼬리 점")] private float cometTrailPerSecond = 240f;
 		[SerializeField] private Vector2 rockSize = new(0.5f, 1.1f);
-		[SerializeField, Min(0)] private int clodsPerSecond = 70;
+		[SerializeField, Min(0)] private int clodsPerSecond = 32;
 		[SerializeField, Min(0)] private int blastPuffs = 40;
 		[SerializeField, Min(0)] private int ejectCount = 30;
 		[SerializeField, Min(1f)] private float ejectSpeed = 11f;
@@ -221,7 +222,7 @@ namespace WitchMendokusai
 				haze.transform.localScale = Vector3.one * discScale * hazeRatio;
 				float glow = Mathf.Lerp(0.5f, 1f, fall) * (1f + 0.8f * suck + 2.5f * collapse);
 				discMaterial.SetColor("_Color", discColor * 0.75f * glow);
-				hazeMaterial.SetColor("_Color", discColor * 0.18f * glow);
+				hazeMaterial.SetColor("_Color", discColor * hazeBrightness * glow);
 				Vector3 toCamera = run.MainCamera != null ? (run.MainCamera.transform.position - position).normalized : stage.ToCamera;
 				photon.transform.rotation = Quaternion.FromToRotation(Vector3.up, toCamera);
 				photon.transform.localScale = Vector3.one * coreSize * 0.56f;
@@ -251,6 +252,7 @@ namespace WitchMendokusai
 		{
 			UltimateFxRun run = stage.Run;
 			Material rockMaterial = Glow(run, Color.white, Color.black, discColor * 0.05f, true);
+			rockMaterial.SetFloat(SPECULAR_ID, 0.1f);
 			Mesh[] meshes = { Keep(run, UltimateMeshFactory.Rock(901, rockColor, 0.5f)), Keep(run, UltimateMeshFactory.Rock(907, rockColor * 0.85f, 0.6f)) };
 			List<Captive> captives = new();
 			for (int i = 0; i < rockCount; i++)
@@ -309,7 +311,8 @@ namespace WitchMendokusai
 				run.At(captive.Start, () => run.Dust(spot, 0.6f, 5, clodColor));
 			}
 
-			ParticleSystem clods = run.Particles("BlackHoleClods", LitParticle(run, UltimateFxTextures.Smoke, 0.4f), clodsPerSecond * 2 + 40, 0f);
+			// 빛 안 받는 어두운 흙 덩이. 빛 받는 연기로 하면 원반 광원에 하얗게 뭉쳐 원반을 덮는 안개가 됨 (2회차 촬영)
+			ParticleSystem clods = run.Particles("BlackHoleClods", run.Alpha(UltimateFxTextures.Smoke, Color.white), clodsPerSecond * 2 + 40, 0f);
 			UltimateFxStage.SetLifetimeLook(clods, UltimateFxStage.FadeGradient(Color.white, 0.1f, 0.7f), AnimationCurve.Linear(0f, 1f, 1f, 0.2f));
 			ParticleSystem streaks = Streaks(run, "BlackHoleInflow", clodsPerSecond + 40, 0.08f);
 			float carry = 0f;
@@ -323,7 +326,7 @@ namespace WitchMendokusai
 					Vector3 tangent = Vector3.Cross(Vector3.up, offset).normalized;
 					float life = Random.Range(0.55f, 0.85f);
 					Vector3 velocity = (hover - from) / life + tangent * Random.Range(3f, 5f) * sizeScale;
-					UltimateFxStage.Emit(clods, from, velocity, Random.Range(0.3f, 0.6f) * sizeScale, life, clodColor, Random.value * 360f, Random.Range(-200f, 200f));
+					UltimateFxStage.Emit(clods, from, velocity, Random.Range(0.15f, 0.3f) * sizeScale, life * 0.85f, clodColor, Random.value * 360f, Random.Range(-200f, 200f));
 					if (Random.value < 0.5f)
 						UltimateFxStage.Emit(streaks, from + Vector3.up * Random.Range(0.3f, 1.5f), velocity * 1.2f, Random.Range(0.06f, 0.12f), life * 0.8f, new Color(0.6f, 1f, 1f, 1f));
 				}
@@ -340,7 +343,9 @@ namespace WitchMendokusai
 				new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(0.5f, 1f, 1f), 0.35f), new GradientColorKey(new Color(0.1f, 0.3f, 0.45f), 1f) },
 				new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.7f, 0.4f), new GradientAlphaKey(0f, 1f) });
 			UltimateFxStage.SetLifetimeLook(fire, gradient, AnimationCurve.EaseInOut(0f, 0.5f, 1f, 2.6f));
-			Material ejectMaterial = Glow(run, Color.white, Color.black, discColor * 0.1f, true);
+			// 입자 메시는 꼭짓점 색 자리에 입자 색이 들어가 보석빛으로 보임 (2회차 촬영). 바탕색으로 칠함
+			Material ejectMaterial = Glow(run, rockColor, Color.black, Color.black, false);
+			ejectMaterial.SetFloat(SPECULAR_ID, 0.1f);
 			ParticleSystem eject = MeshParticles(run, "BlackHoleEject", Keep(run, UltimateMeshFactory.Rock(913, rockColor, 0.55f)), ejectMaterial, ejectCount + 8, 1.4f, true, 0.25f, 0.6f, true);
 			run.At(BlastTime, () =>
 			{

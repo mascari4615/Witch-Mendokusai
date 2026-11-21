@@ -8,7 +8,7 @@ namespace WitchMendokusai
 	/// </summary>
 	public static partial class UltimateFxTextures
 	{
-		/// <summary> 잡음 무늬, 가로 (u) 로 촘촘하고 세로 (v) 로 성김. 알파는 0.25~1. 원뿔은 길이 방향, 고리판은 둘레 방향 줄무늬가 됨 </summary>
+		/// <summary> 잡음 무늬, 가로 (u) 로 촘촘하고 세로 (v) 로 성김. 알파는 0.05~1 (바닥이 높으면 고르게 희뿌옇게 보임). 원뿔은 길이 방향, 고리판은 둘레 방향 줄무늬가 됨 </summary>
 		public static Texture2D TiledStreaks => Get("tiledStreaks", 256, 256, BuildTiledStreaks, TextureWrapMode.Repeat);
 
 		// 네 귀퉁이를 섞어 이음새를 지운 잡음
@@ -25,7 +25,7 @@ namespace WitchMendokusai
 					Mathf.Lerp(Fbm(u * SCALE_X, v * SCALE_Y, 211, 4), Fbm((u - 1f) * SCALE_X, v * SCALE_Y, 211, 4), u),
 					Mathf.Lerp(Fbm(u * SCALE_X, (v - 1f) * SCALE_Y, 211, 4), Fbm((u - 1f) * SCALE_X, (v - 1f) * SCALE_Y, 211, 4), u),
 					v);
-				float alpha = Mathf.Lerp(0.25f, 1f, Mathf.Clamp01((noise - 0.3f) * 2.2f));
+				float alpha = Mathf.Lerp(0.05f, 1f, Mathf.Clamp01((noise - 0.35f) * 2.6f));
 				pixels[row * width + column] = new Color(1f, 1f, 1f, alpha);
 			}
 		}
