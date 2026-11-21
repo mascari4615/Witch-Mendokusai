@@ -14,6 +14,7 @@ namespace WitchMendokusai
 	{
 		private readonly Sequence sequence;
 		private readonly List<Action> releases = new();
+		private Action finished;
 		private Vector3 contentHome;
 
 		public CardRevealSkin Skin { get; }
@@ -121,22 +122,45 @@ namespace WitchMendokusai
 
 		public void AddRelease(Action release) => releases.Add(release);
 
+		// 끝 알림은 Sequence 콜백이 아니라 갱신이 끝난 뒤 바깥에서 부름
+		// - finished 는 이 Sequence 를 Kill 하고 새 tween 을 만든다. 수동 갱신 콜백 안에서 자기 Sequence 를 Kill 하면
+		//   DOTween 이 갱신 끝에 같은 tween 을 한 번 더 지워 활성 목록이 깨지고 (IndexOutOfRangeException), 그 뒤 만든 tween 이 돌지 않음
+		//   (2026-11-21 MOIS3 Play 재현, 편집 모드에서는 재현 안 됨)
 		public void Start(Action finished)
 		{
-			sequence.InsertCallback(End, () => finished());
+			this.finished = finished;
+			// Sequence 길이를 마지막 Mark 까지 늘리는 빈 표시
+			sequence.InsertCallback(End, () => { });
 			sequence.Play();
 		}
 
-		public void Tick(float deltaTime) => sequence.ManualUpdate(deltaTime, deltaTime);
+		// 공개 중에만 읽음. Kill 뒤에는 부르지 않음
+		public float Elapsed => sequence.Elapsed(false);
+
+		public void Tick(float deltaTime)
+		{
+			sequence.ManualUpdate(deltaTime, deltaTime);
+			if (sequence.Elapsed(false) >= End)
+				RaiseFinished();
+		}
 
 		public void Skip()
 		{
 			Skipping = true;
 			sequence.Complete(true);
+			RaiseFinished();
+		}
+
+		private void RaiseFinished()
+		{
+			Action callback = finished;
+			finished = null;
+			callback?.Invoke();
 		}
 
 		public void Kill()
 		{
+			finished = null;
 			sequence.Kill();
 			Content.localPosition = contentHome;
 			foreach (Action release in releases)

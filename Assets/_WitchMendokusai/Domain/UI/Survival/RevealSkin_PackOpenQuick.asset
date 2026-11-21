@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <RepeatSkin>k__BackingField: {fileID: 0}
   <FullPlays>k__BackingField: 0
-  <DimIn>k__BackingField: 0.2
+  <DimIn>k__BackingField: 0.15
   <CameraDistance>k__BackingField: 0.93
-  <CameraIn>k__BackingField: 0.3
+  <CameraIn>k__BackingField: 0.25
   <PackArt>k__BackingField:
   - {fileID: 21300000, guid: 7039047e89064bf291584d32bc88d5c8, type: 3}
   - {fileID: 21300000, guid: 58c742ae28924f1ebbca245ce3da7ec6, type: 3}
@@ -26,34 +26,52 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 2f4497d64749475c970cc075b96a6aa7, type: 3}
   - {fileID: 21300000, guid: 43ec53128bfc40518a807a48267d2045, type: 3}
   <PackHeightRatio>k__BackingField: 0.42
-  <Enter>k__BackingField: 0.18
+  <Enter>k__BackingField: 0.12
   <EnterDrop>k__BackingField: 0
   <EnterStartScale>k__BackingField: 0.7
   <EnterTilt>k__BackingField: 0
-  <TeaseAt>k__BackingField: 0.06
-  <TeaseIn>k__BackingField: 0.2
+  <TeaseAt>k__BackingField: 0.04
+  <TeaseIn>k__BackingField: 0.12
   <PulseGap>k__BackingField: 0
   <MoteGap>k__BackingField: 0.1
   <MotesPerWave>k__BackingField: 4
   <SheenTime>k__BackingField: 0
-  <PushAt>k__BackingField: 0.15
+  <PushAt>k__BackingField: 0.1
   <PushScale>k__BackingField: 1.05
   <PushCameraDistance>k__BackingField: 1
   <PushDim>k__BackingField: 0.86
   <TrembleMax>k__BackingField: 8
   <TrembleTicks>k__BackingField: 3
-  <SeamAt>k__BackingField: 0.2
-  <BurstAt>k__BackingField: {x: 0.38, y: 0.55, z: 0.85}
+  <SeamAt>k__BackingField: 0.12
+  <BurstAt>k__BackingField: {x: 0.24, y: 0.34, z: 0.5}
   <BloomRadiusRatio>k__BackingField: 0.42
   <CommonBloomRadiusRatio>k__BackingField: 0.3
   <BurstShake>k__BackingField: {x: 6, y: 9, z: 12}
   <SparkCount>k__BackingField: {x: 25, y: 45, z: 65}
-  <PillarTime>k__BackingField: 0.35
+  <PillarTime>k__BackingField: 0.25
   <KickCameraDistance>k__BackingField: 0.92
-  <Fly>k__BackingField: 0.3
-  <FlyStagger>k__BackingField: 0.03
-  <FlipDelay>k__BackingField: 0.05
-  <Flip>k__BackingField: 0.22
+  <Fly>k__BackingField: 0.22
+  <FlyStagger>k__BackingField: 0.02
+  <FlipDelay>k__BackingField: 0.03
+  <Flip>k__BackingField: 0.18
   <BatchCommons>k__BackingField: 1
-  <EpicHold>k__BackingField: 0.4
+  <EpicHold>k__BackingField: 0.3
   <ChainPath>k__BackingField: 1
+  <SkipGuard>k__BackingField: 0.2
+  <SourceOut>k__BackingField: 0.15
+  <BloomTime>k__BackingField: 0.3
+  <RingTime>k__BackingField: 0.35
+  <BurstShakeTime>k__BackingField: 0.25
+  <Gap>k__BackingField: 0.12
+  <RareAfterBatch>k__BackingField: 0.08
+  <LiftUp>k__BackingField: 0.08
+  <LiftDown>k__BackingField: 0.14
+  <PunchUp>k__BackingField: 0.06
+  <PunchDown>k__BackingField: 0.12
+  <SweepTime>k__BackingField: 0.25
+  <EpicBloomTime>k__BackingField: 0.35
+  <EpicSettle>k__BackingField: 0.3
+  <ChainEnter>k__BackingField: 0.08
+  <ChainBurstAt>k__BackingField: 0.1
+  <ChainFly>k__BackingField: 0.18
+  <ChainEpicHold>k__BackingField: 0.2

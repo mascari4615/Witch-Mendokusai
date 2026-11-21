@@ -12,3 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a59dd697a78640f3a9f76677f9803b5c, type: 3}
   m_Name: RevealSkin_LightBeam
   m_EditorClassIdentifier: 
+  <SkipGuard>k__BackingField: 0.2
+  <GatherAt>k__BackingField: 0.04
+  <PopAt>k__BackingField: 0.45
+  <StepTime>k__BackingField: 0.18
+  <JitterTime>k__BackingField: 0.18
+  <PopTime>k__BackingField: 0.16
+  <PopBloomTime>k__BackingField: 0.35
+  <Hold>k__BackingField: 0.06
+  <BeamGap>k__BackingField: 0.07
+  <BeamIn>k__BackingField: 0.08
+  <DropDelay>k__BackingField: 0.04
+  <Drop>k__BackingField: 0.15
+  <EpicDrop>k__BackingField: 0.2
+  <SweepTime>k__BackingField: 0.25
+  <BeamOut>k__BackingField: 0.25
+  <LandShakeTime>k__BackingField: 0.12
+  <EpicStand>k__BackingField: 0.25
+  <EpicSettle>k__BackingField: 0.15
+  <EpicBeamOut>k__BackingField: 0.5
+  <EpicBloomTime>k__BackingField: 0.4
+  <EpicShakeTime>k__BackingField: 0.3

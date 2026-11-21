@@ -17,6 +17,10 @@ namespace WitchMendokusai
 		private CardRevealRun run;
 		private CardRevealSkin skin;
 		private Vector3 contentScale = Vector3.one;
+		// 이번 공개의 카드 층 확대. 확대 tween 과 끝 상태가 같은 값을 씀
+		private float contentZoom = 1f;
+		// 이번 프레임 Tick 전의 보호 구간 여부. 끊긴 프레임 한 번으로 보호 구간이 지나가도 그 프레임 입력 (UI 사건 포함) 은 보호
+		private bool guardedThisFrame;
 		private bool zoomed;
 		private Action releaseCamera;
 		private float choiceUnlockAt;
@@ -27,6 +31,8 @@ namespace WitchMendokusai
 		public bool IsRevealing { get; private set; }
 		// 공개 중, 건너뛰기 직후, 건너뛴 클릭을 떼는 프레임까지 고르기 입력 무시
 		public bool BlocksChoice => IsRevealing || Time.unscaledTime < choiceUnlockAt || waitPointerRelease || Time.frameCount <= pointerReleasedFrame;
+		// 시작 직후 보호 구간. 입력이 고르기도 건너뛰기도 하지 않음 (스킨 SkipGuard)
+		public bool InSkipGuard => IsRevealing && (guardedThisFrame || run.Elapsed < skin.SkipGuard);
 		// 공개가 끝난 순간. 자연 종료와 건너뛰기 모두
 		public event Action Finished = delegate { };
 
@@ -117,7 +123,8 @@ namespace WitchMendokusai
 			stage.Dim.color = stage.DimColor(0f);
 			reveal.Play(0f, stage.Dim.DOFade(skin.DimAlpha, skin.DimIn).SetEase(Ease.OutQuad));
 			zoomed = true;
-			reveal.Play(0f, content.DOScale(contentScale * (chest ? skin.ChestContentZoom : skin.ContentZoom), skin.CameraIn).SetEase(Ease.OutCubic));
+			contentZoom = chest ? skin.ChestContentZoom : skin.ContentZoom;
+			reveal.Play(0f, content.DOScale(contentScale * contentZoom, skin.CameraIn).SetEase(Ease.OutCubic));
 			if (CameraManager.TryGetExistingInstance(out CameraManager cameraManager))
 				releaseCamera = cameraManager.PunchZoom(skin.CameraDistance, skin.CameraFieldOfView, skin.CameraIn, float.PositiveInfinity, skin.CameraOut, AnimationCurve.EaseInOut(0f, 0f, 1f, 1f));
 		}
@@ -142,12 +149,15 @@ namespace WitchMendokusai
 			IsRevealing = false;
 		}
 
-		// 고르기 버튼 입력 관문. 막힌 입력은 건너뛰기로 소비
+		// 고르기 버튼 입력 관문. 막힌 입력은 소비. 보호 구간이 지났으면 건너뛰기
 		public bool ConsumeBlockedChoice()
 		{
 			if (BlocksChoice == false)
 				return false;
-			SkipAll();
+			if (InSkipGuard == false)
+				SkipAll();
+			else
+				HoldPointerUntilRelease();
 			return true;
 		}
 
@@ -156,10 +166,15 @@ namespace WitchMendokusai
 			if (IsRevealing == false || run == null)
 				return;
 			UiSfx.Play(skin.TierSfx(run.Best));
-			run.Skip();
+			// 잠금을 먼저. Skip 이 Finished 를 불러 그 처리기가 새 공개를 시작해도 새 공개의 잠금을 덮지 않게
 			choiceUnlockAt = Time.unscaledTime + skin.SkipChoiceLock;
-			waitPointerRelease = InputManager.TryGetExistingInstance(out InputManager inputManager) && inputManager.IsPointerPressed;
+			HoldPointerUntilRelease();
+			run.Skip();
 		}
+
+		// 연출 중 누른 클릭은 뗄 때 고르기가 되므로, 뗀 다음 프레임까지 고르기 막음
+		private void HoldPointerUntilRelease() =>
+			waitPointerRelease |= InputManager.TryGetExistingInstance(out InputManager inputManager) && inputManager.IsPointerPressed;
 
 		private void OnRunFinished()
 		{
@@ -194,21 +209,27 @@ namespace WitchMendokusai
 				zoomed = false;
 				return;
 			}
-			if (zoomed == false)
-				return;
 			// 고르는 동안에도 배경은 조금 어둡게 둠
 			stage.Dim.DOFade(skin.DimAlpha * skin.HoldDimRatio, skin.CameraOut).SetUpdate(true);
-			content.DOScale(contentScale, skin.CameraOut).SetEase(Ease.OutCubic).SetUpdate(true).OnComplete(() => zoomed = false);
+			// 카드 층 확대는 고르는 동안 그대로 두고 닫힐 때 (Cancel) 되돌림. 공개 직후 줄이면 고르려는 순간 카드 크기가 바뀜
+			if (zoomed)
+				content.localScale = contentScale * contentZoom;
 		}
 
 		private void Update()
 		{
-			if (IsRevealing && run != null)
+			guardedThisFrame = IsRevealing && run.Elapsed < skin.SkipGuard;
+			if (IsRevealing)
 				run.Tick(RevealClock.Delta);
 			bool hasInput = InputManager.TryGetExistingInstance(out InputManager inputManager);
-			// 연 입력과 같은 프레임은 건너뛰기 제외
-			if (IsRevealing && Time.frameCount > startedFrame && hasInput && inputManager.IsAnyKeyPressedThisFrame)
-				SkipAll();
+			// 연 입력과 같은 프레임, 시작 직후 보호 구간은 건너뛰기 제외. 보호 구간에 누른 클릭은 뗄 때까지 고르기 막음
+			if (IsRevealing && hasInput && inputManager.IsAnyKeyPressedThisFrame)
+			{
+				if (Time.frameCount > startedFrame && InSkipGuard == false)
+					SkipAll();
+				else
+					HoldPointerUntilRelease();
+			}
 			if (waitPointerRelease && (hasInput == false || inputManager.IsPointerPressed == false))
 			{
 				waitPointerRelease = false;
