@@ -27,7 +27,9 @@
     --wm-run-equipment-subsecond-format: "0.0";
 
     position: absolute;
-    left: 50%;
+    /* 가운데보다 조금 오른쪽. 칸이 최대 10개 (스킬 3, 장비 7) 면 16:10 (1280x800) 에서 왼쪽 아래 체력 띠와 겹쳐서 (2026-11-21 캡처)
+       체력 띠 오른쪽 끝 약 26%, 오른쪽 아래 재화 띠 시작 약 83% 사이의 가운데 */
+    left: 54%;
     bottom: 25px;
     translate: -50% 0;
     flex-direction: row;
