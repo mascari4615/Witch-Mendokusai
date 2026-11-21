@@ -20,4 +20,5 @@ MonoBehaviour:
   <Type>k__BackingField: 0
   <Prefab>k__BackingField: {fileID: 3900167018769748454, guid: 4caae206724134042a926278417df017, type: 3}
   <ShareWorldPosition>k__BackingField: 0
+  <DisplayName>k__BackingField: "이동 시험 코스"
   <RealSecondsPerGrowthMinute>k__BackingField: 60

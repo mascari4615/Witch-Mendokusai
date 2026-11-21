@@ -20,4 +20,5 @@ MonoBehaviour:
   <Type>k__BackingField: 0
   <Prefab>k__BackingField: {fileID: 3238394702432455760, guid: 412fe0e214e39e1449a22cf066f2836a, type: 3}
   <ShareWorldPosition>k__BackingField: 0
+  <DisplayName>k__BackingField: "금빛 기둥 탐험"
   <RealSecondsPerGrowthMinute>k__BackingField: 60

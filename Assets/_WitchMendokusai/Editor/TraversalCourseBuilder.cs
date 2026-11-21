@@ -71,6 +71,7 @@ namespace WitchMendokusai.EditorTools
 				stage.Name = "이동 시험 코스";
 				stage.Description = "지상 이동, 6m 등반, 12m 활공 간격, 체크포인트 복귀";
 				SerializedObject stageData = new(stage);
+				stageData.FindProperty("<DisplayName>k__BackingField").stringValue = stage.Name;
 				stageData.FindProperty("<Type>k__BackingField").enumValueIndex = 0;
 				stageData.FindProperty("<ShareWorldPosition>k__BackingField").boolValue = false;
 				stageData.FindProperty("<Prefab>k__BackingField").objectReferenceValue = prefab.GetComponent<StageObject>();
