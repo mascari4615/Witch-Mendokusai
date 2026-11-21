@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c831ab7efc084642bf6181b34a50caed, type: 3}
+  m_Name: "DOLP_LevelTiers_\uC790\uB77C\uB294 \uC2E4"
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.DollPassiveData
+  <DisplayName>k__BackingField: "\uC790\uB77C\uB294 \uC2E4"
+  <Description>k__BackingField: "\uB808\uBCA8 10, 20, 35\uC5D0 \uB2FF\uC744 \uB54C\uB9C8\uB2E4 \uAD00\uD1B5\uACFC \uD22C\uC0AC\uCCB4 \uC218\uAC00 1\uC529 \uB298\uC5B4\uB09C\uB2E4."
+  <Kind>k__BackingField: 1
+  <HitStat>k__BackingField: 500
+  <PercentPerHit>k__BackingField: 0
+  <MaxStacks>k__BackingField: 0
+  <TierLevels>k__BackingField:
+  - 10
+  - 20
+  - 35
+  <TierGrants>k__BackingField:
+  - stat: 454
+    amount: 1
+  - stat: 450
+    amount: 1
