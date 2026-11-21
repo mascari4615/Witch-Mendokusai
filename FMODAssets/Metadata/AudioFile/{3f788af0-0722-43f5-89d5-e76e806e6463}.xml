@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.04.00">
 	<object class="AudioFile" id="{3f788af0-0722-43f5-89d5-e76e806e6463}">
 		<property name="assetPath">
 			<value>RPG Sound Pack/NPC/ogre/ogre5.wav</value>

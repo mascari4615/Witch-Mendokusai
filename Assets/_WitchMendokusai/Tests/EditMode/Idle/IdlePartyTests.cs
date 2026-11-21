@@ -83,7 +83,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void IdleSfx_UsesExistingFmodEventsWithoutNativeAudioClips()
 		{
-			const string cachePath = "Assets/Plugins/FMOD/Cache/Editor/FMODStudioCache.asset";
+			const string cachePath = "Assets/Resources/FMOD/FMODStudioCache.asset";
 			string cache = File.ReadAllText(cachePath);
 			FieldInfo[] fields = typeof(ProceduralSfx).GetFields(BindingFlags.NonPublic | BindingFlags.Static);
 			int eventCount = 0;

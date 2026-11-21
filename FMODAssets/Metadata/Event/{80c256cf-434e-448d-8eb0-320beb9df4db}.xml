@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.04.00">
 	<object class="Event" id="{80c256cf-434e-448d-8eb0-320beb9df4db}">
 		<property name="name">
 			<value>Stage 1</value>
@@ -90,7 +90,7 @@
 	<object class="MixerBusPanner" id="{e5c3276f-eda7-4208-a901-4b339e042d78}" />
 	<object class="SingleSound" id="{ba2cfdd5-e61b-4f63-bff6-08cc68b339d5}">
 		<property name="length">
-			<value>41.14288</value>
+			<value>41.142879999999998</value>
 		</property>
 		<relationship name="audioFile">
 			<destination>{9e6b7d95-d6d5-43c0-9c0d-342a38934edd}</destination>

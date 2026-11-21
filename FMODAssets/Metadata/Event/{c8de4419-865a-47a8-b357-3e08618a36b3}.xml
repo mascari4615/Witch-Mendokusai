@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.04.00">
 	<object class="Event" id="{c8de4419-865a-47a8-b357-3e08618a36b3}">
 		<property name="name">
 			<value>WindowClose</value>

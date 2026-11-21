@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.04.00">
 	<object class="AudioFile" id="{2af14b3d-b471-4df9-a123-1b373ba08aae}">
 		<property name="assetPath">
 			<value>Juhani Junkala/Chiptune Adventures/Juhani Junkala [Chiptune Adventures] 3. Boss Fight.ogg</value>
@@ -8,13 +8,13 @@
 			<value>true</value>
 		</property>
 		<property name="frequencyInKHz">
-			<value>44.0999985</value>
+			<value>44.099998499999998</value>
 		</property>
 		<property name="channelCount">
 			<value>2</value>
 		</property>
 		<property name="length">
-			<value>71.72415</value>
+			<value>71.724149999999995</value>
 		</property>
 		<relationship name="masterAssetFolder">
 			<destination>{2ab7eb1a-0a54-4fe3-ac6e-745e6f870bc3}</destination>

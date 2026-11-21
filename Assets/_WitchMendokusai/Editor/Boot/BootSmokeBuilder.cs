@@ -97,15 +97,7 @@ namespace WitchMendokusai.EditorTools
                 Directory.CreateDirectory(dir);
             }
 
-            BuildPlayerOptions options = new BuildPlayerOptions
-            {
-                scenes = scenes,
-                locationPathName = outPath,
-                target = BuildTarget.StandaloneWindows64,
-                targetGroup = BuildTargetGroup.Standalone,
-                // Development = Debug.Log / logMessageReceived 완전 동작 (NRE 카운트 신뢰).
-                options = BuildOptions.Development,
-            };
+            BuildPlayerOptions options = WMBuilder.CreatePlayerOptions(scenes, outPath, BuildTarget.StandaloneWindows64, development: true);
 
             BuildReport report = BuildPipeline.BuildPlayer(options);
             BuildSummary s = report.summary;

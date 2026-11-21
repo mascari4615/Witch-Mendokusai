@@ -157,20 +157,7 @@ namespace WitchMendokusai.EditorTools
                 Directory.CreateDirectory(directory);
             }
 
-            BuildOptions options = BuildOptions.None;
-            if (development)
-            {
-                options |= BuildOptions.Development;
-            }
-
-            BuildPlayerOptions playerOptions = new BuildPlayerOptions
-            {
-                scenes = scenes,
-                locationPathName = outPath,
-                target = platform.Target,
-                targetGroup = BuildPipeline.GetBuildTargetGroup(platform.Target),
-                options = options,
-            };
+            BuildPlayerOptions playerOptions = CreatePlayerOptions(scenes, outPath, platform.Target, development);
 
             // 구성 검사 먼저 — 어긋나면 30분짜리 빌드를 태우기 전에 여기서 멈춘다.
             // 빌드 매니저는 프로젝트 상태를 바꾸지 않는다(검사만).
@@ -196,6 +183,20 @@ namespace WitchMendokusai.EditorTools
             AppendFailedSteps(builder, report);
             detail = builder.ToString();
             return summary;
+        }
+
+        internal static BuildPlayerOptions CreatePlayerOptions(string[] scenes, string outPath, BuildTarget target, bool development)
+        {
+            return new BuildPlayerOptions
+            {
+                scenes = scenes,
+                locationPathName = outPath,
+                target = target,
+                targetGroup = BuildPipeline.GetBuildTargetGroup(target),
+                options = development ? BuildOptions.Development : BuildOptions.None,
+                // Unity 7에서 사라진 DEVELOPMENT_BUILD 대신 FMOD 로깅 DLL 패키징과 컴파일을 일치
+                extraScriptingDefines = development ? new[] { "FMOD_LOGGING" } : Array.Empty<string>(),
+            };
         }
 
         private static bool EnsureActiveTarget(WMPlatform platform, out string error)

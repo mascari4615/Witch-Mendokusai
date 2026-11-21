@@ -410,6 +410,10 @@ jobs:
           #   같은 크래시 2회 연속, Library 사실상 0GB). 유니티 캐시는 지우면 안 되는 자산이다.
           clean: false
 
+      - name: Prepare FMOD for Unity
+        shell: powershell
+        run: .\Tools\Prepare-Fmod.ps1
+
       - name: Resolve Unity editor
         id: unity
         shell: powershell

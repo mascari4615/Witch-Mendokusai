@@ -1,0 +1,90 @@
+diff --git a/Assets/Plugins/FMOD/src/Editor/EditorEventRef.cs b/Assets/Plugins/FMOD/src/Editor/EditorEventRef.cs
+index 406d95d01..d00f14c25 100644
+--- a/Assets/Plugins/FMOD/src/Editor/EditorEventRef.cs
++++ b/Assets/Plugins/FMOD/src/Editor/EditorEventRef.cs
+@@ -1 +1 @@
+-﻿using System;
++using System;
+@@ -14,2 +14,8 @@ namespace FMODUnity
+-        [SerializeField]
+-        public FMOD.GUID Guid;
++        [SerializeField, UnityEngine.Serialization.FormerlySerializedAs("Guid")]
++        private SerializedGuid guidData;
++
++        public FMOD.GUID Guid
++        {
++            get => guidData;
++            set => guidData = value;
++        }
+diff --git a/Assets/Plugins/FMOD/src/Editor/EditorUtils.cs b/Assets/Plugins/FMOD/src/Editor/EditorUtils.cs
+index c00761b02..f4963a565 100644
+--- a/Assets/Plugins/FMOD/src/Editor/EditorUtils.cs
++++ b/Assets/Plugins/FMOD/src/Editor/EditorUtils.cs
+@@ -1 +1 @@
+-﻿#if UNITY_ADDRESSABLES_EXIST
++#if UNITY_ADDRESSABLES_EXIST
+@@ -1953 +1953 @@ namespace FMODUnity
+-            SerializedProperty guidProperty = property.FindPropertyRelative("Guid");
++            SerializedProperty guidProperty = property.FindPropertyRelative("GuidData");
+@@ -1964 +1964 @@ namespace FMODUnity
+-            SerializedProperty guidProperty = property.FindPropertyRelative("Guid");
++            SerializedProperty guidProperty = property.FindPropertyRelative("GuidData");
+@@ -1975 +1975 @@ namespace FMODUnity
+-            return EditorUtils.PathFromGUID(property.FindPropertyRelative("Guid").GetGuid());
++            return EditorUtils.PathFromGUID(property.FindPropertyRelative("GuidData").GetGuid());
+diff --git a/Assets/Plugins/FMOD/src/Editor/EventRefDrawer.cs b/Assets/Plugins/FMOD/src/Editor/EventRefDrawer.cs
+index 83b702922..23088dd48 100644
+--- a/Assets/Plugins/FMOD/src/Editor/EventRefDrawer.cs
++++ b/Assets/Plugins/FMOD/src/Editor/EventRefDrawer.cs
+@@ -1 +1 @@
+-﻿using System;
++using System;
+@@ -301 +301 @@ namespace FMODUnity
+-                            property.FindPropertyRelative("Guid").SetGuid(editorEventRef.Guid);
++                            property.FindPropertyRelative("GuidData").SetGuid(editorEventRef.Guid);
+@@ -342 +342 @@ namespace FMODUnity
+-            return property.FindPropertyRelative("Guid");
++            return property.FindPropertyRelative("GuidData");
+diff --git a/Assets/Plugins/FMOD/src/Editor/StudioEventEmitterEditor.cs b/Assets/Plugins/FMOD/src/Editor/StudioEventEmitterEditor.cs
+index d7848deee..5636ca43d 100644
+--- a/Assets/Plugins/FMOD/src/Editor/StudioEventEmitterEditor.cs
++++ b/Assets/Plugins/FMOD/src/Editor/StudioEventEmitterEditor.cs
+@@ -1 +1 @@
+-﻿using System;
++using System;
+@@ -48 +48 @@ namespace FMODUnity
+-            FMOD.GUID guid = eventReference.FindPropertyRelative("Guid").GetGuid();
++            FMOD.GUID guid = eventReference.FindPropertyRelative("GuidData").GetGuid();
+diff --git a/Assets/Plugins/FMOD/src/EventReference.cs b/Assets/Plugins/FMOD/src/EventReference.cs
+index a52839647..fc74c874d 100644
+--- a/Assets/Plugins/FMOD/src/EventReference.cs
++++ b/Assets/Plugins/FMOD/src/EventReference.cs
+@@ -2,0 +3 @@ using UnityEngine;
++using UnityEngine.Serialization;
+@@ -5,0 +7,16 @@ namespace FMODUnity
++    // Unity 7: 이름이 GUID 인 구조체는 자체 타입으로 저장되고 다시 읽으면 0. 저장 전용 이름
++    [Serializable]
++    public struct SerializedGuid
++    {
++        public int Data1;
++        public int Data2;
++        public int Data3;
++        public int Data4;
++
++        public static implicit operator FMOD.GUID(SerializedGuid value) =>
++            new FMOD.GUID { Data1 = value.Data1, Data2 = value.Data2, Data3 = value.Data3, Data4 = value.Data4 };
++
++        public static implicit operator SerializedGuid(FMOD.GUID value) =>
++            new SerializedGuid { Data1 = value.Data1, Data2 = value.Data2, Data3 = value.Data3, Data4 = value.Data4 };
++    }
++
+@@ -9 +26,8 @@ namespace FMODUnity
+-        public FMOD.GUID Guid;
++        [FormerlySerializedAs("Guid")]
++        public SerializedGuid GuidData;
++
++        public FMOD.GUID Guid
++        {
++            get => GuidData;
++            set => GuidData = value;
++        }

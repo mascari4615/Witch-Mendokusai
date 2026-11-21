@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.04.00">
 	<object class="DataFile" id="{99c8e8c1-bc0e-41de-96e8-db6235328249}">
 		<property name="assetPath">
 			<value>UI Soundpack/README.md</value>

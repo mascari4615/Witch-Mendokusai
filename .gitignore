@@ -106,6 +106,8 @@ fmod_editor.log
 
 
 # FMOD files
+/Packages/com.fmod.fmod-for-unity.v204/
+/Assets/Resources/FMOD/FMODStudioCache.asset*
 /Assets/Plugins/FMOD/Resources/FMODStudioCache.asset
 # /Assets/Plugins/FMOD*
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.04.00">
 	<object class="AudioFile" id="{2cc0c67e-8053-413c-ab95-0cc96f6d57fc}">
 		<property name="assetPath">
 			<value>RPG Sound Pack/NPC/gutteral beast/mnstr7.wav</value>

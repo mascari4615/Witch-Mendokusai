@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.04.00">
 	<object class="Event" id="{bd796aff-00f4-4d2b-a441-5764944e6c96}">
 		<property name="name">
 			<value>Bubble</value>

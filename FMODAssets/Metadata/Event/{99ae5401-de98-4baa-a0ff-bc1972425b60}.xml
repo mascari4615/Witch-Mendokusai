@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.04.00">
 	<object class="Event" id="{99ae5401-de98-4baa-a0ff-bc1972425b60}">
 		<property name="name">
 			<value>Boss Fight</value>
@@ -90,7 +90,7 @@
 	<object class="MixerBusPanner" id="{2c07eaf0-b4df-4a6a-97a5-83e27eba5fc0}" />
 	<object class="SingleSound" id="{f5dd8741-01c0-4996-9790-3f8cc56d5fb8}">
 		<property name="length">
-			<value>71.72415</value>
+			<value>71.724149999999995</value>
 		</property>
 		<relationship name="audioFile">
 			<destination>{2af14b3d-b471-4df9-a123-1b373ba08aae}</destination>

@@ -87,6 +87,10 @@ jobs:
       - name: Check Idle build configuration
         run: node .github/scripts/wm-idle-config-audit.mjs
 
+      - name: Prepare FMOD for Unity
+        shell: powershell
+        run: .\Tools\Prepare-Fmod.ps1
+
       - name: Resolve Unity editor (auto-install when missing)
         id: unity
         shell: powershell

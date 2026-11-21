@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.04.00">
 	<object class="AudioFile" id="{225568ba-df85-4846-826d-2e67cc265975}">
 		<property name="assetPath">
 			<value>RPG Sound Pack/NPC/giant/giant5.wav</value>

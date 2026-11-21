@@ -17,6 +17,14 @@ git push origin v0.0.5
 
 Unity의 **WM > Authoring > Scene workspace**에서 독립 장면과 동작을 제작합니다. 자세, 표정, 카메라, 조명과 여러 캐릭터를 편집하고 같은 데이터를 게임에서 재생합니다. [사용법과 현재 범위](Documentation/ContentAuthoring.md).
 
+## FMOD
+
+Unity에서 열기 전에 [FMOD 공식 다운로드](https://www.fmod.com/download#fmodforunity)에서 FMOD for Unity 2.04.00을 받아 아래 명령을 실행합니다. Windows 빌드 러너는 같은 파일을 도구 캐시에서 가져옵니다. Desktop 뱅크는 FMOD Studio 2.04.00에서 생성합니다.
+
+```powershell
+.\Tools\Prepare-Fmod.ps1 -Archive "$env:USERPROFILE\Downloads\fmodstudio20400.tgz"
+```
+
 ## 사용한 리소스/에셋
 
 - [Galmuri (Font)](https://galmuri.quiple.dev/), [(Github)](https://github.com/quiple/galmuri)

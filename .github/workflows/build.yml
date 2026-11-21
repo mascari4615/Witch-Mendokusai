@@ -105,6 +105,10 @@ jobs:
       # The editor version + changeset come from ProjectVersion.txt; if that editor is
       # missing on the laptop the script installs it headlessly (a build machine that
       # needs a human every time the editor is bumped is not a build machine).
+      - name: Prepare FMOD for Unity
+        shell: powershell
+        run: .\Tools\Prepare-Fmod.ps1
+
       - name: Resolve Unity editor (auto-install when missing)
         id: unity
         shell: powershell

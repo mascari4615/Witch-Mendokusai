@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<objects serializationModel="Studio.02.02.00">
+<objects serializationModel="Studio.02.04.00">
 	<object class="Event" id="{de7c8c5a-39dd-41c5-974c-3066ebd4d8bb}">
 		<property name="name">
 			<value>MagnetPull</value>

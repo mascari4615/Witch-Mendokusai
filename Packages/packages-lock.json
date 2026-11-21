@@ -30,6 +30,12 @@
       "dependencies": {},
       "hash": "a77a1b4a89824fb6df293099de3060daf2a432c1"
     },
+    "com.fmod.fmod-for-unity.v204": {
+      "version": "file:com.fmod.fmod-for-unity.v204",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.mascari4615.appearance": {
       "version": "file:com.mascari4615.appearance",
       "depth": 0,
