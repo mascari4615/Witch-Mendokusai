@@ -55,7 +55,7 @@ namespace WitchMendokusai
 				Trauma = 0.9f, Zoom = P(0.07f, 0.04f, 0.06f, 0.2f), Dolly = P(0.04f, 0.04f, 0.05f, 0.2f),
 				Exposure = P(0.9f, 0.015f, 0.03f, 0.12f), Bloom = P(1.8f, 0.02f, 0.08f, 0.3f), Saturation = P(25f, 0.04f, 0.15f, 0.3f), Contrast = P(25f, 0.03f, 0.1f, 0.3f),
 				LensDistortion = P(-0.25f, 0.03f, 0.04f, 0.15f), Vignette = P(0.1f, 0.04f, 0.1f, 0.3f),
-				RadialBlur = P(0.6f, 0.02f, 0.05f, 0.12f), Ripple = P(0.03f, 0.02f, 0f, 0.25f), RippleSpeed = 1.8f,
+				RadialBlur = P(0.4f, 0.02f, 0.05f, 0.12f), Ripple = P(0.03f, 0.02f, 0f, 0.25f), RippleSpeed = 1.8f,
 				ImpactFrame = Kind.Mono, ImpactFrameSeconds = 0.042f, ImpactFrameStrength = 0.85f,
 			},
 			MiniBeat("연쇄 1", 1.24f, 0.34f, 0.018f, 0.2f, 0.2f),
@@ -145,7 +145,7 @@ namespace WitchMendokusai
 		public static Swell[] BlackHoleSwells() => new[]
 		{
 			new Swell { Label = "마법진", FxStart = 0.1f, FxEnd = 1.3f, ReleaseSeconds = 0.3f, Shape = RiseSteady(), TimeScale = 1f, Exposure = -0.4f, Saturation = -15f, Contrast = 8f, Vignette = 0.2f, Zoom = 0.03f, Dolly = 0f, Rumble = 0f },
-			new Swell { Label = "흡입", FxStart = 1.9f, FxEnd = 3.455f, ReleaseSeconds = 0.08f, Shape = RiseSteady(), TimeScale = 0.55f, Exposure = -1f, Saturation = -15f, Contrast = 20f, Vignette = 0.5f, Zoom = 0.14f, Dolly = 0.05f, Rumble = 0.3f },
+			new Swell { Label = "흡입", FxStart = 1.9f, FxEnd = 3.455f, ReleaseSeconds = 0.08f, Shape = RiseSteady(), TimeScale = 0.55f, Exposure = -0.6f, Saturation = -15f, Contrast = 20f, Vignette = 0.5f, Zoom = 0.14f, Dolly = 0.05f, Rumble = 0.3f },
 		};
 
 		public static Beat[] BlackHoleBeats() => new[]
@@ -163,7 +163,7 @@ namespace WitchMendokusai
 				Trauma = 1f, Zoom = P(-0.07f, 0.03f, 0.05f, 0.25f), Dolly = P(-0.04f, 0.03f, 0.05f, 0.25f),
 				Exposure = P(0.85f, 0.02f, 0.05f, 0.14f), Bloom = P(2f, 0.03f, 0.12f, 0.35f), Saturation = P(55f, 0.04f, 0.3f, 0.45f), Contrast = P(20f, 0.03f, 0.12f, 0.3f),
 				LensDistortion = P(0.3f, 0.03f, 0.05f, 0.18f), Vignette = P(0.1f, 0.04f, 0.1f, 0.3f),
-				RadialBlur = P(0.9f, 0.02f, 0.06f, 0.14f), Ripple = P(0.05f, 0.02f, 0f, 0.35f), RippleSpeed = 2f,
+				RadialBlur = P(0.55f, 0.02f, 0.06f, 0.14f), Ripple = P(0.05f, 0.02f, 0f, 0.35f), RippleSpeed = 2f,
 				ImpactFrame = Kind.Silhouette, ImpactFrameSeconds = 0.084f, ImpactFrameStrength = 0.8f,
 			},
 		};

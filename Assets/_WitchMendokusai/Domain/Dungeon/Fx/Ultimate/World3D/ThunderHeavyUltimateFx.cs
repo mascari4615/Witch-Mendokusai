@@ -30,7 +30,7 @@ namespace WitchMendokusai
 		[SerializeField, ColorUsage(false, true)] private Color boltGlow = new(0.9f, 1.1f, 2.6f);
 		[SerializeField] private Color groundLightColor = new(0.85f, 0.9f, 1f, 1f);
 		[SerializeField, ColorUsage(false, true)] private Color ringColor = new(2.4f, 2f, 0.6f);
-		[SerializeField] private Color cloudColor = new(0.42f, 0.45f, 0.55f, 0.9f);
+		[SerializeField] private Color cloudColor = new(0.42f, 0.45f, 0.55f, 0.55f);
 		[SerializeField, ColorUsage(false, true)] private Color cloudFlashColor = new(0.55f, 0.6f, 1f);
 		[SerializeField] private Color sparkColor = new(1f, 0.95f, 0.6f, 1f);
 		[SerializeField] private Color rainColor = new(0.7f, 0.75f, 0.85f, 0.45f);
@@ -46,17 +46,17 @@ namespace WitchMendokusai
 		[SerializeField, Range(0.1f, 1f), Tooltip("구름 속 번쩍임 판 크기 / 구름 크기")] private float cloudFlashSize = 0.45f;
 
 		[Header("줄기")]
-		[SerializeField, Min(1f), Tooltip("구름에서 땅까지")] private float boltHeight = 8.5f;
+		[SerializeField, Min(1f), Tooltip("구름에서 땅까지. 높으면 줄기 위가 화면 위로 잘림 (독립 검토 3회차)")] private float boltHeight = 6f;
 		[SerializeField, Min(2)] private int boltNodes = 14;
 		[SerializeField, Min(0f)] private float boltJitter = 0.55f;
 		[SerializeField, Min(0.01f), Tooltip("심 반지름 (첫 낙뢰는 firstScale 배)")] private float coreRadius = 0.16f;
 		[SerializeField, Min(1f), Tooltip("빛 겉 반지름 / 심 반지름. 크면 빛 번짐에 묻혀 흰 기둥으로 읽힘 (1회차 촬영)")] private float glowRatio = 2f;
 		[SerializeField, Range(0f, 1f), Tooltip("빛 겉 밝기 배율")] private float glowAlpha = 0.2f;
-		[SerializeField, Min(1f)] private float firstScale = 1.7f;
+		[SerializeField, Min(1f)] private float firstScale = 2.2f;
 		[SerializeField, Min(0)] private int firstBranches = 6;
 		[SerializeField] private Vector2Int chainBranches = new(2, 4);
 		[SerializeField, Min(0.05f), Tooltip("줄기 하나 표시 시간 (v2 0.26)")] private float boltShowSeconds = 0.26f;
-		[SerializeField, Min(1f), Tooltip("연쇄 줄기가 꽂히는 시전자 둘레 반지름")] private float chainRadius = 3.6f;
+		[SerializeField, Min(1f), Tooltip("연쇄 줄기가 꽂히는 시전자 둘레 반지름")] private float chainRadius = 2.6f;
 		[SerializeField, Tooltip("연쇄 여섯의 첫 낙뢰 뒤 시각. 간격이 줄어들게")] private float[] chainOffsets = { 0.24f, 0.4f, 0.53f, 0.63f, 0.71f, 0.78f };
 
 		[Header("시간 (초)")]
@@ -65,8 +65,9 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.1f)] private float ringExpandSeconds = 0.5f;
 		[SerializeField, Min(0.1f)] private float ringLinger = 1f;
 		[SerializeField, Min(0.1f)] private float restoreSeconds = 1.4f;
-		[SerializeField, Min(0.05f), Tooltip("첫 낙뢰 자리 땅이 달아오르는 시간")] private float telegraphSeconds = 0.45f;
+		[SerializeField, Min(0.05f), Tooltip("첫 낙뢰 자리 땅이 달아오르는 시간")] private float telegraphSeconds = 0.7f;
 		[SerializeField, Min(0.02f), Tooltip("연쇄 줄기 자리 땅이 달아오르는 시간")] private float chainTelegraphSeconds = 0.12f;
+		[SerializeField, Range(0f, 2f), Tooltip("착지 자리 예고 빛 세기. 낮으면 예고가 안 보임 (독립 검토 3회차)")] private float telegraphGlow = 0.7f;
 
 		[Header("빛")]
 		[SerializeField, Range(0f, 1f)] private float sunDim = 0.45f;
@@ -79,12 +80,12 @@ namespace WitchMendokusai
 
 		[Header("후처리")]
 		[SerializeField, Min(0f)] private float bloom = 1f;
-		[SerializeField, Range(-100f, 0f)] private float stormSaturation = -30f;
+		[SerializeField, Range(-100f, 0f)] private float stormSaturation = -12f;
 		[SerializeField, Range(0f, 1f)] private float vignette = 0.3f;
 
 		[Header("바닥")]
 		[SerializeField, Tooltip("바닥 고리 반지름 (시작, 끝)")] private Vector2 ringRadius = new(2.2f, 3.2f);
-		[SerializeField, Min(0.01f)] private float ringThickness = 0.09f;
+		[SerializeField, Min(0.01f)] private float ringThickness = 0.15f;
 		[SerializeField, Min(16)] private int ringSegments = 96;
 		[SerializeField, Min(0.5f)] private float scorchSize = 2.6f;
 		[SerializeField, Min(0.5f)] private float firstScorchSize = 5.5f;
@@ -156,7 +157,7 @@ namespace WitchMendokusai
 				// 착지 자리 예고: 줄기마다 직전에 땅이 푸르게 달아오름 (첫 낙뢰는 길게)
 				float lead = first ? telegraphSeconds : chainTelegraphSeconds;
 				float glowStart = Mathf.Max(0f, time - lead);
-				GroundGlow(run, spots[i], (first ? 3.2f : 2f) * sizeScale, boltGlow * 0.25f, glowStart, time - glowStart, 0.05f, time - glowStart + 0.05f);
+				GroundGlow(run, spots[i], (first ? 3.6f : 2.2f) * sizeScale, boltGlow * telegraphGlow, glowStart, time - glowStart, 0.05f, time - glowStart + 0.05f);
 			}
 			ComposeRing(stage, center, lights[1]);
 			// 마지막 연쇄 광원 (A) 은 트랙 끝에 세기 0 만 됨. 바닥 고리 뒤 끔
@@ -346,7 +347,7 @@ namespace WitchMendokusai
 				float flicker = 0.85f + 0.15f * Mathf.Sin(run.Now * 47f);
 				ringMaterial.SetColor("_Color", ringColor * (1f + 2f * Spike(run.Now, RingTime, 0.02f, 0.15f)) * fade * flicker);
 			});
-			GroundGlow(run, center, ringRadius.y * 2.4f, ringColor * 0.35f, RingTime, 0.05f, 0.5f, end - RingTime);
+			GroundGlow(run, center, ringRadius.y * 2.4f, ringColor * 0.6f, RingTime, 0.05f, 0.5f, end - RingTime);
 
 			run.Track(RingTime, end - RingTime, _ =>
 			{
@@ -356,7 +357,7 @@ namespace WitchMendokusai
 			}, () => light.enabled = false);
 
 			// 감전 아크: 고리 둘레 땅 위 짧은 꺾인 관이 0.05초마다 모양을 바꾸며 기어감
-			Material arcMaterial = run.Additive(UltimateFxTextures.White, boltCore * 0.7f);
+			Material arcMaterial = run.Additive(UltimateFxTextures.White, boltCore * 1.2f);
 			for (int i = 0; i < arcCount; i++)
 			{
 				Mesh arcMesh = Keep(run, new Mesh { name = "ThunderArc" });
@@ -383,7 +384,7 @@ namespace WitchMendokusai
 					{
 						List<float> width = new();
 						for (int point = 0; point < strand.Count; point++)
-							width.Add(coreRadius * 0.5f);
+							width.Add(coreRadius * 0.9f);
 						widths.Add(width);
 					}
 					UltimateMeshFactory.FillTube(arcMesh, new List<IReadOnlyList<Vector3>>(strands), widths, 5, 0.2f, 0.6f);

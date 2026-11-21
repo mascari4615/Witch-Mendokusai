@@ -36,7 +36,7 @@ namespace WitchMendokusai
 		{
 			new Entry
 			{
-				Name = "ThunderHeavyV2", DevKey = "thunder_heavy_v2", Body = "Ult3D_ThunderHeavy", TargetForward = 2f,
+				Name = "ThunderHeavyV2", DevKey = "thunder_heavy_v2", Body = "Ult3D_ThunderHeavy", TargetForward = 1.4f,
 				Swells = UltimateFeelV2Batch2Seeds.ThunderSwells, Beats = UltimateFeelV2Batch2Seeds.ThunderBeats,
 				Trauma = UltimateFeelV2Seeds.Trauma(0.024f, 18f, 2.6f, 0.6f),
 			},
@@ -54,7 +54,7 @@ namespace WitchMendokusai
 			},
 			new Entry
 			{
-				Name = "BlackHoleHeavyV2", DevKey = "blackhole_heavy_v2", Body = "Ult3D_BlackHoleHeavy", TargetForward = 2f,
+				Name = "BlackHoleHeavyV2", DevKey = "blackhole_heavy_v2", Body = "Ult3D_BlackHoleHeavy", TargetForward = 1f,
 				Swells = UltimateFeelV2Batch2Seeds.BlackHoleSwells, Beats = UltimateFeelV2Batch2Seeds.BlackHoleBeats,
 				Trauma = UltimateFeelV2Seeds.Trauma(0.024f, 12f, 1.8f, 0.5f),
 			},
