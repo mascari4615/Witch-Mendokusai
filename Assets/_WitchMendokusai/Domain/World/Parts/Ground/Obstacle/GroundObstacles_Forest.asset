@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18ac13f424b1cad77f2b2bb1991b8a8, type: 3}
+  m_Name: GroundObstacles_Forest
+  m_EditorClassIdentifier:
+  <Rules>k__BackingField:
+    Kinds:
+    - Name: "나무 A"
+      Prefab: {fileID: 6763951534541960177, guid: 04564050f39ead34bacafb980a1c877b, type: 3}
+      MaterialOverride: {fileID: 0}
+      ScaleRange: {x: 0.85, y: 1.3}
+      ColliderRadius: 0
+      ColliderHeight: 2
+      Weight: 3
+      CameraFade: 1
+    - Name: "나무 B"
+      Prefab: {fileID: 7357052479096748062, guid: 43e7b546e43102047b8c8d44ad343fb9, type: 3}
+      MaterialOverride: {fileID: 0}
+      ScaleRange: {x: 0.85, y: 1.3}
+      ColliderRadius: 0
+      ColliderHeight: 2
+      Weight: 3
+      CameraFade: 1
+    - Name: "소나무"
+      Prefab: {fileID: 4057206278788033927, guid: 29e70781efebc474bbd32fb0a60663dd, type: 3}
+      MaterialOverride: {fileID: 0}
+      ScaleRange: {x: 0.85, y: 1.2}
+      ColliderRadius: 0
+      ColliderHeight: 2
+      Weight: 1.5
+      CameraFade: 1
+    - Name: "바위"
+      Prefab: {fileID: 4364362874430228022, guid: 871875c89c8ec7142a27c6271f62c2e0, type: 3}
+      MaterialOverride: {fileID: 2100000, guid: 8a4faf22147a68c40bca1f4d9419546d, type: 2}
+      ScaleRange: {x: 3.2, y: 4.8}
+      ColliderRadius: 0.11
+      ColliderHeight: 1.2
+      Weight: 2
+      CameraFade: 0
+    SeedSalt: 7919
+    CellSize: 6
+    Probability: 0.35
+    MinSpacing: 3.4
+    StartClearRadius: 8
+    PathNoiseScale: 28
+    PathHalfWidth: 0.07
+    ActiveRadius: 50
+    SpawnClearance: 1
