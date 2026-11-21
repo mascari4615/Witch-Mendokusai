@@ -219,8 +219,8 @@ namespace WitchMendokusai
 				upgrade.Load(upgradeData);
 			}
 
-			// 대화 이력 복원 — 대화 시스템이 아직 안 떠 있으면 조용히 넘어간다(등록 뒤 다시 부르면 된다).
-			DialogueHistoryBridge.RestoreSaveData(saveData.dialogueHistory);
+			// 대화 이력 복원. 로비에서 불러오면 대화 시스템이 아직 없어 보관했다가 월드의 대화 시스템 등록 때 넘김
+			DialogueHistoryBridge.RestoreOrHold(saveData.dialogueHistory);
 
 			// 윈도우 레이아웃 복원
 			soManager.WindowLayoutData.Load(saveData.windowLayouts);

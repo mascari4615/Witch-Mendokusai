@@ -40,6 +40,17 @@ namespace WitchMendokusai
         private static int _prev = -1;
         private static bool _completeFired;
 
+        /// <summary>
+        /// 월드에서 돌아온 로비가 Lobby 진입 직전에 부름 (LobbyManager.ReturnFromWorld). 역행 가드가 복귀를 허용하게
+        /// 직전 phase 를 Intro 로 되돌림. 부팅 완료 (OnBootComplete) 는 프로세스당 한 번이라 다시 쏘지 않음
+        /// </summary>
+        public static void ReturnToLobby()
+        {
+            _prev = (int)BootPhase.Intro;
+            Current = BootPhase.Intro;
+            Debug.Log($"[BOOT] return to lobby @frame={Time.frameCount}");
+        }
+
         public static void Enter(BootPhase phase)
         {
             int p = (int)phase;

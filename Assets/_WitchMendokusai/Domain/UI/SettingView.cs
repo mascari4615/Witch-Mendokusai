@@ -42,6 +42,7 @@ namespace WitchMendokusai
 
 		private Button btnDungeonExit;
 		private Button btnUnstuck;
+		private Button btnLobby;
 
 		// Audio
 		private Slider masterVolume;
@@ -66,10 +67,12 @@ namespace WitchMendokusai
 		private ShaderPackManager shaderPackManager;
 		private DataManager dataManager;
 		private TimeManager timeManager;
+		private InputManager inputManager;
 
 		[Inject]
-		public void Construct(AudioManager audioManager, ShaderPackManager shaderPackManager, DataManager dataManager, TimeManager timeManager)
+		public void Construct(AudioManager audioManager, ShaderPackManager shaderPackManager, DataManager dataManager, TimeManager timeManager, InputManager inputManager)
 		{
+			this.inputManager = inputManager;
 			this.audioManager = audioManager;
 			this.shaderPackManager = shaderPackManager;
 			this.dataManager = dataManager;
@@ -246,6 +249,11 @@ namespace WitchMendokusai
 			btnSaveInit.AddToClassList(NAV_CLASS);
 			buttonGroup.Add(btnSaveInit);
 
+			btnLobby = new Button(AskReturnToLobby) { text = "로비로", tooltip = LOBBY_TOOLTIP };
+			btnLobby.AddToClassList("wm-setting-btn");
+			btnLobby.AddToClassList(NAV_CLASS);
+			buttonGroup.Add(btnLobby);
+
 			Button btnQuit = new Button(AskQuit) { text = "게임 종료" };
 			btnQuit.AddToClassList("wm-setting-btn");
 			btnQuit.AddToClassList(NAV_CLASS);
@@ -402,6 +410,8 @@ namespace WitchMendokusai
 			btnDungeonExit.style.display = (isWorld && isDungeon) ? DisplayStyle.Flex : DisplayStyle.None;
 			bool hasStage = StageManager.TryGetExistingInstance(out StageManager stageManager) && stageManager.CurStageObject != null;
 			btnUnstuck.style.display = (isWorld && hasStage) ? DisplayStyle.Flex : DisplayStyle.None;
+			// 로비에서는 갈 곳이 없음
+			btnLobby.style.display = LobbyManager.CanReturnFromWorld ? DisplayStyle.Flex : DisplayStyle.None;
 
 			// 쉐이더팩 탭 진입 시 최신 상태 반영 (다른 곳에서 ShaderPackManager 변경했을 수 있음)
 			RebuildShaderPackList();
@@ -431,6 +441,9 @@ namespace WitchMendokusai
 				return;
 			}
 			IsOpen = false;
+			// 닫힌 뒤 확인 키가 숨은 버튼을 누르지 않게 포커스를 놓음 (FullMenuView.Close 와 같음)
+			if (container.focusController?.focusedElement is VisualElement focused && container.Contains(focused))
+				focused.Blur();
 			UiSfx.Play(UiSfxEvent.WindowClose);
 			selectFrame.AddToClassList(HIDDEN_FRAME_CLASS);
 			UIMotion.Hide(container, ACTIVE_CLASS);
@@ -452,6 +465,42 @@ namespace WitchMendokusai
 
 		private void AskQuit()
 			=> AskConfirmWithSound("게임을 종료할까요?", "진행 중인 내용은 저장 시점까지만 남습니다.", "종료", OnQuit);
+
+		/// <summary> 전체 메뉴와 설정창 버튼의 로비 이동에 붙는 툴팁. 버튼 글자는 짧게 </summary>
+		public const string LOBBY_TOOLTIP = "저장하고 로비 (시작 화면) 로 갑니다";
+
+		/// <summary>
+		/// 전체 메뉴의 로비로. 던전 판이 진행 중이면 설정창을 열고 포기 확인 창을 띄움 (취소하면 메뉴로 돌아감).
+		/// 마을에서는 확인 없이 바로 이동
+		/// </summary>
+		public void RequestReturnToLobby()
+		{
+			if (LobbyManager.IsRunInProgress == false)
+			{
+				ReturnToLobby();
+				return;
+			}
+			Open();
+			closeAfterConfirm = true;
+			AskReturnToLobby();
+		}
+
+		private void AskReturnToLobby()
+		{
+			if (LobbyManager.IsRunInProgress == false)
+			{
+				UiSfx.Play(UiSfxEvent.Confirm);
+				ReturnToLobby();
+				return;
+			}
+			AskConfirmWithSound("로비로 갈까요?", "진행 중인 던전은 포기합니다. 판에서 주운 것은 남고 끝날 때 받는 정산은 없습니다.", "포기하고 로비로", ReturnToLobby);
+		}
+
+		private void ReturnToLobby()
+		{
+			Close(false);
+			LobbyManager.ReturnFromWorld(dataManager, inputManager);
+		}
 
 		public void Toggle()
 		{

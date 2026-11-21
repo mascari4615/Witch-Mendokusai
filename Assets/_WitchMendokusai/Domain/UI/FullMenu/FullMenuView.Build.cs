@@ -217,6 +217,8 @@ namespace WitchMendokusai
 			system.AddToClassList("wm-fullmenu__system");
 			bottom.Add(system);
 			AddEntry(system, "wm-fullmenu-system", "설정", null, Settings.SettingIcon, OpenSetting);
+			// 메뉴는 월드에서만 열려 로비에서 숨길 일이 없음. 설정창의 같은 버튼은 로비에서 숨김
+			AddEntry(system, "wm-fullmenu-system", "로비로", null, Settings.LobbyIcon, GoToLobby).Button.tooltip = SettingView.LOBBY_TOOLTIP;
 			AddEntry(system, "wm-fullmenu-system", "게임 종료", null, Settings.QuitIcon, AskQuit);
 		}
 

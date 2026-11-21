@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using VContainer;
 
 namespace WitchMendokusai
@@ -67,6 +68,16 @@ namespace WitchMendokusai
 		private void OnEnable()
 		{
 			timeLoop = StartCoroutine(UpdateTime());
+			SceneManager.sceneLoaded += OnSceneLoaded;
+		}
+
+		private void OnDisable() => SceneManager.sceneLoaded -= OnSceneLoaded;
+
+		// 씬과 함께 사라진 정지 소유자는 Resume 을 부를 수 없음. 남겨 두면 다음 씬이 멈춘 채 시작 (월드에서 로비로 나갈 때)
+		private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+		{
+			if (pausers.RemoveAll(pauser => pauser == null) > 0)
+				UpdateTimeScale();
 		}
 
 		private IEnumerator UpdateTime()

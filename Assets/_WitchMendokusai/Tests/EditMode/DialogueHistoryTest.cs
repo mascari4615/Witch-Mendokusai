@@ -154,6 +154,42 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Bridge_HeldRecord_GoesToNextRegisteredHistory()
+		{
+			DialogueHistoryBridge.Clear(DialogueHistoryBridge.Current);
+			DialogueHistory saved = new();
+			saved.MarkCompleted(GREETING_ID);
+
+			// 로비에서 불러올 때는 대화 시스템이 없음. 보관했다가 월드의 대화 시스템에 넘김
+			DialogueHistoryBridge.RestoreOrHold(saved.ToSaveData());
+			Assert.That(DialogueHistoryBridge.CaptureSaveData().CompletedDialogueIds, Does.Contain(GREETING_ID),
+				"대화 시스템 없이 저장해도 보관한 기록이 쓰여야 한다");
+
+			DialogueHistory loading = new();
+			DialogueHistoryBridge.Register(loading);
+			try
+			{
+				Assert.That(loading.HasSeen(GREETING_ID, DialogueSeenKind.Completed), Is.True,
+					"월드에서 로비로 나갔다 다시 들어와도 봤던 대화가 남아야 한다");
+			}
+			finally
+			{
+				DialogueHistoryBridge.Clear(loading);
+			}
+
+			DialogueHistory next = new();
+			DialogueHistoryBridge.Register(next);
+			try
+			{
+				Assert.That(next.HasSeen(GREETING_ID, DialogueSeenKind.Completed), Is.False, "넘긴 기록은 한 번만 쓴다");
+			}
+			finally
+			{
+				DialogueHistoryBridge.Clear(next);
+			}
+		}
+
+		[Test]
 		public void Bridge_RestoreWithoutHistory_DoesNotThrow()
 		{
 			DialogueHistoryBridge.Clear(DialogueHistoryBridge.Current);
