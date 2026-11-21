@@ -8,5 +8,7 @@ namespace WitchMendokusai
 		public static void Register(DungeonManager dm) => _instance = dm;
 		public static bool IsDungeon => _instance != null && _instance.IsDungeon;
 		public static bool IsEnding => _instance != null && _instance.IsEnding;
+		// 판 밖이면 효과 없음
+		public static DungeonConstraintRunEffect ConstraintEffect => IsDungeon ? _instance.ConstraintEffect : DungeonConstraintRunEffect.Identity;
 	}
 }

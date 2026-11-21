@@ -33,6 +33,120 @@ MonoBehaviour:
     m_SerializedLabels:
     - DungeonConstraint
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6bb1bcb5ba0345a19be564902819427d
+    m_Address: DungeonConstraint/3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fef4d6911bae41aaa7bbe9231975b3c2
+    m_Address: DungeonConstraint/4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e50e340318ef42d49938afaf89142f24
+    m_Address: DungeonConstraint/5
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b3f5879423a6472e8163808bbc19a5a4
+    m_Address: DungeonConstraint/6
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1a3554a60d2e454788798dda0b547fda
+    m_Address: DungeonConstraint/7
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 85a2c72b226d400bb0635e5f65c5f59e
+    m_Address: DungeonConstraint/8
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 37ae29411c23468f9d3fa8825960bee5
+    m_Address: DungeonConstraint/9
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 46153c87693d47a6979a99aa0e23bda2
+    m_Address: DungeonConstraint/10
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: eef0b482e815480c803f1b16ae0fbaaa
+    m_Address: DungeonConstraint/11
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 76be5535b60e4f3bb5ecd3134a518400
+    m_Address: DungeonConstraint/12
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1f46ba39a22c4672bf30b3611e1d9290
+    m_Address: DungeonConstraint/13
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1328969656e34368b4e70b427f1692e8
+    m_Address: DungeonConstraint/14
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4d0ac6fca1a54ec3862535b0a6d23c82
+    m_Address: DungeonConstraint/15
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a0f4816dbc7449689472d2a61a97829e
+    m_Address: DungeonConstraint/16
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7cfd660831d548b4bc9088c62352302a
+    m_Address: DungeonConstraint/17
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0737c98ae4d44d2abfbb4f4febd6fe6f
+    m_Address: DungeonConstraint/18
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b8ef9bf1cc854d329c3315e079479cf4
+    m_Address: DungeonConstraint/19
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ddcb2503f5564432a802e8c961782d3f
+    m_Address: DungeonConstraint/20
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b689070f21e14d79b61042332ad0eafe
+    m_Address: DungeonConstraint/21
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
   m_SchemaSet:

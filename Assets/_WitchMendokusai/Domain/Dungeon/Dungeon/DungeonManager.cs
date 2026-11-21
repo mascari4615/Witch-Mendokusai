@@ -27,7 +27,10 @@ namespace WitchMendokusai
 		public RunLoadout RunLoadout => dataManager.RunLoadout;
 		public SurvivalRunRules RunRules => resourceManager.SurvivalRunRules;
 		public int RunEquipmentSlotCount => resourceManager.SurvivalRunRules.RandomModeSlotCount;
+		// 위협 단계에 켠 제약의 물량과 정예를 얹은 값
 		public DungeonThreatEffect CurThreat { get; private set; } = DungeonThreatEffect.Identity;
+		// 켠 제약의 판 규칙 효과 (회복, 선택지, 시작 체력, 난이도 간격). 판 시작 때 정함
+		public DungeonConstraintRunEffect ConstraintEffect { get; private set; } = DungeonConstraintRunEffect.Identity;
 
 		// 판 안 냥. 이번 판에 주운 냥만 맵 오브젝트 비용으로 씀, 들고 온 냥은 못 씀. 안 쓴 냥은 기존대로 가져감
 		// 판 안에서만 부름. 판 밖이면 기록이 없어 예외
@@ -166,7 +169,8 @@ namespace WitchMendokusai
 
 			EnsureDungeonUI();
 			CurDungeon = dungeon;
-			CurThreat = ResolveThreat(dungeon, threatLevel);
+			ConstraintEffect = DungeonConstraintRules.RunEffect(dungeon.SelectedConstraints());
+			CurThreat = ConstraintEffect.ApplyTo(ResolveThreat(dungeon, threatLevel));
 			dungeonStrategy = DungeonObjectiveStrategyFactory.Create(dungeon);
 
 			Stage stage = dungeon.Stages[0];
@@ -208,6 +212,7 @@ namespace WitchMendokusai
 				dataManager.RunLoadout.Begin(runMode, resourceManager.SurvivalRunRules);
 				gameManager.InitEquipment();
 				gameManager.ApplyUpgradeEffects(); // [VamsurLike-Upgrade] - KarmoDDrine 2026-01-12
+				ApplyStartHealth();
 
 				expChecker.SetRequirementMultiplier(dungeon.WaveOptions.ExpRequirementMultiplier(CurThreat.WaveRate));
 				expChecker.Init();
@@ -220,7 +225,7 @@ namespace WitchMendokusai
 					initialDungeonTime: new TimeSpan(0, 0, dungeon.TimeBySecond),
 					constraints: dungeon.SelectedConstraints(),
 					dungeonStat: dataManager.DungeonStat,
-					difficultyStepSeconds: resourceManager.SurvivalRunRules.DifficultyStepSeconds
+					difficultyStepSeconds: ConstraintEffect.ScaleDifficultyStep(resourceManager.SurvivalRunRules.DifficultyStepSeconds)
 				);
 
 				dungeonRecorder = new DungeonRecorder(this, dataManager);
@@ -399,6 +404,16 @@ namespace WitchMendokusai
 			dungeonUI.SetPanel(DungeonPanelType.DungeonResult);
 		}
 
+		// 시작 체력 제약. 영구 강화로 정한 최대 체력 기준
+		private void ApplyStartHealth()
+		{
+			PlayerObject player = playerProvider.CurrentObject;
+			int target = ConstraintEffect.StartHealth(player.UnitStat[UnitStatType.HP_MAX]);
+			int spend = player.UnitStat[UnitStatType.HP_CUR] - target;
+			if (spend > 0)
+				player.Health.SpendHealth(spend);
+		}
+
 		private void GrantRiskRewards()
 		{
 			int risk = DungeonConstraintRules.TotalRisk(Context.Constraints);
@@ -444,6 +459,7 @@ namespace WitchMendokusai
 				gameManager.Init();
 				dataManager.RunLoadout.End();
 				CurThreat = DungeonThreatEffect.Identity;
+				ConstraintEffect = DungeonConstraintRunEffect.Identity;
 				dungeonQuest = null;
 				expChecker.SetRequirementMultiplier(1f);
 				expChecker.Init();
