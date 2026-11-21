@@ -24,9 +24,7 @@ namespace WitchMendokusai
 	// 켠 제약의 판 규칙 효과 합. 같은 종류는 더함
 	public readonly struct DungeonConstraintRunEffect
 	{
-		private const float PERCENT = 100f;
-		// 배율 하한. % 합이 -100 이하여도 0 이 되지 않게
-		private const float MIN_MULTIPLIER = 0.1f;
+		public const float PERCENT = 100f;
 		private const double ROUNDING_TOLERANCE = 0.0001d;
 
 		public readonly int WavePercent;
@@ -48,7 +46,7 @@ namespace WitchMendokusai
 
 		public static DungeonConstraintRunEffect Identity => new DungeonConstraintRunEffect(0, 0, 0, 0, 0, 0);
 
-		public float WaveMultiplier => Multiplier(WavePercent);
+		public float WaveMultiplier => (float)Ratio(WavePercent);
 
 		// 회복은 0 까지 줄 수 있음 (회복 -100% 제약)
 		public int ScaleHeal(int heal) => Math.Max(0, (int)Math.Floor(heal * Ratio(HealPercent) + ROUNDING_TOLERANCE));
@@ -59,14 +57,12 @@ namespace WitchMendokusai
 		// 최소 1
 		public int StartHealth(int maxHealth) => Math.Max(1, (int)Math.Ceiling(maxHealth * Ratio(StartHealthPercent) - ROUNDING_TOLERANCE));
 
-		public double ScaleDifficultyStep(double stepSeconds) => stepSeconds * Multiplier(DifficultyPacePercent);
+		public double ScaleDifficultyStep(double stepSeconds) => stepSeconds * Ratio(DifficultyPacePercent);
 
 		// 위협 단계 효과에 물량과 정예를 얹은 판 효과. 단계 번호와 보상 배율은 그대로
 		public DungeonThreatEffect ApplyTo(DungeonThreatEffect threat) => new DungeonThreatEffect(
 			threat.Level, threat.EnemyHealth, threat.EnemyDamage, threat.EliteExtraPerGap + Math.Max(0, EliteExtraPerGap),
 			threat.EnemySpeed, threat.WaveRate * WaveMultiplier, threat.RewardMultiplier);
-
-		private static float Multiplier(int percent) => Math.Max(MIN_MULTIPLIER, 1f + percent / PERCENT);
 
 		// 0 이상 비율. 정수 % 를 double 로 계산해 0.8 같은 값의 소수 오차를 피함
 		private static double Ratio(int percent) => Math.Max(0d, 1d + percent / (double)PERCENT);
@@ -122,6 +118,9 @@ namespace WitchMendokusai
 						throw new ArgumentOutOfRangeException(nameof(entries), entry.Kind, "처리하지 않는 제약 효과 종류");
 				}
 			}
+			// 물량과 난이도 간격은 0 이 되면 생성 간격 나누기와 난이도 계산이 깨짐. 제약 데이터 잘못
+			if (wave <= -DungeonConstraintRunEffect.PERCENT || pace <= -DungeonConstraintRunEffect.PERCENT)
+				throw new ArgumentOutOfRangeException(nameof(entries), $"물량 {wave}%, 난이도 간격 {pace}% 합은 -100 보다 커야 함");
 			return new DungeonConstraintRunEffect(wave, heal, choice, startHealth, pace, elite);
 		}
 	}
