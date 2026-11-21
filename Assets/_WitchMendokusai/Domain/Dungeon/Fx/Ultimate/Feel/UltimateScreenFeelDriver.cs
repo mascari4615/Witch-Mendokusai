@@ -26,8 +26,7 @@ namespace WitchMendokusai
 		private readonly float[] impactReal;
 		private readonly float[] swellEndReal;
 		private readonly bool[] traumaGiven;
-		private readonly float noiseSeed;
-		private float trauma;
+		private readonly TraumaShake shake;
 		private bool disposed;
 
 		/// <param name="pullBackEnd"> 물림이 0 으로 돌아오는 연출 시간 (보통 body 길이) </param>
@@ -45,7 +44,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < swellEndReal.Length; i++)
 				swellEndReal[i] = float.NaN;
 			// 녹화마다 같은 흔들림이 나오게 에셋 이름으로 고정
-			noiseSeed = Mathf.Abs(feel.name.GetHashCode() % 1000) * 0.1f;
+			shake = new TraumaShake(Mathf.Abs(feel.name.GetHashCode() % 1000) * 0.1f);
 			current?.Dispose();
 			current = this;
 			feelCamera = new UltimateFeelCamera(run.MainCamera);
@@ -203,22 +202,12 @@ namespace WitchMendokusai
 				if (traumaGiven[i] == false)
 				{
 					traumaGiven[i] = true;
-					trauma = Mathf.Clamp01(trauma + beats[i].Trauma);
+					shake.Add(beats[i].Trauma);
 				}
 				zoom += beats[i].Zoom.Evaluate(age);
 				dolly += beats[i].Dolly.Evaluate(age);
 			}
-			UltimateScreenFeel.TraumaSettings settings = feel.Trauma;
-			trauma = Mathf.Max(rumble, trauma - settings.DecayPerSecond * run.RealDelta);
-			float shake = settings.Response != null && settings.Response.length > 0 ? Mathf.Clamp01(settings.Response.Evaluate(trauma)) : trauma * trauma;
-			shake *= ComfortShake;
-			float time = realNow * settings.Frequency;
-			float horizontal = Mathf.Lerp(1f, 0.3f, settings.VerticalBias);
-			float vertical = Mathf.Lerp(0.3f, 1f, settings.VerticalBias);
-			Vector2 offset = new(
-				(Mathf.PerlinNoise(noiseSeed, time) * 2f - 1f) * horizontal * settings.MaxOffset * shake,
-				(Mathf.PerlinNoise(noiseSeed + 17.3f, time) * 2f - 1f) * vertical * settings.MaxOffset * shake);
-			float roll = (Mathf.PerlinNoise(noiseSeed + 41.7f, time) * 2f - 1f) * settings.MaxRoll * shake;
+			shake.Step(feel.Trauma, realNow, run.RealDelta, rumble, ComfortShake, out Vector2 offset, out float roll);
 			// 물림은 움직임을 줄이는 쪽이라 세기 줄이기 대상 아님. 연출 시간 기준이라 정지 동안 그대로 머묾
 			float pullBack = feel.PullBack.Amount * feel.PullBack.Evaluate(fxNow, pullBackEnd);
 			feelCamera.Set(target, offset, roll, zoom * ComfortZoom, dolly * ComfortZoom - pullBack);

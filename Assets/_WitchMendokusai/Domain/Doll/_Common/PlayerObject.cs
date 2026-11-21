@@ -43,6 +43,8 @@ namespace WitchMendokusai
 
 		private static readonly int BASE_COLOR_PROPERTY = Shader.PropertyToID("_BaseColor");
 		private MaterialPropertyBlock bodyTintBlock;
+		private readonly PlayerBodyFlash bodyFlash = new();
+		private SpriteRenderer[] flashSprites;
 
 		[Inject]
 		public void Construct(GameEventManager gameEventManager, SOManager soManager, TimeManager timeManager, UnitStatCalculator unitStatCalculator,
@@ -190,6 +192,9 @@ namespace WitchMendokusai
 			base.OnDisable();
 			Health.OnTakeDamage -= HandleDamageEffects;
 			Health.OnDied -= HandleDeathEffects;
+			// 꺼질 때 코루틴이 멈추므로 몸 색이 번쩍인 채 남지 않게
+			bodyFlash.Release();
+			invincibleRoutine = null;
 		}
 
 		private void HandleDamageEffects(DamageInfo damageInfo)
@@ -202,12 +207,13 @@ namespace WitchMendokusai
 
 			CombatSfx.Play(CombatSfxEvent.PlayerHit);
 			gameEventManager.Raise(GameEventType.OnPlayerHit);
-			// 카메라 셰이크는 PlayerKnockbackCameraGlue가 force 비례로 처리 — 여기서 호출 X.
+			// 화면 흔들림, 정지, 가장자리 빨강은 SurvivalFeel 의 PlayerHitFeel. 무적 시간 중 피격은 위에서 걸러져 새 연출 없음
+			SurvivalFeel.Instance.OnPlayerHit(this, damageInfo.damage);
 
 			if (invincibleRoutine != null)
 				StopCoroutine(invincibleRoutine);
 			float bonusSeconds = UnitStat[UnitStatType.INVINCIBLE_TIME] / resourceManager.SurvivalFeel.Upgrade.InvincibleTimeStatPerSecond;
-			invincibleRoutine = StartCoroutine(InvincibleTime(soManager.InvincibleTime.RuntimeValue + bonusSeconds));
+			invincibleRoutine = StartCoroutine(InvincibleTime(soManager.InvincibleTime.RuntimeValue + bonusSeconds, true));
 
 			switch (UnitStat[UnitStatType.HP_CUR])
 			{
@@ -223,7 +229,7 @@ namespace WitchMendokusai
 				return;
 			if (invincibleRoutine != null)
 				StopCoroutine(invincibleRoutine);
-			invincibleRoutine = StartCoroutine(InvincibleTime(duration));
+			invincibleRoutine = StartCoroutine(InvincibleTime(duration, false));
 		}
 
 		protected virtual void HandleDeathEffects()
@@ -242,23 +248,37 @@ namespace WitchMendokusai
 			diedX.SetActive(true); // 사망 시각 표시(died X)는 컨텍스트 무관.
 		}
 
-		private IEnumerator InvincibleTime(float duration)
+		// 피격이면 먼저 몸 전체를 짧게 번쩍, 남은 무적 시간은 약하게 깜빡임. 번쩍임 끄기 설정과 세기 줄이기 (UltFeel_Comfort 번쩍임) 를 따름
+		private IEnumerator InvincibleTime(float duration, bool hitFlash)
 		{
-			int blinkCount = (int)(duration / invincibleBlinkInterval);
-			bool isWhite = false;
+			PlayerHitFeelSettings settings = resourceManager.SurvivalFeel.PlayerHit;
+			float comfort = resourceManager.SurvivalFeel.Comfort != null ? resourceManager.SurvivalFeel.Comfort.Flash : 1f;
+			float flashScale = CombatEffectSettings.Flash ? comfort : 0f;
+			flashSprites ??= new[] { headRenderer, bodyRenderer };
+			float elapsed = 0f;
 
+			if (hitFlash && settings.BodyFlashSeconds > 0f)
+			{
+				SetBodyFlash(settings, flashScale);
+				float flashSeconds = Mathf.Min(settings.BodyFlashSeconds, duration);
+				yield return new WaitForSeconds(flashSeconds);
+				elapsed += flashSeconds;
+			}
+
+			int blinkCount = (int)((duration - elapsed) / invincibleBlinkInterval);
+			bool isLit = false;
 			while (blinkCount > 0)
 			{
 				blinkCount--;
-				isWhite = isWhite == false;
-
-				if (CombatEffectSettings.Flash)
-					SpriteRenderer.material.SetFloat("_Emission", isWhite ? 1 : 0);
+				isLit = isLit == false;
+				SetBodyFlash(settings, isLit ? flashScale * settings.InvincibleBlinkStrength : 0f);
 				yield return new WaitForSeconds(invincibleBlinkInterval);
 			}
 
-			SpriteRenderer.material.SetFloat("_Emission", 0);
+			bodyFlash.Release();
 			invincibleRoutine = null;
 		}
+
+		private void SetBodyFlash(PlayerHitFeelSettings settings, float weight) => bodyFlash.Set(MeshParent, flashSprites, settings.BodyFlashColor, weight);
 	}
 }

@@ -49,6 +49,9 @@ namespace WitchMendokusai
 		{
 			if (cameraManager == null)
 				return;
+			// 던전 피격 흔들림은 PlayerHitFeel 의 트라우마 흔들림 하나로 (두 흔들림이 겹치지 않게, 2026-11-21)
+			if (DungeonManagerBridge.IsDungeon)
+				return;
 
 			float force = Mathf.Max(0f, damageInfo.knockbackForce);
 			float forceAmplitude = 0f;

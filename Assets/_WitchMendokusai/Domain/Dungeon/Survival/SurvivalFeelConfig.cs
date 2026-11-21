@@ -67,6 +67,8 @@ namespace WitchMendokusai
 		[Header("Player hit flash")]
 		public RuntimeAnimatorController PlayerHitFlashController;
 		[Range(0f, 1f), Tooltip("피격 때 화면 전체 빨강의 세기 배율")] public float PlayerHitFlashStrength = 0.3f;
+		[Tooltip("피격 화면 흔들림, 정지, 가장자리 빨강, 몸 번쩍임 (사용자 2026-11-21 피격 연출 약함)")] public PlayerHitFeelSettings PlayerHit = new();
+		[Tooltip("세기 줄이기. 궁극기 화면 연출과 같은 에셋 (UltFeel_Comfort). 흔들림, 번쩍임, 정지에 곱함. 비우면 그대로")] public UltimateFeelComfort Comfort;
 
 		[Header("Shake limit")]
 		[Min(0f), Tooltip("쌓인 흔들림 상한. 대량 적에서 이 이상 쌓이지 않는다")] public float ShakeCap = 0.9f;
@@ -166,6 +168,7 @@ namespace WitchMendokusai
 		[Range(0f, 24f), Tooltip("판 제한 시간이 끝날 때 하늘 시각")] public float RunSkyEndHour = 16.5f;
 
 		[Header("Low health")]
+		[Tooltip("체력이 낮을 때 가장자리 맥동. 꺼도 피격 직후 가장자리 번쩍임은 그대로")] public bool LowHealthWarning = true;
 		[Range(0f, 1f), Tooltip("이 체력 비율 아래에서 화면 가장자리 붉게")] public float LowHealthThreshold = 0.3f;
 		[Range(0f, 1f), Tooltip("경계 바로 아래의 최소 세기")] public float LowHealthMinWeight = 0.35f;
 		public Color LowHealthColor = new(0.75f, 0.05f, 0.08f, 1f);

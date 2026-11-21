@@ -16,6 +16,7 @@ MonoBehaviour:
   RingMaterial: {fileID: 2100000, guid: eb82016b91a74ed384b4395c7ab85dd6, type: 2}
   PlayerHitFlashController: {fileID: 9100000, guid: 1ae115b1e79be68498f7e37998498e3e, type: 2}
   PlayerHitFlashStrength: 0.12
+  Comfort: {fileID: 11400000, guid: c0c2512a90f980549a6c29f16d2e048b, type: 2}
   ShakeCap: 0.9
   ShakeDecay: 2.5
   SmallShakeInterval: 0.12

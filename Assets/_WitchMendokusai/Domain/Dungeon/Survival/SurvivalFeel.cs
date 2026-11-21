@@ -28,6 +28,7 @@ namespace WitchMendokusai
 		private float burstWindowEnd;
 		private int burstCount;
 		private UnityEngine.UI.Image hitFlashImage;
+		private PlayerHitFeel playerHitFeel;
 		private readonly Dictionary<string, int> lastSoundFrames = new();
 
 		private SurvivalFeelConfig Config => resourceManager.SurvivalFeel;
@@ -42,11 +43,13 @@ namespace WitchMendokusai
 			this.playerProvider = playerProvider;
 			Instance = this;
 			BuildSystems();
-			gameObject.AddComponent<SurvivalLowHealthVignette>().Init(resourceManager, playerProvider);
+			SurvivalLowHealthVignette edge = gameObject.AddComponent<SurvivalLowHealthVignette>();
+			edge.Init(resourceManager, playerProvider);
+			playerHitFeel = gameObject.AddComponent<PlayerHitFeel>();
+			playerHitFeel.Init(resourceManager, timeManager, edge);
 			gameObject.AddComponent<SurvivalOffscreenMarkers>().Init(resourceManager, playerProvider, this);
 			gameObject.AddComponent<SurvivalMinimap>().Init(resourceManager, playerProvider, this, inputManager);
 			gameEventManager.RegisterCallback(GameEventType.OnLevelUp, OnLevelUp);
-			gameEventManager.RegisterCallback(GameEventType.OnPlayerHit, OnPlayerHit);
 		}
 
 		private void OnDestroy()
@@ -54,7 +57,6 @@ namespace WitchMendokusai
 			if (Instance == this)
 				Instance = null;
 			gameEventManager?.UnregisterCallback(GameEventType.OnLevelUp, OnLevelUp);
-			gameEventManager?.UnregisterCallback(GameEventType.OnPlayerHit, OnPlayerHit);
 		}
 
 		private void BuildSystems()
@@ -212,12 +214,13 @@ namespace WitchMendokusai
 			EmitRing(rings, position, moment, moment.Color);
 		}
 
-		// 화면 전체 피격 효과 세기, 애니메이션 색 알파에 곱셈
-		private void OnPlayerHit()
+		// 무적 시간이 아닌 피격만 옴 (PlayerObject 가 거름). 화면 전체 빨강은 애니메이션 색 알파에 곱셈, 나머지 화면 연출은 PlayerHitFeel
+		public void OnPlayerHit(PlayerObject player, int damage)
 		{
 			if (hitFlashImage == null)
 				hitFlashImage = FindHitFlashImage();
 			hitFlashImage.canvasRenderer.SetAlpha(Config.PlayerHitFlashStrength);
+			playerHitFeel.Play(player, damage);
 		}
 
 		private UnityEngine.UI.Image FindHitFlashImage()
