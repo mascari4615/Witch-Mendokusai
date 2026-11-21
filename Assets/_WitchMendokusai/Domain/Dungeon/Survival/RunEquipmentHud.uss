@@ -8,13 +8,21 @@
            __skills (Shift 이동 스킬 칸)
            __slots (고유 장비 + 보유 장비 칸)
              __slot > __frame (45도 마름모, 넘친 것 자름) > __icon (-45도), __cooldown
-                    > __outline (45도 테두리), __level (레벨 숫자, 마름모 아래 꼭지 안) */
+                    > __outline (45도 테두리), __level (레벨 숫자, 마름모 아래 꼭지 안)
+                    > __remain (남은 초, 가운데), __state (상시, 위 꼭지), __frame 안 __flash (준비 순간 번쩍임)
+   대기 표시는 스킬 칸과 장비 칸이 같은 부품 (사용자 2026-11-21 "얻은 장비들 스킬 칸에서 쿨타임 표시가 없잖아요") */
 
 .wm-run-equipment {
     --wm-run-equipment-frame: rgba(14, 41, 49, 0.784);
     --wm-run-equipment-outline: rgba(255, 255, 255, 0.196);
     --wm-run-equipment-signature: rgba(255, 214, 120, 0.85);
     --wm-run-equipment-cooldown: rgba(132, 132, 132, 0.588);
+    --wm-run-equipment-charge: rgba(70, 120, 170, 0.6);
+    --wm-run-equipment-always: rgba(150, 230, 200, 1);
+    /* 이 주기 (초) 보다 짧은 대기는 숫자와 번쩍임 없이 덮개만 (코드가 읽음) */
+    --wm-run-equipment-number-min-interval: 1.5;
+    /* 번쩍임을 켜 둔 시간 (밀리초, 코드가 읽음). 사라지는 시간은 __flash 의 transition */
+    --wm-run-equipment-flash-hold-ms: 60;
 
     position: absolute;
     left: 50%;
@@ -125,5 +133,71 @@
 
 /* 빈 칸과 스킬 칸은 레벨 없음 */
 .wm-run-equipment__level--empty {
+    display: none;
+}
+
+/* 충전형 (걸어서 차는 수첩, 멈춰서 차는 베개) 은 푸른 덮개 */
+.wm-run-equipment__cooldown--charge {
+    background-color: var(--wm-run-equipment-charge);
+}
+
+/* 준비 순간 번쩍임. --on 이 붙는 순간 바로 켜지고, 빠지면 0.35초에 걸쳐 사라짐 */
+.wm-run-equipment__flash {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(255, 255, 255);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.35s;
+    transition-timing-function: ease-out;
+}
+
+.wm-run-equipment__flash--on {
+    opacity: 0.85;
+    transition-duration: 0s;
+}
+
+/* 남은 초. 마름모 가운데, 아이콘 위. HD 에서도 읽히게 굵은 글자와 검은 테 */
+.wm-run-equipment__remain {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    -unity-text-align: middle-center;
+    font-size: 17px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+    -unity-text-outline-width: 1.4px;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.95);
+}
+
+.wm-run-equipment__remain--empty {
+    display: none;
+}
+
+/* 상시 장비 (대기 없음). 위 꼭지, 레벨 숫자와 같은 꼴에 다른 색 */
+.wm-run-equipment__state {
+    position: absolute;
+    left: 50%;
+    top: -4px;
+    translate: -50% 0;
+    padding: 0 2px;
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    -unity-text-align: middle-center;
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: var(--wm-run-equipment-always);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.9);
+}
+
+.wm-run-equipment__state--empty {
     display: none;
 }

@@ -5,7 +5,7 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	public class EquipmentSword : SkillComponent
+	public class EquipmentSword : SkillComponent, IEquipmentCooldown
 	{
 		[SerializeField, Min(0.01f)] private float originCoolTime = 1.5f;
 		// 검 여러 자루가 연속으로 나갈 때의 자루 간 간격.
@@ -49,6 +49,11 @@ namespace WitchMendokusai
 		private UnitStat subscribedStat;
 
 		private IItemData usedEquipment;
+		// 스킬창 장비 칸의 대기 표시용. 다음 공격 시각과 그 주기 (EquipmentCooldowns)
+		private float readyTime;
+		private float readyInterval;
+		public CooldownState Cooldown => CooldownState.FromReadyTime(readyTime, readyInterval);
+
 
 		public override void InitContext(SkillObject skillObject)
 		{
@@ -66,12 +71,15 @@ namespace WitchMendokusai
 			UpdateSword(PlayerStat[UnitStatType.SWORD_COUNT]);
 			UpdateDamageBonus(PlayerStat[UnitStatType.SWORD_DAMAGE_BONUS]);
 
+			readyTime = 0f;
+			EquipmentCooldowns.Register(usedEquipment, this);
 			StartCoroutine(Loop());
 		}
 
 		private void OnDisable()
 		{
 			StopAllCoroutines();
+			EquipmentCooldowns.Unregister(usedEquipment, this);
 			subscribedStat?.RemoveListener(UnitStatType.SWORD_COUNT, UpdateSword);
 			subscribedStat?.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateSwordFromBonus);
 			subscribedStat?.RemoveListener(UnitStatType.SWORD_DAMAGE_BONUS, UpdateDamageBonus);
@@ -101,7 +109,9 @@ namespace WitchMendokusai
 				UpdateSword(PlayerStat[UnitStatType.SWORD_COUNT]);
 				StartCoroutine(AttackLoop());
 
-				yield return new WaitForSeconds(CoolTime);
+				readyInterval = CoolTime;
+				readyTime = Time.time + readyInterval;
+				yield return new WaitForSeconds(readyInterval);
 			}
 		}
 

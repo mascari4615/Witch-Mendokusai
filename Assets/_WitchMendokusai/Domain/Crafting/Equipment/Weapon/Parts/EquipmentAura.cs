@@ -3,7 +3,7 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	public class EquipmentAura : SkillComponent
+	public class EquipmentAura : SkillComponent, IEquipmentCooldown
 	{
 		[SerializeField] private DamagingObject damagingObject;
 		[SerializeField] private Collider damageCollider;
@@ -37,9 +37,13 @@ namespace WitchMendokusai
 		private UnitStat PlayerStat => playerProvider.Current.UnitStat;
 
 		public float StillSeconds => stillSeconds;
+		// 스킬창 장비 칸 표시용 (EquipmentCooldowns). 멈춰 서야 차는 오라만 등록, 상시 오라는 상시 장비로 보임
+		public CooldownState Cooldown => CooldownState.FromCharge(AttackCadence.ChargeRatio(stillSeconds - stillDelay, chargeSeconds));
+		private SkillObject owner;
 
 		public override void InitContext(SkillObject skillObject)
 		{
+			owner = skillObject;
 			stillSeconds = 0f;
 		}
 
@@ -52,7 +56,14 @@ namespace WitchMendokusai
 		{
 			lastPosition = playerProvider.Current.transform.position;
 			stillSeconds = 0f;
+			if (requireStill)
+				EquipmentCooldowns.Register(owner.Context.UsedEquipment, this);
 			Apply();
+		}
+
+		private void OnDisable()
+		{
+			EquipmentCooldowns.Unregister(owner.Context.UsedEquipment, this);
 		}
 
 		private void Update()

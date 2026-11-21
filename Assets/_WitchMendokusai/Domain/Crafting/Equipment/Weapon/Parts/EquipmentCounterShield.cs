@@ -4,7 +4,7 @@ using VContainer;
 namespace WitchMendokusai
 {
 	// 피격 반격, 재사용 대기 중 고리 흐림
-	public class EquipmentCounterShield : SkillComponent
+	public class EquipmentCounterShield : SkillComponent, IEquipmentCooldown
 	{
 		private static readonly int ALPHA_ID = Shader.PropertyToID("_Alpha");
 
@@ -25,6 +25,9 @@ namespace WitchMendokusai
 		private PlayerObject subscribedPlayer;
 		private MaterialPropertyBlock properties;
 		private float readyTime;
+		private float readyInterval;
+		// 스킬창 장비 칸의 대기 표시용 (EquipmentCooldowns). 맞기 전까지는 늘 준비됨
+		public CooldownState Cooldown => CooldownState.FromReadyTime(readyTime, readyInterval);
 
 		private PlayerProvider playerProvider;
 		private ObjectPoolManager objectPoolManager;
@@ -52,11 +55,13 @@ namespace WitchMendokusai
 			properties ??= new MaterialPropertyBlock();
 			subscribedPlayer = playerProvider.CurrentObject;
 			subscribedPlayer.Health.OnTakeDamage += HandlePlayerDamaged;
+			EquipmentCooldowns.Register(owner.Context.UsedEquipment, this);
 		}
 
 		private void OnDisable()
 		{
 			subscribedPlayer.Health.OnTakeDamage -= HandlePlayerDamaged;
+			EquipmentCooldowns.Unregister(owner.Context.UsedEquipment, this);
 		}
 
 		private void Update()
@@ -71,8 +76,9 @@ namespace WitchMendokusai
 			if (Time.time < readyTime)
 				return;
 
-			readyTime = Time.time + AttackCadence.WeaponInterval(baseCooldown, PlayerStat[cooldownStat], PlayerStat[UnitStatType.ATTACK_SPEED_BONUS],
+			readyInterval = AttackCadence.WeaponInterval(baseCooldown, PlayerStat[cooldownStat], PlayerStat[UnitStatType.ATTACK_SPEED_BONUS],
 				cooldownReductionPerStack, minCooldownRatio, PlayerStat[UnitStatType.COOLTIME_BONUS]);
+			readyTime = Time.time + readyInterval;
 			CounterCount++;
 
 			GameObject counter = objectPoolManager.Spawn(counterPrefab, subscribedPlayer.transform.position, Quaternion.identity);

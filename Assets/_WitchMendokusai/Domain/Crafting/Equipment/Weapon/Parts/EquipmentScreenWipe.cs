@@ -5,7 +5,7 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	public class EquipmentScreenWipe : SkillComponent
+	public class EquipmentScreenWipe : SkillComponent, IEquipmentCooldown
 	{
 		[SerializeField, Min(1f)] private float baseCooldown = 60f;
 		[SerializeField] private UnitStatType cooldownStat = UnitStatType.NONE;
@@ -37,8 +37,15 @@ namespace WitchMendokusai
 			owner = skillObject;
 		}
 
+		// 스킬창 장비 칸의 대기 표시용. 다음 공격 시각과 그 주기 (EquipmentCooldowns)
+		private float readyTime;
+		private float readyInterval;
+		public CooldownState Cooldown => CooldownState.FromReadyTime(readyTime, readyInterval);
+
 		private void OnEnable()
 		{
+			readyTime = 0f;
+			EquipmentCooldowns.Register(owner.Context.UsedEquipment, this);
 			loop = StartCoroutine(Loop());
 		}
 
@@ -46,6 +53,7 @@ namespace WitchMendokusai
 		{
 			if (loop != null)
 				StopCoroutine(loop);
+			EquipmentCooldowns.Unregister(owner.Context.UsedEquipment, this);
 		}
 
 		private IEnumerator Loop()
@@ -54,8 +62,10 @@ namespace WitchMendokusai
 			{
 				UnitStat playerStat = playerProvider.Current.UnitStat;
 				int stacks = cooldownStat != UnitStatType.NONE ? playerStat[cooldownStat] : 0;
-				yield return new WaitForSeconds(AttackCadence.WeaponInterval(baseCooldown, stacks, playerStat[UnitStatType.ATTACK_SPEED_BONUS],
-					reductionPerStack, minCooldownRatio, playerStat[UnitStatType.COOLTIME_BONUS]));
+				readyInterval = AttackCadence.WeaponInterval(baseCooldown, stacks, playerStat[UnitStatType.ATTACK_SPEED_BONUS],
+					reductionPerStack, minCooldownRatio, playerStat[UnitStatType.COOLTIME_BONUS]);
+				readyTime = Time.time + readyInterval;
+				yield return new WaitForSeconds(readyInterval);
 				Wipe();
 				yield return null;
 				if (destroyDrops)

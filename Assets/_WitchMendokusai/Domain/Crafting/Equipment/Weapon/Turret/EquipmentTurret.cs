@@ -5,7 +5,7 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	public class EquipmentTurret : SkillComponent
+	public class EquipmentTurret : SkillComponent, IEquipmentCooldown
 	{
 		[SerializeField] private float originCoolTime = 1.5f;
 		// 조준 위치가 아직 안 잡혔을 때 다시 물어보기까지의 간격.
@@ -37,6 +37,11 @@ namespace WitchMendokusai
 		private UnitStat subscribedStat;
 
 		private IItemData usedEquipment;
+		// 스킬창 장비 칸의 대기 표시용. 다음 공격 시각과 그 주기 (EquipmentCooldowns)
+		private float readyTime;
+		private float readyInterval;
+		public CooldownState Cooldown => CooldownState.FromReadyTime(readyTime, readyInterval);
+
 
 		public override void InitContext(SkillObject skillObject)
 		{
@@ -53,6 +58,8 @@ namespace WitchMendokusai
 			UpdateTurret();
 			UpdateDamageBonus();
 
+			readyTime = 0f;
+			EquipmentCooldowns.Register(usedEquipment, this);
 			loop = StartCoroutine(Loop());
 
 			transform.position = playerProvider.Current.transform.position;
@@ -62,6 +69,7 @@ namespace WitchMendokusai
 		{
 			if (loop != null)
 				StopCoroutine(loop);
+			EquipmentCooldowns.Unregister(usedEquipment, this);
 			subscribedStat?.RemoveListener(UnitStatType.TURRET_COUNT, UpdateTurret);
 			subscribedStat?.RemoveListener(UnitStatType.PROJECTILE_COUNT_BONUS, UpdateTurret);
 			subscribedStat?.RemoveListener(UnitStatType.TURRET_DAMAGE_BONUS, UpdateDamageBonus);
@@ -96,7 +104,9 @@ namespace WitchMendokusai
 
 				bulletObject.SetActive(true);
 
-				yield return new WaitForSeconds(CoolTime / turretTransforms.Count);
+				readyInterval = CoolTime / turretTransforms.Count;
+				readyTime = Time.time + readyInterval;
+				yield return new WaitForSeconds(readyInterval);
 			}
 		}
 

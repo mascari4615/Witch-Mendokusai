@@ -102,5 +102,47 @@ namespace WitchMendokusai.Tests
 			Object.DestroyImmediate(signature);
 			Object.DestroyImmediate(gained);
 		}
+
+		// 대기가 있는 장비는 덮개와 남은 초, 대기 없는 장비는 상시 표시 (사용자 2026-11-21)
+		[Test]
+		public void RunEquipmentHud_ShowsCooldownOrAlwaysPerEquipment()
+		{
+			EquipmentData cooling = ScriptableObject.CreateInstance<EquipmentData>();
+			EquipmentData always = ScriptableObject.CreateInstance<EquipmentData>();
+			cooling.ID = 990001;
+			always.ID = 990002;
+			FakeCooldown source = new() { Cooldown = new CooldownState(0.5f, 2.4f, 4.8f) };
+			EquipmentCooldowns.Register(cooling, source);
+			try
+			{
+				RunEquipmentHud hud = new();
+				hud.RefreshEquipments(new[] { cooling, always }, new[] { 1, 1 }, 3);
+
+				Label coolingRemain = hud.SlotRow[0].Q<Label>(className: RunEquipmentHud.USS_REMAIN);
+				Assert.IsFalse(coolingRemain.ClassListContains(RunEquipmentHud.USS_REMAIN_EMPTY));
+				Assert.AreEqual("3", coolingRemain.text);
+				Assert.IsTrue(hud.SlotRow[0].Q<Label>(className: RunEquipmentHud.USS_STATE).ClassListContains(RunEquipmentHud.USS_STATE_EMPTY));
+
+				Assert.IsTrue(hud.SlotRow[1].Q<Label>(className: RunEquipmentHud.USS_REMAIN).ClassListContains(RunEquipmentHud.USS_REMAIN_EMPTY));
+				Assert.IsFalse(hud.SlotRow[1].Q<Label>(className: RunEquipmentHud.USS_STATE).ClassListContains(RunEquipmentHud.USS_STATE_EMPTY));
+
+				// 준비되면 숫자가 사라지고 번쩍임이 켜짐
+				source.Cooldown = new CooldownState(0f, 0f, 4.8f);
+				hud.RefreshEquipments(new[] { cooling, always }, new[] { 1, 1 }, 3);
+				Assert.IsTrue(coolingRemain.ClassListContains(RunEquipmentHud.USS_REMAIN_EMPTY));
+				Assert.IsTrue(hud.SlotRow[0].Q(className: RunEquipmentHud.USS_FLASH).ClassListContains(RunEquipmentHud.USS_FLASH_ON));
+			}
+			finally
+			{
+				EquipmentCooldowns.Unregister(cooling, source);
+				Object.DestroyImmediate(cooling);
+				Object.DestroyImmediate(always);
+			}
+		}
+
+		private class FakeCooldown : IEquipmentCooldown
+		{
+			public CooldownState Cooldown { get; set; }
+		}
 	}
 }

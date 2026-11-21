@@ -4,7 +4,7 @@ using VContainer;
 namespace WitchMendokusai
 {
 	// 움직인 거리만큼 쌓였다가 멈추는 순간 터지는 구역
-	public class EquipmentChoreNote : SkillComponent
+	public class EquipmentChoreNote : SkillComponent, IEquipmentCooldown
 	{
 		[SerializeField] private GameObject burstPrefab;
 		[SerializeField] private Transform chargeRing;
@@ -38,6 +38,8 @@ namespace WitchMendokusai
 		private ObjectPoolManager objectPoolManager;
 
 		public float Charge => charge;
+		// 스킬창 장비 칸 표시용 (EquipmentCooldowns). 걸어서 차는 충전, 터뜨릴 수 있는 최소 충전에서 준비됨
+		public CooldownState Cooldown => CooldownState.FromCharge(Mathf.Clamp01(charge / minChargeToBurst));
 		public int BurstCount { get; private set; }
 
 		[Inject]
@@ -65,6 +67,12 @@ namespace WitchMendokusai
 		private void OnEnable()
 		{
 			lastPosition = playerProvider.Current.transform.position;
+			EquipmentCooldowns.Register(owner.Context.UsedEquipment, this);
+		}
+
+		private void OnDisable()
+		{
+			EquipmentCooldowns.Unregister(owner.Context.UsedEquipment, this);
 		}
 
 		private void Update()

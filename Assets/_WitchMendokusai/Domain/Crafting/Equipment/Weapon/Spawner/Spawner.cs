@@ -24,7 +24,7 @@ namespace WitchMendokusai
 		RandomDirection = 5,
 	}
 
-	public class Spawner : SkillComponent
+	public class Spawner : SkillComponent, IEquipmentCooldown
 	{
 		[SerializeField] private GameObject prefabToSpawn;
 		[SerializeField, Tooltip("내보낼 때 공용 던지기 효과음 (CombatSfx WeaponThrow)")] private bool playThrowSfx = true;
@@ -52,6 +52,11 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float scalePerStack = 0.1f;
 
 		[SerializeField] private UnitStatType damageBonusStatType = UnitStatType.NONE;
+
+		// 스킬창 장비 칸의 대기 표시용. 다음 공격 시각과 그 주기 (EquipmentCooldowns)
+		private float readyTime;
+		private float readyInterval;
+		public CooldownState Cooldown => CooldownState.FromReadyTime(readyTime, readyInterval);
 
 		private Coroutine spawnCoroutine;
 		private int damageBonus = 0;
@@ -91,6 +96,8 @@ namespace WitchMendokusai
 				UpdateDamageBonus(PlayerStat[damageBonusStatType]);
 			}
 			clockAngle = 0f;
+			readyTime = 0f;
+			EquipmentCooldowns.Register(usedEquipment, this);
 			spawnCoroutine = StartCoroutine(Loop());
 		}
 
@@ -98,6 +105,7 @@ namespace WitchMendokusai
 		{
 			if (spawnCoroutine != null)
 				StopCoroutine(spawnCoroutine);
+			EquipmentCooldowns.Unregister(usedEquipment, this);
 			if (damageBonusStatType != UnitStatType.NONE)
 				subscribedStat?.RemoveListener(damageBonusStatType, UpdateDamageBonus);
 			subscribedStat = null;
@@ -107,7 +115,9 @@ namespace WitchMendokusai
 		{
 			while (true)
 			{
-				yield return new WaitForSeconds(CurrentInterval);
+				readyInterval = CurrentInterval;
+				readyTime = Time.time + readyInterval;
+				yield return new WaitForSeconds(readyInterval);
 				StartCoroutine(SpawnLoop());
 			}
 		}

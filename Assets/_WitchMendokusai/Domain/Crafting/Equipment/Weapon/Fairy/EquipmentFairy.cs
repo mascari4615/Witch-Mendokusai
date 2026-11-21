@@ -5,7 +5,7 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	public class EquipmentFairy : SkillComponent
+	public class EquipmentFairy : SkillComponent, IEquipmentCooldown
 	{
 		[SerializeField] private float originCoolTime = 1.5f;
 		// 조준 위치가 아직 안 잡혔을 때 다시 물어보기까지의 간격.
@@ -41,6 +41,11 @@ namespace WitchMendokusai
 		private UnitStat subscribedStat;
 
 		private IItemData usedEquipment;
+		// 스킬창 장비 칸의 대기 표시용. 다음 공격 시각과 그 주기 (EquipmentCooldowns)
+		private float readyTime;
+		private float readyInterval;
+		public CooldownState Cooldown => CooldownState.FromReadyTime(readyTime, readyInterval);
+
 
 		public override void InitContext(SkillObject skillObject)
 		{
@@ -64,6 +69,8 @@ namespace WitchMendokusai
 			UpdateFairy(PlayerStat[countStat]);
 			UpdateDamageBonus(PlayerStat[damageBonusStat]);
 
+			readyTime = 0f;
+			EquipmentCooldowns.Register(usedEquipment, this);
 			loop = StartCoroutine(Loop());
 		}
 
@@ -71,6 +78,7 @@ namespace WitchMendokusai
 		{
 			if (loop != null)
 				StopCoroutine(loop);
+			EquipmentCooldowns.Unregister(usedEquipment, this);
 			// 비활성 정령의 강화 알림 해제
 			subscribedStat?.RemoveListener(countStat, UpdateFairy);
 			subscribedStat?.RemoveListener(damageBonusStat, UpdateDamageBonus);
@@ -113,7 +121,9 @@ namespace WitchMendokusai
 
 				g.SetActive(true);
 
-				yield return new WaitForSeconds(CoolTime / fairyTransforms.Count);
+				readyInterval = CoolTime / fairyTransforms.Count;
+				readyTime = Time.time + readyInterval;
+				yield return new WaitForSeconds(readyInterval);
 			}
 		}
 
