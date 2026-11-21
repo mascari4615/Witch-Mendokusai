@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	/// 강한 판 V2 배치 2 넷 (번개, 화염, 태양 광선, 블랙홀) 의 화면 연출 박자표 처음 값. 생성기가 에셋이 없을 때 (또는 다시 넣기 메뉴) 한 번 넣음. 그 뒤 정본은 에셋
 	/// - 연출 시간은 body (Ult3D_&lt;이름&gt;Heavy) 시간선 기준. 정지 한 박은 닿기 0.005초 전
 	/// - 1차 넷 (하늘 검 한 방, 창 왕관 쌓임, 카드 대조, 달 장엄) 과 다른 박자
-	///   번개: 첫 타가 가장 크고 그 뒤 연타가 빨라지며 작아짐, 바닥 고리로 마무리
+	///   번개: 첫 타가 가장 크고 그 뒤 연타가 빨라지며 작아짐
 	///   화염: 모음 정지 뒤 1.5초 지속 압력 (떨림이 깔린 채 유지), 끊길 때 작은 마무리
 	///   태양 광선: 가장 긴 충전, 발사는 흰 섬광만 (임팩트 프레임 없음), 쓸기 동안 흔들지 않음, 진짜 한 방은 끝 폭발 (늦은 임팩트)
 	///   블랙홀: 착지 뒤 빨려드는 고조 (가장 큰 줌과 느려짐), 가장 긴 정지 뒤 폭발은 바깥으로 밀어냄 (줌 되밀림, 렌즈 볼록)
@@ -39,7 +39,7 @@ namespace WitchMendokusai
 			Bloom = P(exposure * 2f, 0.02f, 0.02f, 0.15f), RadialBlur = P(radial, 0.015f, 0.02f, 0.07f),
 		};
 
-		// ---- 번개: 먹구름 고조, 첫 낙뢰 최대, 연쇄 여섯은 빨라지며 작아짐, 바닥 고리 굴절 ----
+		// ---- 번개: 먹구름 고조, 첫 낙뢰 최대, 연쇄 여섯은 빨라지며 작아짐 ----
 
 		public static Swell[] ThunderSwells() => new[]
 		{
@@ -64,13 +64,6 @@ namespace WitchMendokusai
 			MiniBeat("연쇄 4", 1.63f, 0.24f, 0.012f, 0.14f, 0.1f),
 			MiniBeat("연쇄 5", 1.71f, 0.22f, 0.01f, 0.12f, 0.08f),
 			MiniBeat("연쇄 6", 1.78f, 0.2f, 0.01f, 0.1f, 0.06f),
-			new Beat
-			{
-				Label = "바닥 고리", FxTime = 1.96f, SlowScale = 0.6f, SlowSeconds = 0.35f, SlowRecovery = EarlyRelease(),
-				Trauma = 0.5f, Zoom = P(0.03f, 0.03f, 0.04f, 0.15f), Exposure = P(0.35f, 0.02f, 0.03f, 0.12f), Bloom = P(0.9f, 0.03f, 0.05f, 0.25f),
-				LensDistortion = P(-0.2f, 0.03f, 0.04f, 0.15f), RadialBlur = P(0.3f, 0.02f, 0.03f, 0.1f),
-				Ripple = P(0.05f, 0.02f, 0f, 0.35f), RippleSpeed = 2.2f,
-			},
 		};
 
 		// ---- 화염: 역류 모음 (당김, 어두움, 느려짐) -> 방출 정지와 되밀림 -> 지속 압력 (깔린 떨림) -> 불기둥 넷 -> 끊김 ----
@@ -105,7 +98,7 @@ namespace WitchMendokusai
 			},
 		};
 
-		// ---- 태양 광선: 가장 긴 충전 (어둡게 당김) -> 발사 흰 섬광 (임팩트 프레임 없음) -> 쓸기 (흔들림 없음, 밝음 유지) -> 고리 깨짐 다섯 -> 끝 폭발 최대 ----
+		// ---- 태양 광선: 가장 긴 충전 (어둡게 당김) -> 발사 흰 섬광 (임팩트 프레임 없음) -> 쓸기 (흔들림 없음, 밝음 유지) -> 끝 폭발 최대 ----
 
 		public static Swell[] SunBeamSwells() => new[]
 		{
@@ -123,11 +116,6 @@ namespace WitchMendokusai
 				Exposure = P(1f, 0.02f, 0.1f, 0.15f), Bloom = P(2f, 0.02f, 0.12f, 0.3f), Saturation = P(30f, 0.04f, 0.2f, 0.4f), Chromatic = P(0.2f, 0.02f, 0.05f, 0.12f),
 				LensDistortion = P(-0.25f, 0.03f, 0.05f, 0.15f), RadialBlur = P(0.65f, 0.02f, 0.06f, 0.14f),
 			},
-			MiniBeat("고리 1", 2.536f, 0.2f, 0.012f, 0.15f, 0.1f),
-			MiniBeat("고리 2", 3.068f, 0.2f, 0.012f, 0.15f, 0.1f),
-			MiniBeat("고리 3", 3.6f, 0.2f, 0.012f, 0.15f, 0.1f),
-			MiniBeat("고리 4", 4.132f, 0.22f, 0.014f, 0.17f, 0.12f),
-			MiniBeat("고리 5", 4.664f, 0.24f, 0.016f, 0.19f, 0.14f),
 			new Beat
 			{
 				Label = "끝 폭발", FxTime = 4.995f, HoldSeconds = 0.1f, HoldTimeScale = 0f,

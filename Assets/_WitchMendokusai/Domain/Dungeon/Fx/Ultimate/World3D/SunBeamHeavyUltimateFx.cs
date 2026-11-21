@@ -4,11 +4,12 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 태양 광선 강한 판 (강력 스킬용). 머리 위에 태양 구가 차오르고 경로에 금빛 고리가 서며, 굵은 광선이 땅을 긁어 녹은 줄을 그린 뒤 끝에서 폭발
-	/// - 흐름: 태양 구 충전 (빨려드는 빛 알갱이) -> 연보라 물들임과 경로 고리 다섯 -> 발사 (흰 3장은 화면 연출) -> 쓸기 2.8초 (닿는 점이 앞으로 나가며 좌우로, 고리를 차례로 깨뜨림)
+	/// 태양 광선 강한 판 (강력 스킬용). 머리 위에 태양 구가 차오른 뒤 굵은 광선이 땅을 긁어 녹은 줄을 그린 뒤 끝에서 폭발
+	/// - 흐름: 태양 구 충전 (빨려드는 빛 알갱이) -> 연보라 물들임 -> 발사 (흰 3장은 화면 연출) -> 쓸기 2.8초 (닿는 점이 앞으로 나가며 좌우로)
 	///   -> 끝 폭발 -> 녹은 줄 잔류
 	/// - 광선은 태양 구에서 땅의 닿는 점까지 원기둥 세 겹 (흰 심, 노랑, 주황 겉). 연출 광원은 태양 구 점광과 닿는 점 점광 둘
 	/// - 흔들림, 정지, 섬광은 화면 연출 박자표 (FeelUltimateFx) 몫. 쓸기 동안은 흔들지 않음 (멀미), 대신 광선 밝기 박동
+	/// - 경로 금빛 고리는 뺌 (사용자 판정 2026-11-21: 뜻을 알 수 없음)
 	/// - 설계 memo wm/design/ult3d-all-20261120/06_sun-beam.md, 제작 기록 ult3d-batch2-20261121
 	/// - 재생: 개발 창 fx ultimate SunBeamHeavy
 	/// </summary>
@@ -22,15 +23,13 @@ namespace WitchMendokusai
 		[SerializeField, ColorUsage(false, true)] private Color beamOuter = new(2f, 0.65f, 0.12f);
 		[SerializeField] private Color sunLightColor = new(1f, 0.9f, 0.6f, 1f);
 		[SerializeField] private Color contactLightColor = new(1f, 0.6f, 0.25f, 1f);
-		[SerializeField] private Color ringBase = new(0.85f, 0.65f, 0.3f, 1f);
-		[SerializeField, ColorUsage(false, true)] private Color ringGlow = new(1.2f, 0.75f, 0.2f);
 		[SerializeField, ColorUsage(false, true)] private Color meltColor = new(2.2f, 0.8f, 0.2f);
 		[SerializeField] private Color steamColor = new(0.75f, 0.7f, 0.68f, 0.6f);
 		[SerializeField] private Color tintColor = new(0.93f, 0.9f, 1f);
 
 		[Header("방향과 크기")]
 		[SerializeField, Range(-60f, 60f), Tooltip("화면 옆 기준 아래 (카메라 쪽) 로 꺾는 각도")] private float aimDown = 15f;
-		[SerializeField, Tooltip("1 이면 화면 오른쪽, -1 이면 왼쪽. 오른쪽은 작은 지도 HUD 밑에서 고리 깨짐과 끝 폭발이 가림 (독립 검토 5회차)")] private float aimSide = -1f;
+		[SerializeField, Tooltip("1 이면 화면 오른쪽, -1 이면 왼쪽. 오른쪽은 작은 지도 HUD 밑에서 끝 폭발이 가림 (독립 검토 5회차)")] private float aimSide = -1f;
 		[SerializeField, Min(0.3f)] private float sunDiameter = 1.5f;
 		[SerializeField, Min(0f), Tooltip("태양 구 자체 발광 배율. 낮으면 빛 받는 회색 원판으로 읽힘 (1회차 촬영)")] private float sunEmission = 1.1f;
 		[SerializeField, Min(0.5f), Tooltip("태양 구 높이 (시전자 위)")] private float sunHeight = 2.4f;
@@ -40,14 +39,9 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.3f), Tooltip("좌우 쓸기 주기 (초)")] private float sweepPeriod = 2.8f;
 		[SerializeField, Tooltip("광선 세 겹 밝기 (심, 노랑, 주황). 심이 밝으면 흰 관으로 읽힘 (1회차 촬영)")] private Vector3 beamLayerAlpha = new(0.45f, 0.35f, 0.3f);
 
-		[Header("고리")]
-		[SerializeField, Min(0)] private int ringCount = 4;
-		[SerializeField, Min(0.2f), Tooltip("크면 경로 위 고리끼리 겹쳐 덩어리로 읽힘 (3회차 촬영)")] private float ringRadius = 0.85f;
-		[SerializeField, Min(0.01f)] private float ringTube = 0.09f;
-
 		[Header("시간 (초)")]
 		[SerializeField, Min(0.1f), Tooltip("태양 구 충전 (m06 0.6s)")] private float chargeSeconds = 0.6f;
-		[SerializeField, Min(0.1f), Tooltip("물들임과 고리 예고 (m06 1.6s)")] private float omenSeconds = 1.6f;
+		[SerializeField, Min(0.1f), Tooltip("물들임 (m06 1.6s)")] private float omenSeconds = 1.6f;
 		[SerializeField, Min(0.5f), Tooltip("쓸기 (m06 유지 3.4s)")] private float sweepSeconds = 2.8f;
 		[SerializeField, Min(0.1f)] private float meltLinger = 2.4f;
 		[SerializeField, Min(0.1f)] private float restoreSeconds = 1.2f;
@@ -92,8 +86,6 @@ namespace WitchMendokusai
 			sunHeight *= Mathf.Pow(scale, 0.5f);
 			beamRadii *= scale;
 			sweepReach *= scale;
-			ringRadius *= scale;
-			ringTube *= scale;
 			sunRange *= scale;
 			contactRange *= scale;
 			meltWidth *= scale;
@@ -107,7 +99,7 @@ namespace WitchMendokusai
 			UltimateFxRun run = stage.Run;
 			float angle = aimDown * Mathf.Deg2Rad;
 			Vector3 direction = (run.ScreenRight * Mathf.Cos(angle) * Mathf.Sign(aimSide) - run.ScreenForward * Mathf.Sin(angle)).normalized;
-			// 시전 순간 자리에 고정. 시전자가 움직여도 태양 구, 고리, 닿는 점 경로가 어긋나지 않게
+			// 시전 순간 자리에 고정. 시전자가 움직여도 태양 구, 닿는 점 경로가 어긋나지 않게
 			Vector3 origin = run.Caster;
 			Vector3 sun = origin + Vector3.up * sunHeight;
 
@@ -123,8 +115,7 @@ namespace WitchMendokusai
 			}
 
 			ComposeSun(stage, sun);
-			List<(Transform ring, float time)> rings = ComposeRings(stage, direction, Contact);
-			ComposeBeam(stage, sun, Contact, rings);
+			ComposeBeam(stage, sun, Contact);
 			ComposeBlast(stage, Contact(BlastTime));
 			ComposeGrade(stage);
 		}
@@ -184,44 +175,8 @@ namespace WitchMendokusai
 			}, () => light.enabled = false);
 		}
 
-		// 경로 고리: 닿는 점이 지나갈 자리에 세운 금빛 고리 (광선이 지나가는 방향을 향함). 광선이 닿으면 깨짐
-		private List<(Transform ring, float time)> ComposeRings(Stage stage, Vector3 direction, System.Func<float, Vector3> contact)
-		{
-			UltimateFxRun run = stage.Run;
-			Mesh torus = Keep(run, UltimateMeshFactory.Torus(48, 10, ringTube / ringRadius));
-			Material material = Glow(run, ringBase, ringGlow * 0.5f, ringGlow, false);
-			material.SetFloat(SPECULAR_ID, 0.8f);
-			material.SetColor(DISSOLVE_EDGE_ID, ringGlow);
-			List<(Transform ring, float time)> rings = new();
-			for (int i = 0; i < ringCount; i++)
-			{
-				float hit = Mathf.Lerp(FireTime + sweepSeconds * 0.12f, BlastTime - sweepSeconds * 0.12f, i / (float)Mathf.Max(1, ringCount - 1));
-				Vector3 spot = contact(hit);
-				Vector3 next = contact(hit + 0.05f);
-				Vector3 travel = next - spot;
-				travel.y = 0f;
-				Vector3 facing = travel.sqrMagnitude > 0.0001f ? travel.normalized : direction;
-				GameObject ring = UltimateFxStage.CreateMeshObject("SunPathRing", run.Root, torus, material);
-				Solid(ring, true);
-				// 고리 면이 진행 방향을 향해 서고, 바닥에 살짝 묻힘 (반쯤 묻으면 갈고리 모양으로 읽힘, 1회차 촬영)
-				ring.transform.rotation = Quaternion.FromToRotation(Vector3.up, facing);
-				Vector3 buried = spot - Vector3.up * ringRadius * 2.2f;
-				Vector3 standing = spot + Vector3.up * ringRadius * 0.95f;
-				ring.transform.position = buried;
-				ring.transform.localScale = Vector3.one * ringRadius;
-				float rise = chargeSeconds + i * 0.3f;
-				run.Track(rise, 0.25f, progress => ring.transform.position = Vector3.LerpUnclamped(buried, standing, OverShoot(progress, 0.12f)));
-				run.At(rise + 0.2f, () => Puff(run, spot));
-				rings.Add((ring.transform, hit));
-			}
-			run.Track(chargeSeconds, omenSeconds, progress => material.SetColor(EMISSION_ID, ringGlow * Mathf.Lerp(0.3f, 0.9f, progress)));
-			return rings;
-		}
-
-		private void Puff(UltimateFxRun run, Vector3 spot) => run.Dust(spot, 0.8f * sizeScale, 6, steamColor);
-
-		// 광선: 원기둥 세 겹이 태양 구에서 닿는 점까지. 표면을 따라 흐르는 빛, 닿는 점 불티와 증기, 녹은 줄, 닿는 점 점광, 고리 깨짐
-		private void ComposeBeam(Stage stage, Vector3 sun, System.Func<float, Vector3> contact, List<(Transform ring, float time)> rings)
+		// 광선: 원기둥 세 겹이 태양 구에서 닿는 점까지. 표면을 따라 흐르는 빛, 닿는 점 불티와 증기, 녹은 줄, 닿는 점 점광
+		private void ComposeBeam(Stage stage, Vector3 sun, System.Func<float, Vector3> contact)
 		{
 			UltimateFxRun run = stage.Run;
 			Mesh cylinder = Keep(run, UltimateMeshFactory.OpenCylinder(24, 1f, 1f));
@@ -278,7 +233,6 @@ namespace WitchMendokusai
 			float sparkCarry = 0f;
 			float steamCarry = 0f;
 			Vector3 lastMelt = contact(FireTime);
-			int nextRing = 0;
 			run.Track(FireTime, sweepSeconds, _ =>
 			{
 				float now = run.Now;
@@ -315,13 +269,8 @@ namespace WitchMendokusai
 				light.transform.position = end + Vector3.up * 1.1f + stage.ToCamera * 0.5f;
 				float open = UltimateFxRun.EaseOut(UltimateFxRun.Span(now, FireTime, FireTime + 0.1f));
 				light.intensity = contactIntensity * open * (1f + 0.12f * Mathf.Sin(now / 0.18f * Mathf.PI * 2f));
-				while (nextRing < rings.Count && now >= rings[nextRing].time)
-				{
-					BreakRing(run, rings[nextRing].ring);
-					nextRing++;
-				}
 			});
-			// 풀 반응은 발사와 고리 깨짐마다 한 번씩. React 는 모든 풀의 시작 시각을 되돌려 매 프레임 부르면 풀이 멈춤 (독립 검토)
+			// 풀 반응은 발사와 끝 폭발에 한 번씩. React 는 모든 풀의 시작 시각을 되돌려 매 프레임 부르면 풀이 멈춤 (독립 검토)
 			run.At(FireTime, () => run.React(contact(FireTime), windSpeed, 6f * sizeScale, false));
 			GroundGlow(run, contact(FireTime), contactRange * 0.7f, beamOuter * 0.4f, FireTime, 0.05f, 0.3f, 0.8f);
 			run.Track(BlastTime, 1.2f, _ => light.intensity = blastIntensity * Spike(run.Now, BlastTime, 0.02f, 0.5f), () => light.enabled = false);
@@ -346,18 +295,6 @@ namespace WitchMendokusai
 			else
 				UltimateFxStage.SetLifetimeLook(particles, UltimateFxStage.FadeGradient(Color.white, 0.02f, 0.75f), null);
 			return particles;
-		}
-
-		// 고리가 광선에 닿으면 금빛 조각으로 깨지며 사라짐
-		private void BreakRing(UltimateFxRun run, Transform ring)
-		{
-			if (ring == null)
-				return;
-			Vector3 position = ring.position;
-			run.SparkBurst(position, 40, new Vector2(5f, 12f), new Vector2(0.3f, 0.7f), new Vector2(0.08f, 0.16f), new Color(1f, 0.85f, 0.4f, 1f), Color.white, 1f);
-			run.Debris(position, ringRadius, 8, 7f * sizeScale, ringBase, new Color(1f, 0.8f, 0.4f, 1f), 0.8f);
-			run.React(position, windSpeed, 4f * sizeScale, false);
-			run.Destroy(ring.gameObject);
 		}
 
 		// 끝 폭발: 닿는 점에서 불덩이, 연기, 흙 파편, 먼지, 풀 바람

@@ -4,10 +4,11 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 번개 강한 판 (강력 스킬용). 머리 위를 먹구름이 덮고, 첫 낙뢰 하나가 가장 크게 떨어진 뒤 둘레에 여섯 줄기가 빨라지며 내리꽂히고, 바닥 고리가 퍼져 남음
-	/// - 흐름: 먹구름 (빛 받는 구름 입자, 속 번쩍임, 빗줄기) -> 착지 자리 예고 빛 -> 첫 낙뢰 (가장 굵음) -> 연쇄 여섯 (간격이 줄어듦) -> 바닥 고리와 땅을 기는 감전 아크 -> 잔류
+	/// 번개 강한 판 (강력 스킬용). 머리 위를 먹구름이 덮고, 첫 낙뢰 하나가 가장 크게 떨어진 뒤 둘레에 여섯 줄기가 빨라지며 내리꽂힘
+	/// - 흐름: 먹구름 (빛 받는 구름 입자, 속 번쩍임, 빗줄기) -> 착지 자리 예고 빛 -> 첫 낙뢰 (가장 굵음) -> 연쇄 여섯 (간격이 줄어듦) -> 잔류 (그을림과 먼지)
 	/// - 번개 줄기는 꺾인 관 메시 (가산 심과 빛 겉) 이고 표시 동안 두 번 모양을 바꿈. 접지 광원 둘을 번갈아 씀 (같은 시각 2개 이하)
 	/// - 흔들림, 정지, 섬광은 화면 연출 박자표 (FeelUltimateFx) 몫. 여기는 월드 안 물체와 빛만
+	/// - 바닥 고리와 고리 안 감전 아크는 뺌 (사용자 판정 2026-11-21: 뜻을 알 수 없고 어울리지 않음). 낙뢰 줄기만
 	/// - 설계 memo wm/design/ult3d-all-20261120/10_thunder.md, 제작 기록 ult3d-batch2-20261121
 	/// - 재생: 개발 창 fx ultimate ThunderHeavy
 	/// </summary>
@@ -29,7 +30,6 @@ namespace WitchMendokusai
 		[SerializeField, ColorUsage(false, true)] private Color boltCore = new(3.2f, 3.2f, 4f);
 		[SerializeField, ColorUsage(false, true)] private Color boltGlow = new(0.9f, 1.1f, 2.6f);
 		[SerializeField] private Color groundLightColor = new(0.85f, 0.9f, 1f, 1f);
-		[SerializeField, ColorUsage(false, true)] private Color ringColor = new(2.4f, 2f, 0.6f);
 		[SerializeField] private Color cloudColor = new(0.42f, 0.45f, 0.55f, 0.55f);
 		[SerializeField, ColorUsage(false, true)] private Color cloudFlashColor = new(0.55f, 0.6f, 1f);
 		[SerializeField] private Color sparkColor = new(1f, 0.95f, 0.6f, 1f);
@@ -61,9 +61,7 @@ namespace WitchMendokusai
 
 		[Header("시간 (초)")]
 		[SerializeField, Min(0.1f), Tooltip("첫 낙뢰 시각. 앞은 구름과 예고")] private float firstStrike = 1f;
-		[SerializeField, Min(0f), Tooltip("마지막 연쇄 뒤 바닥 고리 시각")] private float ringDelay = 0.18f;
-		[SerializeField, Min(0.1f)] private float ringExpandSeconds = 0.5f;
-		[SerializeField, Min(0.1f)] private float ringLinger = 1f;
+		[SerializeField, Min(0.1f), Tooltip("마지막 연쇄 뒤 남는 시간 (그을림, 먼지, 장면 빛 복귀 시작)")] private float lingerSeconds = 1.4f;
 		[SerializeField, Min(0.1f)] private float restoreSeconds = 1.4f;
 		[SerializeField, Min(0.05f), Tooltip("첫 낙뢰 자리 땅이 달아오르는 시간")] private float telegraphSeconds = 0.7f;
 		[SerializeField, Min(0.02f), Tooltip("연쇄 줄기 자리 땅이 달아오르는 시간")] private float chainTelegraphSeconds = 0.12f;
@@ -76,7 +74,6 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float chainLightIntensity = 18f;
 		[SerializeField, Min(1f)] private float lightRange = 13f;
 		[SerializeField, Min(0.01f), Tooltip("다음 줄기 전에 거의 꺼지게")] private float lightHalfLife = 0.06f;
-		[SerializeField, Min(0f)] private float ringLightIntensity = 10f;
 
 		[Header("후처리")]
 		[SerializeField, Min(0f)] private float bloom = 1f;
@@ -84,15 +81,9 @@ namespace WitchMendokusai
 		[SerializeField, Range(0f, 1f)] private float vignette = 0.3f;
 
 		[Header("바닥")]
-		[SerializeField, Tooltip("바닥 고리 반지름 (시작, 끝)")] private Vector2 ringRadius = new(2.2f, 3.2f);
-		[SerializeField, Min(0.01f)] private float ringThickness = 0.15f;
-		[SerializeField, Min(16)] private int ringSegments = 96;
 		[SerializeField, Min(0.5f)] private float scorchSize = 2.6f;
 		[SerializeField, Min(0.5f)] private float firstScorchSize = 5.5f;
 		[SerializeField, Min(0)] private int sparksPerStrike = 40;
-		[SerializeField, Min(0)] private int arcCount = 7;
-		[SerializeField, Min(0.1f)] private float arcLength = 1.8f;
-		[SerializeField, Min(0.05f)] private float arcSeconds = 0.7f;
 		[SerializeField, Min(1f)] private float windSpeed = 12f;
 		[SerializeField, Min(1f)] private float windReach = 5f;
 
@@ -100,10 +91,9 @@ namespace WitchMendokusai
 		[System.NonSerialized] private float sizeScale = 1f;
 
 		private float LastStrike => firstStrike + chainOffsets[chainOffsets.Length - 1];
-		private float RingTime => LastStrike + ringDelay;
-		private float RestoreTime => RingTime + ringExpandSeconds + ringLinger * 0.5f;
+		private float RestoreTime => LastStrike + lingerSeconds * 0.5f;
 
-		public override float DurationSeconds => RingTime + ringExpandSeconds + ringLinger;
+		public override float DurationSeconds => LastStrike + lingerSeconds;
 
 		public override void ScaleWorld(float scale)
 		{
@@ -115,11 +105,8 @@ namespace WitchMendokusai
 			boltJitter *= scale;
 			chainRadius *= scale;
 			lightRange *= scale;
-			ringRadius *= scale;
-			ringThickness *= scale;
 			scorchSize *= scale;
 			firstScorchSize *= scale;
-			arcLength *= scale;
 			windReach *= scale;
 			sparksPerStrike = Mathf.RoundToInt(sparksPerStrike * scale);
 			// 구름 높이와 줄기 길이는 덜 키움 (시야 위쪽 7.5)
@@ -159,9 +146,12 @@ namespace WitchMendokusai
 				float glowStart = Mathf.Max(0f, time - lead);
 				GroundGlow(run, spots[i], (first ? 3.6f : 2.2f) * sizeScale, boltGlow * telegraphGlow, glowStart, time - glowStart, 0.05f, time - glowStart + 0.05f);
 			}
-			ComposeRing(stage, center, lights[1]);
-			// 마지막 연쇄 광원 (A) 은 트랙 끝에 세기 0 만 됨. 바닥 고리 뒤 끔
-			run.At(RingTime + ringExpandSeconds, () => lights[0].enabled = false);
+			// 연쇄 광원은 트랙 끝에 세기 0 만 됨. 마지막 줄기가 꺼진 뒤 둘 다 끔
+			run.At(LastStrike + 0.3f, () =>
+			{
+				lights[0].enabled = false;
+				lights[1].enabled = false;
+			});
 			ComposeGrade(stage);
 		}
 
@@ -284,7 +274,7 @@ namespace WitchMendokusai
 					UltimateFxStage.Emit(sparks, ground + Vector3.up * 0.15f, direction * Random.Range(3f, 9f) * (first ? 1.4f : 1f) * sizeScale, Random.Range(0.05f, 0.11f), Random.Range(0.25f, 0.6f), sparkColor);
 				}
 				DustRing(run, ground, first ? 30 : 12, (first ? 3f : 1.6f) * sizeScale, dustColor, (first ? 1.8f : 1.1f) * sizeScale);
-				// 풀 반응은 첫 낙뢰와 바닥 고리 둘만. React 는 모든 풀의 시작 시각을 되돌려 연달아 부르면 풀이 멈춤 (독립 검토)
+				// 풀 반응은 첫 낙뢰만. React 는 모든 풀의 시작 시각을 되돌려 연달아 부르면 풀이 멈춤 (독립 검토)
 				if (first)
 					run.React(ground, windSpeed, windReach * 1.6f, true);
 				if (first)
@@ -319,100 +309,6 @@ namespace WitchMendokusai
 			// 줄기는 땅 쪽이 밝게 (끝 알파 1), 가지만 끝으로 옅게
 			UltimateMeshFactory.FillTube(bolt.Core, paths, coreRadii, 6, 0.3f, 1f);
 			UltimateMeshFactory.FillTube(bolt.Glow, paths, glowRadii, 8, 0f, 0.8f);
-		}
-
-		// 바닥 고리 (지면에 눕힌 원환) 가 0.5초에 퍼져 남고, 땅을 기는 감전 아크가 고리 둘레를 깜빡임
-		private void ComposeRing(Stage stage, Vector3 center, Light light)
-		{
-			UltimateFxRun run = stage.Run;
-			Mesh ringMesh = Keep(run, new Mesh { name = "ThunderGroundRing" });
-			Material ringMaterial = run.Additive(UltimateFxTextures.White, Color.clear);
-			GameObject ring = UltimateFxStage.CreateMeshObject("ThunderGroundRing", run.Root, ringMesh, ringMaterial);
-			ring.SetActive(false);
-			float end = DurationSeconds;
-			run.At(RingTime, () => ring.SetActive(true));
-			// 굵기를 고정하려고 매 프레임 실제 반지름으로 관을 다시 채움 (크기만 키우면 단면도 넓어짐)
-			bool ringSettled = false;
-			run.Track(RingTime, end - RingTime, _ =>
-			{
-				// 퍼지는 동안만 다시 채움. 다 퍼진 뒤 한 번 더 채우고 멈춤
-				if (ringSettled == false)
-				{
-					float expand = (run.Now - RingTime) / ringExpandSeconds;
-					float radius = Mathf.Lerp(ringRadius.x, ringRadius.y, UltimateFxRun.EaseOut(expand));
-					UltimateMeshFactory.FillTube(ringMesh, RingStrand(center, radius, ringSegments), RingRadii(ringThickness, ringSegments), 6, 1f, 1f);
-					ringSettled = expand >= 1f;
-				}
-				float fade = 1f - UltimateFxRun.EaseIn(UltimateFxRun.Span(run.Now, end - ringLinger * 0.6f, end));
-				float flicker = 0.85f + 0.15f * Mathf.Sin(run.Now * 47f);
-				ringMaterial.SetColor("_Color", ringColor * (1f + 2f * Spike(run.Now, RingTime, 0.02f, 0.15f)) * fade * flicker);
-			});
-			GroundGlow(run, center, ringRadius.y * 2.4f, ringColor * 0.6f, RingTime, 0.05f, 0.5f, end - RingTime);
-
-			run.Track(RingTime, end - RingTime, _ =>
-			{
-				light.enabled = true;
-				light.transform.position = center + Vector3.up * 1.2f;
-				light.intensity = ringLightIntensity * Spike(run.Now, RingTime, 0.03f, 0.6f);
-			}, () => light.enabled = false);
-
-			// 감전 아크: 고리 둘레 땅 위 짧은 꺾인 관이 0.05초마다 모양을 바꾸며 기어감
-			Material arcMaterial = run.Additive(UltimateFxTextures.White, boltCore * 1.2f);
-			for (int i = 0; i < arcCount; i++)
-			{
-				Mesh arcMesh = Keep(run, new Mesh { name = "ThunderArc" });
-				GameObject arc = UltimateFxStage.CreateMeshObject("ThunderArc", run.Root, arcMesh, arcMaterial);
-				arc.SetActive(false);
-				float angle = Random.value * Mathf.PI * 2f;
-				float speed = Random.Range(-1.6f, 1.6f);
-				float start = RingTime + Random.Range(0f, 0.4f);
-				float shapeClock = -1f;
-				run.Track(start, arcSeconds, progress =>
-				{
-					if (run.Now - shapeClock < 0.05f)
-						return;
-					shapeClock = run.Now;
-					float radius = Mathf.Lerp(ringRadius.x, ringRadius.y, UltimateFxRun.EaseOut((run.Now - RingTime) / ringExpandSeconds)) * Random.Range(0.7f, 1f);
-					float current = angle + speed * progress;
-					Vector3 from = center + new Vector3(Mathf.Cos(current), 0f, Mathf.Sin(current)) * radius;
-					Vector3 to = from + Quaternion.Euler(0f, Random.Range(-70f, 70f), 0f) * (center - from).normalized * arcLength;
-					from.y = UltimateFxStage.GroundHeight(from) + 0.12f;
-					to.y = UltimateFxStage.GroundHeight(to) + 0.12f;
-					List<List<Vector3>> strands = UltimateMeshFactory.BoltStrands(from, to, 7, arcLength * 0.12f, 1, arcLength * 0.4f);
-					List<IReadOnlyList<float>> widths = new();
-					foreach (List<Vector3> strand in strands)
-					{
-						List<float> width = new();
-						for (int point = 0; point < strand.Count; point++)
-							width.Add(coreRadius * 0.9f);
-						widths.Add(width);
-					}
-					UltimateMeshFactory.FillTube(arcMesh, new List<IReadOnlyList<Vector3>>(strands), widths, 5, 0.2f, 0.6f);
-					arc.SetActive(Random.value > 0.2f);
-				}, () => arc.SetActive(false));
-			}
-		}
-
-		// 표적 둘레 원을 따라 도는 닫힌 선 하나 (바닥 고리 관)
-		private static List<IReadOnlyList<Vector3>> RingStrand(Vector3 center, float radius, int segments)
-		{
-			List<Vector3> points = new();
-			for (int i = 0; i <= segments; i++)
-			{
-				float angle = i / (float)segments * Mathf.PI * 2f;
-				Vector3 point = center + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
-				point.y = UltimateFxStage.GroundHeight(point) + 0.08f;
-				points.Add(point);
-			}
-			return new List<IReadOnlyList<Vector3>> { points };
-		}
-
-		private static List<IReadOnlyList<float>> RingRadii(float thickness, int segments)
-		{
-			List<float> radii = new();
-			for (int i = 0; i <= segments; i++)
-				radii.Add(thickness);
-			return new List<IReadOnlyList<float>> { radii };
 		}
 
 		private void ComposeGrade(Stage stage)
