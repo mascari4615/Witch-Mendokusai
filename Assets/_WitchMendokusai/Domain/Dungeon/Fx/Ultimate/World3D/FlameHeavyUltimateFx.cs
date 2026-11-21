@@ -5,7 +5,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 화염방사 강한 판 (강력 스킬용). 주변 불씨가 손으로 빨려든 뒤 거대한 불길이 앞으로 뿜어져 1.6초 동안 땅을 태우고, 땅에서 불기둥이 솟고, 끝에서 연기 기둥이 말려 오름
 	/// - 흐름: 역류 모음 (불씨가 손으로, 손 불덩이와 점광이 커짐) -> 방출 (원뿔로 넓어지는 불길 입자, 뼈대 원뿔, 불길 점광이 끝을 따라감) -> 땅 불기둥 넷 -> 끊김과 연기 버섯 -> 잔불
-	/// - 방향은 시전자 조준. 진열장은 화면 오른쪽 아래로 (aimDown) 불길 끝이 화면 안에 남게
+	/// - 방향은 시전자 조준. 진열장은 화면 왼쪽 (aimSide) 으로, 오른쪽 위 HUD 와 작은 지도에 불길 끝이 가리지 않게
 	/// - 흔들림, 정지, 섬광은 화면 연출 박자표 (FeelUltimateFx) 몫. 여기는 월드 안 불, 연기, 빛, 그을림
 	/// - 설계 memo wm/design/ult3d-all-20261120/01_flame.md, 제작 기록 ult3d-batch2-20261121
 	/// - 재생: 개발 창 fx ultimate FlameHeavy
@@ -15,7 +15,7 @@ namespace WitchMendokusai
 	{
 		[Header("색")]
 		[SerializeField, ColorUsage(false, true)] private Color fireTint = new(1.2f, 0.52f, 0.18f);
-		[SerializeField, ColorUsage(false, true)] private Color coreTint = new(2.2f, 1.6f, 0.9f);
+		[SerializeField, ColorUsage(false, true)] private Color coreTint = new(1.5f, 0.85f, 0.3f);
 		[SerializeField] private Color fireLightColor = new(1f, 0.55f, 0.2f, 1f);
 		[SerializeField] private Color smokeColor = new(0.17f, 0.15f, 0.14f, 0.95f);
 		[SerializeField] private Color emberColor = new(1f, 0.6f, 0.2f, 1f);
@@ -23,7 +23,8 @@ namespace WitchMendokusai
 		[SerializeField] private Color scorchLine = new(1f, 0.45f, 0.1f, 1f);
 
 		[Header("방향")]
-		[SerializeField, Range(-60f, 60f), Tooltip("화면 오른쪽 기준 아래 (카메라 쪽) 로 꺾는 각도")] private float aimDown = 10f;
+		[SerializeField, Range(-60f, 60f), Tooltip("화면 옆 기준 아래 (카메라 쪽) 로 꺾는 각도")] private float aimDown = 10f;
+		[SerializeField, Tooltip("1 이면 화면 오른쪽, -1 이면 왼쪽. 오른쪽은 작은 지도 HUD 에 끝이 가림 (독립 검토 4회차)")] private float aimSide = -1f;
 		[SerializeField, Min(0f), Tooltip("불길 시작점을 손 앞으로 빼는 거리 (인물을 가리지 않게)")] private float muzzleForward = 0.8f;
 		[SerializeField, Min(0f)] private float muzzleHeight = 0.9f;
 
@@ -31,7 +32,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(1f), Tooltip("불길 길이 (인물 키 0.8 의 약 11배)")] private float flameLength = 5.5f;
 		[SerializeField, Min(0.2f), Tooltip("끝 반지름")] private float flameEndRadius = 2.3f;
 		[SerializeField, Min(0)] private int firePerSecond = 300;
-		[SerializeField, Min(0)] private int corePerSecond = 90;
+		[SerializeField, Min(0)] private int corePerSecond = 50;
 		[SerializeField, Min(0)] private int smokePerSecond = 34;
 		[SerializeField] private Vector2 fireSize = new(0.7f, 1.1f);
 		[SerializeField, Min(1f), Tooltip("수명 동안 커지는 배율")] private float fireGrowth = 3.4f;
@@ -105,7 +106,7 @@ namespace WitchMendokusai
 		{
 			UltimateFxRun run = stage.Run;
 			float angle = aimDown * Mathf.Deg2Rad;
-			Vector3 direction = (run.ScreenRight * Mathf.Cos(angle) - run.ScreenForward * Mathf.Sin(angle)).normalized;
+			Vector3 direction = (run.ScreenRight * Mathf.Cos(angle) * Mathf.Sign(aimSide) - run.ScreenForward * Mathf.Sin(angle)).normalized;
 			Vector3 muzzle = run.Caster + Vector3.up * muzzleHeight + direction * muzzleForward;
 			Vector3 tip = muzzle + direction * flameLength;
 			tip.y = UltimateFxStage.GroundHeight(tip);
@@ -150,19 +151,21 @@ namespace WitchMendokusai
 				});
 			}
 
-			Mesh sphere = Keep(run, UltimateMeshFactory.Sphere(16, 24));
-			Material ballMaterial = run.Additive(UltimateFxTextures.White, Color.clear);
-			GameObject ball = UltimateFxStage.CreateMeshObject("FlameHandBall", run.Root, sphere, ballMaterial);
-			ball.transform.position = muzzle;
-			run.Track(0f, ReleaseTime + 0.25f, progress =>
+			// 손 불덩이: 불 입자가 손 둘레를 돌며 점점 크고 많아짐. 매끈한 구는 크림색 원판으로 읽힘 (독립 검토 4회차)
+			ParticleSystem charge = run.Particles("FlameCharge", run.Additive(UltimateFxTextures.FlamePuff, fireTint), 220, -0.1f);
+			UltimateFxStage.SetLifetimeLook(charge, FireGradient(), AnimationCurve.EaseInOut(0f, 0.6f, 1f, 1.3f));
+			float chargeCarry = 0f;
+			run.Track(0.1f, ReleaseTime - 0.1f, _ =>
 			{
-				float now = run.Now;
-				float grow = UltimateFxRun.EaseIn(UltimateFxRun.Span(now, 0f, ReleaseTime));
-				float pop = now > ReleaseTime ? 1f - UltimateFxRun.Span(now, ReleaseTime, ReleaseTime + 0.25f) : 1f;
-				float pulse = 1f + 0.12f * Mathf.Sin(now * 38f);
-				ball.transform.localScale = Vector3.one * Mathf.Lerp(0.15f, 1.1f, grow) * pulse * pop;
-				ballMaterial.SetColor("_Color", fireTint * grow * pop);
-			}, () => run.Destroy(ball));
+				float grow = UltimateFxRun.EaseIn(UltimateFxRun.Span(run.Now, 0f, ReleaseTime));
+				chargeCarry += Mathf.Lerp(20f, 140f, grow) * run.Delta;
+				for (; chargeCarry >= 1f; chargeCarry -= 1f)
+				{
+					Vector3 offset = Random.onUnitSphere * Mathf.Lerp(0.25f, 0.8f, grow) * sizeScale;
+					Vector3 swirl = Vector3.Cross(Vector3.up, offset).normalized * 3f * sizeScale;
+					UltimateFxStage.Emit(charge, muzzle + offset, swirl - offset * 2f, Random.Range(0.35f, 0.7f) * Mathf.Lerp(0.6f, 1.4f, grow) * sizeScale, Random.Range(0.25f, 0.4f), Color.white, Random.value * 360f, Random.Range(-200f, 200f));
+				}
+			});
 
 			Light hand = WorldLight(stage, "FlameHand", LightType.Point, fireLightColor, handRange.y);
 			hand.transform.position = muzzle + stage.ToCamera * 0.3f;
