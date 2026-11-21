@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3837cf930a512354c9250fe7fe969e4b, type: 3}
+  m_Script: {fileID: 11500000, guid: f014e15b9f104a2aa756d35aa36207ba, type: 3}
   m_Name: Ultimate_3_Frost
-  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.UltimateFx
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MoonUltimateFx
   previewRadius: 3
   previewLength: 8
   previewWidth: 2
