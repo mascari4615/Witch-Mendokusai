@@ -7,10 +7,6 @@ namespace WitchMendokusai.Tests
 	// 스킬창 장비 칸 대기 표시 (사용자 2026-11-21 플레이 피드백)
 	public class RunEquipmentHudCooldownTests
 	{
-		private const float NUMBER_MIN_INTERVAL = 1.5f;
-		private const int FLASH_HOLD_MILLISECONDS = 60;
-		private const string SUBSECOND_FORMAT = "0.0";
-
 		private EquipmentData cooling;
 		private EquipmentData always;
 		private FakeCooldown source;
@@ -26,7 +22,8 @@ namespace WitchMendokusai.Tests
 			source = new FakeCooldown();
 			EquipmentCooldowns.Register(cooling, source);
 			hud = new RunEquipmentHud();
-			hud.SetCooldownDisplay(NUMBER_MIN_INTERVAL, FLASH_HOLD_MILLISECONDS, SUBSECOND_FORMAT);
+			// USS 기본값과 같은 기준 (1.5초 미만 덮개만, 번쩍임 60ms, 소수 한 자리)
+			hud.SetCooldownDisplay(1.5f, 60, "0.0");
 		}
 
 		[TearDown]
