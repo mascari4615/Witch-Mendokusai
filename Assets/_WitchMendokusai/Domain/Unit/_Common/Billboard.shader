@@ -174,7 +174,7 @@ Shader "WitchMendokusai/BillboardShader"
                 {
                     // 월드 포지션 기준 카메라 방향 벡터 계산
                     float4 pivotPosWorldSpace = mul(UNITY_MATRIX_M, float4(0, 0, 0, 1)); // pivotPosObjectSpace 0, 0, 0
-                    float3 cameraLookDir = normalize(pivotPosWorldSpace - _WorldSpaceCameraPos); // 카메라 -> 오브젝트 방향
+                    float3 cameraLookDir = normalize(pivotPosWorldSpace.xyz - _WorldSpaceCameraPos); // 카메라 -> 오브젝트 방향
                     if (isOnlyYaw == 1.0f) cameraLookDir.y = 0.0f; // Yaw축 빌보드
 
                     // 카메라 방향 벡터를 회전 행렬로 계산
