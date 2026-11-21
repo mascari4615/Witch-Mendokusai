@@ -135,6 +135,9 @@ namespace WitchMendokusai
 				capsule.height = Mathf.Max(kind.ColliderHeight, kind.ColliderRadius * 2f);
 				capsule.center = new Vector3(0f, capsule.height * .5f, 0f);
 			}
+			foreach (Collider collider in obstacle.GetComponentsInChildren<Collider>(true))
+				if (collider.TryGetComponent(out GroundObstacleBody _) == false)
+					collider.gameObject.AddComponent<GroundObstacleBody>();
 			obstacle.SetActive(false);
 			if (kind.CameraFade && obstacle.TryGetComponent(out OcclusionFadeTarget _) == false)
 				obstacle.AddComponent<OcclusionFadeTarget>();
