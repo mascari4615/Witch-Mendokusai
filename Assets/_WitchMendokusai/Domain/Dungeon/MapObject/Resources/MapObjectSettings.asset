@@ -17,7 +17,7 @@ MonoBehaviour:
     m_Bits: 1
   <ObstacleMask>k__BackingField:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 5
   <GroundProbeHeight>k__BackingField: 15
   <GroundLift>k__BackingField: 0.02
   <PlacementAttempts>k__BackingField: 8
