@@ -18,6 +18,8 @@ namespace WitchMendokusai
 		DollClear = 4,
 		// 기존 조건 체계 (CriteriaInfo). 누적 처치, 업적 자리
 		Criteria = 5,
+		// Target 제약을 켜고 이 던전 클리어 (다른 묶음)
+		ConstraintClear = 6,
 	}
 
 	/// <summary> 제약 하나의 해금 조건. 제약의 조건 목록은 전부 채워야 열림, 비면 처음부터 열림 </summary>
@@ -54,6 +56,7 @@ namespace WitchMendokusai
 			DungeonConstraintUnlockType.BossKill => AnyDungeonKilled(context, unlock.Target.ID),
 			DungeonConstraintUnlockType.DollClear => dungeon.ClearedDolls.Contains(unlock.Target.ID),
 			DungeonConstraintUnlockType.Criteria => CriteriaFactory.Create(unlock.Criteria, context).Evaluate(),
+			DungeonConstraintUnlockType.ConstraintClear => dungeon.ClearedConstraints.Contains(unlock.Target.ID),
 			_ => throw new ArgumentOutOfRangeException(nameof(unlock), unlock.Type, "처리하지 않는 해금 조건"),
 		};
 
@@ -77,6 +80,7 @@ namespace WitchMendokusai
 			DungeonConstraintUnlockType.BossKill => $"{unlock.Target.Name} 처치",
 			DungeonConstraintUnlockType.DollClear => $"{unlock.Target.Name} 인형으로 클리어",
 			DungeonConstraintUnlockType.Criteria => CriteriaText(unlock.Criteria, context),
+			DungeonConstraintUnlockType.ConstraintClear => $"{unlock.Target.Name} {(unlock.Target as DungeonConstraint).Level}단계를 켜고 클리어",
 			_ => throw new ArgumentOutOfRangeException(nameof(unlock), unlock.Type, "처리하지 않는 해금 조건"),
 		};
 

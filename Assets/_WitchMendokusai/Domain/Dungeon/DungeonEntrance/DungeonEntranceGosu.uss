@@ -379,6 +379,10 @@
     color: var(--gosu-ink);
 }
 
+.wm-dungeon-entrance.wm-dungeon-entrance--gosu .wm-dungeon-constraint__risk--warning {
+    color: rgb(170, 40, 30);
+}
+
 .wm-dungeon-entrance.wm-dungeon-entrance--gosu .wm-dungeon-constraint__edit {
     color: var(--gosu-ink-soft);
 }

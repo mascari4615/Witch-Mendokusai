@@ -44,6 +44,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b8ef9bf1cc854d329c3315e079479cf4, type: 2}
   - {fileID: 11400000, guid: ddcb2503f5564432a802e8c961782d3f, type: 2}
   - {fileID: 11400000, guid: b689070f21e14d79b61042332ad0eafe, type: 2}
+  - {fileID: 11400000, guid: 9ecd6d40c96f41cb956d387109a84b0e, type: 2}
+  - {fileID: 11400000, guid: 559dee59294d4139a51897ec90f6e786, type: 2}
+  - {fileID: 11400000, guid: 060b72665dd0483da0512d7fe1ad20c0, type: 2}
   <Stages>k__BackingField:
   - {fileID: 11400000, guid: 80189e44b4e5101489b86446ca51ca47, type: 2}
   <MonsterWaves>k__BackingField:

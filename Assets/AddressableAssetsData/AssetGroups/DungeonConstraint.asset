@@ -147,6 +147,24 @@ MonoBehaviour:
     m_SerializedLabels:
     - DungeonConstraint
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9ecd6d40c96f41cb956d387109a84b0e
+    m_Address: DungeonConstraint/22
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 559dee59294d4139a51897ec90f6e786
+    m_Address: DungeonConstraint/23
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 060b72665dd0483da0512d7fe1ad20c0
+    m_Address: DungeonConstraint/24
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DungeonConstraint
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
   m_SchemaSet:
