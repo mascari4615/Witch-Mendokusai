@@ -11,6 +11,7 @@ namespace WitchMendokusai
 	/// - feel: 박자표. 처음 값은 UltimateFeelV2Batch2Seeds. 공통 세기 줄이기 에셋 (UltFeel_Comfort) 을 1차 넷과 같이 씀
 	/// - 래퍼: FeelUltimateFx, 크기 배율 1.45 (1차 넷과 같은 기본, 사용자 판정 2026-11-21 "작아")
 	/// - 이미 있는 에셋 값은 그대로 (인스펙터 정본). 처음 값을 다시 넣는 것은 Reseed 메뉴만
+	/// - 배치 3 (별자리, 밤의 날) 생성기 UltimateFeelV2Batch3Builder 가 같은 절차 (Run) 를 씀
 	/// 메뉴: WM/CombatFx/Build Ultimate Feel V2 Batch2, WM/CombatFx/Reseed Ultimate Feel V2 Batch2
 	/// </summary>
 	public static class UltimateFeelV2Batch2Builder
@@ -20,7 +21,7 @@ namespace WitchMendokusai
 		private const string COMFORT_PATH = FEEL_FOLDER + "/UltFeel_Comfort.asset";
 		private const float WORLD_SIZE = 1.45f;
 
-		private sealed class Entry
+		internal sealed class Entry
 		{
 			public string Name;
 			public string DevKey;
@@ -30,6 +31,8 @@ namespace WitchMendokusai
 			public Func<UltimateScreenFeel.Swell[]> Swells;
 			public Func<UltimateScreenFeel.Beat[]> Beats;
 			public UltimateScreenFeel.TraumaSettings Trauma;
+			// 카메라 물림. 비우면 박자표 클래스 기본값 (물림 없음)
+			public UltimateScreenFeel.PullBackSettings? PullBack;
 		}
 
 		private static Entry[] Entries() => new[]
@@ -61,22 +64,22 @@ namespace WitchMendokusai
 		};
 
 		[MenuItem("WM/CombatFx/Build Ultimate Feel V2 Batch2")]
-		public static void Build() => Run(false);
+		public static void Build() => Run(Entries(), false, "배치 2");
 
 		[MenuItem("WM/CombatFx/Reseed Ultimate Feel V2 Batch2")]
-		public static void Reseed() => Run(true);
+		public static void Reseed() => Run(Entries(), true, "배치 2");
 
-		private static void Run(bool reseed)
+		internal static void Run(Entry[] entries, bool reseed, string label)
 		{
 			// body 에셋 생성과 3D 셰이더 연결 (클래스마다 에셋 하나)
 			UltimateFx3DBatchPresetBuilder.Build();
 			if (AssetDatabase.IsValidFolder(FEEL_FOLDER) == false)
 				AssetDatabase.CreateFolder(PRESET_FOLDER, "FeelV2");
 			UltimateFeelComfort comfort = LoadOrCreate<UltimateFeelComfort>(COMFORT_PATH, out _);
-			foreach (Entry entry in Entries())
+			foreach (Entry entry in entries)
 				BuildEntry(entry, comfort, reseed);
 			AssetDatabase.SaveAssets();
-			Debug.Log($"[UltimateFx] 강한 판 V2 배치 2 {Entries().Length}개 {(reseed ? "처음 값 다시 넣음" : "갱신")}");
+			Debug.Log($"[UltimateFx] 강한 판 V2 {label} {entries.Length}개 {(reseed ? "처음 값 다시 넣음" : "갱신")}");
 		}
 
 		private static void BuildEntry(Entry entry, UltimateFeelComfort comfort, bool reseed)
@@ -132,6 +135,8 @@ namespace WitchMendokusai
 			SetField(feel, "swells", entry.Swells());
 			SetField(feel, "beats", entry.Beats());
 			SetField(feel, "targetForward", entry.TargetForward);
+			if (entry.PullBack.HasValue)
+				SetField(feel, "pullBack", entry.PullBack.Value);
 		}
 
 		private static void SetField(UltimateScreenFeel feel, string name, object value)
