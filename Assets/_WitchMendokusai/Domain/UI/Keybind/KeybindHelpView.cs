@@ -100,12 +100,8 @@ namespace WitchMendokusai
 		}
 
 		// 릴리스: 개발자 창 단축키 줄 숨김 (DevWindow 와 같은 조건)
-		// 클릭과 우클릭 스킬, 조준 모드 전환은 모든 장면에서 꺼져 있어서 줄을 숨김 (사용자 2026-11-18 키보드만으로 조작, 나중에 재기획)
 		private static bool IsVisible(KeybindEntry entry)
-			=> KeybindRegistry.IsShownInThisBuild(entry.EventType) && IsDisabledControl(entry.EventType) == false;
-
-		private static bool IsDisabledControl(InputEventType eventType)
-			=> eventType == InputEventType.Click0 || eventType == InputEventType.Click1 || eventType == InputEventType.ChangeMode;
+			=> KeybindRegistry.IsShownInThisBuild(entry.EventType);
 
 		private VisualElement CreateRow(string displayName, string keyText)
 		{

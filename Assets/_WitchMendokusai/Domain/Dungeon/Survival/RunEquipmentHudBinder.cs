@@ -36,17 +36,12 @@ namespace WitchMendokusai
 			RefreshSkills(playerProvider);
 		}
 
-		// 켜진 스킬 칸만. 마을 스킬 바 (UISkillBar) 도 이것만 부름
+		// 스킬 칸 전부 (Shift 이동, 좌클릭, 우클릭). 마을 스킬 바 (UISkillBar) 도 이것만 부름
 		public void RefreshSkills(PlayerProvider playerProvider)
 		{
 			Attach();
 			skills.Clear();
-			SkillHandler skillHandler = playerProvider.CurrentObject.SkillHandler;
-			foreach (KeyValuePair<int, Skill> pair in skillHandler.SkillDic)
-			{
-				if (skillHandler.IsSlotEnabled(pair.Key))
-					skills.Add(pair.Value);
-			}
+			skills.AddRange(playerProvider.CurrentObject.SkillHandler.SkillDic.Values);
 			hud.RefreshSkills(skills);
 		}
 

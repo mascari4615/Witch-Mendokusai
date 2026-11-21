@@ -21,13 +21,7 @@ namespace WitchMendokusai
 		// 기본 true = 레거시(던전 Auto) 무변경. 아레나 셋업이 false 로 설정.
 		public bool AutoCastEnabled { get; set; } = true;
 
-		// 쓰는 스킬 칸 수, 앞 칸부터. 조종하는 인형은 Shift 이동 스킬만 남기고 클릭과 우클릭 스킬을 모든 장면에서 끔 (사용자 2026-11-18, 나중에 재기획)
-		// 기본은 제한 없음 (몬스터, 투기장 인형). 값은 PlayerObject 의 SerializeField
-		public int ActiveSlotLimit { get; set; } = int.MaxValue;
-
 		private static bool IsInDungeon => DungeonManager.Instance != null && DungeonManager.Instance.IsDungeon;
-
-		public bool IsSlotEnabled(int skillIndex) => skillIndex < ActiveSlotLimit;
 
 		public SkillHandler(UnitObject unitObject, PlayerProvider playerProvider, ObjectPoolManager objectPoolManager)
 		{
@@ -59,8 +53,6 @@ namespace WitchMendokusai
 		// WM-165 — 아레나 전술 코어가 타겟 지정 시전. target=null 이면 레거시(던전/플레이어) 동작.
 		public bool UseSkill(int skillIndex, UnitObject target)
 		{
-			if (IsSlotEnabled(skillIndex) == false)
-				return false;
 			// 침묵 상태이상. 스킬 사용 봉쇄
 			if (UnitStatus.IsSkillBlocked(unitObject))
 				return false;
@@ -95,7 +87,7 @@ namespace WitchMendokusai
 				Skill skill = pair.Value;
 				skill.Tick();
 
-				if (AutoCastEnabled == false || IsSlotEnabled(pair.Key) == false)
+				if (AutoCastEnabled == false)
 					continue;
 
 				bool isAutoUse = skill.Data.PlayMode switch

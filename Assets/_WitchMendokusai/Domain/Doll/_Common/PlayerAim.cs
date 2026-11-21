@@ -92,14 +92,6 @@ namespace WitchMendokusai
 				inputManager.MouseWorldPosition;
 		}
 
-		// 키보드만 쓰는 조준. 가장 가까운 적, 없으면 마지막 이동 방향. 마우스 위치는 안 읽음
-		public Vector3 CalcKeyboardAim(GameObject nearestTarget, Vector3 lookDirection)
-		{
-			return nearestTarget != null ?
-				nearestTarget.transform.position :
-				playerTr.position + lookDirection;
-		}
-
 		public Vector3 CalcAimDirection(Vector3 aimPosition)
 		{
 			return (aimPosition - playerTr.position).normalized;

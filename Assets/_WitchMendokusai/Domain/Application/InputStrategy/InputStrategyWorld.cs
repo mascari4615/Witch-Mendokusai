@@ -42,7 +42,7 @@ namespace WitchMendokusai
 							() => EventBusBridge.Publish(new PlayerJumpReleasedEvent()),
 							() => CanExecute(InputEventType.Jump)
 						),
-						// 클릭과 우클릭 스킬은 SkillHandler.ActiveSlotLimit 로 모든 장면에서 꺼짐 (사용자 2026-11-18). 등록은 나중 재기획용으로 둠
+						// 좌클릭 1 번 칸, 우클릭 2 번 칸 스킬. 2026-11-18 에 껐다가 2026-11-21 사용자 "좌클릭, 우클릭 공격 다시 활성화"로 복구
 						new(
 							InputEventType.Click0,
 							InputEventResponseType.Get,
