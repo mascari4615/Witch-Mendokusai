@@ -101,7 +101,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public UiSfxEvent CoinSfx { get; private set; } = UiSfxEvent.Purchase;
 		[field: SerializeField] public UiSfxEvent ChestSfx { get; private set; } = UiSfxEvent.Chest;
 
-		[field: SerializeField] public Color LegendColor { get; private set; } = new(0.89f, 0.63f, 1f);
+		[field: SerializeField] public Color LegendColor { get; private set; } = new(1f, 0.31f, 0.27f);
 
 		public Color TierColor(CardRevealTier tier) => tier switch
 		{

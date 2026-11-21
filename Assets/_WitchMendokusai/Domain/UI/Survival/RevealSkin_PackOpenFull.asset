@@ -38,5 +38,5 @@ MonoBehaviour:
   <CommonColor>k__BackingField: {r: 0.92, g: 0.91, b: 0.78, a: 1}
   <RareColor>k__BackingField: {r: 0.47, g: 0.95, b: 0.83, a: 1}
   <EpicColor>k__BackingField: {r: 1, g: 0.47, b: 0.42, a: 1}
-  <LegendColor>k__BackingField: {r: 0.89, g: 0.63, b: 1, a: 1}
+  <LegendColor>k__BackingField: {r: 1, g: 0.31, b: 0.27, a: 1}
   <BackEffectSeconds>k__BackingField: {x: 0.43, y: 0.64, z: 0.82, w: 1.08}
