@@ -26,8 +26,9 @@ namespace WitchMendokusai
 			Vector3 along = frame.Aim(riftAngle + 90f);
 			Vector3 across = frame.Aim(riftAngle);
 			Material material = StarWindow(run, 0f, riftEdge);
+			material.SetFloat("_EdgePower", riftEdgePower);
 			material.renderQueue = 2985;
-			GameObject rift = UltimateFxStage.CreateMeshObject("NightRift", run.Root, Keep(run, UltimateMeshFactory.Rift(808, 40, 0.16f)), material);
+			GameObject rift = UltimateFxStage.CreateMeshObject("NightRift", run.Root, Keep(run, UltimateMeshFactory.Rift(808, 40, riftJagged)), material);
 			rift.transform.SetPositionAndRotation(center, Quaternion.LookRotation(frame.Normal, across));
 			rift.SetActive(false);
 			run.At(SlashTime, () => rift.SetActive(true));

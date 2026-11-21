@@ -61,8 +61,8 @@ namespace WitchMendokusai
 
 		[Header("시간 (초)")]
 		[SerializeField, Min(0.1f), Tooltip("첫 낙뢰 시각. 앞은 구름과 예고")] private float firstStrike = 1f;
-		[SerializeField, Min(0.1f), Tooltip("마지막 연쇄 뒤 남는 시간 (그을림, 먼지, 장면 빛 복귀 시작)")] private float lingerSeconds = 1.4f;
-		[SerializeField, Min(0.1f)] private float restoreSeconds = 1.4f;
+		[SerializeField, Min(0.1f), Tooltip("마지막 연쇄 뒤 남는 시간 (그을림, 먼지, 장면 빛 복귀 시작). 길면 줄기 없는 어두운 안개만 남음 (고리 삭제 뒤 1회차 촬영)")] private float lingerSeconds = 1f;
+		[SerializeField, Min(0.1f)] private float restoreSeconds = 0.8f;
 		[SerializeField, Min(0.05f), Tooltip("첫 낙뢰 자리 땅이 달아오르는 시간")] private float telegraphSeconds = 0.7f;
 		[SerializeField, Min(0.02f), Tooltip("연쇄 줄기 자리 땅이 달아오르는 시간")] private float chainTelegraphSeconds = 0.12f;
 		[SerializeField, Range(0f, 2f), Tooltip("착지 자리 예고 빛 세기. 낮으면 예고가 안 보임 (독립 검토 3회차)")] private float telegraphGlow = 0.7f;

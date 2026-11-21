@@ -47,8 +47,8 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.05f)] private float starSize = 0.36f;
 		[SerializeField, Min(0.5f), Tooltip("별 반짝임 판 크기 / 별 크기")] private float glintRatio = 3.4f;
 		[SerializeField, Min(0.005f)] private float lineRadius = 0.03f;
-		[SerializeField, Min(0.1f), Tooltip("별 아래 땅의 빛 점 지름")] private float groundDotSize = 1.1f;
-		[SerializeField, Range(0f, 1f), Tooltip("별에서 땅까지 세로 빛줄 밝기. 높으면 기둥 여럿으로 읽힘")] private float stemBrightness = 0.16f;
+		[SerializeField, Min(0.1f), Tooltip("별 아래 땅의 빛 점 지름")] private float groundDotSize = 1.5f;
+		[SerializeField, Range(0f, 1f), Tooltip("별에서 땅까지 세로 빛줄 밝기. 높으면 기둥 여럿으로 읽힘")] private float stemBrightness = 0.32f;
 
 		[Header("기둥")]
 		[SerializeField, Min(2f)] private float pillarHeight = 9f;
@@ -276,7 +276,8 @@ namespace WitchMendokusai
 			UltimateFxRun run = stage.Run;
 			Mesh cylinder = Keep(run, UltimateMeshFactory.OpenCylinder(20, 1f, 0.2f));
 			Material coreMaterial = run.Additive(UltimateFxTextures.White, Color.clear);
-			Material outerMaterial = run.Additive(UltimateFxTextures.Beam, Color.clear);
+			// Beam 그림은 색 띠가 있어 청록 줄무늬로 보임 (3회차 촬영). 흑백 잡음 줄무늬에 색을 입힘
+			Material outerMaterial = run.Additive(UltimateFxTextures.TiledStreaks, Color.clear);
 			GameObject core = UltimateFxStage.CreateMeshObject("ConstellationPillarCore", run.Root, cylinder, coreMaterial);
 			GameObject outer = UltimateFxStage.CreateMeshObject("ConstellationPillarOuter", run.Root, cylinder, outerMaterial);
 			core.SetActive(false);

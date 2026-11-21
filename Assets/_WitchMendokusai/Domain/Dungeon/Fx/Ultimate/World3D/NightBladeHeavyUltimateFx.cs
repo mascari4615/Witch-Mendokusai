@@ -61,17 +61,19 @@ namespace WitchMendokusai
 		[SerializeField, Range(0f, 40f), Tooltip("베기 전 뒤로 당기는 각도")] private float windBack = 14f;
 		[SerializeField, Range(-90f, 90f), Tooltip("별빛을 모으는 동안 칼을 치켜든 각도")] private float raiseAngle = -22f;
 		[SerializeField, Range(0f, 4f), Tooltip("칼날 테두리 (프레넬) 세기. 낮으면 멀리서 검은 판으로 읽힘")] private float bladeRim = 1.6f;
-		[SerializeField, Tooltip("휘두름 자취 세기 (첫 베기 별밭 투명도, 둘째 베기 흰 빛). 높으면 자취가 흰 원판으로 읽힘 (1회차 촬영)")] private Vector2 trailBrightness = new(0.55f, 0.22f);
+		[SerializeField, Tooltip("휘두름 자취 세기 (첫 베기 별밭 투명도, 둘째 베기 흰 빛). 높으면 자취가 흰 원판으로 읽힘 (1회차 촬영)")] private Vector2 trailBrightness = new(0.14f, 0.18f);
 		[SerializeField, Min(1f), Tooltip("별 촘촘함. 작을수록 별이 크게 보임 (쿼터뷰 거리)")] private float starScale = 9f;
 		[SerializeField, Range(0f, 1f)] private float starAmount = 0.6f;
 
 		[Header("틈")]
-		[SerializeField, Range(-60f, 90f), Tooltip("틈이 놓이는 각도 (휘두름 면 위). 틈은 이 방향에 직각으로 누움")] private float riftAngle = 34f;
-		[SerializeField, Range(0.2f, 1f), Tooltip("손에서 틈 가운데까지 / 칼날 길이")] private float riftReach = 0.62f;
+		[SerializeField, Range(-60f, 90f), Tooltip("틈이 놓이는 각도 (휘두름 면 위). 틈은 이 방향에 직각으로 누움")] private float riftAngle = 46f;
+		[SerializeField, Range(0.2f, 1f), Tooltip("손에서 틈 가운데까지 / 칼날 길이")] private float riftReach = 0.52f;
 		[SerializeField, Min(1f)] private float riftLength = 7f;
 		[SerializeField, Min(0.1f), Tooltip("다 열린 폭")] private float riftWidth = 2.1f;
 		[SerializeField, Min(0.01f), Tooltip("열리기 전 검은 사선의 폭")] private float riftSlitWidth = 0.14f;
-		[SerializeField, Range(0f, 6f), Tooltip("틈 가장자리 빛 세기")] private float riftEdge = 2.6f;
+		[SerializeField, Range(0f, 6f), Tooltip("틈 가장자리 빛 세기. 높으면 안쪽 밤하늘이 묻혀 보라 잎사귀로 읽힘 (2회차 촬영)")] private float riftEdge = 1.3f;
+		[SerializeField, Range(1f, 12f), Tooltip("틈 가장자리 빛의 폭. 클수록 가는 테두리")] private float riftEdgePower = 8f;
+		[SerializeField, Range(0f, 0.4f), Tooltip("틈 윤곽의 들쭉날쭉함")] private float riftJagged = 0.08f;
 		[SerializeField, Min(1f), Tooltip("틈 아래에서 번지는 밤의 반지름")] private float nightRadius = 8f;
 		[SerializeField, Range(0f, 1f), Tooltip("번지는 밤 (바닥의 어두운 원) 진하기")] private float nightDarkness = 0.9f;
 
@@ -252,7 +254,7 @@ namespace WitchMendokusai
 		private void ComposeTrail(Stage stage, Frame frame, float fromDegrees, float toDegrees, float start, float seconds, bool white)
 		{
 			UltimateFxRun run = stage.Run;
-			Mesh mesh = Keep(run, UltimateMeshFactory.SwingFan(28, toDegrees - fromDegrees, 0.3f));
+			Mesh mesh = Keep(run, UltimateMeshFactory.SwingFan(28, toDegrees - fromDegrees, 0.55f));
 			Material material = white ? run.Additive(UltimateFxTextures.White, Color.clear) : StarWindow(run, 0f, 1.4f);
 			GameObject trail = UltimateFxStage.CreateMeshObject("NightBladeTrail", run.Root, mesh, material);
 			material.renderQueue = 2988;
