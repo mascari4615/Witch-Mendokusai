@@ -51,7 +51,6 @@
     padding: 0;
     -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11-Bold.ttf");
     font-size: 17px;
-    -unity-font-style: bold;
     color: rgb(255, 236, 160);
     -unity-text-align: middle-center;
     -unity-text-outline-width: 1.4px;

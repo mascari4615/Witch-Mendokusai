@@ -64,7 +64,7 @@ namespace WitchMendokusai
 		Failed = 2,
 	}
 
-	// 월드 표식 모양. Prefab 이 있으면 표식 대신 그 모양
+	// 바닥 선 표식 모양 (MapObjectData.ShowMarker). 외형 (Model) 과 따로
 	public enum MapObjectMarkerShape
 	{
 		Diamond = 0,

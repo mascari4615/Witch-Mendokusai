@@ -188,7 +188,7 @@ namespace WitchMendokusai.Tests
 			Dungeon dungeon = AssetDatabase.LoadAssetAtPath<Dungeon>(DUNGEON_PATH);
 			Assert.IsNotNull(dungeon.MapObjectBudget);
 
-			List<MapObjectPlan> plans = MapObjectPlanner.Plan(dungeon.MapObjectBudget, 1, MapObjectPacing.None, out _);
+			List<MapObjectPlan> plans = MapObjectPlanner.Plan(dungeon.MapObjectBudget, 1, MapObjectSettings.Load().Pacing, out _);
 
 			Assert.AreEqual(1, plans.Count(plan => plan.Data.Category == MapObjectCategory.Challenge));
 			Assert.IsTrue(plans.Where(plan => plan.Data.Category == MapObjectCategory.Challenge).All(plan => plan.SpawnTime == 0f), "판 시작 배치");

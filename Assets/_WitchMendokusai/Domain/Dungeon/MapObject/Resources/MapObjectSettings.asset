@@ -30,6 +30,8 @@ MonoBehaviour:
   <RouteGroundDeviation>k__BackingField: 0.2
   <MarkerMaterial>k__BackingField: {fileID: 2100000, guid: 4f6b547898f8475d96e593174a241bc7, type: 2}
   <StoneMaterial>k__BackingField: {fileID: 2100000, guid: 8a4faf22147a68c40bca1f4d9419546d, type: 2}
+  <ModelUvPerMeter>k__BackingField: 0.5
+  <ModelGlowFacetShade>k__BackingField: 0.35
   <RingSegments>k__BackingField: 32
   <HoldProgressRadiusRatio>k__BackingField: 0.82
   <HoldProgressWidthRatio>k__BackingField: 1.6

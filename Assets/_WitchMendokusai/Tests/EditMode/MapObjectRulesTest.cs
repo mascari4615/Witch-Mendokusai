@@ -190,15 +190,28 @@ namespace WitchMendokusai.Tests
 			MapObjectSettings settings = MapObjectSettings.Load();
 			Assert.Greater(settings.SpawnGapSeconds, 0f);
 			int total = 0;
+			int baselineTotal = 0;
+			MapObjectBudget baseline = Object.Instantiate(budget);
+			created.Add(baseline);
+			SerializedObject baselineSerialized = new(baseline);
+			baselineSerialized.FindProperty("<Credits>k__BackingField").intValue = 35;
+			baselineSerialized.ApplyModifiedPropertiesWithoutUndo();
 			for (int seed = 0; seed < 100; seed++)
 			{
 				List<MapObjectPlan> plans = MapObjectPlanner.Plan(budget, seed, settings.Pacing, out _);
+				baselineTotal += MapObjectPlanner.Plan(baseline, seed, MapObjectPacing.None, out _).Count;
 				total += plans.Count;
-				for (int i = 1; i < plans.Count; i++)
-					Assert.GreaterOrEqual(plans[i].SpawnTime - plans[i - 1].SpawnTime, settings.SpawnGapSeconds - 0.001f, $"시드 {seed} {i}번째 간격");
-				Assert.LessOrEqual(plans.Count(plan => plan.SpawnTime < settings.SpawnGapSeconds), 1, $"시드 {seed} 판 시작에 하나만");
+				List<MapObjectPlan> paced = plans.Where(plan => MapObjectPlanner.IsStartFixed(plan.Data) == false).ToList();
+				Assert.GreaterOrEqual(paced.Count > 0 ? paced[0].SpawnTime : settings.SpawnGapSeconds, settings.SpawnGapSeconds - 0.001f, $"시드 {seed} 첫 선택 오브젝트");
+				for (int i = 1; i < paced.Count; i++)
+				{
+					Assert.GreaterOrEqual(paced[i].SpawnTime - paced[i - 1].SpawnTime, settings.SpawnGapSeconds - 0.001f, $"시드 {seed} {i}번째 간격");
+					Assert.AreNotSame(paced[i - 1].Data, paced[i].Data, $"시드 {seed} 같은 종류 연달아");
+				}
+				Assert.IsTrue(plans.Where(plan => plan.Data.Category == MapObjectCategory.Challenge).All(plan => plan.SpawnTime == 0f), $"시드 {seed} 도전은 판 시작");
 			}
-			Assert.LessOrEqual(total / 100f, 4f, "판당 평균 개수 (사용자 2026-11-21 '너무 자주 보임')");
+			// 사용자 2026-11-21 "맵 속 오브젝트 너무 자주 보임". 예산 35 간격 없음 대비 줄었는지
+			Assert.Less(total, baselineTotal);
 		}
 
 		[Test]

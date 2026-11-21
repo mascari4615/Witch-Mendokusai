@@ -19,7 +19,7 @@ namespace WitchMendokusai
 
 		[field: Header("등장 빈도")]
 		[field: SerializeField, Tooltip("앞 오브젝트와 등장 시각 최소 간격 (판 경과 초). 판 시작에 몰려 보이지 않게"), Min(0f)] public float SpawnGapSeconds { get; private set; } = 45f;
-		[field: SerializeField, Tooltip("같은 종류 오브젝트끼리 최소 거리 (m)"), Min(0f)] public float SameKindSpacing { get; private set; } = 40f;
+		[field: SerializeField, Tooltip("같은 종류 오브젝트끼리 최소 거리 (m). 이미 쓴 것도 셈 (같은 자리 근처 반복 방지)"), Min(0f)] public float SameKindSpacing { get; private set; } = 40f;
 		[field: SerializeField, Tooltip("예산 뽑기에서 바로 앞과 같은 종류를 피함")] public bool AvoidSameKindInRow { get; private set; } = true;
 
 		public MapObjectPacing Pacing => new(SpawnGapSeconds, AvoidSameKindInRow);
@@ -32,6 +32,8 @@ namespace WitchMendokusai
 		[field: Header("표식")]
 		[field: SerializeField, Tooltip("선 표식 공유 재질. 외형의 빛 부품도 이 재질 (정점 색)")] public Material MarkerMaterial { get; private set; }
 		[field: SerializeField, Tooltip("외형의 돌 부품 재질. 지면 바위와 같은 텍스처")] public Material StoneMaterial { get; private set; }
+		[field: SerializeField, Tooltip("외형 텍스처 밀도. 1m 당 텍스처 반복 수"), Min(0.01f)] public float ModelUvPerMeter { get; private set; } = 0.5f;
+		[field: SerializeField, Tooltip("빛 부품 면마다 밝기 차이 (0 이면 한 색). 표식 재질은 조명이 없어 각진 결을 정점 색으로"), Range(0f, 1f)] public float ModelGlowFacetShade { get; private set; } = 0.35f;
 		[field: SerializeField, Tooltip("원 표식 꼭짓점 수"), Min(8)] public int RingSegments { get; private set; } = 32;
 
 		[field: Header("머무름 진행 호")]
@@ -134,6 +136,18 @@ namespace WitchMendokusai
 			CheckFormat(errors, nameof(RunNyangHudFormat), RunNyangHudFormat, 1);
 			if (DefaultBudget == null)
 				errors.Add($"{name}: {nameof(DefaultBudget)} 미연결 (예산 없는 던전의 굴림 시드)");
+		}
+
+		// 판당 둘 이상 나오는 종류는 주인공이 제자리에 있어도 둘째 자리가 있어야 함 (거리 범위 지름보다 같은 종류 거리가 짧게)
+		public void ValidateBudget(MapObjectBudget budget, List<string> errors)
+		{
+			foreach (MapObjectData candidate in budget.Candidates)
+			{
+				if (candidate == null || candidate.CountRange.y < 2)
+					continue;
+				if (SameKindSpacing >= candidate.PlayerDistance.y * 2f)
+					errors.Add($"{name}: {nameof(SameKindSpacing)} {SameKindSpacing} 이 {candidate.name} 주인공 거리 지름 {candidate.PlayerDistance.y * 2f} 이상이라 둘째가 못 놓일 수 있음");
+			}
 		}
 
 		private void CheckFormat(List<string> errors, string fieldName, string format, int argumentCount)
