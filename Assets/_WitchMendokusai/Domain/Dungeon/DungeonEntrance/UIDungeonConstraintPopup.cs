@@ -296,6 +296,8 @@ namespace WitchMendokusai
 					AddChild(cell.Tile, new VisualElement { pickingMode = PickingMode.Ignore }, USS_PART + "tile-check");
 					AddChild(cell.Tile, new Label("배타") { pickingMode = PickingMode.Ignore }, USS_PART + "tile-block");
 					AddChild(cell.Tile, new Label("잠김") { pickingMode = PickingMode.Ignore }, USS_PART + "tile-lock");
+					// 이 제약을 켜고 깬 적 있음 (칸별 첫 클리어 표)
+					AddChild(cell.Tile, new Label("깸") { pickingMode = PickingMode.Ignore }, USS_PART + "tile-cleared");
 					cell.Name = AddChild(cell.Tile, new Label(constraint.Name) { pickingMode = PickingMode.Ignore }, USS_PART + "tile-name");
 					cell.Tile.RegisterCallback<FocusInEvent>(_ => OnCellFocused(cell));
 					// 마우스를 올린 칸은 설명만 보여 줌. 초점과 확인 키 대상은 그대로, 벗어나면 초점 칸 설명
@@ -320,6 +322,7 @@ namespace WitchMendokusai
 				cell.Tile.EnableInClassList(USS_PART + "tile--on", isOn);
 				cell.Tile.EnableInClassList(USS_PART + "tile--blocked", isOn == false && DungeonConstraintRules.IsBlockedBySibling(dungeon, draft, cell.Constraint));
 				cell.Tile.EnableInClassList(USS_PART + "tile--locked", dungeon.IsConstraintUnlocked(cell.Constraint) == false);
+				cell.Tile.EnableInClassList(USS_PART + "tile--cleared", dungeon.ClearedConstraints.Contains(cell.Constraint.ID));
 			}
 
 			int risk = DungeonConstraintRules.TotalRisk(dungeon, draft);

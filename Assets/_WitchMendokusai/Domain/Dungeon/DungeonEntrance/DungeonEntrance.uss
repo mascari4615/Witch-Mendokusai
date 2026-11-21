@@ -737,6 +737,23 @@
     display: flex;
 }
 
+/* 켜고 깬 적 있는 칸. 왼쪽 위 작은 글 */
+.wm-dungeon-entrance .wm-constraint-popup__tile-cleared {
+    display: none;
+    position: absolute;
+    left: 4px;
+    top: 3px;
+    margin: 0;
+    padding: 0 3px;
+    font-size: 10px;
+    color: rgb(21, 23, 46);
+    background-color: rgb(247, 227, 155);
+}
+
+.wm-dungeon-entrance .wm-constraint-popup__tile--cleared .wm-constraint-popup__tile-cleared {
+    display: flex;
+}
+
 .wm-dungeon-entrance .wm-constraint-popup__tile-block {
     display: none;
     position: absolute;
