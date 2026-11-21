@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
 using VContainer;
@@ -112,9 +113,29 @@ namespace WitchMendokusai
 		// 개발자 창 무적. 낙사처럼 무적 관통을 명시한 피해만 받음
 		public bool IsDevInvincible { get; set; }
 
+		// 피해를 대신 맞는 보호막 (방패). 있는 동안 피격 연출과 피격 무적을 시작하지 않고 보호막이 먼저 막음
+		private readonly List<IDamageAbsorber> absorbers = new();
+
+		public void AddAbsorber(IDamageAbsorber absorber) => absorbers.Add(absorber);
+		public void RemoveAbsorber(IDamageAbsorber absorber) => absorbers.Remove(absorber);
+
+		private bool TryAbsorb(DamageInfo damageInfo)
+		{
+			foreach (IDamageAbsorber absorber in absorbers)
+			{
+				if (absorber.TryAbsorb(damageInfo))
+					return true;
+			}
+			return false;
+		}
+
 		public override void ReceiveDamage(DamageInfo damageInfo)
 		{
 			if (damageInfo.ignoreInvincible == false && IsDevInvincible)
+				return;
+
+			// 피격 무적 중에는 보호막을 깎지 않음
+			if (damageInfo.ignoreInvincible == false && invincibleRoutine == null && TryAbsorb(damageInfo))
 				return;
 
 			// 일반 피해는 피격 뒤 시작된 무적 시간 동안 막는다.

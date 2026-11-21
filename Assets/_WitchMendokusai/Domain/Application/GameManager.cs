@@ -98,8 +98,11 @@ namespace WitchMendokusai
 			dataManager.GameStat.UpdateData(dataManager.DungeonStat);
 		}
 
+		private DollPassiveRunner dollPassive;
+
 		public void InitEquipment()
 		{
+			ApplyDollPassive();
 			List<EquipmentData> equipments = dataManager.RunLoadout.Equipments();
 			foreach (EquipmentData equipment in equipments)
 			{
@@ -108,6 +111,14 @@ namespace WitchMendokusai
 
 				ApplyEquipment(equipment);
 			}
+		}
+
+		// 인형 고유 패시브. 판마다 새로 걸고 지난 판 것은 걷음
+		private void ApplyDollPassive()
+		{
+			if (dollPassive != null)
+				dollPassive.Release();
+			dollPassive = DollPassiveRunner.Begin(playerProvider.CurrentObject, GetDoll(dataManager.CurDollID).Passive, GameEventManager.Instance);
 		}
 
 		public void EquipDuringRun(EquipmentData equipment)
