@@ -29,7 +29,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float muzzleHeight = 0.9f;
 
 		[Header("불길")]
-		[SerializeField, Min(1f), Tooltip("불길 길이 (인물 키 0.8 의 약 11배)")] private float flameLength = 4.8f;
+		[SerializeField, Min(1f), Tooltip("불길 길이. 크기 배율 1.45 뒤 약 7, 화면 끝에 닿지 않게 (촬영 4~6회차)")] private float flameLength = 4.8f;
 		[SerializeField, Min(0.2f), Tooltip("끝 반지름")] private float flameEndRadius = 2.3f;
 		[SerializeField, Min(0)] private int firePerSecond = 300;
 		[SerializeField, Min(0)] private int corePerSecond = 50;
