@@ -47,6 +47,7 @@ namespace WitchMendokusai
 		private readonly VisualElement riskMeter;
 		private readonly Label bestRisk;
 		private readonly ScrollView rewardList;
+		private readonly ScrollView tableScroll;
 		private readonly VisualElement table;
 		private readonly Label detailName;
 		private readonly Label detailLevel;
@@ -86,7 +87,9 @@ namespace WitchMendokusai
 			VisualElement tableHead = AddChild(main, new VisualElement(), USS_PART + "head");
 			AddChild(tableHead, new Label("제약 목록"), USS_PART + "header");
 			AddChild(tableHead, new Label("확인 키로 켜고 끄기, 같은 열은 하나만"), USS_PART + "hint");
-			table = AddChild(main, new VisualElement(), USS_PART + "table");
+			// 묶음이 6 열을 넘으면 표만 가로 스크롤. 초점 칸은 보이는 자리로 (OnCellFocused)
+			tableScroll = AddChild(main, new ScrollView(ScrollViewMode.Horizontal), USS_PART + "table-scroll");
+			table = AddChild(tableScroll, new VisualElement(), USS_PART + "table");
 
 			VisualElement detail = AddChild(main, new VisualElement(), USS_PART + "detail");
 			VisualElement detailHead = AddChild(detail, new VisualElement(), USS_PART + "detail-head");
@@ -380,6 +383,7 @@ namespace WitchMendokusai
 		{
 			focusedOrder = cells.IndexOf(cell);
 			lastCell = cell;
+			tableScroll.ScrollTo(cell.Tile);
 			RefreshDetail(cell);
 		}
 

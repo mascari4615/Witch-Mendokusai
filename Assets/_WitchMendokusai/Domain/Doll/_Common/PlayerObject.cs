@@ -144,11 +144,15 @@ namespace WitchMendokusai
 			UnitStat[UnitStatType.REVIVE_COUNT]--;
 			UpgradeTuning tuning = resourceManager.SurvivalFeel.Upgrade;
 			int reviveHp = Mathf.CeilToInt(UnitStat[UnitStatType.HP_MAX] * tuning.ReviveHealthRatio);
-			ReceiveHeal(Mathf.Max(0, reviveHp - UnitStat[UnitStatType.HP_CUR]));
+			// 부활은 회복 감소 제약을 안 받음
+			base.ReceiveHeal(Mathf.Max(0, reviveHp - UnitStat[UnitStatType.HP_CUR]));
 			GrantInvincibility(tuning.ReviveInvincibility);
 			SurvivalFeel.Instance.OnPlayerRevived(transform.position);
 			return true;
 		}
+
+		// 회복 감소 제약은 플레이어가 받는 회복에만
+		public override void ReceiveHeal(int healAmount) => base.ReceiveHeal(DungeonManagerBridge.ConstraintEffect.ScaleHeal(healAmount));
 
 		protected override void OnEnable()
 		{

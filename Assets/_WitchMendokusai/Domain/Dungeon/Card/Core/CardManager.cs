@@ -62,6 +62,8 @@ namespace WitchMendokusai
 		private int curDeckIndex;
 		[SerializeField] private float selectionDelay = 1f;
 		[SerializeField] private int cardsPerChoice = 3;
+		// 선택지 감소 제약 반영, 최소 1
+		private int CardsPerChoice => DungeonManagerBridge.ConstraintEffect.ChoiceCount(cardsPerChoice);
 		[SerializeField, Min(0f), Tooltip("선택 직후 무적 초")] private float postSelectionInvincibility = 1f;
 		[SerializeField, Min(0), Tooltip("고를 카드가 없을 때 체력이 닳아 있으면 레벨업 하나당 회복량")] private int maxedLevelUpHeal = 5;
 		[SerializeField, Min(0), Tooltip("고를 카드가 없고 체력이 가득이면 레벨업 하나당 냥")] private int maxedLevelUpNyang = 10;
@@ -267,7 +269,7 @@ namespace WitchMendokusai
 			}
 
 			offeredCards.Clear();
-			int choiceCount = Math.Min(Math.Max(cardsPerChoice, 1), candidates.Count);
+			int choiceCount = Math.Min(CardsPerChoice, candidates.Count);
 			DrawOfferedCards(candidates, choiceCount);
 			ShowOfferedCards();
 		}

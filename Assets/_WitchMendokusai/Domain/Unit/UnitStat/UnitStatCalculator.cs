@@ -83,7 +83,7 @@ namespace WitchMendokusai
 				{
 					foreach (DungeonConstraintEffectInfo effect in constraint.Effects)
 					{
-						if (effect.Affiliation != unitData.Affiliation)
+						if (effect.Kind != DungeonConstraintEffectKind.Stat || effect.Affiliation != unitData.Affiliation)
 							continue;
 
 						// Debug.Log($"{unit.Name} {effect.StatType} {effect.Value}");

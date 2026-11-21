@@ -27,4 +27,24 @@ MonoBehaviour:
     Rewards:
     - Type: 1
       DataSO: {fileID: 0}
+      Amount: 150
+  - Risk: 5
+    Rewards:
+    - Type: 1
+      DataSO: {fileID: 0}
       Amount: 100
+  - Risk: 8
+    Rewards:
+    - Type: 1
+      DataSO: {fileID: 0}
+      Amount: 80
+  - Risk: 12
+    Rewards:
+    - Type: 1
+      DataSO: {fileID: 0}
+      Amount: 60
+  - Risk: 16
+    Rewards:
+    - Type: 1
+      DataSO: {fileID: 0}
+      Amount: 40

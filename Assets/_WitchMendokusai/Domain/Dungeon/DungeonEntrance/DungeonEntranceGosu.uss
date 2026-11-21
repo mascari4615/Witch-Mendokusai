@@ -374,6 +374,7 @@
 }
 
 .wm-dungeon-entrance.wm-dungeon-entrance--gosu .wm-dungeon-constraint__chip-value,
+.wm-dungeon-entrance.wm-dungeon-entrance--gosu .wm-dungeon-constraint__more,
 .wm-dungeon-entrance.wm-dungeon-entrance--gosu .wm-dungeon-constraint__risk {
     color: var(--gosu-ink);
 }

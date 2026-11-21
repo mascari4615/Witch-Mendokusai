@@ -94,7 +94,7 @@ namespace WitchMendokusai
 			RerollsLeft--;
 			List<CardData> previous = new(offeredCards);
 			List<CardData> candidates = AvailableCards(curDeckIndex);
-			int choiceCount = Math.Min(Math.Max(cardsPerChoice, 1), candidates.Count);
+			int choiceCount = Math.Min(CardsPerChoice, candidates.Count);
 			offeredCards.Clear();
 			DrawOfferedCards(candidates.Where(card => previous.Contains(card) == false).ToList(), choiceCount);
 			DrawOfferedCards(candidates.Where(card => offeredCards.Contains(card) == false).ToList(), choiceCount);
