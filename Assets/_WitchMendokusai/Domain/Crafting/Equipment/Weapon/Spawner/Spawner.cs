@@ -155,20 +155,26 @@ namespace WitchMendokusai
 			for (int i = 0; i < count; i++)
 			{
 				if (plan != null)
-					Spawn(i, count, plan[i].Angle, plan[i].HasPosition, plan[i].Position);
+					Spawn(i, count, plan[i].Angle, true, plan[i].HasPosition, plan[i].Position);
 				else
-					Spawn(i, count, baseAngle + shotStepDegrees * i, false, Vector3.zero);
+					Spawn(i, count, baseAngle + shotStepDegrees * i, false, false, Vector3.zero);
 				if (SpawnDelay > 0f)
 					yield return new WaitForSeconds(SpawnDelay);
 			}
 		}
 
-		private void Spawn(int index, int count, float angle, bool hasPlannedPosition, Vector3 plannedPosition)
+		private void Spawn(int index, int count, float angle, bool planned, bool hasPlannedPosition, Vector3 plannedPosition)
 		{
 			transform.position = playerProvider.Current.transform.position;
 
 			Vector3 position = plannedPosition;
-			if (hasPlannedPosition == false && TryGetSpawnPosition(index, count, angle, out position) == false)
+			// 예고한 자리가 없던 발은 예고 없이 내지 않고 건너뜀
+			if (planned)
+			{
+				if (hasPlannedPosition == false)
+					return;
+			}
+			else if (TryGetSpawnPosition(index, count, angle, out position) == false)
 				return;
 			if (TryGetSpawnDirection(position, angle, out Vector3 direction) == false)
 				return;
@@ -204,8 +210,10 @@ namespace WitchMendokusai
 				explodeOnEnd.SetDamageBonus(damageBonus);
 
 			ShotInfo shot = new(index, count, direction);
-			foreach (IShotReceiver receiver in g.GetComponents<IShotReceiver>())
+			g.GetComponents(shotReceiverBuffer);
+			foreach (IShotReceiver receiver in shotReceiverBuffer)
 				receiver.OnShot(shot);
+			shotReceiverBuffer.Clear();
 
 			g.SetActive(true);
 		}
@@ -227,7 +235,8 @@ namespace WitchMendokusai
 				case SpawnPositionStrategy.RandomEnemy:
 					return TryGetEnemyPosition(SurvivalTargeting.RandomInRange(origin, targetRange), out position);
 				case SpawnPositionStrategy.Ring:
-					float ringAngle = (count > 0 ? 360f * index / count : 0f) + angle;
+					// 고리는 발 사이를 고르게 나누고, 번마다 도는 시작각만 더함 (발 간격 누적분은 뺌)
+					float ringAngle = (count > 0 ? 360f * index / count : 0f) + angle - shotStepDegrees * index;
 					position = origin + Quaternion.Euler(0f, ringAngle, 0f) * (Vector3.forward * RandomRange);
 					return true;
 				case SpawnPositionStrategy.Player:
