@@ -114,7 +114,16 @@ namespace WitchMendokusai
 		public void ReturnFixed(BreakableObject breakable)
 		{
 			if (fixedPlaced.Remove(breakable))
+				ReturnOrForget(breakable);
+		}
+
+		// 씬 정리 순서상 이미 파괴된 몸이 올 수 있음 (Play 종료 때 개발자 창 OnDestroy 의 진열장 해제). 셈만 빼고 풀에는 안 넣음
+		private void ReturnOrForget(BreakableObject breakable)
+		{
+			if (breakable != null)
 				Return(breakable);
+			else
+				ActiveCount--;
 		}
 
 		// 판 밖 (결과 화면) 에서는 날던 조각만 마저 떨어뜨림
@@ -302,10 +311,10 @@ namespace WitchMendokusai
 			}
 			foreach (List<BreakableObject> list in cells.Values)
 				foreach (BreakableObject breakable in list)
-					Return(breakable);
+					ReturnOrForget(breakable);
 			cells.Clear();
 			foreach (BreakableObject breakable in fixedPlaced)
-				Return(breakable);
+				ReturnOrForget(breakable);
 			fixedPlaced.Clear();
 			shards.Clear();
 			root.gameObject.SetActive(false);

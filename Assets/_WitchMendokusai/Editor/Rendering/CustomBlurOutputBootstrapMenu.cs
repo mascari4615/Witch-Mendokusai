@@ -46,7 +46,8 @@ namespace WitchMendokusai
 			};
 
 			AssetDatabase.CreateAsset(renderTexture, RT_PATH);
-			AssetDatabase.SaveAssets();
+			// 전체 SaveAssets 금지. 재로드 경로라 남의 미저장 자산까지 저장함
+			AssetDatabase.SaveAssetIfDirty(renderTexture);
 			AssetDatabase.Refresh();
 
 			Debug.Log($"[CustomBlurOutputBootstrap] Created {RT_PATH}");
@@ -96,13 +97,14 @@ namespace WitchMendokusai
 					}
 				}
 
+				// 바꾼 renderer 만 저장. 전체 SaveAssets 는 도메인 재로드마다 사용자의 미저장 자산까지 저장하고,
+				// 고장 스크립트가 든 dirty 프리팹 (Stage_TempCombat) 에서 저장 오류를 냄 (2026-11-21 MOIS Editor.log 18회)
 				if (changed == true)
 				{
 					EditorUtility.SetDirty(rendererData);
+					AssetDatabase.SaveAssetIfDirty(rendererData);
 				}
 			}
-
-			AssetDatabase.SaveAssets();
 		}
 	}
 }
