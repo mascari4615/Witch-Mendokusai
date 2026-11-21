@@ -23,7 +23,7 @@ namespace WitchMendokusai
 		[SerializeField] private Color sunLightColor = new(1f, 0.9f, 0.6f, 1f);
 		[SerializeField] private Color contactLightColor = new(1f, 0.6f, 0.25f, 1f);
 		[SerializeField] private Color ringBase = new(0.85f, 0.65f, 0.3f, 1f);
-		[SerializeField, ColorUsage(false, true)] private Color ringGlow = new(1.6f, 1.1f, 0.35f);
+		[SerializeField, ColorUsage(false, true)] private Color ringGlow = new(1.2f, 0.75f, 0.2f);
 		[SerializeField, ColorUsage(false, true)] private Color meltColor = new(2.2f, 0.8f, 0.2f);
 		[SerializeField] private Color steamColor = new(0.75f, 0.7f, 0.68f, 0.6f);
 		[SerializeField] private Color tintColor = new(0.93f, 0.9f, 1f);
@@ -40,9 +40,9 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("광선 세 겹 밝기 (심, 노랑, 주황). 심이 밝으면 흰 관으로 읽힘 (1회차 촬영)")] private Vector3 beamLayerAlpha = new(0.45f, 0.35f, 0.3f);
 
 		[Header("고리")]
-		[SerializeField, Min(0)] private int ringCount = 5;
-		[SerializeField, Min(0.2f)] private float ringRadius = 1.2f;
-		[SerializeField, Min(0.01f)] private float ringTube = 0.2f;
+		[SerializeField, Min(0)] private int ringCount = 4;
+		[SerializeField, Min(0.2f), Tooltip("크면 경로 위 고리끼리 겹쳐 덩어리로 읽힘 (3회차 촬영)")] private float ringRadius = 0.85f;
+		[SerializeField, Min(0.01f)] private float ringTube = 0.09f;
 
 		[Header("시간 (초)")]
 		[SerializeField, Min(0.1f), Tooltip("태양 구 충전 (m06 0.6s)")] private float chargeSeconds = 0.6f;

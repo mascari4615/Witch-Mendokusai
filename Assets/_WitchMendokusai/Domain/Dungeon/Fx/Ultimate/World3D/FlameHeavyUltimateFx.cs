@@ -28,7 +28,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float muzzleHeight = 0.9f;
 
 		[Header("불길")]
-		[SerializeField, Min(1f), Tooltip("불길 길이 (인물 키 0.8 의 약 11배)")] private float flameLength = 6.5f;
+		[SerializeField, Min(1f), Tooltip("불길 길이 (인물 키 0.8 의 약 11배)")] private float flameLength = 5.5f;
 		[SerializeField, Min(0.2f), Tooltip("끝 반지름")] private float flameEndRadius = 2.3f;
 		[SerializeField, Min(0)] private int firePerSecond = 300;
 		[SerializeField, Min(0)] private int corePerSecond = 90;
@@ -44,7 +44,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.1f), Tooltip("역류 모음 (m01 0.8s)")] private float gatherSeconds = 0.9f;
 		[SerializeField, Min(0.2f), Tooltip("불길 지속 (m01 거대 화염 1.5s)")] private float flameSeconds = 1.6f;
 		[SerializeField, Min(0.1f), Tooltip("뼈대 원뿔이 다 뻗는 시간. 입자가 끝까지 가는 시간 (불길 수명) 과 맞춤")] private float reachSeconds = 0.45f;
-		[SerializeField, Min(0.1f)] private float smokeSeconds = 1.8f;
+		[SerializeField, Min(0.1f)] private float smokeSeconds = 2.4f;
 		[SerializeField, Min(0.1f)] private float emberLinger = 1.6f;
 		[SerializeField, Min(0.1f)] private float restoreSeconds = 1.2f;
 
@@ -68,7 +68,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0)] private int pillarPuffs = 34;
 		[SerializeField, Min(0.5f)] private float pillarHeight = 4.5f;
 		[SerializeField, Min(0.05f)] private float pillarInterval = 0.22f;
-		[SerializeField, Min(0)] private int mushroomPuffs = 40;
+		[SerializeField, Min(0)] private int mushroomPuffs = 56;
 		[SerializeField, Min(0.5f)] private float mushroomHeight = 5.5f;
 		[SerializeField, Min(0)] private int groundEmbers = 70;
 		[SerializeField, Min(1f)] private float windSpeed = 12f;
