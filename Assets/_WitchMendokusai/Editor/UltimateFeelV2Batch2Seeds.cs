@@ -43,7 +43,7 @@ namespace WitchMendokusai
 
 		public static Swell[] ThunderSwells() => new[]
 		{
-			new Swell { Label = "먹구름", FxStart = 0.05f, FxEnd = 0.995f, ReleaseSeconds = 0.12f, Shape = RiseSteady(), TimeScale = 0.85f, Exposure = -0.9f, Saturation = -25f, Contrast = 15f, Vignette = 0.3f, Zoom = 0.05f, Dolly = 0.02f, Rumble = 0.18f },
+			new Swell { Label = "먹구름", FxStart = 0.05f, FxEnd = 0.995f, ReleaseSeconds = 0.12f, Shape = RiseSteady(), TimeScale = 0.85f, Exposure = -0.5f, Saturation = -25f, Contrast = 15f, Vignette = 0.3f, Zoom = 0.05f, Dolly = 0.02f, Rumble = 0.18f },
 		};
 
 		public static Beat[] ThunderBeats() => new[]
@@ -145,7 +145,7 @@ namespace WitchMendokusai
 		public static Swell[] BlackHoleSwells() => new[]
 		{
 			new Swell { Label = "마법진", FxStart = 0.1f, FxEnd = 1.3f, ReleaseSeconds = 0.3f, Shape = RiseSteady(), TimeScale = 1f, Exposure = -0.4f, Saturation = -15f, Contrast = 8f, Vignette = 0.2f, Zoom = 0.03f, Dolly = 0f, Rumble = 0f },
-			new Swell { Label = "흡입", FxStart = 1.9f, FxEnd = 3.455f, ReleaseSeconds = 0.08f, Shape = RiseSteady(), TimeScale = 0.55f, Exposure = -1f, Saturation = -45f, Contrast = 20f, Vignette = 0.5f, Zoom = 0.14f, Dolly = 0.05f, Rumble = 0.3f },
+			new Swell { Label = "흡입", FxStart = 1.9f, FxEnd = 3.455f, ReleaseSeconds = 0.08f, Shape = RiseSteady(), TimeScale = 0.55f, Exposure = -1f, Saturation = -15f, Contrast = 20f, Vignette = 0.5f, Zoom = 0.14f, Dolly = 0.05f, Rumble = 0.3f },
 		};
 
 		public static Beat[] BlackHoleBeats() => new[]

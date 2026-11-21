@@ -16,37 +16,39 @@ namespace WitchMendokusai
 	public sealed class SunBeamHeavyUltimateFx : WorldUltimateFx
 	{
 		[Header("색")]
-		[SerializeField, ColorUsage(false, true)] private Color sunColor = new(3.2f, 2.6f, 1.2f);
-		[SerializeField, ColorUsage(false, true)] private Color beamCore = new(3.4f, 3.2f, 2.6f);
-		[SerializeField, ColorUsage(false, true)] private Color beamMiddle = new(2.6f, 1.9f, 0.5f);
-		[SerializeField, ColorUsage(false, true)] private Color beamOuter = new(1.8f, 0.7f, 0.15f);
+		[SerializeField, ColorUsage(false, true)] private Color sunColor = new(3f, 1.6f, 0.4f);
+		[SerializeField, ColorUsage(false, true)] private Color beamCore = new(2.2f, 1.6f, 0.7f);
+		[SerializeField, ColorUsage(false, true)] private Color beamMiddle = new(2f, 1f, 0.15f);
+		[SerializeField, ColorUsage(false, true)] private Color beamOuter = new(2f, 0.65f, 0.12f);
 		[SerializeField] private Color sunLightColor = new(1f, 0.9f, 0.6f, 1f);
 		[SerializeField] private Color contactLightColor = new(1f, 0.6f, 0.25f, 1f);
 		[SerializeField] private Color ringBase = new(0.85f, 0.65f, 0.3f, 1f);
 		[SerializeField, ColorUsage(false, true)] private Color ringGlow = new(1.6f, 1.1f, 0.35f);
 		[SerializeField, ColorUsage(false, true)] private Color meltColor = new(2.2f, 0.8f, 0.2f);
 		[SerializeField] private Color steamColor = new(0.75f, 0.7f, 0.68f, 0.6f);
-		[SerializeField] private Color tintColor = new(0.86f, 0.82f, 1f);
+		[SerializeField] private Color tintColor = new(0.93f, 0.9f, 1f);
 
 		[Header("방향과 크기")]
-		[SerializeField, Range(-60f, 60f), Tooltip("화면 오른쪽 기준 아래 (카메라 쪽) 로 꺾는 각도")] private float aimDown = 8f;
+		[SerializeField, Range(-60f, 60f), Tooltip("화면 오른쪽 기준 아래 (카메라 쪽) 로 꺾는 각도")] private float aimDown = 15f;
 		[SerializeField, Min(0.3f)] private float sunDiameter = 1.5f;
+		[SerializeField, Min(0f), Tooltip("태양 구 자체 발광 배율. 낮으면 빛 받는 회색 원판으로 읽힘 (1회차 촬영)")] private float sunEmission = 1.1f;
 		[SerializeField, Min(0.5f), Tooltip("태양 구 높이 (시전자 위)")] private float sunHeight = 2.4f;
-		[SerializeField, Min(0.05f), Tooltip("광선 세 겹 반지름 (심, 노랑, 주황)")] private Vector3 beamRadii = new(0.35f, 0.7f, 1.1f);
-		[SerializeField, Tooltip("닿는 점이 나가는 거리 (시작, 끝, 시전자 기준)")] private Vector2 sweepReach = new(2.8f, 11f);
+		[SerializeField, Min(0.05f), Tooltip("광선 세 겹 반지름 (심, 노랑, 주황)")] private Vector3 beamRadii = new(0.2f, 0.5f, 0.85f);
+		[SerializeField, Tooltip("닿는 점이 나가는 거리 (시작, 끝, 시전자 기준)")] private Vector2 sweepReach = new(2f, 6f);
 		[SerializeField, Range(0f, 40f), Tooltip("좌우 쓸기 각도")] private float sweepAngle = 15f;
 		[SerializeField, Min(0.3f), Tooltip("좌우 쓸기 주기 (초)")] private float sweepPeriod = 2.8f;
+		[SerializeField, Tooltip("광선 세 겹 밝기 (심, 노랑, 주황). 심이 밝으면 흰 관으로 읽힘 (1회차 촬영)")] private Vector3 beamLayerAlpha = new(0.45f, 0.35f, 0.3f);
 
 		[Header("고리")]
 		[SerializeField, Min(0)] private int ringCount = 5;
 		[SerializeField, Min(0.2f)] private float ringRadius = 1.2f;
-		[SerializeField, Min(0.01f)] private float ringTube = 0.13f;
+		[SerializeField, Min(0.01f)] private float ringTube = 0.2f;
 
 		[Header("시간 (초)")]
 		[SerializeField, Min(0.1f), Tooltip("태양 구 충전 (m06 0.6s)")] private float chargeSeconds = 0.6f;
 		[SerializeField, Min(0.1f), Tooltip("물들임과 고리 예고 (m06 1.6s)")] private float omenSeconds = 1.6f;
 		[SerializeField, Min(0.5f), Tooltip("쓸기 (m06 유지 3.4s)")] private float sweepSeconds = 2.8f;
-		[SerializeField, Min(0.1f)] private float meltLinger = 3.2f;
+		[SerializeField, Min(0.1f)] private float meltLinger = 2.4f;
 		[SerializeField, Min(0.1f)] private float restoreSeconds = 1.2f;
 
 		[Header("빛")]
@@ -131,7 +133,7 @@ namespace WitchMendokusai
 		{
 			UltimateFxRun run = stage.Run;
 			Mesh sphere = Keep(run, UltimateMeshFactory.Sphere(20, 32));
-			Material coreMaterial = Glow(run, new Color(1f, 0.85f, 0.5f, 1f), sunColor * 0.6f, sunColor, false);
+			Material coreMaterial = Glow(run, new Color(1f, 0.7f, 0.25f, 1f), sunColor * sunEmission, sunColor, false);
 			coreMaterial.SetFloat(RIM_POWER_ID, 1.6f);
 			GameObject core = UltimateFxStage.CreateMeshObject("SunCore", run.Root, sphere, coreMaterial);
 			Solid(core, false);
@@ -149,7 +151,7 @@ namespace WitchMendokusai
 				core.transform.localScale = Vector3.one * size;
 				core.transform.rotation = Quaternion.Euler(0f, now * 40f, 0f);
 				shell.transform.localScale = new Vector3(size * 3.2f, size * 3.2f, 1f);
-				shellMaterial.SetColor("_Color", sunColor * 0.35f * fade);
+				shellMaterial.SetColor("_Color", new Color(sunColor.r, sunColor.g * 0.7f, sunColor.b * 0.3f) * 0.3f * fade);
 			}, () =>
 			{
 				run.Destroy(core);
@@ -200,10 +202,10 @@ namespace WitchMendokusai
 				Vector3 facing = travel.sqrMagnitude > 0.0001f ? travel.normalized : direction;
 				GameObject ring = UltimateFxStage.CreateMeshObject("SunPathRing", run.Root, torus, material);
 				Solid(ring, true);
-				// 고리 면이 진행 방향을 향해 서고, 아래 4분의 1 이 묻힘
+				// 고리 면이 진행 방향을 향해 서고, 바닥에 살짝 묻힘 (반쯤 묻으면 갈고리 모양으로 읽힘, 1회차 촬영)
 				ring.transform.rotation = Quaternion.FromToRotation(Vector3.up, facing);
 				Vector3 buried = spot - Vector3.up * ringRadius * 2.2f;
-				Vector3 standing = spot + Vector3.up * ringRadius * 0.75f;
+				Vector3 standing = spot + Vector3.up * ringRadius * 0.95f;
 				ring.transform.position = buried;
 				ring.transform.localScale = Vector3.one * ringRadius;
 				float rise = chargeSeconds + i * 0.3f;
@@ -224,7 +226,7 @@ namespace WitchMendokusai
 			Mesh cylinder = Keep(run, UltimateMeshFactory.OpenCylinder(24, 1f, 1f));
 			Color[] colors = { beamCore, beamMiddle, beamOuter };
 			float[] radii = { beamRadii.x, beamRadii.y, beamRadii.z };
-			float[] alpha = { 1f, 0.55f, 0.28f };
+			float[] alpha = { beamLayerAlpha.x, beamLayerAlpha.y, beamLayerAlpha.z };
 			List<(GameObject layer, Material material)> layers = new();
 			for (int i = 0; i < 3; i++)
 			{
