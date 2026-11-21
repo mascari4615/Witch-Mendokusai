@@ -48,17 +48,4 @@ MonoBehaviour:
     - Type: 1
       DataSO: {fileID: 0}
       Amount: 40
-  <Tiers>k__BackingField:
-  - MinRisk: 0
-    Name: "\uC0B0\uCC45"
-  - MinRisk: 1
-    Name: "\uC2EC\uBD80\uB984"
-  - MinRisk: 3
-    Name: "\uC794\uC5C5"
-  - MinRisk: 6
-    Name: "\uC57C\uADFC"
-  - MinRisk: 10
-    Name: "\uCCA0\uC57C"
-  - MinRisk: 16
-    Name: "\uB9C8\uAC10"
   <WarningRisk>k__BackingField: 12

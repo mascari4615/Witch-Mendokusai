@@ -45,7 +45,6 @@ namespace WitchMendokusai
 
 		private readonly Label dungeonName;
 		private readonly Label riskValue;
-		private readonly Label riskTier;
 		private readonly Label riskWarning;
 		private readonly Label effectSummary;
 		private readonly VisualElement riskMeter;
@@ -80,7 +79,6 @@ namespace WitchMendokusai
 			VisualElement riskCard = AddChild(side, new VisualElement(), USS_PART + "risk");
 			AddChild(riskCard, new Label("위험도"), USS_PART + "risk-label");
 			riskValue = AddChild(riskCard, new Label(), USS_PART + "risk-value");
-			riskTier = AddChild(riskCard, new Label(), USS_PART + "risk-tier");
 			riskMeter = AddChild(riskCard, new VisualElement(), USS_PART + "risk-meter");
 			riskWarning = AddChild(riskCard, new Label("위험도가 높음. 처음이면 낮은 단계부터"), USS_PART + "risk-warning");
 			bestRisk = AddChild(riskCard, new Label(), USS_PART + "best");
@@ -338,7 +336,6 @@ namespace WitchMendokusai
 			int maxRisk = DungeonConstraintRules.MaxRisk(dungeon);
 			riskValue.text = risk.ToString();
 			DungeonConstraintRewardRule rule = dungeon.ConstraintRewardRule;
-			riskTier.text = rule != null ? rule.TierName(risk) : string.Empty;
 			riskWarning.style.display = rule != null && rule.IsWarning(risk) ? DisplayStyle.Flex : DisplayStyle.None;
 			effectSummary.text = DungeonConstraintSummary.Describe(dungeon.Constraints.FindAll(constraint => draft[constraint.ID]));
 			riskMeter.Clear();

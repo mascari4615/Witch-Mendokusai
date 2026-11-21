@@ -112,8 +112,7 @@ namespace WitchMendokusai
 			moreLabel.BringToFront();
 			int risk = DungeonConstraintRules.TotalRisk(dungeon.SelectedConstraints());
 			DungeonConstraintRewardRule rule = dungeon.ConstraintRewardRule;
-			string tier = rule != null ? rule.TierName(risk) : string.Empty;
-			riskLabel.text = string.IsNullOrEmpty(tier) ? "위험도 " + risk : $"위험도 {risk} ({tier})";
+			riskLabel.text = "위험도 " + risk;
 			riskLabel.EnableInClassList(USS_RISK_WARNING, rule != null && rule.IsWarning(risk));
 		}
 
