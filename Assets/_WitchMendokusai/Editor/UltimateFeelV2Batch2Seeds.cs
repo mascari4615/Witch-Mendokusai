@@ -109,7 +109,7 @@ namespace WitchMendokusai
 
 		public static Swell[] SunBeamSwells() => new[]
 		{
-			new Swell { Label = "충전과 물들임", FxStart = 0f, FxEnd = 2.195f, ReleaseSeconds = 0.1f, Shape = RiseLate(), TimeScale = 0.85f, Exposure = -0.8f, Saturation = -20f, Contrast = 10f, Vignette = 0.35f, Zoom = 0.08f, Dolly = 0.03f, Rumble = 0.2f },
+			new Swell { Label = "충전과 물들임", FxStart = 0f, FxEnd = 2.195f, ReleaseSeconds = 0.1f, Shape = RiseLate(), TimeScale = 0.85f, Exposure = -0.4f, Saturation = -20f, Contrast = 10f, Vignette = 0.35f, Zoom = 0.08f, Dolly = 0.03f, Rumble = 0.2f },
 			new Swell { Label = "쓸기", FxStart = 2.3f, FxEnd = 4.995f, ReleaseSeconds = 0.1f, Shape = RiseSteady(), TimeScale = 1f, Exposure = 0.1f, Saturation = 15f, Contrast = 12f, Vignette = 0.2f, Zoom = 0.04f, Dolly = 0.01f, Rumble = 0f },
 		};
 
@@ -135,8 +135,8 @@ namespace WitchMendokusai
 				Trauma = 1f, Zoom = P(0.1f, 0.04f, 0.08f, 0.22f), Dolly = P(0.05f, 0.04f, 0.06f, 0.22f),
 				Exposure = P(0.85f, 0.02f, 0.05f, 0.14f), Bloom = P(2f, 0.03f, 0.12f, 0.35f), Saturation = P(40f, 0.04f, 0.25f, 0.4f), Contrast = P(25f, 0.03f, 0.12f, 0.3f),
 				LensDistortion = P(-0.35f, 0.04f, 0.04f, 0.16f), Vignette = P(0.12f, 0.05f, 0.1f, 0.3f),
-				RadialBlur = P(0.85f, 0.02f, 0.06f, 0.12f), Ripple = P(0.04f, 0.02f, 0f, 0.28f), RippleSpeed = 1.6f,
-				ImpactFrame = Kind.Mono, ImpactFrameSeconds = 0.084f, ImpactFrameStrength = 0.85f,
+				// 흑백 두 장이 회색 화면으로 읽힘 (독립 검토 5회차): 임팩트 프레임 없음, 방사 흐림 낮춤
+				RadialBlur = P(0.55f, 0.02f, 0.06f, 0.12f), Ripple = P(0.04f, 0.02f, 0f, 0.28f), RippleSpeed = 1.6f,
 			},
 		};
 
