@@ -10,5 +10,13 @@ namespace WitchMendokusai
 		public static bool IsEnding => _instance != null && _instance.IsEnding;
 		// 판 밖이면 효과 없음
 		public static DungeonConstraintRunEffect ConstraintEffect => IsDungeon ? _instance.ConstraintEffect : DungeonConstraintRunEffect.Identity;
+		public static DungeonConstraintSideEffect SideEffect => IsDungeon ? _instance.SideRules.Effect : DungeonConstraintSideEffect.Identity;
+
+		// 회복 감소로 잃은 회복량. 고유 규칙 (잃은 회복의 냥) 이 받음
+		public static void ReportHealLoss(int lostHeal)
+		{
+			if (IsDungeon)
+				_instance.SideRules.OnHealLost(lostHeal);
+		}
 	}
 }

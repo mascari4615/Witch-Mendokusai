@@ -372,7 +372,8 @@ namespace WitchMendokusai
 
 		private int PickWeightedIndex(List<CardData> candidates)
 		{
-			float permanentLuck = UpgradeData.Luck;
+			// 선택지 감소 제약의 고유 규칙: 희귀도 운
+			float permanentLuck = UpgradeData.Luck + DungeonManagerBridge.SideEffect.ChoiceLuck;
 			List<float> weights = new(candidates.Count);
 			float total = 0f;
 			foreach (CardData card in candidates)

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   <ID>k__BackingField: 16
   <Name>k__BackingField: "\uC815\uC608 \uCD94\uAC00"
-  <Description>k__BackingField: "\uC815\uC608\uC640 \uC815\uC608 \uC0AC\uC774\uC5D0 \uC815\uC608\uAC00 2\uB9C8\uB9AC \uB354 \uB098\uC635\uB2C8\uB2E4."
+  <Description>k__BackingField: "\uC815\uC608\uC640 \uC815\uC608 \uC0AC\uC774\uC5D0 \uC815\uC608\uAC00 2\uB9C8\uB9AC \uB354 \uB098\uC635\uB2C8\uB2E4. \uC815\uC608\uB97C \uC7A1\uC73C\uBA74 50% \uD655\uB960\uB85C \uC0C1\uC790\uAC00 \uB098\uC635\uB2C8\uB2E4."
   <Sprite>k__BackingField: {fileID: 21300000, guid: 67a7c92e69932e74889c783b22dfc9b7, type: 3}
   <Sprites>k__BackingField: []
   <Effects>k__BackingField:
@@ -22,6 +22,10 @@ MonoBehaviour:
     Affiliation: -1
     StatType: 0
     Value: 2
+  - Kind: 10
+    Affiliation: -1
+    StatType: 0
+    Value: 50
   <Family>k__BackingField: "\uC815\uC608 \uCD94\uAC00"
   <Level>k__BackingField: 2
   <RiskOverride>k__BackingField: 0

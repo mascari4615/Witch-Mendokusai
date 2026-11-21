@@ -31,7 +31,12 @@ namespace WitchMendokusai
 		public static int TotalRisk(Dungeon dungeon) => TotalRisk(dungeon, dungeon.ConstraintSelected);
 
 		/// <summary> 판 규칙 효과 합 (물량, 회복, 선택지, 시작 체력, 난이도 간격, 정예) </summary>
-		public static DungeonConstraintRunEffect RunEffect(IReadOnlyList<DungeonConstraint> applied)
+		public static DungeonConstraintRunEffect RunEffect(IReadOnlyList<DungeonConstraint> applied) => DungeonConstraintRunRules.Resolve(Entries(applied));
+
+		/// <summary> 고유 규칙 합 (잃은 회복의 냥, 난이도 경험치, 처치 상자, 정예 상자, 희귀도 운) </summary>
+		public static DungeonConstraintSideEffect SideEffect(IReadOnlyList<DungeonConstraint> applied) => DungeonConstraintRunRules.ResolveSide(Entries(applied));
+
+		private static List<DungeonConstraintRunRules.Entry> Entries(IReadOnlyList<DungeonConstraint> applied)
 		{
 			List<DungeonConstraintRunRules.Entry> entries = new();
 			foreach (DungeonConstraint constraint in applied)
@@ -39,7 +44,7 @@ namespace WitchMendokusai
 				foreach (DungeonConstraintEffectInfo effect in constraint.Effects)
 					entries.Add(new DungeonConstraintRunRules.Entry(effect.Kind, effect.Value));
 			}
-			return DungeonConstraintRunRules.Resolve(entries);
+			return entries;
 		}
 
 		/// <summary> 묶음마다 가장 높은 위험도 점수의 합. 위험도 눈금 칸 수 </summary>

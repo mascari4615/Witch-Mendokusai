@@ -31,6 +31,8 @@ namespace WitchMendokusai
 		public DungeonThreatEffect CurThreat { get; private set; } = DungeonThreatEffect.Identity;
 		// 켠 제약의 판 규칙 효과 (회복, 선택지, 시작 체력, 난이도 간격). 판 시작 때 정함
 		public DungeonConstraintRunEffect ConstraintEffect { get; private set; } = DungeonConstraintRunEffect.Identity;
+		// 제약 고유 규칙 (회복 감소의 냥, 처치 상자 등). 판 시작 Begin, 판 끝 End
+		public DungeonConstraintSideRules SideRules { get; private set; }
 
 		// 판 안 냥. 이번 판에 주운 냥만 맵 오브젝트 비용으로 씀, 들고 온 냥은 못 씀. 안 쓴 냥은 기존대로 가져감
 		// 판 안에서만 부름. 판 밖이면 기록이 없어 예외
@@ -92,6 +94,7 @@ namespace WitchMendokusai
 			this.playerProvider = playerProvider;
 			this.dataManager = dataManager;
 			this.gameManager = gameManager;
+			SideRules = new DungeonConstraintSideRules(dataManager, playerProvider, container);
 			DungeonManagerBridge.Register(this);
 			monsterSpawner.SetDungeonManager(this);
 			container.Inject(monsterSpawner);
@@ -129,6 +132,7 @@ namespace WitchMendokusai
 		private void OnDestroy()
 		{
 			EventBusBridge.Unsubscribe<BossKilledEvent>(OnBossKilled);
+			SideRules?.End();
 			if (Instance == this)
 				Instance = null;
 			DungeonManagerBridge.Register(null);
@@ -241,6 +245,7 @@ namespace WitchMendokusai
 				);
 
 				dungeonRecorder = new DungeonRecorder(this, dataManager);
+				SideRules.Begin(DungeonConstraintRules.SideEffect(Context.Constraints));
 
 				IsDungeon = true;
 
@@ -398,6 +403,7 @@ namespace WitchMendokusai
 			dungeonLoopSubscription = null;
 			monsterSpawner.StopWave();
 			resourceNodeSpawner.StopWave();
+			SideRules.End();
 
 			if (isCleared == false)
 				dataManager.GameStat[GameStatType.NYANG] += CurDungeon.CalculateDefeatNyang(dungeonRecorder.KillCountSinceStart);

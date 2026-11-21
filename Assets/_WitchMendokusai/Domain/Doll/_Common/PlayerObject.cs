@@ -159,6 +159,8 @@ namespace WitchMendokusai
 			int scaled = DungeonManagerBridge.ConstraintEffect.ScaleHeal(healAmount, ref healCarry);
 			if (scaled > 0)
 				base.ReceiveHeal(scaled);
+			if (healAmount > scaled)
+				DungeonManagerBridge.ReportHealLoss(healAmount - scaled);
 		}
 
 		protected override void OnEnable()

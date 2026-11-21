@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   <ID>k__BackingField: 14
   <Name>k__BackingField: "\uD68C\uBCF5 \uAC10\uC18C"
-  <Description>k__BackingField: "\uBC1B\uB294 \uD68C\uBCF5\uB7C9\uC774 75% \uC904\uC5B4\uB4ED\uB2C8\uB2E4."
+  <Description>k__BackingField: "\uBC1B\uB294 \uD68C\uBCF5\uB7C9\uC774 75% \uC904\uC5B4\uB4ED\uB2C8\uB2E4. \uC904\uC5B4\uB4E0 \uD68C\uBCF5\uC758 \uC808\uBC18\uC740 \uB0E5\uC73C\uB85C \uBC1B\uC2B5\uB2C8\uB2E4."
   <Sprite>k__BackingField: {fileID: 21300000, guid: fe4ea2fe7e0a5104a957a6b0ebd4689e, type: 3}
   <Sprites>k__BackingField: []
   <Effects>k__BackingField:
@@ -22,6 +22,10 @@ MonoBehaviour:
     Affiliation: -1
     StatType: 0
     Value: -75
+  - Kind: 7
+    Affiliation: -1
+    StatType: 0
+    Value: 50
   <Family>k__BackingField: "\uD68C\uBCF5 \uAC10\uC18C"
   <Level>k__BackingField: 3
   <RiskOverride>k__BackingField: 0

@@ -39,6 +39,19 @@ namespace WitchMendokusai
 			AddPart(parts, "시작 체력", run.StartHealthPercent, "%");
 			AddPart(parts, "난이도 간격", run.DifficultyPacePercent, "%");
 			AddPart(parts, "정예", run.EliteExtraPerGap, "마리");
+
+			// 고유 규칙
+			DungeonConstraintSideEffect side = DungeonConstraintRules.SideEffect(applied);
+			if (side.KillChestEvery > 0)
+				parts.Add($"{side.KillChestEvery}마리마다 상자");
+			if (side.HealLossToNyangPercent > 0)
+				parts.Add($"잃은 회복 {side.HealLossToNyangPercent}% 냥");
+			if (side.EliteChestPercent > 0)
+				parts.Add($"정예 상자 {side.EliteChestPercent}%");
+			if (side.ChoiceLuckPercent > 0)
+				parts.Add($"희귀 운 +{side.ChoiceLuckPercent}%");
+			if (side.DifficultyExpOrbs > 0)
+				parts.Add($"난이도마다 경험치 x{side.DifficultyExpOrbs}");
 			return string.Join(", ", parts);
 		}
 

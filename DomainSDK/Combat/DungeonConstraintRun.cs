@@ -19,6 +19,57 @@ namespace WitchMendokusai
 		DifficultyPace = 5,
 		// 정예 사이 추가 정예 수 (개수). 위협 단계 정예 추가에 더함
 		EliteExtra = 6,
+
+		// 아래는 제약마다 붙는 고유 규칙 (보상이나 획득 방식 변화). DungeonConstraintSideEffect
+		// 회복 감소로 잃은 회복량의 % 를 판 안 냥으로
+		HealLossToNyang = 7,
+		// 판 난이도가 오를 때마다 경험치 구슬 (기본 구슬 몇 배)
+		DifficultyExp = 8,
+		// 처치 수 몇 마리마다 상자 하나
+		KillChest = 9,
+		// 정예 처치 때 상자 확률 %
+		EliteChest = 10,
+		// 레벨업 카드 희귀도 운 % (영구 행운에 더함)
+		ChoiceLuck = 11,
+	}
+
+	// 켠 제약의 고유 규칙 합. 판 규칙 (DungeonConstraintRunEffect) 과 따로
+	public readonly struct DungeonConstraintSideEffect
+	{
+		public readonly int HealLossToNyangPercent;
+		public readonly int DifficultyExpOrbs;
+		// 0 이면 없음
+		public readonly int KillChestEvery;
+		public readonly int EliteChestPercent;
+		public readonly int ChoiceLuckPercent;
+
+		public DungeonConstraintSideEffect(int healLossToNyangPercent, int difficultyExpOrbs, int killChestEvery, int eliteChestPercent, int choiceLuckPercent)
+		{
+			HealLossToNyangPercent = healLossToNyangPercent;
+			DifficultyExpOrbs = difficultyExpOrbs;
+			KillChestEvery = killChestEvery;
+			EliteChestPercent = eliteChestPercent;
+			ChoiceLuckPercent = choiceLuckPercent;
+		}
+
+		public static DungeonConstraintSideEffect Identity => new DungeonConstraintSideEffect(0, 0, 0, 0, 0);
+
+		public float ChoiceLuck => ChoiceLuckPercent / DungeonConstraintRunEffect.PERCENT;
+
+		// 잃은 회복의 냥. carry 는 남은 소수
+		public int HealLossNyang(int lostHeal, ref double carry)
+		{
+			double nyang = lostHeal * (HealLossToNyangPercent / (double)DungeonConstraintRunEffect.PERCENT) + carry;
+			int whole = (int)Math.Floor(nyang);
+			carry = nyang - whole;
+			return whole;
+		}
+
+		// 처치 수가 상자 기준에 닿았는지. killsSinceStart 는 판 시작부터 처치 수, chestsGiven 은 이미 준 상자 수
+		public bool IsKillChestDue(int killsSinceStart, int chestsGiven) => KillChestEvery > 0 && killsSinceStart >= KillChestEvery * (chestsGiven + 1);
+
+		// roll: 0 이상 100 미만
+		public bool IsEliteChest(float roll) => roll < EliteChestPercent;
 	}
 
 	// 켠 제약의 판 규칙 효과 합. 같은 종류는 더함
@@ -120,6 +171,12 @@ namespace WitchMendokusai
 					case DungeonConstraintEffectKind.EliteExtra:
 						elite += entry.Value;
 						break;
+					case DungeonConstraintEffectKind.HealLossToNyang:
+					case DungeonConstraintEffectKind.DifficultyExp:
+					case DungeonConstraintEffectKind.KillChest:
+					case DungeonConstraintEffectKind.EliteChest:
+					case DungeonConstraintEffectKind.ChoiceLuck:
+						break;
 					default:
 						throw new ArgumentOutOfRangeException(nameof(entries), entry.Kind, "처리하지 않는 제약 효과 종류");
 				}
@@ -135,6 +192,42 @@ namespace WitchMendokusai
 			if (elite < 0)
 				throw new ArgumentOutOfRangeException(nameof(entries), $"정예 추가 {elite} 는 0 이상");
 			return new DungeonConstraintRunEffect(wave, heal, choice, startHealth, pace, elite);
+		}
+
+		// 고유 규칙 합. 상자 간격은 여럿이면 가장 짧은 것
+		public static DungeonConstraintSideEffect ResolveSide(IEnumerable<Entry> entries)
+		{
+			int healLoss = 0;
+			int expOrbs = 0;
+			int killChest = 0;
+			int eliteChest = 0;
+			int luck = 0;
+			foreach (Entry entry in entries)
+			{
+				switch (entry.Kind)
+				{
+					case DungeonConstraintEffectKind.HealLossToNyang:
+						healLoss += entry.Value;
+						break;
+					case DungeonConstraintEffectKind.DifficultyExp:
+						expOrbs += entry.Value;
+						break;
+					case DungeonConstraintEffectKind.KillChest:
+						if (entry.Value <= 0)
+							throw new ArgumentOutOfRangeException(nameof(entries), entry.Value, "처치 상자 간격은 1 이상");
+						killChest = killChest == 0 ? entry.Value : Math.Min(killChest, entry.Value);
+						break;
+					case DungeonConstraintEffectKind.EliteChest:
+						eliteChest += entry.Value;
+						break;
+					case DungeonConstraintEffectKind.ChoiceLuck:
+						luck += entry.Value;
+						break;
+				}
+			}
+			if (healLoss < 0 || expOrbs < 0 || eliteChest < 0 || luck < 0)
+				throw new ArgumentOutOfRangeException(nameof(entries), "고유 규칙 값은 0 이상");
+			return new DungeonConstraintSideEffect(healLoss, expOrbs, killChest, eliteChest, luck);
 		}
 	}
 }
