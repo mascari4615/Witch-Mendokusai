@@ -86,6 +86,28 @@ namespace WitchMendokusai
 			weapon.SetActive(true);
 		}
 
+		// 새 동작 부품 시험용 무기 (장비 데이터 없음, 아이템 목록에 안 올림). Resources/DevTrialWeapons
+		public const string TRIAL_RESOURCE_PATH = "DevTrialWeapons";
+
+		public static GameObject[] TrialWeapons()
+		{
+			GameObject[] weapons = Resources.LoadAll<GameObject>(TRIAL_RESOURCE_PATH);
+			System.Array.Sort(weapons, (left, right) => string.CompareOrdinal(left.name, right.name));
+			return weapons;
+		}
+
+		// EquipOnly 와 같은 길로 시험 무기 하나만 듦
+		public static void EquipTrialOnly(GameObject weaponObject)
+		{
+			ObjectBufferManager.ClearObjects(ObjectType.Skill);
+			PlayerProvider playerProvider = PlayerProvider.Instance;
+			ObjectPoolManager objectPoolManager = ObjectPoolManager.Instance;
+			GameObject weapon = objectPoolManager.Spawn(weaponObject);
+			if (weapon.TryGetComponent(out SkillObject skillObject))
+				skillObject.InitContext(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager, null));
+			weapon.SetActive(true);
+		}
+
 		// 진열과 무기 명령 후보. 동작 오브젝트가 있는 장비
 		public static List<EquipmentData> AllWeapons()
 		{
