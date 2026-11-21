@@ -85,13 +85,13 @@ namespace WitchMendokusai
 		{
 			new Beat
 			{
-				Label = "방출", FxTime = 0.895f, HoldSeconds = 0.08f, HoldTimeScale = 0f,
+				Label = "방출", FxTime = 0.895f, HoldSeconds = 0.14f, HoldTimeScale = 0f,
 				SlowScale = 0.5f, SlowSeconds = 0.5f, SlowRecovery = LateRelease(),
 				Trauma = 0.75f, Zoom = P(-0.05f, 0.04f, 0.05f, 0.2f), Dolly = P(-0.03f, 0.04f, 0.05f, 0.2f),
-				Exposure = P(0.7f, 0.02f, 0.05f, 0.14f), Bloom = P(1.6f, 0.03f, 0.12f, 0.35f), Saturation = P(30f, 0.04f, 0.3f, 0.4f), Contrast = P(15f, 0.03f, 0.1f, 0.3f),
+				// 섬광이 불길보다 크고 흑백 한 장이 회색 화면으로 읽힘 (독립 검토 4회차): 노출과 흐림 낮춤, 임팩트 프레임 없음
+				Exposure = P(0.4f, 0.02f, 0.05f, 0.14f), Bloom = P(1f, 0.03f, 0.12f, 0.35f), Saturation = P(30f, 0.04f, 0.3f, 0.4f), Contrast = P(15f, 0.03f, 0.1f, 0.3f),
 				LensDistortion = P(0.15f, 0.03f, 0.05f, 0.15f), Vignette = P(0.08f, 0.04f, 0.1f, 0.3f),
-				RadialBlur = P(0.5f, 0.02f, 0.06f, 0.14f),
-				ImpactFrame = Kind.Mono, ImpactFrameSeconds = 0.042f, ImpactFrameStrength = 0.7f,
+				RadialBlur = P(0.3f, 0.02f, 0.06f, 0.14f),
 			},
 			MiniBeat("불기둥 1", 1.2f, 0.28f, 0.012f, 0.18f, 0.12f),
 			MiniBeat("불기둥 2", 1.42f, 0.28f, 0.012f, 0.18f, 0.12f),
