@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MOB_6_Slime6
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 6
-  <Name>k__BackingField: Slime6
+  <Name>k__BackingField: "이슬 슬라임"
   <Description>k__BackingField: 
   <Sprite>k__BackingField: {fileID: -1494680652, guid: 885dbe964ca2c0541a96474bd66b37b3, type: 3}
   <Sprites>k__BackingField: []

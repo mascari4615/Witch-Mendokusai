@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MOB_4_Slime4
   m_EditorClassIdentifier: 
   <ID>k__BackingField: 4
-  <Name>k__BackingField: Slime4
+  <Name>k__BackingField: "햇살 슬라임"
   <Description>k__BackingField: 
   <Sprite>k__BackingField: {fileID: -1783809023, guid: 3353d9f613405b84c886754238b93104, type: 3}
   <Sprites>k__BackingField: []
