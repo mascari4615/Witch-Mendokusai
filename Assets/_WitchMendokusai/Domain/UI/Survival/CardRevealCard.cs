@@ -123,7 +123,11 @@ namespace WitchMendokusai
 			bool front = turn >= 0.5f;
 			float angle = turn * 180f - (front ? 180f : 0f);
 			float lift = Mathf.Sin(turn * Mathf.PI);
-			card.localRotation = homeRotation * Quaternion.Euler(-FlipPitch * lift, angle, FlipRoll * lift);
+			Quaternion turnAxis = Quaternion.AngleAxis(angle, Vector3.up);
+			Quaternion tilt = Quaternion.AngleAxis(-FlipPitch * lift, Vector3.right)
+				* Quaternion.AngleAxis(FlipRoll * lift, Vector3.forward);
+			// 두 면에서 기울기의 기준축을 공유해야 90도에서 옆면 방향이 뒤집히지 않음
+			card.localRotation = homeRotation * tilt * turnAxis;
 			flipEdge.gameObject.SetActive(turn > 0.22f && turn < 0.78f);
 			flipEdge.rectTransform.localPosition = new Vector3(card.rect.width * (front ? -0.5f : 0.5f), 0f, 0f);
 			if (front)
