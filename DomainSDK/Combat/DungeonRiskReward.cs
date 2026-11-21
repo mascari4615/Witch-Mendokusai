@@ -7,11 +7,11 @@ namespace WitchMendokusai
 	public enum DungeonRiskMilestoneState
 	{
 		// 지금 고른 위험도로는 못 받음
-		Unreached,
+		Unreached = 0,
 		// 지금 고른 위험도로 깨면 처음 받음
-		ThisClear,
+		ThisClear = 1,
 		// 이전 클리어에서 이미 받음
-		Claimed,
+		Claimed = 2,
 	}
 
 	// 위험도 단계 첫 클리어 보상 규칙. 위험도 N 으로 깨면 N 이하의 안 받은 구간을 한 번씩
