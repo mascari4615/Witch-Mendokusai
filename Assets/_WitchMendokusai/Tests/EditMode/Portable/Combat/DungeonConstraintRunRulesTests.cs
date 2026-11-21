@@ -81,5 +81,40 @@ namespace WitchMendokusai.Tests
 		{
 			Assert.AreEqual(144d, Resolve((DungeonConstraintEffectKind.DifficultyPace, -20)).ScaleDifficultyStep(180d), 0.001d);
 		}
+
+		private static DungeonConstraintSideEffect Side(params (DungeonConstraintEffectKind Kind, int Value)[] effects)
+		{
+			List<DungeonConstraintRunRules.Entry> entries = new List<DungeonConstraintRunRules.Entry>();
+			foreach ((DungeonConstraintEffectKind kind, int value) in effects)
+				entries.Add(new DungeonConstraintRunRules.Entry(kind, value));
+			return DungeonConstraintRunRules.ResolveSide(entries);
+		}
+
+		[Test]
+		public void SideRulesIgnoreRunKindsAndTakeShortestChestGap()
+		{
+			DungeonConstraintSideEffect side = Side((DungeonConstraintEffectKind.WaveRate, 20), (DungeonConstraintEffectKind.KillChest, 300), (DungeonConstraintEffectKind.KillChest, 200));
+			Assert.AreEqual(200, side.KillChestEvery);
+			Assert.IsFalse(side.IsKillChestDue(199, 0));
+			Assert.IsTrue(side.IsKillChestDue(200, 0));
+			Assert.IsFalse(side.IsKillChestDue(399, 1));
+			Assert.IsTrue(side.IsKillChestDue(400, 1));
+		}
+
+		[Test]
+		public void HealLossNyangCarriesFraction()
+		{
+			DungeonConstraintSideEffect side = Side((DungeonConstraintEffectKind.HealLossToNyang, 50));
+			double carry = 0d;
+			Assert.AreEqual(0, side.HealLossNyang(1, ref carry));
+			Assert.AreEqual(1, side.HealLossNyang(1, ref carry));
+		}
+
+		[Test]
+		public void InvalidSideValuesFailFast()
+		{
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => Side((DungeonConstraintEffectKind.KillChest, 0)));
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => Side((DungeonConstraintEffectKind.EliteChest, -10)));
+		}
 	}
 }

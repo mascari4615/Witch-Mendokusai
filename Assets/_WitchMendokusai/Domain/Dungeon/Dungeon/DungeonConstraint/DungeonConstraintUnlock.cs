@@ -33,6 +33,8 @@ namespace WitchMendokusai
 		public int Value;
 		[Tooltip("Criteria: 조건 (예: 게임 통계 누적 처치 >= 1000)")]
 		public CriteriaInfo Criteria;
+		[Tooltip("Criteria: 화면 문장 (예: 몬스터 처치). 통계 이름은 내부 상수라 따로 씀")]
+		public string Label;
 	}
 
 	/// <summary> 제약 해금 판정과 조건 문장. 기록은 Dungeon 저장 (클리어, 최고 위험도, 켜고 깬 제약, 깬 인형, 잡은 보스) </summary>
@@ -51,12 +53,12 @@ namespace WitchMendokusai
 		public static bool IsMet(Dungeon dungeon, DungeonConstraint constraint, DungeonConstraintUnlock unlock, CriteriaContext context) => unlock.Type switch
 		{
 			DungeonConstraintUnlockType.FirstClear => dungeon.IsCleared,
-			DungeonConstraintUnlockType.LowerLevel => LowerLevel(dungeon, constraint).Exists(lower => dungeon.ClearedConstraints.Contains(lower.ID)),
+			DungeonConstraintUnlockType.LowerLevel => LowerLevelCleared(dungeon, constraint),
 			DungeonConstraintUnlockType.RiskClear => dungeon.IsCleared && dungeon.BestRisk >= unlock.Value,
-			DungeonConstraintUnlockType.BossKill => AnyDungeonKilled(context, unlock.Target.ID),
-			DungeonConstraintUnlockType.DollClear => dungeon.ClearedDolls.Contains(unlock.Target.ID),
+			DungeonConstraintUnlockType.BossKill => AnyDungeonKilled(context, ((Monster)unlock.Target).ID),
+			DungeonConstraintUnlockType.DollClear => dungeon.ClearedDolls.Contains(((Doll)unlock.Target).ID),
 			DungeonConstraintUnlockType.Criteria => CriteriaFactory.Create(unlock.Criteria, context).Evaluate(),
-			DungeonConstraintUnlockType.ConstraintClear => dungeon.ClearedConstraints.Contains(unlock.Target.ID),
+			DungeonConstraintUnlockType.ConstraintClear => dungeon.ClearedConstraints.Contains(((DungeonConstraint)unlock.Target).ID),
 			_ => throw new ArgumentOutOfRangeException(nameof(unlock), unlock.Type, "처리하지 않는 해금 조건"),
 		};
 
@@ -79,26 +81,34 @@ namespace WitchMendokusai
 			DungeonConstraintUnlockType.RiskClear => $"위험도 {unlock.Value} 이상으로 클리어",
 			DungeonConstraintUnlockType.BossKill => $"{unlock.Target.Name} 처치",
 			DungeonConstraintUnlockType.DollClear => $"{unlock.Target.Name} 인형으로 클리어",
-			DungeonConstraintUnlockType.Criteria => CriteriaText(unlock.Criteria, context),
-			DungeonConstraintUnlockType.ConstraintClear => $"{unlock.Target.Name} {(unlock.Target as DungeonConstraint).Level}단계를 켜고 클리어",
+			DungeonConstraintUnlockType.Criteria => CriteriaText(unlock, context),
+			DungeonConstraintUnlockType.ConstraintClear => $"{unlock.Target.Name} {((DungeonConstraint)unlock.Target).Level}단계를 켜고 클리어",
 			_ => throw new ArgumentOutOfRangeException(nameof(unlock), unlock.Type, "처리하지 않는 해금 조건"),
 		};
 
-		private static string CriteriaText(CriteriaInfo criteriaInfo, CriteriaContext context)
+		// 문장이 비면 데이터 잘못 (통계 이름은 내부 상수라 화면에 못 씀)
+		private static string CriteriaText(DungeonConstraintUnlock unlock, CriteriaContext context)
 		{
-			Criteria criteria = CriteriaFactory.Create(criteriaInfo, context);
-			string name = criteriaInfo.Data != null ? criteriaInfo.Data.Name : criteriaInfo.Type.ToString();
-			return criteria is NumCriteria number ? $"{name} {number.GetCurValue()}/{number.TargetValue}" : name;
+			if (string.IsNullOrEmpty(unlock.Label))
+				throw new InvalidOperationException("Criteria 해금 조건에 Label 이 없음");
+			Criteria criteria = CriteriaFactory.Create(unlock.Criteria, context);
+			return criteria is NumCriteria number ? $"{unlock.Label} {number.GetCurValue()}/{number.TargetValue}" : unlock.Label;
 		}
 
-		private static List<DungeonConstraint> LowerLevel(Dungeon dungeon, DungeonConstraint constraint) =>
-			dungeon.Constraints.FindAll(candidate => candidate.FamilyKey == constraint.FamilyKey && candidate.Level == constraint.Level - 1);
+		// 단계 1 에 아래 단계 조건, 또는 아래 단계 에셋이 없으면 영원히 잠기므로 데이터 잘못
+		private static bool LowerLevelCleared(Dungeon dungeon, DungeonConstraint constraint)
+		{
+			List<DungeonConstraint> lower = dungeon.Constraints.FindAll(candidate => candidate.FamilyKey == constraint.FamilyKey && candidate.Level == constraint.Level - 1);
+			if (lower.Count == 0)
+				throw new InvalidOperationException($"{constraint.name}: 아래 단계 조건인데 {dungeon.name} 에 단계 {constraint.Level - 1} 이 없음");
+			return lower.Exists(item => dungeon.ClearedConstraints.Contains(item.ID));
+		}
 
 		private static bool AnyDungeonKilled(CriteriaContext context, int bossId)
 		{
 			foreach (DataSO data in context.SOManager.DataSOs[typeof(Dungeon)].Values)
 			{
-				if ((data as Dungeon).KilledBosses.Contains(bossId))
+				if (((Dungeon)data).KilledBosses.Contains(bossId))
 					return true;
 			}
 			return false;

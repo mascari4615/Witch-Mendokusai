@@ -68,7 +68,7 @@ namespace WitchMendokusai
 		// 처치 수가 상자 기준에 닿았는지. killsSinceStart 는 판 시작부터 처치 수, chestsGiven 은 이미 준 상자 수
 		public bool IsKillChestDue(int killsSinceStart, int chestsGiven) => KillChestEvery > 0 && killsSinceStart >= KillChestEvery * (chestsGiven + 1);
 
-		// roll: 0 이상 100 미만
+		// roll: 0 이상 100 이하
 		public bool IsEliteChest(float roll) => roll < EliteChestPercent;
 	}
 
@@ -223,6 +223,16 @@ namespace WitchMendokusai
 					case DungeonConstraintEffectKind.ChoiceLuck:
 						luck += entry.Value;
 						break;
+					case DungeonConstraintEffectKind.Stat:
+					case DungeonConstraintEffectKind.WaveRate:
+					case DungeonConstraintEffectKind.HealRate:
+					case DungeonConstraintEffectKind.ChoiceCount:
+					case DungeonConstraintEffectKind.StartHealth:
+					case DungeonConstraintEffectKind.DifficultyPace:
+					case DungeonConstraintEffectKind.EliteExtra:
+						break;
+					default:
+						throw new ArgumentOutOfRangeException(nameof(entries), entry.Kind, "처리하지 않는 제약 효과 종류");
 				}
 			}
 			if (healLoss < 0 || expOrbs < 0 || eliteChest < 0 || luck < 0)

@@ -18,6 +18,7 @@ namespace WitchMendokusai
 		private const string USS_TITLE = "wm-dungeon-entrance__header-text";
 		private const string USS_TITLE_LINE = "wm-dungeon-entrance__header-line";
 		private const string USS_RISK = USS_CLASS + "__risk";
+		private const string USS_RISK_WARNING = USS_RISK + "--warning";
 		private const string USS_CHIPS = USS_CLASS + "__chips";
 		private const string USS_CHIP = USS_CLASS + "__chip";
 		private const string USS_CHIP_OFF = USS_CHIP + "--off";
@@ -109,7 +110,11 @@ namespace WitchMendokusai
 			moreLabel.text = "+" + hiddenSelected;
 			moreLabel.style.display = hiddenSelected > 0 ? DisplayStyle.Flex : DisplayStyle.None;
 			moreLabel.BringToFront();
-			riskLabel.text = "위험도 " + DungeonConstraintRules.TotalRisk(dungeon.SelectedConstraints());
+			int risk = DungeonConstraintRules.TotalRisk(dungeon.SelectedConstraints());
+			DungeonConstraintRewardRule rule = dungeon.ConstraintRewardRule;
+			string tier = rule != null ? rule.TierName(risk) : string.Empty;
+			riskLabel.text = string.IsNullOrEmpty(tier) ? "위험도 " + risk : $"위험도 {risk} ({tier})";
+			riskLabel.EnableInClassList(USS_RISK_WARNING, rule != null && rule.IsWarning(risk));
 		}
 
 		private void EnsureChipCount(int count)

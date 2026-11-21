@@ -45,6 +45,9 @@ namespace WitchMendokusai
 
 		private readonly Label dungeonName;
 		private readonly Label riskValue;
+		private readonly Label riskTier;
+		private readonly Label riskWarning;
+		private readonly Label effectSummary;
 		private readonly VisualElement riskMeter;
 		private readonly Label bestRisk;
 		private readonly ScrollView rewardList;
@@ -77,7 +80,9 @@ namespace WitchMendokusai
 			VisualElement riskCard = AddChild(side, new VisualElement(), USS_PART + "risk");
 			AddChild(riskCard, new Label("위험도"), USS_PART + "risk-label");
 			riskValue = AddChild(riskCard, new Label(), USS_PART + "risk-value");
+			riskTier = AddChild(riskCard, new Label(), USS_PART + "risk-tier");
 			riskMeter = AddChild(riskCard, new VisualElement(), USS_PART + "risk-meter");
+			riskWarning = AddChild(riskCard, new Label("위험도가 높음. 처음이면 낮은 단계부터"), USS_PART + "risk-warning");
 			bestRisk = AddChild(riskCard, new Label(), USS_PART + "best");
 			AddChild(side, new Label("위험도 보상"), USS_PART + "side-header");
 			// 구간이 많으면 이 목록만 스크롤
@@ -102,6 +107,8 @@ namespace WitchMendokusai
 			VisualElement effectHead = AddChild(main, new VisualElement(), USS_PART + "head");
 			effectHead.AddToClassList(USS_PART + "head--effects");
 			AddChild(effectHead, new Label("켠 제약"), USS_PART + "header");
+			// 켠 제약을 종류별로 더한 결과 (같은 스탯은 합산)
+			effectSummary = AddChild(main, new Label(), USS_PART + "summary");
 			effectList = AddChild(main, new ScrollView(ScrollViewMode.Vertical), USS_PART + "effects"); // 많으면 이 목록만 스크롤, 버튼 줄 고정
 			effectList.contentContainer.AddToClassList(USS_PART + "effects-content");
 			effectEmpty = AddChild(effectList, new Label("켠 제약 없음"), USS_PART + "effect-empty");
@@ -328,6 +335,10 @@ namespace WitchMendokusai
 			int risk = DungeonConstraintRules.TotalRisk(dungeon, draft);
 			int maxRisk = DungeonConstraintRules.MaxRisk(dungeon);
 			riskValue.text = risk.ToString();
+			DungeonConstraintRewardRule rule = dungeon.ConstraintRewardRule;
+			riskTier.text = rule != null ? rule.TierName(risk) : string.Empty;
+			riskWarning.style.display = rule != null && rule.IsWarning(risk) ? DisplayStyle.Flex : DisplayStyle.None;
+			effectSummary.text = DungeonConstraintSummary.Describe(dungeon.Constraints.FindAll(constraint => draft[constraint.ID]), dungeon.Constraints);
 			riskMeter.Clear();
 			for (int i = 0; i < maxRisk; i++)
 				AddChild(riskMeter, new VisualElement(), USS_PART + "risk-pip").EnableInClassList(USS_PART + "risk-pip--on", i < risk);

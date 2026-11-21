@@ -5,11 +5,18 @@ namespace WitchMendokusai
 	/// <summary> 켠 제약의 합산 결과 한 줄 (적용 수치 미리보기). 같은 스탯은 더하고, 판 규칙은 종류별 합 </summary>
 	public static class DungeonConstraintSummary
 	{
-		public static string Describe(IReadOnlyList<DungeonConstraint> applied)
+		// catalog: 스탯 이름을 찾을 제약 목록 (던전 전체). 켠 것만 보면 저주만 켰을 때 이름이 없음
+		public static string Describe(IReadOnlyList<DungeonConstraint> applied, IReadOnlyList<DungeonConstraint> catalog)
 		{
 			List<string> parts = new();
-			// 스탯 효과: 처음 나온 묶음 이름으로 표시
+			// 스탯 효과: 그 스탯이 첫 효과인 제약의 이름과 단위로 표시 (저주처럼 여러 효과가 섞인 제약의 이름은 안 씀)
 			Dictionary<UnitStatType, (string Label, string Unit, int Sum)> stats = new();
+			Dictionary<UnitStatType, (string Label, string Unit)> labels = new();
+			foreach (DungeonConstraint constraint in catalog)
+			{
+				if (labels.ContainsKey(constraint.Effects[0].StatType) == false && constraint.Effects.Count == 1 && constraint.Effects[0].Kind == DungeonConstraintEffectKind.Stat)
+					labels[constraint.Effects[0].StatType] = (constraint.Name, constraint.ValueUnit);
+			}
 			List<UnitStatType> statOrder = new();
 			foreach (DungeonConstraint constraint in applied)
 			{
@@ -22,7 +29,8 @@ namespace WitchMendokusai
 						stats[effect.StatType] = (entry.Label, entry.Unit, entry.Sum + effect.Value);
 						continue;
 					}
-					stats[effect.StatType] = (constraint.Name, constraint.ValueUnit, effect.Value);
+					(string Label, string Unit) known = labels[effect.StatType]; // 이름 없는 스탯은 데이터 잘못 (단일 스탯 제약이 없음)
+					stats[effect.StatType] = (known.Label, known.Unit, effect.Value);
 					statOrder.Add(effect.StatType);
 				}
 			}
