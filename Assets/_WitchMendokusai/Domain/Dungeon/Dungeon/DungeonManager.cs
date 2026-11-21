@@ -129,6 +129,9 @@ namespace WitchMendokusai
 			DungeonManagerBridge.Register(null);
 			SkyTimeOverride.Clear();
 			StopFlowFx();
+			// 씬이 내려가거나 Play 가 끝나도 도는 판 타이머 해제
+			dungeonLoopSubscription?.Dispose();
+			dungeonLoopSubscription = null;
 		}
 
 		// 판의 시작과 끝 연출 (입장, 승리, 패배). 한 번에 하나, 새로 틀면 앞의 것은 걷음
