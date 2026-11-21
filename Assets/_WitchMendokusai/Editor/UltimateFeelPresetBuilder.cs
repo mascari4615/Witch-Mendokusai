@@ -29,6 +29,8 @@ namespace WitchMendokusai
 			public float TargetForward;
 			// 사용자 판정 2026-11-21 "작아": 주제 연출 크기 배율 (래퍼 worldSize). 처음 만들 때와 다시 넣기 때만
 			public float WorldSize = WORLD_SIZE;
+			// 사용자 결정 2026-11-21 "궁극기 동안 카메라를 조금 물려 위 끝 잘림을 줄인다". 물림 비율, 들어오는 초, 나가는 초
+			public UltimateScreenFeel.PullBackSettings PullBack;
 			public Func<UltimateScreenFeel.Swell[]> Swells;
 			public Func<UltimateScreenFeel.Beat[]> Beats;
 			public UltimateScreenFeel.TraumaSettings Trauma;
@@ -41,6 +43,7 @@ namespace WitchMendokusai
 			{
 				Name = "SkySwordHeavyV2", DevKey = "ult3d_heavy_v2", SourceBody = "Ult3D_02_SkySwordHeavy", TargetForward = 1.6f,
 				Swells = UltimateFeelV2Seeds.SkySwordSwells, Beats = UltimateFeelV2Seeds.SkySwordBeats,
+				PullBack = PullBack(0.2f, 0.8f, 0.8f),
 				Trauma = UltimateFeelV2Seeds.Trauma(0.022f, 15f, 2f, 0.75f),
 				TuneBody = body =>
 				{
@@ -62,6 +65,7 @@ namespace WitchMendokusai
 			{
 				Name = "SpearCrownHeavyV2", DevKey = "crown_heavy_v2", SourceBody = "Ult3D_SpearCrownHeavy", TargetForward = 1.4f,
 				Swells = UltimateFeelV2Seeds.CrownSwells, Beats = UltimateFeelV2Seeds.CrownBeats,
+				PullBack = PullBack(0.2f, 0.5f, 0.8f),
 				Trauma = UltimateFeelV2Seeds.Trauma(0.02f, 16f, 2.4f, 0.65f),
 				TuneBody = body =>
 				{
@@ -82,6 +86,7 @@ namespace WitchMendokusai
 			{
 				Name = "CardHeavyV2", DevKey = "card_heavy_v2", SourceBody = "Ult3D_CardHeavy", TargetForward = 1.4f,
 				Swells = UltimateFeelV2Seeds.CardSwells, Beats = UltimateFeelV2Seeds.CardBeats,
+				PullBack = PullBack(0.12f, 0.6f, 0.8f),
 				Trauma = UltimateFeelV2Seeds.Trauma(0.02f, 14f, 2.2f, 0.7f),
 				TuneBody = body =>
 				{
@@ -98,6 +103,7 @@ namespace WitchMendokusai
 			{
 				Name = "MoonHeavyV2", DevKey = "moon_heavy_v2", SourceBody = "Ult3D_MoonHeavy", TargetForward = 2f,
 				Swells = UltimateFeelV2Seeds.MoonSwells, Beats = UltimateFeelV2Seeds.MoonBeats,
+				PullBack = PullBack(0.28f, 1.2f, 1f),
 				Trauma = UltimateFeelV2Seeds.Trauma(0.02f, 10f, 1.4f, 0.8f),
 				TuneBody = body =>
 				{
@@ -120,6 +126,14 @@ namespace WitchMendokusai
 					SetFloat(body, "driftSpread", 0.7f);
 				},
 			},
+		};
+
+		private static UltimateScreenFeel.PullBackSettings PullBack(float amount, float inSeconds, float outSeconds) => new()
+		{
+			Amount = amount,
+			InSeconds = inSeconds,
+			OutSeconds = outSeconds,
+			Curve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f),
 		};
 
 		[MenuItem("WM/CombatFx/Build Ultimate Feel V2")]
@@ -164,7 +178,7 @@ namespace WitchMendokusai
 			UltimateScreenFeel feel = LoadOrCreate<UltimateScreenFeel>(feelPath, out bool feelCreated);
 			if (feelCreated || reseed)
 			{
-				feel.EditorSeed(comfort, entry.Trauma, entry.Swells(), entry.Beats(), entry.TargetForward);
+				feel.EditorSeed(comfort, entry.Trauma, entry.PullBack, entry.Swells(), entry.Beats(), entry.TargetForward);
 				EditorUtility.SetDirty(feel);
 			}
 

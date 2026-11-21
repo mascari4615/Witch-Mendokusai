@@ -43,7 +43,7 @@ namespace WitchMendokusai
 			source.Compose(run);
 			Vector3 target = run.Center + run.ScreenForward * feel.TargetForward;
 			target.y = UltimateFxStage.GroundHeight(target);
-			UltimateScreenFeelDriver driver = new(run, feel, target);
+			UltimateScreenFeelDriver driver = new(run, feel, target, DurationSeconds);
 			// body 의 트랙 (장면 빛 곡선 포함) 뒤에 올려 같은 프레임에 그 값 위로 더함
 			run.Track(0f, length, _ => driver.Update());
 		}
