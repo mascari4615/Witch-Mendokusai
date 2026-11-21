@@ -179,7 +179,7 @@ namespace WitchMendokusai
 				case MapObjectEffectType.Heal:
 					PlayerObject player = playerProvider.CurrentObject;
 					for (int i = 0; i < effect.Count; i++)
-						player.ReceiveHeal(MapObjectRules.HealAmount(player.UnitStat[UnitStatType.HP_MAX], effect.Value));
+						player.ReceiveHeal(MapObjectRules.PercentOfMaxHealth(player.UnitStat[UnitStatType.HP_MAX], effect.Value));
 					return;
 				case MapObjectEffectType.RevealMapObjects:
 					RevealMapObjects(site, effect.Value);

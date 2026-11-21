@@ -174,63 +174,31 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 선 표식. 공유 재질, 개체별 새 재질 없음. 눕힌 자식에 그림, 소유자 회전은 그대로
-		// 머무름 오브젝트는 같은 재질의 진행 호를 하나 더
+		// 선 표식 (GroundLine). 머무름 오브젝트는 같은 재질의 진행 호를 하나 더
 		public void BuildMarker(MapObjectSettings settings)
 		{
-			LineRenderer line = MakeLine("Marker", settings, Data.MarkerColor, Data.MarkerWidth);
-			line.loop = true;
+			LineRenderer line = GroundLine.Make(transform, "Marker", settings.MarkerMaterial, Data.MarkerColor, Data.MarkerWidth);
 			switch (Data.MarkerShape)
 			{
 				case MapObjectMarkerShape.Diamond:
-					SetPolygon(line, 4, markerRadius, 0f);
+					GroundLine.SetPolygon(line, 4, markerRadius, 0f);
 					break;
 				case MapObjectMarkerShape.Square:
-					SetPolygon(line, 4, markerRadius, Mathf.PI * 0.25f);
+					GroundLine.SetPolygon(line, 4, markerRadius, Mathf.PI * 0.25f);
 					break;
 				case MapObjectMarkerShape.Ring:
-					SetPolygon(line, settings.RingSegments, markerRadius, 0f);
+					GroundLine.SetPolygon(line, settings.RingSegments, markerRadius, 0f);
 					break;
 				default:
 					throw new InvalidOperationException($"{Data.name}: 표식 모양 {Data.MarkerShape} 처리 없음");
 			}
 			if (Data.HasHold == false)
 				return;
-			progressLine = MakeLine("HoldProgress", settings, settings.HoldProgressColor, Data.MarkerWidth * settings.HoldProgressWidthRatio);
+			progressLine = GroundLine.Make(transform, "HoldProgress", settings.MarkerMaterial, settings.HoldProgressColor, Data.MarkerWidth * settings.HoldProgressWidthRatio);
 			progressLine.loop = false;
 			progressLine.positionCount = settings.RingSegments + 1;
 			UpdateProgressLine();
 			SetProgressVisible(false);
-		}
-
-		private LineRenderer MakeLine(string lineName, MapObjectSettings settings, Color color, float width)
-		{
-			GameObject marker = new(lineName);
-			marker.transform.SetParent(transform, false);
-			// 면 법선 (자식 Z) 이 위
-			marker.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
-			LineRenderer line = marker.AddComponent<LineRenderer>();
-			line.alignment = LineAlignment.TransformZ;
-			line.useWorldSpace = false;
-			line.sharedMaterial = settings.MarkerMaterial;
-			line.startColor = color;
-			line.endColor = color;
-			line.startWidth = width;
-			line.endWidth = width;
-			line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-			line.receiveShadows = false;
-			return line;
-		}
-
-		private static void SetPolygon(LineRenderer line, int corners, float radius, float startAngle)
-		{
-			line.positionCount = corners;
-			for (int i = 0; i < corners; i++)
-			{
-				float angle = startAngle + Mathf.PI * 2f * i / corners;
-				// 눕힌 자식의 XY 평면이 월드 XZ 평면
-				line.SetPosition(i, new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * radius);
-			}
 		}
 	}
 }

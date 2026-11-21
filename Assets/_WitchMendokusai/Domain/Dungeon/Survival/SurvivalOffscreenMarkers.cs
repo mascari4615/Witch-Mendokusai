@@ -261,8 +261,9 @@ namespace WitchMendokusai
 			Vector2 screenPoint = new(viewport.x * Screen.width, (1f - viewport.y) * Screen.height);
 			Vector2 local = root.WorldToLocal(RuntimePanelUtils.ScreenToPanel(root.panel, screenPoint));
 
+			// 아래 HUD 띠에 가려진 대상은 화면 밖으로 봄
 			float inset = config.OffscreenOnScreenInset;
-			bool inside = local.x >= inset && local.x <= width - inset && local.y >= inset && local.y <= height - inset;
+			bool inside = local.x >= inset && local.x <= width - inset && local.y >= inset && local.y <= height - inset - height * config.OffscreenBottomReserve;
 			if (behind == false && inside)
 				return false;
 
@@ -270,10 +271,14 @@ namespace WitchMendokusai
 			Vector2 direction = local - center;
 			if (direction.sqrMagnitude < 0.0001f)
 				direction = Vector2.up;
+			// 화면 가운데에서 대상 쪽으로 뻗어 표식 테두리에 닿는 자리. 아래쪽은 HUD 띠 위까지만 (체력 막대와 스킬 칸에 안 겹치게)
 			float margin = config.OffscreenEdgeMargin;
 			float halfWidth = Mathf.Max(1f, center.x - margin);
-			float halfHeight = Mathf.Max(1f, center.y - margin);
-			float reach = Mathf.Min(halfWidth / Mathf.Max(Mathf.Abs(direction.x), 0.0001f), halfHeight / Mathf.Max(Mathf.Abs(direction.y), 0.0001f));
+			float up = Mathf.Max(1f, center.y - margin);
+			float down = Mathf.Max(1f, center.y - margin - height * config.OffscreenBottomReserve);
+			float reachX = halfWidth / Mathf.Max(Mathf.Abs(direction.x), 0.0001f);
+			float reachY = (direction.y > 0f ? down : up) / Mathf.Max(Mathf.Abs(direction.y), 0.0001f);
+			float reach = Mathf.Min(reachX, reachY);
 			position = center + direction * reach;
 			angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
 			return true;

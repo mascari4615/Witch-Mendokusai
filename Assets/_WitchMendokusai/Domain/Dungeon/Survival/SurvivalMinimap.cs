@@ -8,6 +8,7 @@ namespace WitchMendokusai
 	// 생존 던전 HUD 의 작은 지도. 내 위치가 가운데, 반경 안 몬스터 점과 특수 아이템 마름모
 	// 일반 몬스터 작은 점, 정예 주황, 보스 진홍, 아이템 금색. 경험치 구슬은 제외
 	// 발견한 맵 오브젝트 (MapObjectSite.IsKnown, 신호 범주 있음) 는 그 데이터의 표식 색 네모. 크기는 MapObjectSettings
+	// 지도 아래 줄은 이번 판에 주운 냥 (맵 오브젝트 비용으로 쓰는 돈, DungeonManager.RunNyang). 맵 오브젝트 예산이 있는 던전만. 글자는 MapObjectSettings.RunNyangHudFormat
 	// 점은 몬스터마다 요소를 만들지 않고 generateVisualContent 로 한 번에 그림
 	// 자리, 모양, 점 색은 SurvivalMinimap.uss. 반경, 갱신 간격, 점 크기, 상한은 SurvivalFeelConfig 의 작은 지도 묶음
 	// 위쪽은 카메라 시선 방향 (화면 위와 같은 방향)
@@ -20,6 +21,7 @@ namespace WitchMendokusai
 		private const string USS_FRAME = "wm-minimap__frame";
 		private const string USS_DOTS = "wm-minimap__dots";
 		private const string USS_PLAYER = "wm-minimap__player";
+		private const string USS_RUN_NYANG = "wm-minimap__run-nyang";
 		private const string USS_LARGE_ROOT = "wm-minimap-large";
 		private const string USS_LARGE_FRAME = "wm-minimap-large__frame";
 
@@ -60,6 +62,8 @@ namespace WitchMendokusai
 		private InputManager inputManager;
 
 		private VisualElement root;
+		private Label runNyangLabel;
+		private int shownRunNyang = -1;
 		private VisualElement largeRoot;
 		private BlurPanel largeBlur;
 		private float nextRefreshTime;
@@ -149,6 +153,10 @@ namespace WitchMendokusai
 			frame.Add(smallView.Dots);
 			frame.Add(Make(USS_PLAYER));
 			root.Add(frame);
+			runNyangLabel = new Label { pickingMode = PickingMode.Ignore };
+			runNyangLabel.AddToClassList(USS_RUN_NYANG);
+			root.Add(runNyangLabel);
+			shownRunNyang = -1;
 			root.style.display = DisplayStyle.None;
 			UIRoot.Instance.HudLayer.Add(root);
 
@@ -168,6 +176,20 @@ namespace WitchMendokusai
 			isLargeShown = false;
 			UIRoot.Instance.HudLayer.Add(largeRoot);
 			return true;
+		}
+
+		// 바뀔 때만 글자를 다시 씀
+		private void RefreshRunNyang()
+		{
+			bool spendable = DungeonManager.Instance.CurDungeon.MapObjectBudget != null;
+			runNyangLabel.style.display = spendable ? DisplayStyle.Flex : DisplayStyle.None;
+			if (spendable == false)
+				return;
+			int runNyang = DungeonManager.Instance.RunNyang;
+			if (runNyang == shownRunNyang)
+				return;
+			shownRunNyang = runNyang;
+			runNyangLabel.text = string.Format(MapObjectSettings.Load().RunNyangHudFormat, runNyang);
 		}
 
 		private VisualElement MakeDots(MapView view)
@@ -233,6 +255,7 @@ namespace WitchMendokusai
 			largeRoot.style.display = wantLarge ? DisplayStyle.Flex : DisplayStyle.None;
 			if (visible == false)
 				return;
+			RefreshRunNyang();
 			if (Time.unscaledTime < nextRefreshTime)
 				return;
 			nextRefreshTime = Time.unscaledTime + config.MinimapRefreshInterval;

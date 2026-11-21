@@ -37,11 +37,12 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("화면 밖 화살표 크기 배율"), Min(0.1f)] public float OffscreenScale { get; private set; } = 0.95f;
 
 		[field: Header("상호작용 표시 (보상 예고, 비용)")]
-		[field: SerializeField, Tooltip("보상 범주별 글자와 색. None 은 표시 안 함")] public List<MapObjectRewardPreviewStyle> RewardPreviews { get; private set; } = new();
+		[field: SerializeField, Tooltip("보상 범주별 아이콘, 글자, 색. None 은 표시 안 함")] public List<MapObjectRewardPreviewStyle> RewardPreviews { get; private set; } = new();
 		[field: SerializeField, Tooltip("{0} = 체력 비용")] public string HealthCostFormat { get; private set; } = "체력 {0}";
 		[field: SerializeField, Tooltip("{0} = 냥 비용, {1} = 판 안 냥")] public string NyangCostFormat { get; private set; } = "{0}냥 (보유 {1})";
 		[field: SerializeField] public string RiskCostText { get; private set; } = "위험 수락";
 		[field: SerializeField, Tooltip("{0} = 진행 초, {1} = 필요 초")] public string HoldProgressFormat { get; private set; } = "머무름 {0}/{1}초";
+		[field: SerializeField, Tooltip("작은 지도 아래 이번 판 냥 줄. {0} = 판 안 냥")] public string RunNyangHudFormat { get; private set; } = "이번 판 {0}냥";
 		[field: SerializeField] public Color CostAffordableColor { get; private set; } = new(1f, 0.92f, 0.62f, 1f);
 		[field: SerializeField] public Color CostShortColor { get; private set; } = new(1f, 0.42f, 0.42f, 1f);
 
@@ -112,12 +113,15 @@ namespace WitchMendokusai
 					errors.Add($"{name}: 보상 예고 {preview} 글자 없음");
 				else if (style.Color.a <= 0f)
 					errors.Add($"{name}: 보상 예고 {preview} 색이 투명 (목록에 새로 넣은 칸은 알파 0)");
+				else if (style.Icon == null)
+					errors.Add($"{name}: 보상 예고 {preview} 아이콘 없음");
 			}
 			// 자리 표시 개수가 틀리면 상호작용 표시가 매 프레임 예외. 입장 전에 잡음
 			CheckFormat(errors, nameof(HealthCostFormat), HealthCostFormat, 1);
 			CheckFormat(errors, nameof(NyangCostFormat), NyangCostFormat, 2);
 			CheckFormat(errors, nameof(HoldProgressFormat), HoldProgressFormat, 2);
 			CheckFormat(errors, nameof(RevealFormat), RevealFormat, 1);
+			CheckFormat(errors, nameof(RunNyangHudFormat), RunNyangHudFormat, 1);
 			if (DefaultBudget == null)
 				errors.Add($"{name}: {nameof(DefaultBudget)} 미연결 (예산 없는 던전의 굴림 시드)");
 		}
@@ -140,6 +144,7 @@ namespace WitchMendokusai
 	{
 		[field: SerializeField] public MapObjectRewardPreview Preview { get; private set; }
 		[field: SerializeField] public string Label { get; private set; } = string.Empty;
+		[field: SerializeField, Tooltip("글자 앞 아이콘. 공개 라이선스 세트 (game-icons.net) 에서")] public Sprite Icon { get; private set; }
 		[field: SerializeField] public Color Color { get; private set; } = Color.white;
 	}
 }

@@ -79,6 +79,7 @@ namespace WitchMendokusai
 			nextAnnounceIndex = 0;
 			nextEventIndex = 0;
 			InitPatterns(curDungeon);
+			InitThreat(curDungeon);
 			InitMapObjects(curDungeon);
 		}
 
@@ -94,6 +95,7 @@ namespace WitchMendokusai
 
 		public void UpdateWaves()
 		{
+			UpdateThreat();
 			RetireDistantMonsters();
 			UpdatePatterns();
 			for (int i = waves.Count - 1; i >= 0; i--)
@@ -163,6 +165,13 @@ namespace WitchMendokusai
 
 		private IEnumerator SpawnMonsterAt(Monster monster, Vector3 position, EliteProfile eliteProfile, bool guaranteedChest, WaveMoveOrder moveOrder = null)
 		{
+			// 경계 밖 자리. 패턴 이동 (벽, 포위) 은 끌어오면 대형이 벽에 뭉쳐서 생략, 나머지는 경계 안쪽으로
+			if (IsInsideArena(position, 0f) == false)
+			{
+				if (moveOrder != null)
+					yield break;
+				position = ClampToArena(position);
+			}
 			pendingSpawns++;
 			GameObject spawnCircle = objectPoolManager.Spawn(spawnCirclePrefab);
 			spawnCircle.transform.position = position;
@@ -184,13 +193,10 @@ namespace WitchMendokusai
 				WaveMoveOverride.Apply(monsterObject, moveOrder);
 		}
 
-		// 화면 밖 일반 적은 거리 단계별로 이동 갱신을 낮추고, 오래 화면 밖이면 드롭 없이 반납 (mc36). 보스와 정예는 매 틱, 반납 없음
+		// 화면 밖 일반 적은 거리 단계별로 이동 갱신을 낮추고, 오래 화면 밖이면 드롭 없이 반납 또는 앞으로 재배치 (mc36, th4). 보스와 정예는 매 틱, 반납 없음
 		private void RetireDistantMonsters()
 		{
-			Camera camera = Camera.main;
-			bool useVisibility = camera != null && dungeonManager.CurDungeon.MapType == DungeonMapType.SurvivorsLike;
-			if (useVisibility)
-				GeometryUtility.CalculateFrustumPlanes(camera, visibilityPlanes);
+			bool useVisibility = dungeonManager.CurDungeon.MapType == DungeonMapType.SurvivorsLike && RefreshVisibilityPlanes();
 			SurvivalRunRules rules = dungeonManager.RunRules;
 			Vector3 playerPosition = playerProvider.Current.transform.position;
 			float maxDistanceSquared = despawnDistance * despawnDistance;
@@ -209,13 +215,11 @@ namespace WitchMendokusai
 				float distanceSquared = (obj.transform.position - playerPosition).sqrMagnitude;
 				if (distanceSquared > maxDistanceSquared)
 				{
-					obj.SetActive(false);
+					RetireOrRelocate(obj, monster);
 					continue;
 				}
 
-				Bounds bounds = monster.SpriteRenderer.bounds;
-				bounds.Expand(visibilityPadding * 2f);
-				bool onScreen = useVisibility == false || GeometryUtility.TestPlanesAABB(visibilityPlanes, bounds);
+				bool onScreen = useVisibility == false || IsOnScreen(monster.SpriteRenderer.bounds);
 				if (onScreen)
 				{
 					monster.OffscreenSinceTime = -1f;
@@ -227,7 +231,7 @@ namespace WitchMendokusai
 					monster.OffscreenSinceTime = now;
 				else if (rules.OffscreenRetireSeconds > 0f && now - monster.OffscreenSinceTime >= rules.OffscreenRetireSeconds)
 				{
-					obj.SetActive(false);
+					RetireOrRelocate(obj, monster);
 					continue;
 				}
 				monster.UnitMovement.SetSimulationInterval(rules.OffscreenUpdateInterval(Mathf.Sqrt(distanceSquared)));
@@ -309,33 +313,8 @@ namespace WitchMendokusai
 		private IEnumerator SpawnMonster(Monster monster, float spawnDelay, DungeonDifficulty difficulty)
 		{
 			pendingSpawns++;
-			// 플레이어가 이동하는 방향 쪽으로 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
-			Vector3 randomOffset;
-			Vector3 playerPosition = playerProvider.Current.transform.position;
-			// 입력값 (MoveDirectionLocal) 은 카메라 기준 축. 생성 방향은 월드 이동 방향
-			Vector3 playerForward = playerProvider.CurrentObject.UnitMovement.MoveDirectionWorld;
-			playerForward.y = 0f;
-
-			// 플레이어가 이동 중이면, 플레이어 앞에 스폰. 도망가지마 맞서싸워.
-			bool spawnInFrontOfPlayer = playerForward != Vector3.zero;
-			if (spawnInFrontOfPlayer)
-			{
-				// 플레이어가 이동하는 방향 쪽으로 '일정거리 떨어진' 범위 내에서 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
-				float angleOffset = Random.Range(-30f, 30f); // 플레이어 이동 방향 기준 ±30도 이내
-				Quaternion rotation = Quaternion.Euler(0, angleOffset, 0);
-				Vector3 direction = rotation * playerForward;
-				float randomDistance = Random.Range(spawnDistanceRange.x, spawnDistanceRange.y);
-				randomOffset = direction.normalized * randomDistance;
-			}
-			else
-			{
-				// 플레이어 주변 '일정거리 떨어진' 범위 내에서 스폰 위치를 랜덤으로 선택 - KarmoDDrine 2025-12-27
-				Vector2 randomCircle = Random.insideUnitCircle.normalized;
-				float randomDistance = Random.Range(spawnDistanceRange.x, spawnDistanceRange.y);
-				randomOffset = new Vector3(randomCircle.x, 0, randomCircle.y) * randomDistance;
-			}
-
-			Vector3 spawnPos = playerPosition + randomOffset;
+			// 자리는 생성 정책 (DungeonThreatPolicy). 기존 기본은 이동 중 앞 ±30도, 멈추면 둘레. 도망가지마 맞서싸워 - KarmoDDrine 2025-12-27
+			Vector3 spawnPos = PickPeriodicSpawnPosition();
 
 			GameObject spawnCircle = objectPoolManager.Spawn(spawnCirclePrefab);
 			spawnCircle.transform.position = spawnPos;
@@ -359,6 +338,7 @@ namespace WitchMendokusai
 			StopAllCoroutines();
 			pendingSpawns = 0;
 			ResetPatterns();
+			StopThreat();
 			StopMapObjects();
 			foreach (GameObject obj in ObjectBufferManager.GetObjects(ObjectType.Monster))
 				if (obj != null && obj.TryGetComponent(out MonsterObject monster))

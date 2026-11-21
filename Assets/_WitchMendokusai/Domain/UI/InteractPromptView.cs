@@ -29,7 +29,9 @@ namespace WitchMendokusai
 		private Label keyLabel;
 		private Label nameLabel;
 		private Label roleLabel;
-		// 맵 오브젝트 전용. 보상 예고 칸과 비용 글자 (MapObjectSettings)
+		// 맵 오브젝트 전용. 보상 예고 칸 (아이콘, 글자) 과 비용 글자 (MapObjectSettings)
+		private VisualElement previewChip;
+		private VisualElement previewIcon;
 		private Label previewLabel;
 		private Label costLabel;
 		private int shownSiteStamp;
@@ -85,9 +87,15 @@ namespace WitchMendokusai
 			roleLabel = new Label { pickingMode = PickingMode.Ignore };
 			roleLabel.AddToClassList(USS_ROOT + "__role");
 			row.Add(roleLabel);
+			previewChip = new VisualElement { pickingMode = PickingMode.Ignore };
+			previewChip.AddToClassList(USS_ROOT + "__preview");
+			previewIcon = new VisualElement { pickingMode = PickingMode.Ignore };
+			previewIcon.AddToClassList(USS_ROOT + "__preview-icon");
+			previewChip.Add(previewIcon);
 			previewLabel = new Label { pickingMode = PickingMode.Ignore };
-			previewLabel.AddToClassList(USS_ROOT + "__preview");
-			row.Add(previewLabel);
+			previewLabel.AddToClassList(USS_ROOT + "__preview-label");
+			previewChip.Add(previewLabel);
+			row.Add(previewChip);
 			costLabel = new Label { pickingMode = PickingMode.Ignore };
 			costLabel.AddToClassList(USS_ROOT + "__cost");
 			row.Add(costLabel);
@@ -174,7 +182,7 @@ namespace WitchMendokusai
 			shownTarget = target;
 			shownTouchMode = isTouchMode;
 			shownSiteStamp = siteStamp;
-			previewLabel.style.display = DisplayStyle.None;
+			previewChip.style.display = DisplayStyle.None;
 			costLabel.style.display = DisplayStyle.None;
 			keyLabel.text = isTouchMode ? TOUCH_LABEL : KEY_LABEL;
 			// 숨긴 동안과 마우스 모드는 클릭을 잡지 않음 (월드 클릭 보호)
@@ -210,9 +218,10 @@ namespace WitchMendokusai
 			MapObjectSettings settings = MapObjectSettings.Load();
 			if (site.IsHolding == false && settings.TryGetRewardPreview(site.Data.RewardPreview, out MapObjectRewardPreviewStyle preview))
 			{
+				previewIcon.style.backgroundImage = new StyleBackground(preview.Icon);
 				previewLabel.text = preview.Label;
-				previewLabel.style.backgroundColor = preview.Color;
-				previewLabel.style.display = DisplayStyle.Flex;
+				previewChip.style.backgroundColor = preview.Color;
+				previewChip.style.display = DisplayStyle.Flex;
 			}
 			string cost = site.DescribeCost();
 			if (cost.Length == 0)

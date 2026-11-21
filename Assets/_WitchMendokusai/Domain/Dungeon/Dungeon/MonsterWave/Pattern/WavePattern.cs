@@ -37,6 +37,9 @@ namespace WitchMendokusai
 		Vector3 PlayerPosition { get; }
 		Transform PlayerTransform { get; }
 
+		// 주인공 이동 속도 (m/s). 방향은 입력, 크기는 실제 수평 속도 (SurvivalThreatRules.MoveVelocity). 예측 자리와 가로지름 방향
+		Vector3 PlayerMoveVelocity { get; }
+
 		// 숨 고르기 패턴과 최종 보스 뒤 배율을 합친 주기 생성률 배율
 		float PeriodicRateMultiplier { get; }
 
