@@ -73,7 +73,7 @@ MonoBehaviour:
   - {x: 0.86, y: 0.18}
   closeTo: 3
   patternRadius: 4.2
-  starSize: 1.1
+  starSize: 1.5
   starLean: 22
   glintRatio: 1.6
   lineRadius: 0.05
@@ -85,6 +85,7 @@ MonoBehaviour:
   pillarBrightness: {x: 0.5, y: 0.7}
   firstStarTime: 0.3
   starInterval: 0.15
+  starPace: 0.6
   hushSeconds: 0.22
   pillarFallSeconds: 0.1
   pourSeconds: 1.2

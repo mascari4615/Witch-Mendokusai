@@ -96,7 +96,7 @@ MonoBehaviour:
   slashSeconds: 0.09
   slitSeconds: 0.25
   openSeconds: 0.16
-  nightSeconds: 1
+  nightSeconds: 0.8
   chopSeconds: 0.07
   raiseSeconds: 0.14
   chopWindSeconds: 0.14

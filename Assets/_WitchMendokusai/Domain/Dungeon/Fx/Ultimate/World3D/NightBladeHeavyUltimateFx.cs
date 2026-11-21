@@ -85,7 +85,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.04f), Tooltip("첫 베기. 짧을수록 끊어 치는 느낌")] private float slashSeconds = 0.09f;
 		[SerializeField, Min(0.05f), Tooltip("검은 사선으로 머무는 시간 (m08 0.4s)")] private float slitSeconds = 0.25f;
 		[SerializeField, Min(0.05f), Tooltip("틈이 열리는 시간 (m08 0.4s)")] private float openSeconds = 0.16f;
-		[SerializeField, Min(0.5f), Tooltip("밤 (별빛 흡수와 흰 날 포함). 어두운 구간은 열림 + 이 값")] private float nightSeconds = 1f;
+		[SerializeField, Min(0.5f), Tooltip("밤 (별빛 흡수와 흰 날 포함). 어두운 구간은 열림 + 이 값")] private float nightSeconds = 0.8f;
 		[SerializeField, Min(0.04f), Tooltip("둘째 베기")] private float chopSeconds = 0.07f;
 		[SerializeField, Min(0.02f), Tooltip("칼을 치켜드는 시간 (틈이 열릴 때)")] private float raiseSeconds = 0.14f;
 		[SerializeField, Min(0.02f), Tooltip("둘째 베기 전 뒤로 당기는 시간")] private float chopWindSeconds = 0.14f;
@@ -233,13 +233,12 @@ namespace WitchMendokusai
 			run.Track(0.05f, fadeStart + fadeSeconds - 0.05f, _ =>
 			{
 				float now = run.Now;
-				float appear = UltimateFxRun.EaseOut(UltimateFxRun.Span(now, 0.05f, windupSeconds * 0.7f));
+				// 한 번에 나타남 (천천히 커지면 미끄러지듯 읽힘, 2차 독립 검토)
+				float appear = UltimateFxRun.EaseOut(UltimateFxRun.Span(now, 0.05f, 0.13f));
 				float fade = 1f - UltimateFxRun.Span(now, fadeStart, fadeStart + fadeSeconds);
 				float white = UltimateFxRun.EaseInOut(UltimateFxRun.Span(now, AbsorbStart + (AbsorbEnd - AbsorbStart) * 0.3f, AbsorbEnd));
-				// 별빛을 모으는 동안 칼이 점점 크게 떨림
-				float tremble = Mathf.Sin(now * 73f) * 1.4f * UltimateFxRun.Span(now, AbsorbStart, AbsorbEnd) * (now < ChopStart - chopWindSeconds ? 1f : 0f);
-				sword.transform.SetPositionAndRotation(frame.Pivot, frame.Pose(SwordAngle(frame, now) + tremble));
-				sword.transform.localScale = Vector3.one * frame.Length * Mathf.Lerp(0.7f, 1f, appear);
+				sword.transform.SetPositionAndRotation(frame.Pivot, frame.Pose(SwordAngle(frame, now)));
+				sword.transform.localScale = Vector3.one * frame.Length * Mathf.Lerp(0.5f, 1f, appear);
 				bladeMaterial.SetFloat(ALPHA_ID, appear * fade);
 				bladeMaterial.SetFloat(WHITE_ID, white * Mathf.Lerp(1f, 0.6f, UltimateFxRun.Span(now, ChopTime, fadeStart)));
 				// 흰 날이 된 순간과 땅을 긋는 순간 번쩍

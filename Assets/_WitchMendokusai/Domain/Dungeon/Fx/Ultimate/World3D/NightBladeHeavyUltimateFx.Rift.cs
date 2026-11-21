@@ -13,8 +13,9 @@ namespace WitchMendokusai
 			float slit = riftSlitWidth * UltimateFxRun.EaseOut(UltimateFxRun.Span(now, SlashTime, SlashTime + 0.04f));
 			if (now < OpenStart)
 				return slit;
+			// 첫 넘침은 openSeconds 쯤, 그 뒤 두어 번 출렁이며 자리 잡음 (너무 빨리 잦아들면 그냥 나타난 것으로 읽힘, 2차 독립 검토)
 			float progress = (now - OpenStart) / openSeconds;
-			float elastic = 1f - Mathf.Exp(-4f * progress) * Mathf.Cos(progress * 9f);
+			float elastic = 1f - Mathf.Exp(-1.5f * progress) * Mathf.Cos(progress * 3.4f);
 			float close = 1f - UltimateFxRun.EaseIn(UltimateFxRun.Span(now, ChopTime - 0.02f, ChopTime + 0.04f));
 			return Mathf.LerpUnclamped(slit, riftWidth, elastic) * close;
 		}

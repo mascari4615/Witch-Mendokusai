@@ -146,7 +146,7 @@ MonoBehaviour:
     Rumble: 0
   - Label: "\uBC24"
     FxStart: 0.9
-    FxEnd: 1.9
+    FxEnd: 1.7
     ReleaseSeconds: 0.06
     Shape:
       serializedVersion: 2
@@ -344,7 +344,7 @@ MonoBehaviour:
     ImpactFrameSeconds: 0
     ImpactFrameStrength: 0
   - Label: "\uD770 \uB0A0"
-    FxTime: 1.636
+    FxTime: 1.476
     HoldSeconds: 0
     HoldTimeScale: 0
     SlowScale: 1
@@ -416,7 +416,7 @@ MonoBehaviour:
     ImpactFrameSeconds: 0
     ImpactFrameStrength: 0
   - Label: "\uB458\uC9F8 \uBCA0\uAE30"
-    FxTime: 1.9
+    FxTime: 1.7
     HoldSeconds: 0.16
     HoldTimeScale: 0
     SlowScale: 0.35

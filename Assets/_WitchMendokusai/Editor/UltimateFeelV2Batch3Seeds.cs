@@ -56,7 +56,8 @@ namespace WitchMendokusai
 			const int STAR_COUNT = 7;
 			Beat[] beats = new Beat[STAR_COUNT + 2];
 			for (int i = 0; i < STAR_COUNT; i++)
-				beats[i] = MiniBeat("별 " + (i + 1), 0.3f + i * 0.15f, 0.14f + i * 0.025f, 0.008f, 0.06f + i * 0.01f, 0.05f);
+				// body 의 StarTime 과 같은 식 (간격 0.15, 가속 0.6)
+				beats[i] = MiniBeat("별 " + (i + 1), 0.3f + 0.9f * Mathf.Pow(i / 6f, 0.6f), 0.14f + i * 0.025f, 0.008f, 0.06f + i * 0.01f, 0.05f);
 			beats[STAR_COUNT] = new Beat
 			{
 				Label = "기둥", FxTime = 1.665f, HoldSeconds = 0.16f, HoldTimeScale = 0f,
@@ -79,13 +80,13 @@ namespace WitchMendokusai
 			return beats;
 		}
 
-		// ---- 밤의 날: 당김 -> 첫 베기 0.5 (단타) -> 검은 사선 ~0.75 -> 열림 0.75 (밀림) -> 밤 0.9~1.9 -> 흰 날 1.64 -> 둘째 베기 1.9 (최대, 낮 복귀) ----
+		// ---- 밤의 날: 당김 -> 첫 베기 0.5 (단타) -> 검은 사선 ~0.75 -> 열림 0.75 (밀림) -> 밤 0.9~1.7 -> 흰 날 1.48 -> 둘째 베기 1.7 (최대, 낮 복귀) ----
 
 		public static Swell[] NightBladeSwells() => new[]
 		{
 			new Swell { Label = "당김", FxStart = 0.05f, FxEnd = 0.49f, ReleaseSeconds = 0.05f, Shape = RiseLate(), TimeScale = 1f, Exposure = -0.3f, Saturation = -10f, Contrast = 10f, Vignette = 0.2f, Zoom = 0.05f, Dolly = 0.02f, Rumble = 0.15f },
 			new Swell { Label = "검은 사선", FxStart = 0.56f, FxEnd = 0.745f, ReleaseSeconds = 0.06f, Shape = RiseSteady(), TimeScale = 1f, Exposure = -0.5f, Saturation = -30f, Contrast = 15f, Vignette = 0.3f, Zoom = 0.03f, Dolly = 0f, Rumble = 0f },
-			new Swell { Label = "밤", FxStart = 0.9f, FxEnd = 1.9f, ReleaseSeconds = 0.06f, Shape = RiseLate(), TimeScale = 1f, Exposure = -0.45f, Saturation = -10f, Contrast = 15f, Vignette = 0.45f, Zoom = 0.12f, Dolly = 0.04f, Rumble = 0.35f },
+			new Swell { Label = "밤", FxStart = 0.9f, FxEnd = 1.7f, ReleaseSeconds = 0.06f, Shape = RiseLate(), TimeScale = 1f, Exposure = -0.45f, Saturation = -10f, Contrast = 15f, Vignette = 0.45f, Zoom = 0.12f, Dolly = 0.04f, Rumble = 0.35f },
 		};
 
 		public static Beat[] NightBladeBeats() => new[]
@@ -105,10 +106,10 @@ namespace WitchMendokusai
 				Trauma = 0.5f, Zoom = P(-0.04f, 0.03f, 0.05f, 0.15f), Bloom = P(0.8f, 0.03f, 0.08f, 0.25f),
 				LensDistortion = P(0.2f, 0.03f, 0.06f, 0.2f), Ripple = P(0.04f, 0.02f, 0f, 0.3f), RippleSpeed = 1.6f,
 			},
-			MiniBeat("흰 날", 1.636f, 0.25f, 0.015f, 0.3f, 0.15f),
+			MiniBeat("흰 날", 1.476f, 0.25f, 0.015f, 0.3f, 0.15f),
 			new Beat
 			{
-				Label = "둘째 베기", FxTime = 1.9f, HoldSeconds = 0.16f, HoldTimeScale = 0f,
+				Label = "둘째 베기", FxTime = 1.7f, HoldSeconds = 0.16f, HoldTimeScale = 0f,
 				SlowScale = 0.35f, SlowSeconds = 0.45f, SlowRecovery = LateRelease(),
 				Trauma = 1f, Zoom = P(0.1f, 0.04f, 0.08f, 0.22f), Dolly = P(0.05f, 0.04f, 0.06f, 0.22f),
 				Exposure = P(1f, 0.02f, 0.05f, 0.14f), Bloom = P(2.2f, 0.03f, 0.12f, 0.35f), Saturation = P(50f, 0.04f, 0.3f, 0.45f), Contrast = P(25f, 0.03f, 0.12f, 0.3f),

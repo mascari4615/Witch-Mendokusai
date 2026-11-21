@@ -45,7 +45,7 @@ namespace WitchMendokusai
 		};
 		[SerializeField, Tooltip("마지막 별에서 이 번호의 별로 줄을 하나 더 이음 (국자 닫기). -1 이면 없음")] private int closeTo = 3;
 		[SerializeField, Min(1f), Tooltip("별자리 반지름 (표적 중심)")] private float patternRadius = 4.2f;
-		[SerializeField, Min(0.1f), Tooltip("박힌 별 결정 높이")] private float starSize = 1.1f;
+		[SerializeField, Min(0.1f), Tooltip("박힌 별 결정 높이")] private float starSize = 1.5f;
 		[SerializeField, Range(0f, 50f), Tooltip("결정이 기우는 최대 각도")] private float starLean = 22f;
 		[SerializeField, Min(0.5f), Tooltip("별 반짝임 판 크기 / 별 크기")] private float glintRatio = 1.6f;
 		[SerializeField, Min(0.005f)] private float lineRadius = 0.05f;
@@ -60,7 +60,8 @@ namespace WitchMendokusai
 
 		[Header("시간 (초)")]
 		[SerializeField, Min(0f)] private float firstStarTime = 0.3f;
-		[SerializeField, Min(0.03f), Tooltip("별 하나가 박히는 간격")] private float starInterval = 0.15f;
+		[SerializeField, Min(0.03f), Tooltip("별 하나가 박히는 평균 간격")] private float starInterval = 0.15f;
+		[SerializeField, Range(0.3f, 1f), Tooltip("1 이면 같은 간격, 작을수록 뒤로 갈수록 빨리 박힘 (같은 간격은 강약 없이 읽힘, 2차 독립 검토)")] private float starPace = 0.6f;
 		[SerializeField, Min(0.05f), Tooltip("다 이어진 뒤 기둥 전의 숨 멎음 (가장 어두움)")] private float hushSeconds = 0.22f;
 		[SerializeField, Min(0.03f), Tooltip("기둥이 땅에 닿기까지")] private float pillarFallSeconds = 0.1f;
 		[SerializeField, Min(0.3f), Tooltip("별이 부서져 기둥으로 쏟아지는 시간 (m07 1.4s)")] private float pourSeconds = 1.2f;
@@ -97,7 +98,10 @@ namespace WitchMendokusai
 		[System.NonSerialized] private float sizeScale = 1f;
 
 		private int StarCount => pattern.Length;
-		private float LinkedTime => firstStarTime + starInterval * StarCount;
+		private float StarSpan => starInterval * (StarCount - 1);
+		private float LinkedTime => firstStarTime + StarSpan + starInterval;
+
+		private float StarTime(int order) => firstStarTime + StarSpan * Mathf.Pow(order / (float)Mathf.Max(1, StarCount - 1), starPace);
 		private float PillarTime => LinkedTime + hushSeconds;
 		private float StrikeTime => PillarTime + pillarFallSeconds;
 		private float BurstTime => StrikeTime + pourSeconds;
@@ -130,9 +134,19 @@ namespace WitchMendokusai
 			Light strikeLight = WorldLight(stage, "ConstellationStrikeLight", LightType.Point, lightColor, strikeLightRange);
 			ComposeStars(stage, stars, starLight);
 			ComposeLinks(stage, stars);
-			ComposePillar(stage, center, strikeLight);
-			ComposePour(stage, center, stars);
-			ComposeBurst(stage, center);
+			// 기둥은 별자리가 닫은 자리 (국자 안) 한가운데로. 닫는 줄이 없으면 표적
+			Vector3 strike = center;
+			if (closeTo >= 0 && closeTo < stars.Count - 1)
+			{
+				strike = Vector3.zero;
+				for (int i = closeTo; i < stars.Count; i++)
+					strike += stars[i].Ground;
+				strike /= stars.Count - closeTo;
+				strike.y = UltimateFxStage.GroundHeight(strike);
+			}
+			ComposePillar(stage, strike, strikeLight);
+			ComposePour(stage, strike, stars);
+			ComposeBurst(stage, strike);
 			ComposeGrade(stage);
 		}
 
@@ -149,7 +163,7 @@ namespace WitchMendokusai
 				{
 					Ground = ground,
 					Position = ground + Vector3.up * starSize * 0.55f,
-					LightTime = firstStarTime + order * starInterval,
+					LightTime = StarTime(order),
 					BreakTime = StrikeTime + 0.06f + order * pourSeconds * 0.72f / pattern.Length,
 					Lean = Quaternion.Euler(Random.Range(-starLean, starLean), Random.value * 360f, Random.Range(-starLean, starLean)),
 				});
@@ -234,7 +248,12 @@ namespace WitchMendokusai
 			run.Track(firstStarTime, StrikeTime - firstStarTime, _ =>
 			{
 				float now = run.Now;
-				int newest = Mathf.Clamp(Mathf.FloorToInt((now - firstStarTime) / starInterval), 0, stars.Count - 1);
+				int newest = 0;
+				for (int i = 1; i < stars.Count; i++)
+				{
+					if (now >= stars[i].LightTime)
+						newest = i;
+				}
 				// 새 별로 바로 옮김 (꽂힘마다 빛이 튀게)
 				light.transform.position = stars[newest].Ground + Vector3.up * 1.2f + stage.ToCamera * 0.6f;
 				float rise = Mathf.Lerp(0.5f, 1f, UltimateFxRun.Span(now, firstStarTime, LinkedTime));
@@ -249,7 +268,7 @@ namespace WitchMendokusai
 			UltimateFxRun run = stage.Run;
 			ParticleSystem tips = Motes(run, "ConstellationLinkTip", stars.Count * 30 + 40, 0f, 0.1f);
 			for (int i = 1; i < stars.Count; i++)
-				ComposeLink(run, tips, stars[i - 1], stars[i], stars[i - 1].LightTime + starInterval * 0.3f, stars[i].LightTime);
+				ComposeLink(run, tips, stars[i - 1], stars[i], Mathf.Lerp(stars[i - 1].LightTime, stars[i].LightTime, 0.3f), stars[i].LightTime);
 			// 닫는 줄: 마지막 별이 박힌 직후 한 번 더
 			if (closeTo >= 0 && closeTo < stars.Count - 1)
 			{

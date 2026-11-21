@@ -254,7 +254,7 @@ MonoBehaviour:
     ImpactFrameSeconds: 0
     ImpactFrameStrength: 0
   - Label: "\uBCC4 2"
-    FxTime: 0.45000002
+    FxTime: 0.60715085
     HoldSeconds: 0
     HoldTimeScale: 0
     SlowScale: 1
@@ -326,7 +326,7 @@ MonoBehaviour:
     ImpactFrameSeconds: 0
     ImpactFrameStrength: 0
   - Label: "\uBCC4 3"
-    FxTime: 0.6
+    FxTime: 0.76555365
     HoldSeconds: 0
     HoldTimeScale: 0
     SlowScale: 1
@@ -398,7 +398,7 @@ MonoBehaviour:
     ImpactFrameSeconds: 0
     ImpactFrameStrength: 0
   - Label: "\uBCC4 4"
-    FxTime: 0.75
+    FxTime: 0.8937785
     HoldSeconds: 0
     HoldTimeScale: 0
     SlowScale: 1
@@ -470,7 +470,7 @@ MonoBehaviour:
     ImpactFrameSeconds: 0
     ImpactFrameStrength: 0
   - Label: "\uBCC4 5"
-    FxTime: 0.90000004
+    FxTime: 1.0056474
     HoldSeconds: 0
     HoldTimeScale: 0
     SlowScale: 1
@@ -542,7 +542,7 @@ MonoBehaviour:
     ImpactFrameSeconds: 0
     ImpactFrameStrength: 0
   - Label: "\uBCC4 6"
-    FxTime: 1.05
+    FxTime: 1.1067402
     HoldSeconds: 0
     HoldTimeScale: 0
     SlowScale: 1
