@@ -30,7 +30,8 @@ namespace WitchMendokusai
 
 		private readonly List<MeshSlot> meshSlots = new();
 		private readonly List<SpriteSlot> spriteSlots = new();
-		private readonly MaterialPropertyBlock block = new();
+		// MonoBehaviour 필드 초기화 (PlayerObject 생성자) 에서 만들면 Unity 가 막음. 처음 쓸 때 만듦
+		private MaterialPropertyBlock block;
 		private bool captured;
 
 		public bool IsFlashing => captured;
@@ -42,6 +43,7 @@ namespace WitchMendokusai
 			{
 				if (weight <= 0f)
 					return;
+				block ??= new MaterialPropertyBlock();
 				Capture(meshParent, sprites);
 			}
 			weight = Mathf.Max(0f, weight);
