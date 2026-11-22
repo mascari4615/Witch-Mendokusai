@@ -236,6 +236,7 @@ namespace WitchMendokusai
 			questView = uiRootGameObject.AddComponent<QuestView>();
 			container.Inject(questView);
 			achievementView = uiRootGameObject.AddComponent<AchievementView>();
+			achievementView.Settings = uiRoot.AchievementSettings;
 			container.Inject(achievementView);
 			dollView = uiRootGameObject.AddComponent<DollView>();
 			container.Inject(dollView);
@@ -319,6 +320,13 @@ namespace WitchMendokusai
 			if (fullMenuView.IsOpen)
 			{
 				fullMenuView.Close();
+				return;
+			}
+
+			// 업적도 창 관리자 밖의 전체 화면. 상세, 도감, 벽 순으로 한 단계씩 뒤로
+			if (achievementView != null && achievementView.IsOpen)
+			{
+				achievementView.Back();
 				return;
 			}
 

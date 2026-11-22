@@ -1,0 +1,770 @@
+/* 업적 전체 화면 (메달 벽, 도감, 단계 상세) 과 달성 띠. 기준 화면 높이 1080, AchievementView 가 MenuStage.Fit 으로 맞춤
+   색 토큰, 평행사변형 판, 키 칸, 닫기 버튼, 장소 고리는 FullMenu.uss 를 같이 씀 (뿌리에 wm-fullmenu-palette).
+   시안: memo wm/reference/achievement-bench-20261122 achievement-draft.html */
+
+.wm-ach {
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out;
+    display: none;
+    --wm-ach-tier-1: rgb(222, 150, 96);
+    --wm-ach-tier-2: rgb(208, 212, 224);
+    --wm-ach-tier-3: rgb(246, 204, 86);
+}
+
+.wm-ach--active {
+    opacity: 1;
+}
+
+.wm-ach--hidden {
+    display: none;
+}
+
+.wm-ach__body {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 0;
+}
+
+.wm-ach__bottom {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 84px;
+}
+
+/* 단계 색. 글자에 붙임 */
+.wm-ach-tier--1 { color: var(--wm-ach-tier-1); }
+.wm-ach-tier--2 { color: var(--wm-ach-tier-2); }
+.wm-ach-tier--3 { color: var(--wm-ach-tier-3); }
+
+/* ===== 키 안내 ===== */
+
+.wm-ach-hints {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-ach-hint {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 30px;
+}
+
+.wm-ach-hint__key {
+    margin-right: 10px;
+}
+
+.wm-ach-hint__text {
+    font-size: 22px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+/* ===== 메달 그림 ===== */
+
+.wm-ach-medal {
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-ach-medal--dim {
+    -unity-background-image-tint-color: rgb(70, 66, 76);
+}
+
+.wm-ach-medal--wall { width: 204px; height: 204px; }
+.wm-ach-medal--tier-row { width: 76px; height: 76px; margin-right: 20px; }
+.wm-ach-medal--recent { width: 58px; height: 58px; margin-right: 16px; }
+.wm-ach-medal--card { width: 168px; height: 168px; }
+.wm-ach-medal--detail { width: 400px; height: 400px; }
+.wm-ach-medal--step { width: 88px; height: 88px; margin-right: 20px; }
+.wm-ach-medal--toast { width: 52px; height: 52px; margin-right: 10px; }
+
+/* ===== 진행 막대 ===== */
+
+.wm-ach-bar {
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.wm-ach-bar__fill {
+    height: 100%;
+    width: 0;
+    background-color: var(--wm-fullmenu-glow);
+}
+
+/* ===== 평행사변형 작은 칩 (판 그림은 ESC 메뉴와 같은 Vector.png) ===== */
+
+.wm-ach-chip {
+    flex-direction: row;
+    align-items: center;
+    align-self: flex-start;
+    height: 48px;
+    padding: 0 30px 0 26px;
+    background-image: url("../../../Art/Texture/UI/Vector.png");
+    -unity-slice-left: 30;
+    -unity-slice-right: 30;
+    -unity-slice-scale: 0.8px;
+    -unity-background-image-tint-color: var(--wm-fullmenu-teal);
+    font-size: 22px;
+    color: rgb(255, 255, 255);
+    -unity-text-align: middle-center;
+}
+
+/* ===== 1. 메달 벽 ===== */
+
+.wm-ach-wall-screen {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-ach-wall-screen__left {
+    width: 450px;
+    flex-shrink: 0;
+}
+
+.wm-ach-sum__label {
+    font-size: 24px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-ach-sum__label--tiers {
+    margin-bottom: 14px;
+}
+
+.wm-ach-sum__number {
+    flex-direction: row;
+    align-items: flex-end;
+    margin: 6px 0 16px 0;
+}
+
+.wm-ach-sum__count {
+    font-size: 120px;
+    color: rgb(255, 255, 255);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+    padding: 0;
+    margin-right: 14px;
+}
+
+.wm-ach-sum__total {
+    font-size: 40px;
+    color: var(--wm-fullmenu-ink-soft);
+    margin-bottom: 14px;
+}
+
+.wm-ach-sum__bar {
+    width: 380px;
+    margin-bottom: 40px;
+}
+
+.wm-ach-tier-row {
+    flex-direction: row;
+    align-items: center;
+    height: 104px;
+    margin: 0 0 14px 0;
+    padding: 0 40px 0 44px;
+    background-image: url("../../../Art/Texture/UI/Vector.png");
+    -unity-slice-left: 30;
+    -unity-slice-right: 30;
+    -unity-slice-scale: 1.4px;
+    -unity-background-image-tint-color: var(--wm-fullmenu-panel);
+}
+
+.wm-ach-tier-row__texts {
+    flex-grow: 1;
+}
+
+.wm-ach-tier-row__name {
+    font-size: 34px;
+}
+
+.wm-ach-tier-row__desc {
+    font-size: 20px;
+    color: var(--wm-fullmenu-ink-soft);
+    margin-top: 6px;
+}
+
+.wm-ach-tier-row__count {
+    font-size: 44px;
+    color: var(--wm-fullmenu-value);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+}
+
+.wm-ach-wall-screen__center {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-ach-wall__caption {
+    font-size: 24px;
+    color: var(--wm-fullmenu-ink-soft);
+    margin-bottom: 26px;
+}
+
+/* 벽 뒤 보라 빛. 그림은 MenuStage.CreateGlowTexture, 색은 tint */
+.wm-ach-wall__glow {
+    position: absolute;
+    width: 1100px;
+    height: 700px;
+    -unity-background-image-tint-color: rgba(150, 84, 230, 0.34);
+}
+
+/* 칸 자리 (left, top) 는 AchievementView 가 설정 SO 값으로. 판 크기는 마지막 칸 오른쪽 끝까지 */
+.wm-ach-wall {
+    margin-right: 204px;
+    margin-bottom: 204px;
+}
+
+.wm-ach-wall__slot {
+    position: absolute;
+    width: 204px;
+    height: 204px;
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    transition-property: scale;
+    transition-duration: 0.1s;
+}
+
+.wm-ach-wall__slot--socket {
+    opacity: 0.5;
+}
+
+/* 고른 메달은 ESC 메뉴처럼 밝게: 흰 테두리 마름모 대신 살짝 키움과 밝은 빛 */
+.wm-ach-wall__slot:focus {
+    scale: 1.08 1.08;
+}
+
+.wm-ach-wall__slot:focus .wm-ach-medal {
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.wm-ach-wall__where {
+    margin-top: 18px;
+}
+
+.wm-ach-wall-screen__right {
+    width: 400px;
+    flex-shrink: 0;
+    align-items: flex-end;
+}
+
+.wm-ach-album-tile {
+    flex-direction: row;
+    align-items: center;
+    width: 400px;
+    height: 200px;
+    margin: 0 0 14px 0;
+    padding: 0 30px;
+    background-color: var(--wm-fullmenu-panel-deep);
+    border-width: 2px;
+    border-color: var(--wm-fullmenu-line);
+    border-radius: 0;
+    color: var(--wm-fullmenu-ink);
+}
+
+.wm-ach-album-tile__icon {
+    width: 84px;
+    height: 84px;
+    margin-right: 26px;
+    -unity-background-image-tint-color: var(--wm-fullmenu-ink);
+}
+
+.wm-ach-album-tile__label {
+    font-size: 34px;
+}
+
+.wm-ach-album-tile__desc {
+    font-size: 20px;
+    color: var(--wm-fullmenu-ink-soft);
+    margin-top: 10px;
+}
+
+.wm-ach-album-tile:focus {
+    background-color: var(--wm-fullmenu-select);
+    border-color: rgb(255, 255, 255);
+    color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-ach-album-tile:focus .wm-ach-album-tile__icon {
+    -unity-background-image-tint-color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-ach-album-tile:focus .wm-ach-album-tile__desc {
+    color: rgb(86, 80, 96);
+}
+
+.wm-ach-recent {
+    width: 400px;
+    padding: 22px 26px 10px 26px;
+    background-color: var(--wm-fullmenu-panel-deep);
+    border-width: 2px;
+    border-color: var(--wm-fullmenu-line);
+}
+
+.wm-ach-recent__title {
+    font-size: 22px;
+    color: var(--wm-fullmenu-ink-soft);
+    margin-bottom: 12px;
+}
+
+.wm-ach-recent__row {
+    flex-direction: row;
+    align-items: center;
+    height: 76px;
+    border-top-width: 2px;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.wm-ach-recent__name-line {
+    flex-direction: row;
+}
+
+.wm-ach-recent__name {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.wm-ach-recent__tier {
+    font-size: 24px;
+}
+
+.wm-ach-recent__date {
+    font-size: 18px;
+    color: var(--wm-fullmenu-ink-soft);
+    margin-top: 4px;
+}
+
+/* ===== 2. 도감 ===== */
+
+.wm-ach-album {
+    flex-grow: 1;
+    flex-direction: row;
+    padding-top: 36px;
+}
+
+.wm-ach-album__categories {
+    width: 420px;
+    flex-shrink: 0;
+}
+
+/* 판과 고름은 ESC 메뉴 큰 칸 (wm-fullmenu-main), 크기만 작게 */
+.wm-ach-category {
+    height: 92px;
+    margin: 0 0 12px 0;
+}
+
+.wm-ach-category__icon {
+    width: 50px;
+    height: 50px;
+    margin-right: 20px;
+}
+
+.wm-ach-category__label {
+    flex-grow: 1;
+    font-size: 32px;
+}
+
+.wm-ach-category__count {
+    font-size: 24px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+/* 고른 분류: 포커스가 다른 칸에 있어도 밝게 남김 */
+.wm-ach-category--active {
+    -unity-background-image-tint-color: var(--wm-fullmenu-select);
+    color: var(--wm-fullmenu-ink-dark);
+    translate: 18px 0;
+}
+
+.wm-ach-category--active .wm-fullmenu-main__icon {
+    -unity-background-image-tint-color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-ach-category--active .wm-ach-category__count,
+.wm-fullmenu-main:focus .wm-ach-category__count {
+    color: rgb(86, 80, 96);
+}
+
+.wm-ach-album__main {
+    flex-grow: 1;
+    margin-left: 60px;
+    min-width: 0;
+}
+
+.wm-ach-album__header {
+    flex-direction: row;
+    align-items: center;
+    height: 56px;
+    margin-bottom: 26px;
+}
+
+.wm-ach-album__name {
+    font-size: 36px;
+    margin-right: 22px;
+}
+
+.wm-ach-album__count {
+    font-size: 26px;
+    color: var(--wm-fullmenu-ink-soft);
+    margin-right: 22px;
+}
+
+.wm-ach-album__bar {
+    width: 260px;
+}
+
+.wm-ach-album__filters {
+    flex-direction: row;
+    margin-left: auto;
+}
+
+.wm-ach-filter {
+    height: 50px;
+    margin: 0 0 0 -2px;
+    padding: 0 26px;
+    font-size: 22px;
+    border-width: 2px;
+    border-radius: 0;
+    border-color: var(--wm-fullmenu-line);
+    background-color: rgba(0, 0, 0, 0.3);
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-ach-filter--active {
+    color: rgb(255, 255, 255);
+    border-color: var(--wm-fullmenu-line);
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.wm-ach-filter:focus {
+    background-color: var(--wm-fullmenu-select);
+    border-color: rgb(255, 255, 255);
+    color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-ach-album__scroll {
+    flex-grow: 1;
+}
+
+/* 격자 사이 22px (ui.md 칸 격자 2vh). 카드에 반씩 */
+.wm-ach-album__grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: -11px;
+}
+
+.wm-ach-album__empty {
+    margin: 11px;
+    font-size: 24px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-ach-card {
+    width: 232px;
+    height: 318px;
+    margin: 11px;
+    padding: 18px 14px 0 14px;
+    align-items: center;
+    background-color: var(--wm-fullmenu-panel-deep);
+    border-width: 2px;
+    border-radius: 0;
+    border-color: var(--wm-fullmenu-line);
+    color: var(--wm-fullmenu-ink);
+}
+
+.wm-ach-card__name {
+    font-size: 26px;
+    margin-top: 12px;
+    -unity-text-align: middle-center;
+}
+
+.wm-ach-card__line {
+    font-size: 18px;
+    color: var(--wm-fullmenu-ink-soft);
+    margin-top: 12px;
+}
+
+.wm-ach-card--hidden .wm-ach-card__name {
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-ach-card:focus {
+    background-color: var(--wm-fullmenu-select);
+    border-color: rgb(255, 255, 255);
+    color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-ach-card:focus .wm-ach-card__line {
+    color: rgb(86, 80, 96);
+}
+
+.wm-ach-pips {
+    flex-direction: row;
+    margin-top: 10px;
+}
+
+.wm-ach-pip {
+    width: 12px;
+    height: 12px;
+    margin: 0 5px;
+    rotate: 45deg;
+    border-width: 2px;
+    border-color: var(--wm-fullmenu-line);
+}
+
+.wm-ach-pip--1 { background-color: var(--wm-ach-tier-1); border-color: var(--wm-ach-tier-1); }
+.wm-ach-pip--2 { background-color: var(--wm-ach-tier-2); border-color: var(--wm-ach-tier-2); }
+.wm-ach-pip--3 { background-color: var(--wm-ach-tier-3); border-color: var(--wm-ach-tier-3); }
+
+/* ===== 3. 단계 상세 (가운데 창) ===== */
+
+.wm-ach-detail {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+}
+
+.wm-ach-detail--shown {
+    display: flex;
+}
+
+.wm-ach-detail__shade {
+    position: absolute;
+    left: -40px;
+    top: -40px;
+    right: -40px;
+    bottom: -40px;
+    background-color: rgba(9, 7, 13, 0.78);
+}
+
+/* ui.md 가운데 모달: 위 15vh (162), 아래 10vh 이상, 좌우 15vh 이상 */
+.wm-ach-detail__window {
+    position: absolute;
+    left: 230px;
+    right: 230px;
+    top: 164px;
+    height: 806px;
+    flex-direction: row;
+    padding: 56px 60px 0 40px;
+    background-color: var(--wm-fullmenu-panel-deep);
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.wm-ach-detail__left {
+    width: 470px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+.wm-ach-detail__glow {
+    position: absolute;
+    left: -40px;
+    right: -40px;
+    top: -20px;
+    height: 520px;
+    background-color: rgba(150, 84, 230, 0.12);
+    border-radius: 260px;
+}
+
+.wm-ach-detail__where {
+    margin-top: -6px;
+}
+
+.wm-ach-detail__pinned {
+    align-self: center;
+    margin-top: 14px;
+}
+
+.wm-ach-detail__right {
+    flex-grow: 1;
+    margin-left: 56px;
+    min-width: 0;
+}
+
+.wm-ach-detail__category-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.wm-ach-detail__name {
+    font-size: 56px;
+    margin: 14px 0 8px 0;
+    color: rgb(255, 255, 255);
+}
+
+.wm-ach-detail__tier {
+    font-size: 26px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-ach-detail__story {
+    font-size: 22px;
+    color: var(--wm-fullmenu-ink-soft);
+    white-space: normal;
+    margin: 14px 0 24px 0;
+}
+
+.wm-ach-step {
+    flex-direction: row;
+    align-items: center;
+    height: 112px;
+    margin: 0 0 12px 0;
+    padding: 0 40px 0 44px;
+    background-image: url("../../../Art/Texture/UI/Vector.png");
+    -unity-slice-left: 30;
+    -unity-slice-right: 30;
+    -unity-slice-scale: 1.4px;
+    -unity-background-image-tint-color: var(--wm-fullmenu-panel);
+}
+
+/* 지금 단계는 ESC 메뉴 고른 칸과 같은 밝은 칠 */
+.wm-ach-step--current {
+    -unity-background-image-tint-color: var(--wm-fullmenu-select);
+    color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-ach-step--current .wm-ach-step__tier,
+.wm-ach-step--current .wm-ach-step__value {
+    color: var(--wm-fullmenu-ink-dark);
+    -unity-text-outline-width: 0;
+}
+
+.wm-ach-step--current .wm-ach-step__when {
+    color: rgb(86, 80, 96);
+}
+
+.wm-ach-step--current .wm-ach-bar {
+    background-color: rgba(20, 20, 25, 0.18);
+}
+
+.wm-ach-step--current .wm-ach-bar__fill {
+    background-color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-ach-step--todo .wm-ach-step__condition {
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-ach-step__tier {
+    width: 46px;
+    font-size: 30px;
+}
+
+.wm-ach-step__texts {
+    flex-grow: 1;
+}
+
+.wm-ach-step__condition {
+    font-size: 26px;
+}
+
+.wm-ach-step__when {
+    font-size: 20px;
+    color: var(--wm-fullmenu-ink-soft);
+    margin-top: 8px;
+}
+
+.wm-ach-step__progress {
+    width: 200px;
+    align-items: flex-end;
+}
+
+.wm-ach-step__value {
+    font-size: 34px;
+    color: var(--wm-fullmenu-value);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+}
+
+.wm-ach-step__bar {
+    width: 200px;
+    margin-top: 10px;
+}
+
+.wm-ach-detail__foot {
+    position: absolute;
+    right: 60px;
+    bottom: 30px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-ach-detail__note {
+    font-size: 20px;
+    color: var(--wm-fullmenu-value);
+    margin-right: 20px;
+}
+
+.wm-ach-detail__button {
+    height: 56px;
+    margin: 0 0 0 14px;
+    padding: 0 26px;
+    flex-direction: row;
+    align-items: center;
+    background-color: rgb(20, 20, 24);
+    border-width: 2px;
+    border-radius: 0;
+    border-color: rgba(255, 255, 255, 0.6);
+    color: rgb(255, 255, 255);
+    font-size: 24px;
+}
+
+.wm-ach-detail__button-label {
+    font-size: 24px;
+}
+
+.wm-ach-detail__button:focus {
+    background-color: var(--wm-fullmenu-select);
+    border-color: rgb(255, 255, 255);
+    color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-ach-detail__button:focus Label {
+    color: var(--wm-fullmenu-ink-dark);
+}
+
+/* ===== 달성 띠 (OverlayLayer, 기준 화면 높이 800) ===== */
+
+.wm-ach-toast {
+    position: absolute;
+    left: 50%;
+    bottom: 14%;
+    translate: -50% 0;
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 18px 8px 12px;
+    background-color: rgba(22, 21, 26, 0.92);
+    border-width: 1px;
+    border-color: var(--wm-fullmenu-line);
+    opacity: 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.25s;
+    transition-timing-function: ease-out;
+}
+
+.wm-ach-toast--shown {
+    opacity: 1;
+}
+
+.wm-ach-toast__kind {
+    font-size: 12px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-ach-toast__name {
+    font-size: 18px;
+    color: rgb(255, 255, 255);
+}

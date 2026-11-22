@@ -36,6 +36,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("폰 조작 버튼 그림")] private MobileControlIcons mobileControlIcons;
 		[SerializeField, Tooltip("상호작용 표시 모양")] private StyleSheet interactPromptStyle;
 		[SerializeField, Tooltip("전체 메뉴 (ESC) 모양과 수치")] private FullMenuSettings fullMenuSettings;
+		[field: SerializeField, Tooltip("업적 전체 화면 모양과 수치. 업적 화면은 씬 view 라 UIManager 가 넘겨 줌")] public AchievementScreenSettings AchievementSettings { get; private set; }
 		[field: SerializeField] public WitchMendokusai.Presentation.DamageTextSkin DamageTextSkin { get; private set; }
 		[field: SerializeField] public CreditsInfo Credits { get; private set; }
 

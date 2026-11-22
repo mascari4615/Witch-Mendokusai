@@ -14,7 +14,7 @@ namespace WitchMendokusai
 		public const string USS_KIND = "wm-ach-toast__kind";
 		public const string USS_NAME = "wm-ach-toast__name";
 
-		private readonly AchievementSlot slot;
+		private readonly AchievementMedal medal;
 		private readonly Label kindLabel;
 		private readonly Label nameLabel;
 
@@ -23,10 +23,8 @@ namespace WitchMendokusai
 			AddToClassList(USS_CLASS);
 			pickingMode = PickingMode.Ignore;
 
-			slot = new AchievementSlot(withCaption: false);
-			slot.pickingMode = PickingMode.Ignore;
-			slot.focusable = false;
-			Add(slot);
+			medal = new AchievementMedal("wm-ach-medal--toast");
+			Add(medal);
 
 			VisualElement text = new();
 			text.AddToClassList(USS_TEXT);
@@ -46,10 +44,10 @@ namespace WitchMendokusai
 
 		public void Show(AchievementSO achievement, int tier)
 		{
-			slot.Bind(achievement, tier);
-			string motif = achievement.Category.MotifName;
-			kindLabel.text = string.IsNullOrEmpty(motif) ? "업적 달성" : $"{motif} 하나 더";
-			nameLabel.text = achievement.MaxTier > 1 ? $"{achievement.Name} {tier}단계" : achievement.Name;
+			medal.Show(achievement, tier);
+			string tierName = AchievementTiers.NameOf(tier, achievement.MaxTier);
+			kindLabel.text = "메달 하나 더";
+			nameLabel.text = string.IsNullOrEmpty(tierName) ? achievement.Name : $"{achievement.Name} {tierName}";
 			AddToClassList(USS_SHOWN);
 		}
 

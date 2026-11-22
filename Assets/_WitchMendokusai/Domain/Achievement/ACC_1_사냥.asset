@@ -15,11 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 1
   <Name>k__BackingField: "\uC0AC\uB0E5"
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 0}
+  <Sprite>k__BackingField: {fileID: 1298246307389038859, guid: fe6decb2c3d74ff4f9c81ee5c15de75a, type: 3}
   <Sprites>k__BackingField: []
   <Order>k__BackingField: 1
-  <MotifName>k__BackingField: "\uC790\uC218 \uD328\uCE58"
-  <MotifKey>k__BackingField: patch
-  <TierFrames>k__BackingField: []
-  <EmptySlot>k__BackingField: {fileID: 0}
-  <HiddenSlot>k__BackingField: {fileID: 0}
+  <EmptySlot>k__BackingField: {fileID: 21300000, guid: 41e19493b3d04a23af8504acfcabcfaf, type: 3}

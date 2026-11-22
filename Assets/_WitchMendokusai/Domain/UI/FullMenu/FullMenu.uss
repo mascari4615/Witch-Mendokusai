@@ -1,7 +1,9 @@
 /* 전체 메뉴 (ESC, 폰 뒤로가기). 기준 화면 높이 1080, FullMenuView.FitStage 가 화면에 맞춤
    결: 설정창과 같은 갈무리 글꼴, 평행사변형 판 (Vector.png), 흰 테두리. 강조는 코어의 보라 하나 */
 
-.wm-fullmenu {
+/* 색과 글꼴. 같은 결의 다른 전체 화면 (업적) 은 뿌리에 wm-fullmenu-palette 를 붙이고 이 USS 를 같이 씀 */
+.wm-fullmenu,
+.wm-fullmenu-palette {
     /* 선형 색 공간이라 반투명이 시안보다 밝게 나옴. 뒤 HUD 글자가 안 읽히는 값 */
     --wm-fullmenu-veil: rgb(9, 7, 13);
     --wm-fullmenu-panel: rgb(32, 30, 36);
@@ -15,13 +17,16 @@
     --wm-fullmenu-value: rgb(242, 226, 122);
     --wm-fullmenu-teal: rgb(43, 117, 115);
 
+    color: var(--wm-fullmenu-ink);
+    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11-Bold.ttf");
+}
+
+.wm-fullmenu {
     opacity: 0;
     transition-property: opacity;
     transition-duration: 0.16s;
     transition-timing-function: ease-out;
     display: none;
-    color: var(--wm-fullmenu-ink);
-    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11-Bold.ttf");
 }
 
 .wm-fullmenu--active {

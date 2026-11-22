@@ -35,37 +35,18 @@ namespace WitchMendokusai
 		private VisualElement dollPortrait;
 		private Button closeButton;
 		private Texture2D glowTexture;
-		private VisualElement backdrop;
+		private MenuBackdrop backdrop;
 		private VisualElement tileGrid;
 		private Image coreImage;
-		private bool isBlurRequested;
 
-		// 흐림 패스는 요청이 있을 때만 돎 (BlurRequest). 열려 있는 동안만 요청
-		private void SetBlurred(bool isBlurred)
-		{
-			if (isBlurRequested == isBlurred)
-				return;
-			isBlurRequested = isBlurred;
-			if (isBlurred)
-				BlurRequest.Add();
-			else
-				BlurRequest.Remove();
-			backdrop.EnableInClassList("wm-fullmenu__backdrop--blur", isBlurred);
-		}
+		private void SetBlurred(bool isBlurred) => backdrop.SetBlurred(isBlurred);
 
-		private void Update()
-		{
-			if (isBlurRequested)
-				backdrop.MarkDirtyRepaint();
-		}
+		private void Update() => backdrop.Repaint();
 
 		private void BuildUI()
 		{
 			// 배경: 흐린 게임 화면. 화면 끝까지라 container 에. UI 연출을 끄면 단색 막 (USS)
-			backdrop = new VisualElement { pickingMode = PickingMode.Ignore };
-			backdrop.AddToClassList("wm-fullmenu__backdrop");
-			backdrop.style.backgroundImage = Background.FromRenderTexture(Settings.BlurOutput);
-			container.Insert(0, backdrop);
+			backdrop = new MenuBackdrop(container, Settings.BlurOutput);
 
 			stage = new VisualElement();
 			stage.AddToClassList("wm-fullmenu__stage");
@@ -157,7 +138,7 @@ namespace WitchMendokusai
 
 			VisualElement glow = new VisualElement { pickingMode = PickingMode.Ignore };
 			glow.AddToClassList("wm-fullmenu-core__glow");
-			glowTexture = MakeGlowTexture();
+			glowTexture = MenuStage.CreateGlowTexture(GLOW_TEXTURE_SIZE, "FullMenuGlow");
 			glow.style.backgroundImage = new StyleBackground(glowTexture);
 			core.Add(glow);
 
@@ -314,47 +295,6 @@ namespace WitchMendokusai
 			}
 		}
 
-		// USS 기준 화면 (높이 ReferenceHeight) 을 화면 높이에 맞춤. 너비는 화면 비율만큼 늘려 양쪽 칸이 가장자리에 붙음
-		// 기준 최소 너비보다 좁은 화면은 너비에 맞추고 세로를 늘림
-		private void FitStage()
-		{
-			float width = safeContent.resolvedStyle.width;
-			float height = safeContent.resolvedStyle.height;
-			if (float.IsNaN(width) || float.IsNaN(height) || width <= 0f || height <= 0f)
-				return;
-
-			float scale = height / Settings.ReferenceHeight;
-			if (width / scale < Settings.MinimumWidth)
-				scale = width / Settings.MinimumWidth;
-			stage.style.width = width / scale;
-			stage.style.height = height / scale;
-			stage.style.scale = new Scale(new Vector3(scale, scale, 1f));
-		}
-
-		// 코어 뒤 둥근 빛. UI Toolkit 에 원형 그라데이션이 없어 작은 그림으로. 색은 USS tint
-		private static Texture2D MakeGlowTexture()
-		{
-			Texture2D texture = new(GLOW_TEXTURE_SIZE, GLOW_TEXTURE_SIZE, TextureFormat.RGBA32, false)
-			{
-				name = "FullMenuGlow",
-				wrapMode = TextureWrapMode.Clamp,
-				hideFlags = HideFlags.HideAndDontSave,
-			};
-			Color32[] pixels = new Color32[GLOW_TEXTURE_SIZE * GLOW_TEXTURE_SIZE];
-			float half = (GLOW_TEXTURE_SIZE - 1) * 0.5f;
-			for (int y = 0; y < GLOW_TEXTURE_SIZE; y++)
-			{
-				for (int x = 0; x < GLOW_TEXTURE_SIZE; x++)
-				{
-					float distance = Mathf.Sqrt((x - half) * (x - half) + (y - half) * (y - half)) / half;
-					float falloff = Mathf.Clamp01(1f - distance);
-					byte alpha = (byte)Mathf.RoundToInt(falloff * falloff * byte.MaxValue);
-					pixels[y * GLOW_TEXTURE_SIZE + x] = new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, alpha);
-				}
-			}
-			texture.SetPixels32(pixels);
-			texture.Apply(false, true);
-			return texture;
-		}
+		private void FitStage() => MenuStage.Fit(safeContent, stage, Settings.ReferenceHeight, Settings.MinimumWidth);
 	}
 }

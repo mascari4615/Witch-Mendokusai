@@ -33,16 +33,20 @@ namespace WitchMendokusai
 
 		public AchievementBook Book { get; private set; }
 
+		/// <summary>메달 벽에 건 업적. 장부와 같은 세이브 조각을 씀</summary>
+		public AchievementWall Wall { get; private set; }
+
 		/// <summary>분류 순서, 그다음 ID 순서</summary>
 		public IReadOnlyList<AchievementSO> Achievements => ordered;
 
-		/// <summary>장부가 바뀜 (로드, 단계 오름). 화면이 다시 그림</summary>
+		/// <summary>장부나 벽이 바뀜 (로드, 단계 오름, 벽에 걸기). 화면이 다시 그림</summary>
 		public event Action Changed = delegate { };
 
 		/// <summary>세이브 로드 끝에 SaveManager 가 부름. 다시 불러도 됨 (로드할 때마다 조각이 새것)</summary>
 		public void Begin(AchievementSaveSlice slice, CriteriaContext context)
 		{
 			Book = new AchievementBook(slice.Records);
+			Wall = new AchievementWall(slice);
 
 			watched.Clear();
 			SOHelper.ForEach<AchievementSO>(achievement =>
@@ -52,10 +56,7 @@ namespace WitchMendokusai
 				{
 					AchievementTiers.ValidateLegacyTier(achievement.name, achievement.LegacyTier, achievement.MaxTier);
 				}
-				if (string.IsNullOrEmpty(achievement.Category.MotifKey))
-				{
-					throw new InvalidOperationException($"{achievement.Category.name}: MotifKey 비어 있음 (칸 임시 모양 USS 열쇠)");
-				}
+				achievement.ValidateMedals();
 				watched.Add(new Watched(achievement, CriteriaFactory.Create(achievement.ToMeasureCriteria(), context)));
 			});
 			watched.Sort(CompareWatched);
@@ -85,6 +86,17 @@ namespace WitchMendokusai
 				ticking = false;
 			}
 			AchievementLedgerBridge.Unregister(Book);
+		}
+
+		/// <summary>벽에 걸거나 내림. 바뀌면 화면이 다시 그림</summary>
+		public AchievementWallChange ToggleWall(AchievementSO achievement, int slotCount)
+		{
+			AchievementWallChange change = Wall.Toggle(achievement.ID, slotCount);
+			if (change != AchievementWallChange.Full)
+			{
+				Changed();
+			}
+			return change;
 		}
 
 		/// <summary>지금 재는 값. 화면의 진행 x/y</summary>

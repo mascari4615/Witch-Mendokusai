@@ -72,8 +72,8 @@ namespace WitchMendokusai
 			pauseKey = new GameObject("FullMenuCoreStage");
 			pauseKey.transform.SetParent(transform, false);
 
-			BuildUI();
 			BuildNavigation();
+			BuildUI();
 			RegisterHotkeys();
 
 			uiRoot.SettingView.Closed += OnSettingClosed;

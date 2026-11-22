@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8dc922be430342ecb67f7ce6426865f4, type: 3}
+  m_Name: SET_0_Achievement
+  m_EditorClassIdentifier: 
+  <Style>k__BackingField: {fileID: 7433441132597879392, guid: 5bb22aface87498393f3b78fb8f8b798, type: 3}
+  <MenuStyle>k__BackingField: {fileID: 7433441132597879392, guid: 191d3549f4e64c78ac11e40352cd2020, type: 3}
+  <BlurOutput>k__BackingField: {fileID: 8400000, guid: 4f1f5a32ebefe5041a43447ad1711148, type: 2}
+  <AllCategoryIcon>k__BackingField: {fileID: -2622811594703886349, guid: a5bf45689a41f1449a847ff1cd602716, type: 3}
+  <AlbumIcon>k__BackingField: {fileID: -3664178556954141598, guid: 3830fbbe727ae064abf15d545bd0501f, type: 3}
+  <ReferenceHeight>k__BackingField: 1080
+  <MinimumWidth>k__BackingField: 1600
+  <WallSlotCount>k__BackingField: 7
+  <WallSlotStep>k__BackingField: 216
+  <WallRowStep>k__BackingField: 208
+  <RecentCount>k__BackingField: 3
+  <GlowTextureSize>k__BackingField: 128
+  <NavOverlapTolerance>k__BackingField: 4
+  <NavAcrossWeight>k__BackingField: 2

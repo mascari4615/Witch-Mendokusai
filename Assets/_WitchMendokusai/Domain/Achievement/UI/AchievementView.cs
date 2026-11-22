@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
@@ -7,240 +6,332 @@ using VContainer;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 업적 창과 달성 띠. 창은 왼쪽 분류 탭, 가운데 머리줄과 칸 격자, 오른쪽 상세.
-	/// 분류 탭을 넘기면 칸 모양만 그 분류의 것으로 바뀜 (칸 그림은 AchievementCategorySO).
-	/// 판정과 기록은 AchievementManager, 여기는 그리기만
+	/// 업적 전체 화면. 메달 벽 (첫 화면), 도감, 단계 상세 (가운데 창) 를 오가고, 뒤로 (ESC, 취소) 는 한 단계씩.
+	/// 결은 ESC 메뉴 그대로: 흐린 게임 화면 배경, 1080 기준 무대, FullMenu.uss 의 판과 키 칸 (AchievementScreenSettings).
+	/// 판정과 기록은 AchievementManager, 여기는 그리기와 화면 전환만. 달성 띠는 AchievementView.Toast.cs
+	/// 시안과 결정: memo wm/reference/achievement-bench-20261122
 	/// </summary>
-	public class AchievementView : MonoBehaviour
+	public partial class AchievementView : MonoBehaviour
 	{
-		private const string WINDOW_ID = "Achievement";
-		private const string ALL_TAB = "전체";
+		private enum Page
+		{
+			Wall = 0,
+			Album = 1,
+		}
 
-		public const string USS_BODY = "wm-ach-body";
-		public const string USS_TABS = "wm-ach-tabs";
-		public const string USS_TAB = "wm-ach-tab";
-		public const string USS_TAB_ACTIVE = "wm-ach-tab--active";
-		public const string USS_MAIN = "wm-ach-main";
-		public const string USS_HEADER = "wm-ach-header";
-		public const string USS_GRID = "wm-ach-grid";
+		private const string USS_CLASS = "wm-ach";
+		private const string USS_ACTIVE = "wm-ach--active";
+		private const string USS_PALETTE = "wm-fullmenu-palette";
+		private const string USS_HIDDEN = "wm-ach--hidden";
+		private const string NAV_CLASS = "wm-ach-nav";
+		private const string TITLE_WALL = "업적";
+		private const string TITLE_ALBUM = "업적 도감";
 
-		private WMWindow window;
-		private VisualElement tabs;
-		private Label header;
-		private VisualElement grid;
+		/// <summary>UIManager 가 만든 직후 넣어 줌 (UIRoot 프리팹의 AchievementSettings)</summary>
+		public AchievementScreenSettings Settings { get; set; }
+
+		public bool IsOpen { get; private set; }
+
+		private VisualElement container;
+		private VisualElement safeContent;
+		private VisualElement stage;
+		private MenuBackdrop backdrop;
+		private MenuFocus focus;
+		private Label titleLabel;
+		private AchievementWallScreen wallScreen;
+		private AchievementAlbumScreen albumScreen;
 		private AchievementDetail detail;
-		private AchievementToast toast;
-
-		private readonly List<AchievementCategorySO> categories = new();
-		private readonly List<AchievementSlot> slots = new();
-		private readonly Queue<AchievementUnlockedEvent> toastQueue = new();
-		private AchievementCategorySO currentCategory;
-		private AchievementSO selected;
-		private bool toastPlaying;
-		private bool toastFaded;
+		private Page page;
+		private VisualElement focusOnDetailClose;
+		// 전체 메뉴와 같은 UIRoot 오브젝트에 붙어 있어 그 오브젝트를 정지 열쇠로 쓰면 서로의 정지를 풀어 버림. 자기 열쇠를 따로
+		private GameObject pauseKey;
 
 		private UIRoot uiRoot;
 		private AchievementManager achievementManager;
 		private InputManager inputManager;
+		private TimeManager timeManager;
 
 		[Inject]
-		public void Construct(UIRoot uiRoot, AchievementManager achievementManager, InputManager inputManager)
+		public void Construct(UIRoot uiRoot, AchievementManager achievementManager, InputManager inputManager, TimeManager timeManager)
 		{
 			this.uiRoot = uiRoot;
 			this.achievementManager = achievementManager;
 			this.inputManager = inputManager;
+			this.timeManager = timeManager;
 		}
 
 		private void Start()
 		{
-			window = new WMWindow
+			if (Settings == null)
 			{
-				WindowId = WINDOW_ID,
-				Title = "업적"
+				throw new InvalidOperationException($"{nameof(AchievementView)}: UIRoot 프리팹의 AchievementSettings 가 비어 있음");
+			}
+
+			// 흐린 배경은 화면 끝까지 (container), 칸과 글은 안전 영역 (safeContent)
+			FullScreenFrame frame = uiRoot.CreateFullScreenFrame(uiRoot.ScreenLayer, "Achievement");
+			container = frame.Root;
+			safeContent = frame.Content;
+			container.AddToClassList(USS_CLASS);
+			container.AddToClassList(USS_PALETTE);
+			container.styleSheets.Add(Settings.MenuStyle);
+			container.styleSheets.Add(Settings.Style);
+			backdrop = new MenuBackdrop(container, Settings.BlurOutput);
+			focus = new MenuFocus(container, NAV_CLASS, () => IsOpen, () => Settings.NavOverlapTolerance, () => Settings.NavAcrossWeight)
+			{
+				FocusFirst = FocusFirst,
+				Scope = () => detail.IsShown ? detail.Window : stage,
 			};
-			window.style.left = 180;
-			window.style.top = 80;
-			window.style.width = 780;
-			window.style.height = 460;
-			uiRoot.WindowsLayer.Add(window);
+			pauseKey = new GameObject("AchievementPauseKey");
+			pauseKey.transform.SetParent(transform, false);
 
-			VisualElement body = new();
-			body.AddToClassList(USS_BODY);
-			window.Content.Add(body);
-
-			tabs = new VisualElement();
-			tabs.AddToClassList(USS_TABS);
-			body.Add(tabs);
-
-			VisualElement main = new();
-			main.AddToClassList(USS_MAIN);
-			body.Add(main);
-
-			header = new Label();
-			header.AddToClassList(USS_HEADER);
-			main.Add(header);
-
-			ScrollView scroll = new(ScrollViewMode.Vertical);
-			scroll.style.flexGrow = 1;
-			main.Add(scroll);
-			grid = new VisualElement();
-			grid.AddToClassList(USS_GRID);
-			scroll.Add(grid);
-
-			detail = new AchievementDetail();
-			body.Add(detail);
-
-			toast = new AchievementToast();
-			toast.RegisterCallback<TransitionEndEvent>(_ => toastFaded = true);
-			toast.RegisterCallback<TransitionCancelEvent>(_ => toastFaded = true);
-			uiRoot.OverlayLayer.Add(toast);
+			BuildStage();
+			BuildToast();
 
 			achievementManager.Changed += Refresh;
 			EventBusBridge.Subscribe<AchievementUnlockedEvent>(OnUnlocked);
-			inputManager.RegisterInputEvent(InputEventType.AchievementToggle, InputEventResponseType.Performed, OnToggle);
-			window.OnOpened += Refresh;
+			inputManager.RegisterInputEvent(InputEventType.AchievementToggle, InputEventResponseType.Performed, Toggle);
+			IsOpen = false;
 		}
 
 		private void OnDestroy()
 		{
-			// Start 전에 부서질 수 있음 (UIManager 가 AddComponent 한 같은 프레임). 그때는 구독도 띠도 아직 없음
-			if (window == null)
+			// Start 전에 부서질 수 있음 (UIManager 가 AddComponent 한 같은 프레임). 그때는 구독도 화면도 아직 없음
+			if (container == null)
 			{
 				return;
+			}
+			if (IsOpen)
+			{
+				backdrop.SetBlurred(false);
+				if (TimeManager.TryGetExistingInstance(out TimeManager existingTimeManager))
+				{
+					existingTimeManager.Resume(pauseKey);
+				}
 			}
 			achievementManager.Changed -= Refresh;
 			EventBusBridge.Unsubscribe<AchievementUnlockedEvent>(OnUnlocked);
-			inputManager.UnregisterInputEvent(InputEventType.AchievementToggle, InputEventResponseType.Performed, OnToggle);
-			toast.RemoveFromHierarchy();
-		}
-
-		private void OnToggle() => window.Toggle();
-
-		private void Refresh()
-		{
-			if (window == null || window.IsOpen == false || achievementManager.Book == null)
+			if (InputManager.TryGetExistingInstance(out InputManager existingInputManager))
 			{
-				return;
+				existingInputManager.UnregisterInputEvent(InputEventType.AchievementToggle, InputEventResponseType.Performed, Toggle);
 			}
-			BuildTabs();
-			BuildGrid();
+			wallScreen.Dispose();
+			DestroyToast();
+			container.RemoveFromHierarchy();
 		}
 
-		private void BuildTabs()
-		{
-			categories.Clear();
-			SOHelper.ForEach<AchievementCategorySO>(category => categories.Add(category));
-			categories.Sort((left, right) => left.Order.CompareTo(right.Order));
+		private void Update() => backdrop?.Repaint();
 
-			tabs.Clear();
-			AddTab(ALL_TAB, null);
-			foreach (AchievementCategorySO category in categories)
-			{
-				AddTab(category.Name, category);
-			}
+		private void BuildStage()
+		{
+			stage = new VisualElement();
+			stage.AddToClassList("wm-fullmenu__stage");
+			stage.AddToClassList("wm-ach__stage");
+			safeContent.Add(stage);
+			safeContent.RegisterCallback<GeometryChangedEvent>(_ => MenuStage.Fit(safeContent, stage, Settings.ReferenceHeight, Settings.MinimumWidth));
+
+			VisualElement top = AchievementElements.Part(stage, "wm-fullmenu__top");
+			top.pickingMode = PickingMode.Position;
+			AchievementElements.Part(top, "wm-fullmenu__spacer");
+			Button backButton = KeyHint.KeyButton("뒤로", "ESC", Back);
+			backButton.AddToClassList("wm-fullmenu-close");
+			focus.Register(backButton);
+			top.Add(backButton);
+			// 제목은 양옆 칸 너비와 무관하게 화면 가운데
+			titleLabel = AchievementElements.Text(stage, TITLE_WALL, "wm-fullmenu__title");
+
+			VisualElement body = AchievementElements.Part(stage, "wm-ach__body");
+			body.pickingMode = PickingMode.Position;
+			wallScreen = new AchievementWallScreen(Settings, focus, OpenDetail, OpenAlbum);
+			body.Add(wallScreen);
+			albumScreen = new AchievementAlbumScreen(Settings, focus, OpenDetail);
+			body.Add(albumScreen);
+
+			// 키 안내. 손가락 조작에서는 KeyHint 규칙으로 숨음
+			VisualElement bottom = AchievementElements.Part(stage, "wm-ach__bottom");
+			VisualElement hints = KeyHint.KeyOnly(AchievementElements.Part(bottom, "wm-ach-hints"));
+			AddHint(hints, "방향키", "고르기");
+			AddHint(hints, "Z", "자세히, 고르기");
+			AddHint(hints, "ESC", "뒤로");
+
+			detail = new AchievementDetail(Settings, focus, ToggleWall, Back);
+			detail.pickingMode = PickingMode.Position;
+			stage.Add(detail);
 		}
 
-		private void AddTab(string label, AchievementCategorySO category)
+		private static void AddHint(VisualElement hints, string key, string text)
 		{
-			Button tab = new(() => SelectCategory(category)) { text = label };
-			tab.AddToClassList(USS_TAB);
-			tab.AddToClassList(WMWindow.NAV_CLASS);
-			tab.EnableInClassList(USS_TAB_ACTIVE, category == currentCategory);
-			tabs.Add(tab);
+			VisualElement hint = AchievementElements.Part(hints, "wm-ach-hint");
+			AchievementElements.Text(hint, key, "wm-fullmenu-key wm-ach-hint__key");
+			AchievementElements.Text(hint, text, "wm-ach-hint__text");
 		}
 
-		private void SelectCategory(AchievementCategorySO category)
+		public void Toggle()
 		{
-			currentCategory = category;
-			selected = null;
-			Refresh();
-		}
-
-		private void BuildGrid()
-		{
-			AchievementBook book = achievementManager.Book;
-			grid.Clear();
-			slots.Clear();
-			int total = 0;
-			int unlocked = 0;
-			int[] countAtTier = new int[AchievementTiers.MAX_TIER_COUNT + 1];
-			foreach (AchievementSO achievement in achievementManager.Achievements)
+			if (IsOpen)
 			{
-				if (currentCategory != null && achievement.Category != currentCategory)
-				{
-					continue;
-				}
-				int tier = book.TierOf(achievement.ID);
-				total++;
-				countAtTier[tier]++;
-				if (tier > 0)
-				{
-					unlocked++;
-				}
-
-				AchievementSlot slot = new(withCaption: true);
-				slot.AddToClassList(WMWindow.NAV_CLASS);
-				slot.Bind(achievement, tier);
-				slot.SetSelected(achievement == selected);
-				slot.RegisterCallback<ClickEvent>(_ => Select(achievement));
-				slot.RegisterCallback<NavigationSubmitEvent>(_ => Select(achievement));
-				grid.Add(slot);
-				slots.Add(slot);
-			}
-
-			string motif = currentCategory != null && string.IsNullOrEmpty(currentCategory.MotifName) == false ? currentCategory.MotifName : "업적";
-			System.Text.StringBuilder headerText = new();
-			headerText.Append(motif).Append(' ').Append(unlocked).Append(" / ").Append(total).Append("   ");
-			for (int tier = 1; tier <= AchievementTiers.MAX_TIER_COUNT; tier++)
-			{
-				headerText.Append(tier == 1 ? " " : ", ").Append(tier).Append("단계 ").Append(countAtTier[tier]);
-			}
-			header.text = headerText.ToString();
-
-			if (selected != null)
-			{
-				detail.Bind(selected, book, achievementManager.CurrentValue(selected));
+				Close();
 			}
 			else
 			{
-				detail.Clear(AchievementDetail.EMPTY_TEXT);
+				Open();
 			}
 		}
 
-		private void Select(AchievementSO achievement)
+		public void Open()
 		{
-			selected = achievement;
-			foreach (AchievementSlot slot in slots)
+			if (IsOpen || achievementManager.Book == null)
 			{
-				slot.SetSelected(slot.Achievement == achievement);
+				return;
 			}
-			detail.Bind(achievement, achievementManager.Book, achievementManager.CurrentValue(achievement));
+			IsOpen = true;
+			ShowPage(Page.Wall);
+			detail.Hide();
+			backdrop.SetBlurred(UIEffects.Enabled);
+			UiSfx.Play(UiSfxEvent.WindowOpen);
+			UIMotion.Show(container, USS_ACTIVE);
+			timeManager.Pause(pauseKey);
+			// 손가락 조작에는 선택 칸이 없음. 누르지도 않은 칸이 강조돼 보이지 않게
+			if (inputManager.IsTouchMode == false)
+			{
+				focus.FocusWhenReady();
+			}
 		}
 
-		private void OnUnlocked(AchievementUnlockedEvent evt)
+		public void Close()
 		{
-			toastQueue.Enqueue(evt);
-			if (toastPlaying == false)
+			if (IsOpen == false)
 			{
-				StartCoroutine(PlayToasts());
+				return;
+			}
+			IsOpen = false;
+			// 닫힌 뒤 확인 키가 숨은 버튼을 누르지 않게 포커스를 놓음
+			if (container.focusController?.focusedElement is VisualElement focused && container.Contains(focused))
+			{
+				focused.Blur();
+			}
+			detail.Hide();
+			UiSfx.Play(UiSfxEvent.WindowClose);
+			UIMotion.Hide(container, USS_ACTIVE);
+			backdrop.SetBlurred(false);
+			timeManager.Resume(pauseKey);
+		}
+
+		/// <summary>뒤로 한 단계: 상세 창, 도감, 메달 벽 순. 메달 벽에서는 닫힘. UIManager 의 취소 입력도 여기로</summary>
+		public void Back()
+		{
+			if (IsOpen == false)
+			{
+				return;
+			}
+			if (detail.IsShown)
+			{
+				CloseDetail();
+				return;
+			}
+			if (page == Page.Album)
+			{
+				UiSfx.Play(UiSfxEvent.WindowClose);
+				ShowPage(Page.Wall);
+				FocusLater(wallScreen.AlbumButton);
+				return;
+			}
+			Close();
+		}
+
+		private void OpenAlbum()
+		{
+			UiSfx.Play(UiSfxEvent.Confirm);
+			ShowPage(Page.Album);
+			FocusLater(null);
+		}
+
+		private void OpenDetail(AchievementSO achievement)
+		{
+			UiSfx.Play(UiSfxEvent.WindowOpen);
+			focusOnDetailClose = container.focusController?.focusedElement as VisualElement;
+			detail.Show(achievement, achievementManager);
+			FocusLater(null);
+		}
+
+		private void CloseDetail()
+		{
+			AchievementSO shown = detail.Current;
+			detail.Hide();
+			UiSfx.Play(UiSfxEvent.WindowClose);
+			// 도감이 그사이 다시 그려졌으면 같은 업적의 새 카드로
+			VisualElement target = focusOnDetailClose;
+			if (target == null || target.panel == null)
+			{
+				target = page == Page.Album ? albumScreen.CardOf(shown) : null;
+			}
+			focusOnDetailClose = null;
+			FocusLater(target);
+		}
+
+		private AchievementWallChange ToggleWall(AchievementSO achievement) => achievementManager.ToggleWall(achievement, Settings.WallSlotCount);
+
+		private void ShowPage(Page next)
+		{
+			page = next;
+			wallScreen.EnableInClassList(USS_HIDDEN, page != Page.Wall);
+			albumScreen.EnableInClassList(USS_HIDDEN, page != Page.Album);
+			titleLabel.text = page == Page.Wall ? TITLE_WALL : TITLE_ALBUM;
+			Refresh();
+		}
+
+		private void Refresh()
+		{
+			if (IsOpen == false || achievementManager.Book == null)
+			{
+				return;
+			}
+			if (page == Page.Wall)
+			{
+				wallScreen.Bind(achievementManager);
+			}
+			else
+			{
+				albumScreen.Bind(achievementManager);
+			}
+			detail.Bind(achievementManager);
+
+			// 다시 그리느라 고른 칸이 사라졌으면 처음 칸으로
+			if (inputManager.IsTouchMode == false && container.focusController?.focusedElement is VisualElement focused && focused.panel == null)
+			{
+				focus.FocusWhenReady();
 			}
 		}
 
-		private IEnumerator PlayToasts()
+		// 화면을 바꾼 직후에는 배치 계산 전. 정한 칸이 있으면 그 칸, 없으면 그 화면의 처음 칸
+		private void FocusLater(VisualElement target)
 		{
-			toastPlaying = true;
-			while (toastQueue.Count > 0)
+			if (inputManager.IsTouchMode)
 			{
-				AchievementUnlockedEvent evt = toastQueue.Dequeue();
-				toast.Show(SOHelper.Get<AchievementSO>(evt.AchievementId), evt.Tier);
-				yield return new WaitForSecondsRealtime(UIFxSettings.Instance.achievementToastHoldSeconds);
-				toastFaded = false;
-				toast.Hide();
-				// 사라지는 움직임 길이는 USS 한 자리 (wm-ach-toast transition). 끝 신호를 기다리되, 신호가 안 오면 (USS 없음 등) 떠 있던 시간만큼에서 끊어 대기열이 멈추지 않게
-				float fadeStarted = Time.realtimeSinceStartup;
-				yield return new WaitUntil(() => toastFaded || Time.realtimeSinceStartup - fadeStarted > UIFxSettings.Instance.achievementToastHoldSeconds);
+				return;
 			}
-			toastPlaying = false;
+			if (target == null)
+			{
+				focus.FocusWhenReady();
+				return;
+			}
+			container.schedule.Execute(() =>
+			{
+				if (target.panel != null)
+				{
+					target.Focus();
+				}
+			});
+		}
+
+		private bool FocusFirst()
+		{
+			VisualElement target = detail.IsShown ? detail.FirstFocus : (page == Page.Album ? albumScreen.FirstFocus : wallScreen.FirstFocus);
+			if (target == null || target.worldBound.width <= 0f)
+			{
+				return false;
+			}
+			target.Focus();
+			return true;
 		}
 	}
 }

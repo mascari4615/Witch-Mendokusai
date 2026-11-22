@@ -28,3 +28,7 @@ MonoBehaviour:
   - 100
   <LegacyQuestId>k__BackingField: 501
   <LegacyTier>k__BackingField: 3
+  <TierMedals>k__BackingField:
+  - {fileID: 21300000, guid: 8bb05c9d221f4dd09fa9d8ff865ea422, type: 3}
+  - {fileID: 21300000, guid: 76d92cbc0d2f4236a1fb67e33a6aee24, type: 3}
+  - {fileID: 21300000, guid: 78baea10b93748769cd49687ff4a7c62, type: 3}

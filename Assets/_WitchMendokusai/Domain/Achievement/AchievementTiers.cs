@@ -8,6 +8,18 @@ namespace WitchMendokusai
 	{
 		public const int MAX_TIER_COUNT = 3;
 
+		private static readonly string[] TIER_NAMES = { "동", "은", "금" };
+
+		/// <summary>단계 이름 (동, 은, 금). 단계가 하나뿐인 업적은 이름 없음 (빈 글자)</summary>
+		public static string NameOf(int tier, int maxTier)
+		{
+			if (maxTier <= 1 || tier <= 0)
+			{
+				return string.Empty;
+			}
+			return TIER_NAMES[tier - 1];
+		}
+
 		/// <summary>값이 닿은 가장 높은 단계. 아무것도 못 닿으면 0</summary>
 		public static int Resolve(int value, IReadOnlyList<int> targets)
 		{

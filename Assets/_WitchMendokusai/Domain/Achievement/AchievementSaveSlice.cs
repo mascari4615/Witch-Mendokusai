@@ -18,6 +18,12 @@ namespace WitchMendokusai
 
 		public Dictionary<int, AchievementRecord> Records { get; set; } = new();
 
+		/// <summary>메달 벽에 건 업적 ID, 건 순서 (<see cref="AchievementWall"/>)</summary>
+		public List<int> WallPins { get; set; } = new();
+
+		/// <summary>사용자가 벽을 한 번이라도 바꿨는지. 아니면 높은 단계부터 자동으로 채움</summary>
+		public bool WallEdited { get; set; }
+
 		/// <summary>옛 세이브의 끝낸 퀘스트 ID. 한 번 옮기면 비움. 세이브에 안 실림</summary>
 		[JsonIgnore]
 		public HashSet<int> LegacyCompletedQuestIds { get; private set; } = new();
@@ -25,6 +31,8 @@ namespace WitchMendokusai
 		public void Reset()
 		{
 			Records = new();
+			WallPins = new();
+			WallEdited = false;
 			LegacyCompletedQuestIds = new();
 		}
 
@@ -34,11 +42,19 @@ namespace WitchMendokusai
 		{
 			AchievementSaveSlice loaded = JsonConvert.DeserializeObject<AchievementSaveSlice>(json);
 			Records = loaded.Records ?? new();
+			foreach (AchievementRecord record in Records.Values)
+			{
+				record.MigrateLegacyDate();
+			}
+			WallPins = loaded.WallPins ?? new();
+			WallEdited = loaded.WallEdited;
 		}
 
 		public void RestoreLegacy(GameData saveData)
 		{
 			Records = new();
+			WallPins = new();
+			WallEdited = false;
 			foreach (KeyValuePair<int, int> pair in saveData.questStates)
 			{
 				if ((QuestState)pair.Value == QuestState.Completed)
