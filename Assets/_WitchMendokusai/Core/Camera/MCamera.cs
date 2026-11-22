@@ -125,6 +125,17 @@ namespace WitchMendokusai
 			targetZoom = Mathf.Clamp(targetZoom + step, minZoom, maxZoom);
 		}
 
+		// 기본 내려다보는 각 (도) 바꾸기. ResetCameraDistance 가 되돌리는 값도 같이. 개발자 창 시험용
+		public void SetBasePitch(float pitch)
+		{
+			Init();
+			originalLocalEuler.x = pitch;
+			Vector3 angles = transform.localEulerAngles;
+			transform.localEulerAngles = new Vector3(pitch, angles.y, angles.z);
+		}
+
+		public float BasePitch => originalLocalEuler.x;
+
 		public void ResetCameraDistance()
 		{
 			if (positionComposer == null)

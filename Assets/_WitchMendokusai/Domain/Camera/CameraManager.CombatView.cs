@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -13,6 +15,14 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float combatFogStartDepth = 22f;
 		[Tooltip("던전에서 안개가 다 덮는 깊이 (m). 위 경계보다 짧아야 경계 밖에서 생긴 적이 안 보임")]
 		[SerializeField, Min(0f)] private float combatFogEndDepth = 34f;
+
+		[Tooltip("개발자 창 표시 탭에서 고르는 던전 카메라 각도 (도). 기본 각은 Camera.prefab 의 Camera_Dungeon 회전")]
+		[SerializeField] private float[] dungeonPitchChoices = { 30f, 40f, 50f };
+
+		public IReadOnlyList<float> DungeonPitchChoices => dungeonPitchChoices;
+		public float DungeonPitch => DungeonCamera.BasePitch;
+		public void SetDungeonPitch(float pitch) => DungeonCamera.SetBasePitch(pitch);
+		private MCamera DungeonCamera => cameras.First(mCamera => mCamera.ContentCameraMode == ContentCameraMode.Dungeon);
 
 		private bool combatViewApplied;
 		private bool fogBeforeCombat;
