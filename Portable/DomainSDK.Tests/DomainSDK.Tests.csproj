@@ -58,7 +58,7 @@
     <Compile Include="$(TestsRoot)Combat/DeckOfferWeightsTests.cs" />
     <Compile Include="$(TestsRoot)Combat/SkillTreeBundlesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DollMasteryTests.cs" />
-    <Compile Include="$(TestsRoot)Combat/DollMendRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/MendRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonThreatRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonRiskRewardRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonConstraintRunRulesTests.cs" />

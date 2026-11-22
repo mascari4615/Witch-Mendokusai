@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a55f00570599471f9f7021e190d974ea, type: 3}
+  m_Name: MO_AlisaShadowShard
+  m_EditorClassIdentifier: 
+  <DisplayName>k__BackingField: "\uADF8\uB9BC\uC790 \uC870\uAC01"
+  <Role>k__BackingField: "\uACF5\uACA9 \uC8FC\uAE30 \uAC10\uC18C, \uADF8\uB9BC\uC790 \uC219\uB828"
+  <Category>k__BackingField: 4
+  <Model>k__BackingField: {fileID: 0}
+  <ShowMarker>k__BackingField: 1
+  <MarkerShape>k__BackingField: 0
+  <MarkerColor>k__BackingField: {r: 0.45, g: 0.35, b: 0.75, a: 1}
+  <MarkerRadius>k__BackingField: 0.8
+  <MarkerWidth>k__BackingField: 0.15
+  <Signal>k__BackingField: 2
+  <RewardPreview>k__BackingField: 0
+  <CostType>k__BackingField: 0
+  <CostValue>k__BackingField: 0
+  <CostGrowth>k__BackingField: 1
+  <Uses>k__BackingField: 1
+  <Effects>k__BackingField:
+  - <Type>k__BackingField: 4
+    <Timing>k__BackingField: 0
+    <Monster>k__BackingField: {fileID: 0}
+    <GuaranteedChest>k__BackingField: 1
+    <Count>k__BackingField: 1
+    <Value>k__BackingField: 1
+    <FailPercent>k__BackingField: 0
+    <MasteryTrack>k__BackingField: 1
+  <ActivateOnTouch>k__BackingField: 1
+  <HoldSeconds>k__BackingField: 0
+  <HoldOutside>k__BackingField: 0
+  <HoldDecayPerSecond>k__BackingField: 1
+  <HoldTimeLimit>k__BackingField: 0
+  <PlacementCost>k__BackingField: 1
+  <Weight>k__BackingField: 1
+  <CountRange>k__BackingField: {x: 0, y: 12}
+  <SpawnTime>k__BackingField: {x: 20, y: 540}
+  <PlayerDistance>k__BackingField: {x: 8, y: 18}
+  <MinSpacing>k__BackingField: 3
+  <RequireRoute>k__BackingField: 1

@@ -8,7 +8,7 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class GameManager : MonoBehaviour, IDollMendTarget
+	public class GameManager : MonoBehaviour, IMendTarget
 	{
 		public static GameManager Instance { get; private set; }
 
@@ -107,6 +107,9 @@ namespace WitchMendokusai
 		public void InitEquipment()
 		{
 			ApplyDollPassive();
+			if (mendRunner != null)
+				mendRunner.Release();
+			mendRunner = null;
 			DollMasteryRun.Begin(GetDoll(dataManager.CurDollID).Mastery);
 			signatureObject = null;
 			EquipmentData signature = dataManager.RunLoadout.Signature;
@@ -143,13 +146,23 @@ namespace WitchMendokusai
 		{
 			if (dollPassive != null)
 				dollPassive.Release();
-			dollPassive = DollPassiveRunner.Begin(playerProvider.CurrentObject, GetDoll(dataManager.CurDollID).Passive, GameEventManager.Instance, this);
+			dollPassive = DollPassiveRunner.Begin(playerProvider.CurrentObject, GetDoll(dataManager.CurDollID).Passive, GameEventManager.Instance);
+		}
+
+		private MendRunner mendRunner;
+
+		// 수선을 주는 장비가 판에 있으면 판마다 새로 걸고 지난 판 것은 걷음. 판 중 얻은 장비는 EquipDuringRun 에서
+		private void ApplyMend(EquipmentData equipment)
+		{
+			if (equipment.Mend == null || mendRunner != null)
+				return;
+			mendRunner = MendRunner.Begin(playerProvider.CurrentObject, equipment.Mend, GameEventManager.Instance, this);
 		}
 
 		// 수선 후보는 판 장비 순서 그대로 (0 번이 전용 무기). 빈 칸은 null
-		IReadOnlyList<EquipmentData> IDollMendTarget.MendCandidates() => dataManager.RunLoadout.Equipments();
+		IReadOnlyList<EquipmentData> IMendTarget.MendCandidates() => dataManager.RunLoadout.Equipments();
 
-		int IDollMendTarget.PickCount(EquipmentData equipment) => RunLoadout.PickCount(skillTrees, equipment, soManager.SelectedCardBuffer.Data);
+		int IMendTarget.PickCount(EquipmentData equipment) => RunLoadout.PickCount(skillTrees, equipment, soManager.SelectedCardBuffer.Data);
 
 		public void EquipDuringRun(EquipmentData equipment)
 		{
@@ -161,6 +174,7 @@ namespace WitchMendokusai
 		private GameObject ApplyEquipment(EquipmentData equipment)
 		{
 			effectRunner.ApplyEffects(equipment.Effects);
+			ApplyMend(equipment);
 			return equipment.Object != null ? SpawnEquipmentObject(equipment.Object, equipment) : null;
 		}
 

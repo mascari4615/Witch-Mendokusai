@@ -211,9 +211,9 @@ namespace WitchMendokusai
 		SIGNATURE_RANGED_DAMAGE_BONUS = 13_011,
 		SIGNATURE_RANGED_PIERCE = 13_012,
 
-		// 인물 고유 효과 (DollPassiveData). 빈도는 주기 감소, 세기는 한 번의 양
-		DOLL_PASSIVE_FREQUENCY = 13_100,
-		DOLL_PASSIVE_POTENCY = 13_101,
+		// 수선 (반짇고리 실 카드). 빈도는 켜기와 주기 감소, 세기는 한 번의 양. 정본 MendRules
+		MEND_FREQUENCY = 13_100,
+		MEND_POTENCY = 13_101,
 		#endregion
 
 		#region Status

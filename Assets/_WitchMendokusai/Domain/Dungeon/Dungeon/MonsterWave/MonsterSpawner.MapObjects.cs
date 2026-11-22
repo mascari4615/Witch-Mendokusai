@@ -41,11 +41,12 @@ namespace WitchMendokusai
 				mapObjectPlans.AddRange(MapObjectPlanner.Plan(budget, RunSeed.Derive(budget.SeedSalt), MapObjectSettings.Load().Pacing, out int remaining));
 				Debug.Log($"[MapObject] 예산 {budget.Credits}, 남음 {remaining}, 계획 {mapObjectPlans.Count}개");
 			}
-			// 인물 숙련 조각은 던전 예산과 따로, 이 인물로 들어간 판에만. 등장 시각 순서로 합침
-			MapObjectBudget shardBudget = DollMasteryRun.Data != null ? DollMasteryRun.Data.ShardBudget : null;
+			// 인물 숙련 조각은 던전 예산과 따로, 이 인물로 들어간 판에만. 간격은 인물 자료. 등장 시각 순서로 합침
+			DollMasteryData mastery = DollMasteryRun.Data;
+			MapObjectBudget shardBudget = mastery != null ? mastery.ShardBudget : null;
 			if (shardBudget != null)
 			{
-				mapObjectPlans.AddRange(MapObjectPlanner.Plan(shardBudget, RunSeed.Derive(shardBudget.SeedSalt), MapObjectSettings.Load().Pacing, out _));
+				mapObjectPlans.AddRange(MapObjectPlanner.Plan(shardBudget, RunSeed.Derive(shardBudget.SeedSalt), new MapObjectPacing(mastery.ShardGapSeconds, false), out _));
 				mapObjectPlans.Sort((left, right) => left.SpawnTime.CompareTo(right.SpawnTime));
 				Debug.Log($"[MapObject] 숙련 조각 포함 계획 {mapObjectPlans.Count}개");
 			}
@@ -105,20 +106,6 @@ namespace WitchMendokusai
 			}
 		}
 
-		private static bool IsUselessShard(MapObjectData data)
-		{
-			bool isShard = false;
-			foreach (MapObjectEffect effect in data.Effects)
-			{
-				if (effect == null || effect.Type != MapObjectEffectType.MasteryShard)
-					continue;
-				isShard = true;
-				if (DollMasteryRun.AcceptsShards && DollMasteryRun.IsTrackReady(effect.MasteryTrack) == false)
-					return false;
-			}
-			return isShard;
-		}
-
 		private static bool IsTouching(MapObjectSite site, Vector3 playerPosition)
 		{
 			Vector3 offset = site.transform.position - playerPosition;
@@ -163,12 +150,6 @@ namespace WitchMendokusai
 			while (nextMapObjectPlan < mapObjectPlans.Count && mapObjectPlans[nextMapObjectPlan].SpawnTime <= elapsed)
 			{
 				MapObjectData data = mapObjectPlans[nextMapObjectPlan].Data;
-				// 갈래를 확정했거나 그 막대가 이미 찼으면 숙련 조각은 더 놓지 않음
-				if (IsUselessShard(data))
-				{
-					nextMapObjectPlan++;
-					continue;
-				}
 				if (TryPlaceMapObject(data, mapObjectRandom, out _, out string failure) == false)
 				{
 					mapObjectFailedRounds++;

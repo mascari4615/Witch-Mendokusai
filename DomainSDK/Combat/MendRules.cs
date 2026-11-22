@@ -3,10 +3,15 @@ using System.Collections.Generic;
 
 namespace WitchMendokusai
 {
-	// 고유 효과 '수선' 의 정본. 레벨업 몇 번마다 가장 덜 키운 장비가 조금 강해짐
-	// 실 카드는 주기를 줄이고 (빈도), 한 번의 양을 늘림 (세기)
-	public static class DollMendRules
+	// 수선의 정본. 반짇고리 실 카드의 효과 (2026-11-22 21:03 고유 효과에서 옮김)
+	// 레벨업 몇 번마다 가장 덜 키운 장비가 조금 강해짐. 실 한 타래 첫 장이 수선을 켜고 더 받으면 주기가 줄고 (빈도), 튼튼한 바느질이 양을 늘림 (세기)
+	public static class MendRules
 	{
+		public static bool IsActive(int frequencyCards) => frequencyCards > 0;
+
+		// 첫 장은 켜기만, 둘째 장부터 한 장마다 주기 한 칸 감소
+		public static int IntervalFromCards(int baseInterval, int frequencyCards, int minInterval) => Interval(baseInterval, frequencyCards - 1, minInterval);
+
 		// 수선 주기 (레벨업 횟수). 줄여도 최소 주기 아래로는 안 감
 		public static int Interval(int baseInterval, int reduction, int minInterval)
 		{

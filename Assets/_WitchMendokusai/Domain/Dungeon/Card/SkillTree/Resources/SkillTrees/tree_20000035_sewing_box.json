@@ -7,7 +7,7 @@
     {"id":"needle_count","cardId":13003,"name":"바늘 한 움큼","description":"바늘 수 +{0}. 첫 장부터 바라보는 쪽으로 바늘을 쏩니다","kind":"Count","maxStack":3,"effects":[{"type":"UnitStat","target":"SIGNATURE_RANGED_COUNT","op":"Add","value":1}]},
     {"id":"needle_pierce","cardId":13004,"name":"꿰뚫는 바늘","description":"바늘 관통 +{0}","kind":"Size","maxStack":2,"effects":[{"type":"UnitStat","target":"SIGNATURE_RANGED_PIERCE","op":"Add","value":1}]},
     {"id":"needle_damage","cardId":13005,"name":"뾰족한 바늘","description":"바늘 피해 +{0}","kind":"Damage","maxStack":3,"effects":[{"type":"UnitStat","target":"SIGNATURE_RANGED_DAMAGE_BONUS","op":"Add","value":2}]},
-    {"id":"thread_frequency","cardId":13006,"name":"실 한 타래","description":"수선 주기가 레벨업 {0}번만큼 짧아집니다","kind":"Speed","maxStack":3,"effects":[{"type":"UnitStat","target":"DOLL_PASSIVE_FREQUENCY","op":"Add","value":1}]},
-    {"id":"thread_potency","cardId":13007,"name":"튼튼한 바느질","description":"수선 한 번의 양 +{0}","kind":"Size","maxStack":3,"effects":[{"type":"UnitStat","target":"DOLL_PASSIVE_POTENCY","op":"Add","value":1}]}
+    {"id":"thread_frequency","cardId":13006,"name":"실 한 타래","description":"수선을 켭니다. 레벨업 몇 번마다 가장 덜 키운 장비가 강해집니다. 더 받으면 주기가 {0}번씩 짧아집니다","kind":"Speed","maxStack":3,"effects":[{"type":"UnitStat","target":"MEND_FREQUENCY","op":"Add","value":1}]},
+    {"id":"thread_potency","cardId":13007,"name":"튼튼한 바느질","description":"수선 한 번의 양 +{0}","kind":"Size","maxStack":3,"effects":[{"type":"UnitStat","target":"MEND_POTENCY","op":"Add","value":1}]}
   ]
 }
