@@ -42,6 +42,6 @@ Material:
     - _Color: {r: 1, g: 0.98231536, b: 0.9481132, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _RotateVector: {r: 0, g: 0, b: 0, a: 0}
-    - _JellyWobble: {r: 0.06, g: 0.3, b: 1.7, a: 2.3}
+    - _JellyWobble: {r: 0.14, g: 0.3, b: 1.7, a: 2.3}
     - _JellyRim: {r: 0.93, g: 1, b: 0.7, a: 0.35}
   m_BuildTextureStacks: []
