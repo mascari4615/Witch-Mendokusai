@@ -261,8 +261,8 @@ Shader "WitchMendokusai/BillboardShader"
 
                 col *= _Color;
                 col *= i.color;
-                // 반투명 몸: 불투명 화소 (눈, 가장자리) 는 그대로
-                col.a *= lerp(_BodyAlpha, 1, step(0.99, textureAlpha));
+                // 반투명 몸: 불투명 화소 (눈, 가장자리) 는 그대로. 기준 0.95 는 압축과 축소로 255 가 조금 깎여도 불투명으로 보게
+                col.a *= lerp(_BodyAlpha, 1, step(0.95, textureAlpha));
 
                 clip(col.a - _Cutoff  * _Emission);
 
