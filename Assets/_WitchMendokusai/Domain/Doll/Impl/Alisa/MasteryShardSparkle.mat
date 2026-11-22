@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: MasteryShardSparkle
+  m_Shader: {fileID: 4800000, guid: 0c68c9e2ba1c431d813f6b406a5f7cf8, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _BandHigh: 0.72
+    - _BandLow: 0.42
+    - _BandSoftness: 0.04
+    - _GlintPeriod: 2.4
+    - _GlintWidth: 0.07
+    - _Glow: 1.8
+    - _Pulse: 0
+    - _RimPower: 3
+    m_Colors:
+    - _BrightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _DeepColor: {r: 0.85, g: 0.85, b: 0.8, a: 1}
+    - _GlintColor: {r: 1, g: 1, b: 1, a: 0}
+    - _MidColor: {r: 1, g: 1, b: 0.95, a: 1}
+    - _RimColor: {r: 1, g: 1, b: 1, a: 0.5}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

@@ -67,7 +67,7 @@ namespace WitchMendokusai
 			Vector3 position = ground + Vector3.up * mastery.ShardHeight;
 			GameObject shard = objectPoolManager.Spawn(mastery.Tracks[track].ShardPrefab.gameObject, position);
 			MasteryShardObject shardObject = shard.GetComponent<MasteryShardObject>();
-			shardObject.Init(track, mastery.Tracks[track].Color);
+			shardObject.Init(track, mastery.Tracks[track].Color, mastery.ShardHeight);
 			shard.SetActive(true);
 			activeShards.Add(shardObject);
 			if (SurvivalFeel.Instance != null)
