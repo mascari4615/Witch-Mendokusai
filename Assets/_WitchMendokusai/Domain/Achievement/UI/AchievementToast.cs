@@ -25,6 +25,7 @@ namespace WitchMendokusai
 
 			slot = new AchievementSlot(withCaption: false);
 			slot.pickingMode = PickingMode.Ignore;
+			slot.focusable = false;
 			Add(slot);
 
 			VisualElement text = new();

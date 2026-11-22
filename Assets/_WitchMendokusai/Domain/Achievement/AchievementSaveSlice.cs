@@ -39,10 +39,6 @@ namespace WitchMendokusai
 		public void RestoreLegacy(GameData saveData)
 		{
 			Records = new();
-			if (saveData.questStates == null)
-			{
-				return;
-			}
 			foreach (KeyValuePair<int, int> pair in saveData.questStates)
 			{
 				if ((QuestState)pair.Value == QuestState.Completed)

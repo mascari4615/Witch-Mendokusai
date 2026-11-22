@@ -67,6 +67,10 @@ namespace WitchMendokusai
 		public float sparkleOrbitSpeed = 0.35f;
 		[Tooltip("Fall 낙하 속도, 픽셀/초")]
 		public float sparkleFallSpeed = 110f;
+
+		[Header("업적 달성 띠")]
+		[Tooltip("띠가 떠 있는 시간 (초). 사라지는 움직임은 USS wm-ach-toast 의 transition")]
+		public float achievementToastHoldSeconds = 3f;
 		[Tooltip("모난 모양 (별, 꽃잎 등) 의 회전 속도 상한, 도/초")]
 		public float particleSpinSpeed = 160f;
 

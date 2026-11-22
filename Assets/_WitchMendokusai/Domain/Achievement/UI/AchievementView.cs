@@ -24,9 +24,6 @@ namespace WitchMendokusai
 		public const string USS_HEADER = "wm-ach-header";
 		public const string USS_GRID = "wm-ach-grid";
 
-		[SerializeField, Tooltip("달성 띠가 떠 있는 시간 (초)")] private float toastHoldSeconds = 3f;
-		[SerializeField, Tooltip("띠가 사라지는 움직임을 기다리는 시간 (초). USS transition 과 맞춤")] private float toastFadeSeconds = 0.3f;
-
 		private WMWindow window;
 		private VisualElement tabs;
 		private Label header;
@@ -40,6 +37,7 @@ namespace WitchMendokusai
 		private AchievementCategorySO currentCategory;
 		private AchievementSO selected;
 		private bool toastPlaying;
+		private bool toastFaded;
 
 		private UIRoot uiRoot;
 		private AchievementManager achievementManager;
@@ -93,6 +91,8 @@ namespace WitchMendokusai
 			body.Add(detail);
 
 			toast = new AchievementToast();
+			toast.RegisterCallback<TransitionEndEvent>(_ => toastFaded = true);
+			toast.RegisterCallback<TransitionCancelEvent>(_ => toastFaded = true);
 			uiRoot.OverlayLayer.Add(toast);
 
 			achievementManager.Changed += Refresh;
@@ -103,15 +103,18 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
-			if (achievementManager != null)
-				achievementManager.Changed -= Refresh;
+			// Start 전에 부서질 수 있음 (UIManager 가 AddComponent 한 같은 프레임). 그때는 구독도 띠도 아직 없음
+			if (window == null)
+			{
+				return;
+			}
+			achievementManager.Changed -= Refresh;
 			EventBusBridge.Unsubscribe<AchievementUnlockedEvent>(OnUnlocked);
-			if (inputManager != null)
-				inputManager.UnregisterInputEvent(InputEventType.AchievementToggle, InputEventResponseType.Performed, OnToggle);
-			toast?.RemoveFromHierarchy();
+			inputManager.UnregisterInputEvent(InputEventType.AchievementToggle, InputEventResponseType.Performed, OnToggle);
+			toast.RemoveFromHierarchy();
 		}
 
-		private void OnToggle() => window?.Toggle();
+		private void OnToggle() => window.Toggle();
 
 		private void Refresh()
 		{
@@ -160,6 +163,7 @@ namespace WitchMendokusai
 			slots.Clear();
 			int total = 0;
 			int unlocked = 0;
+			int[] countAtTier = new int[AchievementTiers.MAX_TIER_COUNT + 1];
 			foreach (AchievementSO achievement in achievementManager.Achievements)
 			{
 				if (currentCategory != null && achievement.Category != currentCategory)
@@ -168,6 +172,7 @@ namespace WitchMendokusai
 				}
 				int tier = book.TierOf(achievement.ID);
 				total++;
+				countAtTier[tier]++;
 				if (tier > 0)
 				{
 					unlocked++;
@@ -184,7 +189,13 @@ namespace WitchMendokusai
 			}
 
 			string motif = currentCategory != null && string.IsNullOrEmpty(currentCategory.MotifName) == false ? currentCategory.MotifName : "업적";
-			header.text = $"{motif} {unlocked} / {total}    1단계 {book.CountAtTier(1)}, 2단계 {book.CountAtTier(2)}, 3단계 {book.CountAtTier(3)}";
+			System.Text.StringBuilder headerText = new();
+			headerText.Append(motif).Append(' ').Append(unlocked).Append(" / ").Append(total).Append("   ");
+			for (int tier = 1; tier <= AchievementTiers.MAX_TIER_COUNT; tier++)
+			{
+				headerText.Append(tier == 1 ? " " : ", ").Append(tier).Append("단계 ").Append(countAtTier[tier]);
+			}
+			header.text = headerText.ToString();
 
 			if (selected != null)
 			{
@@ -192,7 +203,7 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				detail.Clear("업적을 고르면 여기에 보임");
+				detail.Clear(AchievementDetail.EMPTY_TEXT);
 			}
 		}
 
@@ -222,9 +233,12 @@ namespace WitchMendokusai
 			{
 				AchievementUnlockedEvent evt = toastQueue.Dequeue();
 				toast.Show(SOHelper.Get<AchievementSO>(evt.AchievementId), evt.Tier);
-				yield return new WaitForSecondsRealtime(toastHoldSeconds);
+				yield return new WaitForSecondsRealtime(UIFxSettings.Instance.achievementToastHoldSeconds);
+				toastFaded = false;
 				toast.Hide();
-				yield return new WaitForSecondsRealtime(toastFadeSeconds);
+				// 사라지는 움직임 길이는 USS 한 자리 (wm-ach-toast transition). 끝 신호를 기다리되, 신호가 안 오면 (USS 없음 등) 떠 있던 시간만큼에서 끊어 대기열이 멈추지 않게
+				float fadeStarted = Time.realtimeSinceStartup;
+				yield return new WaitUntil(() => toastFaded || Time.realtimeSinceStartup - fadeStarted > UIFxSettings.Instance.achievementToastHoldSeconds);
 			}
 			toastPlaying = false;
 		}

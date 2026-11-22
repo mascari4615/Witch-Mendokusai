@@ -37,4 +37,4 @@ MonoBehaviour:
     WorkTime: 0
     AutoWork: 0
     AutoComplete: 1
-    ShowCompletePopup: 1
+    ShowCompletePopup: 0

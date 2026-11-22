@@ -38,6 +38,10 @@ namespace WitchMendokusai
 			Dictionary<AchievementStep, string> map = new();
 			foreach (SteamAchievementLink link in achievements)
 			{
+				if (link.Tier < 1)
+				{
+					throw new System.InvalidOperationException($"Steam 업적 연결 {link.ApiName}: 단계는 1부터 ({link.Step}). 옛 questId 자산을 안 옮겼는지 확인");
+				}
 				map.Add(link.Step, link.ApiName);
 			}
 			return map;

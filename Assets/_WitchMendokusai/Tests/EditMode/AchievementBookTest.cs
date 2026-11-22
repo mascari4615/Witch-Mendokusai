@@ -36,6 +36,14 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Legacy_tier_must_be_inside_the_achievement_tiers()
+		{
+			Assert.Throws<ArgumentException>(() => AchievementTiers.ValidateLegacyTier("zero", 0, 3));
+			Assert.Throws<ArgumentException>(() => AchievementTiers.ValidateLegacyTier("over", 4, 3));
+			Assert.DoesNotThrow(() => AchievementTiers.ValidateLegacyTier("boss", 3, 3));
+		}
+
+		[Test]
 		public void Book_tier_only_goes_up_and_keeps_the_first_date()
 		{
 			AchievementBook book = new(new Dictionary<int, AchievementRecord>());

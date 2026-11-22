@@ -194,6 +194,16 @@ namespace WitchMendokusai
 			DataManager.WorkManager.Init(saveData.works);
 			CriteriaContext criteriaContext = DataManager.QuestManager.CreateCriteriaContext();
 			List<RuntimeQuestSaveData> savedQuests = ModQuestInstaller.NormalizeSavedQuests(saveData.runtimeQuests, ModLoader.Content.HiddenQuestIds);
+			// 업적이 퀘스트였던 시절 진행 중이던 것은 저장된 타입이 Achievement. 자산은 일반으로 바뀌었으므로 맞춤 (업적은 AchievementManager 가 따로)
+			for (int i = 0; i < savedQuests.Count; i++)
+			{
+				if (savedQuests[i].Type == QuestType.Achievement)
+				{
+					RuntimeQuestSaveData normalized = savedQuests[i];
+					normalized.Type = QuestType.Normal;
+					savedQuests[i] = normalized;
+				}
+			}
 			if (savedQuests.Count < saveData.runtimeQuests.Count)
 			{
 				Debug.Log($"[SaveManager] 중복 모드 퀘스트 정리: {saveData.runtimeQuests.Count} -> {savedQuests.Count}");

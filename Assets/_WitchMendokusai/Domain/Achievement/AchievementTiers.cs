@@ -23,6 +23,15 @@ namespace WitchMendokusai
 			return tier;
 		}
 
+		/// <summary>옛 세이브에서 옮길 단계가 그 업적의 단계 안인지 (1 ~ 단계 수)</summary>
+		public static void ValidateLegacyTier(string owner, int legacyTier, int maxTier)
+		{
+			if (legacyTier < 1 || legacyTier > maxTier)
+			{
+				throw new ArgumentException($"{owner}: 옛 세이브 단계 {legacyTier} 는 1~{maxTier} 밖");
+			}
+		}
+
 		/// <summary>목표값 표가 1~3개, 0보다 크고, 오름차순인지. 틀리면 자산 이름과 함께 던짐 (조용히 0단계로 남지 않게)</summary>
 		public static void Validate(string owner, IReadOnlyList<int> targets)
 		{

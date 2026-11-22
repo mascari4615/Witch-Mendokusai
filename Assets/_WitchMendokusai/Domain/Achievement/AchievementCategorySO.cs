@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	/// 업적 분류 하나. 분류마다 모으는 물건 (도장, 자수 패치, 물약병 ...) 이 다르고, 칸 그림은 분류가 들고 있음.
 	/// 업적 창은 분류 탭을 넘길 때 이 자료만 바꿔 끼움. 그림이 아직 없으면 MotifKey 의 USS 임시 모양
 	/// </summary>
-	[CreateAssetMenu(fileName = "ACC_", menuName = "WM/Variable/" + nameof(AchievementCategorySO))]
+	[CreateAssetMenu(fileName = "ACC_", menuName = "WM/Achievement/" + nameof(AchievementCategorySO))]
 	public class AchievementCategorySO : DataSO
 	{
 		[field: Header("_" + nameof(AchievementCategorySO))]
@@ -21,7 +21,7 @@ namespace WitchMendokusai
 		/// <summary>단계 틀 그림. 0단계나 그림이 모자라면 null (USS 임시 모양)</summary>
 		public Sprite FrameOf(int tier)
 		{
-			if (tier <= 0 || TierFrames == null || tier > TierFrames.Count)
+			if (tier <= 0 || tier > TierFrames.Count)
 			{
 				return null;
 			}

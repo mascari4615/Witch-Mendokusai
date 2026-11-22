@@ -48,6 +48,14 @@ namespace WitchMendokusai
 			SOHelper.ForEach<AchievementSO>(achievement =>
 			{
 				AchievementTiers.Validate(achievement.name, achievement.TierTargets);
+				if (achievement.LegacyQuestId != AchievementSO.NO_LEGACY_QUEST)
+				{
+					AchievementTiers.ValidateLegacyTier(achievement.name, achievement.LegacyTier, achievement.MaxTier);
+				}
+				if (string.IsNullOrEmpty(achievement.Category.MotifKey))
+				{
+					throw new InvalidOperationException($"{achievement.Category.name}: MotifKey 비어 있음 (칸 임시 모양 USS 열쇠)");
+				}
 				watched.Add(new Watched(achievement, CriteriaFactory.Create(achievement.ToMeasureCriteria(), context)));
 			});
 			watched.Sort(CompareWatched);
@@ -97,16 +105,16 @@ namespace WitchMendokusai
 		private void Evaluate(bool announce)
 		{
 			bool changed = false;
-			string today = DateTime.Now.ToString(DATE_FORMAT);
 			foreach (Watched entry in watched)
 			{
 				AchievementSO achievement = entry.Achievement;
 				int tier = AchievementTiers.Resolve(entry.Measure.GetCurValue(), achievement.TierTargets);
-				int before = Book.Advance(achievement.ID, tier, today);
-				if (tier <= before)
+				// 날짜 글자는 단계가 오를 때만 만듦 (틱이 초당 20번)
+				if (tier <= Book.TierOf(achievement.ID))
 				{
 					continue;
 				}
+				int before = Book.Advance(achievement.ID, tier, DateTime.Now.ToString(DATE_FORMAT));
 				changed = true;
 				if (announce == false)
 				{

@@ -10,7 +10,7 @@ namespace WitchMendokusai
 	/// - Name 은 이름, Description 은 한 줄 사연, Sprite 는 칸 안 그림
 	/// - 숨김 업적은 달성 전에 이름, 사연, 조건이 안 보임
 	/// </summary>
-	[CreateAssetMenu(fileName = "ACH_", menuName = "WM/Variable/" + nameof(AchievementSO))]
+	[CreateAssetMenu(fileName = "ACH_", menuName = "WM/Achievement/" + nameof(AchievementSO))]
 	public class AchievementSO : DataSO
 	{
 		public const int NO_LEGACY_QUEST = -1;

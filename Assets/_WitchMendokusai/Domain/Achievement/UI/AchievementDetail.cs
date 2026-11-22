@@ -21,7 +21,7 @@ namespace WitchMendokusai
 
 		private const string HIDDEN_STORY = "아직 모르는 기록";
 		private const string HIDDEN_CONDITION = "어떻게 얻는지 아직 모름";
-		private const string EMPTY_TEXT = "업적을 고르면 여기에 보임";
+		public const string EMPTY_TEXT = "업적을 고르면 여기에 보임";
 
 		private readonly AchievementSlot slot;
 		private readonly Label nameLabel;
@@ -37,6 +37,7 @@ namespace WitchMendokusai
 
 			slot = new AchievementSlot(withCaption: false);
 			slot.pickingMode = PickingMode.Ignore;
+			slot.focusable = false;
 			Add(slot);
 
 			nameLabel = AddLabel(USS_NAME);
@@ -86,7 +87,7 @@ namespace WitchMendokusai
 
 			string date = book.UnlockedOnOf(achievement.ID);
 			string progressText = maxed ? "모든 단계 달성" : $"다음 단계 {currentValue} / {nextTarget}";
-			noteLabel.text = concealed ? string.Empty : (date == null ? progressText : $"{progressText}, {date} 달성");
+			noteLabel.text = concealed ? string.Empty : (date == null ? progressText : $"{progressText}\n{tier}단계에 닿은 날 {date}");
 		}
 
 		public void Clear(string message)

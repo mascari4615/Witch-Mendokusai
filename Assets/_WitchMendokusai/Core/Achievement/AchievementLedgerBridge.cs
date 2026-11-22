@@ -8,7 +8,14 @@ namespace WitchMendokusai
 	{
 		public static IAchievementLedger Current { get; private set; }
 
-		public static void Register(IAchievementLedger ledger) => Current = ledger;
+		/// <summary>등록할 때마다 오름. 같은 실행 안에서 다시 로드하거나 새 게임이면 장부가 바뀌므로 플랫폼이 이 값을 보고 다시 맞춤</summary>
+		public static int Revision { get; private set; }
+
+		public static void Register(IAchievementLedger ledger)
+		{
+			Current = ledger;
+			Revision++;
+		}
 
 		public static void Unregister(IAchievementLedger ledger)
 		{
