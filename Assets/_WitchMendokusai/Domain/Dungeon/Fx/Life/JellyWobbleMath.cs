@@ -10,6 +10,8 @@ namespace WitchMendokusai
 	{
 		private static readonly int JELLY_WOBBLE_ID = Shader.PropertyToID("_JellyWobble");
 		private static readonly int JELLY_VOLUME_ID = Shader.PropertyToID("_JellyVolume");
+		private static readonly int JELLY_STEP_FPS_ID = Shader.PropertyToID("_JellyStepFps");
+		private static readonly int JELLY_STEPS_ID = Shader.PropertyToID("_JellySteps");
 		private const float TAU = Mathf.PI * 2f;
 
 		/// <summary> 지금 시각, 피벗 위치에서의 (가로, 세로) 배율. 출렁임이 없는 재질이면 (1, 1) </summary>
@@ -23,7 +25,16 @@ namespace WitchMendokusai
 			float volume = material.HasProperty(JELLY_VOLUME_ID) ? material.GetFloat(JELLY_VOLUME_ID) : 0f;
 			// 셰이더의 _Time.y 는 장면을 불러온 뒤 흐른 게임 시간
 			float phase = pivotPosition.x * wobbleSettings.z + pivotPosition.z * wobbleSettings.w;
-			float wobble = wobbleSettings.x * Mathf.Sin(Time.timeSinceLevelLoad * wobbleSettings.y * TAU + phase);
+			float stepFps = material.HasProperty(JELLY_STEP_FPS_ID) ? material.GetFloat(JELLY_STEP_FPS_ID) : 0f;
+			float steps = material.HasProperty(JELLY_STEPS_ID) ? material.GetFloat(JELLY_STEPS_ID) : 0f;
+			float time = Time.timeSinceLevelLoad;
+			if (stepFps > 0f)
+				time = Mathf.Floor(time * stepFps) / stepFps;
+			float wave = Mathf.Sin(time * wobbleSettings.y * TAU + phase);
+			// 셰이더 round 와 같게 가장 가까운 정수, 딱 반이면 짝수 쪽 (Mathf.Round 와 HLSL round 가 같은 규칙)
+			if (steps > 0f)
+				wave = Mathf.Round(wave * steps) / steps;
+			float wobble = wobbleSettings.x * wave;
 			return new Vector2(1f - wobble * volume, 1f + wobble);
 		}
 	}

@@ -22,6 +22,9 @@ Shader "WitchMendokusai/BillboardShader"
         _JellyWobble("Jelly Wobble", Vector) = (0, 0, 0, 0)
         // 세로로 늘 때 가로로 줄어드는 비율 (0.5 면 늘어난 만큼의 절반)
         _JellyVolume("Jelly Volume", Range(0, 1)) = 0.5
+        // 끊기는 출렁임 (프레임 애니메이션 느낌). 초당 바뀌는 횟수 (0 이면 매끄럽게), 한쪽 모양 단계 수 (0 이면 연속)
+        _JellyStepFps("Jelly Step Fps", Float) = 0
+        _JellySteps("Jelly Steps", Float) = 0
         // 반투명 몸. 그림 알파가 기준보다 작은 화소 (몸) 에만 곱함. 눈과 가장자리처럼 불투명한 화소는 그대로
         _BodyAlpha("Body Alpha", Range(0, 1)) = 1
         // 불투명으로 볼 그림 알파 기준. 압축과 축소로 255 가 조금 깎여도 불투명으로 보게 1 보다 낮게
@@ -116,6 +119,8 @@ Shader "WitchMendokusai/BillboardShader"
                 float _LightResponse;
                 float4 _JellyWobble;
                 float _JellyVolume;
+                float _JellyStepFps;
+                float _JellySteps;
                 float _BodyAlpha;
                 float _JellyOpaqueCut;
                 float4 _JellyRim;
@@ -170,7 +175,11 @@ Shader "WitchMendokusai/BillboardShader"
                 if (_JellyWobble.x > 0)
                 {
                     float wobblePhase = UNITY_MATRIX_M._m03 * _JellyWobble.z + UNITY_MATRIX_M._m23 * _JellyWobble.w;
-                    float wobble = _JellyWobble.x * sin(_Time.y * _JellyWobble.y * 6.2831853 + wobblePhase);
+                    float wobbleTime = _JellyStepFps > 0 ? floor(_Time.y * _JellyStepFps) / _JellyStepFps : _Time.y;
+                    float wobbleWave = sin(wobbleTime * _JellyWobble.y * 6.2831853 + wobblePhase);
+                    if (_JellySteps > 0)
+                        wobbleWave = round(wobbleWave * _JellySteps) / _JellySteps;
+                    float wobble = _JellyWobble.x * wobbleWave;
                     positionOS.y *= 1 + wobble;
                     positionOS.x *= 1 - wobble * _JellyVolume;
                 }
