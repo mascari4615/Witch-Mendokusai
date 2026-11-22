@@ -16,11 +16,12 @@ MonoBehaviour:
   <Name>k__BackingField: "씨앗 슬라임"
   <Description>k__BackingField:
   <Sprite>k__BackingField: {fileID: 695418822, guid: 9ab49a49da694cb499b4bcad4f133d1a, type: 3}
-  <Sprites>k__BackingField: []
+  <Sprites>k__BackingField:
+  - {fileID: 21300000, guid: ac0014e4a6114a2ebe2ed7b4964f573a, type: 3}
   <Affiliation>k__BackingField: -1
   <Prefab>k__BackingField: {fileID: 6534569428800909803, guid: 4dd396cc358f03b46bcd30a19caab65c, type: 3}
   <DefaultSkills>k__BackingField: []
-  <Material>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
+  <Material>k__BackingField: {fileID: 2100000, guid: 8e0308143c144b92ba51de5e6c6559b3, type: 2}
   <InitStatInfos>k__BackingField:
     initStats:
     - unitStat: 2
