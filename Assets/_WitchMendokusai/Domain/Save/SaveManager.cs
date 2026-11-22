@@ -204,6 +204,8 @@ namespace WitchMendokusai
 				Dungeon dungeon = GetDungeon(id);
 				dungeon.Load(dungeonData);
 			}
+			// 저장된 최고 기록을 기록판에 알림 (앞선 실행에서 플랫폼에 못 올린 기록 포함)
+			ForEach<Dungeon>(dungeon => { dungeon.ReportRecords(); });
 
 			// WorldStage 초기화
 			foreach ((int worldStageID, WorldStageSaveData worldStageData) in saveData.worldStages)

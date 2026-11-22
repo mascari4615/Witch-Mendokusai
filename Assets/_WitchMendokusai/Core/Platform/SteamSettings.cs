@@ -24,9 +24,13 @@ namespace WitchMendokusai
 		[Tooltip("게임 업적 (QuestSO ID) 중 Steam 에 연결할 것만. 정본은 게임, 여기 없는 업적은 게임 전용.")]
 		[SerializeField] private List<SteamAchievementLink> achievements = new();
 
+		[Tooltip("게임 기록 키 (GameRecords) 중 Steam 순위표에 올릴 것만. 정본은 게임 세이브, 순위표는 사본.")]
+		[SerializeField] private List<SteamLeaderboardLink> leaderboards = new();
+
 		public uint AppId => appId;
 		public bool InitializeInEditor => initializeInEditor;
 		public IReadOnlyList<SteamAchievementLink> Achievements => achievements;
+		public IReadOnlyList<SteamLeaderboardLink> Leaderboards => leaderboards;
 
 		/// <summary>게임 업적 ID 에서 Steam API 이름으로 가는 표. 같은 ID 가 두 번이면 FastFail</summary>
 		public IReadOnlyDictionary<int, string> BuildAchievementMap()
@@ -35,6 +39,17 @@ namespace WitchMendokusai
 			foreach (SteamAchievementLink link in achievements)
 			{
 				map.Add(link.QuestId, link.ApiName);
+			}
+			return map;
+		}
+
+		/// <summary>게임 기록 키에서 Steam 순위표 이름으로 가는 표. 같은 키가 두 번이면 FastFail</summary>
+		public IReadOnlyDictionary<string, string> BuildLeaderboardMap()
+		{
+			Dictionary<string, string> map = new();
+			foreach (SteamLeaderboardLink link in leaderboards)
+			{
+				map.Add(link.RecordKey, link.LeaderboardName);
 			}
 			return map;
 		}

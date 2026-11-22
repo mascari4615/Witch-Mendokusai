@@ -254,6 +254,7 @@ namespace WitchMendokusai
 
 				IsDungeon = true;
 				isRunActive = true;
+				GamePresence.EnterDungeon(dungeon.Name);
 
 				// Create Dungeon Quest
 				{
@@ -298,6 +299,7 @@ namespace WitchMendokusai
 				return;
 
 			UpdateRunSky();
+			GamePresence.SetLevel((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR]);
 
 			float interval = resourceManager.SurvivalFeel.Upgrade.HpRegenInterval;
 			hpRegenElapsed += Time.deltaTime;
@@ -421,7 +423,8 @@ namespace WitchMendokusai
 			// 위험도 단계 첫 클리어 보상. 위협 배율과 냥 보너스에 안 섞이게 그 뒤, 결과창 합계에는 들어가게 기록 전
 			if (isCleared)
 				GrantRiskRewards();
-			dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR], isCleared);
+			DungeonRecord result = dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR], isCleared);
+			RecordRunResult(result);
 
 			// 결과창을 가리지 않게 남은 승패 연출 (물들임, 띠, 카메라 당김) 을 걷음
 			StopFlowFx();

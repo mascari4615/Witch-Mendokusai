@@ -67,6 +67,7 @@ namespace WitchMendokusai
 		private void ResetDungeonAndPlayer()
 		{
 			isRunActive = false;
+			GamePresence.ReturnToTown();
 			dungeonUI.ClosePanel();
 			cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
 			SkyTimeOverride.Clear();

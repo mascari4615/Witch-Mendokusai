@@ -34,8 +34,10 @@ namespace WitchMendokusai
 		public List<int> ClearedConstraints;
 		public List<int> ClearedDolls;
 		public List<int> KilledBosses;
+		// 세부 최고 기록 (순위표 원천). 옛 저장은 전부 0
+		public DungeonBestRecords Bests;
 
-		public DungeonSaveData(Dictionary<int, bool> constraintSelected, int clearedThreatCount, bool hasCleared, int bestRisk, List<int> claimedRiskMilestones, List<int> clearedConstraints, List<int> clearedDolls, List<int> killedBosses)
+		public DungeonSaveData(Dictionary<int, bool> constraintSelected, int clearedThreatCount, bool hasCleared, int bestRisk, List<int> claimedRiskMilestones, List<int> clearedConstraints, List<int> clearedDolls, List<int> killedBosses, DungeonBestRecords bests)
 		{
 			ConstraintSelected = constraintSelected;
 			ClearedThreatCount = clearedThreatCount;
@@ -45,6 +47,7 @@ namespace WitchMendokusai
 			ClearedConstraints = clearedConstraints;
 			ClearedDolls = clearedDolls;
 			KilledBosses = killedBosses;
+			Bests = bests;
 		}
 	}
 
@@ -85,6 +88,7 @@ namespace WitchMendokusai
 		[field: NonSerialized] public int ClearedThreatCount { get; private set; }
 		[field: NonSerialized] public bool HasCleared { get; private set; }
 		[field: NonSerialized] public int BestRisk { get; private set; }
+		[field: NonSerialized] public DungeonBestRecords Bests { get; private set; }
 		[field: NonSerialized] public HashSet<int> ClaimedRiskMilestones { get; private set; } = new();
 		[field: NonSerialized] public HashSet<int> ClearedConstraints { get; private set; } = new();
 		[field: NonSerialized] public HashSet<int> ClearedDolls { get; private set; } = new();
@@ -114,6 +118,16 @@ namespace WitchMendokusai
 
 		public void RecordBossKill(int bossId) => KilledBosses.Add(bossId);
 
+		/// <summary> 판 결과로 세부 최고 기록 갱신. 패배한 판도 부름 </summary>
+		public void RecordRunResult(DungeonRecord result) => Bests = DungeonRecordRules.Merge(Bests, result);
+
+		/// <summary> 세부 최고 기록과 최고 위험도를 기록판 (GameRecords) 에 알림. 세이브 로드 뒤, 판 끝 </summary>
+		public void ReportRecords()
+		{
+			foreach ((DungeonRecordStat stat, int value) in DungeonRecordRules.Values(Bests, BestRisk))
+				GameRecords.Report(DungeonRecordRules.RecordKey(ID, stat), value);
+		}
+
 		public void RecordThreatClear(int level) => ClearedThreatCount = DungeonThreatRules.AfterClear(ClearedThreatCount, level);
 
 		/// <summary> 클리어 기록. 이번 위험도로 처음 닿은 보상 구간을 돌려줌 (지급은 부르는 쪽) </summary>
@@ -141,6 +155,7 @@ namespace WitchMendokusai
 			ClearedThreatCount = 0;
 			HasCleared = false;
 			BestRisk = 0;
+			Bests = default;
 			ClaimedRiskMilestones = new();
 			ClearedConstraints = new();
 			ClearedDolls = new();
@@ -159,6 +174,7 @@ namespace WitchMendokusai
 			ClearedThreatCount = saveData.ClearedThreatCount;
 			HasCleared = saveData.HasCleared;
 			BestRisk = saveData.BestRisk;
+			Bests = saveData.Bests;
 			if (saveData.ClaimedRiskMilestones != null)
 				ClaimedRiskMilestones.UnionWith(saveData.ClaimedRiskMilestones);
 			if (saveData.ClearedConstraints != null)
@@ -182,7 +198,7 @@ namespace WitchMendokusai
 		public DungeonSaveData Save()
 		{
 			return new DungeonSaveData(ConstraintSelected, ClearedThreatCount, HasCleared, BestRisk, new List<int>(ClaimedRiskMilestones),
-				new List<int>(ClearedConstraints), new List<int>(ClearedDolls), new List<int>(KilledBosses));
+				new List<int>(ClearedConstraints), new List<int>(ClearedDolls), new List<int>(KilledBosses), Bests);
 		}
 	}
 }

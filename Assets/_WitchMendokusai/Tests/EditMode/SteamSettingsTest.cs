@@ -62,6 +62,32 @@ namespace WitchMendokusai.Tests
 			Assert.DoesNotThrow(() => settings.BuildAchievementMap(), "같은 게임 업적을 두 번 연결");
 		}
 
+		[Test]
+		public void Leaderboard_links_point_to_game_records()
+		{
+			SteamSettings settings = SteamSettings.Load();
+			HashSet<int> dungeonIds = new();
+			foreach (string guid in AssetDatabase.FindAssets("t:" + nameof(Dungeon)))
+			{
+				dungeonIds.Add(AssetDatabase.LoadAssetAtPath<Dungeon>(AssetDatabase.GUIDToAssetPath(guid)).ID);
+			}
+
+			HashSet<string> names = new();
+			foreach (SteamLeaderboardLink link in settings.Leaderboards)
+			{
+				Match match = Regex.Match(link.RecordKey ?? string.Empty, @"^Dungeon\.(\d+)\.(\w+)$");
+				Assert.That(match.Success, Is.True, "기록 키 형식: " + link.RecordKey);
+				int dungeonId = int.Parse(match.Groups[1].Value);
+				Assert.That(dungeonIds.Contains(dungeonId), Is.True, "없는 던전: " + link.RecordKey);
+				Assert.That(System.Enum.TryParse(match.Groups[2].Value, out DungeonRecordStat stat), Is.True, "없는 기록 항목: " + link.RecordKey);
+				Assert.That(link.RecordKey, Is.EqualTo(DungeonRecordRules.RecordKey(dungeonId, stat)));
+				Assert.That(link.LowerIsBetter, Is.EqualTo(stat == DungeonRecordStat.FastestClear), "정렬 방향: " + link.RecordKey);
+				Assert.That(Regex.IsMatch(link.LeaderboardName ?? string.Empty, "^[A-Za-z0-9_]+$"), Is.True, "순위표 이름 형식: " + link.LeaderboardName);
+				Assert.That(names.Add(link.LeaderboardName), Is.True, "순위표 이름 중복: " + link.LeaderboardName);
+			}
+			Assert.DoesNotThrow(() => settings.BuildLeaderboardMap(), "같은 기록 키를 두 번 연결");
+		}
+
 		[System.Serializable]
 		private sealed class AsmdefPlatforms
 		{

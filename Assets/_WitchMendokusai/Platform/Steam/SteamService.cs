@@ -20,6 +20,8 @@ namespace WitchMendokusai
 
 		private bool isReady;
 		private SteamAchievementSync achievementSync;
+		private SteamPresenceSync presenceSync;
+		private SteamLeaderboardSync leaderboardSync;
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 		private static void StandUp()
@@ -61,8 +63,11 @@ namespace WitchMendokusai
 				return;
 			}
 
-			isReady = true;
 			achievementSync = new SteamAchievementSync(settings);
+			presenceSync = new SteamPresenceSync();
+			leaderboardSync = new SteamLeaderboardSync(settings);
+			// 배선이 전부 생긴 뒤에 켬. 중간 실패면 Disconnect 가 빈 배선을 건드리지 않음
+			isReady = true;
 			Debug.Log("[Steam] 연결 " + SteamClient.Name + " (" + SteamClient.SteamId + "), 앱 " + appId);
 		}
 
@@ -96,6 +101,8 @@ namespace WitchMendokusai
 
 			isReady = false;
 			achievementSync.Stop();
+			presenceSync.Stop();
+			leaderboardSync.Stop();
 			SteamClient.Shutdown();
 		}
 	}

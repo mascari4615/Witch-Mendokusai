@@ -21,3 +21,76 @@ MonoBehaviour:
     apiName: ACH_BOSS_HUNTER
   - questId: 1001
     apiName: ACH_FIRST_POTION
+  leaderboards:
+  - recordKey: Dungeon.0.LongestSurvival
+    leaderboardName: Dungeon0_LongestSurvival
+    lowerIsBetter: 0
+    displayAsSeconds: 1
+  - recordKey: Dungeon.0.FastestClear
+    leaderboardName: Dungeon0_FastestClear
+    lowerIsBetter: 1
+    displayAsSeconds: 1
+  - recordKey: Dungeon.0.MostKills
+    leaderboardName: Dungeon0_MostKills
+    lowerIsBetter: 0
+    displayAsSeconds: 0
+  - recordKey: Dungeon.0.HighestLevel
+    leaderboardName: Dungeon0_HighestLevel
+    lowerIsBetter: 0
+    displayAsSeconds: 0
+  - recordKey: Dungeon.0.MostNyang
+    leaderboardName: Dungeon0_MostNyang
+    lowerIsBetter: 0
+    displayAsSeconds: 0
+  - recordKey: Dungeon.0.BestRisk
+    leaderboardName: Dungeon0_BestRisk
+    lowerIsBetter: 0
+    displayAsSeconds: 0
+  - recordKey: Dungeon.1.LongestSurvival
+    leaderboardName: Dungeon1_LongestSurvival
+    lowerIsBetter: 0
+    displayAsSeconds: 1
+  - recordKey: Dungeon.1.FastestClear
+    leaderboardName: Dungeon1_FastestClear
+    lowerIsBetter: 1
+    displayAsSeconds: 1
+  - recordKey: Dungeon.1.MostKills
+    leaderboardName: Dungeon1_MostKills
+    lowerIsBetter: 0
+    displayAsSeconds: 0
+  - recordKey: Dungeon.1.HighestLevel
+    leaderboardName: Dungeon1_HighestLevel
+    lowerIsBetter: 0
+    displayAsSeconds: 0
+  - recordKey: Dungeon.1.MostNyang
+    leaderboardName: Dungeon1_MostNyang
+    lowerIsBetter: 0
+    displayAsSeconds: 0
+  - recordKey: Dungeon.1.BestRisk
+    leaderboardName: Dungeon1_BestRisk
+    lowerIsBetter: 0
+    displayAsSeconds: 0
+  - recordKey: Dungeon.2.LongestSurvival
+    leaderboardName: Dungeon2_LongestSurvival
+    lowerIsBetter: 0
+    displayAsSeconds: 1
+  - recordKey: Dungeon.2.FastestClear
+    leaderboardName: Dungeon2_FastestClear
+    lowerIsBetter: 1
+    displayAsSeconds: 1
+  - recordKey: Dungeon.2.MostKills
+    leaderboardName: Dungeon2_MostKills
+    lowerIsBetter: 0
+    displayAsSeconds: 0
+  - recordKey: Dungeon.2.HighestLevel
+    leaderboardName: Dungeon2_HighestLevel
+    lowerIsBetter: 0
+    displayAsSeconds: 0
+  - recordKey: Dungeon.2.MostNyang
+    leaderboardName: Dungeon2_MostNyang
+    lowerIsBetter: 0
+    displayAsSeconds: 0
+  - recordKey: Dungeon.2.BestRisk
+    leaderboardName: Dungeon2_BestRisk
+    lowerIsBetter: 0
+    displayAsSeconds: 0
