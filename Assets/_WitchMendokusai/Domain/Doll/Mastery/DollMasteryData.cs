@@ -12,6 +12,7 @@ namespace WitchMendokusai
 		public Color Color;
 		[Tooltip("조각을 먹을 때마다 판 안에서 오르는 스탯 (인물 고유 효과)")] public UnitStatType PickupStat;
 		[Tooltip("조각 하나에 오르는 양")] public int PickupAmount;
+		[Tooltip("조각으로 오르는 양의 판 안 상한. 0 이면 무제한")] public int PickupCap;
 	}
 
 	// 인물 숙련 막대 정의이자 고유 효과 (2026-11-22 21:03). 조각을 먹을 때마다 막대 스탯이 오르고, 막대가 차면 확정 카드가 열림

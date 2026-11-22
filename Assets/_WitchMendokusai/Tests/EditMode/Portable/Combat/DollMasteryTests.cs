@@ -70,6 +70,16 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 조각_스탯은_상한까지만_준다()
+		{
+			Assert.AreEqual(2, DollMastery.PickupGrant(0, 2, 16));
+			Assert.AreEqual(1, DollMastery.PickupGrant(15, 2, 16));
+			Assert.AreEqual(0, DollMastery.PickupGrant(16, 2, 16));
+			Assert.AreEqual(2, DollMastery.PickupGrant(100, 2, 0), "상한 0 은 무제한");
+			Assert.AreEqual(0, DollMastery.PickupGrant(0, 0, 16));
+		}
+
+		[Test]
 		public void 잘못된_문턱과_조각_양은_거부한다()
 		{
 			Assert.Throws<ArgumentException>(() => new DollMastery(new int[0]));

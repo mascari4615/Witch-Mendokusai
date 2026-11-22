@@ -36,6 +36,16 @@ namespace WitchMendokusai
 		public int Threshold(int track) => thresholds[track];
 		public bool IsReady(int track) => progress[track] >= thresholds[track];
 
+		// 조각 스탯 (고유 효과) 으로 이번에 더할 양. 지금까지 준 양과 합쳐 상한을 넘지 않게 자름. 상한 0 이하는 무제한
+		public static int PickupGrant(int alreadyGranted, int amount, int cap)
+		{
+			if (amount <= 0)
+				return 0;
+			if (cap <= 0)
+				return amount;
+			return Math.Max(0, Math.Min(amount, cap - alreadyGranted));
+		}
+
 		// 막대가 이번에 처음 찼으면 true. 확정 뒤나 이미 찬 막대는 더 쌓지 않음
 		public bool AddShard(int track, int amount)
 		{

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 981aa1498f004ec6bdb387a3eb89dafa, type: 3}
   m_Name: "MEND_\uBC18\uC9C7\uACE0\uB9AC"
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MendData
-  <Interval>k__BackingField: 4
-  <MinInterval>k__BackingField: 1
+  <Interval>k__BackingField: 5
+  <MinInterval>k__BackingField: 2
   <Amount>k__BackingField: 2
   <TextFormat>k__BackingField: "{0} \uC218\uC120"

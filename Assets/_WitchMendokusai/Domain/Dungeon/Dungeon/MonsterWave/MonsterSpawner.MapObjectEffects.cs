@@ -201,7 +201,7 @@ namespace WitchMendokusai
 			DollMasteryTrackData track = data.Tracks[effect.MasteryTrack];
 			int shards = Mathf.RoundToInt(effect.Value);
 			if (track.PickupStat != UnitStatType.NONE)
-				playerProvider.CurrentObject.UnitStat[track.PickupStat] += track.PickupAmount * shards;
+				playerProvider.CurrentObject.UnitStat[track.PickupStat] += DollMasteryRun.TakePickupGrant(effect.MasteryTrack, shards);
 			if (DollMasteryRun.AddShard(effect.MasteryTrack, shards))
 				PopMapObjectText(site, string.Format(data.ReadyTextFormat, track.DisplayName));
 		}

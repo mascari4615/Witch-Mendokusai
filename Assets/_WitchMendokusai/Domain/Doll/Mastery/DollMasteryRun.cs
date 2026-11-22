@@ -7,6 +7,8 @@ namespace WitchMendokusai
 	public static class DollMasteryRun
 	{
 		private static DollMastery active;
+		// 막대별로 이번 판에 조각 스탯으로 준 양 (상한 판정)
+		private static int[] grantedPickup = new int[0];
 
 		public static DollMasteryData Data { get; private set; }
 		public static DollMastery Active => active;
@@ -19,6 +21,16 @@ namespace WitchMendokusai
 				data.ThrowIfInvalid();
 			Data = data;
 			active = data != null ? new DollMastery(data.Thresholds()) : null;
+			grantedPickup = new int[data != null ? data.Tracks.Count : 0];
+		}
+
+		// 조각 하나를 먹었을 때 막대 스탯에 더할 양. 상한을 넘는 몫은 버림
+		public static int TakePickupGrant(int track, int shards)
+		{
+			DollMasteryTrackData trackData = Data.Tracks[track];
+			int grant = DollMastery.PickupGrant(grantedPickup[track], trackData.PickupAmount * shards, trackData.PickupCap);
+			grantedPickup[track] += grant;
+			return grant;
 		}
 
 		public static bool IsTrackReady(int track) => active != null && track < active.TrackCount && active.IsReady(track);
