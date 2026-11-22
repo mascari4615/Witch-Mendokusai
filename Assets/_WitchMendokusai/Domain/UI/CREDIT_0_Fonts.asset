@@ -399,11 +399,11 @@ MonoBehaviour:
     <UsedIn>k__BackingField: '보스 배경음악'
     <AssetPaths>k__BackingField:
     - 'FMODAssets/Assets/Juhani Junkala/JRPG Pack 5 Action'
-  - <Id>k__BackingField: cynicmusic-town-theme-rpg
+  - <Id>k__BackingField: cleytonkauffman-shop-theme
     <Category>k__BackingField: 8
-    <Name>k__BackingField: 'Town Theme RPG'
-    <Author>k__BackingField: 'cynicmusic'
-    <SourceUrl>k__BackingField: 'https://opengameart.org/content/town-theme-rpg'
+    <Name>k__BackingField: 'Shop Theme'
+    <Author>k__BackingField: 'CleytonKauffman'
+    <SourceUrl>k__BackingField: 'https://opengameart.org/content/shop-theme'
     <LicenseName>k__BackingField: 'CC0 1.0'
     <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
     <License>k__BackingField: {fileID: 0}
@@ -411,9 +411,9 @@ MonoBehaviour:
     <AttributionRequired>k__BackingField: 0
     <Modified>k__BackingField: 0
     <ModificationNote>k__BackingField: ''
-    <UsedIn>k__BackingField: '실험실 배경음악'
+    <UsedIn>k__BackingField: '실험실 배경음악 (임시)'
     <AssetPaths>k__BackingField:
-    - 'FMODAssets/Assets/cynicmusic/Town Theme RPG'
+    - 'FMODAssets/Assets/CleytonKauffman/Shop Theme'
   - <Id>k__BackingField: fmod
     <Category>k__BackingField: 9
     <Name>k__BackingField: 'FMOD Studio'

@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.04.00">
 	<object class="Event" id="{e9807aa4-3b19-42c8-ae7f-47353427d7eb}">
 		<property name="name">
-			<value>World Town</value>
+			<value>World Shop</value>
 		</property>
 		<property name="outputFormat">
 			<value>1</value>
@@ -90,10 +90,10 @@
 	<object class="MixerBusPanner" id="{d60fe09b-ce27-4076-a2a8-0b611c9b31c9}" />
 	<object class="SingleSound" id="{9a8366ab-00c3-42c7-842e-9b90c4c2256a}">
 		<property name="length">
-			<value>97.488979591836738</value>
+			<value>176.03918367346938</value>
 		</property>
 		<relationship name="audioFile">
-			<destination>{19757d99-e094-41f3-9381-7f15ca877c96}</destination>
+			<destination>{762fc218-ec53-4975-a65e-560af8ce6b81}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{4b99e15d-49e1-4e5e-ac98-2d718fcd8670}">

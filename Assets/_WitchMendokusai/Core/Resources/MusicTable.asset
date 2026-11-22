@@ -20,7 +20,7 @@ MonoBehaviour:
     eventPath: event:/BGM/Title Calm
     loop: 1
   - state: 2
-    eventPath: event:/BGM/World Town
+    eventPath: event:/BGM/World Shop
     loop: 1
   - state: 3
     eventPath: event:/BGM/Dungeon Grasslands
