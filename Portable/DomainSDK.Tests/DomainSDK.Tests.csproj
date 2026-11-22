@@ -55,6 +55,7 @@
     <Compile Include="$(TestsRoot)Combat/HitComboRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/HitInvincibilityRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonRunModeRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/DeckOfferWeightsTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonThreatRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonRiskRewardRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonConstraintRunRulesTests.cs" />

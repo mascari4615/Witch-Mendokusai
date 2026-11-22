@@ -48,6 +48,7 @@ namespace WitchMendokusai
 		}
 
 		// nextIndex: 0 이상 인자 미만의 난수
+		// deckWeight: 보유 덱 번호별 제시 가중치 (DeckOfferWeights). 없으면 균등 섞기
 		public static List<RunDeckOffer> BuildDeckOffers(
 			DungeonRunMode mode,
 			IReadOnlyList<int> ownedDecks,
@@ -56,10 +57,19 @@ namespace WitchMendokusai
 			int slotCapacity,
 			int visibleCount,
 			int newOfferCount,
-			Func<int, int> nextIndex)
+			Func<int, int> nextIndex,
+			Func<int, float> deckWeight = null)
 		{
-			List<int> owned = new List<int>(ownedDecks);
-			Shuffle(owned, nextIndex);
+			List<int> owned;
+			if (deckWeight == null)
+			{
+				owned = new List<int>(ownedDecks);
+				Shuffle(owned, nextIndex);
+			}
+			else
+			{
+				owned = DeckOfferWeights.WeightedOrder(ownedDecks, deckWeight, nextIndex);
+			}
 			List<RunDeckOffer> offers = new List<RunDeckOffer>();
 
 			if (UsesSavedEquipment(mode))

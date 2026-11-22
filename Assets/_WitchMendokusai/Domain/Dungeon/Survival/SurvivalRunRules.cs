@@ -63,6 +63,10 @@ namespace WitchMendokusai
 		[Min(1), Tooltip("장비 칸 수. 시작 무기 포함, 인형 고유 장비 제외")] public int RandomModeSlotCount = 6;
 		[Min(0), Tooltip("레벨업 한 번에 제시하는 새 장비 수")] public int RandomModeNewOfferCount = 1;
 
+		[Header("Deck convergence")]
+		[Tooltip("덱 제시 가중치. n 번째 값은 이번 판에 그 덱 카드를 n장 받았을 때. 표보다 많이 받으면 마지막 값. 비우거나 전부 같으면 균등. 0 이하는 빼지 않고 0.001 로 드물게. 기본 {1, 4} 는 한 장이라도 받은 덱이 네 배 자주 나옴")]
+		public List<float> DeckWeightByPicks = new() { 1f, 4f };
+
 		[Header("Evolution")]
 		[Tooltip("덱에 넣지 않는 카드. 조건은 CardData.Requirements, 지급은 상자 첫 보상")] public List<CardData> EvolutionCards = new();
 		[Tooltip("트리 시작 카드를 차단하려 할 때 문구")] public string BanRootDeniedText = "시작 카드는 차단할 수 없어요.";

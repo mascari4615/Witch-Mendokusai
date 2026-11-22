@@ -182,6 +182,14 @@ namespace WitchMendokusai
 				.ToList();
 		}
 
+		// 이번 판에 이 장비 트리에서 받은 카드 수 (겹친 장 포함, 상자 보상 포함). 진화 카드는 트리 밖이라 안 셈
+		// AvailableCards 와 같이 ID 로 비교. 트리 카드는 다시 만들어질 수 있어 참조 비교는 0 으로 셀 수 있음
+		private int DeckPickCount(EquipmentData equipment)
+		{
+			HashSet<int> treeCardIds = new(skillTrees.CardsFor(equipment).Where(card => card != null).Select(card => card.ID));
+			return soManager.SelectedCardBuffer.Data.Count(selected => selected != null && treeCardIds.Contains(selected.ID));
+		}
+
 		private bool ShuffleDeck()
 		{
 			List<EquipmentData> equipments = Loadout.Equipments();
@@ -195,7 +203,7 @@ namespace WitchMendokusai
 			}
 			UISelectDeck deckPanel = Panels[CardPanelType.SelectDeck] as UISelectDeck;
 			deckOffers.Clear();
-			deckOffers.AddRange(Loadout.BuildDeckOffers(RunRules, ownedDecks, deckPanel.ChoiceCount, maxExclusive => Random.Range(0, maxExclusive)));
+			deckOffers.AddRange(Loadout.BuildDeckOffers(RunRules, ownedDecks, deckPanel.ChoiceCount, maxExclusive => Random.Range(0, maxExclusive), deckIndex => DeckPickCount(equipments[deckIndex])));
 			if (deckOffers.Count == 0)
 			{
 				return false;

@@ -44,11 +44,13 @@ namespace WitchMendokusai
 			return equipments;
 		}
 
-		public List<RunDeckOffer> BuildDeckOffers(SurvivalRunRules rules, IReadOnlyList<int> ownedDecks, int visibleCount, Func<int, int> nextIndex)
+		// pickCountOf: 덱 번호별 이번 판에 받은 카드 수. 가중치는 rules.DeckWeightByPicks
+		public List<RunDeckOffer> BuildDeckOffers(SurvivalRunRules rules, IReadOnlyList<int> ownedDecks, int visibleCount, Func<int, int> nextIndex, Func<int, int> pickCountOf)
 		{
 			bool canOffer = DungeonRunModeRules.CanOfferNewEquipment(Mode, acquired.Count, rules.RandomModeSlotCount);
 			IReadOnlyList<int> newEquipmentIds = canOffer ? NewEquipmentIds() : Array.Empty<int>();
-			return DungeonRunModeRules.BuildDeckOffers(Mode, ownedDecks, newEquipmentIds, acquired.Count, rules.RandomModeSlotCount, visibleCount, rules.RandomModeNewOfferCount, nextIndex);
+			Func<int, float> deckWeight = deckIndex => DeckOfferWeights.Weight(rules.DeckWeightByPicks, pickCountOf(deckIndex));
+			return DungeonRunModeRules.BuildDeckOffers(Mode, ownedDecks, newEquipmentIds, acquired.Count, rules.RandomModeSlotCount, visibleCount, rules.RandomModeNewOfferCount, nextIndex, deckWeight);
 		}
 
 		public int Acquire(EquipmentData equipment)
