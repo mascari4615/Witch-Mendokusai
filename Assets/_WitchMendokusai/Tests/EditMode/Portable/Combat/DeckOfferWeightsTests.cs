@@ -31,11 +31,11 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void 굴림이_가중치_구간대로_고른다()
 		{
-			// 덱 0 은 가중치 1 (칸 0~999), 덱 1 은 4 (칸 1000~4999)
+			// 덱 0 은 가중치 1 (굴림 0~0.2), 덱 1 은 4 (0.2~1)
 			Func<int, float> weightOf = deck => deck == 0 ? 1f : 4f;
 
-			List<int> lowRoll = DeckOfferWeights.WeightedOrder(new[] { 0, 1 }, weightOf, maxExclusive => 999);
-			List<int> highRoll = DeckOfferWeights.WeightedOrder(new[] { 0, 1 }, weightOf, maxExclusive => 1000);
+			List<int> lowRoll = DeckOfferWeights.WeightedOrder(new[] { 0, 1 }, weightOf, maxExclusive => (int)(maxExclusive * 0.19d));
+			List<int> highRoll = DeckOfferWeights.WeightedOrder(new[] { 0, 1 }, weightOf, maxExclusive => (int)(maxExclusive * 0.21d));
 
 			Assert.AreEqual(0, lowRoll[0]);
 			Assert.AreEqual(1, highRoll[0]);
@@ -67,11 +67,16 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void 가중치_0_이하도_사라지지_않는다()
+		public void 가중치_0_이하는_빠지지_않고_맨_뒤()
 		{
-			List<int> ordered = DeckOfferWeights.WeightedOrder(new[] { 0, 1 }, deck => deck == 0 ? 0f : -3f, maxExclusive => maxExclusive - 1);
+			Random random = new Random(SEED);
+			for (int trial = 0; trial < 200; trial++)
+			{
+				List<int> ordered = DeckOfferWeights.WeightedOrder(new[] { 0, 1, 2, 3 }, deck => deck == 0 ? 0f : deck == 1 ? -3f : 1f, maxExclusive => random.Next(0, maxExclusive));
 
-			CollectionAssert.AreEquivalent(new[] { 0, 1 }, ordered);
+				CollectionAssert.AreEquivalent(new[] { 2, 3 }, ordered.Take(2));
+				CollectionAssert.AreEquivalent(new[] { 0, 1 }, ordered.Skip(2));
+			}
 		}
 
 		[Test]

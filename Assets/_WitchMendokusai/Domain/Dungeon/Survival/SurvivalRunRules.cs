@@ -64,7 +64,7 @@ namespace WitchMendokusai
 		[Min(0), Tooltip("레벨업 한 번에 제시하는 새 장비 수")] public int RandomModeNewOfferCount = 1;
 
 		[Header("Deck convergence")]
-		[Tooltip("덱 제시 가중치. n 번째 값은 이번 판에 그 덱 카드를 n장 받았을 때. 표보다 많이 받으면 마지막 값. 비우거나 전부 같으면 균등. 0 이하는 빼지 않고 0.001 로 드물게. 기본 {1, 4} 는 한 장이라도 받은 덱이 네 배 자주 나옴")]
+		[Tooltip("덱 제시 가중치. n 번째 값은 이번 판에 그 덱 카드를 n장 받았을 때. 표보다 많이 받으면 마지막 값. 비우거나 전부 같으면 균등. 0 이하는 다른 덱이 다 나온 뒤에만. 기본 {1, 4} 는 한 장이라도 받은 덱이 네 배 자주 나옴")]
 		public List<float> DeckWeightByPicks = new() { 1f, 4f };
 
 		[Header("Evolution")]
