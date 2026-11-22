@@ -33,4 +33,6 @@ MonoBehaviour:
   <ShardGapSeconds>k__BackingField: 20
   <ShardDistance>k__BackingField: {x: 8, y: 16}
   <ShardSeedSalt>k__BackingField: 7411
+  <ShardClearRadius>k__BackingField: 0.5
+  <ShardHeight>k__BackingField: 0.4
   <ReadyTextFormat>k__BackingField: "{0} \uC219\uB828 \uC644\uB8CC"

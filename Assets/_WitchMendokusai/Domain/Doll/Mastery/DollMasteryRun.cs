@@ -30,8 +30,8 @@ namespace WitchMendokusai
 		// 조각 하나를 먹음. 막대 스탯 (상한 안), 막대 진행, 찬 순간 머리 위 글자
 		public static void Pickup(int track, PlayerObject player)
 		{
-			if (active == null)
-				throw new System.InvalidOperationException($"숙련 없는 판에서 막대 {track} 조각을 먹음");
+			if (active == null || Data == null)
+				throw new System.InvalidOperationException($"숙련 자료 없는 판에서 막대 {track} 조각을 먹음");
 			DollMasteryTrackData trackData = Data.Tracks[track];
 			if (trackData.PickupStat != UnitStatType.NONE)
 				player.UnitStat[trackData.PickupStat] += TakePickupGrant(track, 1);

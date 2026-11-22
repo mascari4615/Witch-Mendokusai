@@ -112,6 +112,9 @@ namespace WitchMendokusai
 			float radiusSquared = radius * radius;
 			for (int i = drops.Count - 1; i >= 0; i--)
 			{
+				// 숙련 조각은 판당 수가 고정이라 지우면 막대가 덜 참 (DollMasteryShardSchedule)
+				if (drops[i].TryGetComponent(out MasteryShardObject _))
+					continue;
 				if ((drops[i].transform.position - origin).sqrMagnitude <= radiusSquared)
 					drops[i].SetActive(false);
 			}

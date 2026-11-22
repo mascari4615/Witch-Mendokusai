@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		public const string USS_HIDDEN = USS_ROOT + "--hidden";
 
 		private readonly List<Row> rows = new();
+		private DollMasteryData shownData;
 		private int shownVersion = -1;
 
 		public DollMasteryHud()
@@ -33,7 +34,7 @@ namespace WitchMendokusai
 		// 판 상태 버전이 바뀔 때만 다시 그림
 		public void Refresh(DollMasteryData data, DollMastery mastery, int version)
 		{
-			if (version == shownVersion && rows.Count == data.Tracks.Count)
+			if (version == shownVersion && data == shownData)
 				return;
 			shownVersion = version;
 			EnsureRows(data);
@@ -50,12 +51,17 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void ResetShown() => shownVersion = -1;
+		public void ResetShown()
+		{
+			shownVersion = -1;
+			shownData = null;
+		}
 
 		private void EnsureRows(DollMasteryData data)
 		{
-			if (rows.Count == data.Tracks.Count)
+			if (data == shownData)
 				return;
+			shownData = data;
 			Clear();
 			rows.Clear();
 			foreach (DollMasteryTrackData track in data.Tracks)

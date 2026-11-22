@@ -28,6 +28,8 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("조각 사이 간격 (초). 막대를 번갈아 하나씩"), Min(0.1f)] public float ShardGapSeconds { get; private set; } = 20f;
 		[field: SerializeField, Tooltip("주인공과 거리 범위 (m)")] public Vector2 ShardDistance { get; private set; } = new(8f, 16f);
 		[field: SerializeField, Tooltip("조각 자리 난수 갈래 값. 다른 판 시드 소비자와 겹치지 않게")] public int ShardSeedSalt { get; private set; } = 7411;
+		[field: SerializeField, Tooltip("조각 자리에서 장애물과 띄울 반경 (m)"), Min(0.05f)] public float ShardClearRadius { get; private set; } = 0.5f;
+		[field: SerializeField, Tooltip("지면에서 조각 중심 높이 (m)"), Min(0f)] public float ShardHeight { get; private set; } = 0.4f;
 		[field: SerializeField, Tooltip("막대가 찼을 때 머리 위 글자. {0} 막대 이름")] public string ReadyTextFormat { get; private set; } = "{0} 숙련 완료";
 
 		// 조각이 있는 막대에 프리팹이 없으면 판 중에 터지므로 판 시작에 멈춤

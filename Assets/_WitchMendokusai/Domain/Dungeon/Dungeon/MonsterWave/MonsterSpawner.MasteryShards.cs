@@ -34,17 +34,21 @@ namespace WitchMendokusai
 			}
 		}
 
+		// 맵 오브젝트와 같은 자리 검사 (지면, 장애물, 주인공에서 걸어갈 길). 조각 수가 고정이라 못 줍는 자리에 놓이면 막대가 덜 참
 		private bool TrySpawnMasteryShard(int track)
 		{
 			DollMasteryData mastery = DollMasteryRun.Data;
+			MapObjectSettings settings = MapObjectSettings.Load();
 			Vector3 origin = playerProvider.Current.transform.position;
+			if (TryMapObjectGround(origin, settings, out Vector3 playerGround) == false)
+				return false;
 			double angle = shardRandom.NextDouble() * Mathf.PI * 2f;
 			float distance = Mathf.Lerp(mastery.ShardDistance.x, mastery.ShardDistance.y, (float)shardRandom.NextDouble());
 			Vector3 candidate = origin + new Vector3(Mathf.Cos((float)angle), 0f, Mathf.Sin((float)angle)) * distance;
-			if (TryMapObjectGround(candidate, MapObjectSettings.Load(), out Vector3 ground) == false)
+			if (ProbeMapObjectSite(candidate, playerGround, mastery.ShardClearRadius, true, settings, out Vector3 ground) != MapObjectProbeResult.Ok)
 				return false;
 
-			GameObject shard = objectPoolManager.Spawn(mastery.Tracks[track].ShardPrefab.gameObject, ground);
+			GameObject shard = objectPoolManager.Spawn(mastery.Tracks[track].ShardPrefab.gameObject, ground + Vector3.up * mastery.ShardHeight);
 			shard.GetComponent<MasteryShardObject>().Init(track);
 			shard.SetActive(true);
 			return true;

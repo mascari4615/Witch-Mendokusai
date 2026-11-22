@@ -61,7 +61,6 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   moveSpeed: 10
   pickupDistance: 0.3
-  useBezierCurve: 0
   shardTransform: {fileID: 4615000000000000012}
   spinSpeed: 160
   bobHeight: 0.12
