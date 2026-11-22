@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -20,8 +21,23 @@ namespace WitchMendokusai
 		[Tooltip("에디터 Play 에서도 Steam 에 붙을지. 끄면 빌드에서만 연결.")]
 		[SerializeField] private bool initializeInEditor;
 
+		[Tooltip("게임 업적 (QuestSO ID) 중 Steam 에 연결할 것만. 정본은 게임, 여기 없는 업적은 게임 전용.")]
+		[SerializeField] private List<SteamAchievementLink> achievements = new();
+
 		public uint AppId => appId;
 		public bool InitializeInEditor => initializeInEditor;
+		public IReadOnlyList<SteamAchievementLink> Achievements => achievements;
+
+		/// <summary>게임 업적 ID 에서 Steam API 이름으로 가는 표. 같은 ID 가 두 번이면 FastFail</summary>
+		public IReadOnlyDictionary<int, string> BuildAchievementMap()
+		{
+			Dictionary<int, string> map = new();
+			foreach (SteamAchievementLink link in achievements)
+			{
+				map.Add(link.QuestId, link.ApiName);
+			}
+			return map;
+		}
 
 		public static SteamSettings Load()
 		{

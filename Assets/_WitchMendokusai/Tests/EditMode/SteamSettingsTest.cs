@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace WitchMendokusai.Tests
@@ -29,6 +32,34 @@ namespace WitchMendokusai.Tests
 
 			Assert.That(asmdef.includePlatforms, Is.EquivalentTo(new[] { "Editor", "WindowsStandalone64" }),
 				"Facepunch.Steamworks 는 Win64 플러그인만 켜져 있음. 다른 플랫폼에 열면 dll 없이 빌드 실패");
+		}
+
+		[Test]
+		public void Achievement_links_point_to_game_achievements()
+		{
+			SteamSettings settings = SteamSettings.Load();
+			Dictionary<int, QuestSO> questsById = new();
+			foreach (string guid in AssetDatabase.FindAssets("t:" + nameof(QuestSO)))
+			{
+				QuestSO quest = AssetDatabase.LoadAssetAtPath<QuestSO>(AssetDatabase.GUIDToAssetPath(guid));
+				if (questsById.ContainsKey(quest.ID))
+				{
+					// 같은 ID 의 QuestSO 가 둘이면 어느 쪽에 연결됐는지 모호. 이 검사의 관심사는 연결된 ID 만
+					continue;
+				}
+				questsById.Add(quest.ID, quest);
+			}
+
+			HashSet<string> apiNames = new();
+			foreach (SteamAchievementLink link in settings.Achievements)
+			{
+				Assert.That(questsById.ContainsKey(link.QuestId), Is.True, "연결된 게임 업적 없음: " + link.QuestId);
+				Assert.That(questsById[link.QuestId].Data.Type, Is.EqualTo(QuestType.Achievement),
+					"Achievement 타입이 아닌 퀘스트를 Steam 업적에 연결: " + link.QuestId);
+				Assert.That(Regex.IsMatch(link.ApiName ?? string.Empty, "^[A-Z0-9_]+$"), Is.True, "API 이름 형식: " + link.ApiName);
+				Assert.That(apiNames.Add(link.ApiName), Is.True, "API 이름 중복: " + link.ApiName);
+			}
+			Assert.DoesNotThrow(() => settings.BuildAchievementMap(), "같은 게임 업적을 두 번 연결");
 		}
 
 		[System.Serializable]

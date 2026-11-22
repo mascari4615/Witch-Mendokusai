@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		public static bool IsReady => Instance != null && Instance.isReady;
 
 		private bool isReady;
+		private SteamAchievementSync achievementSync;
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 		private static void StandUp()
@@ -43,11 +44,12 @@ namespace WitchMendokusai
 			GameObject holder = new GameObject(nameof(SteamService));
 			DontDestroyOnLoad(holder);
 			SteamService service = holder.AddComponent<SteamService>();
-			service.Connect(settings.AppId);
+			service.Connect(settings);
 		}
 
-		private void Connect(uint appId)
+		private void Connect(SteamSettings settings)
 		{
+			uint appId = settings.AppId;
 			Instance = this;
 			try
 			{
@@ -60,15 +62,18 @@ namespace WitchMendokusai
 			}
 
 			isReady = true;
+			achievementSync = new SteamAchievementSync(settings);
 			Debug.Log("[Steam] 연결 " + SteamClient.Name + " (" + SteamClient.SteamId + "), 앱 " + appId);
 		}
 
 		private void Update()
 		{
-			if (isReady)
+			if (isReady == false)
 			{
-				SteamClient.RunCallbacks();
+				return;
 			}
+			SteamClient.RunCallbacks();
+			achievementSync.Tick();
 		}
 
 		private void OnApplicationQuit() => Disconnect();
@@ -90,6 +95,7 @@ namespace WitchMendokusai
 			}
 
 			isReady = false;
+			achievementSync.Stop();
 			SteamClient.Shutdown();
 		}
 	}

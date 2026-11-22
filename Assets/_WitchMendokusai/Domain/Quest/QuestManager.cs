@@ -16,6 +16,7 @@ namespace WitchMendokusai
 		public void SetQuestState(int questID, QuestState state) => questStates[questID] = state;
 		public QuestState GetQuestState(int questID) => questStates[questID];
 
+		private QuestAchievementLedger achievementLedger;
 		private IPublisher<QuestAddedEvent> questAddedPublisher;
 		private IDisposable questCompletedSub;
 		private IDisposable questAddRequestedSub;
@@ -91,6 +92,7 @@ namespace WitchMendokusai
 			questCompletedSub?.Dispose();
 			questAddRequestedSub?.Dispose();
 			questUnlockRequestedSub?.Dispose();
+			AchievementLedgerBridge.Unregister(achievementLedger);
 		}
 
 		// TASK-WM-107 Slice 2C-4 — ctx 조립 단일 지점. 모든 RuntimeQuestFactory 호출처(OnQuestAddRequested /
@@ -118,6 +120,10 @@ namespace WitchMendokusai
 
 			// 모드(IMod)가 등록한 quest 를 게임에 설치 — 등록 콘텐츠 inert 해소 (TASK-WM-188 deepening).
 			ModQuestInstaller.InstallInto(Quests, ModLoader.Content.RegisteredQuests);
+
+			// 업적 장부 등록. 세이브의 퀘스트 상태 (LoadQuestState) 가 들어온 뒤라 플랫폼 재동기화가 이 시점부터 맞음
+			achievementLedger ??= new QuestAchievementLedger(this);
+			AchievementLedgerBridge.Register(achievementLedger);
 		}
 
 		private void OnQuestCompleted(QuestCompletedEvent evt)

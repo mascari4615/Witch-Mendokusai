@@ -14,3 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   appId: 3959540
   initializeInEditor: 0
+  achievements:
+  - questId: 500
+    apiName: ACH_HUNTER
+  - questId: 501
+    apiName: ACH_BOSS_HUNTER
+  - questId: 1001
+    apiName: ACH_FIRST_POTION

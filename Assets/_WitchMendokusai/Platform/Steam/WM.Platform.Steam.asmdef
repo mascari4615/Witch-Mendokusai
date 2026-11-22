@@ -2,7 +2,9 @@
     "name": "WM.Platform.Steam",
     "rootNamespace": "WitchMendokusai",
     "references": [
-        "WM.Core"
+        "WM.Core",
+        "WitchMendokusai.DomainSDK.Quest",
+        "WitchMendokusai.DomainSDK.EventBus"
     ],
     "includePlatforms": [
         "Editor",
