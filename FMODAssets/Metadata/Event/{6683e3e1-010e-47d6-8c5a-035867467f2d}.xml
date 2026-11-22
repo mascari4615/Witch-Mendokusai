@@ -93,10 +93,7 @@
 			<value>0.6875</value>
 		</property>
 		<property name="volume">
-			<value>-5</value>
-		</property>
-		<property name="pitch">
-			<value>-1.20000005</value>
+			<value>-8</value>
 		</property>
 		<property name="playlistMode">
 			<value>1</value>
@@ -106,7 +103,6 @@
 		</relationship>
 		<relationship name="sounds">
 			<destination>{e5a98ac0-0775-45b2-a4ab-76e6a2954617}</destination>
-			<destination>{805a5329-d5e5-403a-9356-7a537efe00f4}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{be1e6fb5-3c03-46e6-a4cf-753c1ce2249d}">
@@ -140,12 +136,7 @@
 	</object>
 	<object class="SingleSound" id="{e5a98ac0-0775-45b2-a4ab-76e6a2954617}">
 		<relationship name="audioFile">
-			<destination>{15364345-3473-4569-a0fa-97fbd24bb9f4}</destination>
-		</relationship>
-	</object>
-	<object class="SingleSound" id="{805a5329-d5e5-403a-9356-7a537efe00f4}">
-		<relationship name="audioFile">
-			<destination>{9f3fa259-f1de-4c9e-a8c3-6e963072b646}</destination>
+			<destination>{9863e180-63e8-4911-9da8-3efd29add58c}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusEffectChain" id="{91b66e68-5f98-4c37-9e3b-f32d6c44be68}">

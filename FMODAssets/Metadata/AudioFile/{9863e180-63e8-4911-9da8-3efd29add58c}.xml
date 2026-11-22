@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.04.00">
+	<object class="AudioFile" id="{9863e180-63e8-4911-9da8-3efd29add58c}">
+		<property name="assetPath">
+			<value>Kenney/Impact Sounds/impactSoft_medium_000.ogg</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.100000000000001</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>0.11800453514739229</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{2ab7eb1a-0a54-4fe3-ac6e-745e6f870bc3}</destination>
+		</relationship>
+	</object>
+</objects>
