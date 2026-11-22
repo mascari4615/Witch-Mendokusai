@@ -12,13 +12,15 @@
   - 기본은 올리기만. 브랜치 공개 (-SetLive) 는 default 가 아닌 이름만 허용. default 공개는 Steamworks 웹에서 사람이
 
 .EXAMPLE
+  ./Tools/steam/Upload-SteamBuild.ps1 -BuildZip $HOME\Downloads\WitchMendokusai-123.zip -Preview
   ./Tools/steam/Upload-SteamBuild.ps1 -BuildDir C:\wm-builds\123\out -DryRun
   ./Tools/steam/Upload-SteamBuild.ps1 -BuildDir C:\wm-builds\123\out -Account karmo_builder -Preview
   ./Tools/steam/Upload-SteamBuild.ps1 -BuildDir C:\wm-builds\123\out -Account karmo_builder -SetLive beta
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)][string]$BuildDir,
+    [string]$BuildDir = '',
+    [string]$BuildZip = '',
     [string]$Account = $env:STEAM_BUILDER_ACCOUNT,
     [string]$SteamCmd = $env:STEAMCMD,
     [string]$Description = '',
@@ -56,6 +58,22 @@ $appId = Get-SteamAppId $settingsAsset
 $depotId = [uint32]$config.depotId
 if ($depotId -eq 0) { throw "steampipe.json depotId 비어 있음" }
 
+if (($BuildDir -eq '') -eq ($BuildZip -eq '')) { throw "-BuildDir (빌드 폴더) 나 -BuildZip (Files 빌드 탭에서 받은 zip) 중 하나만" }
+
+$sourceLabel = ''
+if ($BuildZip -ne '')
+{
+    # zip 은 임시 폴더에 풀고, exe 가 든 폴더를 내용 뿌리로 (zip 안 맨 위 폴더 유무와 무관)
+    if (-not (Test-Path -LiteralPath $BuildZip -PathType Leaf)) { throw "zip 없음: $BuildZip" }
+    $extractDir = Join-Path $env:TEMP ('wm-steampipe\content-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
+    Write-Host "[steampipe] zip 푸는 중: $BuildZip"
+    Expand-Archive -LiteralPath $BuildZip -DestinationPath $extractDir -Force
+    $found = @(Get-ChildItem -LiteralPath $extractDir -Recurse -File -Filter $config.exe)
+    if ($found.Count -ne 1) { throw "zip 안 $($config.exe) 가 1개가 아님 ($($found.Count)개): $BuildZip" }
+    $BuildDir = $found[0].DirectoryName
+    $sourceLabel = [System.IO.Path]::GetFileNameWithoutExtension($BuildZip)
+}
+
 if (-not (Test-Path -LiteralPath $BuildDir -PathType Container)) { throw "빌드 폴더 없음: $BuildDir" }
 $contentRoot = (Resolve-Path -LiteralPath $BuildDir).Path.TrimEnd('\')
 $exePath = Join-Path $contentRoot $config.exe
@@ -76,6 +94,7 @@ if ($Description -eq '')
     if ([string]::IsNullOrWhiteSpace($sha)) { $sha = 'nogit' }
     $stamp = (Get-Item -LiteralPath $exePath).LastWriteTime.ToString('yyyy-MM-dd HH:mm')
     $Description = "WM $sha exe $stamp"
+    if ($sourceLabel -ne '') { $Description = "WM $sourceLabel exe $stamp" }
 }
 
 # --- vdf 쓰기 ------------------------------------------------------------------
