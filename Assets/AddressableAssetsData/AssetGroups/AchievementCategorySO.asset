@@ -39,8 +39,3 @@ MonoBehaviour:
     m_Schemas:
     - {fileID: 11400000, guid: 8de67b02fa441da4289d5a02b3a4dd3c, type: 2}
     - {fileID: 11400000, guid: 95105b1f040ac2543945982d2a5277d7, type: 2}
-    m_SchemaDisplayOrder:
-    - AchievementCategorySO_ContentUpdateGroupSchema
-    - AchievementCategorySO_BundledAssetGroupSchema
-  m_IncludeInBuild: 1
-  m_IncludeInBuildMigrated: 1
