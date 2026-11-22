@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		[SerializeField] private MeshRenderer crystalRenderer;
 		[SerializeField, Tooltip("수정 무리 모양. 같은 이름이면 메시 공유")] private string clusterName = "MasteryCrystal";
 		[SerializeField] private List<CrystalSpec> crystals = new();
+		[SerializeField, Tooltip("수정 무리 크기 배율 (카메라 거리에 맞춤)"), Min(0.1f)] private float visualScale = 1.7f;
 
 		[Header("움직임")]
 		[SerializeField, Tooltip("초당 회전 각도")] private float spinSpeed = 70f;
@@ -77,7 +78,7 @@ namespace WitchMendokusai
 		{
 			float time = Time.time + phase;
 			float pop = popCurve.Evaluate(Mathf.Clamp01((Time.time - spawnTime) / popSeconds));
-			shardTransform.localScale = Vector3.one * pop;
+			shardTransform.localScale = Vector3.one * (pop * visualScale);
 			shardTransform.localRotation = Quaternion.Euler(0f, time * spinSpeed, 0f);
 			shardTransform.localPosition = Vector3.up * Mathf.Sin(time * bobFrequency * Mathf.PI * 2f) * bobHeight;
 

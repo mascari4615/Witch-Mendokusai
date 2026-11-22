@@ -24,7 +24,7 @@ MonoBehaviour:
     Icon: {fileID: 21300000, guid: aff0a23936502334791e2cbeaa38f3a2, type: 3}
   - DisplayName: "\uADF8\uB9BC\uC790"
     Threshold: 6
-    Color: {r: 0.45, g: 0.35, b: 0.75, a: 1}
+    Color: {r: 0.48, g: 0.26, b: 0.95, a: 1}
     PickupStat: 400
     PickupAmount: 2
     PickupCap: 16
