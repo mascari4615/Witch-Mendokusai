@@ -11,7 +11,6 @@ namespace WitchMendokusai
 	public sealed partial class MagicBookSky
 	{
 		private const long TICK_MILLISECONDS = 16;
-		private const float SETTLE_DISTANCE = 0.05f;
 
 		private Rect skyBounds;
 		private Vector2 cameraCenter;
@@ -111,7 +110,7 @@ namespace WitchMendokusai
 			float blend = 1f - Mathf.Exp(-settings.FollowSharpness * Time.unscaledDeltaTime);
 			cameraCenter = Vector2.Lerp(cameraCenter, targetCenter, blend);
 			cameraZoom = Mathf.Lerp(cameraZoom, targetZoom, blend);
-			bool settled = Vector2.Distance(cameraCenter, targetCenter) * cameraZoom < SETTLE_DISTANCE && Mathf.Abs(cameraZoom - targetZoom) < SETTLE_DISTANCE * 0.01f;
+			bool settled = Vector2.Distance(cameraCenter, targetCenter) * cameraZoom < settings.SettleDistance && Mathf.Abs(cameraZoom - targetZoom) < settings.SettleZoom;
 			if (settled)
 			{
 				cameraCenter = targetCenter;

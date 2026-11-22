@@ -26,7 +26,6 @@ namespace WitchMendokusai
 		private const string USS_CHAPTER_LOCKED = "wm-mb-chapter-name--locked";
 		private const string HUB_TITLE = "마도서";
 		private const int NEBULA_COUNT = 3;
-		private const float CHAPTER_NAME_GAP = 110f;
 
 		private static readonly CustomStyleProperty<Color> DONE_LINE = new("--wm-mb-line-done");
 		private static readonly CustomStyleProperty<Color> DONE_GLOW = new("--wm-mb-line-done-glow");
@@ -199,7 +198,7 @@ namespace WitchMendokusai
 			}
 			Label name = new(ChapterTitle(chapter)) { pickingMode = PickingMode.Ignore };
 			name.AddToClassList(USS_CHAPTER_NAME);
-			Vector2 namePosition = direction * (farthest + CHAPTER_NAME_GAP);
+			Vector2 namePosition = direction * (farthest + settings.ChapterNameGap);
 			name.style.left = namePosition.x;
 			name.style.top = namePosition.y;
 			world.Add(name);
