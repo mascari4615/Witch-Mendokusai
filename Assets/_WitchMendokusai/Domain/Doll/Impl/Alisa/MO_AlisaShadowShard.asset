@@ -42,9 +42,9 @@ MonoBehaviour:
   <HoldDecayPerSecond>k__BackingField: 1
   <HoldTimeLimit>k__BackingField: 0
   <PlacementCost>k__BackingField: 1
-  <Weight>k__BackingField: 1
-  <CountRange>k__BackingField: {x: 0, y: 12}
-  <SpawnTime>k__BackingField: {x: 20, y: 540}
+  <Weight>k__BackingField: 0
+  <CountRange>k__BackingField: {x: 13, y: 13}
+  <SpawnTime>k__BackingField: {x: 10, y: 10}
   <PlayerDistance>k__BackingField: {x: 8, y: 18}
   <MinSpacing>k__BackingField: 3
   <RequireRoute>k__BackingField: 1

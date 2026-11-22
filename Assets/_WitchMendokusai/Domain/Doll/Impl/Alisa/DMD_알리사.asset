@@ -14,15 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.DollMasteryData
   <Tracks>k__BackingField:
   - DisplayName: "\uBE5B"
-    Threshold: 8
+    Threshold: 6
     Color: {r: 1, g: 0.93, b: 0.55, a: 1}
     PickupStat: 500
     PickupAmount: 2
   - DisplayName: "\uADF8\uB9BC\uC790"
-    Threshold: 8
+    Threshold: 6
     Color: {r: 0.45, g: 0.35, b: 0.75, a: 1}
     PickupStat: 400
     PickupAmount: 2
   <ShardBudget>k__BackingField: {fileID: 11400000, guid: 02c98ed20c224f03809300891bf1f718, type: 2}
-  <ShardGapSeconds>k__BackingField: 15
+  <ShardGapSeconds>k__BackingField: 20
   <ReadyTextFormat>k__BackingField: "{0} \uC219\uB828 \uC644\uB8CC"
