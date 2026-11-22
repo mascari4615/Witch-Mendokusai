@@ -19,6 +19,8 @@ namespace WitchMendokusai
 			public Action Run;
 			public bool KeyboardOnly;
 			public bool TouchOnly;
+			// 있으면 열 때마다 물어 거짓이면 숨김 (지금 자리에서 할 수 없는 동작)
+			public Func<bool> IsAvailable;
 			public bool IsTile;
 			public Button Button;
 		}
@@ -80,6 +82,9 @@ namespace WitchMendokusai
 			keybind.Hotkey = InputEventType.KeybindHelpToggle;
 			keybind.KeyboardOnly = true;
 			AddKeyLabel(keybind);
+
+			// 스테이지 안에서만. 예전 설정창 버튼
+			AddEntry(null, "wm-fullmenu-tile", "끼임 탈출", null, Settings.UnstuckIcon, AskUnstuck).IsAvailable = HasStage;
 
 			// 폰에만: 키 하나에 매달린 조작과 버튼 자리 옮기기. 예전 폰 창 서랍에 있던 것
 			AddWindowEntry(null, "wm-fullmenu-tile", "시점", null, InputEventType.CameraViewCycle).TouchOnly = true;
@@ -190,7 +195,8 @@ namespace WitchMendokusai
 			system.AddToClassList("wm-fullmenu__system");
 			bottom.Add(system);
 			AddEntry(system, "wm-fullmenu-system", "설정", null, Settings.SettingIcon, OpenSetting);
-			// 메뉴는 월드에서만 열려 로비에서 숨길 일이 없음. 설정창의 같은 버튼은 로비에서 숨김
+			// 던전 판 중에만. 예전 설정창 버튼. 메뉴는 월드에서만 열려 로비로를 숨길 일이 없음
+			AddEntry(system, "wm-fullmenu-system", "던전 포기", null, Settings.DungeonExitIcon, AskDungeonExit).IsAvailable = () => LobbyManager.IsRunInProgress;
 			AddEntry(system, "wm-fullmenu-system", "로비로", null, Settings.LobbyIcon, GoToLobby).Button.tooltip = SettingView.LOBBY_TOOLTIP;
 			AddEntry(system, "wm-fullmenu-system", "게임 종료", null, Settings.QuitIcon, AskQuit);
 		}
@@ -271,6 +277,8 @@ namespace WitchMendokusai
 				if (entry.KeyboardOnly && isTouch)
 					visible = false;
 				if (entry.TouchOnly && isTouch == false)
+					visible = false;
+				if (entry.IsAvailable != null && entry.IsAvailable() == false)
 					visible = false;
 				entry.Button.EnableInClassList(HIDDEN_CLASS, visible == false);
 

@@ -8,7 +8,7 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 전체 메뉴. ESC 와 폰 뒤로가기, 폰 메뉴 버튼으로 여는 화면. PC 와 폰 공통
-	/// - 왼쪽: 자주 여는 창, 오른쪽: 정보 창, 아래: 설정과 종료, 가운데: 지금 자리와 연구소 코어
+	/// - 왼쪽: 자주 여는 창, 오른쪽: 정보 창과 끼임 탈출, 아래: 설정, 던전 포기, 로비로, 종료, 가운데: 지금 자리와 연구소 코어
 	/// - 설정창은 이 안의 버튼 하나. 사용자가 설정을 닫으면 메뉴로 돌아옴
 	/// - 창 단축키가 이 빌드에서 숨는 항목 (KeybindRegistry) 은 메뉴에서도 숨김
 	/// - World 씬에서만 열림. 시작 화면의 ESC 는 설정창 (LobbyManager)
@@ -204,6 +204,20 @@ namespace WitchMendokusai
 			LeaveForSetting();
 			uiRoot.SettingView.OpenQuitConfirm();
 		}
+
+		private void AskUnstuck()
+		{
+			LeaveForSetting();
+			uiRoot.SettingView.RequestUnstuck();
+		}
+
+		private void AskDungeonExit()
+		{
+			LeaveForSetting();
+			uiRoot.SettingView.RequestDungeonExit();
+		}
+
+		private static bool HasStage() => StageManager.TryGetExistingInstance(out StageManager stageManager) && stageManager.CurStageObject != null;
 
 		// 던전 판이 진행 중이면 포기 확인 창 (설정창 위) 을 거침. 취소하면 메뉴로 돌아옴. 마을에서는 바로 로비로
 		private void GoToLobby()

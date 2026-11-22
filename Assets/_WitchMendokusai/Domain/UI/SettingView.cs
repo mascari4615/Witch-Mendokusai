@@ -40,10 +40,6 @@ namespace WitchMendokusai
 		private readonly Dictionary<string, Button> tabButtons = new();
 		private string currentTabKey;
 
-		private Button btnDungeonExit;
-		private Button btnUnstuck;
-		private Button btnLobby;
-
 		// Audio
 		private Slider masterVolume;
 		private Slider bgmVolume;
@@ -232,32 +228,12 @@ namespace WitchMendokusai
 			VisualElement buttonGroup = new VisualElement();
 			buttonGroup.AddToClassList("wm-setting-buttons");
 
-			btnUnstuck = new Button(() => AskConfirmWithSound("들어온 자리로 돌아갈까요?", "땅에 끼였거나 떨어졌을 때 지금 스테이지에 들어선 자리로 옮깁니다.", "돌아가기", OnUnstuck)) { text = "끼임 탈출" };
-			btnUnstuck.AddToClassList("wm-setting-btn");
-			btnUnstuck.AddToClassList(NAV_CLASS);
-			buttonGroup.Add(btnUnstuck);
-
-			btnDungeonExit = new Button(() => AskConfirmWithSound("던전을 포기할까요?", "이번 판은 패배로 끝납니다.", "포기", OnDungeonExit)) { text = "던전 포기" };
-			btnDungeonExit.AddToClassList("wm-setting-btn");
-			btnDungeonExit.AddToClassList("wm-setting-btn--danger");
-			btnDungeonExit.AddToClassList(NAV_CLASS);
-			buttonGroup.Add(btnDungeonExit);
-
+			// 끼임 탈출, 던전 포기, 로비로, 게임 종료는 전체 메뉴에 (설정이 아니라 게임을 다루는 동작). 시작 화면에는 자기 종료 버튼이 있음
 			Button btnSaveInit = new Button(() => AskConfirmWithSound("세이브 데이터를 초기화할까요?", "되돌릴 수 없습니다.", "초기화", OnClearData)) { text = "세이브 데이터 초기화" };
 			btnSaveInit.AddToClassList("wm-setting-btn");
 			btnSaveInit.AddToClassList("wm-setting-btn--danger");
 			btnSaveInit.AddToClassList(NAV_CLASS);
 			buttonGroup.Add(btnSaveInit);
-
-			btnLobby = new Button(AskReturnToLobby) { text = "로비로", tooltip = LOBBY_TOOLTIP };
-			btnLobby.AddToClassList("wm-setting-btn");
-			btnLobby.AddToClassList(NAV_CLASS);
-			buttonGroup.Add(btnLobby);
-
-			Button btnQuit = new Button(AskQuit) { text = "게임 종료" };
-			btnQuit.AddToClassList("wm-setting-btn");
-			btnQuit.AddToClassList(NAV_CLASS);
-			buttonGroup.Add(btnQuit);
 
 			content.Add(buttonGroup);
 
@@ -378,15 +354,6 @@ namespace WitchMendokusai
 			IsOpen = true;
 			UiSfx.Play(UiSfxEvent.WindowOpen);
 			UIMotion.Show(container, ACTIVE_CLASS);
-
-			// HACK: World 씬에서만 던전 포기 버튼 활성화
-			bool isWorld = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "World";
-			bool isDungeon = DungeonManager.TryGetExistingInstance(out DungeonManager dm) && dm.IsDungeon;
-			btnDungeonExit.style.display = (isWorld && isDungeon) ? DisplayStyle.Flex : DisplayStyle.None;
-			bool hasStage = StageManager.TryGetExistingInstance(out StageManager stageManager) && stageManager.CurStageObject != null;
-			btnUnstuck.style.display = (isWorld && hasStage) ? DisplayStyle.Flex : DisplayStyle.None;
-			// 로비에서는 갈 곳이 없음
-			btnLobby.style.display = LobbyManager.CanReturnFromWorld ? DisplayStyle.Flex : DisplayStyle.None;
 
 			// 쉐이더팩 탭 진입 시 최신 상태 반영 (다른 곳에서 ShaderPackManager 변경했을 수 있음)
 			RebuildShaderPackList();

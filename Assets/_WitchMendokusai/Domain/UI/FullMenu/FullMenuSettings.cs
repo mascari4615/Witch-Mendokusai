@@ -16,6 +16,8 @@ namespace WitchMendokusai
 		[field: SerializeField] public Texture2D QuitIcon { get; private set; }
 		[field: SerializeField, Tooltip("로비로 (시작 화면)")] public Texture2D LobbyIcon { get; private set; }
 		[field: SerializeField, Tooltip("단축키 안내")] public Texture2D KeybindIcon { get; private set; }
+		[field: SerializeField, Tooltip("끼임 탈출 (들어온 자리로)")] public Texture2D UnstuckIcon { get; private set; }
+		[field: SerializeField, Tooltip("던전 포기")] public Texture2D DungeonExitIcon { get; private set; }
 
 		[field: SerializeField, Tooltip("게임 화면 흐림 출력 (CustomBlurFeature). 메뉴 배경")] public RenderTexture BlurOutput { get; private set; }
 

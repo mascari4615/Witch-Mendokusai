@@ -18,6 +18,8 @@ MonoBehaviour:
   <QuitIcon>k__BackingField: {fileID: 2800000, guid: 6cf76a743c75d39488f3fbd04838fab2, type: 3}
   <LobbyIcon>k__BackingField: {fileID: 2800000, guid: bd6e6bfeff702744680892c25c6cbf40, type: 3}
   <KeybindIcon>k__BackingField: {fileID: 2800000, guid: bf5a83dd1283dc54893e51fc7b583401, type: 3}
+  <UnstuckIcon>k__BackingField: {fileID: 2800000, guid: d01766ad14bc8e44ea5e4217fdadd6c8, type: 3}
+  <DungeonExitIcon>k__BackingField: {fileID: 2800000, guid: 9fea2e235ec00434a9d7d734faacfe4c, type: 3}
   <BlurOutput>k__BackingField: {fileID: 8400000, guid: 4f1f5a32ebefe5041a43447ad1711148, type: 2}
   <ReferenceHeight>k__BackingField: 1080
   <MinimumWidth>k__BackingField: 1600
