@@ -13,8 +13,8 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("바닥 띠 예고 폭 (m)"), Min(0.1f)] public float TelegraphWidth { get; private set; } = 1f;
 		[field: SerializeField, Tooltip("돌진 계획 이동의 이 비율도 못 나가고 닿아 있으면 부딪혀 멈춤"), Range(0f, 1f)] public float BlockedProgressRatio { get; private set; } = 0.3f;
 
-		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider, bool isSpriteLookLeft) =>
-			new BT_DashCooldown(unitObject, playerProvider, this, isSpriteLookLeft);
+		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider) =>
+			new BT_DashCooldown(unitObject, playerProvider, this);
 
 		public override void Interrupt(BTRunner behaviour) => ((BT_DashCooldown)behaviour).Interrupt();
 

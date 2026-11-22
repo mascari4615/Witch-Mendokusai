@@ -12,7 +12,6 @@ namespace WitchMendokusai
 	public class FSMWildBeast : FSM<FSMStateCommon>
 	{
 		[SerializeField] private float fleeRange = 12f;
-		[SerializeField] private bool isSpriteLookLeft = false;
 
 		private PlayerProvider playerProvider;
 		private BT_Idle idle;
@@ -28,8 +27,8 @@ namespace WitchMendokusai
 
 		protected override void InitFSMEvent()
 		{
-			idle = new(UnitObject, isSpriteLookLeft: isSpriteLookLeft);
-			flee = new(UnitObject, playerProvider, isSpriteLookLeft);
+			idle = new(UnitObject);
+			flee = new(UnitObject, playerProvider);
 
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
 			{

@@ -13,7 +13,6 @@ namespace WitchMendokusai
 	/// </summary>
 	public class FSMSlimeKing : FSM<FSMStateCommon>
 	{
-		[SerializeField] private bool isSpriteLookLeft = false;
 		[SerializeField, Tooltip("공격 수치 한 벌")] private SlimeKingAttackConfig attackConfig;
 
 		private PlayerProvider playerProvider;
@@ -62,7 +61,7 @@ namespace WitchMendokusai
 
 		protected override void InitFSMEvent()
 		{
-			BT_MoveToPlayer moveToPlayer = new(UnitObject, playerProvider, isSpriteLookLeft);
+			BT_MoveToPlayer moveToPlayer = new(UnitObject, playerProvider);
 			SlimeKingSummons summons = new(attackConfig);
 			shotPattern = new SlimeKingShotPattern(UnitObject, playerProvider, attackConfig, summons);
 			launchPattern = new SlimeKingLaunchPattern(UnitObject, playerProvider, attackConfig, summons);

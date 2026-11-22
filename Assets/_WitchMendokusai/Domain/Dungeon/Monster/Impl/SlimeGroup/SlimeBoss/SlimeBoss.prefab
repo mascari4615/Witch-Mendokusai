@@ -137,5 +137,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c6cbeef1a9a0d54ea11c617307ec8ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.FSMSlimeKing
-  isSpriteLookLeft: 0
   attackConfig: {fileID: 11400000, guid: 325bde587b630aa44be8662f5c969ecc, type: 2}

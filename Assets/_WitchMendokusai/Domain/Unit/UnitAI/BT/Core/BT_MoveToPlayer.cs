@@ -6,12 +6,10 @@ namespace WitchMendokusai
 	public class BT_MoveToPlayer : BTRunner
 	{
 		private Vector3 moveDest = Vector3.zero;
-		private bool isSpriteLookLeft;
 
-		public BT_MoveToPlayer(UnitObject unitObject, PlayerProvider playerProvider, bool isSpriteLookLeft = true) : base(unitObject)
+		public BT_MoveToPlayer(UnitObject unitObject, PlayerProvider playerProvider) : base(unitObject)
 		{
 			this.playerProvider = playerProvider;
-			this.isSpriteLookLeft = isSpriteLookLeft;
 		}
 
 		protected override Node MakeNode()
@@ -47,7 +45,7 @@ namespace WitchMendokusai
 
 		private BTState UpdateSpriteFlip()
 		{
-			unitObject.SpriteRenderer.flipX = isSpriteLookLeft ? !IsPlayerOnLeft() : IsPlayerOnLeft();
+			unitObject.SpriteRenderer.flipX = IsPlayerOnLeft();
 			return BTState.Success;
 		}
 

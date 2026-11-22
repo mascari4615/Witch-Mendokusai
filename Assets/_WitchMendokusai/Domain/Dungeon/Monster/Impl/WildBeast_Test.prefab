@@ -307,7 +307,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.FSMWildBeast
   fleeRange: 12
-  isSpriteLookLeft: 0
 --- !u!1 &696199373797371855
 GameObject:
   m_ObjectHideFlags: 0

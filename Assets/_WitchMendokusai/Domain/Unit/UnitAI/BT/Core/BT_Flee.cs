@@ -10,12 +10,10 @@ namespace WitchMendokusai
 	public class BT_Flee : BTRunner
 	{
 		private Vector3 moveDest = Vector3.zero;
-		private readonly bool isSpriteLookLeft;
 
-		public BT_Flee(UnitObject unitObject, PlayerProvider playerProvider, bool isSpriteLookLeft = true) : base(unitObject)
+		public BT_Flee(UnitObject unitObject, PlayerProvider playerProvider) : base(unitObject)
 		{
 			this.playerProvider = playerProvider;
-			this.isSpriteLookLeft = isSpriteLookLeft;
 		}
 
 		protected override Node MakeNode()
@@ -49,7 +47,7 @@ namespace WitchMendokusai
 		private BTState UpdateSpriteFlip()
 		{
 			// 도주 = 추격의 역. BT_MoveToPlayer 와 반대로 플레이어 반대쪽을 향한다.
-			unitObject.SpriteRenderer.flipX = isSpriteLookLeft ? IsPlayerOnLeft() : IsPlayerOnLeft() == false;
+			unitObject.SpriteRenderer.flipX = IsPlayerOnLeft() == false;
 			return BTState.Success;
 		}
 

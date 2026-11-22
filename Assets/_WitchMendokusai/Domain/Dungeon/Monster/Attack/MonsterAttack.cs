@@ -18,7 +18,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("바닥 예고 부품. Seconds 는 WindupSeconds")] public CombatFx WindupTelegraph { get; private set; }
 
 		// 이 공격을 돌릴 행동 트리. 몬스터가 켜질 때마다 새로
-		public abstract BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider, bool isSpriteLookLeft);
+		public abstract BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider);
 
 		// 행동이 도중에 끊길 때 (사망, 풀 반납, 패턴 이동, 재배치). 예고 정리
 		public abstract void Interrupt(BTRunner behaviour);

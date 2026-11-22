@@ -12,11 +12,11 @@ namespace WitchMendokusai
 		private BT_Dash dash;
 		private float readyTime;
 
-		public BT_DashCooldown(UnitObject unitObject, PlayerProvider playerProvider, DashMonsterAttack attack, bool isSpriteLookLeft) : base(unitObject)
+		public BT_DashCooldown(UnitObject unitObject, PlayerProvider playerProvider, DashMonsterAttack attack) : base(unitObject)
 		{
 			this.playerProvider = playerProvider;
 			this.attack = attack;
-			chase = new BT_MoveToPlayer(unitObject, playerProvider, isSpriteLookLeft);
+			chase = new BT_MoveToPlayer(unitObject, playerProvider);
 		}
 
 		protected override Node MakeNode() => Action(Tick);

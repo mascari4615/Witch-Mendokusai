@@ -8,7 +8,6 @@ namespace WitchMendokusai
 #pragma warning disable CS0414 // FSM 공격 범위 미구현 예약 필드
 		[SerializeField] private float attackRange = 10f;
 #pragma warning restore CS0414
-		[SerializeField] private bool isSpriteLookLeft = false;
 
 		private PlayerProvider playerProvider;
 		private BT_Idle idle;
@@ -26,8 +25,8 @@ namespace WitchMendokusai
 
 		protected override void InitFSMEvent()
 		{
-			idle = new(UnitObject, isSpriteLookLeft: isSpriteLookLeft);
-			moveToPlayer = new(UnitObject, playerProvider, isSpriteLookLeft);
+			idle = new(UnitObject);
+			moveToPlayer = new(UnitObject, playerProvider);
 
 			SetStateEvent(FSMStateCommon.Idle, StateEvent.Update, () =>
 			{
@@ -47,7 +46,7 @@ namespace WitchMendokusai
 				{
 					InterruptAttack();
 					activeAttack = attack;
-					attackBehaviour = attack.CreateBehaviour(UnitObject, playerProvider, isSpriteLookLeft);
+					attackBehaviour = attack.CreateBehaviour(UnitObject, playerProvider);
 				}
 				attackBehaviour.UpdateBT();
 			});

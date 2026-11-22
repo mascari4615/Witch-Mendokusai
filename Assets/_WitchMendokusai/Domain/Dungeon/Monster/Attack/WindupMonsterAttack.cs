@@ -5,8 +5,8 @@ namespace WitchMendokusai
 	// 예고 뒤 한 번 실행하는 공격 (원거리, 장판). 박자는 BT_WindupAttack, 종류마다 다른 것은 예고 자리와 실행만
 	public abstract class WindupMonsterAttack : MonsterAttack
 	{
-		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider, bool isSpriteLookLeft) =>
-			new BT_WindupAttack(unitObject, playerProvider, this, isSpriteLookLeft);
+		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider) =>
+			new BT_WindupAttack(unitObject, playerProvider, this);
 
 		public override void Interrupt(BTRunner behaviour) => ((BT_WindupAttack)behaviour).Interrupt();
 

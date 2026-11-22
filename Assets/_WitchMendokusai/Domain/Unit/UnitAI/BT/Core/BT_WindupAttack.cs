@@ -9,18 +9,16 @@ namespace WitchMendokusai
 	public class BT_WindupAttack : BTRunner
 	{
 		private readonly WindupMonsterAttack attack;
-		private readonly bool isSpriteLookLeft;
 		private Vector3 target;
 		private float windupEndTime;
 		private float recoveryEndTime;
 		private float readyTime;
 		private Action stopTelegraph;
 
-		public BT_WindupAttack(UnitObject unitObject, PlayerProvider playerProvider, WindupMonsterAttack attack, bool isSpriteLookLeft) : base(unitObject)
+		public BT_WindupAttack(UnitObject unitObject, PlayerProvider playerProvider, WindupMonsterAttack attack) : base(unitObject)
 		{
 			this.playerProvider = playerProvider;
 			this.attack = attack;
-			this.isSpriteLookLeft = isSpriteLookLeft;
 		}
 
 		protected override Node MakeNode()
@@ -53,7 +51,7 @@ namespace WitchMendokusai
 			return BTState.Success;
 		}
 
-		private void FacePlayer() => unitObject.SpriteRenderer.flipX = isSpriteLookLeft ? IsPlayerOnLeft() == false : IsPlayerOnLeft();
+		private void FacePlayer() => unitObject.SpriteRenderer.flipX = IsPlayerOnLeft();
 
 		// 기절, 빙결 중에는 준비를 시작하지 않음
 		private bool CanStart()
