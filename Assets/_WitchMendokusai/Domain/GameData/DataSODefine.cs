@@ -33,6 +33,9 @@ namespace WitchMendokusai
 			{ typeof(ChapterSO), "Chapter" },
 			{ typeof(WitchPlantSO), "PLANT" },
 			{ typeof(MinigameEntrySO), "MGE" },    // TASK-WM-195 — 티메토 허브 엔트리. 미등록 시 DataLoader 순회 제외 → 허브가 무음으로 텅 빔.
+			// 업적. 갈래 설치 (FeatureManifest) 는 Play 때만 돌아 에디터의 Addressable 자동 등록이 못 봄. 같은 어셈블리라 여기 둠
+			{ typeof(AchievementSO), "ACH" },
+			{ typeof(AchievementCategorySO), "ACC" },
 		};
 
 		static DataSODefine()
