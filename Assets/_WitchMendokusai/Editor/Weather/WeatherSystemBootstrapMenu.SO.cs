@@ -103,7 +103,8 @@ namespace WitchMendokusai
 
 			SerializedProperty sfxProp = serializedObject.FindProperty("<SfxKey>k__BackingField");
 			if (sfxProp != null)
-				sfxProp.stringValue = $"weather_{type.ToString().ToLowerInvariant()}";
+				// 날씨마다 FMOD 환경음 이벤트 하나 (event:/Ambience/<날씨>, 반복). 시험 WeatherAmbienceTest 가 경로를 검사
+				sfxProp.stringValue = $"event:/Ambience/{type}";
 
 			SerializedProperty nameProp = serializedObject.FindProperty("<Name>k__BackingField");
 			if (nameProp != null)

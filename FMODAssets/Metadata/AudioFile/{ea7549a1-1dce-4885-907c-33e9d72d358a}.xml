@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.04.00">
+	<object class="AudioFile" id="{ea7549a1-1dce-4885-907c-33e9d72d358a}">
+		<property name="assetPath">
+			<value>Ylmir/Rain/Rain 1.ogg</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.100000000000001</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>27</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{2ab7eb1a-0a54-4fe3-ac6e-745e6f870bc3}</destination>
+		</relationship>
+	</object>
+</objects>

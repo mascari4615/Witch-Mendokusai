@@ -324,6 +324,51 @@ MonoBehaviour:
     <UsedIn>k__BackingField: '몬스터 피격음'
     <AssetPaths>k__BackingField:
     - 'FMODAssets/Assets/Kenney/Impact Sounds'
+  - <Id>k__BackingField: tinyworlds-forest-ambience
+    <Category>k__BackingField: 7
+    <Name>k__BackingField: 'Forest Ambience'
+    <Author>k__BackingField: 'TinyWorlds'
+    <SourceUrl>k__BackingField: 'https://opengameart.org/content/forest-ambience'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '맑음, 흐림, 눈 환경음'
+    <AssetPaths>k__BackingField:
+    - 'FMODAssets/Assets/TinyWorlds/Forest Ambience'
+  - <Id>k__BackingField: ylmir-rain-loopable
+    <Category>k__BackingField: 7
+    <Name>k__BackingField: 'Rain (loopable)'
+    <Author>k__BackingField: 'Ylmir'
+    <SourceUrl>k__BackingField: 'https://opengameart.org/content/rain-loopable'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '비, 폭풍 환경음'
+    <AssetPaths>k__BackingField:
+    - 'FMODAssets/Assets/Ylmir/Rain'
+  - <Id>k__BackingField: isaiah658-ambient-relaxing-loop
+    <Category>k__BackingField: 7
+    <Name>k__BackingField: 'Ambient Relaxing Loop'
+    <Author>k__BackingField: 'isaiah658'
+    <SourceUrl>k__BackingField: 'https://opengameart.org/content/ambient-relaxing-loop'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '마법, 안개 환경음'
+    <AssetPaths>k__BackingField:
+    - 'FMODAssets/Assets/isaiah658/Ambient Relaxing Loop'
   - <Id>k__BackingField: junkala-chiptune-adventures
     <Category>k__BackingField: 8
     <Name>k__BackingField: 'Chiptune Adventures'
