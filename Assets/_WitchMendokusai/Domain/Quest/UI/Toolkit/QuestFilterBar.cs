@@ -20,7 +20,6 @@ namespace WitchMendokusai
 			AddButton("전체", QuestType.None);
 			AddButton("일반", QuestType.Normal);
 			AddButton("마을의뢰", QuestType.VillageRequest);
-			AddButton("업적", QuestType.Achievement);
 			AddButton("연구", QuestType.Research);
 			AddButton("던전", QuestType.Dungeon);
 

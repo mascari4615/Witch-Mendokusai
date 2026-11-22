@@ -23,7 +23,7 @@ MonoBehaviour:
   <Sprite>k__BackingField: {fileID: -908886452, guid: 0e29ad6274cbc2f4fbbe5da3634a4d81, type: 3}
   <Sprites>k__BackingField: []
   <Data>k__BackingField:
-    Type: 2
+    Type: 0
     UnlockEffects:
     - Type: 150
       Data: {fileID: 11400000, guid: 4953f4b841176404d9ff2bc35ecf6a84, type: 2}
@@ -50,3 +50,4 @@ MonoBehaviour:
     WorkTime: 0
     AutoWork: 0
     AutoComplete: 0
+    ShowCompletePopup: 1

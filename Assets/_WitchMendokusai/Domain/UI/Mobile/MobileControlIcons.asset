@@ -35,6 +35,8 @@ MonoBehaviour:
     Icon: {fileID: 2800000, guid: 8df4389960317ed44917907a806e2324, type: 3}
   - EventType: 28
     Icon: {fileID: 2800000, guid: 4bcd91e9e0a5f844cb35867bc30ed0ce, type: 3}
+  - EventType: 37
+    Icon: {fileID: 2800000, guid: 4bcd91e9e0a5f844cb35867bc30ed0ce, type: 3}
   - EventType: 27
     Icon: {fileID: 2800000, guid: 3830fbbe727ae064abf15d545bd0501f, type: 3}
   - EventType: 31

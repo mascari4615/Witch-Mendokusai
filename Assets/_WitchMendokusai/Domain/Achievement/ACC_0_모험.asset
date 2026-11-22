@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d07bfa9ea694d3a99d12c8103f4fb20, type: 3}
+  m_Name: "ACC_0_\uBAA8\uD5D8"
+  m_EditorClassIdentifier:
+  <ID>k__BackingField: 0
+  <Name>k__BackingField: "\uBAA8\uD5D8"
+  <Description>k__BackingField: 
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  <Order>k__BackingField: 0
+  <MotifName>k__BackingField: "\uB3C4\uC7A5"
+  <MotifKey>k__BackingField: stamp
+  <TierFrames>k__BackingField: []
+  <EmptySlot>k__BackingField: {fileID: 0}
+  <HiddenSlot>k__BackingField: {fileID: 0}

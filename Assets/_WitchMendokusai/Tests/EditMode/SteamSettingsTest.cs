@@ -38,28 +38,24 @@ namespace WitchMendokusai.Tests
 		public void Achievement_links_point_to_game_achievements()
 		{
 			SteamSettings settings = SteamSettings.Load();
-			Dictionary<int, QuestSO> questsById = new();
-			foreach (string guid in AssetDatabase.FindAssets("t:" + nameof(QuestSO)))
+			Dictionary<int, AchievementSO> achievementsById = new();
+			foreach (string guid in AssetDatabase.FindAssets("t:" + nameof(AchievementSO)))
 			{
-				QuestSO quest = AssetDatabase.LoadAssetAtPath<QuestSO>(AssetDatabase.GUIDToAssetPath(guid));
-				if (questsById.ContainsKey(quest.ID))
-				{
-					// 같은 ID 의 QuestSO 가 둘이면 어느 쪽에 연결됐는지 모호. 이 검사의 관심사는 연결된 ID 만
-					continue;
-				}
-				questsById.Add(quest.ID, quest);
+				AchievementSO achievement = AssetDatabase.LoadAssetAtPath<AchievementSO>(AssetDatabase.GUIDToAssetPath(guid));
+				Assert.That(achievementsById.ContainsKey(achievement.ID), Is.False, "업적 ID 중복: " + achievement.ID);
+				achievementsById.Add(achievement.ID, achievement);
 			}
 
 			HashSet<string> apiNames = new();
 			foreach (SteamAchievementLink link in settings.Achievements)
 			{
-				Assert.That(questsById.ContainsKey(link.QuestId), Is.True, "연결된 게임 업적 없음: " + link.QuestId);
-				Assert.That(questsById[link.QuestId].Data.Type, Is.EqualTo(QuestType.Achievement),
-					"Achievement 타입이 아닌 퀘스트를 Steam 업적에 연결: " + link.QuestId);
+				Assert.That(achievementsById.ContainsKey(link.AchievementId), Is.True, "연결된 게임 업적 없음: " + link.AchievementId);
+				AchievementSO achievement = achievementsById[link.AchievementId];
+				Assert.That(link.Tier, Is.InRange(1, achievement.MaxTier), "없는 단계에 연결: " + link.Step);
 				Assert.That(Regex.IsMatch(link.ApiName ?? string.Empty, "^[A-Z0-9_]+$"), Is.True, "API 이름 형식: " + link.ApiName);
 				Assert.That(apiNames.Add(link.ApiName), Is.True, "API 이름 중복: " + link.ApiName);
 			}
-			Assert.DoesNotThrow(() => settings.BuildAchievementMap(), "같은 게임 업적을 두 번 연결");
+			Assert.DoesNotThrow(() => settings.BuildAchievementMap(), "같은 업적 단계를 두 번 연결");
 		}
 
 		[Test]

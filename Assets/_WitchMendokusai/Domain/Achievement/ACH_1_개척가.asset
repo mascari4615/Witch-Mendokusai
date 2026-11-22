@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c50db8b1654b4987990555213c8a643a, type: 3}
+  m_Name: "ACH_1_\uAC1C\uCC99\uAC00"
+  m_EditorClassIdentifier:
+  <ID>k__BackingField: 1
+  <Name>k__BackingField: "\uAC1C\uCC99\uAC00"
+  <Description>k__BackingField: "\uAC00 \uBCF8 \uACF3\uC774 \uB298\uC5B4\uB09C\uB2E4. \uADC0\uCC2E\uC544\uB3C4 \uBC1C\uC740 \uAE30\uC5B5\uD55C\uB2E4."
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 48b0f099c3bf6794aa4f7244fd7fe6a8, type: 3}
+  <Sprites>k__BackingField: []
+  <Category>k__BackingField: {fileID: 11400000, guid: 034454dbd77b452e9163f27725341654, type: 2}
+  <Hidden>k__BackingField: 0
+  <Condition>k__BackingField: "\uB358\uC804\uC744 \uD074\uB9AC\uC5B4\uD55C\uB2E4"
+  <MeasureType>k__BackingField: 2
+  <MeasureData>k__BackingField: {fileID: 11400000, guid: 09eee954d5434844792f6168164e4511, type: 2}
+  <TierTargets>k__BackingField:
+  - 10
+  - 30
+  - 100
+  <LegacyQuestId>k__BackingField: 599
+  <LegacyTier>k__BackingField: 1

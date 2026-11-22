@@ -8,9 +8,10 @@ namespace WitchMendokusai.Tests
 	/// </summary>
 	public sealed class AchievementRelayTest
 	{
-		private const int LINKED_HUNTER = 500;
-		private const int LINKED_BOSS = 501;
-		private const int GAME_ONLY = 499;
+		private static readonly AchievementStep LINKED_HUNTER = new(101, 1);
+		private static readonly AchievementStep LINKED_BOSS = new(102, 3);
+		private static readonly AchievementStep GAME_ONLY = new(1, 1);
+		private static readonly AchievementStep BOSS_LOWER_TIER = new(102, 1);
 
 		private sealed class FakePort : IAchievementPlatformPort
 		{
@@ -32,7 +33,7 @@ namespace WitchMendokusai.Tests
 			FakePort port = new();
 			port.Known.Add("ACH_HUNTER");
 			port.Known.Add("ACH_BOSS_HUNTER");
-			Dictionary<int, string> map = new()
+			Dictionary<AchievementStep, string> map = new()
 			{
 				{ LINKED_HUNTER, "ACH_HUNTER" },
 				{ LINKED_BOSS, "ACH_BOSS_HUNTER" },
@@ -45,7 +46,7 @@ namespace WitchMendokusai.Tests
 		{
 			(AchievementRelay relay, FakePort port) = Create();
 
-			int relayed = relay.Resync(new[] { GAME_ONLY, LINKED_HUNTER, LINKED_BOSS });
+			int relayed = relay.Resync(new[] { GAME_ONLY, LINKED_HUNTER, BOSS_LOWER_TIER, LINKED_BOSS });
 
 			Assert.That(relayed, Is.EqualTo(2));
 			Assert.That(port.Unlocked, Is.EquivalentTo(new[] { "ACH_HUNTER", "ACH_BOSS_HUNTER" }));
@@ -57,7 +58,7 @@ namespace WitchMendokusai.Tests
 		{
 			(AchievementRelay relay, FakePort port) = Create();
 
-			bool relayed = relay.OnAchievementCompleted(GAME_ONLY);
+			bool relayed = relay.OnAchievementUnlocked(GAME_ONLY);
 
 			Assert.That(relayed, Is.False);
 			Assert.That(port.Unlocked, Is.Empty);
@@ -70,7 +71,7 @@ namespace WitchMendokusai.Tests
 			(AchievementRelay relay, FakePort port) = Create();
 
 			relay.Resync(new[] { LINKED_HUNTER });
-			relay.OnAchievementCompleted(LINKED_HUNTER);
+			relay.OnAchievementUnlocked(LINKED_HUNTER);
 
 			Assert.That(port.Unlocked, Is.EqualTo(new[] { "ACH_HUNTER" }));
 		}
@@ -79,20 +80,33 @@ namespace WitchMendokusai.Tests
 		public void Failed_unlock_is_reported_and_retried_later()
 		{
 			FakePort port = new();
-			AchievementRelay relay = new(new Dictionary<int, string> { { LINKED_HUNTER, "ACH_HUNTER" } }, port);
+			AchievementRelay relay = new(new Dictionary<AchievementStep, string> { { LINKED_HUNTER, "ACH_HUNTER" } }, port);
 
 			// 플랫폼 준비 전: 실패, 기록하지 않음
 			UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("ACH_HUNTER"));
-			bool first = relay.OnAchievementCompleted(LINKED_HUNTER);
+			bool first = relay.OnAchievementUnlocked(LINKED_HUNTER);
 			// 플랫폼 준비 뒤: 다시 시도해 성공
 			port.Known.Add("ACH_HUNTER");
-			bool second = relay.OnAchievementCompleted(LINKED_HUNTER);
-			bool third = relay.OnAchievementCompleted(LINKED_HUNTER);
+			bool second = relay.OnAchievementUnlocked(LINKED_HUNTER);
+			bool third = relay.OnAchievementUnlocked(LINKED_HUNTER);
 
 			Assert.That(first, Is.False);
 			Assert.That(second, Is.True);
 			Assert.That(third, Is.False, "성공한 것은 다시 적지 않음");
 			Assert.That(port.Unlocked.Count, Is.EqualTo(2));
+		}
+
+		[Test]
+		public void Only_the_linked_tier_of_an_achievement_reaches_platform()
+		{
+			(AchievementRelay relay, FakePort port) = Create();
+
+			bool lower = relay.OnAchievementUnlocked(BOSS_LOWER_TIER);
+			bool linked = relay.OnAchievementUnlocked(LINKED_BOSS);
+
+			Assert.That(lower, Is.False, "연결표에 없는 단계는 게임 전용");
+			Assert.That(linked, Is.True);
+			Assert.That(port.Unlocked, Is.EqualTo(new[] { "ACH_BOSS_HUNTER" }));
 		}
 	}
 }

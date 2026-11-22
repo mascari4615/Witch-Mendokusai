@@ -23,10 +23,13 @@ namespace WitchMendokusai
 		private DataManager DataManager;
 		public void BindDataManager(DataManager dataManager) => DataManager = dataManager;
 
+		private AchievementManager achievementManager;
+
 		[Inject]
-		public void Construct(SOManager soManager)
+		public void Construct(SOManager soManager, AchievementManager achievementManager)
 		{
 			this.soManager = soManager;
+			this.achievementManager = achievementManager;
 		}
 
 		public void CreateNewGameData()
@@ -196,6 +199,9 @@ namespace WitchMendokusai
 				Debug.Log($"[SaveManager] 중복 모드 퀘스트 정리: {saveData.runtimeQuests.Count} -> {savedQuests.Count}");
 			}
 			DataManager.QuestManager.Init(savedQuests.ConvertAll((RuntimeQuestSaveData questSaveData) => RuntimeQuestFactory.FromSaveData(questSaveData, criteriaContext)));
+
+			// 업적 판정 시작. 조각과 통계가 다 들어온 뒤라 첫 판정이 맞음
+			achievementManager.Begin(DataManager.FeatureSave<AchievementSaveSlice>(), criteriaContext);
 
 			// 던전 초기화
 			ForEach<Dungeon>(dungeon => { dungeon.Init(); }); // 먼저 전부 Init (새로 추가된 던전 포함)

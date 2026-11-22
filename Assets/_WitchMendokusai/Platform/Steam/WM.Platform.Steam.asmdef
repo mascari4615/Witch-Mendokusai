@@ -3,7 +3,6 @@
     "rootNamespace": "WitchMendokusai",
     "references": [
         "WM.Core",
-        "WitchMendokusai.DomainSDK.Quest",
         "WitchMendokusai.DomainSDK.EventBus"
     ],
     "includePlatforms": [

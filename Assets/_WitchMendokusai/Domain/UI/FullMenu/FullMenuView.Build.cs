@@ -83,6 +83,7 @@ namespace WitchMendokusai
 			body.Add(mainColumn);
 			AddWindowEntry(mainColumn, "wm-fullmenu-main", "인벤토리", "장비와 재료", InputEventType.Inventory);
 			AddWindowEntry(mainColumn, "wm-fullmenu-main", "퀘스트", "의뢰와 목표", InputEventType.QuestToggle);
+			AddWindowEntry(mainColumn, "wm-fullmenu-main", "업적", "모은 기록", InputEventType.AchievementToggle);
 			AddWindowEntry(mainColumn, "wm-fullmenu-main", "마도서", "배운 마법", InputEventType.MagicBookToggle);
 			AddWindowEntry(mainColumn, "wm-fullmenu-main", "인형", "편성과 상태", InputEventType.DollToggle);
 

@@ -1124,6 +1124,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "AchievementToggle",
+                    "type": "Button",
+                    "id": "1c4c68bf-5197-4846-8ad8-bbfdb50943aa",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "DollToggle",
                     "type": "Button",
                     "id": "de54bf9a-2c1b-4c00-9f3d-a90c0e84fa01",
@@ -1739,6 +1748,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "QuestToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f08b72bd-88c8-4928-81f0-2d40cf5adf82",
+                    "path": "<Keyboard>/h",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "AchievementToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

@@ -1776,3 +1776,262 @@
 .wm-key-button > .wm-key-hint {
     margin-left: 8px;
 }
+
+/* ── 업적 창과 달성 띠 (Domain/Achievement/UI). 칸 그림이 오기 전 임시 모양. 분류마다 --stamp, --patch, --bottle ── */
+
+.wm-ach-body {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+.wm-ach-tabs {
+    width: 96px;
+    flex-shrink: 0;
+    padding: 4px;
+}
+
+.wm-ach-tab {
+    margin: 2px 0;
+    padding: 4px 6px;
+    -unity-text-align: middle-left;
+}
+
+.wm-ach-tab--active {
+    background-color: rgba(122, 92, 62, 0.85);
+    color: rgba(255, 248, 236, 1);
+}
+
+.wm-ach-main {
+    flex-grow: 1;
+    padding: 4px 8px;
+}
+
+.wm-ach-header {
+    font-size: 12px;
+    color: rgba(230, 214, 190, 1);
+    margin-bottom: 6px;
+}
+
+.wm-ach-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.wm-ach-slot {
+    width: 84px;
+    margin: 4px;
+    align-items: center;
+}
+
+.wm-ach-slot__frame {
+    width: 64px;
+    height: 64px;
+    align-items: center;
+    justify-content: center;
+    -unity-background-scale-mode: scale-to-fit;
+    border-width: 2px;
+    border-color: rgba(150, 120, 90, 0.9);
+    background-color: rgba(244, 236, 222, 0.95);
+}
+
+.wm-ach-slot__icon {
+    width: 40px;
+    height: 40px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-ach-slot__mark {
+    position: absolute;
+    font-size: 24px;
+    -unity-font-style: bold;
+    color: rgba(120, 110, 100, 0.9);
+}
+
+.wm-ach-slot__caption {
+    font-size: 11px;
+    margin-top: 2px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.wm-ach-slot:hover .wm-ach-slot__frame,
+.wm-ach-slot:focus .wm-ach-slot__frame {
+    scale: 1.06 1.06;
+}
+
+.wm-ach-slot--selected .wm-ach-slot__frame {
+    border-color: rgba(255, 236, 170, 1);
+}
+
+/* 도장: 둥근 자국, 단계마다 겹쳐 찍혀 테두리가 굵어짐 */
+.wm-ach-slot--stamp .wm-ach-slot__frame {
+    border-radius: 32px;
+    border-color: rgba(176, 58, 46, 0.9);
+    background-color: rgba(250, 244, 232, 0.95);
+}
+.wm-ach-slot--stamp.wm-ach-slot--tier1 .wm-ach-slot__frame { border-width: 2px; }
+.wm-ach-slot--stamp.wm-ach-slot--tier2 .wm-ach-slot__frame { border-width: 4px; }
+.wm-ach-slot--stamp.wm-ach-slot--tier3 .wm-ach-slot__frame { border-width: 6px; border-color: rgba(150, 30, 30, 1); }
+
+/* 자수 패치: 둥근 네모 천, 테두리 실이 한 줄, 두 줄, 금실 */
+.wm-ach-slot--patch .wm-ach-slot__frame {
+    border-radius: 12px;
+    background-color: rgba(92, 110, 84, 0.95);
+    border-color: rgba(236, 226, 200, 0.9);
+}
+.wm-ach-slot--patch.wm-ach-slot--tier1 .wm-ach-slot__frame { border-width: 2px; }
+.wm-ach-slot--patch.wm-ach-slot--tier2 .wm-ach-slot__frame { border-width: 4px; }
+.wm-ach-slot--patch.wm-ach-slot--tier3 .wm-ach-slot__frame { border-width: 4px; border-color: rgba(222, 180, 70, 1); }
+
+/* 물약병: 위가 둥근 병, 단계마다 더 차오름 (임시로 바탕 진하기) */
+.wm-ach-slot--bottle .wm-ach-slot__frame {
+    width: 52px;
+    border-top-left-radius: 22px;
+    border-top-right-radius: 22px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-color: rgba(170, 200, 210, 0.9);
+    background-color: rgba(220, 236, 240, 0.6);
+}
+.wm-ach-slot--bottle.wm-ach-slot--tier1 .wm-ach-slot__frame { background-color: rgba(150, 110, 200, 0.45); }
+.wm-ach-slot--bottle.wm-ach-slot--tier2 .wm-ach-slot__frame { background-color: rgba(150, 110, 200, 0.7); }
+.wm-ach-slot--bottle.wm-ach-slot--tier3 .wm-ach-slot__frame { background-color: rgba(170, 120, 230, 0.95); border-color: rgba(255, 240, 180, 1); }
+
+/* 못 모은 칸: 흐리게. 숨김: 어두운 실루엣과 물음표 */
+.wm-ach-slot--empty .wm-ach-slot__frame {
+    opacity: 0.45;
+    border-width: 1px;
+}
+.wm-ach-slot--empty .wm-ach-slot__icon {
+    -unity-background-image-tint-color: rgba(60, 60, 60, 0.6);
+}
+.wm-ach-slot--hidden .wm-ach-slot__frame {
+    background-color: rgba(40, 36, 34, 0.85);
+    border-color: rgba(70, 64, 60, 0.9);
+    border-width: 1px;
+}
+.wm-ach-slot--hidden .wm-ach-slot__mark {
+    color: rgba(200, 190, 175, 0.9);
+}
+
+.wm-ach-detail {
+    width: 220px;
+    flex-shrink: 0;
+    padding: 8px;
+    align-items: stretch;
+    border-left-width: 1px;
+    border-left-color: rgba(120, 100, 80, 0.5);
+}
+
+.wm-ach-detail .wm-ach-slot {
+    align-self: center;
+    width: 96px;
+}
+
+.wm-ach-detail__name {
+    font-size: 16px;
+    -unity-font-style: bold;
+    margin-top: 6px;
+    white-space: normal;
+}
+
+.wm-ach-detail__story {
+    font-size: 12px;
+    color: rgba(214, 200, 180, 1);
+    margin-top: 4px;
+    white-space: normal;
+}
+
+.wm-ach-detail__condition {
+    font-size: 12px;
+    margin-top: 8px;
+    white-space: normal;
+}
+
+.wm-ach-detail__tiers {
+    flex-direction: row;
+    margin-top: 6px;
+}
+
+.wm-ach-detail__tier {
+    flex-grow: 1;
+    margin-right: 4px;
+    padding: 2px 0;
+    font-size: 11px;
+    -unity-text-align: middle-center;
+    background-color: rgba(70, 62, 56, 0.8);
+    color: rgba(180, 170, 160, 1);
+}
+
+.wm-ach-detail__tier--done {
+    background-color: rgba(176, 58, 46, 0.85);
+    color: rgba(255, 248, 236, 1);
+}
+
+.wm-ach-detail__progress {
+    height: 4px;
+    margin-top: 8px;
+    background-color: rgba(50, 44, 40, 1);
+}
+
+.wm-ach-detail__progress-fill {
+    height: 100%;
+    background-color: rgba(230, 190, 110, 1);
+}
+
+.wm-ach-detail__note {
+    font-size: 11px;
+    margin-top: 4px;
+    color: rgba(200, 190, 175, 1);
+}
+
+/* 달성 띠: 아래 가운데, 조작을 막지 않음 */
+.wm-ach-toast {
+    position: absolute;
+    bottom: 14%;
+    left: 50%;
+    translate: -50% 0;
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 16px 6px 8px;
+    background-color: rgba(28, 24, 22, 0.86);
+    border-radius: 4px;
+    opacity: 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.3s, 0.3s;
+}
+
+.wm-ach-toast--shown {
+    opacity: 1;
+    translate: -50% -8px;
+}
+
+.wm-ach-toast .wm-ach-slot {
+    width: 48px;
+    margin: 0;
+}
+
+.wm-ach-toast .wm-ach-slot__frame {
+    width: 40px;
+    height: 40px;
+}
+
+.wm-ach-toast .wm-ach-slot__icon {
+    width: 26px;
+    height: 26px;
+}
+
+.wm-ach-toast__text {
+    margin-left: 8px;
+}
+
+.wm-ach-toast__kind {
+    font-size: 11px;
+    color: rgba(200, 190, 175, 1);
+}
+
+.wm-ach-toast__name {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgba(255, 248, 236, 1);
+}

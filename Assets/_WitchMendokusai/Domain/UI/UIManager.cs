@@ -75,6 +75,7 @@ namespace WitchMendokusai
 		private HotbarView hotbarView;
 		private BuildingBarView buildingBarView;
 		private QuestView questView;
+		private AchievementView achievementView;
 		private DollView dollView;
 		private StatusView statusView;
 		private PopupView popupView;
@@ -111,13 +112,17 @@ namespace WitchMendokusai
 
 		private void OnQuestCompleted(QuestCompletedEvent evt)
 		{
-			if (evt.Type != QuestType.Achievement || evt.QuestSOID == -1)
+			if (evt.QuestSOID == -1)
 			{
 				return;
 			}
 
 			QuestSO questSO = SOHelper.GetQuestSO(evt.QuestSOID);
 			Debug.Assert(questSO != null, $"OnQuestCompleted: QuestSO ID={evt.QuestSOID} not registered in SOManager");
+			if (questSO.Data.ShowCompletePopup == false)
+			{
+				return;
+			}
 			Popup(questSO);
 		}
 
@@ -133,6 +138,8 @@ namespace WitchMendokusai
 				Destroy(buildingBarView);
 			if (questView != null)
 				Destroy(questView);
+			if (achievementView != null)
+				Destroy(achievementView);
 			if (dollView != null)
 				Destroy(dollView);
 			if (statusView != null)
@@ -228,6 +235,8 @@ namespace WitchMendokusai
 			container.Inject(buildingBarView);
 			questView = uiRootGameObject.AddComponent<QuestView>();
 			container.Inject(questView);
+			achievementView = uiRootGameObject.AddComponent<AchievementView>();
+			container.Inject(achievementView);
 			dollView = uiRootGameObject.AddComponent<DollView>();
 			container.Inject(dollView);
 			statusView = uiRootGameObject.AddComponent<StatusView>();

@@ -81,6 +81,8 @@ namespace WitchMendokusai
 			// γ P3-K POCO 매니저 3 등록 — DataManager 가 소유권 대신 VContainer 소유로 이관 (TASK-WM-078, 2026-05-13).
 			// Register<T> = POCO new + VContainer Singleton 관리. 에거 Resolve 불필요 (DataManager.Construct 가 트리거).
 			builder.Register<QuestManager>(Lifetime.Singleton);
+			// 업적 판정. 퀘스트와 따로, 씬을 넘어 삶. SaveManager 가 로드 끝에 Begin
+			builder.Register<AchievementManager>(Lifetime.Singleton);
 			builder.Register<WorkManager>(Lifetime.Singleton);
 			builder.Register<SaveManager>(Lifetime.Singleton);
 			builder.Register<WorldClockViewModel>(Lifetime.Singleton);

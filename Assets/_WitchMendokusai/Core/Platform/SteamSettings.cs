@@ -21,7 +21,7 @@ namespace WitchMendokusai
 		[Tooltip("에디터 Play 에서도 Steam 에 붙을지. 끄면 빌드에서만 연결.")]
 		[SerializeField] private bool initializeInEditor;
 
-		[Tooltip("게임 업적 (QuestSO ID) 중 Steam 에 연결할 것만. 정본은 게임, 여기 없는 업적은 게임 전용.")]
+		[Tooltip("게임 업적 단계 (AchievementSO ID, 단계) 중 Steam 에 연결할 것만. 정본은 게임, 여기 없는 업적은 게임 전용.")]
 		[SerializeField] private List<SteamAchievementLink> achievements = new();
 
 		[Tooltip("게임 기록 키 (GameRecords) 중 Steam 순위표에 올릴 것만. 정본은 게임 세이브, 순위표는 사본.")]
@@ -32,13 +32,13 @@ namespace WitchMendokusai
 		public IReadOnlyList<SteamAchievementLink> Achievements => achievements;
 		public IReadOnlyList<SteamLeaderboardLink> Leaderboards => leaderboards;
 
-		/// <summary>게임 업적 ID 에서 Steam API 이름으로 가는 표. 같은 ID 가 두 번이면 FastFail</summary>
-		public IReadOnlyDictionary<int, string> BuildAchievementMap()
+		/// <summary>게임 업적 단계에서 Steam API 이름으로 가는 표. 같은 단계가 두 번이면 FastFail</summary>
+		public IReadOnlyDictionary<AchievementStep, string> BuildAchievementMap()
 		{
-			Dictionary<int, string> map = new();
+			Dictionary<AchievementStep, string> map = new();
 			foreach (SteamAchievementLink link in achievements)
 			{
-				map.Add(link.QuestId, link.ApiName);
+				map.Add(link.Step, link.ApiName);
 			}
 			return map;
 		}

@@ -19,6 +19,7 @@ namespace WitchMendokusai
 			new TowerDefenseFeature(),
 			new ArenaFeature(),
 			new AlchemyMapFeature(),
+			new AchievementFeature(),
 		};
 
 		public static IReadOnlyList<IFeatureInstaller> Installers => installers;

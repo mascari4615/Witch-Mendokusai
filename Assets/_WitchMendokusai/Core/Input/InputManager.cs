@@ -95,6 +95,9 @@ namespace WitchMendokusai
 		DialogueLog,
 		[InputEvent("월드", "큰 지도 (누르는 동안)", "<Keyboard>/t")]
 		MinimapLargeView,
+		// 맨 끝에 붙임. 중간에 넣으면 숫자로 저장된 자산 (MobileControlIcons 등) 이 밀림
+		[InputEvent("창", "업적", "<Keyboard>/h")]
+		AchievementToggle,
 	}
 
 	public enum InputEventResponseType
