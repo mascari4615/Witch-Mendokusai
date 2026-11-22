@@ -1,11 +1,14 @@
 /* 던전 숙련 막대 HUD (DollMasteryHud). 왼쪽 아래 인물 체력 띠 위, 인물 이름 바로 위 한 줄 (사용자 2026-11-23 00:26 '하단바 너무 시야를 잡아먹어')
+   크기: 자리는 그대로, 아이콘과 보석을 키우고 어두운 바탕판 (사용자 06:55 '방향은 OK, 이것보다는 잘 보여야')
    자리: 1920x1080 실측으로 체력 띠 왼쪽 끝 (인물 얼굴 칸) 과 맞춤. 체력 띠는 uGUI 라 해상도마다 다시 볼 것
    구조: .wm-mastery > __side (막대 하나) > __icon (막대 색으로 물든 흰 아이콘), __pip x 문턱 (45도 작은 마름모)
                      > __separator (막대 사이 점)
    상태: __side--ready (찼음) + --pulse (맥박 켜짐), --dim (확정 반대쪽). __pip--filled, --pop (먹은 칸 튐), __icon--flash */
 
 .wm-mastery {
-    --wm-mastery-empty: rgba(10, 24, 30, 0.85);
+    --wm-mastery-empty: rgba(10, 24, 30, 0.9);
+    --wm-mastery-plate: rgba(6, 14, 20, 0.72);
+    --wm-mastery-plate-edge: rgba(255, 255, 255, 0.28);
     --wm-mastery-outline: rgba(255, 255, 255, 0.45);
     --wm-mastery-filled-outline: rgba(255, 255, 255, 0.95);
     /* 코드가 읽는 값 */
@@ -14,9 +17,13 @@
 
     position: absolute;
     left: 88px;
-    bottom: 100px;
+    bottom: 98px;
     flex-direction: row;
     align-items: center;
+    padding: 4px 10px 4px 6px;
+    background-color: var(--wm-mastery-plate);
+    border-width: 1px;
+    border-color: var(--wm-mastery-plate-edge);
 }
 
 .wm-mastery--hidden {
@@ -35,9 +42,9 @@
 }
 
 .wm-mastery__icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
+    width: 24px;
+    height: 24px;
+    margin-right: 5px;
     -unity-background-scale-mode: scale-to-fit;
     transition-property: scale;
     transition-duration: 0.14s;
@@ -57,12 +64,12 @@
 }
 
 .wm-mastery__pip {
-    width: 7px;
-    height: 7px;
-    margin: 0 2px;
+    width: 11px;
+    height: 11px;
+    margin: 0 3px;
     rotate: 45deg;
     background-color: var(--wm-mastery-empty);
-    border-width: 1px;
+    border-width: 1.5px;
     border-color: var(--wm-mastery-outline);
     transition-property: scale;
     transition-duration: 0.18s;
@@ -74,7 +81,7 @@
 }
 
 .wm-mastery__pip--pop {
-    scale: 1.9 1.9;
+    scale: 1.7 1.7;
 }
 
 .wm-mastery__side--pulse .wm-mastery__pip--filled {
@@ -82,9 +89,9 @@
 }
 
 .wm-mastery__separator {
-    width: 3px;
-    height: 3px;
-    margin: 0 7px;
+    width: 5px;
+    height: 5px;
+    margin: 0 10px;
     rotate: 45deg;
     background-color: var(--wm-mastery-outline);
 }
