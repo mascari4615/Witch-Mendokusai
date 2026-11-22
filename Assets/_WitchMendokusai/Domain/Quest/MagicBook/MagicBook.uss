@@ -243,6 +243,15 @@
     align-items: flex-end;
 }
 
+/* 갈래 별: 별 아래 가운데. 폭 0 칸 가운데에 두고 글은 양옆으로 넘침 */
+.wm-mb-star--label-below .wm-mb-star__label {
+    left: 24px;
+    top: 58px;
+    width: 0;
+    translate: 0 0;
+    align-items: center;
+}
+
 .wm-mb-star__name {
     font-size: 24px;
     white-space: nowrap;

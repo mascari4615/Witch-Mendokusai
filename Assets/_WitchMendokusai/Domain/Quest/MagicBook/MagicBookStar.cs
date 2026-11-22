@@ -12,6 +12,14 @@ namespace WitchMendokusai
 		Done = 3,
 	}
 
+	/// <summary>별 이름 자리. 잎 별은 장이 뻗는 바깥쪽, 갈래 별은 아래 (어느 쪽이든 선과 겹치지 않게)</summary>
+	public enum MagicBookLabelSide
+	{
+		Right = 0,
+		Left = 1,
+		Below = 2,
+	}
+
 	/// <summary>
 	/// 하늘의 별 하나 (퀘스트 하나). 방향키 칸 이동과 확인 키를 받는 버튼. 모양은 MagicBook.uss 의 상태 클래스.
 	/// 별 가운데가 자기 자리 (left, top) 에 오도록 크기의 절반만큼 당겨 둠 (USS)
@@ -27,7 +35,12 @@ namespace WitchMendokusai
 		private const string USS_NAME = "wm-mb-star__name";
 		private const string USS_SUB = "wm-mb-star__sub";
 		private const string USS_GATE = "wm-mb-star--gate";
-		private const string USS_LABEL_LEFT = "wm-mb-star--label-left";
+		private static readonly string[] LABEL_CLASSES =
+		{
+			"wm-mb-star--label-right",
+			"wm-mb-star--label-left",
+			"wm-mb-star--label-below",
+		};
 		private static readonly string[] STATE_CLASSES =
 		{
 			"wm-mb-star--locked",
@@ -44,7 +57,7 @@ namespace WitchMendokusai
 		/// <summary>하늘 좌표 (가운데 마도서가 0, 0)</summary>
 		public Vector2 SkyPosition { get; }
 
-		public MagicBookStar(QuestSO quest, ChapterSO chapter, Vector2 skyPosition, bool isGate, bool labelOnLeft, Texture2D glowTexture)
+		public MagicBookStar(QuestSO quest, ChapterSO chapter, Vector2 skyPosition, bool isGate, MagicBookLabelSide labelSide, Texture2D glowTexture)
 		{
 			Quest = quest;
 			Chapter = chapter;
@@ -52,7 +65,7 @@ namespace WitchMendokusai
 			text = string.Empty;
 			AddToClassList(USS_CLASS);
 			EnableInClassList(USS_GATE, isGate);
-			EnableInClassList(USS_LABEL_LEFT, labelOnLeft);
+			AddToClassList(LABEL_CLASSES[(int)labelSide]);
 			style.left = skyPosition.x;
 			style.top = skyPosition.y;
 

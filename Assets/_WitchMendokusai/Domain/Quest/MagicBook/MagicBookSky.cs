@@ -161,8 +161,13 @@ namespace WitchMendokusai
 				hasParent.Add(connection.TargetNodeId);
 			}
 
-			// 왼쪽으로 뻗는 장은 이름을 별 왼쪽에 둬 가운데 쪽 선과 겹치지 않게
-			bool labelOnLeft = Mathf.Cos(chapter.SkyAngle * Mathf.Deg2Rad) < 0f;
+			// 잎 별 이름은 장이 뻗는 바깥쪽, 갈래 별 이름은 아래. 들어오고 나가는 선을 피함
+			MagicBookLabelSide outward = Mathf.Cos(chapter.SkyAngle * Mathf.Deg2Rad) < 0f ? MagicBookLabelSide.Left : MagicBookLabelSide.Right;
+			HashSet<string> hasChild = new();
+			foreach (NodeConnection connection in connections)
+			{
+				hasChild.Add(connection.SourceNodeId);
+			}
 			Dictionary<string, MagicBookStar> starsById = new();
 			Rect bounds = new(Vector2.zero, Vector2.zero);
 			foreach (NodeBase node in nodes)
@@ -172,7 +177,7 @@ namespace WitchMendokusai
 					continue;
 				}
 				Vector2 position = positions[node.Id];
-				MagicBookStar star = new(questNode.Target, chapter, position, hasParent.Contains(node.Id) == false, labelOnLeft, glowTexture);
+				MagicBookStar star = new(questNode.Target, chapter, position, hasParent.Contains(node.Id) == false, hasChild.Contains(node.Id) ? MagicBookLabelSide.Below : outward, glowTexture);
 				star.clicked += () => StarSubmitted(star);
 				// 키로 고를 때만 따라감. 클릭 중에 카메라가 움직이면 별이 커서에서 빠져나가 클릭이 안 됨
 				star.RegisterCallback<FocusInEvent>(_ =>
@@ -196,16 +201,10 @@ namespace WitchMendokusai
 				}
 			}
 
-			float radians = chapter.SkyAngle * Mathf.Deg2Rad;
-			Vector2 direction = new(Mathf.Cos(radians), Mathf.Sin(radians));
-			float farthest = 0f;
-			foreach (MagicBookStar star in starsById.Values)
-			{
-				farthest = Mathf.Max(farthest, Vector2.Dot(star.SkyPosition, direction));
-			}
+			// 장 이름은 별자리 위쪽 가운데. 별 이름이 놓이는 옆과 아래를 피함
 			Label name = new(ChapterTitle(chapter)) { pickingMode = PickingMode.Ignore };
 			name.AddToClassList(USS_CHAPTER_NAME);
-			Vector2 namePosition = direction * (farthest + settings.ChapterNameGap);
+			Vector2 namePosition = new(bounds.center.x, bounds.yMin - settings.ChapterNameGap);
 			name.style.left = namePosition.x;
 			name.style.top = namePosition.y;
 			world.Add(name);
