@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.04.00">
+	<object class="AudioFile" id="{de350858-cb4e-4051-8824-45af85660f2d}">
+		<property name="assetPath">
+			<value>Juhani Junkala/JRPG Pack 4 Calm/Calm1 - A Place I Call Home.ogg</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.100000000000001</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>46.451632653061225</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{2ab7eb1a-0a54-4fe3-ac6e-745e6f870bc3}</destination>
+		</relationship>
+	</object>
+</objects>

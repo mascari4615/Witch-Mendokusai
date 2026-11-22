@@ -309,6 +309,21 @@ MonoBehaviour:
     <UsedIn>k__BackingField: '전투 효과음'
     <AssetPaths>k__BackingField:
     - 'FMODAssets/Assets/RPG Sound Pack'
+  - <Id>k__BackingField: kenney-impact-sounds
+    <Category>k__BackingField: 7
+    <Name>k__BackingField: 'Impact Sounds'
+    <Author>k__BackingField: 'Kenney'
+    <SourceUrl>k__BackingField: 'https://kenney.nl/assets/impact-sounds'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '몬스터 피격음'
+    <AssetPaths>k__BackingField:
+    - 'FMODAssets/Assets/Kenney/Impact Sounds'
   - <Id>k__BackingField: junkala-chiptune-adventures
     <Category>k__BackingField: 8
     <Name>k__BackingField: 'Chiptune Adventures'
@@ -339,6 +354,66 @@ MonoBehaviour:
     <UsedIn>k__BackingField: '배경음악'
     <AssetPaths>k__BackingField:
     - 'FMODAssets/Assets/Juhani Junkala/Retro Game Music Pack'
+  - <Id>k__BackingField: junkala-jrpg-pack-4-calm
+    <Category>k__BackingField: 8
+    <Name>k__BackingField: 'JRPG Pack 4 Calm'
+    <Author>k__BackingField: 'Juhani Junkala (SubspaceAudio)'
+    <SourceUrl>k__BackingField: 'https://opengameart.org/content/jrpg-pack-4-calm'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '시작 화면과 로비 배경음악'
+    <AssetPaths>k__BackingField:
+    - 'FMODAssets/Assets/Juhani Junkala/JRPG Pack 4 Calm'
+  - <Id>k__BackingField: junkala-jrpg-pack-1-exploration
+    <Category>k__BackingField: 8
+    <Name>k__BackingField: 'JRPG Pack 1 Exploration'
+    <Author>k__BackingField: 'Juhani Junkala (SubspaceAudio)'
+    <SourceUrl>k__BackingField: 'https://opengameart.org/content/jrpg-pack-1-exploration'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '던전 배경음악'
+    <AssetPaths>k__BackingField:
+    - 'FMODAssets/Assets/Juhani Junkala/JRPG Pack 1 Exploration'
+  - <Id>k__BackingField: junkala-jrpg-pack-5-action
+    <Category>k__BackingField: 8
+    <Name>k__BackingField: 'JRPG Pack 5 Action'
+    <Author>k__BackingField: 'Juhani Junkala (SubspaceAudio)'
+    <SourceUrl>k__BackingField: 'https://opengameart.org/content/jrpg-pack-5-action'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '보스 배경음악'
+    <AssetPaths>k__BackingField:
+    - 'FMODAssets/Assets/Juhani Junkala/JRPG Pack 5 Action'
+  - <Id>k__BackingField: cynicmusic-town-theme-rpg
+    <Category>k__BackingField: 8
+    <Name>k__BackingField: 'Town Theme RPG'
+    <Author>k__BackingField: 'cynicmusic'
+    <SourceUrl>k__BackingField: 'https://opengameart.org/content/town-theme-rpg'
+    <LicenseName>k__BackingField: 'CC0 1.0'
+    <LicenseUrl>k__BackingField: 'https://creativecommons.org/publicdomain/zero/1.0/'
+    <License>k__BackingField: {fileID: 0}
+    <CopyrightNotice>k__BackingField: ''
+    <AttributionRequired>k__BackingField: 0
+    <Modified>k__BackingField: 0
+    <ModificationNote>k__BackingField: ''
+    <UsedIn>k__BackingField: '실험실 배경음악'
+    <AssetPaths>k__BackingField:
+    - 'FMODAssets/Assets/cynicmusic/Town Theme RPG'
   - <Id>k__BackingField: fmod
     <Category>k__BackingField: 9
     <Name>k__BackingField: 'FMOD Studio'

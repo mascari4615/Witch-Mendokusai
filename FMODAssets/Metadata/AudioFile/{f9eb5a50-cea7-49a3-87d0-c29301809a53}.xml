@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.04.00">
+	<object class="AudioFile" id="{f9eb5a50-cea7-49a3-87d0-c29301809a53}">
+		<property name="assetPath">
+			<value>Juhani Junkala/JRPG Pack 5 Action/Action1 - Encounter With The Witches.ogg</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.100000000000001</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>113.54839002267573</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{2ab7eb1a-0a54-4fe3-ac6e-745e6f870bc3}</destination>
+		</relationship>
+	</object>
+</objects>

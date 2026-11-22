@@ -14,19 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   entries:
   - state: 0
-    eventPath: event:/BGM/Stage Select
+    eventPath: event:/BGM/Title Calm
     loop: 1
   - state: 1
-    eventPath: event:/BGM/Stage Select
+    eventPath: event:/BGM/Title Calm
     loop: 1
   - state: 2
-    eventPath: event:/BGM/Level 1
+    eventPath: event:/BGM/World Town
     loop: 1
   - state: 3
-    eventPath: event:/BGM/Stage 1
+    eventPath: event:/BGM/Dungeon Grasslands
     loop: 1
   - state: 4
-    eventPath: event:/BGM/Boss Fight
+    eventPath: event:/BGM/Boss Witches
     loop: 1
   - state: 5
     eventPath: 
