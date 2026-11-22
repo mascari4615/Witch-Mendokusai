@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using FMODUnity;
 using DG.Tweening;
 using System.Linq;
 using VContainer;
@@ -124,7 +123,7 @@ namespace WitchMendokusai
 
 		private IEnumerator ShowToolTip(ItemData itemData, int slotIndex, int flag)
 		{
-			RuntimeManager.PlayOneShot($"event:/SFX/Equip");
+			CombatSfx.Play(CombatSfxEvent.Equip);
 
 			UIItemEquipPopupElement targetElement = elements[slotIndex];
 

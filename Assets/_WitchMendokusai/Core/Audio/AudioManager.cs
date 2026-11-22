@@ -32,6 +32,8 @@ namespace WitchMendokusai
 		private bool hasMusicState;
 		private bool audioReady; // FMOD 뱅크 로드 성공 여부. false 면 모든 오디오 no-op(부팅·게임 계속, 무음).
 
+		public bool AudioReady => audioReady;
+
 		private void Awake()
 		{
 			if (Instance != null && Instance != this)

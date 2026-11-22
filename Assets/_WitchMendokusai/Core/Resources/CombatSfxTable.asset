@@ -97,3 +97,43 @@ MonoBehaviour:
     eventPath: event:/SFX/Combat/WeaponHitLight
     minIntervalSeconds: 0.04
     playAtPosition: 1
+  - sfxEvent: 21
+    eventPath: event:/SFX/Monster/Hit
+    minIntervalSeconds: 0.03
+    playAtPosition: 1
+    maxVoices: 6
+  - sfxEvent: 22
+    eventPath: event:/SFX/Monster/Die
+    minIntervalSeconds: 0.03
+    playAtPosition: 1
+    maxVoices: 6
+  - sfxEvent: 23
+    eventPath: event:/SFX/EXP
+    minIntervalSeconds: 0
+    playAtPosition: 1
+    maxVoices: 0
+  - sfxEvent: 24
+    eventPath: event:/SFX/Equip
+    minIntervalSeconds: 0
+    playAtPosition: 1
+    maxVoices: 0
+  - sfxEvent: 25
+    eventPath: event:/SFX/Equip
+    minIntervalSeconds: 0
+    playAtPosition: 0
+    maxVoices: 0
+  - sfxEvent: 26
+    eventPath: 
+    minIntervalSeconds: 0.1
+    playAtPosition: 1
+    maxVoices: 0
+  - sfxEvent: 27
+    eventPath: 
+    minIntervalSeconds: 0.1
+    playAtPosition: 1
+    maxVoices: 0
+  - sfxEvent: 28
+    eventPath: 
+    minIntervalSeconds: 0.1
+    playAtPosition: 1
+    maxVoices: 0

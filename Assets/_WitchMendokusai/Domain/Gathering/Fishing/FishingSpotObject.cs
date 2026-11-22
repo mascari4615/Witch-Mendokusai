@@ -1,5 +1,4 @@
 using System.Collections;
-using FMODUnity;
 using UnityEngine;
 using VContainer;
 
@@ -9,7 +8,7 @@ namespace WitchMendokusai
 	{
 		[Header("_" + nameof(FishingSpotObject))]
 		[SerializeField] private FishingSpotData data;
-		[SerializeField] private string castEventPath = "event:/SFX/Fishing/Cast";
+		[SerializeField] private CombatSfxEvent castSfx = CombatSfxEvent.FishingCast;
 
 		private IFishingMiniGame miniGame;
 		private bool isFishing;
@@ -63,8 +62,7 @@ namespace WitchMendokusai
 				yield break;
 			}
 
-			if (string.IsNullOrEmpty(castEventPath) == false)
-				RuntimeManager.PlayOneShot(castEventPath, transform.position);
+			CombatSfx.Play(castSfx, transform.position);
 
 			bool caught = false;
 			FishingContext context = new() { Fisherman = playerProvider.Current.transform, Data = data };

@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using FMODUnity;
 using UnityEngine;
 using VContainer;
 using Random = UnityEngine.Random;
@@ -15,8 +14,8 @@ namespace WitchMendokusai
 	{
 		[Header("_" + nameof(TimingFishingMiniGame))]
 		[SerializeField] private Sprite biteSprite;
-		[SerializeField] private string biteEventPath = "event:/SFX/Fishing/Bite";
-		[SerializeField] private string missEventPath = "";
+		[SerializeField] private CombatSfxEvent biteSfx = CombatSfxEvent.FishingBite;
+		[SerializeField] private CombatSfxEvent missSfx = CombatSfxEvent.FishingMiss;
 		[SerializeField] private string missMessage = "놓쳤다...";
 		[SerializeField] private float missMessageDuration = 1.0f;
 
@@ -37,8 +36,7 @@ namespace WitchMendokusai
 			yield return new WaitForSeconds(biteDelay);
 
 			// 입질 신호
-			if (string.IsNullOrEmpty(biteEventPath) == false)
-				RuntimeManager.PlayOneShot(biteEventPath, context.Fisherman.position);
+			CombatSfx.Play(biteSfx, context.Fisherman.position);
 
 			uiManager.SpeechBubble.Show(context.Fisherman, biteSprite, context.Data.InputWindow);
 
@@ -59,8 +57,7 @@ namespace WitchMendokusai
 			// 실패 피드백
 			if (caught == false)
 			{
-				if (string.IsNullOrEmpty(missEventPath) == false)
-					RuntimeManager.PlayOneShot(missEventPath, context.Fisherman.position);
+				CombatSfx.Play(missSfx, context.Fisherman.position);
 
 				if (string.IsNullOrEmpty(missMessage) == false)
 					uiManager.SpeechBubble.Show(context.Fisherman, missMessage, missMessageDuration);

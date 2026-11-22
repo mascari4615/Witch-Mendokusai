@@ -180,8 +180,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90f1c7b58b0c57a479acbd5590ef0075, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DamageAudioFeedback
-  hitEventPath: event:/SFX/Monster/Hit
-  dieEventPath: event:/SFX/Monster/Die
+  hitSfx: 21
+  dieSfx: 22
 --- !u!114 &7879062343703573877
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -22,6 +22,14 @@ namespace WitchMendokusai
 		WeaponSwing = 17,
 		WeaponZap = 18,
 		WeaponSplash = 19,
-		WeaponHitLight = 20
+		WeaponHitLight = 20,
+		MonsterHit = 21,
+		MonsterDie = 22,
+		ExpPickup = 23,
+		Equip = 24,
+		DialogueTyping = 25,
+		FishingCast = 26,
+		FishingBite = 27,
+		FishingMiss = 28
 	}
 }

@@ -1,13 +1,12 @@
 using System.Collections.Generic;
-using FMOD.Studio;
-using FMODUnity;
 using UnityEngine;
 
 namespace WitchMendokusai
 {
 	public class ExpObject : LootObject
 	{
-		private const string EXP_SOUND = "event:/SFX/EXP";
+		// SurvivalFeel 의 같은 소리 프레임 제한 열쇠 (냥 줍기와 따로 셈)
+		private const string EXP_SOUND_KEY = "ExpPickup";
 		private static readonly int BASE_COLOR_ID = Shader.PropertyToID("_BaseColor");
 		private static readonly int LEGACY_COLOR_ID = Shader.PropertyToID("_Color");
 		private static readonly int EMISSION_COLOR_ID = Shader.PropertyToID("_EmissionColor");
@@ -99,7 +98,7 @@ namespace WitchMendokusai
 		protected override void OnEffect()
 		{
 			SurvivalFeel feel = SurvivalFeel.Instance;
-			if (feel == null || feel.TakeSound(EXP_SOUND))
+			if (feel == null || feel.TakeSound(EXP_SOUND_KEY))
 				PlayPickupSound();
 			if (feel != null && DungeonManagerBridge.IsDungeon)
 				feel.OnExpPicked(transform.position);
@@ -111,20 +110,9 @@ namespace WitchMendokusai
 		{
 			SurvivalFeelConfig config = resourceManager.SurvivalFeel;
 			float progress = ExpPickupPitch.Progress(PlayerStat[UnitStatType.EXP_CUR], PlayerStat[UnitStatType.EXP_MAX]);
-			try
-			{
-				EventInstance instance = RuntimeManager.CreateInstance(EXP_SOUND);
-				instance.set3DAttributes(transform.position.To3DAttributes());
-				instance.setPitch(ExpPickupPitch.Multiplier(progress, config.ExpPitchSemitones, config.ExpPitchScale));
-				instance.setVolume(ExpPickupPitch.LevelVolume(PlayerStat[UnitStatType.LEVEL_CUR], config.ExpVolumeDbPerLevel, config.ExpVolumeMinDb));
-				instance.start();
-				instance.release();
-			}
-			catch (EventNotFoundException)
-			{
-				// 뱅크가 안 올라온 실행에서 소리 때문에 경험치 가산까지 끊기지 않게 (PlayOneShot 과 같은 처리)
-				Debug.LogWarning($"[ExpObject] FMOD event not found: '{EXP_SOUND}', sfx skip");
-			}
+			float pitch = ExpPickupPitch.Multiplier(progress, config.ExpPitchSemitones, config.ExpPitchScale);
+			float volume = ExpPickupPitch.LevelVolume(PlayerStat[UnitStatType.LEVEL_CUR], config.ExpVolumeDbPerLevel, config.ExpVolumeMinDb);
+			CombatSfx.Play(CombatSfxEvent.ExpPickup, transform.position, pitch, volume);
 		}
 
 		// 보석 값이 작아 소수점을 버리면 보너스가 사라짐, 남는 소수점은 그 확률로 1 추가

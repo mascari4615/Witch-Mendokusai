@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Unity.Cinemachine;
-using FMODUnity;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -280,7 +279,7 @@ namespace WitchMendokusai
 				s.Append(c);
 				lineText.text = s.ToString();
 				if (c != ' ')
-					RuntimeManager.PlayOneShot("event:/SFX/Equip");
+					CombatSfx.Play(CombatSfxEvent.DialogueTyping);
 				yield return wait;
 			}
 		}

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using FMODUnity;
 using UnityEngine;
 using VContainer;
 
@@ -28,7 +27,7 @@ namespace WitchMendokusai
 
 		protected override void OnEffect()
 		{
-			RuntimeManager.PlayOneShot("event:/SFX/Equip", transform.position);
+			CombatSfx.Play(CombatSfxEvent.Equip, transform.position);
 			soManager.ItemInventory.Add(itemData);
 			soManager.DungeonItemBuffer.Add(itemData);
 		}

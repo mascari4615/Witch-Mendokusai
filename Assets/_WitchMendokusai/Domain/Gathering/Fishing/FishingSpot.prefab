@@ -60,7 +60,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.FishingSpotObject
   data: {fileID: 11400000, guid: b8ef0af9cead4cf8bfca72216d437816, type: 2}
-  castEventPath: event:/SFX/Fishing/Cast
+  castSfx: 26
 --- !u!114 &1000000000000000005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -74,8 +74,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.TimingFishingMiniGame
   biteSprite: {fileID: 1191039041, guid: fbd184d873518c24aaaa66f4c3d4c2a9, type: 3}
-  biteEventPath: event:/SFX/Fishing/Bite
-  missEventPath:
+  biteSfx: 27
+  missSfx: 28
   missMessage: "놓쳤다..."
   missMessageDuration: 1
 --- !u!1 &8269353714014210225
