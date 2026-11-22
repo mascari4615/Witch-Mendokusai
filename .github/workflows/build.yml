@@ -386,11 +386,12 @@ jobs:
         id: zip
 
       # Steam upload is opt-in per dispatch (tag pushes have no inputs, so they never upload).
+      # Release builds only: development builds carry the device-log ingest token and must not ship.
       # Login is the cached steamcmd session of this runner user: run
       # Tools/steam/Setup-SteamCmd.ps1 once on the build machine (a person types the password
       # and Steam Guard code). ASCII only in this run block (see Build player step).
       - name: Upload to Steam (SteamPipe)
-        if: ${{ success() && steps.cfg.outputs.platform == 'windows' && inputs.steam_upload != '' && inputs.steam_upload != 'none' }}
+        if: ${{ success() && steps.cfg.outputs.platform == 'windows' && steps.cfg.outputs.build_type == 'release' && inputs.steam_upload != '' && inputs.steam_upload != 'none' }}
         # The player build itself already succeeded; a failed upload stays visible on this step
         # without turning the build card red or dropping its download link.
         continue-on-error: true
