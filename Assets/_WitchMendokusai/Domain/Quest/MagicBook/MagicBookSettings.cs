@@ -27,7 +27,7 @@ namespace WitchMendokusai
 		[field: Header("선")]
 		[field: SerializeField, Tooltip("다 깬 길의 굵기 (하늘 px)")] public float DoneLineWidth { get; private set; } = 2.8f;
 		[field: SerializeField, Tooltip("다 깬 길 뒤 번짐 굵기")] public float DoneGlowWidth { get; private set; } = 9f;
-		[field: SerializeField, Tooltip("열린 길 (깬 별에서 아직 안 깬 별로) 의 굵기")] public float OpenLineWidth { get; private set; } = 2f;
+		[field: SerializeField, Tooltip("열린 길 (깬 별에서 아직 안 깬 별로) 의 굵기")] public float OpenLineWidth { get; private set; } = 2.6f;
 		[field: SerializeField, Tooltip("열린 길 점선의 한 칸과 빈칸 길이")] public Vector2 OpenDash { get; private set; } = new(10f, 7f);
 		[field: SerializeField, Tooltip("아직 꺼진 길의 굵기")] public float DimLineWidth { get; private set; } = 1.2f;
 
@@ -42,7 +42,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("휠 한 칸에 곱하는 배율")] public float ZoomStep { get; private set; } = 1.12f;
 		[field: SerializeField, Tooltip("열 때 담는 칸을 별 자리보다 넓히는 양 (하늘 px). 별 이름 길이만큼")] public Vector2 FitPadding { get; private set; } = new(200f, 70f);
 		[field: SerializeField, Tooltip("열 때 하늘 전체를 담고 남기는 여백 (화면 비율)")] public float FitMargin { get; private set; } = 0.94f;
-		[field: SerializeField, Tooltip("고른 별이 이 안쪽 (화면 비율) 을 벗어나면 카메라가 따라감")] public float FollowInset { get; private set; } = 0.18f;
+		[field: SerializeField, Tooltip("고른 별이 이 안쪽 (화면 비율) 을 벗어나면 카메라가 따라감")] public float FollowInset { get; private set; } = 0.1f;
 		[field: SerializeField, Tooltip("카메라가 목표로 다가가는 빠르기 (초당, 클수록 빠름)")] public float FollowSharpness { get; private set; } = 9f;
 		[field: SerializeField, Tooltip("카메라가 목표에서 이만큼 (화면 px) 안이면 멈춤")] public float SettleDistance { get; private set; } = 0.05f;
 		[field: SerializeField, Tooltip("카메라 배율이 목표에서 이만큼 안이면 멈춤")] public float SettleZoom { get; private set; } = 0.0005f;

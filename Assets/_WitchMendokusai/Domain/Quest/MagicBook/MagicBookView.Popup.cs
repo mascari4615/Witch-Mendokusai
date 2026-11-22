@@ -11,7 +11,6 @@ namespace WitchMendokusai
 	{
 		private const string USS_POPUP = "wm-mb-popup";
 		private const string USS_POPUP_SHOWN = "wm-mb-popup--shown";
-		private const string USS_POPUP_LEFT = "wm-mb-popup--left";
 
 		private VisualElement popup;
 		private QuestDetail questDetail;
@@ -105,13 +104,50 @@ namespace WitchMendokusai
 			Vector2 anchor = sky.SkyToLocal(popupStar.SkyPosition);
 			float offset = Settings.PopupOffset * Mathf.Max(sky.Zoom, 1f);
 			float edge = Settings.PopupEdge;
-			float right = anchor.x + offset;
-			bool onLeft = right + width > stageSize.x - edge;
-			float left = onLeft ? anchor.x - offset - width : right;
-			float top = Mathf.Clamp(anchor.y - height * 0.5f, edge, Mathf.Max(edge, stageSize.y - edge - height));
-			popup.style.left = Mathf.Max(edge, left);
-			popup.style.top = top;
-			popup.EnableInClassList(USS_POPUP_LEFT, onLeft);
+			Vector2 size = new(width, height);
+			// 오른쪽, 왼쪽, 아래, 위 후보 중 다른 별을 가장 적게 덮는 쪽. 같으면 앞 순서
+			Vector2[] candidates =
+			{
+				new(anchor.x + offset, anchor.y - height * 0.5f),
+				new(anchor.x - offset - width, anchor.y - height * 0.5f),
+				new(anchor.x - width * 0.5f, anchor.y + offset),
+				new(anchor.x - width * 0.5f, anchor.y - offset - height),
+			};
+			Rect best = new(new Vector2(edge, edge), size);
+			int bestCovered = int.MaxValue;
+			foreach (Vector2 candidate in candidates)
+			{
+				Vector2 clamped = new(
+					Mathf.Clamp(candidate.x, edge, Mathf.Max(edge, stageSize.x - edge - width)),
+					Mathf.Clamp(candidate.y, edge, Mathf.Max(edge, stageSize.y - edge - height)));
+				Rect rect = new(clamped, size);
+				// 눌러 넣다가 고른 별 위로 오면 탈락
+				if (rect.Contains(anchor))
+				{
+					continue;
+				}
+				int covered = CountCoveredStars(rect);
+				if (covered < bestCovered)
+				{
+					bestCovered = covered;
+					best = rect;
+				}
+			}
+			popup.style.left = best.x;
+			popup.style.top = best.y;
+		}
+
+		private int CountCoveredStars(Rect rect)
+		{
+			int covered = 0;
+			foreach (MagicBookStar star in sky.Stars)
+			{
+				if (star != popupStar && rect.Contains(sky.SkyToLocal(star.SkyPosition)))
+				{
+					covered++;
+				}
+			}
+			return covered;
 		}
 	}
 }

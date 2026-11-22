@@ -52,6 +52,8 @@ namespace WitchMendokusai
 		private readonly VisualElement lines;
 		private readonly List<MagicBookStar> stars = new();
 		private readonly List<Edge> edges = new();
+		// 가운데 마도서에서 장마다 입구 별로 가는 선
+		private readonly List<MagicBookStar> gates = new();
 		private readonly Dictionary<ChapterSO, Label> chapterNames = new();
 		private readonly Dictionary<ChapterSO, Rect> chapterBounds = new();
 		private Rect linesRect;
@@ -103,6 +105,7 @@ namespace WitchMendokusai
 		{
 			stars.Clear();
 			edges.Clear();
+			gates.Clear();
 			chapterNames.Clear();
 			chapterBounds.Clear();
 			world.Clear();
@@ -189,6 +192,10 @@ namespace WitchMendokusai
 				});
 				world.Add(star);
 				stars.Add(star);
+				if (hasParent.Contains(node.Id) == false)
+				{
+					gates.Add(star);
+				}
 				starsById[node.Id] = star;
 				bounds = Encapsulate(bounds, new Rect(position, Vector2.zero));
 			}
@@ -307,24 +314,33 @@ namespace WitchMendokusai
 			Painter2D painter = context.painter2D;
 			painter.lineCap = LineCap.Round;
 			Vector2 offset = -linesRect.min;
+			// 마도서는 늘 깬 별로 셈. 입구 별까지의 선도 같은 규칙
+			foreach (MagicBookStar gate in gates)
+			{
+				DrawEdge(painter, offset, Vector2.zero, true, gate.SkyPosition, gate.State);
+			}
 			foreach (Edge edge in edges)
 			{
-				Vector2 from = edge.From.SkyPosition + offset;
-				Vector2 to = edge.To.SkyPosition + offset;
-				bool fromDone = edge.From.State == MagicBookStarState.Done;
-				if (fromDone && edge.To.State == MagicBookStarState.Done)
-				{
-					Stroke(painter, from, to, doneGlowColor, settings.DoneGlowWidth);
-					Stroke(painter, from, to, doneLineColor, settings.DoneLineWidth);
-				}
-				else if (fromDone && edge.To.State != MagicBookStarState.Locked)
-				{
-					StrokeDashed(painter, from, to, openLineColor, settings.OpenLineWidth, settings.OpenDash);
-				}
-				else
-				{
-					Stroke(painter, from, to, dimLineColor, settings.DimLineWidth);
-				}
+				DrawEdge(painter, offset, edge.From.SkyPosition, edge.From.State == MagicBookStarState.Done, edge.To.SkyPosition, edge.To.State);
+			}
+		}
+
+		private void DrawEdge(Painter2D painter, Vector2 offset, Vector2 fromSky, bool fromDone, Vector2 toSky, MagicBookStarState toState)
+		{
+			Vector2 from = fromSky + offset;
+			Vector2 to = toSky + offset;
+			if (fromDone && toState == MagicBookStarState.Done)
+			{
+				Stroke(painter, from, to, doneGlowColor, settings.DoneGlowWidth);
+				Stroke(painter, from, to, doneLineColor, settings.DoneLineWidth);
+			}
+			else if (fromDone && toState != MagicBookStarState.Locked)
+			{
+				StrokeDashed(painter, from, to, openLineColor, settings.OpenLineWidth, settings.OpenDash);
+			}
+			else
+			{
+				Stroke(painter, from, to, dimLineColor, settings.DimLineWidth);
 			}
 		}
 

@@ -22,7 +22,7 @@ MonoBehaviour:
   <BelowLabelHeight>k__BackingField: 60
   <DoneLineWidth>k__BackingField: 2.8
   <DoneGlowWidth>k__BackingField: 9
-  <OpenLineWidth>k__BackingField: 2
+  <OpenLineWidth>k__BackingField: 2.6
   <OpenDash>k__BackingField: {x: 10, y: 7}
   <DimLineWidth>k__BackingField: 1.2
   <DustCount>k__BackingField: 420
@@ -33,7 +33,7 @@ MonoBehaviour:
   <ZoomStep>k__BackingField: 1.12
   <FitPadding>k__BackingField: {x: 200, y: 70}
   <FitMargin>k__BackingField: 0.94
-  <FollowInset>k__BackingField: 0.18
+  <FollowInset>k__BackingField: 0.1
   <FollowSharpness>k__BackingField: 9
   <SettleDistance>k__BackingField: 0.05
   <SettleZoom>k__BackingField: 0.0005

@@ -7,9 +7,8 @@
     --wm-mb-gold: rgb(255, 214, 120);
     --wm-mb-ink: rgb(236, 232, 244);
     --wm-mb-ink-soft: rgba(236, 232, 244, 0.78);
-    --wm-mb-ink-dim: rgba(200, 205, 230, 0.42);
+    --wm-mb-ink-dim: rgba(205, 210, 235, 0.62);
     --wm-mb-card: rgb(22, 19, 44);
-    --wm-mb-card-line: rgba(190, 140, 255, 0.55);
 
 }
 
@@ -28,8 +27,8 @@
     /* 선과 가루 색. MagicBookSky 가 자기 요소에서 읽어 Painter2D 로 (사용자 속성은 상속으로 안 읽힘) */
     --wm-mb-line-done: rgb(190, 140, 255);
     --wm-mb-line-done-glow: rgba(190, 140, 255, 0.28);
-    --wm-mb-line-open: rgba(236, 232, 244, 0.7);
-    --wm-mb-line-dim: rgba(170, 180, 220, 0.22);
+    --wm-mb-line-open: rgba(244, 240, 252, 0.9);
+    --wm-mb-line-dim: rgba(170, 180, 220, 0.18);
     --wm-mb-dust: rgb(230, 225, 255);
     position: absolute;
     left: 0;
@@ -262,7 +261,7 @@
 
 .wm-mb-star__sub {
     margin-top: 2px;
-    font-size: 19px;
+    font-size: 21px;
     white-space: nowrap;
     color: var(--wm-mb-ink-soft);
     -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11.ttf");
@@ -320,13 +319,13 @@
 
 /* 잠김: 아이콘 없는 작은 점 */
 .wm-mb-star--locked .wm-mb-star__core {
-    left: 16px;
-    top: 16px;
-    width: 16px;
-    height: 16px;
-    border-radius: 8px;
+    left: 18px;
+    top: 18px;
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;
     border-width: 0;
-    background-color: rgba(210, 215, 240, 0.6);
+    background-color: rgba(210, 215, 240, 0.45);
 }
 
 .wm-mb-star--locked .wm-mb-star__icon {
@@ -342,9 +341,21 @@
     border-color: rgba(236, 232, 244, 0.45);
 }
 
+/* 고른 별: 진행 중 별의 흰 테두리와 갈리게 크고 굵은 고리, 이름에 띠 */
 .wm-mb .wm-mb-star:focus .wm-mb-star__ring {
-    border-width: 3px;
+    left: -16px;
+    top: -16px;
+    width: 80px;
+    height: 80px;
+    border-radius: 40px;
+    border-width: 4px;
     border-color: var(--wm-mb-ink);
+}
+
+.wm-mb .wm-mb-star:focus .wm-mb-star__name {
+    padding: 0 6px;
+    background-color: rgba(190, 140, 255, 0.4);
+    color: rgb(255, 255, 255);
 }
 
 /* ===== 위 줄: 장 이름, 투기장, 닫기 ===== */
@@ -441,7 +452,7 @@
     padding: 26px 30px 26px 30px;
     background-color: var(--wm-mb-card);
     border-width: 2px;
-    border-color: var(--wm-mb-card-line);
+    border-color: rgba(255, 255, 255, 0.6);
     display: none;
 }
 
