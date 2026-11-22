@@ -29,7 +29,10 @@ namespace WitchMendokusai.Tests
 		/// 남은 9.0MB 는 필요 비용이다 — 갈무리 폰트 5.2MB(Dynamic 모드라 빼면 한글이 □) · TMP 폴백 ~2MB.
 		private const float BUDGET_MB = 10.0f;
 
+		// 2026-11-22 사용자 결정: 빌드 용량 제한 해제, 문제 시 재활성
+		//   끈 시점 실측 26.7MB (대화 연출 흉상 3장 12.3MB, Galmuri Bold/Condensed 5.2MB 가 09f154458 로 들어옴)
 		[Test]
+		[Ignore("빌드 용량 제한 해제 (2026-11-22 사용자 결정). 다시 켤 때 이 줄을 지우고 BUDGET_MB 를 실측에 맞춘다")]
 		public void Resources_StaysWithinBudget()
 		{
 			// ★ 재는 것 = <b>실제로 구워진 바이트</b> (디스크 크기가 아니다 — 그건 첫 계측에서 틀렸다).
