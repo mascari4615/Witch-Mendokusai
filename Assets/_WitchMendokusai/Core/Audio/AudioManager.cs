@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using FMOD.Studio;
 using FMODUnity;
 using UnityEngine;
-using Random = UnityEngine.Random;
+using UnityEngine.SceneManagement;
 
 namespace WitchMendokusai
 {
@@ -27,9 +26,10 @@ namespace WitchMendokusai
 		private EventInstance sfxVolumeTestEvent;
 		private EventInstance bgmEvent;
 		private EventInstance ambientEvent;
-		private PLAYBACK_STATE pbState;
-		private readonly List<string> bgmTitles = new();
-		private int bgmIndex = 0;
+		private MusicTable musicTable;
+		private MusicTable.Entry currentMusic;
+		private MusicState musicState;
+		private bool hasMusicState;
 		private bool audioReady; // FMOD 뱅크 로드 성공 여부. false 면 모든 오디오 no-op(부팅·게임 계속, 무음).
 
 		private void Awake()
@@ -51,19 +51,6 @@ namespace WitchMendokusai
 				buses[(int)BusType.BGM] = RuntimeManager.GetBus("bus:/BGM");
 				buses[(int)BusType.SFX] = RuntimeManager.GetBus("bus:/SFX");
 				sfxVolumeTestEvent = RuntimeManager.CreateInstance("event:/SFX/SFXTest");
-
-				// https://qa.fmod.com/t/get-master-bank-and-all-events/18635/8
-				RuntimeManager.StudioSystem.getBankList(out Bank[] loadedBanks);
-				foreach (Bank bank in loadedBanks)
-				{
-					bank.getEventList(out EventDescription[] eventDescriptions);
-					foreach (EventDescription eventDesc in eventDescriptions)
-					{
-						eventDesc.getPath(out string eventPath);
-						if (eventPath.StartsWith("event:/BGM/"))
-							bgmTitles.Add(eventPath);
-					}
-				}
 				audioReady = true;
 			}
 			catch (System.Exception exception)
@@ -77,16 +64,29 @@ namespace WitchMendokusai
 		private void OnDestroy()
 		{
 			if (Instance == this)
+			{
 				Instance = null;
+				SceneManager.sceneLoaded -= OnSceneLoaded;
+			}
 		}
 
 		private void Start()
 		{
+			musicTable = Resources.Load<MusicTable>(nameof(MusicTable));
+			if (musicTable == null)
+				Debug.LogError($"{nameof(MusicTable)} not found");
+			SceneManager.sceneLoaded += OnSceneLoaded;
 			if (audioReady == false)
 				return;
 			UpdateVolume();
-			if (bgmTitles.Count > 0)
-				PlayMusic(bgmTitles[Random.Range(0, bgmTitles.Count)]);
+			OnSceneLoaded(SceneManager.GetActiveScene(), LoadSceneMode.Single);
+		}
+
+		// 장면 표에 있는 장면이 열리면 그 장면의 음악으로. 로딩처럼 표에 없는 장면은 그대로 둠
+		private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+		{
+			if (musicTable != null && musicTable.TryGetSceneState(scene.name, out MusicState state))
+				PlayMusic(state);
 		}
 
 		private void UpdateVolume()
@@ -131,7 +131,7 @@ namespace WitchMendokusai
 		{
 			EnsureStudioListener();
 
-			if (audioReady == false || bgmTitles.Count == 0)
+			if (audioReady == false || currentMusic == null)
 				return;
 
 			// TODO : else if (DataManager.Instance.CurGameData.muteOnOutfocus)
@@ -139,23 +139,48 @@ namespace WitchMendokusai
 				// TODO : master.setVolume(0);
 			}
 
-			// if (SceneManager.GetActiveScene().buildIndex == 0)
-			{
-				bgmEvent.getPlaybackState(out pbState);
-
-				if (pbState != PLAYBACK_STATE.STOPPED)
-					return;
-
-				Debug.Log("BGM End");
-				PlayMusic(bgmTitles[bgmIndex = (bgmIndex + 1) % bgmTitles.Count]);
-			}
+			bgmEvent.getPlaybackState(out PLAYBACK_STATE playbackState);
+			bool hasEventPath = string.IsNullOrEmpty(currentMusic.EventPath) == false;
+			if (MusicFlow.ShouldRestart(currentMusic.Loop, hasEventPath, playbackState == PLAYBACK_STATE.STOPPED))
+				StartMusicEvent(currentMusic.EventPath);
 		}
 
 		public void StopMusic()
 		{
 			if (audioReady == false)
 				return;
+			currentMusic = null;
+			hasMusicState = false;
 			bgmEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+			bgmEvent.release();
+		}
+
+		// 장면 상태의 음악으로. 같은 상태를 다시 요청하면 곡을 처음부터 다시 틀지 않음
+		public void PlayMusic(MusicState state)
+		{
+			if (audioReady == false || musicTable == null)
+				return;
+			if (MusicFlow.ShouldSwitch(hasMusicState, musicState, state) == false)
+				return;
+			if (musicTable.TryGetEntry(state, out MusicTable.Entry entry) == false)
+			{
+				Debug.LogWarning($"[AudioManager] {nameof(MusicTable)} 에 {state} 항목이 없음, 음악 유지");
+				return;
+			}
+			string previousPath = currentMusic != null ? currentMusic.EventPath : null;
+			musicState = state;
+			hasMusicState = true;
+			currentMusic = entry;
+			// 같은 곡이면 이어서 틀기. 멈춰 있었으면 Update 의 반복이 다시 틀어 줌
+			if (MusicFlow.IsSameTrack(previousPath, entry.EventPath))
+				return;
+			StartMusicEvent(entry.EventPath);
+		}
+
+		public static void RequestMusic(MusicState state)
+		{
+			if (TryGetExistingInstance(out AudioManager audioManager))
+				audioManager.PlayMusic(state);
 		}
 
 		public void PlayAmbient(string eventPath)
@@ -205,13 +230,25 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void PlayMusic(string eventPath)
+		// 앞 곡은 페이드로 내보내고 새 곡 시작. 경로가 비면 조용히 둠
+		private void StartMusicEvent(string eventPath)
 		{
-			if (audioReady == false)
-				return;
 			bgmEvent.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-			bgmEvent = RuntimeManager.CreateInstance(eventPath);
-			bgmEvent.start();
+			bgmEvent.release();
+			if (string.IsNullOrEmpty(eventPath))
+				return;
+			try
+			{
+				bgmEvent = RuntimeManager.CreateInstance(eventPath);
+				bgmEvent.start();
+			}
+			catch (EventNotFoundException)
+			{
+				Debug.LogWarning($"[AudioManager] FMOD event not found: '{eventPath}', music skip");
+				currentMusic = null;
+				// 같은 상태를 다시 요청하면 다시 시도하게 (뱅크가 늦게 올라오는 경우)
+				hasMusicState = false;
+			}
 		}
 
 		public float GetVolume(BusType busType)

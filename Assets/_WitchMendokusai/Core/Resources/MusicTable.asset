@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42721f054f6441a6a105d48aada2302b, type: 3}
+  m_Name: MusicTable
+  m_EditorClassIdentifier: 
+  entries:
+  - state: 0
+    eventPath: event:/BGM/Stage Select
+    loop: 1
+  - state: 1
+    eventPath: event:/BGM/Stage Select
+    loop: 1
+  - state: 2
+    eventPath: event:/BGM/Level 1
+    loop: 1
+  - state: 3
+    eventPath: event:/BGM/Stage 1
+    loop: 1
+  - state: 4
+    eventPath: event:/BGM/Boss Fight
+    loop: 1
+  - state: 5
+    eventPath: 
+    loop: 0
+  - state: 6
+    eventPath: 
+    loop: 0
+  scenes:
+  - sceneName: Intro
+    state: 0
+  - sceneName: Lobby
+    state: 1
+  - sceneName: World
+    state: 2

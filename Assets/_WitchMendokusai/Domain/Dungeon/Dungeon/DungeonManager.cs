@@ -127,8 +127,12 @@ namespace WitchMendokusai
 
 		private void OnBossKilled(BossKilledEvent killed)
 		{
-			if (IsDungeon)
-				CurDungeon.RecordBossKill(killed.Monster.ID);
+			if (IsDungeon == false)
+				return;
+			CurDungeon.RecordBossKill(killed.Monster.ID);
+			// 보스를 잡아도 판이 계속되면 던전 음악으로. 클리어가 났거나 승패 연출 중이면 승리 쪽 흐름에 맡김
+			if (clearDelayRoutine == null && IsClearReached() == false)
+				AudioManager.RequestMusic(MusicState.Dungeon);
 		}
 
 		private void OnDestroy()
@@ -290,6 +294,7 @@ namespace WitchMendokusai
 				cameraManager.SetContentCameraMode(ContentCameraMode.Dungeon);
 
 				gameEventManager.Raise(GameEventType.OnDungeonStart);
+				AudioManager.RequestMusic(MusicState.Dungeon);
 			}
 		}
 
@@ -356,6 +361,7 @@ namespace WitchMendokusai
 			SurvivalFeelConfig feel = resourceManager.SurvivalFeel;
 			cardManager.CancelSelection();
 			CombatSfx.Play(CombatSfxEvent.Defeat);
+			AudioManager.RequestMusic(MusicState.Defeat);
 			PlayFlowFx(feel.DefeatFx, feel.DefeatTitle, CurDungeon.Name);
 			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(feel.DefeatResultDelay, false));
 		}
@@ -371,6 +377,7 @@ namespace WitchMendokusai
 			cardManager.CancelSelection();
 			SurvivalFeelConfig feel = resourceManager.SurvivalFeel;
 			float delay = feel.BossClearResultDelay;
+			AudioManager.RequestMusic(MusicState.Victory);
 			if (delay <= 0f)
 			{
 				EndDungeon(isCleared: true);
@@ -429,6 +436,8 @@ namespace WitchMendokusai
 			// 결과창을 가리지 않게 남은 승패 연출 (물들임, 띠, 카메라 당김) 을 걷음
 			StopFlowFx();
 			dungeonUI.SetPanel(DungeonPanelType.DungeonResult);
+			// 결과창부터는 실험실 음악. 승패 상태는 조용히 두는 자리라 여기서 넘김
+			AudioManager.RequestMusic(MusicState.World);
 		}
 
 		// 시작 체력 제약. 영구 강화로 정한 최대 체력 기준

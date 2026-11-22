@@ -69,6 +69,7 @@ namespace WitchMendokusai
 		private void OnBossSpawned(BossSpawnedEvent spawned)
 		{
 			CombatSfx.Play(CombatSfxEvent.BossAppear);
+			AudioManager.RequestMusic(MusicState.Boss);
 			Show(Settings.BossSpawned, 0f, spawned.Monster, 1);
 		}
 
