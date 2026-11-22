@@ -15,13 +15,14 @@ MonoBehaviour:
   <ID>k__BackingField: 3
   <Name>k__BackingField: "마나 위스프"
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: -47207433, guid: 438fc0e4df0a51d46b48ea614b22384d, type: 3}
-  <Sprites>k__BackingField: []
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 297f06d1d30b4a6c9f390da0595cc2c7, type: 3}
+  <Sprites>k__BackingField:
+  - {fileID: 21300000, guid: 297f06d1d30b4a6c9f390da0595cc2c7, type: 3}
   <Affiliation>k__BackingField: -1
   <Prefab>k__BackingField: {fileID: 7779617929997501086, guid: 54c6440cf176b5b4487277461e2f99aa, type: 3}
   <DefaultSkills>k__BackingField:
   - {fileID: 11400000, guid: f6a29f2c960129f45894db4732554d4b, type: 2}
-  <Material>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
+  <Material>k__BackingField: {fileID: 2100000, guid: 8e0308143c144b92ba51de5e6c6559b3, type: 2}
   <InitStatInfos>k__BackingField:
     initStats:
     - unitStat: 2
