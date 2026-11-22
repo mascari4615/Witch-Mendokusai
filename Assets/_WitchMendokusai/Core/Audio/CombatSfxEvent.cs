@@ -30,6 +30,7 @@ namespace WitchMendokusai
 		DialogueTyping = 25,
 		FishingCast = 26,
 		FishingBite = 27,
-		FishingMiss = 28
+		FishingMiss = 28,
+		CriticalHit = 29
 	}
 }

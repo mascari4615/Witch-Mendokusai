@@ -8,8 +8,14 @@ namespace WitchMendokusai
 		// 동시 발음 상한과 간격은 CombatSfxTable 의 사건 칸. 적 종류별 소리는 이 사건만 바꾸면 됨
 		[SerializeField] private CombatSfxEvent hitSfx = CombatSfxEvent.MonsterHit;
 		[SerializeField] private CombatSfxEvent dieSfx = CombatSfxEvent.MonsterDie;
+		[SerializeField, Tooltip("치명타일 때 피격음 위에 겹쳐 낼 소리")] private CombatSfxEvent criticalSfx = CombatSfxEvent.CriticalHit;
 
-		public void OnDamaged(DamageInfo damageInfo) => CombatSfx.Play(hitSfx, transform.position);
+		public void OnDamaged(DamageInfo damageInfo)
+		{
+			CombatSfx.Play(hitSfx, transform.position);
+			if (damageInfo.type == DamageType.Critical)
+				CombatSfx.Play(criticalSfx, transform.position);
+		}
 
 		public void OnDeath()
 		{

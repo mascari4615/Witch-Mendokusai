@@ -321,7 +321,7 @@ MonoBehaviour:
     <AttributionRequired>k__BackingField: 0
     <Modified>k__BackingField: 0
     <ModificationNote>k__BackingField: ''
-    <UsedIn>k__BackingField: '몬스터 피격음'
+    <UsedIn>k__BackingField: '몬스터 피격음, 치명타 소리'
     <AssetPaths>k__BackingField:
     - 'FMODAssets/Assets/Kenney/Impact Sounds'
   - <Id>k__BackingField: tinyworlds-forest-ambience

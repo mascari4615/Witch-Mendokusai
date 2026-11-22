@@ -137,3 +137,8 @@ MonoBehaviour:
     minIntervalSeconds: 0.1
     playAtPosition: 1
     maxVoices: 0
+  - sfxEvent: 29
+    eventPath: event:/SFX/Combat/CriticalHit
+    minIntervalSeconds: 0.03
+    playAtPosition: 1
+    maxVoices: 3
