@@ -1,5 +1,4 @@
 using UnityEngine;
-using FMODUnity;
 
 namespace WitchMendokusai
 {
@@ -8,12 +7,14 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private string hitEventPath = "event:/SFX/Monster/Hit";
 		[SerializeField] private string dieEventPath = "event:/SFX/Monster/Die";
+		[SerializeField, Min(1), Tooltip("같은 소리 (경로) 를 모든 개체 통틀어 동시에 몇 개까지 낼지. 차 있으면 새 소리를 건너뜀")] private int maxVoices = 6;
+		[SerializeField, Min(0f), Tooltip("같은 소리를 다시 낼 최소 간격 초 (실시간)")] private float minIntervalSeconds = 0.03f;
 
 		public void OnDamaged(DamageInfo damageInfo)
 		{
 			if (string.IsNullOrEmpty(hitEventPath) == false)
 			{
-				RuntimeManager.PlayOneShot(hitEventPath, transform.position);
+				SfxVoiceGate.TryPlay(hitEventPath, transform.position, maxVoices, minIntervalSeconds);
 			}
 		}
 
@@ -24,7 +25,7 @@ namespace WitchMendokusai
 				return;
 			if (string.IsNullOrEmpty(dieEventPath) == false)
 			{
-				RuntimeManager.PlayOneShot(dieEventPath, transform.position);
+				SfxVoiceGate.TryPlay(dieEventPath, transform.position, maxVoices, minIntervalSeconds);
 			}
 		}
 	}

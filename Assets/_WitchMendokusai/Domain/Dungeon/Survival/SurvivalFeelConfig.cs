@@ -90,6 +90,12 @@ namespace WitchMendokusai
 		[Header("Sound limit")]
 		[Min(1), Tooltip("같은 줍기 소리는 이 프레임 수에 한 번 (mc29)")] public int SameSoundFrameInterval = 5;
 
+		[Header("Exp pickup pitch")]
+		[Tooltip("경험치 줍기 소리 음높이. 가로는 이번 레벨 바 진행 0~1, 세로는 반음. 레벨업하면 0 으로 돌아감. 진행 1 은 그 자리에서 레벨업하므로 끝값은 실제 최고음보다 위로 (기본 10 이면 0, 2, 4, 7, 9 가 0.2 간격)")]
+		public AnimationCurve ExpPitchSemitones = AnimationCurve.Linear(0f, 0f, 1f, 10f);
+		[Tooltip("음높이를 끊을 음계 (옥타브 안 반음, 오름차순). 비우면 곡선 그대로 매끄럽게")]
+		public List<int> ExpPitchScale = new() { 0, 2, 4, 7, 9 };
+
 		[Header("Pickup pull (mc28)")]
 		[Tooltip("줍기 범위에 닿은 전리품이 끌려오는 곡선. 가로는 시간 비율, 세로 0 은 처음 자리, 1 은 플레이어, 음수는 바깥으로 튐. 기본 최저 -0.34")]
 		public AnimationCurve PickupPullCurve = new(new Keyframe(0f, 0f, 0f, 0f), new Keyframe(0.35f, -0.34f, 0f, 0f), new Keyframe(1f, 1f, 3f, 0f));

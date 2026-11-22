@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FMOD.Studio;
 using FMODUnity;
 using UnityEngine;
 
@@ -99,10 +100,30 @@ namespace WitchMendokusai
 		{
 			SurvivalFeel feel = SurvivalFeel.Instance;
 			if (feel == null || feel.TakeSound(EXP_SOUND))
-				RuntimeManager.PlayOneShot(EXP_SOUND, transform.position);
+				PlayPickupSound();
 			if (feel != null && DungeonManagerBridge.IsDungeon)
 				feel.OnExpPicked(transform.position);
 			PlayerStat[UnitStatType.EXP_CUR] += RollExpGain();
+		}
+
+		// 바 진행에 따라 음높이를 올려 재생. 제한에 걸려 건너뛴 줍기도 진행은 오르므로 다음 소리가 자연히 높음
+		private void PlayPickupSound()
+		{
+			SurvivalFeelConfig config = resourceManager.SurvivalFeel;
+			float progress = ExpPickupPitch.Progress(PlayerStat[UnitStatType.EXP_CUR], PlayerStat[UnitStatType.EXP_MAX]);
+			try
+			{
+				EventInstance instance = RuntimeManager.CreateInstance(EXP_SOUND);
+				instance.set3DAttributes(transform.position.To3DAttributes());
+				instance.setPitch(ExpPickupPitch.Multiplier(progress, config.ExpPitchSemitones, config.ExpPitchScale));
+				instance.start();
+				instance.release();
+			}
+			catch (EventNotFoundException)
+			{
+				// 뱅크가 안 올라온 실행에서 소리 때문에 경험치 가산까지 끊기지 않게 (PlayOneShot 과 같은 처리)
+				Debug.LogWarning($"[ExpObject] FMOD event not found: '{EXP_SOUND}', sfx skip");
+			}
 		}
 
 		// 보석 값이 작아 소수점을 버리면 보너스가 사라짐, 남는 소수점은 그 확률로 1 추가
