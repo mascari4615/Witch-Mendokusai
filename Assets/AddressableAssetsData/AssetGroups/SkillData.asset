@@ -21,6 +21,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - SkillData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9c5af763bb914d9fbac4c207e5d5a4ec
+    m_Address: SkillData/6
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - SkillData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9d1694d91fc6f574586f05df89ed2319
     m_Address: SkillData/4
     m_ReadOnly: 0
@@ -69,3 +75,6 @@ MonoBehaviour:
     m_Schemas:
     - {fileID: 11400000, guid: c08ae971ad65c13409884e0b394d3ced, type: 2}
     - {fileID: 11400000, guid: e8f7066930545f24a885c8aa49157b1a, type: 2}
+    m_SchemaDisplayOrder: []
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1
