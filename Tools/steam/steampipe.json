@@ -1,0 +1,10 @@
+{
+  "depotId": 3959541,
+  "exe": "WitchMendokusai.exe",
+  "exclude": [
+    "*.pdb",
+    "steam_appid.txt",
+    "*_BurstDebugInformation_DoNotShip*",
+    "*_BackUpThisFolder_ButDontShipItWithYourGame*"
+  ]
+}
