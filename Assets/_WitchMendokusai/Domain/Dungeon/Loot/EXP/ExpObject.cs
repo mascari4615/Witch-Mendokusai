@@ -116,6 +116,7 @@ namespace WitchMendokusai
 				EventInstance instance = RuntimeManager.CreateInstance(EXP_SOUND);
 				instance.set3DAttributes(transform.position.To3DAttributes());
 				instance.setPitch(ExpPickupPitch.Multiplier(progress, config.ExpPitchSemitones, config.ExpPitchScale));
+				instance.setVolume(ExpPickupPitch.LevelVolume(PlayerStat[UnitStatType.LEVEL_CUR], config.ExpVolumeDbPerLevel, config.ExpVolumeMinDb));
 				instance.start();
 				instance.release();
 			}

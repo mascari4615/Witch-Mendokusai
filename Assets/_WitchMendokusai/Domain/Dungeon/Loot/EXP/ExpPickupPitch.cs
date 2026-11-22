@@ -19,6 +19,14 @@ namespace WitchMendokusai
 			return Mathf.Pow(2f, semitones / SEMITONES_PER_OCTAVE);
 		}
 
+		// 레벨이 오를수록 줍기 소리를 조금씩 작게 (FMOD setVolume 배수). 후반에 구슬이 쏟아질 때 귀 피로를 줄임
+		// dbPerLevel 은 레벨당 더하는 dB (음수), minDb 는 그 아래로 내려가지 않는 하한
+		public static float LevelVolume(int level, float dbPerLevel, float minDb)
+		{
+			float decibels = Mathf.Max(minDb, Mathf.Max(0, level) * dbPerLevel);
+			return Mathf.Pow(10f, decibels / 20f);
+		}
+
 		// 현재 경험치와 이번 레벨 필요량으로 진행도. 필요량이 없으면 0
 		public static float Progress(int currentExp, int requiredExp)
 		{
