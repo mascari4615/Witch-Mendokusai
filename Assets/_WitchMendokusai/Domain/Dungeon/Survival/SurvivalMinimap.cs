@@ -323,6 +323,15 @@ namespace WitchMendokusai
 				view.MapObjectDots.Add(point);
 				view.MapObjectColors.Add(site.Data.MarkerColor);
 			}
+
+			// 숙련 조각은 막대 색 점 (사용자 2026-11-22 23:14 조각 찾기)
+			foreach (MasteryShardObject shard in DungeonManager.Instance.MonsterSpawner.ActiveMasteryShards)
+			{
+				if (TryToMap(shard.transform.position, center, forward, right, inverseRadius, out Vector2 point) == false)
+					continue;
+				view.MapObjectDots.Add(point);
+				view.MapObjectColors.Add(shard.TrackColor);
+			}
 		}
 
 		// 반경 원 안이면 true 와 지도 좌표

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -7,6 +8,17 @@ namespace WitchMendokusai
 	public partial class MonsterSpawner
 	{
 		private DollMasteryShardSchedule shardSchedule;
+		private readonly List<MasteryShardObject> activeShards = new();
+
+		// 작은 지도와 화면 밖 화살표가 읽음. 먹혔거나 풀로 돌아간 것은 거름
+		public IReadOnlyList<MasteryShardObject> ActiveMasteryShards
+		{
+			get
+			{
+				activeShards.RemoveAll(shard => shard == null || shard.isActiveAndEnabled == false);
+				return activeShards;
+			}
+		}
 		private int nextShard;
 		private System.Random shardRandom;
 
@@ -18,7 +30,11 @@ namespace WitchMendokusai
 			shardRandom = mastery != null ? new System.Random(RunSeed.Derive(mastery.ShardSeedSalt)) : null;
 		}
 
-		private void StopMasteryShards() => shardSchedule = null;
+		private void StopMasteryShards()
+		{
+			shardSchedule = null;
+			activeShards.Clear();
+		}
 
 		// 판 시간 기준. 자리를 못 찾으면 (지면 생성 전) 다음 틱에 다시
 		private void UpdateMasteryShards()
@@ -48,9 +64,14 @@ namespace WitchMendokusai
 			if (ProbeMapObjectSite(candidate, playerGround, mastery.ShardClearRadius, true, settings, out Vector3 ground) != MapObjectProbeResult.Ok)
 				return false;
 
-			GameObject shard = objectPoolManager.Spawn(mastery.Tracks[track].ShardPrefab.gameObject, ground + Vector3.up * mastery.ShardHeight);
-			shard.GetComponent<MasteryShardObject>().Init(track);
+			Vector3 position = ground + Vector3.up * mastery.ShardHeight;
+			GameObject shard = objectPoolManager.Spawn(mastery.Tracks[track].ShardPrefab.gameObject, position);
+			MasteryShardObject shardObject = shard.GetComponent<MasteryShardObject>();
+			shardObject.Init(track, mastery.Tracks[track].Color);
 			shard.SetActive(true);
+			activeShards.Add(shardObject);
+			if (SurvivalFeel.Instance != null)
+				SurvivalFeel.Instance.OnWeaponBurst(ground, DollMasteryRun.SpawnMoment(track));
 			return true;
 		}
 	}

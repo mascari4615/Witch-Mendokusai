@@ -62,10 +62,34 @@ MonoBehaviour:
   moveSpeed: 10
   pickupDistance: 0.3
   shardTransform: {fileID: 4615000000000000012}
-  spinSpeed: 160
-  bobHeight: 0.12
-  bobFrequency: 1.1
-  tiltDegrees: 20
+  crystalFilter: {fileID: 4615000000000000013}
+  crystalRenderer: {fileID: 4615000000000000014}
+  clusterName: MasteryCrystalShadow
+  crystals:
+  - Offset: {x: 0, y: 0, z: 0}
+    Tilt: {x: 8, y: 6}
+    Radius: 0.15
+    Height: 0.36
+    TipHeight: 0.26
+    BaseTipHeight: 0.1
+  - Offset: {x: 0.15, y: -0.05, z: -0.04}
+    Tilt: {x: -6, y: -34}
+    Radius: 0.08
+    Height: 0.26
+    TipHeight: 0.16
+    BaseTipHeight: 0.04
+  - Offset: {x: -0.13, y: -0.05, z: 0.08}
+    Tilt: {x: 14, y: 30}
+    Radius: 0.1
+    Height: 0.2
+    TipHeight: 0.14
+    BaseTipHeight: 0.04
+  - Offset: {x: 0.02, y: -0.06, z: -0.15}
+    Tilt: {x: -30, y: 0}
+    Radius: 0.06
+    Height: 0.14
+    TipHeight: 0.1
+    BaseTipHeight: 0.03
   pickupSfx: 6
 --- !u!135 &4615000000000000005
 SphereCollider:
@@ -116,7 +140,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.55, z: 0.3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4615000000000000002}

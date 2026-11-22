@@ -24,11 +24,27 @@ namespace WitchMendokusai
 			Data = data;
 			active = data != null ? new DollMastery(data.Thresholds()) : null;
 			grantedPickup = new int[data != null ? data.Tracks.Count : 0];
+			int trackCount = data != null ? data.Tracks.Count : 0;
+			pickupMoments = new FeelMoment[trackCount];
+			readyMoments = new FeelMoment[trackCount];
+			for (int i = 0; i < trackCount; i++)
+			{
+				pickupMoments[i] = data.PickupMoment.WithColor(data.Tracks[i].Color);
+				readyMoments[i] = data.ReadyMoment.WithColor(data.Tracks[i].Color);
+			}
+			LastPickupTrack = DollMastery.NO_TRACK;
 			Version++;
 		}
 
-		// 조각 하나를 먹음. 막대 스탯 (상한 안), 막대 진행, 찬 순간 머리 위 글자
-		public static void Pickup(int track, PlayerObject player)
+		// 막대마다 연출 값 사본 (막대 색). 판 시작에 만듦
+		private static FeelMoment[] pickupMoments = new FeelMoment[0];
+		private static FeelMoment[] readyMoments = new FeelMoment[0];
+
+		// 마지막으로 먹은 막대와 그때 버전. HUD 가 칸 하나를 튀게
+		public static int LastPickupTrack { get; private set; } = DollMastery.NO_TRACK;
+
+		// 조각 하나를 먹음. 막대 스탯 (상한 안), 막대 진행, 소리와 파편. 찬 순간은 큰 연출과 머리 위 글자
+		public static void Pickup(int track, PlayerObject player, Vector3 position)
 		{
 			if (active == null || Data == null)
 				throw new System.InvalidOperationException($"숙련 자료 없는 판에서 막대 {track} 조각을 먹음");
@@ -36,10 +52,23 @@ namespace WitchMendokusai
 			if (trackData.PickupStat != UnitStatType.NONE)
 				player.UnitStat[trackData.PickupStat] += TakePickupGrant(track, 1);
 			bool becameReady = AddShard(track, 1);
+			LastPickupTrack = track;
 			Version++;
+
+			SurvivalFeel feel = SurvivalFeel.Instance;
+			if (feel == null || feel.TakeSound(nameof(DollMasteryRun)))
+				UiSfx.Play(becameReady ? Data.ReadySfx : Data.PickupSfx);
+			if (feel != null)
+			{
+				feel.OnWeaponBurst(position, pickupMoments[track]);
+				if (becameReady)
+					feel.OnCustomMoment(readyMoments[track], player.transform.position);
+			}
 			if (becameReady && UIManager.TryGetExistingInstance(out UIManager uiManager))
 				uiManager.PopText(string.Format(Data.ReadyTextFormat, trackData.DisplayName), TextType.Warning, player.transform.position);
 		}
+
+		public static FeelMoment SpawnMoment(int track) => Data.SpawnMoment.WithColor(Data.Tracks[track].Color);
 
 		// 조각 하나를 먹었을 때 막대 스탯에 더할 양. 상한을 넘는 몫은 버림
 		public static int TakePickupGrant(int track, int shards)

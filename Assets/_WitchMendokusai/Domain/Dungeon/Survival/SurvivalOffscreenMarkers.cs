@@ -214,6 +214,9 @@ namespace WitchMendokusai
 					continue;
 				TryAddCandidate(config, camera, site, MarkerKind.MapObject, playerPosition, width, height, site.Data.MarkerColor);
 			}
+			// 숙련 조각은 막대 색 화살표
+			foreach (MasteryShardObject shard in DungeonManager.Instance.MonsterSpawner.ActiveMasteryShards)
+				TryAddCandidate(config, camera, shard, MarkerKind.MapObject, playerPosition, width, height, shard.TrackColor);
 		}
 
 		// 바닥 전리품 버퍼에서 GameItemObject (상자, 적 정지, 화면 청소, 회복, 자석) 만. 경험치 구슬과 재료는 제외

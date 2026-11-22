@@ -21,6 +21,7 @@ MonoBehaviour:
     PickupCap: 24
     ShardPrefab: {fileID: 4615000000000000004, guid: 8ab35e335ce24d31ad6f64d0a5e5263c, type: 3}
     ShardCount: 13
+    Icon: {fileID: 21300000, guid: aff0a23936502334791e2cbeaa38f3a2, type: 3}
   - DisplayName: "\uADF8\uB9BC\uC790"
     Threshold: 6
     Color: {r: 0.45, g: 0.35, b: 0.75, a: 1}
@@ -29,10 +30,46 @@ MonoBehaviour:
     PickupCap: 16
     ShardPrefab: {fileID: 4615000000000000004, guid: c7ce5faed2a840d4aa7f6c2a441a0bc6, type: 3}
     ShardCount: 13
+    Icon: {fileID: 21300000, guid: 1ee6e3eeaa8d65345a3d04220724645c, type: 3}
   <FirstShardSeconds>k__BackingField: 10
   <ShardGapSeconds>k__BackingField: 20
   <ShardDistance>k__BackingField: {x: 8, y: 16}
   <ShardSeedSalt>k__BackingField: 7411
   <ShardClearRadius>k__BackingField: 0.5
   <ShardHeight>k__BackingField: 0.4
+  <SpawnMoment>k__BackingField:
+    Shake: 0
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 10
+    ShardSpeed: 3
+    ShardLife: 0.5
+    ShardSize: 0.14
+    RingSize: 2.2
+    RingLife: 0.45
+    Color: {r: 1, g: 1, b: 1, a: 1}
+  <PickupMoment>k__BackingField:
+    Shake: 0.05
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 18
+    ShardSpeed: 6
+    ShardLife: 0.5
+    ShardSize: 0.18
+    RingSize: 3
+    RingLife: 0.35
+    Color: {r: 1, g: 1, b: 1, a: 1}
+  <ReadyMoment>k__BackingField:
+    Shake: 0.35
+    Hitstop: 0.08
+    HitstopScale: 0.1
+    Shards: 46
+    ShardSpeed: 10
+    ShardLife: 0.9
+    ShardSize: 0.26
+    RingSize: 10
+    RingLife: 0.8
+    Color: {r: 1, g: 1, b: 1, a: 1}
+  <PickupSfx>k__BackingField: 1
+  <ReadySfx>k__BackingField: 14
   <ReadyTextFormat>k__BackingField: "{0} \uC219\uB828 \uC644\uB8CC"

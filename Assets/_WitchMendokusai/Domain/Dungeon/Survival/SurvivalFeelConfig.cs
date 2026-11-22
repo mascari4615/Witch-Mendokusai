@@ -18,6 +18,14 @@ namespace WitchMendokusai
 		[Min(0f)] public float RingSize;
 		[Min(0.01f)] public float RingLife = 0.3f;
 		public Color Color = Color.white;
+
+		// 같은 값에 색만 바꾼 사본 (숙련 막대 색)
+		public FeelMoment WithColor(Color color)
+		{
+			FeelMoment copy = (FeelMoment)MemberwiseClone();
+			copy.Color = color;
+			return copy;
+		}
 	}
 
 	[Serializable]

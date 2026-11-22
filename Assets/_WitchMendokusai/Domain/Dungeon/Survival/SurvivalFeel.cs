@@ -190,6 +190,8 @@ namespace WitchMendokusai
 		public void OnFreezePicked(Vector3 position) => PlayMoment(Config.FreezePick, position, false);
 		public void OnClearPicked(Vector3 position) => PlayMoment(Config.ClearPick, position, false);
 		public void OnChestOpened(Vector3 position) => PlayMoment(Config.ChestOpen, position, true);
+		// 연출 값이 다른 자료에 있는 순간 (숙련 막대가 찬 순간). 판 시간 기준
+		public void OnCustomMoment(FeelMoment moment, Vector3 position) => PlayMoment(moment, position, false);
 
 		public void OnExpPicked(Vector3 position)
 		{
