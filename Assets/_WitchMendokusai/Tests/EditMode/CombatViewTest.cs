@@ -6,9 +6,10 @@ namespace WitchMendokusai.Tests
 	// 전투 시야 경계. 정본 memo wm/design/camera-angle-20261122/README.md
 	public class CombatViewTest
 	{
-		private const float PITCH = 30f;
-		private const float CAMERA_DISTANCE = 14f;
-		private const float MAX_DEPTH = 36f;
+		// 시험 고정값 (Camera.prefab Camera_Dungeon 과 CameraManager 기본값과 같은 수)
+		private static readonly float PITCH = 30f;
+		private static readonly float CAMERA_DISTANCE = 14f;
+		private static readonly float MAX_DEPTH = 36f;
 		private readonly Plane[] planes = new Plane[6];
 		private GameObject cameraObject;
 		private Camera camera;
