@@ -137,9 +137,10 @@ namespace WitchMendokusai
 			popup.style.top = best.y;
 		}
 
+		// 다른 별과 가운데 마도서를 몇 개 덮는지
 		private int CountCoveredStars(Rect rect)
 		{
-			int covered = 0;
+			int covered = rect.Contains(sky.SkyToLocal(Vector2.zero)) ? 1 : 0;
 			foreach (MagicBookStar star in sky.Stars)
 			{
 				if (star != popupStar && rect.Contains(sky.SkyToLocal(star.SkyPosition)))

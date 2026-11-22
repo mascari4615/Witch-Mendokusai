@@ -242,11 +242,11 @@
     align-items: flex-end;
 }
 
-/* 갈래 별: 별 아래 가운데. 폭 0 칸 가운데에 두고 글은 양옆으로 넘침 */
+/* 갈래 별: 별 아래 가운데. 별 가운데 (24px) 를 중심으로 넓은 칸 */
 .wm-mb-star--label-below .wm-mb-star__label {
-    left: 24px;
+    left: -126px;
     top: 58px;
-    width: 0;
+    width: 300px;
     translate: 0 0;
     align-items: center;
 }
