@@ -100,6 +100,14 @@ namespace WitchMendokusai
 		[Tooltip("레벨이 올라도 이 dB 아래로는 줄이지 않음")]
 		public float ExpVolumeMinDb = -6f;
 
+		[Header("Kill chain pitch")]
+		[Min(0f), Tooltip("앞 처치에서 이 초 안에 또 처치하면 처치음 (MonsterPop) 을 음계 한 칸 올림. 0 이면 끔")]
+		public float KillChainWindowSeconds = 0.5f;
+		[Min(0), Tooltip("연쇄로 오를 수 있는 최대 칸")]
+		public int KillChainMaxStep = 4;
+		[Tooltip("연쇄 칸마다 쓸 음계 (옥타브 안 반음, 오름차순)")]
+		public List<int> KillChainScale = new() { 0, 2, 4, 7, 9 };
+
 		[Header("Pickup pull (mc28)")]
 		[Tooltip("줍기 범위에 닿은 전리품이 끌려오는 곡선. 가로는 시간 비율, 세로 0 은 처음 자리, 1 은 플레이어, 음수는 바깥으로 튐. 기본 최저 -0.34")]
 		public AnimationCurve PickupPullCurve = new(new Keyframe(0f, 0f, 0f, 0f), new Keyframe(0.35f, -0.34f, 0f, 0f), new Keyframe(1f, 1f, 3f, 0f));

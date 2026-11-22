@@ -66,7 +66,11 @@ namespace WitchMendokusai
 		{
 			if (deathStyle == null)
 				return;
-			CombatSfx.Play(CombatSfxEvent.MonsterPop, transform.position);
+			// 던전 밖 (아레나 등) 은 연쇄 음높이 없이 원래 음
+			SurvivalFeel feel = SurvivalFeel.Instance;
+			float pitch = feel != null ? feel.PeekKillChainPitch() : CombatSfx.DEFAULT_PITCH;
+			if (CombatSfx.Play(CombatSfxEvent.MonsterPop, transform.position, pitch, CombatSfx.DEFAULT_VOLUME) && feel != null)
+				feel.CommitKillChain();
 			if (hasDeathPose == false)
 				deathPose = MonsterDeathGhost.Capture(body);
 			hasDeathPose = false;

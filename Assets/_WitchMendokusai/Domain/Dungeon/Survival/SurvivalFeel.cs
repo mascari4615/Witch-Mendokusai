@@ -30,6 +30,8 @@ namespace WitchMendokusai
 		private UnityEngine.UI.Image hitFlashImage;
 		private PlayerHitFeel playerHitFeel;
 		private readonly Dictionary<string, int> lastSoundFrames = new();
+		private int killChainStep;
+		private float lastKillChainTime = float.NegativeInfinity;
 
 		private SurvivalFeelConfig Config => resourceManager.SurvivalFeel;
 
@@ -204,6 +206,20 @@ namespace WitchMendokusai
 			lastSoundFrames[soundKey] = frame;
 			return true;
 		}
+
+		// 처치음 (MonsterPop) 음높이 배수. 연달아 처치할수록 음계를 따라 오름 (사운드 조사 S11). 실시간 기준이라 정지 연출에 안 끊김
+		// 들여다보기만 하고 칸은 안 올림. 소리가 실제로 났을 때 CommitKillChain 으로 올려야 간격 제한에 걸러진 처치가 음계를 건너뛰지 않음
+		public float PeekKillChainPitch()
+			=> KillChainPitch.Multiplier(NextKillChainStep(), Config.KillChainScale);
+
+		public void CommitKillChain()
+		{
+			killChainStep = NextKillChainStep();
+			lastKillChainTime = Time.unscaledTime;
+		}
+
+		private int NextKillChainStep()
+			=> KillChainPitch.NextStep(killChainStep, lastKillChainTime, Time.unscaledTime, Config.KillChainWindowSeconds, Config.KillChainMaxStep);
 
 		public void OnWeaponBurst(Vector3 position, FeelMoment moment)
 		{
