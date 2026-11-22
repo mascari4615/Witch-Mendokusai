@@ -21,6 +21,10 @@ namespace WitchMendokusai
 		private Vector2 dragStartPointer;
 		private Vector2 dragStartCenter;
 		private IVisualElementScheduledItem tick;
+		private Focusable focusBeforeDrag;
+
+		/// <summary>하늘 어디든 누르고 있는 동안 (별 클릭 포함). 이때 생긴 포커스로는 카메라와 팝업을 옮기지 않음</summary>
+		public bool IsPointerHeld { get; private set; }
 
 		/// <summary>카메라가 움직인 뒤. 팝업이 고른 별을 따라 붙도록</summary>
 		public event Action CameraMoved = delegate { };
@@ -30,10 +34,16 @@ namespace WitchMendokusai
 		private void RegisterCameraCallbacks()
 		{
 			RegisterCallback<WheelEvent>(OnWheel);
+			RegisterCallback<PointerDownEvent>(_ => IsPointerHeld = true, TrickleDown.TrickleDown);
+			RegisterCallback<PointerUpEvent>(_ => IsPointerHeld = false, TrickleDown.TrickleDown);
 			RegisterCallback<PointerDownEvent>(OnDragDown);
 			RegisterCallback<PointerMoveEvent>(OnDragMove);
 			RegisterCallback<PointerUpEvent>(OnDragUp);
-			RegisterCallback<PointerCaptureOutEvent>(_ => isDragging = false);
+			RegisterCallback<PointerCaptureOutEvent>(_ =>
+			{
+				isDragging = false;
+				IsPointerHeld = false;
+			});
 			RegisterCallback<GeometryChangedEvent>(_ => ApplyCamera());
 		}
 
@@ -130,6 +140,11 @@ namespace WitchMendokusai
 
 		private void OnWheel(WheelEvent evt)
 		{
+			// 가로 스크롤 (터치패드) 은 확대가 아님
+			if (Mathf.Approximately(evt.delta.y, 0f))
+			{
+				return;
+			}
 			float zoom = Mathf.Clamp(targetZoom * (evt.delta.y < 0f ? settings.ZoomStep : 1f / settings.ZoomStep), settings.ZoomMin, settings.ZoomMax);
 			// 커서 아래 하늘 자리가 그대로 남게
 			Vector2 cursor = evt.localMousePosition;
@@ -147,7 +162,12 @@ namespace WitchMendokusai
 			}
 			isDragging = true;
 			dragStartPointer = evt.position;
-			dragStartCenter = targetCenter;
+			// 움직이던 카메라는 지금 자리에서 멈추고 끌기 시작 (목표로 튀지 않게)
+			targetCenter = cameraCenter;
+			targetZoom = cameraZoom;
+			dragStartCenter = cameraCenter;
+			// 빈 하늘을 누르면 포커스가 풀려 방향키가 안 먹음. 놓을 때 되돌림
+			focusBeforeDrag = focusController?.focusedElement;
 			this.CapturePointer(evt.pointerId);
 		}
 
@@ -171,6 +191,12 @@ namespace WitchMendokusai
 			}
 			isDragging = false;
 			this.ReleasePointer(evt.pointerId);
+			Focusable restore = focusBeforeDrag;
+			focusBeforeDrag = null;
+			if (restore is VisualElement element && element.panel != null)
+			{
+				schedule.Execute(() => element.Focus());
+			}
 		}
 
 		private static MagicBookStar FindStar(VisualElement element)

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -27,6 +28,9 @@ namespace WitchMendokusai
 		private QuestSO questSOFallback;
 
 		private readonly QuestManager questManager;
+
+		/// <summary>작업 시작, 보상 받기로 퀘스트가 바뀐 뒤 (클릭과 확인 키 모두)</summary>
+		public event Action Changed = delegate { };
 
 		public QuestDetail(QuestManager questManager)
 		{
@@ -137,6 +141,7 @@ namespace WitchMendokusai
 				return;
 			quest.StartWork(0);
 			Refresh();
+			Changed();
 		}
 
 		private void OnCompleteClicked()
@@ -144,6 +149,8 @@ namespace WitchMendokusai
 			if (quest == null || quest.State != RuntimeQuestState.CanComplete)
 				return;
 			quest.Complete();
+			Refresh();
+			Changed();
 		}
 	}
 }

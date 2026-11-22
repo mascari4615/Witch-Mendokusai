@@ -27,14 +27,15 @@ namespace WitchMendokusai
 			popup.Add(questDetail);
 			// 작업 시작, 보상 받기도 방향키로 가는 칸
 			questDetail.Query<Button>().ForEach(focus.Register);
-			// 그 버튼을 누르면 퀘스트가 바뀜. 별과 선과 진행 숫자를 다시
-			popup.RegisterCallback<ClickEvent>(_ => popup.schedule.Execute(RefreshAfterAction));
+			// 그 버튼으로 퀘스트가 바뀜. 별과 선과 진행 숫자를 다시
+			questDetail.Changed += RefreshAfterAction;
 			popup.RegisterCallback<GeometryChangedEvent>(_ => PlacePopup());
 			stage.Add(popup);
 
 			stage.RegisterCallback<FocusInEvent>(evt =>
 			{
-				if (IsPopupShown && evt.target is MagicBookStar star && star != popupStar)
+				// 키로 옮길 때만. 클릭은 OnStarSubmitted 가 열고 닫음 (여기서 바꾸면 같은 클릭이 바로 닫아 버림)
+				if (IsPopupShown && sky.IsPointerHeld == false && evt.target is MagicBookStar star && star != popupStar)
 				{
 					ShowPopup(star);
 				}
@@ -63,6 +64,11 @@ namespace WitchMendokusai
 
 		private void HidePopup()
 		{
+			// 팝업 버튼에 있던 포커스는 그 별로 돌려 둠. 숨은 버튼이 확인 키를 받지 않게
+			if (popupStar != null && container.focusController?.focusedElement is VisualElement focused && popup.Contains(focused))
+			{
+				popupStar.Focus();
+			}
 			popupStar = null;
 			popup?.RemoveFromClassList(USS_POPUP_SHOWN);
 		}
@@ -89,7 +95,8 @@ namespace WitchMendokusai
 			}
 			float width = popup.resolvedStyle.width;
 			float height = popup.resolvedStyle.height;
-			Vector2 stageSize = stage.contentRect.size;
+			// 하늘은 무대 안쪽 여백까지 덮음. 팝업 자리도 하늘 크기 기준
+			Vector2 stageSize = sky.contentRect.size;
 			if (float.IsNaN(width) || float.IsNaN(height) || stageSize.x <= 0f)
 			{
 				return;

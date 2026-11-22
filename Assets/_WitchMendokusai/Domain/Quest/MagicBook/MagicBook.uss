@@ -11,12 +11,6 @@
     --wm-mb-card: rgb(22, 19, 44);
     --wm-mb-card-line: rgba(190, 140, 255, 0.55);
 
-    /* 선과 가루 색은 MagicBookSky 가 읽음 (Painter2D) */
-    --wm-mb-line-done: rgb(190, 140, 255);
-    --wm-mb-line-done-glow: rgba(190, 140, 255, 0.28);
-    --wm-mb-line-open: rgba(236, 232, 244, 0.7);
-    --wm-mb-line-dim: rgba(170, 180, 220, 0.22);
-    --wm-mb-dust: rgb(230, 225, 255);
 }
 
 /* 불투명 하늘. 흐린 게임 화면을 쓰지 않음 (사용자 2026-11-22) */
@@ -31,6 +25,12 @@
 /* ===== 하늘 ===== */
 
 .wm-mb-sky {
+    /* 선과 가루 색. MagicBookSky 가 자기 요소에서 읽어 Painter2D 로 (사용자 속성은 상속으로 안 읽힘) */
+    --wm-mb-line-done: rgb(190, 140, 255);
+    --wm-mb-line-done-glow: rgba(190, 140, 255, 0.28);
+    --wm-mb-line-open: rgba(236, 232, 244, 0.7);
+    --wm-mb-line-dim: rgba(170, 180, 220, 0.22);
+    --wm-mb-dust: rgb(230, 225, 255);
     position: absolute;
     left: 0;
     top: 0;

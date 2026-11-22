@@ -34,6 +34,7 @@ namespace WitchMendokusai
 		private MenuFocus focus;
 		private VisualElement tabRow;
 		private Label progressLabel;
+		private Button closeButton;
 		private Texture2D glowTexture;
 		// 전체 메뉴, 업적과 같은 UIRoot 오브젝트. 그 오브젝트를 정지 열쇠로 쓰면 서로의 정지를 풀어 버려 자기 열쇠를 따로
 		private GameObject pauseKey;
@@ -134,7 +135,7 @@ namespace WitchMendokusai
 			arenaButton.AddToClassList("wm-mb-arena");
 			focus.Register(arenaButton);
 			top.Add(arenaButton);
-			Button closeButton = KeyHint.KeyButton("닫기", "ESC", Close);
+			closeButton = KeyHint.KeyButton("닫기", "ESC", Close);
 			closeButton.AddToClassList("wm-fullmenu-close");
 			focus.Register(closeButton);
 			top.Add(closeButton);
@@ -254,14 +255,15 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 처음 고를 칸은 첫 장 이름. 열자마자 별을 고르면 카메라가 그 별로 가 하늘 전체가 안 보임
+		// 처음 고를 칸은 첫 장 이름 (장이 없으면 닫기). 열자마자 별을 고르면 카메라가 그 별로 가 하늘 전체가 안 보임
 		private bool FocusFirst()
 		{
-			if (chapters.Count == 0 || tabsByChapter.TryGetValue(chapters[0], out Button tab) == false || tab.worldBound.width <= 0f)
+			Button target = chapters.Count > 0 && tabsByChapter.TryGetValue(chapters[0], out Button tab) ? tab : closeButton;
+			if (target.worldBound.width <= 0f)
 			{
 				return false;
 			}
-			tab.Focus();
+			target.Focus();
 			return true;
 		}
 

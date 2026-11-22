@@ -174,7 +174,14 @@ namespace WitchMendokusai
 				Vector2 position = positions[node.Id];
 				MagicBookStar star = new(questNode.Target, chapter, position, hasParent.Contains(node.Id) == false, labelOnLeft, glowTexture);
 				star.clicked += () => StarSubmitted(star);
-				star.RegisterCallback<FocusInEvent>(_ => Follow(star.SkyPosition));
+				// 키로 고를 때만 따라감. 클릭 중에 카메라가 움직이면 별이 커서에서 빠져나가 클릭이 안 됨
+				star.RegisterCallback<FocusInEvent>(_ =>
+				{
+					if (IsPointerHeld == false)
+					{
+						Follow(star.SkyPosition);
+					}
+				});
 				world.Add(star);
 				stars.Add(star);
 				starsById[node.Id] = star;
