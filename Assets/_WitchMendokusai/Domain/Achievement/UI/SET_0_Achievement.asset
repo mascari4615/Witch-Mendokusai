@@ -13,16 +13,12 @@ MonoBehaviour:
   m_Name: SET_0_Achievement
   m_EditorClassIdentifier: 
   <Style>k__BackingField: {fileID: 7433441132597879392, guid: 5bb22aface87498393f3b78fb8f8b798, type: 3}
-  <MenuStyle>k__BackingField: {fileID: 7433441132597879392, guid: 191d3549f4e64c78ac11e40352cd2020, type: 3}
-  <BlurOutput>k__BackingField: {fileID: 8400000, guid: 4f1f5a32ebefe5041a43447ad1711148, type: 2}
+  <Menu>k__BackingField: {fileID: 11400000, guid: 1b429db3c5bd4307bcc28c581db6a222, type: 2}
   <AllCategoryIcon>k__BackingField: {fileID: 21300000, guid: a5bf45689a41f1449a847ff1cd602716, type: 3}
-  <AlbumIcon>k__BackingField: {fileID: 21300000, guid: 3830fbbe727ae064abf15d545bd0501f, type: 3}
-  <ReferenceHeight>k__BackingField: 1080
-  <MinimumWidth>k__BackingField: 1600
+  <AlbumIcon>k__BackingField: {fileID: 21300000, guid: ec56c6a0022339547ad1042450de0711, type: 3}
+  <WallSocket>k__BackingField: {fileID: 21300000, guid: 41e19493b3d04a23af8504acfcabcfaf, type: 3}
   <WallSlotCount>k__BackingField: 7
   <WallSlotStep>k__BackingField: 216
   <WallRowStep>k__BackingField: 208
+  <WallSideGap>k__BackingField: 54
   <RecentCount>k__BackingField: 3
-  <GlowTextureSize>k__BackingField: 128
-  <NavOverlapTolerance>k__BackingField: 4
-  <NavAcrossWeight>k__BackingField: 2

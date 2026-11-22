@@ -91,6 +91,10 @@ namespace WitchMendokusai
 		/// <summary>벽에 걸거나 내림. 바뀌면 화면이 다시 그림</summary>
 		public AchievementWallChange ToggleWall(AchievementSO achievement, int slotCount)
 		{
+			if (Book.TierOf(achievement.ID) == 0)
+			{
+				throw new InvalidOperationException($"{achievement.name}: 못 얻은 업적은 벽에 못 검");
+			}
 			AchievementWallChange change = Wall.Toggle(achievement.ID, slotCount);
 			if (change != AchievementWallChange.Full)
 			{

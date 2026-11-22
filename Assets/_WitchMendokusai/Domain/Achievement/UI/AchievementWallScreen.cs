@@ -67,11 +67,9 @@ namespace WitchMendokusai
 			wall = AchievementElements.Part(center, "wm-ach-wall");
 			// 16:10 처럼 무대 폭이 좁으면 벽이 양옆 칸을 덮음. 남는 폭에 맞춰 벽을 통째로 줄임 (메달 크기 비율 유지)
 			center.RegisterCallback<GeometryChangedEvent>(_ => FitWall(center));
-			VisualElement where = AchievementElements.Part(center, "wm-fullmenu-where wm-ach-wall__where");
-			for (int i = 1; i <= 3; i++)
-			{
-				AchievementElements.Part(where, "wm-fullmenu-where__ring wm-fullmenu-where__ring--" + i);
-			}
+			VisualElement where = MenuStage.CreateWhereRings();
+			where.AddToClassList("wm-ach-wall__where");
+			center.Add(where);
 			placeLabel = AchievementElements.Text(center, string.Empty, "wm-fullmenu-place");
 			placeSubLabel = AchievementElements.Text(center, string.Empty, "wm-fullmenu-place-sub");
 
@@ -132,7 +130,8 @@ namespace WitchMendokusai
 
 		private void BuildWall(IReadOnlyList<AchievementSO> achievements, AchievementBook book)
 		{
-			int slotCount = settings.WallSlotCount;
+			// 업적보다 칸이 많으면 영영 못 채우는 칸이 생김. 업적 수까지만
+			int slotCount = Mathf.Min(settings.WallSlotCount, achievements.Count);
 			List<int> ordered = new();
 			foreach (AchievementSO achievement in achievements)
 			{
@@ -152,7 +151,7 @@ namespace WitchMendokusai
 				int column = top ? index : index - topRow;
 				float left = column * settings.WallSlotStep + (top ? 0f : settings.WallSlotStep * 0.5f);
 				float topOffset = top ? 0f : settings.WallRowStep;
-				VisualElement slot = index < pins.Count ? MakePinnedSlot(SOHelper.Get<AchievementSO>(pins[index]), book) : MakeSocket(achievements);
+				VisualElement slot = index < pins.Count ? MakePinnedSlot(SOHelper.Get<AchievementSO>(pins[index]), book) : MakeSocket();
 				slot.style.left = left;
 				slot.style.top = topOffset;
 				wall.Add(slot);
@@ -162,7 +161,7 @@ namespace WitchMendokusai
 
 		private void FitWall(VisualElement center)
 		{
-			float available = center.resolvedStyle.width;
+			float available = center.resolvedStyle.width - settings.WallSideGap * 2f;
 			float needed = wall.resolvedStyle.width + wall.resolvedStyle.marginRight;
 			if (float.IsNaN(available) || float.IsNaN(needed) || needed <= 0f)
 			{
@@ -179,21 +178,27 @@ namespace WitchMendokusai
 		{
 			Button slot = new(() => openDetail(achievement));
 			slot.AddToClassList("wm-ach-wall__slot");
+			// 고른 칸 표시: ESC 메뉴처럼 흰 테두리 (메달 마름모를 따라)
+			AchievementElements.Part(slot, "wm-ach-wall__ring");
 			AchievementMedal medal = new("wm-ach-medal--wall");
-			medal.Show(achievement, book.TierOf(achievement.ID));
+			int tier = book.TierOf(achievement.ID);
+			medal.Show(achievement, tier);
 			slot.Add(medal);
+			// 등급을 색만으로 가르지 않게 단계 마름모를 같이
+			VisualElement pips = AchievementElements.Part(slot, "wm-ach-pips wm-ach-wall__pips");
+			AchievementCard.FillPips(pips, achievement.MaxTier, tier);
 			slot.RegisterCallback<FocusInEvent>(_ => ShowPlace(achievement, manager.Book));
 			focus.Register(slot);
 			return slot;
 		}
 
-		private static VisualElement MakeSocket(IReadOnlyList<AchievementSO> achievements)
+		private VisualElement MakeSocket()
 		{
 			VisualElement socket = new() { pickingMode = PickingMode.Ignore };
 			socket.AddToClassList("wm-ach-wall__slot");
 			socket.AddToClassList("wm-ach-wall__slot--socket");
 			AchievementMedal medal = new("wm-ach-medal--wall");
-			medal.ShowSocket(achievements[0].Category.EmptySlot);
+			medal.ShowSocket(settings.WallSocket);
 			socket.Add(medal);
 			return socket;
 		}

@@ -27,6 +27,9 @@ namespace WitchMendokusai
 		[field: SerializeField] public float NavOverlapTolerance { get; private set; } = 4f;
 		[field: SerializeField] public float NavAcrossWeight { get; private set; } = 2f;
 
+		[field: Header("빛")]
+		[field: SerializeField, Tooltip("둥근 빛 그림 크기 (px). 코어 뒤, 업적 벽과 상세 뒤")] public int GlowTextureSize { get; private set; } = 128;
+
 		[field: Header("가운데 코어")]
 		[field: SerializeField, Tooltip("가운데에서 도는 모델. 비우면 코어 없이 열림")] public GameObject CorePrefab { get; private set; }
 		[field: SerializeField] public int CoreTextureSize { get; private set; } = 768;

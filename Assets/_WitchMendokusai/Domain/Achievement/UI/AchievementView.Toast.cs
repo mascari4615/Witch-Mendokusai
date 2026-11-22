@@ -18,7 +18,7 @@ namespace WitchMendokusai
 		{
 			toast = new AchievementToast();
 			toast.AddToClassList(USS_PALETTE);
-			toast.styleSheets.Add(Settings.MenuStyle);
+			toast.styleSheets.Add(Settings.Menu.Style);
 			toast.styleSheets.Add(Settings.Style);
 			toast.RegisterCallback<TransitionEndEvent>(_ => toastFaded = true);
 			toast.RegisterCallback<TransitionCancelEvent>(_ => toastFaded = true);

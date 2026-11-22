@@ -2,19 +2,11 @@
    색 토큰, 평행사변형 판, 키 칸, 닫기 버튼, 장소 고리는 FullMenu.uss 를 같이 씀 (뿌리에 wm-fullmenu-palette).
    시안: memo wm/reference/achievement-bench-20261122 achievement-draft.html */
 
+/* 열고 닫는 투명도와 색 토큰은 뿌리의 wm-fullmenu (FullMenu.uss). 여기는 단계 색만 */
 .wm-ach {
-    opacity: 0;
-    transition-property: opacity;
-    transition-duration: 0.16s;
-    transition-timing-function: ease-out;
-    display: none;
     --wm-ach-tier-1: rgb(222, 150, 96);
     --wm-ach-tier-2: rgb(208, 212, 224);
     --wm-ach-tier-3: rgb(246, 204, 86);
-}
-
-.wm-ach--active {
-    opacity: 1;
 }
 
 .wm-ach--hidden {
@@ -69,8 +61,10 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
+/* 못 닿은 단계: 색을 빼고 흐리게 (어둡게 칠하면 금이 동처럼 보임) */
 .wm-ach-medal--dim {
-    -unity-background-image-tint-color: rgb(70, 66, 76);
+    filter: grayscale(1);
+    opacity: 0.45;
 }
 
 .wm-ach-medal--wall { width: 204px; height: 204px; }
@@ -78,7 +72,7 @@
 .wm-ach-medal--recent { width: 58px; height: 58px; margin-right: 16px; }
 .wm-ach-medal--card { width: 168px; height: 168px; }
 .wm-ach-medal--detail { width: 360px; height: 360px; }
-.wm-ach-medal--step { width: 88px; height: 88px; margin-right: 20px; }
+.wm-ach-medal--step { width: 78px; height: 78px; margin-right: 20px; }
 .wm-ach-medal--toast { width: 52px; height: 52px; margin-right: 10px; }
 
 /* ===== 진행 막대 ===== */
@@ -236,13 +230,35 @@
     opacity: 0.5;
 }
 
-/* 고른 메달은 ESC 메뉴처럼 밝게: 흰 테두리 마름모 대신 살짝 키움과 밝은 빛 */
-.wm-ach-wall__slot:focus {
-    scale: 1.08 1.08;
+/* 고른 메달: ESC 메뉴 고른 칸처럼 흰 테두리. 메달 마름모를 따라 45도 돌린 네모, 살짝 키움 */
+.wm-ach-wall__ring {
+    position: absolute;
+    left: 38px;
+    top: 38px;
+    width: 128px;
+    height: 128px;
+    rotate: 45deg;
+    border-width: 4px;
+    border-color: rgb(255, 255, 255);
+    opacity: 0;
 }
 
-.wm-ach-wall__slot:focus .wm-ach-medal {
-    -unity-background-image-tint-color: rgb(255, 255, 255);
+.wm-ach-wall__slot:focus .wm-ach-wall__ring {
+    opacity: 1;
+}
+
+.wm-ach-wall__slot:focus {
+    scale: 1.06 1.06;
+}
+
+/* 등급 마름모. 메달 아래 끝에 */
+.wm-ach-wall__pips {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    justify-content: center;
+    margin-top: 0;
 }
 
 .wm-ach-wall__where {
@@ -297,7 +313,7 @@
 }
 
 .wm-ach-album-tile:focus .wm-ach-album-tile__desc {
-    color: rgb(86, 80, 96);
+    color: var(--wm-fullmenu-ink-dark-soft);
 }
 
 .wm-ach-recent {
@@ -390,12 +406,13 @@
 
 .wm-ach-category--active .wm-ach-category__count,
 .wm-fullmenu-main:focus .wm-ach-category__count {
-    color: rgb(86, 80, 96);
+    color: var(--wm-fullmenu-ink-dark-soft);
 }
 
+/* 분류 판과 격자 사이 6vh. 고른 분류가 18px 밀려 나와도 5vh 이상 */
 .wm-ach-album__main {
     flex-grow: 1;
-    margin-left: 60px;
+    margin-left: 78px;
     min-width: 0;
 }
 
@@ -503,7 +520,12 @@
 }
 
 .wm-ach-card:focus .wm-ach-card__line {
-    color: rgb(86, 80, 96);
+    color: var(--wm-fullmenu-ink-dark-soft);
+}
+
+/* 흰 카드 위에서도 은 마름모가 보이게 어두운 테두리 */
+.wm-ach-card:focus .wm-ach-pip {
+    border-color: rgba(20, 20, 25, 0.55);
 }
 
 .wm-ach-pips {
@@ -578,8 +600,10 @@
     -unity-background-image-tint-color: rgba(150, 84, 230, 0.34);
 }
 
+/* 고리는 ESC 메뉴 크기라 왼쪽 칸보다 넓음. 칸 안으로 줄임 */
 .wm-ach-detail__where {
     margin-top: -6px;
+    scale: 0.7 0.7;
 }
 
 .wm-ach-detail__pinned {
@@ -611,6 +635,12 @@
     color: var(--wm-fullmenu-ink-soft);
 }
 
+.wm-ach-detail__condition {
+    font-size: 22px;
+    color: var(--wm-fullmenu-ink);
+    margin-bottom: 20px;
+}
+
 .wm-ach-detail__story {
     font-size: 22px;
     color: var(--wm-fullmenu-ink-soft);
@@ -621,8 +651,8 @@
 .wm-ach-step {
     flex-direction: row;
     align-items: center;
-    height: 112px;
-    margin: 0 0 12px 0;
+    height: 96px;
+    margin: 0 0 10px 0;
     padding: 0 40px 0 44px;
     background-image: url("../../../Art/Texture/UI/Vector.png");
     -unity-slice-left: 30;
@@ -631,28 +661,9 @@
     -unity-background-image-tint-color: var(--wm-fullmenu-panel);
 }
 
-/* 지금 단계는 ESC 메뉴 고른 칸과 같은 밝은 칠 */
+/* 지금 단계: 고른 칸 (흰 칠) 과 헷갈리지 않게 보라 기운 판. 고름은 버튼에만 */
 .wm-ach-step--current {
-    -unity-background-image-tint-color: var(--wm-fullmenu-select);
-    color: var(--wm-fullmenu-ink-dark);
-}
-
-.wm-ach-step--current .wm-ach-step__tier,
-.wm-ach-step--current .wm-ach-step__value {
-    color: var(--wm-fullmenu-ink-dark);
-    -unity-text-outline-width: 0;
-}
-
-.wm-ach-step--current .wm-ach-step__when {
-    color: rgb(86, 80, 96);
-}
-
-.wm-ach-step--current .wm-ach-bar {
-    background-color: rgba(20, 20, 25, 0.18);
-}
-
-.wm-ach-step--current .wm-ach-bar__fill {
-    background-color: var(--wm-fullmenu-ink-dark);
+    -unity-background-image-tint-color: rgb(58, 44, 82);
 }
 
 .wm-ach-step--todo .wm-ach-step__condition {

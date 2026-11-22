@@ -10,7 +10,6 @@ namespace WitchMendokusai
 	{
 		private const string NAV_CLASS = "wm-fullmenu-nav";
 		private const string HIDDEN_CLASS = "wm-fullmenu--hidden";
-		private const int GLOW_TEXTURE_SIZE = 128;
 		private const int TILES_PER_ROW = 2;
 
 		// 메뉴 항목 하나. Hotkey 가 있으면 그 단축키가 이 빌드에서 보일 때만 항목을 보이고 키 글자를 옆에 붙임
@@ -138,7 +137,7 @@ namespace WitchMendokusai
 
 			VisualElement glow = new VisualElement { pickingMode = PickingMode.Ignore };
 			glow.AddToClassList("wm-fullmenu-core__glow");
-			glowTexture = MenuStage.CreateGlowTexture(GLOW_TEXTURE_SIZE, "FullMenuGlow");
+			glowTexture = MenuStage.CreateGlowTexture(Settings.GlowTextureSize, "FullMenuGlow");
 			glow.style.backgroundImage = new StyleBackground(glowTexture);
 			core.Add(glow);
 
@@ -148,15 +147,7 @@ namespace WitchMendokusai
 			core.Add(coreImage);
 
 			// 코어 아래 지금 자리 표시. 동심 타원 셋과 가운데 점
-			VisualElement where = new VisualElement { pickingMode = PickingMode.Ignore };
-			where.AddToClassList("wm-fullmenu-where");
-			for (int i = 1; i <= 3; i++)
-			{
-				VisualElement ring = new VisualElement { pickingMode = PickingMode.Ignore };
-				ring.AddToClassList("wm-fullmenu-where__ring");
-				ring.AddToClassList("wm-fullmenu-where__ring--" + i);
-				where.Add(ring);
-			}
+			VisualElement where = MenuStage.CreateWhereRings();
 			VisualElement pin = new VisualElement { pickingMode = PickingMode.Ignore };
 			pin.AddToClassList("wm-fullmenu-where__pin");
 			where.Add(pin);

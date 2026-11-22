@@ -43,6 +43,8 @@ namespace WitchMendokusai
 			{
 				return;
 			}
+			// 손대지 않은 벽은 저장된 목록을 믿지 않고 매번 다시 고름 (나중에 금을 따면 동을 밀어냄)
+			pins.Clear();
 
 			List<int> candidates = new();
 			foreach (int id in ordered)

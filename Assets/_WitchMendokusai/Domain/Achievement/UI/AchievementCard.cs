@@ -70,7 +70,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		/// <summary>단계 마름모 줄. 닿은 단계는 그 단계 색 (wm-ach-pip--1..3), 나머지는 빈 테두리. 상세 창도 같이 씀</summary>
+		/// <summary>단계 마름모 줄. 닿은 단계는 그 단계 색 (wm-ach-pip--1..3), 나머지는 빈 테두리. 메달 벽도 같이 씀</summary>
 		public static void FillPips(VisualElement container, int maxTier, int tier)
 		{
 			container.Clear();

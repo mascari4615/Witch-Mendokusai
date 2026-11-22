@@ -138,6 +138,26 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Untouched_wall_picks_again_when_a_medal_goes_up()
+		{
+			AchievementSaveSlice slice = new();
+			slice.Reset();
+			AchievementBook book = new(slice.Records);
+			book.Advance(1, 1, TODAY);
+			book.Advance(2, 2, TODAY);
+			book.Advance(101, 1, TODAY);
+			AchievementWall wall = new(slice);
+			int[] ordered = { 1, 2, 101 };
+			wall.Refresh(ordered, book, 2);
+			Assert.That(wall.Pins, Is.EqualTo(new[] { 2, 1 }));
+
+			book.Advance(101, 3, TODAY);
+			wall.Refresh(ordered, book, 2);
+
+			Assert.That(wall.Pins, Is.EqualTo(new[] { 101, 2 }), "금을 따면 동을 밀어냄");
+		}
+
+		[Test]
 		public void Edited_wall_keeps_the_players_choice_and_stops_at_full()
 		{
 			AchievementSaveSlice slice = new();

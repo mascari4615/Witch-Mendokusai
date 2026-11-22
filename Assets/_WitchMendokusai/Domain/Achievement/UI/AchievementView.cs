@@ -19,8 +19,10 @@ namespace WitchMendokusai
 			Album = 1,
 		}
 
+		// 뿌리는 ESC 메뉴와 같은 클래스 (색 토큰, 글꼴, 열고 닫는 투명도). 업적만의 모양은 wm-ach
+		private const string USS_ROOT = "wm-fullmenu";
+		private const string USS_ACTIVE = "wm-fullmenu--active";
 		private const string USS_CLASS = "wm-ach";
-		private const string USS_ACTIVE = "wm-ach--active";
 		private const string USS_PALETTE = "wm-fullmenu-palette";
 		private const string USS_HIDDEN = "wm-ach--hidden";
 		private const string NAV_CLASS = "wm-ach-nav";
@@ -48,6 +50,7 @@ namespace WitchMendokusai
 		// 벽과 상세 창 뒤 둥근 빛. 한 장을 같이 씀
 		private Texture2D glowTexture;
 		private VisualElement bottom;
+		private Button backButton;
 
 		private UIRoot uiRoot;
 		private AchievementManager achievementManager;
@@ -74,12 +77,12 @@ namespace WitchMendokusai
 			FullScreenFrame frame = uiRoot.CreateFullScreenFrame(uiRoot.ScreenLayer, "Achievement");
 			container = frame.Root;
 			safeContent = frame.Content;
+			container.AddToClassList(USS_ROOT);
 			container.AddToClassList(USS_CLASS);
-			container.AddToClassList(USS_PALETTE);
-			container.styleSheets.Add(Settings.MenuStyle);
+			container.styleSheets.Add(Settings.Menu.Style);
 			container.styleSheets.Add(Settings.Style);
-			backdrop = new MenuBackdrop(container, Settings.BlurOutput);
-			focus = new MenuFocus(container, NAV_CLASS, () => IsOpen, () => Settings.NavOverlapTolerance, () => Settings.NavAcrossWeight)
+			backdrop = new MenuBackdrop(container, Settings.Menu.BlurOutput);
+			focus = new MenuFocus(container, NAV_CLASS, () => IsOpen, () => Settings.Menu.NavOverlapTolerance, () => Settings.Menu.NavAcrossWeight)
 			{
 				FocusFirst = FocusFirst,
 				Scope = () => detail.IsShown ? detail.Window : stage,
@@ -130,12 +133,12 @@ namespace WitchMendokusai
 			stage.AddToClassList("wm-fullmenu__stage");
 			stage.AddToClassList("wm-ach__stage");
 			safeContent.Add(stage);
-			safeContent.RegisterCallback<GeometryChangedEvent>(_ => MenuStage.Fit(safeContent, stage, Settings.ReferenceHeight, Settings.MinimumWidth));
+			safeContent.RegisterCallback<GeometryChangedEvent>(_ => MenuStage.Fit(safeContent, stage, Settings.Menu.ReferenceHeight, Settings.Menu.MinimumWidth));
 
 			VisualElement top = AchievementElements.Part(stage, "wm-fullmenu__top");
 			top.pickingMode = PickingMode.Position;
 			AchievementElements.Part(top, "wm-fullmenu__spacer");
-			Button backButton = KeyHint.KeyButton("뒤로", "ESC", Back);
+			backButton = KeyHint.KeyButton("뒤로", "ESC", Back);
 			backButton.AddToClassList("wm-fullmenu-close");
 			focus.Register(backButton);
 			top.Add(backButton);
@@ -144,7 +147,7 @@ namespace WitchMendokusai
 
 			VisualElement body = AchievementElements.Part(stage, "wm-ach__body");
 			body.pickingMode = PickingMode.Position;
-			glowTexture = MenuStage.CreateGlowTexture(Settings.GlowTextureSize, "AchievementGlow");
+			glowTexture = MenuStage.CreateGlowTexture(Settings.Menu.GlowTextureSize, "AchievementGlow");
 			wallScreen = new AchievementWallScreen(Settings, focus, glowTexture, OpenDetail, OpenAlbum);
 			body.Add(wallScreen);
 			albumScreen = new AchievementAlbumScreen(Settings, focus, OpenDetail);
@@ -190,7 +193,7 @@ namespace WitchMendokusai
 			IsOpen = true;
 			ShowPage(Page.Wall);
 			detail.Hide();
-			bottom.EnableInClassList(USS_HIDDEN, false);
+			SetBackLayerVisible(true);
 			backdrop.SetBlurred(UIEffects.Enabled);
 			UiSfx.Play(UiSfxEvent.WindowOpen);
 			UIMotion.Show(container, USS_ACTIVE);
@@ -255,8 +258,8 @@ namespace WitchMendokusai
 			UiSfx.Play(UiSfxEvent.WindowOpen);
 			focusOnDetailClose = container.focusController?.focusedElement as VisualElement;
 			detail.Show(achievement, achievementManager);
-			// 상세 창은 자기 버튼 안내가 있음. 뒤 화면 안내는 숨겨 한 벌만
-			bottom.EnableInClassList(USS_HIDDEN, true);
+			// 상세 창은 자기 닫기와 안내가 있음. 뒤 화면의 뒤로 버튼과 안내는 숨겨 한 벌만
+			SetBackLayerVisible(false);
 			FocusLater(null);
 		}
 
@@ -264,7 +267,7 @@ namespace WitchMendokusai
 		{
 			AchievementSO shown = detail.Current;
 			detail.Hide();
-			bottom.EnableInClassList(USS_HIDDEN, false);
+			SetBackLayerVisible(true);
 			UiSfx.Play(UiSfxEvent.WindowClose);
 			// 도감이 그사이 다시 그려졌으면 같은 업적의 새 카드로
 			VisualElement target = focusOnDetailClose;
@@ -274,6 +277,12 @@ namespace WitchMendokusai
 			}
 			focusOnDetailClose = null;
 			FocusLater(target);
+		}
+
+		private void SetBackLayerVisible(bool visible)
+		{
+			bottom.EnableInClassList(USS_HIDDEN, visible == false);
+			backButton.EnableInClassList(USS_HIDDEN, visible == false);
 		}
 
 		private AchievementWallChange ToggleWall(AchievementSO achievement) => achievementManager.ToggleWall(achievement, Settings.WallSlotCount);

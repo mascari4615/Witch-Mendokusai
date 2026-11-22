@@ -28,12 +28,14 @@ namespace WitchMendokusai
 		private readonly Label nameLabel;
 		private readonly Label tierLabel;
 		private readonly Label storyLabel;
+		private readonly Label conditionLabel;
 		private readonly VisualElement steps;
 		private readonly Button pinButton;
 		private readonly Label pinLabel;
 		private readonly Label noteLabel;
 
 		private AchievementSO current;
+		private bool canPin;
 
 		public VisualElement Window { get; }
 		public Button CloseButton { get; }
@@ -58,11 +60,9 @@ namespace WitchMendokusai
 			glow.style.backgroundImage = new StyleBackground(glowTexture);
 			medal = new AchievementMedal("wm-ach-medal--detail");
 			left.Add(medal);
-			VisualElement where = AchievementElements.Part(left, "wm-fullmenu-where wm-ach-detail__where");
-			for (int i = 1; i <= 3; i++)
-			{
-				AchievementElements.Part(where, "wm-fullmenu-where__ring wm-fullmenu-where__ring--" + i);
-			}
+			VisualElement where = MenuStage.CreateWhereRings();
+			where.AddToClassList("wm-ach-detail__where");
+			left.Add(where);
 			pinnedChip = AchievementElements.Text(left, "벽에 걸려 있음", "wm-ach-chip wm-ach-detail__pinned");
 
 			VisualElement right = AchievementElements.Part(Window, "wm-ach-detail__right");
@@ -72,6 +72,7 @@ namespace WitchMendokusai
 			nameLabel = AchievementElements.Text(right, string.Empty, "wm-ach-detail__name");
 			tierLabel = AchievementElements.Text(right, string.Empty, "wm-ach-detail__tier");
 			storyLabel = AchievementElements.Text(right, string.Empty, "wm-ach-detail__story");
+			conditionLabel = AchievementElements.Text(right, string.Empty, "wm-ach-detail__condition");
 			steps = AchievementElements.Part(right, "wm-ach-detail__steps");
 
 			VisualElement foot = AchievementElements.Part(Window, "wm-ach-detail__foot");
@@ -88,7 +89,7 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>처음 고를 칸. 걸 수 있으면 걸기 버튼, 아니면 닫기</summary>
-		public VisualElement FirstFocus => pinButton.resolvedStyle.display == DisplayStyle.None ? CloseButton : pinButton;
+		public VisualElement FirstFocus => canPin ? pinButton : CloseButton;
 
 		public AchievementSO Current => current;
 
@@ -126,6 +127,7 @@ namespace WitchMendokusai
 			categoryLabel.text = achievement.Category.Name;
 			nameLabel.text = concealed ? AchievementCard.HIDDEN_NAME : achievement.Name;
 			storyLabel.text = concealed ? HIDDEN_STORY : achievement.Description;
+			conditionLabel.text = concealed ? string.Empty : achievement.Condition;
 
 			string tierName = AchievementTiers.NameOf(tier, achievement.MaxTier);
 			if (concealed)
@@ -153,7 +155,7 @@ namespace WitchMendokusai
 				}
 			}
 
-			bool canPin = tier > 0;
+			canPin = tier > 0;
 			pinButton.style.display = canPin ? DisplayStyle.Flex : DisplayStyle.None;
 			pinLabel.text = manager.Wall.IsPinned(achievement.ID) ? "벽에서 내리기" : "벽에 걸기";
 			noteLabel.text = string.Empty;
@@ -172,7 +174,8 @@ namespace WitchMendokusai
 			row.Add(stepMedal);
 			AchievementElements.Text(row, AchievementTiers.NameOf(stepTier, achievement.MaxTier), "wm-ach-step__tier wm-ach-tier--" + stepTier);
 			VisualElement texts = AchievementElements.Part(row, "wm-ach-step__texts");
-			AchievementElements.Text(texts, achievement.Condition, "wm-ach-step__condition");
+			// 조건 글은 위에 한 번. 줄에는 이 단계의 목표만
+			AchievementElements.Text(texts, $"목표 {target}", "wm-ach-step__condition");
 			string date = book.DateOf(achievement.ID, stepTier);
 			string when = reached ? (date == null ? "달성" : $"{date} 달성") : "아직";
 			AchievementElements.Text(texts, when, "wm-ach-step__when");

@@ -31,6 +31,23 @@ namespace WitchMendokusai
 			stage.style.scale = new Scale(new Vector3(scale, scale, 1f));
 		}
 
+		private const int WHERE_RING_COUNT = 3;
+
+		/// <summary>장소 고리 (동심 타원 셋, FullMenu.uss 의 wm-fullmenu-where). ESC 메뉴 코어 아래, 업적 벽과 상세의 메달 아래</summary>
+		public static VisualElement CreateWhereRings()
+		{
+			VisualElement where = new() { pickingMode = PickingMode.Ignore };
+			where.AddToClassList("wm-fullmenu-where");
+			for (int i = 1; i <= WHERE_RING_COUNT; i++)
+			{
+				VisualElement ring = new() { pickingMode = PickingMode.Ignore };
+				ring.AddToClassList("wm-fullmenu-where__ring");
+				ring.AddToClassList("wm-fullmenu-where__ring--" + i);
+				where.Add(ring);
+			}
+			return where;
+		}
+
 		/// <summary>둥근 빛. UI Toolkit 에 원형 그라데이션이 없어 작은 그림으로. 색은 USS tint. 다 쓰면 부른 쪽이 Destroy</summary>
 		public static Texture2D CreateGlowTexture(int size, string textureName)
 		{
