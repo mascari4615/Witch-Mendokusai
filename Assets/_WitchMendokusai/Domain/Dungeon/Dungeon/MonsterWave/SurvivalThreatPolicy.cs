@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	// 주기 생성 자리. 정본 memo wm/design/crossing-threat-20261119 th4
 	public enum SpawnPlacementPolicy
 	{
-		// 이동 중이면 진행 방향 앞 부채꼴, 멈추면 둘레 (기존)
+		// 이동 중이면 진행 방향 앞 부채꼴, 멈추면 둘레. 화면 밖으로 밀지 않음 (2026-11-22 전 기본)
 		ForwardCone = 0,
 		// 화면 밖 둘레. 이동 중이면 ForwardWeight 확률로 앞 부채꼴
 		OffscreenRing = 1,
@@ -41,7 +41,8 @@ namespace WitchMendokusai
 	[Serializable]
 	public class DungeonThreatPolicy
 	{
-		[field: SerializeField] public SpawnPlacementPolicy SpawnPolicy { get; private set; } = SpawnPlacementPolicy.ForwardCone;
+		// 기본 OffscreenRing (2026-11-22, 던전 카메라 30도). ForwardCone 은 10~15m 에 바로 만들어 낮은 카메라에서 화면 안에 튀어나옴 (MOIS3 측정 44% 대 7%)
+		[field: SerializeField] public SpawnPlacementPolicy SpawnPolicy { get; private set; } = SpawnPlacementPolicy.OffscreenRing;
 		[field: SerializeField, Tooltip("앞 부채꼴 반각 (도)"), Range(0f, 180f)] public float ForwardHalfAngle { get; private set; } = 30f;
 		[field: SerializeField, Tooltip("OffscreenRing 에서 이동 중 앞 부채꼴을 고를 확률"), Range(0f, 1f)] public float ForwardWeight { get; private set; } = 0.5f;
 		[field: SerializeField, Tooltip("화면 밖 자리를 찾을 때 거리 증가 폭 (m)"), Min(0.1f)] public float OffscreenStep { get; private set; } = 2f;

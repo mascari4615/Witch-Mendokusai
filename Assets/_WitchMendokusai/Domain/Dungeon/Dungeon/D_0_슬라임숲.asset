@@ -208,3 +208,10 @@ MonoBehaviour:
     <StartTime>k__BackingField: 200
   - <Pattern>k__BackingField: {fileID: 11400000, guid: 204dafff82554a23befb643c7c07c775, type: 2}
     <StartTime>k__BackingField: 330
+  <ThreatPolicy>k__BackingField:
+    <SpawnPolicy>k__BackingField: 1
+    <ForwardHalfAngle>k__BackingField: 30
+    <ForwardWeight>k__BackingField: 0.5
+    <OffscreenStep>k__BackingField: 2
+    <OffscreenMaxDistance>k__BackingField: 30
+    <RetirePolicy>k__BackingField: 0

@@ -37,3 +37,10 @@ MonoBehaviour:
   - Type: 1
     DataSO: {fileID: 0}
     Amount: 500
+  <ThreatPolicy>k__BackingField:
+    <SpawnPolicy>k__BackingField: 1
+    <ForwardHalfAngle>k__BackingField: 30
+    <ForwardWeight>k__BackingField: 0.5
+    <OffscreenStep>k__BackingField: 2
+    <OffscreenMaxDistance>k__BackingField: 30
+    <RetirePolicy>k__BackingField: 0
