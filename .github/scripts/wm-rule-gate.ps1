@@ -557,11 +557,32 @@ else
         [void]$assetSubjects.Add($file.FullName.Substring($rootFullForAssets.Length).TrimStart('\', '/').Replace('\', '/'))
     }
 }
+# ★ 대상: ID 칸이 있는 자료 에셋만 (2026-11-22)
+#   - ID 없는 설정, 표, 연출 프리셋 SO 는 지킬 길이 없는 오검출
+#   - 2026-11-16 부터 판마다 빨갛던 75건 전부 그 꼴 (75건 중 ID 칸 0)
+#   - 근거: DataSO 의 `<ID>k__BackingField` 직렬화, DataSOUtil.SetCorrectAssetName 의 ID 이름 짓기
+$assetIdPattern = '(?m)^  <ID>k__BackingField:'
+function Test-AssetHasId
+{
+    param([string]$Relative)
+    if ($commitScoped)
+    {
+        $text = (& git show "${Sha}:Assets/_WitchMendokusai/${Relative}" 2>$null) -join "`n"
+    }
+    else
+    {
+        # 절대 경로로 변환 -- .NET 은 상대 경로를 PowerShell 위치가 아닌 프로세스 위치 기준으로 해석
+        $text = [System.IO.File]::ReadAllText((Join-Path (Resolve-Path $Root).Path $Relative))
+    }
+    return ($text -match $assetIdPattern)
+}
+
 foreach ($relative in $assetSubjects)
 {
     $name = Split-Path $relative -Leaf
     if ($name -match '^[A-Za-z]+_\d+_.+\.asset$') { continue }
     if ($assetBaseline.Contains($relative)) { continue }
+    if ((Test-AssetHasId $relative) -eq $false) { continue }
     [void]$ratchetMisses.Add(("ASSET-NAME  {0} -- 이름이 규격에 안 맞는다; fix: {{타입}}_{{ID}}_{{이름}}.asset (예: Q_5000_나무의성질연구.asset)" -f $relative))
 }
 
@@ -645,6 +666,7 @@ if ($WriteBaseline)
     {
         $name = Split-Path $relative -Leaf
         if ($name -match '^[A-Za-z]+_\d+_.+\.asset$') { continue }
+        if ((Test-AssetHasId $relative) -eq $false) { continue }
         $assetLines += $relative
     }
     $assetLines = @($assetLines | Sort-Object -Unique)
