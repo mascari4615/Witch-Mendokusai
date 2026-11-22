@@ -44,7 +44,6 @@ GameObject:
   - component: {fileID: 5728526554444181643}
   - component: {fileID: 3847234482860366}
   - component: {fileID: 2737547438790396216}
-  - component: {fileID: 6438284161929168561}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: EditorOnly
@@ -161,42 +160,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!114 &6438284161929168561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 619975406456368161}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57f24a4aaa0761b45ba25e7e5108e2c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  UID: -1581000742
-  color: {r: 0.7737533, g: 0.6963925, b: 0.9150943, a: 1}
-  intensity: 15
-  shadowSpread: 0.05
-  cutoff: 30
-  realisticFalloff: 1
-  legacySampling: 1
-  samples: 8
-  projMode: 0
-  cookie: {fileID: 0}
-  angle: 30
-  innerAngle: 0
-  cubemap: {fileID: 0}
-  iesFile: {fileID: 0}
-  bitmask: 1
-  bakeToIndirect: 0
-  shadowmask: 0
-  shadowmaskFalloff: 0
-  indirectIntensity: 4
-  falloffMinRadius: 0.01
-  shadowmaskGroupID: 0
-  correctCookieDistortion: 0
-  directionMode: 0
-  maskChannel: -1
 --- !u!1 &2503249143169128203
 GameObject:
   m_ObjectHideFlags: 0
@@ -389,7 +352,6 @@ GameObject:
   - component: {fileID: 3717442691719655663}
   - component: {fileID: 2913203845916657063}
   - component: {fileID: 82721749703835453}
-  - component: {fileID: 8960924614167800932}
   m_Layer: 0
   m_Name: Directional Light (1)
   m_TagString: EditorOnly
@@ -506,34 +468,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!114 &8960924614167800932
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4276006347707962110}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c74ce2158ae608549902afb4112fd042, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  color: {r: 1, g: 1, b: 1, a: 1}
-  intensity: 1
-  shadowSpread: 0.01
-  samples: 16
-  bitmask: 1
-  bakeToIndirect: 0
-  shadowmask: 0
-  shadowmaskDenoise: 0
-  indirectIntensity: 1
-  cloudShadow: {fileID: 0}
-  cloudShadowTilingX: 0.01
-  cloudShadowTilingY: 0.01
-  cloudShadowOffsetX: 0
-  cloudShadowOffsetY: 0
-  supersample: 0
-  UID: 1805351026
 --- !u!1 &5500584006236423181
 GameObject:
   m_ObjectHideFlags: 0

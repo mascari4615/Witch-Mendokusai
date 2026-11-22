@@ -44,6 +44,7 @@ namespace WitchMendokusai.Tests
         ///
         /// 실증: Bakery(라이트맵 툴) 컴포넌트가 붙은 조명이 스테이지 프리팹·씬에 들어 있어,
         /// Bakery 없는 CI 에선 프리팹 19곳·씬 35곳이 한꺼번에 죽은 참조로 보였다. 개발 머신에선 멀쩡하다.
+        /// (2026-11-22 Bakery 제거, 컴포넌트까지 지워서 목록 비움. 장치는 다음 외부 에셋용으로 유지)
         ///
         /// 거짓 빨간불은 게이트를 죽인다(사람이 "또 그거네" 하고 무시하면 진짜 사고도 묻힌다).
         /// 그렇다고 조용히 통과시키면 검사가 없는 것과 같다 → **왜 건너뛰는지 말하면서 건너뛴다.**
@@ -51,18 +52,7 @@ namespace WitchMendokusai.Tests
         private static readonly Dictionary<string, string> OPTIONAL_THIRD_PARTY_SCRIPT_GUIDS =
             new Dictionary<string, string>
             {
-                { "ec0b4dd729a12d046982652f834580a2", "Bakery / BakeryLightmapGroup" },
-                { "b7fa80e7116296f4eb4f49ec1544ee22", "Bakery / ftLightmapsStorage" },
-
-                // ★ 아래 셋은 **프리팹 검사를 실제로 돌리자마자** 나왔다 (2026-08-06 후속).
-                //   씬은 위 둘만 있으면 통과했는데, 프리팹은 조명 컴포넌트를 더 쓴다 —
-                //   즉 통째 skip 하던 동안 이 셋은 목록에 오를 기회조차 없었다.
-                //   셋 다 WM-137 절차대로 **main 체크아웃에서 guid 를 되짚어** 확인했다:
-                //   전부 `Assets/Bakery/*.cs` 로 해소된다(= 의도적 gitignore 서드파티).
-                //   → 진짜 실종 스크립트는 **0건**이었다. 프로젝트는 이 부류에서 깨끗하다.
-                { "c74ce2158ae608549902afb4112fd042", "Bakery / BakeryDirectLight" },
-                { "57f24a4aaa0761b45ba25e7e5108e2c7", "Bakery / BakeryPointLight" },
-                { "306a56f30ff21b5439963fc745cfe9cc", "Bakery / BakerySkyLight" },
+                // 비어 있음. Bakery 다섯 guid 는 2026-11-22 Bakery 제거와 함께 삭제 (씬과 프리팹의 컴포넌트도 제거)
             };
 
         [Test]

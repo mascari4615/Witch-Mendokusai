@@ -101,7 +101,6 @@ GameObject:
   - component: {fileID: 563853400099577183}
   - component: {fileID: 5596778283565299708}
   - component: {fileID: 4100396376388342945}
-  - component: {fileID: 2293738889513767695}
   m_Layer: 0
   m_Name: Directional Light (1)
   m_TagString: EditorOnly
@@ -218,34 +217,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!114 &2293738889513767695
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1790461333142583762}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c74ce2158ae608549902afb4112fd042, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  color: {r: 1, g: 1, b: 1, a: 1}
-  intensity: 1
-  shadowSpread: 0.01
-  samples: 16
-  bitmask: 1
-  bakeToIndirect: 0
-  shadowmask: 0
-  shadowmaskDenoise: 0
-  indirectIntensity: 1
-  cloudShadow: {fileID: 0}
-  cloudShadowTilingX: 0.01
-  cloudShadowTilingY: 0.01
-  cloudShadowOffsetX: 0
-  cloudShadowOffsetY: 0
-  supersample: 0
-  UID: 1805351026
 --- !u!1 &3881534644637384210
 GameObject:
   m_ObjectHideFlags: 0
@@ -842,7 +813,6 @@ GameObject:
   - component: {fileID: 43014293452393905}
   - component: {fileID: 2157229221856498059}
   - component: {fileID: 9011066566376928345}
-  - component: {fileID: 3855663714097585034}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: EditorOnly
@@ -959,42 +929,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!114 &3855663714097585034
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7100988304514107760}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57f24a4aaa0761b45ba25e7e5108e2c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  UID: -1581000742
-  color: {r: 0.7737533, g: 0.6963925, b: 0.9150943, a: 1}
-  intensity: 15
-  shadowSpread: 0.05
-  cutoff: 30
-  realisticFalloff: 1
-  legacySampling: 1
-  samples: 8
-  projMode: 0
-  cookie: {fileID: 0}
-  angle: 30
-  innerAngle: 0
-  cubemap: {fileID: 0}
-  iesFile: {fileID: 0}
-  bitmask: 1
-  bakeToIndirect: 0
-  shadowmask: 0
-  shadowmaskFalloff: 0
-  indirectIntensity: 4
-  falloffMinRadius: 0.01
-  shadowmaskGroupID: 0
-  correctCookieDistortion: 0
-  directionMode: 0
-  maskChannel: -1
 --- !u!1 &8240161883591416446
 GameObject:
   m_ObjectHideFlags: 0

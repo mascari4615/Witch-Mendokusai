@@ -879,7 +879,6 @@ GameObject:
   - component: {fileID: 8626861834594878430}
   - component: {fileID: 347537642437594159}
   - component: {fileID: 5382241023736483018}
-  - component: {fileID: 5370484926825268829}
   m_Layer: 0
   m_Name: Directional Light (1)
   m_TagString: Untagged
@@ -996,34 +995,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!114 &5370484926825268829
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1312770617860314066}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c74ce2158ae608549902afb4112fd042, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  color: {r: 1, g: 1, b: 1, a: 1}
-  intensity: 3
-  shadowSpread: 0.01
-  samples: 16
-  bitmask: 1
-  bakeToIndirect: 0
-  shadowmask: 0
-  shadowmaskDenoise: 0
-  indirectIntensity: 1.5
-  cloudShadow: {fileID: 0}
-  cloudShadowTilingX: 0.01
-  cloudShadowTilingY: 0.01
-  cloudShadowOffsetX: 0
-  cloudShadowOffsetY: 0
-  supersample: 0
-  UID: 1805351026
 --- !u!1 &1319100601462580435
 GameObject:
   m_ObjectHideFlags: 0
@@ -1480,7 +1451,6 @@ GameObject:
   - component: {fileID: 7748166347041806477}
   - component: {fileID: 7446022181227665708}
   - component: {fileID: 5671246092182285678}
-  - component: {fileID: 4461754695848177833}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: Untagged
@@ -1597,42 +1567,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!114 &4461754695848177833
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2782996653749761665}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57f24a4aaa0761b45ba25e7e5108e2c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  UID: -1581000742
-  color: {r: 0.7737533, g: 0.6963925, b: 0.9150943, a: 1}
-  intensity: 15
-  shadowSpread: 0.05
-  cutoff: 30
-  realisticFalloff: 1
-  legacySampling: 1
-  samples: 8
-  projMode: 0
-  cookie: {fileID: 0}
-  angle: 30
-  innerAngle: 0
-  cubemap: {fileID: 0}
-  iesFile: {fileID: 0}
-  bitmask: 1
-  bakeToIndirect: 0
-  shadowmask: 0
-  shadowmaskFalloff: 0
-  indirectIntensity: 4
-  falloffMinRadius: 0.01
-  shadowmaskGroupID: 0
-  correctCookieDistortion: 0
-  directionMode: 0
-  maskChannel: -1
 --- !u!1 &2866483185031616516
 GameObject:
   m_ObjectHideFlags: 0
@@ -8458,7 +8392,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2192716292925509112}
-  - component: {fileID: 8769027522454616743}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -8481,30 +8414,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7592624617115599297}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8769027522454616743
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8992030188383963044}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 306a56f30ff21b5439963fc745cfe9cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  texName: sky.dds
-  color: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
-  intensity: 2
-  samples: 32
-  hemispherical: 0
-  bitmask: 1
-  bakeToIndirect: 1
-  indirectIntensity: 1
-  tangentSH: 0
-  correctRotation: 0
-  cubemap: {fileID: 8900000, guid: dca6140f18e664e2497840105334aa9e, type: 3}
-  UID: 1838775365
 --- !u!1001 &206846156576148546
 PrefabInstance:
   m_ObjectHideFlags: 0
