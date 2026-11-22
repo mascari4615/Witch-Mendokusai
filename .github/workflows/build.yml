@@ -166,8 +166,15 @@ jobs:
           [IO.File]::WriteAllText((Join-Path $dir 'BuildInfo.json'), $json, [Text.UTF8Encoding]::new($false))
           Write-Host "[WM-BUILD] seeded BuildInfo.json ($channel #$($info.buildNumber))"
 
-          if ($env:WM_DEVICE_LOG_TOKEN) {
-            [IO.File]::WriteAllText((Join-Path $dir 'DeviceLogToken.txt'), $env:WM_DEVICE_LOG_TOKEN.Trim(), [Text.UTF8Encoding]::new($false))
+          # Device-log token goes into development builds only. Release builds never send logs
+          # (DeviceLogSettings.EnabledInReleaseBuild = false), and release zips / Steam depots are
+          # public, so a token there only leaks. A leftover file from an earlier dev build is removed.
+          $tokenPath = Join-Path $dir 'DeviceLogToken.txt'
+          if ($channel -ne 'dev') {
+            if (Test-Path -LiteralPath $tokenPath) { Remove-Item -LiteralPath $tokenPath -Force }
+            Write-Host '[WM-BUILD] release build - no DeviceLogToken.txt'
+          } elseif ($env:WM_DEVICE_LOG_TOKEN) {
+            [IO.File]::WriteAllText($tokenPath, $env:WM_DEVICE_LOG_TOKEN.Trim(), [Text.UTF8Encoding]::new($false))
             Write-Host '[WM-BUILD] seeded DeviceLogToken.txt'
           } else {
             Write-Host '[WM-BUILD] WM_DEVICE_LOG_TOKEN empty - phone logs will be rejected (401)'
