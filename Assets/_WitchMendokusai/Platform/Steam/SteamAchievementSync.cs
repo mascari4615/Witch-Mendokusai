@@ -6,33 +6,28 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 게임 업적을 Steam 으로 옮기는 배선. SteamService 가 소유, 매 프레임 Tick.
 	///
-	/// - 시작 조건 둘: Steam 업적 상태 수신 (OnUserStatsReceived), 게임 업적 장부 등록 (세이브 로드 끝)
-	///   장부 등록 전 구독은 이벤트 통로 교체 (RootLifetimeScope) 전이라 놓칠 수 있어 기다림
+	/// - 시작 조건: 게임 업적 장부 등록 (세이브 로드 끝). 그 전 구독은 이벤트 통로 교체 (RootLifetimeScope) 전이라 놓칠 수 있어 기다림
 	/// - 시작하면: 장부 전체 재동기화 한 번, 이후 QuestCompletedEvent 구독
+	/// - Steam 업적 상태 수신 (OnUserStatsReceived) 이 늦게 오면 재동기화를 한 번 더. 실패한 적기는 기록하지 않으므로 여기서 다시 시도됨
+	///   (상태 요청 RequestCurrentStats 는 SDK 가 폐기, Steam 클라이언트가 실행 전에 동기화)
 	/// - 한 방향: Steam 업적 상태를 읽어 게임에 반영하지 않음
 	/// </summary>
 	public sealed class SteamAchievementSync
 	{
 		private readonly SteamSettings settings;
 		private AchievementRelay relay;
-		private bool statsReady;
 
 		public SteamAchievementSync(SteamSettings settings)
 		{
 			this.settings = settings;
 			SteamUserStats.OnUserStatsReceived += OnUserStatsReceived;
-			// 최신 Steam 클라이언트는 실행 전에 동기화를 끝내 둠 (요청 불필요). 요청이 거절되면 이미 준비된 것으로 봄
-			if (SteamUserStats.RequestCurrentStats() == false)
-			{
-				statsReady = true;
-			}
 		}
 
 		public bool IsStarted => relay != null;
 
 		public void Tick()
 		{
-			if (IsStarted || statsReady == false)
+			if (IsStarted)
 			{
 				return;
 			}
@@ -62,9 +57,14 @@ namespace WitchMendokusai
 
 		private void OnUserStatsReceived(SteamId steamId, Result result)
 		{
-			if (steamId == SteamClient.SteamId && result == Result.OK)
+			if (IsStarted == false || steamId != SteamClient.SteamId || result != Result.OK)
 			{
-				statsReady = true;
+				return;
+			}
+			IAchievementLedger ledger = AchievementLedgerBridge.Current;
+			if (ledger != null)
+			{
+				relay.Resync(ledger.CompletedAchievementIds);
 			}
 		}
 
