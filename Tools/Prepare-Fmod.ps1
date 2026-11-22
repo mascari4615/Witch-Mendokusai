@@ -37,7 +37,11 @@ if ((Get-FileHash -LiteralPath $Archive -Algorithm SHA256).Hash -ne $archiveHash
 $temp = Join-Path ([IO.Path]::GetTempPath()) ('wm-fmod-' + [Guid]::NewGuid().ToString('N'))
 New-Item -Path $temp -ItemType Directory | Out-Null
 try {
-    & tar.exe -xzf $Archive --strip-components 1 -C $temp
+    # Windows tar 를 직접 지정. git 훅처럼 PATH 앞에 Git 의 /usr/bin 이 오면 Git tar 가 잡히고, 그 tar 는 C:/ 경로를 원격 호스트로 읽어 실패
+    if (!$env:SystemRoot) { throw 'SystemRoot missing: Windows tar.exe cannot be located.' }
+    $tar = Join-Path $env:SystemRoot 'System32\tar.exe'
+    if (!(Test-Path -LiteralPath $tar -PathType Leaf)) { throw "Windows tar.exe missing: $tar" }
+    & $tar -xzf $Archive --strip-components 1 -C $temp
     if ($LASTEXITCODE -ne 0) { throw 'FMOD archive extraction failed.' }
     $identity = Get-Content -LiteralPath (Join-Path $temp 'package.json') -Raw | ConvertFrom-Json
     if ($identity.name -ne $packageName -or $identity.version -ne $version) {
