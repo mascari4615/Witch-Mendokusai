@@ -17,13 +17,20 @@ Shader "WitchMendokusai/BillboardShader"
         _HitShake("Hit Shake", Vector) = (0, 0, 0, 0)
         // 장면 빛 반응 배율. 0이면 빛 무시, 1이면 하늘 설정 (SpriteLightingSettings) 그대로
         _LightResponse("Light Response", Range(0, 1)) = 1
-        // 젤 출렁임. x 세기 (0 이면 없음), y 초당 왕복. 바닥 기준으로 위아래로 늘면 옆으로 줄어 부피 유지, 개체마다 위상이 다름
+        // 젤 출렁임. x 세기 (0 이면 없음), y 초당 왕복, z 와 w 는 월드 x 와 z 1 유닛당 위상 (개체마다 엇갈리게). 바닥 기준으로 위아래로 늘면 옆으로 줄어 부피 유지, 개체마다 위상이 다름
+        // 계산은 JellyWobbleMath (C#, 사망 잔상) 와 같아야 함
         _JellyWobble("Jelly Wobble", Vector) = (0, 0, 0, 0)
-        // 반투명 몸. 그림 알파가 1 보다 작은 화소 (몸) 에만 곱함. 눈과 가장자리처럼 불투명한 화소는 그대로
+        // 세로로 늘 때 가로로 줄어드는 비율 (0.5 면 늘어난 만큼의 절반)
+        _JellyVolume("Jelly Volume", Range(0, 1)) = 0.5
+        // 반투명 몸. 그림 알파가 기준보다 작은 화소 (몸) 에만 곱함. 눈과 가장자리처럼 불투명한 화소는 그대로
         _BodyAlpha("Body Alpha", Range(0, 1)) = 1
+        // 불투명으로 볼 그림 알파 기준. 압축과 축소로 255 가 조금 깎여도 불투명으로 보게 1 보다 낮게
+        _JellyOpaqueCut("Jelly Opaque Cut", Range(0, 1)) = 0.95
         // 젤 테두리 빛. 가장자리 안쪽 화소를 이 색으로 밝힘 (알파가 세기, 0 이면 없음), 두께 화소
         _JellyRim("Jelly Rim", Color) = (0, 0, 0, 0)
         _JellyRimWidth("Jelly Rim Width", Float) = 1.5
+        // 테두리 판정에서 빈 화소로 볼 알파 기준
+        _JellyRimCut("Jelly Rim Cut", Range(0, 1)) = 0.05
     }
 
     SubShader
@@ -108,9 +115,12 @@ Shader "WitchMendokusai/BillboardShader"
                 float4 _HitShake;
                 float _LightResponse;
                 float4 _JellyWobble;
+                float _JellyVolume;
                 float _BodyAlpha;
+                float _JellyOpaqueCut;
                 float4 _JellyRim;
                 float _JellyRimWidth;
+                float _JellyRimCut;
             CBUFFER_END
 
             // 하늘 설정이 넣는 전역값 (SpriteLighting.Apply). 안 넣은 장면은 0이라 빛 반응 없음
@@ -155,14 +165,14 @@ Shader "WitchMendokusai/BillboardShader"
 
                 float4 positionOS = v.positionOS;
 
-                // 젤 출렁임: 그림 바닥 (피벗) 기준으로 세로로 늘고 가로로 줄어듦. 위상은 개체 위치에서
+                // 젤 출렁임: 그림 바닥 (피벗) 기준으로 세로로 늘고 가로로 줄어듦. 위상은 개체 위치에 비례
+                // (해시 대신 선형: 사망 잔상이 C# 에서 같은 값을 다시 계산하므로 CPU 와 GPU 정밀도 차이에 둔감해야 함)
                 if (_JellyWobble.x > 0)
                 {
-                    float2 pivotXZ = float2(UNITY_MATRIX_M._m03, UNITY_MATRIX_M._m23);
-                    float wobblePhase = frac(sin(dot(pivotXZ, float2(12.9898, 78.233))) * 43758.5453) * 6.2831853;
+                    float wobblePhase = UNITY_MATRIX_M._m03 * _JellyWobble.z + UNITY_MATRIX_M._m23 * _JellyWobble.w;
                     float wobble = _JellyWobble.x * sin(_Time.y * _JellyWobble.y * 6.2831853 + wobblePhase);
                     positionOS.y *= 1 + wobble;
-                    positionOS.x *= 1 - wobble * 0.5;
+                    positionOS.x *= 1 - wobble * _JellyVolume;
                 }
 
                 // 월드 공간 크기 행렬 계산
@@ -261,8 +271,8 @@ Shader "WitchMendokusai/BillboardShader"
 
                 col *= _Color;
                 col *= i.color;
-                // 반투명 몸: 불투명 화소 (눈, 가장자리) 는 그대로. 기준 0.95 는 압축과 축소로 255 가 조금 깎여도 불투명으로 보게
-                col.a *= lerp(_BodyAlpha, 1, step(0.95, textureAlpha));
+                // 반투명 몸: 불투명 화소 (눈, 가장자리) 는 그대로
+                col.a *= lerp(_BodyAlpha, 1, step(_JellyOpaqueCut, textureAlpha));
 
                 clip(col.a - _Cutoff  * _Emission);
 
@@ -280,7 +290,7 @@ Shader "WitchMendokusai/BillboardShader"
                     float jellyNeighborAlpha = min(
                         min(SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV + float2(jellyStep.x, 0)).a, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV - float2(jellyStep.x, 0)).a),
                         min(SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV + float2(0, jellyStep.y)).a, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV - float2(0, jellyStep.y)).a));
-                    float jellyEdge = step(0.05, textureAlpha) * (1 - step(0.05, jellyNeighborAlpha));
+                    float jellyEdge = step(_JellyRimCut, textureAlpha) * (1 - step(_JellyRimCut, jellyNeighborAlpha));
                     col.rgb = lerp(col.rgb, _JellyRim.rgb, jellyEdge * _JellyRim.a);
                 }
 

@@ -37,6 +37,11 @@ namespace WitchMendokusai
 			Color color = source.color;
 			if (sourceMaterial.HasProperty(COLOR_ID))
 				color *= sourceMaterial.GetColor(COLOR_ID);
+			// 젤 출렁임 중이면 그 순간의 늘어난 모양을 크기에 담음. 잔상 재질엔 출렁임이 없어서 안 담으면 툭 돌아감
+			Vector2 wobbleScale = JellyWobbleMath.ScaleFactor(sourceMaterial, sourceTransform.position);
+			Vector3 scale = sourceTransform.lossyScale;
+			scale.x *= wobbleScale.x;
+			scale.y *= wobbleScale.y;
 
 			return new MonsterDeathGhostPose
 			{
@@ -46,7 +51,7 @@ namespace WitchMendokusai
 				Color = color,
 				Position = sourceTransform.position,
 				Rotation = sourceTransform.rotation,
-				Scale = sourceTransform.lossyScale,
+				Scale = scale,
 				BillboardMode = sourceMaterial.HasProperty(BILLBOARD_MODE_ID) ? sourceMaterial.GetFloat(BILLBOARD_MODE_ID) : 0f,
 				SortingLayerId = source.sortingLayerID,
 				SortingOrder = source.sortingOrder,
