@@ -77,7 +77,7 @@
 .wm-ach-medal--tier-row { width: 76px; height: 76px; margin-right: 20px; }
 .wm-ach-medal--recent { width: 58px; height: 58px; margin-right: 16px; }
 .wm-ach-medal--card { width: 168px; height: 168px; }
-.wm-ach-medal--detail { width: 400px; height: 400px; }
+.wm-ach-medal--detail { width: 360px; height: 360px; }
 .wm-ach-medal--step { width: 88px; height: 88px; margin-right: 20px; }
 .wm-ach-medal--toast { width: 52px; height: 52px; margin-right: 10px; }
 
@@ -369,6 +369,7 @@
 .wm-ach-category__label {
     flex-grow: 1;
     font-size: 32px;
+    -unity-text-align: middle-left;
 }
 
 .wm-ach-category__count {
@@ -547,11 +548,11 @@
     background-color: rgba(9, 7, 13, 0.78);
 }
 
-/* ui.md 가운데 모달: 위 15vh (162), 아래 10vh 이상, 좌우 15vh 이상 */
+/* ui.md 가운데 모달: 위 15vh (162), 아래 10vh 이상, 좌우 15vh (162) 이상. 16:10 화면은 무대 폭이 1728 까지 줄어 좌우를 최소로 */
 .wm-ach-detail__window {
     position: absolute;
-    left: 230px;
-    right: 230px;
+    left: 170px;
+    right: 170px;
     top: 164px;
     height: 806px;
     flex-direction: row;
@@ -562,19 +563,19 @@
 }
 
 .wm-ach-detail__left {
-    width: 470px;
+    width: 420px;
     flex-shrink: 0;
     align-items: center;
 }
 
+/* 큰 메달 뒤 보라 빛. 벽과 같은 그림, 색은 tint */
 .wm-ach-detail__glow {
     position: absolute;
-    left: -40px;
-    right: -40px;
-    top: -20px;
-    height: 520px;
-    background-color: rgba(150, 84, 230, 0.12);
-    border-radius: 260px;
+    left: -150px;
+    right: -150px;
+    top: -150px;
+    height: 700px;
+    -unity-background-image-tint-color: rgba(150, 84, 230, 0.34);
 }
 
 .wm-ach-detail__where {
@@ -663,12 +664,17 @@
     font-size: 30px;
 }
 
+/* 좁은 화면에서는 조건 글이 줄을 바꿈 (진행 칸을 덮지 않게) */
 .wm-ach-step__texts {
     flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-right: 20px;
 }
 
 .wm-ach-step__condition {
     font-size: 26px;
+    white-space: normal;
 }
 
 .wm-ach-step__when {
@@ -679,6 +685,7 @@
 
 .wm-ach-step__progress {
     width: 200px;
+    flex-shrink: 0;
     align-items: flex-end;
 }
 

@@ -45,6 +45,9 @@ namespace WitchMendokusai
 		private VisualElement focusOnDetailClose;
 		// 전체 메뉴와 같은 UIRoot 오브젝트에 붙어 있어 그 오브젝트를 정지 열쇠로 쓰면 서로의 정지를 풀어 버림. 자기 열쇠를 따로
 		private GameObject pauseKey;
+		// 벽과 상세 창 뒤 둥근 빛. 한 장을 같이 씀
+		private Texture2D glowTexture;
+		private VisualElement bottom;
 
 		private UIRoot uiRoot;
 		private AchievementManager achievementManager;
@@ -64,7 +67,7 @@ namespace WitchMendokusai
 		{
 			if (Settings == null)
 			{
-				throw new InvalidOperationException($"{nameof(AchievementView)}: UIRoot 프리팹의 AchievementSettings 가 비어 있음");
+				throw new InvalidOperationException($"{nameof(AchievementView)}: UIRoot 프리팹의 AchievementSettings 가 비어 있음. 프리팹에 값이 있는데 비면 새 필드보다 프리팹이 먼저 임포트된 것 (UIRoot.prefab Reimport)");
 			}
 
 			// 흐린 배경은 화면 끝까지 (container), 칸과 글은 안전 영역 (safeContent)
@@ -114,7 +117,7 @@ namespace WitchMendokusai
 			{
 				existingInputManager.UnregisterInputEvent(InputEventType.AchievementToggle, InputEventResponseType.Performed, Toggle);
 			}
-			wallScreen.Dispose();
+			Destroy(glowTexture);
 			DestroyToast();
 			container.RemoveFromHierarchy();
 		}
@@ -141,19 +144,20 @@ namespace WitchMendokusai
 
 			VisualElement body = AchievementElements.Part(stage, "wm-ach__body");
 			body.pickingMode = PickingMode.Position;
-			wallScreen = new AchievementWallScreen(Settings, focus, OpenDetail, OpenAlbum);
+			glowTexture = MenuStage.CreateGlowTexture(Settings.GlowTextureSize, "AchievementGlow");
+			wallScreen = new AchievementWallScreen(Settings, focus, glowTexture, OpenDetail, OpenAlbum);
 			body.Add(wallScreen);
 			albumScreen = new AchievementAlbumScreen(Settings, focus, OpenDetail);
 			body.Add(albumScreen);
 
 			// 키 안내. 손가락 조작에서는 KeyHint 규칙으로 숨음
-			VisualElement bottom = AchievementElements.Part(stage, "wm-ach__bottom");
+			bottom = AchievementElements.Part(stage, "wm-ach__bottom");
 			VisualElement hints = KeyHint.KeyOnly(AchievementElements.Part(bottom, "wm-ach-hints"));
 			AddHint(hints, "방향키", "고르기");
 			AddHint(hints, "Z", "자세히, 고르기");
 			AddHint(hints, "ESC", "뒤로");
 
-			detail = new AchievementDetail(Settings, focus, ToggleWall, Back);
+			detail = new AchievementDetail(Settings, focus, glowTexture, ToggleWall, Back);
 			detail.pickingMode = PickingMode.Position;
 			stage.Add(detail);
 		}
@@ -186,6 +190,7 @@ namespace WitchMendokusai
 			IsOpen = true;
 			ShowPage(Page.Wall);
 			detail.Hide();
+			bottom.EnableInClassList(USS_HIDDEN, false);
 			backdrop.SetBlurred(UIEffects.Enabled);
 			UiSfx.Play(UiSfxEvent.WindowOpen);
 			UIMotion.Show(container, USS_ACTIVE);
@@ -250,6 +255,8 @@ namespace WitchMendokusai
 			UiSfx.Play(UiSfxEvent.WindowOpen);
 			focusOnDetailClose = container.focusController?.focusedElement as VisualElement;
 			detail.Show(achievement, achievementManager);
+			// 상세 창은 자기 버튼 안내가 있음. 뒤 화면 안내는 숨겨 한 벌만
+			bottom.EnableInClassList(USS_HIDDEN, true);
 			FocusLater(null);
 		}
 
@@ -257,6 +264,7 @@ namespace WitchMendokusai
 		{
 			AchievementSO shown = detail.Current;
 			detail.Hide();
+			bottom.EnableInClassList(USS_HIDDEN, false);
 			UiSfx.Play(UiSfxEvent.WindowClose);
 			// 도감이 그사이 다시 그려졌으면 같은 업적의 새 카드로
 			VisualElement target = focusOnDetailClose;

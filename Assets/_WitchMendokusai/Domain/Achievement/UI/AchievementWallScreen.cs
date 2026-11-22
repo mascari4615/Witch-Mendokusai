@@ -27,13 +27,12 @@ namespace WitchMendokusai
 		private readonly Label placeSubLabel;
 		private readonly Label albumSubLabel;
 		private readonly VisualElement recentList;
-		private readonly Texture2D glowTexture;
 
 		private AchievementManager manager;
 
 		public Button AlbumButton { get; }
 
-		public AchievementWallScreen(AchievementScreenSettings settings, MenuFocus focus, Action<AchievementSO> openDetail, Action openAlbum)
+		public AchievementWallScreen(AchievementScreenSettings settings, MenuFocus focus, Texture2D glowTexture, Action<AchievementSO> openDetail, Action openAlbum)
 		{
 			this.settings = settings;
 			this.focus = focus;
@@ -64,9 +63,10 @@ namespace WitchMendokusai
 			VisualElement center = AchievementElements.Part(this, "wm-ach-wall-screen__center");
 			wallCaption = AchievementElements.Text(center, string.Empty, "wm-ach-wall__caption");
 			VisualElement glow = AchievementElements.Part(center, "wm-ach-wall__glow");
-			glowTexture = MenuStage.CreateGlowTexture(settings.GlowTextureSize, "AchievementWallGlow");
 			glow.style.backgroundImage = new StyleBackground(glowTexture);
 			wall = AchievementElements.Part(center, "wm-ach-wall");
+			// 16:10 처럼 무대 폭이 좁으면 벽이 양옆 칸을 덮음. 남는 폭에 맞춰 벽을 통째로 줄임 (메달 크기 비율 유지)
+			center.RegisterCallback<GeometryChangedEvent>(_ => FitWall(center));
 			VisualElement where = AchievementElements.Part(center, "wm-fullmenu-where wm-ach-wall__where");
 			for (int i = 1; i <= 3; i++)
 			{
@@ -160,6 +160,21 @@ namespace WitchMendokusai
 			ShowPlace(pins.Count > 0 ? SOHelper.Get<AchievementSO>(pins[0]) : null, book);
 		}
 
+		private void FitWall(VisualElement center)
+		{
+			float available = center.resolvedStyle.width;
+			float needed = wall.resolvedStyle.width + wall.resolvedStyle.marginRight;
+			if (float.IsNaN(available) || float.IsNaN(needed) || needed <= 0f)
+			{
+				return;
+			}
+			// 칸은 판 밖으로 한 칸 크기만큼 나감 (USS 오른쪽, 아래 여백). 줄이는 중심은 칸까지 포함한 가운데
+			float neededHeight = wall.resolvedStyle.height + wall.resolvedStyle.marginBottom;
+			wall.style.transformOrigin = new TransformOrigin(new Length(needed * 0.5f), new Length(neededHeight * 0.5f), 0f);
+			float scale = Mathf.Min(1f, available / needed);
+			wall.style.scale = new Scale(new Vector3(scale, scale, 1f));
+		}
+
 		private VisualElement MakePinnedSlot(AchievementSO achievement, AchievementBook book)
 		{
 			Button slot = new(() => openDetail(achievement));
@@ -233,7 +248,5 @@ namespace WitchMendokusai
 				AchievementElements.Text(recentList, "아직 없음", "wm-ach-recent__date");
 			}
 		}
-
-		public void Dispose() => UnityEngine.Object.Destroy(glowTexture);
 	}
 }

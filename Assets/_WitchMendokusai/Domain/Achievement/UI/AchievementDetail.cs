@@ -39,7 +39,7 @@ namespace WitchMendokusai
 		public Button CloseButton { get; }
 		public bool IsShown { get; private set; }
 
-		public AchievementDetail(AchievementScreenSettings settings, MenuFocus focus, Func<AchievementSO, AchievementWallChange> toggleWall, Action close)
+		public AchievementDetail(AchievementScreenSettings settings, MenuFocus focus, Texture2D glowTexture, Func<AchievementSO, AchievementWallChange> toggleWall, Action close)
 		{
 			this.settings = settings;
 			this.toggleWall = toggleWall;
@@ -54,7 +54,8 @@ namespace WitchMendokusai
 			Window.pickingMode = PickingMode.Position;
 
 			VisualElement left = AchievementElements.Part(Window, "wm-ach-detail__left");
-			AchievementElements.Part(left, "wm-ach-detail__glow");
+			VisualElement glow = AchievementElements.Part(left, "wm-ach-detail__glow");
+			glow.style.backgroundImage = new StyleBackground(glowTexture);
 			medal = new AchievementMedal("wm-ach-medal--detail");
 			left.Add(medal);
 			VisualElement where = AchievementElements.Part(left, "wm-fullmenu-where wm-ach-detail__where");
@@ -139,7 +140,7 @@ namespace WitchMendokusai
 			{
 				string nextName = AchievementTiers.NameOf(tier + 1, achievement.MaxTier);
 				string left = $"{achievement.TierTargets[tier] - value}";
-				tierLabel.text = tier == 0 ? $"아직, {(string.IsNullOrEmpty(nextName) ? "달성" : nextName)}까지 {left}" : $"{tierName} 단계, {nextName}까지 {left}";
+				tierLabel.text = tier == 0 ? $"아직, {(string.IsNullOrEmpty(nextName) ? "달성" : nextName)}까지 {left} 남음" : $"{tierName} 단계, {nextName}까지 {left} 남음";
 			}
 
 			steps.Clear();

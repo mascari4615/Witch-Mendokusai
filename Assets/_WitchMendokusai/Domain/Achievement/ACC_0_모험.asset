@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 0
   <Name>k__BackingField: "\uBAA8\uD5D8"
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: -3999867785417676141, guid: f81549e3aee923d4a93067abd9fb8740, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: f81549e3aee923d4a93067abd9fb8740, type: 3}
   <Sprites>k__BackingField: []
   <Order>k__BackingField: 0
   <EmptySlot>k__BackingField: {fileID: 21300000, guid: 41e19493b3d04a23af8504acfcabcfaf, type: 3}
