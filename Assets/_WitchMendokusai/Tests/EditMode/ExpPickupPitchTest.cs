@@ -64,6 +64,10 @@ namespace WitchMendokusai.Tests
 		public void LevelVolumeStepsDownToFloor(int level, float expectedDb)
 			=> Assert.AreEqual(Mathf.Pow(10f, expectedDb / 20f), ExpPickupPitch.LevelVolume(level, -0.3f, -6f), 0.0001f);
 
+		[Test]
+		public void LevelVolumeNeverBoostsAboveUnity()
+			=> Assert.AreEqual(1f, ExpPickupPitch.LevelVolume(10, 0.5f, -6f), 0.0001f);
+
 		[TestCase(0, 10, 0f)]
 		[TestCase(5, 10, 0.5f)]
 		[TestCase(15, 10, 1f)]

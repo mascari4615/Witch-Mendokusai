@@ -23,7 +23,8 @@ namespace WitchMendokusai
 		// dbPerLevel 은 레벨당 더하는 dB (음수), minDb 는 그 아래로 내려가지 않는 하한
 		public static float LevelVolume(int level, float dbPerLevel, float minDb)
 		{
-			float decibels = Mathf.Max(minDb, Mathf.Max(0, level) * dbPerLevel);
+			// 0 dB 위로는 올리지 않음 (인스펙터에 양수를 넣어도 커지지 않게)
+			float decibels = Mathf.Min(0f, Mathf.Max(minDb, Mathf.Max(0, level) * dbPerLevel));
 			return Mathf.Pow(10f, decibels / 20f);
 		}
 
