@@ -53,13 +53,13 @@ Shader "WM/Remains/InteractiveGrass"
 				down += push;
 			}
 			float2 uv = (positionWS.xz - _WMGrassFlattenRect.xy) / max(_WMGrassFlattenRect.zw, 0.01);
-			float flatten = 0;
+			float flattenAmount = 0;
 			if (all(uv > 0.0) && all(uv < 1.0))
-				flatten = saturate(SAMPLE_TEXTURE2D_LOD(_WMGrassFlatten, sampler_WMGrassFlatten, uv, 0).a);
+				flattenAmount = saturate(SAMPLE_TEXTURE2D_LOD(_WMGrassFlatten, sampler_WMGrassFlatten, uv, 0).a);
 			float3 offset;
 			offset.xz = sideways * _WMGrassParams.x * lean;
 			// 옆으로 누운 만큼 키도 낮아짐 (길이 보존 흉내)
-			offset.y = -saturate(down) * _WMGrassParams.x * lean * 0.6 - heightAbove * flatten * _WMGrassParams.z;
+			offset.y = -saturate(down) * _WMGrassParams.x * lean * 0.6 - heightAbove * flattenAmount * _WMGrassParams.z;
 			return positionWS + offset;
 		}
 		ENDHLSL
@@ -127,16 +127,19 @@ Shader "WM/Remains/InteractiveGrass"
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#pragma multi_compile_instancing
+			#pragma shader_feature_local _ALPHATEST_ON
 
 			struct Attributes
 			{
 				float4 positionOS : POSITION;
+				float2 uv : TEXCOORD0;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct Varyings
 			{
 				float4 positionCS : SV_POSITION;
+				float2 uv : TEXCOORD0;
 			};
 
 			Varyings Vert(Attributes input)
@@ -144,11 +147,15 @@ Shader "WM/Remains/InteractiveGrass"
 				Varyings output;
 				UNITY_SETUP_INSTANCE_ID(input);
 				output.positionCS = TransformWorldToHClip(Bend(TransformObjectToWorld(input.positionOS.xyz)));
+				output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
 				return output;
 			}
 
 			half Frag(Varyings input) : SV_Target
 			{
+				#ifdef _ALPHATEST_ON
+				clip(SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).a * _BaseColor.a - _Cutoff);
+				#endif
 				return 0;
 			}
 			ENDHLSL

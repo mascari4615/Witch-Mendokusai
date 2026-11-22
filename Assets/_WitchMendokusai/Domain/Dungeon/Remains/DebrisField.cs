@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 namespace WitchMendokusai
 {
@@ -19,7 +20,8 @@ namespace WitchMendokusai
 		private readonly List<DebrisPiece> resting = new();
 		private readonly Stack<DebrisPiece> idle = new();
 		private readonly Transform parent;
-		private readonly MaterialPropertyBlock propertyBlock = new();
+		// 색마다 재질 하나. 속성 블록 대신이라 같은 색끼리 SRP Batcher 로 묶임
+		private readonly Dictionary<(Material, Color), Material> tintedMaterials = new();
 		private int flyingCount;
 
 		public event Action<Vector3, float, Color> OnStain = delegate { };
@@ -41,16 +43,9 @@ namespace WitchMendokusai
 			piece.Velocity = spawn.Velocity;
 			piece.StateTime = 0f;
 			piece.Filter.sharedMesh = spawn.Mesh;
-			piece.Renderer.sharedMaterial = spawn.Material;
-			if (spawn.HasTint)
-			{
-				propertyBlock.SetColor(BASE_COLOR_ID, spawn.Tint);
-				piece.Renderer.SetPropertyBlock(propertyBlock);
-			}
-			else
-			{
-				piece.Renderer.SetPropertyBlock(null);
-			}
+			piece.Renderer.sharedMaterial = spawn.HasTint ? Tinted(spawn.Material, spawn.Tint) : spawn.Material;
+			piece.LingerAge = 0f;
+			piece.HasRested = false;
 			piece.Transform.SetPositionAndRotation(spawn.Position, spawn.Rotation);
 			piece.Transform.localScale = Vector3.one * spawn.Size;
 			piece.Transform.gameObject.SetActive(true);
@@ -73,6 +68,18 @@ namespace WitchMendokusai
 				return oldest;
 			}
 			return null;
+		}
+
+		private Material Tinted(Material source, Color tint)
+		{
+			// 몸에서 뽑은 색은 미세하게 달라서 칸으로 묶음 (재질 수 상한)
+			tint = (Color)(Color32)tint;
+			if (tintedMaterials.TryGetValue((source, tint), out Material tinted))
+				return tinted;
+			tinted = new Material(source) { name = $"{source.name}_Tint", hideFlags = HideFlags.HideAndDontSave };
+			tinted.SetColor(BASE_COLOR_ID, tint);
+			tintedMaterials.Add((source, tint), tinted);
+			return tinted;
 		}
 
 		private DebrisPiece Create()
@@ -113,19 +120,33 @@ namespace WitchMendokusai
 						break;
 					case DebrisState.Resting:
 						piece.StateTime += deltaTime;
-						if (pushing && TryPush(piece, pusherPosition, settings.PlayerPushRadius, pusherVelocity, settings.PlayerPushSpeed, settings.PlayerPushLift))
-							break;
-						if (piece.StateTime >= lingerSeconds)
+						piece.LingerAge += deltaTime;
+						if (piece.LingerAge >= lingerSeconds)
+						{
 							BeginVanish(piece);
+							break;
+						}
+						if (pushing)
+							TryPush(piece, pusherPosition, settings.PlayerPushRadius, pusherVelocity, settings.PlayerPushSpeed, settings.PlayerPushLift);
 						break;
 					case DebrisState.Vanishing:
 						TickVanishing(settings, piece, deltaTime);
 						break;
 				}
 			}
-			// 상한 넘친 누운 조각은 오래된 것부터 사라짐
-			while (resting.Count > settings.MaxResting)
-				BeginVanish(resting[0]);
+			// 상한 넘친 누운 조각은 오래된 것부터 사라짐. 한 번에 앞에서 잘라 번호를 한 번만 다시 매김
+			int overflow = resting.Count - settings.MaxResting;
+			if (overflow > 0)
+			{
+				for (int i = 0; i < overflow; i++)
+				{
+					resting[i].RestingIndex = -1;
+					SetState(resting[i], DebrisState.Vanishing);
+				}
+				resting.RemoveRange(0, overflow);
+				for (int i = 0; i < resting.Count; i++)
+					resting[i].RestingIndex = i;
+			}
 		}
 
 		private void TickFlying(RemainsSettings settings, DebrisPiece piece, float deltaTime)
@@ -177,8 +198,10 @@ namespace WitchMendokusai
 			SetState(piece, DebrisState.Resting);
 			piece.RestingIndex = resting.Count;
 			resting.Add(piece);
-			if (spawn.StainRadius > 0f)
+			// 자국은 처음 누울 때만 (밀려서 다시 누우면 안 겹침)
+			if (spawn.StainRadius > 0f && piece.HasRested == false)
 				OnStain(target, spawn.StainRadius * spawn.Size, spawn.StainColor);
+			piece.HasRested = true;
 		}
 
 		private bool TryPush(DebrisPiece piece, Vector3 center, float radius, Vector3 pusherVelocity, float speed, float lift)
@@ -252,6 +275,13 @@ namespace WitchMendokusai
 			SetState(piece, DebrisState.Idle);
 			piece.Transform.gameObject.SetActive(false);
 			idle.Push(piece);
+		}
+
+		public void Dispose()
+		{
+			foreach (Material material in tintedMaterials.Values)
+				Object.Destroy(material);
+			tintedMaterials.Clear();
 		}
 
 		public void Clear()

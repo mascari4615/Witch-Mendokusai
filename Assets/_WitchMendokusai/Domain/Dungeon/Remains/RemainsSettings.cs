@@ -41,6 +41,7 @@ namespace WitchMendokusai
 
 		[Header("액체 (바닥 웅덩이)")]
 		[Min(.1f), Tooltip("액체 칸 한 변, 미터")] public float GoopCellSize = .5f;
+		[Range(0f, 1f), Tooltip("쏟은 웅덩이 가장자리 양 (가운데 대비)")] public float GoopEdgeAmount = .5f;
 		[Min(16), Tooltip("동시에 있을 수 있는 액체 칸 최대 수")] public int MaxGoopCells = 4096;
 		[Min(.05f), Tooltip("밟은 유닛에게 피해와 상태를 주는 간격 초")] public float GoopEffectInterval = .25f;
 		[Min(.02f), Tooltip("웅덩이 그림을 다시 쓰는 간격 초")] public float GoopRedrawInterval = .08f;
@@ -67,10 +68,14 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("몬스터 주변 풀이 눕는 반경")] public float GrassMonsterBendRadius = .7f;
 		[Min(0f), Tooltip("풀을 눕히는 몬스터를 찾는 주인공 주변 거리")] public float GrassBenderRange = 12f;
 		[Range(1, GrassInteraction.MAX_BENDERS), Tooltip("풀을 눕히는 것 최대 수 (주인공 포함)")] public int GrassMaxBenders = GrassInteraction.MAX_BENDERS;
+		[Tooltip("풀 눌림 캔버스 해상도 (한 변 화소). 자국 캔버스와 같은 넓이를 덮음")] public int GrassFlattenResolution = 256;
 		[Min(1f), Tooltip("눌린 풀이 다시 서는 시간 초")] public float GrassRegrowSeconds = 20f;
 		[Min(0f), Tooltip("처치 자리 풀 눌림 반지름")] public float GrassKillFlattenRadius = .9f;
 		[Min(0f), Tooltip("폭발 반경 대비 풀 눌림 반지름 비율")] public float GrassBlastFlattenScale = .8f;
 		[Tooltip("풀 재질. 이 셰이더로 바꿔 둠 (WM/Remains/InteractiveGrass)")] public Shader InteractiveGrassShader;
+
+		[Header("발밑 먼지")]
+		[Min(0f), Tooltip("걸을 때 발밑 먼지 간격 초. 자산 생성기가 주인공 먼지 부품에 써 넣음 (0 이면 걸을 때 없음)")] public float WalkDustInterval = .3f;
 
 		[Header("셰이더 (빌드에 포함되게 참조로)")]
 		public Shader StainUtilityShader;

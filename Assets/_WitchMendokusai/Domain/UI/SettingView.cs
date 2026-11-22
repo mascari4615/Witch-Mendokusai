@@ -331,9 +331,9 @@ namespace WitchMendokusai
 			Label valueLabel = new Label(FormatLinger(remains, CombatEffectSettings.RemainsLingerChoice));
 			valueLabel.AddToClassList("wm-setting-value");
 			row.Add(valueLabel);
-			slider.RegisterValueChangedCallback(evt =>
+			slider.RegisterValueChangedCallback(changeEvent =>
 			{
-				int choice = Mathf.Clamp(Mathf.RoundToInt(evt.newValue), 0, lastChoice);
+				int choice = Mathf.Clamp(Mathf.RoundToInt(changeEvent.newValue), 0, lastChoice);
 				slider.SetValueWithoutNotify(choice);
 				if (choice == CombatEffectSettings.RemainsLingerChoice)
 					return;

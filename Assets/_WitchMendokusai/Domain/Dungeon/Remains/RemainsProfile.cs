@@ -5,10 +5,10 @@ namespace WitchMendokusai
 	// 조각 모양. 코드로 만든 작은 메시 (RemainsMeshes)
 	public enum RemainsPieceShape
 	{
-		Chip,
-		Blob,
-		Shard,
-		Tuft,
+		Chip = 0,
+		Blob = 1,
+		Shard = 2,
+		Tuft = 3,
 	}
 
 	// 몬스터 한 종이 쓰러진 뒤 남기는 것. 슬라임은 점액 덩이와 젖은 얼룩, 멧돼지는 털 뭉치와 뼈 조각, 위스프는 빛 가루 얼룩만
@@ -23,6 +23,7 @@ namespace WitchMendokusai
 		[Tooltip("URP Lit 재질. 비우면 공용 (RemainsSettings.PieceMaterial)")] public Material Material;
 		[Tooltip("옆으로 튀는 속도 범위")] public Vector2 Speed = new(1.5f, 3.5f);
 		[Min(0f), Tooltip("위로 튀는 속도")] public float Lift = 3.5f;
+		[Range(0f, 1f), Tooltip("조각마다 위로 튀는 속도를 줄이는 폭 (0.4 면 60~100%)")] public float LiftVariance = .4f;
 		[Min(0f)] public float Gravity = 18f;
 		[Range(0f, 1f), Tooltip("바닥에서 되튀는 비율")] public float Bounce = .25f;
 		[Min(0f), Tooltip("회전 속도, 초당 도")] public float Spin = 420f;

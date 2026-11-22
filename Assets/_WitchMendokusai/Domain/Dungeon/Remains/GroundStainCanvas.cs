@@ -45,8 +45,15 @@ namespace WitchMendokusai
 		public Texture Texture => canvas;
 		public Vector4 WorldRect { get; private set; }
 
-		public GroundStainCanvas(Transform parent, Shader utilityShader, Shader displayShader)
+		private readonly int resolutionOverride;
+		private readonly RenderTextureFormat format;
+		private Mesh planeMesh;
+
+		// resolution 이 0 이면 설정의 CanvasResolution. 판 없는 캔버스 (풀 눌림) 는 낮은 해상도와 한 채널로
+		public GroundStainCanvas(Transform parent, Shader utilityShader, Shader displayShader, int resolution = 0, RenderTextureFormat format = RenderTextureFormat.ARGB32)
 		{
+			resolutionOverride = resolution;
+			this.format = format;
 			utility = new Material(utilityShader) { hideFlags = HideFlags.HideAndDontSave };
 			if (displayShader == null)
 				return;
@@ -54,7 +61,8 @@ namespace WitchMendokusai
 			GameObject planeObject = new("GroundStain");
 			planeObject.transform.SetParent(parent, false);
 			MeshFilter filter = planeObject.AddComponent<MeshFilter>();
-			filter.sharedMesh = BuildPlane();
+			planeMesh = BuildPlane();
+			filter.sharedMesh = planeMesh;
 			MeshRenderer renderer = planeObject.AddComponent<MeshRenderer>();
 			renderer.sharedMaterial = display;
 			renderer.shadowCastingMode = ShadowCastingMode.Off;
@@ -74,20 +82,23 @@ namespace WitchMendokusai
 			return mesh;
 		}
 
+		private int Resolution(RemainsSettings settings) => resolutionOverride > 0 ? resolutionOverride : settings.CanvasResolution;
+
 		private void EnsureTextures(RemainsSettings settings)
 		{
-			if (canvas != null && canvas.width == settings.CanvasResolution)
+			int resolution = Resolution(settings);
+			if (canvas != null && canvas.width == resolution)
 				return;
 			Release();
-			canvas = NewTexture(settings.CanvasResolution);
-			scratch = NewTexture(settings.CanvasResolution);
+			canvas = NewTexture(resolution, format);
+			scratch = NewTexture(resolution, format);
 			ClearTexture(canvas);
 			centerValid = false;
 		}
 
-		private static RenderTexture NewTexture(int resolution)
+		private static RenderTexture NewTexture(int resolution, RenderTextureFormat format)
 		{
-			RenderTexture texture = new(resolution, resolution, 0, RenderTextureFormat.ARGB32)
+			RenderTexture texture = new(resolution, resolution, 0, format)
 			{
 				name = "GroundStainCanvas",
 				wrapMode = TextureWrapMode.Clamp,
@@ -114,7 +125,7 @@ namespace WitchMendokusai
 		public void Tick(RemainsSettings settings, float lingerSeconds, Vector3 focus, float groundHeight, float deltaTime)
 		{
 			EnsureTextures(settings);
-			texelSize = settings.CanvasSize / settings.CanvasResolution;
+			texelSize = settings.CanvasSize / Resolution(settings);
 			Recenter(settings, focus, groundHeight);
 			Fade(lingerSeconds, deltaTime);
 			DrawStamps(settings);
@@ -132,7 +143,7 @@ namespace WitchMendokusai
 			if (centerValid && nextTexel != centerTexel)
 			{
 				// 중심이 오른쪽으로 가면 내용은 왼쪽으로 밀림
-				Vector2 shift = (nextTexel - centerTexel) / settings.CanvasResolution;
+				Vector2 shift = (nextTexel - centerTexel) / Resolution(settings);
 				utility.SetVector(SCROLL_ID, new Vector4(shift.x, shift.y, 0f, 0f));
 				Graphics.Blit(canvas, scratch, utility, PASS_SCROLL);
 				(canvas, scratch) = (scratch, canvas);
@@ -218,9 +229,9 @@ namespace WitchMendokusai
 		private void Release()
 		{
 			if (canvas != null)
-				canvas.Release();
+				Object.Destroy(canvas);
 			if (scratch != null)
-				scratch.Release();
+				Object.Destroy(scratch);
 			canvas = null;
 			scratch = null;
 		}
@@ -231,6 +242,8 @@ namespace WitchMendokusai
 			Object.Destroy(utility);
 			if (display != null)
 				Object.Destroy(display);
+			if (planeMesh != null)
+				Object.Destroy(planeMesh);
 			if (plane != null)
 				Object.Destroy(plane.gameObject);
 		}

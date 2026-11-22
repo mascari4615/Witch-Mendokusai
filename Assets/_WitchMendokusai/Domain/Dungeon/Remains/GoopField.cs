@@ -31,7 +31,12 @@ namespace WitchMendokusai
 		private readonly List<Vector2Int> igniteNext = new();
 		private readonly Stack<Vector2Int> floodStack = new();
 		private readonly HashSet<Vector2Int> floodSeen = new();
+		private readonly Dictionary<UnitObject, float> damageCarry = new();
 		private float effectTimer;
+		private PlayerObject player;
+
+		// 다 탄 칸의 그을음. RemainsWorld 가 자국 캔버스로 이음
+		public event System.Action<Vector3, float, Color> OnScorch = delegate { };
 
 		public int CellCount => cells.Count;
 
@@ -61,7 +66,7 @@ namespace WitchMendokusai
 						continue;
 					// 가장자리는 옅게
 					float edge = 1f - Mathf.Sqrt(distanceSquared) / Mathf.Max(radius, .0001f);
-					float filled = amount * Mathf.Lerp(.5f, 1f, edge);
+					float filled = amount * Mathf.Lerp(settings.GoopEdgeAmount, 1f, edge);
 					if (cells.TryGetValue(key, out Cell cell))
 					{
 						if (cell.BurnLeft > 0f)
@@ -76,7 +81,10 @@ namespace WitchMendokusai
 						continue;
 					}
 					if (cells.Count >= settings.MaxGoopCells)
+					{
+						MarkDirty();
 						return;
+					}
 					cells.Add(key, new Cell { Kind = kind, Amount = filled, ShockLeft = -settings.ShockCooldownSeconds });
 				}
 			}
@@ -102,7 +110,7 @@ namespace WitchMendokusai
 			MarkDirty();
 		}
 
-		// 닿은 칸에서 이어진 전기 통하는 칸 전체
+		// 닿은 칸에서 이어진 전기 통하는 칸 전체. 피해는 퍼지는 순간 한 번 (그 웅덩이 위 유닛마다), 빛은 ShockSeconds 동안
 		public void Shock(Vector3 center, float radius)
 		{
 			Vector2Int middle = CellOf(center);
@@ -118,7 +126,22 @@ namespace WitchMendokusai
 					Flood(start);
 				}
 			}
+			if (floodSeen.Count > 0)
+				HurtShocked();
 			MarkDirty();
+		}
+
+		private void HurtShocked()
+		{
+			List<GameObject> monsters = ObjectBufferManager.GetObjects(ObjectType.Monster);
+			for (int i = 0; i < monsters.Count; i++)
+			{
+				GameObject monsterObject = monsters[i];
+				if (monsterObject.activeInHierarchy && floodSeen.Contains(CellOf(monsterObject.transform.position)) && monsterObject.TryGetComponent(out MonsterObject monster))
+					HurtMonster(monster, settings.ShockMonsterDamage, UnitStatusType.Shock);
+			}
+			if (player != null && floodSeen.Contains(CellOf(player.transform.position)))
+				HurtPlayer(player, settings.ShockPlayerDamage);
 		}
 
 		private void Flood(Vector2Int start)
@@ -143,8 +166,9 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void Tick(float deltaTime, Vector3 focus, float groundHeight, PlayerObject player)
+		public void Tick(float deltaTime, Vector3 focus, float groundHeight, PlayerObject currentPlayer)
 		{
+			player = currentPlayer;
 			removed.Clear();
 			igniteNext.Clear();
 			foreach (KeyValuePair<Vector2Int, Cell> pair in cells)
@@ -171,7 +195,7 @@ namespace WitchMendokusai
 			effectTimer += deltaTime;
 			if (effectTimer >= settings.GoopEffectInterval)
 			{
-				ApplyEffects(effectTimer, player);
+				ApplyEffects(effectTimer);
 				effectTimer = 0f;
 			}
 			TickRender(deltaTime, focus, groundHeight);
@@ -190,11 +214,11 @@ namespace WitchMendokusai
 			if (cell.BurnLeft > 0f)
 				return;
 			removed.Add(key);
-			RemainsWorld.Current?.Stain(CenterOf(key, groundHeight), settings.ScorchRadius, settings.ScorchColor);
+			OnScorch(CenterOf(key, groundHeight), settings.ScorchRadius, settings.ScorchColor);
 		}
 
 		// 칸 위 유닛 하나에 이번 간격 몫. 몬스터 수가 많아도 칸 찾기는 사전 한 번
-		private void ApplyEffects(float interval, PlayerObject player)
+		private void ApplyEffects(float interval)
 		{
 			if (cells.Count == 0)
 				return;
@@ -206,47 +230,52 @@ namespace WitchMendokusai
 					continue;
 				if (monsterObject.TryGetComponent(out MonsterObject monster) == false)
 					continue;
-				SpreadFromStatus(monster, monsterObject.transform.position, cell);
-				ApplyCell(monster, cell, interval, cell.Kind.MonsterDamagePerSecond, settings.FireMonsterDamagePerSecond, settings.ShockMonsterDamage);
+				SpreadFromStatus(monster, cell);
+				if (cell.BurnLeft > 0f)
+					HurtMonster(monster, Accrue(monster, settings.FireMonsterDamagePerSecond * interval), UnitStatusType.Burn);
+				else if (cell.Kind.MonsterDamagePerSecond > 0)
+					HurtMonster(monster, Accrue(monster, cell.Kind.MonsterDamagePerSecond * interval), UnitStatusType.Poison);
+				Slow(monster, cell);
 			}
 			if (player != null && cells.TryGetValue(CellOf(player.transform.position), out Cell playerCell))
-				ApplyCell(player, playerCell, interval, playerCell.Kind.PlayerDamagePerSecond, settings.FirePlayerDamagePerSecond, settings.ShockPlayerDamage);
+			{
+				if (playerCell.BurnLeft > 0f)
+					HurtPlayer(player, Accrue(player, settings.FirePlayerDamagePerSecond * interval));
+				else if (playerCell.Kind.PlayerDamagePerSecond > 0)
+					HurtPlayer(player, Accrue(player, playerCell.Kind.PlayerDamagePerSecond * interval));
+				Slow(player, playerCell);
+			}
 		}
 
-		// 불붙은 몬스터가 기름에 들어오면 불, 감전된 몬스터가 물에 들어오면 감전
-		private void SpreadFromStatus(MonsterObject monster, Vector3 position, Cell cell)
+		// 불붙은 몬스터가 기름에 들어오면 불. 감전은 상태로 번지지 않음 (감전된 몬스터 하나가 웅덩이를 계속 감전시키는 고리 방지)
+		private void SpreadFromStatus(MonsterObject monster, Cell cell)
 		{
 			if (cell.Kind.Flammable && cell.BurnLeft <= 0f && UnitStatus.Has(monster, UnitStatusType.Burn))
 				StartBurning(cell);
-			if (cell.Kind.Conductive && cell.ShockLeft <= -settings.ShockCooldownSeconds && UnitStatus.Has(monster, UnitStatusType.Shock))
-				Shock(position, 0f);
 		}
 
-		private void ApplyCell(UnitObject unit, Cell cell, float interval, int kindDamagePerSecond, int fireDamagePerSecond, int shockDamage)
+		private void Slow(UnitObject unit, Cell cell)
 		{
-			if (cell.BurnLeft > 0f)
-			{
-				Hurt(unit, Mathf.CeilToInt(fireDamagePerSecond * interval), UnitStatusType.Burn);
-				return;
-			}
-			if (cell.ShockLeft > 0f)
-			{
-				Hurt(unit, shockDamage, UnitStatusType.Shock);
-				// 한 번 맞으면 그 칸의 감전은 끝 (같은 감전에 여러 번 맞지 않게), 쉬는 시간 시작
-				cell.ShockLeft = 0f;
-				MarkDirty();
-			}
-			if (kindDamagePerSecond > 0)
-				Hurt(unit, Mathf.CeilToInt(kindDamagePerSecond * interval), UnitStatusType.Poison);
-			if (cell.Kind.MoveSpeedMultiplier < 1f)
+			if (cell.BurnLeft <= 0f && cell.Kind.MoveSpeedMultiplier < 1f)
 				UnitStatus.ApplySlow(unit, this, settings.GoopSlowLingerSeconds, 1f - cell.Kind.MoveSpeedMultiplier);
 		}
 
-		private void Hurt(UnitObject unit, int damage, UnitStatusType statusType)
+		// 초당 피해를 간격으로 나눈 소수 몫을 유닛마다 모아 정수가 될 때만 줌 (작은 값이 부풀지 않게)
+		private int Accrue(UnitObject unit, float amount)
+		{
+			damageCarry.TryGetValue(unit, out float carried);
+			carried += amount;
+			int whole = Mathf.FloorToInt(carried);
+			damageCarry[unit] = carried - whole;
+			return whole;
+		}
+
+		// 몬스터는 상태이상 틱 (무적 무시, 상태 숫자)
+		private void HurtMonster(MonsterObject monster, int damage, UnitStatusType statusType)
 		{
 			if (damage <= 0)
 				return;
-			unit.ReceiveDamage(new DamageInfo
+			monster.ReceiveDamage(new DamageInfo
 			{
 				type = DamageType.StatusTick,
 				statusType = statusType,
@@ -257,9 +286,25 @@ namespace WitchMendokusai
 			});
 		}
 
+		// 주인공은 보통 피해 (피격 무적과 클리어 무적이 막음)
+		private void HurtPlayer(PlayerObject target, int damage)
+		{
+			if (damage <= 0)
+				return;
+			target.ReceiveDamage(new DamageInfo
+			{
+				type = DamageType.Normal,
+				damage = damage,
+				damageSource = this,
+				equipmentDataId = DamageInfo.NO_DATA_ID,
+				skillDataId = DamageInfo.NO_DATA_ID,
+			});
+		}
+
 		public void Clear()
 		{
 			cells.Clear();
+			damageCarry.Clear();
 			effectTimer = 0f;
 			MarkDirty();
 		}

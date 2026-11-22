@@ -29,10 +29,25 @@ namespace WitchMendokusai
 		}
 
 		// 싸움 흔적 (잔해, 자국, 액체) 유지 선택지 번호. 값 목록은 RemainsSettings.LingerChoices
+		// 처치마다 읽혀서 PlayerPrefs 대신 캐시. 바꿀 때 같이 갱신
+		private static int cachedLingerChoice = -1;
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetCache() => cachedLingerChoice = -1;
+
 		public static int RemainsLingerChoice
 		{
-			get => PlayerPrefs.GetInt(REMAINS_LINGER_KEY, RemainsSettings.Load().DefaultLingerChoice);
-			set => PlayerPrefs.SetInt(REMAINS_LINGER_KEY, value);
+			get
+			{
+				if (cachedLingerChoice < 0)
+					cachedLingerChoice = PlayerPrefs.GetInt(REMAINS_LINGER_KEY, RemainsSettings.Load().DefaultLingerChoice);
+				return cachedLingerChoice;
+			}
+			set
+			{
+				cachedLingerChoice = value;
+				PlayerPrefs.SetInt(REMAINS_LINGER_KEY, value);
+			}
 		}
 
 		public static float RemainsLingerSeconds => RemainsSettings.Load().LingerSecondsAt(RemainsLingerChoice);

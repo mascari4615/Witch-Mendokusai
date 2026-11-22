@@ -6,7 +6,8 @@ namespace WitchMendokusai
 	/// 한 판 동안 바닥에 남는 것 묶음: 잔해 (DebrisField), 자국 (GroundStainCanvas), 액체 (GoopField)
 	/// - 생존 던전 바닥 (GroundGenerator) 이 만들고 매 프레임 돌림. 판 시작과 끝에 비움
 	/// - 다른 기능 (상자, 몬스터 사망, 폭발) 은 Current 로 접근. 던전 밖이면 null 이고 남길 것이 없음
-	/// - 유지 시간은 설정 창 값 (CombatEffectSettings.RemainsLingerSeconds). 끔이면 새로 남기지 않음
+	/// - 유지 시간은 설정 창 값 (CombatEffectSettings.RemainsLingerSeconds). 끔이면 조각과 자국을 새로 남기지 않음
+	/// - 액체는 놀이 (불, 감전, 느려짐) 라서 흔적 설정과 무관하게 돎
 	/// </summary>
 	public sealed class RemainsWorld
 	{
@@ -38,7 +39,8 @@ namespace WitchMendokusai
 			Stains = new GroundStainCanvas(root, Settings.StainUtilityShader, Settings.GroundStainShader);
 			Goop = new GoopField(root, Settings);
 			Grass = new GrassInteraction(root, Settings);
-			Debris.OnStain += Stains.Add;
+			Debris.OnStain += Stain;
+			Goop.OnScorch += Stain;
 			Current = this;
 		}
 
@@ -63,6 +65,7 @@ namespace WitchMendokusai
 			Stains.SetVisible(Enabled);
 			if (Enabled)
 				Stains.Tick(Settings, linger, focus, GroundHeight, deltaTime);
+			Goop.SetVisible(true);
 			Goop.Tick(deltaTime, focus, GroundHeight, player);
 			Grass.Tick(Settings, player, GroundHeight, deltaTime);
 		}
@@ -73,6 +76,9 @@ namespace WitchMendokusai
 			float linger = Enabled ? LingerSeconds : 0f;
 			Debris.Tick(Settings, linger, deltaTime, Vector3.zero, Vector3.zero, false);
 			Grass.Suspend();
+			// 판 밖에는 자국과 웅덩이를 안 보임 (멈춘 불이 남지 않게)
+			Stains.SetVisible(false);
+			Goop.SetVisible(false);
 		}
 
 		public void Stain(Vector3 position, float radius, Color color)
@@ -103,6 +109,7 @@ namespace WitchMendokusai
 			if (Current == this)
 				Current = null;
 			Stains.Dispose();
+			Debris.Dispose();
 			Goop.Dispose();
 			Grass.Dispose();
 			if (root != null)

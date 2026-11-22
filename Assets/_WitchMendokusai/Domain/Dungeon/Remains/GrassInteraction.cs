@@ -23,7 +23,8 @@ namespace WitchMendokusai
 
 		public GrassInteraction(Transform parent, RemainsSettings settings)
 		{
-			flatten = new GroundStainCanvas(parent, settings.StainUtilityShader, null);
+			// 눌림은 알파 하나만 읽음. 낮은 해상도로 충분
+			flatten = new GroundStainCanvas(parent, settings.StainUtilityShader, null, settings.GrassFlattenResolution);
 		}
 
 		public void Flatten(Vector3 position, float radius) => flatten.Add(position, radius, Color.white);

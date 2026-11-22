@@ -21,13 +21,16 @@ namespace WitchMendokusai
 		private Color32[] heatPixels;
 		private bool dirty = true;
 		private float redrawTimer;
+		private bool hidden;
+		private Mesh planeMesh;
 
 		private void CreateRenderer(Transform parent)
 		{
 			material = new Material(settings.GoopShader) { hideFlags = HideFlags.HideAndDontSave };
 			GameObject planeObject = new("Goop");
 			planeObject.transform.SetParent(parent, false);
-			planeObject.AddComponent<MeshFilter>().sharedMesh = GroundStainCanvas.BuildPlane();
+			planeMesh = GroundStainCanvas.BuildPlane();
+			planeObject.AddComponent<MeshFilter>().sharedMesh = planeMesh;
 			MeshRenderer renderer = planeObject.AddComponent<MeshRenderer>();
 			renderer.sharedMaterial = material;
 			renderer.shadowCastingMode = ShadowCastingMode.Off;
@@ -43,7 +46,8 @@ namespace WitchMendokusai
 				return;
 			DestroyTextures();
 			goopTexture = new Texture2D(texels, texels, TextureFormat.RGBA32, false) { name = "GoopColor", filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
-			heatTexture = new Texture2D(texels, texels, TextureFormat.RGBA32, false) { name = "GoopHeat", filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+			// 불과 감전 세기는 색이 아니라 값이라 선형
+			heatTexture = new Texture2D(texels, texels, TextureFormat.RGBA32, false, true) { name = "GoopHeat", filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
 			goopPixels = new Color32[texels * texels];
 			heatPixels = new Color32[texels * texels];
 			dirty = true;
@@ -52,7 +56,7 @@ namespace WitchMendokusai
 		// 마르는 칸은 양이 매 프레임 줄어서 간격마다 다시 씀. 칸이 없으면 판을 끔
 		private void TickRender(float deltaTime, Vector3 focus, float groundHeight)
 		{
-			bool visible = cells.Count > 0;
+			bool visible = cells.Count > 0 && hidden == false;
 			if (plane.gameObject.activeSelf != visible)
 				plane.gameObject.SetActive(visible);
 			if (visible == false)
@@ -78,7 +82,7 @@ namespace WitchMendokusai
 				Color color = cell.Kind.Color;
 				int index = local.y * texels + local.x;
 				goopPixels[index] = new Color(color.r, color.g, color.b, color.a * Mathf.Clamp01(wet));
-				float burn = cell.BurnLeft > 0f ? Mathf.Clamp01(cell.BurnLeft / settings.FireBurnSeconds * 2f) : 0f;
+				float burn = cell.BurnLeft > 0f ? Mathf.Clamp01(cell.BurnLeft / settings.FireBurnSeconds) : 0f;
 				float shock = cell.ShockLeft > 0f ? Mathf.Clamp01(cell.ShockLeft / settings.ShockSeconds) : 0f;
 				heatPixels[index] = new Color(burn, shock, 0f, 0f);
 			}
@@ -97,6 +101,13 @@ namespace WitchMendokusai
 			material.SetFloat(TEXEL_COUNT_ID, texels);
 		}
 
+		public void SetVisible(bool visible)
+		{
+			if (visible == false && plane.gameObject.activeSelf)
+				plane.gameObject.SetActive(false);
+			hidden = visible == false;
+		}
+
 		private void DestroyTextures()
 		{
 			if (goopTexture != null)
@@ -111,6 +122,7 @@ namespace WitchMendokusai
 		{
 			DestroyTextures();
 			Object.Destroy(material);
+			Object.Destroy(planeMesh);
 			if (plane != null)
 				Object.Destroy(plane.gameObject);
 		}

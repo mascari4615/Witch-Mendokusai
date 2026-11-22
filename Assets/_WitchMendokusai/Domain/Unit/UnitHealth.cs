@@ -45,6 +45,9 @@ namespace WitchMendokusai
 			OnHealthChanged?.Invoke(Unit.UnitStat[UnitStatType.HP_CUR], Unit.UnitStat[UnitStatType.HP_MAX]);
 		}
 
+		// 마지막으로 받은 피해 (무적에 막힌 것 제외). 사망 반응이 죽인 타격의 종류와 방향을 읽음
+		public DamageInfo LastDamage { get; private set; }
+
 		public void ReceiveDamage(DamageInfo damageInfo)
 		{
 			if (IsAlive == false) return;
@@ -60,6 +63,9 @@ namespace WitchMendokusai
 			// 표식 상태이상. 상태이상 틱은 제외 (표식이 틱까지 불리면 틱 숫자가 과해짐)
 			if (damageInfo.type != DamageType.StatusTick)
 				damageInfo.damage = UnitStatusRules.AmplifiedDamage(damageInfo.damage, UnitStatus.DamageTakenPercent(Unit));
+
+			// 사망 반응 (OnDied) 이 OnTakeDamage 보다 먼저 불려서, 죽인 타격은 여기서 남겨 둠
+			LastDamage = damageInfo;
 
 			// 상태 틱으로 죽으면 전염. 죽으면 곧 꺼지며 상태가 지워지므로 세대는 미리 받아 둠
 			StatusContagion.Origin contagionOrigin = default;

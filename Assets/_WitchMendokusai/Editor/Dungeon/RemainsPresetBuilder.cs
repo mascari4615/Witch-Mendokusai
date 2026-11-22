@@ -6,13 +6,16 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 싸움 흔적 (잔해, 자국, 액체, 풀) 자산을 한 번에 만들고 연결. 다시 돌려도 같은 결과 (있으면 갱신)
+	/// 싸움 흔적 (잔해, 자국, 액체, 풀) 자산을 한 번에 만들고 연결. 다시 돌리면 없는 것만 만들고 손으로 고친 값은 그대로
+	/// - 몬스터 데이터의 프로필은 비어 있을 때만 채움
 	/// - 자국 도장 그림, 조각 재질, 액체 종류 4, 몬스터 프로필, Resources/RemainsSettings
 	/// - 몬스터 데이터에 프로필, 공용 몬스터 프리팹에 MonsterRemains, 풀 재질 셰이더, 통 종류에 기름, 종이 폭탄에 불붙임, 걷기 먼지
 	/// </summary>
 	public static class RemainsPresetBuilder
 	{
-		private const string ROOT = "Assets/_WitchMendokusai/Domain/Dungeon/Remains";
+		private const string PARENT = "Assets/_WitchMendokusai/Domain/Dungeon";
+		private const string ROOT = PARENT + "/Remains";
+		private const string DOLL_ROOT = "Assets/_WitchMendokusai/Domain/Doll";
 		private const string PRESETS = ROOT + "/Presets";
 		private const string STAMP_PATH = ROOT + "/Art/RemainsStamp.png";
 		private const string PIECE_MATERIAL_PATH = ROOT + "/RemainsPiece.mat";
@@ -22,14 +25,13 @@ namespace WitchMendokusai
 		private const string PAPER_BOMB_PATH = "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Paper/PaperBomb.prefab";
 		private const string BREAKABLE_SETTINGS_PATH = "Assets/_WitchMendokusai/Domain/Dungeon/Breakable/Resources/BreakableSettings.asset";
 		private const int STAMP_SIZE = 128;
-		private const float WALK_DUST_INTERVAL = .3f;
 
 		[MenuItem("WM/Remains/Build Presets")]
 		public static void Build()
 		{
-			Directory.CreateDirectory(PRESETS);
-			Directory.CreateDirectory(ROOT + "/Art");
-			Directory.CreateDirectory(ROOT + "/Resources");
+			EnsureFolder(ROOT, "Presets");
+			EnsureFolder(ROOT, "Art");
+			EnsureFolder(ROOT, "Resources");
 
 			Texture2D stamp = BuildStamp();
 			Material pieceMaterial = BuildPieceMaterial();
@@ -61,7 +63,7 @@ namespace WitchMendokusai
 			SwapGrassShader(settings.InteractiveGrassShader);
 			SetBarrelSpills(oil, water);
 			SetPaperBombIgnites();
-			SetWalkDust();
+			SetWalkDust(settings.WalkDustInterval);
 			AssetDatabase.SaveAssets();
 			Debug.Log("[RemainsPresetBuilder] done");
 		}
@@ -114,7 +116,11 @@ namespace WitchMendokusai
 
 		private static GoopKind Goop(string name, Color color, float drySeconds, System.Action<GoopKind> configure)
 		{
-			GoopKind kind = LoadOrCreate<GoopKind>($"{PRESETS}/{name}.asset");
+			string path = $"{PRESETS}/{name}.asset";
+			GoopKind existing = AssetDatabase.LoadAssetAtPath<GoopKind>(path);
+			if (existing != null)
+				return existing;
+			GoopKind kind = LoadOrCreate<GoopKind>(path);
 			kind.Color = color;
 			kind.DrySeconds = drySeconds;
 			configure(kind);
@@ -156,7 +162,11 @@ namespace WitchMendokusai
 
 		private static RemainsProfile Profile(string name, RemainsPieceShape shape, Vector2Int count, Vector2 size, Color stain, System.Action<RemainsProfile> configure)
 		{
-			RemainsProfile profile = LoadOrCreate<RemainsProfile>($"{PRESETS}/{name}.asset");
+			string path = $"{PRESETS}/{name}.asset";
+			RemainsProfile existing = AssetDatabase.LoadAssetAtPath<RemainsProfile>(path);
+			if (existing != null)
+				return existing;
+			RemainsProfile profile = LoadOrCreate<RemainsProfile>(path);
 			profile.Shape = shape;
 			profile.Count = count;
 			profile.Size = size;
@@ -176,14 +186,19 @@ namespace WitchMendokusai
 				if (monster == null)
 					continue;
 				string name = monster.name;
+				SerializedObject serialized = new(monster);
+				SerializedProperty slot = serialized.FindProperty("<Remains>k__BackingField");
+				if (slot.objectReferenceValue != null)
+					continue;
+				bool slimeLike = name.Contains("Slime") || name.Contains("슬라임");
 				RemainsProfile profile = null;
-				if (name.Contains("Boss"))
+				if (slimeLike && name.Contains("Boss"))
 					profile = profiles["SlimeBoss"];
-				else if (name.Contains("Slime") || name.Contains("슬라임"))
+				else if (slimeLike)
 					profile = profiles["Slime"];
 				else if (name.Contains("Wisp") || name.Contains("위스프"))
 					profile = profiles["Wisp"];
-				else if (name.Contains("멧돼지") || name.Contains("Boar") || name.Contains("Beast"))
+				else if (name.Contains("멧돼지") || name.Contains("Boar"))
 					profile = profiles["Boar"];
 				else if (name.Contains("Cream") || name.Contains("생크림"))
 					profile = profiles["Cream"];
@@ -191,8 +206,7 @@ namespace WitchMendokusai
 					profile = profiles["Dust"];
 				if (profile == null)
 					continue;
-				SerializedObject serialized = new(monster);
-				serialized.FindProperty("<Remains>k__BackingField").objectReferenceValue = profile;
+				slot.objectReferenceValue = profile;
 				serialized.ApplyModifiedPropertiesWithoutUndo();
 				Debug.Log($"[RemainsPresetBuilder] {name} -> {profile.name}");
 			}
@@ -210,6 +224,7 @@ namespace WitchMendokusai
 				SerializedObject serialized = new(remains);
 				serialized.FindProperty("body").objectReferenceValue = lifeFx.FindProperty("body").objectReferenceValue;
 				serialized.FindProperty("monster").objectReferenceValue = root.GetComponent<MonsterObject>();
+				serialized.FindProperty("health").objectReferenceValue = root.GetComponent<UnitHealth>();
 				serialized.ApplyModifiedPropertiesWithoutUndo();
 				PrefabUtility.SaveAsPrefabAsset(root, MONSTER_BASE_PATH);
 			}
@@ -263,26 +278,30 @@ namespace WitchMendokusai
 		}
 
 		// 걸을 때도 발밑 먼지 (지금은 달릴 때만)
-		private static void SetWalkDust()
+		private static void SetWalkDust(float walkInterval)
 		{
-			foreach (string guid in AssetDatabase.FindAssets("t:Prefab"))
+			foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { DOLL_ROOT }))
 			{
 				string path = AssetDatabase.GUIDToAssetPath(guid);
-				if (path.StartsWith("Assets/_WitchMendokusai/") == false)
-					continue;
 				GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
 				PlayerRunDust dust = prefab.GetComponentInChildren<PlayerRunDust>(true);
 				if (dust == null || PrefabUtility.IsPartOfPrefabInstance(dust))
 					continue;
 				SerializedObject serialized = new(dust);
 				SerializedProperty interval = serialized.FindProperty("walkEmitInterval");
-				if (Mathf.Approximately(interval.floatValue, WALK_DUST_INTERVAL))
+				if (Mathf.Approximately(interval.floatValue, walkInterval))
 					continue;
-				interval.floatValue = WALK_DUST_INTERVAL;
+				interval.floatValue = walkInterval;
 				serialized.ApplyModifiedPropertiesWithoutUndo();
 				EditorUtility.SetDirty(prefab);
 				Debug.Log($"[RemainsPresetBuilder] walk dust {path}");
 			}
+		}
+
+		private static void EnsureFolder(string parent, string name)
+		{
+			if (AssetDatabase.IsValidFolder($"{parent}/{name}") == false)
+				AssetDatabase.CreateFolder(parent, name);
 		}
 
 		private static T LoadOrCreate<T>(string path) where T : ScriptableObject

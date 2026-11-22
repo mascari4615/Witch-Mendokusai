@@ -9,28 +9,27 @@ namespace WitchMendokusai
 	/// - 처치가 몰리면 조각은 예산 안에서만, 얼룩은 언제나
 	/// - 마지막 타격이 치명타면 조각이 더 많고 멀리 (평소 처치와 다른 종류의 보상)
 	/// </summary>
-	public class MonsterRemains : MonoBehaviour, IDeathReaction, IDamageReaction
+	public class MonsterRemains : MonoBehaviour, IDeathReaction
 	{
 		[SerializeField, Tooltip("몸 색을 뽑을 그림")] private SpriteRenderer body;
 		[SerializeField, Tooltip("쓰러진 몬스터")] private MonsterObject monster;
+		[SerializeField, Tooltip("죽인 타격을 읽을 체력")] private UnitHealth health;
 
 		private bool lastHitCritical;
 		private Vector3 lastHitAway;
 
-		private void OnEnable()
+		// 죽인 타격 (UnitHealth 가 사망 알림 전에 남김) 의 치명타 여부와 맞은 방향
+		private void ReadKillingBlow()
 		{
-			lastHitCritical = false;
+			DamageInfo killingBlow = health.LastDamage;
+			lastHitCritical = killingBlow.type == DamageType.Critical;
 			lastHitAway = Vector3.zero;
-		}
-
-		public void OnDamaged(DamageInfo damageInfo)
-		{
-			lastHitCritical = damageInfo.type == DamageType.Critical;
-			if (damageInfo.damageSource is Component source)
+			if (killingBlow.damageSource is Component source && source != null)
 			{
 				Vector3 away = transform.position - source.transform.position;
 				away.y = 0f;
-				lastHitAway = away.sqrMagnitude > .0001f ? away.normalized : Vector3.zero;
+				if (away.sqrMagnitude > .0001f)
+					lastHitAway = away.normalized;
 			}
 		}
 
@@ -40,6 +39,7 @@ namespace WitchMendokusai
 			RemainsProfile profile = monster.UnitData.Remains;
 			if (remains == null || remains.Enabled == false || profile == null)
 				return;
+			ReadKillingBlow();
 			Vector3 position = transform.position;
 			position.y = remains.GroundHeight;
 			remains.Grass.Flatten(position, remains.Settings.GrassKillFlattenRadius);
@@ -74,7 +74,7 @@ namespace WitchMendokusai
 					Material = material,
 					Position = position + Vector3.up * size + new Vector3(circle.x, 0f, circle.y) * size,
 					Rotation = Random.rotationUniform,
-					Velocity = (outward.normalized * Random.Range(profile.Speed.x, profile.Speed.y) + Vector3.up * profile.Lift * Random.Range(.6f, 1f)) * (lastHitCritical ? settings.CritSpeedScale : 1f),
+					Velocity = (outward.normalized * Random.Range(profile.Speed.x, profile.Speed.y) + Vector3.up * profile.Lift * Random.Range(1f - profile.LiftVariance, 1f)) * (lastHitCritical ? settings.CritSpeedScale : 1f),
 					SpinAxis = Random.onUnitSphere,
 					SpinDegrees = profile.Spin,
 					Size = size,
