@@ -96,7 +96,6 @@ namespace WitchMendokusai
 			if (isReturn == false)
 			{
 				yield return StartCoroutine(dataManager.Init());
-				dataManager.Login();
 			}
 			BootObserver.Enter(BootPhase.DataReady); // TASK-WM-118 B1
 			Init();

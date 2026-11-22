@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2233538775601197657}
   - component: {fileID: 2233538775601197656}
-  - component: {fileID: 2233538775601197659}
   m_Layer: 0
   m_Name: DataManager
   m_TagString: Untagged
@@ -48,18 +47,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dontDestroyOnLoad: 1
   localDisplayName: 
---- !u!114 &2233538775601197659
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2233538775601197662}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eefc0e021eb93e4438fd1f802832b8be, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2761859447533706271
 GameObject:
   m_ObjectHideFlags: 0

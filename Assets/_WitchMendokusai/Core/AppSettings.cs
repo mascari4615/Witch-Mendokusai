@@ -20,7 +20,7 @@ namespace WitchMendokusai
 		{
 			UseIntro = false;     // 타이머 패널 skip
 			AutoStart = true;     // 수동 버튼 없이 자동 StartGame
-			UseLocalData = true;  // 로컬 세이브 (PlayFab Login 은 DataManager.Login 가드)
+			UseLocalData = true;  // 세이브는 SaveTool 로컬 파일 하나 (PlayFab 은 2026-11-22 제거)
 		}
 
 		// 에디터 솔로 dev 편의 — 타이틀 자동 스킵(런타임 인스턴스 한정, 디스크 .asset 불변 = footgun 0).

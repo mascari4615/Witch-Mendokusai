@@ -486,18 +486,3 @@ MonoBehaviour:
     <ModificationNote>k__BackingField: ''
     <UsedIn>k__BackingField: '저장 자료 변환'
     <AssetPaths>k__BackingField: []
-  - <Id>k__BackingField: playfab-sdk
-    <Category>k__BackingField: 9
-    <Name>k__BackingField: 'PlayFab Unity SDK'
-    <Author>k__BackingField: 'PlayFab Inc. (Microsoft)'
-    <SourceUrl>k__BackingField: 'https://github.com/PlayFab/UnitySDK'
-    <LicenseName>k__BackingField: 'Apache License 2.0'
-    <LicenseUrl>k__BackingField: 'https://www.apache.org/licenses/LICENSE-2.0'
-    <License>k__BackingField: {fileID: 0}
-    <CopyrightNotice>k__BackingField: 'Copyright 2015 PlayFab Inc.'
-    <AttributionRequired>k__BackingField: 1
-    <Modified>k__BackingField: 0
-    <ModificationNote>k__BackingField: ''
-    <UsedIn>k__BackingField: '온라인 저장'
-    <AssetPaths>k__BackingField:
-    - 'Assets/PlayFabSDK'

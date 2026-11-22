@@ -279,14 +279,7 @@ namespace WitchMendokusai
 			gameData.dialogueHistory = DialogueHistoryBridge.CaptureSaveData();
 			gameData.windowLayouts = soManager.WindowLayoutData.Save();
 
-			if (AppSetting.Data.UseLocalData)
-			{
-				SaveTool.SaveFile(SAVE_FILE_NAME, gameData);
-			}
-			else
-			{
-				DataManager.SaveData(gameData);
-			}
+			SaveTool.SaveFile(SAVE_FILE_NAME, gameData);
 		}
 	}
 }

@@ -7,8 +7,8 @@ namespace WitchMendokusai
     /// TASK-WM-118 B3 — 결정적/헤드리스 부팅 모드.
     ///
     /// I0-B 가 매핑한 부팅 비결정 3요인: UseIntro(타이머 패널) / AutoStart(수동
-    /// 버튼) / DataManager.Login(PlayFab 네트워크 critical-path, UseLocalData
-    /// 무관 무조건). Deterministic 모드 = 셋을 결정 분기로 고정 → 부팅이
+    /// 버튼) / DataManager.Login(PlayFab 네트워크, 2026-11-22 PlayFab 과 함께
+    /// 제거). Deterministic 모드는 셋을 결정 분기로 고정 → 부팅이
     /// *네트워크·타이머·수동입력 없이* WorldReady 도달 = 테스트 가능
     /// (TASK-WM-117 I5 standalone smoke 가 이 모드로 빌드 실행 + WorldReady
     /// 센티넬 회귀 판정 → 테스트불가 최종 해소, TASK-WM-116 퀄리티 first-use).
@@ -45,7 +45,7 @@ namespace WitchMendokusai
                 if (_cached.Value)
                 {
                     Debug.Log("[BOOT] BootMode = Deterministic (env WM_BOOT_DETERMINISTIC) "
-                        + "— Intro skip / AutoStart / PlayFab offline.");
+                        + "(Intro skip, AutoStart).");
                 }
                 return _cached.Value;
             }
