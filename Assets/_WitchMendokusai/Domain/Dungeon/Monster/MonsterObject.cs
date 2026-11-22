@@ -37,6 +37,7 @@ namespace WitchMendokusai
 		private bool eliteGuaranteedChest;
 		private DungeonThreatEffect threat = DungeonThreatEffect.Identity;
 		private HpBarView hpBarView;
+		private Animator spriteAnimator;
 
 		private HpBarView HpBarView
 		{
@@ -66,6 +67,7 @@ namespace WitchMendokusai
 				GroundGenerator.RegisterAnchor(UnitMovement);
 			SpriteRenderer.sharedMaterial = UnitData.Material;
 			SpriteRenderer.color = UnitData.Tint;
+			ApplySpriteVariant();
 			ObjectBufferManager.AddObject(ObjectType.Monster, gameObject);
 			hpBar.localScale = Vector3.one;
 			HpBarView.SetRatio(1f);
@@ -86,6 +88,20 @@ namespace WitchMendokusai
 			base.Start();
 			if (eliteProfile != null)
 				ApplyEliteHealth();
+		}
+
+		// 생김새 변종: 자료의 Sprites 에 그림이 있으면 나올 때마다 하나를 고름.
+		// 프레임 애니메이션이 그림을 덮어쓰므로 변종이 있으면 애니메이터를 끄고, 움직임은 재질 셰이더의 젤 출렁임이 맡음
+		private void ApplySpriteVariant()
+		{
+			bool hasVariants = UnitData.Sprites != null && UnitData.Sprites.Count > 0;
+			if (spriteAnimator == null)
+				spriteAnimator = SpriteRenderer.GetComponentInParent<Animator>(true);
+			if (spriteAnimator != null)
+				spriteAnimator.enabled = hasVariants == false;
+			if (hasVariants == false)
+				return;
+			SpriteRenderer.sprite = UnitData.Sprites[Random.Range(0, UnitData.Sprites.Count)];
 		}
 
 		// 풀 첫 사용은 Start 의 재-Init 포함, 적용 자리는 Init 안

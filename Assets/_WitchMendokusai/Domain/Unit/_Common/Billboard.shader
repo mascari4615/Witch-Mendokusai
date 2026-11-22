@@ -17,6 +17,13 @@ Shader "WitchMendokusai/BillboardShader"
         _HitShake("Hit Shake", Vector) = (0, 0, 0, 0)
         // 장면 빛 반응 배율. 0이면 빛 무시, 1이면 하늘 설정 (SpriteLightingSettings) 그대로
         _LightResponse("Light Response", Range(0, 1)) = 1
+        // 젤 출렁임. x 세기 (0 이면 없음), y 초당 왕복. 바닥 기준으로 위아래로 늘면 옆으로 줄어 부피 유지, 개체마다 위상이 다름
+        _JellyWobble("Jelly Wobble", Vector) = (0, 0, 0, 0)
+        // 반투명 몸. 그림 알파가 1 보다 작은 화소 (몸) 에만 곱함. 눈과 가장자리처럼 불투명한 화소는 그대로
+        _BodyAlpha("Body Alpha", Range(0, 1)) = 1
+        // 젤 테두리 빛. 가장자리 안쪽 화소를 이 색으로 밝힘 (알파가 세기, 0 이면 없음), 두께 화소
+        _JellyRim("Jelly Rim", Color) = (0, 0, 0, 0)
+        _JellyRimWidth("Jelly Rim Width", Float) = 1.5
     }
 
     SubShader
@@ -100,6 +107,10 @@ Shader "WitchMendokusai/BillboardShader"
                 float _StatusRimWidth;
                 float4 _HitShake;
                 float _LightResponse;
+                float4 _JellyWobble;
+                float _BodyAlpha;
+                float4 _JellyRim;
+                float _JellyRimWidth;
             CBUFFER_END
 
             // 하늘 설정이 넣는 전역값 (SpriteLighting.Apply). 안 넣은 장면은 0이라 빛 반응 없음
@@ -143,6 +154,16 @@ Shader "WitchMendokusai/BillboardShader"
                 v2f o = (v2f)0;
 
                 float4 positionOS = v.positionOS;
+
+                // 젤 출렁임: 그림 바닥 (피벗) 기준으로 세로로 늘고 가로로 줄어듦. 위상은 개체 위치에서
+                if (_JellyWobble.x > 0)
+                {
+                    float2 pivotXZ = float2(UNITY_MATRIX_M._m03, UNITY_MATRIX_M._m23);
+                    float wobblePhase = frac(sin(dot(pivotXZ, float2(12.9898, 78.233))) * 43758.5453) * 6.2831853;
+                    float wobble = _JellyWobble.x * sin(_Time.y * _JellyWobble.y * 6.2831853 + wobblePhase);
+                    positionOS.y *= 1 + wobble;
+                    positionOS.x *= 1 - wobble * 0.5;
+                }
 
                 // 월드 공간 크기 행렬 계산
                 float4x4 scaleMatrix;
@@ -240,7 +261,9 @@ Shader "WitchMendokusai/BillboardShader"
 
                 col *= _Color;
                 col *= i.color;
-                
+                // 반투명 몸: 불투명 화소 (눈, 가장자리) 는 그대로
+                col.a *= lerp(_BodyAlpha, 1, step(0.99, textureAlpha));
+
                 clip(col.a - _Cutoff  * _Emission);
 
                 // 장면 빛. 상태 물들임, 테두리, 피격 점멸은 빛 뒤라 밤에도 그대로 읽힘
@@ -249,6 +272,17 @@ Shader "WitchMendokusai/BillboardShader"
                 // 상태이상 물들임. 밝기를 남겨 형태 유지
                 float luminance = dot(col.rgb, float3(0.299, 0.587, 0.114));
                 col.rgb = lerp(col.rgb, _StatusTint.rgb * (0.45 + 0.75 * luminance), _StatusTint.a);
+
+                // 젤 테두리 빛. 이웃 화소가 비어 있으면 가장자리 안쪽, 장면 빛 뒤라 밤에도 은은히 읽힘
+                if (_JellyRim.a > 0)
+                {
+                    float2 jellyStep = _MainTex_TexelSize.xy * _JellyRimWidth;
+                    float jellyNeighborAlpha = min(
+                        min(SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV + float2(jellyStep.x, 0)).a, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV - float2(jellyStep.x, 0)).a),
+                        min(SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV + float2(0, jellyStep.y)).a, SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, mainTexUV - float2(0, jellyStep.y)).a));
+                    float jellyEdge = step(0.05, textureAlpha) * (1 - step(0.05, jellyNeighborAlpha));
+                    col.rgb = lerp(col.rgb, _JellyRim.rgb, jellyEdge * _JellyRim.a);
+                }
 
                 // 서리 테두리. 이웃 화소가 비어 있으면 가장자리
                 if (_StatusRim.a > 0)
