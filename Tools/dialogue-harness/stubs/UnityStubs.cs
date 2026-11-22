@@ -220,6 +220,29 @@ namespace UnityEngine
 		public string menuName;
 		public int order;
 	}
+
+	// 값은 유니티와 같게
+	public enum RuntimeInitializeLoadType
+	{
+		AfterSceneLoad = 0,
+		BeforeSceneLoad = 1,
+		AfterAssembliesLoaded = 2,
+		BeforeSplashScreen = 3,
+		SubsystemRegistration = 4,
+	}
+
+	// 하네스에는 Play 진입이 없음 -- 표시만, 호출 X
+	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+	public sealed class RuntimeInitializeOnLoadMethodAttribute : Attribute
+	{
+		public RuntimeInitializeOnLoadMethodAttribute()
+		{
+		}
+
+		public RuntimeInitializeOnLoadMethodAttribute(RuntimeInitializeLoadType loadType)
+		{
+		}
+	}
 }
 
 namespace UnityEngine.Serialization

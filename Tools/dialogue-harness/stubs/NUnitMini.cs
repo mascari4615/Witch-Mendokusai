@@ -157,6 +157,24 @@ namespace NUnit.Framework
 		internal static string Format(object value) => value == null ? "null" : value.ToString();
 	}
 
+	public static class Does
+	{
+		public static Constraint Contain(object expected) => new(actual =>
+		{
+			if (actual is IEnumerable enumerable)
+			{
+				foreach (object item in enumerable)
+				{
+					if (Is.AreEqualInternal(item, expected))
+					{
+						return true;
+					}
+				}
+			}
+			return false;
+		}, $"contains {Is.Format(expected)}");
+	}
+
 	public static class Throws
 	{
 		public static Constraint TypeOf<T>() where T : Exception =>
