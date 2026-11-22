@@ -45,8 +45,9 @@ namespace WitchMendokusai
 		// Awake 는 LootObject 것 (줍기 충돌체). 여기서 가리지 않게 외형 준비는 Init 에서
 		public void Init(int masteryTrack, Color color)
 		{
-			if (crystalFilter.sharedMesh == null)
-				crystalFilter.sharedMesh = SharedMesh();
+			Mesh mesh = SharedMesh();
+			if (crystalFilter.sharedMesh != mesh)
+				crystalFilter.sharedMesh = mesh;
 			block ??= new MaterialPropertyBlock();
 			if (glow == null)
 			{
