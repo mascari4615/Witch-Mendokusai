@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: AchievementCategorySO
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: AchievementCategorySO
+  m_GUID: 35027c1dce0c51d479065793958f1522
+  m_SerializeEntries:
+  - m_GUID: 034454dbd77b452e9163f27725341654
+    m_Address: AchievementCategorySO/0
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AchievementCategorySO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 29b2efae47f749ae903650de69294116
+    m_Address: AchievementCategorySO/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AchievementCategorySO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b131423cb0614a5bba4e48fac4e375d9
+    m_Address: AchievementCategorySO/2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AchievementCategorySO
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 8de67b02fa441da4289d5a02b3a4dd3c, type: 2}
+    - {fileID: 11400000, guid: 95105b1f040ac2543945982d2a5277d7, type: 2}
+    m_SchemaDisplayOrder:
+    - AchievementCategorySO_ContentUpdateGroupSchema
+    - AchievementCategorySO_BundledAssetGroupSchema
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1

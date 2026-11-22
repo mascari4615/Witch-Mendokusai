@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: AchievementSO
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: AchievementSO
+  m_GUID: 0288dbefd70e92240b91b6fdfefde927
+  m_SerializeEntries:
+  - m_GUID: 009c48ed29b644dc81a04e5fd52ff369
+    m_Address: AchievementSO/201
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AchievementSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0762845e07134b11b99a8b6a9c64a3f6
+    m_Address: AchievementSO/102
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AchievementSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4bfd28666f81488996ec295b8a666267
+    m_Address: AchievementSO/2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AchievementSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 52d405fb1e07426f98eeb5c8032e4aca
+    m_Address: AchievementSO/101
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AchievementSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 71d9b196c81941fe8209ed3c09c31cc1
+    m_Address: AchievementSO/202
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AchievementSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 80783e1f33bf4f1bbd5873186ab2d702
+    m_Address: AchievementSO/1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - AchievementSO
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: c6e0acc909302f544bc9186de8c8150c, type: 2}
+    - {fileID: 11400000, guid: 4a019472abd6ae94c9a647db62ce8f90, type: 2}
+    m_SchemaDisplayOrder:
+    - AchievementSO_ContentUpdateGroupSchema
+    - AchievementSO_BundledAssetGroupSchema
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1

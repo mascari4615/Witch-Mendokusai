@@ -71,11 +71,13 @@ MonoBehaviour:
   m_BuildAddressablesWithPlayerBuild: 0
   m_overridePlayerVersion: '[UnityEditor.PlayerSettings.bundleVersion]'
   m_GroupAssets:
+  - {fileID: 11400000, guid: 02f7875838ab0e7418a6178581d4af51, type: 2}
   - {fileID: 11400000, guid: 480052975348202479502b8c0824192a, type: 2}
   - {fileID: 11400000, guid: 111030ff6a6a0124b8335aa8eede91fb, type: 2}
   - {fileID: 11400000, guid: da9b9b5452acc5a4b8992153befa00bf, type: 2}
   - {fileID: 11400000, guid: e944d7894fb075043a06d8a1d049995b, type: 2}
   - {fileID: 11400000, guid: 90888b8b83696db42974ca4b88c524ae, type: 2}
+  - {fileID: 11400000, guid: 327aacace024e1c4fb6aa541c671e86b, type: 2}
   - {fileID: 11400000, guid: 6db95007fb50607409ad9e13b1318f56, type: 2}
   - {fileID: 11400000, guid: d11d829eacdb3ea4fadfbdea2c612459, type: 2}
   - {fileID: 11400000, guid: a40a69256ea0b604cbe4392793fad19e, type: 2}
@@ -157,6 +159,8 @@ MonoBehaviour:
     - WitchPlantSO
     - TowerDefenseStageSO
     - MinigameEntrySO
+    - AchievementCategorySO
+    - AchievementSO
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 154aea50e355b0e40bc5fc4462b64350, type: 2}
