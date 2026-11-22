@@ -75,6 +75,7 @@ MonoBehaviour:
   - <Monsters>k__BackingField:
     - {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
     - {fileID: 11400000, guid: 473eb54ca0151684ca8411fd1914123f, type: 2}
+    - {fileID: 11400000, guid: bbe0583fb36c49c7b7b3bd45af8fdd94, type: 2}
     <StartTime>k__BackingField: 60
     <EndTime>k__BackingField: 120
     <SpawnDelay>k__BackingField: 0.25

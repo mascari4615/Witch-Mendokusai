@@ -15,6 +15,12 @@ MonoBehaviour:
   m_GroupName: Monster
   m_GUID: 8441897c411af7449b7a8235e8879cb2
   m_SerializeEntries:
+  - m_GUID: bbe0583fb36c49c7b7b3bd45af8fdd94
+    m_Address: Monster/15
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 02d477c8050f4e245b8e3a80e67a08da
     m_Address: Monster/11
     m_ReadOnly: 0
