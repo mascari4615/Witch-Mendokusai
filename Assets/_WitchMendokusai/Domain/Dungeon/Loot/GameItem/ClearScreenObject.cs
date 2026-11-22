@@ -17,7 +17,7 @@ namespace WitchMendokusai
 			if (camera == null)
 				return;
 
-			GeometryUtility.CalculateFrustumPlanes(camera, viewPlanes);
+			CombatView.CalculatePlanes(camera, viewPlanes);
 			targets.Clear();
 			targets.AddRange(ObjectBufferManager.GetObjects(ObjectType.Monster));
 			foreach (GameObject target in targets)

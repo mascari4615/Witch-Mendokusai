@@ -64,6 +64,8 @@ Shader "WitchMendokusai/BillboardShader"
             #pragma fragment frag
             // 추가 광원은 정점에서 계산. 판 그림은 정점이 적어 화소마다 반복하지 않음
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            // 장면 안개. 생존 던전의 전투 시야 경계 밖에서 생긴 적을 안개가 가림 (CameraManager.CombatView)
+            #pragma multi_compile_fog
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -81,6 +83,7 @@ Shader "WitchMendokusai/BillboardShader"
                 float2 uv : TEXCOORD0;
                 float4 color : COLOR;
                 half3 light : TEXCOORD1;
+                float fogFactor : TEXCOORD2;
             };
 
             TEXTURE2D(_MainTex);
@@ -229,6 +232,7 @@ Shader "WitchMendokusai/BillboardShader"
                 o.color = v.color;
                 // 그림은 늘 카메라를 보므로 법선은 카메라 쪽. 방향 음영 없음
                 o.light = SpriteLight(positionWS.xyz, normalize(_WorldSpaceCameraPos - positionWS.xyz));
+                o.fogFactor = ComputeFogFactor(positionCS.z);
                 return o;
             }
 
@@ -263,6 +267,8 @@ Shader "WitchMendokusai/BillboardShader"
 
                 // 피격 점멸: 더하기 대신 섞기. 1이면 기존과 같은 완전 흰색, 0.5면 형태가 남음
                 col.rgb = lerp(col.rgb, _EmissionColor.rgb, saturate(_Emission));
+                // 안개는 마지막. 먼 적은 점멸과 상태 표시까지 같이 가려짐
+                col.rgb = MixFog(col.rgb, i.fogFactor);
                 return col;
             }
             ENDHLSL

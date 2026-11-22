@@ -235,7 +235,7 @@ namespace WitchMendokusai
 			DecorationDrawCalls = 0;
 			DecorationVisibleInstances = 0;
 			Array.Clear(decorationChunkVisible, 0, decorationChunkVisible.Length);
-			GeometryUtility.CalculateFrustumPlanes(camera, decorationPlanes);
+			CombatView.CalculatePlanes(camera, decorationPlanes);
 			foreach (DecorationTemplate template in decorationTemplates)
 			{
 				int count = 0;

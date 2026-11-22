@@ -415,6 +415,7 @@ namespace WitchMendokusai
 
 		private void LateUpdate()
 		{
+			UpdateCombatView();
 			UpdateCameraOrientation();
 			suppressLookFrame = false;
 			TickDialogueFocus(Time.unscaledDeltaTime);

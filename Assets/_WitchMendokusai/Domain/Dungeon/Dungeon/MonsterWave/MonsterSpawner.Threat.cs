@@ -208,7 +208,7 @@ namespace WitchMendokusai
 			Camera camera = Camera.main;
 			visibilityPlanesValid = camera != null;
 			if (visibilityPlanesValid)
-				GeometryUtility.CalculateFrustumPlanes(camera, visibilityPlanes);
+				CombatView.CalculatePlanes(camera, visibilityPlanes);
 			return visibilityPlanesValid;
 		}
 

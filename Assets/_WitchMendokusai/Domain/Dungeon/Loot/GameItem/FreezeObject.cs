@@ -19,7 +19,7 @@ namespace WitchMendokusai
 
 		private void FreezeVisibleMonsters(Camera camera, float seconds)
 		{
-			GeometryUtility.CalculateFrustumPlanes(camera, viewPlanes);
+			CombatView.CalculatePlanes(camera, viewPlanes);
 			targets.Clear();
 			targets.AddRange(ObjectBufferManager.GetObjects(ObjectType.Monster));
 			foreach (GameObject target in targets)
