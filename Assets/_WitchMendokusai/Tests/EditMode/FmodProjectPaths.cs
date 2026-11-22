@@ -53,5 +53,39 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(paths.Contains("event:/SFX/Combat/Victory"), "경로 풀기 자체 확인");
 			return paths;
 		}
+
+		private static readonly Regex GROUP_NAME = new("<object class=\"MixerGroup\" id=\"(\\{[^}]+\\})\">\\s*<property name=\"name\">\\s*<value>([^<]*)</value>");
+		private static readonly Regex GROUP_OUTPUT = new("<relationship name=\"output\">\\s*<destination>(\\{[^}]+\\})</destination>");
+
+		// 믹서 그룹 버스 경로 (bus:/부모/이름). 최상위 마스터는 Group 파일에 없어 사슬이 거기서 끝남
+		public static HashSet<string> LoadBuses()
+		{
+			string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "FMODAssets", "Metadata", "Group"));
+			Assert.IsTrue(Directory.Exists(folder), folder);
+			Dictionary<string, (string name, string output)> groups = new();
+			foreach (string file in Directory.GetFiles(folder, "*.xml"))
+			{
+				string text = File.ReadAllText(file);
+				Match name = GROUP_NAME.Match(text);
+				if (name.Success == false)
+					continue;
+				Match output = GROUP_OUTPUT.Match(text);
+				groups[name.Groups[1].Value] = (name.Groups[2].Value, output.Success ? output.Groups[1].Value : string.Empty);
+			}
+
+			HashSet<string> buses = new();
+			foreach ((string name, string output) in groups.Values)
+			{
+				string path = name;
+				string parentId = output;
+				while (groups.TryGetValue(parentId, out (string name, string output) parent))
+				{
+					path = parent.Item1 + "/" + path;
+					parentId = parent.Item2;
+				}
+				buses.Add("bus:/" + path);
+			}
+			return buses;
+		}
 	}
 }

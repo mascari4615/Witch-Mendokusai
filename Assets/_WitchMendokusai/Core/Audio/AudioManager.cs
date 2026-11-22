@@ -34,6 +34,14 @@ namespace WitchMendokusai
 
 		public bool AudioReady => audioReady;
 
+		// 일시정지 (카드 고르기, 상자 보상, 설정 창) 동안 전투 소리만 누름. UI 소리는 SFX 버스에 남아 그대로 들림
+		private const string COMBAT_BUS_PATH = "bus:/SFX/Combat";
+		[SerializeField, Tooltip("일시정지 동안 전투 버스에 더할 dB (음수)")] private float pausedCombatDb = -12f;
+		[SerializeField, Min(0f), Tooltip("전투 버스가 누르고 되돌아오는 데 걸리는 초 (실시간)")] private float pauseDuckSeconds = 0.15f;
+		private Bus combatBus;
+		private float combatBusDb;
+		private bool hasCombatBus;
+
 		private void Awake()
 		{
 			if (Instance != null && Instance != this)
@@ -60,6 +68,20 @@ namespace WitchMendokusai
 				audioReady = false;
 				Debug.LogWarning($"[AudioManager] FMOD 뱅크 미로드 — 오디오 비활성(무음)으로 진행, 부팅 계속. "
 					+ $"{exception.GetType().Name}: {exception.Message}");
+			}
+
+			// 전투 버스는 따로 잡음. 옛 뱅크라 없으면 일시정지 누르기만 빠지고 나머지 소리는 그대로
+			if (audioReady)
+			{
+				try
+				{
+					combatBus = RuntimeManager.GetBus(COMBAT_BUS_PATH);
+					hasCombatBus = true;
+				}
+				catch (BusNotFoundException)
+				{
+					Debug.LogError($"[AudioManager] {COMBAT_BUS_PATH} 없음, 뱅크를 다시 구워야 함. 일시정지 누르기 꺼짐");
+				}
 			}
 		}
 
@@ -132,6 +154,7 @@ namespace WitchMendokusai
 		private void Update()
 		{
 			EnsureStudioListener();
+			UpdatePauseDuck();
 
 			if (audioReady == false || currentMusic == null)
 				return;
@@ -145,6 +168,19 @@ namespace WitchMendokusai
 			bool hasEventPath = string.IsNullOrEmpty(currentMusic.EventPath) == false;
 			if (MusicFlow.ShouldRestart(currentMusic.Loop, hasEventPath, playbackState == PLAYBACK_STATE.STOPPED))
 				StartMusicEvent(currentMusic.EventPath);
+		}
+
+		// 일시정지면 전투 버스를 pausedCombatDb 로, 풀리면 0 dB 로. 일시정지 중 timeScale 이 0 에 가까워 실시간으로 셈
+		private void UpdatePauseDuck()
+		{
+			if (audioReady == false || hasCombatBus == false)
+				return;
+			bool paused = TimeManager.TryGetExistingInstance(out TimeManager timeManager) && timeManager.IsPaused;
+			float targetDb = paused ? pausedCombatDb : 0f;
+			if (Mathf.Approximately(combatBusDb, targetDb))
+				return;
+			combatBusDb = BusDuck.Step(combatBusDb, targetDb, pausedCombatDb, pauseDuckSeconds, Time.unscaledDeltaTime);
+			combatBus.setVolume(BusDuck.ToLinear(combatBusDb));
 		}
 
 		public void StopMusic()
