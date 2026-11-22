@@ -388,6 +388,27 @@ namespace WitchMendokusai
 			PlayFlowFx(feel.VictoryFx, feel.VictoryTitle, CurDungeon.Name);
 			playerProvider.CurrentObject.GrantInvincibility(delay);
 			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(delay, true));
+			if (feel.VacuumDropsOnClear)
+				StartCoroutine(VacuumDropsAfter(feel.ClearVacuumDelay));
+		}
+
+		// 남은 보상을 잃지 않고 한꺼번에. 보물 상자와 아이템은 효과가 있어서 빼고 보석과 냥만
+		private IEnumerator VacuumDropsAfter(float delay)
+		{
+			yield return new WaitForSecondsRealtime(delay);
+			bool pulled = false;
+			foreach (GameObject drop in ObjectBufferManager.GetObjects(ObjectType.Drop).ToArray())
+			{
+				if (drop == null || drop.activeInHierarchy == false || drop.TryGetComponent(out LootObject loot) == false)
+					continue;
+				if (loot is ExpObject || loot is NyangObject)
+				{
+					loot.Equip();
+					pulled = true;
+				}
+			}
+			if (pulled)
+				CombatSfx.Play(CombatSfxEvent.MagnetPull);
 		}
 
 		private IEnumerator EndDungeonAfterDelay(float delay, bool isCleared)

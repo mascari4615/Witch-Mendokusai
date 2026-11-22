@@ -11,7 +11,6 @@ namespace WitchMendokusai
 		private readonly GameLogic gameLogic;
 		private readonly ResourceManager resourceManager;
 		private readonly Transform root;
-		private readonly BreakableShardPool shards;
 		private readonly Dictionary<Vector2Int, List<BreakableObject>> cells = new();
 		private readonly Stack<BreakableObject> pool = new();
 		private readonly HashSet<long> brokenKeys = new();
@@ -30,7 +29,6 @@ namespace WitchMendokusai
 			this.gameLogic = gameLogic;
 			this.resourceManager = resourceManager;
 			root = new GameObject("Breakables").transform;
-			shards = new BreakableShardPool(root);
 		}
 
 		private BreakableSettings loadedSettings;
@@ -55,7 +53,6 @@ namespace WitchMendokusai
 		public void Tick(Vector3 focus)
 		{
 			BreakableSettings settings = EnsureReady();
-			shards.Tick(settings, Time.deltaTime);
 
 			Vector2Int next = new(Mathf.FloorToInt(focus.x / settings.CellSize), Mathf.FloorToInt(focus.z / settings.CellSize));
 			if (centerValid && next == center)
@@ -126,13 +123,6 @@ namespace WitchMendokusai
 				Return(breakable);
 			else
 				ActiveCount--;
-		}
-
-		// 판 밖 (결과 화면) 에서는 날던 조각만 마저 떨어뜨림
-		public void TickShards()
-		{
-			if (library != null)
-				shards.Tick(Settings, Time.deltaTime);
 		}
 
 		// 설정 누락은 부술 때가 아니라 첫 배치 전에 실패
@@ -249,8 +239,10 @@ namespace WitchMendokusai
 			BreakableKind kind = settings.Kinds[breakable.KindIndex];
 			Bounds bounds = breakable.LocalBounds;
 			Vector3 worldCenter = breakable.transform.TransformPoint(bounds.center);
-			shards.Burst(settings, library.Material, library.Variants[breakable.KindIndex][breakable.VariantIndex].ShardMeshes, worldCenter, bounds.size, breakable.HitDirection);
+			BreakableShardPool.Burst(RemainsWorld.Current, settings, library.Material, library.Variants[breakable.KindIndex][breakable.VariantIndex].ShardMeshes, worldCenter, bounds.size, breakable.HitDirection);
 			CombatSfx.Play(settings.BreakSfx, worldCenter);
+			if (kind.Spill != null)
+				RemainsWorld.Current.Goop.Spill(kind.Spill, breakable.transform.position, kind.SpillRadius, 1f);
 
 			if (fixedPlaced.Remove(breakable) == false)
 			{
@@ -318,7 +310,6 @@ namespace WitchMendokusai
 			foreach (BreakableObject breakable in fixedPlaced)
 				ReturnOrForget(breakable);
 			fixedPlaced.Clear();
-			shards.Clear();
 			root.gameObject.SetActive(false);
 		}
 

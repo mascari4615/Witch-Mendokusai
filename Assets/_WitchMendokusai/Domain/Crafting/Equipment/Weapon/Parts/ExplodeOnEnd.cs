@@ -10,6 +10,9 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float fuseSeconds = 0f;
 		[SerializeField] private bool explodeOnContact = false;
 		[SerializeField, Tooltip("터질 때 공용 물보라 효과음 (CombatSfx WeaponSplash)")] private bool playSplashSfx = true;
+		[SerializeField, Min(0f), Tooltip("바닥 잔해를 날리는 반경, 미터 (크기 배율이 곱해짐). 0 이면 안 날림")] private float debrisPushRadius = 2f;
+		[SerializeField, Tooltip("바닥 기름 웅덩이에 불을 붙임")] private bool igniteGoop;
+		[SerializeField, Tooltip("바닥 물 웅덩이에 감전을 퍼뜨림")] private bool shockGoop;
 
 		private int damageBonus;
 		private SkillObject owner;
@@ -78,8 +81,21 @@ namespace WitchMendokusai
 			if (damagingObject != null)
 				damagingObject.SetDamageBonus(damageBonus);
 			g.SetActive(true);
+			AffectRemains();
 
 			gameObject.SetActive(false);
+		}
+
+		private void AffectRemains()
+		{
+			RemainsWorld remains = RemainsWorld.Current;
+			if (remains == null)
+				return;
+			float radius = debrisPushRadius * transform.lossyScale.x;
+			if (radius > 0f)
+				remains.Blast(transform.position, radius, remains.Settings.BlastPushSpeed, remains.Settings.BlastPushLift, igniteGoop);
+			if (shockGoop)
+				remains.Goop.Shock(transform.position, radius);
 		}
 	}
 }

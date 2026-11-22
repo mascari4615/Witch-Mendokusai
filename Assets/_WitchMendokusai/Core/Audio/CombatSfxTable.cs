@@ -15,12 +15,16 @@ namespace WitchMendokusai
 			[SerializeField, Tooltip("같은 사건이 이 시간 안에 또 나면 거름 (초, 실시간)")] private float minIntervalSeconds = 0.05f;
 			[SerializeField, Tooltip("켜면 호출한 위치에서 재생 (3D). 위치를 안 주면 위치 없이 재생")] private bool playAtPosition;
 			[SerializeField, Min(0), Tooltip("같은 사건을 동시에 몇 개까지 낼지 (위치 재생일 때). 0 이면 세지 않고 최소 간격만")] private int maxVoices;
+			[SerializeField, Range(0f, .3f), Tooltip("재생마다 음높이를 흔드는 비율 (0.06 이면 위아래 6%). 같은 소리 반복의 귀 피로를 줄임. 음높이를 직접 주는 호출에는 안 씀")] private float pitchJitter = .06f;
+			[SerializeField, Range(0f, .5f), Tooltip("재생마다 음량을 흔드는 비율")] private float volumeJitter = .08f;
 
 			public CombatSfxEvent SfxEvent => sfxEvent;
 			public string EventPath => eventPath;
 			public float MinIntervalSeconds => minIntervalSeconds;
 			public bool PlayAtPosition => playAtPosition;
 			public int MaxVoices => maxVoices;
+			public float PitchJitter => pitchJitter;
+			public float VolumeJitter => volumeJitter;
 		}
 
 		[SerializeField] private List<Entry> entries = new();

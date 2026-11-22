@@ -27,11 +27,11 @@ namespace WitchMendokusai
 				breakableField = null;
 			bool inDungeon = DungeonManager.TryGetExistingInstance(out DungeonManager dungeonManager) && dungeonManager.IsDungeon;
 			TickObstacles(inDungeon);
+			TickRemains(inDungeon);
 			if (inDungeon == false)
 			{
-				// 결과 화면에서도 날던 조각은 마저 떨어짐
+				// 결과 화면에서 날던 조각은 잔해 쪽 (TickRemains) 이 마저 떨어뜨림
 				breakableRunActive = false;
-				breakableField?.TickShards();
 				return;
 			}
 			breakableField ??= new BreakableField(objectPoolManager, gameLogic, ResourceManager.Instance);
@@ -44,7 +44,6 @@ namespace WitchMendokusai
 			if (SuppressScatter)
 			{
 				breakableField.EnsureReady();
-				breakableField.TickShards();
 				return;
 			}
 			breakableField.Tick(playerProvider.CurrentObject.UnitMovement.Position);

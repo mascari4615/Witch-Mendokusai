@@ -43,6 +43,7 @@ namespace WitchMendokusai
 		{
 			ReleaseDecorations();
 			ReleaseBreakables();
+			remainsWorld?.ReleaseAll();
 			ReleaseObstacles();
 			foreach (GameObject chunk in chunks.Values)
 				chunk.SetActive(false);

@@ -143,6 +143,8 @@ namespace WitchMendokusai
 
 		[Header("Clear")]
 		[Min(0f), Tooltip("클리어 뒤 결과창까지 지연 (모든 목표, 실제 시간 초)")] public float BossClearResultDelay = 1f;
+		[Tooltip("클리어 연출 중 바닥에 남은 경험치 보석과 냥을 한꺼번에 빨아들임")] public bool VacuumDropsOnClear = true;
+		[Min(0f), Tooltip("클리어 뒤 빨아들이기 시작까지 실제 시간 초")] public float ClearVacuumDelay = .5f;
 		[Min(0f), Tooltip("사망 뒤 결과창까지 실제 시간 초")] public float DefeatResultDelay = 1f;
 
 		[Header("Run flow (판의 시작과 끝 연출)")]

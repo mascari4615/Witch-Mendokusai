@@ -87,6 +87,7 @@ namespace WitchMendokusai
 		private void OnDestroy()
 		{
 			DestroyBreakables();
+			DestroyRemains();
 			DestroyObstacles();
 			foreach (Material material in decorationMaterials.Values)
 				Destroy(material);

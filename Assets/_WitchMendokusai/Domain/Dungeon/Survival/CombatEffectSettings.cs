@@ -8,6 +8,7 @@ namespace WitchMendokusai
 		private const string DAMAGE_NUMBERS_KEY = "WM.CombatEffect.DamageNumbers";
 		private const string FLASH_KEY = "WM.CombatEffect.Flash";
 		private const string SCREEN_SHAKE_KEY = "WM.CombatEffect.ScreenShake";
+		private const string REMAINS_LINGER_KEY = "WM.CombatEffect.RemainsLinger";
 
 		public static bool DamageNumbers
 		{
@@ -26,5 +27,14 @@ namespace WitchMendokusai
 			get => PlayerPrefs.GetInt(SCREEN_SHAKE_KEY, 1) == 1;
 			set => PlayerPrefs.SetInt(SCREEN_SHAKE_KEY, value ? 1 : 0);
 		}
+
+		// 싸움 흔적 (잔해, 자국, 액체) 유지 선택지 번호. 값 목록은 RemainsSettings.LingerChoices
+		public static int RemainsLingerChoice
+		{
+			get => PlayerPrefs.GetInt(REMAINS_LINGER_KEY, RemainsSettings.Load().DefaultLingerChoice);
+			set => PlayerPrefs.SetInt(REMAINS_LINGER_KEY, value);
+		}
+
+		public static float RemainsLingerSeconds => RemainsSettings.Load().LingerSecondsAt(RemainsLingerChoice);
 	}
 }

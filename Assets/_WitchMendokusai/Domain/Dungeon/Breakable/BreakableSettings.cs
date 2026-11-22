@@ -25,6 +25,8 @@ namespace WitchMendokusai
 		[Tooltip("모양별 칸 순서. 상자: 판자, 틀, 속. 통: 판자, 띠, 뚜껑. 항아리: 흙, 무늬, 속. 바구니: 짚, 테두리, 내용물. 책 더미: 종이, 표지 여럿. 약병 상자: 판자, 틀, 마개, 병 여럿")]
 		public Color[] Palette = Array.Empty<Color>();
 		public BreakableTable Table;
+		[Tooltip("부서질 때 쏟는 바닥 액체 (기름통, 물통). 비우면 없음")] public GoopKind Spill;
+		[Min(0f), Tooltip("쏟는 웅덩이 반지름, 미터")] public float SpillRadius = 1.6f;
 	}
 
 	// 생존 던전 바닥의 부서지는 물건. 모양 생성, 배치, 타격감, 조각
@@ -68,9 +70,7 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("위로 튀는 속도")] public float ShardLift = 5f;
 		[Min(0f)] public float ShardGravity = 20f;
 		[Range(0f, 1f), Tooltip("바닥에서 되튀는 비율")] public float ShardBounce = .3f;
-		[Min(.1f), Tooltip("조각이 남는 시간 초")] public float ShardLife = .9f;
 		[Min(0f), Tooltip("조각 회전 속도, 초당 도")] public float ShardSpin = 540f;
-		[Min(1), Tooltip("동시에 남을 조각 최대 수")] public int MaxShards = 96;
 
 		[Header("Drops")]
 		public NyangObject NyangPrefab;

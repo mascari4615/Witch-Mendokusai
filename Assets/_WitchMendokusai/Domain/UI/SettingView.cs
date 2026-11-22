@@ -251,6 +251,7 @@ namespace WitchMendokusai
 			CreateOnOffToggle("피해 숫자", CombatEffectSettings.DamageNumbers, isOn => CombatEffectSettings.DamageNumbers = isOn, content);
 			CreateOnOffToggle("피격 번쩍임", CombatEffectSettings.Flash, isOn => CombatEffectSettings.Flash = isOn, content);
 			CreateOnOffToggle("화면 흔들림", CombatEffectSettings.ScreenShake, isOn => CombatEffectSettings.ScreenShake = isOn, content);
+			content.Add(CreateRemainsLingerSlider());
 
 			Label uiHeader = new Label("화면 효과");
 			uiHeader.AddToClassList("wm-setting-header");
@@ -316,6 +317,39 @@ namespace WitchMendokusai
 				UiSfx.Play(UiSfxEvent.Slider);
 			});
 			return row;
+		}
+
+		// 싸움 흔적 유지 시간. 선택지 번호를 칸 단위로 고르는 막대
+		private VisualElement CreateRemainsLingerSlider()
+		{
+			RemainsSettings remains = RemainsSettings.Load();
+			int lastChoice = remains.LingerChoices.Length - 1;
+			Slider slider = CreateSlider("싸움 흔적 유지", 0f, lastChoice, CombatEffectSettings.RemainsLingerChoice);
+			VisualElement row = new VisualElement();
+			row.AddToClassList("wm-setting-row");
+			row.Add(slider);
+			Label valueLabel = new Label(FormatLinger(remains, CombatEffectSettings.RemainsLingerChoice));
+			valueLabel.AddToClassList("wm-setting-value");
+			row.Add(valueLabel);
+			slider.RegisterValueChangedCallback(evt =>
+			{
+				int choice = Mathf.Clamp(Mathf.RoundToInt(evt.newValue), 0, lastChoice);
+				slider.SetValueWithoutNotify(choice);
+				if (choice == CombatEffectSettings.RemainsLingerChoice)
+					return;
+				CombatEffectSettings.RemainsLingerChoice = choice;
+				valueLabel.text = FormatLinger(remains, choice);
+				UiSfx.Play(UiSfxEvent.Slider);
+			});
+			return row;
+		}
+
+		private static string FormatLinger(RemainsSettings remains, int choice)
+		{
+			float seconds = remains.LingerSecondsAt(choice);
+			if (float.IsPositiveInfinity(seconds))
+				return "판 내내";
+			return seconds <= 0f ? "끔" : $"{Mathf.RoundToInt(seconds)}초";
 		}
 
 		private string FormatVolume(float value) => Mathf.RoundToInt(value * volumeDisplayScale).ToString();

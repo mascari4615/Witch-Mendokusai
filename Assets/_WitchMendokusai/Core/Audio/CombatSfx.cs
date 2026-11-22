@@ -21,22 +21,35 @@ namespace WitchMendokusai
 			lastPlayedTimes.Clear();
 		}
 
+		// 기본 재생은 표의 흔들림 (pitchJitter, volumeJitter) 을 얹음
 		public static bool Play(CombatSfxEvent sfxEvent, Vector3? position = null)
-			=> Play(sfxEvent, position, DEFAULT_PITCH, DEFAULT_VOLUME);
+		{
+			if (EnsureTable() == false)
+				return false;
+			if (table.TryGetEntry(sfxEvent, out CombatSfxTable.Entry entry) == false)
+				return false;
+			float pitch = DEFAULT_PITCH * (1f + Random.Range(-entry.PitchJitter, entry.PitchJitter));
+			float volume = DEFAULT_VOLUME * (1f - Random.Range(0f, entry.VolumeJitter));
+			return Play(sfxEvent, position, pitch, volume);
+		}
+
+		private static bool EnsureTable()
+		{
+			if (table != null)
+				return true;
+			table = Resources.Load<CombatSfxTable>(nameof(CombatSfxTable));
+			if (table != null)
+				return true;
+			Debug.LogError($"{nameof(CombatSfxTable)} not found");
+			return false;
+		}
 
 		// 음높이와 음량은 FMOD setPitch, setVolume 배수 (1 이 원래 값). 경험치 줍기처럼 상황에 따라 바뀌는 소리용
 		// 실제로 재생을 시작했으면 true. 간격, 상한, 빈 경로, 무음 실행으로 건너뛰면 false
 		public static bool Play(CombatSfxEvent sfxEvent, Vector3? position, float pitch, float volume)
 		{
-			if (table == null)
-			{
-				table = Resources.Load<CombatSfxTable>(nameof(CombatSfxTable));
-				if (table == null)
-				{
-					Debug.LogError($"{nameof(CombatSfxTable)} not found");
-					return false;
-				}
-			}
+			if (EnsureTable() == false)
+				return false;
 
 			if (table.TryGetEntry(sfxEvent, out CombatSfxTable.Entry entry) == false || string.IsNullOrEmpty(entry.EventPath))
 				return false;
