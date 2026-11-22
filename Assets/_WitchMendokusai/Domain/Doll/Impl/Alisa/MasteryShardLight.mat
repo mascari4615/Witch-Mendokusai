@@ -25,8 +25,8 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _BandHigh: 0.72
-    - _BandLow: 0.42
+    - _BandHigh: 0.8
+    - _BandLow: 0.48
     - _BandSoftness: 0.04
     - _GlintPeriod: 2.4
     - _GlintWidth: 0.07

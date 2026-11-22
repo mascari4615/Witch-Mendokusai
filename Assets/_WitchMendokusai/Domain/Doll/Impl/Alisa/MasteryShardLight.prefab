@@ -79,7 +79,9 @@ MonoBehaviour:
     SideOdd: 0.78
     Crown: 1
     Pavilion: 0.62
-  visualScale: 1
+  visualScale: 1.25
+  sparkleSize: 1.7
+  sparkleRadius: 0.5
   ringMaterial: {fileID: 2100000, guid: 9c6a097c465048299b8fd4081ed0bced, type: 2}
   groundGlowMaterial: {fileID: 2100000, guid: 4d521c96d2fd44af939a836eb90f1e32, type: 2}
   sparkleMaterial: {fileID: 2100000, guid: 71f4610add8947d8a4cab05975cba519, type: 2}
