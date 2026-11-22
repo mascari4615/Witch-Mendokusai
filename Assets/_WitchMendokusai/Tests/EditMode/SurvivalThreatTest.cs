@@ -109,9 +109,9 @@ namespace WitchMendokusai.Tests
 		public void Policy_copy_keeps_other_fields_and_rejects_far_relocation()
 		{
 			DungeonThreatPolicy source = new();
-			DungeonThreatPolicy copy = source.With(SpawnPlacementPolicy.ForwardCone, OffscreenRetirePolicy.Relocate);
-			Assert.AreEqual(SpawnPlacementPolicy.OffscreenRing, source.SpawnPolicy, "원본은 그대로");
-			Assert.AreEqual(SpawnPlacementPolicy.ForwardCone, copy.SpawnPolicy);
+			DungeonThreatPolicy copy = source.With(SpawnPlacementPolicy.OffscreenRing, OffscreenRetirePolicy.Relocate);
+			Assert.AreEqual(SpawnPlacementPolicy.ForwardCone, source.SpawnPolicy, "원본은 그대로");
+			Assert.AreEqual(SpawnPlacementPolicy.OffscreenRing, copy.SpawnPolicy);
 			Assert.AreEqual(OffscreenRetirePolicy.Relocate, copy.RetirePolicy);
 			Assert.AreEqual(source.OffscreenMaxDistance, copy.OffscreenMaxDistance);
 			List<string> errors = new();
@@ -134,7 +134,7 @@ namespace WitchMendokusai.Tests
 			Assert.IsNotNull(dungeon);
 			Assert.DoesNotThrow(dungeon.ValidateWaves);
 			Assert.IsFalse(dungeon.Arena.Enabled, "경계는 선택 옵션, 슬라임숲 기본 무한");
-			Assert.AreEqual(SpawnPlacementPolicy.OffscreenRing, dungeon.ThreatPolicy.SpawnPolicy, "기본 생성 정책은 화면 밖 둘레 (30도 카메라, 2026-11-22)");
+			Assert.AreEqual(SpawnPlacementPolicy.ForwardCone, dungeon.ThreatPolicy.SpawnPolicy, "기본 생성 정책은 앞 부채꼴 (화면 밖 둘레는 개발자 창에서 비교)");
 			Assert.AreEqual(OffscreenRetirePolicy.Retire, dungeon.ThreatPolicy.RetirePolicy, "기본 반납 정책은 기존 그대로");
 			List<string> patternNames = new();
 			foreach (WavePatternSlot slot in dungeon.WavePatterns)

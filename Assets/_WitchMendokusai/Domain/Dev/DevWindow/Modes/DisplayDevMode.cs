@@ -15,6 +15,10 @@ namespace WitchMendokusai
 		private readonly Toggle fpsToggle;
 		private readonly Toggle buildStampToggle;
 		private readonly RadioButtonGroup dungeonPitchGroup;
+		private readonly RadioButtonGroup spawnPolicyGroup;
+
+		private static readonly SpawnPlacementPolicy[] SPAWN_POLICIES = { SpawnPlacementPolicy.ForwardCone, SpawnPlacementPolicy.OffscreenRing };
+		private static readonly string[] SPAWN_POLICY_LABELS = { "앞쪽 (기본)", "화면 밖 둘레" };
 
 		public DisplayDevMode()
 		{
@@ -30,6 +34,11 @@ namespace WitchMendokusai
 			dungeonPitchGroup = new RadioButtonGroup("던전 카메라 각도");
 			dungeonPitchGroup.RegisterValueChangedCallback(changed => SelectDungeonPitch(changed.newValue));
 			Root.Add(dungeonPitchGroup);
+
+			// 적 생성 위치. 지금 판에서만, 다음 판은 던전 자산 값 (콘솔 threat spawn 과 같은 길). 어느 쪽이 좋을지 비교용
+			spawnPolicyGroup = new RadioButtonGroup("적 생성 위치 (지금 판)", SPAWN_POLICY_LABELS.ToList());
+			spawnPolicyGroup.RegisterValueChangedCallback(changed => SelectSpawnPolicy(changed.newValue));
+			Root.Add(spawnPolicyGroup);
 		}
 
 		public void OnActivate()
@@ -37,7 +46,29 @@ namespace WitchMendokusai
 			fpsToggle.SetValueWithoutNotify(UIFPS.IsVisible);
 			buildStampToggle.SetValueWithoutNotify(BuildStampOverlay.IsVisible);
 			RefreshDungeonPitch();
+			RefreshSpawnPolicy();
 		}
+
+		private void RefreshSpawnPolicy()
+		{
+			MonsterSpawner spawner = CurrentSpawner();
+			spawnPolicyGroup.SetEnabled(spawner != null);
+			if (spawner == null)
+				return;
+			spawnPolicyGroup.SetValueWithoutNotify(System.Array.IndexOf(SPAWN_POLICIES, spawner.ThreatPolicy.SpawnPolicy));
+		}
+
+		private static void SelectSpawnPolicy(int index)
+		{
+			MonsterSpawner spawner = CurrentSpawner();
+			if (spawner == null || index < 0 || index >= SPAWN_POLICIES.Length)
+				return;
+			spawner.SetThreatPolicy(spawner.ThreatPolicy.With(SPAWN_POLICIES[index], spawner.ThreatPolicy.RetirePolicy));
+		}
+
+		// 던전 안일 때만. 밖이면 null
+		private static MonsterSpawner CurrentSpawner() =>
+			DungeonManager.Instance != null && DungeonManager.Instance.IsDungeon ? DungeonManager.Instance.MonsterSpawner : null;
 
 		private void RefreshDungeonPitch()
 		{
