@@ -50,6 +50,7 @@
     <Compile Include="$(TestsRoot)Combat/HealthResolutionTests.cs" />
     <Compile Include="$(TestsRoot)Combat/StatusDetonationRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/StatusContagionRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/UnitStatusRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/HitRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/HitComboRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/HitInvincibilityRulesTests.cs" />
