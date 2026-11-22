@@ -115,6 +115,16 @@ jobs:
           . "$env:GITHUB_WORKSPACE\.github\scripts\wm-build-card.ps1"
           Stop-LeftoverUnity -Workspace $env:GITHUB_WORKSPACE
 
+          # Idle is a release build (no device-log token). A dev main build that crashed on this
+          # shared checkout can leave the gitignored token behind; WMDeviceLogTokenBuildStep would
+          # then refuse the build. Remove it here, the same way build.yml does for release.
+          $deviceLogToken = Join-Path $env:GITHUB_WORKSPACE 'Assets\_WitchMendokusai\Core\Resources\DeviceLogToken.txt'
+          if (Test-Path -LiteralPath $deviceLogToken) {
+            Remove-Item -LiteralPath $deviceLogToken -Force
+            Remove-Item -LiteralPath ($deviceLogToken + '.meta') -Force -ErrorAction SilentlyContinue
+            Write-Host '[WM-IDLE] removed leftover DeviceLogToken.txt'
+          }
+
           $os = Get-CimInstance Win32_OperatingSystem
           $ramTotal = [Math]::Round($os.TotalVisibleMemorySize / 1MB, 1)
           $ramFree  = [Math]::Round($os.FreePhysicalMemory / 1MB, 1)

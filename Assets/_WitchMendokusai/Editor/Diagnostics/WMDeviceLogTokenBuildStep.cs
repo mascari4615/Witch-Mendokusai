@@ -42,13 +42,9 @@ namespace WitchMendokusai.EditorTools
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            if (StepsDisabled())
-            {
-                Debug.Log("[WM-BUILD] WM_DIAG_BUILD_STEPS=0 — 진단 자산 심기 건너뜀");
-                return;
-            }
             // release 빌드는 로그를 안 보냄 (DeviceLogSettings.EnabledInReleaseBuild 기본 꺼짐).
-            // 공개 배포물 (GitHub 릴리스, Steam) 에 토큰이 실리지 않게 development 빌드에만 심음
+            // 공개 배포물 (GitHub 릴리스, Steam) 에 토큰이 실리지 않게 development 빌드에만 심음.
+            // 진단 스위치보다 먼저 검사 (스위치를 꺼도 잔여 파일 검사는 유지)
             bool isDevelopmentBuild = (report.summary.options & BuildOptions.Development) != 0;
             if (isDevelopmentBuild == false)
             {
@@ -58,6 +54,11 @@ namespace WitchMendokusai.EditorTools
                         "[WM-BUILD] release 빌드에 기기 로그 토큰이 남아 있음: " + ASSET_PATH + ". 지우고 다시 빌드");
                 }
                 Debug.Log("[WM-BUILD] release 빌드, 기기 로그 토큰 안 심음");
+                return;
+            }
+            if (StepsDisabled())
+            {
+                Debug.Log("[WM-BUILD] WM_DIAG_BUILD_STEPS=0, 진단 자산 심기 건너뜀");
                 return;
             }
             if (File.Exists(Path.GetFullPath(ASSET_PATH)))
