@@ -6,7 +6,7 @@ namespace WitchMendokusai.Tests
 	// 전투 시야 경계. 정본 memo wm/design/camera-angle-20261122/README.md
 	public class CombatViewTest
 	{
-		// 시험 고정값 (Camera.prefab Camera_Dungeon 과 CameraManager 기본값과 같은 수)
+		// 시험 고정값. 각은 개발자 창에서 고를 수 있는 가장 낮은 30도 (앞이 가장 멀리 보이는 경우), 거리와 깊이는 Camera.prefab, CameraManager 기본값
 		private static readonly float PITCH = 30f;
 		private static readonly float CAMERA_DISTANCE = 14f;
 		private static readonly float MAX_DEPTH = 36f;

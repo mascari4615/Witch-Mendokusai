@@ -3,9 +3,9 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 생존 던전 전투 시야의 앞쪽 경계. 카메라가 낮게 기울어 (30도) 앞쪽이 지평선까지 보여도,
+	/// 생존 던전 전투 시야의 앞쪽 경계. 카메라가 낮게 기울어 (기본 40도, 개발자 창에서 30도까지) 앞쪽이 멀리 보여도,
 	/// 적 생성과 반납, 화면 처치와 얼음, 장식 그리기의 "화면 안" 판정은 카메라 앞 이 깊이까지만.
-	/// 경계 밖은 안개로 가림. 깊이와 안개 값의 주인은 CameraManager (던전 카메라일 때 매 프레임)
+	/// 깊이 값의 주인은 CameraManager (던전 카메라일 때 매 프레임)
 	/// </summary>
 	public static class CombatView
 	{

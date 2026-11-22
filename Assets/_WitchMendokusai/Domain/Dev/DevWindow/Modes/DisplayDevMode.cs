@@ -26,7 +26,7 @@ namespace WitchMendokusai
 			buildStampToggle.RegisterValueChangedCallback(changed => BuildStampOverlay.SetVisible(changed.newValue));
 			Root.Add(buildStampToggle);
 
-			// 던전 카메라 각도. 이번 실행에서만 (저장 안 함). 안개와 시야 경계는 각도와 무관하게 그대로
+			// 던전 카메라 각도. 이번 실행에서만 (저장 안 함). 시야 경계는 각도와 무관하게 그대로
 			dungeonPitchGroup = new RadioButtonGroup("던전 카메라 각도");
 			dungeonPitchGroup.RegisterValueChangedCallback(changed => SelectDungeonPitch(changed.newValue));
 			Root.Add(dungeonPitchGroup);
