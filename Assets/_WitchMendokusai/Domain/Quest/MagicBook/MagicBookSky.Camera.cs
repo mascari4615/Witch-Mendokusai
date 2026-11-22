@@ -60,8 +60,10 @@ namespace WitchMendokusai
 			{
 				return false;
 			}
-			float zoom = skyBounds.width > 0f && skyBounds.height > 0f ? Mathf.Min(view.x / skyBounds.width, view.y / skyBounds.height) * settings.FitMargin : 1f;
-			MoveTo(skyBounds.center, Mathf.Clamp(zoom, settings.ZoomMin, settings.ZoomMax), instant);
+			// 별 자리만이 아니라 옆과 아래의 별 이름까지 담기게 넓힘
+			Rect padded = new(skyBounds.min - settings.FitPadding, skyBounds.size + settings.FitPadding * 2f);
+			float zoom = Mathf.Min(view.x / padded.width, view.y / padded.height) * settings.FitMargin;
+			MoveTo(padded.center, Mathf.Clamp(zoom, settings.ZoomMin, settings.ZoomMax), instant);
 			return true;
 		}
 

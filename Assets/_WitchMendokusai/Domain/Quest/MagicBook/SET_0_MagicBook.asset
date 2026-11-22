@@ -19,6 +19,7 @@ MonoBehaviour:
   <BranchStep>k__BackingField: 132
   <Jitter>k__BackingField: 14
   <ChapterNameGap>k__BackingField: 64
+  <BelowLabelHeight>k__BackingField: 60
   <DoneLineWidth>k__BackingField: 2.8
   <DoneGlowWidth>k__BackingField: 9
   <OpenLineWidth>k__BackingField: 2
@@ -30,7 +31,8 @@ MonoBehaviour:
   <ZoomMin>k__BackingField: 0.45
   <ZoomMax>k__BackingField: 1.8
   <ZoomStep>k__BackingField: 1.12
-  <FitMargin>k__BackingField: 0.86
+  <FitPadding>k__BackingField: {x: 200, y: 70}
+  <FitMargin>k__BackingField: 0.94
   <FollowInset>k__BackingField: 0.18
   <FollowSharpness>k__BackingField: 9
   <SettleDistance>k__BackingField: 0.05

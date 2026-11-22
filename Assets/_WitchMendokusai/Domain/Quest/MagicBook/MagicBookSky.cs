@@ -201,10 +201,13 @@ namespace WitchMendokusai
 				}
 			}
 
-			// 장 이름은 별자리 위쪽 가운데. 별 이름이 놓이는 옆과 아래를 피함
+			// 장 이름은 별자리의 가운데에서 먼 쪽 (위로 뻗는 장은 위, 아래로 뻗는 장은 아래) 가운데. 별 이름이 놓이는 옆을 피함
 			Label name = new(ChapterTitle(chapter)) { pickingMode = PickingMode.Ignore };
 			name.AddToClassList(USS_CHAPTER_NAME);
-			Vector2 namePosition = new(bounds.center.x, bounds.yMin - settings.ChapterNameGap);
+			bool below = Mathf.Sin(chapter.SkyAngle * Mathf.Deg2Rad) > 0.1f;
+			Vector2 namePosition = below
+				? new Vector2(bounds.center.x, bounds.yMax + settings.ChapterNameGap + settings.BelowLabelHeight)
+				: new Vector2(bounds.center.x, bounds.yMin - settings.ChapterNameGap);
 			name.style.left = namePosition.x;
 			name.style.top = namePosition.y;
 			world.Add(name);

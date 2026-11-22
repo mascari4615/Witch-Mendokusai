@@ -20,7 +20,8 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("가운데에서 장의 첫 별까지 거리 (하늘 px)")] public float FirstOffset { get; private set; } = 140f;
 		[field: SerializeField, Tooltip("같은 깊이의 갈래 사이 간격 (하늘 px)")] public float BranchStep { get; private set; } = 132f;
 		[field: SerializeField, Tooltip("별을 줄에서 살짝 흔드는 폭 (하늘 px). 0 이면 자로 잰 줄")] public float Jitter { get; private set; } = 14f;
-		[field: SerializeField, Tooltip("별자리 맨 위 별에서 장 이름까지 거리 (하늘 px)")] public float ChapterNameGap { get; private set; } = 64f;
+		[field: SerializeField, Tooltip("별자리 맨 위 (또는 맨 아래) 별에서 장 이름까지 거리 (하늘 px)")] public float ChapterNameGap { get; private set; } = 64f;
+		[field: SerializeField, Tooltip("별 아래 이름이 차지하는 높이 (하늘 px). 아래쪽 장 이름을 그만큼 더 내림")] public float BelowLabelHeight { get; private set; } = 60f;
 
 		// 선과 가루의 색은 MagicBook.uss 의 사용자 속성 (--wm-mb-line-done 등)
 		[field: Header("선")]
@@ -39,7 +40,8 @@ namespace WitchMendokusai
 		[field: SerializeField] public float ZoomMin { get; private set; } = 0.45f;
 		[field: SerializeField] public float ZoomMax { get; private set; } = 1.8f;
 		[field: SerializeField, Tooltip("휠 한 칸에 곱하는 배율")] public float ZoomStep { get; private set; } = 1.12f;
-		[field: SerializeField, Tooltip("열 때 하늘 전체를 담고 남기는 여백 (화면 비율)")] public float FitMargin { get; private set; } = 0.86f;
+		[field: SerializeField, Tooltip("열 때 담는 칸을 별 자리보다 넓히는 양 (하늘 px). 별 이름 길이만큼")] public Vector2 FitPadding { get; private set; } = new(200f, 70f);
+		[field: SerializeField, Tooltip("열 때 하늘 전체를 담고 남기는 여백 (화면 비율)")] public float FitMargin { get; private set; } = 0.94f;
 		[field: SerializeField, Tooltip("고른 별이 이 안쪽 (화면 비율) 을 벗어나면 카메라가 따라감")] public float FollowInset { get; private set; } = 0.18f;
 		[field: SerializeField, Tooltip("카메라가 목표로 다가가는 빠르기 (초당, 클수록 빠름)")] public float FollowSharpness { get; private set; } = 9f;
 		[field: SerializeField, Tooltip("카메라가 목표에서 이만큼 (화면 px) 안이면 멈춤")] public float SettleDistance { get; private set; } = 0.05f;
