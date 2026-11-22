@@ -1,217 +1,90 @@
-/* 던전 숙련 막대 HUD (DollMasteryHud). 스킬창 (RunEquipmentHud.uss) 바로 위, 같은 가로 기준 (left 54%)
-   말은 스킬창과 같게: 마름모 칸, 바탕 rgba(14,41,49), 흰 0.196 테두리 (사용자 2026-11-18 "기존 마름모 디자인 처럼")
-   구조: .wm-mastery > __plate (평행사변형 뒤판, 코드가 그림)
-                     > __side (막대 하나, 둘째는 --mirror) > __icon-frame (45도 마름모) > __icon (-45도, 막대 색으로 물든 흰 아이콘)
-                                                          > __body > __pips > __pip (45도 작은 마름모) > __pip-core (막대 색)
-                                                                   > __caption > __name, __count, __ready-tag
-                     > __emblem (가운데 갈림 표식)
-   상태: __side--ready (막대 찼음, 확정 카드 열림) + --pulse (맥박 켜짐), --confirmed (확정한 쪽), --dim (확정 반대쪽)
-         __pip--filled, __pip--pop (먹은 칸 튐), __icon-frame--flash (먹은 순간) */
+/* 던전 숙련 막대 HUD (DollMasteryHud). 왼쪽 아래 인물 체력 띠 위, 인물 이름 바로 위 한 줄 (사용자 2026-11-23 00:26 '하단바 너무 시야를 잡아먹어')
+   자리: 1920x1080 실측으로 체력 띠 왼쪽 끝 (인물 얼굴 칸) 과 맞춤. 체력 띠는 uGUI 라 해상도마다 다시 볼 것
+   구조: .wm-mastery > __side (막대 하나) > __icon (막대 색으로 물든 흰 아이콘), __pip x 문턱 (45도 작은 마름모)
+                     > __separator (막대 사이 점)
+   상태: __side--ready (찼음) + --pulse (맥박 켜짐), --dim (확정 반대쪽). __pip--filled, --pop (먹은 칸 튐), __icon--flash */
 
 .wm-mastery {
-    --wm-mastery-frame: rgba(14, 41, 49, 0.9);
-    --wm-mastery-outline: rgba(255, 255, 255, 0.22);
-    --wm-mastery-text: rgb(236, 236, 240);
-    --wm-mastery-dim-text: rgba(236, 236, 240, 0.55);
+    --wm-mastery-empty: rgba(10, 24, 30, 0.85);
+    --wm-mastery-outline: rgba(255, 255, 255, 0.45);
+    --wm-mastery-filled-outline: rgba(255, 255, 255, 0.95);
     /* 코드가 읽는 값 */
-    --wm-mastery-pop-milliseconds: 220;
+    --wm-mastery-pop-milliseconds: 200;
     --wm-mastery-pulse-milliseconds: 420;
-    --wm-mastery-plate-fill: rgba(8, 18, 24, 0.82);
-    --wm-mastery-plate-edge: rgba(255, 255, 255, 0.18);
-    --wm-mastery-plate-slant: 22;
 
     position: absolute;
-    left: 54%;
-    bottom: 94px;
-    translate: -50% 0;
+    left: 88px;
+    bottom: 100px;
     flex-direction: row;
     align-items: center;
-    padding: 6px 34px;
 }
 
 .wm-mastery--hidden {
     display: none;
 }
 
-.wm-mastery__plate {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-}
-
-/* 막대 한쪽: 아이콘 마름모 + 보석 칸과 글자 */
 .wm-mastery__side {
     flex-direction: row;
     align-items: center;
-    transition-property: opacity, scale;
-    transition-duration: 0.25s, 0.18s;
-    transition-timing-function: ease-out, ease-out-back;
-}
-
-.wm-mastery__side--mirror {
-    flex-direction: row-reverse;
+    transition-property: opacity;
+    transition-duration: 0.25s;
 }
 
 .wm-mastery__side--dim {
-    opacity: 0.32;
+    opacity: 0.3;
 }
 
-.wm-mastery__side--pulse {
-    scale: 1.06 1.06;
-}
-
-/* 아이콘 마름모: 스킬 칸 마름모와 같은 말, 테두리만 막대 색 (코드) */
-.wm-mastery__icon-frame {
-    width: 40px;
-    height: 40px;
-    rotate: 45deg;
-    background-color: var(--wm-mastery-frame);
-    border-width: 2px;
-    border-radius: 3px;
-    margin: 0 10px;
-    align-items: center;
-    justify-content: center;
-    transition-property: scale, background-color;
+.wm-mastery__icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    -unity-background-scale-mode: scale-to-fit;
+    transition-property: scale;
     transition-duration: 0.14s;
     transition-timing-function: ease-out-back;
 }
 
-.wm-mastery__icon-frame--flash {
-    scale: 1.28 1.28;
-    background-color: rgba(255, 255, 255, 0.35);
+.wm-mastery__icon--flash {
+    scale: 1.45 1.45;
 }
 
-.wm-mastery__side--ready .wm-mastery__icon-frame {
-    border-width: 3px;
-    background-color: rgba(40, 60, 70, 0.95);
+.wm-mastery__side--ready .wm-mastery__icon {
+    scale: 1.2 1.2;
 }
 
-.wm-mastery__icon {
-    width: 30px;
-    height: 30px;
-    rotate: -45deg;
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-.wm-mastery__body {
-    align-items: flex-start;
-}
-
-.wm-mastery__side--mirror .wm-mastery__body {
-    align-items: flex-end;
-}
-
-/* 보석 칸: 작은 마름모, 빈 칸은 어두운 바탕에 흰 테두리, 찬 칸은 막대 색 보석 */
-.wm-mastery__pips {
-    flex-direction: row;
-}
-
-.wm-mastery__side--mirror .wm-mastery__pips {
-    flex-direction: row-reverse;
+.wm-mastery__side--pulse .wm-mastery__icon {
+    scale: 1.45 1.45;
 }
 
 .wm-mastery__pip {
-    width: 15px;
-    height: 15px;
-    margin: 0 4px;
+    width: 7px;
+    height: 7px;
+    margin: 0 2px;
     rotate: 45deg;
-    background-color: var(--wm-mastery-frame);
+    background-color: var(--wm-mastery-empty);
     border-width: 1px;
     border-color: var(--wm-mastery-outline);
-    border-radius: 2px;
-    align-items: center;
-    justify-content: center;
     transition-property: scale;
-    transition-duration: 0.2s;
+    transition-duration: 0.18s;
     transition-timing-function: ease-out-back;
 }
 
-.wm-mastery__pip-core {
-    width: 0;
-    height: 0;
-    border-radius: 1px;
-    transition-property: width, height;
-    transition-duration: 0.16s;
-    transition-timing-function: ease-out;
-}
-
 .wm-mastery__pip--filled {
-    border-color: rgba(255, 255, 255, 0.85);
-}
-
-.wm-mastery__pip--filled .wm-mastery__pip-core {
-    width: 11px;
-    height: 11px;
+    border-color: var(--wm-mastery-filled-outline);
 }
 
 .wm-mastery__pip--pop {
-    scale: 1.7 1.7;
+    scale: 1.9 1.9;
 }
 
-.wm-mastery__side--ready .wm-mastery__pip--filled {
-    border-color: rgb(255, 255, 255);
+.wm-mastery__side--pulse .wm-mastery__pip--filled {
+    scale: 1.25 1.25;
 }
 
-/* 이름과 수, 찼을 때 '변신 가능' */
-.wm-mastery__caption {
-    flex-direction: row;
-    align-items: center;
-    margin-top: 6px;
-}
-
-.wm-mastery__side--mirror .wm-mastery__caption {
-    flex-direction: row-reverse;
-}
-
-.wm-mastery__name {
-    font-size: 14px;
-    -unity-font-style: bold;
-    margin: 0 4px;
-    -unity-text-outline-width: 1px;
-    -unity-text-outline-color: rgba(0, 0, 0, 0.8);
-}
-
-.wm-mastery__count {
-    font-size: 13px;
-    color: var(--wm-mastery-dim-text);
-    margin: 0 2px;
-}
-
-.wm-mastery__ready-tag {
-    display: none;
-    font-size: 12px;
-    -unity-font-style: bold;
-    color: rgb(20, 24, 28);
-    background-color: rgb(255, 238, 170);
-    border-radius: 3px;
-    padding: 1px 6px;
-    margin: 0 6px;
-}
-
-.wm-mastery__side--ready .wm-mastery__ready-tag {
-    display: flex;
-}
-
-.wm-mastery__side--ready .wm-mastery__count {
-    color: var(--wm-mastery-text);
-}
-
-/* 가운데 갈림 표식: 두 갈래 사이 작은 마름모 */
-.wm-mastery__emblem {
-    width: 30px;
-    height: 46px;
-    align-items: center;
-    justify-content: center;
-    margin: 0 6px;
-}
-
-.wm-mastery__emblem-frame {
-    width: 12px;
-    height: 12px;
+.wm-mastery__separator {
+    width: 3px;
+    height: 3px;
+    margin: 0 7px;
     rotate: 45deg;
-    border-width: 1px;
-    border-color: var(--wm-mastery-outline);
-    background-color: rgba(255, 255, 255, 0.12);
+    background-color: var(--wm-mastery-outline);
 }

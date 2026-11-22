@@ -17,7 +17,7 @@ namespace WitchMendokusai
 		[SerializeField] private MeshRenderer crystalRenderer;
 		[SerializeField, Tooltip("수정 무리 모양. 같은 이름이면 메시 공유")] private string clusterName = "MasteryCrystal";
 		[SerializeField] private List<CrystalSpec> crystals = new();
-		[SerializeField, Tooltip("수정 무리 크기 배율 (카메라 거리에 맞춤)"), Min(0.1f)] private float visualScale = 1.7f;
+		[SerializeField, Tooltip("수정 무리 크기 배율. 조각이라 작게, 보이는 건 빛과 발광으로 (사용자 2026-11-23 00:26)"), Min(0.1f)] private float visualScale = 0.9f;
 
 		[Header("움직임")]
 		[SerializeField, Tooltip("초당 회전 각도")] private float spinSpeed = 70f;
