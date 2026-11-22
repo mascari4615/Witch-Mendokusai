@@ -27,6 +27,8 @@ MonoBehaviour:
   - rid: 3717169744695263322
   - rid: 3717169744695263323
   connections: []
+  skyAngle: -24
+  skyDepthStep: 230
   references:
     version: 2
     RefIds:

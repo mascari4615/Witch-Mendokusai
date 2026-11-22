@@ -1,0 +1,499 @@
+/* 마도서 하늘. 기준 화면 높이 1080 (MenuStage.Fit). 글꼴과 공용 토큰은 FullMenu.uss 를 같이 씀
+   결: 게임 화면을 비치지 않는 남보라 밤하늘, 깬 길만 보라로 빛나고, 받을 보상만 금빛 (시안 5판) */
+
+.wm-mb {
+    --wm-mb-sky: rgb(17, 15, 38);
+    --wm-mb-violet: rgb(190, 140, 255);
+    --wm-mb-gold: rgb(255, 214, 120);
+    --wm-mb-ink: rgb(236, 232, 244);
+    --wm-mb-ink-soft: rgba(236, 232, 244, 0.78);
+    --wm-mb-ink-dim: rgba(200, 205, 230, 0.42);
+    --wm-mb-card: rgb(22, 19, 44);
+    --wm-mb-card-line: rgba(190, 140, 255, 0.55);
+
+    /* 선과 가루 색은 MagicBookSky 가 읽음 (Painter2D) */
+    --wm-mb-line-done: rgb(190, 140, 255);
+    --wm-mb-line-done-glow: rgba(190, 140, 255, 0.28);
+    --wm-mb-line-open: rgba(236, 232, 244, 0.7);
+    --wm-mb-line-dim: rgba(170, 180, 220, 0.22);
+    --wm-mb-dust: rgb(230, 225, 255);
+}
+
+/* 불투명 하늘. 흐린 게임 화면을 쓰지 않음 (사용자 2026-11-22) */
+.wm-fullmenu.wm-mb {
+    background-color: var(--wm-mb-sky);
+}
+
+.wm-mb__stage {
+    padding: 36px 56px 32px 56px;
+}
+
+/* ===== 하늘 ===== */
+
+.wm-mb-sky {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.wm-mb-sky__nebula {
+    position: absolute;
+    background-size: 100% 100%;
+}
+
+.wm-mb-sky__nebula--1 {
+    left: -14%;
+    top: -30%;
+    width: 72%;
+    height: 110%;
+    -unity-background-image-tint-color: rgba(120, 70, 210, 0.42);
+}
+
+.wm-mb-sky__nebula--2 {
+    left: 46%;
+    top: -10%;
+    width: 70%;
+    height: 100%;
+    -unity-background-image-tint-color: rgba(60, 90, 200, 0.36);
+}
+
+.wm-mb-sky__nebula--3 {
+    left: 18%;
+    top: 46%;
+    width: 64%;
+    height: 90%;
+    -unity-background-image-tint-color: rgba(170, 70, 170, 0.22);
+}
+
+.wm-mb-sky__dust {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.wm-mb-world {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    transform-origin: 0 0;
+    overflow: visible;
+}
+
+.wm-mb-lines {
+    position: absolute;
+}
+
+/* ===== 가운데 마도서 ===== */
+
+.wm-mb-hub {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    overflow: visible;
+}
+
+.wm-mb-hub__glow {
+    position: absolute;
+    left: -150px;
+    top: -150px;
+    width: 300px;
+    height: 300px;
+    background-size: 100% 100%;
+    -unity-background-image-tint-color: rgba(190, 140, 255, 0.55);
+}
+
+.wm-mb-hub__core {
+    position: absolute;
+    left: -44px;
+    top: -44px;
+    width: 88px;
+    height: 88px;
+    border-radius: 44px;
+    border-width: 3px;
+    border-color: var(--wm-mb-violet);
+    background-color: var(--wm-mb-card);
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-mb-hub__icon {
+    width: 50px;
+    height: 50px;
+    background-size: 100% 100%;
+    -unity-background-image-tint-color: var(--wm-mb-ink);
+}
+
+.wm-mb-hub__name {
+    position: absolute;
+    left: -120px;
+    top: 54px;
+    width: 240px;
+    font-size: 26px;
+    letter-spacing: 6px;
+    -unity-text-align: middle-center;
+    color: var(--wm-mb-ink);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(8, 6, 20);
+}
+
+.wm-mb-chapter-name {
+    position: absolute;
+    translate: -50% -50%;
+    font-size: 28px;
+    letter-spacing: 6px;
+    color: var(--wm-mb-violet);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(8, 6, 20);
+}
+
+.wm-mb-chapter-name--locked {
+    color: var(--wm-mb-ink-dim);
+}
+
+/* ===== 별 ===== */
+/* 별 가운데가 자기 자리에 오게 크기의 절반만큼 당김. 버튼 기본 모양은 지움 */
+
+.wm-mb .wm-mb-star {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    margin: -24px 0 0 -24px;
+    padding: 0;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    overflow: visible;
+}
+
+.wm-mb .wm-mb-star:hover,
+.wm-mb .wm-mb-star:active,
+.wm-mb .wm-mb-star:focus {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.wm-mb-star__glow {
+    position: absolute;
+    left: -36px;
+    top: -36px;
+    width: 120px;
+    height: 120px;
+    background-size: 100% 100%;
+    display: none;
+}
+
+.wm-mb-star__ring {
+    position: absolute;
+    left: -9px;
+    top: -9px;
+    width: 66px;
+    height: 66px;
+    border-radius: 33px;
+    border-width: 2px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+.wm-mb-star__core {
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    border-width: 2px;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-mb-star__icon {
+    width: 26px;
+    height: 26px;
+    background-size: 100% 100%;
+}
+
+/* 장의 입구 별은 마름모 */
+.wm-mb-star--gate .wm-mb-star__core {
+    border-radius: 4px;
+    rotate: 45deg;
+}
+
+.wm-mb-star--gate .wm-mb-star__icon {
+    rotate: -45deg;
+}
+
+.wm-mb-star__label {
+    position: absolute;
+    left: 62px;
+    top: 24px;
+    translate: 0 -50%;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.wm-mb-star--label-left .wm-mb-star__label {
+    left: auto;
+    right: 62px;
+    align-items: flex-end;
+}
+
+.wm-mb-star__name {
+    font-size: 24px;
+    white-space: nowrap;
+    color: var(--wm-mb-ink);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(8, 6, 20);
+}
+
+.wm-mb-star__sub {
+    margin-top: 2px;
+    font-size: 19px;
+    white-space: nowrap;
+    color: var(--wm-mb-ink-soft);
+    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11.ttf");
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(8, 6, 20);
+}
+
+/* 마침: 보라로 채우고 빛남 */
+.wm-mb-star--done .wm-mb-star__core {
+    background-color: var(--wm-mb-violet);
+    border-color: rgb(235, 220, 255);
+}
+
+.wm-mb-star--done .wm-mb-star__icon {
+    -unity-background-image-tint-color: rgb(30, 18, 60);
+}
+
+.wm-mb-star--done .wm-mb-star__glow {
+    display: flex;
+    -unity-background-image-tint-color: rgba(190, 140, 255, 0.7);
+}
+
+/* 진행 중: 어두운 속, 흰 테두리 */
+.wm-mb-star--doing .wm-mb-star__core {
+    background-color: var(--wm-mb-card);
+    border-color: var(--wm-mb-ink);
+}
+
+.wm-mb-star--doing .wm-mb-star__icon {
+    -unity-background-image-tint-color: var(--wm-mb-ink);
+}
+
+/* 보상 받을 수 있음: 금빛 하나만 */
+.wm-mb-star--ready .wm-mb-star__core {
+    background-color: var(--wm-mb-card);
+    border-color: var(--wm-mb-gold);
+}
+
+.wm-mb-star--ready .wm-mb-star__icon {
+    -unity-background-image-tint-color: var(--wm-mb-gold);
+}
+
+.wm-mb-star--ready .wm-mb-star__glow {
+    display: flex;
+    left: -16px;
+    top: -16px;
+    width: 80px;
+    height: 80px;
+    -unity-background-image-tint-color: rgba(255, 214, 120, 0.55);
+}
+
+.wm-mb-star--ready .wm-mb-star__sub {
+    color: var(--wm-mb-gold);
+}
+
+/* 잠김: 아이콘 없는 작은 점 */
+.wm-mb-star--locked .wm-mb-star__core {
+    left: 16px;
+    top: 16px;
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    border-width: 0;
+    background-color: rgba(210, 215, 240, 0.6);
+}
+
+.wm-mb-star--locked .wm-mb-star__icon {
+    display: none;
+}
+
+.wm-mb-star--locked .wm-mb-star__name {
+    color: var(--wm-mb-ink-dim);
+}
+
+/* 고른 별: 흰 고리 */
+.wm-mb .wm-mb-star:hover .wm-mb-star__ring {
+    border-color: rgba(236, 232, 244, 0.45);
+}
+
+.wm-mb .wm-mb-star:focus .wm-mb-star__ring {
+    border-width: 3px;
+    border-color: var(--wm-mb-ink);
+}
+
+/* ===== 위 줄: 장 이름, 투기장, 닫기 ===== */
+
+.wm-mb-tabs {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-mb .wm-mb-tab {
+    height: 60px;
+    margin: 0 8px 0 0;
+    padding: 0 22px;
+    border-width: 0 0 3px 0;
+    border-radius: 0;
+    border-color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0);
+    font-size: 26px;
+    color: var(--wm-mb-ink-soft);
+}
+
+.wm-mb .wm-mb-tab:hover,
+.wm-mb .wm-mb-tab:focus {
+    background-color: rgba(190, 140, 255, 0.14);
+    border-color: var(--wm-mb-violet);
+    color: var(--wm-mb-ink);
+}
+
+.wm-mb .wm-mb-tab--locked {
+    color: var(--wm-mb-ink-dim);
+}
+
+.wm-mb .wm-mb-arena {
+    width: 168px;
+    height: 60px;
+    margin: 0 16px 0 0;
+    padding: 0;
+    border-width: 2px;
+    border-radius: 0;
+    border-color: rgba(255, 255, 255, 0.35);
+    background-color: rgb(20, 18, 34);
+    font-size: 24px;
+    color: var(--wm-mb-ink-soft);
+}
+
+.wm-mb .wm-mb-arena:hover,
+.wm-mb .wm-mb-arena:focus,
+.wm-mb .wm-fullmenu-close:hover,
+.wm-mb .wm-fullmenu-close:focus {
+    border-color: var(--wm-mb-ink);
+    color: var(--wm-mb-ink);
+    background-color: rgb(40, 32, 70);
+}
+
+/* ===== 아래 줄: 키 안내, 진행 ===== */
+
+.wm-mb__bottom {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 56px;
+}
+
+.wm-mb-hints {
+    flex-direction: row;
+    align-items: center;
+}
+
+.wm-mb-hint {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 28px;
+}
+
+.wm-mb-hint__key {
+    margin-right: 10px;
+}
+
+.wm-mb-hint__text {
+    font-size: 22px;
+    color: var(--wm-mb-ink-soft);
+}
+
+.wm-mb-progress {
+    font-size: 24px;
+    color: var(--wm-mb-ink);
+}
+
+/* ===== 팝업 ===== */
+
+.wm-mb-popup {
+    position: absolute;
+    width: 460px;
+    padding: 26px 30px 26px 30px;
+    background-color: var(--wm-mb-card);
+    border-width: 2px;
+    border-color: var(--wm-mb-card-line);
+    display: none;
+}
+
+.wm-mb-popup--shown {
+    display: flex;
+}
+
+.wm-mb-popup .wm-quest-detail__name {
+    margin-bottom: 10px;
+    font-size: 30px;
+    white-space: normal;
+    color: var(--wm-mb-ink);
+}
+
+.wm-mb-popup .wm-quest-detail__desc {
+    margin-bottom: 16px;
+    font-size: 21px;
+    white-space: normal;
+    color: var(--wm-mb-ink-soft);
+    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11.ttf");
+}
+
+.wm-mb-popup .wm-quest-detail__state {
+    margin-bottom: 4px;
+    font-size: 21px;
+    color: var(--wm-mb-violet);
+}
+
+.wm-mb-popup .wm-quest-detail__progress {
+    margin-bottom: 8px;
+    font-size: 21px;
+    color: var(--wm-mb-gold);
+}
+
+.wm-mb-popup .wm-quest-detail__criteria {
+    margin-bottom: 8px;
+}
+
+.wm-mb-popup .wm-quest-detail__criterion {
+    font-size: 20px;
+    color: var(--wm-mb-ink-soft);
+    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11.ttf");
+}
+
+.wm-mb-popup .wm-quest-detail__criterion--done {
+    color: var(--wm-mb-violet);
+}
+
+.wm-mb-popup .wm-quest-detail__button {
+    height: 52px;
+    margin: 10px 0 0 0;
+    border-width: 2px;
+    border-radius: 0;
+    border-color: rgba(255, 255, 255, 0.35);
+    background-color: rgb(32, 26, 58);
+    font-size: 22px;
+    color: var(--wm-mb-ink);
+}
+
+.wm-mb-popup .wm-quest-detail__button:hover,
+.wm-mb-popup .wm-quest-detail__button:focus {
+    border-color: var(--wm-mb-gold);
+    background-color: rgb(52, 42, 84);
+}

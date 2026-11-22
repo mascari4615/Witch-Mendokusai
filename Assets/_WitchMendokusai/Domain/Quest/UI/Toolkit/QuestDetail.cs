@@ -11,6 +11,9 @@ namespace WitchMendokusai
 		public const string USS_STATE = "wm-quest-detail__state";
 		public const string USS_PROGRESS = "wm-quest-detail__progress";
 		public const string USS_CRITERIA = "wm-quest-detail__criteria";
+		public const string USS_CRITERION = "wm-quest-detail__criterion";
+		public const string USS_CRITERION_DONE = "wm-quest-detail__criterion--done";
+		public const string USS_BUTTON = "wm-quest-detail__button";
 
 		private readonly Label nameLabel;
 		private readonly Label descLabel;
@@ -23,11 +26,6 @@ namespace WitchMendokusai
 		private RuntimeQuest quest;
 		private QuestSO questSOFallback;
 
-		private static readonly Color NAME_COLOR = new(0.95f, 0.95f, 1f, 1f);
-		private static readonly Color DESC_COLOR = new(0.78f, 0.78f, 0.88f, 1f);
-		private static readonly Color STATE_COLOR = new(0.85f, 0.95f, 1f, 1f);
-		private static readonly Color PROGRESS_COLOR = new(0.95f, 0.85f, 0.5f, 1f);
-
 		private readonly QuestManager questManager;
 
 		public QuestDetail(QuestManager questManager)
@@ -37,46 +35,30 @@ namespace WitchMendokusai
 
 			nameLabel = new Label();
 			nameLabel.AddToClassList(USS_NAME);
-			nameLabel.style.fontSize = 18;
-			nameLabel.style.color = NAME_COLOR;
-			nameLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-			nameLabel.style.marginBottom = 8;
-			nameLabel.style.whiteSpace = WhiteSpace.Normal;
 			Add(nameLabel);
 
 			descLabel = new Label();
 			descLabel.AddToClassList(USS_DESC);
-			descLabel.style.whiteSpace = WhiteSpace.Normal;
-			descLabel.style.fontSize = 12;
-			descLabel.style.color = DESC_COLOR;
-			descLabel.style.marginBottom = 12;
 			Add(descLabel);
 
 			stateLabel = new Label();
 			stateLabel.AddToClassList(USS_STATE);
-			stateLabel.style.fontSize = 13;
-			stateLabel.style.color = STATE_COLOR;
-			stateLabel.style.marginBottom = 4;
 			Add(stateLabel);
 
 			progressLabel = new Label();
 			progressLabel.AddToClassList(USS_PROGRESS);
-			progressLabel.style.fontSize = 13;
-			progressLabel.style.color = PROGRESS_COLOR;
-			progressLabel.style.marginBottom = 8;
 			Add(progressLabel);
 
 			criteriaContainer = new VisualElement();
 			criteriaContainer.AddToClassList(USS_CRITERIA);
-			criteriaContainer.style.marginBottom = 12;
 			Add(criteriaContainer);
 
 			workButton = new Button(OnWorkClicked) { text = "작업 시작" };
-			workButton.style.marginTop = 4;
+			workButton.AddToClassList(USS_BUTTON);
 			Add(workButton);
 
 			completeButton = new Button(OnCompleteClicked) { text = "보상 받기" };
-			completeButton.style.marginTop = 4;
+			completeButton.AddToClassList(USS_BUTTON);
 			Add(completeButton);
 
 			style.display = DisplayStyle.None;
@@ -104,7 +86,7 @@ namespace WitchMendokusai
 
 			nameLabel.text = quest?.Name ?? questSOFallback?.Name ?? "?";
 			descLabel.text = quest?.Description ?? questSOFallback?.Description ?? string.Empty;
-			stateLabel.text = quest != null ? quest.State.ToString() : "잠김";
+			stateLabel.text = quest != null ? StateText(quest.State) : "잠김";
 			progressLabel.text = quest != null ? questManager.ProgressTextOf(quest) : string.Empty;
 
 			criteriaContainer.Clear();
@@ -113,9 +95,8 @@ namespace WitchMendokusai
 				foreach (RuntimeCriteria criteria in quest.Criteria)
 				{
 					Label label = new(BuildCriteriaText(criteria));
-					label.style.color = criteria.IsCompleted
-						? new Color(0.3f, 0.9f, 0.3f)
-						: Color.white;
+					label.AddToClassList(USS_CRITERION);
+					label.EnableInClassList(USS_CRITERION_DONE, criteria.IsCompleted);
 					criteriaContainer.Add(label);
 				}
 			}
@@ -125,6 +106,17 @@ namespace WitchMendokusai
 			completeButton.style.display = quest != null && quest.State == RuntimeQuestState.CanComplete
 				? DisplayStyle.Flex : DisplayStyle.None;
 		}
+
+		/// <summary>화면에 보이는 진행 상태 이름. 버튼으로 할 수 있는 일과 같은 말로</summary>
+		public static string StateText(RuntimeQuestState state) => state switch
+		{
+			RuntimeQuestState.InProgress => "진행 중",
+			RuntimeQuestState.CanWork => "작업할 수 있음",
+			RuntimeQuestState.Working => "작업 중",
+			RuntimeQuestState.CanComplete => "보상 받을 수 있음",
+			RuntimeQuestState.Completed => "마침",
+			_ => state.ToString(),
+		};
 
 		private string BuildCriteriaText(RuntimeCriteria criteria)
 		{

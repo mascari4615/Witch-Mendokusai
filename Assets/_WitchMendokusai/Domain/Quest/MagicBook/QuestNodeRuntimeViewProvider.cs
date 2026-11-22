@@ -32,7 +32,7 @@ namespace WitchMendokusai
 			if (target == null)
 				return null;
 
-			// host 는 MagicBookView 가 ChapterView.Host 로 꽂은 QuestManager. 없으면 (미리보기, 시험) 전부 잠김
+			// host 는 그래프 화면을 띄운 쪽이 꽂은 QuestManager. 없으면 (미리보기, 시험) 전부 잠김
 			QuestManager questManager = host as QuestManager;
 			QuestState gateState = TryGetQuestState(questManager, target.ID);
 			RuntimeQuest runtimeQuest = TryGetRuntimeQuest(questManager, target);

@@ -37,6 +37,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("상호작용 표시 모양")] private StyleSheet interactPromptStyle;
 		[SerializeField, Tooltip("전체 메뉴 (ESC) 모양과 수치")] private FullMenuSettings fullMenuSettings;
 		[field: SerializeField, Tooltip("업적 전체 화면 모양과 수치. 업적 화면은 씬 view 라 UIManager 가 넘겨 줌")] public AchievementScreenSettings AchievementSettings { get; private set; }
+		[SerializeField, Tooltip("마도서 하늘 화면 모양과 수치")] private MagicBookSettings magicBookSettings;
 		[field: SerializeField] public WitchMendokusai.Presentation.DamageTextSkin DamageTextSkin { get; private set; }
 		[field: SerializeField] public CreditsInfo Credits { get; private set; }
 
@@ -110,6 +111,7 @@ namespace WitchMendokusai
 			SettingView = gameObject.AddComponent<SettingView>();
 			KeybindHelpView = gameObject.AddComponent<KeybindHelpView>();
 			MagicBookView = gameObject.AddComponent<MagicBookView>();
+			MagicBookView.Settings = magicBookSettings;
 			WorldClockView = gameObject.AddComponent<WorldClockView>();
 			// 전체 메뉴 (ESC, 폰 뒤로가기). 설정창은 이 메뉴 안의 버튼
 			FullMenuView = gameObject.AddComponent<FullMenuView>();
