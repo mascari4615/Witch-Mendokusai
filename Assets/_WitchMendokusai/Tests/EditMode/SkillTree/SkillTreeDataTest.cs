@@ -114,15 +114,19 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void ShippedFiles_AreLoaded() => Assert.That(SkillTreeCatalog.LoadResources().Count, Is.EqualTo(36));
 
-		// 알리사 전용 무기 반짇고리. 카드는 전부 트리 파일 안 (자산 카드 없음), 처음부터 고를 수 있음
+		// 알리사 전용 무기 반짇고리. 카드는 전부 트리 파일 안 (자산 카드 없음). 바늘 관통과 피해는 바늘 한 움큼 뒤, 튼튼한 바느질은 실 한 타래 뒤
 		[Test]
-		public void SewingBoxTree_IsInlineAndAllOpenFromStart()
+		public void SewingBoxTree_IsInline_AndNeedleThreadFollowTheirFirstCard()
 		{
 			SkillTree tree = catalog.Find(SEWING_BOX);
 			Assert.That(tree, Is.Not.Null);
 			Assert.That(tree.Nodes.Count, Is.EqualTo(8));
 			Assert.That(tree.Nodes.All(node => node.IsInline));
-			Assert.That(tree.Nodes.All(node => node.IsUnlocked(new List<CardData>())));
+			string[] lockedAtStart = { "needle_pierce", "needle_damage", "thread_potency" };
+			foreach (SkillTreeNode node in tree.Nodes)
+				Assert.That(node.IsUnlocked(new List<CardData>()), Is.EqualTo(lockedAtStart.Contains(node.Id) == false), node.Id);
+			List<CardData> afterFirsts = new() { tree.Nodes.First(node => node.Id == "needle_count").Card, tree.Nodes.First(node => node.Id == "thread_frequency").Card };
+			Assert.That(tree.Nodes.All(node => node.IsUnlocked(afterFirsts)));
 		}
 
 		[Test]

@@ -21,29 +21,6 @@ namespace WitchMendokusai.Tests
 			created.Clear();
 		}
 
-		// 알리사 숙련 조각: 빛과 그림자 13개씩 고정, 번갈아, 20초마다 (사용자 결정 2026-11-22 22:07)
-		[Test]
-		public void AlisaShards_AreFixedCount_Alternating_OnGap()
-		{
-			DollMasteryData mastery = AssetDatabase.LoadAssetAtPath<DollMasteryData>("Assets/_WitchMendokusai/Domain/Doll/Impl/Alisa/DMD_알리사.asset");
-			Assert.That(mastery, Is.Not.Null);
-			List<string> errors = new();
-			mastery.ShardBudget.Validate(errors);
-			Assert.That(errors, Is.Empty);
-			Assert.That(() => mastery.ThrowIfInvalid(), Throws.Nothing);
-
-			List<MapObjectPlan> plans = MapObjectPlanner.Plan(mastery.ShardBudget, 4615, new MapObjectPacing(mastery.ShardGapSeconds, true), out _);
-
-			Assert.That(plans.Count, Is.EqualTo(26));
-			Assert.That(plans.GroupBy(plan => plan.Data).Select(group => group.Count()), Is.All.EqualTo(13));
-			for (int i = 1; i < plans.Count; i++)
-			{
-				Assert.That(plans[i].Data, Is.Not.SameAs(plans[i - 1].Data), $"{i} 번째가 앞과 같은 종류");
-				Assert.That(plans[i].SpawnTime - plans[i - 1].SpawnTime, Is.EqualTo(mastery.ShardGapSeconds).Within(0.001f));
-			}
-			Assert.That(plans[^1].SpawnTime, Is.LessThan(600f), "판 10분 안에 다 나옴");
-		}
-
 		private MapObjectData MakeData(string name, int cost, float weight, Vector2Int countRange, float minSpacing = 0f, Vector2? spawnTime = null)
 		{
 			MapObjectData data = ScriptableObject.CreateInstance<MapObjectData>();

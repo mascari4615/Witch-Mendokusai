@@ -1,0 +1,76 @@
+/* 던전 숙련 막대 HUD (DollMasteryHud). 스킬창 (RunEquipmentHud.uss) 바로 위, 같은 가로 기준 (left 54%)
+   색은 스킬창 바탕과 테두리 값을 그대로 (사용자 2026-11-18 스킬창 결정). 막대 채움 색만 숙련 자료 (조각 색)
+   구조: .wm-mastery > __row (막대 하나) > __name, __bar > __fill, __count
+   --ready 찬 막대 (확정 카드가 열림), --hidden 확정한 반대쪽 */
+
+.wm-mastery {
+    --wm-mastery-frame: rgba(14, 41, 49, 0.784);
+    --wm-mastery-outline: rgba(255, 255, 255, 0.196);
+    --wm-mastery-ready-glow: rgba(255, 244, 200, 0.95);
+
+    position: absolute;
+    left: 54%;
+    bottom: 96px;
+    translate: -50% 0;
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background-color: var(--wm-mastery-frame);
+    border-width: 1px;
+    border-color: var(--wm-mastery-outline);
+}
+
+.wm-mastery--hidden {
+    display: none;
+}
+
+.wm-mastery__row {
+    flex-direction: row;
+    align-items: center;
+    margin: 0 8px;
+}
+
+.wm-mastery__row--hidden {
+    display: none;
+}
+
+.wm-mastery__name {
+    font-size: 15px;
+    -unity-font-style: bold;
+    margin-right: 6px;
+}
+
+.wm-mastery__bar {
+    width: 120px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.45);
+    border-width: 1px;
+    border-color: var(--wm-mastery-outline);
+    overflow: hidden;
+}
+
+.wm-mastery__fill {
+    height: 100%;
+    border-radius: 5px;
+    transition-property: width;
+    transition-duration: 0.2s;
+}
+
+.wm-mastery__count {
+    font-size: 14px;
+    color: rgb(230, 230, 233);
+    margin-left: 6px;
+    min-width: 32px;
+}
+
+.wm-mastery__row--ready .wm-mastery__bar {
+    border-color: var(--wm-mastery-ready-glow);
+    border-width: 2px;
+}
+
+.wm-mastery__row--ready .wm-mastery__count {
+    color: var(--wm-mastery-ready-glow);
+    -unity-font-style: bold;
+}

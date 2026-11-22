@@ -138,8 +138,6 @@ namespace WitchMendokusai
 					return player.UnitStat[UnitStatType.HP_CUR] >= player.UnitStat[UnitStatType.HP_MAX] ? settings.HealthFullText : null;
 				case MapObjectEffectType.SpawnChest:
 				case MapObjectEffectType.RevealMapObjects:
-				// 조각은 막대가 찼거나 확정한 뒤에도 스탯을 줌 (고유 효과). 막지 않음
-				case MapObjectEffectType.MasteryShard:
 					return null;
 				default:
 					throw new System.InvalidOperationException($"맵 오브젝트 효과 {effect.Type} 처리 없음");
@@ -186,24 +184,9 @@ namespace WitchMendokusai
 				case MapObjectEffectType.RevealMapObjects:
 					RevealMapObjects(site, effect.Value);
 					return;
-				case MapObjectEffectType.MasteryShard:
-					AddMasteryShard(site, effect);
-					return;
 				default:
 					throw new System.InvalidOperationException($"맵 오브젝트 효과 {effect.Type} 처리 없음");
 			}
-		}
-
-		// 먹을 때마다 막대 스탯 (고유 효과), 그리고 막대 진행 (확정 변신 숙련). 숙련 없는 인물 판에는 조각이 안 놓임
-		private void AddMasteryShard(MapObjectSite site, MapObjectEffect effect)
-		{
-			DollMasteryData data = DollMasteryRun.Data;
-			DollMasteryTrackData track = data.Tracks[effect.MasteryTrack];
-			int shards = Mathf.RoundToInt(effect.Value);
-			if (track.PickupStat != UnitStatType.NONE)
-				playerProvider.CurrentObject.UnitStat[track.PickupStat] += DollMasteryRun.TakePickupGrant(effect.MasteryTrack, shards);
-			if (DollMasteryRun.AddShard(effect.MasteryTrack, shards))
-				PopMapObjectText(site, string.Format(data.ReadyTextFormat, track.DisplayName));
 		}
 
 		private void RevealMapObjects(MapObjectSite source, float radius)

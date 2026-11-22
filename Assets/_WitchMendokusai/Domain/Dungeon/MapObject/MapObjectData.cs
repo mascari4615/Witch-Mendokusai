@@ -29,7 +29,6 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("같은 오브젝트 재사용마다 비용 배율"), Min(1f)] public float CostGrowth { get; private set; } = 1f;
 		[field: SerializeField, Tooltip("사용 횟수. 0 이면 무한"), Min(0)] public int Uses { get; private set; } = 1;
 		[field: SerializeField] public List<MapObjectEffect> Effects { get; private set; } = new();
-		[field: SerializeField, Tooltip("표식 반경 안에 들어서면 상호작용 없이 바로 씀 (숙련 조각)")] public bool ActivateOnTouch { get; private set; }
 
 		[field: Header("머무름 (구역은 표식 원)")]
 		[field: SerializeField, Tooltip("표식 반경 안에 머물 시간 (초). 0 이면 머무름 없음, 효과는 상호작용 즉시"), Min(0f)] public float HoldSeconds { get; private set; }
@@ -72,8 +71,6 @@ namespace WitchMendokusai
 					errors.Add($"{name}: 효과 {effect.Type} 개수 {effect.Count}");
 				if (effect.Type == MapObjectEffectType.Heal && effect.Value <= 0f)
 					errors.Add($"{name}: 회복 효과 값 {effect.Value}");
-				if (effect.Type == MapObjectEffectType.MasteryShard && effect.Value < 1f)
-					errors.Add($"{name}: 조각 수 {effect.Value} 는 1 이상");
 				if (effect.FailPercent < 0f || effect.FailPercent >= 100f)
 					errors.Add($"{name}: 효과 {effect.Type} 꽝 확률 {effect.FailPercent}");
 				if (effect.Timing == MapObjectEffectTiming.OnHoldComplete && HasHold == false)
@@ -95,8 +92,6 @@ namespace WitchMendokusai
 				else if (CostValue * MapObjectRules.CostMultiplier(CostGrowth, Uses - 1) >= 100f)
 					errors.Add($"{name}: 체력 비용이 {Uses} 번째 사용에서 100% 이상");
 			}
-			if (ActivateOnTouch && (HasHold || CostType != MapObjectCostType.None))
-				errors.Add($"{name}: 닿으면 쓰는 오브젝트는 비용과 머무름 없이");
 			if (HasHold && ShowMarker == false)
 				errors.Add($"{name}: 머무름 진행 호는 선 표식에 그려서 {nameof(ShowMarker)} 를 켜야 함");
 			if (Model == null && ShowMarker == false)

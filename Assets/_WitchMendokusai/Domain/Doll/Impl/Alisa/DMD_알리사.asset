@@ -19,12 +19,18 @@ MonoBehaviour:
     PickupStat: 500
     PickupAmount: 2
     PickupCap: 24
+    ShardPrefab: {fileID: 4615000000000000004, guid: 8ab35e335ce24d31ad6f64d0a5e5263c, type: 3}
+    ShardCount: 13
   - DisplayName: "\uADF8\uB9BC\uC790"
     Threshold: 6
     Color: {r: 0.45, g: 0.35, b: 0.75, a: 1}
     PickupStat: 400
     PickupAmount: 2
     PickupCap: 16
-  <ShardBudget>k__BackingField: {fileID: 11400000, guid: 02c98ed20c224f03809300891bf1f718, type: 2}
+    ShardPrefab: {fileID: 4615000000000000004, guid: c7ce5faed2a840d4aa7f6c2a441a0bc6, type: 3}
+    ShardCount: 13
+  <FirstShardSeconds>k__BackingField: 10
   <ShardGapSeconds>k__BackingField: 20
+  <ShardDistance>k__BackingField: {x: 8, y: 16}
+  <ShardSeedSalt>k__BackingField: 7411
   <ReadyTextFormat>k__BackingField: "{0} \uC219\uB828 \uC644\uB8CC"

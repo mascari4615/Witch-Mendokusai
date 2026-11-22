@@ -4,6 +4,7 @@
 @import url("ConfirmDialog/ConfirmDialog.uss");
 @import url("../Dungeon/DungeonEntrance/DungeonEntrance.uss");
 @import url("../Dungeon/Survival/RunEquipmentHud.uss");
+@import url("../Doll/Mastery/DollMasteryHud.uss");
 
 .wm-item-grid {
     flex-direction: row;

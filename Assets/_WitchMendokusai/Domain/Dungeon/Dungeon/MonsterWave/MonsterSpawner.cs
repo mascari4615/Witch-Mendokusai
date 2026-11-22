@@ -81,6 +81,7 @@ namespace WitchMendokusai
 			InitPatterns(curDungeon);
 			InitThreat(curDungeon);
 			InitMapObjects(curDungeon);
+			InitMasteryShards();
 		}
 
 		// 위협 단계를 입힌 이번 판 사건표. 단계 0은 원본 그대로
@@ -103,6 +104,7 @@ namespace WitchMendokusai
 			UpdateEvents();
 			UpdateBossAnnounces();
 			UpdateMapObjects();
+			UpdateMasteryShards();
 		}
 
 		private static Monster FindBoss(MonsterWave wave) => Array.Find(wave.Monsters, monster => monster.Type == MonsterType.Boss);
@@ -342,6 +344,7 @@ namespace WitchMendokusai
 			ResetPatterns();
 			StopThreat();
 			StopMapObjects();
+			StopMasteryShards();
 			foreach (GameObject obj in ObjectBufferManager.GetObjects(ObjectType.Monster))
 				if (obj != null && obj.TryGetComponent(out MonsterObject monster))
 					monster.UnitMovement.SetSimulationInterval(0f);

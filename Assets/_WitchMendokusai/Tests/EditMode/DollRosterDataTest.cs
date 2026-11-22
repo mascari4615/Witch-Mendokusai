@@ -45,6 +45,20 @@ namespace WitchMendokusai.Tests
 				Assert.That(catalog.CardsFor(signature).Any(card => card != null), signature.name);
 		}
 
+		// 알리사 숙련 조각: 줍는 조각 13개씩, 번갈아 20초마다, 막대마다 프리팹 (사용자 2026-11-22 22:07, 22:26)
+		[Test]
+		public void AlisaMastery_HasShardPrefabs_AndFixedSchedule()
+		{
+			DollMasteryData mastery = LoadDolls()[0].Mastery;
+			Assert.That(mastery, Is.Not.Null);
+			Assert.That(() => mastery.ThrowIfInvalid(), Throws.Nothing);
+			Assert.That(mastery.ShardCounts(), Is.EqualTo(new[] { 13, 13 }));
+			DollMasteryShardSchedule schedule = mastery.CreateSchedule();
+			Assert.That(schedule.TimeAt(schedule.Count - 1), Is.LessThan(600f), "판 10분 안에 다 나옴");
+			foreach (DollMasteryTrackData track in mastery.Tracks)
+				Assert.That(track.ShardPrefab, Is.Not.Null, track.DisplayName);
+		}
+
 		[Test]
 		public void TestOnlyDolls_AreNotControllable_ButAssetsRemain()
 		{

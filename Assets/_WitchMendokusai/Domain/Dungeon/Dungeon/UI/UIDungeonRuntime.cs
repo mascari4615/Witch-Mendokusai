@@ -42,6 +42,8 @@ namespace WitchMendokusai
 		// VisualElement 는 MonoBehaviour 생성 때 못 만들어서 처음 쓸 때 만듦
 		private RunEquipmentHudBinder runEquipmentBinder;
 		private RunEquipmentHudBinder RunEquipment => runEquipmentBinder ??= new RunEquipmentHudBinder();
+		private DollMasteryHud masteryHud;
+		private DollMasteryHud MasteryHud => masteryHud ??= new DollMasteryHud();
 
 		private DungeonManager dungeonManager;
 		private PlayerProvider playerProvider;
@@ -73,6 +75,7 @@ namespace WitchMendokusai
 			isSelecting = false;
 			SetHudVisible(true);
 			RunEquipment.Hide();
+			HideMasteryHud();
 		}
 
 		private void Update()
@@ -97,6 +100,28 @@ namespace WitchMendokusai
 			battleHudGroup.interactable = isVisible;
 			headerGroup.interactable = isVisible;
 			RunEquipment.SetVisible(isVisible);
+			MasteryHud.SetVisible(isVisible);
+		}
+
+		// 숙련 막대: 숙련 있는 인물 판에만 (사용자 2026-11-22 22:26 '조각 얼마나 모였는지 보이는 전용 UI')
+		private void UpdateMasteryHud()
+		{
+			if (DollMasteryRun.Active == null || DollMasteryRun.Data == null)
+			{
+				HideMasteryHud();
+				return;
+			}
+			if (MasteryHud.parent == null)
+				UIRoot.Instance.HudLayer.Add(MasteryHud);
+			MasteryHud.Refresh(DollMasteryRun.Data, DollMasteryRun.Active, DollMasteryRun.Version);
+		}
+
+		private void HideMasteryHud()
+		{
+			if (masteryHud == null)
+				return;
+			masteryHud.RemoveFromHierarchy();
+			masteryHud.ResetShown();
 		}
 
 		// 스킬창: 이동 스킬과 장비. 장착 모드와 랜덤 모드 둘 다 (사용자 2026-11-18 "스킬창에는 장비들")
@@ -194,6 +219,7 @@ namespace WitchMendokusai
 			UpdateTime(dungeonManager.Context.DungeonCurTime);
 			UpdateNextEvent();
 			UpdateRunEquipment();
+			UpdateMasteryHud();
 			questGrid.UpdateUI();
 		}
 	}

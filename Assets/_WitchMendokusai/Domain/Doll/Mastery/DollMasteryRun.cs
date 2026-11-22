@@ -11,6 +11,8 @@ namespace WitchMendokusai
 		private static int[] grantedPickup = new int[0];
 
 		public static DollMasteryData Data { get; private set; }
+		// 막대 상태가 바뀔 때마다 오름. 숙련 HUD 가 다시 그릴지 판정
+		public static int Version { get; private set; }
 		public static DollMastery Active => active;
 
 		public static bool AcceptsShards => active != null && active.AcceptsShards;
@@ -22,6 +24,21 @@ namespace WitchMendokusai
 			Data = data;
 			active = data != null ? new DollMastery(data.Thresholds()) : null;
 			grantedPickup = new int[data != null ? data.Tracks.Count : 0];
+			Version++;
+		}
+
+		// 조각 하나를 먹음. 막대 스탯 (상한 안), 막대 진행, 찬 순간 머리 위 글자
+		public static void Pickup(int track, PlayerObject player)
+		{
+			if (active == null)
+				throw new System.InvalidOperationException($"숙련 없는 판에서 막대 {track} 조각을 먹음");
+			DollMasteryTrackData trackData = Data.Tracks[track];
+			if (trackData.PickupStat != UnitStatType.NONE)
+				player.UnitStat[trackData.PickupStat] += TakePickupGrant(track, 1);
+			bool becameReady = AddShard(track, 1);
+			Version++;
+			if (becameReady && UIManager.TryGetExistingInstance(out UIManager uiManager))
+				uiManager.PopText(string.Format(Data.ReadyTextFormat, trackData.DisplayName), TextType.Warning, player.transform.position);
 		}
 
 		// 조각 하나를 먹었을 때 막대 스탯에 더할 양. 상한을 넘는 몫은 버림
@@ -52,6 +69,7 @@ namespace WitchMendokusai
 			if (active == null)
 				throw new System.InvalidOperationException($"숙련 없는 인물에서 막대 {track} 확정. 형태의 ConfirmMasteryTrack 이나 인물의 Mastery 자료 확인");
 			active.Confirm(track);
+			Version++;
 			Debug.Log($"[Mastery] 막대 {track} 로 확정");
 		}
 
@@ -59,6 +77,7 @@ namespace WitchMendokusai
 		{
 			Data = null;
 			active = mastery;
+			Version++;
 		}
 	}
 }
