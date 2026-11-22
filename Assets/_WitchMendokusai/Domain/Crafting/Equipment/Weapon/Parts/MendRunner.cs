@@ -60,7 +60,7 @@ namespace WitchMendokusai
 				Release();
 		}
 
-		// 레벨업 누적이 주기의 배수면 받은 카드가 가장 적은 장비 하나를 수선. MendStats 가 빈 장비는 후보 아님
+		// 레벨업 누적이 주기의 배수면 받은 카드가 가장 적은 장비 하나를 수선 (같으면 뒤 번호). 양은 그 장비 MendStats 에 나눠 더함. MendStats 가 빈 장비는 후보 아님
 		private void HandleLevelUp()
 		{
 			int frequencyCards = player.UnitStat[UnitStatType.MEND_FREQUENCY];
@@ -81,8 +81,9 @@ namespace WitchMendokusai
 
 			EquipmentData mended = candidates[picked];
 			int amount = MendRules.Amount(data.Amount, player.UnitStat[UnitStatType.MEND_POTENCY]);
-			foreach (UnitStatType stat in mended.MendStats)
-				player.UnitStat[stat] += amount;
+			int[] shares = MendRules.SplitAmount(amount, mended.MendStats.Count);
+			for (int i = 0; i < shares.Length; i++)
+				player.UnitStat[mended.MendStats[i]] += shares[i];
 			MendCount++;
 			Debug.Log($"[Mend] 레벨업 {levelUps}회째, {mended.Name} +{amount} (주기 {interval})");
 			if (UIManager.TryGetExistingInstance(out UIManager uiManager))

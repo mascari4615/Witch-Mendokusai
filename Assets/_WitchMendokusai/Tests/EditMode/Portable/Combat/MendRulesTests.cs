@@ -42,16 +42,28 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void 가장_덜_키운_장비를_고르고_같으면_앞_번호()
+		public void 가장_덜_키운_장비를_고르고_같으면_뒤_번호()
 		{
 			Assert.AreEqual(1, MendRules.PickLeastGrown(new[] { 4, 1, 3 }));
-			Assert.AreEqual(0, MendRules.PickLeastGrown(new[] { 2, 2, 5 }));
+			Assert.AreEqual(1, MendRules.PickLeastGrown(new[] { 2, 2, 5 }));
+			Assert.AreEqual(2, MendRules.PickLeastGrown(new[] { 0, 0, 0 }), "판 초반 동률은 전용 무기보다 뒤 장비");
+		}
+
+		[Test]
+		public void 양은_대상_스탯_수로_나누고_나머지는_앞부터()
+		{
+			CollectionAssert.AreEqual(new[] { 1, 1 }, MendRules.SplitAmount(2, 2));
+			CollectionAssert.AreEqual(new[] { 2, 1 }, MendRules.SplitAmount(3, 2));
+			CollectionAssert.AreEqual(new[] { 3 }, MendRules.SplitAmount(3, 1));
+			CollectionAssert.AreEqual(new[] { 1, 0, 0 }, MendRules.SplitAmount(1, 3));
+			CollectionAssert.AreEqual(new int[0], MendRules.SplitAmount(2, 0));
 		}
 
 		[Test]
 		public void 음수는_후보가_아니고_후보가_없으면_없음()
 		{
 			Assert.AreEqual(2, MendRules.PickLeastGrown(new[] { -1, 5, 0 }));
+			Assert.AreEqual(1, MendRules.PickLeastGrown(new[] { 3, 3, -1 }));
 			Assert.AreEqual(-1, MendRules.PickLeastGrown(new[] { -1, -1 }));
 			Assert.AreEqual(-1, MendRules.PickLeastGrown(new int[0]));
 		}

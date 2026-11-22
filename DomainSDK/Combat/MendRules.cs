@@ -24,7 +24,7 @@ namespace WitchMendokusai
 
 		public static int Amount(int baseAmount, int bonus) => Math.Max(0, baseAmount + bonus);
 
-		// 받은 카드 수가 가장 적은 후보. 같으면 앞 번호 (전용 무기가 0 번). 후보가 없으면 -1
+		// 받은 카드 수가 가장 적은 후보. 같으면 뒤 번호 (전용 무기 0 번보다 다른 장비가 먼저, 사용자 결정 2026-11-22 22:38). 후보가 없으면 -1
 		public static int PickLeastGrown(IReadOnlyList<int> picksPerCandidate)
 		{
 			int picked = -1;
@@ -32,10 +32,23 @@ namespace WitchMendokusai
 			{
 				if (picksPerCandidate[i] < 0)
 					continue;
-				if (picked < 0 || picksPerCandidate[i] < picksPerCandidate[picked])
+				if (picked < 0 || picksPerCandidate[i] <= picksPerCandidate[picked])
 					picked = i;
 			}
 			return picked;
+		}
+
+		// 한 번의 양을 대상 스탯 수로 나눔 (반짇고리는 근접, 원거리 둘). 나머지는 앞 스탯부터 하나씩
+		public static int[] SplitAmount(int amount, int statCount)
+		{
+			if (statCount <= 0)
+				return new int[0];
+			int[] shares = new int[statCount];
+			int baseShare = Math.Max(0, amount) / statCount;
+			int remainder = Math.Max(0, amount) % statCount;
+			for (int i = 0; i < statCount; i++)
+				shares[i] = baseShare + (i < remainder ? 1 : 0);
+			return shares;
 		}
 	}
 }
