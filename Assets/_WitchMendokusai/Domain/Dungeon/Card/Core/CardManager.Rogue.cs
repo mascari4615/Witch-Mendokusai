@@ -96,7 +96,7 @@ namespace WitchMendokusai
 			List<CardData> candidates = AvailableCards(curDeckIndex);
 			int choiceCount = Math.Min(CardsPerChoice, candidates.Count);
 			offeredCards.Clear();
-			DrawOfferedCards(candidates.Where(card => previous.Contains(card) == false).ToList(), choiceCount);
+			DrawWithFormCardsFirst(candidates.Where(card => previous.Contains(card) == false).ToList(), choiceCount);
 			DrawOfferedCards(candidates.Where(card => offeredCards.Contains(card) == false).ToList(), choiceCount);
 
 			PublishCharges();
@@ -297,6 +297,7 @@ namespace WitchMendokusai
 		private void GrantChestCard(CardData card)
 		{
 			soManager.SelectedCardBuffer.Add(card);
+			ApplyCardForm(card);
 			if (card.AwakeningEffectPrefab != null && awakeningEffect == null)
 			{
 				awakeningEffect = Instantiate(card.AwakeningEffectPrefab);

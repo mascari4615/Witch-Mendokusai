@@ -65,6 +65,7 @@ namespace WitchMendokusai.Tests
 		private const int LAST_NEW_EQUIPMENT = 20000034;
 		private const int SWORD = 20000009;
 		private const int AXE = 20000003;
+		private const int SEWING_BOX = 20000035;
 
 		// 커밋 f06bc53ff 의 UIDeck 프리팹 5개에 놓였던 카드
 		private static readonly Dictionary<int, int[]> OLD_PREFAB_SLOTS = new()
@@ -111,7 +112,18 @@ namespace WitchMendokusai.Tests
 		public void ShippedFiles_AreValid() => Assert.That(catalog.Validate(), Is.Empty);
 
 		[Test]
-		public void ShippedFiles_AreLoaded() => Assert.That(SkillTreeCatalog.LoadResources().Count, Is.EqualTo(35));
+		public void ShippedFiles_AreLoaded() => Assert.That(SkillTreeCatalog.LoadResources().Count, Is.EqualTo(36));
+
+		// 알리사 전용 무기 반짇고리. 카드는 전부 트리 파일 안 (자산 카드 없음), 처음부터 고를 수 있음
+		[Test]
+		public void SewingBoxTree_IsInlineAndAllOpenFromStart()
+		{
+			SkillTree tree = catalog.Find(SEWING_BOX);
+			Assert.That(tree, Is.Not.Null);
+			Assert.That(tree.Nodes.Count, Is.EqualTo(8));
+			Assert.That(tree.Nodes.All(node => node.IsInline));
+			Assert.That(tree.Nodes.All(node => node.IsUnlocked(new List<CardData>())));
+		}
 
 		[Test]
 		public void OldPrefabs_AreMigrated_WithSameEffects()

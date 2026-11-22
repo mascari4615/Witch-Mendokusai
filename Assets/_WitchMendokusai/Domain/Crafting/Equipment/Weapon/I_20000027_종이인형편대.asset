@@ -31,5 +31,7 @@ MonoBehaviour:
   <Effects>k__BackingField: []
   <Object>k__BackingField: {fileID: 6972014582669827175, guid: 60cace4f18c3b3547b2595ccd0a22b2e, type: 3}
   <EquipmentType>k__BackingField: 0
+  <MendStats>k__BackingField:
+  - 12001
   <UIKind>k__BackingField: 1
   <ActCostScale>k__BackingField: 1

@@ -40,6 +40,8 @@ namespace WitchMendokusai
 		Heal = 2,
 		// Value: 반경 (m). 0 이면 판 전체. 다른 맵 오브젝트를 작은 지도와 화면 밖 화살표에 드러냄
 		RevealMapObjects = 3,
+		// Value: 조각 수. MasteryTrack 막대에 더함 (DollMasteryRun). 숙련 없는 인물이면 배치되지 않음
+		MasteryShard = 4,
 	}
 
 	// 효과가 나가는 때. 머무름 (HoldSeconds > 0) 이 없는 오브젝트는 OnActivate 만
@@ -102,6 +104,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Min(1)] public int Count { get; private set; } = 1;
 		[field: SerializeField, Tooltip("Heal: 최대 체력 %. RevealMapObjects: 반경 m, 0 이면 판 전체"), Min(0f)] public float Value { get; private set; }
 		[field: SerializeField, Tooltip("꽝 확률 %. 0 이면 항상 나감. 운 성소"), Range(0f, 100f)] public float FailPercent { get; private set; }
+		[field: SerializeField, Tooltip("MasteryShard 전용. 인물 숙련 막대 번호"), Min(0)] public int MasteryTrack { get; private set; }
 
 		public MapObjectEffect()
 		{
@@ -137,6 +140,7 @@ namespace WitchMendokusai
 			MapObjectEffectType.SpawnChest => true,
 			MapObjectEffectType.Heal => true,
 			MapObjectEffectType.RevealMapObjects => true,
+			MapObjectEffectType.MasteryShard => true,
 			_ => false,
 		};
 

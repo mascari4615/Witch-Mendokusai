@@ -26,6 +26,7 @@ namespace WitchMendokusai
 		[PropertyOrder(21)][field: SerializeField] public List<EffectInfo> Effects { get; private set; }
 		[PropertyOrder(22)][field: SerializeField] public GameObject Object { get; private set; }
 		[PropertyOrder(23)][field: SerializeField] public EquipmentType EquipmentType { get; private set; } = EquipmentType.Default;
+		[PropertyOrder(26)][field: SerializeField, Tooltip("고유 효과 수선이 이 장비를 강하게 할 때 올리는 스탯 (보통 피해 증가). 비면 수선 대상 아님")] public List<UnitStatType> MendStats { get; private set; } = new();
 
 		[PropertyOrder(25)][field: SerializeField] public SurvivalUIKind UIKind { get; private set; } = SurvivalUIKind.Count;
 

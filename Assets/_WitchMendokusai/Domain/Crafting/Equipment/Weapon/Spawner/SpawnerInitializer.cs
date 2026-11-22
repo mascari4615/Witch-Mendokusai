@@ -7,7 +7,8 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private Spawner spawner;
 		[SerializeField] private UnitStatType spawnCountStat;
-		[SerializeField, Min(1)] private int baseCount = 1;
+		// 0 이면 자기 수 카드를 받기 전까지 쏘지 않음 (공용 투사체 수 카드만으로는 시작 안 함)
+		[SerializeField, Min(0)] private int baseCount = 1;
 
 		private PlayerProvider playerProvider;
 
@@ -44,7 +45,8 @@ namespace WitchMendokusai
 		private void UpdateSpawnCount()
 		{
 			UnitStat playerStat = playerProvider.Current.UnitStat;
-			spawner.SpawnCount = baseCount + playerStat[spawnCountStat] + playerStat[UnitStatType.PROJECTILE_COUNT_BONUS];
+			int ownCount = baseCount + playerStat[spawnCountStat];
+			spawner.SpawnCount = ownCount > 0 ? ownCount + playerStat[UnitStatType.PROJECTILE_COUNT_BONUS] : 0;
 		}
 	}
 }

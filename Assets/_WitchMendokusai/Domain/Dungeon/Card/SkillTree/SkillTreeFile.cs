@@ -24,6 +24,12 @@ namespace WitchMendokusai
 		[JsonProperty("maxStack")] public int? MaxStack;
 		[JsonProperty("effects")] public List<SkillTreeEffectFile> Effects;
 		[JsonProperty("requires")] public List<SkillTreeRequireFile> Requires = new();
+		// 묶음 이름. 묶음 안 노드를 전부 받으면 그 묶음 마무리
+		[JsonProperty("bundle")] public string Bundle;
+		// 갈림길 이름. 같은 이름 노드 중 하나를 받으면 나머지는 그 판에서 잠김
+		[JsonProperty("exclusiveGroup")] public string ExclusiveGroup;
+		// 받는 순간 바뀌는 인물 형태 (DollFormData.Key). 갈래 확정과 최종 카드
+		[JsonProperty("form")] public string Form;
 	}
 
 	public class SkillTreeEffectFile
@@ -34,12 +40,16 @@ namespace WitchMendokusai
 		[JsonProperty("value")] public int? Value;
 	}
 
-	// node 는 같은 트리의 노드, card 는 다른 장비의 카드
+	// 넷 중 하나만: node 같은 트리의 노드, card 다른 장비의 카드, bundle 같은 트리 묶음의 마무리, mastery 인물 숙련 막대 번호
 	public class SkillTreeRequireFile
 	{
 		[JsonProperty("node")] public string Node;
 		[JsonProperty("card")] public int? Card;
 		[JsonProperty("stack")] public int Stack = 1;
+		[JsonProperty("bundle")] public string Bundle;
+		[JsonProperty("mastery")] public int? Mastery;
+
+		public int KindCount => (Node != null ? 1 : 0) + (Card.HasValue ? 1 : 0) + (Bundle != null ? 1 : 0) + (Mastery.HasValue ? 1 : 0);
 	}
 
 	public readonly struct SkillTreeSource

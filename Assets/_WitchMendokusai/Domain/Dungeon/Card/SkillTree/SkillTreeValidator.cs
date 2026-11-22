@@ -58,6 +58,32 @@ namespace WitchMendokusai
 
 			foreach (string cycle in FindCycles(file.Nodes, nodes))
 				Report($"순환 연결 {cycle}");
+
+			ValidateBundles(file.Nodes, Report);
+		}
+
+		// 갈림길은 노드 둘 이상, 묶음 조건은 있는 묶음만, 자기 묶음을 조건으로 쓰지 않음
+		private static void ValidateBundles(List<SkillTreeNodeFile> nodeList, Action<string> report)
+		{
+			foreach (IGrouping<string, SkillTreeNodeFile> group in nodeList.Where(node => node.ExclusiveGroup != null).GroupBy(node => node.ExclusiveGroup))
+			{
+				if (group.Count() < 2)
+					report($"갈림길 {group.Key} 에 노드가 하나뿐");
+			}
+
+			HashSet<string> bundles = new(nodeList.Where(node => node.Bundle != null).Select(node => node.Bundle));
+			foreach (SkillTreeNodeFile node in nodeList.Where(node => node.Requires != null))
+			{
+				foreach (SkillTreeRequireFile require in node.Requires.Where(require => require.Bundle != null))
+				{
+					if (bundles.Contains(require.Bundle) == false)
+						report($"노드 {node.Id}: 없는 묶음 {require.Bundle} 를 조건으로 씀");
+					else if (require.Bundle == node.Bundle)
+						report($"노드 {node.Id}: 자기 묶음 {require.Bundle} 마무리를 조건으로 씀");
+				}
+				if (node.Requires.Count(require => require.Mastery.HasValue) > 1)
+					report($"노드 {node.Id}: 숙련 조건은 하나만");
+			}
 		}
 
 		private static void ValidateReference(SkillTreeNodeFile node, Dictionary<string, SkillTreeNodeFile> nodes, ISkillTreeDataSource dataSource, Action<string> report)
@@ -140,13 +166,22 @@ namespace WitchMendokusai
 				if (require.Stack < 1)
 					report($"노드 {node.Id}: 조건 stack 은 1 이상");
 
-				if ((require.Node != null) == require.Card.HasValue)
+				if (require.KindCount != 1)
 				{
-					report($"노드 {node.Id}: 조건은 node 와 card 중 하나만");
+					report($"노드 {node.Id}: 조건은 node, card, bundle, mastery 중 하나만");
 					continue;
 				}
 
-				if (require.Node != null)
+				if (require.Bundle != null)
+				{
+					// 묶음 존재는 ValidateBundles 가 트리 전체를 보고 판정
+				}
+				else if (require.Mastery.HasValue)
+				{
+					if (require.Mastery.Value < 0)
+						report($"노드 {node.Id}: 숙련 막대 번호 {require.Mastery.Value} 은 0 이상");
+				}
+				else if (require.Node != null)
 				{
 					if (nodes.TryGetValue(require.Node, out SkillTreeNodeFile target) == false)
 						report($"노드 {node.Id}: 없는 노드 {require.Node} 를 조건으로 씀");

@@ -325,6 +325,109 @@ namespace WitchMendokusai.Tests
 			Assert.That(cells.Values.GroupBy(cell => cell.Row).Max(group => group.Count()), Is.EqualTo(4));
 		}
 
+		// 검 묶음 (뿌리, 갈림길 둘, 마무리) 과 묶음 마무리가 여는 최종 카드 둘
+		private const string BUNDLE_NODES =
+			"{\"id\":\"root\",\"card\":1000,\"bundle\":\"blade\"}," +
+			"{\"id\":\"wide\",\"card\":1001,\"bundle\":\"blade\",\"exclusiveGroup\":\"blade_choice\",\"requires\":[{\"node\":\"root\"}]}," +
+			"{\"id\":\"fast\",\"card\":1002,\"bundle\":\"blade\",\"exclusiveGroup\":\"blade_choice\",\"requires\":[{\"node\":\"root\"}]}," +
+			"{\"id\":\"finish\",\"card\":1003,\"bundle\":\"blade\",\"requires\":[{\"node\":\"root\"}]}," +
+			"{\"id\":\"final_a\",\"card\":1004,\"exclusiveGroup\":\"final\",\"requires\":[{\"bundle\":\"blade\"}]}," +
+			"{\"id\":\"final_b\",\"card\":1005,\"exclusiveGroup\":\"final\",\"requires\":[{\"bundle\":\"blade\"}]}";
+
+		private SkillTree BundleTree()
+		{
+			List<CardData> cards = new() { rootCard, secondCard };
+			for (int id = 1002; id <= 1005; id++)
+				cards.Add(NewCard(id, 1));
+			dataSource.Equipments[EQUIPMENT_ID] = cards;
+			return new SkillTreeCatalog(new[] { new SkillTreeSource("test", Tree(BUNDLE_NODES)) }, dataSource).Find(EQUIPMENT_ID);
+		}
+
+		[Test]
+		public void BundleTree_IsValid()
+		{
+			BundleTree();
+			Assert.That(Errors(Tree(BUNDLE_NODES)), Is.Empty);
+		}
+
+		[Test]
+		public void ExclusiveGroup_TakingOneLocksTheOther()
+		{
+			SkillTree tree = BundleTree();
+			CardData wide = tree.Nodes.First(node => node.Id == "wide").Card;
+			CardData fast = tree.Nodes.First(node => node.Id == "fast").Card;
+			List<CardData> selected = new() { rootCard };
+
+			Assert.That(tree.IsUnlocked(wide, selected) && tree.IsUnlocked(fast, selected), "고르기 전엔 둘 다 열림");
+			selected.Add(wide);
+			Assert.That(tree.IsUnlocked(fast, selected), Is.False);
+			Assert.That(tree.NodeOf(fast).State(selected), Is.EqualTo(SkillTreeNodeState.Locked));
+		}
+
+		[Test]
+		public void BundleFinish_OpensBothFinals_AndPickingOneLocksTheOther()
+		{
+			SkillTree tree = BundleTree();
+			CardData Card(string id) => tree.Nodes.First(node => node.Id == id).Card;
+			List<CardData> selected = new() { rootCard, Card("fast") };
+
+			Assert.That(tree.IsUnlocked(Card("final_a"), selected), Is.False, "마무리 전");
+			Assert.That(tree.BundleProgress("blade", selected), Is.EqualTo((2, 3)));
+
+			selected.Add(Card("finish"));
+			Assert.That(tree.IsBundleFinished("blade", selected));
+			Assert.That(tree.IsUnlocked(Card("final_a"), selected) && tree.IsUnlocked(Card("final_b"), selected));
+
+			selected.Add(Card("final_b"));
+			Assert.That(tree.IsUnlocked(Card("final_a"), selected), Is.False);
+		}
+
+		[Test]
+		public void BundleNodes_AreNotStartingUpgrades()
+		{
+			SkillTree tree = BundleTree();
+			Assert.That(tree.Nodes.Where(node => node.Id != "root").All(node => tree.IsUnlocked(node.Card, new List<CardData>()) == false));
+		}
+
+		[Test]
+		public void MasteryRequirement_FollowsActiveMastery()
+		{
+			SkillTreeCatalog catalog = new(new[] { new SkillTreeSource("test", Tree("{\"id\":\"a\",\"card\":1000,\"requires\":[{\"mastery\":1}]},{\"id\":\"b\",\"card\":1001}")) }, dataSource);
+			SkillTreeNode node = catalog.Find(EQUIPMENT_ID).NodeOf(rootCard);
+			List<CardData> selected = new();
+
+			Assert.That(node.RequiredMasteryTrack, Is.EqualTo(1));
+			Assert.That(node.IsUnlocked(selected), Is.False, "숙련이 없는 판");
+
+			DollMastery mastery = new(new[] { 2, 2 });
+			DollMasteryRun.SetActiveForTest(mastery);
+			try
+			{
+				Assert.That(node.IsUnlocked(selected), Is.False);
+				mastery.AddShard(1, 2);
+				Assert.That(node.IsUnlocked(selected), Is.True);
+			}
+			finally
+			{
+				DollMasteryRun.SetActiveForTest(null);
+			}
+		}
+
+		[Test]
+		public void LonelyExclusiveGroup_IsReported() => AssertHasError(Errors(Tree("{\"id\":\"a\",\"card\":1000,\"exclusiveGroup\":\"x\"},{\"id\":\"b\",\"card\":1001}")), "하나뿐");
+
+		[Test]
+		public void UnknownBundle_IsReported() => AssertHasError(Errors(Tree("{\"id\":\"a\",\"card\":1000},{\"id\":\"b\",\"card\":1001,\"requires\":[{\"bundle\":\"nope\"}]}")), "없는 묶음");
+
+		[Test]
+		public void OwnBundleRequirement_IsReported() => AssertHasError(Errors(Tree("{\"id\":\"a\",\"card\":1000,\"bundle\":\"k\"},{\"id\":\"b\",\"card\":1001,\"bundle\":\"k\",\"requires\":[{\"bundle\":\"k\"}]}")), "자기 묶음");
+
+		[Test]
+		public void TwoRequirementKinds_IsReported() => AssertHasError(Errors(Tree("{\"id\":\"a\",\"card\":1000,\"bundle\":\"k\"},{\"id\":\"b\",\"card\":1001,\"requires\":[{\"node\":\"a\",\"bundle\":\"k\"}]}")), "하나만");
+
+		[Test]
+		public void NegativeMastery_IsReported() => AssertHasError(Errors(Tree("{\"id\":\"a\",\"card\":1000},{\"id\":\"b\",\"card\":1001,\"requires\":[{\"mastery\":-1}]}")), "0 이상");
+
 		[Test]
 		public void Next_MovesByDirection_AndStopsAtEdge()
 		{

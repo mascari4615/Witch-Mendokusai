@@ -184,11 +184,7 @@ namespace WitchMendokusai
 
 		// 이번 판에 이 장비 트리에서 받은 카드 수 (겹친 장 포함, 상자 보상 포함). 진화 카드는 트리 밖이라 안 셈
 		// AvailableCards 와 같이 ID 로 비교. 트리 카드는 다시 만들어질 수 있어 참조 비교는 0 으로 셀 수 있음
-		private int DeckPickCount(EquipmentData equipment)
-		{
-			HashSet<int> treeCardIds = new(skillTrees.CardsFor(equipment).Where(card => card != null).Select(card => card.ID));
-			return soManager.SelectedCardBuffer.Data.Count(selected => selected != null && treeCardIds.Contains(selected.ID));
-		}
+		private int DeckPickCount(EquipmentData equipment) => RunLoadout.PickCount(skillTrees, equipment, soManager.SelectedCardBuffer.Data);
 
 		private bool ShuffleDeck()
 		{
@@ -278,7 +274,7 @@ namespace WitchMendokusai
 
 			offeredCards.Clear();
 			int choiceCount = Math.Min(CardsPerChoice, candidates.Count);
-			DrawOfferedCards(candidates, choiceCount);
+			DrawWithFormCardsFirst(candidates, choiceCount);
 			ShowOfferedCards();
 		}
 
@@ -306,6 +302,7 @@ namespace WitchMendokusai
 			CardBuffer selectedCardBuffer = soManager.SelectedCardBuffer;
 
 			selectedCardBuffer.Add(card);
+			ApplyCardForm(card);
 			if (card.AwakeningEffectPrefab != null)
 			{
 				awakeningEffect = Instantiate(card.AwakeningEffectPrefab);
@@ -349,6 +346,31 @@ namespace WitchMendokusai
 		{
 			HashSet<int> cardIds = new HashSet<int>(skillTrees.CardsFor(equipment).Where(card => card != null).Select(card => card.ID));
 			return 1 + soManager.SelectedCardBuffer.Data.Count(selected => cardIds.Contains(selected.ID));
+		}
+
+		private bool IsFormCard(CardData card) => FormOf(card) != null;
+
+		// 형태는 인물 전용 무기 트리에만 둠. 다른 장비 트리의 form 칸은 SkillTreeCatalog.ValidateForms 가 막음
+		private string FormOf(CardData card)
+		{
+			SkillTree signatureTree = deckTrees.Count > RunLoadout.SIGNATURE_DECK ? deckTrees[RunLoadout.SIGNATURE_DECK] : null;
+			SkillTreeNode node = signatureTree != null ? signatureTree.NodeOf(card) : null;
+			return node != null ? node.Form : null;
+		}
+
+		// 형태 카드 (갈래 확정, 최종) 는 열리면 먼저 보임. 처음 제시와 리롤이 같은 규칙
+		private void DrawWithFormCardsFirst(List<CardData> candidates, int choiceCount)
+		{
+			DrawOfferedCards(candidates.Where(IsFormCard).ToList(), choiceCount);
+			DrawOfferedCards(candidates.Where(card => offeredCards.Contains(card) == false).ToList(), choiceCount);
+		}
+
+		// 형태 카드를 받으면 인물이 바뀜 (무기 동작, 몸 색, 숙련 확정)
+		private void ApplyCardForm(CardData card)
+		{
+			string form = FormOf(card);
+			if (form != null)
+				gameManager.ApplyDollForm(form);
 		}
 
 		public int HeldCount(CardData card) => soManager.SelectedCardBuffer.Data.Count(selected => selected.ID == card.ID);

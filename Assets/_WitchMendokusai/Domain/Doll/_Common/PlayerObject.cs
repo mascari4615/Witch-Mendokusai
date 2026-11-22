@@ -91,9 +91,13 @@ namespace WitchMendokusai
 		}
 
 		// 모델 공유, 인형별 차이는 재질 색 값만
-		private void ApplyBodyTint()
+		private void ApplyBodyTint() => ApplyTint(UnitData is Doll doll ? doll.BodyTint : Color.white);
+
+		// 판 중 형태 (변신) 의 몸 색. 다음 판 Init 이 인형 기본 색으로 되돌림
+		public void ApplyFormTint(Color tint) => ApplyTint(tint);
+
+		private void ApplyTint(Color tint)
 		{
-			Color tint = UnitData is Doll doll ? doll.BodyTint : Color.white;
 			bodyTintBlock ??= new MaterialPropertyBlock();
 			foreach (Renderer meshRenderer in MeshParent.GetComponentsInChildren<Renderer>(true))
 			{

@@ -138,6 +138,8 @@ namespace WitchMendokusai
 					return player.UnitStat[UnitStatType.HP_CUR] >= player.UnitStat[UnitStatType.HP_MAX] ? settings.HealthFullText : null;
 				case MapObjectEffectType.SpawnChest:
 				case MapObjectEffectType.RevealMapObjects:
+				// 확정 뒤 주운 조각은 아무 일 없이 사라짐. 닿을 때마다 글자가 뜨지 않게 막지 않음
+				case MapObjectEffectType.MasteryShard:
 					return null;
 				default:
 					throw new System.InvalidOperationException($"맵 오브젝트 효과 {effect.Type} 처리 없음");
@@ -184,9 +186,20 @@ namespace WitchMendokusai
 				case MapObjectEffectType.RevealMapObjects:
 					RevealMapObjects(site, effect.Value);
 					return;
+				case MapObjectEffectType.MasteryShard:
+					AddMasteryShard(site, effect);
+					return;
 				default:
 					throw new System.InvalidOperationException($"맵 오브젝트 효과 {effect.Type} 처리 없음");
 			}
+		}
+
+		private static void AddMasteryShard(MapObjectSite site, MapObjectEffect effect)
+		{
+			if (DollMasteryRun.AddShard(effect.MasteryTrack, Mathf.RoundToInt(effect.Value)) == false)
+				return;
+			DollMasteryData data = DollMasteryRun.Data;
+			PopMapObjectText(site, string.Format(data.ReadyTextFormat, data.Tracks[effect.MasteryTrack].DisplayName));
 		}
 
 		private void RevealMapObjects(MapObjectSite source, float radius)

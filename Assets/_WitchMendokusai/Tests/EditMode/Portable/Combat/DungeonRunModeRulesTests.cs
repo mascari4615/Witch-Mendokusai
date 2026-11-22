@@ -118,5 +118,27 @@ namespace WitchMendokusai.Tests
 			Assert.IsTrue(DungeonRunModeRules.UsesSavedEquipment(DungeonRunMode.Equipped));
 			Assert.IsFalse(DungeonRunModeRules.UsesSavedEquipment(DungeonRunMode.Random));
 		}
+
+		[Test]
+		public void 전용_무기_덱은_랜덤_모드에서도_늘_보인다()
+		{
+			Random random = new Random(11);
+			for (int trial = 0; trial < 200; trial++)
+			{
+				List<RunDeckOffer> offers = DungeonRunModeRules.BuildDeckOffers(DungeonRunMode.Random, new[] { 0, 1, 2, 3, 4 }, new[] { 100, 101, 102 }, 4, SLOT_CAPACITY, VISIBLE_COUNT, 2,
+					maxExclusive => random.Next(0, maxExclusive), null, 0);
+
+				Assert.IsTrue(offers.Any(offer => offer.IsNew == false && offer.DeckIndex == 0), $"시도 {trial}");
+				Assert.AreEqual(VISIBLE_COUNT, offers.Count);
+			}
+		}
+
+		[Test]
+		public void 보유하지_않은_고정_덱은_무시한다()
+		{
+			List<RunDeckOffer> offers = DungeonRunModeRules.BuildDeckOffers(DungeonRunMode.Equipped, new[] { 1, 2 }, new int[0], 0, SLOT_CAPACITY, VISIBLE_COUNT, 0, FirstIndex, null, 0);
+
+			CollectionAssert.AreEquivalent(new[] { 1, 2 }, offers.Select(offer => offer.DeckIndex));
+		}
 	}
 }

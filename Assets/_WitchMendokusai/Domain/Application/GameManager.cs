@@ -8,7 +8,7 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
-	public class GameManager : MonoBehaviour
+	public class GameManager : MonoBehaviour, IDollMendTarget
 	{
 		public static GameManager Instance { get; private set; }
 
@@ -29,15 +29,17 @@ namespace WitchMendokusai
 		private UnitObject playerObject;
 		// TASK-WM-107 Slice 4 — SkillContext 가 운반할 app 서비스 (PlayerProvider 는 RegisterLeaf 싱글턴).
 		private PlayerProvider playerProvider;
+		private SkillTreeCatalog skillTrees;
 
 		private IDisposable objectBoundSub;
 		private IDisposable despawnedSub;
 
 		[Inject]
 		public void Construct(InputManager inputManager, DataManager dataManager, ObjectPoolManager objectPoolManager, TimeManager timeManager, SOManager soManager,
-			IEffectRunner effectRunner, PlayerProvider playerProvider,
+			IEffectRunner effectRunner, PlayerProvider playerProvider, SkillTreeCatalog skillTrees,
 			ISubscriber<PlayerObjectBoundEvent> objectBoundSubscriber, ISubscriber<PlayerDespawnedEvent> despawnedSubscriber)
 		{
+			this.skillTrees = skillTrees;
 			this.inputManager = inputManager;
 			this.dataManager = dataManager;
 			this.objectPoolManager = objectPoolManager;
@@ -99,18 +101,41 @@ namespace WitchMendokusai
 		}
 
 		private DollPassiveRunner dollPassive;
+		// 지금 도는 전용 무기 오브젝트. 형태가 바뀌면 이것을 갈아 끼움
+		private GameObject signatureObject;
 
 		public void InitEquipment()
 		{
 			ApplyDollPassive();
+			DollMasteryRun.Begin(GetDoll(dataManager.CurDollID).Mastery);
+			signatureObject = null;
+			EquipmentData signature = dataManager.RunLoadout.Signature;
 			List<EquipmentData> equipments = dataManager.RunLoadout.Equipments();
 			foreach (EquipmentData equipment in equipments)
 			{
 				if (equipment == null)
 					continue;
 
-				ApplyEquipment(equipment);
+				GameObject spawned = ApplyEquipment(equipment);
+				if (equipment == signature)
+					signatureObject = spawned;
 			}
+		}
+
+		// 형태 카드를 받았을 때. 전용 무기 동작, 몸 색, 숙련 확정을 한 번에
+		public void ApplyDollForm(string formKey)
+		{
+			DollFormData form = GetDoll(dataManager.CurDollID).FindForm(formKey);
+			if (form.SignatureObject != null)
+			{
+				if (signatureObject != null)
+					signatureObject.SetActive(false);
+				signatureObject = SpawnEquipmentObject(form.SignatureObject, dataManager.RunLoadout.Signature);
+			}
+			playerProvider.CurrentObject.ApplyFormTint(form.BodyTint);
+			if (form.ConfirmMasteryTrack != DollMastery.NO_TRACK)
+				DollMasteryRun.Confirm(form.ConfirmMasteryTrack);
+			Debug.Log($"[DollForm] {form.Key} ({form.DisplayName})");
 		}
 
 		// 인형 고유 패시브. 판마다 새로 걸고 지난 판 것은 걷음
@@ -118,8 +143,13 @@ namespace WitchMendokusai
 		{
 			if (dollPassive != null)
 				dollPassive.Release();
-			dollPassive = DollPassiveRunner.Begin(playerProvider.CurrentObject, GetDoll(dataManager.CurDollID).Passive, GameEventManager.Instance);
+			dollPassive = DollPassiveRunner.Begin(playerProvider.CurrentObject, GetDoll(dataManager.CurDollID).Passive, GameEventManager.Instance, this);
 		}
+
+		// 수선 후보는 판 장비 순서 그대로 (0 번이 전용 무기). 빈 칸은 null
+		IReadOnlyList<EquipmentData> IDollMendTarget.MendCandidates() => dataManager.RunLoadout.Equipments();
+
+		int IDollMendTarget.PickCount(EquipmentData equipment) => RunLoadout.PickCount(skillTrees, equipment, soManager.SelectedCardBuffer.Data);
 
 		public void EquipDuringRun(EquipmentData equipment)
 		{
@@ -127,19 +157,22 @@ namespace WitchMendokusai
 			playerProvider.Current.UpdatePickupRange();
 		}
 
-		private void ApplyEquipment(EquipmentData equipment)
+		// 장비 효과를 걸고 동작 오브젝트를 띄움. 오브젝트가 없는 장비는 null
+		private GameObject ApplyEquipment(EquipmentData equipment)
 		{
 			effectRunner.ApplyEffects(equipment.Effects);
+			return equipment.Object != null ? SpawnEquipmentObject(equipment.Object, equipment) : null;
+		}
 
-			if (equipment.Object != null)
-			{
-				GameObject g = objectPoolManager.Spawn(equipment.Object);
+		private GameObject SpawnEquipmentObject(GameObject prefab, EquipmentData equipment)
+		{
+			GameObject spawned = objectPoolManager.Spawn(prefab);
 
-				if (g.TryGetComponent(out SkillObject skillObject))
-					skillObject.InitContext(new SkillContext(playerObject, playerProvider, objectPoolManager, equipment));
+			if (spawned.TryGetComponent(out SkillObject skillObject))
+				skillObject.InitContext(new SkillContext(playerObject, playerProvider, objectPoolManager, equipment));
 
-				g.SetActive(true);
-			}
+			spawned.SetActive(true);
+			return spawned;
 		}
 
 		// θ — SceneLifetimeScope 에서 씬 의존 조건을 Root 스코프로 바인딩 (TASK-WM-078, 2026-05-13).

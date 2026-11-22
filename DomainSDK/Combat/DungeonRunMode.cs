@@ -31,6 +31,8 @@ namespace WitchMendokusai
 	// 판 모드별 장비 규칙의 정본
 	public static class DungeonRunModeRules
 	{
+		public const int NO_PINNED_DECK = -1;
+
 		public static bool UsesSavedEquipment(DungeonRunMode mode) => mode == DungeonRunMode.Equipped;
 
 		public static bool CanOfferNewEquipment(DungeonRunMode mode, int occupiedSlots, int slotCapacity)
@@ -49,6 +51,7 @@ namespace WitchMendokusai
 
 		// nextIndex: 0 이상 인자 미만의 난수
 		// deckWeight: 보유 덱 번호별 제시 가중치 (DeckOfferWeights). 없으면 균등 섞기
+		// pinnedDeck: 늘 후보에 드는 덱 (인물 전용 무기). 보유 덱에 있으면 보이는 칸 하나를 먼저 차지
 		public static List<RunDeckOffer> BuildDeckOffers(
 			DungeonRunMode mode,
 			IReadOnlyList<int> ownedDecks,
@@ -58,7 +61,8 @@ namespace WitchMendokusai
 			int visibleCount,
 			int newOfferCount,
 			Func<int, int> nextIndex,
-			Func<int, float> deckWeight = null)
+			Func<int, float> deckWeight = null,
+			int pinnedDeck = NO_PINNED_DECK)
 		{
 			List<int> owned;
 			if (deckWeight == null)
@@ -70,6 +74,8 @@ namespace WitchMendokusai
 			{
 				owned = DeckOfferWeights.WeightedOrder(ownedDecks, deckWeight, nextIndex);
 			}
+			if (owned.Remove(pinnedDeck))
+				owned.Insert(0, pinnedDeck);
 			List<RunDeckOffer> offers = new List<RunDeckOffer>();
 
 			if (UsesSavedEquipment(mode))

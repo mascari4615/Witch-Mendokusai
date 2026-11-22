@@ -10,6 +10,8 @@ namespace WitchMendokusai
 		HitStack = 0,
 		// 레벨 구간에 도달할 때마다 스탯 상승
 		LevelTiers = 1,
+		// 수선: 레벨업 몇 번마다 가장 덜 키운 장비의 MendStats 상승. 정본 DollMendRules
+		Mend = 2,
 	}
 
 	[Serializable]
@@ -37,5 +39,13 @@ namespace WitchMendokusai
 		[field: SerializeField] public List<int> TierLevels { get; private set; } = new();
 		// 구간 하나에 도달할 때마다 받는 스탯
 		[field: SerializeField] public List<DollPassiveGrant> TierGrants { get; private set; } = new();
+
+		[field: Header("Mend")]
+		[field: SerializeField, Tooltip("수선 주기 (레벨업 횟수)"), Min(1)] public int MendInterval { get; private set; } = 3;
+		[field: SerializeField, Tooltip("실 카드로 줄여도 이 아래로는 안 감"), Min(1)] public int MendMinInterval { get; private set; } = 1;
+		[field: SerializeField, Tooltip("주기를 줄이는 스탯 (실 한 타래)")] public UnitStatType MendIntervalStat { get; private set; } = UnitStatType.NONE;
+		[field: SerializeField, Tooltip("한 번에 MendStats 에 더하는 양"), Min(0)] public int MendAmount { get; private set; } = 2;
+		[field: SerializeField, Tooltip("한 번의 양을 늘리는 스탯 (튼튼한 바느질)")] public UnitStatType MendAmountStat { get; private set; } = UnitStatType.NONE;
+		[field: SerializeField, Tooltip("수선할 때 주인공 머리 위 글자. {0} 장비 이름")] public string MendTextFormat { get; private set; } = "{0} 수선";
 	}
 }

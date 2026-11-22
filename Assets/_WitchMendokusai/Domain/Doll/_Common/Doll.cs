@@ -20,11 +20,24 @@ namespace WitchMendokusai
 		[field: SerializeField] public Color BodyTint { get; private set; } = Color.white;
 		// 고유 패시브. 없으면 null
 		[field: SerializeField] public DollPassiveData Passive { get; private set; }
+		// 숙련 막대와 조각 배치. 없으면 null
+		[field: SerializeField] public DollMasteryData Mastery { get; private set; }
+		// 형태 (변신). 트리 노드 form 칸이 Key 로 가리킴
+		[field: SerializeField] public List<DollFormData> Forms { get; private set; } = new();
 		// 옛 시험 인형. 자산은 다른 콘텐츠가 참조하므로 두고 인형 창과 조작 대상에서만 뺌
 		[field: SerializeField] public bool IsTestOnly { get; private set; }
 
 		public const int EQUIPMENT_SLOT_COUNT = 3;
 		private const int REQUIRED_BODY_SPRITE_COUNT = 2;
+
+		// 없는 형태는 트리와 인물 자료가 어긋난 것. 조용히 넘기지 않음
+		public DollFormData FindForm(string key)
+		{
+			DollFormData form = Forms.Find(candidate => candidate != null && candidate.Key == key);
+			if (form == null)
+				throw new InvalidOperationException($"인형 {name} 에 형태 {key} 없음");
+			return form;
+		}
 
 		// 조작 인형 조건: 시험 전용 아님, 머리와 몸 스프라이트, 고유 장비
 		public bool IsControllable => ID != DUMMY_ID && IsTestOnly == false && Sprites != null && Sprites.Count >= REQUIRED_BODY_SPRITE_COUNT && SignatureEquipment != null;

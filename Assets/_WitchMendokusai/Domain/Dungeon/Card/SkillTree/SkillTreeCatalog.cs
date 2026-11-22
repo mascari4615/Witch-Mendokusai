@@ -99,8 +99,9 @@ namespace WitchMendokusai
 			foreach (SkillTreeNodeFile nodeFile in file.Nodes)
 			{
 				SkillTreeNode node = nodeFile.Card.HasValue
-					? new SkillTreeNode(nodeFile.Id, RequireCard(nodeFile.Card.Value), false)
-					: new SkillTreeNode(nodeFile.Id, CreateInlineCard(file, nodeFile), true);
+					? new SkillTreeNode(nodeFile.Id, RequireCard(nodeFile.Card.Value), false, nodeFile.Bundle, nodeFile.ExclusiveGroup)
+					: new SkillTreeNode(nodeFile.Id, CreateInlineCard(file, nodeFile), true, nodeFile.Bundle, nodeFile.ExclusiveGroup);
+				node.Form = nodeFile.Form;
 				nodes.Add(nodeFile.Id, node);
 				tree.Add(node);
 			}
@@ -109,9 +110,15 @@ namespace WitchMendokusai
 			{
 				foreach (SkillTreeRequireFile require in nodeFile.Requires)
 				{
-					nodes[nodeFile.Id].Requirements.Add(require.Node != null
-						? new SkillTreeRequirement(nodes[require.Node], nodes[require.Node].Card, require.Stack)
-						: new SkillTreeRequirement(null, RequireCard(require.Card.Value), require.Stack));
+					SkillTreeNode node = nodes[nodeFile.Id];
+					if (require.Bundle != null)
+						node.RequiredBundles.Add(require.Bundle);
+					else if (require.Mastery.HasValue)
+						node.RequiredMasteryTrack = require.Mastery.Value;
+					else if (require.Node != null)
+						node.Requirements.Add(new SkillTreeRequirement(nodes[require.Node], nodes[require.Node].Card, require.Stack));
+					else
+						node.Requirements.Add(new SkillTreeRequirement(null, RequireCard(require.Card.Value), require.Stack));
 				}
 			}
 			return tree;

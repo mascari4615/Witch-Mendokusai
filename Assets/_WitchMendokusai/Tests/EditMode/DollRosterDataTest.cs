@@ -39,8 +39,10 @@ namespace WitchMendokusai.Tests
 			Dictionary<int, Doll> dolls = LoadDolls();
 			List<EquipmentData> signatures = PLAYABLE_IDS.Select(id => dolls[id].SignatureEquipment).ToList();
 			Assert.That(signatures, Is.Unique);
+			// 카드는 자산 카드나 트리 파일 안 카드 (인물 전용 무기는 트리 파일에만 둘 수 있음)
+			SkillTreeCatalog catalog = new(SkillTreeCatalog.LoadResources(), new AssetSkillTreeDataSource());
 			foreach (EquipmentData signature in signatures)
-				Assert.That(signature.EffectCards.Any(card => card != null), signature.name);
+				Assert.That(catalog.CardsFor(signature).Any(card => card != null), signature.name);
 		}
 
 		[Test]

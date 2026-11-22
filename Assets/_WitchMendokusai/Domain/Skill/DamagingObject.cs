@@ -292,5 +292,12 @@ namespace WitchMendokusai
 		{
 			this.damageBonus = damageBonus;
 		}
+
+		// 관통. 판정 초기화 (InitContext) 뒤에 부름
+		public void AddHitCount(int extraHits)
+		{
+			if (extraHits > 0)
+				curHitCount += extraHits;
+		}
 	}
 }

@@ -202,6 +202,18 @@ namespace WitchMendokusai
 		CHORE_DAMAGE_BONUS = 12_601,
 		CHORE_ATTACK_SPEED_BONUS = 12_602,
 		CHORE_SCALE_BONUS = 12_603,
+
+		// 인물 전용 무기. 인물마다 하나라 이름은 인물이 아니라 쓰임으로. 변신 뒤 새 무기도 같은 값을 읽어 키운 것이 이어짐
+		SIGNATURE_MELEE_COUNT = 13_000,
+		SIGNATURE_MELEE_DAMAGE_BONUS = 13_001,
+		SIGNATURE_MELEE_ATTACK_SPEED_BONUS = 13_002,
+		SIGNATURE_RANGED_COUNT = 13_010,
+		SIGNATURE_RANGED_DAMAGE_BONUS = 13_011,
+		SIGNATURE_RANGED_PIERCE = 13_012,
+
+		// 인물 고유 효과 (DollPassiveData). 빈도는 주기 감소, 세기는 한 번의 양
+		DOLL_PASSIVE_FREQUENCY = 13_100,
+		DOLL_PASSIVE_POTENCY = 13_101,
 		#endregion
 
 		#region Status

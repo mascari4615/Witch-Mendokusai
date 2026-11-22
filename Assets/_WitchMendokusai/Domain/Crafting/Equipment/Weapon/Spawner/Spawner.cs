@@ -60,6 +60,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float scalePerStack = 0.1f;
 
 		[SerializeField] private UnitStatType damageBonusStatType = UnitStatType.NONE;
+		[SerializeField, Tooltip("한 발이 더 맞힐 수 있는 적 수 (관통). 적중 횟수를 쓰는 탄에만")] private UnitStatType pierceBonusStatType = UnitStatType.NONE;
 
 		// 스킬창 장비 칸의 대기 표시용. 다음 공격 시각과 그 주기 (EquipmentCooldowns)
 		private float readyTime;
@@ -205,7 +206,11 @@ namespace WitchMendokusai
 
 			DamagingObject damagingObject = g.GetComponentInChildren<DamagingObject>(true);
 			if (damagingObject != null)
+			{
 				damagingObject.SetDamageBonus(damageBonus);
+				if (pierceBonusStatType != UnitStatType.NONE)
+					damagingObject.AddHitCount(PlayerStat[pierceBonusStatType]);
+			}
 			else if (g.TryGetComponent(out ExplodeOnEnd explodeOnEnd))
 				explodeOnEnd.SetDamageBonus(damageBonus);
 

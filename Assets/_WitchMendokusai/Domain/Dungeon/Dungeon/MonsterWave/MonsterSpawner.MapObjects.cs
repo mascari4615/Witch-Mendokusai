@@ -41,6 +41,14 @@ namespace WitchMendokusai
 				mapObjectPlans.AddRange(MapObjectPlanner.Plan(budget, RunSeed.Derive(budget.SeedSalt), MapObjectSettings.Load().Pacing, out int remaining));
 				Debug.Log($"[MapObject] 예산 {budget.Credits}, 남음 {remaining}, 계획 {mapObjectPlans.Count}개");
 			}
+			// 인물 숙련 조각은 던전 예산과 따로, 이 인물로 들어간 판에만. 등장 시각 순서로 합침
+			MapObjectBudget shardBudget = DollMasteryRun.Data != null ? DollMasteryRun.Data.ShardBudget : null;
+			if (shardBudget != null)
+			{
+				mapObjectPlans.AddRange(MapObjectPlanner.Plan(shardBudget, RunSeed.Derive(shardBudget.SeedSalt), MapObjectSettings.Load().Pacing, out _));
+				mapObjectPlans.Sort((left, right) => left.SpawnTime.CompareTo(right.SpawnTime));
+				Debug.Log($"[MapObject] 숙련 조각 포함 계획 {mapObjectPlans.Count}개");
+			}
 			pendingMapObjectStart = StartCoroutine(StartMapObjectsAfterPhysics(mapObjectGeneration));
 		}
 
@@ -92,7 +100,31 @@ namespace WitchMendokusai
 				}
 				if (site.IsHolding)
 					TickHold(site, deltaSeconds, playerPosition, settings);
+				else if (site.Data.ActivateOnTouch && IsTouching(site, playerPosition))
+					site.OnInteract();
 			}
+		}
+
+		private static bool IsUselessShard(MapObjectData data)
+		{
+			bool isShard = false;
+			foreach (MapObjectEffect effect in data.Effects)
+			{
+				if (effect == null || effect.Type != MapObjectEffectType.MasteryShard)
+					continue;
+				isShard = true;
+				if (DollMasteryRun.AcceptsShards && DollMasteryRun.IsTrackReady(effect.MasteryTrack) == false)
+					return false;
+			}
+			return isShard;
+		}
+
+		private static bool IsTouching(MapObjectSite site, Vector3 playerPosition)
+		{
+			Vector3 offset = site.transform.position - playerPosition;
+			offset.y = 0f;
+			float radius = site.Data.ResolveMarkerRadius(PlayerInteraction.InteractionDistance);
+			return offset.sqrMagnitude <= radius * radius;
 		}
 
 		// 완료인데 효과를 못 내면 (적 상한, 체력 가득) 다음 틱에 다시. 반응 글자는 처음 한 번
@@ -131,6 +163,12 @@ namespace WitchMendokusai
 			while (nextMapObjectPlan < mapObjectPlans.Count && mapObjectPlans[nextMapObjectPlan].SpawnTime <= elapsed)
 			{
 				MapObjectData data = mapObjectPlans[nextMapObjectPlan].Data;
+				// 갈래를 확정했거나 그 막대가 이미 찼으면 숙련 조각은 더 놓지 않음
+				if (IsUselessShard(data))
+				{
+					nextMapObjectPlan++;
+					continue;
+				}
 				if (TryPlaceMapObject(data, mapObjectRandom, out _, out string failure) == false)
 				{
 					mapObjectFailedRounds++;
