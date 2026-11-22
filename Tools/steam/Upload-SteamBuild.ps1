@@ -175,6 +175,8 @@ if ($exitCode -ne 0)
 {
     Write-Warning "[steampipe] 성공 문구는 있으나 종료 코드 $exitCode. 로그 확인: $logPath"
 }
+# steamcmd 의 종료 코드가 전역에 남으면 호출한 쪽 (CI run 블록의 exit $LASTEXITCODE) 이 실패로 읽음. 판정은 위에서 끝남
+$global:LASTEXITCODE = 0
 
 $buildId = Select-String -LiteralPath $logPath -Pattern 'BuildID\s+(\d+)' | Select-Object -Last 1
 if ($buildId) { Write-Host "[steampipe] 완료 BuildID $($buildId.Matches[0].Groups[1].Value)" }

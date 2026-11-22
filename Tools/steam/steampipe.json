@@ -4,6 +4,9 @@
   "exclude": [
     "*.pdb",
     "steam_appid.txt",
+    "*.zip",
+    "unity-build.log",
+    "build-report.json",
     "*_BurstDebugInformation_DoNotShip*",
     "*_BackUpThisFolder_ButDontShipItWithYourGame*"
   ]

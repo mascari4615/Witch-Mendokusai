@@ -39,6 +39,11 @@ on:
         description: '진행 중인 빌드를 취소하고 시작 (끄면 줄 서서 기다린다)'
         type: boolean
         default: false
+      steam_upload:
+        description: 'Steam 업로드 (windows 만). none=안 함 / preview=모의 / upload=올리기만, 공개는 사람이 / beta=올리고 beta 브랜치에 공개'
+        type: choice
+        options: [none, preview, upload, beta]
+        default: none
   push:
     tags:
       - 'v[0-9]*'
@@ -372,6 +377,32 @@ jobs:
           "zip=$asset" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           Write-Host "deliverable -> $asset ($([Math]::Round((Get-Item $asset).Length / 1MB, 1)) MB)"
         id: zip
+
+      # Steam upload is opt-in per dispatch (tag pushes have no inputs, so they never upload).
+      # Login is the cached steamcmd session of this runner user: run
+      # Tools/steam/Setup-SteamCmd.ps1 once on the build machine (a person types the password
+      # and Steam Guard code). ASCII only in this run block (see Build player step).
+      - name: Upload to Steam (SteamPipe)
+        if: ${{ success() && steps.cfg.outputs.platform == 'windows' && inputs.steam_upload != '' && inputs.steam_upload != 'none' }}
+        # The player build itself already succeeded; a failed upload stays visible on this step
+        # without turning the build card red or dropping its download link.
+        continue-on-error: true
+        shell: powershell
+        run: |
+          $mode = '${{ inputs.steam_upload }}'
+          $account = [Environment]::GetEnvironmentVariable('STEAM_BUILDER_ACCOUNT', 'User')
+          if ([string]::IsNullOrWhiteSpace($account)) {
+            throw "STEAM_BUILDER_ACCOUNT is not set for the runner user. Run Tools/steam/Setup-SteamCmd.ps1 on the build machine once."
+          }
+          $shortSha = '${{ github.sha }}'.Substring(0, 9)
+          $uploadArgs = @{
+            BuildDir    = '${{ steps.build.outputs.out_dir }}'
+            Account     = $account
+            Description = "WM $shortSha run ${{ github.run_number }} ${{ steps.cfg.outputs.build_type }}"
+          }
+          if ($mode -eq 'preview') { $uploadArgs.Preview = $true }
+          if ($mode -eq 'beta') { $uploadArgs.SetLive = 'beta' }
+          & (Join-Path $env:GITHUB_WORKSPACE 'Tools\steam\Upload-SteamBuild.ps1') @uploadArgs
 
       - name: Upload artifact
         if: ${{ success() && inputs.publish == 'artifact' }}
