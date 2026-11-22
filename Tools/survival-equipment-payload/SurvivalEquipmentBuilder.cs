@@ -21,7 +21,7 @@ namespace WitchMendokusai
 		private const string ICON_ROOT = "Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/game-icons.net";
 		private const string SHOP_BUFFER = "Assets/_WitchMendokusai/Domain/Item/Assets/_ShopItemDataBuffer.asset";
 		private const string BASE_MATERIAL = WEAPON_ROOT + "/Satellite/SkillTemp.mat";
-		private const string RESONANCE_EFFECT_SOURCE = CARD_ROOT + "/C_410_SwordResonance.asset";
+		private const string RESONANCE_EFFECT_SOURCE = CARD_ROOT + "/C_410_참격.asset";
 		private const int PRICE = 50;
 		private const int SALE_PRICE = 20;
 
