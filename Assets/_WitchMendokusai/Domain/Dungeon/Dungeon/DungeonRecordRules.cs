@@ -5,12 +5,12 @@ namespace WitchMendokusai
 	/// <summary>던전 세부 최고 기록의 항목. 순위표 키의 끝 이름</summary>
 	public enum DungeonRecordStat
 	{
-		LongestSurvival,
-		FastestClear,
-		MostKills,
-		HighestLevel,
-		MostNyang,
-		BestRisk,
+		LongestSurvival = 0,
+		FastestClear = 1,
+		MostKills = 2,
+		HighestLevel = 3,
+		MostNyang = 4,
+		BestRisk = 5,
 	}
 
 	/// <summary>
