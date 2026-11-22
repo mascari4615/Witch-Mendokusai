@@ -74,9 +74,8 @@ Domain/Narrative/Demo/PortraitData_Yawn.asset
 Domain/Quest/_QuestBuffer.asset
 Domain/Quest/_VQs.asset
 Domain/Quest/AchievementDataBuffer.asset
-Domain/Quest/MagicBook/Chapter_.asset
+Domain/Quest/MagicBook/Chapter_1_.asset
 Domain/Quest/MagicBook/Chapter_0_.asset
-Domain/Quest/MagicBook/Chapter_Research.asset
 Domain/Terrain/Biomes/Forest.asset
 Domain/Terrain/Biomes/Mountain.asset
 Domain/Terrain/Biomes/Plains.asset
