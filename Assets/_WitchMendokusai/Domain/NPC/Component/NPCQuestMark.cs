@@ -7,10 +7,10 @@ namespace WitchMendokusai
 	/// </summary>
 	public enum NPCQuestMark
 	{
-		None,
-		Start,   // 받을 수 있는 퀘스트가 있음 (Locked)
-		Waiting, // 진행 중인 퀘스트만 있음
-		Reward,  // 완료 보고할 수 있는 퀘스트가 있음
+		None = 0,
+		Start = 1,   // 받을 수 있는 퀘스트가 있음 (Locked)
+		Waiting = 2, // 진행 중인 퀘스트만 있음
+		Reward = 3,  // 완료 보고할 수 있는 퀘스트가 있음
 	}
 
 	public static class NPCQuestMarkRule
