@@ -1854,6 +1854,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dustMaterial: {fileID: 2100000, guid: 4d0b7666e5214be3b83f5149a9fb4ce2, type: 2}
+  walkEmitInterval: 0.3
 --- !u!114 &6729771298649521484
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -19,6 +19,12 @@ namespace WitchMendokusai
 		public int Count;
 	}
 
+	// 몬스터 한 마리 처치 (정예와 보스 포함). 처치 연쇄 표시가 셈
+	public struct MonsterKilledEvent
+	{
+		public Vector3 Position;
+	}
+
 	public struct EliteKilledEvent
 	{
 		public Monster Monster;

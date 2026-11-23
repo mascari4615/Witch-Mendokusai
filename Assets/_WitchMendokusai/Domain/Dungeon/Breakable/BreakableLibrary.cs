@@ -17,6 +17,11 @@ namespace WitchMendokusai
 			// 조각마다 누웠을 때 중심 높이와 날 때 띄울 거리 (크기 1 기준, 메시 경계에서)
 			public float[] ShardRest;
 			public float[] ShardFly;
+			// 위에 얹힌 소품. 없으면 null. 위치는 물건 기준 (기울기 무시)
+			public Mesh TopProp;
+			public Vector3 TopPropLocal;
+			public float TopPropRest;
+			public float TopPropFly;
 		}
 
 		private readonly List<Object> owned = new();
@@ -36,7 +41,7 @@ namespace WitchMendokusai
 			{
 				if (kind.Palette.Length == 0)
 					throw new System.InvalidOperationException($"{nameof(BreakableKind)} {kind.Name} 팔레트 비어 있음");
-				capacity += kind.Palette.Length * settings.VariantsPerKind;
+				capacity += (kind.Palette.Length + kind.TopPropPalette.Length) * settings.VariantsPerKind;
 			}
 
 			BreakableLibrary library = new();
@@ -62,6 +67,19 @@ namespace WitchMendokusai
 						builder.Range(-settings.TiltDegrees, settings.TiltDegrees), 0f,
 						builder.Range(-settings.TiltDegrees, settings.TiltDegrees))));
 					BreakableShapes.Build(builder, kind.Shape, size, rows);
+					bool hasProp = kind.TopPropPalette.Length >= 2 && random.NextDouble() < kind.TopPropChance;
+					BreakableTopProp.Kind propKind = random.NextDouble() < .5 ? BreakableTopProp.Kind.Bottle : BreakableTopProp.Kind.Book;
+					int propMainRow = -1;
+					int propAccentRow = -1;
+					Vector3 propLocal = Vector3.zero;
+					float propYaw = builder.Range(0f, 360f);
+					if (hasProp)
+					{
+						propMainRow = atlas.Add(Jitter(kind.TopPropPalette[0], settings.ColorJitter, random));
+						propAccentRow = atlas.Add(Jitter(kind.TopPropPalette[1], settings.ColorJitter, random));
+						propLocal = new Vector3(builder.Range(-.25f, .25f) * size.x, size.y, builder.Range(-.25f, .25f) * size.z);
+						BreakableTopProp.Add(builder, propKind, propLocal, propYaw, kind.TopPropScale, propMainRow, propAccentRow);
+					}
 					Variant variant = new()
 					{
 						Mesh = library.Own(builder.Build($"Breakable_{kind.Name}_{variantIndex}")),
@@ -77,6 +95,16 @@ namespace WitchMendokusai
 						variant.ShardMeshes[shard] = shardMesh;
 						variant.ShardRest[shard] = bounds.extents.y - bounds.center.y;
 						variant.ShardFly[shard] = bounds.extents.magnitude + bounds.center.magnitude;
+					}
+					if (hasProp)
+					{
+						builder.SetMatrix(Matrix4x4.identity);
+						BreakableTopProp.Add(builder, propKind, Vector3.zero, propYaw, kind.TopPropScale, propMainRow, propAccentRow);
+						variant.TopProp = library.Own(builder.Build($"BreakableTopProp_{kind.Name}_{variantIndex}"));
+						Bounds propBounds = variant.TopProp.bounds;
+						variant.TopPropLocal = propLocal;
+						variant.TopPropRest = propBounds.extents.y - propBounds.center.y;
+						variant.TopPropFly = propBounds.extents.magnitude + propBounds.center.magnitude;
 					}
 					library.Variants[kindIndex][variantIndex] = variant;
 				}

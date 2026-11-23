@@ -57,7 +57,7 @@ namespace WitchMendokusai
 		[Min(0), Tooltip("감전된 웅덩이 위 몬스터가 한 번 받는 피해")] public int ShockMonsterDamage = 15;
 		[Min(0), Tooltip("감전된 웅덩이 위 주인공이 한 번 받는 피해")] public int ShockPlayerDamage = 2;
 		[Min(.1f), Tooltip("느려짐이 남는 시간 초 (웅덩이를 벗어난 뒤)")] public float GoopSlowLingerSeconds = .4f;
-		[ColorUsage(true, true), Tooltip("불 색 (빛남 포함)")] public Color FireColor = new(3f, 1.2f, .3f, 1f);
+		[ColorUsage(true, true), Tooltip("불 색 (빛남 포함)")] public Color FireColor = new(1.6f, .6f, .15f, 1f);
 		[ColorUsage(true, true), Tooltip("감전 색 (빛남 포함)")] public Color ShockColor = new(.8f, 1.6f, 3f, 1f);
 		[Tooltip("다 탄 자리에 남는 그을음 색")] public Color ScorchColor = new(.06f, .045f, .035f, .85f);
 		[Min(0f), Tooltip("다 탄 칸 하나가 남기는 그을음 반지름, 미터")] public float ScorchRadius = .75f;
@@ -79,6 +79,25 @@ namespace WitchMendokusai
 
 		[Header("발밑 먼지")]
 		[Min(0f), Tooltip("걸을 때 발밑 먼지 간격 초. 자산 생성기가 주인공 먼지 부품에 써 넣음 (0 이면 걸을 때 없음)")] public float WalkDustInterval = .3f;
+
+		[Header("액체 입자 (불꽃, 감전 불똥)")]
+		[Tooltip("가산 파티클 재질")] public Material GoopParticleMaterial;
+		[Min(16)] public int MaxGoopParticles = 400;
+		[Min(1), Tooltip("프레임당 새로 내는 입자 상한")] public int MaxGoopParticlesPerFrame = 12;
+		[Min(0f), Tooltip("타는 칸 하나가 초당 내는 불꽃 수")] public float FlamesPerCellPerSecond = 1.6f;
+		[Tooltip("불꽃 시작 색")] public Color FlameColor = new(1f, .62f, .2f, 1f);
+		[Tooltip("불꽃 끝 색 (시작 색에 곱함)")] public Color FlameEndColor = new(.8f, .25f, .1f, 1f);
+		[Tooltip("불꽃이 위로 뜨는 속도 범위")] public Vector2 FlameRise = new(.8f, 1.6f);
+		[Min(0f), Tooltip("불꽃이 옆으로 흔들리는 속도")] public float FlameDrift = .2f;
+		[Tooltip("불꽃 크기 범위")] public Vector2 FlameSize = new(.14f, .28f);
+		[Tooltip("불꽃 수명 범위 초")] public Vector2 FlameLife = new(.35f, .65f);
+		[Min(0f), Tooltip("감전된 칸 하나가 초당 내는 불똥 수")] public float SparksPerCellPerSecond = 6f;
+		[Tooltip("불똥 색")] public Color SparkColor = new(.75f, .9f, 1f, 1f);
+		[Min(0f), Tooltip("불똥 속도")] public float SparkSpeed = 3.5f;
+		[Min(0f), Tooltip("불똥이 위로 튀는 비율 (속도 대비 최대)")] public float SparkLift = .5f;
+		[Min(.01f)] public float SparkSize = .05f;
+		[Min(.02f)] public float SparkLife = .14f;
+		[Min(0f), Tooltip("불똥 늘이기 (속도 배율)")] public float SparkStretch = .06f;
 
 		[Header("셰이더 (빌드에 포함되게 참조로)")]
 		public Shader StainUtilityShader;

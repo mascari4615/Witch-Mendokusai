@@ -58,6 +58,11 @@ MonoBehaviour:
     Table: {fileID: 11400000, guid: 8172cfe264ee43538528c7cde9bba660, type: 2}
     Spill: {fileID: 0}
     SpillRadius: 1.6
+    TopPropChance: 0.5
+    TopPropPalette:
+    - {r: 0.36, g: 0.55, b: 0.72, a: 1}
+    - {r: 0.86, g: 0.76, b: 0.56, a: 1}
+    TopPropScale: 1.2
   - Name: Barrel
     Shape: 1
     Weight: 2

@@ -44,6 +44,7 @@ namespace WitchMendokusai
 		{
 			this.settings = settings;
 			CreateRenderer(parent);
+			CreateParticles(parent);
 		}
 
 		private Vector2Int CellOf(Vector3 position) => new(Mathf.FloorToInt(position.x / settings.GoopCellSize), Mathf.FloorToInt(position.z / settings.GoopCellSize));
@@ -171,9 +172,15 @@ namespace WitchMendokusai
 			player = currentPlayer;
 			removed.Clear();
 			igniteNext.Clear();
+			burningCells.Clear();
+			shockedCells.Clear();
 			foreach (KeyValuePair<Vector2Int, Cell> pair in cells)
 			{
 				Cell cell = pair.Value;
+				if (cell.ShockLeft > 0f)
+					shockedCells.Add(pair.Key);
+				if (cell.BurnLeft > 0f)
+					burningCells.Add(pair.Key);
 				// 감전이 끝난 뒤에도 음수로 내려가며 다시 감전될 때까지 기다림 (ShockCooldownSeconds)
 				if (cell.ShockLeft > -settings.ShockCooldownSeconds)
 					cell.ShockLeft -= deltaTime;
@@ -199,6 +206,7 @@ namespace WitchMendokusai
 				effectTimer = 0f;
 			}
 			TickRender(deltaTime, focus, groundHeight);
+			TickParticles(deltaTime, groundHeight);
 		}
 
 		private void TickBurning(Vector2Int key, Cell cell, float deltaTime, float groundHeight)
@@ -306,6 +314,7 @@ namespace WitchMendokusai
 			cells.Clear();
 			damageCarry.Clear();
 			effectTimer = 0f;
+			ClearParticles();
 			MarkDirty();
 		}
 	}

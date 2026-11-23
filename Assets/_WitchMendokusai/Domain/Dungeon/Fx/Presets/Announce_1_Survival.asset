@@ -52,3 +52,14 @@ MonoBehaviour:
     <Title>k__BackingField: "난이도 상승"
     <Subtitle>k__BackingField: "{3}"
     <HoldSeconds>k__BackingField: 1.4
+  <KillStreak>k__BackingField:
+    <Banner>k__BackingField: {fileID: 11400000, guid: 666e3617e2a2404389f265d895022985, type: 2}
+    <Title>k__BackingField: "{2} 연쇄"
+    <Subtitle>k__BackingField: ""
+    <HoldSeconds>k__BackingField: 1
+  <StreakThresholds>k__BackingField:
+  - 25
+  - 50
+  - 100
+  - 200
+  <StreakWindowSeconds>k__BackingField: 1.2

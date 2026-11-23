@@ -15,6 +15,9 @@ namespace WitchMendokusai
 		private ResourceManager resourceManager;
 		// 띠 에셋별 마지막 재생의 중단 함수
 		private readonly Dictionary<CombatFx, Action> stops = new();
+		private int streak;
+		private float lastKillTime = float.NegativeInfinity;
+		private int nextThresholdIndex;
 
 		private SurvivalAnnounceSettings Settings => resourceManager.SurvivalAnnounce;
 
@@ -28,6 +31,7 @@ namespace WitchMendokusai
 			EventBusBridge.Subscribe<BossSpawnedEvent>(OnBossSpawned);
 			EventBusBridge.Subscribe<DifficultyRaisedEvent>(OnDifficultyRaised);
 			EventBusBridge.Subscribe<EliteKilledEvent>(OnEliteKilled);
+			EventBusBridge.Subscribe<MonsterKilledEvent>(OnMonsterKilled);
 		}
 
 		private void OnDestroy()
@@ -38,6 +42,7 @@ namespace WitchMendokusai
 			EventBusBridge.Unsubscribe<BossSpawnedEvent>(OnBossSpawned);
 			EventBusBridge.Unsubscribe<DifficultyRaisedEvent>(OnDifficultyRaised);
 			EventBusBridge.Unsubscribe<EliteKilledEvent>(OnEliteKilled);
+			EventBusBridge.Unsubscribe<MonsterKilledEvent>(OnMonsterKilled);
 			// 씬을 떠날 때 떠 있던 띠를 치움. 끝난 띠의 중단 함수는 불러도 무해
 			foreach (Action stop in stops.Values)
 				stop.Invoke();
@@ -80,6 +85,25 @@ namespace WitchMendokusai
 		}
 
 		private void OnEliteKilled(EliteKilledEvent killed) => Show(Settings.EliteKilled, 0f, killed.Monster, 1);
+
+		// 처치 사이 간격이 창 안이면 이어 셈. 문턱을 넘을 때마다 한 번씩 띠 (게임 시간 기준, 일시정지 중엔 안 끊김)
+		private void OnMonsterKilled(MonsterKilledEvent killed)
+		{
+			float now = Time.time;
+			if (now - lastKillTime > Settings.StreakWindowSeconds)
+			{
+				streak = 0;
+				nextThresholdIndex = 0;
+			}
+			lastKillTime = now;
+			streak++;
+			int[] thresholds = Settings.StreakThresholds;
+			if (nextThresholdIndex < thresholds.Length && streak >= thresholds[nextThresholdIndex])
+			{
+				nextThresholdIndex++;
+				Show(Settings.KillStreak, 0f, null, streak);
+			}
+		}
 
 		private void Show(SurvivalAnnounceLine line, float leadSeconds, Monster monster, int count, string difficultyName = "")
 		{

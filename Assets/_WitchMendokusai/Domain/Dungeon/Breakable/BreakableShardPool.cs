@@ -35,5 +35,30 @@ namespace WitchMendokusai
 				remains.Debris.Spawn(remains.Settings, spawn);
 			}
 		}
+
+		// 위에 얹힌 소품. 조각보다 높이 튀고 천천히 돌며 떨어짐
+		public static void LaunchTopProp(RemainsWorld remains, BreakableSettings settings, Material material, BreakableLibrary.Variant variant, Transform objectTransform, Vector3 awayDirection)
+		{
+			if (variant.TopProp == null)
+				return;
+			Vector2 circle = Random.insideUnitCircle * settings.TopPropSpread;
+			DebrisSpawn spawn = new()
+			{
+				Mesh = variant.TopProp,
+				Material = material,
+				Position = objectTransform.TransformPoint(variant.TopPropLocal),
+				Rotation = objectTransform.rotation,
+				Velocity = awayDirection * settings.TopPropSpread + new Vector3(circle.x, settings.TopPropLift, circle.y),
+				SpinAxis = Random.onUnitSphere,
+				SpinDegrees = settings.TopPropSpin,
+				Size = 1f,
+				FlyClearance = variant.TopPropFly,
+				RestClearance = variant.TopPropRest,
+				Gravity = settings.ShardGravity,
+				Bounce = settings.ShardBounce,
+				GroundHeight = settings.GroundHeight,
+			};
+			remains.Debris.Spawn(remains.Settings, spawn);
+		}
 	}
 }
