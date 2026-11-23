@@ -27,7 +27,7 @@ namespace WitchMendokusai
 		public BreakableTable Table;
 		[Tooltip("부서질 때 쏟는 바닥 액체 (기름통, 물통). 비우면 없음")] public GoopKind Spill;
 		[Min(0f), Tooltip("쏟는 웅덩이 반지름, 미터")] public float SpillRadius = 1.6f;
-		[Range(0f, 1f), Tooltip("위에 소품 (약병, 책) 이 얹힐 확률. 변주마다 정함")] public float TopPropChance;
+		[Range(0f, 1f), Tooltip("위에 소품 (약병, 책) 이 얹힌 변주의 몫. 앞쪽 변주부터 얹음")] public float TopPropChance;
 		[Tooltip("얹힌 소품 색 두 칸 (본체, 마개나 종이). 비우면 소품 없음")] public Color[] TopPropPalette = Array.Empty<Color>();
 		[Min(.1f), Tooltip("얹힌 소품 크기 배율")] public float TopPropScale = 1f;
 	}

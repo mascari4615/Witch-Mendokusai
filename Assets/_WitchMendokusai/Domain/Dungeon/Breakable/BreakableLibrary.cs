@@ -67,7 +67,8 @@ namespace WitchMendokusai
 						builder.Range(-settings.TiltDegrees, settings.TiltDegrees), 0f,
 						builder.Range(-settings.TiltDegrees, settings.TiltDegrees))));
 					BreakableShapes.Build(builder, kind.Shape, size, rows);
-					bool hasProp = kind.TopPropPalette.Length >= 2 && random.NextDouble() < kind.TopPropChance;
+					// 주사위가 아니라 몫. 변형 수가 적어 주사위면 한 종류에 하나도 안 얹히는 판이 나옴
+					bool hasProp = kind.TopPropPalette.Length >= 2 && variantIndex < Mathf.RoundToInt(settings.VariantsPerKind * kind.TopPropChance);
 					BreakableTopProp.Kind propKind = random.NextDouble() < .5 ? BreakableTopProp.Kind.Bottle : BreakableTopProp.Kind.Book;
 					int propMainRow = -1;
 					int propAccentRow = -1;

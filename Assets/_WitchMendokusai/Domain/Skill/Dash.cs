@@ -31,8 +31,8 @@ namespace WitchMendokusai
 			}
 
 			unitObject.UnitMovement.ApplyImpulse(direction * dashSpeed, dashDuration);
-			if (afterimageStyle != null && unitObject.SpriteRenderer != null)
-				DashAfterimage.Play(unitObject.SpriteRenderer, afterimageStyle, afterimageCount, afterimageInterval, afterimageTint);
+			if (afterimageStyle != null)
+				DashAfterimage.Play(unitObject, afterimageStyle, afterimageCount, afterimageInterval, afterimageTint);
 		}
 	}
 }
