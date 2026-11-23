@@ -42,6 +42,18 @@ namespace WitchMendokusai
 		/// </summary>
 		public static T Get<T>(int id) where T : DataSO => SOManagerBridge.DataSOs[typeof(T)][id] as T;
 
+		// 저장 파일처럼 바깥에서 온 ID 를 읽는 경계 전용. 게임 안 조회는 위의 Get (FastFail)
+		public static bool TryGet<T>(int id, out T data) where T : DataSO
+		{
+			data = null;
+			if (SOManagerBridge.DataSOs.TryGetValue(typeof(T), out Dictionary<int, DataSO> dataSOs) == false)
+				return false;
+			if (dataSOs.TryGetValue(id, out DataSO dataSO) == false)
+				return false;
+			data = dataSO as T;
+			return data != null;
+		}
+
 		// 아래 코드는 불가능
 		// 왜 WHY : 제네릭 타입의 변환에 제한, C#의 타입 안전성을 보장하기 위한.
 		// i.e. Dic<int, DataSO>를 Dic<int, ItemData>로 캐스팅하고, DataSO를 Add하려고 하면, 이는 ItemData 타입이 아니므로 문제가 발생

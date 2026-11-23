@@ -11,6 +11,8 @@ namespace WitchMendokusai
 	public class SaveManager
 	{
 		public const string SAVE_FILE_NAME = "WM.json";
+		// 저장 형식 번호. 형식을 바꿀 때 올리고, 옛 번호를 읽는 이주를 LoadData 에 둠. 0 은 이 칸이 생기기 전 세이브
+		public const int SAVE_VERSION = 1;
 
 		public bool IsDataLoaded { get; private set; }
 
@@ -129,6 +131,9 @@ namespace WitchMendokusai
 
 		public void LoadData(GameData saveData)
 		{
+			if (saveData.saveVersion > SAVE_VERSION)
+				Debug.LogWarning($"[{nameof(SaveManager)}] 이 빌드보다 새 형식의 세이브: {saveData.saveVersion} > {SAVE_VERSION}");
+
 			DataManager.CurDollID = saveData.curDollIndex;
 			DataManager.DummyDollCount = saveData.dummyDollCount;
 
@@ -217,8 +222,8 @@ namespace WitchMendokusai
 			ForEach<Dungeon>(dungeon => { dungeon.Init(); }); // 먼저 전부 Init (새로 추가된 던전 포함)
 			foreach ((int id, DungeonSaveData dungeonData) in saveData.dungeons)
 			{
-				Dungeon dungeon = GetDungeon(id);
-				dungeon.Load(dungeonData);
+				if (TryGetSaved(id, out Dungeon dungeon))
+					dungeon.Load(dungeonData);
 			}
 			// 저장된 최고 기록을 기록판에 알림 (앞선 실행에서 플랫폼에 못 올린 기록 포함)
 			ForEach<Dungeon>(dungeon => { dungeon.ReportRecords(); });
@@ -226,15 +231,15 @@ namespace WitchMendokusai
 			// WorldStage 초기화
 			foreach ((int worldStageID, WorldStageSaveData worldStageData) in saveData.worldStages)
 			{
-				WorldStage worldStage = Get<WorldStage>(worldStageID);
-				worldStage.Load(worldStageData);
+				if (TryGetSaved(worldStageID, out WorldStage worldStage))
+					worldStage.Load(worldStageData);
 			}
 
 			// 업그레이드 초기화
 			foreach ((int upgradeID, UpgradeSaveData upgradeData) in saveData.upgrades)
 			{
-				UpgradeData upgrade = Get<UpgradeData>(upgradeID);
-				upgrade.Load(upgradeData);
+				if (TryGetSaved(upgradeID, out UpgradeData upgrade))
+					upgrade.Load(upgradeData);
 			}
 
 			// 대화 이력 복원. 로비에서 불러오면 대화 시스템이 아직 없어 보관했다가 월드의 대화 시스템 등록 때 넘김
@@ -244,6 +249,15 @@ namespace WitchMendokusai
 			soManager.WindowLayoutData.Load(saveData.windowLayouts);
 
 			IsDataLoaded = true;
+		}
+
+		// 세이브에는 있는데 이 빌드에 없는 자료 (지웠거나 번호를 바꾼 것) 는 건너뜀. 저장 파일은 바깥 입력이라 읽는 경계에서만 관대
+		private static bool TryGetSaved<T>(int id, out T data) where T : DataSO
+		{
+			if (TryGet(id, out data))
+				return true;
+			Debug.LogWarning($"[{nameof(SaveManager)}] 세이브의 {typeof(T).Name} {id} 가 이 빌드에 없어 건너뜀");
+			return false;
 		}
 
 		private Dictionary<string, string> CaptureFeatureSaves()
@@ -272,6 +286,7 @@ namespace WitchMendokusai
 		{
 			GameData gameData = new()
 			{
+				saveVersion = SAVE_VERSION,
 				curDollIndex = DataManager.CurDollID,
 				dummyDollCount = DataManager.DummyDollCount,
 				inventoryItems = soManager.ItemInventory.Save(),

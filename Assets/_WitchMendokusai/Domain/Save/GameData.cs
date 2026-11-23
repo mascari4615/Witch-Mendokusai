@@ -10,6 +10,8 @@ namespace WitchMendokusai
 	// IgnoreSerializableAttribute=True → 이 속성은 저장 포맷에 아무 영향이 없다.
 	public class GameData
 	{
+		// 저장 형식 번호. 이 칸이 없던 옛 세이브는 0 으로 읽힘. 쓸 때 SaveManager.SAVE_VERSION 을 넣음
+		public int saveVersion = 0;
 		public int curDollIndex = 0;
 		public int dummyDollCount = 1;
 
