@@ -70,7 +70,8 @@ namespace KarmoLabs
 			{
 				data = JsonConvert.DeserializeObject<T>(File.ReadAllText(path), JsonSettings);
 			}
-			catch (Exception exception) when (exception is JsonException || exception is IOException)
+			// 내용이 깨진 경우만 잡음. 잠금이나 권한 같은 입출력 실패는 멀쩡한 세이브일 수 있어 그대로 던짐
+			catch (JsonException exception)
 			{
 				Debug.LogError($"[{nameof(SaveTool)}] 저장 파일 읽기 실패: {Path.GetFileName(path)} ({exception.GetType().Name}: {exception.Message})");
 				data = null;

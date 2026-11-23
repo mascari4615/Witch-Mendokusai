@@ -113,6 +113,8 @@ namespace WitchMendokusai
 			// 업그레이드 초기화
 			ForEach<UpgradeData>(upgradeData => { upgradeData.CurLevel = 0; });
 
+			// 새 게임은 앞 판도 비움. 남기면 지운 진행이 앞 판으로 되살아남
+			SaveTool.DeleteSaveFile(SAVE_FILE_NAME);
 			WriteSaveData();
 			LoadLocalData();
 		}
@@ -131,6 +133,9 @@ namespace WitchMendokusai
 
 		public void LoadData(GameData saveData)
 		{
+			// 불러오다 터지면 반쯤 채운 상태로 저장하지 않게 먼저 내림
+			IsDataLoaded = false;
+
 			if (saveData.saveVersion > SAVE_VERSION)
 				Debug.LogWarning($"[{nameof(SaveManager)}] 이 빌드보다 새 형식의 세이브: {saveData.saveVersion} > {SAVE_VERSION}");
 

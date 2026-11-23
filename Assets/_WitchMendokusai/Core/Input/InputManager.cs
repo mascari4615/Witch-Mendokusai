@@ -63,7 +63,7 @@ namespace WitchMendokusai
 		Submit,
 		[InputEvent("UI 탐색", "취소", "<Keyboard>/x")]
 		Cancel,
-		[InputEvent("카메라", "시점 조작 모드 (Tab)", "<Keyboard>/tab", EnabledInRelease = false)]
+		[InputEvent("카메라", "시점 조작 모드 (Tab)", "<Keyboard>/tab")]
 		CameraControlModeToggle,
 		[InputEvent("카메라", "1인칭/3인칭 (F5)", "<Keyboard>/f5", EnabledInRelease = false)]
 		CameraPerspectiveToggle,
