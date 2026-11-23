@@ -21,6 +21,13 @@ namespace WitchMendokusai
 	{
 		public override NodeDomain Domain => NodeDomain.MagicBook;
 
+		[Header("마도서 하늘")]
+		[SerializeField, Tooltip("가운데 마도서에서 이 장이 뻗는 방향 (도). 0 은 오른쪽, 90 은 아래")] private float skyAngle;
+		[SerializeField, Tooltip("깊이 한 단계마다 멀어지는 거리 (하늘 px)")] private float skyDepthStep = 220f;
+
+		public float SkyAngle => skyAngle;
+		public float SkyDepthStep => skyDepthStep;
+
 		public override IReadOnlyList<NodeConnection> Connections
 		{
 			get

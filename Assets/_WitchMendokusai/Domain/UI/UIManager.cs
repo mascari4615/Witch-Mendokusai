@@ -330,10 +330,10 @@ namespace WitchMendokusai
 				return;
 			}
 
-			// 마도서는 창 관리자 밖의 전체 화면. 여기서 닫지 않으면 마도서 위에 메뉴가 열림
+			// 마도서는 창 관리자 밖의 전체 화면. 여기서 닫지 않으면 마도서 위에 메뉴가 열림. 팝업, 화면 순으로 한 단계씩
 			if (uiRoot.MagicBookView.IsOpen)
 			{
-				uiRoot.MagicBookView.Close();
+				uiRoot.MagicBookView.Back();
 				return;
 			}
 

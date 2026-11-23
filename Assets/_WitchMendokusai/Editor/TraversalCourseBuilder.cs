@@ -9,7 +9,7 @@ namespace WitchMendokusai.EditorTools
 	public static class TraversalCourseBuilder
 	{
 		public const string DIRECTORY = "Assets/_WitchMendokusai/Domain/World/Stage/1001_Traversal";
-		public const string STAGE_PATH = DIRECTORY + "/WS_1001_Traversal.asset";
+		public const string STAGE_PATH = DIRECTORY + "/WS_1001_이동시험코스.asset";
 		private const string PREFAB_PATH = DIRECTORY + "/Stage_Traversal.prefab";
 		private const string DEV_PREFAB = "Assets/_WitchMendokusai/Core/Assets/Singletons/DevWindowController.prefab";
 		private const int STAGE_ID = 1001;

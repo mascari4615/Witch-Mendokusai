@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -6,30 +7,40 @@ using VContainer;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 마도서 풀스크린 view (UI Toolkit). <see cref="UIRoot"/>.ScreenLayer 통합 — <see cref="SettingView"/> 패턴.
-	/// 챕터 리스트 (좌측 사이드바) + 선택 챕터의 노드 그래프 (우측, <see cref="ChapterView"/>) + 우측 floating <see cref="QuestDetail"/>.
-	///
-	/// TASK-WM-059 C (2026-05-09) — uGUI UIMagicBookPanel 의 UI Toolkit 대체.
-	/// TASK-WM-059 D (2026-05-10) — <see cref="QuestDetailRequestedEvent"/> 구독 → <see cref="QuestDetail"/> 띄움.
-	/// EventBus (086 IEvent 인프라) 첫 도메인 사용처. Provider ↔ Host 결합 0.
-	/// 챕터 데이터 = <see cref="SOManager"/>.DataSOs 자동 수집 (ChapterSO : DataSO 정합).
+	/// 마도서 전체 화면. 화면 전체가 밤하늘 (MagicBookSky) 이고, 위 줄은 장 이름과 투기장과 닫기, 아래 줄은 키 안내와 진행.
+	/// 별을 고르면 옆에 팝업 (MagicBookView.Popup.cs, 안은 QuestDetail). 게임 화면을 비치지 않는 불투명 하늘.
+	/// 글꼴과 색 토큰과 무대 배율은 ESC 메뉴 (FullMenu.uss, MenuStage) 를 같이 씀. 모양은 MagicBook.uss.
+	/// 장 자료는 SOManager.DataSOs 에서 모음. 시안과 결정: memo wm/design/magic-book-20261122
 	/// </summary>
-	public class MagicBookView : MonoBehaviour
+	public partial class MagicBookView : MonoBehaviour
 	{
-		public const string USS_CLASS = "wm-magic-book-view";
-		public const string ACTIVE_CLASS = "wm-magic-book-view--active";
+		private const string USS_ROOT = "wm-fullmenu";
+		private const string USS_ACTIVE = "wm-fullmenu--active";
+		private const string USS_CLASS = "wm-mb";
+		private const string NAV_CLASS = "wm-mb-nav";
+		private const string USS_TAB = "wm-mb-tab";
+		private const string USS_TAB_LOCKED = "wm-mb-tab--locked";
+		private const string LOCKED_SUFFIX = " (잠김)";
+		private const string PROGRESS_FORMAT = "마친 연구 {0} / {1}";
 
-		private VisualElement container;
-		private VisualElement content;
-		private VisualElement chapterListContainer;
-		private VisualElement chapterContentContainer;
-		private QuestDetail questDetail;
-
-		private readonly List<ChapterSO> chapters = new();
-		private readonly Dictionary<ChapterSO, ChapterView> chapterViewsByChapter = new();
-		private ChapterSO currentChapter;
+		/// <summary>UIRoot 가 만든 직후 넣어 줌 (UIRoot 프리팹의 MagicBookSettings)</summary>
+		public MagicBookSettings Settings { get; set; }
 
 		public bool IsOpen { get; private set; }
+
+		private VisualElement container;
+		private VisualElement stage;
+		private MagicBookSky sky;
+		private MenuFocus focus;
+		private VisualElement tabRow;
+		private Label progressLabel;
+		private Button closeButton;
+		private Texture2D glowTexture;
+		// 전체 메뉴, 업적과 같은 UIRoot 오브젝트. 그 오브젝트를 정지 열쇠로 쓰면 서로의 정지를 풀어 버려 자기 열쇠를 따로
+		private GameObject pauseKey;
+
+		private readonly List<ChapterSO> chapters = new();
+		private readonly Dictionary<ChapterSO, Button> tabsByChapter = new();
 
 		private UIRoot uiRoot;
 		private InputManager inputManager;
@@ -51,141 +62,212 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			// SettingView 정본 패턴 — uiRoot 는 같은 GameObject (UIRoot.CreateViews 가 AddComponent).
-			// 과거 Construct(UIRoot,...) [Inject] 는 UIRoot ⇄ MagicBookView 순환 → Build 중 Lazy 재진입.
-			// GetComponent 로 획득해 순환 엣지 제거 (TASK-WM-078, 2026-05-16).
+			// uiRoot 는 같은 GameObject (UIRoot.CreateViews 가 AddComponent). [Inject] 로 받으면 UIRoot 와 순환 (TASK-WM-078)
 			uiRoot = GetComponent<UIRoot>();
 		}
 
-		private static readonly Color BACKGROUND_COLOR = new Color(0.08f, 0.08f, 0.12f, 0.97f);
-		private static readonly Color SIDEBAR_COLOR = new Color(0.13f, 0.13f, 0.18f, 1f);
-		private static readonly Color DETAIL_BACKGROUND_COLOR = new Color(0.13f, 0.13f, 0.18f, 0.95f);
-		private const float SIDEBAR_WIDTH = 220f;
-		private const float DETAIL_WIDTH = 280f;
-
 		private void Start()
 		{
-			// 배경은 화면 끝까지 (container), 목록과 내용은 안전 영역 (content). 기본 닫힘
+			if (Settings == null)
+			{
+				throw new InvalidOperationException($"{nameof(MagicBookView)}: UIRoot 프리팹의 MagicBookSettings 가 비어 있음. 프리팹에 값이 있는데 비면 새 필드보다 프리팹이 먼저 임포트된 것 (UIRoot.prefab Reimport)");
+			}
+
+			// 하늘은 화면 끝까지 (container), 칸과 글은 안전 영역 (frame.Content). 기본 닫힘
 			FullScreenFrame frame = uiRoot.CreateFullScreenFrame(uiRoot.ScreenLayer, "MagicBook");
 			container = frame.Root;
-			// 여백 규칙의 전체 화면 메뉴 칸. 가장자리 4vh (Spacing.uss)
-			content = new VisualElement { name = "MagicBookBody" };
-			content.AddToClassList("wm-space-menu");
-			frame.Content.Add(content);
+			container.AddToClassList(USS_ROOT);
 			container.AddToClassList(USS_CLASS);
-			container.style.backgroundColor = BACKGROUND_COLOR;
-			container.style.display = DisplayStyle.None;
-			content.style.flexDirection = FlexDirection.Row;
+			container.styleSheets.Add(Settings.Menu.Style);
+			container.styleSheets.Add(Settings.Style);
+			focus = new MenuFocus(container, NAV_CLASS, () => IsOpen, () => Settings.Menu.NavOverlapTolerance, () => Settings.Menu.NavAcrossWeight)
+			{
+				FocusFirst = FocusFirst,
+			};
+			pauseKey = new GameObject("MagicBookPauseKey");
+			pauseKey.transform.SetParent(transform, false);
+			glowTexture = MenuStage.CreateGlowTexture(Settings.Menu.GlowTextureSize, "MagicBookGlow");
 
-			BuildUI();
+			BuildStage(frame.Content);
 			IsOpen = false;
 
 			inputManager.RegisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
-			EventBusBridge.Subscribe<QuestDetailRequestedEvent>(OnQuestDetailRequested);
 		}
 
 		private void OnDestroy()
 		{
-			if (InputManager.TryGetExistingInstance(out InputManager inputManager))
-				inputManager.UnregisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
-
-			EventBusBridge.Unsubscribe<QuestDetailRequestedEvent>(OnQuestDetailRequested);
-
-			container?.RemoveFromHierarchy();
-		}
-
-		private void BuildUI()
-		{
-			chapterListContainer = new VisualElement();
-			chapterListContainer.AddToClassList("wm-magic-book-list");
-			chapterListContainer.style.width = SIDEBAR_WIDTH;
-			chapterListContainer.style.flexShrink = 0;
-			chapterListContainer.style.backgroundColor = SIDEBAR_COLOR;
-			chapterListContainer.style.paddingTop = 12;
-			chapterListContainer.style.paddingBottom = 12;
-			chapterListContainer.style.paddingLeft = 12;
-			chapterListContainer.style.paddingRight = 12;
-			content.Add(chapterListContainer);
-
-			chapterContentContainer = new VisualElement();
-			chapterContentContainer.AddToClassList("wm-magic-book-content");
-			chapterContentContainer.style.flexGrow = 1;
-			content.Add(chapterContentContainer);
-
-			Button btnClose = KeyHint.KeyButton("닫기", "M", Close);
-			btnClose.AddToClassList("wm-magic-book-close");
-			btnClose.style.position = Position.Absolute;
-			btnClose.style.top = 12;
-			btnClose.style.right = 12;
-			content.Add(btnClose);
-
-			questDetail = new QuestDetail(questManager);
-			questDetail.style.position = Position.Absolute;
-			questDetail.style.top = 60;
-			questDetail.style.right = 12;
-			questDetail.style.bottom = 12;
-			questDetail.style.width = DETAIL_WIDTH;
-			questDetail.style.backgroundColor = DETAIL_BACKGROUND_COLOR;
-			questDetail.style.paddingTop = 12;
-			questDetail.style.paddingBottom = 12;
-			questDetail.style.paddingLeft = 12;
-			questDetail.style.paddingRight = 12;
-			content.Add(questDetail);
-
-			// 부팅 때는 자료 로드 전일 수 있음. Open 에서 다시 모음
-			CollectChapters(warnIfMissing: false);
-			BuildChapterButtons();
-
-			if (chapters.Count > 0)
-				OpenChapter(chapters[0]);
-		}
-
-		private void CollectChapters(bool warnIfMissing = true)
-		{
-			chapters.Clear();
-
-			if (soManager.DataSOs.TryGetValue(typeof(ChapterSO), out Dictionary<int, DataSO> chapterDict) == false)
+			// Start 전에 부서질 수 있음 (같은 프레임에 AddComponent 와 파괴). 그때는 구독도 화면도 없음
+			if (container == null)
 			{
-				// ★ 옛 문구는 「Addressable 라벨을 붙여라」였는데, 실제로는 라벨이 멀쩡한데도 떴다
-				//   (2026-08-06 실측 — 그 문구를 믿고 엉뚱한 곳을 파게 만든다). 이 시점에 확실한 건
-				//   「아직 안 들어왔다」뿐이므로 그것만 말한다. 라벨 누락이면 로드 자체가 실패해 따로 뜬다.
-				if (warnIfMissing)
-					Debug.LogWarning("[MagicBookView] 마도서 챕터가 아직 안 들어왔다. 자료 로드보다 화면이 먼저 열렸을 수 있다. "
-						+ "로드가 끝난 뒤에도 비어 있으면 챕터 자산의 Addressable 라벨과 번호 중복을 본다.");
 				return;
 			}
-
-			foreach (DataSO dataSO in chapterDict.Values)
+			if (IsOpen && TimeManager.TryGetExistingInstance(out TimeManager existingTimeManager))
 			{
-				if (dataSO is ChapterSO chapterSO == false)
-					continue;
-				chapters.Add(chapterSO);
+				existingTimeManager.Resume(pauseKey);
 			}
-
-			if (chapters.Count == 0)
-				Debug.LogWarning("[MagicBookView] ChapterSO 자산 0개 — Addressable 라벨 'ChapterSO' 등록된 자산 없음");
+			if (InputManager.TryGetExistingInstance(out InputManager existingInputManager))
+			{
+				existingInputManager.UnregisterInputEvent(InputEventType.MagicBookToggle, InputEventResponseType.Performed, Toggle);
+			}
+			Destroy(glowTexture);
+			container.RemoveFromHierarchy();
 		}
 
-		private void BuildChapterButtons()
+		private void BuildStage(VisualElement safeContent)
 		{
-			chapterListContainer.Clear();
+			stage = new VisualElement();
+			stage.AddToClassList("wm-fullmenu__stage");
+			stage.AddToClassList("wm-mb__stage");
+			safeContent.Add(stage);
+			safeContent.RegisterCallback<GeometryChangedEvent>(_ => MenuStage.Fit(safeContent, stage, Settings.Menu.ReferenceHeight, Settings.Menu.MinimumWidth));
 
+			// 하늘이 맨 아래, 위아래 줄과 팝업이 그 위
+			sky = new MagicBookSky(Settings, glowTexture);
+			sky.StarSubmitted += OnStarSubmitted;
+			sky.CameraMoved += PlacePopup;
+			stage.Add(sky);
+
+			VisualElement top = Part(stage, "wm-fullmenu__top");
+			top.AddToClassList("wm-mb__top");
+			tabRow = Part(top, "wm-mb-tabs");
+			Part(top, "wm-fullmenu__spacer");
+			Button arenaButton = new(EnterArena) { text = "투기장" };
+			arenaButton.AddToClassList("wm-mb-arena");
+			focus.Register(arenaButton);
+			top.Add(arenaButton);
+			closeButton = KeyHint.KeyButton("닫기", "ESC", Close);
+			closeButton.AddToClassList("wm-fullmenu-close");
+			focus.Register(closeButton);
+			top.Add(closeButton);
+
+			Part(stage, "wm-fullmenu__spacer");
+			VisualElement bottom = Part(stage, "wm-mb__bottom");
+			VisualElement hints = KeyHint.KeyOnly(Part(bottom, "wm-mb-hints"));
+			AddHint(hints, "방향키", "별 고르기");
+			AddHint(hints, "Z", "자세히");
+			AddHint(hints, "휠", "확대");
+			AddHint(hints, "끌기", "하늘 옮기기");
+			AddHint(hints, "ESC", "뒤로");
+			Part(bottom, "wm-fullmenu__spacer");
+			progressLabel = new Label { pickingMode = PickingMode.Ignore };
+			progressLabel.AddToClassList("wm-mb-progress");
+			bottom.Add(progressLabel);
+
+			BuildPopup();
+		}
+
+		private static void AddHint(VisualElement hints, string key, string text)
+		{
+			VisualElement hint = Part(hints, "wm-mb-hint");
+			Label keyLabel = new(key) { pickingMode = PickingMode.Ignore };
+			keyLabel.AddToClassList("wm-fullmenu-key");
+			keyLabel.AddToClassList("wm-mb-hint__key");
+			hint.Add(keyLabel);
+			Label textLabel = new(text) { pickingMode = PickingMode.Ignore };
+			textLabel.AddToClassList("wm-mb-hint__text");
+			hint.Add(textLabel);
+		}
+
+		private static VisualElement Part(VisualElement parent, string className)
+		{
+			VisualElement element = new() { pickingMode = PickingMode.Ignore };
+			element.AddToClassList(className);
+			parent.Add(element);
+			return element;
+		}
+
+		private void CollectChapters()
+		{
+			chapters.Clear();
+			if (soManager.DataSOs.TryGetValue(typeof(ChapterSO), out Dictionary<int, DataSO> chapterDict) == false)
+			{
+				// 이 시점에 확실한 건 아직 안 들어왔다는 것뿐. 라벨 누락이면 로드 자체가 실패해 따로 뜸 (2026-08-06 실측)
+				Debug.LogWarning("[MagicBookView] 마도서 챕터가 아직 안 들어왔다. 자료 로드보다 화면이 먼저 열렸을 수 있다. "
+					+ "로드가 끝난 뒤에도 비어 있으면 챕터 자산의 Addressable 라벨과 번호 중복을 본다.");
+				return;
+			}
+			foreach (DataSO dataSO in chapterDict.Values)
+			{
+				if (dataSO is ChapterSO chapterSO)
+				{
+					chapters.Add(chapterSO);
+				}
+			}
+			chapters.Sort((left, right) => left.ID.CompareTo(right.ID));
+			if (chapters.Count == 0)
+			{
+				Debug.LogWarning("[MagicBookView] ChapterSO 자산 0개. Addressable 라벨 'ChapterSO' 등록된 자산 없음");
+			}
+		}
+
+		// 장 목록이 바뀌었을 때만 하늘과 탭을 다시 짬
+		private void RebuildIfChanged()
+		{
+			bool same = chapters.Count == tabsByChapter.Count;
+			foreach (ChapterSO chapter in chapters)
+			{
+				same &= tabsByChapter.ContainsKey(chapter);
+			}
+			if (same)
+			{
+				return;
+			}
+			sky.Build(chapters);
+			foreach (MagicBookStar star in sky.Stars)
+			{
+				// 마우스 올리기로 고르지 않음 (카메라가 커서를 따라 흔들리지 않게). 클릭과 키만
+				star.AddToClassList(NAV_CLASS);
+			}
+			tabRow.Clear();
+			tabsByChapter.Clear();
 			foreach (ChapterSO chapter in chapters)
 			{
 				ChapterSO captured = chapter;
-				Button button = new Button(() => OpenChapter(captured)) { text = string.IsNullOrEmpty(chapter.Name) ? chapter.name : chapter.Name };
-				button.AddToClassList("wm-magic-book-chapter-btn");
-				chapterListContainer.Add(button);
+				Button tab = new(() => OnTabSubmitted(captured));
+				tab.AddToClassList(USS_TAB);
+				focus.Register(tab);
+				tabRow.Add(tab);
+				tabsByChapter[chapter] = tab;
 			}
-
-			// TASK-WM-165 item9 — 투기장(관전 모드) 진입 항목 (★사용자 컨펌 진입점). 스펠 연구 챕터와 구분해 하단 분리 배치.
-			Button arenaButton = new Button(EnterArena) { text = "⚔ 투기장" };
-			arenaButton.AddToClassList("wm-magic-book-arena-btn");
-			arenaButton.style.marginTop = 16;
-			chapterListContainer.Add(arenaButton);
 		}
 
-		// TASK-WM-165 item9 — 마도서 → 투기장 진입. 마도서 닫고 GameMode.Arena 로 (ArenaModeController 가 카메라/입력/매치 처리).
+		private void RefreshState()
+		{
+			sky.Refresh(questManager);
+			foreach (KeyValuePair<ChapterSO, Button> pair in tabsByChapter)
+			{
+				bool locked = sky.IsChapterLocked(pair.Key);
+				pair.Value.text = MagicBookSky.ChapterTitle(pair.Key) + (locked ? LOCKED_SUFFIX : string.Empty);
+				pair.Value.EnableInClassList(USS_TAB_LOCKED, locked);
+			}
+			progressLabel.text = string.Format(PROGRESS_FORMAT, sky.CountDone(), sky.Stars.Count);
+		}
+
+		private void OnTabSubmitted(ChapterSO chapter)
+		{
+			UiSfx.Play(UiSfxEvent.Confirm);
+			HidePopup();
+			sky.FlyToChapter(chapter);
+			MagicBookStar first = sky.FirstStarOf(chapter);
+			if (first != null && inputManager.IsTouchMode == false)
+			{
+				first.Focus();
+			}
+		}
+
+		// 처음 고를 칸은 첫 장 이름 (장이 없으면 닫기). 열자마자 별을 고르면 카메라가 그 별로 가 하늘 전체가 안 보임
+		private bool FocusFirst()
+		{
+			Button target = chapters.Count > 0 && tabsByChapter.TryGetValue(chapters[0], out Button tab) ? tab : closeButton;
+			if (target.worldBound.width <= 0f)
+			{
+				return false;
+			}
+			target.Focus();
+			return true;
+		}
+
+		// TASK-WM-165 item9. 마도서에서 투기장 (관전 모드) 으로 (사용자 확정 진입점). 카메라, 입력, 매치는 ArenaModeController
 		private void EnterArena()
 		{
 			Close();
@@ -195,75 +277,74 @@ namespace WitchMendokusai
 			}
 		}
 
-		private void OpenChapter(ChapterSO chapter)
+		public void Toggle()
 		{
-			if (currentChapter == chapter)
-				return;
-
-			currentChapter = chapter;
-			chapterContentContainer.Clear();
-
-			if (chapterViewsByChapter.TryGetValue(chapter, out ChapterView view) == false)
+			if (IsOpen)
 			{
-				view = new ChapterView();
-				// 노드 그림이 퀘스트 상태를 물을 자리. 그래프 틀은 퀘스트를 모르고 host 만 넘김
-				view.Host = questManager;
-				view.Bind(chapter);
-				chapterViewsByChapter[chapter] = view;
+				Close();
 			}
-
-			chapterContentContainer.Add(view);
+			else
+			{
+				Open();
+			}
 		}
 
 		public void Open()
 		{
 			if (IsOpen)
+			{
 				return;
+			}
 			IsOpen = true;
-
-			// 매번 최신 ChapterSO 목록 (SOManager 가 늦게 초기화 됐을 가능성 + 동적 자산 추가 대응 — SettingView ShaderPack 패턴)
+			// 매번 최신 목록 (SOManager 가 늦게 채워졌거나 자산이 더해졌을 수 있음)
 			CollectChapters();
-			BuildChapterButtons();
-			if (currentChapter == null && chapters.Count > 0)
-				OpenChapter(chapters[0]);
-
-			container.AddToClassList(ACTIVE_CLASS);
-			container.style.display = DisplayStyle.Flex;
-			timeManager.Pause(gameObject);
+			RebuildIfChanged();
+			RefreshState();
+			HidePopup();
+			UiSfx.Play(UiSfxEvent.WindowOpen);
+			UIMotion.Show(container, USS_ACTIVE);
+			timeManager.Pause(pauseKey);
+			// 열린 직후에는 배치 계산 전이라 크기가 0. 잡힐 때까지 다음 프레임에 다시
+			bool fitted = false;
+			sky.schedule.Execute(() => fitted = IsOpen == false || sky.FitAll(true)).Every(0).Until(() => fitted);
+			if (inputManager.IsTouchMode == false)
+			{
+				focus.FocusWhenReady();
+			}
 		}
 
 		public void Close()
 		{
 			if (IsOpen == false)
+			{
 				return;
+			}
 			IsOpen = false;
-			container.RemoveFromClassList(ACTIVE_CLASS);
-			container.style.display = DisplayStyle.None;
-			timeManager.Resume(gameObject);
+			// 닫힌 뒤 확인 키가 숨은 버튼을 누르지 않게 포커스를 놓음
+			if (container.focusController?.focusedElement is VisualElement focused && container.Contains(focused))
+			{
+				focused.Blur();
+			}
+			HidePopup();
+			UiSfx.Play(UiSfxEvent.WindowClose);
+			UIMotion.Hide(container, USS_ACTIVE);
+			timeManager.Resume(pauseKey);
 		}
 
-		public void Toggle()
-		{
-			if (IsOpen)
-				Close();
-			else
-				Open();
-		}
-
-		private void OnQuestDetailRequested(QuestDetailRequestedEvent evt)
+		/// <summary>뒤로 한 단계: 팝업이 떠 있으면 팝업, 아니면 닫기. UIManager 의 취소 입력도 여기로</summary>
+		public void Back()
 		{
 			if (IsOpen == false)
+			{
 				return;
-
-			if (evt.QuestSOID == -1)
+			}
+			if (IsPopupShown)
+			{
+				UiSfx.Play(UiSfxEvent.WindowClose);
+				HidePopup();
 				return;
-
-			QuestSO questSO = SOHelper.GetQuestSO(evt.QuestSOID);
-			if (questSO == null)
-				return;
-
-			RuntimeQuest quest = questManager.GetQuest(questSO);
-			questDetail.Bind(questSO, quest);
+			}
+			Close();
 		}
 
 		[ContextMenu("Open MagicBook")]

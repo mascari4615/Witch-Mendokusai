@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 715bff4c7b6e415a9d4b0755c22f2646, type: 3}
+  m_Name: SET_0_MagicBook
+  m_EditorClassIdentifier: 
+  <Style>k__BackingField: {fileID: 7433441132597879392, guid: 25aa501ee87547a3a7d48fc0e3b5f594, type: 3}
+  <Menu>k__BackingField: {fileID: 11400000, guid: 1b429db3c5bd4307bcc28c581db6a222, type: 2}
+  <HubIcon>k__BackingField: {fileID: 21300000, guid: 69305c5b0c973df4e866dc6915ff7a6e, type: 3}
+  <FirstOffset>k__BackingField: 140
+  <BranchStep>k__BackingField: 132
+  <Jitter>k__BackingField: 14
+  <ChapterNameGap>k__BackingField: 64
+  <BelowLabelHeight>k__BackingField: 60
+  <DoneLineWidth>k__BackingField: 2.8
+  <DoneGlowWidth>k__BackingField: 9
+  <OpenLineWidth>k__BackingField: 2.6
+  <OpenDash>k__BackingField: {x: 10, y: 7}
+  <DimLineWidth>k__BackingField: 1.2
+  <DustCount>k__BackingField: 420
+  <DustAlpha>k__BackingField: {x: 0.25, y: 0.7}
+  <DustBigEvery>k__BackingField: 9
+  <ZoomMin>k__BackingField: 0.45
+  <ZoomMax>k__BackingField: 1.8
+  <ZoomStep>k__BackingField: 1.12
+  <FitPadding>k__BackingField: {x: 200, y: 70}
+  <FitMargin>k__BackingField: 0.94
+  <FollowInset>k__BackingField: 0.1
+  <FollowSharpness>k__BackingField: 9
+  <SettleDistance>k__BackingField: 0.05
+  <SettleZoom>k__BackingField: 0.0005
+  <ChapterZoom>k__BackingField: 1.15
+  <PopupOffset>k__BackingField: 64
+  <PopupEdge>k__BackingField: 40

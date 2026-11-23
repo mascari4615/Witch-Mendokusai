@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6d8fd8717f6222488a652cc89e7e531, type: 3}
+  m_Name: D_9000_개발자진열장
+  m_EditorClassIdentifier:
+  <ID>k__BackingField: 9000
+  <Name>k__BackingField: "\uAC1C\uBC1C\uC790 \uC9C4\uC5F4\uC7A5"
+  <Description>k__BackingField: "\uC0C1\uD0DC\uC774\uC0C1, \uBAAC\uC2A4\uD130, \uBD80\uC11C\uC9C0\uB294 \uBB3C\uAC74, \uBC14\uB2E5 \uC544\uC774\uD15C, \uBB34\uAE30 \uC2DC\uD5D8\uB300. \uBAAC\uC2A4\uD130 \uC6E8\uC774\uBE0C \uC5C6\uC74C, \uD55C \uC2DC\uAC04"
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  <ObjectiveType>k__BackingField: 0
+  <MapType>k__BackingField: 0
+  <ClearValue>k__BackingField: 1
+  <TimeBySecond>k__BackingField: 3600
+  <Constraints>k__BackingField: []
+  <Stages>k__BackingField:
+  - {fileID: 11400000, guid: 80189e44b4e5101489b86446ca51ca47, type: 2}
+  <MonsterWaves>k__BackingField: []
+  <ResourceNodeWaves>k__BackingField: []
+  <Rewards>k__BackingField: []
+  <EventTable>k__BackingField: {fileID: 0}
+  <DefeatNyangPerKill>k__BackingField: 0
+  <DefeatNyangMax>k__BackingField: 0
+  <HasThreatLevels>k__BackingField: 0
+  <DevBuildOnly>k__BackingField: 1
+  <KeyArt>k__BackingField: {fileID: 0}

@@ -7,7 +7,7 @@ namespace WitchMendokusai.EditorTools
 {
 	public static class ExplorationCourseBuilder
 	{
-		public const string STAGE_PATH = "Assets/_WitchMendokusai/Domain/World/Stage/1002_Exploration/WS_1002_Exploration.asset";
+		public const string STAGE_PATH = "Assets/_WitchMendokusai/Domain/World/Stage/1002_Exploration/WS_1002_금빛기둥탐험.asset";
 		private const string PREFAB_PATH = "Assets/_WitchMendokusai/Domain/World/Stage/1002_Exploration/Stage_Exploration.prefab";
 		private const string DEV_PATH = "Assets/_WitchMendokusai/Core/Assets/Singletons/DevWindowController.prefab";
 
