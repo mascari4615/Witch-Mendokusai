@@ -136,6 +136,9 @@ namespace WitchMendokusai
 				return;
 			IsOpen = false;
 
+			// 메뉴 위의 확인 팝업은 메뉴와 같이 닫음. 수락으로 닫힐 때는 이미 닫혀 있음
+			uiRoot.MenuConfirmView.Dismiss();
+
 			// 닫힌 뒤 확인 키가 숨은 버튼을 누르지 않게 포커스를 놓음
 			if (container.focusController?.focusedElement is VisualElement focused && container.Contains(focused))
 				focused.Blur();
@@ -199,35 +202,17 @@ namespace WitchMendokusai
 			uiRoot.SettingView.Open();
 		}
 
-		private void AskQuit()
-		{
-			LeaveForSetting();
-			uiRoot.SettingView.OpenQuitConfirm();
-		}
+		// 확인은 메뉴 위의 팝업. 취소하면 메뉴가 그대로, 수락하면 메뉴를 닫고 동작
+		private void AskQuit() => uiRoot.SettingView.OpenQuitConfirm(Close);
 
-		private void AskUnstuck()
-		{
-			LeaveForSetting();
-			uiRoot.SettingView.RequestUnstuck();
-		}
+		private void AskUnstuck() => uiRoot.SettingView.RequestUnstuck(Close);
 
-		private void AskDungeonExit()
-		{
-			LeaveForSetting();
-			uiRoot.SettingView.RequestDungeonExit();
-		}
+		private void AskDungeonExit() => uiRoot.SettingView.RequestDungeonExit(Close);
 
 		private static bool HasStage() => StageManager.TryGetExistingInstance(out StageManager stageManager) && stageManager.CurStageObject != null;
 
-		// 던전 판이 진행 중이면 포기 확인 창 (설정창 위) 을 거침. 취소하면 메뉴로 돌아옴. 마을에서는 바로 로비로
-		private void GoToLobby()
-		{
-			if (LobbyManager.IsRunInProgress)
-				LeaveForSetting();
-			else
-				Close();
-			uiRoot.SettingView.RequestReturnToLobby();
-		}
+		// 던전 판이 진행 중이면 포기 확인 팝업을 거침. 취소하면 메뉴가 그대로. 마을에서는 바로 로비로
+		private void GoToLobby() => uiRoot.SettingView.RequestReturnToLobby(Close);
 
 		private void LeaveForSetting()
 		{

@@ -306,6 +306,13 @@ namespace WitchMendokusai
 		{
 			SettingView settingView = uiRoot.SettingView;
 
+			// 메뉴 위의 확인 팝업이 가장 위. 취소하면 팝업만 닫혀 메뉴로
+			if (uiRoot.MenuConfirmView.IsOpen)
+			{
+				uiRoot.MenuConfirmView.Cancel();
+				return;
+			}
+
 			if (settingView.IsOpen == false && DialogueStage != null && DialogueStage.TryHandleCancel())
 				return;
 

@@ -82,6 +82,7 @@ namespace WitchMendokusai
 		public HoldingOverlay HoldingOverlay { get; private set; }
 		public SettingView SettingView { get; private set; }
 		public SaveNoticeView SaveNoticeView { get; private set; }
+		public MenuConfirmView MenuConfirmView { get; private set; }
 		public KeybindHelpView KeybindHelpView { get; private set; }
 		public MagicBookView MagicBookView { get; private set; }
 		public WorldClockView WorldClockView { get; private set; }
@@ -112,6 +113,8 @@ namespace WitchMendokusai
 		{
 			SettingView = gameObject.AddComponent<SettingView>();
 			SaveNoticeView = gameObject.AddComponent<SaveNoticeView>();
+			// 전체 메뉴의 종료, 포기, 로비로 확인. 메뉴 위에 따로 뜨는 팝업
+			MenuConfirmView = gameObject.AddComponent<MenuConfirmView>();
 			KeybindHelpView = gameObject.AddComponent<KeybindHelpView>();
 			MagicBookView = gameObject.AddComponent<MagicBookView>();
 			MagicBookView.Settings = magicBookSettings;

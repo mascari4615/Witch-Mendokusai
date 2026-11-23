@@ -396,7 +396,6 @@ namespace WitchMendokusai
 			selectFrame.AddToClassList(HIDDEN_FRAME_CLASS);
 			UIMotion.Hide(container, ACTIVE_CLASS);
 			timeManager.Resume(gameObject);
-			closeAfterConfirm = false;
 			Closed(byUser);
 		}
 
