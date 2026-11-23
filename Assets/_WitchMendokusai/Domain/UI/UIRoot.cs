@@ -35,6 +35,7 @@ namespace WitchMendokusai
 		[SerializeField] private StyleSheet styleSheet;
 		[SerializeField, Tooltip("폰 조작 버튼 그림")] private MobileControlIcons mobileControlIcons;
 		[SerializeField, Tooltip("상호작용 표시 모양")] private StyleSheet interactPromptStyle;
+		[SerializeField, Tooltip("NPC 머리 위 퀘스트 표식과 발밑 이름표")] private NPCNameplateSettings npcNameplateSettings;
 		[SerializeField, Tooltip("전체 메뉴 (ESC) 모양과 수치")] private FullMenuSettings fullMenuSettings;
 		[field: SerializeField, Tooltip("업적 전체 화면 모양과 수치. 업적 화면은 씬 view 라 UIManager 가 넘겨 줌")] public AchievementScreenSettings AchievementSettings { get; private set; }
 		[SerializeField, Tooltip("마도서 하늘 화면 모양과 수치")] private MagicBookSettings magicBookSettings;
@@ -127,6 +128,8 @@ namespace WitchMendokusai
 			gameObject.AddComponent<MobileControlsView>().Icons = mobileControlIcons;
 			// 가까운 NPC 옆 상호작용 표시 (옛 UGUI UIInteractPopup 대체, 2026-11-17)
 			gameObject.AddComponent<InteractPromptView>().Style = interactPromptStyle;
+			// 마을 NPC 머리 위 퀘스트 표식과 발밑 이름표 (옛 SpriteRenderer 표식 대체, 2026-11-23)
+			gameObject.AddComponent<NPCNameplateView>().Settings = npcNameplateSettings;
 		}
 
 		private void OnEnable()

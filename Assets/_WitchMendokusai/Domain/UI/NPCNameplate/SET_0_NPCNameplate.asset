@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e02c8d3cf37d46ad88585dd35cebcdbb, type: 3}
+  m_Name: SET_0_NPCNameplate
+  m_EditorClassIdentifier: 
+  <Style>k__BackingField: {fileID: 7433441132597879392, guid: 2671ed133d174e38b77f8c49be87787d, type: 3}
+  <StartBackground>k__BackingField: {fileID: 21300000, guid: 63b8540ac5be472788fd0b3e2dc0e69b, type: 3}
+  <WaitingBackground>k__BackingField: {fileID: 21300000, guid: 5ced48b75d32405181464925257c13e1, type: 3}
+  <RewardBackground>k__BackingField: {fileID: 21300000, guid: 77b23a7e6f70401aa5dd2a5f311773d3, type: 3}
+  <FlashSilhouette>k__BackingField: {fileID: 21300000, guid: 8880566d8c834f08b8c89175019510e1, type: 3}
+  <StartIcon>k__BackingField: {fileID: 21300000, guid: 9b9df865999f4fb1833abbd214bf08da, type: 3}
+  <WaitingIcon>k__BackingField: {fileID: 21300000, guid: ee61a69a665c460fbe462bfc0edfee35, type: 3}
+  <RewardIcon>k__BackingField: {fileID: 21300000, guid: 0671863d1ee24378a6e587d4d70111ee, type: 3}
+  <MarkerTailTipY>k__BackingField: 57
+  <MarkerLift>k__BackingField: 2
+  <NameDrop>k__BackingField: 4
+  <BobAmplitude>k__BackingField: 2
+  <BobPeriod>k__BackingField: 1.8
+  <FadeStartDistance>k__BackingField: 14
+  <FadeEndDistance>k__BackingField: 20
+  <StartFlashPeriod>k__BackingField: 1.6
+  <StartFlashStrength>k__BackingField: 0.55

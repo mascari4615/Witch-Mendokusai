@@ -4,14 +4,21 @@ using System.Collections.Generic;
 using VContainer;
 namespace WitchMendokusai
 {
+	/// <summary>
+	/// NPC 머리 위 표식 자리와 퀘스트 상태. 그리기는 NPCNameplateView (UI Toolkit HUD 층) 가 맡음
+	/// 이 오브젝트의 위치가 표식 꼬리 끝이 닿는 머리 높이. 옛 SpriteRenderer 표식은 프리팹에서 꺼 둠
+	/// </summary>
 	public class NPCMarker : MonoBehaviour
 	{
-		[SerializeField] private List<Sprite> sprites;
+		public static readonly List<NPCMarker> Active = new();
 
-		private NPCObject npcObject;
-		private SpriteRenderer spriteRenderer;
+		[Tooltip("퀘스트 상태를 다시 고르는 간격 (초)")]
+		[SerializeField, Min(0.05f)] private float refreshInterval = .5f;
+
+		public NPCObject NPC { get; private set; }
+		public NPCQuestMark Mark { get; private set; }
+
 		private Coroutine loop;
-
 		private QuestManager questManager;
 
 		[Inject]
@@ -22,66 +29,30 @@ namespace WitchMendokusai
 
 		private void Awake()
 		{
-			npcObject = GetComponentInParent<NPCObject>(true);
-			spriteRenderer = GetComponent<SpriteRenderer>();
+			NPC = GetComponentInParent<NPCObject>(true);
 		}
 
 		private void OnEnable()
 		{
+			Active.Add(this);
 			loop = StartCoroutine(Loop());
 		}
 
 		private void OnDisable()
 		{
+			Active.Remove(this);
 			if (loop != null)
 				StopCoroutine(loop);
 		}
 
 		private IEnumerator Loop()
 		{
-			WaitForSeconds wait = new(.5f);
+			WaitForSeconds wait = new(refreshInterval);
 
 			while (true)
 			{
-				SetSprite();
+				Mark = NPCQuestMarkRule.Resolve(NPC.Data.QuestData, questManager);
 				yield return wait;
-			}
-		}
-
-		private void SetSprite()
-		{
-			spriteRenderer.sprite = null;
-
-			List<QuestSO> dataSOs = npcObject.Data.QuestData;
-			if (dataSOs.Count == 0)
-				return;
-
-			// 클리어 가능한 퀘스트가 있다면
-			bool hasCompletableQuest = dataSOs.Exists(i => questManager.GetQuest(i)?.State == RuntimeQuestState.CanComplete);
-			if (hasCompletableQuest)
-			{
-				// Debug.Log("hasCompletableQuest");
-				spriteRenderer.sprite = sprites[0];
-				return;
-			}
-
-			// 획득 가능한 퀘스트가 있다면
-			bool hasLockedQuest = dataSOs.Exists(i => questManager.GetQuestState(i.ID) == QuestState.Locked);
-			
-			if (hasLockedQuest)
-			{
-				// Debug.Log("hasLockedQuest");
-				spriteRenderer.sprite = sprites[1];
-				return;
-			}
-
-			// 진행중인 퀘스트가 있다면
-			bool hasWorkingQuest = dataSOs.Exists(i => questManager.GetQuest(i)?.State <= RuntimeQuestState.Working);
-			if (hasWorkingQuest)
-			{
-				// Debug.Log("hasWorkingQuest");
-				spriteRenderer.sprite = sprites[2];
-				return;
 			}
 		}
 	}

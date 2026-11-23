@@ -72,6 +72,7 @@ MonoBehaviour:
   styleSheet: {fileID: 7433441132597879392, guid: c3d4e5f60718293a4b5c6d7e8f010203, type: 3}
   mobileControlIcons: {fileID: 11400000, guid: b9f652d328955ac4f9936bc98fad3f33, type: 2}
   interactPromptStyle: {fileID: 7433441132597879392, guid: 560b53c137aefdb428559777e1a99ce7, type: 3}
+  npcNameplateSettings: {fileID: 11400000, guid: e933e3d6ca1447eba3cfae1952b250e7, type: 2}
   fullMenuSettings: {fileID: 11400000, guid: 1b429db3c5bd4307bcc28c581db6a222, type: 2}
   <AchievementSettings>k__BackingField: {fileID: 11400000, guid: 5bc5bfc51fd74af3b74f7b0b6accdd4e, type: 2}
   magicBookSettings: {fileID: 11400000, guid: 4114aa4f7ae04f9eb6879d7f410f9da1, type: 2}

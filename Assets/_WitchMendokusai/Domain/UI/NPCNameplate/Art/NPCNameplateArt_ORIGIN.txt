@@ -1,0 +1,4 @@
+Origin: Original Witch Mendokusai NPC quest marker art made for the project, 2026-11-23.
+License: Witch Mendokusai project art.
+npc-lantern-*: witch lantern icons generated with the project's KarmoAI image tool from an original prompt, picked by the author, then regridded to 48x48 and reduced to 24 colors. npc-lantern-off is the start lantern with the glass light and core darkened.
+npc-mark-*: diamond with a speech-bubble tail, rendered from the approved vector mockup (path M19 1 L37 19 L24 31 L19 43 L14 31 L1 19 Z) at 4x with outer glow margin. npc-mark-flash is the white silhouette used for the start marker blink.

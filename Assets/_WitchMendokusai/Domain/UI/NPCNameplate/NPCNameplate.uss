@@ -1,0 +1,53 @@
+/* NPC 머리 위 퀘스트 표식과 발밑 이름표. 패널 높이 800 기준 (시안 1280x720 값의 1.11배). 2026-11-23
+   이름표: 노란 이름 한 줄, 글자에 붙는 반투명 띠, 테두리 없음. 표식: 마름모 아래 꼭지를 꼬리로 늘인 그림 안에 등불 */
+.wm-npc-nameplate-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.wm-npc-nameplate__name {
+    position: absolute;
+    translate: -50% 0;
+    margin: 0;
+    padding: 1px 3px 0 3px;
+    border-radius: 2px;
+    font-size: 12px;
+    color: rgb(244, 234, 140);
+    background-color: rgba(34, 34, 38, 0.55);
+    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11.ttf");
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+/* 바깥 빛 여백까지 든 그림 크기. 마름모 본체 42x49 */
+.wm-npc-nameplate__marker {
+    position: absolute;
+    width: 60px;
+    height: 67px;
+}
+
+.wm-npc-nameplate__marker-bg,
+.wm-npc-nameplate__marker-flash {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* 시작 표식 깜빡임. 상아색 바탕이 따뜻한 노랑으로 잠깐 물듦. 세기와 주기는 NPCNameplateSettings */
+.wm-npc-nameplate__marker-flash {
+    opacity: 0;
+    -unity-background-image-tint-color: rgb(255, 210, 90);
+}
+
+.wm-npc-nameplate__icon {
+    position: absolute;
+    left: 17px;
+    top: 16px;
+    width: 26px;
+    height: 26px;
+}

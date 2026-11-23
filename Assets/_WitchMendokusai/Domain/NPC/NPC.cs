@@ -26,6 +26,18 @@ namespace WitchMendokusai
 
 		public List<ItemDataBuffer> ItemDataBuffers => GetAllDataSOs(NPCPanelType.Shop).Cast<ItemDataBuffer>().ToList();
 
+		private const char ROLE_SEPARATOR = '_';
+
+		// 데이터 이름 "이름_역할" 의 이름 쪽. 발밑 이름표 (NPCNameplateView) 가 씀
+		public string DisplayName
+		{
+			get
+			{
+				int split = Name.IndexOf(ROLE_SEPARATOR);
+				return split > 0 ? Name.Substring(0, split) : Name;
+			}
+		}
+
 		public int GetShopPrice(ItemData itemData) => IsShopFree ? 0 : itemData.PurchasePrice;
 
 		private List<DataSO> GetAllDataSOs(NPCPanelType panelType)
