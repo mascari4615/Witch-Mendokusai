@@ -251,10 +251,20 @@ namespace WitchMendokusai
 			string path = KeybindRegistry.GetCurrentPath(entry.Hotkey.Value);
 			if (string.IsNullOrEmpty(path))
 				return;
-			Label key = KeyHint.KeyOnly(new Label(path.Substring(path.LastIndexOf('/') + 1).ToUpperInvariant()));
+			Label key = KeyHint.KeyOnly(new Label(KeybindFormat.FormatPath(path)));
 			key.pickingMode = PickingMode.Ignore;
 			key.AddToClassList("wm-fullmenu-key");
 			entry.Button.Add(key);
+		}
+
+		// 설정창 키 탭에서 키를 바꾼 뒤 메뉴를 다시 열 때 글자를 맞춤
+		private static void RefreshKeyLabel(Entry entry)
+		{
+			if (entry.Hotkey.HasValue == false)
+				return;
+			Label key = entry.Button.Q<Label>(className: "wm-fullmenu-key");
+			if (key != null)
+				key.text = KeybindFormat.FormatPath(KeybindRegistry.GetCurrentPath(entry.Hotkey.Value));
 		}
 
 		private static VisualElement MakeIcon(Texture2D texture, string ussClass)
@@ -281,6 +291,7 @@ namespace WitchMendokusai
 				if (entry.IsAvailable != null && entry.IsAvailable() == false)
 					visible = false;
 				entry.Button.EnableInClassList(HIDDEN_CLASS, visible == false);
+				RefreshKeyLabel(entry);
 
 				if (entry.IsTile == false || visible == false)
 					continue;

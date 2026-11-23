@@ -16,7 +16,7 @@ namespace WitchMendokusai
 	/// - KeybindView/오버레이가 카테고리별로 안내할 수 있도록 entry 노출
 	/// - (향후) 리바인드 후 현재 경로 갱신 + persist
 	/// </summary>
-	public static class KeybindRegistry
+	public static partial class KeybindRegistry
 	{
 		private static readonly Dictionary<InputEventType, InputEventAttribute> attributes = BuildAttributeMap();
 		private static readonly Dictionary<InputEventType, string> currentPathOverrides = new();

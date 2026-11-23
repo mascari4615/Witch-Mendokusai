@@ -63,11 +63,11 @@ namespace WitchMendokusai
 		Submit,
 		[InputEvent("UI 탐색", "취소", "<Keyboard>/x")]
 		Cancel,
-		[InputEvent("카메라", "시점 조작 모드 (Tab)", "<Keyboard>/tab")]
+		[InputEvent("카메라", "시점 조작 모드", "<Keyboard>/tab")]
 		CameraControlModeToggle,
-		[InputEvent("카메라", "1인칭/3인칭 (F5)", "<Keyboard>/f5", EnabledInRelease = false)]
+		[InputEvent("카메라", "1인칭/3인칭", "<Keyboard>/f5", EnabledInRelease = false)]
 		CameraPerspectiveToggle,
-		[InputEvent("카메라", "시점 순환 (F6)", "<Keyboard>/f6", EnabledInRelease = false)]
+		[InputEvent("카메라", "시점 순환", "<Keyboard>/f6", EnabledInRelease = false)]
 		CameraViewCycle,
 		[InputEvent("창", "스탯", "<Keyboard>/v")]
 		Status,
@@ -81,7 +81,7 @@ namespace WitchMendokusai
 		QuestToggle,
 		[InputEvent("창", "인형", "<Keyboard>/k")]
 		DollToggle,
-		[InputEvent("창", "단축키 안내", "<Keyboard>/f1")]
+		[InputEvent("창", "단축키 안내", "<Keyboard>/f1", Rebindable = false)]
 		KeybindHelpToggle,
 		[InputEvent("창", "마도서", "<Keyboard>/m")]
 		MagicBookToggle,
@@ -143,6 +143,7 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
+			DisposeRebind();
 			if (Instance == this)
 				Instance = null;
 		}
@@ -153,6 +154,7 @@ namespace WitchMendokusai
 
 			InitEventDictionaries();
 			BindEvents();
+			LoadKeybinds();
 
 			KeybindRegistry.ValidateAgainstAsset(inputActionAsset);
 			SetInputStrategy(new InputStrategyLoading());

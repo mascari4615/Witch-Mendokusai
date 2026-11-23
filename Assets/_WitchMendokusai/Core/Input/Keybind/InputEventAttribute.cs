@@ -19,6 +19,9 @@ namespace WitchMendokusai
 		// 릴리스 빌드 (데모) 에서 받는 입력인지. false 면 릴리스에서 입력을 버리고 (InputManager.Dispatch) 안내에도 안 보임. 데모에 없는 기능 키는 false
 		public bool EnabledInRelease { get; set; } = true;
 
+		// 설정창 키 탭에서 바꿀 수 있는 키인지. 안내 창 키처럼 고정할 것만 false. 기본 경로가 키보드가 아니면 (마우스) 이 값과 무관하게 고정
+		public bool Rebindable { get; set; } = true;
+
 		public InputEventAttribute(string category, string displayName, string defaultPath)
 		{
 			Category = category;

@@ -204,6 +204,10 @@ namespace WitchMendokusai
 
 		private void Dispatch(InputEventType inputEventType, InputEventResponseType responseType, InputAction.CallbackContext ctx)
 		{
+			// 키를 기다리는 중에는 누른 키가 다른 동작이 되지 않게 시작과 수행은 버림 (ESC 도 기다림의 취소로만 쓰임). 뗌 (Canceled) 은 보내 달리기 같은 유지 동작이 켜진 채 남지 않게
+			if (IsRebinding && responseType != InputEventResponseType.Canceled)
+				return;
+
 			if (GameConditionBridge.Get(GameConditionType.IsTyping)
 				&& ALWAYS_DISPATCH_WHILE_TYPING.Contains(inputEventType) == false)
 				return;

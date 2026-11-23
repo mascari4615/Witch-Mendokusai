@@ -97,6 +97,8 @@ namespace WitchMendokusai
 		{
 			EventBusBridge.Unsubscribe<PlayerObjectBoundEvent>(OnPlayerObjectBound);
 			EventBusBridge.Unsubscribe<PlayerDespawnedEvent>(OnPlayerDespawned);
+			KeybindRegistry.OnChanged -= RefreshKeyRows;
+			inputManager?.CancelRebind();
 
 			container?.RemoveFromHierarchy();
 		}
@@ -141,9 +143,14 @@ namespace WitchMendokusai
 
 			RegisterTab(TAB_KEY_GENERAL, "환경설정", BuildGeneralContent);
 			RegisterTab(TAB_KEY_DISPLAY, "화면", BuildDisplayContent);
+			RegisterTab(TAB_KEY_KEYS, "키", BuildKeysContent);
 			RegisterTab(TAB_KEY_EFFECTS, "효과", BuildEffectsContent);
 			RegisterTab(TAB_KEY_SHADERPACKS, "쉐이더팩", BuildShaderPackContent);
 			RegisterTab(TAB_KEY_CREDITS, "크레딧", BuildCreditsContent);
+
+			// 키 탭은 키보드 조작에서만. 폰과 손가락 조작은 화면 버튼이라 바꿀 키가 없음
+			if (Application.isMobilePlatform || inputManager.IsTouchMode)
+				tabButtons[TAB_KEY_KEYS].style.display = DisplayStyle.None;
 
 			SwitchTab(TAB_KEY_GENERAL);
 		}
@@ -176,6 +183,8 @@ namespace WitchMendokusai
 
 		private void SwitchTab(string tabKey)
 		{
+			// 키를 기다리는 중 탭을 옮기면 기다림을 끝냄
+			inputManager.CancelRebind();
 			if (currentTabKey == tabKey)
 				return;
 
@@ -383,6 +392,8 @@ namespace WitchMendokusai
 		private void Close(bool byUser)
 		{
 			if (IsOpen == false) return;
+			// 키를 기다리는 중에 닫히면 기다림을 끝냄 (입력 잠금이 남지 않게)
+			inputManager.CancelRebind();
 			if (IsConfirmOpen)
 			{
 				CancelConfirm();

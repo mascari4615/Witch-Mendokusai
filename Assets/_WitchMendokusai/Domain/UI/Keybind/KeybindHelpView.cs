@@ -16,9 +16,7 @@ namespace WitchMendokusai
 		private const string WINDOW_ID = "KeybindHelp";
 		// 첫 스테이지 진입 때 한 번 자동 열기, 이후 F1
 		private const string SHOWN_PREF_KEY = "KeybindHelpShownOnce";
-		private const string MOVE_CATEGORY = "이동";
 		// 이동: InputEventType 아닌 Move 축 입력, 레지스트리 밖
-		private const string MOVE_DISPLAY_NAME = "이동";
 		private const string MOVE_KEYS = "W A S D";
 
 		public const string USS_VIEW = "wm-keybind-help";
@@ -57,6 +55,7 @@ namespace WitchMendokusai
 			uiRoot.WindowsLayer.Add(window);
 
 			BuildContent();
+			KeybindRegistry.OnChanged += RebuildContent;
 
 			inputManager.RegisterInputEvent(InputEventType.KeybindHelpToggle, InputEventResponseType.Performed, OnToggle);
 
@@ -71,6 +70,7 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
+			KeybindRegistry.OnChanged -= RebuildContent;
 			inputManager.UnregisterInputEvent(InputEventType.KeybindHelpToggle, InputEventResponseType.Performed, OnToggle);
 			StageManager.OnStageChanged -= OnFirstStage;
 		}
@@ -128,7 +128,7 @@ namespace WitchMendokusai
 			{
 				List<KeybindEntry> visibleEntries = group.Where(IsVisible).ToList();
 				// 릴리스에서 전부 숨은 묶음 (핫바) 은 제목도 빼기
-				if (visibleEntries.Count == 0 && group.Key != MOVE_CATEGORY)
+				if (visibleEntries.Count == 0 && group.Key != KeybindRegistry.MOVE_CATEGORY)
 					continue;
 
 				VisualElement categoryBox = new();
@@ -138,12 +138,12 @@ namespace WitchMendokusai
 				categoryLabel.AddToClassList(USS_CATEGORY_LABEL);
 				categoryBox.Add(categoryLabel);
 
-				if (group.Key == MOVE_CATEGORY)
-					categoryBox.Add(CreateRow(MOVE_DISPLAY_NAME, MOVE_KEYS));
+				if (group.Key == KeybindRegistry.MOVE_CATEGORY)
+					categoryBox.Add(CreateRow(KeybindRegistry.MOVE_DISPLAY_NAME, MOVE_KEYS));
 
 				foreach (KeybindEntry entry in visibleEntries)
 				{
-					VisualElement row = CreateRow(entry.DisplayName, FormatPath(entry.CurrentPath));
+					VisualElement row = CreateRow(entry.DisplayName, KeybindFormat.FormatPath(entry.CurrentPath));
 					if (entry.EventType == InputEventType.Sprint)
 						sprintRow = row;
 					if (entry.EventType == InputEventType.MinimapLargeView)
@@ -157,59 +157,15 @@ namespace WitchMendokusai
 			window.Content.Add(scrollView);
 		}
 
-		private static string FormatPath(string path)
+		// 설정창 키 탭에서 키가 바뀌면 줄 글자를 새로 지음. 줄 참조 (달리기, 큰 지도) 도 다시 잡힘
+		private void RebuildContent()
 		{
-			if (string.IsNullOrEmpty(path))
-				return "(없음)";
-
-			// "<Keyboard>/j" → "J", "<Mouse>/leftButton" → "Mouse Left", "<Keyboard>/leftShift" → "Left Shift"
-			int slashIndex = path.IndexOf('/');
-			if (slashIndex < 0 || slashIndex == path.Length - 1)
-				return path;
-
-			string device = path.Substring(0, slashIndex).Trim('<', '>');
-			string key = path.Substring(slashIndex + 1);
-
-			if (device == "Keyboard")
-				return PrettifyKeyboardKey(key);
-			if (device == "Mouse")
-				return $"Mouse {PrettifyMouseKey(key)}";
-
-			return $"{device} {key}";
-		}
-
-		private static string PrettifyKeyboardKey(string key)
-		{
-			return key switch
-			{
-				"leftShift" => "Left Shift",
-				"rightShift" => "Right Shift",
-				"leftCtrl" => "Left Ctrl",
-				"rightCtrl" => "Right Ctrl",
-				"ctrl" => "Ctrl",
-				"leftAlt" => "Left Alt",
-				"rightAlt" => "Right Alt",
-				"upArrow" => "↑",
-				"downArrow" => "↓",
-				"leftArrow" => "←",
-				"rightArrow" => "→",
-				"slash" => "/",
-				"space" => "Space",
-				"tab" => "Tab",
-				_ => key.Length == 1 ? key.ToUpper() : key
-			};
-		}
-
-		private static string PrettifyMouseKey(string key)
-		{
-			return key switch
-			{
-				"leftButton" => "Left",
-				"rightButton" => "Right",
-				"middleButton" => "Middle",
-				"scroll" => "Scroll",
-				_ => key
-			};
+			sprintRow = null;
+			minimapRow = null;
+			window.Content.Clear();
+			BuildContent();
+			RefreshSprintRow();
+			RefreshMinimapRow();
 		}
 
 		private void OnToggle()
