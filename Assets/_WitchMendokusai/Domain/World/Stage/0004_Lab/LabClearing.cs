@@ -70,6 +70,7 @@ namespace WitchMendokusai
 			isBuilt = true;
 			PaintGround();
 			BuildWalls();
+			CollectPortals();
 			BuildGrass();
 			BuildFlowers();
 			BuildFerns();

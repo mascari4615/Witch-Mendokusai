@@ -15,6 +15,10 @@ namespace WitchMendokusai
 		[SerializeField] private Rect scatterArea = new(-48f, -50f, 96f, 104f);
 		[Tooltip("홀 바닥에서 이 거리 (m) 안쪽은 비움")]
 		[SerializeField] private float hallMargin = 0.4f;
+		[Tooltip("포털 (스테이지 안 Portal 컴포넌트) 둘레 이 반경 (m) 안은 풀, 꽃, 고사리를 비움. 바닥 빛 원판이 보이게")]
+		[SerializeField] private float portalClearRadius = 1.5f;
+		[Tooltip("비운 원 바깥에서 풀이 점점 차오르는 폭 (m)")]
+		[SerializeField] private float portalClearFeather = 0.6f;
 
 		[Header("Grass")]
 		[SerializeField] private Material grassMaterial;
@@ -71,11 +75,32 @@ namespace WitchMendokusai
 		[SerializeField] private Vector2 fernSize = new(0.45f, 0.85f);
 
 		private readonly List<Object> generated = new();
+		private readonly List<Vector2> portalPoints = new();
 
 		private float GroundHeight(float x, float z) => terrain.HeightAt(x, z);
 
 		private bool IsBlocked(float x, float z, float pathMargin)
-			=> DistanceToHall(x, z) < hallMargin || DistanceToPath(x, z) < pathMargin;
+			=> DistanceToHall(x, z) < hallMargin || DistanceToPath(x, z) < pathMargin || DistanceToPortal(x, z) < portalClearRadius;
+
+		// 포털 자리를 이 컴포넌트 기준 xz 로 모음. 포털은 스테이지 프리팹의 다른 자식이라 부모 아래를 찾음
+		private void CollectPortals()
+		{
+			portalPoints.Clear();
+			Transform stageRoot = transform.parent != null ? transform.parent : transform;
+			foreach (Portal portal in stageRoot.GetComponentsInChildren<Portal>(true))
+			{
+				Vector3 local = transform.InverseTransformPoint(portal.transform.position);
+				portalPoints.Add(new Vector2(local.x, local.z));
+			}
+		}
+
+		private float DistanceToPortal(float x, float z)
+		{
+			float nearest = float.MaxValue;
+			foreach (Vector2 point in portalPoints)
+				nearest = Mathf.Min(nearest, Vector2.Distance(point, new Vector2(x, z)));
+			return nearest;
+		}
 
 		private static float Range01(System.Random random, Vector2 range) => Mathf.Lerp(range.x, range.y, (float)random.NextDouble());
 
@@ -95,6 +120,9 @@ namespace WitchMendokusai
 				float x = scatterArea.xMin + (float)random.NextDouble() * scatterArea.width;
 				float z = scatterArea.yMin + (float)random.NextDouble() * scatterArea.height;
 				if (DistanceToHall(x, z) < hallMargin)
+					continue;
+				float portalGap = (DistanceToPortal(x, z) - portalClearRadius) / Mathf.Max(portalClearFeather, 0.01f);
+				if (portalGap < 1f && (float)random.NextDouble() > portalGap)
 					continue;
 				Color32 control = ControlAt(x, z);
 				float path = control.b / 255f;

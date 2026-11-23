@@ -25,13 +25,14 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _BaseGlow: 1
+    - _BaseGlow: 1.2
     - _Disc: 0
     - _Flicker: 2.4
-    - _Intensity: 1.35
+    - _Haze: 0.35
+    - _Intensity: 1.7
     - _Speed: 0.9
     - _Streaks: 18
-    - _TopFade: 1.15
+    - _TopFade: 1.6
     m_Colors:
     - _CoreColor: {r: 1, g: 1, b: 1, a: 1}
     - _MidColor: {r: 0.41999996, g: 0.85, b: 1, a: 1}
