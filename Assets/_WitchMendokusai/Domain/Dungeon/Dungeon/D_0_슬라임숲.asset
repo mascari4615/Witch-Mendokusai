@@ -86,6 +86,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 473eb54ca0151684ca8411fd1914123f, type: 2}
     - {fileID: 11400000, guid: ab24c2555a737204a9520c2fcf5da203, type: 2}
     - {fileID: 11400000, guid: c6db0cbafde144a6bc4ffca716da44fb, type: 2}
+    - {fileID: 11400000, guid: 5ebfe6165c9041a2ac22d05bc68ba5fe, type: 2}
     <StartTime>k__BackingField: 120
     <EndTime>k__BackingField: 180
     <SpawnDelay>k__BackingField: 0.55
@@ -104,6 +105,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
     - {fileID: 11400000, guid: ab005c86dd7da954680b3ab4602b255b, type: 2}
     - {fileID: 11400000, guid: efd01aa3488c358488a9c5b03a759d41, type: 2}
+    - {fileID: 11400000, guid: e7e6851b6110468099e7abd941ee9644, type: 2}
     <StartTime>k__BackingField: 240
     <EndTime>k__BackingField: 300
     <SpawnDelay>k__BackingField: 0.45
