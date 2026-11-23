@@ -244,7 +244,7 @@ namespace WitchMendokusai
 		}
 
 		// 풀잎 다섯 꼭짓점: 뿌리 둘, 허리 둘, 끝 하나. 정점 알파는 뿌리 0, 끝 255 (셰이더 명암)
-		private class GrassCell
+		internal class GrassCell
 		{
 			private readonly List<Vector3> vertices = new();
 			private readonly List<Color32> colors = new();
@@ -281,7 +281,7 @@ namespace WitchMendokusai
 		}
 
 		// 세운 사각 판 묶음. 법선은 위로 고정해 판 방향과 무관하게 부드러운 명암
-		private class CardBatch
+		internal class CardBatch
 		{
 			private readonly List<Vector3> vertices = new();
 			private readonly List<Vector2> uvs = new();

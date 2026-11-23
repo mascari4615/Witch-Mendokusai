@@ -3,9 +3,10 @@ using UnityEngine;
 namespace WitchMendokusai
 {
 	// 숲속 빈터 연구소. 빈터 윤곽 하나로 바닥 칠, 숲 경계 벽, 나무 배치 (굽는 도구) 가 같은 모양을 씀
+	// 풀잎, 꽃, 고사리는 숲 스테이지와 같은 재질로 켜질 때 생성 (LabClearing.Scatter.cs)
 	// 바닥 칠은 숲 지형 셰이더의 제어 텍스처 (R 풀, G 흙 섞인 풀, B 흙길) 를 켜질 때 생성. 지형 메시는 TitleTerrain
 	// 판정과 실험 기록: memo wm/design/lab-surround-20261123
-	public class LabClearing : MonoBehaviour
+	public partial class LabClearing : MonoBehaviour
 	{
 		[Header("Clearing")]
 		[Tooltip("빈터 직사각형 (x 최소, z 최소, 너비, 깊이). 실험실 루트 기준 m")]
@@ -47,6 +48,7 @@ namespace WitchMendokusai
 
 		private bool isBuilt;
 		private Texture2D control;
+		private Color32[] controlPixels;
 
 		private void Awake() => Build();
 
@@ -54,6 +56,9 @@ namespace WitchMendokusai
 		{
 			if (control != null)
 				Destroy(control);
+			foreach (Object item in generated)
+				Destroy(item);
+			generated.Clear();
 		}
 
 		public void Build()
@@ -63,6 +68,9 @@ namespace WitchMendokusai
 			isBuilt = true;
 			PaintGround();
 			BuildWalls();
+			BuildGrass();
+			BuildFlowers();
+			BuildFerns();
 		}
 
 		// 빈터 경계까지의 부호 거리. 안쪽 음수, 바깥 양수. 둥근 직사각형에 각도 잡음 흔들림
@@ -92,6 +100,13 @@ namespace WitchMendokusai
 
 		public bool IsInPathGap(float x, float z, float halfWidth) => z < hallFootprint.yMin && DistanceToPath(x, z) < halfWidth;
 
+		private Color32 ControlAt(float x, float z)
+		{
+			int column = Mathf.Clamp((int)((x - paintArea.xMin) / paintArea.width * paintResolution), 0, paintResolution - 1);
+			int row = Mathf.Clamp((int)((z - paintArea.yMin) / paintArea.height * paintResolution), 0, paintResolution - 1);
+			return controlPixels[row * paintResolution + column];
+		}
+
 		private float DistanceToHall(float x, float z)
 		{
 			float distanceX = Mathf.Max(hallFootprint.xMin - x, 0f, x - hallFootprint.xMax);
@@ -101,7 +116,7 @@ namespace WitchMendokusai
 
 		private void PaintGround()
 		{
-			Color32[] pixels = new Color32[paintResolution * paintResolution];
+			Color32[] pixels = controlPixels = new Color32[paintResolution * paintResolution];
 			for (int j = 0; j < paintResolution; j++)
 			{
 				for (int i = 0; i < paintResolution; i++)
