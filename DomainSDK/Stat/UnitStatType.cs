@@ -211,6 +211,9 @@ namespace WitchMendokusai
 		SIGNATURE_RANGED_DAMAGE_BONUS = 13_011,
 		SIGNATURE_RANGED_PIERCE = 13_012,
 
+		// 레벨 기준 성장 카드 (LevelGrowthData 의 켜짐 스탯). 값은 받은 장수
+		GROWTH_COOLTIME = 13_050,
+
 		// 수선 (반짇고리 실 카드). 빈도는 켜기와 주기 감소, 세기는 한 번의 양. 정본 MendRules
 		MEND_FREQUENCY = 13_100,
 		MEND_POTENCY = 13_101,

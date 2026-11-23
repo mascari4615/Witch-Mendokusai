@@ -110,6 +110,9 @@ namespace WitchMendokusai
 			if (mendRunner != null)
 				mendRunner.Release();
 			mendRunner = null;
+			if (levelGrowthRunner != null)
+				levelGrowthRunner.Release();
+			levelGrowthRunner = null;
 			DollMasteryRun.Begin(GetDoll(dataManager.CurDollID).Mastery);
 			signatureObject = null;
 			EquipmentData signature = dataManager.RunLoadout.Signature;
@@ -150,6 +153,7 @@ namespace WitchMendokusai
 		}
 
 		private MendRunner mendRunner;
+		private LevelGrowthRunner levelGrowthRunner;
 
 		// 수선을 주는 장비가 판에 있으면 판마다 새로 걸고 지난 판 것은 걷음. 판 중 얻은 장비는 EquipDuringRun 에서
 		private void ApplyMend(EquipmentData equipment)
@@ -157,6 +161,14 @@ namespace WitchMendokusai
 			if (equipment.Mend == null || mendRunner != null)
 				return;
 			mendRunner = MendRunner.Begin(playerProvider.CurrentObject, equipment.Mend, GameEventManager.Instance, this);
+		}
+
+		// 레벨 기준 성장 카드를 가진 장비 (지금은 전용 무기만). 판마다 새로 걸고 지난 판 것은 걷음
+		private void ApplyLevelGrowth(EquipmentData equipment)
+		{
+			if (equipment.LevelGrowth == null || levelGrowthRunner != null)
+				return;
+			levelGrowthRunner = LevelGrowthRunner.Begin(playerProvider.CurrentObject, equipment.LevelGrowth, GameEventManager.Instance);
 		}
 
 		// 수선 후보는 판 장비 순서 그대로 (0 번이 전용 무기). 빈 칸은 null
@@ -175,6 +187,7 @@ namespace WitchMendokusai
 		{
 			effectRunner.ApplyEffects(equipment.Effects);
 			ApplyMend(equipment);
+			ApplyLevelGrowth(equipment);
 			return equipment.Object != null ? SpawnEquipmentObject(equipment.Object, equipment) : null;
 		}
 

@@ -555,6 +555,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - UnitStatData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fb04ae7ecd704b0cbcf34160d283e880
+    m_Address: UnitStatData/13050
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a0bf22363c0041c9adcb30366d9fc71e
     m_Address: UnitStatData/13101
     m_ReadOnly: 0

@@ -9,6 +9,8 @@ namespace WitchMendokusai
 		[SerializeField] private UnitStatType spawnCountStat;
 		// 0 이면 자기 수 카드를 받기 전까지 쏘지 않음 (공용 투사체 수 카드만으로는 시작 안 함)
 		[SerializeField, Min(0)] private int baseCount = 1;
+		// 자기 수가 이보다 적어도 이만큼은 냄 (알리사 완드 빛탄: 바늘을 안 키웠어도 1발)
+		[SerializeField, Min(0)] private int minCount = 0;
 
 		private PlayerProvider playerProvider;
 
@@ -45,7 +47,7 @@ namespace WitchMendokusai
 		private void UpdateSpawnCount()
 		{
 			UnitStat playerStat = playerProvider.Current.UnitStat;
-			int ownCount = baseCount + playerStat[spawnCountStat];
+			int ownCount = Mathf.Max(minCount, baseCount + playerStat[spawnCountStat]);
 			spawner.SpawnCount = ownCount > 0 ? ownCount + playerStat[UnitStatType.PROJECTILE_COUNT_BONUS] : 0;
 		}
 	}
