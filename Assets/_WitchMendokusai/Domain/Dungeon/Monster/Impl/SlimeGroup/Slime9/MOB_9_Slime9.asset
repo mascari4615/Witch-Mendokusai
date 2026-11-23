@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 9
   <Name>k__BackingField: "그늘 슬라임"
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: -741869489, guid: 3b178829f4e2acb4aa7360850649baf0, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 32744c387f0b4f688e1e540847de334a, type: 3}
   <Sprites>k__BackingField:
   - {fileID: 21300000, guid: 32744c387f0b4f688e1e540847de334a, type: 3}
   <Affiliation>k__BackingField: -1

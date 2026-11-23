@@ -63,6 +63,8 @@ namespace WitchMendokusai
 				FoeEntry entry = entries[i];
 				bool isBoss = entry.Monster.Type == MonsterType.Boss;
 				foeImages[i].sprite = entry.Monster.Sprite;
+				// 전장 (MonsterObject) 이 그림에 곱하는 색과 맞춤. 정예 색은 판마다 정해져 여기선 안 곱함
+				foeImages[i].tintColor = entry.Monster.Tint;
 				foeNames[i].text = entry.Monster.Name;
 				foeTimes[i].text = entry.FirstSeconds <= 0f ? "처음부터" : Mathf.RoundToInt(entry.FirstSeconds / SECONDS_PER_MINUTE) + "분";
 				foeTags[i].text = isBoss ? "보스" : entry.IsElite ? "정예" : string.Empty;

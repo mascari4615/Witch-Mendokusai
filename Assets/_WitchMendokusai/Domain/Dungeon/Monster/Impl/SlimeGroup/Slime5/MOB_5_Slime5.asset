@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 5
   <Name>k__BackingField: "솔방울 슬라임"
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: -539244921, guid: 39d82601e12c225478b1f9cccc3693a8, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 57a757417ae246368212c4bd47019c9f, type: 3}
   <Sprites>k__BackingField:
   - {fileID: 21300000, guid: 57a757417ae246368212c4bd47019c9f, type: 3}
   <Affiliation>k__BackingField: -1

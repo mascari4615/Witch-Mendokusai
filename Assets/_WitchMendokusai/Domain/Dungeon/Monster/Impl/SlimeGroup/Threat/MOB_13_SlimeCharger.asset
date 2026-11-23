@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 13
   <Name>k__BackingField: "박치기 슬라임"
   <Description>k__BackingField:
-  <Sprite>k__BackingField: {fileID: -1783809023, guid: 3353d9f613405b84c886754238b93104, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 126025a29b3d42c99e9f61c73231b0cc, type: 3}
   <Sprites>k__BackingField:
   - {fileID: 21300000, guid: 126025a29b3d42c99e9f61c73231b0cc, type: 3}
   <Affiliation>k__BackingField: -1

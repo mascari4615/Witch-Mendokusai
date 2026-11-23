@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 8
   <Name>k__BackingField: "낙엽 슬라임"
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: -1767412822, guid: 2cb436f12de1493498baf02ee40a2118, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: ad2c08413f484ba2be94f1e3e4f58ae1, type: 3}
   <Sprites>k__BackingField:
   - {fileID: 21300000, guid: ad2c08413f484ba2be94f1e3e4f58ae1, type: 3}
   <Affiliation>k__BackingField: -1

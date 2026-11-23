@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 2
   <Name>k__BackingField: "진흙 슬라임"
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: 1534370499, guid: 588cff8c82d8ee44782cd8c63475e965, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 8d190cc3c0a74726a4ed815a0b66514b, type: 3}
   <Sprites>k__BackingField:
   - {fileID: 21300000, guid: 8d190cc3c0a74726a4ed815a0b66514b, type: 3}
   <Affiliation>k__BackingField: -1

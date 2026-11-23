@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 12
   <Name>k__BackingField: "물총 슬라임"
   <Description>k__BackingField:
-  <Sprite>k__BackingField: {fileID: -1195141597, guid: 525ffe33a40fb1349aa1281402294232, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 95fe8736390745e88947966781e27297, type: 3}
   <Sprites>k__BackingField:
   - {fileID: 21300000, guid: 95fe8736390745e88947966781e27297, type: 3}
   <Affiliation>k__BackingField: -1

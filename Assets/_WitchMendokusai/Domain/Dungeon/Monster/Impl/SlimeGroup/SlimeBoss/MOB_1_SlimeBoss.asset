@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 1
   <Name>k__BackingField: 아쿠아쿠
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: -1225876615, guid: 050d103a09fcd5e46a88776ad78dfb28, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 6f9ce4a7ed9b41d8b91c1621da7837a7, type: 3}
   <Sprites>k__BackingField:
   - {fileID: 21300000, guid: 6f9ce4a7ed9b41d8b91c1621da7837a7, type: 3}
   <Affiliation>k__BackingField: -1

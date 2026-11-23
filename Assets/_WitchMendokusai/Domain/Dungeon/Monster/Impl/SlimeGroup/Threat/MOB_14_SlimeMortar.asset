@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 14
   <Name>k__BackingField: "씨앗 슬라임"
   <Description>k__BackingField:
-  <Sprite>k__BackingField: {fileID: 695418822, guid: 9ab49a49da694cb499b4bcad4f133d1a, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: ac0014e4a6114a2ebe2ed7b4964f573a, type: 3}
   <Sprites>k__BackingField:
   - {fileID: 21300000, guid: ac0014e4a6114a2ebe2ed7b4964f573a, type: 3}
   <Affiliation>k__BackingField: -1

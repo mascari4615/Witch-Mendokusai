@@ -15,7 +15,7 @@ MonoBehaviour:
   <ID>k__BackingField: 6
   <Name>k__BackingField: "이슬 슬라임"
   <Description>k__BackingField: 
-  <Sprite>k__BackingField: {fileID: -1494680652, guid: 885dbe964ca2c0541a96474bd66b37b3, type: 3}
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 4841ce804ff34daea4277752cbee5a04, type: 3}
   <Sprites>k__BackingField:
   - {fileID: 21300000, guid: 4841ce804ff34daea4277752cbee5a04, type: 3}
   <Affiliation>k__BackingField: -1
