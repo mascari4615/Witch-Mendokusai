@@ -26,7 +26,7 @@ namespace WitchMendokusai
 
 		[field: Header("자리 (패널 픽셀)")]
 		[field: Tooltip("표식 그림 위끝에서 꼬리 끝까지 높이. 이 점이 NPCMarker 위치 (머리) 에 닿음")]
-		[field: SerializeField, Min(0f)] public float MarkerTailTipY { get; private set; } = 57f;
+		[field: SerializeField, Min(0f)] public float MarkerTailTipY { get; private set; } = 61f;
 		[field: Tooltip("꼬리 끝을 머리에서 위로 더 띄우는 거리")]
 		[field: SerializeField] public float MarkerLift { get; private set; } = 2f;
 		[field: Tooltip("NPC 발밑에서 이름표 위끝까지 아래로 내리는 거리")]

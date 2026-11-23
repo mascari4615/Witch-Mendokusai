@@ -20,7 +20,7 @@ MonoBehaviour:
   <StartIcon>k__BackingField: {fileID: 21300000, guid: 9b9df865999f4fb1833abbd214bf08da, type: 3}
   <WaitingIcon>k__BackingField: {fileID: 21300000, guid: ee61a69a665c460fbe462bfc0edfee35, type: 3}
   <RewardIcon>k__BackingField: {fileID: 21300000, guid: 0671863d1ee24378a6e587d4d70111ee, type: 3}
-  <MarkerTailTipY>k__BackingField: 57
+  <MarkerTailTipY>k__BackingField: 61
   <MarkerLift>k__BackingField: 2
   <NameDrop>k__BackingField: 4
   <BobAmplitude>k__BackingField: 2

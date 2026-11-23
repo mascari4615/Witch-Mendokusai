@@ -15,7 +15,6 @@ namespace WitchMendokusai
 		private const string KEY_LABEL = "Z";
 		private const string TOUCH_LABEL = "›";
 		private const string CLONE_SUFFIX = "(Clone)";
-		private const char ROLE_SEPARATOR = '_';
 
 		[Tooltip("대상 발밑에서 표시 기준점까지 높이 (m)")]
 		[SerializeField, Min(0f)] private float anchorHeight = 1.4f;
@@ -192,10 +191,8 @@ namespace WitchMendokusai
 			if (npc != null && npc.Data != null)
 			{
 				// NPC 데이터 이름 "이름_역할" 은 이름과 흐린 역할로
-				string dataName = npc.Data.Name;
-				int split = dataName.IndexOf(ROLE_SEPARATOR);
-				nameLabel.text = split > 0 ? dataName.Substring(0, split) : dataName;
-				roleLabel.text = split > 0 ? dataName.Substring(split + 1) : string.Empty;
+				nameLabel.text = npc.Data.DisplayName;
+				roleLabel.text = npc.Data.RoleName;
 			}
 			else if (target.TryGetComponent(out MapObjectSite site))
 			{

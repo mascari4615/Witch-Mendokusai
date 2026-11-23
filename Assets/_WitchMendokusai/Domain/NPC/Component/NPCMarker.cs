@@ -48,6 +48,9 @@ namespace WitchMendokusai
 		private IEnumerator Loop()
 		{
 			WaitForSeconds wait = new(refreshInterval);
+			// 장면 NPC 는 OnEnable 이 VContainer 주입보다 먼저 올 수 있음. 주입될 때까지 기다림
+			while (questManager == null)
+				yield return null;
 
 			while (true)
 			{

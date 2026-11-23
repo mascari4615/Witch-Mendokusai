@@ -17,7 +17,7 @@
     font-size: 12px;
     color: rgb(244, 234, 140);
     background-color: rgba(34, 34, 38, 0.55);
-    -unity-font-definition: url("../../../Fonts/갈무리/Galmuri11.ttf");
+    -unity-font-definition: url("../../../../Fonts/갈무리/Galmuri11.ttf");
     -unity-text-align: middle-center;
     white-space: nowrap;
 }
@@ -25,6 +25,7 @@
 /* 바깥 빛 여백까지 든 그림 크기. 마름모 본체 42x49 */
 .wm-npc-nameplate__marker {
     position: absolute;
+    translate: -50% 0;
     width: 60px;
     height: 67px;
 }

@@ -28,15 +28,9 @@ namespace WitchMendokusai
 
 		private const char ROLE_SEPARATOR = '_';
 
-		// 데이터 이름 "이름_역할" 의 이름 쪽. 발밑 이름표 (NPCNameplateView) 가 씀
-		public string DisplayName
-		{
-			get
-			{
-				int split = Name.IndexOf(ROLE_SEPARATOR);
-				return split > 0 ? Name.Substring(0, split) : Name;
-			}
-		}
+		// 데이터 이름 "이름_역할" 을 나눈 두 쪽. 발밑 이름표 (NPCNameplateView) 와 상호작용 표시 (InteractPromptView) 가 씀
+		public string DisplayName => Name.IndexOf(ROLE_SEPARATOR) > 0 ? Name.Substring(0, Name.IndexOf(ROLE_SEPARATOR)) : Name;
+		public string RoleName => Name.IndexOf(ROLE_SEPARATOR) > 0 ? Name.Substring(Name.IndexOf(ROLE_SEPARATOR) + 1) : string.Empty;
 
 		public int GetShopPrice(ItemData itemData) => IsShopFree ? 0 : itemData.PurchasePrice;
 

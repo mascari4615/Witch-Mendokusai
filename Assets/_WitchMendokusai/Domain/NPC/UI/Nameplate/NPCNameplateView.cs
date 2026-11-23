@@ -13,6 +13,8 @@ namespace WitchMendokusai
 	public class NPCNameplateView : MonoBehaviour
 	{
 		private const string USS_ROOT = "wm-npc-nameplate";
+		// NPC 마다 흔들림 박자를 어긋나게 하는 간격 (황금비의 소수부, 몇 명이 와도 고르게 퍼짐)
+		private const float BOB_PHASE_STEP = 0.618034f;
 
 		public NPCNameplateSettings Settings { private get; set; }
 
@@ -23,6 +25,7 @@ namespace WitchMendokusai
 			public VisualElement Background;
 			public VisualElement Flash;
 			public VisualElement Icon;
+			public NPC ShownData;
 			public NPCQuestMark ShownMark = NPCQuestMark.None;
 			public float BobPhase;
 		}
@@ -79,6 +82,9 @@ namespace WitchMendokusai
 			Vector3 playerPosition = player.transform.position;
 			foreach (NPCMarker marker in NPCMarker.Active)
 			{
+				// 풀에서 꺼낸 NPC 는 데이터가 켜진 뒤에 들어옴. 들어올 때까지 그리지 않음
+				if (marker.NPC.Data == null)
+					continue;
 				if (entries.TryGetValue(marker, out Entry entry) == false)
 				{
 					entry = CreateEntry(marker);
@@ -119,13 +125,12 @@ namespace WitchMendokusai
 		{
 			Entry entry = new()
 			{
-				Name = new Label(marker.NPC.Data.DisplayName) { pickingMode = PickingMode.Ignore },
+				Name = new Label { pickingMode = PickingMode.Ignore },
 				Marker = new VisualElement { pickingMode = PickingMode.Ignore },
 				Background = new VisualElement { pickingMode = PickingMode.Ignore },
 				Flash = new VisualElement { pickingMode = PickingMode.Ignore },
 				Icon = new VisualElement { pickingMode = PickingMode.Ignore },
-				// NPC 마다 흔들림 박자를 어긋나게 (황금비 간격)
-				BobPhase = Mathf.Repeat(entries.Count * 0.618f, 1f),
+				BobPhase = Mathf.Repeat(entries.Count * BOB_PHASE_STEP, 1f),
 			};
 			entry.Name.AddToClassList(USS_ROOT + "__name");
 			entry.Marker.AddToClassList(USS_ROOT + "__marker");
@@ -143,6 +148,12 @@ namespace WitchMendokusai
 
 		private void UpdateEntry(NPCMarker marker, Entry entry, Camera camera, Vector3 playerPosition)
 		{
+			if (marker.NPC.Data != entry.ShownData)
+			{
+				entry.ShownData = marker.NPC.Data;
+				entry.Name.text = entry.ShownData.DisplayName;
+			}
+
 			Vector3 foot = marker.NPC.transform.position;
 			float distance = Vector3.Distance(playerPosition, foot);
 			float alpha = 1f - Mathf.InverseLerp(Settings.FadeStartDistance, Settings.FadeEndDistance, distance);
@@ -170,9 +181,8 @@ namespace WitchMendokusai
 
 			float time = Time.unscaledTime;
 			float bob = Mathf.Sin((time / Settings.BobPeriod + entry.BobPhase) * Mathf.PI * 2f) * Settings.BobAmplitude;
-			float width = entry.Marker.resolvedStyle.width;
 			entry.Marker.style.opacity = alpha;
-			entry.Marker.style.left = headPoint.x - (float.IsNaN(width) ? 0f : width / 2f);
+			entry.Marker.style.left = headPoint.x;
 			entry.Marker.style.top = headPoint.y - Settings.MarkerTailTipY - Settings.MarkerLift + bob;
 			// 시작 표식만 바탕이 천천히 물들었다 빠짐. 0 에서 시작해 부드럽게 오르내림
 			entry.Flash.style.opacity = mark == NPCQuestMark.Start
