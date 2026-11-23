@@ -65,9 +65,13 @@ namespace WitchMendokusai
 		{
 			if (hotbarContainer == null)
 				return;
-			bool visible = gameModeManager.CurrentMode == GameMode.Default && GameConditionBridge.Get(GameConditionType.IsViewingUI) == false && IsHiddenAsEmptyInDungeon() == false;
+			bool visible = IsUsableInThisBuild() && gameModeManager.CurrentMode == GameMode.Default && GameConditionBridge.Get(GameConditionType.IsViewingUI) == false && IsHiddenAsEmptyInDungeon() == false;
 			hotbarContainer.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
 		}
+
+		// 칸 고르기 키가 이 빌드에서 꺼져 있으면 칸도 숨김. 고를 수 없는 칸을 보이지 않게 (2026-11-23 릴리스 실측, 사용자 "숨겨 일단")
+		// 입력 거름과 같은 값 (KeybindRegistry) 을 읽어 키를 켜면 칸도 같이 돌아옴
+		private static bool IsUsableInThisBuild() => KeybindRegistry.IsEnabledInThisBuild(InputEventType.HotbarSlot1);
 
 		private bool IsHiddenAsEmptyInDungeon()
 		{
@@ -106,6 +110,9 @@ namespace WitchMendokusai
 
 		private void OnScroll(InputAction.CallbackContext ctx)
 		{
+			// 숨긴 칸을 휠로 몰래 바꾸지 않음. 보이지 않는 선택에 도구 사용이 걸림
+			if (IsUsableInThisBuild() == false)
+				return;
 			float y = ctx.ReadValue<Vector2>().y;
 			int capacity = SLOT_COUNT;
 			if (y > 0)
