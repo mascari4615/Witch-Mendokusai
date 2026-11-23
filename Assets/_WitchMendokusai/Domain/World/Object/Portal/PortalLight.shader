@@ -7,10 +7,11 @@ Shader "WM/PortalLight"
     Properties
     {
         _CoreColor ("Streak white", Color) = (1, 1, 1, 1)
-        _MidColor ("Streak cyan", Color) = (0.42, 0.85, 1, 1)
-        _OuterColor ("Streak pink", Color) = (0.92, 0.55, 1, 1)
+        _MidColor ("Streak cyan", Color) = (0.28, 0.78, 1, 1)
+        _OuterColor ("Streak pink", Color) = (1, 0.48, 0.86, 1)
+        _AccentColor ("Streak violet", Color) = (0.66, 0.46, 1, 1)
         _RimColor ("Base glow", Color) = (0.6, 0.95, 1, 1)
-        _Intensity ("Intensity", Float) = 1.7
+        _Intensity ("Intensity", Float) = 1.3
         _Streaks ("Streak count around", Float) = 18
         _Speed ("Rise speed", Float) = 0.9
         _Flicker ("Flicker speed", Float) = 2.4
@@ -35,7 +36,7 @@ Shader "WM/PortalLight"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             CBUFFER_START(UnityPerMaterial)
-            float4 _CoreColor; float4 _MidColor; float4 _OuterColor; float4 _RimColor;
+            float4 _CoreColor; float4 _MidColor; float4 _OuterColor; float4 _AccentColor; float4 _RimColor;
             float _Intensity; float _Streaks; float _Speed; float _Flicker; float _TopFade; float _BaseGlow; float _Disc; float _Haze;
             CBUFFER_END
 
@@ -102,24 +103,27 @@ Shader "WM/PortalLight"
                 float bottom = smoothstep(0.0, 0.04, y);
                 float lines = body * rise * flicker * tip * bottom;
                 float cores = core * flicker * tip * bottom;
-                // 원통 옆 가장자리 (시선과 비스듬한 면) 는 빛이 겹쳐 진하게, 정면은 옅게
                 float facing = abs(dot(normalize(input.normalWS), normalize(input.viewWS)));
-                float edge = 1 - facing;
+                // 윤곽 바로 앞 (시선과 거의 나란한 면) 은 줄기와 안개가 겹쳐 곧은 세로선이 됨. 거기서 빛을 거둬 통 윤곽을 지움
+                float silhouette = smoothstep(0.1, 0.55, facing);
                 float fade = smoothstep(1.0, 0.15, y);
                 fade *= fade * bottom;
                 float baseGlow = exp(-y * 5) * _BaseGlow;
-                float3 bodyColor = seed < 0.5 ? _MidColor.rgb : _OuterColor.rgb;
-                bodyColor = lerp(bodyColor, _CoreColor.rgb, frac(seed * 7.3) * 0.35);
-                // 몸통 안개는 차가운 하늘색과 보라. 밝은 연두 풀 위에서 기둥 윤곽이 색으로 갈림
-                float haze = lerp(0.35, 1.0, edge * edge) * _Haze * fade;
-                float3 hazeColor = lerp(_MidColor.rgb, _OuterColor.rgb, saturate(y * 1.3)) * 0.85;
-                float lineAlpha = saturate(lines * 2.6);
-                float coreAlpha = saturate(cores * 1.8);
-                float glowAlpha = baseGlow * 0.7;
+                // 줄기 색은 하늘색, 분홍, 보라 셋. 아래는 하늘색 쪽, 위로 갈수록 분홍 보라 쪽으로 기움. 흰빛은 심에만 둬 몸통 색이 바래지 않음
+                float3 bodyColor = seed < 0.4 ? _MidColor.rgb : (seed < 0.7 ? _OuterColor.rgb : _AccentColor.rgb);
+                float3 upperColor = seed < 0.55 ? _AccentColor.rgb : _OuterColor.rgb;
+                bodyColor = lerp(bodyColor, upperColor, saturate(y * 1.4) * 0.6);
+                // 몸통 안개는 아래 하늘색에서 위 연보라. 가운데 (부피를 꿰뚫어 보는 곳) 가 진하고 윤곽으로 갈수록 0. 윤곽이 진하면 유리관이 됨
+                float haze = smoothstep(0.0, 0.8, facing) * 0.75 * _Haze * fade;
+                float3 hazeColor = lerp(_MidColor.rgb, _AccentColor.rgb, saturate(y * 1.6)) * 0.8;
+                float lineAlpha = saturate(lines * 2.6) * silhouette;
+                float coreAlpha = saturate(cores * 1.8) * silhouette;
+                float glowAlpha = baseGlow * 0.7 * silhouette;
                 float alpha = saturate(lineAlpha + coreAlpha + haze + glowAlpha);
-                float3 light = bodyColor * lineAlpha + _CoreColor.rgb * coreAlpha * 1.4 + hazeColor * haze + _RimColor.rgb * glowAlpha;
+                // 밝기는 몸통에 덜, 흰 심에 더. 몸통까지 세게 곱하면 색이 하얗게 포화됨
+                float3 light = bodyColor * lineAlpha * _Intensity + _CoreColor.rgb * coreAlpha * 1.4 * _Intensity + hazeColor * haze + _RimColor.rgb * glowAlpha * _Intensity;
                 float3 color = light / max(alpha, 1e-3);
-                color = MixFog(color * _Intensity, input.fogFactor);
+                color = MixFog(color, input.fogFactor);
                 return half4(color * alpha, alpha);
             }
             ENDHLSL
