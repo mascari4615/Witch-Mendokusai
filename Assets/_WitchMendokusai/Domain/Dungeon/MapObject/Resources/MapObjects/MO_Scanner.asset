@@ -15,8 +15,8 @@ MonoBehaviour:
   <DisplayName>k__BackingField: 탐지기
   <Role>k__BackingField: 맵 오브젝트 위치 표시
   <Category>k__BackingField: 6
-  <Model>k__BackingField: {fileID: 0}
-  <ShowMarker>k__BackingField: 1
+  <Model>k__BackingField: {fileID: 11400000, guid: 96ac09473cb1430c94dc70784870d17d, type: 2}
+  <ShowMarker>k__BackingField: 0
   <MarkerShape>k__BackingField: 1
   <MarkerColor>k__BackingField: {r: 0.85, g: 0.85, b: 1, a: 1}
   <MarkerRadius>k__BackingField: 0

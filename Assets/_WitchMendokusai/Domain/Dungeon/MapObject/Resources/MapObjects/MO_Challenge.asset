@@ -15,8 +15,8 @@ MonoBehaviour:
   <DisplayName>k__BackingField: 정예 도전
   <Role>k__BackingField: 처치하면 상자
   <Category>k__BackingField: 1
-  <Model>k__BackingField: {fileID: 0}
-  <ShowMarker>k__BackingField: 1
+  <Model>k__BackingField: {fileID: 11400000, guid: 1b7d3151454f40159e277c5652d907e9, type: 2}
+  <ShowMarker>k__BackingField: 0
   <MarkerShape>k__BackingField: 0
   <MarkerColor>k__BackingField: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   <MarkerRadius>k__BackingField: 0
