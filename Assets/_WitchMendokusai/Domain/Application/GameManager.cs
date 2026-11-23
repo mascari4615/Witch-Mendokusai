@@ -114,6 +114,7 @@ namespace WitchMendokusai
 				levelGrowthRunner.Release();
 			levelGrowthRunner = null;
 			DollMasteryRun.Begin(GetDoll(dataManager.CurDollID).Mastery);
+			HitMarks.Clear();
 			signatureObject = null;
 			EquipmentData signature = dataManager.RunLoadout.Signature;
 			List<EquipmentData> equipments = dataManager.RunLoadout.Equipments();

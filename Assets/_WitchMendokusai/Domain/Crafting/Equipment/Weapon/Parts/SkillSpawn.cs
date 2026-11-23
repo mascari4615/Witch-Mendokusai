@@ -23,7 +23,7 @@ namespace WitchMendokusai
 		{
 			if (stat == UnitStatType.NONE)
 				return 1;
-			return context != null && context.User != null ? context.User.UnitStat[stat] : 0;
+			return context.User.UnitStat[stat];
 		}
 	}
 }

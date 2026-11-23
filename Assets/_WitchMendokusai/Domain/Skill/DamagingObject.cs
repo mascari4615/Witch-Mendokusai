@@ -129,7 +129,8 @@ namespace WitchMendokusai
 						victimInMatch, victimInMatch ? victimCombatant.TeamId : -1,
 						usedByPlayer, victimKind);
 
-					if (shouldDamage)
+					// 이미 죽은 대상 (사라지기 전 판정이 남은 시체) 은 적중이 아님. 같은 프레임 여러 탄이 처치 효과를 겹쳐 내거나 관통을 쓰지 않게
+					if (shouldDamage && unitHealth.Unit.IsAlive)
 					{
 						unitHealth.Unit.ReceiveDamage(ModifyDamage(unitHealth.Unit, CalcDamage(unitHealth.Unit)));
 						NotifyHitEffects(unitHealth.Unit);

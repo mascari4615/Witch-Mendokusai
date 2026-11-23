@@ -9,6 +9,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("세는 이름. 같은 수를 쓰는 탄끼리 이어 셈")] private int countKey;
 		[SerializeField, Min(2)] private int everyNth = 3;
 		[SerializeField, Min(0)] private int bonusDamage = 6;
+		[SerializeField, Min(0.1f), Tooltip("이만큼 안 맞히면 그 적의 셈을 처음부터")] private float resetSeconds = 5f;
 
 		private SkillContext context;
 
@@ -20,7 +21,7 @@ namespace WitchMendokusai
 		{
 			if (victim == null || IsOn == false)
 				return damageInfo;
-			if ((HitMarks.HitCount(countKey, victim) + 1) % everyNth == 0)
+			if ((HitMarks.HitCount(countKey, victim, resetSeconds) + 1) % everyNth == 0)
 				damageInfo.damage += bonusDamage;
 			return damageInfo;
 		}
@@ -28,7 +29,7 @@ namespace WitchMendokusai
 		public void OnHit(DamagingObject source, UnitObject victim)
 		{
 			if (IsOn)
-				HitMarks.AddHit(countKey, victim);
+				HitMarks.AddHit(countKey, victim, resetSeconds);
 		}
 	}
 }
