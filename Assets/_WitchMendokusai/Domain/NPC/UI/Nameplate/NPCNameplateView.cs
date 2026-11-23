@@ -179,7 +179,8 @@ namespace WitchMendokusai
 				entry.Icon.style.backgroundImage = new StyleBackground(Settings.GetIcon(mark));
 			}
 
-			float time = Time.unscaledTime;
+			// 게임 시간. 일시정지 때는 층 전체가 숨어 멈춘 값이 보이지 않음
+			float time = Time.time;
 			float bob = Mathf.Sin((time / Settings.BobPeriod + entry.BobPhase) * Mathf.PI * 2f) * Settings.BobAmplitude;
 			entry.Marker.style.opacity = alpha;
 			entry.Marker.style.left = headPoint.x;
