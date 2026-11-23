@@ -36,6 +36,12 @@ namespace WitchMendokusai
 			fullscreenToggle = CreateToggle("전체화면", DisplaySettings.Fullscreen, DescribeFullscreen, isOn => DisplaySettings.Fullscreen = isOn, content);
 			content.Add(CreateResolutionSlider());
 
+			Label graphicsHeader = new Label("그래픽");
+			graphicsHeader.AddToClassList("wm-setting-header");
+			content.Add(graphicsHeader);
+
+			content.Add(CreateQualitySlider());
+
 			Label frameHeader = new Label("프레임");
 			frameHeader.AddToClassList("wm-setting-header");
 			content.Add(frameHeader);
@@ -61,6 +67,12 @@ namespace WitchMendokusai
 				resolutionSlider.SetEnabled(false);
 			return row;
 		}
+
+		private static readonly string[] QUALITY_TIER_NAMES = { "낮음", "중간", "높음" };
+
+		private VisualElement CreateQualitySlider()
+			=> CreateStepSlider("품질", QualityPreset.TIER_COUNT, QualityPreset.Tier, tier => QUALITY_TIER_NAMES[tier],
+				tier => QualityPreset.Tier = tier, out Slider _, out Label _);
 
 		private static string FormatResolution(Vector2Int resolution) => $"{resolution.x} x {resolution.y}";
 
