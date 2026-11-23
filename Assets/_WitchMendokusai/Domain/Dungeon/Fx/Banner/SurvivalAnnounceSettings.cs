@@ -37,6 +37,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("난이도 단계가 올라간 순간. {3} 새 난이도 이름")] public SurvivalAnnounceLine DifficultyRaised { get; private set; } = new();
 
 		[field: Header("처치 연쇄")]
+		[field: SerializeField, Tooltip("처치 연쇄 띠를 켬. 평소 판에는 끔 (사용자 2026-11-23, 흔히 뜰 요소가 아님). 특별 판이나 모드에서 켜려고 남김")] public bool KillStreakEnabled { get; private set; }
 		[field: SerializeField, Tooltip("연쇄 수가 문턱을 넘은 순간. {2} 연쇄 수")] public SurvivalAnnounceLine KillStreak { get; private set; } = new();
 		[field: SerializeField, Tooltip("알림을 띄우는 연쇄 수. 작은 것부터")] public int[] StreakThresholds { get; private set; } = { 25, 50, 100, 200 };
 		[field: SerializeField, Min(.1f), Tooltip("처치 사이가 이 초보다 벌어지면 연쇄가 끊김")] public float StreakWindowSeconds { get; private set; } = 1.2f;

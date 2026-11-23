@@ -87,8 +87,11 @@ namespace WitchMendokusai
 		private void OnEliteKilled(EliteKilledEvent killed) => Show(Settings.EliteKilled, 0f, killed.Monster, 1);
 
 		// 처치 사이 간격이 창 안이면 이어 셈. 문턱을 넘을 때마다 한 번씩 띠 (게임 시간 기준, 일시정지 중엔 안 끊김)
+		// 꺼져 있으면 세지도 않음
 		private void OnMonsterKilled(MonsterKilledEvent killed)
 		{
+			if (Settings.KillStreakEnabled == false)
+				return;
 			float now = Time.time;
 			if (now - lastKillTime > Settings.StreakWindowSeconds)
 			{
