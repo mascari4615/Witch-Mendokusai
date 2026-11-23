@@ -159,11 +159,6 @@ namespace WitchMendokusai
 			if (audioReady == false || currentMusic == null)
 				return;
 
-			// TODO : else if (DataManager.Instance.CurGameData.muteOnOutfocus)
-			{
-				// TODO : master.setVolume(0);
-			}
-
 			bgmEvent.getPlaybackState(out PLAYBACK_STATE playbackState);
 			bool hasEventPath = string.IsNullOrEmpty(currentMusic.EventPath) == false;
 			if (MusicFlow.ShouldRestart(currentMusic.Loop, hasEventPath, playbackState == PLAYBACK_STATE.STOPPED))
