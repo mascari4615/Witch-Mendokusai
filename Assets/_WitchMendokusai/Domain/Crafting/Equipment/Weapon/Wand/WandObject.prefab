@@ -34,6 +34,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2375847939780364858}
+  - {fileID: 817226233283613071}
+  - {fileID: 279890501342578513}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8722718154776720520
@@ -86,10 +88,12 @@ MonoBehaviour:
   clockStepDegrees: 30
   spreadDegrees: 0
   spawnOpposite: 0
-  scaleBonusStatType: -1
+  scaleBonusStatType: 13003
   scalePerStack: 0.1
   damageBonusStatType: 13001
   pierceBonusStatType: -1
+  fanStatType: -1
+  fanDegrees: 15
 --- !u!114 &624030948263483217
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -105,6 +109,7 @@ MonoBehaviour:
   spawner: {fileID: 7377987611665135407}
   spawnCountStat: 13000
   baseCount: 1
+  minCount: 1
 --- !u!1 &8205507939271155849
 GameObject:
   m_ObjectHideFlags: 0
@@ -168,6 +173,8 @@ MonoBehaviour:
   scalePerStack: 0.1
   damageBonusStatType: 13011
   pierceBonusStatType: 13012
+  fanStatType: 13023
+  fanDegrees: 15
 --- !u!114 &7387971868149329152
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -184,3 +191,142 @@ MonoBehaviour:
   spawnCountStat: 13010
   baseCount: 0
   minCount: 1
+--- !u!1 &3532295071015901603
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 817226233283613071}
+  - component: {fileID: 6100674287992960515}
+  m_Layer: 0
+  m_Name: LightFairy
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &817226233283613071
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3532295071015901603}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5097979222646962483}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6100674287992960515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3532295071015901603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba78318f45b6eea4e9990038db24cffb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.EquipmentFairy
+  originCoolTime: 1.5
+  aimPollDelay: 0.1
+  bulletPrefab: {fileID: 1521986667925735823, guid: a07a44599201442db1fae5950a691d1b, type: 3}
+  fairyPrefab: {fileID: 5016466698488500064, guid: 1164c692ec68f92478ef56d2be73de36, type: 3}
+  rotateSpeed: -30
+  countStat: 13025
+  damageBonusStat: 13026
+  attackSpeedBonusStat: -1
+  attackSpeedReductionPerStack: 0.2
+  minCoolTimeRatio: 0.2
+  baseCount: 0
+  scaleBonusStat: 13027
+  scalePerStack: 0.1
+--- !u!1 &5615316061110166080
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 279890501342578513}
+  - component: {fileID: 2128035642888648856}
+  - component: {fileID: 1560904299562079830}
+  m_Layer: 0
+  m_Name: FairyChorus
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &279890501342578513
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5615316061110166080}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5097979222646962483}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2128035642888648856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5615316061110166080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d492e87d06f23b14e8f7f9a3ad7ddb04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.Spawner
+  prefabToSpawn: {fileID: 3325518865840038022, guid: 5aa3986fe7eacdd45a6ed7b1d58293ad, type: 3}
+  spawnPositionStrategy: 4
+  spawnAimStrategy: 2
+  <RandomRange>k__BackingField: 0
+  <SpawnCount>k__BackingField: 1
+  <SpawnDelay>k__BackingField: 0.15
+  baseInterval: 8
+  attackSpeedBonusStatType: -1
+  attackSpeedReductionPerStack: 0.15
+  minIntervalRatio: 0.25
+  targetRange: 14
+  clockStepDegrees: 30
+  spreadDegrees: 0
+  spawnOpposite: 0
+  scaleBonusStatType: -1
+  scalePerStack: 0.1
+  damageBonusStatType: 13026
+  pierceBonusStatType: -1
+  fanStatType: -1
+  fanDegrees: 15
+--- !u!114 &1560904299562079830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5615316061110166080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e1957e134e7d446b23c68776da60ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SpawnerInitializer
+  spawner: {fileID: 2128035642888648856}
+  spawnCountStat: 13025
+  baseCount: 0
+  minCount: 0
+  gateStat: 13028

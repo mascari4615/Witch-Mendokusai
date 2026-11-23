@@ -241,6 +241,11 @@ GameObject:
   - component: {fileID: 9177424695655411205}
   - component: {fileID: 8619146886173920270}
   - component: {fileID: 6346437010771353559}
+  - component: {fileID: 4669856568922526213}
+  - component: {fileID: 3439952295717998746}
+  - component: {fileID: 8423299215690586281}
+  - component: {fileID: 8874777472672284310}
+  - component: {fileID: 7306424435985865143}
   m_Layer: 0
   m_Name: LightBullet
   m_TagString: Untagged
@@ -369,7 +374,82 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75bd46331078f124f8d5559f1332d9a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.ChainOnHit
-  chainCountStat: 10604
+  chainCountStat: 13013
   baseChainCount: 0
-  chainRange: 6
+  chainRange: 5
   linkPrefab: {fileID: 782639293330990798, guid: db30a6d8397d7314aa96e7ef9b7e20f8, type: 3}
+--- !u!114 &4669856568922526213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8891603708961370830}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31c995a88a1a41eca3d37f31a13e5f11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MarkOnHit
+  gateStat: 13021
+  markKey: 2
+  seconds: 2
+--- !u!114 &3439952295717998746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8891603708961370830}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19d609766575405f9133dad9d535685b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MarkAmplify
+  gateStat: 13020
+  markKey: 1
+  bonusPercent: 20
+--- !u!114 &8423299215690586281
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8891603708961370830}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e5b3cd3bdaf4ba99bc746235f65d279, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.GatedDamageScale
+  gateStat: 13023
+  percent: 70
+--- !u!114 &8874777472672284310
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8891603708961370830}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e568faa58ab447feb2cfadf5c9364467, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.NthHitBonus
+  gateStat: 13023
+  countKey: 3
+  everyNth: 3
+  bonusDamage: 6
+--- !u!114 &7306424435985865143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8891603708961370830}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b7e894b9b6c41fdb91c64c9ecb843fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SplitOnKill
+  gateStat: 13024
+  splitPrefab: {fileID: 8891603708961370830, guid: d6a6e7f4ddcb40b6a409f322a51cc57c, type: 3}
+  count: 3

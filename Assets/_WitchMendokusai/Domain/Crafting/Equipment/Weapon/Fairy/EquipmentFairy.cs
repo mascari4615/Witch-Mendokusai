@@ -20,6 +20,9 @@ namespace WitchMendokusai
 		[SerializeField] private UnitStatType attackSpeedBonusStat = UnitStatType.FAIRY_ATTACK_SPEED_BONUS;
 		[SerializeField, Range(0f, 1f)] private float attackSpeedReductionPerStack = 0.2f;
 		[SerializeField, Range(0.01f, 1f)] private float minCoolTimeRatio = 0.2f;
+		[SerializeField, Min(0), Tooltip("수 카드 없이 있는 정령 수. 0 이면 수 카드를 받아야 나옴 (알리사 빛 정령)")] private int baseCount = 1;
+		[SerializeField, Tooltip("탄 크기 강화 스탯. NONE 이면 없음")] private UnitStatType scaleBonusStat = UnitStatType.NONE;
+		[SerializeField, Min(0f)] private float scalePerStack = 0.1f;
 
 		private readonly List<Transform> fairyTransforms = new();
 		private int damageBonus;
@@ -96,7 +99,7 @@ namespace WitchMendokusai
 			int fairyIndex = 0;
 			while (true)
 			{
-				if (playerProvider.Current.AimPos == Vector3.zero)
+				if (playerProvider.Current.AimPos == Vector3.zero || fairyTransforms.Count == 0)
 				{
 					yield return new WaitForSeconds(aimPollDelay);
 					continue;
@@ -112,6 +115,8 @@ namespace WitchMendokusai
 
 				if (g.TryGetComponent(out SkillObject skillObject))
 					skillObject.InitAttack(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager, usedEquipment));
+				if (scaleBonusStat != UnitStatType.NONE)
+					g.transform.localScale *= 1f + PlayerStat[scaleBonusStat] * scalePerStack;
 
 				if (g.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(damageBonus);
@@ -130,7 +135,8 @@ namespace WitchMendokusai
 
 		private void UpdateFairy(int fairyCount)
 		{
-			int actualFairyCount = 1 + fairyCount + PlayerStat[UnitStatType.PROJECTILE_COUNT_BONUS];
+			int ownCount = baseCount + fairyCount;
+			int actualFairyCount = ownCount > 0 ? ownCount + PlayerStat[UnitStatType.PROJECTILE_COUNT_BONUS] : 0;
 
 			if (fairyTransforms.Count < actualFairyCount)
 			{
@@ -146,7 +152,7 @@ namespace WitchMendokusai
 				}
 			}
 
-			float delta = 360f / actualFairyCount;
+			float delta = actualFairyCount > 0 ? 360f / actualFairyCount : 0f;
 			for (int i = 0; i < transform.childCount; i++)
 			{
 				transform.GetChild(i).transform.localRotation = Quaternion.Euler(Vector3.up * (delta * i));

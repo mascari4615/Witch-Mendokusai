@@ -61,6 +61,8 @@ namespace WitchMendokusai
 
 		[SerializeField] private UnitStatType damageBonusStatType = UnitStatType.NONE;
 		[SerializeField, Tooltip("한 발이 더 맞힐 수 있는 적 수 (관통). 적중 횟수를 쓰는 탄에만")] private UnitStatType pierceBonusStatType = UnitStatType.NONE;
+		[SerializeField, Tooltip("이 스탯을 받으면 한 발이 양옆으로 갈라짐 (알리사 빛탄 3갈래). 값이 갈래 쌍 수")] private UnitStatType fanStatType = UnitStatType.NONE;
+		[SerializeField] private float fanDegrees = 15f;
 
 		// 스킬창 장비 칸의 대기 표시용. 다음 공격 시각과 그 주기 (EquipmentCooldowns)
 		private float readyTime;
@@ -183,6 +185,17 @@ namespace WitchMendokusai
 			SpawnOne(position, direction, index, count);
 			if (spawnOpposite && direction != Vector3.zero)
 				SpawnOne(position, -direction, index, count);
+			SpawnFan(position, direction, index, count);
+		}
+
+		private void SpawnFan(Vector3 position, Vector3 direction, int index, int count)
+		{
+			int pairs = fanStatType != UnitStatType.NONE && direction != Vector3.zero ? PlayerStat[fanStatType] : 0;
+			for (int pair = 1; pair <= pairs; pair++)
+			{
+				SpawnOne(position, Quaternion.Euler(0f, fanDegrees * pair, 0f) * direction, index, count);
+				SpawnOne(position, Quaternion.Euler(0f, -fanDegrees * pair, 0f) * direction, index, count);
+			}
 		}
 
 		private void SpawnOne(Vector3 position, Vector3 direction, int index, int count)

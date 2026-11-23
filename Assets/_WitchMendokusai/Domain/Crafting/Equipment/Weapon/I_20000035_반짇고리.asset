@@ -31,5 +31,6 @@ MonoBehaviour:
   - 13001
   - 13011
   <Mend>k__BackingField: {fileID: 11400000, guid: f6b2aee574f2425187de41310935a804, type: 2}
+  <LevelGrowth>k__BackingField: {fileID: 11400000, guid: f0364487a47a40679f5bd7d2c0efbdc6, type: 2}
   <UIKind>k__BackingField: 1
   <ActCostScale>k__BackingField: 1
