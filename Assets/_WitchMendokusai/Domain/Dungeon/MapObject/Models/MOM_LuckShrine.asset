@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53a1005ea6244d00941b249308519e14, type: 3}
+  m_Name: MOM_LuckShrine
+  m_EditorClassIdentifier: 
+  <Parts>k__BackingField:
+  - <Shape>k__BackingField: 0
+    <Surface>k__BackingField: 0
+    <Color>k__BackingField: {r: 0.92, g: 0.88, b: 0.8, a: 1}
+    <Position>k__BackingField: {x: 0, y: 0, z: 0}
+    <Rotation>k__BackingField: {x: 0, y: 0, z: 0}
+    <Size>k__BackingField: {x: 1.2, y: 0.4, z: 1.2}
+    <Sides>k__BackingField: 6
+    <TopScale>k__BackingField: 1
+    <RadialCount>k__BackingField: 1
+    <RadialRadius>k__BackingField: 0
+    <RadialStartAngle>k__BackingField: 0
+    <SpinSpeed>k__BackingField: 0
+    <BobHeight>k__BackingField: 0
+    <BobPeriod>k__BackingField: 2
+    <Solid>k__BackingField: 1
+  - <Shape>k__BackingField: 0
+    <Surface>k__BackingField: 0
+    <Color>k__BackingField: {r: 0.92, g: 0.88, b: 0.8, a: 1}
+    <Position>k__BackingField: {x: 0, y: 0.4, z: 0}
+    <Rotation>k__BackingField: {x: 0, y: 25, z: 0}
+    <Size>k__BackingField: {x: 0.9, y: 0.4, z: 0.9}
+    <Sides>k__BackingField: 6
+    <TopScale>k__BackingField: 1
+    <RadialCount>k__BackingField: 1
+    <RadialRadius>k__BackingField: 0
+    <RadialStartAngle>k__BackingField: 0
+    <SpinSpeed>k__BackingField: 0
+    <BobHeight>k__BackingField: 0
+    <BobPeriod>k__BackingField: 2
+    <Solid>k__BackingField: 1
+  - <Shape>k__BackingField: 0
+    <Surface>k__BackingField: 0
+    <Color>k__BackingField: {r: 0.92, g: 0.88, b: 0.8, a: 1}
+    <Position>k__BackingField: {x: 0, y: 0.8, z: 0}
+    <Rotation>k__BackingField: {x: 0, y: 50, z: 0}
+    <Size>k__BackingField: {x: 0.6, y: 0.3, z: 0.6}
+    <Sides>k__BackingField: 6
+    <TopScale>k__BackingField: 1
+    <RadialCount>k__BackingField: 1
+    <RadialRadius>k__BackingField: 0
+    <RadialStartAngle>k__BackingField: 0
+    <SpinSpeed>k__BackingField: 0
+    <BobHeight>k__BackingField: 0
+    <BobPeriod>k__BackingField: 2
+    <Solid>k__BackingField: 0
+  - <Shape>k__BackingField: 0
+    <Surface>k__BackingField: 1
+    <Color>k__BackingField: {r: 1, g: 0.82, b: 0.25, a: 1}
+    <Position>k__BackingField: {x: 0, y: 1.45, z: 0}
+    <Rotation>k__BackingField: {x: 35, y: 0, z: 45}
+    <Size>k__BackingField: {x: 0.42, y: 0.42, z: 0.42}
+    <Sides>k__BackingField: 6
+    <TopScale>k__BackingField: 1
+    <RadialCount>k__BackingField: 1
+    <RadialRadius>k__BackingField: 0
+    <RadialStartAngle>k__BackingField: 0
+    <SpinSpeed>k__BackingField: 45
+    <BobHeight>k__BackingField: 0.1
+    <BobPeriod>k__BackingField: 2.4
+    <Solid>k__BackingField: 0
+  - <Shape>k__BackingField: 2
+    <Surface>k__BackingField: 1
+    <Color>k__BackingField: {r: 0.45, g: 1, b: 0.45, a: 1}
+    <Position>k__BackingField: {x: 0, y: 0.4, z: 0}
+    <Rotation>k__BackingField: {x: 0, y: 0, z: 0}
+    <Size>k__BackingField: {x: 0.18, y: 0.42, z: 0.18}
+    <Sides>k__BackingField: 4
+    <TopScale>k__BackingField: 1
+    <RadialCount>k__BackingField: 2
+    <RadialRadius>k__BackingField: 0.85
+    <RadialStartAngle>k__BackingField: 45
+    <SpinSpeed>k__BackingField: 0
+    <BobHeight>k__BackingField: 0.05
+    <BobPeriod>k__BackingField: 1.8
+    <Solid>k__BackingField: 0
