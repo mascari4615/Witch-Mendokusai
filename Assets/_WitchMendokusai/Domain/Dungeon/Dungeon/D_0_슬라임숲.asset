@@ -96,6 +96,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: d3b4b260c0d5fcd478b6ccbf48fc8d43, type: 2}
     - {fileID: 11400000, guid: ab24c2555a737204a9520c2fcf5da203, type: 2}
     - {fileID: 11400000, guid: ab005c86dd7da954680b3ab4602b255b, type: 2}
+    - {fileID: 11400000, guid: 3a798427415847758aa2714e6d47837d, type: 2}
     <StartTime>k__BackingField: 180
     <EndTime>k__BackingField: 240
     <SpawnDelay>k__BackingField: 0.15
