@@ -39,21 +39,25 @@ namespace WitchMendokusai
 		[SerializeField] private Transform itemParent;
 		[SerializeField] private UIMiniCard entryTemplate;
 		[SerializeField] private Button retryButton;
+		[SerializeField, Tooltip("마도서 페이지 진행 줄을 강화 수 글보다 왼쪽으로 넓히는 폭. 재료가 둘인 페이지가 한 줄에 들어가게")] private float pageLineExtraWidth = 290f;
 
 		[SerializeField] private string battleHudObjectName = "[Block] Lower";
 
 		private readonly List<UIMiniCard> entries = new();
 		private CanvasGroup battleHudGroup;
+		private TextMeshProUGUI pageText;
 		private Vector2 cardArea;
 		private Vector2 itemArea;
 
 		private DungeonManager dungeonManager;
 		private SOManager soManager;
 		private TimeManager timeManager;
+		private QuestManager questManager;
 
 		[Inject]
-		public void Construct(DungeonManager dungeonManager, SOManager soManager, TimeManager timeManager)
+		public void Construct(DungeonManager dungeonManager, SOManager soManager, TimeManager timeManager, QuestManager questManager)
 		{
+			this.questManager = questManager;
 			this.dungeonManager = dungeonManager;
 			this.soManager = soManager;
 			this.timeManager = timeManager;
@@ -100,6 +104,7 @@ namespace WitchMendokusai
 		protected override void OnInit()
 		{
 			BuildBackdrop();
+			BuildPageLine();
 			retryButton.onClick.AddListener(Retry);
 			entryTemplate.gameObject.SetActive(false);
 			cardArea = ((RectTransform)cardParent).rect.size;
@@ -169,6 +174,28 @@ namespace WitchMendokusai
 				entries.Add(entry);
 			}
 			FitGrid(itemParent, itemArea, entries.Count - cardEntryCount);
+			pageText.text = PageLine(questManager.CurrentMagicBookPage);
+		}
+
+		// 마도서 페이지 진행 한 줄. 아이템 칸 제목 줄의 오른쪽, 카드 칸의 강화 수 글과 같은 자리 관계.
+		// 프리팹에 칸을 더하지 않고 강화 수 글을 복제해 글꼴과 색을 따름
+		private void BuildPageLine()
+		{
+			pageText = Instantiate(cardCountText, cardCountText.transform.parent);
+			pageText.name = "[Text] MagicBookPage";
+			RectTransform rect = pageText.rectTransform;
+			Vector2 sectionOffset = ((RectTransform)itemParent).anchoredPosition - ((RectTransform)cardParent).anchoredPosition;
+			rect.anchoredPosition = cardCountText.rectTransform.anchoredPosition + sectionOffset - new Vector2(pageLineExtraWidth, 0f);
+			rect.sizeDelta += new Vector2(pageLineExtraWidth, 0f);
+			pageText.text = string.Empty;
+		}
+
+		// 페이지 이름 뒤에 재료마다 모은 수 / 필요 수. 수는 인벤토리 총량 (마도서 화면과 같은 값). 열린 페이지가 없으면 빈 줄
+		private static string PageLine(RuntimeQuest page)
+		{
+			if (page == null)
+				return string.Empty;
+			return $"{page.Name}  {string.Join(", ", page.Criteria.Select(CriteriaText.LineOf))}";
 		}
 
 		// 넘친 줄의 겹침 방지. 묶음 전체를 줄여 제 영역 안에 배치

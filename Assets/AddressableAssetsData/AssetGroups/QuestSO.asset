@@ -159,6 +159,24 @@ MonoBehaviour:
     m_SerializedLabels:
     - QuestSO
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 60948fad2b1341f58bc74694bb699036
+    m_Address: QuestSO/7000
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e71d5175967341a882107ae155844c03
+    m_Address: QuestSO/7001
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1418783e1fbf4d96a88a65536032f4b4
+    m_Address: QuestSO/7002
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - QuestSO
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 5a4d7636943b8d645af161ef05df63d6, type: 2}
   m_SchemaSet:

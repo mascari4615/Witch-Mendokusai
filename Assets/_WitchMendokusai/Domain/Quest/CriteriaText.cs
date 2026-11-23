@@ -19,6 +19,14 @@ namespace WitchMendokusai
 			_ => "조건",
 		};
 
+		// 조건 한 줄. 이름과 진행 값 (예: 이름  3 / 20). 마도서 상세와 결과창이 같은 줄을 씀
+		public static string LineOf(RuntimeCriteria criteria)
+		{
+			string name = NameOf(criteria.Criteria);
+			string progress = ProgressOf(criteria);
+			return string.IsNullOrEmpty(progress) ? name : $"{name}  {progress}";
+		}
+
 		// 누적 기록은 목표를 넘어 쌓이므로 표시는 목표에서 멈춤. 목표 값이 없는 조건 (대화 등) 은 진행률
 		public static string ProgressOf(RuntimeCriteria criteria)
 		{

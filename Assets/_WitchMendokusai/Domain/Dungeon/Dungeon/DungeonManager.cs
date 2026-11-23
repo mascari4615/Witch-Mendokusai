@@ -392,7 +392,7 @@ namespace WitchMendokusai
 				StartCoroutine(VacuumDropsAfter(feel.ClearVacuumDelay));
 		}
 
-		// 남은 보상을 잃지 않고 한꺼번에. 보물 상자와 아이템은 효과가 있어서 빼고 보석과 냥만
+		// 남은 보상을 잃지 않고 한꺼번에. 보석, 냥, 재료 아이템. 보물 상자는 여는 효과 (카드 고르기) 가 있어서 뺌. 보스가 떨군 마도서 재료를 판이 끝나며 잃지 않게 아이템도 포함
 		private IEnumerator VacuumDropsAfter(float delay)
 		{
 			yield return new WaitForSecondsRealtime(delay);
@@ -401,7 +401,7 @@ namespace WitchMendokusai
 			{
 				if (drop == null || drop.activeInHierarchy == false || drop.TryGetComponent(out LootObject loot) == false)
 					continue;
-				if (loot is ExpObject || loot is NyangObject)
+				if (loot is ExpObject || loot is NyangObject || loot is ItemObject)
 				{
 					loot.Equip();
 					pulled = true;

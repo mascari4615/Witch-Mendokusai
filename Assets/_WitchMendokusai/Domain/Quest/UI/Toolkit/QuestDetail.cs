@@ -100,7 +100,7 @@ namespace WitchMendokusai
 			{
 				foreach (RuntimeCriteria criteria in quest.Criteria)
 				{
-					Label label = new(BuildCriteriaText(criteria));
+					Label label = new(CriteriaText.LineOf(criteria));
 					label.AddToClassList(USS_CRITERION);
 					label.EnableInClassList(USS_CRITERION_DONE, criteria.IsCompleted);
 					criteriaContainer.Add(label);
@@ -131,16 +131,10 @@ namespace WitchMendokusai
 			QuestType.VillageRequest => "마을의뢰",
 			QuestType.Achievement => "업적",
 			QuestType.Research => "연구",
+			QuestType.MagicBookPage => "마도서",
 			QuestType.Dungeon => "던전",
 			_ => type.ToString(),
 		};
-
-		private static string BuildCriteriaText(RuntimeCriteria criteria)
-		{
-			string name = CriteriaText.NameOf(criteria.Criteria);
-			string progress = CriteriaText.ProgressOf(criteria);
-			return string.IsNullOrEmpty(progress) ? name : $"{name}  {progress}";
-		}
 
 		private void OnWorkClicked()
 		{

@@ -62,6 +62,8 @@ namespace WitchMendokusai
 			questGrid = GetComponentInChildren<UIQuestGrid>(true);
 			questGrid.Init();
 			questGrid.SetFilter(QuestType.Dungeon);
+			// 판의 목표 (보스) 아래에 지금 채우는 마도서 페이지의 재료 목표. 승리 조건은 아니고 표시만
+			questGrid.SetAlsoShow(quest => quest.Type == QuestType.MagicBookPage);
 		}
 
 		protected override void OnOpen()

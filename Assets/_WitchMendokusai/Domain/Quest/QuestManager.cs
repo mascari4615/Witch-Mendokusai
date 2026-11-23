@@ -8,6 +8,9 @@ namespace WitchMendokusai
 {
 	public class QuestManager : IQuestManager, IDisposable
 	{
+		// 마도서 첫 페이지의 퀘스트 번호. 다음 페이지는 앞 페이지의 완료 효과 (UnlockQuest, AddQuest) 가 엶
+		public const int FIRST_MAGIC_BOOK_PAGE_ID = 7000;
+
 		public QuestBuffer Quests => soManager.QuestBuffer;
 
 		private Dictionary<int, QuestState> questStates = new();
@@ -153,6 +156,20 @@ namespace WitchMendokusai
 		public RuntimeQuest GetQuest(Guid? guid)
 		{
 			return Quests.Data.Find(x => x.Guid == guid);
+		}
+
+		// 지금 채우는 마도서 페이지. 페이지는 한 번에 하나만 열림. 다 채웠거나 아직 시작 전이면 null
+		public RuntimeQuest CurrentMagicBookPage => Quests.Data.Find(x => x.Type == QuestType.MagicBookPage);
+
+		// 마도서 첫 페이지를 실행 중 퀘스트로. 잠겨 있을 때만 (새 게임, 페이지가 생기기 전의 세이브). 이미 열었거나 마친 세이브는 그대로
+		public void StartMagicBook(QuestSO firstPage)
+		{
+			if (GetQuestState(firstPage.ID) != QuestState.Locked)
+			{
+				return;
+			}
+			UnlockQuest(firstPage);
+			AddQuest(RuntimeQuestFactory.FromQuestSO(firstPage, CreateCriteriaContext()));
 		}
 
 		public void UnlockQuest(QuestSO questData)

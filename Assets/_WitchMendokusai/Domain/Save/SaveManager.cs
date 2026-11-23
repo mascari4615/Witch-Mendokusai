@@ -119,6 +119,8 @@ namespace WitchMendokusai
 			// 초기 퀘스트 추가 — 정사 챕터 첫 노드만. prototype 챕터 (Q_6000+) 는 별도 trigger (dev menu / NPC / 챕터 진입 이벤트) 로 unlock.
 			DataManager.QuestManager.Init(new());
 			DataManager.QuestManager.UnlockQuest(GetQuestSO(5000));
+			// 마도서 첫 페이지는 열기만 하지 않고 실행 중 퀘스트로 넣음. 판 HUD 와 결과창이 이 퀘스트를 읽음
+			DataManager.QuestManager.StartMagicBook(GetQuestSO(QuestManager.FIRST_MAGIC_BOOK_PAGE_ID));
 
 			// 던전 초기화
 			ForEach<Dungeon>(dungeon => { dungeon.Init(); });
@@ -271,6 +273,8 @@ namespace WitchMendokusai
 				Debug.Log($"[SaveManager] 중복 모드 퀘스트 정리: {saveData.runtimeQuests.Count} -> {savedQuests.Count}");
 			}
 			DataManager.QuestManager.Init(savedQuests.ConvertAll((RuntimeQuestSaveData questSaveData) => RuntimeQuestFactory.FromSaveData(questSaveData, criteriaContext)));
+			// 마도서 페이지가 생기기 전에 시작한 세이브는 첫 페이지가 잠겨 있음. 불러올 때 한 번 열어 줌
+			DataManager.QuestManager.StartMagicBook(GetQuestSO(QuestManager.FIRST_MAGIC_BOOK_PAGE_ID));
 
 			// 업적 판정 시작. 조각과 통계가 다 들어온 뒤라 첫 판정이 맞음
 			achievementManager.Begin(DataManager.FeatureSave<AchievementSaveSlice>(), criteriaContext);

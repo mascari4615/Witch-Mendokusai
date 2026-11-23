@@ -11,6 +11,8 @@ namespace WitchMendokusai
 	{
 		[SerializeField] private Transform filtersParent;
 		private QuestType curFilter = QuestType.None;
+		// 거름 (curFilter) 에 안 맞아도 같이 보일 퀘스트의 조건. 없으면 거름만
+		private Predicate<RuntimeQuest> alsoShow;
 
 		private UIQuestToolTip questToolTip;
 
@@ -60,6 +62,11 @@ namespace WitchMendokusai
 			foreach (RuntimeQuest candidate in Data)
 				if (curFilter == QuestType.None || candidate.Type == curFilter)
 					filteredQuests.Add(candidate);
+			// 거름 밖이지만 같이 보일 퀘스트는 뒤에. 판 HUD 에서 보스 목표 아래 마도서 페이지
+			if (alsoShow != null && curFilter != QuestType.None)
+				foreach (RuntimeQuest candidate in Data)
+					if (candidate.Type != curFilter && alsoShow(candidate))
+						filteredQuests.Add(candidate);
 
 			if (CurSlotIndex >= filteredQuests.Count)
 				CurSlotIndex = filteredQuests.Count - 1;
@@ -109,6 +116,12 @@ namespace WitchMendokusai
 			}
 
 			UpdateNoElementInfo();
+		}
+
+		public void SetAlsoShow(Predicate<RuntimeQuest> predicate)
+		{
+			alsoShow = predicate;
+			UpdateUI();
 		}
 
 		public void SetFilter(QuestType filter)

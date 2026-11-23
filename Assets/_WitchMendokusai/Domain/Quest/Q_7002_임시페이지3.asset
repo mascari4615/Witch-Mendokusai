@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57bcccf40b075204a842ff5fb93c7f74, type: 3}
+  m_Name: "Q_7002_\uC784\uC2DC\uD398\uC774\uC9C03"
+  m_EditorClassIdentifier: 
+  <ID>k__BackingField: 7002
+  <Name>k__BackingField: "\uC784\uC2DC \uD398\uC774\uC9C0 3"
+  <Description>k__BackingField: 
+  <Sprite>k__BackingField: {fileID: 0}
+  <Sprites>k__BackingField: []
+  <Data>k__BackingField:
+    Type: 51
+    UnlockEffects: []
+    GameEvents: 04000000
+    Criteria:
+    - Type: 0
+      Data: {fileID: 11400000, guid: fa1e42f560679c74eb12d34c2b39de1f, type: 2}
+      ComparisonOperator: 4
+      Value: 20
+      JustOnce: 0
+    - Type: 0
+      Data: {fileID: 11400000, guid: a20ab7c98307d814f86c2538869bd7d3, type: 2}
+      ComparisonOperator: 4
+      Value: 1
+      JustOnce: 0
+    CompleteEffects:
+    - Type: 201
+      Data: {fileID: 11400000, guid: fa1e42f560679c74eb12d34c2b39de1f, type: 2}
+      ArithmeticOperator: 2
+      Value: 20
+    - Type: 201
+      Data: {fileID: 11400000, guid: a20ab7c98307d814f86c2538869bd7d3, type: 2}
+      ArithmeticOperator: 2
+      Value: 1
+    RewardEffects: []
+    Rewards: []
+    WorkTime: 0
+    AutoWork: 0
+    AutoComplete: 0
