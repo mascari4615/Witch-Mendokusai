@@ -10,13 +10,13 @@ namespace WitchMendokusai
 	{
 		public enum RebindCheck
 		{
-			Ok,
+			Ok = 0,
 			/// <summary> 이미 그 키 </summary>
-			Same,
+			Same = 1,
 			/// <summary> 예약 키 (ESC, F1, 이동) </summary>
-			Reserved,
+			Reserved = 2,
 			/// <summary> 다른 동작이 쓰는 키. 맞바꿀지 물어야 함 </summary>
-			Conflict,
+			Conflict = 3,
 		}
 
 		/// <summary> 바뀌었을 때 (안내 창, 전체 메뉴 글자 갱신용) </summary>
