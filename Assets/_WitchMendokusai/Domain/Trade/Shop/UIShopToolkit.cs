@@ -336,6 +336,8 @@ namespace WitchMendokusai
 
 			ShopCheckoutResult result = cart.Checkout(Wallet, new InventoryBag(soManager.ItemInventory));
 			Wallet = (int)result.Wallet;
+			// 거래가 끝난 자리에서 저장
+			dataManager.SaveManager.SaveData();
 			UiSfx.Play(UiSfxEvent.Purchase);
 			isCartFocused = false;
 			cartIndex = 0;

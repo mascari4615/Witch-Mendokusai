@@ -231,6 +231,8 @@ namespace WitchMendokusai
 			UpgradeData targetUpgrade = Get<UpgradeData>(upgradeID);
 			if (targetUpgrade.TryUpgrade(dataManager.GameStat, out UpgradeFailReason reason, out int upgradePrice))
 			{
+				// 강화가 바뀐 자리에서 저장
+				dataManager.SaveManager.SaveData();
 				UpdateUI();
 				uiManager.PopText($"- {upgradePrice}", TextType.Warning);
 				(upgradeGridUI.CurSlot as UIUpgradeSlot).PlayBuy();
@@ -257,6 +259,7 @@ namespace WitchMendokusai
 			UpgradeData targetUpgrade = Get<UpgradeData>(slotIndex);
 			if (targetUpgrade.TryDowngrade(dataManager.GameStat, out DowngradeFailReason reason, out int refundedNyang))
 			{
+				dataManager.SaveManager.SaveData();
 				UpdateUI();
 				uiManager.PopText($"+ {refundedNyang}", TextType.Warning);
 				return;
@@ -277,6 +280,7 @@ namespace WitchMendokusai
 			UpgradeData targetUpgrade = Get<UpgradeData>(slotIndex);
 			if (targetUpgrade.TryReset(dataManager.GameStat, out DowngradeFailReason reason, out int refundedNyang))
 			{
+				dataManager.SaveManager.SaveData();
 				UpdateUI();
 				uiManager.PopText($"+ {refundedNyang}", TextType.Warning);
 				return;
@@ -303,6 +307,7 @@ namespace WitchMendokusai
 
 			if (totalRefund > 0)
 			{
+				dataManager.SaveManager.SaveData();
 				UpdateUI();
 				uiManager.PopText($"+ {totalRefund}", TextType.Warning);
 			}

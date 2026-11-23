@@ -432,6 +432,8 @@ namespace WitchMendokusai
 				GrantRiskRewards();
 			DungeonRecord result = dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR], isCleared);
 			RecordRunResult(result);
+			// 판이 끝난 자리에서 저장. 결과창에서 꺼지거나 죽어도 이번 판 냥과 기록이 남음
+			dataManager.SaveManager.SaveData();
 
 			// 결과창을 가리지 않게 남은 승패 연출 (물들임, 띠, 카메라 당김) 을 걷음
 			StopFlowFx();
