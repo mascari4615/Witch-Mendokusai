@@ -473,6 +473,3770 @@ Transform:
   - {fileID: 7917010366418439355}
   m_Father: {fileID: 1029143050198218505}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3385984915527697464
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7653256716189743131}
+  - component: {fileID: 152806209727744463}
+  - component: {fileID: 7933642996080646141}
+  m_Layer: 0
+  m_Name: Forest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7653256716189743131
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3385984915527697464}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1029143050198218505}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &152806209727744463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3385984915527697464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00e802837fb042be8cf2dcbc1c4eb784, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.LabClearing
+  clearing:
+    serializedVersion: 2
+    x: -21.1
+    y: -22.4
+    width: 42.2
+    height: 48.8
+  hallFootprint:
+    serializedVersion: 2
+    x: -14.1
+    y: -4.4
+    width: 28.2
+    height: 23.8
+  cornerRadius: 17
+  wobbleAmount: 7
+  wobbleFrequency: 1.7
+  groundRenderer: {fileID: 1503573880424738669}
+  paintArea:
+    serializedVersion: 2
+    x: -80
+    y: -78
+    width: 160
+    height: 160
+  paintResolution: 512
+  forestFloorRange: {x: -1.5, y: 4}
+  forestFloorEarth: 0.75
+  pathPaintRange: {x: 0.7, y: 1.9}
+  pathWave: 1.2
+  pathWaveFrequency: 0.16
+  wornRange: {x: 0.2, y: 2.2}
+  wornEarth: 0.6
+  edgeNoiseScale: 0.3
+  edgeNoiseStrength: 2.2
+  patchScale: 0.09
+  patchRange: {x: 0.42, y: 0.62}
+  patchStrength: 0.85
+  noiseSeed: 41
+  wallHeight: 4
+  wallThickness: 1
+  wallOutset: 0.5
+--- !u!114 &7933642996080646141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3385984915527697464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 299b051c053e4e7c9a58bbe3274ea26d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.ForestScatter
+  treeTemplates:
+  - {fileID: 6763951534541960177, guid: 04564050f39ead34bacafb980a1c877b, type: 3}
+  - {fileID: 2993927382202138113, guid: 00be3835ab93ea64c8a000872e9dba6b, type: 3}
+  - {fileID: 7357052479096748062, guid: 43e7b546e43102047b8c8d44ad343fb9, type: 3}
+  - {fileID: 3938418474642097520, guid: e1c59bce75da3b149b0aa856128340de, type: 3}
+  - {fileID: 3991521269109639060, guid: bf8cae9b3188f8b4d8f327e84feda21d, type: 3}
+  - {fileID: 5493285148316628696, guid: 8900e6380ea8de148900d3119eafd8d2, type: 3}
+  - {fileID: 1670033125049862828, guid: bb2866388c11d2440bc53639713ce780, type: 3}
+  - {fileID: 1942483586514367004, guid: 1a8661ce6a782b547b657cda64bec82b, type: 3}
+  - {fileID: 4057206278788033927, guid: 29e70781efebc474bbd32fb0a60663dd, type: 3}
+  trees:
+  - Template: 5
+    Position: {x: 27.16446, y: 1.263642, z: 60.64041}
+    Yaw: 292.58
+    Scale: 1.2986313
+  - Template: 1
+    Position: {x: -54.55751, y: 0.47842282, z: -23.965363}
+    Yaw: 161.12862
+    Scale: 1.1761558
+  - Template: 5
+    Position: {x: -37.90638, y: 0.5012366, z: 44.17121}
+    Yaw: 95.44467
+    Scale: 1.007221
+  - Template: 2
+    Position: {x: 39.1688, y: 0.112884924, z: 34.911102}
+    Yaw: 293.6236
+    Scale: 1.4191878
+  - Template: 7
+    Position: {x: 23.49443, y: 0.26198986, z: -50.530025}
+    Yaw: 179.29776
+    Scale: 1.3353508
+  - Template: 0
+    Position: {x: 46.249893, y: -0.02445419, z: 12.02829}
+    Yaw: 341.30573
+    Scale: 1.1793177
+  - Template: 5
+    Position: {x: -39.312687, y: -0.05, z: 12.276245}
+    Yaw: 247.56012
+    Scale: 1.0295249
+  - Template: 1
+    Position: {x: 43.144073, y: -0.05, z: 3.2318497}
+    Yaw: 42.342426
+    Scale: 1.0298028
+  - Template: 7
+    Position: {x: -22.142738, y: -0.05, z: 18.043251}
+    Yaw: 50.925148
+    Scale: 0.9899888
+  - Template: 3
+    Position: {x: -9.335949, y: -0.05, z: -42.52047}
+    Yaw: 357.8447
+    Scale: 1.0122468
+  - Template: 4
+    Position: {x: -51.23311, y: 0.5701012, z: -32.61427}
+    Yaw: 148.1796
+    Scale: 1.2173314
+  - Template: 8
+    Position: {x: 49.23707, y: 0.26001257, z: 24.949112}
+    Yaw: 153.74814
+    Scale: 1.2307354
+  - Template: 8
+    Position: {x: -11.445568, y: 0.15240839, z: 51.322205}
+    Yaw: 147.52052
+    Scale: 1.1704772
+  - Template: 3
+    Position: {x: 43.536537, y: 0.13901055, z: -30.152447}
+    Yaw: 304.00595
+    Scale: 1.0566747
+  - Template: 4
+    Position: {x: -44.48894, y: -0.047613103, z: 11.1753845}
+    Yaw: 230.25093
+    Scale: 1.3757614
+  - Template: 8
+    Position: {x: 38.52823, y: 0.35755232, z: 42.01703}
+    Yaw: 258.34482
+    Scale: 1.448834
+  - Template: 2
+    Position: {x: 26.58319, y: 0.96988124, z: -58.79019}
+    Yaw: 167.53287
+    Scale: 1.2142322
+  - Template: 8
+    Position: {x: 10.444984, y: -0.05, z: 35.81433}
+    Yaw: 58.06672
+    Scale: 0.84110737
+  - Template: 3
+    Position: {x: -22.484947, y: -0.05, z: -37.048332}
+    Yaw: 12.3375635
+    Scale: 1.2486944
+  - Template: 7
+    Position: {x: -12.527847, y: 0.10435839, z: -50.569004}
+    Yaw: 31.452782
+    Scale: 1.1055607
+  - Template: 8
+    Position: {x: -28.558533, y: -0.05, z: 12.309441}
+    Yaw: 257.48712
+    Scale: 1.1298063
+  - Template: 4
+    Position: {x: -55.69823, y: 0.40104556, z: -17.495708}
+    Yaw: 174.90761
+    Scale: 1.0864563
+  - Template: 1
+    Position: {x: 41.675415, y: -0.05, z: 14.517807}
+    Yaw: 67.60329
+    Scale: 0.983138
+  - Template: 8
+    Position: {x: -58.379665, y: 0.42506173, z: -4.2483597}
+    Yaw: 78.091125
+    Scale: 1.325841
+  - Template: 8
+    Position: {x: -4.814171, y: -0.05, z: -31.945934}
+    Yaw: 0.59336317
+    Scale: 1.1155504
+  - Template: 0
+    Position: {x: 7.630417, y: -0.05, z: 35.34207}
+    Yaw: 255.25206
+    Scale: 0.91201454
+  - Template: 8
+    Position: {x: 14.419899, y: -0.05, z: -36.334324}
+    Yaw: 268.5943
+    Scale: 1.1843678
+  - Template: 5
+    Position: {x: 32.905624, y: -0.05, z: 24.431793}
+    Yaw: 192.617
+    Scale: 0.8964232
+  - Template: 1
+    Position: {x: 38.502975, y: 0.7567202, z: 48.6799}
+    Yaw: 205.16315
+    Scale: 1.2925196
+  - Template: 0
+    Position: {x: -36.349335, y: 0.15615343, z: -39.246567}
+    Yaw: 339.57526
+    Scale: 1.0649354
+  - Template: 5
+    Position: {x: -29.901619, y: -0.05, z: 3.2802505}
+    Yaw: 16.847263
+    Scale: 1.107546
+  - Template: 2
+    Position: {x: 19.594292, y: 0.32612735, z: -53.276024}
+    Yaw: 126.08645
+    Scale: 1.1744268
+  - Template: 6
+    Position: {x: 46.56669, y: 0.027160551, z: -17.973911}
+    Yaw: 280.85727
+    Scale: 1.1741886
+  - Template: 0
+    Position: {x: 39.94081, y: -0.05, z: 7.2888336}
+    Yaw: 117.635864
+    Scale: 1.132212
+  - Template: 2
+    Position: {x: -18.888771, y: 0.06250256, z: -47.418427}
+    Yaw: 237.18849
+    Scale: 1.2934006
+  - Template: 3
+    Position: {x: 3.2897491, y: -0.049738448, z: 45.156166}
+    Yaw: 40.184605
+    Scale: 1.0205289
+  - Template: 3
+    Position: {x: 31.555016, y: -0.05, z: 16.625534}
+    Yaw: 317.01614
+    Scale: 0.90853775
+  - Template: 0
+    Position: {x: 31.96521, y: -0.05, z: -13.140621}
+    Yaw: 81.96916
+    Scale: 0.9799242
+  - Template: 4
+    Position: {x: -34.101192, y: 0.07240228, z: 38.064003}
+    Yaw: 36.755066
+    Scale: 1.0641189
+  - Template: 0
+    Position: {x: -21.764526, y: 0.06400071, z: 45.80536}
+    Yaw: 129.325
+    Scale: 1.39125
+  - Template: 2
+    Position: {x: 2.9724426, y: -0.05, z: 35.84465}
+    Yaw: 288.80365
+    Scale: 1.0355289
+  - Template: 6
+    Position: {x: -14.0563965, y: 0.5842835, z: 56.808495}
+    Yaw: 184.99725
+    Scale: 1.1124284
+  - Template: 3
+    Position: {x: 55.777306, y: 0.5679573, z: -19.736675}
+    Yaw: 286.86014
+    Scale: 1.3803957
+  - Template: 4
+    Position: {x: -34.313858, y: -0.05, z: -9.355164}
+    Yaw: 122.55238
+    Scale: 1.0414408
+  - Template: 7
+    Position: {x: -38.4599, y: -0.04984108, z: -23.808891}
+    Yaw: 58.114655
+    Scale: 1.0751665
+  - Template: 7
+    Position: {x: -30.588774, y: 0.39769492, z: -48.468124}
+    Yaw: 125.26759
+    Scale: 1.4046361
+  - Template: 2
+    Position: {x: -14.008415, y: 0.5196937, z: -56.984966}
+    Yaw: 331.33633
+    Scale: 1.3071437
+  - Template: 2
+    Position: {x: 47.64573, y: -0.026390161, z: -0.7909775}
+    Yaw: 57.837498
+    Scale: 1.1120026
+  - Template: 7
+    Position: {x: -57.229744, y: 0.4343073, z: -13.765133}
+    Yaw: 8.670505
+    Scale: 1.3976767
+  - Template: 7
+    Position: {x: 37.45984, y: -0.05, z: 23.508476}
+    Yaw: 174.62685
+    Scale: 0.9692409
+  - Template: 3
+    Position: {x: -22.998154, y: 1.4085932, z: 61.735893}
+    Yaw: 199.19151
+    Scale: 1.3043067
+  - Template: 1
+    Position: {x: 2.3768768, y: -0.05, z: 41.097122}
+    Yaw: 242.72849
+    Scale: 1.2040564
+  - Template: 6
+    Position: {x: -27.690819, y: 0.6105947, z: 52.132416}
+    Yaw: 337.4124
+    Scale: 1.0479176
+  - Template: 6
+    Position: {x: 27.076653, y: -0.05, z: -15.806564}
+    Yaw: 174.57137
+    Scale: 1.2964425
+  - Template: 2
+    Position: {x: 5.0261154, y: -0.05, z: -29.208496}
+    Yaw: 150.43648
+    Scale: 1.2041222
+  - Template: 8
+    Position: {x: -48.211555, y: -0.0068875253, z: 7.424835}
+    Yaw: 337.5813
+    Scale: 1.387531
+  - Template: 1
+    Position: {x: 21.24823, y: 0.90382874, z: 59.250336}
+    Yaw: 106.701065
+    Scale: 1.3816926
+  - Template: 5
+    Position: {x: 51.302612, y: 1.2683777, z: 43.420036}
+    Yaw: 330.4085
+    Scale: 1.3014648
+  - Template: 2
+    Position: {x: 42.418793, y: 0.7339498, z: 45.039864}
+    Yaw: 158.53014
+    Scale: 1.2810364
+  - Template: 3
+    Position: {x: 6.216324, y: -0.05, z: 30.415161}
+    Yaw: 225.85193
+    Scale: 1.0600904
+  - Template: 3
+    Position: {x: -28.748974, y: -0.05, z: 28.305183}
+    Yaw: 187.12914
+    Scale: 1.2391727
+  - Template: 8
+    Position: {x: 52.51642, y: 0.35517693, z: 21.108978}
+    Yaw: 220.11772
+    Scale: 1.1041243
+  - Template: 2
+    Position: {x: 10.159645, y: 0.3677489, z: 55.48536}
+    Yaw: 49.360542
+    Scale: 1.450117
+  - Template: 3
+    Position: {x: -38.911922, y: 0.023488518, z: -31.542118}
+    Yaw: 313.83194
+    Scale: 1.3563021
+  - Template: 4
+    Position: {x: -30.822329, y: -0.05, z: 7.3879776}
+    Yaw: 352.91302
+    Scale: 1.1727949
+  - Template: 7
+    Position: {x: 1.8735619, y: 0.034007665, z: 49.92588}
+    Yaw: 227.55527
+    Scale: 1.1864185
+  - Template: 2
+    Position: {x: -34.43798, y: -0.05, z: 11.66272}
+    Yaw: 56.798283
+    Scale: 0.9845024
+  - Template: 2
+    Position: {x: -21.194561, y: -0.05, z: -1.1143379}
+    Yaw: 249.10222
+    Scale: 0.9578146
+  - Template: 6
+    Position: {x: 35.19198, y: -0.05, z: -18.13602}
+    Yaw: 116.58013
+    Scale: 0.94813776
+  - Template: 7
+    Position: {x: -12.968311, y: -0.05, z: -22.127636}
+    Yaw: 177.74655
+    Scale: 1.0427744
+  - Template: 5
+    Position: {x: 22.577171, y: 0.030163776, z: 44.766853}
+    Yaw: 199.47464
+    Scale: 1.297233
+  - Template: 5
+    Position: {x: -50.386185, y: 0.3269296, z: -26.917072}
+    Yaw: 234.44562
+    Scale: 1.1252813
+  - Template: 5
+    Position: {x: 47.7258, y: 0.36766583, z: 31.257843}
+    Yaw: 196.46321
+    Scale: 1.255398
+  - Template: 4
+    Position: {x: -23.694618, y: -0.029593823, z: -41.253036}
+    Yaw: 111.78703
+    Scale: 1.1997591
+  - Template: 6
+    Position: {x: 32.740234, y: -0.05, z: 20.722206}
+    Yaw: 290.06934
+    Scale: 1.1651889
+  - Template: 7
+    Position: {x: -30.139875, y: -0.05, z: 15.210693}
+    Yaw: 23.791304
+    Scale: 0.90980375
+  - Template: 6
+    Position: {x: 14.89933, y: -0.04507283, z: -43.854935}
+    Yaw: 359.7948
+    Scale: 1.3079532
+  - Template: 3
+    Position: {x: 5.400421, y: 1.1821439, z: 64.30623}
+    Yaw: 52.615086
+    Scale: 1.4700215
+  - Template: 7
+    Position: {x: -24.217129, y: -0.037447035, z: 40.15908}
+    Yaw: 325.40265
+    Scale: 1.1072323
+  - Template: 7
+    Position: {x: 34.122665, y: -0.05, z: -27.684658}
+    Yaw: 337.92453
+    Scale: 1.1403046
+  - Template: 6
+    Position: {x: 22.463013, y: -0.05, z: -31.946785}
+    Yaw: 102.67397
+    Scale: 1.1898998
+  - Template: 4
+    Position: {x: -53.210197, y: 0.1454703, z: 3.3169937}
+    Yaw: 114.08164
+    Scale: 1.4441209
+  - Template: 1
+    Position: {x: -24.28785, y: 0.32373914, z: 49.8366}
+    Yaw: 226.0881
+    Scale: 1.3912135
+  - Template: 3
+    Position: {x: 5.8612213, y: -0.05, z: 44.057022}
+    Yaw: 95.47398
+    Scale: 1.2918427
+  - Template: 5
+    Position: {x: 27.188034, y: -0.05, z: 0.92729187}
+    Yaw: 226.2852
+    Scale: 0.9981479
+  - Template: 2
+    Position: {x: 26.949387, y: -0.05, z: -32.863235}
+    Yaw: 297.39224
+    Scale: 1.2158105
+  - Template: 5
+    Position: {x: 50.920174, y: 0.39930946, z: -26.022026}
+    Yaw: 14.792137
+    Scale: 1.2424481
+  - Template: 0
+    Position: {x: -33.00527, y: -0.049297675, z: -31.2972}
+    Yaw: 343.99567
+    Scale: 1.0755384
+  - Template: 8
+    Position: {x: -49.441273, y: 0.046836365, z: 11.204163}
+    Yaw: 358.16925
+    Scale: 1.0269316
+  - Template: 7
+    Position: {x: 19.254814, y: -0.036946267, z: -43.04278}
+    Yaw: 344.86774
+    Scale: 1.0930902
+  - Template: 6
+    Position: {x: 36.163193, y: 0.10852383, z: 37.89647}
+    Yaw: 48.204834
+    Scale: 1.0719442
+  - Template: 2
+    Position: {x: 38.724457, y: -0.05, z: -3.292202}
+    Yaw: 12.190175
+    Scale: 1.1746967
+  - Template: 7
+    Position: {x: -4.147972, y: 0.63169724, z: -60.033245}
+    Yaw: 254.67236
+    Scale: 1.0514503
+  - Template: 5
+    Position: {x: -27.904026, y: -0.05, z: -33.680702}
+    Yaw: 277.70117
+    Scale: 1.0091981
+  - Template: 5
+    Position: {x: 27.59488, y: 0.21373771, z: -47.385376}
+    Yaw: 287.49982
+    Scale: 1.3107661
+  - Template: 5
+    Position: {x: -28.391705, y: -0.046664592, z: 36.17402}
+    Yaw: 153.79785
+    Scale: 1.2222908
+  - Template: 0
+    Position: {x: 43.16549, y: -0.038693167, z: 18.27275}
+    Yaw: 344.60233
+    Scale: 1.2935666
+  - Template: 1
+    Position: {x: 37.963463, y: 1.3146228, z: 55.57424}
+    Yaw: 281.6884
+    Scale: 1.0336637
+  - Template: 3
+    Position: {x: 8.353813, y: -0.05, z: -29.014332}
+    Yaw: 302.3429
+    Scale: 0.8974778
+  - Template: 4
+    Position: {x: -24.74841, y: 0.084864184, z: -45.338585}
+    Yaw: 341.74576
+    Scale: 1.4267645
+  - Template: 6
+    Position: {x: -44.140495, y: -0.05, z: 6.744629}
+    Yaw: 114.49029
+    Scale: 1.4241055
+  - Template: 4
+    Position: {x: -21.910583, y: 0.07586989, z: -46.501076}
+    Yaw: 288.23447
+    Scale: 1.177601
+  - Template: 3
+    Position: {x: -15.65918, y: -0.05, z: -21.916302}
+    Yaw: 69.56428
+    Scale: 1.2230281
+  - Template: 3
+    Position: {x: 8.362961, y: -0.05, z: -33.199287}
+    Yaw: 86.38944
+    Scale: 1.1223277
+  - Template: 7
+    Position: {x: -36.743114, y: 1.531386, z: 56.580116}
+    Yaw: 136.86621
+    Scale: 1.431138
+  - Template: 5
+    Position: {x: -33.193264, y: -0.05, z: -23.885574}
+    Yaw: 296.40448
+    Scale: 1.1032857
+  - Template: 0
+    Position: {x: -40.873154, y: 0.6360834, z: 43.807854}
+    Yaw: 165.9416
+    Scale: 1.4081681
+  - Template: 8
+    Position: {x: 40.20012, y: 0.024237614, z: -29.684319}
+    Yaw: 217.19342
+    Scale: 1.4634137
+  - Template: 7
+    Position: {x: -18.025078, y: -0.05, z: 37.60491}
+    Yaw: 261.0909
+    Scale: 0.8706697
+  - Template: 0
+    Position: {x: 54.358543, y: 0.2399415, z: -3.4700356}
+    Yaw: 253.57329
+    Scale: 1.1641688
+  - Template: 0
+    Position: {x: 9.534386, y: -0.008021094, z: -47.896355}
+    Yaw: 260.48117
+    Scale: 1.0211301
+  - Template: 1
+    Position: {x: -43.59078, y: 0.47623575, z: -39.80223}
+    Yaw: 339.73822
+    Scale: 1.3839557
+  - Template: 6
+    Position: {x: -15.346447, y: -0.05, z: -28.188217}
+    Yaw: 276.6263
+    Scale: 1.0109457
+  - Template: 4
+    Position: {x: 18.182426, y: -0.05, z: 36.39415}
+    Yaw: 358.92578
+    Scale: 1.0791373
+  - Template: 0
+    Position: {x: -40.490494, y: -0.05, z: -5.7610435}
+    Yaw: 301.20938
+    Scale: 1.4016318
+  - Template: 5
+    Position: {x: 25.10234, y: -0.05, z: 16.71965}
+    Yaw: 351.55637
+    Scale: 1.1086651
+  - Template: 2
+    Position: {x: 33.511436, y: -0.05, z: -20.874676}
+    Yaw: 210.52843
+    Scale: 1.2510341
+  - Template: 2
+    Position: {x: -47.286533, y: 0.018534448, z: 15.431427}
+    Yaw: 111.17654
+    Scale: 1.3204758
+  - Template: 1
+    Position: {x: 30.349953, y: -0.05, z: 28.048409}
+    Yaw: 173.5667
+    Scale: 1.2188672
+  - Template: 2
+    Position: {x: -34.40411, y: -0.05, z: 0.71661377}
+    Yaw: 243.18538
+    Scale: 0.94593805
+  - Template: 6
+    Position: {x: 59.496582, y: 0.784999, z: 16.5364}
+    Yaw: 66.1472
+    Scale: 1.0503426
+  - Template: 5
+    Position: {x: -23.693493, y: -0.05, z: -23.425453}
+    Yaw: 16.745731
+    Scale: 1.1717064
+  - Template: 4
+    Position: {x: 36.98934, y: -0.05, z: 12.896141}
+    Yaw: 60.709686
+    Scale: 1.0726404
+  - Template: 4
+    Position: {x: 44.261017, y: 0.24415027, z: 32.788795}
+    Yaw: 247.24854
+    Scale: 1.0941586
+  - Template: 1
+    Position: {x: 16.991035, y: 0.6167236, z: 57.304886}
+    Yaw: 240.86345
+    Scale: 1.295805
+  - Template: 5
+    Position: {x: -25.14233, y: -0.05, z: -15.1567955}
+    Yaw: 223.26506
+    Scale: 0.8140586
+  - Template: 7
+    Position: {x: -43.85103, y: 1.538658, z: 52.07086}
+    Yaw: 284.50262
+    Scale: 1.2885141
+  - Template: 6
+    Position: {x: -24.798962, y: -0.05, z: 29.269806}
+    Yaw: 254.20413
+    Scale: 1.0554734
+  - Template: 1
+    Position: {x: -10.16732, y: -0.05, z: -27.570282}
+    Yaw: 20.49329
+    Scale: 0.78618807
+  - Template: 7
+    Position: {x: -19.1324, y: -0.05, z: 33.17753}
+    Yaw: 169.79282
+    Scale: 1.0760927
+  - Template: 6
+    Position: {x: -47.28382, y: 1.3742089, z: 47.665382}
+    Yaw: 144.90767
+    Scale: 1.0050943
+  - Template: 8
+    Position: {x: 12.046036, y: -0.05, z: -39.73064}
+    Yaw: 282.5579
+    Scale: 0.9477067
+  - Template: 5
+    Position: {x: -36.780167, y: 0.014533479, z: 33.0718}
+    Yaw: 107.95807
+    Scale: 1.3725573
+  - Template: 4
+    Position: {x: 21.226715, y: -0.05, z: 36.037758}
+    Yaw: 15.924101
+    Scale: 1.0187631
+  - Template: 6
+    Position: {x: -31.887754, y: -0.05, z: 26.599533}
+    Yaw: 317.9087
+    Scale: 1.1954745
+  - Template: 3
+    Position: {x: 59.59478, y: 0.70582074, z: -10.959911}
+    Yaw: 304.48364
+    Scale: 1.1074678
+  - Template: 5
+    Position: {x: -3.2464104, y: -0.05, z: -24.258186}
+    Yaw: 206.30185
+    Scale: 0.9161312
+  - Template: 8
+    Position: {x: -14.022812, y: -0.05, z: 33.80443}
+    Yaw: 205.70274
+    Scale: 1.2196311
+  - Template: 0
+    Position: {x: 13.909676, y: 0.34847042, z: 54.52256}
+    Yaw: 302.76785
+    Scale: 1.2018616
+  - Template: 8
+    Position: {x: -24.26207, y: -0.05, z: 1.6035233}
+    Yaw: 352.36237
+    Scale: 0.89870644
+  - Template: 3
+    Position: {x: -20.099209, y: -0.05, z: 13.975525}
+    Yaw: 273.7388
+    Scale: 0.87603545
+  - Template: 7
+    Position: {x: -40.916656, y: -0.05, z: -8.754383}
+    Yaw: 349.128
+    Scale: 1.3351583
+  - Template: 0
+    Position: {x: -16.204342, y: -0.049999878, z: 41.987488}
+    Yaw: 101.3894
+    Scale: 1.0487467
+  - Template: 0
+    Position: {x: 30.557137, y: -0.05, z: -23.987297}
+    Yaw: 315.26834
+    Scale: 1.0351611
+  - Template: 0
+    Position: {x: 21.192947, y: -0.05, z: 33.168137}
+    Yaw: 67.322044
+    Scale: 1.2435924
+  - Template: 8
+    Position: {x: 47.687096, y: 0.44897404, z: -33.122993}
+    Yaw: 303.94623
+    Scale: 1.3994844
+  - Template: 6
+    Position: {x: 30.023819, y: -0.05, z: 31.542572}
+    Yaw: 285.11563
+    Scale: 1.2026432
+  - Template: 4
+    Position: {x: -35.533443, y: -0.05, z: -14.085873}
+    Yaw: 89.43515
+    Scale: 1.201321
+  - Template: 5
+    Position: {x: -34.088722, y: -0.05, z: -27.019058}
+    Yaw: 298.8191
+    Scale: 1.2220211
+  - Template: 2
+    Position: {x: -31.82172, y: 0.76417106, z: -52.84471}
+    Yaw: 288.00867
+    Scale: 1.0014571
+  - Template: 4
+    Position: {x: -30.686497, y: -0.05, z: -18.776443}
+    Yaw: 32.219852
+    Scale: 1.3212931
+  - Template: 2
+    Position: {x: 6.2666855, y: 0.15906098, z: -53.188816}
+    Yaw: 346.80884
+    Scale: 1.2834485
+  - Template: 7
+    Position: {x: 8.606926, y: 1.183671, z: 64.138214}
+    Yaw: 250.49393
+    Scale: 1.1985215
+  - Template: 6
+    Position: {x: -46.012653, y: 0.17978431, z: -28.805454}
+    Yaw: 88.386055
+    Scale: 1.2038482
+  - Template: 3
+    Position: {x: -30.599228, y: 0.3764214, z: 47.29062}
+    Yaw: 163.34006
+    Scale: 0.9727943
+  - Template: 6
+    Position: {x: 15.844948, y: 0.3932775, z: -55.507416}
+    Yaw: 292.74014
+    Scale: 1.3464553
+  - Template: 7
+    Position: {x: 13.623718, y: 0.6817267, z: 58.765266}
+    Yaw: 265.8221
+    Scale: 1.4284508
+  - Template: 3
+    Position: {x: -33.56221, y: 0.42741147, z: -47.0971}
+    Yaw: 328.10074
+    Scale: 1.1819298
+  - Template: 5
+    Position: {x: 39.75096, y: -0.05, z: 10.905258}
+    Yaw: 33.60277
+    Scale: 1.2245182
+  - Template: 7
+    Position: {x: -20.04287, y: -0.05, z: -39.983986}
+    Yaw: 157.51036
+    Scale: 1.2429581
+  - Template: 3
+    Position: {x: -53.518295, y: 0.5473323, z: -28.29477}
+    Yaw: 342.0318
+    Scale: 1.2653465
+  - Template: 2
+    Position: {x: 13.421051, y: -0.05, z: -28.129765}
+    Yaw: 231.428
+    Scale: 0.79735863
+  - Template: 6
+    Position: {x: -28.44252, y: -0.05, z: 21.147095}
+    Yaw: 73.966774
+    Scale: 0.88853896
+  - Template: 3
+    Position: {x: 2.848915, y: 0.18832058, z: 53.33686}
+    Yaw: 317.6609
+    Scale: 1.0982665
+  - Template: 0
+    Position: {x: -47.49328, y: 0.3860851, z: -33.220383}
+    Yaw: 135.70975
+    Scale: 1.3649304
+  - Template: 8
+    Position: {x: 33.833458, y: 0.28216672, z: 44.349075}
+    Yaw: 93.25236
+    Scale: 1.2575333
+  - Template: 6
+    Position: {x: 38.05053, y: 0.5128978, z: -45.46331}
+    Yaw: 168.05544
+    Scale: 1.2656729
+  - Template: 2
+    Position: {x: -9.204304, y: 0.13140173, z: -51.917416}
+    Yaw: 175.65083
+    Scale: 1.0914533
+  - Template: 7
+    Position: {x: -47.403526, y: 0.5562907, z: -37.302654}
+    Yaw: 228.01283
+    Scale: 1.4615009
+  - Template: 0
+    Position: {x: -41.454662, y: 0.22742476, z: 35.322792}
+    Yaw: 67.6293
+    Scale: 1.4509908
+  - Template: 4
+    Position: {x: 56.610435, y: 0.41893518, z: 8.326408}
+    Yaw: 336.68753
+    Scale: 1.1557376
+  - Template: 4
+    Position: {x: -26.254276, y: -0.05, z: -4.140106}
+    Yaw: 313.93832
+    Scale: 1.0559179
+  - Template: 1
+    Position: {x: -31.85274, y: -0.05, z: 23.751717}
+    Yaw: 274.13443
+    Scale: 0.8634634
+  - Template: 2
+    Position: {x: 35.13836, y: 0.1053285, z: -38.873657}
+    Yaw: 158.7492
+    Scale: 1.0102518
+  - Template: 2
+    Position: {x: -50.35414, y: 0.66520613, z: 34.16153}
+    Yaw: 16.013893
+    Scale: 1.396033
+  - Template: 8
+    Position: {x: 28.599808, y: -0.05, z: 5.3742294}
+    Yaw: 242.24251
+    Scale: 1.0989127
+  - Template: 4
+    Position: {x: 46.77317, y: 0.09492539, z: 22.41642}
+    Yaw: 157.92758
+    Scale: 1.3186259
+  - Template: 1
+    Position: {x: -3.9908104, y: 0.21350019, z: 53.578964}
+    Yaw: 198.17621
+    Scale: 1.2502545
+  - Template: 8
+    Position: {x: -36.575127, y: 0.21570514, z: 39.858566}
+    Yaw: 267.09256
+    Scale: 1.2346644
+  - Template: 8
+    Position: {x: -12.479908, y: 0.02836505, z: 48.108162}
+    Yaw: 15.631839
+    Scale: 1.4035621
+  - Template: 4
+    Position: {x: -23.746399, y: -0.05, z: 12.002327}
+    Yaw: 74.17134
+    Scale: 0.8630175
+  - Template: 1
+    Position: {x: 55.035706, y: 0.27540442, z: 1.4619522}
+    Yaw: 47.86198
+    Scale: 1.1285602
+  - Template: 1
+    Position: {x: 11.508598, y: -0.05, z: -33.53474}
+    Yaw: 328.22552
+    Scale: 1.2797353
+  - Template: 8
+    Position: {x: 50.818855, y: 0.17053737, z: 16.374207}
+    Yaw: 325.73642
+    Scale: 1.4844816
+  - Template: 4
+    Position: {x: -1.7568779, y: -0.039258625, z: 46.71955}
+    Yaw: 125.73654
+    Scale: 1.1275955
+  - Template: 8
+    Position: {x: -5.5557823, y: -0.05, z: -27.317253}
+    Yaw: 75.91344
+    Scale: 1.062741
+  - Template: 1
+    Position: {x: 42.81627, y: -0.05, z: -0.89850616}
+    Yaw: 51.149555
+    Scale: 1.0455933
+  - Template: 7
+    Position: {x: -7.8104706, y: 0.70294625, z: 59.290565}
+    Yaw: 343.2661
+    Scale: 1.4085715
+  - Template: 2
+    Position: {x: -39.272198, y: 0.28893697, z: 39.05487}
+    Yaw: 43.08327
+    Scale: 1.2026995
+  - Template: 4
+    Position: {x: 49.628777, y: 0.71481067, z: 36.534714}
+    Yaw: 52.697468
+    Scale: 1.2053213
+  - Template: 1
+    Position: {x: -33.62503, y: -0.05, z: 20.098114}
+    Yaw: 101.90038
+    Scale: 0.8796702
+  - Template: 3
+    Position: {x: -50.492496, y: 0.0477768, z: -6.400486}
+    Yaw: 340.75357
+    Scale: 1.2789382
+  - Template: 4
+    Position: {x: -0.6578522, y: -0.05, z: 35.761406}
+    Yaw: 74.4151
+    Scale: 0.86889154
+  - Template: 3
+    Position: {x: 27.575195, y: -0.05, z: -8.653122}
+    Yaw: 160.73772
+    Scale: 1.0114956
+  - Template: 5
+    Position: {x: -5.6177635, y: -0.04949544, z: -45.057198}
+    Yaw: 242.12471
+    Scale: 1.1359993
+  - Template: 5
+    Position: {x: -2.5227547, y: 0.60643226, z: 58.848602}
+    Yaw: 221.32404
+    Scale: 1.4725301
+  - Template: 8
+    Position: {x: 37.85952, y: 0.7800573, z: -49.663776}
+    Yaw: 174.00003
+    Scale: 1.0109131
+  - Template: 0
+    Position: {x: -32.75157, y: -0.031359896, z: -34.41127}
+    Yaw: 146.58253
+    Scale: 1.0867786
+  - Template: 6
+    Position: {x: -54.459633, y: 0.44549823, z: 20.893127}
+    Yaw: 221.0313
+    Scale: 1.2130594
+  - Template: 5
+    Position: {x: -35.75312, y: -0.05, z: -19.19336}
+    Yaw: 194.25636
+    Scale: 0.9044944
+  - Template: 2
+    Position: {x: 35.888657, y: -0.05, z: -10.688858}
+    Yaw: 26.09334
+    Scale: 1.2004253
+  - Template: 4
+    Position: {x: -2.7060204, y: -0.05, z: 32.36055}
+    Yaw: 246.09496
+    Scale: 0.9552817
+  - Template: 3
+    Position: {x: -42.25412, y: -0.05, z: -2.0264854}
+    Yaw: 267.05698
+    Scale: 1.165735
+  - Template: 8
+    Position: {x: 25.900566, y: 0.2827516, z: 49.253876}
+    Yaw: 249.9883
+    Scale: 1.4287688
+  - Template: 3
+    Position: {x: -30.017355, y: 0.014228065, z: 39.18441}
+    Yaw: 268.53256
+    Scale: 1.37564
+  - Template: 1
+    Position: {x: -45.679855, y: 0.16546755, z: 27.745811}
+    Yaw: 19.814528
+    Scale: 1.3913906
+  - Template: 0
+    Position: {x: -29.9642, y: 0.6060071, z: 50.894196}
+    Yaw: 265.06067
+    Scale: 1.4897226
+  - Template: 5
+    Position: {x: -15.137032, y: -0.05, z: -25.351547}
+    Yaw: 310.60767
+    Scale: 1.0246389
+  - Template: 5
+    Position: {x: 44.031593, y: -0.05, z: 6.5594177}
+    Yaw: 195.28793
+    Scale: 0.9430978
+  - Template: 6
+    Position: {x: -57.135418, y: 0.37027267, z: 5.9620132}
+    Yaw: 341.95578
+    Scale: 1.2148962
+  - Template: 6
+    Position: {x: 45.12374, y: 1.4057401, z: 51.235764}
+    Yaw: 139.83284
+    Scale: 1.3347235
+  - Template: 5
+    Position: {x: 35.53514, y: -0.028143825, z: 31.80194}
+    Yaw: 2.740129
+    Scale: 1.1568575
+  - Template: 5
+    Position: {x: 37.823074, y: 0.31393552, z: -41.84671}
+    Yaw: 334.31873
+    Scale: 1.1161482
+  - Template: 2
+    Position: {x: -43.881554, y: 0.15664336, z: 30.114067}
+    Yaw: 89.98028
+    Scale: 1.16772
+  - Template: 0
+    Position: {x: 18.469604, y: -0.05, z: -26.507774}
+    Yaw: 328.5125
+    Scale: 1.0048658
+  - Template: 3
+    Position: {x: -22.345459, y: -0.05, z: -10.756237}
+    Yaw: 15.238525
+    Scale: 0.7994448
+  - Template: 3
+    Position: {x: 43.980736, y: 0.33460042, z: 35.658737}
+    Yaw: 36.447075
+    Scale: 1.0996704
+  - Template: 7
+    Position: {x: -30.99534, y: 0.18851057, z: 43.557564}
+    Yaw: 241.43622
+    Scale: 1.1494726
+  - Template: 1
+    Position: {x: 53.20214, y: 0.2741323, z: 14.691666}
+    Yaw: 326.4614
+    Scale: 1.1826282
+  - Template: 0
+    Position: {x: 21.569077, y: -0.05, z: -20.826233}
+    Yaw: 84.14068
+    Scale: 1.1453449
+  - Template: 4
+    Position: {x: -8.832897, y: -0.05, z: -33.190758}
+    Yaw: 275.3389
+    Scale: 1.2100435
+  - Template: 0
+    Position: {x: -27.691746, y: -0.05, z: -6.7294464}
+    Yaw: 133.16083
+    Scale: 0.82553744
+  - Template: 6
+    Position: {x: 44.602448, y: -0.04773386, z: -10.51302}
+    Yaw: 254.24252
+    Scale: 1.0168629
+  - Template: 3
+    Position: {x: 24.260132, y: -0.05, z: 12.205299}
+    Yaw: 54.423813
+    Scale: 0.7767195
+  - Template: 5
+    Position: {x: 46.408615, y: 1.1008784, z: 46.425316}
+    Yaw: 255.28857
+    Scale: 1.2680135
+  - Template: 0
+    Position: {x: 9.102089, y: -0.008970495, z: 47.666435}
+    Yaw: 22.885698
+    Scale: 1.2531713
+  - Template: 3
+    Position: {x: -22.10957, y: -0.05, z: -7.3550987}
+    Yaw: 356.39645
+    Scale: 0.99463576
+  - Template: 1
+    Position: {x: -27.080326, y: -0.05, z: -23.572495}
+    Yaw: 173.58185
+    Scale: 1.2767656
+  - Template: 3
+    Position: {x: -30.101162, y: 0.9763277, z: 54.957855}
+    Yaw: 22.289589
+    Scale: 1.0292039
+  - Template: 8
+    Position: {x: -55.024155, y: 0.40333456, z: 17.54795}
+    Yaw: 305.1646
+    Scale: 1.0813513
+  - Template: 6
+    Position: {x: 27.85807, y: -0.032683853, z: 38.34079}
+    Yaw: 205.8917
+    Scale: 0.93492687
+  - Template: 4
+    Position: {x: -47.845158, y: 0.07103047, z: 18.60109}
+    Yaw: 301.06955
+    Scale: 1.1253821
+  - Template: 4
+    Position: {x: 41.51969, y: 0.65891534, z: -44.668266}
+    Yaw: 148.01605
+    Scale: 1.3863289
+  - Template: 4
+    Position: {x: 53.523865, y: 0.3491854, z: -17.429401}
+    Yaw: 305.10953
+    Scale: 1.3052549
+  - Template: 6
+    Position: {x: -43.45664, y: -0.045237355, z: -15.92868}
+    Yaw: 307.3174
+    Scale: 1.4373976
+  - Template: 6
+    Position: {x: 23.154549, y: -0.05, z: 21.317802}
+    Yaw: 121.82375
+    Scale: 1.0519859
+  - Template: 8
+    Position: {x: 6.270691, y: 0.6049367, z: -59.879017}
+    Yaw: 22.28973
+    Scale: 1.1372316
+  - Template: 4
+    Position: {x: -38.655663, y: -0.05, z: -15.643665}
+    Yaw: 188.63599
+    Scale: 1.2773502
+  - Template: 8
+    Position: {x: 29.61074, y: 0.3539787, z: -48.942364}
+    Yaw: 186.56094
+    Scale: 1.3745027
+  - Template: 8
+    Position: {x: -18.642506, y: -0.05, z: -19.25555}
+    Yaw: 96.65821
+    Scale: 0.9344441
+  - Template: 7
+    Position: {x: 31.058823, y: 1.2722056, z: 59.026306}
+    Yaw: 83.40122
+    Scale: 1.1484647
+  - Template: 3
+    Position: {x: 34.212112, y: 0.023608278, z: 36.44774}
+    Yaw: 158.64919
+    Scale: 0.983937
+  - Template: 3
+    Position: {x: 23.959946, y: -0.05, z: -25.307098}
+    Yaw: 129.69562
+    Scale: 1.2227505
+  - Template: 8
+    Position: {x: 21.336647, y: 0.3941153, z: 53.050156}
+    Yaw: 123.94984
+    Scale: 1.2042515
+  - Template: 5
+    Position: {x: -20.73756, y: 0.16396655, z: 48.593468}
+    Yaw: 72.92504
+    Scale: 1.2181251
+  - Template: 4
+    Position: {x: 5.223419, y: -0.05, z: -31.909424}
+    Yaw: 281.201
+    Scale: 1.0370823
+  - Template: 1
+    Position: {x: -52.457905, y: 0.37693912, z: 22.945679}
+    Yaw: 63.911762
+    Scale: 1.4277055
+  - Template: 7
+    Position: {x: 24.671051, y: -0.05, z: 26.830513}
+    Yaw: 140.09631
+    Scale: 1.2728709
+  - Template: 8
+    Position: {x: -13.176987, y: 0.29630497, z: -54.07155}
+    Yaw: 226.71915
+    Scale: 1.2096668
+  - Template: 3
+    Position: {x: -42.959747, y: -0.04221297, z: 17.969513}
+    Yaw: 245.82607
+    Scale: 1.3304911
+  - Template: 7
+    Position: {x: 14.183624, y: 0.061302114, z: 48.905617}
+    Yaw: 287.4149
+    Scale: 1.3054779
+  - Template: 8
+    Position: {x: -31.61009, y: -0.05, z: 0.7568588}
+    Yaw: 141.25153
+    Scale: 1.187063
+  - Template: 3
+    Position: {x: -24.096443, y: -0.05, z: -17.954716}
+    Yaw: 228.68546
+    Scale: 0.9491693
+  - Template: 0
+    Position: {x: 53.687935, y: 0.68708265, z: 29.22007}
+    Yaw: 199.18613
+    Scale: 1.1338937
+  - Template: 3
+    Position: {x: -51.944374, y: 0.09022072, z: -3.6989937}
+    Yaw: 21.90284
+    Scale: 1.0821726
+  - Template: 1
+    Position: {x: -27.491375, y: -0.05, z: 9.158012}
+    Yaw: 72.54306
+    Scale: 1.0668677
+  - Template: 8
+    Position: {x: 34.869713, y: 0.6392548, z: -49.969437}
+    Yaw: 169.69283
+    Scale: 1.4758184
+  - Template: 1
+    Position: {x: -40.15878, y: 0.91918415, z: 48.164154}
+    Yaw: 359.45078
+    Scale: 1.3577032
+  - Template: 0
+    Position: {x: -9.592232, y: 0.011624925, z: -48.54859}
+    Yaw: 298.51828
+    Scale: 1.2222791
+  - Template: 4
+    Position: {x: -10.6096115, y: 1.0915906, z: 62.397034}
+    Yaw: 326.89172
+    Scale: 1.3517833
+  - Template: 8
+    Position: {x: 0.06933594, y: 0.3284297, z: 55.562202}
+    Yaw: 66.15766
+    Scale: 1.0374773
+  - Template: 1
+    Position: {x: 28.851372, y: -0.05, z: 14.949455}
+    Yaw: 86.384056
+    Scale: 0.92212325
+  - Template: 8
+    Position: {x: -58.515194, y: 0.5605893, z: -16.35688}
+    Yaw: 324.8846
+    Scale: 1.3953986
+  - Template: 1
+    Position: {x: 6.0334167, y: -0.05, z: -40.577705}
+    Yaw: 250.75406
+    Scale: 1.0459151
+  - Template: 4
+    Position: {x: 58.622795, y: 0.53514963, z: 1.2440796}
+    Yaw: 142.2151
+    Scale: 1.2463033
+  - Template: 0
+    Position: {x: 24.158142, y: -0.05, z: -12.073566}
+    Yaw: 37.40404
+    Scale: 0.7666435
+  - Template: 0
+    Position: {x: 39.745262, y: -0.05, z: -7.8934593}
+    Yaw: 339.1717
+    Scale: 1.08871
+  - Template: 0
+    Position: {x: 49.509377, y: 0.14329343, z: -18.41359}
+    Yaw: 208.90413
+    Scale: 1.3817992
+  - Template: 8
+    Position: {x: -38.24514, y: -0.05, z: 2.4095001}
+    Yaw: 319.4729
+    Scale: 1.1768545
+  - Template: 6
+    Position: {x: 21.360039, y: -0.05, z: 25.150215}
+    Yaw: 27.085655
+    Scale: 0.9613926
+  - Template: 0
+    Position: {x: -35.16519, y: -0.05, z: 24.646187}
+    Yaw: 300.61105
+    Scale: 0.9110832
+  - Template: 6
+    Position: {x: 4.4524307, y: 0.075501695, z: 50.917847}
+    Yaw: 316.88226
+    Scale: 1.0919583
+  - Template: 5
+    Position: {x: 49.23513, y: 0.07442944, z: -14.088284}
+    Yaw: 164.40623
+    Scale: 1.2197291
+  - Template: 7
+    Position: {x: 6.012184, y: 0.010705046, z: 48.889717}
+    Yaw: 153.35191
+    Scale: 1.3911763
+  - Template: 4
+    Position: {x: -31.885563, y: -0.049620148, z: 32.227234}
+    Yaw: 343.50604
+    Scale: 1.1144496
+  - Template: 3
+    Position: {x: 35.116837, y: -0.05, z: 10.080803}
+    Yaw: 95.260056
+    Scale: 1.2905569
+  - Template: 1
+    Position: {x: 3.0621948, y: -0.05, z: 29.45855}
+    Yaw: 169.71176
+    Scale: 0.92851514
+  - Template: 0
+    Position: {x: 9.478569, y: -0.05, z: 42.364433}
+    Yaw: 262.11395
+    Scale: 1.0544598
+  - Template: 7
+    Position: {x: 33.66327, y: -0.05, z: -24.6288}
+    Yaw: 116.82392
+    Scale: 0.93209326
+  - Template: 3
+    Position: {x: -54.444843, y: 0.23274715, z: -9.896736}
+    Yaw: 63.039513
+    Scale: 1.2464805
+  - Template: 4
+    Position: {x: 27.11251, y: -0.05, z: -23.157078}
+    Yaw: 326.2928
+    Scale: 1.2108264
+  - Template: 1
+    Position: {x: -52.956497, y: 0.17238836, z: 9.534431}
+    Yaw: 296.7072
+    Scale: 1.2896786
+  - Template: 6
+    Position: {x: -58.80228, y: 0.60554653, z: 14.968063}
+    Yaw: 160.31396
+    Scale: 1.1898341
+  - Template: 1
+    Position: {x: -11.448601, y: -0.05, z: 31.857178}
+    Yaw: 25.170494
+    Scale: 0.97106934
+  - Template: 2
+    Position: {x: -22.993462, y: -0.05, z: 36.6688}
+    Yaw: 337.94678
+    Scale: 1.2263047
+  - Template: 4
+    Position: {x: 29.22651, y: 0.20083703, z: 45.746864}
+    Yaw: 350.1293
+    Scale: 1.3660975
+  - Template: 6
+    Position: {x: 40.382484, y: -0.03655149, z: -24.196495}
+    Yaw: 300.9721
+    Scale: 1.0372298
+  - Template: 4
+    Position: {x: 31.384758, y: 0.5379201, z: -50.843517}
+    Yaw: 29.636087
+    Scale: 1.390085
+  - Template: 7
+    Position: {x: -26.442425, y: 0.6636114, z: -54.32775}
+    Yaw: 274.81592
+    Scale: 1.2836125
+  - Template: 0
+    Position: {x: -20.12024, y: 0.46718335, z: -54.421776}
+    Yaw: 69.1606
+    Scale: 1.3768556
+  - Template: 0
+    Position: {x: 43.500687, y: 0.54538876, z: -40.63771}
+    Yaw: 48.285213
+    Scale: 1.0755019
+  - Template: 6
+    Position: {x: 11.364243, y: 0.83978754, z: -61.89624}
+    Yaw: 219.04883
+    Scale: 1.0872871
+  - Template: 5
+    Position: {x: 6.128639, y: 0.6629302, z: 59.475235}
+    Yaw: 118.7884
+    Scale: 1.4381468
+  - Template: 5
+    Position: {x: -20.625607, y: -0.05, z: -16.754356}
+    Yaw: 16.24568
+    Scale: 0.7718758
+  - Template: 2
+    Position: {x: 38.09768, y: 0.030719917, z: -32.743057}
+    Yaw: 345.62885
+    Scale: 1.4334905
+  - Template: 0
+    Position: {x: -28.575306, y: 0.050829615, z: 41.575226}
+    Yaw: 11.297834
+    Scale: 1.3441147
+  - Template: 7
+    Position: {x: 28.9365, y: -0.05, z: -21.091198}
+    Yaw: 203.6981
+    Scale: 0.9963795
+  - Template: 6
+    Position: {x: 35.96009, y: -0.05, z: 25.611252}
+    Yaw: 94.59206
+    Scale: 1.1870506
+  - Template: 5
+    Position: {x: 31.089813, y: -0.05, z: -29.864765}
+    Yaw: 115.27935
+    Scale: 0.9916974
+  - Template: 5
+    Position: {x: 18.916283, y: 0.11032498, z: -49.121895}
+    Yaw: 165.001
+    Scale: 1.3840935
+  - Template: 0
+    Position: {x: 38.163963, y: -0.05, z: -18.334576}
+    Yaw: 319.928
+    Scale: 1.1802899
+  - Template: 2
+    Position: {x: 2.276085, y: 0.612354, z: 59.06263}
+    Yaw: 280.14615
+    Scale: 1.3906586
+  - Template: 1
+    Position: {x: 47.245697, y: 0.1687891, z: -24.996914}
+    Yaw: 18.202866
+    Scale: 1.2287176
+  - Template: 6
+    Position: {x: 41.60775, y: -0.047996145, z: -19.116707}
+    Yaw: 262.0533
+    Scale: 1.2390703
+  - Template: 8
+    Position: {x: 22.33889, y: 0.88770384, z: -59.637287}
+    Yaw: 344.26456
+    Scale: 1.3633418
+  - Template: 0
+    Position: {x: -58.263004, y: 0.49707693, z: 10.847473}
+    Yaw: 39.648354
+    Scale: 1.3639097
+  - Template: 7
+    Position: {x: -46.396584, y: 0.45075387, z: 34.81022}
+    Yaw: 358.4086
+    Scale: 1.0544313
+  - Template: 3
+    Position: {x: 18.933823, y: -0.05, z: -36.34491}
+    Yaw: 353.19455
+    Scale: 1.0240972
+  - Template: 6
+    Position: {x: -35.51609, y: 0.23698665, z: -41.999474}
+    Yaw: 268.5292
+    Scale: 1.2838547
+  - Template: 8
+    Position: {x: 20.774818, y: 0.61581147, z: 56.215263}
+    Yaw: 300.99368
+    Scale: 1.3982215
+  - Template: 8
+    Position: {x: 41.76142, y: 0.0010941736, z: 25.78164}
+    Yaw: 164.67918
+    Scale: 1.1941763
+  - Template: 5
+    Position: {x: 11.278572, y: -0.05, z: 29.374}
+    Yaw: 357.01498
+    Scale: 1.1052507
+  - Template: 1
+    Position: {x: 6.399399, y: -0.05, z: 37.495163}
+    Yaw: 303.77704
+    Scale: 0.9397757
+  - Template: 3
+    Position: {x: 47.9983, y: 0.003431853, z: 10.0253525}
+    Yaw: 91.97358
+    Scale: 1.2128347
+  - Template: 6
+    Position: {x: 28.725273, y: -0.05, z: -1.657856}
+    Yaw: 58.511597
+    Scale: 1.1656529
+  - Template: 4
+    Position: {x: 52.818756, y: 0.9380776, z: 36.152046}
+    Yaw: 157.63354
+    Scale: 1.317457
+  - Template: 2
+    Position: {x: -11.062492, y: -0.05, z: -25.231373}
+    Yaw: 39.950188
+    Scale: 1.062756
+  - Template: 4
+    Position: {x: -37.74756, y: -0.025113026, z: 29.278175}
+    Yaw: 171.22447
+    Scale: 0.99502575
+  - Template: 1
+    Position: {x: 60.23806, y: 0.6865422, z: 4.756134}
+    Yaw: 211.3376
+    Scale: 1.3456686
+  - Template: 4
+    Position: {x: 28.927795, y: -0.05, z: 19.866096}
+    Yaw: 323.6573
+    Scale: 1.1834618
+  - Template: 0
+    Position: {x: 49.49762, y: 0.02283753, z: 4.379883}
+    Yaw: 84.61295
+    Scale: 1.3922669
+  - Template: 2
+    Position: {x: 51.631615, y: 0.13815276, z: 10.315521}
+    Yaw: 353.0002
+    Scale: 1.3305361
+  - Template: 4
+    Position: {x: -18.847916, y: -0.05, z: 24.039742}
+    Yaw: 109.641235
+    Scale: 0.80982107
+  - Template: 6
+    Position: {x: 54.61531, y: 0.5936283, z: 24.527771}
+    Yaw: 132.8136
+    Scale: 1.2470765
+  - Template: 4
+    Position: {x: -22.265846, y: 0.2202202, z: -49.642887}
+    Yaw: 169.11781
+    Scale: 1.0183777
+  - Template: 1
+    Position: {x: 56.337715, y: 1.0548052, z: 32.529045}
+    Yaw: 226.81602
+    Scale: 1.2390959
+  - Template: 0
+    Position: {x: -44.427696, y: -0.048702147, z: -10.555172}
+    Yaw: 292.64438
+    Scale: 1.0752542
+  - Template: 3
+    Position: {x: -3.577057, y: -0.05, z: 36.02951}
+    Yaw: 224.61198
+    Scale: 0.9862887
+  - Template: 3
+    Position: {x: -33.001816, y: 0.57875097, z: 48.763596}
+    Yaw: 16.235144
+    Scale: 1.2877485
+  - Template: 0
+    Position: {x: -42.59807, y: 0.11676903, z: -31.201054}
+    Yaw: 273.50272
+    Scale: 1.3378742
+  - Template: 7
+    Position: {x: 26.896011, y: -0.05, z: 29.433678}
+    Yaw: 67.85552
+    Scale: 0.9139955
+  - Template: 8
+    Position: {x: 44.688408, y: 0.54785246, z: 39.510612}
+    Yaw: 341.04657
+    Scale: 1.20831
+  - Template: 7
+    Position: {x: -32.33973, y: 0.07132727, z: -39.975258}
+    Yaw: 330.90125
+    Scale: 1.0601025
+  - Template: 5
+    Position: {x: 32.906815, y: -0.05, z: -4.0697517}
+    Yaw: 11.475209
+    Scale: 1.2290506
+  - Template: 6
+    Position: {x: -41.30218, y: -0.05, z: 14.222939}
+    Yaw: 75.01333
+    Scale: 1.3001875
+  - Template: 4
+    Position: {x: 25.65512, y: 0.08037345, z: -45.092224}
+    Yaw: 276.7606
+    Scale: 1.0097965
+  - Template: 4
+    Position: {x: 4.9044037, y: -0.05, z: 33.53047}
+    Yaw: 67.91453
+    Scale: 0.7799762
+  - Template: 1
+    Position: {x: -32.28311, y: 0.86149186, z: 52.60663}
+    Yaw: 142.00546
+    Scale: 1.2196388
+  - Template: 0
+    Position: {x: -10.60854, y: -0.05, z: 35.769875}
+    Yaw: 282.24146
+    Scale: 1.028866
+  - Template: 5
+    Position: {x: 53.6942, y: 0.29562983, z: -13.790913}
+    Yaw: 250.62572
+    Scale: 1.0265231
+  - Template: 5
+    Position: {x: -42.26671, y: -0.038808245, z: -20.505756}
+    Yaw: 175.78143
+    Scale: 1.1725016
+  - Template: 4
+    Position: {x: 21.691467, y: 0.053447533, z: -46.29524}
+    Yaw: 115.377
+    Scale: 1.2602375
+  - Template: 5
+    Position: {x: -3.6150513, y: 1.1774411, z: 64.02942}
+    Yaw: 320.10776
+    Scale: 1.4044473
+  - Template: 2
+    Position: {x: 44.875435, y: -0.048016153, z: 9.0019}
+    Yaw: 4.7447786
+    Scale: 1.2416831
+  - Template: 3
+    Position: {x: 18.527946, y: 0.6508287, z: -58.20458}
+    Yaw: 311.62466
+    Scale: 1.2996049
+  - Template: 6
+    Position: {x: -57.98327, y: 0.6141384, z: 18.051422}
+    Yaw: 345.52084
+    Scale: 1.3717294
+  - Template: 2
+    Position: {x: 53.05229, y: 0.17027846, z: 4.490776}
+    Yaw: 134.17781
+    Scale: 1.4409814
+  - Template: 0
+    Position: {x: 20.024063, y: 0.088816926, z: 47.703407}
+    Yaw: 111.98322
+    Scale: 1.3544767
+  - Template: 7
+    Position: {x: 16.75962, y: -0.05, z: -32.24315}
+    Yaw: 311.40933
+    Scale: 0.8683071
+  - Template: 3
+    Position: {x: 29.628036, y: -0.05, z: -17.654236}
+    Yaw: 119.9455
+    Scale: 0.9607415
+  - Template: 1
+    Position: {x: 9.778702, y: -0.05, z: -42.318466}
+    Yaw: 191.737
+    Scale: 1.1086863
+  - Template: 5
+    Position: {x: -30.274727, y: 1.5482883, z: 59.987328}
+    Yaw: 127.155205
+    Scale: 1.1660955
+  - Template: 5
+    Position: {x: -33.545944, y: 0.22400923, z: 42.50061}
+    Yaw: 269.7973
+    Scale: 1.0108757
+  - Template: 0
+    Position: {x: 25.048859, y: -0.05, z: -36.028393}
+    Yaw: 126.638145
+    Scale: 1.3371713
+  - Template: 3
+    Position: {x: -26.374443, y: 0.14631917, z: 45.483917}
+    Yaw: 330.09406
+    Scale: 1.0964279
+  - Template: 6
+    Position: {x: -49.627075, y: 0.016272668, z: 3.384674}
+    Yaw: 300.03143
+    Scale: 1.156951
+  - Template: 0
+    Position: {x: -45.403374, y: 0.024219882, z: 20.723297}
+    Yaw: 180.20753
+    Scale: 1.3775377
+  - Template: 1
+    Position: {x: 22.079735, y: -0.05, z: 29.297401}
+    Yaw: 227.15602
+    Scale: 0.8729385
+  - Template: 0
+    Position: {x: 39.12229, y: 0.0408797, z: 31.975822}
+    Yaw: 346.37372
+    Scale: 1.2689638
+  - Template: 8
+    Position: {x: -4.391342, y: -0.05, z: -37.279022}
+    Yaw: 39.550045
+    Scale: 1.1344299
+  - Template: 7
+    Position: {x: 47.01879, y: -0.024960082, z: -8.292721}
+    Yaw: 317.95795
+    Scale: 1.0271685
+  - Template: 0
+    Position: {x: -16.470497, y: -0.05, z: 29.387505}
+    Yaw: 61.094402
+    Scale: 0.8327983
+  - Template: 7
+    Position: {x: -43.44223, y: 0.64491236, z: 41.6239}
+    Yaw: 203.23196
+    Scale: 1.1966908
+  - Template: 4
+    Position: {x: 35.240013, y: -0.05, z: 0.051216125}
+    Yaw: 135.75157
+    Scale: 0.9265803
+  - Template: 5
+    Position: {x: -13.194237, y: -0.009232167, z: -46.808918}
+    Yaw: 267.77365
+    Scale: 1.2020699
+  - Template: 2
+    Position: {x: -51.81355, y: 0.18315834, z: -16.591}
+    Yaw: 138.88126
+    Scale: 1.3626189
+  - Template: 7
+    Position: {x: -49.2453, y: 0.10936843, z: -18.795994}
+    Yaw: 336.12292
+    Scale: 1.0652856
+  - Template: 6
+    Position: {x: -7.7626, y: -0.05, z: -38.64489}
+    Yaw: 297.04037
+    Scale: 1.165899
+  - Template: 0
+    Position: {x: 29.926369, y: 0.107648075, z: 42.938606}
+    Yaw: 232.81451
+    Scale: 1.4121603
+  - Template: 2
+    Position: {x: 17.757446, y: 0.90127057, z: -61.211678}
+    Yaw: 349.76996
+    Scale: 1.0569997
+  - Template: 1
+    Position: {x: -51.33035, y: 0.17519121, z: 16.074203}
+    Yaw: 275.19968
+    Scale: 1.4713922
+  - Template: 1
+    Position: {x: 43.099136, y: 0.037584174, z: -26.020267}
+    Yaw: 34.862938
+    Scale: 1.3768682
+  - Template: 0
+    Position: {x: 21.40902, y: -0.05, z: -6.7299156}
+    Yaw: 359.20276
+    Scale: 0.95078826
+  - Template: 2
+    Position: {x: -50.195824, y: 0.02823719, z: -0.9603081}
+    Yaw: 11.225666
+    Scale: 1.0585464
+  - Template: 7
+    Position: {x: -4.828476, y: -0.04727375, z: 45.622635}
+    Yaw: 16.222635
+    Scale: 0.9132025
+  - Template: 8
+    Position: {x: -26.387733, y: -0.05, z: 17.481667}
+    Yaw: 350.1218
+    Scale: 0.91653556
+  - Template: 6
+    Position: {x: 41.36902, y: 0.18641464, z: -34.738014}
+    Yaw: 328.55853
+    Scale: 1.423881
+  - Template: 7
+    Position: {x: -14.420677, y: 0.12731263, z: 50.055573}
+    Yaw: 127.08481
+    Scale: 1.2007089
+  - Template: 0
+    Position: {x: -25.585518, y: 0.32188317, z: -49.919727}
+    Yaw: 300.35083
+    Scale: 1.4889781
+  - Template: 6
+    Position: {x: -39.646046, y: -0.05, z: 5.822258}
+    Yaw: 72.031906
+    Scale: 1.3769735
+  - Template: 2
+    Position: {x: 22.686531, y: -0.045856237, z: -40.255665}
+    Yaw: 272.11447
+    Scale: 1.368293
+  - Template: 6
+    Position: {x: -47.609802, y: -0.027078884, z: -4.2170296}
+    Yaw: 4.125223
+    Scale: 1.3644185
+  - Template: 2
+    Position: {x: -39.648506, y: -0.05, z: -2.8902512}
+    Yaw: 302.88614
+    Scale: 0.9156167
+  - Template: 0
+    Position: {x: 32.76484, y: -0.05, z: -7.0364494}
+    Yaw: 148.17531
+    Scale: 0.8253223
+  - Template: 1
+    Position: {x: -29.52388, y: -0.012641545, z: -38.508354}
+    Yaw: 128.24661
+    Scale: 1.3088387
+  - Template: 2
+    Position: {x: -17.339493, y: 0.20654617, z: -51.293015}
+    Yaw: 7.677638
+    Scale: 1.315047
+  - Template: 8
+    Position: {x: 42.036774, y: 1.0678211, z: 49.903893}
+    Yaw: 240.69614
+    Scale: 1.404676
+  - Template: 1
+    Position: {x: 20.27008, y: -0.05, z: -17.204159}
+    Yaw: 299.5557
+    Scale: 0.88294804
+  - Template: 4
+    Position: {x: 4.18705, y: 0.7720536, z: -61.831467}
+    Yaw: 10.394683
+    Scale: 1.2878602
+  - Template: 3
+    Position: {x: -21.02227, y: -0.05, z: 8.080589}
+    Yaw: 334.59097
+    Scale: 0.7997619
+  - Template: 6
+    Position: {x: -18.448948, y: -0.05, z: -13.408188}
+    Yaw: 347.25714
+    Scale: 0.8712008
+  - Template: 3
+    Position: {x: -29.366917, y: 0.52654725, z: -51.100906}
+    Yaw: 14.823844
+    Scale: 1.2337246
+  - Template: 5
+    Position: {x: -9.742168, y: 0.50661516, z: -57.763535}
+    Yaw: 99.799225
+    Scale: 1.301322
+  - Template: 0
+    Position: {x: 35.9638, y: -0.048590485, z: 28.155945}
+    Yaw: 339.01123
+    Scale: 0.89845765
+  - Template: 0
+    Position: {x: 33.567444, y: 0.73029524, z: -52.125053}
+    Yaw: 12.643652
+    Scale: 1.4730318
+  - Template: 7
+    Position: {x: -41.668697, y: -0.019936936, z: 23.988747}
+    Yaw: 263.57574
+    Scale: 1.0190556
+  - Template: 4
+    Position: {x: 29.288795, y: -0.05, z: 11.978424}
+    Yaw: 171.80527
+    Scale: 0.9551262
+  - Template: 3
+    Position: {x: -23.597332, y: 0.48894626, z: 52.489983}
+    Yaw: 54.16383
+    Scale: 1.3292903
+  - Template: 0
+    Position: {x: 5.7292786, y: 0.20118134, z: 53.398567}
+    Yaw: 130.82204
+    Scale: 1.0323371
+  - Template: 1
+    Position: {x: -16.777412, y: 0.11153528, z: 48.978577}
+    Yaw: 211.81248
+    Scale: 1.1769251
+  - Template: 4
+    Position: {x: -49.545708, y: 0.27016747, z: 24.938652}
+    Yaw: 131.89949
+    Scale: 1.2170558
+  - Template: 4
+    Position: {x: -48.761654, y: 0.05385216, z: -15.473862}
+    Yaw: 162.55951
+    Scale: 1.3416517
+  - Template: 1
+    Position: {x: -10.492313, y: -0.05, z: -21.116661}
+    Yaw: 206.3547
+    Scale: 0.8690506
+  - Template: 1
+    Position: {x: 6.907196, y: -0.05, z: -43.94745}
+    Yaw: 109.16786
+    Scale: 1.0421606
+  - Template: 4
+    Position: {x: 25.469643, y: -0.024082461, z: -40.724213}
+    Yaw: 141.0669
+    Scale: 1.1494406
+  - Template: 5
+    Position: {x: -41.41485, y: 1.2090964, z: 50.507202}
+    Yaw: 205.5832
+    Scale: 1.4579685
+  - Template: 0
+    Position: {x: -17.351181, y: -0.019964512, z: -44.87397}
+    Yaw: 340.32703
+    Scale: 0.97405994
+  - Template: 1
+    Position: {x: -25.836636, y: -0.05, z: -26.973518}
+    Yaw: 94.81433
+    Scale: 1.0038867
+  - Template: 8
+    Position: {x: -15.8649025, y: -0.05, z: -39.977867}
+    Yaw: 207.94017
+    Scale: 0.9249611
+  - Template: 8
+    Position: {x: 32.034897, y: 0.32828107, z: 46.538086}
+    Yaw: 292.5996
+    Scale: 1.2093364
+  - Template: 8
+    Position: {x: -14.403767, y: 1.4394774, z: 64.39133}
+    Yaw: 263.06995
+    Scale: 1.4957271
+  - Template: 5
+    Position: {x: 49.75396, y: 1.3054962, z: 45.655357}
+    Yaw: 123.79164
+    Scale: 1.0584722
+  - Template: 3
+    Position: {x: 37.383156, y: -0.04967592, z: -25.62608}
+    Yaw: 162.44498
+    Scale: 1.0898064
+  - Template: 7
+    Position: {x: -6.6247406, y: -0.05, z: 35.271057}
+    Yaw: 329.6434
+    Scale: 1.0912726
+  - Template: 7
+    Position: {x: -36.296875, y: -0.05, z: 4.4628754}
+    Yaw: 43.29237
+    Scale: 0.9946375
+  - Template: 5
+    Position: {x: 46.202553, y: 0.20130451, z: -28.214851}
+    Yaw: 189.60228
+    Scale: 1.3898177
+  - Template: 2
+    Position: {x: -41.533997, y: 0.62342995, z: -44.317825}
+    Yaw: 320.0651
+    Scale: 1.4271607
+  - Template: 6
+    Position: {x: -27.89127, y: 1.0772318, z: 56.974274}
+    Yaw: 16.01749
+    Scale: 1.3097298
+  - Template: 3
+    Position: {x: -39.28633, y: -0.05, z: 19.557648}
+    Yaw: 100.490944
+    Scale: 1.329684
+  - Template: 7
+    Position: {x: 14.671402, y: 0.7951547, z: -60.830387}
+    Yaw: 214.17241
+    Scale: 1.2683573
+  - Template: 1
+    Position: {x: 44.44745, y: 0.042419944, z: -23.886765}
+    Yaw: 302.017
+    Scale: 1.1856246
+  - Template: 3
+    Position: {x: -8.921955, y: -0.05, z: 44.03109}
+    Yaw: 82.055984
+    Scale: 1.3538496
+  - Template: 6
+    Position: {x: -23.096909, y: -0.05, z: 4.679474}
+    Yaw: 244.0789
+    Scale: 0.9801796
+  - Template: 3
+    Position: {x: 48.135864, y: 0.9059781, z: 41.789047}
+    Yaw: 314.25275
+    Scale: 1.2496092
+  - Template: 7
+    Position: {x: 36.188393, y: 0.91004187, z: 52.30223}
+    Yaw: 54.859512
+    Scale: 1.1665862
+  - Template: 3
+    Position: {x: -48.89415, y: 0.021869142, z: -10.765541}
+    Yaw: 111.751
+    Scale: 1.1089107
+  - Template: 3
+    Position: {x: 35.066505, y: 0.54616505, z: 48.146698}
+    Yaw: 77.33811
+    Scale: 1.3999748
+  - Template: 2
+    Position: {x: 2.401085, y: -0.05, z: 38.377655}
+    Yaw: 316.03455
+    Scale: 1.0115868
+  - Template: 0
+    Position: {x: 30.887932, y: 0.14613448, z: -43.585396}
+    Yaw: 120.29906
+    Scale: 1.1072334
+  - Template: 5
+    Position: {x: -20.453274, y: -0.049865246, z: 40.301765}
+    Yaw: 151.62871
+    Scale: 0.8699629
+  - Template: 6
+    Position: {x: 36.82106, y: -0.05, z: 3.0002136}
+    Yaw: 89.29888
+    Scale: 1.1889012
+  - Template: 4
+    Position: {x: 32.073196, y: -0.05, z: -0.78370667}
+    Yaw: 344.87473
+    Scale: 1.0681853
+  - Template: 3
+    Position: {x: 9.930786, y: 0.6279876, z: 58.741722}
+    Yaw: 62.961132
+    Scale: 1.3629456
+  - Template: 4
+    Position: {x: 42.240654, y: -0.05, z: -5.804722}
+    Yaw: 31.83775
+    Scale: 1.4107741
+  - Template: 2
+    Position: {x: -35.543274, y: -0.05, z: 15.956902}
+    Yaw: 355.17407
+    Scale: 1.361114
+  - Template: 2
+    Position: {x: -40.710907, y: 0.087359235, z: 31.729774}
+    Yaw: 158.05295
+    Scale: 1.2134326
+  - Template: 6
+    Position: {x: -53.90668, y: 0.17021506, z: -0.15496063}
+    Yaw: 187.7749
+    Scale: 1.4328127
+  - Template: 4
+    Position: {x: -24.690136, y: -0.05, z: -1.6047363}
+    Yaw: 260.13412
+    Scale: 0.8206816
+  - Template: 2
+    Position: {x: -56.728004, y: 0.33507803, z: -6.793953}
+    Yaw: 312.42642
+    Scale: 1.2492653
+  - Template: 5
+    Position: {x: -37.60371, y: 1.2763349, z: 53.73191}
+    Yaw: 5.5386157
+    Scale: 1.0877992
+  - Template: 6
+    Position: {x: 28.730698, y: -0.008598927, z: -39.47734}
+    Yaw: 73.048195
+    Scale: 1.0061324
+  - Template: 3
+    Position: {x: 4.7828217, y: -0.05, z: 41.73594}
+    Yaw: 191.70692
+    Scale: 1.3053751
+  - Template: 3
+    Position: {x: 33.75315, y: -0.05, z: 12.9872055}
+    Yaw: 13.200351
+    Scale: 1.0260401
+  - Template: 0
+    Position: {x: 2.2916412, y: 1.0165299, z: 62.956474}
+    Yaw: 203.15587
+    Scale: 1.3630261
+  - Template: 4
+    Position: {x: -55.471504, y: 0.36291006, z: 13.881912}
+    Yaw: 234.88287
+    Scale: 1.3688025
+  - Template: 2
+    Position: {x: -48.7082, y: 0.36782706, z: 29.537476}
+    Yaw: 172.07378
+    Scale: 1.4989481
+  - Template: 2
+    Position: {x: 21.829857, y: -0.02058305, z: -43.020405}
+    Yaw: 242.54248
+    Scale: 1.3204583
+  - Template: 8
+    Position: {x: 58.03225, y: 0.7189793, z: 19.202675}
+    Yaw: 266.21606
+    Scale: 1.3769531
+  - Template: 7
+    Position: {x: 15.50425, y: -0.05, z: 40.166534}
+    Yaw: 263.88525
+    Scale: 1.0871029
+  - Template: 4
+    Position: {x: -20.210327, y: -0.05, z: -30.07029}
+    Yaw: 39.238853
+    Scale: 1.0679061
+  - Template: 5
+    Position: {x: 50.889984, y: 0.17392235, z: -16.161076}
+    Yaw: 255.48927
+    Scale: 1.4124417
+  - Template: 1
+    Position: {x: 38.8733, y: -0.05, z: 0.47502136}
+    Yaw: 308.07425
+    Scale: 1.2120454
+  - Template: 2
+    Position: {x: -0.3091774, y: -0.05, z: 31.141518}
+    Yaw: 211.3997
+    Scale: 0.9617512
+  - Template: 1
+    Position: {x: 3.8765411, y: -0.04235857, z: -46.45105}
+    Yaw: 345.51212
+    Scale: 1.3450129
+  - Template: 3
+    Position: {x: 8.7680435, y: 0.2965529, z: -55.407627}
+    Yaw: 270.23334
+    Scale: 1.1399508
+  - Template: 7
+    Position: {x: -60.08558, y: 0.5616632, z: 5.127434}
+    Yaw: 163.51662
+    Scale: 1.1630098
+  - Template: 5
+    Position: {x: -6.9778023, y: 0.13505313, z: 51.80339}
+    Yaw: 57.011406
+    Scale: 1.0060875
+  - Template: 2
+    Position: {x: -18.56549, y: -0.05, z: -21.901478}
+    Yaw: 51.893787
+    Scale: 0.8340508
+  - Template: 1
+    Position: {x: 34.000137, y: -0.05, z: 5.7927246}
+    Yaw: 108.72006
+    Scale: 1.279566
+  - Template: 2
+    Position: {x: -11.167637, y: -0.05, z: 40.34445}
+    Yaw: 168.40805
+    Scale: 1.2091358
+  - Template: 3
+    Position: {x: 22.723671, y: -0.043096703, z: 40.564293}
+    Yaw: 85.29107
+    Scale: 1.0054774
+  - Template: 6
+    Position: {x: -27.28698, y: -0.05, z: 1.6709976}
+    Yaw: 182.23424
+    Scale: 1.2671984
+  - Template: 1
+    Position: {x: 27.869415, y: -0.05, z: 9.161575}
+    Yaw: 326.78018
+    Scale: 1.110268
+  - Template: 2
+    Position: {x: 47.071793, y: 0.7167097, z: -39.48128}
+    Yaw: 299.55478
+    Scale: 1.1187615
+  - Template: 6
+    Position: {x: 11.133324, y: -0.05, z: 38.711746}
+    Yaw: 65.887695
+    Scale: 1.0248402
+  - Template: 1
+    Position: {x: -1.9797554, y: -0.05, z: 42.600403}
+    Yaw: 161.64844
+    Scale: 1.0918487
+  - Template: 1
+    Position: {x: 50.47558, y: 0.084840715, z: -9.8757515}
+    Yaw: 174.28976
+    Scale: 1.2347977
+  - Template: 2
+    Position: {x: -25.495201, y: -0.05, z: 6.078003}
+    Yaw: 123.73499
+    Scale: 0.9740724
+  - Template: 8
+    Position: {x: -38.48455, y: -0.034912683, z: -27.4776}
+    Yaw: 37.913452
+    Scale: 1.4547218
+  - Template: 6
+    Position: {x: 30.908691, y: 0.88036203, z: -55.60768}
+    Yaw: 133.6053
+    Scale: 1.444068
+  - Template: 5
+    Position: {x: 31.945518, y: -0.02767539, z: -35.524597}
+    Yaw: 8.711039
+    Scale: 1.058056
+  - Template: 1
+    Position: {x: 2.747406, y: -0.05, z: -42.003124}
+    Yaw: 226.76288
+    Scale: 1.120962
+  - Template: 6
+    Position: {x: 19.454346, y: 1.264464, z: 63.088577}
+    Yaw: 211.88802
+    Scale: 1.4061291
+  - Template: 3
+    Position: {x: 18.703125, y: -0.05, z: 28.303772}
+    Yaw: 321.9572
+    Scale: 1.0969034
+  - Template: 0
+    Position: {x: 15.973412, y: -0.05, z: 34.182304}
+    Yaw: 111.96352
+    Scale: 0.87238127
+  - Template: 2
+    Position: {x: -28.499023, y: -0.05, z: -14.942352}
+    Yaw: 189.17964
+    Scale: 1.2756355
+  - Template: 0
+    Position: {x: 26.352386, y: 0.50220513, z: -53.150826}
+    Yaw: 215.74863
+    Scale: 1.3707471
+  - Template: 6
+    Position: {x: -53.744583, y: 0.24222298, z: -14.152378}
+    Yaw: 41.420376
+    Scale: 1.3656905
+  - Template: 4
+    Position: {x: -6.4503403, y: -0.05, z: 40.620148}
+    Yaw: 341.29544
+    Scale: 1.04915
+  - Template: 3
+    Position: {x: 39.209564, y: -0.05, z: -14.056526}
+    Yaw: 60.48231
+    Scale: 1.0101911
+  - Template: 4
+    Position: {x: -16.248577, y: 0.9903788, z: 60.277}
+    Yaw: 60.741608
+    Scale: 1.4533918
+  - Template: 6
+    Position: {x: -4.800434, y: -0.05, z: 29.872726}
+    Yaw: 147.69699
+    Scale: 0.9130036
+  - Template: 3
+    Position: {x: 60.999702, y: 0.7586705, z: -4.1348}
+    Yaw: 337.22092
+    Scale: 1.0797794
+  - Template: 7
+    Position: {x: -30.952898, y: 0.21598561, z: -44.842422}
+    Yaw: 204.52264
+    Scale: 1.3302176
+  - Template: 2
+    Position: {x: 32.099533, y: 0.32594666, z: -46.773663}
+    Yaw: 242.98645
+    Scale: 1.2768213
+  - Template: 7
+    Position: {x: -24.495052, y: -0.05, z: 25.060287}
+    Yaw: 137.09306
+    Scale: 0.913011
+  - Template: 8
+    Position: {x: -39.711967, y: -0.05, z: 9.5394745}
+    Yaw: 251.78297
+    Scale: 1.1122547
+  - Template: 3
+    Position: {x: 46.22309, y: -0.018715288, z: -13.275196}
+    Yaw: 67.55275
+    Scale: 0.9733424
+  - Template: 6
+    Position: {x: 28.489143, y: -0.04655335, z: -36.232872}
+    Yaw: 354.01938
+    Scale: 1.4018883
+  - Template: 8
+    Position: {x: 17.067696, y: -0.05, z: 31.045975}
+    Yaw: 6.80858
+    Scale: 1.0252745
+  - Template: 0
+    Position: {x: -16.900627, y: 0.40224618, z: 53.803047}
+    Yaw: 214.97414
+    Scale: 1.2894943
+  - Template: 3
+    Position: {x: -47.908203, y: 1.0048708, z: 42.55771}
+    Yaw: 219.39801
+    Scale: 1.2710762
+  - Template: 6
+    Position: {x: -48.9271, y: 0.85377115, z: 39.25885}
+    Yaw: 303.68326
+    Scale: 1.3241427
+  - Template: 7
+    Position: {x: 4.19619, y: -0.05, z: -37.48995}
+    Yaw: 102.19718
+    Scale: 1.2973976
+  - Template: 6
+    Position: {x: -32.676117, y: -0.05, z: -13.21928}
+    Yaw: 59.776127
+    Scale: 0.92660403
+  - Template: 4
+    Position: {x: -45.40401, y: -0.049425527, z: 1.6141205}
+    Yaw: 205.62375
+    Scale: 1.1592703
+  - Template: 4
+    Position: {x: 29.502563, y: -0.05, z: 23.024391}
+    Yaw: 79.13841
+    Scale: 1.0689565
+  - Template: 1
+    Position: {x: 41.177727, y: 0.22639214, z: 36.166664}
+    Yaw: 247.46051
+    Scale: 1.275461
+  - Template: 3
+    Position: {x: 33.659225, y: 0.081175655, z: 39.243332}
+    Yaw: 20.962034
+    Scale: 1.0759025
+  - Template: 8
+    Position: {x: 23.390244, y: 0.6166294, z: -56.06189}
+    Yaw: 224.22726
+    Scale: 1.3731978
+  - Template: 4
+    Position: {x: 5.3675156, y: 0.4376792, z: 56.916245}
+    Yaw: 254.23213
+    Scale: 1.1129836
+  - Template: 0
+    Position: {x: 45.06729, y: -0.049979024, z: 1.0071716}
+    Yaw: 180.40306
+    Scale: 1.0185018
+  - Template: 0
+    Position: {x: 57.26454, y: 0.5580142, z: -14.020142}
+    Yaw: 35.006687
+    Scale: 1.3684962
+  - Template: 2
+    Position: {x: 15.121704, y: -0.047892023, z: 43.24205}
+    Yaw: 150.94632
+    Scale: 1.0727637
+  - Template: 0
+    Position: {x: 27.916107, y: 0.61740834, z: 53.37374}
+    Yaw: 76.78209
+    Scale: 1.0943561
+  - Template: 8
+    Position: {x: -3.6883965, y: -0.05, z: -21.427067}
+    Yaw: 356.4667
+    Scale: 0.8347261
+  - Template: 0
+    Position: {x: -33.583733, y: -0.05, z: -6.304817}
+    Yaw: 149.47183
+    Scale: 0.9948709
+  - Template: 7
+    Position: {x: -58.844296, y: 0.45074183, z: -1.4635239}
+    Yaw: 212.12921
+    Scale: 1.3878202
+  - Template: 8
+    Position: {x: -22.171112, y: 0.7089812, z: 55.65078}
+    Yaw: 232.87917
+    Scale: 1.2316897
+  - Template: 8
+    Position: {x: -50.230003, y: 0.21864034, z: -22.772606}
+    Yaw: 346.83264
+    Scale: 1.1215682
+  - Template: 0
+    Position: {x: -2.984436, y: -0.05, z: -29.862263}
+    Yaw: 118.629875
+    Scale: 0.8427214
+  - Template: 4
+    Position: {x: -39.948204, y: 0.36210924, z: -40.953766}
+    Yaw: 308.13455
+    Scale: 1.1945779
+  - Template: 1
+    Position: {x: -34.609653, y: 0.3810058, z: 44.697662}
+    Yaw: 4.325695
+    Scale: 1.1733973
+  - Template: 4
+    Position: {x: 26.590088, y: 0.00029551983, z: 41.267517}
+    Yaw: 126.22881
+    Scale: 1.3823147
+  - Template: 7
+    Position: {x: -52.806892, y: 0.6634757, z: 30.536423}
+    Yaw: 223.80934
+    Scale: 1.0183823
+  - Template: 3
+    Position: {x: 34.957703, y: -0.05, z: 16.403488}
+    Yaw: 245.8109
+    Scale: 0.86026746
+  - Template: 2
+    Position: {x: -19.226887, y: 0.59300125, z: 55.408997}
+    Yaw: 256.45706
+    Scale: 1.1172047
+  - Template: 3
+    Position: {x: -27.581875, y: -0.05, z: -17.977531}
+    Yaw: 150.3171
+    Scale: 0.9136457
+  - Template: 4
+    Position: {x: 23.715378, y: 1.5620539, z: 64.375824}
+    Yaw: 345.70206
+    Scale: 1.018446
+  - Template: 5
+    Position: {x: -32.07627, y: 1.3400474, z: 57.38347}
+    Yaw: 17.792654
+    Scale: 1.2120174
+  - Template: 4
+    Position: {x: 27.433655, y: -0.05, z: -13.008842}
+    Yaw: 319.65167
+    Scale: 1.2170554
+  - Template: 5
+    Position: {x: 24.548828, y: 0.14735322, z: -47.53407}
+    Yaw: 196.6813
+    Scale: 1.211941
+  - Template: 0
+    Position: {x: -29.862408, y: -0.05, z: -3.9877014}
+    Yaw: 238.0901
+    Scale: 0.8701028
+  - Template: 2
+    Position: {x: -12.384384, y: -0.05, z: -38.109108}
+    Yaw: 73.51766
+    Scale: 1.1419485
+  - Template: 7
+    Position: {x: -22.77401, y: -0.05, z: -4.074703}
+    Yaw: 75.69019
+    Scale: 0.99925774
+  - Template: 1
+    Position: {x: 24.048233, y: -0.05, z: -9.186634}
+    Yaw: 329.97403
+    Scale: 1.0541391
+  - Template: 0
+    Position: {x: 24.390892, y: -0.05, z: -21.033398}
+    Yaw: 67.48264
+    Scale: 1.0017412
+  - Template: 3
+    Position: {x: 46.6978, y: 0.45659727, z: 35.05892}
+    Yaw: 40.47268
+    Scale: 1.3279145
+  - Template: 0
+    Position: {x: 40.579735, y: 1.2621856, z: 53.237732}
+    Yaw: 58.071487
+    Scale: 1.4675336
+  - Template: 0
+    Position: {x: 42.112823, y: -0.05, z: -14.829807}
+    Yaw: 177.77876
+    Scale: 1.1549752
+  - Template: 6
+    Position: {x: -35.989075, y: 0.31738657, z: 42.497505}
+    Yaw: 253.06319
+    Scale: 1.1016041
+  - Template: 4
+    Position: {x: 32.405396, y: -0.05, z: -16.24324}
+    Yaw: 321.06204
+    Scale: 0.98497975
+  - Template: 6
+    Position: {x: -39.343178, y: -0.05, z: -11.486023}
+    Yaw: 95.27457
+    Scale: 1.0825278
+  - Template: 3
+    Position: {x: 51.47812, y: 0.32418057, z: -22.080494}
+    Yaw: 123.398445
+    Scale: 1.295332
+  - Template: 7
+    Position: {x: -44.038055, y: 0.011853293, z: -23.080742}
+    Yaw: 198.10252
+    Scale: 1.2790253
+  - Template: 3
+    Position: {x: 14.90728, y: -0.05, z: -39.520344}
+    Yaw: 79.09687
+    Scale: 1.0866833
+  - Template: 3
+    Position: {x: -30.369095, y: -0.05, z: 18.44307}
+    Yaw: 182.07326
+    Scale: 0.9520935
+  - Template: 3
+    Position: {x: -2.5094604, y: -0.05, z: -34.70034}
+    Yaw: 208.6985
+    Scale: 1.1300797
+  - Template: 2
+    Position: {x: 48.652122, y: 0.0005950108, z: -4.9217606}
+    Yaw: 322.76294
+    Scale: 1.4321995
+  - Template: 0
+    Position: {x: 35.473244, y: -0.05, z: -22.402267}
+    Yaw: 34.357487
+    Scale: 1.3443369
+  - Template: 4
+    Position: {x: -53.45749, y: 0.1711233, z: 6.2910156}
+    Yaw: 235.0546
+    Scale: 1.095746
+  - Template: 7
+    Position: {x: -39.31552, y: -0.05, z: -19.087505}
+    Yaw: 88.93687
+    Scale: 1.0192926
+  - Template: 2
+    Position: {x: 3.0138779, y: 0.13160959, z: -52.82821}
+    Yaw: 154.64293
+    Scale: 1.3541596
+  - Template: 3
+    Position: {x: 5.792534, y: 0.021894444, z: -49.655952}
+    Yaw: 87.90775
+    Scale: 1.2268116
+  - Template: 0
+    Position: {x: 55.465508, y: 0.38706717, z: 12.474503}
+    Yaw: 285.63092
+    Scale: 1.2904286
+  - Template: 4
+    Position: {x: -38.492313, y: -0.05, z: 15.499496}
+    Yaw: 228.27693
+    Scale: 0.93225455
+  - Template: 1
+    Position: {x: 54.25737, y: 0.51513255, z: -22.094975}
+    Yaw: 327.5903
+    Scale: 1.4460049
+  - Template: 2
+    Position: {x: -41.06669, y: 1.447632, z: 53.145416}
+    Yaw: 51.112465
+    Scale: 1.2331054
+  - Template: 4
+    Position: {x: -40.15706, y: -0.018371087, z: 26.56369}
+    Yaw: 209.01266
+    Scale: 1.1578879
+  - Template: 1
+    Position: {x: -36.651695, y: 0.8571702, z: 49.898216}
+    Yaw: 339.59497
+    Scale: 1.2132285
+  - Template: 1
+    Position: {x: 58.529274, y: 0.5545282, z: -6.187786}
+    Yaw: 139.02295
+    Scale: 1.069535
+  - Template: 2
+    Position: {x: -39.289276, y: 0.61014134, z: -45.915695}
+    Yaw: 119.805626
+    Scale: 1.0567918
+  - Template: 5
+    Position: {x: -34.38983, y: 0.0070129037, z: 35.130463}
+    Yaw: 58.027466
+    Scale: 1.3173373
+  - Template: 7
+    Position: {x: 42.265373, y: -0.03225641, z: -21.384998}
+    Yaw: 102.50574
+    Scale: 1.327769
+  - Template: 0
+    Position: {x: -29.227509, y: -0.05, z: -27.965176}
+    Yaw: 98.045074
+    Scale: 1.2558
+  - Template: 6
+    Position: {x: 17.561905, y: -0.05, z: -40.227024}
+    Yaw: 52.821068
+    Scale: 0.924343
+  - Template: 5
+    Position: {x: -51.745056, y: 0.23451172, z: -19.97725}
+    Yaw: 311.5012
+    Scale: 1.122346
+  - Template: 6
+    Position: {x: 39.45037, y: 0.2787958, z: 39.38359}
+    Yaw: 151.8633
+    Scale: 1.105365
+  - Template: 0
+    Position: {x: 39.472656, y: -0.006708756, z: 28.650085}
+    Yaw: 215.51715
+    Scale: 1.0895637
+  - Template: 6
+    Position: {x: 26.228958, y: -0.05, z: 33.187904}
+    Yaw: 254.17847
+    Scale: 1.2287169
+  - Template: 5
+    Position: {x: 15.588135, y: -0.05, z: -25.24913}
+    Yaw: 243.90576
+    Scale: 0.7669097
+  - Template: 2
+    Position: {x: 12.721237, y: 0.16644387, z: 51.70346}
+    Yaw: 156.96732
+    Scale: 1.3074224
+  - Template: 2
+    Position: {x: -48.487133, y: 0.34692585, z: -30.702168}
+    Yaw: 185.6266
+    Scale: 1.3802564
+  - Template: 2
+    Position: {x: 10.227982, y: -0.05, z: 32.712967}
+    Yaw: 209.34517
+    Scale: 1.1095997
+  - Template: 6
+    Position: {x: 33.023254, y: -0.042656384, z: 32.813553}
+    Yaw: 122.50942
+    Scale: 1.036122
+  - Template: 6
+    Position: {x: 11.975861, y: -0.05, z: -30.645897}
+    Yaw: 82.27682
+    Scale: 0.87312317
+  - Template: 2
+    Position: {x: -36.180893, y: 0.40897343, z: -44.944794}
+    Yaw: 13.292398
+    Scale: 1.3824139
+  - Template: 3
+    Position: {x: -6.993576, y: 0.5630597, z: -58.90061}
+    Yaw: 352.8208
+    Scale: 1.1127392
+  - Template: 7
+    Position: {x: 19.031342, y: -0.05, z: 39.589645}
+    Yaw: 139.8774
+    Scale: 1.3197029
+  - Template: 7
+    Position: {x: 23.519012, y: -0.05, z: -17.114101}
+    Yaw: 133.54149
+    Scale: 1.2231666
+  - Template: 4
+    Position: {x: -33.19864, y: -0.05, z: 13.993942}
+    Yaw: 72.88439
+    Scale: 1.3471453
+  - Template: 0
+    Position: {x: 39.162132, y: -0.05, z: -20.684483}
+    Yaw: 38.307323
+    Scale: 1.2147126
+  - Template: 4
+    Position: {x: -16.24485, y: -0.010273643, z: 45.532944}
+    Yaw: 112.43899
+    Scale: 0.9421695
+  - Template: 5
+    Position: {x: 61.249596, y: 0.8355911, z: 10.302422}
+    Yaw: 80.160774
+    Scale: 1.3336172
+  - Template: 6
+    Position: {x: -34.06047, y: -0.04813037, z: 30.542297}
+    Yaw: 307.69168
+    Scale: 1.0934534
+  - Template: 5
+    Position: {x: -17.345284, y: 0.47956616, z: -55.524727}
+    Yaw: 97.654564
+    Scale: 1.2069185
+  - Template: 8
+    Position: {x: -14.802113, y: 0.27121753, z: 52.528313}
+    Yaw: 284.63873
+    Scale: 1.1440322
+  - Template: 2
+    Position: {x: 57.26848, y: 0.43562147, z: 3.7223282}
+    Yaw: 359.5271
+    Scale: 1.3270206
+  - Template: 0
+    Position: {x: 46.346016, y: 0.51138365, z: -36.46301}
+    Yaw: 318.76862
+    Scale: 1.3575482
+  - Template: 4
+    Position: {x: 24.58648, y: -0.05, z: -2.6528587}
+    Yaw: 30.50896
+    Scale: 0.94485223
+  - Template: 8
+    Position: {x: 23.376106, y: 0.28215665, z: 50.416832}
+    Yaw: 143.28671
+    Scale: 1.2520262
+  - Template: 7
+    Position: {x: -29.516762, y: 0.05549984, z: -41.513294}
+    Yaw: 307.2046
+    Scale: 1.4813601
+  - Template: 2
+    Position: {x: 31.844017, y: -0.030360011, z: 35.317627}
+    Yaw: 32.393627
+    Scale: 1.3770995
+  - Template: 4
+    Position: {x: -35.035233, y: 1.2179124, z: 54.69091}
+    Yaw: 337.1862
+    Scale: 1.2800155
+  - Template: 8
+    Position: {x: 15.972237, y: -0.05, z: 25.69152}
+    Yaw: 169.62422
+    Scale: 0.8765392
+  - Template: 2
+    Position: {x: -44.49213, y: 0.24790193, z: -33.263504}
+    Yaw: 32.932457
+    Scale: 1.288965
+  - Template: 6
+    Position: {x: -45.499058, y: 0.09430328, z: 24.9338}
+    Yaw: 13.452575
+    Scale: 1.26711
+  - Template: 1
+    Position: {x: 53.117973, y: 0.8268035, z: 33.48211}
+    Yaw: 231.1236
+    Scale: 1.4400666
+  - Template: 4
+    Position: {x: -36.90252, y: 0.58444095, z: 46.19693}
+    Yaw: 172.12886
+    Scale: 1.4198463
+  - Template: 1
+    Position: {x: -42.14337, y: 0.005238954, z: -25.855007}
+    Yaw: 240.10219
+    Scale: 1.0176713
+  - Template: 0
+    Position: {x: -36.707096, y: 0.5918176, z: -47.532803}
+    Yaw: 126.5914
+    Scale: 1.2851799
+  - Template: 3
+    Position: {x: -53.963844, y: 0.3743244, z: -21.160519}
+    Yaw: 105.086845
+    Scale: 1.3591425
+  - Template: 7
+    Position: {x: 25.212189, y: 0.60424006, z: 54.42585}
+    Yaw: 211.32959
+    Scale: 1.0270848
+  - Template: 7
+    Position: {x: 24.519356, y: 0.8801489, z: 57.900528}
+    Yaw: 43.48211
+    Scale: 1.0520059
+  - Template: 7
+    Position: {x: 42.61734, y: -0.05, z: 10.828224}
+    Yaw: 278.56134
+    Scale: 1.2376696
+  - Template: 4
+    Position: {x: -30.571287, y: -0.05, z: -11.267662}
+    Yaw: 351.61203
+    Scale: 1.2806374
+  - Template: 1
+    Position: {x: 43.644257, y: -0.03793361, z: -17.25497}
+    Yaw: 354.11703
+    Scale: 1.2062565
+  - Template: 7
+    Position: {x: 55.363327, y: 0.4822734, z: 18.191147}
+    Yaw: 322.46857
+    Scale: 1.3957896
+  - Template: 8
+    Position: {x: -43.375626, y: -0.05, z: -4.6938667}
+    Yaw: 149.38376
+    Scale: 0.94891685
+  - Template: 7
+    Position: {x: 3.1190338, y: 0.44975513, z: -58.095448}
+    Yaw: 144.03696
+    Scale: 1.100136
+  - Template: 3
+    Position: {x: 13.443352, y: 0.52943265, z: -57.967052}
+    Yaw: 268.54327
+    Scale: 1.06425
+  - Template: 8
+    Position: {x: 51.368134, y: 0.5847764, z: 30.937546}
+    Yaw: 212.60341
+    Scale: 1.461942
+  - Template: 5
+    Position: {x: -45.444, y: -0.049343355, z: -1.3854332}
+    Yaw: 4.83217
+    Scale: 1.2655402
+  - Template: 4
+    Position: {x: 10.909416, y: 0.053075116, z: 49.449776}
+    Yaw: 167.9659
+    Scale: 1.2441919
+  - Template: 2
+    Position: {x: -34.251534, y: -0.05, z: -2.228302}
+    Yaw: 349.49347
+    Scale: 1.3086612
+  - Template: 2
+    Position: {x: -5.9331512, y: 0.021972317, z: -49.523766}
+    Yaw: 248.60132
+    Scale: 1.3428991
+  - Template: 4
+    Position: {x: -0.57575226, y: 1.1558168, z: 64.0542}
+    Yaw: 273.9208
+    Scale: 1.4842584
+  - Template: 2
+    Position: {x: 58.53454, y: 0.90699023, z: 24.063713}
+    Yaw: 176.2985
+    Scale: 1.3491123
+  - Template: 8
+    Position: {x: -36.354767, y: -0.05, z: 19.054008}
+    Yaw: 37.73478
+    Scale: 1.349885
+  - Template: 4
+    Position: {x: -7.597622, y: -0.05, z: -29.94867}
+    Yaw: 74.97418
+    Scale: 1.1265624
+  - Template: 4
+    Position: {x: 15.134499, y: 0.016522285, z: -47.52739}
+    Yaw: 89.65342
+    Scale: 1.2585176
+  - Template: 5
+    Position: {x: 13.15567, y: 0.96727115, z: 61.710747}
+    Yaw: 328.25345
+    Scale: 1.4061844
+  - Template: 4
+    Position: {x: 35.94844, y: 0.19186257, z: 40.526268}
+    Yaw: 134.20804
+    Scale: 1.3315883
+  - Template: 4
+    Position: {x: 11.605904, y: 0.21589534, z: -53.52096}
+    Yaw: 321.8485
+    Scale: 1.4459383
+  - Template: 8
+    Position: {x: 14.231949, y: 0.12098178, z: -50.896606}
+    Yaw: 355.80185
+    Scale: 1.0744463
+  - Template: 7
+    Position: {x: -57.57317, y: 0.4076133, z: -9.637573}
+    Yaw: 359.69342
+    Scale: 1.209913
+  - Template: 4
+    Position: {x: -23.390488, y: 0.4433689, z: -52.801468}
+    Yaw: 5.1852517
+    Scale: 1.3182008
+  - Template: 2
+    Position: {x: 13.502327, y: -0.05, z: 35.618065}
+    Yaw: 336.4708
+    Scale: 1.075592
+  - Template: 4
+    Position: {x: -45.58336, y: -0.029644258, z: -13.950584}
+    Yaw: 59.295326
+    Scale: 0.9927945
+  - Template: 6
+    Position: {x: -51.808205, y: 0.44809917, z: 26.613197}
+    Yaw: 304.70856
+    Scale: 1.4012449
+  - Template: 3
+    Position: {x: 9.169189, y: 0.16191542, z: 52.270638}
+    Yaw: 99.40389
+    Scale: 1.3971758
+  - Template: 1
+    Position: {x: 8.563507, y: -0.05, z: -39.163864}
+    Yaw: 277.64273
+    Scale: 0.90008336
+  - Template: 2
+    Position: {x: -4.9223175, y: 0.15252264, z: -52.995747}
+    Yaw: 208.02231
+    Scale: 1.1452528
+  - Template: 6
+    Position: {x: 11.444664, y: 1.27742, z: 64.62985}
+    Yaw: 36.280552
+    Scale: 1.2589412
+  - Template: 5
+    Position: {x: 12.441437, y: -0.04410413, z: 44.64428}
+    Yaw: 347.57565
+    Scale: 1.0201889
+  - Template: 6
+    Position: {x: 31.307167, y: -0.05, z: 9.289276}
+    Yaw: 111.78998
+    Scale: 1.23101
+  - Template: 5
+    Position: {x: -12.713974, y: -0.05, z: -33.374634}
+    Yaw: 76.18712
+    Scale: 1.0482377
+  - Template: 1
+    Position: {x: -28.907078, y: -0.05, z: 25.114288}
+    Yaw: 7.603303
+    Scale: 0.92687654
+  - Template: 3
+    Position: {x: 17.892097, y: -0.05, z: -22.77985}
+    Yaw: 298.7408
+    Scale: 0.8349121
+  - Template: 3
+    Position: {x: -24.266094, y: -0.05, z: -32.455868}
+    Yaw: 78.67086
+    Scale: 1.1800233
+  - Template: 8
+    Position: {x: 33.067482, y: 0.90407664, z: -54.59836}
+    Yaw: 204.73451
+    Scale: 1.4230337
+  - Template: 3
+    Position: {x: -19.554646, y: -0.05, z: 10.936752}
+    Yaw: 145.7646
+    Scale: 0.86148846
+  - Template: 1
+    Position: {x: 9.514626, y: -0.05, z: -35.82802}
+    Yaw: 241.71344
+    Scale: 0.9437726
+  - Template: 8
+    Position: {x: 47.48729, y: 0.12234981, z: -22.25373}
+    Yaw: 283.8458
+    Scale: 1.2833893
+  - Template: 7
+    Position: {x: -4.1274986, y: -0.05, z: -42.604218}
+    Yaw: 250.14508
+    Scale: 1.3248065
+  - Template: 7
+    Position: {x: -36.540955, y: 0.061327133, z: -35.90615}
+    Yaw: 331.58347
+    Scale: 1.4700269
+  - Template: 7
+    Position: {x: -19.697819, y: 0.17760518, z: -49.864487}
+    Yaw: 321.28897
+    Scale: 1.1389494
+  - Template: 2
+    Position: {x: 26.258377, y: -0.05, z: -28.455845}
+    Yaw: 295.53198
+    Scale: 0.9670437
+  - Template: 0
+    Position: {x: -13.441616, y: -0.049756285, z: -43.238426}
+    Yaw: 316.8112
+    Scale: 1.3799587
+  - Template: 2
+    Position: {x: 49.547157, y: 0.36414355, z: 28.02153}
+    Yaw: 152.34233
+    Scale: 1.4978213
+  - Template: 4
+    Position: {x: 51.87767, y: 0.105330944, z: 0.5929489}
+    Yaw: 88.20114
+    Scale: 1.2855165
+  - Template: 5
+    Position: {x: 51.103493, y: 0.5683831, z: -30.387737}
+    Yaw: 99.8666
+    Scale: 1.0849925
+  - Template: 0
+    Position: {x: -35.94431, y: -0.03257887, z: -30.965439}
+    Yaw: 277.05847
+    Scale: 1.0269753
+  - Template: 2
+    Position: {x: 37.11052, y: -0.05, z: 5.930168}
+    Yaw: 54.224358
+    Scale: 1.2404932
+  - Template: 5
+    Position: {x: 29.455765, y: -0.05, z: -4.6759872}
+    Yaw: 337.04022
+    Scale: 0.834469
+  - Template: 0
+    Position: {x: -55.498726, y: 0.2548331, z: -4.2447853}
+    Yaw: 131.2939
+    Scale: 1.1127121
+  - Template: 3
+    Position: {x: -27.160347, y: -0.05, z: -10.293072}
+    Yaw: 18.921576
+    Scale: 0.97792
+  - Template: 0
+    Position: {x: -31.407, y: -0.05, z: 29.204422}
+    Yaw: 253.62637
+    Scale: 1.1704563
+  - Template: 7
+    Position: {x: -47.04474, y: 0.11910272, z: -24.290695}
+    Yaw: 173.55386
+    Scale: 1.4863791
+  - Template: 0
+    Position: {x: -30.614384, y: -0.045807164, z: 34.482094}
+    Yaw: 298.6594
+    Scale: 1.2417643
+  - Template: 3
+    Position: {x: -12.79776, y: 0.85221183, z: 59.839325}
+    Yaw: 23.157635
+    Scale: 1.4097798
+  - Template: 4
+    Position: {x: -34.029976, y: 1.7197951, z: 59.59263}
+    Yaw: 18.219809
+    Scale: 1.2761146
+  - Template: 1
+    Position: {x: 29.218773, y: -0.05, z: -27.094418}
+    Yaw: 292.40985
+    Scale: 1.319384
+  - Template: 7
+    Position: {x: -20.395325, y: -0.026198596, z: -43.198982}
+    Yaw: 330.81915
+    Scale: 0.9707849
+  - Template: 7
+    Position: {x: -56.370018, y: 0.30216095, z: 1.7017441}
+    Yaw: 260.03125
+    Scale: 1.3298421
+  - Template: 8
+    Position: {x: -41.560867, y: 0.03288273, z: -28.602127}
+    Yaw: 339.4342
+    Scale: 1.4717269
+  - Template: 7
+    Position: {x: -23.603458, y: 0.69382125, z: -55.902496}
+    Yaw: 86.636314
+    Scale: 1.2395277
+  - Template: 0
+    Position: {x: 38.101204, y: -0.05, z: 20.236778}
+    Yaw: 317.54782
+    Scale: 1.310014
+  - Template: 4
+    Position: {x: -4.61681, y: 0.007177405, z: 48.81935}
+    Yaw: 33.47592
+    Scale: 1.248456
+  - Template: 4
+    Position: {x: 30.988365, y: 0.5342809, z: 50.5904}
+    Yaw: 141.27686
+    Scale: 1.3586116
+  - Template: 8
+    Position: {x: -21.464108, y: -0.05, z: 29.310265}
+    Yaw: 172.79044
+    Scale: 0.83220124
+  - Template: 7
+    Position: {x: 18.808807, y: 0.3762107, z: 53.63739}
+    Yaw: 269.84225
+    Scale: 1.4673898
+  - Template: 6
+    Position: {x: 9.9965515, y: 0.588343, z: -59.293552}
+    Yaw: 177.58545
+    Scale: 1.0250309
+  - Template: 7
+    Position: {x: 57.671753, y: 1.0390854, z: 29.547516}
+    Yaw: 181.87285
+    Scale: 1.0384449
+  - Template: 1
+    Position: {x: -25.74879, y: -0.05, z: 34.128494}
+    Yaw: 163.87363
+    Scale: 1.1606808
+  - Template: 7
+    Position: {x: 42.098175, y: 0.0855836, z: 30.101234}
+    Yaw: 92.169464
+    Scale: 1.4465183
+  - Template: 4
+    Position: {x: 8.761383, y: -0.04663748, z: 45.162758}
+    Yaw: 48.66089
+    Scale: 1.1633184
+  - Template: 6
+    Position: {x: 32.47225, y: 1.0280987, z: 55.862732}
+    Yaw: 313.96585
+    Scale: 1.0766215
+  - Template: 7
+    Position: {x: 2.4947433, y: -0.05, z: 33.04859}
+    Yaw: 176.82248
+    Scale: 1.2304561
+  - Template: 4
+    Position: {x: 45.915718, y: -0.04566715, z: 4.475441}
+    Yaw: 75.91929
+    Scale: 1.4229869
+  - Template: 3
+    Position: {x: -29.004036, y: -0.05, z: 31.840218}
+    Yaw: 196.20921
+    Scale: 1.0827966
+  - Template: 1
+    Position: {x: -44.83485, y: 1.0338024, z: 45.791412}
+    Yaw: 197.91359
+    Scale: 1.1790218
+  - Template: 0
+    Position: {x: -56.41149, y: 0.54699874, z: -22.132862}
+    Yaw: 276.65588
+    Scale: 1.177206
+  - Template: 3
+    Position: {x: -33.08457, y: -0.05, z: 17.131393}
+    Yaw: 275.59027
+    Scale: 1.0808879
+  - Template: 8
+    Position: {x: -9.252922, y: 0.3197288, z: 54.51626}
+    Yaw: 120.673065
+    Scale: 1.14166
+  - Template: 5
+    Position: {x: -15.951401, y: 0.733032, z: -58.92481}
+    Yaw: 201.48164
+    Scale: 1.4597521
+  - Template: 6
+    Position: {x: 60.90042, y: 0.8632223, z: 13.988861}
+    Yaw: 136.58302
+    Scale: 1.0055104
+  - Template: 6
+    Position: {x: -15.885841, y: -0.05, z: -31.278854}
+    Yaw: 78.363655
+    Scale: 1.2377975
+  - Template: 7
+    Position: {x: 38.95878, y: 0.2219917, z: -38.507614}
+    Yaw: 302.6561
+    Scale: 1.1407075
+  - Template: 0
+    Position: {x: 50.29625, y: 0.6965609, z: -34.589073}
+    Yaw: 1.2607634
+    Scale: 1.4669888
+  - Template: 5
+    Position: {x: -1.1713905, y: -0.05, z: 26.158127}
+    Yaw: 172.8422
+    Scale: 1.1208502
+  - Template: 1
+    Position: {x: -8.566448, y: -0.05, z: -22.925507}
+    Yaw: 2.184861
+    Scale: 0.953368
+  - Template: 0
+    Position: {x: -25.588268, y: -0.05, z: -12.474453}
+    Yaw: 121.36082
+    Scale: 1.1325052
+  - Template: 8
+    Position: {x: 40.57164, y: -0.044578664, z: 22.324234}
+    Yaw: 173.37674
+    Scale: 0.9201144
+  - Template: 5
+    Position: {x: -60.177784, y: 0.5971135, z: 8.07753}
+    Yaw: 251.29088
+    Scale: 1.2176828
+  - Template: 6
+    Position: {x: 14.362526, y: -0.05, z: 29.020973}
+    Yaw: 42.6908
+    Scale: 0.75006944
+  - Template: 3
+    Position: {x: -56.39274, y: 0.6526287, z: 23.52884}
+    Yaw: 252.37451
+    Scale: 1.3609164
+  - Template: 6
+    Position: {x: -33.937256, y: -0.05, z: 6.9852676}
+    Yaw: 179.01468
+    Scale: 1.2883897
+  - Template: 5
+    Position: {x: -15.959702, y: -0.05, z: -35.7939}
+    Yaw: 351.50275
+    Scale: 1.1721097
+  - Template: 4
+    Position: {x: -51.12287, y: 0.23980136, z: 20.265991}
+    Yaw: 189.42755
+    Scale: 1.0181513
+  - Template: 7
+    Position: {x: 55.434464, y: 1.1084514, z: 35.148247}
+    Yaw: 83.226776
+    Scale: 1.3917
+  - Template: 0
+    Position: {x: -19.201813, y: 0.699432, z: -57.57465}
+    Yaw: 340.00824
+    Scale: 1.2885687
+  - Template: 0
+    Position: {x: 23.513588, y: -0.05, z: 4.8234634}
+    Yaw: 315.88223
+    Scale: 0.96603394
+  - Template: 0
+    Position: {x: 24.627022, y: -0.049489908, z: 38.147896}
+    Yaw: 350.95303
+    Scale: 1.191755
+  - Template: 0
+    Position: {x: 27.937805, y: 0.4045994, z: -50.79765}
+    Yaw: 289.32303
+    Scale: 1.0969889
+  - Template: 4
+    Position: {x: 35.35182, y: -0.05, z: -14.351494}
+    Yaw: 19.823809
+    Scale: 1.1060836
+  - Template: 6
+    Position: {x: 18.252197, y: -0.021892011, z: 44.390106}
+    Yaw: 231.98224
+    Scale: 1.2495131
+  - Template: 7
+    Position: {x: -18.778206, y: 0.2423539, z: 50.78971}
+    Yaw: 59.18023
+    Scale: 1.3038938
+  - Template: 6
+    Position: {x: 19.446915, y: 0.22961114, z: 51.000748}
+    Yaw: 10.202872
+    Scale: 1.1505921
+  - Template: 4
+    Position: {x: -40.326385, y: 0.15259857, z: -35.224075}
+    Yaw: 46.784286
+    Scale: 1.0983038
+  - Template: 5
+    Position: {x: -35.96154, y: 0.7546668, z: -50.280388}
+    Yaw: 207.56133
+    Scale: 1.4767528
+  - Template: 8
+    Position: {x: 44.631783, y: 0.77388597, z: -43.284958}
+    Yaw: 352.72488
+    Scale: 1.1170594
+  - Template: 6
+    Position: {x: -44.93254, y: 1.3261487, z: 49.083336}
+    Yaw: 358.79147
+    Scale: 1.4946585
+  - Template: 2
+    Position: {x: -18.631943, y: -0.05, z: -25.761887}
+    Yaw: 28.316086
+    Scale: 1.0603448
+  - Template: 0
+    Position: {x: -37.396004, y: 0.09923962, z: 35.87432}
+    Yaw: 179.3561
+    Scale: 1.1177018
+  - Template: 0
+    Position: {x: -40.452873, y: -0.05, z: 0.39340973}
+    Yaw: 126.08293
+    Scale: 1.3156875
+  - Template: 4
+    Position: {x: -1.6618462, y: 0.8541651, z: 61.377983}
+    Yaw: 290.46268
+    Scale: 1.443366
+  - Template: 4
+    Position: {x: -27.296844, y: 0.3756159, z: 49.14801}
+    Yaw: 233.38057
+    Scale: 1.1462317
+  - Template: 5
+    Position: {x: 18.361092, y: 0.010542668, z: -46.146984}
+    Yaw: 123.03406
+    Scale: 0.97630465
+  - Template: 7
+    Position: {x: -35.434196, y: 0.6399739, z: 48.001816}
+    Yaw: 213.62614
+    Scale: 1.1374583
+  - Template: 6
+    Position: {x: 40.273834, y: 0.7471477, z: -47.17008}
+    Yaw: 290.9102
+    Scale: 1.3025539
+  - Template: 8
+    Position: {x: 46.32847, y: 0.0073151886, z: 16.65335}
+    Yaw: 97.19768
+    Scale: 1.2094527
+  - Template: 8
+    Position: {x: 28.392006, y: 1.0550518, z: 58.136047}
+    Yaw: 252.29465
+    Scale: 1.2420154
+  - Template: 0
+    Position: {x: -13.744446, y: -0.05, z: 37.508797}
+    Yaw: 300.7858
+    Scale: 1.0829144
+  - Template: 0
+    Position: {x: 45.35943, y: 0.18343168, z: 29.108986}
+    Yaw: 197.8953
+    Scale: 1.1179953
+  - Template: 4
+    Position: {x: -25.183315, y: -0.05, z: -7.921196}
+    Yaw: 269.32846
+    Scale: 1.0026683
+  - Template: 0
+    Position: {x: -26.327515, y: 0.7580294, z: 54.469193}
+    Yaw: 134.87325
+    Scale: 1.4723864
+  - Template: 5
+    Position: {x: -12.232464, y: -0.038313642, z: 45.182007}
+    Yaw: 225.13539
+    Scale: 1.0188589
+  - Template: 5
+    Position: {x: 25.396446, y: -0.05, z: 7.140526}
+    Yaw: 348.1551
+    Scale: 0.7480215
+  - Template: 1
+    Position: {x: 5.652725, y: 0.33931854, z: -56.405365}
+    Yaw: 127.9266
+    Scale: 1.4127128
+  - Template: 8
+    Position: {x: -43.993637, y: 0.4879864, z: 38.33918}
+    Yaw: 312.0803
+    Scale: 1.3671405
+  - Template: 3
+    Position: {x: 16.49855, y: 1.0211537, z: 61.598724}
+    Yaw: 355.21512
+    Scale: 1.2895334
+  - Template: 3
+    Position: {x: 35.84253, y: -0.05, z: -5.993614}
+    Yaw: 342.46024
+    Scale: 0.90318763
+  - Template: 8
+    Position: {x: 45.507713, y: -0.04887319, z: -2.5069542}
+    Yaw: 175.79233
+    Scale: 1.4414748
+  - Template: 4
+    Position: {x: -0.9954376, y: 0.10602781, z: 51.72496}
+    Yaw: 5.6883564
+    Scale: 1.2840734
+  - Template: 4
+    Position: {x: 26.210548, y: -0.05, z: 23.224419}
+    Yaw: 166.27087
+    Scale: 0.94486636
+  - Template: 4
+    Position: {x: 34.13096, y: 0.23301668, z: -43.259434}
+    Yaw: 67.089775
+    Scale: 1.0172565
+  - Template: 6
+    Position: {x: -12.216557, y: -0.05, z: -30.269276}
+    Yaw: 355.6929
+    Scale: 0.88658625
+  - Template: 6
+    Position: {x: -20.030113, y: 1.0145116, z: 59.39361}
+    Yaw: 280.4356
+    Scale: 1.2291467
+  - Template: 5
+    Position: {x: -33.71125, y: 0.039171416, z: -37.627533}
+    Yaw: 271.2628
+    Scale: 1.1471933
+  - Template: 0
+    Position: {x: -7.4916077, y: 1.1854461, z: 63.662148}
+    Yaw: 103.254944
+    Scale: 1.1805029
+  - Template: 4
+    Position: {x: 37.21344, y: -0.030829031, z: -29.55531}
+    Yaw: 358.46347
+    Scale: 1.2126644
+  - Template: 3
+    Position: {x: 60.02533, y: 0.6573028, z: -1.6021614}
+    Yaw: 54.98735
+    Scale: 1.0532751
+  - Template: 2
+    Position: {x: 56.445625, y: 0.55153507, z: -16.89656}
+    Yaw: 226.7179
+    Scale: 1.2084861
+  - Template: 1
+    Position: {x: 44.96826, y: 0.011005405, z: -20.42918}
+    Yaw: 301.65125
+    Scale: 1.2434485
+  - Template: 1
+    Position: {x: 21.110275, y: -0.05, z: -14.379398}
+    Yaw: 149.07149
+    Scale: 0.82447046
+  - Template: 8
+    Position: {x: 49.11351, y: 0.36163077, z: -28.372925}
+    Yaw: 232.43478
+    Scale: 1.0085247
+  - Template: 5
+    Position: {x: -46.202393, y: -0.043774195, z: 4.5394363}
+    Yaw: 24.62892
+    Scale: 1.0749458
+  - Template: 7
+    Position: {x: 24.654465, y: -0.05, z: -5.9217796}
+    Yaw: 325.17383
+    Scale: 0.8550012
+  - Template: 1
+    Position: {x: -5.7792664, y: -0.05, z: -23.197746}
+    Yaw: 101.579506
+    Scale: 1.0112288
+  - Template: 7
+    Position: {x: 45.08265, y: 0.088942364, z: 25.450607}
+    Yaw: 315.44852
+    Scale: 1.456798
+  - Template: 4
+    Position: {x: 27.281418, y: -0.05, z: -18.679176}
+    Yaw: 118.5158
+    Scale: 0.9620595
+  - Template: 7
+    Position: {x: 39.937233, y: -0.05, z: 3.3868256}
+    Yaw: 127.04902
+    Scale: 1.099674
+  - Template: 5
+    Position: {x: -27.772339, y: 0.12314026, z: -44.653633}
+    Yaw: 174.45766
+    Scale: 1.4725118
+  - Template: 4
+    Position: {x: 22.022247, y: -0.05, z: -35.6584}
+    Yaw: 186.28978
+    Scale: 1.2478412
+  - Template: 1
+    Position: {x: -13.527191, y: -0.05, z: 29.06942}
+    Yaw: 273.42975
+    Scale: 1.0443004
+  - Template: 0
+    Position: {x: -10.825306, y: -0.05, z: 29.249092}
+    Yaw: 215.49393
+    Scale: 1.051056
+  - Template: 4
+    Position: {x: -9.359695, y: -0.020475212, z: 46.95842}
+    Yaw: 124.351425
+    Scale: 1.3487988
+  - Template: 2
+    Position: {x: -19.217457, y: -0.05, z: -33.482487}
+    Yaw: 128.1916
+    Scale: 1.1077111
+  - Template: 5
+    Position: {x: -37.52658, y: -0.05, z: -7.426941}
+    Yaw: 54.888756
+    Scale: 1.3415565
+  - Template: 0
+    Position: {x: -24.972229, y: 0.9534442, z: 57.04097}
+    Yaw: 195.56526
+    Scale: 1.3115051
+  - Template: 2
+    Position: {x: 36.474884, y: -0.05, z: -20.09047}
+    Yaw: 306.85608
+    Scale: 0.9649587
+  - Template: 6
+    Position: {x: 48.61361, y: 0.0064886697, z: 7.1350784}
+    Yaw: 208.21317
+    Scale: 1.1511278
+  - Template: 0
+    Position: {x: -8.578537, y: -0.05, z: 32.7847}
+    Yaw: 208.49358
+    Scale: 0.78926176
+  - Template: 4
+    Position: {x: 17.436592, y: -0.05, z: -18.998386}
+    Yaw: 270.88516
+    Scale: 1.1180856
+  - Template: 0
+    Position: {x: 32.236504, y: -0.05, z: -10.091656}
+    Yaw: 263.28738
+    Scale: 1.2964119
+  - Template: 4
+    Position: {x: -4.431198, y: 0.3588323, z: -56.55065}
+    Yaw: 145.13907
+    Scale: 1.2835674
+  - Template: 3
+    Position: {x: -34.096447, y: 0.8003771, z: 50.859222}
+    Yaw: 195.0556
+    Scale: 1.4632144
+  - Template: 5
+    Position: {x: 27.765663, y: 0.73318446, z: -55.535324}
+    Yaw: 310.047
+    Scale: 1.0208659
+  - Template: 2
+    Position: {x: 41.810097, y: 0.14901358, z: 32.983154}
+    Yaw: 353.8461
+    Scale: 1.0018626
+  - Template: 1
+    Position: {x: -19.393394, y: -0.03597659, z: 42.8002}
+    Yaw: 251.0503
+    Scale: 1.2961055
+  - Template: 3
+    Position: {x: 28.680214, y: -0.04984042, z: 34.97171}
+    Yaw: 121.9053
+    Scale: 1.1905046
+  - Template: 2
+    Position: {x: 36.476646, y: 0.92778414, z: -52.59152}
+    Yaw: 236.36345
+    Scale: 1.3189979
+  - Template: 8
+    Position: {x: 26.199554, y: 1.522572, z: 63.239388}
+    Yaw: 62.797947
+    Scale: 1.4031081
+  - Template: 1
+    Position: {x: 42.920692, y: 0.55537045, z: 41.569443}
+    Yaw: 158.99554
+    Scale: 1.1620114
+  - Template: 7
+    Position: {x: 56.175423, y: 0.4052235, z: -9.51643}
+    Yaw: 84.77101
+    Scale: 1.0855234
+  - Template: 6
+    Position: {x: -45.887283, y: -0.044439215, z: -6.6905136}
+    Yaw: 270.99228
+    Scale: 0.99290454
+  - Template: 3
+    Position: {x: -39.7381, y: 1.6464792, z: 55.81588}
+    Yaw: 39.999264
+    Scale: 1.4628177
+  - Template: 6
+    Position: {x: -14.969513, y: 0.10131323, z: -49.81495}
+    Yaw: 174.19638
+    Scale: 1.1208552
+  - Template: 0
+    Position: {x: 12.9975815, y: -0.05, z: -24.325943}
+    Yaw: 168.53908
+    Scale: 1.2180079
+  - Template: 4
+    Position: {x: -46.28724, y: 0.007432826, z: -17.667942}
+    Yaw: 88.54349
+    Scale: 1.4411441
+  - Template: 2
+    Position: {x: 53.318016, y: 1.2145263, z: 40.09175}
+    Yaw: 345.42905
+    Scale: 1.1262188
+  - Template: 3
+    Position: {x: 8.647575, y: 0.7790964, z: -61.606705}
+    Yaw: 356.5397
+    Scale: 1.2824175
+  - Template: 1
+    Position: {x: 47.07084, y: 0.61160415, z: 37.89913}
+    Yaw: 236.2865
+    Scale: 1.2275672
+  - Template: 8
+    Position: {x: -37.519073, y: -0.05, z: -0.48597336}
+    Yaw: 341.07596
+    Scale: 1.3443295
+  - Template: 8
+    Position: {x: 5.9984818, y: -0.05, z: -35.355515}
+    Yaw: 42.067413
+    Scale: 0.8670677
+  - Template: 6
+    Position: {x: 57.134666, y: 0.4198777, z: -1.3712997}
+    Yaw: 44.249252
+    Scale: 1.3773508
+  - Template: 5
+    Position: {x: -55.43209, y: 0.67007405, z: 26.059647}
+    Yaw: 140.46565
+    Scale: 1.3285046
+  - Template: 1
+    Position: {x: -22.106548, y: -0.05, z: -26.458424}
+    Yaw: 359.86182
+    Scale: 1.1555191
+  - Template: 8
+    Position: {x: -22.043953, y: -0.05, z: -13.710995}
+    Yaw: 74.81896
+    Scale: 0.7540055
+  - Template: 2
+    Position: {x: -0.34565735, y: -0.05, z: 39.187996}
+    Yaw: 318.64676
+    Scale: 1.0008477
+  - Template: 6
+    Position: {x: -21.912151, y: -0.05, z: -19.966263}
+    Yaw: 171.86514
+    Scale: 1.1691873
+  - Template: 3
+    Position: {x: -44.18207, y: -0.042760883, z: 14.548744}
+    Yaw: 146.16646
+    Scale: 1.3171213
+  - Template: 7
+    Position: {x: 53.216125, y: 0.2010778, z: -7.9937363}
+    Yaw: 51.615913
+    Scale: 1.0681005
+  - Template: 1
+    Position: {x: -19.033848, y: 1.3834486, z: 62.784058}
+    Yaw: 51.057953
+    Scale: 1.2577729
+  - Template: 6
+    Position: {x: -22.585808, y: -0.05, z: 22.06314}
+    Yaw: 77.23195
+    Scale: 1.0735139
+  - Template: 6
+    Position: {x: -59.565548, y: 0.50610626, z: 1.9416046}
+    Yaw: 318.378
+    Scale: 1.2038491
+  - Template: 3
+    Position: {x: -28.047783, y: -0.05, z: -30.591995}
+    Yaw: 217.22142
+    Scale: 1.0661975
+  - Template: 7
+    Position: {x: -19.242596, y: 0.031032931, z: 45.927834}
+    Yaw: 193.0173
+    Scale: 1.0284569
+  - Template: 8
+    Position: {x: 27.93637, y: -0.05, z: 25.849327}
+    Yaw: 33.355442
+    Scale: 1.228467
+  - Template: 3
+    Position: {x: -43.01378, y: -0.05, z: 3.539894}
+    Yaw: 185.86987
+    Scale: 1.2193795
+  - Template: 3
+    Position: {x: 4.925766, y: -0.05, z: -25.337242}
+    Yaw: 197.38644
+    Scale: 1.1196123
+  - Template: 6
+    Position: {x: -27.783508, y: 0.25467947, z: -47.55773}
+    Yaw: 328.9927
+    Scale: 1.3715465
+  - Template: 5
+    Position: {x: 33.245087, y: -0.05, z: 29.512184}
+    Yaw: 347.88232
+    Scale: 1.1939402
+  - Template: 2
+    Position: {x: 55.696465, y: 0.70966417, z: -24.532036}
+    Yaw: 133.14877
+    Scale: 1.0584335
+  - Template: 7
+    Position: {x: 32.892822, y: 0.1421053, z: 41.737152}
+    Yaw: 223.37654
+    Scale: 1.4135406
+  - Template: 1
+    Position: {x: 20.10785, y: -0.05, z: -38.560585}
+    Yaw: 9.502226
+    Scale: 0.91299
+  - Template: 5
+    Position: {x: 33.201187, y: -0.05, z: 2.6237717}
+    Yaw: 325.93814
+    Scale: 0.8539089
+  - Template: 8
+    Position: {x: -31.615557, y: -0.05, z: 10.90744}
+    Yaw: 75.43311
+    Scale: 1.0861747
+  - Template: 3
+    Position: {x: -27.25663, y: 1.4853855, z: 60.7629}
+    Yaw: 331.7059
+    Scale: 1.4750273
+  - Template: 5
+    Position: {x: 30.904129, y: 0.03290156, z: 39.68296}
+    Yaw: 283.524
+    Scale: 1.1888505
+  - Template: 1
+    Position: {x: 2.530487, y: -0.0021920353, z: -48.972855}
+    Yaw: 251.83856
+    Scale: 1.1347523
+  - Template: 4
+    Position: {x: -26.274162, y: -0.041873194, z: -38.521122}
+    Yaw: 288.48416
+    Scale: 1.2437143
+  - Template: 8
+    Position: {x: -49.442856, y: 0.5922701, z: -35.57327}
+    Yaw: 214.34285
+    Scale: 1.3109858
+  - Template: 3
+    Position: {x: 25.991737, y: 0.108977586, z: 45.408707}
+    Yaw: 301.4684
+    Scale: 1.0159336
+  - Template: 7
+    Position: {x: 36.72149, y: 0.46574408, z: 45.59433}
+    Yaw: 339.94363
+    Scale: 1.0009977
+  - Template: 6
+    Position: {x: -13.798164, y: -0.05, z: -19.810085}
+    Yaw: 140.46011
+    Scale: 0.9417987
+  - Template: 0
+    Position: {x: -33.20261, y: -0.05, z: 4.014496}
+    Yaw: 189.2724
+    Scale: 1.17576
+  - Template: 0
+    Position: {x: 10.707382, y: -0.05, z: -27.174995}
+    Yaw: 116.20085
+    Scale: 0.991817
+  - Template: 5
+    Position: {x: -33.305634, y: -0.05, z: -16.35297}
+    Yaw: 176.83014
+    Scale: 1.245475
+  - Template: 2
+    Position: {x: -45.924362, y: 0.029467713, z: -20.70066}
+    Yaw: 2.9892826
+    Scale: 1.0113976
+  - Template: 4
+    Position: {x: -32.98278, y: 0.18870391, z: -42.80714}
+    Yaw: 278.15897
+    Scale: 1.1086191
+  - Template: 6
+    Position: {x: -35.657898, y: -0.05, z: 9.071953}
+    Yaw: 121.30588
+    Scale: 1.0668459
+  - Template: 0
+    Position: {x: -38.817127, y: 1.091044, z: 51.065147}
+    Yaw: 307.06445
+    Scale: 1.0971596
+  - Template: 4
+    Position: {x: 29.128845, y: 0.5945719, z: -53.003048}
+    Yaw: 0.14800596
+    Scale: 1.1936865
+  - Template: 3
+    Position: {x: 28.939484, y: 0.33510616, z: 48.577095}
+    Yaw: 57.496975
+    Scale: 1.3575026
+  - Template: 6
+    Position: {x: 54.071136, y: 0.7138771, z: -28.261387}
+    Yaw: 69.41124
+    Scale: 1.3662009
+  - Template: 0
+    Position: {x: 44.50197, y: 0.29081926, z: -33.668133}
+    Yaw: 278.6675
+    Scale: 1.0886445
+  - Template: 4
+    Position: {x: 51.915833, y: 0.12746462, z: 7.078804}
+    Yaw: 344.59222
+    Scale: 1.4170499
+  - Template: 5
+    Position: {x: 15.871307, y: 0.20131563, z: 51.594208}
+    Yaw: 320.67288
+    Scale: 1.001026
+  - Template: 5
+    Position: {x: 20.02124, y: -0.05, z: 22.219109}
+    Yaw: 128.9837
+    Scale: 0.74118215
+  - Template: 1
+    Position: {x: -48.567898, y: 0.15759319, z: 22.095345}
+    Yaw: 238.91545
+    Scale: 1.3599236
+  - Template: 7
+    Position: {x: 22.825027, y: -0.05, z: 9.396294}
+    Yaw: 298.88858
+    Scale: 1.0961807
+  - Template: 2
+    Position: {x: 7.9389496, y: -0.05, z: -26.443024}
+    Yaw: 233.51773
+    Scale: 0.87021613
+  - Template: 3
+    Position: {x: -17.27819, y: 0.75738037, z: 57.781662}
+    Yaw: 55.498753
+    Scale: 1.0052112
+  - Template: 5
+    Position: {x: 56.948097, y: 0.54400176, z: 15.331718}
+    Yaw: 284.44882
+    Scale: 1.3421957
+  - Template: 4
+    Position: {x: -34.538887, y: -0.05, z: 27.554176}
+    Yaw: 343.87762
+    Scale: 1.2660774
+  - Template: 2
+    Position: {x: 11.834198, y: -0.039344262, z: -45.415993}
+    Yaw: 81.39779
+    Scale: 1.3002856
+  - Template: 1
+    Position: {x: -8.579727, y: 0.2897448, z: -54.94082}
+    Yaw: 240.31816
+    Scale: 1.1161709
+  - Template: 8
+    Position: {x: 51.193436, y: 0.07932122, z: -2.7635307}
+    Yaw: 204.12598
+    Scale: 1.4148092
+  - Template: 8
+    Position: {x: -43.024315, y: 0.3060816, z: -36.602005}
+    Yaw: 119.38257
+    Scale: 1.2953632
+  - Template: 7
+    Position: {x: -29.06911, y: -0.05, z: -1.1156921}
+    Yaw: 288.26675
+    Scale: 1.175416
+  - Template: 1
+    Position: {x: -56.278893, y: 0.3458174, z: 8.977966}
+    Yaw: 314.6666
+    Scale: 1.1209772
+  - Template: 8
+    Position: {x: -23.57148, y: -0.05, z: 15.13929}
+    Yaw: 335.60434
+    Scale: 0.96687794
+  - Template: 0
+    Position: {x: -8.623562, y: -0.04607102, z: -45.31614}
+    Yaw: 58.10627
+    Scale: 1.3508058
+  - Template: 6
+    Position: {x: 8.165916, y: 0.87700295, z: 61.466652}
+    Yaw: 88.08254
+    Scale: 1.0844767
+  - Template: 7
+    Position: {x: 41.568962, y: -0.05, z: -11.776318}
+    Yaw: 352.03012
+    Scale: 1.2499354
+  - Template: 6
+    Position: {x: 27.280518, y: 0.041766968, z: -42.788208}
+    Yaw: 231.4101
+    Scale: 1.0141889
+  - Template: 0
+    Position: {x: -21.006607, y: 0.4574017, z: 53.122986}
+    Yaw: 17.717506
+    Scale: 1.4764302
+  - Template: 2
+    Position: {x: -26.478844, y: -0.041916575, z: 38.258644}
+    Yaw: 233.51038
+    Scale: 1.0406619
+  - Template: 6
+    Position: {x: 29.781555, y: -0.05, z: 2.6760864}
+    Yaw: 164.88237
+    Scale: 1.2587757
+  - Template: 3
+    Position: {x: 17.30175, y: 0.10637435, z: 49.139915}
+    Yaw: 114.46615
+    Scale: 0.9932183
+  - Template: 7
+    Position: {x: -17.00003, y: -0.05, z: -15.865566}
+    Yaw: 255.52388
+    Scale: 0.7355771
+  - Template: 7
+    Position: {x: 23.069527, y: 1.200489, z: 61.516907}
+    Yaw: 27.90988
+    Scale: 1.0174668
+  - Template: 7
+    Position: {x: 32.96482, y: -0.044728506, z: -32.5614}
+    Yaw: 284.48608
+    Scale: 1.4169213
+  - Template: 6
+    Position: {x: 61.359413, y: 0.81110567, z: 7.3492813}
+    Yaw: 22.254248
+    Scale: 1.2775536
+  - Template: 0
+    Position: {x: 56.867874, y: 0.6901054, z: 21.779984}
+    Yaw: 322.64862
+    Scale: 1.3841794
+  - Template: 2
+    Position: {x: -7.6586456, y: -0.05, z: 27.875671}
+    Yaw: 68.204704
+    Scale: 0.90974617
+  - Template: 6
+    Position: {x: -46.06894, y: 0.310375, z: 31.817207}
+    Yaw: 93.963844
+    Scale: 1.3900678
+  - Template: 5
+    Position: {x: 19.913979, y: -0.05, z: -29.587883}
+    Yaw: 353.1286
+    Scale: 1.0544333
+  pebbleMeshes:
+  - {fileID: 1394277619654936798, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 2746757093949517593, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 152358063177178495, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -6679646524440229298, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 5730443304386574928, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -7260178185337559650, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -6059949013131924565, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 5079277415144294811, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -2975608763355585582, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 3846711188733642127, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 1877588118764625355, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 6727998601315640733, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -2779500010971552356, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 5475616411095073487, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 6177662232882701969, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -8177356855174901830, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -1960137662415708429, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -5015673917834522847, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 7010039913373155557, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -6583034943116172257, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -901853764639807730, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 229651300914556191, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 8087366421832859975, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 2845808762071183559, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 219405067735580038, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 5210547404027134335, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 7636692831401764392, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 1932869820876891874, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -314040352631024937, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 2451833369285920849, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -8422220019509735320, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: -6510808602376157699, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  - {fileID: 3971449959589934828, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
+  pebbleMaterial: {fileID: 2100000, guid: 8a4faf22147a68c40bca1f4d9419546d, type: 2}
+  pebbles:
+  - Template: 14
+    Position: {x: -1.0721817, y: -0.12, z: 24.986652}
+    Yaw: 98.31359
+    Scale: 0.43749413
+  - Template: 19
+    Position: {x: -10.754826, y: -0.12, z: -18.433107}
+    Yaw: 183.06476
+    Scale: 1.870361
+  - Template: 29
+    Position: {x: -12.970444, y: -0.12, z: -20.59605}
+    Yaw: 138.47531
+    Scale: 1.2167355
+  - Template: 31
+    Position: {x: -20.893902, y: -0.12, z: 2.1452713}
+    Yaw: 168.20662
+    Scale: 0.75316244
+  - Template: 13
+    Position: {x: -20.73326, y: -0.12, z: -13.3256}
+    Yaw: 56.540718
+    Scale: 0.52862203
+  - Template: 7
+    Position: {x: 19.788925, y: -0.12, z: 18.313408}
+    Yaw: 353.26166
+    Scale: 0.79305494
+  - Template: 4
+    Position: {x: 19.116993, y: -0.12, z: -16.06383}
+    Yaw: 289.2108
+    Scale: 0.25087735
+  - Template: 11
+    Position: {x: 22.032246, y: -0.12, z: 18.645393}
+    Yaw: 354.31903
+    Scale: 1.6595138
+  - Template: 23
+    Position: {x: -14.11199, y: -0.12, z: 29.445091}
+    Yaw: 168.3162
+    Scale: 0.5624592
+  - Template: 14
+    Position: {x: -19.707687, y: -0.12, z: -2.4496212}
+    Yaw: 140.29854
+    Scale: 0.50412387
+  - Template: 26
+    Position: {x: -20.94939, y: -0.12, z: 2.0524368}
+    Yaw: 148.89635
+    Scale: 0.52535504
+  - Template: 7
+    Position: {x: -22.235859, y: -0.12, z: -3.7384949}
+    Yaw: 35.04388
+    Scale: 0.83211595
+  - Template: 20
+    Position: {x: 18.155922, y: -0.12, z: -18.775494}
+    Yaw: 267.5172
+    Scale: 1.081802
+  - Template: 16
+    Position: {x: 14.184185, y: -0.12, z: -24.354092}
+    Yaw: 191.81178
+    Scale: 0.37928906
+  - Template: 7
+    Position: {x: 21.037392, y: -0.12, z: 10.849571}
+    Yaw: 123.9721
+    Scale: 0.82840186
+  - Template: 21
+    Position: {x: 14.395039, y: -0.12, z: 25.947994}
+    Yaw: 334.50845
+    Scale: 0.84394044
+  - Template: 0
+    Position: {x: 21.927158, y: -0.12, z: 22.468124}
+    Yaw: 329.8406
+    Scale: 1.5070168
+  - Template: 0
+    Position: {x: -21.182735, y: -0.12, z: -8.617868}
+    Yaw: 182.19493
+    Scale: 1.2203608
+  - Template: 18
+    Position: {x: 23.053604, y: -0.12, z: -1.5669098}
+    Yaw: 98.9586
+    Scale: 0.57785827
+  - Template: 11
+    Position: {x: -18.673988, y: -0.12, z: -8.776289}
+    Yaw: 128.60965
+    Scale: 1.109729
+  - Template: 24
+    Position: {x: -7.9111786, y: -0.12, z: -20.79422}
+    Yaw: 13.885033
+    Scale: 0.6119337
+  - Template: 17
+    Position: {x: -15.1506605, y: -0.12, z: -18.707272}
+    Yaw: 330.03903
+    Scale: 0.55035704
+  - Template: 9
+    Position: {x: 5.1797676, y: -0.12, z: 27.960854}
+    Yaw: 87.05492
+    Scale: 0.34065026
+  - Template: 2
+    Position: {x: 15.339504, y: -0.12, z: -20.266161}
+    Yaw: 240.63309
+    Scale: 1.3426099
+  - Template: 25
+    Position: {x: 19.612, y: -0.12, z: 18.96922}
+    Yaw: 173.9212
+    Scale: 1.0239031
+  - Template: 15
+    Position: {x: 22.222652, y: -0.12, z: -5.6099396}
+    Yaw: 243.06648
+    Scale: 1.9858733
+  - Template: 17
+    Position: {x: 0.51257706, y: -0.12, z: 24.823593}
+    Yaw: 79.787766
+    Scale: 0.3859933
+  - Template: 10
+    Position: {x: 15.160725, y: -0.12, z: -20.629652}
+    Yaw: 26.056183
+    Scale: 1.4790508
+  - Template: 10
+    Position: {x: -10.135206, y: -0.12, z: -21.327297}
+    Yaw: 3.916555
+    Scale: 0.7124061
+  - Template: 22
+    Position: {x: 20.794579, y: -0.12, z: 20.456131}
+    Yaw: 170.62059
+    Scale: 0.53443307
+  - Template: 6
+    Position: {x: 20.79766, y: -0.12, z: -12.119324}
+    Yaw: 236.06482
+    Scale: 1.0714898
+  - Template: 5
+    Position: {x: 24.925606, y: -0.12, z: 3.4933548}
+    Yaw: 26.880592
+    Scale: 0.2611155
+  - Template: 31
+    Position: {x: 23.468056, y: -0.12, z: 4.446392}
+    Yaw: 82.003105
+    Scale: 0.35142466
+  - Template: 0
+    Position: {x: -20.443298, y: -0.12, z: -10.897978}
+    Yaw: 292.60403
+    Scale: 1.2469741
+  - Template: 19
+    Position: {x: -4.3684464, y: -0.12, z: 25.295124}
+    Yaw: 182.76363
+    Scale: 1.1798873
+  - Template: 15
+    Position: {x: 23.674149, y: -0.12, z: 0.8218689}
+    Yaw: 325.14163
+    Scale: 1.3091267
+  - Template: 8
+    Position: {x: 24.037895, y: -0.12, z: 8.134647}
+    Yaw: 261.63907
+    Scale: 0.76176494
+  - Template: 18
+    Position: {x: 21.126476, y: -0.12, z: 1.7613945}
+    Yaw: 50.96653
+    Scale: 0.45587108
+  - Template: 6
+    Position: {x: 6.333542, y: -0.12, z: -26.136179}
+    Yaw: 122.519646
+    Scale: 1.0308449
+  - Template: 18
+    Position: {x: 20.974457, y: -0.12, z: -4.511835}
+    Yaw: 24.236393
+    Scale: 0.5912178
+  - Template: 0
+    Position: {x: 19.596828, y: -0.12, z: 24.152267}
+    Yaw: 7.6607556
+    Scale: 1.6645342
+  - Template: 3
+    Position: {x: -11.575487, y: -0.12, z: 28.582}
+    Yaw: 236.61572
+    Scale: 0.8611787
+  - Template: 6
+    Position: {x: 4.9773865, y: -0.12, z: 29.095642}
+    Yaw: 51.910053
+    Scale: 0.435303
+  - Template: 22
+    Position: {x: -19.319204, y: -0.12, z: 14.945686}
+    Yaw: 101.97521
+    Scale: 0.5114627
+  - Template: 13
+    Position: {x: 22.130238, y: -0.12, z: -4.03631}
+    Yaw: 307.0663
+    Scale: 0.4558439
+  - Template: 3
+    Position: {x: 24.326935, y: -0.12, z: 9.833656}
+    Yaw: 99.12863
+    Scale: 0.92417496
+  - Template: 20
+    Position: {x: -6.4087257, y: -0.12, z: 27.21244}
+    Yaw: 251.57158
+    Scale: 1.0479748
+  - Template: 27
+    Position: {x: -5.9869576, y: -0.12, z: -21.6102}
+    Yaw: 117.4195
+    Scale: 0.65272456
+  - Template: 32
+    Position: {x: -18.219887, y: -0.12, z: 21.912197}
+    Yaw: 170.2141
+    Scale: 0.49837783
+  - Template: 1
+    Position: {x: 14.090427, y: -0.12, z: -20.36879}
+    Yaw: 163.50111
+    Scale: 0.5337024
+  - Template: 28
+    Position: {x: 22.637074, y: -0.12, z: -6.495783}
+    Yaw: 332.6437
+    Scale: 0.64038
+  - Template: 12
+    Position: {x: -17.960388, y: -0.12, z: -14.570723}
+    Yaw: 270.66833
+    Scale: 0.3822969
+  - Template: 9
+    Position: {x: 22.211582, y: -0.12, z: -5.9360275}
+    Yaw: 303.43103
+    Scale: 0.19064206
+  - Template: 32
+    Position: {x: -20.618685, y: -0.12, z: 18.456253}
+    Yaw: 1.6655449
+    Scale: 0.99253184
+  - Template: 5
+    Position: {x: -22.875053, y: -0.12, z: 1.542572}
+    Yaw: 105.44682
+    Scale: 0.51936257
+  pebbleShape: {x: 1, y: 1, z: 1}
 --- !u!1 &4271995819755850569
 GameObject:
   m_ObjectHideFlags: 0
@@ -752,7 +4516,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7fdb6f1c4228f3343a551a5a92425cb5, type: 2}
+  - {fileID: 2100000, guid: 9da5a284727d2ad4da57cfe769426fb6, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -867,6 +4631,7 @@ Transform:
   - {fileID: 4213563202444267829}
   - {fileID: 1150277096071672870}
   - {fileID: 3314562149387436400}
+  - {fileID: 7653256716189743131}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7477263321026071975
