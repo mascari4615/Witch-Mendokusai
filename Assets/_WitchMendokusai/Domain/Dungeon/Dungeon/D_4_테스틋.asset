@@ -44,3 +44,4 @@ MonoBehaviour:
     <OffscreenStep>k__BackingField: 2
     <OffscreenMaxDistance>k__BackingField: 30
     <RetirePolicy>k__BackingField: 0
+  <DevBuildOnly>k__BackingField: 1
