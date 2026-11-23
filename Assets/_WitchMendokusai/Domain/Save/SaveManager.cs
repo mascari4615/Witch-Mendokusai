@@ -33,10 +33,6 @@ namespace WitchMendokusai
 		/// <summary> 다른 프로세스가 세이브의 주인이라 이번 실행은 저장하지 않음 </summary>
 		public bool IsReadOnly { get; private set; }
 
-		// 프로세스에 하나. 플레이어는 꺼질 때 OS 가 놓고, 에디터는 플레이 모드가 끝나면 놓음
-		private static SaveOwnerLock heldOwnerLock;
-		private bool isLockUnavailable;
-
 		private SOManager soManager;
 		// DataManager → SaveManager → DataManager 순환 — 소유자 push (TASK-WM-120 γ).
 		// WM-078 γ P3-K 의 lazy `DataManager.Instance` 폐기: DataManager 가 이미
@@ -177,46 +173,15 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>
-		/// 이 프로세스가 세이브의 주인인지. 처음 부를 때 잠금을 잡고, 못 잡으면 이번 실행 내내 읽기만 함
-		/// 다시 시도하지 않음. 실행 도중 주인이 되면 그사이 남이 쓴 파일을 옛 메모리로 덮게 됨
+		/// 이 프로세스가 세이브의 주인인지. 처음 부를 때 잠금을 잡고, 못 잡으면 이번 실행 내내 읽기만 함 (SaveOwnerLock.ClaimForProcess)
+		/// 잠금 파일을 못 다루는 환경은 주인을 가릴 수 없어 잠금 없이 예전처럼 씀
 		/// </summary>
 		private bool EnsureOwner()
 		{
-			if (heldOwnerLock is { IsHeld: true } || isLockUnavailable)
-				return true;
-			if (IsReadOnly)
-				return false;
-
-			SaveOwnerLockResult result = SaveOwnerLock.TryAcquire(SaveTool.GetSaveFilePath(SAVE_FILE_NAME), out heldOwnerLock);
-			if (result == SaveOwnerLockResult.Acquired)
-				return true;
-			// 잠금 파일을 못 다루는 환경은 주인을 가릴 수 없음. 저장을 막으면 진행이 다 사라지므로 잠금 없이 예전처럼 씀
-			if (result == SaveOwnerLockResult.Unavailable)
-			{
-				isLockUnavailable = true;
-				return true;
-			}
-
-			IsReadOnly = true;
-			Debug.LogError($"[{nameof(SaveManager)}] 다른 WM 이 이 세이브를 쓰는 중이라 이번 실행은 저장하지 않음: {SaveTool.GetSaveFilePath(SAVE_FILE_NAME)}");
-			return false;
+			bool isOwner = SaveOwnerLock.ClaimForProcess(SaveTool.GetSaveFilePath(SAVE_FILE_NAME), out SaveOwnerLockResult _);
+			IsReadOnly = isOwner == false;
+			return isOwner;
 		}
-
-#if UNITY_EDITOR
-		// 에디터는 플레이 모드를 끝내도 프로세스가 남음. 잠금을 놓아야 플레이어나 다음 플레이 모드가 주인이 됨
-		// 모든 OnApplicationQuit 저장이 끝난 뒤인 EnteredEditMode 에서 놓음
-		[UnityEditor.InitializeOnLoadMethod]
-		private static void ReleaseOwnerLockAfterPlay()
-		{
-			UnityEditor.EditorApplication.playModeStateChanged += playModeStateChange =>
-			{
-				if (playModeStateChange != UnityEditor.PlayModeStateChange.EnteredEditMode)
-					return;
-				heldOwnerLock?.Dispose();
-				heldOwnerLock = null;
-			};
-		}
-#endif
 
 		public void LoadData(GameData saveData)
 		{

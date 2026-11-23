@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace KarmoLabs
@@ -76,5 +77,66 @@ namespace KarmoLabs
 			stream?.Dispose();
 			stream = null;
 		}
+
+		// 프로세스 안에서 세이브 파일마다 한 번 정한 주인 여부. 실행 도중 다시 정하지 않음
+		// 도중에 주인이 되면 그사이 남이 쓴 파일을 옛 메모리로 덮게 됨
+		private sealed class Claim
+		{
+			public SaveOwnerLockResult Result;
+			public SaveOwnerLock Held;
+		}
+
+		private static readonly Dictionary<string, Claim> claims = new();
+
+		/// <summary>
+		/// 이 프로세스가 그 세이브에 써도 되는지. 처음 부를 때 잠금을 잡고 결과를 기억함
+		/// HeldByOther 만 false. Unavailable 은 주인을 가릴 수 없어 잠금 없이 예전처럼 쓰게 true
+		/// </summary>
+		public static bool ClaimForProcess(string saveFilePath, out SaveOwnerLockResult result)
+		{
+			string key = Path.GetFullPath(saveFilePath);
+			if (claims.TryGetValue(key, out Claim claim) == false)
+			{
+				claim = new Claim();
+				claim.Result = TryAcquire(saveFilePath, out claim.Held);
+				claims[key] = claim;
+				if (claim.Result == SaveOwnerLockResult.HeldByOther)
+					UnityEngine.Debug.LogError($"[{nameof(SaveOwnerLock)}] 다른 WM 이 이 세이브를 쓰는 중이라 이번 실행은 저장하지 않음: {saveFilePath}");
+			}
+
+			result = claim.Result;
+			return result != SaveOwnerLockResult.HeldByOther;
+		}
+
+		/// <summary> 기억한 주인 여부를 지우고 잠금을 놓음. 다음 ClaimForProcess 가 다시 정함 </summary>
+		public static void ReleaseClaim(string saveFilePath)
+		{
+			string key = Path.GetFullPath(saveFilePath);
+			if (claims.TryGetValue(key, out Claim claim) == false)
+				return;
+			claim.Held?.Dispose();
+			claims.Remove(key);
+		}
+
+		public static void ReleaseAllClaims()
+		{
+			foreach (Claim claim in claims.Values)
+				claim.Held?.Dispose();
+			claims.Clear();
+		}
+
+#if UNITY_EDITOR
+		// 에디터는 플레이 모드를 끝내도 프로세스가 남음. 잠금을 놓아야 플레이어나 다음 플레이 모드가 주인이 됨
+		// 모든 OnApplicationQuit 저장이 끝난 뒤인 EnteredEditMode 에서 놓음
+		[UnityEditor.InitializeOnLoadMethod]
+		private static void ReleaseClaimsAfterPlayMode()
+		{
+			UnityEditor.EditorApplication.playModeStateChanged += playModeStateChange =>
+			{
+				if (playModeStateChange == UnityEditor.PlayModeStateChange.EnteredEditMode)
+					ReleaseAllClaims();
+			};
+		}
+#endif
 	}
 }

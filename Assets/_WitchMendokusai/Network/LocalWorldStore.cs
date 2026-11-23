@@ -1,3 +1,4 @@
+using KarmoLabs;
 using System.IO;
 using UnityEngine;
 
@@ -39,6 +40,8 @@ namespace WitchMendokusai
 		/// <summary>지난 기억. 지금 것이 깨졌으면 <b>바로 앞 판</b>으로 되살린다. 둘 다 안 되면 빈 세계.</summary>
 		public static WorldSaveData TryLoad()
 		{
+			// 읽을 때 주인을 정해 둠. 남이 쥔 세계는 읽기만 하고 TrySave 가 쓰지 않음 (2026-11-23 세이브 덮어쓰기와 같은 근원)
+			SaveOwnerLock.ClaimForProcess(Path, out SaveOwnerLockResult _);
 			WorldSaveData current = TryRead(Path);
 			if (current != null)
 				return current;
@@ -70,6 +73,10 @@ namespace WitchMendokusai
 		public static bool TrySave(WorldSaveData data)
 		{
 			if (data == null)
+				return false;
+
+			// 다른 프로세스가 이 세계의 주인이면 쓰지 않음. 쓰면 주인이 그사이 저장한 세계를 이 메모리로 되돌림
+			if (SaveOwnerLock.ClaimForProcess(Path, out SaveOwnerLockResult _) == false)
 				return false;
 
 			try

@@ -53,6 +53,27 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Process_claim_is_remembered_and_blocks_others_until_released()
+		{
+			try
+			{
+				Assert.IsTrue(SaveOwnerLock.ClaimForProcess(path, out SaveOwnerLockResult first));
+				Assert.AreEqual(SaveOwnerLockResult.Acquired, first);
+				// 같은 프로세스가 다시 물으면 기억한 답. 잠금을 또 잡지 않음
+				Assert.IsTrue(SaveOwnerLock.ClaimForProcess(path, out SaveOwnerLockResult _));
+				// 다른 주인 (여기서는 같은 프로세스의 별도 잠금) 은 거절
+				Assert.AreEqual(SaveOwnerLockResult.HeldByOther, SaveOwnerLock.TryAcquire(path, out SaveOwnerLock _));
+			}
+			finally
+			{
+				SaveOwnerLock.ReleaseClaim(path);
+			}
+
+			Assert.AreEqual(SaveOwnerLockResult.Acquired, SaveOwnerLock.TryAcquire(path, out SaveOwnerLock again));
+			again.Dispose();
+		}
+
+		[Test]
 		public void Second_owner_is_refused_while_first_holds()
 		{
 			Assert.AreEqual(SaveOwnerLockResult.Acquired, SaveOwnerLock.TryAcquire(path, out SaveOwnerLock first));
