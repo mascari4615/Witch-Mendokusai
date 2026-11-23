@@ -17,6 +17,8 @@ namespace WitchMendokusai
 		RestoredFromBackup = 2,
 		/// <summary> 세이브가 있었는데 못 읽어 새 게임으로 시작 </summary>
 		ResetUnreadable = 3,
+		/// <summary> 다른 프로세스가 같은 세이브를 쓰는 중. 불러오기는 했지만 이번 실행은 저장하지 않음 </summary>
+		ReadOnlyOtherOwner = 4,
 	}
 
 	public class SaveManager
@@ -28,6 +30,12 @@ namespace WitchMendokusai
 		public bool IsDataLoaded { get; private set; }
 		/// <summary> 마지막 불러오기 결과. 로비가 읽어 복구나 새 게임 시작을 알림 </summary>
 		public SaveLoadOutcome LastLoadOutcome { get; private set; }
+		/// <summary> 다른 프로세스가 세이브의 주인이라 이번 실행은 저장하지 않음 </summary>
+		public bool IsReadOnly { get; private set; }
+
+		// 프로세스에 하나. 플레이어는 꺼질 때 OS 가 놓고, 에디터는 플레이 모드가 끝나면 놓음
+		private static SaveOwnerLock heldOwnerLock;
+		private bool isLockUnavailable;
 
 		private SOManager soManager;
 		// DataManager → SaveManager → DataManager 순환 — 소유자 push (TASK-WM-120 γ).
@@ -126,6 +134,15 @@ namespace WitchMendokusai
 			// 업그레이드 초기화
 			ForEach<UpgradeData>(upgradeData => { upgradeData.CurLevel = 0; });
 
+			// 주인이 아니면 파일은 그대로 두고 메모리에만 새 게임을 올림. 남의 세이브를 지우지 않음
+			if (EnsureOwner() == false)
+			{
+				// 파일을 거치는 주인 경로와 같게 직렬화 왕복으로 떼어 냄. 살아 있는 참조를 그대로 넘기면
+				// Load 가 자기 사전을 제자리에서 비우고 다시 읽어 통계가 기본값이 됨 (GameStat.Save 가 내부 사전을 돌려줌)
+				LoadData(SaveTool.CloneThroughJson(CaptureGameData()));
+				return;
+			}
+
 			// 새 게임은 앞 판도 비움. 남기면 지운 진행이 앞 판으로 되살아남
 			SaveTool.DeleteSaveFile(SAVE_FILE_NAME);
 			WriteSaveData();
@@ -134,10 +151,17 @@ namespace WitchMendokusai
 
 		public void LoadLocalData()
 		{
-			if (SaveTool.TryLoadFile(SAVE_FILE_NAME, out GameData gameData, out SaveReadSource source))
+			bool isOwner = EnsureOwner();
+			// 주인이 아니면 못 읽은 파일도 옮기지 않음. 그 파일은 주인 것
+			if (SaveTool.TryLoadFile(SAVE_FILE_NAME, out GameData gameData, out SaveReadSource source, quarantineUnreadable: isOwner))
 			{
 				LoadData(gameData);
 				LastLoadOutcome = source == SaveReadSource.Backup ? SaveLoadOutcome.RestoredFromBackup : SaveLoadOutcome.Loaded;
+				if (isOwner == false)
+				{
+					LastLoadOutcome = SaveLoadOutcome.ReadOnlyOtherOwner;
+					return;
+				}
 				// 앞 판에서 읽었으면 바로 본 파일로 다시 씀. 안 쓰고 꺼지면 다음 실행에도 같은 알림이 뜸
 				if (LastLoadOutcome == SaveLoadOutcome.RestoredFromBackup)
 					SaveData();
@@ -147,8 +171,52 @@ namespace WitchMendokusai
 				// 새 게임 만들기가 안에서 다시 불러오며 Loaded 로 덮으므로 끝난 뒤에 적음
 				CreateNewGameData();
 				LastLoadOutcome = source == SaveReadSource.Unreadable ? SaveLoadOutcome.ResetUnreadable : SaveLoadOutcome.FirstRun;
+				if (isOwner == false)
+					LastLoadOutcome = SaveLoadOutcome.ReadOnlyOtherOwner;
 			}
 		}
+
+		/// <summary>
+		/// 이 프로세스가 세이브의 주인인지. 처음 부를 때 잠금을 잡고, 못 잡으면 이번 실행 내내 읽기만 함
+		/// 다시 시도하지 않음. 실행 도중 주인이 되면 그사이 남이 쓴 파일을 옛 메모리로 덮게 됨
+		/// </summary>
+		private bool EnsureOwner()
+		{
+			if (heldOwnerLock is { IsHeld: true } || isLockUnavailable)
+				return true;
+			if (IsReadOnly)
+				return false;
+
+			SaveOwnerLockResult result = SaveOwnerLock.TryAcquire(SaveTool.GetSaveFilePath(SAVE_FILE_NAME), out heldOwnerLock);
+			if (result == SaveOwnerLockResult.Acquired)
+				return true;
+			// 잠금 파일을 못 다루는 환경은 주인을 가릴 수 없음. 저장을 막으면 진행이 다 사라지므로 잠금 없이 예전처럼 씀
+			if (result == SaveOwnerLockResult.Unavailable)
+			{
+				isLockUnavailable = true;
+				return true;
+			}
+
+			IsReadOnly = true;
+			Debug.LogError($"[{nameof(SaveManager)}] 다른 WM 이 이 세이브를 쓰는 중이라 이번 실행은 저장하지 않음: {SaveTool.GetSaveFilePath(SAVE_FILE_NAME)}");
+			return false;
+		}
+
+#if UNITY_EDITOR
+		// 에디터는 플레이 모드를 끝내도 프로세스가 남음. 잠금을 놓아야 플레이어나 다음 플레이 모드가 주인이 됨
+		// 모든 OnApplicationQuit 저장이 끝난 뒤인 EnteredEditMode 에서 놓음
+		[UnityEditor.InitializeOnLoadMethod]
+		private static void ReleaseOwnerLockAfterPlay()
+		{
+			UnityEditor.EditorApplication.playModeStateChanged += playModeStateChange =>
+			{
+				if (playModeStateChange != UnityEditor.PlayModeStateChange.EnteredEditMode)
+					return;
+				heldOwnerLock?.Dispose();
+				heldOwnerLock = null;
+			};
+		}
+#endif
 
 		public void LoadData(GameData saveData)
 		{
@@ -303,10 +371,16 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// 주인이 아니면 쓰지 않음. 쓰면 주인이 그사이 저장한 진행을 이 메모리로 되돌림
+			if (EnsureOwner() == false)
+				return;
+
 			WriteSaveData();
 		}
 
-		private void WriteSaveData()
+		private void WriteSaveData() => SaveTool.SaveFile(SAVE_FILE_NAME, CaptureGameData());
+
+		private GameData CaptureGameData()
 		{
 			GameData gameData = new()
 			{
@@ -336,7 +410,7 @@ namespace WitchMendokusai
 			gameData.dialogueHistory = DialogueHistoryBridge.CaptureSaveData();
 			gameData.windowLayouts = soManager.WindowLayoutData.Save();
 
-			SaveTool.SaveFile(SAVE_FILE_NAME, gameData);
+			return gameData;
 		}
 	}
 }

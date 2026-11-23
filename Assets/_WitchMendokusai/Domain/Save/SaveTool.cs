@@ -57,26 +57,31 @@ namespace KarmoLabs
 				File.Move(tempPath, path);
 		}
 
-		public static bool TryLoadFile<T>(string fileName, out T data, out SaveReadSource source) where T : class
-			=> TryReadWithBackup(GetSaveFilePath(fileName), out data, out source);
+		public static bool TryLoadFile<T>(string fileName, out T data, out SaveReadSource source, bool quarantineUnreadable = true) where T : class
+			=> TryReadWithBackup(GetSaveFilePath(fileName), out data, out source, quarantineUnreadable);
+
+		/// <summary> 저장 파일과 같은 설정으로 직렬화했다 되읽은 사본. 파일을 거친 것과 같은 모양을 메모리에서 얻음 </summary>
+		public static T CloneThroughJson<T>(T data)
+			=> JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(data, JsonSettings), JsonSettings);
 
 		/// <summary> 본 파일을 읽고, 못 읽으면 앞 판을 읽는다. 둘 다 안 되면 false. </summary>
 		public static bool TryReadWithBackup<T>(string path, out T data) where T : class
 			=> TryReadWithBackup(path, out data, out SaveReadSource _);
 
 		/// <summary> source: 어느 파일에서 읽었는지. 못 읽었으면 파일이 아예 없었는지 (Missing), 있었는데 깨졌는지 (Unreadable) </summary>
-		public static bool TryReadWithBackup<T>(string path, out T data, out SaveReadSource source) where T : class
+		/// <summary> quarantineUnreadable: false 면 못 읽은 파일을 옮기지 않음. 세이브의 주인이 아닌 프로세스용 </summary>
+		public static bool TryReadWithBackup<T>(string path, out T data, out SaveReadSource source, bool quarantineUnreadable = true) where T : class
 		{
 			string backupPath = path + BACKUP_SUFFIX;
 			bool anyFileExisted = File.Exists(path) || File.Exists(backupPath);
 
-			if (TryRead(path, out data))
+			if (TryRead(path, out data, quarantineUnreadable))
 			{
 				source = SaveReadSource.Main;
 				return true;
 			}
 
-			if (TryRead(backupPath, out data))
+			if (TryRead(backupPath, out data, quarantineUnreadable))
 			{
 				Debug.LogWarning($"[{nameof(SaveTool)}] 저장 파일을 못 읽어 앞 판으로 불러옴: {Path.GetFileName(path)}");
 				source = SaveReadSource.Backup;
@@ -87,7 +92,7 @@ namespace KarmoLabs
 			return false;
 		}
 
-		private static bool TryRead<T>(string path, out T data) where T : class
+		private static bool TryRead<T>(string path, out T data, bool quarantineUnreadable) where T : class
 		{
 			data = null;
 			if (File.Exists(path) == false)
@@ -96,6 +101,11 @@ namespace KarmoLabs
 			try
 			{
 				data = JsonConvert.DeserializeObject<T>(File.ReadAllText(path), JsonSettings);
+			}
+			// 확인과 읽기 사이에 다른 프로세스가 바꿔 끼우면 잠깐 없음. 깨진 게 아니라 옮기지 않고 없는 것으로 봄
+			catch (FileNotFoundException)
+			{
+				return false;
 			}
 			// 내용이 깨진 경우만 잡음. 잠금이나 권한 같은 입출력 실패는 멀쩡한 세이브일 수 있어 그대로 던짐
 			catch (JsonException exception)
@@ -108,7 +118,8 @@ namespace KarmoLabs
 			if (data != null)
 				return true;
 
-			Quarantine(path);
+			if (quarantineUnreadable)
+				Quarantine(path);
 			return false;
 		}
 

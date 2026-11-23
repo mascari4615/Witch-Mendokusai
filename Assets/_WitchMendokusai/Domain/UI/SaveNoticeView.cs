@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 세이브를 앞 판으로 복구했거나, 못 읽어 새 게임으로 시작했을 때 한 번 알리는 확인창.
+	/// 세이브를 앞 판으로 복구했거나, 못 읽어 새 게임으로 시작했거나, 다른 창이 세이브를 쥐고 있을 때 한 번 알리는 확인창.
 	/// 로비가 데이터를 불러온 뒤 SaveManager.LastLoadOutcome 을 넘겨 부름. 첫 실행과 정상 불러오기는 알리지 않음
 	/// 모양은 공용 확인창 (UIConfirmDialog, ConfirmDialog.uss)
 	/// </summary>
@@ -29,6 +29,9 @@ namespace WitchMendokusai
 					break;
 				case SaveLoadOutcome.ResetUnreadable:
 					Show("세이브를 읽지 못해 새 게임으로 시작해요", "읽지 못한 파일은 지우지 않고 세이브 폴더에 따로 옮겼습니다.");
+					break;
+				case SaveLoadOutcome.ReadOnlyOtherOwner:
+					Show("이번 실행은 저장되지 않아요", "다른 창에서 같은 세이브로 게임이 켜져 있습니다. 진행을 남기려면 이 창을 끄고 그 창에서 이어 주세요.");
 					break;
 			}
 		}
