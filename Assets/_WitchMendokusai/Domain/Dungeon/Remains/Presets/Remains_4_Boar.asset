@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Remains_4_Boar
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.RemainsProfile
   Shape: 3
-  Count: {x: 4, y: 6}
+  Count: {x: 2, y: 3}
   Size: {x: 0.12, y: 0.2}
   Palette:
   - {r: 0.42, g: 0.28, b: 0.18, a: 1}
@@ -27,10 +27,10 @@ MonoBehaviour:
   Bounce: 0.25
   Spin: 420
   AwayBias: 0.5
-  StainRadius: 0.6
-  StainColor: {r: 0.25, g: 0.08, b: 0.05, a: 0.7}
+  StainRadius: 0.4
+  StainColor: {r: 0.25, g: 0.08, b: 0.05, a: 0.45}
   PieceStainScale: 0
   Spill: {fileID: 0}
   SpillRadius: 0.8
   SpillChance: 0.35
-  PieceChance: 1
+  PieceChance: 0.35

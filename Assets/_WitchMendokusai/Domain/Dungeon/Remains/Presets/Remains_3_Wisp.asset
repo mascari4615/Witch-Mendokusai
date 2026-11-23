@@ -24,10 +24,10 @@ MonoBehaviour:
   Bounce: 0.25
   Spin: 420
   AwayBias: 0.5
-  StainRadius: 0.8
-  StainColor: {r: 0.45, g: 0.65, b: 1, a: 0.6}
+  StainRadius: 0.5
+  StainColor: {r: 0.45, g: 0.65, b: 1, a: 0.4}
   PieceStainScale: 0
   Spill: {fileID: 0}
   SpillRadius: 0.8
   SpillChance: 0.35
-  PieceChance: 1
+  PieceChance: 0.35

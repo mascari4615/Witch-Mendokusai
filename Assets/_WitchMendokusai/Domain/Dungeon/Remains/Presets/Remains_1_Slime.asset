@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Remains_1_Slime
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.RemainsProfile
   Shape: 1
-  Count: {x: 3, y: 5}
+  Count: {x: 1, y: 2}
   Size: {x: 0.12, y: 0.22}
   Palette: []
   Material: {fileID: 0}
@@ -24,10 +24,10 @@ MonoBehaviour:
   Bounce: 0.1
   Spin: 420
   AwayBias: 0.5
-  StainRadius: 0.6
-  StainColor: {r: 0.12, g: 0.2, b: 0.05, a: 0.75}
+  StainRadius: 0.4
+  StainColor: {r: 0.12, g: 0.2, b: 0.05, a: 0.45}
   PieceStainScale: 0
   Spill: {fileID: 11400000, guid: 3f66ed07e770a0645a573a3716e4ef97, type: 2}
   SpillRadius: 0.7
-  SpillChance: 0.2
-  PieceChance: 1
+  SpillChance: 0.05
+  PieceChance: 0.35

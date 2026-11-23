@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: RemainsSettings
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.RemainsSettings
   MaxFlying: 128
-  MaxResting: 256
+  MaxResting: 80
   RestSpeed: 0.6
   SettleSeconds: 0.12
   VanishSeconds: 1.2
   MaxFlightSeconds: 3
   PrewarmPerFrame: 8
   PieceMaterial: {fileID: 2100000, guid: 96ceb1f9615cbb84bb11041356e4623c, type: 2}
-  KillPieceBudgetPerSecond: 20
+  KillPieceBudgetPerSecond: 6
   ColorSampleCacheLimit: 64
   ColorSampleRequestsPerFrame: 4
   CritPieceScale: 2
@@ -37,7 +37,7 @@ MonoBehaviour:
   CanvasResolution: 1024
   MaxStampsPerFrame: 64
   StampTexture: {fileID: 2800000, guid: db740c8c17db8454c949e6e79e100d7f, type: 3}
-  CanvasOpacity: 0.85
+  CanvasOpacity: 0.6
   GoopCellSize: 0.5
   GoopEdgeAmount: 0.5
   MaxGoopCells: 4096
