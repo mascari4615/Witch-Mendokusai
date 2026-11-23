@@ -104,8 +104,21 @@ namespace WitchMendokusai
 			piece.StateTime = 0f;
 		}
 
+		// 처치가 몰린 프레임에 개체 생성이 몰리지 않게 평소에 조금씩 만들어 둠
+		private void Prewarm(RemainsSettings settings)
+		{
+			int capacity = settings.MaxFlying + settings.MaxResting;
+			for (int i = 0; i < settings.PrewarmPerFrame && pieces.Count < capacity; i++)
+			{
+				DebrisPiece piece = Create();
+				piece.Transform.gameObject.SetActive(false);
+				idle.Push(piece);
+			}
+		}
+
 		public void Tick(RemainsSettings settings, float lingerSeconds, float deltaTime, Vector3 pusherPosition, Vector3 pusherVelocity, bool hasPusher)
 		{
+			Prewarm(settings);
 			bool pushing = hasPusher && new Vector2(pusherVelocity.x, pusherVelocity.z).magnitude >= settings.PlayerPushMinSpeed;
 			for (int i = 0; i < pieces.Count; i++)
 			{

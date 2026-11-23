@@ -24,6 +24,7 @@ namespace WitchMendokusai
 		private static readonly int FADE_ID = Shader.PropertyToID("_Fade");
 		private static readonly int CANVAS_ID = Shader.PropertyToID("_StainCanvas");
 		private static readonly int OPACITY_ID = Shader.PropertyToID("_Opacity");
+		private static readonly int ALPHA_GAIN_ID = Shader.PropertyToID("_AlphaGain");
 		private static readonly int STAMP_TEX_ID = Shader.PropertyToID("_StampTex");
 		private const int PASS_SCROLL = 0;
 		private const int PASS_FADE = 1;
@@ -135,6 +136,7 @@ namespace WitchMendokusai
 				return;
 			display.SetTexture(CANVAS_ID, canvas);
 			display.SetFloat(OPACITY_ID, settings.CanvasOpacity);
+			display.SetFloat(ALPHA_GAIN_ID, settings.CanvasAlphaGain);
 		}
 
 		private void Recenter(RemainsSettings settings, Vector3 focus, float groundHeight)

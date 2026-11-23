@@ -37,3 +37,4 @@ MonoBehaviour:
     <Percentage>k__BackingField: 3
   - <DataSO>k__BackingField: {fileID: 11400000, guid: a182130000000000000000000000beef, type: 2}
     <Percentage>k__BackingField: 2
+  <Remains>k__BackingField: {fileID: 11400000, guid: 188d65c2abb83b84789cc001bd195264, type: 2}

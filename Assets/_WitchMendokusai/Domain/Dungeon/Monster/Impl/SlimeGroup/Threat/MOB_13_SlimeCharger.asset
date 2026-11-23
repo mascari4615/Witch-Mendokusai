@@ -40,3 +40,4 @@ MonoBehaviour:
     <Percentage>k__BackingField: 0.5
   <Attack>k__BackingField: {fileID: 11400000, guid: 6691353f3bce44e6a76df3be27d5306f, type: 2}
   <Tint>k__BackingField: {r: 1, g: 0.55, b: 0.5, a: 1}
+  <Remains>k__BackingField: {fileID: 11400000, guid: 0f6cf946e4f2a9d4d922f9e04140874e, type: 2}

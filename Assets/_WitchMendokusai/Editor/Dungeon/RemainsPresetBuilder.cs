@@ -131,14 +131,14 @@ namespace WitchMendokusai
 		private static Dictionary<string, RemainsProfile> BuildProfiles(GoopKind slime)
 		{
 			Dictionary<string, RemainsProfile> profiles = new();
-			profiles["Slime"] = Profile("Remains_1_Slime", RemainsPieceShape.Blob, new Vector2Int(3, 5), new Vector2(.12f, .22f), new Color(.3f, .5f, .2f, .45f), profile =>
+			profiles["Slime"] = Profile("Remains_1_Slime", RemainsPieceShape.Blob, new Vector2Int(3, 5), new Vector2(.12f, .22f), new Color(.12f, .2f, .05f, .75f), profile =>
 			{
 				profile.Spill = slime;
 				profile.SpillChance = .2f;
 				profile.SpillRadius = .7f;
 				profile.Bounce = .1f;
 			});
-			profiles["SlimeBoss"] = Profile("Remains_2_SlimeBoss", RemainsPieceShape.Blob, new Vector2Int(14, 20), new Vector2(.25f, .5f), new Color(.3f, .5f, .2f, .6f), profile =>
+			profiles["SlimeBoss"] = Profile("Remains_2_SlimeBoss", RemainsPieceShape.Blob, new Vector2Int(14, 20), new Vector2(.25f, .5f), new Color(.12f, .2f, .05f, .85f), profile =>
 			{
 				profile.Spill = slime;
 				profile.SpillChance = 1f;
@@ -147,16 +147,16 @@ namespace WitchMendokusai
 				profile.Speed = new Vector2(3f, 7f);
 				profile.Lift = 6f;
 			});
-			profiles["Wisp"] = Profile("Remains_3_Wisp", RemainsPieceShape.Shard, new Vector2Int(0, 0), new Vector2(.08f, .12f), new Color(.55f, .75f, 1f, .4f), profile => profile.StainRadius = .7f);
-			profiles["Boar"] = Profile("Remains_4_Boar", RemainsPieceShape.Tuft, new Vector2Int(4, 6), new Vector2(.12f, .2f), new Color(.25f, .12f, .08f, .5f), profile =>
+			profiles["Wisp"] = Profile("Remains_3_Wisp", RemainsPieceShape.Shard, new Vector2Int(0, 0), new Vector2(.08f, .12f), new Color(.45f, .65f, 1f, .6f), profile => profile.StainRadius = .8f);
+			profiles["Boar"] = Profile("Remains_4_Boar", RemainsPieceShape.Tuft, new Vector2Int(4, 6), new Vector2(.12f, .2f), new Color(.25f, .08f, .05f, .7f), profile =>
 			{
 				profile.Palette = new[] { new Color(.42f, .28f, .18f), new Color(.32f, .2f, .12f), new Color(.85f, .8f, .7f) };
 			});
-			profiles["Cream"] = Profile("Remains_5_Cream", RemainsPieceShape.Blob, new Vector2Int(3, 4), new Vector2(.1f, .18f), new Color(.95f, .9f, .82f, .5f), profile =>
+			profiles["Cream"] = Profile("Remains_5_Cream", RemainsPieceShape.Blob, new Vector2Int(3, 4), new Vector2(.1f, .18f), new Color(1f, .95f, .85f, .7f), profile =>
 			{
 				profile.Palette = new[] { new Color(1f, .97f, .9f), new Color(1f, .82f, .85f) };
 			});
-			profiles["Dust"] = Profile("Remains_6_Dust", RemainsPieceShape.Chip, new Vector2Int(2, 4), new Vector2(.08f, .14f), new Color(.3f, .28f, .25f, .35f), profile => { });
+			profiles["Dust"] = Profile("Remains_6_Dust", RemainsPieceShape.Chip, new Vector2Int(2, 4), new Vector2(.08f, .14f), new Color(.15f, .13f, .1f, .6f), profile => { });
 			return profiles;
 		}
 

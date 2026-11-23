@@ -13,6 +13,7 @@ namespace WitchMendokusai
 		[Min(.05f), Tooltip("누울 때 바닥에 붙는 시간 초")] public float SettleSeconds = .12f;
 		[Min(.1f), Tooltip("유지 시간이 끝난 뒤 작아지며 사라지는 시간 초")] public float VanishSeconds = 1.2f;
 		[Min(.1f), Tooltip("너무 오래 날면 강제로 눕힘")] public float MaxFlightSeconds = 3f;
+		[Min(0), Tooltip("판 중 프레임마다 미리 만드는 조각 개체 수 (몰살 프레임의 생성 비용을 나눔)")] public int PrewarmPerFrame = 8;
 
 		[Header("몬스터 조각")]
 		[Tooltip("프로필에 재질이 없을 때 쓰는 URP Lit 재질")] public Material PieceMaterial;
@@ -21,6 +22,7 @@ namespace WitchMendokusai
 		[Min(1), Tooltip("프레임당 새로 뽑는 몸 색 수")] public int ColorSampleRequestsPerFrame = 4;
 		[Min(1f), Tooltip("치명타 처치 때 조각 수 배율")] public float CritPieceScale = 2f;
 		[Min(1f), Tooltip("치명타 처치 때 조각 속도 배율")] public float CritSpeedScale = 1.5f;
+		[Range(0f, 1f), Tooltip("몸에서 뽑은 조각 색을 어둡게 하는 배율. 경험치 보석 같은 줍는 것과 헷갈리지 않게")] public float BodyColorShade = .55f;
 		[Tooltip("몸 색을 못 뽑았을 때 조각 색")] public Color FallbackPieceColor = new(.5f, .5f, .45f, 1f);
 
 		[Header("밀림")]
@@ -38,6 +40,7 @@ namespace WitchMendokusai
 		[Min(1), Tooltip("프레임당 찍는 도장 최대 수. 넘으면 다음 프레임")] public int MaxStampsPerFrame = 64;
 		[Tooltip("자국 도장 텍스처 (흰 둥근 얼룩, 알파가 모양)")] public Texture2D StampTexture;
 		[Range(0f, 1f), Tooltip("캔버스 전체 진하기")] public float CanvasOpacity = .85f;
+		[Range(1f, 4f), Tooltip("도장 알파를 키우는 배율 (가장자리 옅은 부분까지 보이게)")] public float CanvasAlphaGain = 1.8f;
 
 		[Header("액체 (바닥 웅덩이)")]
 		[Min(.1f), Tooltip("액체 칸 한 변, 미터")] public float GoopCellSize = .5f;
@@ -56,7 +59,7 @@ namespace WitchMendokusai
 		[Min(.1f), Tooltip("느려짐이 남는 시간 초 (웅덩이를 벗어난 뒤)")] public float GoopSlowLingerSeconds = .4f;
 		[ColorUsage(true, true), Tooltip("불 색 (빛남 포함)")] public Color FireColor = new(3f, 1.2f, .3f, 1f);
 		[ColorUsage(true, true), Tooltip("감전 색 (빛남 포함)")] public Color ShockColor = new(.8f, 1.6f, 3f, 1f);
-		[Tooltip("다 탄 자리에 남는 그을음 색")] public Color ScorchColor = new(.08f, .06f, .05f, .7f);
+		[Tooltip("다 탄 자리에 남는 그을음 색")] public Color ScorchColor = new(.06f, .045f, .035f, .85f);
 		[Min(0f), Tooltip("다 탄 칸 하나가 남기는 그을음 반지름, 미터")] public float ScorchRadius = .75f;
 		[Min(8f), Tooltip("액체 그림이 덮는 한 변, 미터. 자국 캔버스보다 작아도 됨")] public float GoopViewSize = 48f;
 

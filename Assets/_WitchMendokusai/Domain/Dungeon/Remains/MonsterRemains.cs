@@ -95,7 +95,11 @@ namespace WitchMendokusai
 		private Color BodyColor(RemainsSettings settings)
 		{
 			if (body.sprite != null && SpriteColorSampler.TryGet(body.sprite, settings.ColorSampleCacheLimit, settings.ColorSampleRequestsPerFrame, out Color sampled))
-				return sampled * monster.UnitData.Tint;
+			{
+				Color shaded = sampled * monster.UnitData.Tint * settings.BodyColorShade;
+				shaded.a = 1f;
+				return shaded;
+			}
 			return settings.FallbackPieceColor;
 		}
 

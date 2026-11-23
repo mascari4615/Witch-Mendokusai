@@ -116,6 +116,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5910405173498759654}
+    - targetCorrespondingSourceObject: {fileID: 4552526690297205425, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2306425475290449532}
   m_SourcePrefab: {fileID: 100100000, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}
 --- !u!1 &1848531686881178565 stripped
 GameObject:
@@ -175,6 +178,9 @@ MonoBehaviour:
   knockbackForce: 12
   knockbackDuration: 0.15
   hitstopDuration: 0.05
+  hitOncePerTarget: 0
+  hitReenterToRehit: 0
+  knockbackDirectionKind: 0
   usedByPlayer: 0
 --- !u!114 &4601275114766011727
 MonoBehaviour:
@@ -205,6 +211,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WitchMendokusai.DamageAudioFeedback
   hitSfx: 21
   dieSfx: 22
+  criticalSfx: 29
 --- !u!114 &6547949991324373500
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -300,6 +307,21 @@ MonoBehaviour:
   body: {fileID: 3636146261913355018}
   popTarget: {fileID: 4101190477955112521}
   puffSizeMultiplier: 1
+--- !u!114 &2306425475290449532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1848531686881178565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f5b4e23019a40d399d8e34ad2f60d94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MonsterRemains
+  body: {fileID: 3636146261913355018}
+  monster: {fileID: 2785671053450697428}
+  health: {fileID: 4601275114766011727}
 --- !u!4 &2186457573704370070 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4097506783380236002, guid: 8985bc14129999340bfe02f05cc6a45f, type: 3}

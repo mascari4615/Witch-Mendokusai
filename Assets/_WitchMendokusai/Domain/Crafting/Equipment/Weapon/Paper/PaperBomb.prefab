@@ -350,3 +350,7 @@ MonoBehaviour:
   explosionPrefab: {fileID: 3073441278215034632, guid: 28967a3ce9ec7fc48b7d1dbaacee42eb, type: 3}
   fuseSeconds: 0
   explodeOnContact: 1
+  playSplashSfx: 1
+  debrisPushRadius: 2
+  igniteGoop: 1
+  shockGoop: 0

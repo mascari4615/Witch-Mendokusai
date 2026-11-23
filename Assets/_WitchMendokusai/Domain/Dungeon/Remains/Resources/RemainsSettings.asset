@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 884131c0126c41ddb5d8054a76952005, type: 3}
+  m_Name: RemainsSettings
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.RemainsSettings
+  MaxFlying: 128
+  MaxResting: 256
+  RestSpeed: 0.6
+  SettleSeconds: 0.12
+  VanishSeconds: 1.2
+  MaxFlightSeconds: 3
+  PrewarmPerFrame: 8
+  PieceMaterial: {fileID: 2100000, guid: 96ceb1f9615cbb84bb11041356e4623c, type: 2}
+  KillPieceBudgetPerSecond: 20
+  ColorSampleCacheLimit: 64
+  ColorSampleRequestsPerFrame: 4
+  CritPieceScale: 2
+  CritSpeedScale: 1.5
+  BodyColorShade: 0.55
+  FallbackPieceColor: {r: 0.5, g: 0.5, b: 0.45, a: 1}
+  PlayerPushRadius: 0.7
+  PlayerPushSpeed: 3.2
+  PlayerPushLift: 1.6
+  PlayerPushMinSpeed: 0.5
+  BlastPushSpeed: 7
+  BlastPushLift: 4
+  CanvasSize: 64
+  CanvasResolution: 1024
+  MaxStampsPerFrame: 64
+  StampTexture: {fileID: 2800000, guid: db740c8c17db8454c949e6e79e100d7f, type: 3}
+  CanvasOpacity: 0.85
+  GoopCellSize: 0.5
+  GoopEdgeAmount: 0.5
+  MaxGoopCells: 4096
+  GoopEffectInterval: 0.25
+  GoopRedrawInterval: 0.08
+  FireBurnSeconds: 3
+  FireSpreadSeconds: 0.18
+  FireMonsterDamagePerSecond: 12
+  FirePlayerDamagePerSecond: 2
+  ShockSeconds: 0.7
+  ShockCooldownSeconds: 1.2
+  ShockMonsterDamage: 15
+  ShockPlayerDamage: 2
+  GoopSlowLingerSeconds: 0.4
+  FireColor: {r: 3, g: 1.2, b: 0.3, a: 1}
+  ShockColor: {r: 0.8, g: 1.6, b: 3, a: 1}
+  ScorchColor: {r: 0.06, g: 0.045, b: 0.035, a: 0.85}
+  ScorchRadius: 0.75
+  GoopViewSize: 48
+  GrassBendStrength: 0.35
+  GrassHeight: 0.5
+  GrassFlattenAmount: 0.7
+  GrassPlayerBendRadius: 1
+  GrassMonsterBendRadius: 0.7
+  GrassBenderRange: 12
+  GrassMaxBenders: 16
+  GrassFlattenResolution: 256
+  GrassRegrowSeconds: 20
+  GrassKillFlattenRadius: 0.9
+  GrassBlastFlattenScale: 0.8
+  InteractiveGrassShader: {fileID: 4800000, guid: 1b42f1622635451ba95049d407993559, type: 3}
+  WalkDustInterval: 0.3
+  StainUtilityShader: {fileID: 4800000, guid: 34c445e8b6864d05a5d34f5b1b74e5d8, type: 3}
+  GroundStainShader: {fileID: 4800000, guid: e3b58e689a024d96ae0a2958078bc5cc, type: 3}
+  GoopShader: {fileID: 4800000, guid: 6004273bebac48ec9d39611a01e4d392, type: 3}
+  LingerChoices:
+  - 0
+  - 10
+  - 30
+  - 60
+  - -1
+  DefaultLingerChoice: 2

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a73d0e83e39402d826b20ab613d54f9, type: 3}
+  m_Name: Remains_2_SlimeBoss
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.RemainsProfile
+  Shape: 1
+  Count: {x: 14, y: 20}
+  Size: {x: 0.25, y: 0.5}
+  Palette: []
+  Material: {fileID: 0}
+  Speed: {x: 3, y: 7}
+  Lift: 6
+  LiftVariance: 0.4
+  Gravity: 18
+  Bounce: 0.25
+  Spin: 420
+  AwayBias: 0.5
+  StainRadius: 2.5
+  StainColor: {r: 0.12, g: 0.2, b: 0.05, a: 0.85}
+  PieceStainScale: 0
+  Spill: {fileID: 11400000, guid: 3f66ed07e770a0645a573a3716e4ef97, type: 2}
+  SpillRadius: 3
+  SpillChance: 1
+  PieceChance: 1

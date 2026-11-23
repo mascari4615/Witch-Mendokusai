@@ -10,7 +10,7 @@ Shader "WM/Remains/Goop"
 		_TexelCount ("Texels", Float) = 96
 		_Lift ("Lift above ground", Float) = 0.02
 		_EdgeNoise ("Edge noise", Range(0, 1)) = 0.35
-		_Sheen ("Sheen", Range(0, 1)) = 0.25
+		_Sheen ("Sheen", Range(0, 1)) = 0.06
 	}
 	SubShader
 	{
@@ -90,7 +90,7 @@ Shader "WM/Remains/Goop"
 				half3 light = mainLight.color * saturate(mainLight.direction.y) + SampleSH(half3(0, 1, 0));
 				half3 color = goop.rgb * light;
 				// 젖은 윤기: 잡음 밝은 점
-				color += _Sheen * smoothstep(0.78, 0.95, ValueNoise(world * 9.0 + _Time.y * 0.2)) * light;
+				color += _Sheen * smoothstep(0.85, 1.0, ValueNoise(world * 3.0 + _Time.y * 0.2)) * light;
 
 				float flicker = ValueNoise(world * 3.0 + float2(0, -_Time.y * 4.0));
 				half3 fire = _FireColor.rgb * heat.r * (0.55 + 0.9 * flicker);

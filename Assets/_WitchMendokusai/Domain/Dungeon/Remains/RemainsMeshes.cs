@@ -32,7 +32,7 @@ namespace WitchMendokusai
 		public static float RestClearance(RemainsPieceShape shape) => shape switch
 		{
 			RemainsPieceShape.Chip => .35f,
-			RemainsPieceShape.Blob => .22f,
+			RemainsPieceShape.Blob => .1f,
 			RemainsPieceShape.Shard => .11f,
 			RemainsPieceShape.Tuft => .15f,
 			_ => throw new System.ArgumentOutOfRangeException(nameof(shape), shape, null),
@@ -86,7 +86,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < vertices.Count; i++)
 			{
 				Vector3 point = vertices[i].normalized * .5f;
-				point.y *= point.y < 0f ? .35f : .6f;
+				point.y *= point.y < 0f ? .2f : .38f;
 				vertices[i] = point;
 			}
 			Mesh mesh = new();

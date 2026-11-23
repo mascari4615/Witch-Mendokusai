@@ -5,6 +5,7 @@ Shader "WM/Remains/GroundStain"
 	{
 		_StainCanvas ("Canvas", 2D) = "black" {}
 		_Opacity ("Opacity", Range(0, 1)) = 0.85
+		_AlphaGain ("Alpha gain", Range(1, 4)) = 1.8
 		_Lift ("Lift above ground", Float) = 0.015
 	}
 	SubShader
@@ -28,6 +29,7 @@ Shader "WM/Remains/GroundStain"
 			CBUFFER_START(UnityPerMaterial)
 				float _Opacity;
 				float _Lift;
+				float _AlphaGain;
 			CBUFFER_END
 
 			struct Attributes
@@ -60,7 +62,9 @@ Shader "WM/Remains/GroundStain"
 				half border = saturate(min(edge.x, edge.y) / 0.02);
 				Light mainLight = GetMainLight();
 				half3 light = mainLight.color * saturate(mainLight.direction.y) + SampleSH(half3(0, 1, 0));
-				return half4(stain.rgb * light, saturate(stain.a) * _Opacity * border);
+				// 도장은 빈 (검은) 캔버스에 알파로 섞여 색이 알파만큼 어두워져 있음. 알파로 나눠 원래 색으로
+				half3 color = saturate(stain.rgb / max(stain.a, 0.02));
+				return half4(color * light, saturate(stain.a * _AlphaGain) * _Opacity * border);
 			}
 			ENDHLSL
 		}

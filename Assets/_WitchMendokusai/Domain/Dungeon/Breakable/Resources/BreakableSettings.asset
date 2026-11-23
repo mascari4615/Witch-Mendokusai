@@ -41,9 +41,7 @@ MonoBehaviour:
   ShardLift: 5
   ShardGravity: 20
   ShardBounce: 0.3
-  ShardLife: 0.9
   ShardSpin: 540
-  MaxShards: 96
   BaseMaterial: {fileID: 2100000, guid: f5b346414d1d48e4bf9a6d6abae10864, type: 2}
   NyangPrefab: {fileID: 4615000000000000004, guid: f0d33b84c3294cbe82f86f55cef9640f, type: 3}
   Kinds:
@@ -58,6 +56,8 @@ MonoBehaviour:
     - {r: 0.55, g: 0.38, b: 0.22, a: 1}
     - {r: 0.3, g: 0.2, b: 0.12, a: 1}
     Table: {fileID: 11400000, guid: 8172cfe264ee43538528c7cde9bba660, type: 2}
+    Spill: {fileID: 0}
+    SpillRadius: 1.6
   - Name: Barrel
     Shape: 1
     Weight: 2
@@ -69,6 +69,8 @@ MonoBehaviour:
     - {r: 0.46, g: 0.46, b: 0.52, a: 1}
     - {r: 0.62, g: 0.43, b: 0.26, a: 1}
     Table: {fileID: 11400000, guid: 8172cfe264ee43538528c7cde9bba660, type: 2}
+    Spill: {fileID: 11400000, guid: 4c563a6c88ab91446aee3e90f0493237, type: 2}
+    SpillRadius: 1.6
   - Name: Pot
     Shape: 2
     Weight: 3
@@ -80,6 +82,8 @@ MonoBehaviour:
     - {r: 0.96, g: 0.88, b: 0.7, a: 1}
     - {r: 0.25, g: 0.15, b: 0.1, a: 1}
     Table: {fileID: 11400000, guid: 8172cfe264ee43538528c7cde9bba660, type: 2}
+    Spill: {fileID: 11400000, guid: d9ea0decfec28364ca63d3dd31a10990, type: 2}
+    SpillRadius: 1.6
   - Name: Basket
     Shape: 3
     Weight: 2
@@ -92,6 +96,8 @@ MonoBehaviour:
     - {r: 0.92, g: 0.36, b: 0.3, a: 1}
     - {r: 0.98, g: 0.76, b: 0.3, a: 1}
     Table: {fileID: 11400000, guid: 8172cfe264ee43538528c7cde9bba660, type: 2}
+    Spill: {fileID: 0}
+    SpillRadius: 1.6
   - Name: BookStack
     Shape: 4
     Weight: 1.5
@@ -105,6 +111,8 @@ MonoBehaviour:
     - {r: 0.82, g: 0.34, b: 0.38, a: 1}
     - {r: 0.36, g: 0.64, b: 0.46, a: 1}
     Table: {fileID: 11400000, guid: 0fcd4d4fb5d74ac796d7063603dc80c9, type: 2}
+    Spill: {fileID: 0}
+    SpillRadius: 1.6
   - Name: PotionCrate
     Shape: 5
     Weight: 1.5
@@ -120,3 +128,5 @@ MonoBehaviour:
     - {r: 0.62, g: 0.92, b: 0.5, a: 1}
     - {r: 0.76, g: 0.62, b: 0.96, a: 1}
     Table: {fileID: 11400000, guid: 0fcd4d4fb5d74ac796d7063603dc80c9, type: 2}
+    Spill: {fileID: 0}
+    SpillRadius: 1.6
