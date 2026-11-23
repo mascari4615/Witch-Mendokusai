@@ -25,8 +25,8 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Falloff: 2.4
-    - _Intensity: 2.2
+    - _Falloff: 4
+    - _Intensity: 1.4
     - _Shape: 0
     m_Colors: []
   m_BuildTextureStacks: []
