@@ -138,6 +138,9 @@ namespace WitchMendokusai
 			{
 				LoadData(gameData);
 				LastLoadOutcome = source == SaveReadSource.Backup ? SaveLoadOutcome.RestoredFromBackup : SaveLoadOutcome.Loaded;
+				// 앞 판에서 읽었으면 바로 본 파일로 다시 씀. 안 쓰고 꺼지면 다음 실행에도 같은 알림이 뜸
+				if (LastLoadOutcome == SaveLoadOutcome.RestoredFromBackup)
+					SaveData();
 			}
 			else
 			{

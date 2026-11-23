@@ -163,7 +163,8 @@ namespace WitchMendokusai
 			}
 
 			bool isHorizontal = evt.direction == NavigationMoveEvent.Direction.Left || evt.direction == NavigationMoveEvent.Direction.Right;
-			if (isHorizontal && current is Slider slider)
+			// 잠긴 막대 (수직 동기 중 FPS 제한) 는 값을 바꾸지 않음
+			if (isHorizontal && current is Slider slider && slider.enabledInHierarchy)
 			{
 				float sign = evt.direction == NavigationMoveEvent.Direction.Right ? 1f : -1f;
 				// 칸 막대는 한 칸씩. 볼륨 간격으로 움직이면 반올림에 막혀 제자리
@@ -203,6 +204,9 @@ namespace WitchMendokusai
 			scope.Query<VisualElement>(className: NAV_CLASS).ForEach(element =>
 			{
 				if (element.resolvedStyle.display == DisplayStyle.None || element.worldBound.width <= 0f)
+					return;
+				// 잠긴 요소는 초점을 못 받음. 후보에 두면 그 아래 줄로 못 내려감
+				if (element.enabledInHierarchy == false)
 					return;
 				if (IsConfirmOpen == false && confirmLayer.Contains(element))
 					return;

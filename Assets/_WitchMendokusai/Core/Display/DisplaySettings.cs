@@ -25,11 +25,20 @@ namespace WitchMendokusai
 			get => PlayerPrefs.GetInt(FULLSCREEN_KEY, 1) == 1;
 			set
 			{
-				PlayerPrefs.SetInt(FULLSCREEN_KEY, value ? 1 : 0);
-				PlayerPrefs.Save();
+				StoreFullscreenWithoutApply(value);
 				ApplyScreen();
 			}
 		}
+
+		/// <summary> Alt+Enter 처럼 화면이 먼저 바뀐 경우. 값만 맞춤 </summary>
+		public static void StoreFullscreenWithoutApply(bool value)
+		{
+			PlayerPrefs.SetInt(FULLSCREEN_KEY, value ? 1 : 0);
+			PlayerPrefs.Save();
+		}
+
+		/// <summary> 화면 설정을 한 번이라도 바꿨나. 안 바꿨으면 부팅 때 화면 모드와 크기를 건드리지 않음 (실행 인자, Unity 가 기억한 값 존중) </summary>
+		public static bool HasScreenChoice => PlayerPrefs.HasKey(FULLSCREEN_KEY) || PlayerPrefs.HasKey(WIDTH_KEY);
 
 		/// <summary> 고른 적 없으면 모니터 해상도 </summary>
 		public static Vector2Int Resolution
@@ -81,6 +90,26 @@ namespace WitchMendokusai
 			return frameRateLimit;
 		}
 
+		/// <summary>
+		/// 실제로 쓸 크기. 모니터보다 큰 저장값 (모니터를 바꾼 뒤) 은 모니터 크기로.
+		/// 창 모드는 제목 줄과 작업 표시줄 자리가 남게, 모니터보다 작은 후보 중 가장 큰 것으로
+		/// </summary>
+		public static Vector2Int FitToDisplay(Vector2Int wanted, Vector2Int desktop, bool fullscreen, Resolution[] supported)
+		{
+			if (fullscreen)
+				return wanted.x > desktop.x || wanted.y > desktop.y ? desktop : wanted;
+			if (wanted.x < desktop.x && wanted.y < desktop.y)
+				return wanted;
+			Vector2Int best = Vector2Int.zero;
+			foreach (Resolution resolution in supported)
+			{
+				bool fits = resolution.width < desktop.x && resolution.height < desktop.y;
+				if (fits && resolution.width * resolution.height > best.x * best.y)
+					best = new Vector2Int(resolution.width, resolution.height);
+			}
+			return best == Vector2Int.zero ? wanted : best;
+		}
+
 		public static void Apply()
 		{
 			ApplyScreen();
@@ -89,21 +118,28 @@ namespace WitchMendokusai
 
 		private static void ApplyFrameRate()
 		{
-			// 품질 단계마다 따로 박힌 수직 동기 값을 덮어씀
-			QualitySettings.vSyncCount = VSync ? 1 : 0;
+			// 품질 단계마다 따로 박힌 수직 동기 값을 덮어씀. 에디터 Play 에서 쓰면 QualitySettings.asset 이 바뀌어 남으므로 빌드에서만
+			if (Application.isEditor == false)
+				QualitySettings.vSyncCount = VSync ? 1 : 0;
 			Application.targetFrameRate = ResolveTargetFrameRate(VSync, FrameRateLimit, Screen.currentResolution.refreshRateRatio.value);
 		}
 
 		private static void ApplyScreen()
 		{
-			// 에디터에서는 Game 뷰 크기를 바꾸지 못하고 경고만 남음
-			if (Application.isEditor)
+			// 에디터는 Game 뷰 크기를 못 바꿈. 폰은 화면 모드와 크기를 고를 일이 없음
+			if (Application.isEditor || Application.isMobilePlatform)
 				return;
-			Vector2Int resolution = Resolution;
-			Screen.SetResolution(resolution.x, resolution.y, Fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed);
+			Resolution monitor = Screen.currentResolution;
+			Vector2Int size = FitToDisplay(Resolution, new Vector2Int(monitor.width, monitor.height), Fullscreen, Screen.resolutions);
+			Screen.SetResolution(size.x, size.y, Fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed);
 		}
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-		private static void ApplyOnBoot() => Apply();
+		private static void ApplyOnBoot()
+		{
+			if (HasScreenChoice)
+				ApplyScreen();
+			ApplyFrameRate();
+		}
 	}
 }

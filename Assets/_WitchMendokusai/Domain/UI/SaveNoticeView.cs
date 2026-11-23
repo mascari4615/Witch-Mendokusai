@@ -25,7 +25,7 @@ namespace WitchMendokusai
 			switch (outcome)
 			{
 				case SaveLoadOutcome.RestoredFromBackup:
-					Show("세이브를 앞 판으로 복구했어요", "마지막 저장 파일을 읽지 못해 그 전 저장으로 불러왔습니다. 최근 진행이 조금 빠졌을 수 있어요.");
+					Show("세이브를 앞 판으로 복구했어요", "저장 파일을 읽지 못해 그 전 저장으로 불러왔습니다. 최근 진행이 조금 빠졌을 수 있어요.");
 					break;
 				case SaveLoadOutcome.ResetUnreadable:
 					Show("세이브를 읽지 못해 새 게임으로 시작해요", "읽지 못한 파일은 지우지 않고 세이브 폴더에 따로 옮겼습니다.");
@@ -47,6 +47,9 @@ namespace WitchMendokusai
 		private void Hide()
 		{
 			UiSfx.Play(UiSfxEvent.Confirm);
+			// 숨은 버튼에 초점이 남으면 확인 키가 로비 버튼까지 안 감 (SettingView.Close 와 같음)
+			if (root.focusController?.focusedElement is VisualElement focused && root.Contains(focused))
+				focused.Blur();
 			root.style.display = DisplayStyle.None;
 		}
 

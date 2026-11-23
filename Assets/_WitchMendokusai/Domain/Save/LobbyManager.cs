@@ -152,6 +152,9 @@ namespace WitchMendokusai
 		public void StartGame()
 		{
 			Debug.Log(nameof(StartGame));
+			// 세이브 알림 뒤의 로비 버튼이 눌려도 알림을 닫기 전엔 떠나지 않음
+			if (uiRoot.SaveNoticeView.IsOpen)
+				return;
 
 			// 문은 통신 층이 스스로 세우고 여기 꽂아 둔다 (WorldDoor) — 로비는 통신을 몰라야 한다.
 			// 어셈블리 방향이 Network → Domain 단방향이라, 로비가 문의 타입을 직접 부르면 컴파일이 깨진다.

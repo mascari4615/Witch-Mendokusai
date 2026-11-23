@@ -366,6 +366,7 @@ namespace WitchMendokusai
 
 			// 개발자 창 표시 탭에서 바뀌었을 수 있음
 			SyncToggle(fpsDisplayToggle, UIFPS.IsVisible, DescribeOnOff);
+			SyncDisplayRows();
 
 			masterVolume.schedule.Execute(() =>
 			{

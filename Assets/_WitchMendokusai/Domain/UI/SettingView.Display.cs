@@ -15,7 +15,13 @@ namespace WitchMendokusai
 
 		[SerializeField, Tooltip("FPS 제한 선택지. 0 모니터 맞춤, -1 제한 없음")] private int[] frameRateChoices = { 30, 60, 120, 144, DisplaySettings.FRAME_RATE_MONITOR, DisplaySettings.FRAME_RATE_UNLIMITED };
 		[SerializeField, Tooltip("해상도 목록에 넣을 가장 낮은 세로 크기")] private int minResolutionHeight = 720;
+		[SerializeField, Tooltip("해상도 막대를 멈추고 이만큼 지나야 적용. 끄는 동안 창 크기가 여러 번 바뀌지 않게")] private long resolutionApplyDelayMs = 400;
 
+		private Toggle fullscreenToggle;
+		private Slider resolutionSlider;
+		private Label resolutionValue;
+		private List<Vector2Int> resolutionChoices;
+		private IVisualElementScheduledItem pendingResolutionApply;
 		private Slider frameRateSlider;
 		private Label frameRateValue;
 
@@ -27,7 +33,7 @@ namespace WitchMendokusai
 			screenHeader.AddToClassList("wm-setting-header");
 			content.Add(screenHeader);
 
-			CreateToggle("전체화면", DisplaySettings.Fullscreen, isOn => isOn ? "켜짐" : "꺼짐 (창 모드)", isOn => DisplaySettings.Fullscreen = isOn, content);
+			fullscreenToggle = CreateToggle("전체화면", DisplaySettings.Fullscreen, DescribeFullscreen, isOn => DisplaySettings.Fullscreen = isOn, content);
 			content.Add(CreateResolutionSlider());
 
 			Label frameHeader = new Label("프레임");
@@ -42,12 +48,44 @@ namespace WitchMendokusai
 			return content;
 		}
 
+		private static string DescribeFullscreen(bool isOn) => isOn ? "켜짐" : "꺼짐 (창 모드)";
+
 		private VisualElement CreateResolutionSlider()
 		{
-			List<Vector2Int> resolutions = CollectResolutions(Screen.resolutions, DisplaySettings.Resolution, minResolutionHeight);
-			int current = resolutions.IndexOf(DisplaySettings.Resolution);
-			return CreateStepSlider("해상도", resolutions.Count, current, index => $"{resolutions[index].x} x {resolutions[index].y}",
-				index => DisplaySettings.Resolution = resolutions[index], out Slider _, out Label _);
+			resolutionChoices = CollectResolutions(Screen.resolutions, DisplaySettings.Resolution, minResolutionHeight);
+			int current = resolutionChoices.IndexOf(DisplaySettings.Resolution);
+			VisualElement row = CreateStepSlider("해상도", resolutionChoices.Count, current, index => FormatResolution(resolutionChoices[index]),
+				ScheduleResolutionApply, out resolutionSlider, out resolutionValue);
+			// 고를 것이 하나뿐이면 (원격 화면, 이상한 드라이버) 막대를 잠금
+			if (resolutionChoices.Count < 2)
+				resolutionSlider.SetEnabled(false);
+			return row;
+		}
+
+		private static string FormatResolution(Vector2Int resolution) => $"{resolution.x} x {resolution.y}";
+
+		// 끄는 동안이나 키를 연달아 누르는 동안은 글자만 바꾸고, 멈춘 뒤 한 번 적용
+		private void ScheduleResolutionApply(int index)
+		{
+			pendingResolutionApply?.Pause();
+			Vector2Int chosen = resolutionChoices[index];
+			pendingResolutionApply = resolutionSlider.schedule.Execute(() => DisplaySettings.Resolution = chosen).StartingIn(resolutionApplyDelayMs);
+		}
+
+		// 창을 연 사이 Alt+Enter 로 모드가 바뀌었을 수 있음. 실제 화면 상태를 저장값과 줄에 맞춤
+		private void SyncDisplayRows()
+		{
+			bool isFullscreen = Screen.fullScreenMode != FullScreenMode.Windowed;
+			if (Application.isEditor == false && isFullscreen != DisplaySettings.Fullscreen)
+				DisplaySettings.StoreFullscreenWithoutApply(isFullscreen);
+			SyncToggle(fullscreenToggle, DisplaySettings.Fullscreen, DescribeFullscreen);
+
+			int index = resolutionChoices.IndexOf(DisplaySettings.Resolution);
+			if (index >= 0)
+			{
+				resolutionSlider.SetValueWithoutNotify(index);
+				resolutionValue.text = FormatResolution(resolutionChoices[index]);
+			}
 		}
 
 		private VisualElement CreateFrameRateSlider()
@@ -105,7 +143,8 @@ namespace WitchMendokusai
 		private VisualElement CreateStepSlider(string label, int count, int index, Func<int, string> format, Action<int> onChosen, out Slider slider, out Label valueLabel)
 		{
 			int last = count - 1;
-			Slider stepSlider = CreateSlider(label, 0f, last, index);
+			// 칸이 하나면 0 에서 0 까지의 막대는 손잡이 자리를 못 정함. 범위만 한 칸 넓히고 값은 아래에서 막음
+			Slider stepSlider = CreateSlider(label, 0f, Mathf.Max(last, 1), index);
 			stepSlider.AddToClassList(STEP_SLIDER_CLASS);
 			VisualElement row = new VisualElement();
 			row.AddToClassList("wm-setting-row");
@@ -114,14 +153,12 @@ namespace WitchMendokusai
 			value.AddToClassList("wm-setting-value");
 			value.AddToClassList(WIDE_VALUE_CLASS);
 			row.Add(value);
-			int chosen = index;
 			stepSlider.RegisterValueChangedCallback(changeEvent =>
 			{
 				int next = Mathf.Clamp(Mathf.RoundToInt(changeEvent.newValue), 0, last);
 				stepSlider.SetValueWithoutNotify(next);
-				if (next == chosen)
+				if (next == Mathf.RoundToInt(changeEvent.previousValue))
 					return;
-				chosen = next;
 				value.text = format(next);
 				onChosen(next);
 				UiSfx.Play(UiSfxEvent.Slider);
