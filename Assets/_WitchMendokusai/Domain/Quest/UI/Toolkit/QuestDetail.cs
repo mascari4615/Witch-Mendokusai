@@ -124,6 +124,17 @@ namespace WitchMendokusai
 			_ => state.ToString(),
 		};
 
+		/// <summary>화면에 보이는 퀘스트 갈래 이름. 거름 줄 (QuestFilterBar) 과 같은 말로</summary>
+		public static string TypeText(QuestType type) => type switch
+		{
+			QuestType.Normal => "일반",
+			QuestType.VillageRequest => "마을의뢰",
+			QuestType.Achievement => "업적",
+			QuestType.Research => "연구",
+			QuestType.Dungeon => "던전",
+			_ => type.ToString(),
+		};
+
 		private static string BuildCriteriaText(RuntimeCriteria criteria)
 		{
 			string name = CriteriaText.NameOf(criteria.Criteria);
