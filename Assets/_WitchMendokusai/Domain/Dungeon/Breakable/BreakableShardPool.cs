@@ -5,12 +5,8 @@ namespace WitchMendokusai
 	// 부서질 때 튀는 조각. 물건과 같은 색 띠의 작은 상자를 바닥 잔해 (RemainsWorld.Debris) 로 띄움. 남고 밀리고 사라지는 것은 잔해 쪽
 	public static class BreakableShardPool
 	{
-		// 기울어진 정육면체의 가장 먼 꼭짓점까지 (크기 1 기준)
-		private static readonly float HALF_DIAGONAL = Mathf.Sqrt(3f) * .5f;
-		// 면으로 누운 정육면체의 중심 높이 (크기 1 기준)
-		private const float HALF_SIDE = .5f;
-
-		public static void Burst(RemainsWorld remains, BreakableSettings settings, Material material, Mesh[] meshes, Vector3 center, Vector3 objectSize, Vector3 awayDirection)
+		// 조각 모양은 물건 종류대로 (BreakableShardShapes). 누운 높이와 띄울 거리는 조각 메시 경계에서
+		public static void Burst(RemainsWorld remains, BreakableSettings settings, Material material, BreakableLibrary.Variant variant, Vector3 center, Vector3 objectSize, Vector3 awayDirection)
 		{
 			int count = Random.Range(settings.ShardCount.x, settings.ShardCount.y + 1);
 			float objectScale = (objectSize.x + objectSize.y + objectSize.z) / 3f;
@@ -19,9 +15,10 @@ namespace WitchMendokusai
 				Vector2 circle = Random.insideUnitCircle.normalized;
 				Vector3 outward = new Vector3(circle.x, 0f, circle.y) + awayDirection * .6f;
 				outward.y = 0f;
+				int shape = i % variant.ShardMeshes.Length;
 				DebrisSpawn spawn = new()
 				{
-					Mesh = meshes[i % meshes.Length],
+					Mesh = variant.ShardMeshes[shape],
 					Material = material,
 					Position = center + Vector3.Scale(Random.insideUnitSphere, objectSize * .35f),
 					Rotation = Random.rotationUniform,
@@ -29,8 +26,8 @@ namespace WitchMendokusai
 					SpinAxis = Random.onUnitSphere,
 					SpinDegrees = settings.ShardSpin,
 					Size = objectScale * Random.Range(settings.ShardScale.x, settings.ShardScale.y),
-					FlyClearance = HALF_DIAGONAL,
-					RestClearance = HALF_SIDE,
+					FlyClearance = variant.ShardFly[shape],
+					RestClearance = variant.ShardRest[shape],
 					Gravity = settings.ShardGravity,
 					Bounce = settings.ShardBounce,
 					GroundHeight = settings.GroundHeight,

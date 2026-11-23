@@ -239,7 +239,7 @@ namespace WitchMendokusai
 			BreakableKind kind = settings.Kinds[breakable.KindIndex];
 			Bounds bounds = breakable.LocalBounds;
 			Vector3 worldCenter = breakable.transform.TransformPoint(bounds.center);
-			BreakableShardPool.Burst(RemainsWorld.Current, settings, library.Material, library.Variants[breakable.KindIndex][breakable.VariantIndex].ShardMeshes, worldCenter, bounds.size, breakable.HitDirection);
+			BreakableShardPool.Burst(RemainsWorld.Current, settings, library.Material, library.Variants[breakable.KindIndex][breakable.VariantIndex], worldCenter, bounds.size, breakable.HitDirection);
 			CombatSfx.Play(settings.BreakSfx, worldCenter);
 			if (kind.Spill != null)
 				RemainsWorld.Current.Goop.Spill(kind.Spill, breakable.transform.position, kind.SpillRadius, 1f);

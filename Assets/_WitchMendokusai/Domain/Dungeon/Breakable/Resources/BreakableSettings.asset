@@ -36,7 +36,7 @@ MonoBehaviour:
   HitSfx: 20
   BreakSfx: 15
   ShardCount: {x: 3, y: 5}
-  ShardScale: {x: 0.2, y: 0.38}
+  ShardScale: {x: 0.35, y: 0.55}
   ShardSpeed: {x: 2.5, y: 5}
   ShardLift: 5
   ShardGravity: 20

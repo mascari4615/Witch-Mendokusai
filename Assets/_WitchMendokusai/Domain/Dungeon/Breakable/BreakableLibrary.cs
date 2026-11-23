@@ -14,6 +14,9 @@ namespace WitchMendokusai
 		{
 			public Mesh Mesh;
 			public Mesh[] ShardMeshes;
+			// 조각마다 누웠을 때 중심 높이와 날 때 띄울 거리 (크기 1 기준, 메시 경계에서)
+			public float[] ShardRest;
+			public float[] ShardFly;
 		}
 
 		private readonly List<Object> owned = new();
@@ -62,12 +65,18 @@ namespace WitchMendokusai
 					Variant variant = new()
 					{
 						Mesh = library.Own(builder.Build($"Breakable_{kind.Name}_{variantIndex}")),
-						ShardMeshes = new Mesh[Mathf.Min(2, rows.Length)],
+						ShardMeshes = new Mesh[BreakableShardShapes.SHARDS_PER_VARIANT],
+						ShardRest = new float[BreakableShardShapes.SHARDS_PER_VARIANT],
+						ShardFly = new float[BreakableShardShapes.SHARDS_PER_VARIANT],
 					};
 					for (int shard = 0; shard < variant.ShardMeshes.Length; shard++)
 					{
-						builder.AddBox(Vector3.zero, Vector3.one, Quaternion.identity, rows[shard]);
-						variant.ShardMeshes[shard] = library.Own(builder.Build($"BreakableShard_{kind.Name}_{variantIndex}_{shard}"));
+						BreakableShardShapes.Build(builder, kind.Shape, rows, shard);
+						Mesh shardMesh = library.Own(builder.Build($"BreakableShard_{kind.Name}_{variantIndex}_{shard}"));
+						Bounds bounds = shardMesh.bounds;
+						variant.ShardMeshes[shard] = shardMesh;
+						variant.ShardRest[shard] = bounds.extents.y - bounds.center.y;
+						variant.ShardFly[shard] = bounds.extents.magnitude + bounds.center.magnitude;
 					}
 					library.Variants[kindIndex][variantIndex] = variant;
 				}
