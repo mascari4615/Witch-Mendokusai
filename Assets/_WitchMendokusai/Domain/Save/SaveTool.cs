@@ -5,6 +5,18 @@ using UnityEngine;
 
 namespace KarmoLabs
 {
+	/// <summary> 저장 파일을 어디서 읽었나. 알림 화면이 복구와 새 게임 시작을 가르는 데 씀 </summary>
+	public enum SaveReadSource
+	{
+		/// <summary> 본 파일도 앞 판도 없음. 첫 실행 </summary>
+		Missing = 0,
+		Main = 1,
+		/// <summary> 본 파일이 깨져 앞 판에서 읽음 </summary>
+		Backup = 2,
+		/// <summary> 파일은 있었는데 둘 다 못 읽음 </summary>
+		Unreadable = 3,
+	}
+
 	/// <summary>
 	/// 저장 파일 읽고 쓰기
 	/// 쓰기: 임시 파일에 쓴 뒤 바꿔 끼움. 쓰는 도중 꺼져도 앞 판 유지
@@ -45,18 +57,33 @@ namespace KarmoLabs
 				File.Move(tempPath, path);
 		}
 
+		public static bool TryLoadFile<T>(string fileName, out T data, out SaveReadSource source) where T : class
+			=> TryReadWithBackup(GetSaveFilePath(fileName), out data, out source);
+
 		/// <summary> 본 파일을 읽고, 못 읽으면 앞 판을 읽는다. 둘 다 안 되면 false. </summary>
 		public static bool TryReadWithBackup<T>(string path, out T data) where T : class
-		{
-			if (TryRead(path, out data))
-				return true;
+			=> TryReadWithBackup(path, out data, out SaveReadSource _);
 
-			if (TryRead(path + BACKUP_SUFFIX, out data))
+		/// <summary> source: 어느 파일에서 읽었는지. 못 읽었으면 파일이 아예 없었는지 (Missing), 있었는데 깨졌는지 (Unreadable) </summary>
+		public static bool TryReadWithBackup<T>(string path, out T data, out SaveReadSource source) where T : class
+		{
+			string backupPath = path + BACKUP_SUFFIX;
+			bool anyFileExisted = File.Exists(path) || File.Exists(backupPath);
+
+			if (TryRead(path, out data))
 			{
-				Debug.LogWarning($"[{nameof(SaveTool)}] 저장 파일을 못 읽어 앞 판으로 불러옴: {Path.GetFileName(path)}");
+				source = SaveReadSource.Main;
 				return true;
 			}
 
+			if (TryRead(backupPath, out data))
+			{
+				Debug.LogWarning($"[{nameof(SaveTool)}] 저장 파일을 못 읽어 앞 판으로 불러옴: {Path.GetFileName(path)}");
+				source = SaveReadSource.Backup;
+				return true;
+			}
+
+			source = anyFileExisted ? SaveReadSource.Unreadable : SaveReadSource.Missing;
 			return false;
 		}
 

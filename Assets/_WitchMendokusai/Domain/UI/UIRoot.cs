@@ -80,6 +80,7 @@ namespace WitchMendokusai
 		public VisualElement TooltipLayer { get; private set; }
 		public HoldingOverlay HoldingOverlay { get; private set; }
 		public SettingView SettingView { get; private set; }
+		public SaveNoticeView SaveNoticeView { get; private set; }
 		public KeybindHelpView KeybindHelpView { get; private set; }
 		public MagicBookView MagicBookView { get; private set; }
 		public WorldClockView WorldClockView { get; private set; }
@@ -109,6 +110,7 @@ namespace WitchMendokusai
 		private void CreateViews()
 		{
 			SettingView = gameObject.AddComponent<SettingView>();
+			SaveNoticeView = gameObject.AddComponent<SaveNoticeView>();
 			KeybindHelpView = gameObject.AddComponent<KeybindHelpView>();
 			MagicBookView = gameObject.AddComponent<MagicBookView>();
 			MagicBookView.Settings = magicBookSettings;

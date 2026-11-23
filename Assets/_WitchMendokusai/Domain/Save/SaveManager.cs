@@ -8,6 +8,17 @@ using static WitchMendokusai.SOHelper;
 
 namespace WitchMendokusai
 {
+	public enum SaveLoadOutcome
+	{
+		/// <summary> 세이브가 없어 새 게임. 알릴 것 없음 </summary>
+		FirstRun = 0,
+		Loaded = 1,
+		/// <summary> 본 파일이 깨져 앞 판으로 불러옴 </summary>
+		RestoredFromBackup = 2,
+		/// <summary> 세이브가 있었는데 못 읽어 새 게임으로 시작 </summary>
+		ResetUnreadable = 3,
+	}
+
 	public class SaveManager
 	{
 		public const string SAVE_FILE_NAME = "WM.json";
@@ -15,6 +26,8 @@ namespace WitchMendokusai
 		public const int SAVE_VERSION = 1;
 
 		public bool IsDataLoaded { get; private set; }
+		/// <summary> 마지막 불러오기 결과. 로비가 읽어 복구나 새 게임 시작을 알림 </summary>
+		public SaveLoadOutcome LastLoadOutcome { get; private set; }
 
 		private SOManager soManager;
 		// DataManager → SaveManager → DataManager 순환 — 소유자 push (TASK-WM-120 γ).
@@ -121,13 +134,16 @@ namespace WitchMendokusai
 
 		public void LoadLocalData()
 		{
-			if (SaveTool.TryLoadFile(SAVE_FILE_NAME, out GameData gameData))
+			if (SaveTool.TryLoadFile(SAVE_FILE_NAME, out GameData gameData, out SaveReadSource source))
 			{
 				LoadData(gameData);
+				LastLoadOutcome = source == SaveReadSource.Backup ? SaveLoadOutcome.RestoredFromBackup : SaveLoadOutcome.Loaded;
 			}
 			else
 			{
+				// 새 게임 만들기가 안에서 다시 불러오며 Loaded 로 덮으므로 끝난 뒤에 적음
 				CreateNewGameData();
+				LastLoadOutcome = source == SaveReadSource.Unreadable ? SaveLoadOutcome.ResetUnreadable : SaveLoadOutcome.FirstRun;
 			}
 		}
 

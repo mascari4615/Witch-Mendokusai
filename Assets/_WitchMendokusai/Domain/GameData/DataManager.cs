@@ -29,6 +29,7 @@ namespace WitchMendokusai
 		public readonly Dictionary<string, (Recipe recipe, int itemID)> CraftDic = new();
 
 		public bool IsDataLoaded => SaveManager.IsDataLoaded;
+		public SaveLoadOutcome LastLoadOutcome => SaveManager.LastLoadOutcome;
 
 		public int CurDollID { get; set; }
 		public int DummyDollCount { get; set; }

@@ -105,6 +105,11 @@ namespace WitchMendokusai
 			{
 				StartGame();
 			}
+			else if (isReturn == false)
+			{
+				// 세이브를 앞 판으로 복구했거나 새 게임으로 시작했으면 처음 한 번 알림
+				uiRoot.SaveNoticeView.ShowIfNeeded(dataManager.LastLoadOutcome);
+			}
 		}
 
 		private void Init()
@@ -166,6 +171,12 @@ namespace WitchMendokusai
 		public void ToggleSettings()
 		{
 			Debug.Log(nameof(ToggleSettings));
+			// 세이브 알림이 떠 있으면 취소 키는 알림을 닫음
+			if (uiRoot.SaveNoticeView.IsOpen)
+			{
+				uiRoot.SaveNoticeView.Cancel();
+				return;
+			}
 			uiRoot.SettingView.Toggle();
 		}
 

@@ -101,6 +101,38 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Source_tells_first_run_from_broken_save()
+		{
+			Assert.IsFalse(SaveTool.TryReadWithBackup(path, out Sample _, out SaveReadSource missing));
+			Assert.AreEqual(SaveReadSource.Missing, missing);
+
+			SaveTool.WriteAtomic(path, "{\"value\":1}");
+			Assert.IsTrue(SaveTool.TryReadWithBackup(path, out Sample _, out SaveReadSource main));
+			Assert.AreEqual(SaveReadSource.Main, main);
+
+			SaveTool.WriteAtomic(path, "{\"value\":2}");
+			File.WriteAllText(path, "{\"value\":");
+			LogAssert.Expect(LogType.Error, new Regex("읽기 실패"));
+			LogAssert.Expect(LogType.Warning, new Regex("옮김"));
+			LogAssert.Expect(LogType.Warning, new Regex("앞 판"));
+			Assert.IsTrue(SaveTool.TryReadWithBackup(path, out Sample _, out SaveReadSource backup));
+			Assert.AreEqual(SaveReadSource.Backup, backup);
+		}
+
+		[Test]
+		public void Source_is_unreadable_when_both_files_are_broken()
+		{
+			File.WriteAllText(path, "not json");
+			File.WriteAllText(path + SaveTool.BACKUP_SUFFIX, string.Empty);
+			LogAssert.Expect(LogType.Error, new Regex("읽기 실패"));
+			LogAssert.Expect(LogType.Warning, new Regex("옮김"));
+			LogAssert.Expect(LogType.Warning, new Regex("옮김"));
+
+			Assert.IsFalse(SaveTool.TryReadWithBackup(path, out Sample _, out SaveReadSource source));
+			Assert.AreEqual(SaveReadSource.Unreadable, source);
+		}
+
+		[Test]
 		public void Old_save_without_version_reads_as_zero()
 		{
 			GameData gameData = Newtonsoft.Json.JsonConvert.DeserializeObject<GameData>("{\"curDollIndex\":2}");
