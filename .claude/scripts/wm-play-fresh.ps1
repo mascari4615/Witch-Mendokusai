@@ -45,9 +45,9 @@ return "WAIT scene=" + SceneManager.GetActiveScene().name;
 '@
 $stopReset = @'
 using UnityEditor;
-if (EditorApplication.isPlaying) EditorApplication.ExitPlaymode();
+if (EditorApplication.isPlaying) { EditorApplication.ExitPlaymode(); return "exiting"; }
 PlayerSettings.productName = "WitchMendokusai";
-return PlayerSettings.productName;
+return "restored " + PlayerSettings.productName;
 '@
 foreach ($pair in @(@('fresh.cs', $freshPlay), @('enter.cs', $enterWorld), @('stop.cs', $stopReset))) {
   [IO.File]::WriteAllText((Join-Path $probeDir $pair[0]), $pair[1], [Text.UTF8Encoding]::new($false))
@@ -57,13 +57,22 @@ function Invoke-Probe([string]$name) { unity command script eval --file (Join-Pa
 function Wait-Idle {
   for ($i = 0; $i -lt 60; $i++) {
     $r = unity command eval "return UnityEditor.EditorApplication.isCompiling || UnityEditor.EditorApplication.isUpdating ? 0 : 1;" --project-path $ProjectPath 2>&1 | Out-String
-    if ($r -match '"result":1') { return $true }
+    if ($r -match '"?result"?:\s*1\b') { return $true }
     Start-Sleep 5
   }
   return $false
 }
 
-if ($Stop) { Invoke-Probe 'stop.cs' | Out-Null; Write-Host 'stopped, productName restored'; exit 0 }
+# Restore productName only after Play really ended. The quit-time save follows productName,
+# so restoring it first writes the throwaway save over the real one (2026-11-24).
+if ($Stop) {
+  for ($i = 0; $i -lt 20; $i++) {
+    if ((Invoke-Probe 'stop.cs') -match 'restored WitchMendokusai') { Write-Host 'stopped, productName restored'; exit 0 }
+    Start-Sleep 2
+  }
+  Write-Host 'Play did not end, productName NOT restored. Run -Stop again'
+  exit 1
+}
 
 $start = Get-Date
 if ($Recompile) {
