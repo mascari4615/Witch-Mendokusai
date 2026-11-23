@@ -120,13 +120,18 @@ namespace WitchMendokusai.Tests
 		{
 			SkillTree tree = catalog.Find(SEWING_BOX);
 			Assert.That(tree, Is.Not.Null);
-			Assert.That(tree.Nodes.Count, Is.EqualTo(8));
 			Assert.That(tree.Nodes.All(node => node.IsInline));
+			// 공통 단계 8장. 화력 확정 뒤 카드 (완드, 최종) 는 숙련 조건 아래라 처음엔 전부 잠김
+			string[] commonStage = { "scissors_count", "scissors_speed", "scissors_damage", "needle_count", "needle_pierce", "needle_damage", "thread_frequency", "thread_potency" };
+			List<SkillTreeNode> common = tree.Nodes.Where(node => commonStage.Contains(node.Id)).ToList();
+			Assert.That(common.Count, Is.EqualTo(commonStage.Length));
 			string[] lockedAtStart = { "needle_pierce", "needle_damage", "thread_potency" };
-			foreach (SkillTreeNode node in tree.Nodes)
+			foreach (SkillTreeNode node in common)
 				Assert.That(node.IsUnlocked(new List<CardData>()), Is.EqualTo(lockedAtStart.Contains(node.Id) == false), node.Id);
 			List<CardData> afterFirsts = new() { tree.Nodes.First(node => node.Id == "needle_count").Card, tree.Nodes.First(node => node.Id == "thread_frequency").Card };
-			Assert.That(tree.Nodes.All(node => node.IsUnlocked(afterFirsts)));
+			Assert.That(common.All(node => node.IsUnlocked(afterFirsts)));
+			foreach (SkillTreeNode node in tree.Nodes.Where(node => commonStage.Contains(node.Id) == false))
+				Assert.That(node.IsUnlocked(afterFirsts), Is.False, node.Id);
 		}
 
 		[Test]
