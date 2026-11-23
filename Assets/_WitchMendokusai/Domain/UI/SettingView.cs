@@ -19,10 +19,6 @@ namespace WitchMendokusai
 		private const string TAB_KEY_EFFECTS = "effects";
 		private const string TAB_KEY_SHADERPACKS = "shaderpacks";
 
-		// 데모 목표 144FPS (사용자 2026-11-12). 토글 끔: 품질 단계의 수직 동기만
-		[SerializeField, Tooltip("FPS 고정 토글 켬")] private int lockedFrameRate = 60;
-		[SerializeField, Tooltip("FPS 고정 토글 끔. -1 제한 없음")] private int unlockedFrameRate = -1;
-
 		[SerializeField] private float sliderStep = 0.05f;
 		[SerializeField] private float navOverlapTolerance = 4f;
 		[SerializeField] private float navAcrossWeight = 2f;
@@ -45,8 +41,7 @@ namespace WitchMendokusai
 		private Slider bgmVolume;
 		private Slider sfxVolume;
 
-		// System
-		private Toggle framerateToggle;
+		// Display
 		private Toggle fpsDisplayToggle;
 
 		// Shaderpacks
@@ -145,6 +140,7 @@ namespace WitchMendokusai
 			panel.Add(contentArea);
 
 			RegisterTab(TAB_KEY_GENERAL, "환경설정", BuildGeneralContent);
+			RegisterTab(TAB_KEY_DISPLAY, "화면", BuildDisplayContent);
 			RegisterTab(TAB_KEY_EFFECTS, "효과", BuildEffectsContent);
 			RegisterTab(TAB_KEY_SHADERPACKS, "쉐이더팩", BuildShaderPackContent);
 			RegisterTab(TAB_KEY_CREDITS, "크레딧", BuildCreditsContent);
@@ -215,14 +211,6 @@ namespace WitchMendokusai
 			sfxVolume = CreateSlider("효과음 (SFX)", 0f, 1f, audioManager.GetVolume(AudioManager.BusType.SFX));
 			sfxVolume.RegisterValueChangedCallback(evt => audioManager.SetVolume(AudioManager.BusType.SFX, evt.newValue));
 			content.Add(WrapSlider(sfxVolume));
-
-			// System
-			Label systemHeader = new Label("시스템");
-			systemHeader.AddToClassList("wm-setting-header");
-			content.Add(systemHeader);
-
-			framerateToggle = CreateToggle("60 FPS 고정", Application.targetFrameRate == lockedFrameRate, isOn => isOn ? "켜짐 (60)" : "꺼짐 (제한 없음)", isOn => Application.targetFrameRate = isOn ? lockedFrameRate : unlockedFrameRate, content);
-			fpsDisplayToggle = CreateToggle("FPS 표시", UIFPS.IsVisible, DescribeOnOff, isOn => UIFPS.IsVisible = isOn, content);
 
 			// 버튼 그룹
 			VisualElement buttonGroup = new VisualElement();
@@ -323,25 +311,8 @@ namespace WitchMendokusai
 		private VisualElement CreateRemainsLingerSlider()
 		{
 			RemainsSettings remains = RemainsSettings.Load();
-			int lastChoice = remains.LingerChoices.Length - 1;
-			Slider slider = CreateSlider("싸움 흔적 유지", 0f, lastChoice, CombatEffectSettings.RemainsLingerChoice);
-			VisualElement row = new VisualElement();
-			row.AddToClassList("wm-setting-row");
-			row.Add(slider);
-			Label valueLabel = new Label(FormatLinger(remains, CombatEffectSettings.RemainsLingerChoice));
-			valueLabel.AddToClassList("wm-setting-value");
-			row.Add(valueLabel);
-			slider.RegisterValueChangedCallback(changeEvent =>
-			{
-				int choice = Mathf.Clamp(Mathf.RoundToInt(changeEvent.newValue), 0, lastChoice);
-				slider.SetValueWithoutNotify(choice);
-				if (choice == CombatEffectSettings.RemainsLingerChoice)
-					return;
-				CombatEffectSettings.RemainsLingerChoice = choice;
-				valueLabel.text = FormatLinger(remains, choice);
-				UiSfx.Play(UiSfxEvent.Slider);
-			});
-			return row;
+			return CreateStepSlider("싸움 흔적 유지", remains.LingerChoices.Length, CombatEffectSettings.RemainsLingerChoice, choice => FormatLinger(remains, choice),
+				choice => CombatEffectSettings.RemainsLingerChoice = choice, out Slider _, out Label _);
 		}
 
 		private static string FormatLinger(RemainsSettings remains, int choice)

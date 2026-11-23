@@ -1,0 +1,134 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace WitchMendokusai
+{
+	// 화면 탭: 전체화면, 해상도, 수직 동기, FPS 제한, FPS 표시. 값과 적용은 DisplaySettings
+	public partial class SettingView
+	{
+		private const string TAB_KEY_DISPLAY = "display";
+		private const string STEP_SLIDER_CLASS = "wm-setting-slider--step";
+		private const string WIDE_VALUE_CLASS = "wm-setting-value--wide";
+		private const string ROW_DISABLED_CLASS = "wm-setting-row--disabled";
+
+		[SerializeField, Tooltip("FPS 제한 선택지. 0 모니터 맞춤, -1 제한 없음")] private int[] frameRateChoices = { 30, 60, 120, 144, DisplaySettings.FRAME_RATE_MONITOR, DisplaySettings.FRAME_RATE_UNLIMITED };
+		[SerializeField, Tooltip("해상도 목록에 넣을 가장 낮은 세로 크기")] private int minResolutionHeight = 720;
+
+		private Slider frameRateSlider;
+		private Label frameRateValue;
+
+		private VisualElement BuildDisplayContent()
+		{
+			VisualElement content = new VisualElement();
+
+			Label screenHeader = new Label("화면");
+			screenHeader.AddToClassList("wm-setting-header");
+			content.Add(screenHeader);
+
+			CreateToggle("전체화면", DisplaySettings.Fullscreen, isOn => isOn ? "켜짐" : "꺼짐 (창 모드)", isOn => DisplaySettings.Fullscreen = isOn, content);
+			content.Add(CreateResolutionSlider());
+
+			Label frameHeader = new Label("프레임");
+			frameHeader.AddToClassList("wm-setting-header");
+			content.Add(frameHeader);
+
+			CreateToggle("수직 동기", DisplaySettings.VSync, DescribeOnOff, OnVSyncChanged, content);
+			content.Add(CreateFrameRateSlider());
+			fpsDisplayToggle = CreateToggle("FPS 표시", UIFPS.IsVisible, DescribeOnOff, isOn => UIFPS.IsVisible = isOn, content);
+
+			RefreshFrameRateRow();
+			return content;
+		}
+
+		private VisualElement CreateResolutionSlider()
+		{
+			List<Vector2Int> resolutions = CollectResolutions(Screen.resolutions, DisplaySettings.Resolution, minResolutionHeight);
+			int current = resolutions.IndexOf(DisplaySettings.Resolution);
+			return CreateStepSlider("해상도", resolutions.Count, current, index => $"{resolutions[index].x} x {resolutions[index].y}",
+				index => DisplaySettings.Resolution = resolutions[index], out Slider _, out Label _);
+		}
+
+		private VisualElement CreateFrameRateSlider()
+		{
+			int current = Array.IndexOf(frameRateChoices, DisplaySettings.FrameRateLimit);
+			// 지금 값이 선택지에 없으면 (선택지를 바꾼 뒤의 옛 값) 모니터 맞춤 칸
+			if (current < 0)
+				current = Array.IndexOf(frameRateChoices, DisplaySettings.FRAME_RATE_MONITOR);
+			VisualElement row = CreateStepSlider("FPS 제한", frameRateChoices.Length, current, index => FormatFrameRate(frameRateChoices[index]),
+				index => DisplaySettings.FrameRateLimit = frameRateChoices[index], out frameRateSlider, out frameRateValue);
+			return row;
+		}
+
+		private void OnVSyncChanged(bool isOn)
+		{
+			DisplaySettings.VSync = isOn;
+			RefreshFrameRateRow();
+		}
+
+		// 수직 동기가 켜지면 FPS 제한은 Unity 가 무시. 줄을 흐리게 하고 이유를 값 자리에
+		private void RefreshFrameRateRow()
+		{
+			bool isLocked = DisplaySettings.VSync;
+			frameRateSlider.parent.EnableInClassList(ROW_DISABLED_CLASS, isLocked);
+			frameRateSlider.SetEnabled(isLocked == false);
+			int index = Mathf.Clamp(Mathf.RoundToInt(frameRateSlider.value), 0, frameRateChoices.Length - 1);
+			frameRateValue.text = isLocked ? "수직 동기 사용 중" : FormatFrameRate(frameRateChoices[index]);
+		}
+
+		private static string FormatFrameRate(int frameRate)
+		{
+			if (frameRate == DisplaySettings.FRAME_RATE_MONITOR)
+				return "모니터 맞춤";
+			return frameRate == DisplaySettings.FRAME_RATE_UNLIMITED ? "제한 없음" : frameRate.ToString();
+		}
+
+		/// <summary> 모니터가 지원하는 해상도에서 같은 크기를 하나로, 세로가 너무 작은 것은 뺌. 지금 값은 목록에 없어도 넣음 </summary>
+		public static List<Vector2Int> CollectResolutions(Resolution[] supported, Vector2Int current, int minHeight)
+		{
+			List<Vector2Int> result = new();
+			foreach (Resolution resolution in supported)
+			{
+				Vector2Int size = new Vector2Int(resolution.width, resolution.height);
+				if (size.y < minHeight || result.Contains(size))
+					continue;
+				result.Add(size);
+			}
+			if (result.Contains(current) == false)
+				result.Add(current);
+			result.Sort((left, right) => left.x != right.x ? left.x.CompareTo(right.x) : left.y.CompareTo(right.y));
+			return result;
+		}
+
+		// 칸 단위로 고르는 막대 줄. 키보드 좌우는 한 칸씩 (Navigation 의 STEP_SLIDER_CLASS)
+		private VisualElement CreateStepSlider(string label, int count, int index, Func<int, string> format, Action<int> onChosen, out Slider slider, out Label valueLabel)
+		{
+			int last = count - 1;
+			Slider stepSlider = CreateSlider(label, 0f, last, index);
+			stepSlider.AddToClassList(STEP_SLIDER_CLASS);
+			VisualElement row = new VisualElement();
+			row.AddToClassList("wm-setting-row");
+			row.Add(stepSlider);
+			Label value = new Label(format(index));
+			value.AddToClassList("wm-setting-value");
+			value.AddToClassList(WIDE_VALUE_CLASS);
+			row.Add(value);
+			int chosen = index;
+			stepSlider.RegisterValueChangedCallback(changeEvent =>
+			{
+				int next = Mathf.Clamp(Mathf.RoundToInt(changeEvent.newValue), 0, last);
+				stepSlider.SetValueWithoutNotify(next);
+				if (next == chosen)
+					return;
+				chosen = next;
+				value.text = format(next);
+				onChosen(next);
+				UiSfx.Play(UiSfxEvent.Slider);
+			});
+			slider = stepSlider;
+			valueLabel = value;
+			return row;
+		}
+	}
+}

@@ -774,7 +774,7 @@
 }
 
 .wm-setting-tab {
-    width: 252px;
+    width: 240px;
     height: 66px;
     margin: 0 8px 0 0;
     padding: 0;
@@ -898,6 +898,21 @@
     color: rgb(242, 226, 122);
     font-size: 36px;
     -unity-text-align: middle-right;
+}
+
+/* 칸 막대의 값. "1920 x 1080", "수직 동기 사용 중" 처럼 긴 글자 */
+.wm-setting-value--wide {
+    width: 300px;
+    font-size: 30px;
+}
+
+/* 다른 설정 때문에 쓸 수 없는 줄 (수직 동기가 켜진 동안의 FPS 제한) */
+.wm-setting-row--disabled .wm-setting-slider {
+    opacity: 0.4;
+}
+
+.wm-setting-row--disabled .wm-setting-value {
+    color: rgb(160, 160, 168);
 }
 
 .wm-setting-toggle {

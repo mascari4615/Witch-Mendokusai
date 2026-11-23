@@ -166,7 +166,9 @@ namespace WitchMendokusai
 			if (isHorizontal && current is Slider slider)
 			{
 				float sign = evt.direction == NavigationMoveEvent.Direction.Right ? 1f : -1f;
-				slider.value = Mathf.Clamp(slider.value + sign * sliderStep, slider.lowValue, slider.highValue);
+				// 칸 막대는 한 칸씩. 볼륨 간격으로 움직이면 반올림에 막혀 제자리
+				float step = slider.ClassListContains(STEP_SLIDER_CLASS) ? 1f : sliderStep;
+				slider.value = Mathf.Clamp(slider.value + sign * step, slider.lowValue, slider.highValue);
 				return;
 			}
 
