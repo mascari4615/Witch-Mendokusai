@@ -306,6 +306,8 @@ function Get-PhoneInstallText {
 
 # Unity 가 배포 금지로 이름 붙인 최상위 폴더. v0.0.8 zip 629MB 중 523MB 가 여기 (GameAssembly.pdb, il2cpp 출력)
 $script:WM_DO_NOT_SHIP = @('*_BackUpThisFolder_ButDontShipItWithYourGame', '*_BurstDebugInformation_DoNotShip')
+# 빌드 폴더 맨 위에 같이 놓이는 빌드 기록. 러너 경로가 들어 있어 공개 zip 에 넣지 않음. 폴더에는 그대로 둠 (smoke 와 보존 정리가 읽음)
+$script:WM_DO_NOT_SHIP_FILES = @('unity-build.log', 'build-report.json')
 
 function New-ShippableZip {
     param([string]$SourceDir, [string]$ZipPath)
@@ -320,6 +322,7 @@ function New-ShippableZip {
     try {
         foreach ($file in Get-ChildItem -LiteralPath $root -Recurse -File) {
             $full = $file.FullName
+            if ($file.DirectoryName -eq $root -and $script:WM_DO_NOT_SHIP_FILES -contains $file.Name) { continue }
             if (@($skip | Where-Object { $full.StartsWith($_, [StringComparison]::OrdinalIgnoreCase) }).Count -gt 0) { continue }
             $entry = $full.Substring($root.Length + 1).Replace('\', '/')
             [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $full, $entry, [IO.Compression.CompressionLevel]::Fastest)
