@@ -13,6 +13,8 @@ namespace WitchMendokusai
 		[SerializeField] private Rect clearing = new(-21.1f, -22.4f, 42.2f, 48.8f);
 		[Tooltip("관제홀 바닥 (x 최소, z 최소, 너비, 깊이)")]
 		[SerializeField] private Rect hallFootprint = new(-14.1f, -4.4f, 28.2f, 23.8f);
+		[Tooltip("관제홀 팔각 모서리 깎임 (m). 직사각형 모서리에서 대각선으로 잘린 길이. 홀 테두리 메시 실측 4.87")]
+		[SerializeField] private float hallChamfer = 4.87f;
 		[Tooltip("윤곽 둥글기 반지름 (m). 직사각형 모서리를 이만큼 깎음")]
 		[SerializeField] private float cornerRadius = 17f;
 		[Tooltip("윤곽 흔들림 폭 (m) 과 각도 주파수")]
@@ -109,9 +111,13 @@ namespace WitchMendokusai
 
 		private float DistanceToHall(float x, float z)
 		{
+			// 홀은 팔각형. 직사각형 거리와 깎인 대각선 변까지의 거리 중 큰 값 (볼록 다각형 밖 근사)
 			float distanceX = Mathf.Max(hallFootprint.xMin - x, 0f, x - hallFootprint.xMax);
 			float distanceZ = Mathf.Max(hallFootprint.yMin - z, 0f, z - hallFootprint.yMax);
-			return new Vector2(distanceX, distanceZ).magnitude;
+			float offsetX = Mathf.Abs(x - hallFootprint.center.x);
+			float offsetZ = Mathf.Abs(z - hallFootprint.center.y);
+			float diagonal = (offsetX + offsetZ - (hallFootprint.width + hallFootprint.height) * 0.5f + hallChamfer) * 0.70710678f;
+			return Mathf.Max(new Vector2(distanceX, distanceZ).magnitude, diagonal, 0f);
 		}
 
 		private void PaintGround()
