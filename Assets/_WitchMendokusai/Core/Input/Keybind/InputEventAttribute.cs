@@ -16,8 +16,8 @@ namespace WitchMendokusai
 		public string DisplayName { get; }
 		public string DefaultPath { get; }
 
-		// 릴리스 빌드 (데모) 단축키 안내에 보일지. 데모에 없는 기능 키는 false
-		public bool ShownInRelease { get; set; } = true;
+		// 릴리스 빌드 (데모) 에서 받는 입력인지. false 면 릴리스에서 입력을 버리고 (InputManager.Dispatch) 안내에도 안 보임. 데모에 없는 기능 키는 false
+		public bool EnabledInRelease { get; set; } = true;
 
 		public InputEventAttribute(string category, string displayName, string defaultPath)
 		{

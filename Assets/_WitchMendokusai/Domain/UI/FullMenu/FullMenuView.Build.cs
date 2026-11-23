@@ -273,7 +273,7 @@ namespace WitchMendokusai
 			VisualElement row = null;
 			foreach (Entry entry in entries)
 			{
-				bool visible = entry.Hotkey.HasValue == false || KeybindRegistry.IsShownInThisBuild(entry.Hotkey.Value);
+				bool visible = entry.Hotkey.HasValue == false || KeybindRegistry.IsEnabledInThisBuild(entry.Hotkey.Value);
 				if (entry.KeyboardOnly && isTouch)
 					visible = false;
 				if (entry.TouchOnly && isTouch == false)

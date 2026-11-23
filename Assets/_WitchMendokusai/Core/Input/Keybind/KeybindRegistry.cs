@@ -31,12 +31,12 @@ namespace WitchMendokusai
 			return attributes.TryGetValue(eventType, out attribute);
 		}
 
-		// 이 빌드의 안내 (F1 창, 폰 창 메뉴) 에 보일지. 개발 빌드는 전부, 릴리스는 ShownInRelease 만
-		public static bool IsShownInThisBuild(InputEventType eventType)
-			=> Debug.isDebugBuild || IsShownInRelease(eventType);
+		// 이 빌드에서 받는 입력인지. 입력 거름과 안내 (F1 창, 폰 창 메뉴) 가 같은 값을 읽음. 개발 빌드는 전부, 릴리스는 EnabledInRelease 만
+		public static bool IsEnabledInThisBuild(InputEventType eventType)
+			=> Debug.isDebugBuild || IsEnabledInRelease(eventType);
 
-		public static bool IsShownInRelease(InputEventType eventType)
-			=> attributes.TryGetValue(eventType, out InputEventAttribute attribute) == false || attribute.ShownInRelease;
+		public static bool IsEnabledInRelease(InputEventType eventType)
+			=> attributes.TryGetValue(eventType, out InputEventAttribute attribute) == false || attribute.EnabledInRelease;
 
 		public static string GetDisplayName(InputEventType eventType)
 		{
@@ -72,7 +72,7 @@ namespace WitchMendokusai
 					GetDisplayName(eventType),
 					GetDefaultPath(eventType),
 					GetCurrentPath(eventType),
-					IsShownInRelease(eventType)
+					IsEnabledInRelease(eventType)
 				);
 			}
 		}

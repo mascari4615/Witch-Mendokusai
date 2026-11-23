@@ -208,6 +208,10 @@ namespace WitchMendokusai
 				&& ALWAYS_DISPATCH_WHILE_TYPING.Contains(inputEventType) == false)
 				return;
 
+			// 릴리스에 없는 기능의 입력은 여기 한 곳에서 버림. 키, 게임패드, 화면 버튼이 모두 이 길을 지남
+			if (KeybindRegistry.IsEnabledInThisBuild(inputEventType) == false)
+				return;
+
 			(InputEventType, InputEventResponseType) key = (inputEventType, responseType);
 
 			strategyEventsWithContext[key]?.Invoke(ctx);
