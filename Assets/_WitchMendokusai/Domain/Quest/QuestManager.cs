@@ -64,14 +64,10 @@ namespace WitchMendokusai
 			if (quest.Criteria.Count == 0)
 				return "100%";
 
-			float curValue = 0f;
-			float targetValue = 0f;
-			foreach (RuntimeCriteria runtimeCriteria in quest.Criteria)
-			{
-				curValue += runtimeCriteria.GetCurValue();
-				targetValue += runtimeCriteria.GetTargetValue();
-			}
-			return $"{curValue} / {targetValue}";
+			// 조건이 하나면 그 값 (단위 포함). 여럿이면 단위가 섞여 더할 수 없어 평균 진행률
+			if (quest.Criteria.Count == 1)
+				return CriteriaText.ProgressOf(quest.Criteria[0]);
+			return Mathf.Min(ProgressOf(quest), 1f).ToString("P0");
 		}
 
 		[Inject]

@@ -112,6 +112,11 @@ namespace WitchMendokusai
 				new(anchor.x - offset - width, anchor.y - height * 0.5f),
 				new(anchor.x - width * 0.5f, anchor.y + offset),
 				new(anchor.x - width * 0.5f, anchor.y - offset - height),
+				// 네 방향이 다 별을 덮으면 대각선. 빽빽한 작은 화면에서 이웃 별을 비켜 감
+				new(anchor.x + offset, anchor.y - offset - height),
+				new(anchor.x + offset, anchor.y + offset),
+				new(anchor.x - offset - width, anchor.y - offset - height),
+				new(anchor.x - offset - width, anchor.y + offset),
 			};
 			Rect best = new(new Vector2(edge, edge), size);
 			int bestCovered = int.MaxValue;

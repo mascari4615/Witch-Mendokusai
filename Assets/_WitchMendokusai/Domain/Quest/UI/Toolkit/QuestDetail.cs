@@ -122,17 +122,11 @@ namespace WitchMendokusai
 			_ => state.ToString(),
 		};
 
-		private string BuildCriteriaText(RuntimeCriteria criteria)
+		private static string BuildCriteriaText(RuntimeCriteria criteria)
 		{
-			string name = criteria.Criteria is ItemCountCriteria itemCount
-				? SOHelper.GetItemData(itemCount.ItemID)?.Name ?? "?"
-				: criteria.Criteria.GetType().Name;
-
-			int target = criteria.GetTargetValue();
-			if (target > 0)
-				return $"{name}  {criteria.GetCurValue()}/{target}";
-
-			return name;
+			string name = CriteriaText.NameOf(criteria.Criteria);
+			string progress = CriteriaText.ProgressOf(criteria);
+			return string.IsNullOrEmpty(progress) ? name : $"{name}  {progress}";
 		}
 
 		private void OnWorkClicked()
