@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -68,6 +69,9 @@ namespace WitchMendokusai
 		private float readyTime;
 		private float readyInterval;
 		public CooldownState Cooldown => CooldownState.FromReadyTime(readyTime, readyInterval);
+
+		// 한 발을 낸 직후. 낸 오브젝트와 방향 (알리사 빛의 검: 베기마다 검기)
+		public event Action<GameObject, Vector3> Shot = delegate { };
 
 		private Coroutine spawnCoroutine;
 		private int damageBonus = 0;
@@ -234,6 +238,7 @@ namespace WitchMendokusai
 			shotReceiverBuffer.Clear();
 
 			g.SetActive(true);
+			Shot(g, direction);
 		}
 
 		private float ScaleMultiplier()

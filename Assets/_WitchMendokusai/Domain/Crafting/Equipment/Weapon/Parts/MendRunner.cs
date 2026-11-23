@@ -22,6 +22,9 @@ namespace WitchMendokusai
 
 		public int MendCount { get; private set; }
 
+		// 지금 판의 수선. 다른 카드가 수선을 한 번 더 부를 때 (알리사 빛의 검 축복 B). 수선 장비가 없는 판이면 null
+		public static MendRunner Current { get; private set; }
+
 		public static MendRunner Begin(PlayerObject player, MendData data, GameEventManager gameEventManager, IMendTarget target)
 		{
 			GameObject host = new($"Mend_{data.name}");
@@ -31,6 +34,7 @@ namespace WitchMendokusai
 			runner.target = target;
 			runner.gameEventManager = gameEventManager;
 			gameEventManager.RegisterCallback(GameEventType.OnLevelUp, runner.HandleLevelUp);
+			Current = runner;
 			return runner;
 		}
 
@@ -42,7 +46,12 @@ namespace WitchMendokusai
 			Destroy(gameObject);
 		}
 
-		private void OnDestroy() => Unsubscribe();
+		private void OnDestroy()
+		{
+			Unsubscribe();
+			if (Current == this)
+				Current = null;
+		}
 
 		private void Unsubscribe()
 		{
@@ -70,7 +79,15 @@ namespace WitchMendokusai
 			int interval = MendRules.IntervalFromCards(data.Interval, frequencyCards, data.MinInterval);
 			if (MendRules.TriggersAt(levelUps, interval) == false)
 				return;
+			MendNow();
+			Debug.Log($"[Mend] 레벨업 {levelUps}회째 (주기 {interval})");
+		}
 
+		// 받은 카드가 가장 적은 장비 하나를 수선. 실 카드를 받기 전에는 안 함
+		public void MendNow()
+		{
+			if (MendRules.IsActive(player.UnitStat[UnitStatType.MEND_FREQUENCY]) == false)
+				return;
 			IReadOnlyList<EquipmentData> candidates = target.MendCandidates();
 			List<int> picks = new(candidates.Count);
 			foreach (EquipmentData equipment in candidates)
@@ -85,7 +102,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < shares.Length; i++)
 				player.UnitStat[mended.MendStats[i]] += shares[i];
 			MendCount++;
-			Debug.Log($"[Mend] 레벨업 {levelUps}회째, {mended.Name} +{amount} (주기 {interval})");
+			Debug.Log($"[Mend] {mended.Name} +{amount}");
 			if (UIManager.TryGetExistingInstance(out UIManager uiManager))
 				uiManager.PopText(string.Format(data.TextFormat, mended.Name), TextType.Normal, player.transform.position);
 		}

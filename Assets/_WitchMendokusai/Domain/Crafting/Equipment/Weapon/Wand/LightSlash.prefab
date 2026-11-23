@@ -216,6 +216,7 @@ GameObject:
   - component: {fileID: 7674404506162535194}
   - component: {fileID: 2571817826546466663}
   - component: {fileID: 7518089515733978927}
+  - component: {fileID: 6606151826308108482}
   m_Layer: 0
   m_Name: LightSlash
   m_TagString: Untagged
@@ -376,3 +377,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d459f7b250ea415985530025cc123298, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.GaugeOnHit
+--- !u!114 &6606151826308108482
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4922801019440085841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e5b3cd3bdaf4ba99bc746235f65d279, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.GatedDamageScale
+  gateStat: 13040
+  percent: 85
