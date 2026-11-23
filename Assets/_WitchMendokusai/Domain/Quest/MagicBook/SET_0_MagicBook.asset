@@ -15,6 +15,7 @@ MonoBehaviour:
   <Style>k__BackingField: {fileID: 7433441132597879392, guid: 25aa501ee87547a3a7d48fc0e3b5f594, type: 3}
   <Menu>k__BackingField: {fileID: 11400000, guid: 1b429db3c5bd4307bcc28c581db6a222, type: 2}
   <HubIcon>k__BackingField: {fileID: 21300000, guid: 69305c5b0c973df4e866dc6915ff7a6e, type: 3}
+  <FallbackStarIcon>k__BackingField: {fileID: 21300000, guid: a5bf45689a41f1449a847ff1cd602716, type: 3}
   <FirstOffset>k__BackingField: 140
   <BranchStep>k__BackingField: 132
   <Jitter>k__BackingField: 14
@@ -40,3 +41,4 @@ MonoBehaviour:
   <ChapterZoom>k__BackingField: 1.15
   <PopupOffset>k__BackingField: 64
   <PopupEdge>k__BackingField: 40
+  <PopupBarGap>k__BackingField: 16

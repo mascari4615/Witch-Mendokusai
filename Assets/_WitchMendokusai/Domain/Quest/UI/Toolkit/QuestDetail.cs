@@ -92,6 +92,8 @@ namespace WitchMendokusai
 			descLabel.text = quest?.Description ?? questSOFallback?.Description ?? string.Empty;
 			stateLabel.text = quest != null ? StateText(quest.State) : "잠김";
 			progressLabel.text = quest != null ? questManager.ProgressTextOf(quest) : string.Empty;
+			// 조건이 하나면 아래 조건 줄이 이름과 같은 값을 보여 주므로 큰 진행 글은 숨김
+			progressLabel.style.display = quest != null && quest.Criteria.Count == 1 ? DisplayStyle.None : DisplayStyle.Flex;
 
 			criteriaContainer.Clear();
 			if (quest != null)

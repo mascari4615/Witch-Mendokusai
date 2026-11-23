@@ -15,6 +15,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public StyleSheet Style { get; private set; }
 		[field: SerializeField, Tooltip("ESC 메뉴 설정. 무대 기준 크기, 칸 이동 수치, 빛 그림 크기, FullMenu.uss 를 같이 씀")] public FullMenuSettings Menu { get; private set; }
 		[field: SerializeField, Tooltip("가운데 마도서 별 아이콘")] public Sprite HubIcon { get; private set; }
+		[field: SerializeField, Tooltip("퀘스트에 그림이 없을 때 별 아이콘")] public Sprite FallbackStarIcon { get; private set; }
 
 		[field: Header("별 자리")]
 		[field: SerializeField, Tooltip("가운데에서 장의 첫 별까지 거리 (하늘 px)")] public float FirstOffset { get; private set; } = 140f;
@@ -51,5 +52,6 @@ namespace WitchMendokusai
 		[field: Header("팝업")]
 		[field: SerializeField, Tooltip("별 가운데에서 팝업 가장자리까지 (무대 px)")] public float PopupOffset { get; private set; } = 64f;
 		[field: SerializeField, Tooltip("팝업이 무대 가장자리에서 떨어지는 최소 거리 (무대 px)")] public float PopupEdge { get; private set; } = 40f;
+		[field: SerializeField, Tooltip("팝업과 위아래 줄 사이 틈 (무대 px)")] public float PopupBarGap { get; private set; } = 16f;
 	}
 }

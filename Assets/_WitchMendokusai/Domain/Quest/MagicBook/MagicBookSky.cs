@@ -180,7 +180,7 @@ namespace WitchMendokusai
 					continue;
 				}
 				Vector2 position = positions[node.Id];
-				MagicBookStar star = new(questNode.Target, chapter, position, hasParent.Contains(node.Id) == false, hasChild.Contains(node.Id) ? MagicBookLabelSide.Below : outward, glowTexture);
+				MagicBookStar star = new(questNode.Target, chapter, position, hasParent.Contains(node.Id) == false, hasChild.Contains(node.Id) ? MagicBookLabelSide.Below : outward, glowTexture, settings.FallbackStarIcon);
 				star.clicked += () => StarSubmitted(star);
 				// 키로 고를 때만 따라감. 클릭 중에 카메라가 움직이면 별이 커서에서 빠져나가 클릭이 안 됨
 				star.RegisterCallback<FocusInEvent>(_ =>

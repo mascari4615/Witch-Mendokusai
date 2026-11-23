@@ -57,7 +57,7 @@ namespace WitchMendokusai
 		/// <summary>하늘 좌표 (가운데 마도서가 0, 0)</summary>
 		public Vector2 SkyPosition { get; }
 
-		public MagicBookStar(QuestSO quest, ChapterSO chapter, Vector2 skyPosition, bool isGate, MagicBookLabelSide labelSide, Texture2D glowTexture)
+		public MagicBookStar(QuestSO quest, ChapterSO chapter, Vector2 skyPosition, bool isGate, MagicBookLabelSide labelSide, Texture2D glowTexture, Sprite fallbackIcon)
 		{
 			Quest = quest;
 			Chapter = chapter;
@@ -74,10 +74,7 @@ namespace WitchMendokusai
 			Part(this, USS_RING);
 			VisualElement core = Part(this, USS_CORE);
 			VisualElement icon = Part(core, USS_ICON);
-			if (quest.Sprite != null)
-			{
-				icon.style.backgroundImage = new StyleBackground(quest.Sprite);
-			}
+			icon.style.backgroundImage = new StyleBackground(quest.Sprite != null ? quest.Sprite : fallbackIcon);
 
 			VisualElement label = Part(this, USS_LABEL);
 			Label nameLabel = new(quest.Name);

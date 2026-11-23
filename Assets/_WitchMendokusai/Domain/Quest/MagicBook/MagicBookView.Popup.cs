@@ -29,6 +29,9 @@ namespace WitchMendokusai
 			// 그 버튼으로 퀘스트가 바뀜. 별과 선과 진행 숫자를 다시
 			questDetail.Changed += RefreshAfterAction;
 			popup.RegisterCallback<GeometryChangedEvent>(_ => PlacePopup());
+			// 해상도가 바뀌어 위아래 줄만 움직여도 다시 놓음
+			topBar.RegisterCallback<GeometryChangedEvent>(_ => PlacePopup());
+			bottomBar.RegisterCallback<GeometryChangedEvent>(_ => PlacePopup());
 			stage.Add(popup);
 
 			stage.RegisterCallback<FocusInEvent>(evt =>
@@ -96,7 +99,9 @@ namespace WitchMendokusai
 			float height = popup.resolvedStyle.height;
 			// 하늘은 무대 안쪽 여백까지 덮음. 팝업 자리도 하늘 크기 기준
 			Vector2 stageSize = sky.contentRect.size;
-			if (float.IsNaN(width) || float.IsNaN(height) || stageSize.x <= 0f)
+			Rect topLayout = topBar.layout;
+			Rect bottomLayout = bottomBar.layout;
+			if (float.IsNaN(width) || float.IsNaN(height) || stageSize.x <= 0f || float.IsNaN(topLayout.yMax) || float.IsNaN(bottomLayout.yMin))
 			{
 				return;
 			}
@@ -119,8 +124,8 @@ namespace WitchMendokusai
 				new(anchor.x - offset - width, anchor.y + offset),
 			};
 			// 세로는 위 줄 (장 이름, 닫기) 과 아래 줄 (키 안내) 사이. 두 줄도 무대 자식이라 같은 좌표
-			float minTop = Mathf.Max(edge, topBar.layout.yMax);
-			float maxTop = Mathf.Max(minTop, Mathf.Min(stageSize.y - edge, bottomBar.layout.yMin) - height);
+			float minTop = Mathf.Max(edge, topLayout.yMax + Settings.PopupBarGap);
+			float maxTop = Mathf.Max(minTop, Mathf.Min(stageSize.y - edge, bottomLayout.yMin - Settings.PopupBarGap) - height);
 			Rect best = new(new Vector2(edge, minTop), size);
 			int bestCovered = int.MaxValue;
 			foreach (Vector2 candidate in candidates)

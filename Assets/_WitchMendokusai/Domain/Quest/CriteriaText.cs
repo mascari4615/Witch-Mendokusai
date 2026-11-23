@@ -6,35 +6,45 @@ namespace WitchMendokusai
 	public static class CriteriaText
 	{
 		private const int SECONDS_PER_MINUTE = 60;
+		private const float PERCENT = 100f;
 
 		public static string NameOf(Criteria criteria) => criteria switch
 		{
 			ItemCountCriteria itemCount => SOHelper.GetItemData(itemCount.ItemID)?.Name ?? "아이템",
 			GameStatCriteria gameStat => StatDisplayName.Get(gameStat.Type),
 			StatCriteria stat => StatDisplayName.Get(stat.Type),
+			DungeonStatCriteria { Type: DungeonStatType.DUNGEON_TIME } => "던전 시간",
+			DungeonStatCriteria => "던전 기록",
 			IntCriteria intCriteria => intCriteria.IntVariable.Name,
 			_ => "조건",
 		};
 
-		// 누적 기록은 목표를 넘어 쌓이므로 표시는 목표에서 멈춤. 목표가 없는 조건은 빈 글
+		// 누적 기록은 목표를 넘어 쌓이므로 표시는 목표에서 멈춤. 목표 값이 없는 조건 (대화 등) 은 진행률
 		public static string ProgressOf(RuntimeCriteria criteria)
 		{
 			int target = criteria.GetTargetValue();
 			if (target <= 0)
 			{
-				return string.Empty;
+				return $"{Mathf.Clamp01(criteria.GetProgress()) * PERCENT:0}%";
 			}
 			int current = Mathf.Min(criteria.GetCurValue(), target);
-			return $"{ValueOf(criteria.Criteria, current)} / {ValueOf(criteria.Criteria, target)}";
+			if (IsSeconds(criteria.Criteria))
+			{
+				return TimeOf(current, target);
+			}
+			return $"{current} / {target}";
 		}
 
-		private static string ValueOf(Criteria criteria, int value)
+		// 1분 아래 목표는 초로. 분으로 쓸 때 지금 값은 내림, 목표는 올림 (끝나기 전에 같은 숫자로 보이지 않게)
+		private static string TimeOf(int currentSeconds, int targetSeconds)
 		{
-			if (IsSeconds(criteria))
+			if (targetSeconds < SECONDS_PER_MINUTE)
 			{
-				return $"{value / SECONDS_PER_MINUTE}분";
+				return $"{currentSeconds}초 / {targetSeconds}초";
 			}
-			return value.ToString();
+			int targetMinutes = Mathf.CeilToInt((float)targetSeconds / SECONDS_PER_MINUTE);
+			int currentMinutes = currentSeconds >= targetSeconds ? targetMinutes : Mathf.Min(currentSeconds / SECONDS_PER_MINUTE, targetMinutes - 1);
+			return $"{currentMinutes}분 / {targetMinutes}분";
 		}
 
 		private static bool IsSeconds(Criteria criteria) =>
