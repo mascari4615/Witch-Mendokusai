@@ -224,8 +224,19 @@ namespace WitchMendokusai
 		WAND_FAIRY_SCALE = 13_027,
 		WAND_CHORUS = 13_028,
 
+		// 알리사 일제 사격 (화력 최종). 정본 VolleyGaugeRules
+		VOLLEY_CHARGE_PERCENT = 13_030,
+		VOLLEY_SPLIT = 13_031,
+		VOLLEY_FOCUS = 13_032,
+		VOLLEY_BLAST = 13_033,
+		VOLLEY_WEAPONS = 13_034,
+		VOLLEY_HOMING = 13_035,
+		VOLLEY_BEAM = 13_036,
+		VOLLEY_DAMAGE_PERCENT = 13_037,
+
 		// 레벨 기준 성장 카드 (LevelGrowthData 의 켜짐 스탯). 값은 받은 장수
 		GROWTH_COOLTIME = 13_050,
+		GROWTH_VOLLEY_DAMAGE = 13_051,
 
 		// 수선 (반짇고리 실 카드). 빈도는 켜기와 주기 감소, 세기는 한 번의 양. 정본 MendRules
 		MEND_FREQUENCY = 13_100,

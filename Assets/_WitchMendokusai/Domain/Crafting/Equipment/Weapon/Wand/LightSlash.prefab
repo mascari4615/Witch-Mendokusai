@@ -215,6 +215,7 @@ GameObject:
   - component: {fileID: 1384077934205503382}
   - component: {fileID: 7674404506162535194}
   - component: {fileID: 2571817826546466663}
+  - component: {fileID: 7518089515733978927}
   m_Layer: 0
   m_Name: LightSlash
   m_TagString: Untagged
@@ -363,3 +364,15 @@ MonoBehaviour:
   gateStat: 13022
   prefab: {fileID: 4922801019440085841, guid: c2e3ea2ff11c48f0a1a94fa18ca011a8, type: 3}
   followScale: 1
+--- !u!114 &7518089515733978927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4922801019440085841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d459f7b250ea415985530025cc123298, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.GaugeOnHit

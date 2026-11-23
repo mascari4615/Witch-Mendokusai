@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a090c23ee9c64c91bf874022a6159aa4, type: 3}
+  m_Name: "DFM_\uC54C\uB9AC\uC0AC_\uC77C\uC81C\uC0AC\uACA9"
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.DollFormData
+  <Key>k__BackingField: alisa_volley
+  <DisplayName>k__BackingField: "\uC77C\uC81C\uC0AC\uACA9"
+  <BodyTint>k__BackingField: {r: 1, g: 0.9, b: 0.5, a: 1}
+  <SignatureObject>k__BackingField: {fileID: 3892366890574093729, guid: 01f157a872314ed7a74c524392300a8e, type: 3}
+  <ConfirmMasteryTrack>k__BackingField: -1

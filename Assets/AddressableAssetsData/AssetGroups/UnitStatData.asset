@@ -627,6 +627,60 @@ MonoBehaviour:
     m_SerializedLabels:
     - UnitStatData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d3285a69d85743d58f4315e76a88b1ed
+    m_Address: UnitStatData/13030
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6a7ca055267843e7ac3613b73477dcc3
+    m_Address: UnitStatData/13031
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d7588f4ad36742dd9596adbbaf3e92af
+    m_Address: UnitStatData/13032
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 360d111352a443598dc49b204f0d8c05
+    m_Address: UnitStatData/13033
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1bdff8e34e154778bcb67b2f1691aab7
+    m_Address: UnitStatData/13034
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e8ad52f4b885403093e053b90b838210
+    m_Address: UnitStatData/13035
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b7dbd0f97a93493fbe3acae4b4dd45c2
+    m_Address: UnitStatData/13036
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a8b3b2c301764ded8ed384356d6551d6
+    m_Address: UnitStatData/13037
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 51258e201d964173925b9ad79f7ddf70
+    m_Address: UnitStatData/13051
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a0bf22363c0041c9adcb30366d9fc71e
     m_Address: UnitStatData/13101
     m_ReadOnly: 0
