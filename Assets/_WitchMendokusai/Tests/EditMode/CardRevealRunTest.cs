@@ -93,6 +93,56 @@ namespace WitchMendokusai.Tests
 			director.Cancel();
 		}
 
+		// 스킨 At 콜백이 끝 지점에서 공개를 끝내는 경우. 갱신 중 Skip, Kill 은 갱신 뒤로 미룸
+		// - 옛 코드는 Play 에서 ManualUpdate 안 IndexOutOfRangeException (2026-11-23 데스크톱). 편집 모드는 예외 대신 횟수와 정리를 지킴
+		[TestCase(false)]
+		[TestCase(true)]
+		public void Ending_the_run_from_its_own_callback_is_deferred(bool skip)
+		{
+			GameObject content = NewRect("[Test] Content", null);
+			CardRevealRun run = new(null, null, content.transform, null, CardRevealTier.Common, null, Vector2.zero);
+			int finishedCount = 0;
+			run.Mark(0.2f);
+			run.At(0.2f, () =>
+			{
+				if (skip)
+					run.Skip();
+				else
+					run.Kill();
+			});
+			run.Start(() =>
+			{
+				finishedCount++;
+				run.Kill();
+			});
+			Assert.DoesNotThrow(() =>
+			{
+				for (int i = 0; i < 10; i++)
+					run.Tick(STEP);
+			});
+			Assert.AreEqual(skip ? 1 : 0, finishedCount, skip ? "건너뛰기는 끝 알림 한 번" : "Kill 은 끝 알림 없음");
+			Assert.IsTrue(run.Skipping == skip);
+		}
+
+		// 바깥 Skip 의 Complete 가 부른 At 콜백이 다시 Skip. 끝 알림은 한 번, Kill 은 Complete 뒤
+		[Test]
+		public void Skip_from_a_callback_fired_by_skip_finishes_once()
+		{
+			GameObject content = NewRect("[Test] Content", null);
+			CardRevealRun run = new(null, null, content.transform, null, CardRevealTier.Common, null, Vector2.zero);
+			int finishedCount = 0;
+			run.Mark(0.4f);
+			run.At(0.3f, () => run.Skip());
+			run.Start(() =>
+			{
+				finishedCount++;
+				run.Kill();
+			});
+			run.Tick(STEP);
+			Assert.DoesNotThrow(run.Skip);
+			Assert.AreEqual(1, finishedCount);
+		}
+
 		[Test]
 		public void Input_inside_skip_guard_is_consumed_without_skipping()
 		{

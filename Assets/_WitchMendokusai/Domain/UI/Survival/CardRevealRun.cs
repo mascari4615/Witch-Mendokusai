@@ -65,10 +65,10 @@ namespace WitchMendokusai
 				UiSfx.Play(sfx);
 		});
 
-		// 입자, 일회성 효과. 건너뛰기 중이면 생략
+		// 입자, 일회성 효과. 건너뛰기 중이거나 끝내기를 받았으면 생략
 		public void Emit(float time, Action emit) => At(time, () =>
 		{
-			if (Skipping == false)
+			if (Quiet == false)
 				emit();
 		});
 
@@ -115,7 +115,7 @@ namespace WitchMendokusai
 		{
 			At(time, () =>
 			{
-				if (Skipping == false && CameraManager.TryGetExistingInstance(out CameraManager cameraManager))
+				if (Quiet == false && CameraManager.TryGetExistingInstance(out CameraManager cameraManager))
 					releases.Add(cameraManager.PunchZoom(distance, fieldOfView, inSeconds, float.PositiveInfinity, Skin.CameraOut, AnimationCurve.EaseInOut(0f, 0f, 1f, 1f)));
 			});
 		}
@@ -137,12 +137,36 @@ namespace WitchMendokusai
 		// 공개 중에만 읽음. Kill 뒤에는 부르지 않음
 		public float Elapsed => sequence.Elapsed(false);
 
+		// 갱신 중 끝내기 요청은 갱신이 끝난 뒤 처리
+		// - At 콜백 (스킨) 이나 그 안의 감독 호출이 Skip, Kill 을 부르면 수동 갱신 (ManualUpdate, Complete) 안에서 자기 Sequence 를 Complete, Kill 하게 됨
+		//   끝 지점이면 DOTween 이 같은 tween 을 두 번 지워 IndexOutOfRangeException (2026-11-23 데스크톱 Play, 옛 코드 Kill, Skip 둘 다 재현)
+		// - 끝 알림만 바깥으로 뺀 11-21 수정은 이 경로를 못 막음. 어느 콜백이 불러도 여기서 막음
+		// - Kill 은 정리 (카드 층 자리, 카메라 풀기) 까지 갱신 뒤로. 같은 갱신에 남은 콜백이 정리 뒤에 다시 쓰지 않게
+		private bool updating;
+		private bool pendingSkip;
+		private bool pendingKill;
+		private bool ending;
+
+		// 소리, 입자, 카메라를 내지 않음
+		private bool Quiet => Skipping || ending;
+
 		public void Tick(float deltaTime)
 		{
 			if (finished == null)
 				return;
-			sequence.ManualUpdate(deltaTime, deltaTime);
-			if (sequence.Elapsed(false) >= End)
+			Guarded(() => sequence.ManualUpdate(deltaTime, deltaTime));
+			if (pendingKill)
+			{
+				KillNow();
+				return;
+			}
+			if (pendingSkip)
+			{
+				pendingSkip = false;
+				Skip();
+				return;
+			}
+			if (finished != null && sequence.Elapsed(false) >= End)
 				RaiseFinished();
 		}
 
@@ -151,8 +175,33 @@ namespace WitchMendokusai
 			if (finished == null)
 				return;
 			Skipping = true;
-			sequence.Complete(true);
+			if (updating)
+			{
+				pendingSkip = true;
+				return;
+			}
+			// Complete 도 남은 At 콜백을 모두 부름. 그 안의 Skip, Kill 도 미룸
+			Guarded(() => sequence.Complete(true));
+			pendingSkip = false;
+			if (pendingKill)
+			{
+				KillNow();
+				return;
+			}
 			RaiseFinished();
+		}
+
+		private void Guarded(Action update)
+		{
+			updating = true;
+			try
+			{
+				update();
+			}
+			finally
+			{
+				updating = false;
+			}
 		}
 
 		private void RaiseFinished()
@@ -165,6 +214,19 @@ namespace WitchMendokusai
 		public void Kill()
 		{
 			finished = null;
+			ending = true;
+			if (updating)
+			{
+				pendingKill = true;
+				return;
+			}
+			KillNow();
+		}
+
+		private void KillNow()
+		{
+			pendingKill = false;
+			pendingSkip = false;
 			sequence.Kill();
 			Content.localPosition = contentHome;
 			foreach (Action release in releases)
