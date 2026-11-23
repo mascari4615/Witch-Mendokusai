@@ -52,7 +52,7 @@ MonoBehaviour:
   ShockMonsterDamage: 15
   ShockPlayerDamage: 2
   GoopSlowLingerSeconds: 0.4
-  FireColor: {r: 0.9, g: 0.28, b: 0.06, a: 1}
+  FireColor: {r: 0.32, g: 0.07, b: 0.015, a: 1}
   ShockColor: {r: 0.8, g: 1.6, b: 3, a: 1}
   ScorchColor: {r: 0.06, g: 0.045, b: 0.035, a: 0.85}
   ScorchRadius: 0.75
@@ -81,3 +81,4 @@ MonoBehaviour:
   - -1
   DefaultLingerChoice: 2
   GoopParticleMaterial: {fileID: 2100000, guid: 98d4b1602e054aefad62c339e5256356, type: 2}
+  FireFlameShader: {fileID: 4800000, guid: a8cf1aca42f74e52afd9e4d5bd130056, type: 3}

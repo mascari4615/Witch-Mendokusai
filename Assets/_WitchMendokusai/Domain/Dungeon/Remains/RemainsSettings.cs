@@ -57,7 +57,7 @@ namespace WitchMendokusai
 		[Min(0), Tooltip("감전된 웅덩이 위 몬스터가 한 번 받는 피해")] public int ShockMonsterDamage = 15;
 		[Min(0), Tooltip("감전된 웅덩이 위 주인공이 한 번 받는 피해")] public int ShockPlayerDamage = 2;
 		[Min(.1f), Tooltip("느려짐이 남는 시간 초 (웅덩이를 벗어난 뒤)")] public float GoopSlowLingerSeconds = .4f;
-		[ColorUsage(true, true), Tooltip("타는 액체 바닥의 잉걸 빛 (빛남 포함). 불 모양은 불길 혀가 맡아 바닥은 낮게")] public Color FireColor = new(.9f, .28f, .06f, 1f);
+		[ColorUsage(true, true), Tooltip("타는 액체 바닥의 잉걸 빛 (빛남 포함). 불 모양은 불길 혀가 맡아 바닥은 낮게")] public Color FireColor = new(.32f, .07f, .015f, 1f);
 		[ColorUsage(true, true), Tooltip("감전 색 (빛남 포함)")] public Color ShockColor = new(.8f, 1.6f, 3f, 1f);
 		[Tooltip("다 탄 자리에 남는 그을음 색")] public Color ScorchColor = new(.06f, .045f, .035f, .85f);
 		[Min(0f), Tooltip("다 탄 칸 하나가 남기는 그을음 반지름, 미터")] public float ScorchRadius = .75f;
@@ -80,22 +80,28 @@ namespace WitchMendokusai
 		[Header("발밑 먼지")]
 		[Min(0f), Tooltip("걸을 때 발밑 먼지 간격 초. 자산 생성기가 주인공 먼지 부품에 써 넣음 (0 이면 걸을 때 없음)")] public float WalkDustInterval = .3f;
 
-		[Header("액체 입자 (불길 혀, 불티, 감전 불똥)")]
-		[Tooltip("가산 파티클 재질. 불길 혀는 이 재질에 불길 혀 무늬를 입힌 사본")] public Material GoopParticleMaterial;
+		[Header("액체 입자 (불길, 연기, 불티, 감전 불똥)")]
+		[Tooltip("가산 파티클 재질. 불티와 감전 불똥")] public Material GoopParticleMaterial;
+		[Tooltip("불길과 연기 셰이더 (WM/Remains/FireFlame). 모양, 일렁임, 온도 색은 셰이더 속성")] public Shader FireFlameShader;
 		[Min(16)] public int MaxGoopParticles = 600;
 		[Min(1), Tooltip("프레임당 새로 내는 입자 상한 (종류마다)")] public int MaxGoopParticlesPerFrame = 12;
-		[Min(0f), Tooltip("타는 칸 하나가 초당 내는 불길 혀 수")] public float FlamesPerCellPerSecond = 7f;
-		[Tooltip("불길 혀 시작 색. 무늬에 노랑 속과 주황 겉이 구워져 있어 거의 흰색")] public Color FlameColor = new(1f, .95f, .9f, 1f);
-		[Tooltip("불길 혀 끝 색 (시작 색에 곱함). 오르며 붉어짐")] public Color FlameEndColor = new(1f, .35f, .18f, 1f);
-		[Tooltip("불길 혀가 위로 뜨는 속도 범위")] public Vector2 FlameRise = new(.25f, .6f);
-		[Min(0f), Tooltip("불길 혀가 옆으로 흔들리는 속도")] public float FlameDrift = .12f;
-		[Tooltip("불길 혀 폭 범위")] public Vector2 FlameSize = new(.4f, .7f);
-		[Min(.5f), Tooltip("불길 혀 높이 / 폭")] public float FlameAspect = 2f;
-		[Min(0f), Tooltip("불길 혀 기울기 범위 (도)")] public float FlameTilt = 8f;
-		[Range(0f, 1f), Tooltip("나올 때 크기 비율")] public float FlameGrowFrom = .6f;
-		[Range(.05f, .95f), Tooltip("가장 클 때 (수명 비율)")] public float FlamePeakAt = .25f;
-		[Range(0f, 1f), Tooltip("사라질 때 크기 비율")] public float FlameShrinkTo = .2f;
-		[Tooltip("불길 혀 수명 범위 초")] public Vector2 FlameLife = new(.35f, .6f);
+		[Min(0f), Tooltip("타는 칸 하나가 초당 내는 불길 수")] public float FlamesPerCellPerSecond = .55f;
+		[Tooltip("불길 색 배율. 흰색이면 셰이더 온도 색 그대로")] public Color FlameColor = Color.white;
+		[Tooltip("불길이 위로 뜨는 속도 범위. 일렁임은 셰이더가 맡아 느리게")] public Vector2 FlameRise = new(.05f, .2f);
+		[Min(0f), Tooltip("불길이 옆으로 흔들리는 속도")] public float FlameDrift = .05f;
+		[Tooltip("불길 폭 범위")] public Vector2 FlameSize = new(1.5f, 2.3f);
+		[Min(.5f), Tooltip("불길 높이 / 폭")] public float FlameAspect = 1.5f;
+		[Min(0f), Tooltip("불길 기울기 범위 (도)")] public float FlameTilt = 4f;
+		[Range(0f, 2f), Tooltip("사라질 때 크기 비율")] public float FlameShrinkTo = .85f;
+		[Tooltip("불길 수명 범위 초. 나오고 사라지는 페이드는 셰이더")] public Vector2 FlameLife = new(1.1f, 1.7f);
+		[Min(0f), Tooltip("타는 칸 하나가 초당 내는 연기 수")] public float SmokePerCellPerSecond = .25f;
+		[Tooltip("연기 크기 범위")] public Vector2 SmokeSize = new(1.6f, 2.4f);
+		[Range(0f, 3f), Tooltip("사라질 때 연기 크기 비율 (퍼짐)")] public float SmokeGrowTo = 1.8f;
+		[Tooltip("연기가 오르는 속도 범위")] public Vector2 SmokeRise = new(.6f, 1f);
+		[Min(0f), Tooltip("연기가 옆으로 흔들리는 속도")] public float SmokeDrift = .15f;
+		[Min(0f), Tooltip("연기가 나오는 높이")] public float SmokeStartHeight = 1.1f;
+		[Tooltip("연기 수명 범위 초")] public Vector2 SmokeLife = new(1.8f, 2.6f);
+		[Tooltip("연기 그리는 순서 보정. 양수면 불길보다 먼저 (뒤에)")] public float SmokeSortingFudge = 50f;
 		[Min(0f), Tooltip("타는 칸 하나가 초당 내는 불티 수 (불똥 계에 섞음)")] public float EmbersPerCellPerSecond = .8f;
 		[Tooltip("불티 색")] public Color EmberColor = new(1f, .6f, .2f, 1f);
 		[Tooltip("불티가 오르는 속도 범위")] public Vector2 EmberRise = new(1.2f, 2.2f);
