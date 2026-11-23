@@ -33,6 +33,9 @@ namespace WitchMendokusai
 		private MagicBookSky sky;
 		private MenuFocus focus;
 		private VisualElement tabRow;
+		// 팝업이 덮지 않을 위아래 줄
+		private VisualElement topBar;
+		private VisualElement bottomBar;
 		private Label progressLabel;
 		private Button closeButton;
 		private Texture2D glowTexture;
@@ -128,6 +131,7 @@ namespace WitchMendokusai
 			stage.Add(sky);
 
 			VisualElement top = Part(stage, "wm-fullmenu__top");
+			topBar = top;
 			top.AddToClassList("wm-mb__top");
 			tabRow = Part(top, "wm-mb-tabs");
 			Part(top, "wm-fullmenu__spacer");
@@ -142,6 +146,7 @@ namespace WitchMendokusai
 
 			Part(stage, "wm-fullmenu__spacer");
 			VisualElement bottom = Part(stage, "wm-mb__bottom");
+			bottomBar = bottom;
 			VisualElement hints = KeyHint.KeyOnly(Part(bottom, "wm-mb-hints"));
 			AddHint(hints, "방향키", "별 고르기");
 			AddHint(hints, "Z", "자세히");

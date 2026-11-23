@@ -118,13 +118,16 @@ namespace WitchMendokusai
 				new(anchor.x - offset - width, anchor.y - offset - height),
 				new(anchor.x - offset - width, anchor.y + offset),
 			};
-			Rect best = new(new Vector2(edge, edge), size);
+			// 세로는 위 줄 (장 이름, 닫기) 과 아래 줄 (키 안내) 사이. 두 줄도 무대 자식이라 같은 좌표
+			float minTop = Mathf.Max(edge, topBar.layout.yMax);
+			float maxTop = Mathf.Max(minTop, Mathf.Min(stageSize.y - edge, bottomBar.layout.yMin) - height);
+			Rect best = new(new Vector2(edge, minTop), size);
 			int bestCovered = int.MaxValue;
 			foreach (Vector2 candidate in candidates)
 			{
 				Vector2 clamped = new(
 					Mathf.Clamp(candidate.x, edge, Mathf.Max(edge, stageSize.x - edge - width)),
-					Mathf.Clamp(candidate.y, edge, Mathf.Max(edge, stageSize.y - edge - height)));
+					Mathf.Clamp(candidate.y, minTop, maxTop));
 				Rect rect = new(clamped, size);
 				// 눌러 넣다가 고른 별 위로 오면 탈락
 				if (rect.Contains(anchor))
