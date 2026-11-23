@@ -10,7 +10,6 @@ namespace WitchMendokusai
 	{
 		private const string TAB_KEY_DISPLAY = "display";
 		private const string STEP_SLIDER_CLASS = "wm-setting-slider--step";
-		private const string WIDE_VALUE_CLASS = "wm-setting-value--wide";
 		private const string ROW_DISABLED_CLASS = "wm-setting-row--disabled";
 
 		[SerializeField, Tooltip("FPS 제한 선택지. 0 모니터 맞춤, -1 제한 없음")] private int[] frameRateChoices = { 30, 60, 120, 144, DisplaySettings.FRAME_RATE_MONITOR, DisplaySettings.FRAME_RATE_UNLIMITED };
@@ -161,9 +160,14 @@ namespace WitchMendokusai
 			VisualElement row = new VisualElement();
 			row.AddToClassList("wm-setting-row");
 			row.Add(stepSlider);
+			// 값은 알약 칸. 누르면 다음 칸 (끝에서 처음으로). 키보드는 좌우로 한 칸씩
 			Label value = new Label(format(index));
-			value.AddToClassList("wm-setting-value");
-			value.AddToClassList(WIDE_VALUE_CLASS);
+			value.AddToClassList("wm-setting-pill");
+			value.RegisterCallback<ClickEvent>(_ =>
+			{
+				if (stepSlider.enabledInHierarchy)
+					stepSlider.value = (Mathf.RoundToInt(stepSlider.value) + 1) % count;
+			});
 			row.Add(value);
 			stepSlider.RegisterValueChangedCallback(changeEvent =>
 			{

@@ -113,6 +113,8 @@ namespace WitchMendokusai
 			if (evt.target is VisualElement element)
 			{
 				MoveFrameTo(element);
+				if (element.ClassListContains(SIDE_ITEM_CLASS))
+					SelectPageOfSideItem(element);
 				if (element.ClassListContains("wm-setting-tab"))
 				{
 					foreach (KeyValuePair<string, Button> pair in tabButtons)

@@ -18,6 +18,7 @@ namespace WitchMendokusai
 		private const string TAB_KEY_GENERAL = "general";
 		private const string TAB_KEY_EFFECTS = "effects";
 		private const string TAB_KEY_SHADERPACKS = "shaderpacks";
+		private const string TOGGLE_ON_CLASS = "wm-setting-toggle-state--on";
 
 		[SerializeField] private float sliderStep = 0.05f;
 		[SerializeField] private float navOverlapTolerance = 4f;
@@ -28,12 +29,14 @@ namespace WitchMendokusai
 		private VisualElement container;
 		private VisualElement safeContent;
 		private VisualElement stage;
-		private VisualElement sidebar;
+		private VisualElement tabBar;
+		private VisualElement sideList;
 		private VisualElement contentArea;
 		private Button closeButton;
 
 		private readonly Dictionary<string, VisualElement> tabContents = new();
 		private readonly Dictionary<string, Button> tabButtons = new();
+		private readonly List<string> tabOrder = new();
 		private string currentTabKey;
 
 		// Audio
@@ -114,7 +117,7 @@ namespace WitchMendokusai
 			safeContent.RegisterCallback<GeometryChangedEvent>(_ => FitStage());
 			stage.RegisterCallback<GeometryChangedEvent>(_ => FitStage());
 
-			Label titleLabel = new Label("환경설정");
+			Label titleLabel = new Label("// 설정");
 			titleLabel.AddToClassList("wm-setting-title");
 			stage.Add(titleLabel);
 
@@ -123,36 +126,72 @@ namespace WitchMendokusai
 			closeButton.AddToClassList(NAV_CLASS);
 			stage.Add(closeButton);
 
+			// 위 가운데 아이콘 탭, 양끝에 탭 넘김 키 (Q, E). 폰과 손가락 조작에서는 키 칸을 숨김
+			tabBar = new VisualElement();
+			tabBar.AddToClassList("wm-setting-tabs");
+			stage.Add(tabBar);
+			tabBar.Add(CreateTabKeyCap("Q"));
+
+			// 판은 틀 없이 자리만. 왼쪽 묶음 목록과 본문이 나란히
 			VisualElement panel = new VisualElement();
 			panel.AddToClassList("wm-setting-panel");
 			stage.Add(panel);
-			VisualElement panelLine = new VisualElement { pickingMode = PickingMode.Ignore };
-			panelLine.AddToClassList("wm-setting-panel__line");
-			panel.Add(panelLine);
-			VisualElement panelCorner = new VisualElement { pickingMode = PickingMode.Ignore };
-			panelCorner.AddToClassList("wm-setting-panel__corner");
-			panel.Add(panelCorner);
 
-			sidebar = new VisualElement();
-			sidebar.AddToClassList("wm-setting-tabs");
-			panel.Add(sidebar);
+			sideList = new VisualElement();
+			sideList.AddToClassList("wm-setting-side");
+			panel.Add(sideList);
 
 			contentArea = new VisualElement();
 			contentArea.AddToClassList("wm-setting-content-area");
 			panel.Add(contentArea);
 
-			RegisterTab(TAB_KEY_GENERAL, "환경설정", BuildGeneralContent);
-			RegisterTab(TAB_KEY_DISPLAY, "화면", BuildDisplayContent);
+			RegisterTab(TAB_KEY_GENERAL, "환경설정", BuildGeneralContent, true);
+			RegisterTab(TAB_KEY_DISPLAY, "화면", BuildDisplayContent, true);
 			RegisterTab(TAB_KEY_KEYS, "키", BuildKeysContent);
-			RegisterTab(TAB_KEY_EFFECTS, "효과", BuildEffectsContent);
+			RegisterTab(TAB_KEY_EFFECTS, "효과", BuildEffectsContent, true);
 			RegisterTab(TAB_KEY_SHADERPACKS, "쉐이더팩", BuildShaderPackContent);
 			RegisterTab(TAB_KEY_CREDITS, "크레딧", BuildCreditsContent);
+			tabBar.Add(CreateTabKeyCap("E"));
+
+			Label footer = KeyHint.KeyOnly(new Label("Q E 탭 넘기기"));
+			footer.AddToClassList("wm-setting-footer");
+			stage.Add(footer);
 
 			// 키 탭은 키보드 조작에서만. 폰과 손가락 조작은 화면 버튼이라 바꿀 키가 없음
 			if (Application.isMobilePlatform || inputManager.IsTouchMode)
 				tabButtons[TAB_KEY_KEYS].style.display = DisplayStyle.None;
 
+			container.RegisterCallback<KeyDownEvent>(OnTabKeyDown, TrickleDown.TrickleDown);
 			SwitchTab(TAB_KEY_GENERAL);
+		}
+
+		private static Label CreateTabKeyCap(string key)
+		{
+			Label keyCap = KeyHint.KeyOnly(new Label(key));
+			keyCap.AddToClassList("wm-setting-tab-key");
+			return keyCap;
+		}
+
+		// Q 와 E 로 탭을 넘김 (끝에서 돌아감). 탭 버튼으로 초점을 옮기면 OnFocusIn 이 탭을 바꿈
+		private void OnTabKeyDown(KeyDownEvent evt)
+		{
+			int step = evt.keyCode == KeyCode.E ? 1 : evt.keyCode == KeyCode.Q ? -1 : 0;
+			// 키를 기다리는 중과 확인 창에서는 글자 키가 다른 뜻이라 건드리지 않음
+			if (step == 0 || IsOpen == false || IsConfirmOpen || inputManager.IsRebinding)
+				return;
+
+			int count = tabOrder.Count;
+			int index = tabOrder.IndexOf(currentTabKey);
+			for (int offset = 1; offset <= count; offset++)
+			{
+				string tabKey = tabOrder[((index + step * offset) % count + count) % count];
+				// 폰의 키 탭처럼 숨긴 탭은 건너뜀
+				if (tabButtons[tabKey].style.display == DisplayStyle.None)
+					continue;
+				tabButtons[tabKey].Focus();
+				evt.StopPropagation();
+				return;
+			}
 		}
 
 		// USS의 기준 화면을 가로와 세로에 함께 맞추고 남은 공간 중앙에 배치
@@ -166,19 +205,24 @@ namespace WitchMendokusai
 			stage.style.top = (safeContent.resolvedStyle.height - height * scale) * .5f;
 		}
 
-		protected void RegisterTab(string tabKey, string title, Func<VisualElement> contentBuilder)
+		// 탭은 아이콘 (USS 의 wm-setting-tab--키), 이름은 툴팁. hasSections: 머리글마다 묶음을 가르고 왼쪽 목록에 올림
+		protected void RegisterTab(string tabKey, string title, Func<VisualElement> contentBuilder, bool hasSections = false)
 		{
-			Button tabButton = new Button(() => SwitchTab(tabKey)) { text = title };
+			Button tabButton = new Button(() => SwitchTab(tabKey)) { tooltip = title };
 			tabButton.AddToClassList("wm-setting-tab");
+			tabButton.AddToClassList("wm-setting-tab--" + tabKey);
 			tabButton.AddToClassList(NAV_CLASS);
-			sidebar.Add(tabButton);
+			tabBar.Add(tabButton);
 			tabButtons[tabKey] = tabButton;
+			tabOrder.Add(tabKey);
 
 			VisualElement content = contentBuilder();
 			content.AddToClassList("wm-setting-content");
 			content.style.display = DisplayStyle.None;
 			contentArea.Add(content);
 			tabContents[tabKey] = content;
+			if (hasSections)
+				BuildSections(tabKey, content);
 		}
 
 		private void SwitchTab(string tabKey)
@@ -198,6 +242,7 @@ namespace WitchMendokusai
 			tabContents[tabKey].style.display = DisplayStyle.Flex;
 			tabButtons[tabKey].AddToClassList("wm-setting-tab--active");
 			currentTabKey = tabKey;
+			ShowSideGroup(tabKey);
 		}
 
 		private VisualElement BuildGeneralContent()
@@ -221,7 +266,11 @@ namespace WitchMendokusai
 			sfxVolume.RegisterValueChangedCallback(evt => audioManager.SetVolume(AudioManager.BusType.SFX, evt.newValue));
 			content.Add(WrapSlider(sfxVolume));
 
-			// 버튼 그룹
+			// 위험한 동작은 따로 묶음 (왼쪽 목록의 데이터 칸)
+			Label dataHeader = new Label("데이터");
+			dataHeader.AddToClassList("wm-setting-header");
+			content.Add(dataHeader);
+
 			VisualElement buttonGroup = new VisualElement();
 			buttonGroup.AddToClassList("wm-setting-buttons");
 
@@ -274,8 +323,11 @@ namespace WitchMendokusai
 			toggle.AddToClassList(NAV_CLASS);
 			row.Add(toggle);
 
+			// 켬과 끔은 알약 하나. 알약을 눌러도 바뀜
 			Label state = new Label(describe(value));
 			state.AddToClassList("wm-setting-toggle-state");
+			state.EnableInClassList(TOGGLE_ON_CLASS, value);
+			state.RegisterCallback<ClickEvent>(_ => toggle.value = toggle.value == false);
 			row.Add(state);
 
 			toggle.RegisterValueChangedCallback(evt =>
@@ -283,6 +335,7 @@ namespace WitchMendokusai
 				UiSfx.Play(UiSfxEvent.Confirm);
 				onChanged(evt.newValue);
 				state.text = describe(evt.newValue);
+				state.EnableInClassList(TOGGLE_ON_CLASS, evt.newValue);
 			});
 
 			parent.Add(row);
@@ -295,7 +348,9 @@ namespace WitchMendokusai
 			if (toggle.value == value)
 				return;
 			toggle.SetValueWithoutNotify(value);
-			toggle.parent.Q<Label>(className: "wm-setting-toggle-state").text = describe(value);
+			Label state = toggle.parent.Q<Label>(className: "wm-setting-toggle-state");
+			state.text = describe(value);
+			state.EnableInClassList(TOGGLE_ON_CLASS, value);
 		}
 
 		private VisualElement WrapSlider(Slider slider)
@@ -343,21 +398,7 @@ namespace WitchMendokusai
 			slider.AddToClassList("wm-setting-slider");
 			slider.AddToClassList(NAV_CLASS);
 			slider.fill = true;
-			slider.RegisterCallback<GeometryChangedEvent>(AddSliderTile);
 			return slider;
-		}
-
-		// fill 요소는 첫 배치 때 생성
-		private static void AddSliderTile(GeometryChangedEvent evt)
-		{
-			Slider slider = (Slider)evt.target;
-			VisualElement fillElement = UQueryExtensions.Q(slider, null, "unity-base-slider__fill");
-			if (fillElement == null)
-				return;
-			slider.UnregisterCallback<GeometryChangedEvent>(AddSliderTile);
-			VisualElement tile = new VisualElement { pickingMode = PickingMode.Ignore };
-			tile.AddToClassList("wm-setting-slider__tile");
-			fillElement.Add(tile);
 		}
 
 		private void OnClearData() => dataManager.CreateNewGameData();

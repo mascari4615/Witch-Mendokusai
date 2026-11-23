@@ -695,6 +695,8 @@
 }
 
 /* ===== Setting View ===== */
+/* 시안 wm/design/setting-refs-20261123/draft/mock.html. 기준 무대 1920x1080.
+   위 가운데 아이콘 탭, 왼쪽 묶음 목록, 넓은 줄, 알약 값 칸, 노란 초점 테두리 */
 
 .wm-setting-view {
     position: absolute;
@@ -702,7 +704,7 @@
     top: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.94);
+    background-color: rgb(11, 11, 14);
     opacity: 0;
     transition-property: opacity;
     transition-duration: 0.15s;
@@ -726,82 +728,117 @@
 
 .wm-setting-title {
     position: absolute;
-    left: 300px;
-    top: 96px;
-    color: rgb(255, 255, 255);
-    font-size: 48px;
-    -unity-text-outline-width: 1px;
-    -unity-text-outline-color: rgb(0, 0, 0);
+    left: 36px;
+    top: 24px;
+    color: rgb(216, 216, 220);
+    font-size: 24px;
 }
 
+/* 판은 틀 없이 본문 자리만 잡음. 왼쪽 목록과 본문이 나란히 */
 .wm-setting-panel {
     position: absolute;
-    left: 300px;
-    top: 176px;
-    width: 1320px;
-    height: 796px;
-    padding: 32px 40px;
-    background-color: rgb(32, 30, 36);
-    border-width: 2px;
-    border-color: rgb(227, 227, 230);
-}
-
-.wm-setting-panel__line {
-    position: absolute;
-    left: 10px;
-    top: 10px;
-    right: 10px;
-    bottom: 10px;
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.16);
-}
-
-.wm-setting-panel__corner {
-    position: absolute;
-    left: -9px;
-    top: -9px;
-    right: -9px;
-    bottom: -9px;
-    background-image: url("../../Core/UI/Common/Sprites/Lucid V1.2/IconsShadow-32.png#IconsShadow-32_9");
-    -unity-slice-scale: 0.32px;
-    -unity-background-image-tint-color: rgb(255, 255, 255);
+    left: 86px;
+    top: 150px;
+    right: 86px;
+    bottom: 130px;
+    flex-direction: row;
 }
 
 .wm-setting-tabs {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 80px;
     flex-direction: row;
-    flex-shrink: 0;
-    margin-bottom: 20px;
+    justify-content: center;
+    align-items: center;
 }
 
 .wm-setting-tab {
-    width: 236px;
-    height: 66px;
-    margin: 0 8px 0 0;
+    width: 82px;
+    height: 80px;
+    margin: 0;
     padding: 0;
     background-color: rgba(0, 0, 0, 0);
-    background-image: url("../../Art/Texture/UI/Vector.png");
-    -unity-slice-left: 30;
-    -unity-slice-right: 30;
-    -unity-slice-scale: 0.8px;
-    -unity-background-image-tint-color: rgb(46, 44, 52);
-    color: rgb(190, 190, 196);
+    background-size: 40px 40px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    -unity-background-image-tint-color: rgb(185, 185, 192);
     border-width: 0;
     border-radius: 0;
-    font-size: 30px;
-    -unity-text-align: middle-center;
 }
 
 .wm-setting-tab:hover {
-    color: rgb(255, 255, 255);
+    -unity-background-image-tint-color: rgb(255, 255, 255);
 }
 
 .wm-setting-tab--active {
-    -unity-background-image-tint-color: rgb(232, 232, 236);
-    color: rgb(20, 20, 25);
+    width: 98px;
+    background-color: rgb(242, 226, 122);
+    -unity-background-image-tint-color: rgb(20, 20, 26);
+}
+
+.wm-setting-tab--active:hover {
+    -unity-background-image-tint-color: rgb(20, 20, 26);
+}
+
+.wm-setting-tab--general { background-image: url("/Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/game-icons.net/gears.png"); }
+.wm-setting-tab--display { background-image: url("/Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/game-icons.net/warlock-eye.png"); }
+.wm-setting-tab--keys { background-image: url("/Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/game-icons.net/crosshair.png"); }
+.wm-setting-tab--effects { background-image: url("/Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/game-icons.net/sparkles.png"); }
+.wm-setting-tab--shaderpacks { background-image: url("/Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/game-icons.net/cubes.png"); }
+.wm-setting-tab--credits { background-image: url("/Assets/_WitchMendokusai/Domain/Item/Assets/_Common/Sprite/game-icons.net/white-book.png"); }
+
+/* 탭 줄 양끝의 탭 넘김 키 (Q, E) */
+.wm-setting-tab-key {
+    width: 34px;
+    height: 34px;
+    margin: 0 16px;
+    border-width: 2px;
+    border-color: rgb(140, 140, 148);
+    border-radius: 4px;
+    color: rgb(200, 200, 206);
+    font-size: 18px;
+    -unity-text-align: middle-center;
+}
+
+.wm-setting-side {
+    width: 320px;
+    flex-shrink: 0;
+    margin-right: 40px;
+}
+
+.wm-setting-side-group {
+    flex-direction: column;
+}
+
+.wm-setting-side-item {
+    height: 50px;
+    margin: 0 0 6px 0;
+    padding: 0 20px;
+    background-color: rgb(42, 42, 46);
+    color: rgb(228, 228, 232);
+    border-width: 0;
+    border-radius: 0;
+    font-size: 24px;
+    -unity-text-align: middle-left;
+}
+
+.wm-setting-side-item:hover {
+    background-color: rgb(58, 58, 64);
+}
+
+.wm-setting-side-item--active,
+.wm-setting-side-item--active:hover {
+    background-color: rgb(242, 226, 122);
+    color: rgb(20, 20, 26);
 }
 
 .wm-setting-content-area {
     flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .wm-setting-content {
@@ -809,24 +846,32 @@
     flex-direction: column;
 }
 
+/* 머리글이 하나인 묶음. 왼쪽 목록이 이 묶음 하나만 보임 */
+.wm-setting-page {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
 .wm-setting-header {
-    color: rgb(226, 226, 230);
+    margin-top: 0;
+    margin-bottom: 14px;
+    padding: 0 0 10px 14px;
+    color: rgb(242, 226, 122);
     font-size: 26px;
-    margin-top: 12px;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
+    border-left-width: 6px;
+    border-left-color: rgb(242, 226, 122);
     border-bottom-width: 1px;
-    border-bottom-color: rgba(255, 255, 255, 0.25);
+    border-bottom-color: rgb(58, 58, 64);
 }
 
 .wm-setting-row {
     flex-direction: row;
     align-items: center;
     flex-shrink: 0;
-    height: 82px;
-    margin-bottom: 6px;
-    padding: 0 36px 0 22px;
-    background-color: rgb(22, 21, 26);
+    height: 76px;
+    margin-bottom: 7px;
+    padding: 0 28px;
+    background-color: rgb(42, 42, 46);
 }
 
 .wm-setting-slider {
@@ -844,53 +889,36 @@
 }
 
 .wm-setting-slider .unity-base-slider__tracker {
-    height: 42px;
-    margin-top: -21px;
-    background-color: rgba(0, 0, 0, 0);
-    background-image: url("../../Art/Texture/UI/Vector.png");
-    -unity-slice-left: 30;
-    -unity-slice-right: 30;
-    -unity-slice-scale: 0.5px;
-    -unity-background-image-tint-color: rgb(16, 15, 20);
+    height: 6px;
+    margin-top: -3px;
+    background-color: rgb(20, 20, 24);
     border-width: 0;
     border-radius: 0;
 }
 
 .wm-setting-slider .unity-base-slider__fill {
-    background-color: rgba(0, 0, 0, 0);
-    background-image: url("../../Art/Texture/UI/Vector.png");
-    -unity-slice-left: 30;
-    -unity-slice-right: 30;
-    -unity-slice-scale: 0.5px;
-    -unity-background-image-tint-color: rgb(43, 117, 115);
+    background-color: rgb(242, 226, 122);
     border-radius: 0;
 }
 
-.wm-setting-slider__tile {
-    position: absolute;
-    left: 16px;
-    top: 0;
-    right: 16px;
-    bottom: 0;
-    background-image: url("Survival/Art/tile-bar.png");
-    background-repeat: repeat repeat;
-    background-size: 42px 42px;
-    -unity-background-image-tint-color: rgba(255, 255, 255, 0.14);
-}
-
 .wm-setting-slider .unity-base-slider__dragger {
-    width: 26px;
-    height: 26px;
-    margin-top: -13px;
+    width: 24px;
+    height: 24px;
+    margin-top: -12px;
     rotate: 45deg;
-    background-color: rgb(120, 120, 124);
-    border-width: 2px;
-    border-color: rgb(40, 40, 44);
+    background-color: rgb(240, 240, 242);
+    border-width: 3px;
+    border-color: rgb(20, 20, 26);
     border-radius: 0;
 }
 
 .wm-setting-slider:focus .unity-base-slider__dragger {
-    background-color: rgb(255, 255, 255);
+    background-color: rgb(242, 226, 122);
+}
+
+/* 칸 단위로 고르는 줄은 막대 없이 알약 값 칸만. 누르면 다음 칸, 키보드 좌우는 한 칸씩 */
+.wm-setting-slider--step .unity-base-slider__drag-container {
+    display: none;
 }
 
 .wm-setting-value {
@@ -900,68 +928,79 @@
     -unity-text-align: middle-right;
 }
 
-/* 칸 막대의 값. "1920 x 1080", "수직 동기 사용 중" 처럼 긴 글자 */
-.wm-setting-value--wide {
-    width: 300px;
-    font-size: 30px;
+.wm-setting-pill {
+    width: 400px;
+    height: 56px;
+    margin: 0;
+    padding: 0 24px;
+    background-color: rgb(240, 240, 242);
+    color: rgb(20, 20, 26);
+    border-radius: 28px;
+    font-size: 24px;
+    -unity-text-align: middle-center;
+}
+
+.wm-setting-pill:hover {
+    background-color: rgb(255, 255, 255);
 }
 
 /* 다른 설정 때문에 쓸 수 없는 줄 (수직 동기가 켜진 동안의 FPS 제한). 막대 흐림은 Unity 의 :disabled 몫 */
-.wm-setting-row--disabled .wm-setting-value {
+.wm-setting-row--disabled .wm-setting-pill {
+    background-color: rgb(71, 71, 77);
     color: rgb(160, 160, 168);
 }
 
 .wm-setting-toggle {
+    flex-grow: 1;
     margin: 0;
     color: rgb(240, 240, 242);
     font-size: 28px;
 }
 
 .wm-setting-toggle > Label {
+    flex-grow: 1;
     min-width: 360px;
-    width: 360px;
     color: rgb(240, 240, 242);
     font-size: 28px;
 }
 
-.wm-setting-toggle .unity-toggle__checkmark {
-    width: 34px;
-    height: 34px;
-    padding: 6px;
-    background-color: rgb(20, 20, 24);
-    background-image: none;
-    border-width: 2px;
-    border-color: rgb(240, 240, 242);
-    border-radius: 0;
+.wm-setting-toggle .unity-toggle__input {
+    display: none;
 }
 
-.wm-setting-toggle:checked .unity-toggle__checkmark {
-    background-color: rgb(242, 226, 122);
-    border-color: rgb(240, 240, 242);
-}
-
+/* 켬과 끔은 알약 하나. 켬은 밝은 칠, 끔은 어두운 칠 */
 .wm-setting-toggle-state {
-    margin-left: 16px;
-    color: rgb(240, 240, 242);
-    font-size: 28px;
+    width: 400px;
+    height: 56px;
+    margin: 0;
+    background-color: rgb(71, 71, 77);
+    color: rgb(194, 194, 200);
+    border-radius: 28px;
+    font-size: 24px;
+    -unity-text-align: middle-center;
+}
+
+.wm-setting-toggle-state--on {
+    background-color: rgb(240, 240, 242);
+    color: rgb(20, 20, 26);
 }
 
 .wm-setting-buttons {
     flex-direction: row;
     margin-top: auto;
-    justify-content: flex-end;
+    justify-content: flex-start;
 }
 
 .wm-setting-btn {
-    height: 76px;
+    height: 64px;
     padding: 0 40px;
-    margin: 0 0 0 14px;
-    background-color: rgb(20, 20, 24);
+    margin: 0 14px 0 0;
+    background-color: rgba(0, 0, 0, 0);
     color: rgb(255, 255, 255);
-    border-color: rgba(255, 255, 255, 0.6);
+    border-color: rgb(216, 216, 220);
     border-width: 2px;
-    border-radius: 0;
-    font-size: 26px;
+    border-radius: 32px;
+    font-size: 24px;
 }
 
 .wm-setting-btn:hover {
@@ -979,29 +1018,37 @@
 
 .wm-setting-close {
     position: absolute;
-    left: 1396px;
-    top: 100px;
+    right: 36px;
+    top: 11px;
     width: 224px;
     height: 58px;
     margin: 0;
     padding: 0;
-    background-color: rgb(20, 20, 24);
-    color: rgb(255, 255, 255);
-    border-width: 2px;
-    border-color: rgba(255, 255, 255, 0.6);
-    border-radius: 0;
+    background-color: rgb(240, 240, 242);
+    color: rgb(20, 20, 26);
+    border-width: 0;
+    border-radius: 29px;
     font-size: 24px;
     -unity-text-align: middle-center;
 }
 
 .wm-setting-close:hover {
-    background-color: rgb(44, 42, 50);
+    background-color: rgb(255, 255, 255);
 }
 
+.wm-setting-footer {
+    position: absolute;
+    right: 86px;
+    bottom: 40px;
+    color: rgb(200, 200, 206);
+    font-size: 22px;
+}
+
+/* 키보드 초점 틀. 줄 전체를 노란 테두리로 */
 .wm-setting-frame {
     position: absolute;
     border-width: 3px;
-    border-color: rgb(255, 255, 255);
+    border-color: rgb(242, 226, 122);
     transition-property: left, top, width, height;
     transition-duration: 0.11s;
     transition-timing-function: ease-out;
@@ -1012,13 +1059,7 @@
 }
 
 .wm-setting-frame__inner {
-    position: absolute;
-    left: 3px;
-    top: 3px;
-    right: 3px;
-    bottom: 3px;
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.55);
+    display: none;
 }
 
 .wm-setting-shaderpack-header {
@@ -1808,32 +1849,31 @@
     width: 360px;
     height: 56px;
     margin: 0 0 0 14px;
-    background-color: rgb(20, 20, 24);
-    color: rgb(242, 226, 122);
-    border-color: rgba(255, 255, 255, 0.6);
-    border-width: 2px;
-    border-radius: 0;
-    font-size: 26px;
+    padding: 0 20px;
+    background-color: rgb(240, 240, 242);
+    color: rgb(20, 20, 26);
+    border-width: 0;
+    border-radius: 28px;
+    font-size: 24px;
 }
 
 .wm-setting-key:hover {
-    background-color: rgb(44, 42, 50);
+    background-color: rgb(255, 255, 255);
 }
 
 .wm-setting-key--waiting {
-    color: rgb(255, 255, 255);
-    border-color: rgb(242, 226, 122);
+    background-color: rgb(242, 226, 122);
+    color: rgb(20, 20, 26);
 }
 
 .wm-setting-key-reset {
-    width: 120px;
+    width: 140px;
     height: 56px;
     margin: 0 0 0 14px;
-    background-color: rgb(20, 20, 24);
+    background-color: rgb(71, 71, 77);
     color: rgb(240, 240, 242);
-    border-color: rgba(255, 255, 255, 0.4);
-    border-width: 2px;
-    border-radius: 0;
+    border-width: 0;
+    border-radius: 28px;
     font-size: 22px;
 }
 
