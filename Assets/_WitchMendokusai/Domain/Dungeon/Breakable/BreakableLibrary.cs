@@ -77,12 +77,12 @@ namespace WitchMendokusai
 					if (hasProp)
 					{
 						// 소품 없는 변주는 난수를 더 뽑지 않음. 기존 변주 모양이 그대로 남게
-						propKind = random.NextDouble() < .5 ? BreakableTopProp.Kind.Bottle : BreakableTopProp.Kind.Book;
+						propKind = random.NextDouble() < settings.TopPropBottleChance ? BreakableTopProp.Kind.Bottle : BreakableTopProp.Kind.Book;
 						propYaw = builder.Range(0f, 360f);
 						propMainRow = atlas.Add(Jitter(kind.TopPropPalette[0], settings.ColorJitter, random));
 						propAccentRow = atlas.Add(Jitter(kind.TopPropPalette[1], settings.ColorJitter, random));
-						propLocal = new Vector3(builder.Range(-.25f, .25f) * size.x, size.y, builder.Range(-.25f, .25f) * size.z);
-						BreakableTopProp.Add(builder, propKind, propLocal, propYaw, kind.TopPropScale, propMainRow, propAccentRow);
+						propLocal = new Vector3(builder.Range(-settings.TopPropOffset, settings.TopPropOffset) * size.x, size.y, builder.Range(-settings.TopPropOffset, settings.TopPropOffset) * size.z);
+						BreakableTopProp.Add(builder, settings, propKind, propLocal, propYaw, kind.TopPropScale, propMainRow, propAccentRow);
 					}
 					Variant variant = new()
 					{
@@ -103,7 +103,7 @@ namespace WitchMendokusai
 					if (hasProp)
 					{
 						builder.SetMatrix(Matrix4x4.identity);
-						BreakableTopProp.Add(builder, propKind, Vector3.zero, propYaw, kind.TopPropScale, propMainRow, propAccentRow);
+						BreakableTopProp.Add(builder, settings, propKind, Vector3.zero, propYaw, kind.TopPropScale, propMainRow, propAccentRow);
 						variant.TopProp = library.Own(builder.Build($"BreakableTopProp_{kind.Name}_{variantIndex}"));
 						Bounds propBounds = variant.TopProp.bounds;
 						variant.TopPropLocal = propLocal;

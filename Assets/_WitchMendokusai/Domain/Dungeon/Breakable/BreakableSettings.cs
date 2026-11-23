@@ -78,6 +78,12 @@ namespace WitchMendokusai
 		[Min(0f), Tooltip("얹힌 소품이 옆으로 튀는 속도")] public float TopPropSpread = 1.5f;
 		[Min(0f), Tooltip("얹힌 소품 회전 속도, 초당 도")] public float TopPropSpin = 300f;
 
+		[Header("Top prop")]
+		[Range(0f, .5f), Tooltip("얹힌 소품 자리가 윗면 가운데에서 벗어나는 범위, 윗면 크기 대비")] public float TopPropOffset = .25f;
+		[Range(0f, 1f), Tooltip("얹힌 소품이 약병일 확률. 나머지는 책")] public float TopPropBottleChance = .5f;
+		[Tooltip("약병 크기, 미터 (높이, 몸통 반지름). 종류의 소품 크기 배율을 곱함")] public Vector2 TopPropBottleSize = new(.22f, .065f);
+		[Tooltip("책 크기, 미터 (가로, 두께, 세로). 종류의 소품 크기 배율을 곱함")] public Vector3 TopPropBookSize = new(.22f, .06f, .16f);
+
 		[Header("Drops")]
 		public NyangObject NyangPrefab;
 
