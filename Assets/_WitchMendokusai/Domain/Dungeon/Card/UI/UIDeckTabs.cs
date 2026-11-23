@@ -27,6 +27,7 @@ namespace WitchMendokusai
 		[SerializeField] private float compactRowHeight = 76f;
 		[SerializeField] private float normalCell = 62f;
 		[SerializeField] private float compactCell = 54f;
+		[SerializeField, Min(1), Tooltip("장비 한 줄의 칸 상한. 넘으면 받은 카드와 열린 카드만 (DeckMiniCards)")] private int maxMinisPerRow = 6;
 		[SerializeField] private Color activeLine = Color.white;
 		[SerializeField] private Color idleLine = Color.gray;
 
@@ -68,7 +69,7 @@ namespace WitchMendokusai
 				float cell = isCompact ? compactCell : normalCell;
 				list.GetComponent<GridLayoutGroup>().cellSize = new Vector2(cell, cell);
 				UIMiniCard template = list.GetChild(0).GetComponent<UIMiniCard>();
-				foreach (CardData card in skillTrees.CardsFor(equipment).Where(item => item != null).GroupBy(item => item.ID).Select(group => group.First()))
+				foreach (CardData card in DeckMiniCards.Pick(skillTrees.CardsFor(equipment), selectedCards, skillTrees.Find(equipment.ID), maxMinisPerRow))
 				{
 					UIMiniCard mini = Instantiate(template, list);
 					mini.gameObject.SetActive(true);

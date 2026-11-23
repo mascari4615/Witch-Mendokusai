@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		[SerializeField] private int compactThreshold = 6;
 		[SerializeField] private float normalCell = 62f;
 		[SerializeField] private float compactCell = 56f;
+		[SerializeField, Min(1), Tooltip("칸 상한. 넘으면 받은 카드와 열린 카드만 (DeckMiniCards)")] private int maxMinis = 12;
 		[SerializeField] private TextMeshProUGUI totalText;
 		[SerializeField] private Transform miniParent;
 		[SerializeField] private UIMiniCard miniTemplate;
@@ -28,7 +29,7 @@ namespace WitchMendokusai
 
 		public UIChoiceCard ChoiceCard => choiceCard;
 
-		public void Set(EquipmentData equipment, IReadOnlyList<CardData> equipmentCards, IReadOnlyList<CardData> selectedCards, bool isNewEquipment)
+		public void Set(EquipmentData equipment, IReadOnlyList<CardData> equipmentCards, IReadOnlyList<CardData> selectedCards, bool isNewEquipment, SkillTree tree)
 		{
 			SurvivalUITheme.KindStyle style = theme.Style(equipment.UIKind);
 			choiceCard.SetKind(equipment.UIKind);
@@ -37,7 +38,7 @@ namespace WitchMendokusai
 			tile.sprite = style.Tile;
 			panelTile.sprite = style.Tile;
 
-			List<CardData> cards = equipmentCards.Where(card => card != null).GroupBy(card => card.ID).Select(group => group.First()).ToList();
+			List<CardData> cards = DeckMiniCards.Pick(equipmentCards, selectedCards, tree, maxMinis);
 			float cell = cards.Count > compactThreshold ? compactCell : normalCell;
 			miniGrid.cellSize = new Vector2(cell, cell);
 			int total = 0;

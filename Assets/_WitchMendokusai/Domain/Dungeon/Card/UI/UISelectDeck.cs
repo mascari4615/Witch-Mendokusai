@@ -107,7 +107,7 @@ namespace WitchMendokusai
 				{
 					deckSelectButtons[i].SetSlot(equipmentList[i]);
 					deckSelectButtons[i].UpdateUI();
-					deckSelectButtons[i].GetComponent<UIDeckChoiceView>().Set(equipmentList[i], skillTrees.CardsFor(equipmentList[i]), selectedCards, newEquipments.Contains(equipmentList[i]));
+					deckSelectButtons[i].GetComponent<UIDeckChoiceView>().Set(equipmentList[i], skillTrees.CardsFor(equipmentList[i]), selectedCards, newEquipments.Contains(equipmentList[i]), skillTrees.Find(equipmentList[i].ID));
 				}
 				else
 				{
