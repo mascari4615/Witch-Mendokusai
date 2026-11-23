@@ -121,6 +121,7 @@ namespace WitchMendokusai
 		public void Dispose()
 		{
 			DestroyTextures();
+			DisposeParticles();
 			Object.Destroy(material);
 			Object.Destroy(planeMesh);
 			if (plane != null)

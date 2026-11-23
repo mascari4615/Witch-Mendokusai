@@ -5,11 +5,12 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 궁극기 주제 물체 텍스처. 모두 도형과 잡음으로 굽는 절차적 무늬 (그림 파일 없음)
 	/// - 흰색으로 구워 재질 색으로 물들이는 것: 불꽃 덩어리, 가시, 창, 광선, 십자광, 마법진, 풀잎
-	/// - 색까지 굽는 것: 카드 (앞면 격자 무늬), 큰 카드, 달, 은하 부채꼴, 블랙홀, 큰 검 (도형 넷: 날, 코등이, 손잡이, 머리)
+	/// - 색까지 굽는 것: 불길 혀, 카드 (앞면 격자 무늬), 큰 카드, 달, 은하 부채꼴, 블랙홀, 큰 검 (도형 넷: 날, 코등이, 손잡이, 머리)
 	/// </summary>
 	public static partial class UltimateFxTextures
 	{
 		public static Texture2D FlamePuff => Get("flamePuff", 128, 128, BuildFlamePuff);
+		public static Texture2D FlameTongue => Get("flameTongue", 64, 128, BuildFlameTongue);
 		public static Texture2D Card => Get("card", 96, 136, BuildCard);
 		public static Texture2D BigCard => Get("bigCard", 256, 362, BuildBigCard);
 		public static Texture2D Moon => Get("moon", 256, 256, BuildMoon);
@@ -24,6 +25,30 @@ namespace WitchMendokusai
 		public static Texture2D GrassBlade => Get("grassBlade", 32, 64, BuildGrassBlade);
 		public static Texture2D Rune => Get("rune", 512, 512, BuildRune);
 		public static Texture2D Sword => Get("sword", 128, 512, BuildSword);
+
+		// 불길 혀: 둥근 밑동에서 끝이 뾰족하게 올라가는 물방울 꼴, 가장자리는 잡음으로 일렁임
+		// 색까지 구움. 안쪽과 아래는 흰 노랑, 바깥과 끝은 주황. 바닥 액체 불 (GoopField) 이 세운 판으로 씀
+		private static void BuildFlameTongue(int width, int height, Color[] pixels)
+		{
+			Color edgeColor = new(1f, 0.42f, 0.1f);
+			Color coreColor = new(1f, 0.95f, 0.72f);
+			for (int row = 0; row < height; row++)
+			for (int column = 0; column < width; column++)
+			{
+				float across = column / (width - 1f) * 2f - 1f;
+				float up = row / (height - 1f);
+				// sqrt 로 밑동은 둥글게, (1 - up) 으로 끝은 뾰족하게. 최댓값 약 0.96
+				float halfWidth = 2.5f * Mathf.Sqrt(up) * (1f - up);
+				float wobble = (Fbm(up * 3.5f + 2f, across * 0.6f + 7f, 113, 3) - 0.5f) * 0.35f * up;
+				float inside = halfWidth - Mathf.Abs(across + wobble);
+				float body = Mathf.Clamp01(inside / 0.18f);
+				float core = Mathf.Clamp01(inside / Mathf.Max(halfWidth, 0.01f)) * Mathf.Clamp01(1.3f - up * 1.4f);
+				float grain = Mathf.Lerp(0.75f, 1f, Fbm(column / 7f, row / 7f, 117, 3));
+				Color color = Color.Lerp(edgeColor, coreColor, core * core);
+				color.a = Mathf.Clamp01(body * grain * (0.75f + 0.5f * core));
+				pixels[row * width + column] = color;
+			}
+		}
 
 		// 불꽃 덩어리: 가장자리가 잡음으로 일렁이는 원, 속이 진함
 		private static void BuildFlamePuff(int width, int height, Color[] pixels)
