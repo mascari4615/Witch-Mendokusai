@@ -48,7 +48,7 @@ namespace WitchMendokusai
 				Material = material,
 				Position = objectTransform.TransformPoint(variant.TopPropLocal),
 				Rotation = objectTransform.rotation,
-				Velocity = awayDirection * settings.TopPropSpread + new Vector3(circle.x, settings.TopPropLift, circle.y),
+				Velocity = Vector3.ProjectOnPlane(awayDirection, Vector3.up).normalized * settings.TopPropSpread + new Vector3(circle.x, settings.TopPropLift, circle.y),
 				SpinAxis = Random.onUnitSphere,
 				SpinDegrees = settings.TopPropSpin,
 				Size = 1f,

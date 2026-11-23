@@ -11,6 +11,9 @@ namespace WitchMendokusai
 
 		public static void Build(BreakableMeshBuilder builder, BreakableShape shape, int[] rows, int shardIndex)
 		{
+			int needed = MinimumRows(shape);
+			if (rows.Length < needed)
+				throw new System.ArgumentException($"{shape} 조각은 색 칸이 {needed} 개 이상 필요한데 {rows.Length} 개", nameof(rows));
 			builder.SetMatrix(Matrix4x4.identity);
 			switch (shape)
 			{
@@ -51,6 +54,18 @@ namespace WitchMendokusai
 					throw new System.ArgumentOutOfRangeException(nameof(shape), shape, null);
 			}
 		}
+
+		// 모양마다 읽는 색 칸 수. 바구니 열매 (4번째) 는 없으면 엮은 조각으로 대신해서 셈에 안 넣음
+		private static int MinimumRows(BreakableShape shape) => shape switch
+		{
+			BreakableShape.Crate => 2,
+			BreakableShape.Barrel => 2,
+			BreakableShape.Pot => 3,
+			BreakableShape.Basket => 2,
+			BreakableShape.BookStack => 2,
+			BreakableShape.PotionCrate => 4,
+			_ => throw new System.ArgumentOutOfRangeException(nameof(shape), shape, null),
+		};
 
 		// 판자 한 쪽 끝이 쪼개져 가시 둘
 		private static void AddPlank(BreakableMeshBuilder builder, int row)

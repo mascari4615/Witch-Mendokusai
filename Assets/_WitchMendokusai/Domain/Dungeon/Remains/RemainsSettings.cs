@@ -84,19 +84,19 @@ namespace WitchMendokusai
 		[Tooltip("가산 파티클 재질")] public Material GoopParticleMaterial;
 		[Min(16)] public int MaxGoopParticles = 400;
 		[Min(1), Tooltip("프레임당 새로 내는 입자 상한")] public int MaxGoopParticlesPerFrame = 12;
-		[Min(0f), Tooltip("타는 칸 하나가 초당 내는 불꽃 수")] public float FlamesPerCellPerSecond = 1.6f;
+		[Min(0f), Tooltip("타는 칸 하나가 초당 내는 불꽃 수")] public float FlamesPerCellPerSecond = 2.4f;
 		[Tooltip("불꽃 시작 색")] public Color FlameColor = new(1f, .62f, .2f, 1f);
 		[Tooltip("불꽃 끝 색 (시작 색에 곱함)")] public Color FlameEndColor = new(.8f, .25f, .1f, 1f);
 		[Tooltip("불꽃이 위로 뜨는 속도 범위")] public Vector2 FlameRise = new(.8f, 1.6f);
 		[Min(0f), Tooltip("불꽃이 옆으로 흔들리는 속도")] public float FlameDrift = .2f;
-		[Tooltip("불꽃 크기 범위")] public Vector2 FlameSize = new(.14f, .28f);
-		[Tooltip("불꽃 수명 범위 초")] public Vector2 FlameLife = new(.35f, .65f);
-		[Min(0f), Tooltip("감전된 칸 하나가 초당 내는 불똥 수")] public float SparksPerCellPerSecond = 6f;
+		[Tooltip("불꽃 크기 범위")] public Vector2 FlameSize = new(.22f, .42f);
+		[Tooltip("불꽃 수명 범위 초")] public Vector2 FlameLife = new(.45f, .8f);
+		[Min(0f), Tooltip("감전된 칸 하나가 초당 내는 불똥 수")] public float SparksPerCellPerSecond = 10f;
 		[Tooltip("불똥 색")] public Color SparkColor = new(.75f, .9f, 1f, 1f);
 		[Min(0f), Tooltip("불똥 속도")] public float SparkSpeed = 3.5f;
 		[Min(0f), Tooltip("불똥이 위로 튀는 비율 (속도 대비 최대)")] public float SparkLift = .5f;
-		[Min(.01f)] public float SparkSize = .05f;
-		[Min(.02f)] public float SparkLife = .14f;
+		[Min(.01f)] public float SparkSize = .09f;
+		[Min(.02f)] public float SparkLife = .24f;
 		[Min(0f), Tooltip("불똥 늘이기 (속도 배율)")] public float SparkStretch = .06f;
 
 		[Header("셰이더 (빌드에 포함되게 참조로)")]

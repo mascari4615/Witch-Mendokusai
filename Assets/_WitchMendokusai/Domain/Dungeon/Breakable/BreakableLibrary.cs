@@ -69,13 +69,16 @@ namespace WitchMendokusai
 					BreakableShapes.Build(builder, kind.Shape, size, rows);
 					// 주사위가 아니라 몫. 변형 수가 적어 주사위면 한 종류에 하나도 안 얹히는 판이 나옴
 					bool hasProp = kind.TopPropPalette.Length >= 2 && variantIndex < Mathf.RoundToInt(settings.VariantsPerKind * kind.TopPropChance);
-					BreakableTopProp.Kind propKind = random.NextDouble() < .5 ? BreakableTopProp.Kind.Bottle : BreakableTopProp.Kind.Book;
+					BreakableTopProp.Kind propKind = BreakableTopProp.Kind.Bottle;
 					int propMainRow = -1;
 					int propAccentRow = -1;
 					Vector3 propLocal = Vector3.zero;
-					float propYaw = builder.Range(0f, 360f);
+					float propYaw = 0f;
 					if (hasProp)
 					{
+						// 소품 없는 변주는 난수를 더 뽑지 않음. 기존 변주 모양이 그대로 남게
+						propKind = random.NextDouble() < .5 ? BreakableTopProp.Kind.Bottle : BreakableTopProp.Kind.Book;
+						propYaw = builder.Range(0f, 360f);
 						propMainRow = atlas.Add(Jitter(kind.TopPropPalette[0], settings.ColorJitter, random));
 						propAccentRow = atlas.Add(Jitter(kind.TopPropPalette[1], settings.ColorJitter, random));
 						propLocal = new Vector3(builder.Range(-.25f, .25f) * size.x, size.y, builder.Range(-.25f, .25f) * size.z);
