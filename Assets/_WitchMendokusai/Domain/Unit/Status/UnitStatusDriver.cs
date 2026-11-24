@@ -205,8 +205,8 @@ namespace WitchMendokusai
 			for (int i = 0; i < tracked.Count; i++)
 			{
 				UnitStatus status = tracked[i];
-				SpriteRenderer body = status.Unit.SpriteRenderer;
-				ApplyBody(status, body, config, time);
+				SpriteRenderer body = status.Unit.StatusBodies[0];
+				ApplyBody(status, config, time);
 				// 화면 밖 유닛은 표시 묶음을 돌려줘 상한을 화면 안 유닛에 씀
 				if (body.isVisible == false)
 				{
@@ -221,7 +221,7 @@ namespace WitchMendokusai
 		}
 
 		// 몸 물들임은 위 줄 우선 하나, 테두리는 걸린 것 중 첫 테두리
-		private void ApplyBody(UnitStatus status, SpriteRenderer body, UnitStatusConfig config, float time)
+		private void ApplyBody(UnitStatus status, UnitStatusConfig config, float time)
 		{
 			Color tint = Color.clear;
 			Color rim = Color.clear;
@@ -245,22 +245,29 @@ namespace WitchMendokusai
 					hasRim = true;
 				}
 			}
-			body.GetPropertyBlock(properties);
-			properties.SetColor(UnitBodyProperties.STATUS_TINT_ID, tint);
-			properties.SetColor(UnitBodyProperties.STATUS_RIM_ID, rim);
-			properties.SetFloat(UnitBodyProperties.STATUS_RIM_WIDTH_ID, config.RimWidth);
-			UnitBodyProperties.Commit(body, properties);
+			foreach (SpriteRenderer body in status.Unit.StatusBodies)
+			{
+				body.GetPropertyBlock(properties);
+				properties.SetColor(UnitBodyProperties.STATUS_TINT_ID, tint);
+				properties.SetColor(UnitBodyProperties.STATUS_RIM_ID, rim);
+				properties.SetFloat(UnitBodyProperties.STATUS_RIM_WIDTH_ID, config.RimWidth);
+				UnitBodyProperties.Commit(body, properties);
+			}
 		}
 
 		private void ClearBody(UnitStatus status)
 		{
-			if (status.Unit == null || status.Unit.SpriteRenderer == null)
+			if (status.Unit == null)
 				return;
-			SpriteRenderer body = status.Unit.SpriteRenderer;
-			body.GetPropertyBlock(properties);
-			properties.SetColor(UnitBodyProperties.STATUS_TINT_ID, Color.clear);
-			properties.SetColor(UnitBodyProperties.STATUS_RIM_ID, Color.clear);
-			UnitBodyProperties.Commit(body, properties);
+			foreach (SpriteRenderer body in status.Unit.StatusBodies)
+			{
+				if (body == null)
+					continue;
+				body.GetPropertyBlock(properties);
+				properties.SetColor(UnitBodyProperties.STATUS_TINT_ID, Color.clear);
+				properties.SetColor(UnitBodyProperties.STATUS_RIM_ID, Color.clear);
+				UnitBodyProperties.Commit(body, properties);
+			}
 		}
 
 		// 걸린 상태이상 중 피격 흔들림 배율이 가장 작은 것

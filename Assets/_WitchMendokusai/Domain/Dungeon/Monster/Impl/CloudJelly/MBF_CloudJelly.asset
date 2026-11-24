@@ -22,12 +22,12 @@ MonoBehaviour:
   <GroundRadius>k__BackingField: 1.5
   <GroundLift>k__BackingField: 0.03
   <Softness>k__BackingField: 1
-  <LayerDepth>k__BackingField: 0.2
+  <PieceDepth>k__BackingField: 0.2
   <PieceSprite>k__BackingField: {fileID: 21300000, guid: b5cc98c15f27460abc7221bf1fe8feec, type: 3}
   <PieceMaterial>k__BackingField: {fileID: 2100000, guid: eec525faef7048b4b666c12c86d2606f, type: 2}
   <PieceColor>k__BackingField: {r: 1, g: 0.92, b: 0.2, a: 1}
   <PieceCount>k__BackingField: 4
-  <PieceSize>k__BackingField: 0.34
+  <PieceSize>k__BackingField: 0.5
   <PieceArea>k__BackingField: {x: 0.9, y: 0.5}
   <PieceRate>k__BackingField: 1.4
-  <PieceVisible>k__BackingField: 0.16
+  <PieceVisible>k__BackingField: 0.3

@@ -24,7 +24,6 @@ namespace WitchMendokusai
 
 		[field: Header("번짐과 바닥 공통")]
 		[field: SerializeField, Range(0.01f, 1f), Tooltip("가장자리 부드러움. 1 이면 중심부터 흐려짐")] public float Softness { get; private set; } = 1f;
-		[field: SerializeField, Min(0f), Tooltip("번짐은 몸 뒤로, 조각은 몸 앞으로 물리는 거리 (m)")] public float LayerDepth { get; private set; } = 0.2f;
 
 		[field: Header("조각")]
 		[field: SerializeField] public Sprite PieceSprite { get; private set; }
@@ -32,6 +31,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public Color PieceColor { get; private set; } = Color.white;
 		[field: SerializeField, Min(0), Tooltip("동시에 도는 수. 0 이면 없음")] public int PieceCount { get; private set; }
 		[field: SerializeField, Min(0f), Tooltip("한 변 크기 (m)")] public float PieceSize { get; private set; } = 0.2f;
+		[field: SerializeField, Min(0f), Tooltip("조각을 카메라 쪽으로 당기는 거리 (m). 몸 앞에 그려지게")] public float PieceDepth { get; private set; } = 0.2f;
 		[field: SerializeField, Tooltip("나타나는 자리 폭과 높이 (m). 발밑 가운데 기준")] public Vector2 PieceArea { get; private set; } = new(0.8f, 1f);
 		[field: SerializeField, Min(0.01f), Tooltip("조각 하나가 초당 나타나는 횟수")] public float PieceRate { get; private set; } = 1f;
 		[field: SerializeField, Range(0.05f, 1f), Tooltip("한 주기 가운데 보이는 비율. 작으면 번쩍")] public float PieceVisible { get; private set; } = 0.5f;

@@ -116,6 +116,10 @@ namespace WitchMendokusai
 			}
 		}
 
+		// SpriteRenderer 칸은 꺼진 그림 (HeadAnchor). 실제로 보이는 머리와 몸에 상태이상을 표시
+		private SpriteRenderer[] visibleBodies;
+		public override SpriteRenderer[] StatusBodies => visibleBodies ??= new[] { headRenderer, bodyRenderer };
+
 		// 개발자 창 무적. 낙사처럼 무적 관통을 명시한 피해만 받음
 		public bool IsDevInvincible { get; set; }
 

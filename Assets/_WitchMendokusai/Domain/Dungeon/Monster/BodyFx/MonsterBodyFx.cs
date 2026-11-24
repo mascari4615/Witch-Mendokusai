@@ -12,6 +12,8 @@ namespace WitchMendokusai
 		private static readonly int SHAPE_ID = Shader.PropertyToID("_Shape");
 		// GroundPuff 셰이더의 안쪽 빈 비율. 음수면 가운데까지 참
 		private const float FILLED = -1f;
+		// 번짐과 바닥은 모든 몸 그림보다 먼저. 거리 정렬에 맡기면 몸을 덮음
+		private const int UNDER_BODIES = -1;
 		private const float GOLDEN = 0.618034f;
 
 		private static Mesh discMesh;
@@ -63,7 +65,9 @@ namespace WitchMendokusai
 			if (style.HasGlow)
 			{
 				float pulse = 1f - style.GlowPulseDepth * 0.5f * (1f + Mathf.Sin((time * style.GlowPulseRate + seed) * Mathf.PI * 2f));
-				Vector3 center = transform.position + Vector3.up * style.GlowHeight + view.forward * style.LayerDepth;
+				// 카메라 쪽으로 반지름만큼 당김. 화면 자리는 같고 아래쪽이 땅에 잘리지 않음
+				Vector3 body = transform.position + Vector3.up * style.GlowHeight;
+				Vector3 center = body + (view.position - body).normalized * style.GlowRadius;
 				DrawDisc(glow, center, view.rotation, style.GlowRadius, style.GlowColor, pulse);
 			}
 			if (style.HasGround)
@@ -98,7 +102,7 @@ namespace WitchMendokusai
 				// 주기마다 자리를 바꿈. 난수 상태 없이 번호에서 계산
 				float across = Mathf.Repeat((cycle * 2 + i) * GOLDEN + seed, 1f) - 0.5f;
 				float upward = Mathf.Repeat((cycle * 3 + i * 5) * GOLDEN + seed * 0.5f, 1f);
-				Vector3 position = transform.position + view.right * (across * style.PieceArea.x) + view.up * (upward * style.PieceArea.y) - view.forward * style.LayerDepth;
+				Vector3 position = transform.position + view.right * (across * style.PieceArea.x) + view.up * (upward * style.PieceArea.y) - view.forward * style.PieceDepth;
 				piece.transform.SetPositionAndRotation(position, view.rotation);
 				SetWorldScale(piece.transform, style.PieceSize / spriteSize);
 				piece.sprite = style.PieceSprite;
@@ -124,6 +128,7 @@ namespace WitchMendokusai
 			MeshRenderer disc = discObject.AddComponent<MeshRenderer>();
 			disc.shadowCastingMode = ShadowCastingMode.Off;
 			disc.receiveShadows = false;
+			disc.sortingOrder = UNDER_BODIES;
 			return disc;
 		}
 

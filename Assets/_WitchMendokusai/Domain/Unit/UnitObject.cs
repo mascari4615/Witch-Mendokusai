@@ -144,6 +144,10 @@ namespace WitchMendokusai
 		// 얼음, 기절 상태이상으로 이동과 공격이 막힌 상태. 정본은 UnitStat 의 상태이상 칸
 		public virtual bool IsActionSuspended => UnitStat[UnitStatType.FREEZE] > 0 || UnitStat[UnitStatType.STUN] > 0;
 
+		// 상태이상 물들임을 입힐 그림들. 첫 그림이 머리 위 칸과 작은 효과의 기준
+		private SpriteRenderer[] statusBodies;
+		public virtual SpriteRenderer[] StatusBodies => statusBodies ??= new[] { SpriteRenderer };
+
 		public virtual void ReceiveHeal(int healAmount)
 		{
 			Health.ReceiveHeal(healAmount);
