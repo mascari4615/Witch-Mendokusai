@@ -9,4 +9,9 @@
 #   그 전까지 이 관문이 25판 연속 빨갰다 — 새 시험이 여기 안 걸린 채 빚만 밀어 올렸다.
 #   못 데려온 것 추가: Diagnostics/ResourcesBudgetTests.cs(= WitchMendokusai.EditorTools 를 본다).
 # 2026-09-06: 엔진 밖 시험 145 파일을 Tests/EditMode/Portable/ 로 옮기고 WM.Tests.Portable 어셈블리로. 서버 묶음 csproj 경로도 따라감. 자는 시험 512 -> 287
-287
+# 2026-11-25: 287 -> 312. 11-22, 11-23 에 생긴 시험 셋 (25개) 은 DomainSDK 밖이라 못 데려옴. 유니티 에디터에서 돎
+#   AchievementBookTest (10): AchievementSaveSlice 가 GameData 와 IFeatureSaveSlice 를 봄. 원본을 링크해 빌드해 보고 확인
+#   DungeonRecordRulesTest (4): DungeonRecord 가 DungeonManager, DataManager 를 보는 DungeonRecorder.cs 안에 있음. 같은 방법으로 확인
+#   KeybindRegistryRebindTest (11): KeybindRegistry 가 UnityEngine.InputSystem 을 씀
+#   갚는 길: DungeonRecord 와 업적 장부의 규칙을 DomainSDK 로 떼면 14개를 다시 내림 (구조 변경이라 설계 승인 뒤)
+312
