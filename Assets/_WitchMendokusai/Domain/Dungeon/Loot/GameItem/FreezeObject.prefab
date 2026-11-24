@@ -289,7 +289,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 10
   pickupDistance: 0.3
-  useBezierCurve: 0
 --- !u!95 &5758404937766944858
 Animator:
   serializedVersion: 7

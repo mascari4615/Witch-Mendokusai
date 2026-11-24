@@ -6268,31 +6268,6 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 5475616411095073487, guid: 4c1dafc258a93a740ac7cf830820c284, type: 2}
---- !u!114 &4615204811180002468
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5863084649212122036}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed2304aeda932a744a14008fce8732aa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isWalkable: 1
---- !u!114 &4615204811180003579
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5863084649212122036}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 55d1a215fe4b41e2837c30fc07dabde6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &5863084649212122036
 GameObject:
   m_ObjectHideFlags: 0
@@ -6422,6 +6397,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.ForestFloor
   grassMaterial: {fileID: 2100000, guid: 8b0904c6f635f374fa2cebe66e681143, type: 2}
+  grassSeed: 5
+  grassClumpSeed: 81
+  grassHueSeed: 83
   grassAttempts: 3600000
   grassArea:
     serializedVersion: 2
@@ -6429,10 +6407,19 @@ MonoBehaviour:
     y: -12
     width: 90
     height: 80
-  grassChunkVertices: 800000
+  grassCellSize: 16
+  grassPathCull: 1.5
+  grassEarthCull: 0.45
+  grassClumpScale: 0.12
+  grassHueScale: 0.04
+  grassNearRange: {x: 4, y: 34}
+  grassSink: 0.03
   grassHeightRange: {x: 0.5, y: 0.92}
   grassWidthRange: {x: 0.04, y: 0.08}
+  grassBendRange: {x: 0.5, y: 0.85}
+  grassLeanJitter: 0.5
   grassWind: {x: 0.32, y: 0.2}
+  grassShadeRange: {x: 0.5, y: 1.05}
   grassFlowerChance: 0.012
   grassRootA:
     serializedVersion: 2
@@ -6466,6 +6453,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 897b16df68d0387488752e02e2993938, type: 2}
   - {fileID: 2100000, guid: 6165073b6ca5a954795bff969f8b8d69, type: 2}
   - {fileID: 2100000, guid: df7b861629cfc904d8f08b64d9531a08, type: 2}
+  flowerSeed: 31
   flowerPatches: 240
   flowerArea:
     serializedVersion: 2
@@ -6473,12 +6461,15 @@ MonoBehaviour:
     y: -8
     width: 80
     height: 70
+  flowerYellowChance: 0.5
   flowerPatchRadius: {x: 0.8, y: 2.6}
   flowerPatchCount: {x: 60, y: 170}
   flowerSize: {x: 0.2, y: 0.32}
   flowerLift: 0.34
+  flowerPatchPathMargin: 3
   flowerPathMargin: 2.2
   fernMaterial: {fileID: 2100000, guid: a33bb3eaa37baa64582ad214e3e9682a, type: 2}
+  fernSeed: 77
   fernPatches: 170
   fernArea:
     serializedVersion: 2
@@ -6486,8 +6477,12 @@ MonoBehaviour:
     y: -6
     width: 80
     height: 70
+  fernPathMargin: 3
+  fernPatchCount: {x: 3, y: 9}
+  fernPatchSpread: 2.2
   fernSize: {x: 0.45, y: 0.85}
   spikeMaterial: {fileID: 2100000, guid: 901f4c094c00a3e41bb24aa3a1a80848, type: 2}
+  spikeSeed: 78
   spikePatches: 80
   spikeArea:
     serializedVersion: 2
@@ -6495,7 +6490,12 @@ MonoBehaviour:
     y: -4
     width: 76
     height: 60
+  spikePatchPathMargin: 3.2
+  spikePathMargin: 2.4
+  spikePatchRadius: {x: 1, y: 3.5}
+  spikePatchCount: {x: 15, y: 50}
   spikeSize: {x: 0.5, y: 0.85}
+  spikeWidthRatio: 0.34
   terrainOrigin: {x: -85, y: -30}
   terrainSize: 170
   terrainResolution: 480
@@ -6509,7 +6509,15 @@ MonoBehaviour:
   farStart: 50
   farRamp: 90
   farHeight: 20
+  hillNoiseScale: 0.01
+  hillNoiseRange: {x: 0.6, y: 1.4}
+  farNoiseScale: 0.012
+  detailScale: 0.2
   detailHeight: 0.15
+  backgroundStartZ: 55
+  backgroundRampZ: 25
+  backgroundStartX: 45
+  backgroundRampX: 20
   pathWaveA: 9
   pathFrequencyA: 0.045
   pathWaveB: 6
@@ -6518,6 +6526,45 @@ MonoBehaviour:
   pathSink: 0.3
   pathPaintRange: {x: 0.4, y: 3.6}
   pathEdgeRange: {x: 1.5, y: 9}
+  pathEdgeNoiseScale: 0.25
+  pathEdgeNoiseStrength: 2
+  pathEdgeWideNoiseScale: 0.08
+  pathEdgeWideNoiseStrength: 2.5
+  earthPatchScale: 0.045
+  earthPatchRange: {x: 0.3, y: 0.8}
+  earthPatchStrength: 0.55
+  rollingSeed: 3
+  hillSeed: 9
+  farSeed: 21
+  detailSeed: 67
+  pathEdgeSeed: 41
+  pathEdgeWideSeed: 43
+  earthPatchSeed: 77
+--- !u!114 &4615204811180002468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5863084649212122036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed2304aeda932a744a14008fce8732aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isWalkable: 1
+--- !u!114 &4615204811180003579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5863084649212122036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55d1a215fe4b41e2837c30fc07dabde6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5955446968408438174
 GameObject:
   m_ObjectHideFlags: 0

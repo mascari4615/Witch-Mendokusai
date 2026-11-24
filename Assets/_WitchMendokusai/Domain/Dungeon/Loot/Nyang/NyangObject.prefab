@@ -45,8 +45,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 040dd685ef626fa4bb47dbffe8e0f113, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &4615000000000000004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -57,11 +57,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f43a6daf4bc64710bb72a3c2ca39e6de, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   moveSpeed: 10
   pickupDistance: 0.3
-  useBezierCurve: 0
   coinTransform: {fileID: 4615000000000000012}
   spinSpeed: 220
   bobHeight: 0.08

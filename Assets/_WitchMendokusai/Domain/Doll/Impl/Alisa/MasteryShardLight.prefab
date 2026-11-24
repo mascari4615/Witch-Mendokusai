@@ -45,8 +45,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 040dd685ef626fa4bb47dbffe8e0f113, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &4615000000000000004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -57,10 +57,100 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bfdbe841d1dc44fb9ade2699262dc8f8, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   moveSpeed: 10
   pickupDistance: 0.3
+  ringMaterial: {fileID: 2100000, guid: 9c6a097c465048299b8fd4081ed0bced, type: 2}
+  groundGlowMaterial: {fileID: 2100000, guid: 4d521c96d2fd44af939a836eb90f1e32, type: 2}
+  ringCount: 2
+  ringPeriod: 1.6
+  ringStartSize: 0.5
+  ringEndSize: 2
+  ringGrowth:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  ringFade:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.15
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  groundGlowSize: 1.1
+  groundLift: 0.03
+  ringLayerStep: 0.004
+  sparkleMaterial: {fileID: 2100000, guid: 71f4610add8947d8a4cab05975cba519, type: 2}
+  sparkleRays:
+  - Offset: {x: 0, y: 0, z: 0}
+    Tilt: {x: 0, y: 0}
+    Radius: 0.018
+    Height: 0
+    TipHeight: 0.09
+    BaseTipHeight: 0.09
+    Sides: 4
+    TopRingScale: 1
+  - Offset: {x: 0, y: 0, z: 0}
+    Tilt: {x: 0, y: 90}
+    Radius: 0.018
+    Height: 0
+    TipHeight: 0.09
+    BaseTipHeight: 0.09
+    Sides: 4
+    TopRingScale: 1
+  sparkleCount: 2
+  sparkleRadius: 0.5
+  sparkleOrbitSpeed: 60
+  sparkleTwinkleSeconds: 1.2
+  sparkleSize: 1.7
+  sparkleWave: 0.35
   shardTransform: {fileID: 4615000000000000012}
   crystalFilter: {fileID: 4615000000000000013}
   crystalRenderer: {fileID: 4615000000000000014}
@@ -80,29 +170,48 @@ MonoBehaviour:
     Crown: 1
     Pavilion: 0.62
   visualScale: 1.25
-  sparkleSize: 1.7
-  sparkleRadius: 0.5
-  ringMaterial: {fileID: 2100000, guid: 9c6a097c465048299b8fd4081ed0bced, type: 2}
-  groundGlowMaterial: {fileID: 2100000, guid: 4d521c96d2fd44af939a836eb90f1e32, type: 2}
-  sparkleMaterial: {fileID: 2100000, guid: 71f4610add8947d8a4cab05975cba519, type: 2}
-  sparkleRays:
-  - Offset: {x: 0, y: 0, z: 0}
-    Tilt: {x: 0, y: 0}
-    Radius: 0.018
-    Height: 0
-    TipHeight: 0.09
-    BaseTipHeight: 0.09
-    Sides: 4
-    TopRingScale: 1
-  - Offset: {x: 0, y: 0, z: 0}
-    Tilt: {x: 0, y: 90}
-    Radius: 0.018
-    Height: 0
-    TipHeight: 0.09
-    BaseTipHeight: 0.09
-    Sides: 4
-    TopRingScale: 1
-  pickupSfx: 6
+  spinSpeed: 70
+  bobHeight: 0.14
+  bobFrequency: 0.9
+  popSeconds: 0.45
+  popCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.7
+      value: 1.18
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  glowIntensity: 2.2
+  glowRange: 3.2
+  breathAmount: 0.35
+  breathFrequency: 1.4
+  pulseBrightness: 0.35
 --- !u!135 &4615000000000000005
 SphereCollider:
   m_ObjectHideFlags: 0

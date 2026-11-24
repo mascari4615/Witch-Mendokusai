@@ -72,7 +72,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d492e87d06f23b14e8f7f9a3ad7ddb04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.Spawner
+  moveAimFollowRate: 15
+  reverseAim: 0
+  behindDistance: 1
+  clusterRadius: 2.5
+  clusterMinCount: 1
+  shotStepDegrees: 0
+  volleyStepDegrees: 0
+  silhouettePrefab: {fileID: 0}
+  nextSpotTelegraph: {fileID: 0}
+  telegraphRadius: 1.5
+  telegraphLeadSeconds: 1
   prefabToSpawn: {fileID: 4922801019440085841, guid: 14829cb1cc3ef0042bbed45da5e1570f, type: 3}
+  playThrowSfx: 1
   spawnPositionStrategy: 4
   spawnAimStrategy: 1
   <RandomRange>k__BackingField: 0
@@ -90,6 +102,8 @@ MonoBehaviour:
   scalePerStack: 0.1
   damageBonusStatType: 13001
   pierceBonusStatType: -1
+  fanStatType: -1
+  fanDegrees: 15
 --- !u!114 &624030948263483217
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -105,6 +119,8 @@ MonoBehaviour:
   spawner: {fileID: 7377987611665135407}
   spawnCountStat: 13000
   baseCount: 1
+  minCount: 0
+  gateStat: -1
 --- !u!1 &8205507939271155849
 GameObject:
   m_ObjectHideFlags: 0
@@ -150,7 +166,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d492e87d06f23b14e8f7f9a3ad7ddb04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.Spawner
+  moveAimFollowRate: 15
+  reverseAim: 0
+  behindDistance: 1
+  clusterRadius: 2.5
+  clusterMinCount: 1
+  shotStepDegrees: 0
+  volleyStepDegrees: 0
+  silhouettePrefab: {fileID: 0}
+  nextSpotTelegraph: {fileID: 0}
+  telegraphRadius: 1.5
+  telegraphLeadSeconds: 1
   prefabToSpawn: {fileID: 8891603708961370830, guid: b0e53b5b4e6c4c84c9903e33afbad75f, type: 3}
+  playThrowSfx: 1
   spawnPositionStrategy: 4
   spawnAimStrategy: 1
   <RandomRange>k__BackingField: 0
@@ -168,6 +196,8 @@ MonoBehaviour:
   scalePerStack: 0.1
   damageBonusStatType: 13011
   pierceBonusStatType: 13012
+  fanStatType: -1
+  fanDegrees: 15
 --- !u!114 &7387971868149329152
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,3 +213,5 @@ MonoBehaviour:
   spawner: {fileID: 3394973536089151867}
   spawnCountStat: 13010
   baseCount: 0
+  minCount: 0
+  gateStat: -1

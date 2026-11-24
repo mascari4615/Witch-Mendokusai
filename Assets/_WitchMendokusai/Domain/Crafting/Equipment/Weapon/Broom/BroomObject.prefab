@@ -71,7 +71,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d492e87d06f23b14e8f7f9a3ad7ddb04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.Spawner
+  moveAimFollowRate: 15
+  reverseAim: 0
+  behindDistance: 1
+  clusterRadius: 2.5
+  clusterMinCount: 1
+  shotStepDegrees: 0
+  volleyStepDegrees: 0
+  silhouettePrefab: {fileID: 0}
+  nextSpotTelegraph: {fileID: 0}
+  telegraphRadius: 1.5
+  telegraphLeadSeconds: 1
   prefabToSpawn: {fileID: 1533424680873655382, guid: b036e48791a55924d918cb3875654125, type: 3}
+  playThrowSfx: 1
   spawnPositionStrategy: 4
   spawnAimStrategy: 2
   <RandomRange>k__BackingField: 0

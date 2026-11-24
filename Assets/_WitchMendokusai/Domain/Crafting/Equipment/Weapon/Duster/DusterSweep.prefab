@@ -116,6 +116,9 @@ MonoBehaviour:
   knockbackForce: 30
   knockbackDuration: 0.15
   hitstopDuration: 0
+  hitOncePerTarget: 0
+  hitReenterToRehit: 0
+  knockbackDirectionKind: 0
   usedByPlayer: 1
 --- !u!114 &253477362102498981
 MonoBehaviour:

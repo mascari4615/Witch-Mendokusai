@@ -323,7 +323,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.ChestObject
   moveSpeed: 10
   pickupDistance: 0.3
-  useBezierCurve: 0
 --- !u!1 &2919773747203697454
 GameObject:
   m_ObjectHideFlags: 0
