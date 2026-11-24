@@ -1,7 +1,9 @@
 using System.IO;
+using System.Text.RegularExpressions;
 using KarmoLabs;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace WitchMendokusai.Tests
 {
@@ -31,6 +33,7 @@ namespace WitchMendokusai.Tests
 		public void Non_owner_read_leaves_unreadable_file_in_place()
 		{
 			File.WriteAllText(path, "{ not json");
+			LogAssert.Expect(LogType.Error, new Regex("읽기 실패"));
 
 			Assert.IsFalse(SaveTool.TryReadWithBackup(path, out Sample _, out SaveReadSource source, quarantineUnreadable: false));
 			Assert.AreEqual(SaveReadSource.Unreadable, source);
