@@ -35,16 +35,21 @@ namespace WitchMendokusai
 			scroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
 			content.Add(scroll);
 
+			// 안내, 알림, 모두 기본값은 묶음을 바꿔도 남으므로 묶음 상자는 스크롤 안에만
+			VisualElement pages = new VisualElement();
+			scroll.Add(pages);
+
 			foreach (IGrouping<string, KeybindEntry> group in KeybindRegistry.EnumerateVisibleEntries().GroupBy(entry => entry.Category))
 			{
 				Label header = new Label(group.Key);
 				header.AddToClassList("wm-setting-header");
-				scroll.Add(header);
+				pages.Add(header);
 				if (group.Key == KeybindRegistry.MOVE_CATEGORY)
-					scroll.Add(CreateFixedKeyRow(KeybindRegistry.MOVE_DISPLAY_NAME, MOVE_FIXED_KEYS));
+					pages.Add(CreateFixedKeyRow(KeybindRegistry.MOVE_DISPLAY_NAME, MOVE_FIXED_KEYS));
 				foreach (KeybindEntry entry in group)
-					scroll.Add(CreateKeyRow(entry));
+					pages.Add(CreateKeyRow(entry));
 			}
+			BuildSections(TAB_KEY_KEYS, pages);
 
 			keyMessage = new Label();
 			keyMessage.AddToClassList("wm-setting-key-message");
