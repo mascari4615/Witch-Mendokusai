@@ -3,13 +3,13 @@
            __frame (원형 바탕과 테두리, 밖으로 나간 점은 잘림)
              __dots (코드가 점을 그림. 점 색은 아래 --wm-minimap-* 값)
              __player (가운데 내 위치)
-   자리: 시간과 목표 패널 ([Panel] DungeonRuntime 의 [Block] Infos) 이 오른쪽 46px, 위 58px 부터 높이 340px 차지. 그 아래 여백 두고 둠
+   자리: 시간과 목표 패널 ([Panel] DungeonRuntime 의 [Block] Infos) 이 오른쪽 46px, 위 58px 부터 높이 390px 차지 (목표 두 줄과 다음 정예 줄). 그 아래 여백 두고 둠
    점 색은 전투 띠 (Fx/Banner/Banner.uss) 와 화면 밖 표시의 정예 주황, 보스 진홍, 승리 금색과 같은 값 */
 
 .wm-minimap {
     position: absolute;
     right: 46px;
-    top: 300px;
+    top: 337px;
     width: 168px;
     height: 168px;
 }
