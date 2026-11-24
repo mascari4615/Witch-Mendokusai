@@ -108,7 +108,7 @@ MonoBehaviour:
   <DefeatNyangPerKill>k__BackingField: 0.05
   <DefeatNyangMax>k__BackingField: 300
   <HasThreatLevels>k__BackingField: 0
-  <DevBuildOnly>k__BackingField: 0
+  <DevBuildOnly>k__BackingField: 1
   <KeyArt>k__BackingField: {fileID: 21300000, guid: 83cdfd9e40b22384ebe2c5743ef88e46, type: 3}
   <ThreatPolicy>k__BackingField:
     <SpawnPolicy>k__BackingField: 0

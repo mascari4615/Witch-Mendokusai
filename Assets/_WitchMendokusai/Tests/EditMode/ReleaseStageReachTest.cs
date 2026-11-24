@@ -10,7 +10,7 @@ namespace WitchMendokusai.Tests
 	{
 		private const string STAGE_MANAGER_PREFAB = "Assets/_WitchMendokusai/Core/Assets/Singletons/StageManager.prefab";
 		// 릴리스에 열어 둔 스테이지. 새로 열 때 여기에 적음
-		private static readonly string[] RELEASE_STAGES = { "WS_4_Lab", "WS_1003_숲길" };
+		private static readonly string[] RELEASE_STAGES = { "WS_4_Lab" };
 
 		[Test]
 		public void Portals_from_start_stage_reach_only_release_stages()
@@ -48,6 +48,9 @@ namespace WitchMendokusai.Tests
 				if (dungeon.DevBuildOnly)
 					continue;
 				Assert.Greater(dungeon.MonsterWaves.Count, 0, dungeon.name);
+				// LoadStage 는 릴리스에서 개발 전용 스테이지를 조용히 거부하므로 열린 던전의 판이 안 바뀐 채 시작됨
+				foreach (Stage stage in dungeon.Stages)
+					Assert.IsFalse(stage.DevOnly, $"{dungeon.name} 의 {stage.name} 이 개발 전용");
 			}
 		}
 	}
