@@ -10,11 +10,7 @@ namespace WitchMendokusai
 
 		private void TickRemains(bool inDungeon)
 		{
-			if (remainsWorld != null && remainsWorld.IsRootLost)
-			{
-				remainsWorld.Dispose();
-				remainsWorld = null;
-			}
+			DisposeLostRemains();
 			if (inDungeon == false)
 			{
 				remainsRunActive = false;
@@ -32,6 +28,20 @@ namespace WitchMendokusai
 				remainsRunActive = true;
 			}
 			remainsWorld.Tick(playerProvider.CurrentObject, Time.deltaTime);
+		}
+
+		// 장면이 내려갈 때 (Play 종료, 로비로) 는 흔적 뿌리가 바닥보다 먼저 사라져 있을 수 있음.
+		// 조각을 하나씩 비울 수 없으므로 묶음째 버려 전역값 (Current, 풀 셰이더 값) 을 되돌림
+		private void DisposeLostRemains()
+		{
+			if (remainsWorld != null && remainsWorld.IsRootLost)
+				DestroyRemains();
+		}
+
+		private void ReleaseRemains()
+		{
+			DisposeLostRemains();
+			remainsWorld?.ReleaseAll();
 		}
 
 		private void DestroyRemains()
