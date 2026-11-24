@@ -23,6 +23,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("별을 줄에서 살짝 흔드는 폭 (하늘 px). 0 이면 자로 잰 줄")] public float Jitter { get; private set; } = 14f;
 		[field: SerializeField, Tooltip("별자리 맨 위 (또는 맨 아래) 별에서 장 이름까지 거리 (하늘 px)")] public float ChapterNameGap { get; private set; } = 64f;
 		[field: SerializeField, Tooltip("별 아래 이름이 차지하는 높이 (하늘 px). 아래쪽 장 이름을 그만큼 더 내림")] public float BelowLabelHeight { get; private set; } = 60f;
+		[field: SerializeField, Tooltip("장 방향의 가로 성분 (코사인) 이 이보다 작으면 위아래로 뻗는 장. 갈래 별 이름을 아래 대신 옆에"), Range(0f, 1f)] public float VerticalChapterCosine { get; private set; } = 0.35f;
 
 		// 선과 가루의 색은 MagicBook.uss 의 사용자 속성 (--wm-mb-line-done 등)
 		[field: Header("선")]

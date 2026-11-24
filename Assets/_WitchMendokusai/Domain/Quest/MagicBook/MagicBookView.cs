@@ -311,11 +311,25 @@ namespace WitchMendokusai
 			timeManager.Pause(pauseKey);
 			// 열린 직후에는 배치 계산 전이라 크기가 0. 잡힐 때까지 다음 프레임에 다시
 			bool fitted = false;
-			sky.schedule.Execute(() => fitted = IsOpen == false || sky.FitAll(true)).Every(0).Until(() => fitted);
+			sky.schedule.Execute(() => fitted = IsOpen == false || FitSky()).Every(0).Until(() => fitted);
 			if (inputManager.IsTouchMode == false)
 			{
 				focus.FocusWhenReady();
 			}
+		}
+
+		// 하늘 전체를 위 줄과 아래 줄 사이에 담음. 두 줄의 배치가 끝나기 전이면 false
+		private bool FitSky()
+		{
+			Rect skyLayout = sky.layout;
+			Rect topLayout = topBar.layout;
+			Rect bottomLayout = bottomBar.layout;
+			if (float.IsNaN(skyLayout.height) || float.IsNaN(topLayout.yMax) || float.IsNaN(bottomLayout.yMin) || bottomLayout.height <= 0f)
+			{
+				return false;
+			}
+			sky.SetCovered(topLayout.yMax - skyLayout.yMin, skyLayout.yMax - bottomLayout.yMin);
+			return sky.FitAll(true);
 		}
 
 		public void Close()

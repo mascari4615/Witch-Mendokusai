@@ -31,6 +31,17 @@ namespace WitchMendokusai
 
 		public float Zoom => cameraZoom;
 
+		// 위 줄과 아래 줄이 하늘을 덮는 높이 (이 요소 px). 전체를 담을 때 그만큼 뺌
+		private float coveredTop;
+		private float coveredBottom;
+
+		/// <summary>하늘 위에 얹힌 위 줄, 아래 줄의 높이. 전체 보기가 그 사이에 들어오게</summary>
+		public void SetCovered(float top, float bottom)
+		{
+			coveredTop = top;
+			coveredBottom = bottom;
+		}
+
 		private void RegisterCameraCallbacks()
 		{
 			RegisterCallback<WheelEvent>(OnWheel);
@@ -62,8 +73,11 @@ namespace WitchMendokusai
 			}
 			// 별 자리만이 아니라 옆과 아래의 별 이름까지 담기게 넓힘
 			Rect padded = new(skyBounds.min - settings.FitPadding, skyBounds.size + settings.FitPadding * 2f);
-			float zoom = Mathf.Min(view.x / padded.width, view.y / padded.height) * settings.FitMargin;
-			MoveTo(padded.center, Mathf.Clamp(zoom, settings.ZoomMin, settings.ZoomMax), instant);
+			float openHeight = view.y - coveredTop - coveredBottom;
+			float zoom = Mathf.Clamp(Mathf.Min(view.x / padded.width, openHeight / padded.height) * settings.FitMargin, settings.ZoomMin, settings.ZoomMax);
+			// 두 줄 사이의 가운데가 화면 가운데보다 내려온 (올라간) 만큼 카메라를 옮김
+			Vector2 center = padded.center - new Vector2(0f, (coveredTop - coveredBottom) * 0.5f / zoom);
+			MoveTo(center, zoom, instant);
 			return true;
 		}
 

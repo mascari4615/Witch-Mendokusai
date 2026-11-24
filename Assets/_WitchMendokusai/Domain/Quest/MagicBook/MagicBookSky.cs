@@ -165,7 +165,10 @@ namespace WitchMendokusai
 			}
 
 			// 잎 별 이름은 장이 뻗는 바깥쪽, 갈래 별 이름은 아래. 들어오고 나가는 선을 피함
-			MagicBookLabelSide outward = Mathf.Cos(chapter.SkyAngle * Mathf.Deg2Rad) < 0f ? MagicBookLabelSide.Left : MagicBookLabelSide.Right;
+			// 위아래로 뻗는 장은 선이 별 아래로 지나가므로 갈래 별 이름도 옆
+			float horizontal = Mathf.Cos(chapter.SkyAngle * Mathf.Deg2Rad);
+			MagicBookLabelSide outward = horizontal < 0f ? MagicBookLabelSide.Left : MagicBookLabelSide.Right;
+			MagicBookLabelSide branch = Mathf.Abs(horizontal) < settings.VerticalChapterCosine ? outward : MagicBookLabelSide.Below;
 			HashSet<string> hasChild = new();
 			foreach (NodeConnection connection in connections)
 			{
@@ -180,7 +183,7 @@ namespace WitchMendokusai
 					continue;
 				}
 				Vector2 position = positions[node.Id];
-				MagicBookStar star = new(questNode.Target, chapter, position, hasParent.Contains(node.Id) == false, hasChild.Contains(node.Id) ? MagicBookLabelSide.Below : outward, glowTexture, settings.FallbackStarIcon);
+				MagicBookStar star = new(questNode.Target, chapter, position, hasParent.Contains(node.Id) == false, hasChild.Contains(node.Id) ? branch : outward, glowTexture, settings.FallbackStarIcon);
 				star.clicked += () => StarSubmitted(star);
 				// 키로 고를 때만 따라감. 클릭 중에 카메라가 움직이면 별이 커서에서 빠져나가 클릭이 안 됨
 				star.RegisterCallback<FocusInEvent>(_ =>
@@ -225,7 +228,8 @@ namespace WitchMendokusai
 			return bounds;
 		}
 
-		public static string ChapterTitle(ChapterSO chapter) => string.IsNullOrEmpty(chapter.Name) ? chapter.name : chapter.Name;
+		// 이름이 빈 장은 번호만. 자산 파일 이름은 화면에 안 냄
+		public static string ChapterTitle(ChapterSO chapter) => string.IsNullOrEmpty(chapter.Name) ? $"{chapter.ID}장" : chapter.Name;
 
 		/// <summary>퀘스트 진행을 별 상태로. 열 때와 퀘스트가 바뀔 때</summary>
 		public void Refresh(QuestManager questManager)
