@@ -64,6 +64,9 @@ namespace WitchMendokusai
 			List<VisualElement> pages = sectionPages[tabKey];
 			if (withSound && currentPages.TryGetValue(tabKey, out int previous) && previous == pageIndex)
 				return;
+			// 키를 기다리는 중 묶음을 옮기면 기다림을 끝냄 (SwitchTab 과 같음). 안 그러면 안 보이는 동작에 키가 묶임
+			if (withSound)
+				inputManager.CancelRebind();
 			for (int i = 0; i < pages.Count; i++)
 				pages[i].style.display = i == pageIndex ? DisplayStyle.Flex : DisplayStyle.None;
 			if (sideGroups.TryGetValue(tabKey, out VisualElement group))
@@ -72,8 +75,10 @@ namespace WitchMendokusai
 					group[i].EnableInClassList(SIDE_ITEM_ACTIVE_CLASS, i == pageIndex);
 			}
 			currentPages[tabKey] = pageIndex;
-			if (withSound)
-				UiSfx.Play(UiSfxEvent.Tab);
+			if (withSound == false)
+				return;
+			pages[pageIndex].GetFirstAncestorOfType<ScrollView>()?.ScrollTo(pages[pageIndex]);
+			UiSfx.Play(UiSfxEvent.Tab);
 		}
 
 		// 탭을 바꿀 때: 그 탭의 목록만 보이고, 목록이 없는 탭은 본문이 넓어짐

@@ -94,9 +94,15 @@ namespace WitchMendokusai
 			// 폰은 첫 터치 전엔 터치 모드로 안 잡혀서 기기 종류도 같이 봄
 			if (inputManager.IsTouchMode || Application.isMobilePlatform)
 				yield break;
+			// 처음에 손가락으로 시작했다가 던전에서 키보드로 바꾼 경우. 판을 덮지 않게 다음 스테이지에서
+			if (DungeonManagerBridge.IsDungeon)
+				yield break;
 			StageManager.OnStageChanged -= OnFirstStage;
 			PlayerPrefs.SetInt(SHOWN_PREF_KEY, 1);
 			PlayerPrefs.Save();
+			// 사람이 먼저 F1 로 열어 둔 창은 그대로
+			if (window.IsOpen)
+				yield break;
 			RefreshSprintRow();
 			RefreshMinimapRow();
 			window.Open();
@@ -108,7 +114,7 @@ namespace WitchMendokusai
 		private void OnStageLeft(Stage stage, StageObject stageObject)
 		{
 			StageManager.OnStageChanged -= OnStageLeft;
-			if (isOpenedForFirstTime)
+			if (isOpenedForFirstTime && window.IsOpen)
 				window.Close();
 			isOpenedForFirstTime = false;
 		}

@@ -32,7 +32,7 @@ namespace WitchMendokusai
 			creditScroll = new ScrollView(ScrollViewMode.Vertical);
 			creditScroll.AddToClassList("wm-setting-credit-scroll");
 			creditScroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
-			creditScroll.RegisterCallback<FocusInEvent>(OnCreditFocusIn);
+			FollowFocus(creditScroll);
 			creditScroll.verticalScroller.valueChanged += _ => RefreshCreditFrame();
 			// 펼침과 접힘으로 줄 위치가 바뀐 뒤에도 선택 틀 따라감
 			creditScroll.contentContainer.RegisterCallback<GeometryChangedEvent>(_ => RefreshCreditFrame());
@@ -163,15 +163,15 @@ namespace WitchMendokusai
 			UiSfx.Play(open ? UiSfxEvent.Confirm : UiSfxEvent.Cancel);
 		}
 
-		// 키보드 이동: 목록 밖 항목으로 스크롤, 선택 틀은 스크롤 반영 뒤 갱신
-		private void OnCreditFocusIn(FocusInEvent evt)
+		// 키보드 이동: 목록 밖 항목으로 스크롤, 선택 틀은 스크롤 반영 뒤 갱신. 크레딧과 키 탭이 같이 씀
+		private void FollowFocus(ScrollView scroll) => scroll.RegisterCallback<FocusInEvent>(evt =>
 		{
 			if (evt.target is VisualElement element && element.ClassListContains(NAV_CLASS))
 			{
-				creditScroll.ScrollTo(element);
+				scroll.ScrollTo(element);
 				element.schedule.Execute(() => MoveFrameTo(element));
 			}
-		}
+		});
 
 		private void RefreshCreditFrame()
 		{

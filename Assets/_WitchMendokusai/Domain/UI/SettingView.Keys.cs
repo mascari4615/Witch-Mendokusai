@@ -34,6 +34,7 @@ namespace WitchMendokusai
 			scroll.AddToClassList("wm-setting-key-scroll");
 			scroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
 			content.Add(scroll);
+			FollowFocus(scroll);
 
 			// 안내, 알림, 모두 기본값은 묶음을 바꿔도 남으므로 묶음 상자는 스크롤 안에만
 			VisualElement pages = new VisualElement();
