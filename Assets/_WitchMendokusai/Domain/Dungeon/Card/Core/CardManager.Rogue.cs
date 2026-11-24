@@ -182,7 +182,7 @@ namespace WitchMendokusai
 			}
 			IsChainedChoice = false;
 			timeManager.Resume(gameObject);
-			playerProvider.CurrentObject.GrantInvincibility(postSelectionInvincibility);
+			playerProvider.CurrentObject.GrantInvincibility(postSelectionInvincibility, gameManager.IsFormMomentPlaying == false);
 			TryOpenNextChest();
 		}
 

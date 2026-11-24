@@ -245,13 +245,14 @@ namespace WitchMendokusai
 			}
 		}
 
-		public void GrantInvincibility(float duration)
+		// blink 를 끄면 깜빡임 없이 무적만. 시간이 느린 연출 중에는 켜진 깜빡임이 몸에 남아 보임 (변신)
+		public void GrantInvincibility(float duration, bool blink = true)
 		{
 			if (duration <= 0f || isActiveAndEnabled == false)
 				return;
 			if (invincibleRoutine != null)
 				StopCoroutine(invincibleRoutine);
-			invincibleRoutine = StartCoroutine(InvincibleTime(duration, false));
+			invincibleRoutine = StartCoroutine(InvincibleTime(duration, false, blink));
 		}
 
 		protected virtual void HandleDeathEffects()
@@ -271,7 +272,7 @@ namespace WitchMendokusai
 		}
 
 		// 피격이면 먼저 몸 전체를 짧게 번쩍, 남은 무적 시간은 약하게 깜빡임. 번쩍임 끄기 설정과 세기 줄이기 (UltFeel_Comfort 번쩍임) 를 따름
-		private IEnumerator InvincibleTime(float duration, bool hitFlash)
+		private IEnumerator InvincibleTime(float duration, bool hitFlash, bool blink = true)
 		{
 			PlayerHitFeelSettings settings = resourceManager.SurvivalFeel.PlayerHit;
 			float comfort = resourceManager.SurvivalFeel.Comfort != null ? resourceManager.SurvivalFeel.Comfort.Flash : 1f;
@@ -285,6 +286,14 @@ namespace WitchMendokusai
 				float flashSeconds = Mathf.Min(settings.BodyFlashSeconds, duration);
 				yield return new WaitForSeconds(flashSeconds);
 				elapsed += flashSeconds;
+			}
+
+			if (blink == false)
+			{
+				bodyFlash.Release();
+				yield return new WaitForSeconds(duration);
+				invincibleRoutine = null;
+				yield break;
 			}
 
 			int blinkCount = (int)((duration - elapsed) / invincibleBlinkInterval);

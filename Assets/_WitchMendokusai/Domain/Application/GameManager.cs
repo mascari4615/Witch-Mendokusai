@@ -115,6 +115,7 @@ namespace WitchMendokusai
 			levelGrowthRunner = null;
 			DollMasteryRun.Begin(GetDoll(dataManager.CurDollID).Mastery);
 			HitMarks.Clear();
+			formMoment = new DollFormMoment();
 			signatureObject = null;
 			EquipmentData signature = dataManager.RunLoadout.Signature;
 			List<EquipmentData> equipments = dataManager.RunLoadout.Equipments();
@@ -142,7 +143,19 @@ namespace WitchMendokusai
 			playerProvider.CurrentObject.ApplyFormTint(form.BodyTint);
 			if (form.ConfirmMasteryTrack != DollMastery.NO_TRACK)
 				DollMasteryRun.Confirm(form.ConfirmMasteryTrack);
+			PlayFormTransform(form);
 			Debug.Log($"[DollForm] {form.Key} ({form.DisplayName})");
+		}
+
+		// 변신 연출 중. 카드 창은 이 동안 열리지 않음
+		public bool IsFormMomentPlaying => formMoment.IsPlaying;
+
+		private DollFormMoment formMoment = new();
+
+		private void PlayFormTransform(DollFormData form)
+		{
+			if (form.TransformFx != null)
+				StartCoroutine(formMoment.Play(form, playerProvider.CurrentObject.transform));
 		}
 
 		// 인형 고유 패시브. 판마다 새로 걸고 지난 판 것은 걷음

@@ -235,6 +235,13 @@ namespace WitchMendokusai
 
 		private IEnumerator StartSelectCard()
 		{
+			// 변신 연출이 끝날 때까지 다음 선택을 미룸. 이어지는 선택이면 앞 선택이 건 정지도 풂
+			if (gameManager.IsFormMomentPlaying)
+			{
+				timeManager.Resume(gameObject);
+				while (gameManager.IsFormMomentPlaying)
+					yield return null;
+			}
 			timeManager.Pause(gameObject);
 			yield return new WaitForSecondsRealtime(selectionDelay);
 			EnsureCardPanels();

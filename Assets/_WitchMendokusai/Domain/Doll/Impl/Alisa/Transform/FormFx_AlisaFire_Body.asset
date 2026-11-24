@@ -1,0 +1,127 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa11a08b61e7429fa2b4c903fc78f1c4, type: 3}
+  m_Name: FormFx_AlisaFire_Body
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.FormTransformFx
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle: 
+  devKey: 
+  spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
+  shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
+  gradeShader: {fileID: 4800000, guid: 1ebe1525f751440ea76b9cca2137b714, type: 3}
+  overlayFlashCap: 0.32
+  backgroundFlashCap: 0.85
+  spawnTemporaryFoliage: 0
+  foliageAreaRadius: 14
+  foliage: []
+  foliageResponse:
+    Bend: 78
+    DecaySeconds: 1.2
+    Hertz: 1.7
+    BladeCount: 70
+    BladeSpeed: 11
+    BladeColor: {r: 0.45, g: 0.7, b: 0.3, a: 1}
+  tailSeconds: 0.6
+  screenSortingOrder: 2400
+  meshGlowShader: {fileID: 4800000, guid: 4d07b8e2c11b28449a3f241e98f42971, type: 3}
+  litParticleShader: {fileID: 4800000, guid: ebe2a5585f6714b4a807c9a0a60454ed, type: 3}
+  spriteLightGain: 0.12
+  spriteTintCap: 2.2
+  targetDistance: 0
+  layers:
+  - Count: 8
+    Angles: {x: 70, y: -14}
+    Lengths: {x: 1.8, y: 0.95}
+    Roots: {x: 0.5, y: 0.12}
+    Width: 0.26
+    Forward: 0
+    BodyAlpha: 0.58
+    Intensity: 0.95
+  - Count: 7
+    Angles: {x: 62, y: -8}
+    Lengths: {x: 1.1, y: 0.55}
+    Roots: {x: 0.42, y: 0.1}
+    Width: 0.24
+    Forward: 0.05
+    BodyAlpha: 0.5
+    Intensity: 0.9
+  - Count: 6
+    Angles: {x: 54, y: 2}
+    Lengths: {x: 0.62, y: 0.34}
+    Roots: {x: 0.32, y: 0.08}
+    Width: 0.2
+    Forward: 0.09
+    BodyAlpha: 0.5
+    Intensity: 0.95
+  featherShape: {x: 0.16, y: 0.22, z: 0.5}
+  wingScale: 1.7
+  shoulderGap: 0.16
+  wingYaw: 10
+  wingDepth: 0.2
+  driftFeathers: 26
+  pillarRadius: 0.85
+  pillarHeight: 9
+  pillarMotesPerSecond: 90
+  pillarIntensity: 0.3
+  haloRadius: {x: 0.25, y: 0.62}
+  haloTilt: {x: 6, y: 18}
+  petalCount: 0
+  petalLength: {x: 0.6, y: 1.1}
+  shockRadius: 4.2
+  barLength: 2.9
+  barWidth: 0.2
+  sheathWidth: 0.42
+  barLean: 0.42
+  needleCount: 9
+  needleLength: {x: 0.8, y: 1.9}
+  breakPerSecond: 220
+  wandSize: 0.95
+  energyShader: {fileID: 4800000, guid: e61a4233b9a045cb973c5198ac7a5f17, type: 3}
+  beamShader: {fileID: 4800000, guid: 094650be7f3c4c4b98208e741fa6fc5f, type: 3}
+  coreColor: {r: 2, g: 1.75, b: 1.15, a: 1}
+  bodyColor: {r: 1.35, g: 0.78, b: 0.16, a: 1}
+  tipColor: {r: 1.2, g: 0.45, b: 0.06, a: 1}
+  lightColor: {r: 1, g: 0.7, b: 0.36, a: 1}
+  gatherSeconds: 0.34
+  raiseSeconds: 0.16
+  impactDelay: 0.3
+  pillarDelay: 0.04
+  haloDelay: 0.24
+  barBreakDelay: 0.14
+  barBreakSeconds: 0.4
+  wingHold: 0.95
+  wingBreakSeconds: 0.5
+  pillarHold: 0.75
+  pillarFade: 0.3
+  haloHold: 0.6
+  wandHold: 2.9
+  gatherTimeScale: 0.08
+  chestHeight: 0.46
+  headHeight: 1.75
+  handOffset: {x: 0.3, y: 0.34}
+  faceCamera: 0.55
+  threadCount: 18
+  threadRadius: {x: 1.4, y: 2.9}
+  threadHeight: {x: 0.05, y: 2}
+  threadWidth: 0.06
+  orbSize: 0.15
+  orbGlowSize: 0.55
+  sunDim: 0.22
+  ambientDim: 0.3
+  gatherLight: 5
+  impactLight: 9
+  lightRange: 9
+  bloom: 0.65
+  restoreSeconds: 0.7
