@@ -183,6 +183,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - UnitStatData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 36b31b21ef7157143bc4e6c9368c753c
+    m_Address: UnitStatData/100000209
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 36f1114c817f9de46b5932e69ce01ebe
     m_Address: UnitStatData/10801
     m_ReadOnly: 0
@@ -485,6 +491,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8897d5fabd3e6d645a9382587003e9be
     m_Address: UnitStatData/601
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 897c7f990a8b3704baf1bb14c07135d0
+    m_Address: UnitStatData/100000205
     m_ReadOnly: 0
     m_SerializedLabels:
     - UnitStatData
@@ -951,6 +963,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - UnitStatData
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dafb4edeee4d5024e8135f94c239116a
+    m_Address: UnitStatData/100000207
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: db203e2fedd43c54783f8124ca67a170
     m_Address: UnitStatData/11602
     m_ReadOnly: 0
@@ -983,6 +1001,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e1604f4d8f0239548b37ba0a6c1f0fe5
     m_Address: UnitStatData/102
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e231ab3e77d6242498f948062912fed0
+    m_Address: UnitStatData/100000208
     m_ReadOnly: 0
     m_SerializedLabels:
     - UnitStatData
@@ -1067,6 +1091,12 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f2d970ea65d3427cb1276f31558fb8c1
     m_Address: UnitStatData/13012
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UnitStatData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f3a09753a50b48f4bb7291eb1ead7856
+    m_Address: UnitStatData/100000206
     m_ReadOnly: 0
     m_SerializedLabels:
     - UnitStatData
