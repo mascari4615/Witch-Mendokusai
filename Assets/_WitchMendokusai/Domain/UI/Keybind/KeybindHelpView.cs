@@ -31,6 +31,8 @@ namespace WitchMendokusai
 		private VisualElement sprintRow;
 		// 큰 지도는 던전 안에서만 쓰므로 던전 밖에서는 이 줄을 숨김
 		private VisualElement minimapRow;
+		// 첫 진입 때 저절로 열린 채인지. 사람이 F1 로 연 창은 저절로 안 닫음
+		private bool isOpenedForFirstTime;
 		private UIRoot uiRoot;
 		private InputManager inputManager;
 
@@ -73,6 +75,7 @@ namespace WitchMendokusai
 			KeybindRegistry.OnChanged -= RebuildContent;
 			inputManager.UnregisterInputEvent(InputEventType.KeybindHelpToggle, InputEventResponseType.Performed, OnToggle);
 			StageManager.OnStageChanged -= OnFirstStage;
+			StageManager.OnStageChanged -= OnStageLeft;
 		}
 
 		private void OnFirstStage(Stage stage, StageObject stageObject)
@@ -97,6 +100,17 @@ namespace WitchMendokusai
 			RefreshSprintRow();
 			RefreshMinimapRow();
 			window.Open();
+			isOpenedForFirstTime = true;
+			StageManager.OnStageChanged += OnStageLeft;
+		}
+
+		// 저절로 연 안내는 처음 스테이지를 떠나면 닫음. 판 안까지 남아 카드 고르기와 결과창을 덮던 것
+		private void OnStageLeft(Stage stage, StageObject stageObject)
+		{
+			StageManager.OnStageChanged -= OnStageLeft;
+			if (isOpenedForFirstTime)
+				window.Close();
+			isOpenedForFirstTime = false;
 		}
 
 		// 릴리스: 개발자 창 단축키 줄 숨김 (DevWindow 와 같은 조건)
@@ -175,6 +189,7 @@ namespace WitchMendokusai
 
 			RefreshSprintRow();
 			RefreshMinimapRow();
+			isOpenedForFirstTime = false;
 			window.Toggle();
 		}
 
