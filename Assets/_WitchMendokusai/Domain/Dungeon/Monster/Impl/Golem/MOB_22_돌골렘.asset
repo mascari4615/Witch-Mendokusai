@@ -25,9 +25,15 @@ MonoBehaviour:
   <InitStatInfos>k__BackingField:
     initStats:
     - unitStat: 2
-      value: 20
+      value: 40
     - unitStat: 300
-      value: 22
+      value: 12
+    - unitStat: 500
+      value: 50
+    - unitStat: 700
+      value: 150
+    - unitStat: 4000
+      value: 100
   <Type>k__BackingField: 0
   <Loots>k__BackingField:
   - <DataSO>k__BackingField: {fileID: 11400000, guid: 41d3b97fb16981c4f949742deac36232, type: 2}

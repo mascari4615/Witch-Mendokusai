@@ -137,6 +137,15 @@ namespace WitchMendokusai
 
 		public override void ReceiveDamage(DamageInfo damageInfo)
 		{
+			// 상태이상 틱. 무적과 부활은 지키고, 보호막과 회피는 안 거침 (보호막이 1 짜리 틱에 다 깎이지 않게)
+			if (damageInfo.type == DamageType.StatusTick)
+			{
+				if (IsDevInvincible || invincibleRoutine != null || TryRevive(damageInfo))
+					return;
+				base.ReceiveDamage(damageInfo);
+				return;
+			}
+
 			if (damageInfo.ignoreInvincible == false && IsDevInvincible)
 				return;
 
@@ -215,11 +224,14 @@ namespace WitchMendokusai
 			// 상태이상 틱은 몸 물들임이 이미 보여 화면 연출과 몸 번쩍임 없음
 			bool statusTick = damageInfo.type == DamageType.StatusTick;
 			SurvivalFeel.Instance.OnPlayerHit(this, damageInfo.damage, statusTick);
+			// 틱은 피격 무적을 시작하지 않음. 시작하면 걸린 동안 다른 공격이 막힘
+			if (statusTick)
+				return;
 
 			if (invincibleRoutine != null)
 				StopCoroutine(invincibleRoutine);
 			float bonusSeconds = UnitStat[UnitStatType.INVINCIBLE_TIME] / resourceManager.SurvivalFeel.Upgrade.InvincibleTimeStatPerSecond;
-			invincibleRoutine = StartCoroutine(InvincibleTime(soManager.InvincibleTime.RuntimeValue + bonusSeconds, statusTick == false));
+			invincibleRoutine = StartCoroutine(InvincibleTime(soManager.InvincibleTime.RuntimeValue + bonusSeconds, true));
 
 			switch (UnitStat[UnitStatType.HP_CUR])
 			{

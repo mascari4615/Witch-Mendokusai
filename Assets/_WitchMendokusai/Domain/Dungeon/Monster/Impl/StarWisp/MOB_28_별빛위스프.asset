@@ -20,14 +20,15 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 6bb22c1c6f17437c9e3637cbc0c9adfe, type: 3}
   <Affiliation>k__BackingField: -1
   <Prefab>k__BackingField: {fileID: 6534569428800909803, guid: 5cdf729edc316ab47ad197f51b648763, type: 3}
-  <DefaultSkills>k__BackingField: []
+  <DefaultSkills>k__BackingField:
+  - {fileID: 11400000, guid: f6a29f2c960129f45894db4732554d4b, type: 2}
   <Material>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
   <InitStatInfos>k__BackingField:
     initStats:
     - unitStat: 2
-      value: 20
+      value: 18
     - unitStat: 300
-      value: 22
+      value: 18
   <Type>k__BackingField: 0
   <Loots>k__BackingField:
   - <DataSO>k__BackingField: {fileID: 11400000, guid: 41d3b97fb16981c4f949742deac36232, type: 2}
@@ -38,4 +39,5 @@ MonoBehaviour:
     <Percentage>k__BackingField: 1
   - <DataSO>k__BackingField: {fileID: 11400000, guid: fa1e42f560679c74eb12d34c2b39de1f, type: 2}
     <Percentage>k__BackingField: 0.5
+  <Attack>k__BackingField: {fileID: 11400000, guid: f7cfef7edf28486383f4633141b35c06, type: 2}
   <Remains>k__BackingField: {fileID: 11400000, guid: e9009759b03fea140b38dce86c34a3a0, type: 2}

@@ -145,7 +145,8 @@ namespace WitchMendokusai
 			IDamageSource source = status.Sources[(int)type];
 			Vector3 origin = unit.transform.position;
 			StrikeTick(unit, type, damage, source);
-			if (style.ChainCount > 0)
+			// 적이 주인공에게 건 감전은 옆 몬스터로 안 튐
+			if (style.ChainCount > 0 && (unit is PlayerObject && source is MonsterObject) == false)
 				Chain(unit, origin, type, style, damage, source);
 		}
 

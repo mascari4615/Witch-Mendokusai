@@ -25,7 +25,7 @@ MonoBehaviour:
   <InitStatInfos>k__BackingField:
     initStats:
     - unitStat: 2
-      value: 20
+      value: 26
     - unitStat: 300
       value: 22
   <Type>k__BackingField: 0
@@ -38,4 +38,9 @@ MonoBehaviour:
     <Percentage>k__BackingField: 1
   - <DataSO>k__BackingField: {fileID: 11400000, guid: fa1e42f560679c74eb12d34c2b39de1f, type: 2}
     <Percentage>k__BackingField: 0.5
+  <BodyFx>k__BackingField: {fileID: 11400000, guid: b70db54f6d774418b2212fc764d0f0db, type: 2}
+  <Grudge>k__BackingField:
+    <DollId>k__BackingField: 4
+    <SpeedPercent>k__BackingField: 30
+    <DamagePercent>k__BackingField: 50
   <Remains>k__BackingField: {fileID: 11400000, guid: e9009759b03fea140b38dce86c34a3a0, type: 2}

@@ -38,6 +38,7 @@ namespace WitchMendokusai
 		private DungeonThreatEffect threat = DungeonThreatEffect.Identity;
 		private HpBarView hpBarView;
 		private Animator spriteAnimator;
+		private MonsterBodyFx bodyFx;
 
 		private HpBarView HpBarView
 		{
@@ -68,6 +69,7 @@ namespace WitchMendokusai
 			SpriteRenderer.sharedMaterial = UnitData.Material;
 			SpriteRenderer.color = UnitData.Tint;
 			ApplySpriteVariant();
+			ApplyBodyFx();
 			ObjectBufferManager.AddObject(ObjectType.Monster, gameObject);
 			hpBar.localScale = Vector3.one;
 			HpBarView.SetRatio(1f);
@@ -111,6 +113,37 @@ namespace WitchMendokusai
 		{
 			base.Init(unitData);
 			ApplyThreat();
+			ApplyGrudge();
+		}
+
+		// 조종 중인 인형이 미워하는 인형이면 사나워짐
+		private void ApplyGrudge()
+		{
+			PlayerObject player = playerProvider.CurrentObject;
+			if (player != null && UnitData.Grudge.Hates(player.UnitData))
+				UnitData.Grudge.Apply(UnitStat);
+		}
+
+		// 방어력. 상태이상 틱 (몸 안 피해) 과 강제 피해 (화면 청소의 즉사) 는 안 줄임
+		public override void ReceiveDamage(DamageInfo damageInfo)
+		{
+			if (damageInfo.type != DamageType.StatusTick && damageInfo.ignoreInvincible == false)
+				damageInfo.damage = ArmorRules.Reduce(damageInfo.damage, UnitStat[UnitStatType.ARMOR]);
+			base.ReceiveDamage(damageInfo);
+		}
+
+		// 몸 효과. 프리팹을 여러 종이 나눠 써서 켜질 때마다 자산대로
+		private void ApplyBodyFx()
+		{
+			if (UnitData.BodyFx == null)
+			{
+				if (bodyFx != null)
+					bodyFx.Hide();
+				return;
+			}
+			if (bodyFx == null)
+				bodyFx = gameObject.AddComponent<MonsterBodyFx>();
+			bodyFx.Show(UnitData.BodyFx);
 		}
 
 		private void ApplyThreat()

@@ -146,7 +146,7 @@ namespace WitchMendokusai.Tests
 				foreach (Monster monster in wave.Monsters)
 					if (monster.Attack != null)
 						attackTypes.Add(monster.Attack.GetType());
-			CollectionAssert.AreEquivalent(new[] { typeof(RangedMonsterAttack), typeof(DashMonsterAttack), typeof(ZoneMonsterAttack) }, attackTypes);
+			CollectionAssert.AreEquivalent(new[] { typeof(RangedMonsterAttack), typeof(DashMonsterAttack), typeof(ZoneMonsterAttack), typeof(PackMonsterAttack) }, attackTypes);
 		}
 
 		[Test]

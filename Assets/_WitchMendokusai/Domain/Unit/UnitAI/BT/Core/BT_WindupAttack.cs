@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	// 예고 뒤 한 번 실행하는 일반 적 공격의 박자 (WindupMonsterAttack). 추적 -> 사거리 안이고 준비됐으면 멈추고 예고 -> 실행 -> 숨 고르기 -> 대기 동안 다시 추적
 	// 시간은 게임 시간 (예고 부품과 같은 시계)
-	public class BT_WindupAttack : BTRunner
+	public class BT_WindupAttack : BTRunner, IAttackCycle
 	{
 		private readonly WindupMonsterAttack attack;
 		private Vector3 target;
@@ -14,6 +14,9 @@ namespace WitchMendokusai
 		private float recoveryEndTime;
 		private float readyTime;
 		private Action stopTelegraph;
+
+		public int CompletedCount { get; private set; }
+		public bool IsAttacking { get; private set; }
 
 		public BT_WindupAttack(UnitObject unitObject, PlayerProvider playerProvider, WindupMonsterAttack attack) : base(unitObject)
 		{
@@ -67,6 +70,7 @@ namespace WitchMendokusai
 		private BTState BeginWindup()
 		{
 			Interrupt();
+			IsAttacking = true;
 			PlayerObject player = playerProvider.CurrentObject;
 			target = attack.ResolveTarget(player.transform.position, SurvivalThreatRules.MoveVelocity(player.UnitMovement));
 			windupEndTime = Time.time + attack.WindupSeconds;
@@ -101,6 +105,8 @@ namespace WitchMendokusai
 		private BTState EndAttack()
 		{
 			readyTime = Time.time + attack.Cooldown;
+			CompletedCount++;
+			IsAttacking = false;
 			return BTState.Success;
 		}
 

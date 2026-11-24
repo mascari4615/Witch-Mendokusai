@@ -119,6 +119,9 @@ MonoBehaviour:
   <HasThreatLevels>k__BackingField: 0
   <DevBuildOnly>k__BackingField: 1
   <KeyArt>k__BackingField: {fileID: 21300000, guid: 83cdfd9e40b22384ebe2c5743ef88e46, type: 3}
+  <WavePatterns>k__BackingField:
+  - <Pattern>k__BackingField: {fileID: 11400000, guid: 17f045f1f9bc42eca6b5319cd8d693c4, type: 2}
+    <StartTime>k__BackingField: 100
   <ThreatPolicy>k__BackingField:
     <SpawnPolicy>k__BackingField: 0
     <ForwardHalfAngle>k__BackingField: 30
