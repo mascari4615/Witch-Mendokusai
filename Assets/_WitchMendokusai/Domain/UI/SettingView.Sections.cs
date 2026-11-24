@@ -77,7 +77,10 @@ namespace WitchMendokusai
 			currentPages[tabKey] = pageIndex;
 			if (withSound == false)
 				return;
-			pages[pageIndex].GetFirstAncestorOfType<ScrollView>()?.ScrollTo(pages[pageIndex]);
+			// 본문이 스크롤 안에 있는 탭 (키) 은 새 묶음을 맨 위부터
+			ScrollView scroll = pages[pageIndex].GetFirstAncestorOfType<ScrollView>();
+			if (scroll != null)
+				scroll.scrollOffset = Vector2.zero;
 			UiSfx.Play(UiSfxEvent.Tab);
 		}
 
