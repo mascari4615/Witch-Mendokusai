@@ -170,7 +170,9 @@ namespace WitchMendokusai
 			if (piece.Settings.Damage > 0 && Time.time >= nextTouchTime && piece.Hold.IsHot(Time.time) && Touches(piece, player, piece.Settings.Radius))
 			{
 				nextTouchTime = Time.time + piece.Settings.TouchInterval;
-				piece.Settings.HitEffect.Strike(piece.Source, piece.Position, player, MonsterAttack.MakeDamage(piece.Source, piece.Settings.Damage));
+				DamageInfo touch = MonsterAttack.MakeDamage(piece.Source, piece.Settings.Damage);
+				touch.skipsHitInvincibility = true;
+				piece.Settings.HitEffect.Strike(piece.Source, piece.Position, player, touch);
 			}
 			return Time.time < piece.Hold.EndTime;
 		}

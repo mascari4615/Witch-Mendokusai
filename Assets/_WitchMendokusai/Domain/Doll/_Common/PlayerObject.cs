@@ -241,8 +241,8 @@ namespace WitchMendokusai
 			// 상태이상 틱은 몸 물들임이 이미 보여 화면 연출과 몸 번쩍임 없음
 			bool statusTick = damageInfo.type == DamageType.StatusTick;
 			SurvivalFeel.Instance.OnPlayerHit(this, damageInfo.damage, statusTick);
-			// 틱은 피격 무적을 시작하지 않음. 시작하면 걸린 동안 다른 공격이 막힘
-			if (statusTick)
+			// 틱과 남은 물체에 닿은 피해는 피격 무적을 시작하지 않음. 시작하면 바로 뒤의 큰 공격이 막힘
+			if (statusTick || damageInfo.skipsHitInvincibility)
 				return;
 
 			if (invincibleRoutine != null)
