@@ -7,7 +7,8 @@ namespace WitchMendokusai
 	// 일제 사격의 마지막 발. 꽃잎처럼 벌어지는 빛, 붓결 고리, 화면 섬광과 흔들림, 내려앉는 별 가루
 	public sealed partial class VolleyArsenal
 	{
-		private const int GRAND_FIRST_FRAME = 2;
+		// 칸 밖으로 넘친 두 장 (7, 8) 은 건너뛰고 크기로 벌어지게 함
+		private static readonly int[] GRAND_FRAMES = { 2, 3, 4, 5, 6, 6, 9, 10, 11, 12, 13, 14 };
 		private const int STAR_FRAME = 3;
 
 		[Header("막타")]
@@ -101,10 +102,10 @@ namespace WitchMendokusai
 			if (age < 0f || age >= grandSeconds)
 				return;
 			float progress = age / grandSeconds;
-			int frame = Mathf.Min(15, Mathf.FloorToInt(GRAND_FIRST_FRAME + (16 - GRAND_FIRST_FRAME) * Mathf.Pow(progress, 0.85f)));
+			int frame = GRAND_FRAMES[Mathf.Min(GRAND_FRAMES.Length - 1, Mathf.FloorToInt(progress * GRAND_FRAMES.Length))];
 			Vector3 position = finaleCenter + finaleAim * grandDistance + Vector3.up * grandHeight;
 			Billboard(flashSoft, position, grandSize * 0.7f, 0f, FxQuadLook.Of(WithAlpha(shadeTint, 0.7f * (1f - progress)), 1f));
-			Billboard(grandBatch, position, grandSize * 0.5f * (1f + 0.12f * progress), 0f, FxQuadBatch.Cell(frame, 4, 4), FxQuadLook.Of(Color.Lerp(Color.white, hotTint, Mathf.Max(0f, 1f - progress * 4f)), 0.75f));
+			Billboard(grandBatch, position, grandSize * 0.5f * (0.85f + 0.5f * Mathf.Sqrt(progress)), 0f, FxQuadBatch.Cell(frame, 4, 4), FxQuadLook.Of(Color.Lerp(Color.white, hotTint, Mathf.Max(0f, 1f - progress * 4f)), 0.75f));
 		}
 
 		private void SpawnDust()
