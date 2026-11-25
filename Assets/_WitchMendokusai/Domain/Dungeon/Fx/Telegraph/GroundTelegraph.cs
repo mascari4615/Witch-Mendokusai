@@ -88,7 +88,7 @@ namespace WitchMendokusai
 		protected virtual float CornerRadius => 0f;
 
 		/// <summary> 모양 전용 셰이더 값 (원의 마법진, 띠의 화살 무늬). 매 프레임 공통 값 뒤에 부름 </summary>
-		protected abstract void ApplyShapeProperties(MaterialPropertyBlock block);
+		protected abstract void ApplyShapeProperties(MaterialPropertyBlock block, CombatFxContext context);
 
 		/// <summary> 모양의 반크기. x 는 가로 (원은 반지름), y 는 향하는 쪽 </summary>
 		protected abstract Vector2 GetShapeHalfSize(CombatFxContext context);
@@ -145,7 +145,7 @@ namespace WitchMendokusai
 				// 등장: 가장자리가 그려지면서 작은 크기에서 제 크기로 (끝이 느려지는 곡선)
 				float appearEased = 1f - (1f - appear) * (1f - appear);
 				plate.transform.localScale = Vector3.Scale(fullScale, new Vector3(Mathf.Lerp(style.AppearStartScale, 1f, appearEased), 1f, Mathf.Lerp(style.AppearStartScale, 1f, appearEased)));
-				ApplyProperties(plateRenderer, halfSize, plateSize, style.FillCurve.Evaluate(elapsed / seconds), 0f, 0f, appearEased, Mathf.Clamp01(appear * 2f));
+				ApplyProperties(plateRenderer, context, halfSize, plateSize, style.FillCurve.Evaluate(elapsed / seconds), 0f, 0f, appearEased, Mathf.Clamp01(appear * 2f));
 				yield return null;
 				elapsed += Time.deltaTime;
 			}
@@ -164,7 +164,7 @@ namespace WitchMendokusai
 				plate.transform.localScale = fullScale;
 				// 충격파는 처음에 빠르게 퍼지고 느려짐
 				float shock = 1f - (1f - fade) * (1f - fade);
-				ApplyProperties(plateRenderer, halfSize, plateSize, 1f, (1f - fade) * (1f - fade), shock, 1f, 1f - fade * fade);
+				ApplyProperties(plateRenderer, context, halfSize, plateSize, 1f, (1f - fade) * (1f - fade), shock, 1f, 1f - fade * fade);
 				yield return null;
 				elapsed += Time.deltaTime;
 			}
@@ -181,7 +181,7 @@ namespace WitchMendokusai
 			plate.transform.position = origin + centerOffset;
 		}
 
-		private void ApplyProperties(MeshRenderer plateRenderer, Vector2 halfSize, Vector2 plateSize, float progress, float flash, float shock, float appear, float alpha)
+		private void ApplyProperties(MeshRenderer plateRenderer, CombatFxContext context, Vector2 halfSize, Vector2 plateSize, float progress, float flash, float shock, float appear, float alpha)
 		{
 			propertyBlock ??= new MaterialPropertyBlock();
 			propertyBlock.SetFloat(ShapeId, ShapeValue);
@@ -228,7 +228,7 @@ namespace WitchMendokusai
 			propertyBlock.SetFloat(AlphaId, alpha);
 			propertyBlock.SetVector(PlateSizeId, plateSize);
 			propertyBlock.SetVector(ShapeHalfSizeId, halfSize);
-			ApplyShapeProperties(propertyBlock);
+			ApplyShapeProperties(propertyBlock, context);
 			plateRenderer.SetPropertyBlock(propertyBlock);
 		}
 

@@ -24,7 +24,9 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("주인공 이동 예측 (초 뒤 자리). 0 이면 지금 자리"), Min(0f)] public float LeadSeconds { get; private set; } = 0f;
 		[field: SerializeField, Tooltip("피해가 실제로 들어간 순간 주인공에게 거는 것")] public MonsterHitEffect HitEffect { get; private set; } = new();
 
-		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target) => new()
+		protected override bool TargetsArePositions => Center == ZoneCenter.Target;
+
+		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target, int index) => new()
 		{
 			Position = CenterOf(unitObject, target),
 			// 예고 중 밀려도 예고와 판정이 같은 자리
@@ -33,17 +35,18 @@ namespace WitchMendokusai
 			Seconds = WindupSeconds,
 		};
 
-		public override void Execute(UnitObject unitObject, PlayerObject player, List<Vector3> targets)
+		public override bool Execute(UnitObject unitObject, PlayerObject player, Vector3 target, int index)
 		{
 			if (player.IsAlive == false)
-				return;
-			Vector3 center = CenterOf(unitObject, targets[0]);
+				return false;
+			Vector3 center = CenterOf(unitObject, target);
 			Vector3 offset = player.transform.position - center;
 			offset.y = 0f;
 			float reach = Radius + player.UnitMovement.BodyRadius;
 			if (offset.sqrMagnitude > reach * reach)
-				return;
+				return false;
 			HitEffect.Strike(unitObject, center, player, MakeDamage(unitObject, Damage));
+			return true;
 		}
 
 		private Vector3 CenterOf(UnitObject unitObject, Vector3 target) => Center == ZoneCenter.Caster ? unitObject.transform.position : target;

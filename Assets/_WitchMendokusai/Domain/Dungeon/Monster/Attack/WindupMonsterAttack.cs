@@ -3,28 +3,32 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	// 예고 뒤 실행하는 공격 (원거리, 장판, 직선 띠, 소환). 박자는 BT_WindupAttack, 종류마다 다른 것은 예고 자리와 실행만
+	// 예고 뒤 실행하는 공격 (원거리, 장판, 고리, 직선 띠, 소환). 박자는 BT_WindupAttack, 종류마다 다른 것은 예고 자리와 실행만
 	public abstract class WindupMonsterAttack : MonsterAttack
 	{
-		[field: Header("몸과 물체")]
-		[field: SerializeField] public AttackPose Pose { get; private set; } = new();
-		[field: SerializeField, Tooltip("예고 동안 나타나는 물체 (날아오는 것, 땅에서 돋는 것). 때리는 자리마다 하나, Seconds 가 때리는 순간")] public CombatFx WindupFx { get; private set; }
-		[field: SerializeField, Tooltip("때리는 순간 이펙트. 빗나가도 나옴. 때리는 자리마다 하나")] public CombatFx StrikeFx { get; private set; }
+		[field: SerializeField, Tooltip("예고 물체를 첫 자리에만. 한 물체가 여러 번 때릴 때")] public bool WindupFxOnce { get; private set; }
+		[field: SerializeField, Tooltip("때린 자리에 남는 물체. 초가 0 이면 안 남음")] public LingerSettings Linger { get; private set; } = new();
 
 		public override void Validate(Monster owner, List<string> errors)
 		{
 			base.Validate(owner, errors);
-			if (WindupFx != null && WindupSeconds <= 0f)
-				errors.Add($"{name}: 예고 물체가 있는데 예고 초가 0");
-			// 애니메이터가 도는 몸은 매 프레임 그림을 덮음
-			if (Pose.HasSprite && (owner.Sprites == null || owner.Sprites.Count == 0))
-				errors.Add($"{name}: 자세 그림이 있는데 {owner.name} 이 애니메이터 몸 ({nameof(owner.Sprites)} 비어 있음)");
+			Linger.Validate(name, errors);
+			if (Linger.IsDangerous && TargetsArePositions == false)
+				errors.Add($"{name}: 방향을 고정하는 공격은 아픈 물체를 남길 수 없음");
+			if (Linger.Seconds > 0f && WindupFx == null)
+				errors.Add($"{name}: 남는 물체가 있는데 그것을 그릴 {nameof(WindupFx)} 이 비어 있음");
 		}
+
+		protected override bool PlaysWindupFx => true;
+		protected override bool PlaysStrikeFx => true;
 
 		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider) =>
 			new BT_WindupAttack(unitObject, playerProvider, this);
 
 		public override void Interrupt(BTRunner behaviour) => ((BT_WindupAttack)behaviour).Interrupt();
+
+		// ResolveTargets 가 주는 것이 때리는 자리인가 (방향이면 false)
+		protected virtual bool TargetsArePositions => true;
 
 		// 공통 박자 외 준비 조건 (스킬 쿨타임 등)
 		public virtual bool IsReady(UnitObject unitObject) => true;
@@ -36,13 +40,13 @@ namespace WitchMendokusai
 		public virtual void ResolveTargets(UnitObject unitObject, Vector3 playerPosition, Vector3 moveVelocity, List<Vector3> results) =>
 			results.Add(ResolveTarget(playerPosition, moveVelocity));
 
-		// 예고 위치. target 은 준비를 시작한 순간 고정한 자리 (ResolveTarget)
-		public abstract CombatFxContext WindupContext(UnitObject unitObject, Vector3 target);
+		// 예고 위치. target 은 준비를 시작한 순간 고정한 자리, index 는 그 차례
+		public abstract CombatFxContext WindupContext(UnitObject unitObject, Vector3 target, int index);
 
 		// 자리마다 예고가 이만큼 더 길고 늦게 실행됨 (초). 기본은 모두 동시
 		public virtual float StrikeDelay(int index) => 0f;
 
-		// 예고가 끝난 순간. targets 는 준비 시작 때 고정한 자리들 중 지금 때가 된 것
-		public abstract void Execute(UnitObject unitObject, PlayerObject player, List<Vector3> targets);
+		// 예고가 끝난 자리 하나를 실행. 주인공을 때렸으면 true (같은 순간의 나머지 자리는 안 때림)
+		public abstract bool Execute(UnitObject unitObject, PlayerObject player, Vector3 target, int index);
 	}
 }

@@ -11,19 +11,18 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3188a2aa8084f8c82eff08d1919b1ad, type: 3}
   m_Name: MA_Sequence_DreamStump2
-  m_EditorClassIdentifier: 
-  <TriggerRange>k__BackingField: 10
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 11
   <WindupSeconds>k__BackingField: 0
   <RecoverySeconds>k__BackingField: 0
-  <Cooldown>k__BackingField: 0.5
+  <Cooldown>k__BackingField: 0.4
   <WindupTelegraph>k__BackingField: {fileID: 0}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
   <Steps>k__BackingField:
-  - {fileID: 11400000, guid: 7308a3ef7daa4f2586d3e4edccaf0e00, type: 2}
-  - {fileID: 11400000, guid: 7308a3ef7daa4f2586d3e4edccaf0e00, type: 2}
-  - {fileID: 11400000, guid: 7308a3ef7daa4f2586d3e4edccaf0e00, type: 2}
-  - {fileID: 11400000, guid: 19dddde9121d4aa9974fe0d96e906bcd, type: 2}
-  - {fileID: 11400000, guid: 8e3dd07983804d73ba3a1f469bed5013, type: 2}
-  - {fileID: 11400000, guid: 7308a3ef7daa4f2586d3e4edccaf0e00, type: 2}
-  - {fileID: 11400000, guid: ebc6322825dc438594f72ed0b795260b, type: 2}
+  - {fileID: 11400000, guid: 095db0bec6ab4bd5ba01baaffeea4167, type: 2}
+  - {fileID: 11400000, guid: 095db0bec6ab4bd5ba01baaffeea4167, type: 2}
+  - {fileID: 11400000, guid: 511737e8be904faa846b23009354a50b, type: 2}
+  - {fileID: 11400000, guid: 9dbcb27a24ee47ddbc356364b105ce07, type: 2}
+  - {fileID: 11400000, guid: 095db0bec6ab4bd5ba01baaffeea4167, type: 2}
+  - {fileID: 11400000, guid: cc6a8a8449b4473b88cbdd4c256b1173, type: 2}

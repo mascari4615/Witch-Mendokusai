@@ -50,6 +50,15 @@ namespace WitchMendokusai
 			SetSprite(pose.Windup);
 		}
 
+		// 단계가 바뀌어 원래 그림 자체가 바뀜
+		public void SetBase(Sprite sprite)
+		{
+			if (stage == Stage.None)
+				body.sprite = sprite;
+			else
+				baseSprite = sprite;
+		}
+
 		public void Strike()
 		{
 			if (stage == Stage.None)
@@ -133,23 +142,25 @@ namespace WitchMendokusai
 			switch (stage)
 			{
 				case Stage.Windup:
-					stretch = 1f - pose.Crouch * Mathf.SmoothStep(0f, 1f, progress * 1.6f);
-					shake = Mathf.Sin(Time.time * 60f) * pose.Tremble * progress * progress;
+					if (pose.StrikeLeadSeconds > 0f && time >= seconds - pose.StrikeLeadSeconds)
+						SetSprite(pose.Strike);
+					stretch = 1f - pose.Crouch * Mathf.SmoothStep(0f, 1f, progress * pose.CrouchEase);
+					shake = Mathf.Sin(Time.time * pose.TrembleSpeed) * pose.Tremble * progress * progress;
 					break;
 				case Stage.Strike:
 					stretch = StrikeStretch(time);
 					break;
 				case Stage.Rest:
-					stretch = 1f + pose.Breath * Mathf.Sin(time * 3.2f);
+					stretch = 1f + pose.Breath * Mathf.Sin(time * pose.BreathSpeed);
 					break;
 			}
 			// 단계가 바뀔 때 튀지 않게 따라감. 때리는 순간은 바로
-			lastStretch = stage == Stage.Strike ? stretch : Mathf.Lerp(lastStretch, stretch, 1f - Mathf.Exp(-Time.deltaTime * 18f));
+			lastStretch = stage == Stage.Strike ? stretch : Mathf.Lerp(lastStretch, stretch, 1f - Mathf.Exp(-Time.deltaTime * pose.FollowRate));
 			target.localScale = new Vector3(baseScale.x / Mathf.Sqrt(lastStretch), baseScale.y * lastStretch, baseScale.z);
 			// 떨림 폭은 월드 단위. 보스 몸은 배율이 커서 나눔
 			target.localPosition = basePosition + Vector3.right * (shake / target.parent.lossyScale.x);
 		}
 
-		private float StrikeStretch(float time) => 1f + pose.Stretch * Mathf.Exp(-time * 7f) * Mathf.Cos(time * 22f);
+		private float StrikeStretch(float time) => 1f + pose.Stretch * Mathf.Exp(-time * pose.WobbleDamping) * Mathf.Cos(time * pose.WobbleSpeed);
 	}
 }

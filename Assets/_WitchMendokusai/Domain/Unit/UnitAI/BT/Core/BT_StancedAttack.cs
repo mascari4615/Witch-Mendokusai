@@ -63,6 +63,7 @@ namespace WitchMendokusai
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
 			phaseEndTime = Time.time + attack.WindupSeconds;
 			isOpen = true;
+			attack.PlayWindupPose(unitObject, attack.WindupSeconds);
 			OnWindup();
 			return BTState.Success;
 		}
@@ -82,7 +83,11 @@ namespace WitchMendokusai
 		{
 			phaseEndTime = Time.time + (isOpen ? StanceSeconds : 0f);
 			if (isOpen)
+			{
+				if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+					pose.Strike();
 				OnStanceBegin();
+			}
 			return BTState.Success;
 		}
 
@@ -101,6 +106,8 @@ namespace WitchMendokusai
 		{
 			CloseStance(false);
 			phaseEndTime = Time.time + attack.RecoverySeconds;
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Rest();
 			stopRecovery = attack.PlayRecovery(unitObject);
 			return BTState.Success;
 		}
@@ -108,6 +115,8 @@ namespace WitchMendokusai
 		private BTState EndAttack()
 		{
 			stopRecovery = null;
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Release();
 			readyTime = Time.time + attack.Cooldown;
 			CompletedCount++;
 			IsAttacking = false;
@@ -128,6 +137,8 @@ namespace WitchMendokusai
 			CloseStance(true);
 			stopRecovery?.Invoke();
 			stopRecovery = null;
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Release();
 			IsAttacking = false;
 		}
 	}

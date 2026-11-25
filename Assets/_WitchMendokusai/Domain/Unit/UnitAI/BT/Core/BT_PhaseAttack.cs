@@ -3,11 +3,13 @@ using static WitchMendokusai.NodeHelper;
 
 namespace WitchMendokusai
 {
-	// 체력 단계 (PhaseMonsterAttack). 하던 공격 (숨 고르기까지) 을 끝낸 뒤 단계를 바꾸고 새 공격의 행동을 새로 만듦
+	// 체력 단계 (PhaseMonsterAttack). 하던 공격 (숨 고르기까지) 을 끝낸 뒤 단계를 바꾸고, 들어오는 공격이 있으면 한 번 한 다음 새 공격의 행동을 새로 만듦
 	public class BT_PhaseAttack : BTRunner, IAttackCycle
 	{
 		private readonly PhaseMonsterAttack attack;
 		private BTRunner behaviour;
+		// behaviour 를 만든 공격. 들어오는 공격이거나 지금 단계의 공격
+		private MonsterAttack active;
 		private int phaseIndex;
 		// 등장 멈춤이 끝나는 시각. 첫 틱에 정함
 		private float openingEndTime = -1f;
@@ -27,7 +29,12 @@ namespace WitchMendokusai
 		{
 			float ratio = (float)unitObject.UnitStat[UnitStatType.HP_CUR] / unitObject.UnitStat[UnitStatType.HP_MAX];
 			if (openingEndTime < 0f)
+			{
 				openingEndTime = Time.time + (ratio >= 1f ? attack.OpeningSeconds : 0f);
+				// 재배치 뒤 다시 시작한 것이면 들어오는 공격 없이 그 단계에서 이어감
+				phaseIndex = attack.PhaseIndex(ratio, 0);
+				ApplyBody();
+			}
 			if (Time.time < openingEndTime)
 			{
 				unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
@@ -39,18 +46,41 @@ namespace WitchMendokusai
 			{
 				Interrupt();
 				phaseIndex = next;
+				ApplyBody();
+				Begin(attack.Phases[next].Entrance);
 			}
-			behaviour ??= attack.Phases[phaseIndex].Attack.CreateBehaviour(unitObject, playerProvider);
+			if (IsEntranceOver())
+				Interrupt();
+			if (behaviour == null)
+				Begin(attack.Phases[phaseIndex].Attack);
 			// 공격 도중 반격으로 죽으면 Interrupt 가 behaviour 를 비움
 			BTRunner running = behaviour;
 			return running.UpdateBT();
 		}
 
+		private bool IsEntranceOver() => active != null && active == attack.Phases[phaseIndex].Entrance && CompletedCount > 0;
+
+		private void Begin(MonsterAttack next)
+		{
+			if (next == null)
+				return;
+			active = next;
+			behaviour = next.CreateBehaviour(unitObject, playerProvider);
+		}
+
+		private void ApplyBody()
+		{
+			Sprite sprite = attack.Phases[phaseIndex].BodySprite;
+			if (sprite != null)
+				MonsterPoseDriver.Of(unitObject).SetBase(sprite);
+		}
+
 		public void Interrupt()
 		{
 			if (behaviour != null)
-				attack.Phases[phaseIndex].Attack.Interrupt(behaviour);
+				active.Interrupt(behaviour);
 			behaviour = null;
+			active = null;
 		}
 	}
 }

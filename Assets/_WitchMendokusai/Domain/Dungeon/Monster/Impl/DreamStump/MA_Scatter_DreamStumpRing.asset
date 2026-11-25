@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MA_Scatter_DreamStumpRing
   m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 4.2
-  <WindupSeconds>k__BackingField: 1.0
+  <WindupSeconds>k__BackingField: 1
   <RecoverySeconds>k__BackingField: 3.2
   <Cooldown>k__BackingField: 0
   <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 6ce4d759c4cb4e129b9f3c0c46223761, type: 2}
@@ -22,14 +22,32 @@ MonoBehaviour:
   <Pose>k__BackingField:
     <Windup>k__BackingField: {fileID: 21300000, guid: 0c8a077dda3742d28e5d72fe8c35542c, type: 3}
     <Strike>k__BackingField: {fileID: 21300000, guid: 0c8a077dda3742d28e5d72fe8c35542c, type: 3}
-    <Rest>k__BackingField: {fileID: 21300000, guid: 21945b27688140199c07af0bbb21c8a5, type: 3}
+    <Rest>k__BackingField: {fileID: 21300000, guid: 532879bd87334e5fab5eed7506849727, type: 3}
     <Crouch>k__BackingField: -0.16
     <Stretch>k__BackingField: -0.25
     <StrikeSeconds>k__BackingField: 0.7
+    <StrikeLeadSeconds>k__BackingField: 0
     <Tremble>k__BackingField: 0.06
     <Breath>k__BackingField: 0.05
   <WindupFx>k__BackingField: {fileID: 11400000, guid: 13378af2afff47b5b11af01e34f12e44, type: 2}
   <StrikeFx>k__BackingField: {fileID: 0}
+  <WindupFxOnce>k__BackingField: 0
+  <Linger>k__BackingField:
+    <Seconds>k__BackingField: 1.2
+    <CoolSeconds>k__BackingField: 0.4
+    <Radius>k__BackingField: 0.5
+    <Damage>k__BackingField: 2
+    <HitEffect>k__BackingField:
+      <AppliesStatus>k__BackingField: 0
+      <Status>k__BackingField: 3
+      <StatusSeconds>k__BackingField: 0
+      <SlowRatio>k__BackingField: 0
+      <PushSpeed>k__BackingField: 0
+      <PushSeconds>k__BackingField: 0
+    <BurstRadius>k__BackingField: 0
+    <BurstDamage>k__BackingField: 0
+    <BurstTelegraph>k__BackingField: {fileID: 0}
+    <BurstFx>k__BackingField: {fileID: 0}
   <Arrangement>k__BackingField: 1
   <Count>k__BackingField: 10
   <Radius>k__BackingField: 0.95

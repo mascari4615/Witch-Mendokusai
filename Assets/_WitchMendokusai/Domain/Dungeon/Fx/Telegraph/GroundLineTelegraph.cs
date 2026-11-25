@@ -46,7 +46,7 @@ namespace WitchMendokusai
 			return direction.normalized;
 		}
 
-		protected override void ApplyShapeProperties(MaterialPropertyBlock block)
+		protected override void ApplyShapeProperties(MaterialPropertyBlock block, CombatFxContext context)
 		{
 			block.SetFloat(LineEndEdgeId, lineEndEdge);
 			block.SetFloat(ChevronSpacingId, chevronSpacing);

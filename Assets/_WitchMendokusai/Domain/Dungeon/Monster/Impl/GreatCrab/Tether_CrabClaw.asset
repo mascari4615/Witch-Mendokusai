@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa03227eb19e4690a9216e3fbfd5af6d, type: 3}
+  m_Name: Tether_CrabClaw
+  m_EditorClassIdentifier:
+  previewRadius: 1
+  previewLength: 7
+  previewWidth: 1
+  previewTitle: ""
+  previewSubtitle: ""
+  set: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
+  headOut: {fileID: 2800000, guid: b8e9066cbcd246448bf1de02602c3147, type: 3}
+  headBack: {fileID: 2800000, guid: c5f03e92267d4d2099c77c6c7e3780e8, type: 3}
+  link: {fileID: 2800000, guid: e0c8fc80820e48acb1da318db0fed3fc, type: 3}
+  headLength: 2.3
+  linkSize: {x: 0.9, y: 0.4}
+  launchHeight: 1.1
+  endHeight: 0.7
+  outSeconds: 0.16
+  backSeconds: 0.24
+  tugTremble: 0.14
+  slack: 0.4
+  landMoment:
+    Shake: 0.2
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 8
+    ShardSpeed: 4
+    ShardLife: 0.35
+    ShardSize: 0.14
+    RingSize: 0
+    RingLife: 0.3
+    Color: {r: 0.55, g: 0.36, b: 0.2, a: 1}
+  backMoment:
+    Shake: 0.12
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 4
+    ShardSpeed: 4
+    ShardLife: 0.35
+    ShardSize: 0.14
+    RingSize: 0
+    RingLife: 0.3
+    Color: {r: 0.55, g: 0.36, b: 0.2, a: 1}
+  dust: {fileID: 11400000, guid: 462585e117c34bf0be9c65738624b434, type: 2}
+  dustRadius: 1.2
+  stainRadius: 0.9
+  stainColor: {r: 0.23, g: 0.14, b: 0.08, a: 0.6}

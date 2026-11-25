@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 855e7211bdbe46cc9480abaaec05d6ba, type: 3}
   m_Name: MA_Phase_MidnightClock
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 11
   <WindupSeconds>k__BackingField: 0
   <RecoverySeconds>k__BackingField: 0
@@ -23,5 +23,9 @@ MonoBehaviour:
   <Phases>k__BackingField:
   - <HealthRatio>k__BackingField: 1
     <Attack>k__BackingField: {fileID: 11400000, guid: 8aef98df6ffa4dd59c011557429c763f, type: 2}
+    <Entrance>k__BackingField: {fileID: 0}
+    <BodySprite>k__BackingField: {fileID: 0}
   - <HealthRatio>k__BackingField: 0.5
     <Attack>k__BackingField: {fileID: 11400000, guid: 20a3d6d9f3194230b615b32774db25ba, type: 2}
+    <Entrance>k__BackingField: {fileID: 11400000, guid: fd1fff5963cf43458938a6ea06dcf1dc, type: 2}
+    <BodySprite>k__BackingField: {fileID: 21300000, guid: cdbfe1447b614f1d813dc2ea0e82c6da, type: 3}

@@ -21,19 +21,18 @@ namespace WitchMendokusai
 		public override void ResolveTargets(UnitObject unitObject, Vector3 playerPosition, Vector3 moveVelocity, List<Vector3> results) =>
 			ScatterZoneMonsterAttack.Arrange(ScatterArrangement.Ring, unitObject.transform.position, playerPosition, AllowedCount(CountAlive(unitObject.transform.position), Count, MaxAlive), Distance, 0f, Random.value * 360f, () => 0f, results);
 
-		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target) => new()
+		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target, int index) => new()
 		{
 			Position = target,
 			Radius = TelegraphRadius,
 			Seconds = WindupSeconds,
 		};
 
-		public override void Execute(UnitObject unitObject, PlayerObject player, List<Vector3> targets)
+		public override bool Execute(UnitObject unitObject, PlayerObject player, Vector3 target, int index)
 		{
-			if (player.IsAlive == false)
-				return;
-			foreach (Vector3 target in targets)
+			if (player.IsAlive)
 				Spawn(target);
+			return false;
 		}
 
 		public static int AllowedCount(int alive, int requested, int maxAlive) => Mathf.Clamp(maxAlive - alive, 0, requested);

@@ -13,8 +13,14 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("돌진 속도 (m/s)"), Min(0.1f)] public float DashSpeed { get; private set; } = 9f;
 		[field: SerializeField, Tooltip("돌진 시간 (초). 길이는 속도 x 시간"), Min(0.05f)] public float DashDuration { get; private set; } = 0.6f;
 		[field: SerializeField, Tooltip("바닥 띠 예고 폭 (m)"), Min(0.1f)] public float TelegraphWidth { get; private set; } = 1f;
+		[field: SerializeField, Tooltip("바닥 띠 예고를 돌진 길이보다 이만큼 더 길게 (m). 큰 몸의 앞면"), Min(0f)] public float TelegraphExtraLength { get; private set; }
 		[field: SerializeField, Tooltip("돌진 계획 이동의 이 비율도 못 나가고 닿아 있으면 부딪혀 멈춤"), Range(0f, 1f)] public float BlockedProgressRatio { get; private set; } = 0.3f;
 		[field: SerializeField, Tooltip("주인공 쪽에서 벌어진 돌진 각도 (도). 0 이면 똑바로, 크면 옆걸음"), Range(-90f, 90f)] public float AngleDegrees { get; private set; }
+
+		[field: SerializeField, Tooltip("돌진 길 위에 이 유닛이 남긴 물체 (Linger) 를 지나가며 터뜨림. 터질 반지름과 예고는 남긴 공격의 값")] public bool CracksLinger { get; private set; }
+
+		protected override bool PlaysWindupFx => true;
+		protected override bool PlaysStrikeFx => true;
 
 		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider) =>
 			new BT_DashCooldown(unitObject, playerProvider, this);
@@ -27,6 +33,6 @@ namespace WitchMendokusai
 				dashPreDelay: WindupSeconds, dashPostDelay: RecoverySeconds,
 				telegraph: WindupTelegraph, telegraphWidth: TelegraphWidth,
 				recoveryFx: RecoveryFx, recoveryRadius: RecoveryFxRadius, blockedProgressRatio: BlockedProgressRatio,
-				angleDegrees: AngleDegrees);
+				angleDegrees: AngleDegrees, look: this);
 	}
 }

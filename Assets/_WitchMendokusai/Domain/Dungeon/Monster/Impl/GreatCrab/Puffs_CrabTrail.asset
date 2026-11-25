@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c9cb325a17a4e2796506500dbbe4580, type: 3}
+  m_Name: Puffs_CrabTrail
+  m_EditorClassIdentifier:
+  previewRadius: 1
+  previewLength: 7
+  previewWidth: 1
+  previewTitle: ""
+  previewSubtitle: ""
+  set: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
+  sheet: {fileID: 2800000, guid: d05499cfcd5147cfb848ed6ff801ae89, type: 3}
+  columns: 4
+  rows: 4
+  frames: {x: 4, y: 14}
+  color: {r: 0.95, g: 0.72, b: 0.5, a: 1}
+  cover: 0.85
+  count: 12
+  seconds: 0.55
+  leadSeconds: 0
+  emitSeconds: 0
+  halfSize: {x: 0.55, y: 1.1}
+  lift: 0.35
+  originLift: 1.3
+  travelRatio: 0
+  spread: 0.5
+  alongPath: 1
+  isFlat: 0
+  flatTurn: 0
+  onTop: 0
+  ringRatio: 0
+  ringSeconds: 0.35
+  ringColor: {r: 1.4, g: 1, b: 1.8, a: 0.9}
+  moment:
+    Shake: 0.08
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 0
+    ShardSpeed: 4
+    ShardLife: 0.35
+    ShardSize: 0.14
+    RingSize: 0
+    RingLife: 0.3
+    Color: {r: 0.55, g: 0.36, b: 0.2, a: 1}
+  sound: 17
+  stainRadius: 0
+  stainColor: {r: 0.23, g: 0.14, b: 0.08, a: 0.6}

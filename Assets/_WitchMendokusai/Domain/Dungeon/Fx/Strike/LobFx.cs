@@ -20,6 +20,9 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("터질 때까지 더 남는 초"), Min(0f)] private float lingerSeconds = 0.06f;
 		[SerializeField, Min(0.05f)] private float scale = 1f;
 		[SerializeField, Min(1f)] private float swellScale = 1.35f;
+		[SerializeField, Tooltip("앉아서 납작한 동안 (앉은 뒤 초의 비율)"), Range(0f, 1f)] private float squashRatio = 0.25f;
+		[SerializeField, Tooltip("이 뒤로는 켜진 채"), Range(0f, 1f)] private float litRatio = 0.6f;
+		[SerializeField, Min(0f)] private float blinkSpeed = 60f;
 		[SerializeField, Tooltip("앉을 때 먼지. 비우면 없음")] private MonsterSpawnStyle landPuff;
 
 		protected override Action Play(CombatFxRunner runner, CombatFxContext context)
@@ -48,10 +51,10 @@ namespace WitchMendokusai
 			for (float time = 0f; time < fuseSeconds + lingerSeconds; time += Time.deltaTime)
 			{
 				float progress = Mathf.Clamp01(time / fuseSeconds);
-				// 앞 1/4 은 납작하게 눌렸다가, 뒤는 점점 빠르게 깜빡이며 부풂
-				bool isSquashed = progress < 0.25f;
-				// 뒤 절반은 켜진 채. 터지기 직전이 가장 밝게 읽힘
-				bool isLit = progress > 0.6f || (isSquashed == false && Mathf.Sin(progress * progress * 60f) > 0f);
+				// 앞은 납작하게 눌렸다가, 뒤는 점점 빠르게 깜빡이며 부풂
+				bool isSquashed = progress < squashRatio;
+				// 뒤는 켜진 채. 터지기 직전이 가장 밝게 읽힘
+				bool isLit = progress > litRatio || (isSquashed == false && Mathf.Sin(progress * progress * blinkSpeed) > 0f);
 				body.sprite = isSquashed ? landedSprite : isLit ? swellSprite : flySprites[0];
 				body.transform.localScale = Vector3.one * (scale * (isSquashed ? 1f : Mathf.Lerp(1f, swellScale, progress)));
 				yield return null;

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 855e7211bdbe46cc9480abaaec05d6ba, type: 3}
   m_Name: MA_Phase_GreatCrab
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 11
   <WindupSeconds>k__BackingField: 0
   <RecoverySeconds>k__BackingField: 0
@@ -23,5 +23,9 @@ MonoBehaviour:
   <Phases>k__BackingField:
   - <HealthRatio>k__BackingField: 1
     <Attack>k__BackingField: {fileID: 11400000, guid: e67827d98bab4282b79cfede081d03da, type: 2}
+    <Entrance>k__BackingField: {fileID: 0}
+    <BodySprite>k__BackingField: {fileID: 0}
   - <HealthRatio>k__BackingField: 0.5
     <Attack>k__BackingField: {fileID: 11400000, guid: e50c22fd77644c38934a4090541e602a, type: 2}
+    <Entrance>k__BackingField: {fileID: 11400000, guid: c86c8d0f76eb4ad89c59df30dcff2562, type: 2}
+    <BodySprite>k__BackingField: {fileID: 21300000, guid: 768e68641cfe48459f97b29c0f07b6a1, type: 3}

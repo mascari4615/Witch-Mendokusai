@@ -20,7 +20,9 @@ namespace WitchMendokusai
 			return skill.IsReady;
 		}
 
-		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target) => new()
+		protected override bool TargetsArePositions => false;
+
+		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target, int index) => new()
 		{
 			Position = unitObject.transform.position,
 			Follow = unitObject.transform,
@@ -28,7 +30,11 @@ namespace WitchMendokusai
 			Seconds = WindupSeconds,
 		};
 
-		public override void Execute(UnitObject unitObject, PlayerObject player, List<Vector3> targets) => unitObject.UseSkill(SkillIndex);
+		public override bool Execute(UnitObject unitObject, PlayerObject player, Vector3 target, int index)
+		{
+			unitObject.UseSkill(SkillIndex);
+			return false;
+		}
 
 		public override void Validate(Monster owner, List<string> errors)
 		{

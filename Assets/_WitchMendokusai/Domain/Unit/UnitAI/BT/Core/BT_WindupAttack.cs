@@ -12,9 +12,11 @@ namespace WitchMendokusai
 		private readonly WindupMonsterAttack attack;
 		private readonly List<Vector3> targets = new();
 		private readonly List<Action> stopTelegraphs = new();
-		// 때가 된 자리만 모아 넘기는 칸
-		private readonly List<Vector3> dueTargets = new();
+		// 때가 된 자리의 차례
+		private readonly List<int> dueIndices = new();
 		private readonly List<float> strikeTimes = new();
+		// 자리마다 남는 물체의 수명. 안 남는 공격은 null
+		private readonly List<FxHold> holds = new();
 		private float recoveryEndTime;
 		private float readyTime;
 		private Action stopRecovery;
@@ -79,16 +81,18 @@ namespace WitchMendokusai
 			targets.Clear();
 			attack.ResolveTargets(unitObject, player.transform.position, SurvivalThreatRules.MoveVelocity(player.UnitMovement), targets);
 			strikeTimes.Clear();
+			holds.Clear();
 			float windupEndTime = Time.time + attack.WindupSeconds;
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
-			if (attack.Pose.IsEmpty == false)
-				MonsterPoseDriver.Of(unitObject).Windup(attack.Pose, attack.WindupSeconds);
+			attack.PlayWindupPose(unitObject, attack.WindupSeconds);
 			bool isMany = targets.Count > 1;
+			bool hasObject = false;
 			for (int i = 0; i < targets.Count; i++)
 			{
 				float delay = attack.StrikeDelay(i);
 				strikeTimes.Add(windupEndTime + delay);
-				CombatFxContext context = StrikeContext(targets[i]);
+				holds.Add(attack.Linger.Open(strikeTimes[i]));
+				CombatFxContext context = StrikeContext(i);
 				context.Seconds += delay;
 				if (attack.WindupTelegraph != null && attack.WindupSeconds > 0f)
 				{
@@ -101,8 +105,10 @@ namespace WitchMendokusai
 						continue;
 					}
 				}
-				if (attack.WindupFx != null)
-					stopTelegraphs.Add(attack.WindupFx.Play(context));
+				if (attack.WindupFx == null || (hasObject && attack.WindupFxOnce))
+					continue;
+				hasObject = true;
+				stopTelegraphs.Add(attack.WindupFx.Play(context));
 			}
 			return BTState.Success;
 		}
@@ -115,7 +121,7 @@ namespace WitchMendokusai
 				ClearTelegraphs();
 				return true;
 			}
-			dueTargets.Clear();
+			dueIndices.Clear();
 			bool isWaiting = false;
 			for (int i = 0; i < targets.Count; i++)
 			{
@@ -126,15 +132,32 @@ namespace WitchMendokusai
 					isWaiting = true;
 					continue;
 				}
-				dueTargets.Add(targets[i]);
+				dueIndices.Add(i);
 				strikeTimes[i] = float.PositiveInfinity;
 			}
-			if (dueTargets.Count > 0)
+			if (dueIndices.Count > 0)
 			{
 				PlayStrike();
-				attack.Execute(unitObject, playerProvider.CurrentObject, dueTargets);
+				Strike();
 			}
 			return isWaiting == false;
+		}
+
+		private void Strike()
+		{
+			bool hasHit = false;
+			foreach (int index in dueIndices)
+			{
+				if (hasHit == false)
+					hasHit = attack.Execute(unitObject, playerProvider.CurrentObject, targets[index], index);
+				if (attack.Linger.IsDangerous == false)
+					continue;
+				// 반격으로 죽었으면 남기지 않음
+				if (unitObject.IsAlive == false)
+					holds[index].Cancel(Time.time);
+				else
+					LingerField.Instance.Add(unitObject, attack.Linger, targets[index], holds[index]);
+			}
 		}
 
 		// 맞든 빗나가든 같은 그림
@@ -144,13 +167,14 @@ namespace WitchMendokusai
 				pose.Strike();
 			if (attack.StrikeFx == null)
 				return;
-			foreach (Vector3 target in dueTargets)
-				attack.StrikeFx.Play(StrikeContext(target));
+			foreach (int index in dueIndices)
+				attack.StrikeFx.Play(StrikeContext(index));
 		}
 
-		private CombatFxContext StrikeContext(Vector3 target)
+		private CombatFxContext StrikeContext(int index)
 		{
-			CombatFxContext context = attack.WindupContext(unitObject, target);
+			CombatFxContext context = attack.WindupContext(unitObject, targets[index], index);
+			context.Hold = holds[index];
 			context.Origin = unitObject.transform.position;
 			return context;
 		}
@@ -196,6 +220,12 @@ namespace WitchMendokusai
 			foreach (Action stop in stopTelegraphs)
 				stop?.Invoke();
 			stopTelegraphs.Clear();
+			// 그림은 때리는 시각보다 조금 먼저 솟아 멈추지 않음. 실행되지 못한 자리의 물체는 식어 들어가게
+			for (int i = 0; i < holds.Count; i++)
+			{
+				if (float.IsPositiveInfinity(strikeTimes[i]) == false)
+					holds[i]?.Cancel(Time.time);
+			}
 		}
 	}
 }

@@ -36,24 +36,19 @@ namespace WitchMendokusai
 
 		public override float StrikeDelay(int index) => StaggerSeconds * index;
 
-		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target) => new()
+		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target, int index) => new()
 		{
 			Position = target,
 			Radius = Radius,
 			Seconds = WindupSeconds,
 		};
 
-		public override void Execute(UnitObject unitObject, PlayerObject player, List<Vector3> targets)
+		public override bool Execute(UnitObject unitObject, PlayerObject player, Vector3 target, int index)
 		{
-			if (player.IsAlive == false)
-				return;
-			foreach (Vector3 target in targets)
-			{
-				if (SlimeKingPatternMath.IsWithin(target, player.transform.position, Radius + player.UnitMovement.BodyRadius) == false)
-					continue;
-				HitEffect.Strike(unitObject, target, player, MakeDamage(unitObject, Damage));
-				return;
-			}
+			if (player.IsAlive == false || SlimeKingPatternMath.IsWithin(target, player.transform.position, Radius + player.UnitMovement.BodyRadius) == false)
+				return false;
+			HitEffect.Strike(unitObject, target, player, MakeDamage(unitObject, Damage));
+			return true;
 		}
 
 		// 배치 계산만. 난수는 0~1 을 밖에서 받아 시험에서 고정

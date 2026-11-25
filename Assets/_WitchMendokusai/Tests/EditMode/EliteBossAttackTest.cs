@@ -175,5 +175,86 @@ namespace WitchMendokusai.Tests
 			sequence.Validate(owner, errors);
 			Assert.AreEqual(1, errors.Count, string.Join(", ", errors));
 		}
+
+		private static T FromJson<T>(string json) where T : new()
+		{
+			T value = new();
+			JsonUtility.FromJsonOverwrite(json.Replace("<", "\"<").Replace(">", ">k__BackingField\""), value);
+			return value;
+		}
+
+		[Test]
+		public void Band_hits_the_ring_and_spares_the_hole()
+		{
+			AttackBand band = FromJson<AttackBand>("{<Inner>:2,<Outer>:4}");
+			Assert.IsFalse(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 360f, new Vector3(0f, 5f, 1.9f), 0.3f), "안쪽 빈 곳");
+			Assert.IsTrue(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 360f, new Vector3(0f, 5f, -3f), 0.3f), "높이는 무시, 온 둘레");
+			Assert.IsTrue(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 360f, new Vector3(4.2f, 0f, 0f), 0.3f), "바깥에 몸이 걸침");
+			Assert.IsFalse(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 360f, new Vector3(4.4f, 0f, 0f), 0.3f), "바깥");
+		}
+
+		[Test]
+		public void Arc_spares_the_back()
+		{
+			AttackBand band = FromJson<AttackBand>("{<Inner>:0,<Outer>:4}");
+			Assert.IsTrue(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 200f, new Vector3(3f, 0f, 0f), 0.3f), "옆");
+			Assert.IsFalse(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 200f, new Vector3(0f, 0f, -3f), 0.3f), "등 뒤");
+			Assert.IsTrue(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 90f, Quaternion.Euler(0f, 49f, 0f) * Vector3.forward * 3f, 0.3f), "변에 몸이 걸침");
+			Assert.IsFalse(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 90f, Quaternion.Euler(0f, 60f, 0f) * Vector3.forward * 3f, 0.3f), "변 밖");
+		}
+
+		[Test]
+		public void Spin_arm_reverses_and_comes_back()
+		{
+			SpinArm arm = FromJson<SpinArm>("{<DegreesPerSecond>:40,<SpinUpSeconds>:0.5,<ReverseAtSeconds>:3,<ReversePauseSeconds>:0.5}");
+			Assert.AreEqual(0f, arm.AngleAt(-1f), 0.001f, "예고 동안은 안 돎");
+			Assert.AreEqual(arm.AngleAt(3f), arm.AngleAt(3.5f), 0.001f, "멈춤");
+			Assert.Less(arm.AngleAt(4.5f), arm.AngleAt(3.5f), "반대로");
+			Assert.AreEqual(0f, arm.AngleAt(6.5f), 0.001f, "같은 초만큼 돌면 제자리");
+		}
+
+		// 준비 때 주인공이 있던 쪽 (0도) 을 모든 바늘이 지나가야 서 있기만 해서는 못 피함
+		[Test]
+		public void Every_spin_arm_passes_the_player()
+		{
+			int checkedCount = 0;
+			foreach (string guid in AssetDatabase.FindAssets("t:SpinMonsterAttack", new[] { MONSTER_FOLDER }))
+			{
+				SpinMonsterAttack spin = AssetDatabase.LoadAssetAtPath<SpinMonsterAttack>(AssetDatabase.GUIDToAssetPath(guid));
+				foreach (SpinArm arm in spin.Arms)
+				{
+					bool passes = false;
+					for (float time = 0f; time < spin.SpinSeconds - spin.FoldSeconds; time += 0.05f)
+						passes |= Mathf.Abs(Mathf.DeltaAngle(0f, arm.StartAngle + arm.AngleAt(time))) < 4f;
+					Assert.IsTrue(passes, $"{spin.name} 길이 {arm.Length}");
+					checkedCount++;
+				}
+			}
+			Assert.Greater(checkedCount, 0);
+		}
+
+		[Test]
+		public void Lingering_object_is_hot_then_cools()
+		{
+			Assert.IsNull(new LingerSettings().Open(1f), "초가 0 이면 안 남음");
+			FxHold hold = FromJson<LingerSettings>("{<Seconds>:2,<CoolSeconds>:0.5,<Damage>:1}").Open(10f);
+			Assert.IsFalse(hold.IsHot(9.9f), "때리기 전");
+			Assert.IsTrue(hold.IsHot(11.4f));
+			Assert.IsFalse(hold.IsHot(11.6f), "식음");
+			Assert.AreEqual(12f, hold.EndTime, 0.001f);
+			hold.IsGone = true;
+			Assert.IsFalse(hold.IsHot(11f), "터짐");
+		}
+
+		[Test]
+		public void Remade_bosses_have_an_entrance()
+		{
+			foreach (int id in new[] { 36, 37, 38 })
+			{
+				PhaseMonsterAttack phase = (PhaseMonsterAttack)Find(id).Attack;
+				Assert.IsNull(phase.Phases[0].Entrance, "첫 단계는 등장 멈춤: " + id);
+				Assert.IsNotNull(phase.Phases[1].Entrance, "2단계 전환 연출: " + id);
+			}
+		}
 	}
 }

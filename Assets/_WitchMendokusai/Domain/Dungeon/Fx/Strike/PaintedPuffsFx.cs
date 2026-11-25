@@ -5,7 +5,8 @@ using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
 {
-	// 그린 플립북 덩이. 하나면 터짐, 여럿에 travelRatio 가 있으면 시전자에서 뿜어 나가는 숨
+	// 그린 플립북 덩이. 하나면 터짐, 여럿에 travelRatio 가 있으면 시전자에서 뿜어 나가는 숨, alongPath 면 길을 따라 차례로 놓이는 먼지
+	// isFlat 이면 바닥에 누워 Direction 을 향하고 크기가 Radius 의 배 (휘두른 자국, 울림)
 	[CreateAssetMenu(fileName = "Puffs_0", menuName = "WM/CombatFx/" + nameof(PaintedPuffsFx))]
 	public class PaintedPuffsFx : CombatFx
 	{
@@ -32,6 +33,14 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("Length 의 이만큼까지 감. 0 이면 제자리"), Range(0f, 1.2f)] private float travelRatio;
 		[SerializeField, Tooltip("옆으로 흩어짐 (m)"), Min(0f)] private float spread;
 
+		[SerializeField, Tooltip("길 (Direction, Length) 위에 고르게 놓고 emitSeconds (0 이면 Seconds) 동안 차례로")] private bool alongPath;
+		[SerializeField, Tooltip("바닥에 눕힘. halfSize 는 Radius 의 배")] private bool isFlat;
+		[SerializeField, Tooltip("눕힌 그림을 Direction 에서 돌리는 각도 (도)")] private float flatTurn;
+		[SerializeField, Tooltip("바닥을 파묻히지 않게 지형에 안 가려짐")] private bool onTop;
+
+		[SerializeField, Tooltip("안이 빈 고리 (InnerRadius) 를 때릴 때 고리 위 덩이 수"), Min(1)] private int ringPuffCount = 12;
+		[SerializeField, Tooltip("고리 위 덩이 크기. 고리 폭의 배"), Min(0.1f)] private float ringPuffScale = 0.75f;
+
 		[Header("바닥 고리")]
 		[SerializeField, Tooltip("고리 반지름 (Radius 배). 0 이면 없음"), Min(0f)] private float ringRatio = 1f;
 		[SerializeField, Min(0.05f)] private float ringSeconds = 0.35f;
@@ -56,7 +65,7 @@ namespace WitchMendokusai
 		{
 			GameObject root = new(name);
 			root.transform.SetParent(runner.transform, false);
-			FxQuadBatch puffBatch = new(name, root.transform, set.Shader, sheet, set.Noise, PUFF_QUEUE);
+			FxQuadBatch puffBatch = new(name, root.transform, set.Shader, sheet, set.Noise, PUFF_QUEUE, onTop);
 			FxQuadBatch ringBatch = ringRatio > 0f ? new("Ring", root.transform, set.Shader, set.Shock, set.Noise, RING_QUEUE) : null;
 			return runner.Run(Routine(context, puffBatch, ringBatch), () =>
 			{
@@ -73,20 +82,32 @@ namespace WitchMendokusai
 				yield return new WaitForSeconds(Mathf.Max(0f, context.Seconds - leadSeconds));
 			Begin(context);
 			Puff[] puffs = MakePuffs(context);
-			float end = Mathf.Max(emitSeconds + seconds, ringRatio > 0f ? ringSeconds : 0f);
+			float end = Mathf.Max(EmitSeconds(context) + seconds, ringRatio > 0f ? ringSeconds : 0f);
 			for (float time = 0f; time < end; time += Time.deltaTime)
 			{
 				Camera view = Camera.main;
 				if (view != null)
-					DrawPuffs(puffBatch, puffs, time, view.transform);
+					DrawPuffs(puffBatch, puffs, time, context, view.transform);
 				if (ringBatch != null)
 					DrawRing(ringBatch, context, time);
 				yield return null;
 			}
 		}
 
-		private void DrawPuffs(FxQuadBatch batch, Puff[] puffs, float time, Transform view)
+		private float EmitSeconds(CombatFxContext context) => alongPath && emitSeconds <= 0f ? context.Seconds : emitSeconds;
+
+		private void DrawPuffs(FxQuadBatch batch, Puff[] puffs, float time, CombatFxContext context, Transform view)
 		{
+			Vector3 right = view.right;
+			Vector3 up = view.up;
+			float unit = 1f;
+			if (isFlat)
+			{
+				Vector3 direction = context.Direction.sqrMagnitude > 0f ? context.Direction.normalized : Vector3.forward;
+				up = Quaternion.Euler(0f, flatTurn, 0f) * direction;
+				right = Vector3.Cross(Vector3.up, up);
+				unit = context.Radius;
+			}
 			int span = frames.y - frames.x + 1;
 			batch.Begin();
 			foreach (Puff puff in puffs)
@@ -95,10 +116,10 @@ namespace WitchMendokusai
 				if (progress < 0f || progress >= 1f)
 					continue;
 				float eased = 1f - (1f - progress) * (1f - progress);
-				float half = Mathf.Lerp(halfSize.x, halfSize.y, eased) * puff.Scale;
+				float half = Mathf.Lerp(halfSize.x, halfSize.y, eased) * puff.Scale * unit;
 				Rect cell = FxQuadBatch.Cell(frames.x + Mathf.Min(span - 1, (int)(progress * span)), columns, rows);
 				FxQuadLook look = FxQuadLook.Of(color, cover, Mathf.Clamp01((progress - 0.75f) * 3f), puff.Seed);
-				batch.Add(Vector3.Lerp(puff.From, puff.To, eased), view.right * half, view.up * half, cell, look);
+				batch.Add(Vector3.Lerp(puff.From, puff.To, eased), right * half, up * half, cell, look);
 			}
 			batch.Commit();
 		}
@@ -109,7 +130,8 @@ namespace WitchMendokusai
 			float progress = time / ringSeconds;
 			if (progress < 1f)
 			{
-				float half = context.Radius * ringRatio * (1f - (1f - progress) * (1f - progress)) * 1.15f;
+				float start = context.InnerRadius;
+				float half = Mathf.Lerp(start, context.Radius * ringRatio * 1.15f, 1f - (1f - progress) * (1f - progress));
 				Color faded = ringColor;
 				faded.a *= 1f - progress;
 				batch.Add(context.Position + Vector3.up * 0.06f, Vector3.right * half, Vector3.forward * half, FxQuadLook.Of(faded, 0f, progress, 0.3f));
@@ -129,8 +151,24 @@ namespace WitchMendokusai
 				RemainsWorld.Current.Stain(context.Position, stainRadius, stainColor);
 		}
 
+		private Puff[] MakeRingPuffs(CombatFxContext context)
+		{
+			Puff[] puffs = new Puff[ringPuffCount];
+			float middle = (context.InnerRadius + context.Radius) * 0.5f;
+			float size = (context.Radius - context.InnerRadius) * 0.5f * ringPuffScale / halfSize.x;
+			float startAngle = Random.value * 360f;
+			for (int i = 0; i < puffs.Length; i++)
+			{
+				Vector3 spot = context.Position + Quaternion.Euler(0f, startAngle + 360f / puffs.Length * i, 0f) * Vector3.forward * middle + Vector3.up * lift;
+				puffs[i] = new Puff { From = spot, To = spot, Seed = Random.value * 10f, Scale = size };
+			}
+			return puffs;
+		}
+
 		private Puff[] MakePuffs(CombatFxContext context)
 		{
+			if (context.InnerRadius > 0f)
+				return MakeRingPuffs(context);
 			Puff[] puffs = new Puff[count];
 			Vector3 direction = context.Direction.normalized;
 			bool isStream = travelRatio > 0f;
@@ -138,12 +176,14 @@ namespace WitchMendokusai
 			{
 				Vector2 side = Random.insideUnitCircle * spread;
 				Vector3 to = context.Position + Vector3.up * lift + new Vector3(side.x, 0f, side.y);
-				if (isStream)
+				if (alongPath)
+					to += direction * (context.Length * i / Mathf.Max(1, count - 1));
+				else if (isStream)
 					to += direction * (context.Length * travelRatio * Random.Range(0.55f, 1f));
 				puffs[i] = new Puff
 				{
-					Start = count > 1 ? emitSeconds * i / (count - 1) : 0f,
-					From = context.Position + Vector3.up * (isStream ? originLift : lift) + new Vector3(side.x, 0f, side.y) * (isStream ? 0.2f : 1f),
+					Start = count > 1 ? EmitSeconds(context) * i / (count - 1) : 0f,
+					From = alongPath ? to : context.Position + Vector3.up * (isStream ? originLift : lift) + new Vector3(side.x, 0f, side.y) * (isStream ? 0.2f : 1f),
 					To = to,
 					Seed = Random.value * 10f,
 					Scale = count > 1 ? Random.Range(0.75f, 1.1f) : 1f,

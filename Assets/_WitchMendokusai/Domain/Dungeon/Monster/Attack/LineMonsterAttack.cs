@@ -27,7 +27,9 @@ namespace WitchMendokusai
 
 		public override float StrikeDelay(int index) => StaggerSeconds * index;
 
-		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target) => new()
+		protected override bool TargetsArePositions => false;
+
+		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target, int index) => new()
 		{
 			Position = unitObject.transform.position,
 			Direction = target,
@@ -37,18 +39,13 @@ namespace WitchMendokusai
 			Seconds = WindupSeconds,
 		};
 
-		public override void Execute(UnitObject unitObject, PlayerObject player, List<Vector3> targets)
+		public override bool Execute(UnitObject unitObject, PlayerObject player, Vector3 target, int index)
 		{
-			if (player.IsAlive == false)
-				return;
 			Vector3 origin = unitObject.transform.position;
-			foreach (Vector3 direction in targets)
-			{
-				if (IsInStrip(origin, direction, Length, Width, player.transform.position, player.UnitMovement.BodyRadius) == false)
-					continue;
-				HitEffect.Strike(unitObject, origin, player, MakeDamage(unitObject, Damage));
-				return;
-			}
+			if (player.IsAlive == false || IsInStrip(origin, target, Length, Width, player.transform.position, player.UnitMovement.BodyRadius) == false)
+				return false;
+			HitEffect.Strike(unitObject, origin, player, MakeDamage(unitObject, Damage));
+			return true;
 		}
 
 		// 띠 안인가. 높이는 무시, direction 은 수평 단위 벡터
