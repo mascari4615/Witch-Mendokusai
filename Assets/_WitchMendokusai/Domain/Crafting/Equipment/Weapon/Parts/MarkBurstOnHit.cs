@@ -47,26 +47,37 @@ namespace WitchMendokusai
 				return;
 			if (victim.IsAlive == false)
 			{
+				// 이미 지켜보던 표식이면 걷어 한 번만 터지게
+				HitMarks.Mark(markKey, victim, 0f);
 				Burst(objectPoolManager, burstPrefab, victim.transform.position, context);
 				return;
 			}
 			bool watching = HitMarks.IsMarked(markKey, victim);
 			HitMarks.Mark(markKey, victim, markSeconds);
-			if (watching == false)
-				CombatFxRunner.Instance.Run(Watch(victim, context));
+			if (watching)
+				return;
+			GameObject marker = objectPoolManager.Spawn(markerPrefab, victim.transform.position + Vector3.up * markerHeight, Quaternion.identity);
+			marker.SetActive(true);
+			// 씬이 바뀌어 끊겨도 표식 그림을 거둠
+			CombatFxRunner.Instance.Run(Watch(victim, context, marker, markKey, markerHeight, objectPoolManager, burstPrefab), () =>
+			{
+				if (marker != null)
+					marker.SetActive(false);
+			});
 		}
 
 		// 이 탄은 풀로 돌아가므로 실행기에서 지켜봄. 프리팹 값은 켜질 때 넘겨 이 부품의 상태를 읽지 않음
-		private IEnumerator Watch(UnitObject victim, SkillContext owner) => Watch(victim, owner, markKey, markerHeight, objectPoolManager, burstPrefab, markerPrefab);
-
-		// 죽으면 바로 끝내 풀에서 다시 나온 적에 이어지지 않게
-		private static IEnumerator Watch(UnitObject victim, SkillContext owner, int key, float height, ObjectPoolManager pool, GameObject burst, GameObject markerSource)
+		// 죽지 않고 꺼진 적 (판을 나감, 화면 밖 정리) 은 터지지 않음. 어느 쪽이든 바로 끝내 풀에서 다시 나온 적에 이어지지 않게
+		private static IEnumerator Watch(UnitObject victim, SkillContext owner, GameObject marker, int key, float height, ObjectPoolManager pool, GameObject burst)
 		{
-			GameObject marker = pool.Spawn(markerSource, victim.transform.position + Vector3.up * height, Quaternion.identity);
-			marker.SetActive(true);
 			while (victim != null && HitMarks.IsMarked(key, victim))
 			{
-				if (victim.IsAlive == false || victim.isActiveAndEnabled == false)
+				if (victim.IsAlive && victim.isActiveAndEnabled == false)
+				{
+					HitMarks.Mark(key, victim, 0f);
+					break;
+				}
+				if (victim.IsAlive == false)
 				{
 					HitMarks.Mark(key, victim, 0f);
 					Burst(pool, burst, victim.transform.position, owner);
@@ -76,8 +87,6 @@ namespace WitchMendokusai
 					marker.transform.position = victim.transform.position + Vector3.up * height;
 				yield return null;
 			}
-			if (marker != null)
-				marker.SetActive(false);
 		}
 
 		private static void Burst(ObjectPoolManager objectPoolManager, GameObject prefab, Vector3 position, SkillContext context)

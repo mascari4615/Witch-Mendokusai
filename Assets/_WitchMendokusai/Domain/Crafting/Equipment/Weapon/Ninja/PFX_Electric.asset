@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61393117a5ee43d5a1fde0b1cc6f95b5, type: 3}
   m_Name: PFX_Electric
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.PaintedFxSet
-  <Shader>k__BackingField: {fileID: 4800000, guid: 156b403bdaa84c93bb1cc1d72faf1806, type: 3}
+  <Shader>k__BackingField: {fileID: 4800000, guid: f8d31c6a0a4d44a89b36f0e972bed4fc, type: 3}
   <Noise>k__BackingField: {fileID: 2800000, guid: 2eb9f6709b1f4be9b718ea9cd70f9675, type: 3}
   <Gun>k__BackingField: {fileID: 2800000, guid: 9f95593b36ab4a768bdfd49918fa9790, type: 3}
   <BigGun>k__BackingField: {fileID: 2800000, guid: e25ebe92eb9840999baf14262c7b8801, type: 3}

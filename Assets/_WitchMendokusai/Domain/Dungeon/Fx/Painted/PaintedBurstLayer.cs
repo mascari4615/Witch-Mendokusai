@@ -66,7 +66,11 @@ namespace WitchMendokusai
 		{
 			Camera viewCamera = Camera.main;
 			if (viewCamera == null)
+			{
+				foreach (FxQuadBatch batch in batches)
+					batch.Clear();
 				return;
+			}
 			foreach (FxQuadBatch batch in batches)
 				batch.Begin();
 			for (int i = bursts.Count - 1; i >= 0; i--)
@@ -94,8 +98,9 @@ namespace WitchMendokusai
 			}
 			Rect cell = FxQuadBatch.Cell(Mathf.Min(FLIPBOOK_SIDE * FLIPBOOK_SIDE - 1, (int)(age * FLIPBOOK_SIDE * FLIPBOOK_SIDE)), FLIPBOOK_SIDE, FLIPBOOK_SIDE);
 			FxQuadLook look = FxQuadLook.Of(burst.Tint, burst.Cover);
-			look.Turn = burst.Seed * Mathf.PI * 2f;
-			burstBatch.Add(burst.Position + Vector3.up * burst.Radius * 0.3f, view.right * burst.Radius, view.up * burst.Radius, cell, look);
+			// 돌림 (Turn) 은 텍스처 전체를 돌려 다른 칸이 나오므로 판을 돌림
+			Quaternion spin = Quaternion.AngleAxis(burst.Seed * 360f, view.forward);
+			burstBatch.Add(burst.Position + Vector3.up * burst.Radius * 0.3f, spin * view.right * burst.Radius, spin * view.up * burst.Radius, cell, look);
 			return true;
 		}
 
