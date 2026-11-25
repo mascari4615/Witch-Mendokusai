@@ -36,7 +36,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("자리마다 반지름 (m)"), Min(0.3f)] public float Radius { get; private set; } = 2.4f;
 		[field: SerializeField, Min(1)] public int Damage { get; private set; } = 6;
 		[field: SerializeField, Tooltip("피해가 실제로 들어간 순간 주인공에게 거는 것")] public MonsterHitEffect HitEffect { get; private set; } = new();
-		[field: SerializeField, Tooltip("나타난 뒤 주인공과 겹쳐 있는 동안 몸 충돌을 미루는 최대 초"), Min(0f)] public float SettleSeconds { get; private set; } = 0.8f;
+		[field: SerializeField, Tooltip("나타난 뒤 주인공과 겹쳐 있는 동안 몸 충돌을 미루는 최대 초"), Min(0f)] public float SettleSeconds { get; private set; } = 0.35f;
 		[field: SerializeField, Tooltip("진짜 자리의 예고 물체")] public CombatFx SafeFx { get; private set; }
 		[field: SerializeField, Tooltip("진짜 자리와 옆 원 사이 최소 틈 (m). 주인공 몸 반지름과 여유, 검사용"), Min(0f)] public float SafeMargin { get; private set; } = 0.5f;
 

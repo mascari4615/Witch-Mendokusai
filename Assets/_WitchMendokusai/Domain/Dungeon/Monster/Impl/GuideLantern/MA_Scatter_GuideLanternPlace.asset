@@ -34,7 +34,7 @@ MonoBehaviour:
   <WindupFxOnce>k__BackingField: 0
   <TelegraphInTurn>k__BackingField: 0
   <Linger>k__BackingField:
-    <Seconds>k__BackingField: 5
+    <Seconds>k__BackingField: 3.4
     <CoolSeconds>k__BackingField: 0.6
     <Radius>k__BackingField: 0.5
     <Damage>k__BackingField: 2

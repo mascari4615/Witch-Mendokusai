@@ -19,6 +19,6 @@ MonoBehaviour:
   previewSubtitle: ""
   set: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
   texture: {fileID: 2800000, guid: 4cd90e445d704e77a26659414ac2f3f6, type: 3}
-  color: {r: 0.12, g: 0.06, b: 0.08, a: 0.75}
-  startRatio: 0.4
-  sizeRatio: 1.15
+  color: {r: 0.05, g: 0.02, b: 0.04, a: 0.95}
+  startRatio: 0.72
+  sizeRatio: 1.25

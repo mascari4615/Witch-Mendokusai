@@ -42,7 +42,7 @@ MonoBehaviour:
   <ShadowFx>k__BackingField: {fileID: 11400000, guid: d99d4d9008f94719bfeafe2edcad5d4e, type: 2}
   <ChaseSeconds>k__BackingField: 1.0
   <ChaseSpeed>k__BackingField: 2.6
-  <LockSeconds>k__BackingField: 1.5
+  <LockSeconds>k__BackingField: 1.6
   <Count>k__BackingField: 1
   <Distance>k__BackingField: 2.9
   <HasSafeSpot>k__BackingField: 0

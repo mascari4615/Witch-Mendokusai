@@ -33,7 +33,7 @@ MonoBehaviour:
   holdSeconds: 0.5
   sinkSeconds: 0.3
   strikeTint: {r: 1.7, g: 1.5, b: 1, a: 1}
-  hotTint: {r: 1.25, g: 1.1, b: 0.7, a: 1}
+  hotTint: {r: 1.15, g: 1.1, b: 0.95, a: 1}
   coolTint: {r: 0.6, g: 0.55, b: 0.55, a: 1}
   hotPulseSpeed: 7
   hotPulse: 0.3

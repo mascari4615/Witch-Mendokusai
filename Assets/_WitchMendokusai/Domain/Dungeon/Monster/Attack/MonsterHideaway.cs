@@ -20,6 +20,9 @@ namespace WitchMendokusai
 		// 다시 나타났지만 주인공과 겹쳐 있어 충돌을 미루는 중
 		private bool isSettling;
 		private float settleEndTime;
+		private const float AIM_INTERVAL = 0.1f;
+		private float nextAimTime;
+		private Vector3 aim;
 
 		private bool HasLanded => Time.time >= landTime;
 
@@ -42,6 +45,7 @@ namespace WitchMendokusai
 			leaveTime = Time.time;
 			lockTime = leaveTime + attack.ChaseSeconds;
 			landTime = float.PositiveInfinity;
+			nextAimTime = 0f;
 			monster.SetHidden(true);
 			monster.UnitMovement.enabled = false;
 			foreach (Collider part in GetComponentsInChildren<Collider>())
@@ -61,8 +65,8 @@ namespace WitchMendokusai
 			landTime = strikeTime - attack.LandLeadSeconds;
 		}
 
-		// 다시 보이고 맞음. 부딪힘은 주인공과 떨어진 뒤 (겹친 채 켜지면 서로 튕김). 안 사라졌으면 무해
-		public void Return()
+		// 다시 보이고 맞음. settles 면 부딪힘은 주인공과 떨어진 뒤 (때린 밀림이 먼저 떼어 놓게). 안 사라졌으면 무해
+		public void Return(bool settles = false)
 		{
 			if (isAway == false)
 				return;
@@ -73,7 +77,7 @@ namespace WitchMendokusai
 			monster.SetHidden(false);
 			isSettling = true;
 			settleEndTime = Time.time + attack.SettleSeconds;
-			if (OverlapsPlayer() == false)
+			if (settles == false || OverlapsPlayer() == false)
 				Restore();
 		}
 
@@ -118,8 +122,19 @@ namespace WitchMendokusai
 					monster.UnitMovement.Reposition(landing);
 			}
 			else if (Time.time >= leaveTime + attack.RiseSeconds && Time.time < lockTime)
-				monster.UnitMovement.Reposition(Vector3.MoveTowards(transform.position, PlayerGround(), attack.ChaseSpeed * Time.deltaTime));
+				Chase();
 			Draw();
+		}
+
+		private void Chase()
+		{
+			// 장애물을 피한 자리 계산은 가끔만
+			if (Time.time >= nextAimTime)
+			{
+				nextAimTime = Time.time + AIM_INTERVAL;
+				aim = PlayerGround();
+			}
+			monster.UnitMovement.Reposition(Vector3.MoveTowards(transform.position, aim, attack.ChaseSpeed * Time.deltaTime));
 		}
 
 		// 뛰어오른 높이는 안 따라감. 벽 밖과 장애물 속은 그 앞까지

@@ -54,7 +54,7 @@ namespace WitchMendokusai
 			}
 			if (IsEntranceOver())
 			{
-				// 기절로 끊겼으면 전환을 한 번 더. 끊기기 전에 남긴 물체는 식힘
+				// 기절로 끊겼으면 전환을 한 번 더. 겹치지 않게 이 유닛이 남긴 물체는 모두 식힘
 				bool wasCut = behaviour is IAttackCycle { WasCut: true } && hasRetried == false;
 				Interrupt();
 				if (wasCut)

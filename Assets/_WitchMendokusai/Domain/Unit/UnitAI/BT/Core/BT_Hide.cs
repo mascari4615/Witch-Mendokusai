@@ -117,7 +117,7 @@ namespace WitchMendokusai
 		protected override void OnStanceEnd(bool interrupted)
 		{
 			if (unitObject.TryGetComponent(out MonsterHideaway hideaway))
-				hideaway.Return();
+				hideaway.Return(interrupted == false);
 			// 끝까지 갔으면 끝 번쩍임과 물체가 남도록 끊지 않음
 			if (interrupted)
 			{
