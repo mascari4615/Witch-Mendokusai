@@ -294,6 +294,24 @@ namespace WitchMendokusai
 			return pool.GroupBy(card => card.ID).Select(group => group.First()).ToList();
 		}
 
+		// 개발자 창. 조건과 갈림길 없이 전용 무기 카드를 바로 받음. 확정 카드면 숙련 조각을 문턱까지 채움
+		public bool TryGrantSignatureCard(int cardId, out CardData card)
+		{
+			EquipmentData signature = Loadout.Signature;
+			card = skillTrees.CardsFor(signature).FirstOrDefault(candidate => candidate != null && candidate.ID == cardId);
+			if (card == null || HeldCount(card) >= card.MaxStack)
+				return false;
+			string form = skillTrees.Find(signature.ID).NodeOf(card)?.Form;
+			if (form != null)
+			{
+				int track = SOHelper.GetDoll(dataManager.CurDollID).FindForm(form).ConfirmMasteryTrack;
+				for (int i = 0; track != DollMastery.NO_TRACK && DollMasteryRun.IsTrackReady(track) == false && i < DollMasteryRun.Data.Tracks[track].Threshold; i++)
+					DollMasteryRun.Pickup(track, playerProvider.CurrentObject, playerProvider.CurrentObject.transform.position);
+			}
+			GrantChestCard(card);
+			return true;
+		}
+
 		private void GrantChestCard(CardData card)
 		{
 			soManager.SelectedCardBuffer.Add(card);
