@@ -153,6 +153,9 @@ namespace WitchMendokusai
 		{
 			Quests.Add(quest);
 			questAddedPublisher.Publish(new QuestAddedEvent(quest));
+			quest.StartQuest();
+			// 목록 화면은 넣을 때 그려져 시작 전 상태라 다시
+			Quests.UpdateUI();
 		}
 
 		public RuntimeQuest GetQuest(QuestSO questData)
