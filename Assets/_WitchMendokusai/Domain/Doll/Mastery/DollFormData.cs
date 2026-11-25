@@ -17,5 +17,6 @@ namespace WitchMendokusai
 		[field: SerializeField, Min(0f), Tooltip("둘레 적을 밀어내는 반지름. 0 이면 안 밂")] public float PushRadius { get; private set; } = 3.4f;
 		[field: SerializeField, Min(0f)] public float PushForce { get; private set; } = 9f;
 		[field: SerializeField, Min(0f), Tooltip("밀려나는 게임 시간 (초)")] public float PushSeconds { get; private set; } = 0.35f;
+		[field: SerializeField, Tooltip("이 형태를 여는 카드의 겉모습. 비우면 일반 카드")] public FormCardLook CardLook { get; private set; }
 	}
 }

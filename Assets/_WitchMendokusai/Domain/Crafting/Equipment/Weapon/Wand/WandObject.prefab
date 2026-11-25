@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2071123118112799327}
   - component: {fileID: 7377987611665135407}
   - component: {fileID: 624030948263483217}
+  - component: {fileID: 5518027364091727731}
   m_Layer: 0
   m_Name: WandObject
   m_TagString: Untagged
@@ -330,3 +331,17 @@ MonoBehaviour:
   baseCount: 0
   minCount: 0
   gateStat: 13028
+--- !u!114 &5518027364091727731
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3892366890574093729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e396b0b6ee1443da24331fefd3cad2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.HeldWeapon
+  shape: 0
+  solidShader: {fileID: 4800000, guid: ffcdeff22cb14f2e8a5a20276529c2e2, type: 3}

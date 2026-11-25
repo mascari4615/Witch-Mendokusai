@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2071123118112799327}
   - component: {fileID: 7377987611665135407}
   - component: {fileID: 624030948263483217}
+  - component: {fileID: 5518027364091727732}
   m_Layer: 0
   m_Name: VolleyObject
   m_TagString: Untagged
@@ -341,6 +342,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5896939421359804131}
   - component: {fileID: 1645866962905614981}
+  - component: {fileID: 4471920365518834627}
   m_Layer: 0
   m_Name: Volley
   m_TagString: Untagged
@@ -396,6 +398,7 @@ MonoBehaviour:
   splitPercent: 60
   focusPercent: 140
   readyText: "\uC77C\uC81C \uC0AC\uACA9!"
+  arsenal: {fileID: 4471920365518834627}
   chargePercentStat: 13030
   bonusWeaponsStat: 13034
   splitStat: 13031
@@ -405,3 +408,31 @@ MonoBehaviour:
   beamStat: 13036
   growthPercentStat: 13037
   damageBonusStat: 13011
+--- !u!114 &4471920365518834627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5687485566707264102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91f17afce6a54103967376c3d9adc212, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.VolleyArsenal
+  energyShader: {fileID: 4800000, guid: e61a4233b9a045cb973c5198ac7a5f17, type: 3}
+  solidShader: {fileID: 4800000, guid: ffcdeff22cb14f2e8a5a20276529c2e2, type: 3}
+--- !u!114 &5518027364091727732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3892366890574093729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e396b0b6ee1443da24331fefd3cad2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.HeldWeapon
+  shape: 0
+  solidShader: {fileID: 4800000, guid: ffcdeff22cb14f2e8a5a20276529c2e2, type: 3}

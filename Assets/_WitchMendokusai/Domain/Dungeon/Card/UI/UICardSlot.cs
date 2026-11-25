@@ -11,13 +11,13 @@ namespace WitchMendokusai
 		public UICardChoiceView ChoiceView => choiceView;
 		public string ChoiceDetail { get; private set; }
 
-		public void SetChoice(CardData card, EquipmentData equipment, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards)
+		public void SetChoice(CardData card, EquipmentData equipment, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards, FormCardLook formLook)
 		{
 			choiceDescription = card?.DescriptionText;
 			ChoiceDetail = CardChoiceText.Description(card, selectedCards, deckCards, true);
 			choiceTooltip.SetData(card?.Sprite, card?.Name, ChoiceDetail);
 			if (card != null)
-				choiceView.Set(card, equipment, selectedCards, deckCards);
+				choiceView.Set(card, equipment, selectedCards, deckCards, formLook);
 			SetSlot(card);
 		}
 

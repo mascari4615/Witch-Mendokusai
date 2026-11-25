@@ -14,6 +14,7 @@ namespace WitchMendokusai
 
 		[Header("Wave")]
 		[SerializeField] private GameObject wavePrefab;
+		[SerializeField, Tooltip("검기와 날개의 그림")] private SwordWaveFx waveFx;
 		[SerializeField, Tooltip("단계 3 에서 검기 끝에 터지는 것")] private GameObject tipBurstPrefab;
 		[SerializeField, Tooltip("검기 프리팹의 길이 (월드). 끝 폭발 자리 계산")] private float waveLength = 7f;
 		[SerializeField, Tooltip("단계 1, 2, 3 의 베기 간격 문턱 (초)")] private float[] tierThresholds = { 0.95f, 0.65f, 0.45f };
@@ -121,7 +122,9 @@ namespace WitchMendokusai
 		private void SpawnWave(Vector3 origin, Vector3 direction, float length, float width, int tier)
 		{
 			GameObject wave = SpawnWaveObject(origin, direction, length, width, 100);
-			if (tier >= tierThresholds.Length && tipBurstPrefab != null)
+			bool topTier = tier >= tierThresholds.Length;
+			waveFx.PlayWave(origin, direction, waveLength * wave.transform.localScale.z, width, topTier);
+			if (topTier && tipBurstPrefab != null)
 				SkillSpawn.Spawn(objectPoolManager, tipBurstPrefab, origin + direction * waveLength * wave.transform.localScale.z, Quaternion.identity, context, 0).SetActive(true);
 		}
 
@@ -140,10 +143,12 @@ namespace WitchMendokusai
 		private void SpawnWings()
 		{
 			Vector3 origin = playerProvider.Current.transform.position;
+			waveFx.PlayWings(playerProvider.Current.transform);
 			for (int i = 0; i < wingsCount; i++)
 			{
 				Vector3 direction = Quaternion.Euler(0f, 360f * i / wingsCount, 0f) * Vector3.forward;
 				SpawnWaveObject(origin, direction, wingsRadius / waveLength, 1f, wingsDamagePercent);
+				waveFx.PlayWave(origin, direction, wingsRadius, 1f, false);
 			}
 		}
 

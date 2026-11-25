@@ -17,11 +17,14 @@ namespace WitchMendokusai
 	{
 		public readonly RectTransform Card;
 		public readonly CardRevealTier Tier;
+		// 등급 색을 대신하는 빛 (형태 카드). 없으면 스킨의 등급 색
+		public readonly Color? Tint;
 
-		public CardRevealEntry(RectTransform card, CardRevealTier tier)
+		public CardRevealEntry(RectTransform card, CardRevealTier tier, Color? tint = null)
 		{
 			Card = card;
 			Tier = tier;
+			Tint = tint;
 		}
 	}
 

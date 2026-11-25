@@ -105,7 +105,7 @@ MonoBehaviour:
   pillarHold: 0.75
   pillarFade: 0.3
   haloHold: 0.6
-  wandHold: 2.9
+  wandHold: 1.9
   gatherTimeScale: 0.3
   chestHeight: 0.42
   headHeight: 1.5

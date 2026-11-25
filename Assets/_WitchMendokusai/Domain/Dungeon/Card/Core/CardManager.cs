@@ -357,6 +357,17 @@ namespace WitchMendokusai
 
 		private bool IsFormCard(CardData card) => FormOf(card) != null;
 
+		// 형태 카드의 겉모습. 형태 카드가 아니거나 자산이 비면 null (일반 카드)
+		public FormCardLook FormLookOf(CardData card)
+		{
+			string form = FormOf(card);
+			if (form == null)
+				return null;
+			FormCardLook look = GetDoll(dataManager.CurDollID).FindForm(form).CardLook;
+			// 빈 자산 칸은 진짜 null 로 (부르는 쪽이 ?. 를 씀)
+			return look != null ? look : null;
+		}
+
 		// 형태는 인물 전용 무기 트리에만 둠. 다른 장비 트리의 form 칸은 SkillTreeCatalog.ValidateForms 가 막음
 		private string FormOf(CardData card)
 		{

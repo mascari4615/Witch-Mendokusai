@@ -112,6 +112,29 @@ namespace WitchMendokusai
 			return Build("FormRing", vertices, uvs, triangles);
 		}
 
+		/// <summary> 바닥에 눕힌 초승달. 바깥 반지름 1, 앞 (+Z) 이 가운데, 양 끝으로 갈수록 가늘어짐. u 는 호를 따라, v 는 안 0 에서 바깥 1 </summary>
+		public static Mesh Crescent(int segments, float arcDegrees, float width)
+		{
+			List<Vector3> vertices = new();
+			List<Vector2> uvs = new();
+			List<int> triangles = new();
+			for (int segment = 0; segment <= segments; segment++)
+			{
+				float along = segment / (float)segments;
+				float angle = (90f + arcDegrees * (0.5f - along)) * Mathf.Deg2Rad;
+				Vector3 direction = new(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+				float thickness = width * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(Mathf.PI * along)), 0.6f);
+				for (int column = 0; column < 3; column++)
+				{
+					float across = column * 0.5f;
+					vertices.Add(direction * (1f - thickness * (1f - across)));
+					uvs.Add(new Vector2(along, across));
+				}
+			}
+			Strip(triangles, segments, 3, 0);
+			return Build("FormCrescent", vertices, uvs, triangles);
+		}
+
 		/// <summary> 네모 단면 빛 막대 심. 원점에서 +Y 로 길이 1. 밑동과 끝이 뾰족, 손 위에 마디 하나 </summary>
 		public static Mesh Bar(float width)
 		{
