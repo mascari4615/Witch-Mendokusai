@@ -12,6 +12,7 @@ Shader "WM/Occludable Lit"
         _Smoothness ("Smoothness", Range(0, 1)) = 0.1
         _Cutoff ("Alpha cutoff", Range(0, 1)) = 0.5
         [Toggle(_ALPHATEST_ON)] _AlphaClip ("Alpha clip", Float) = 0
+        [Toggle(_VERTEX_COLOR)] _VertexColor ("Vertex color tint (0.5 is unchanged)", Float) = 0
         [ToggleOff(_SPECULARHIGHLIGHTS_OFF)] _SpecularHighlights ("Specular highlights", Float) = 1
         [ToggleOff(_ENVIRONMENTREFLECTIONS_OFF)] _EnvironmentReflections ("Environment reflections", Float) = 1
         [HDR] _EmissionColor ("Emission color", Color) = (0, 0, 0, 1)
@@ -81,6 +82,7 @@ Shader "WM/Occludable Lit"
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature_local _WM_OCCLUDABLE
+            #pragma shader_feature_local _VERTEX_COLOR
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
@@ -100,6 +102,9 @@ Shader "WM/Occludable Lit"
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
                 float2 uv : TEXCOORD0;
+                #if defined(_VERTEX_COLOR)
+                    half4 color : COLOR;
+                #endif
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -111,6 +116,9 @@ Shader "WM/Occludable Lit"
                 float3 positionWS : TEXCOORD2;
                 float4 screenPosition : TEXCOORD3;
                 float fogFactor : TEXCOORD4;
+                #if defined(_VERTEX_COLOR)
+                    half3 tint : TEXCOORD5;
+                #endif
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -126,6 +134,9 @@ Shader "WM/Occludable Lit"
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
                 output.screenPosition = ComputeScreenPos(position.positionCS);
                 output.fogFactor = ComputeFogFactor(position.positionCS.z);
+                #if defined(_VERTEX_COLOR)
+                    output.tint = input.color.rgb * 2.0;
+                #endif
                 return output;
             }
 
@@ -133,6 +144,9 @@ Shader "WM/Occludable Lit"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
                 half4 base = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor;
+                #if defined(_VERTEX_COLOR)
+                    base.rgb *= input.tint;
+                #endif
                 #if defined(_ALPHATEST_ON)
                     clip(base.a - _Cutoff);
                 #endif

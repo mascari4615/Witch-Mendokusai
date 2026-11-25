@@ -29,6 +29,20 @@ namespace WitchMendokusai
 		private readonly Dictionary<string, (string Look, GameObject Body)> siteBodies = new();
 		private readonly List<Light> lampLights = new();
 
+		// 모델로 바꾼 건물. 여기 없는 건물은 아직 VillageBodies (그림 판정 뒤 차례로 옮김)
+		private static readonly Dictionary<string, string> BUILT_MODELS = new()
+		{
+			{ "smithy", "HouseDone" },
+			{ "atelier", "HouseBlue" },
+			{ "workshop", "HouseDone" },
+			{ "tailor", "HouseBlue" },
+			{ "shop", "HouseBlue" },
+		};
+
+		private static readonly string[] RUIN_MODELS = { "RuinA", "RuinB" };
+
+		private VillageModels Models => VillageModels.Instance;
+
 		private void BuildSites()
 		{
 			VillageBodies.Well().Build("Well", outdoor, wellPosition, 0f);
@@ -42,12 +56,27 @@ namespace WitchMendokusai
 				Vector3 door = site.Position + Quaternion.Euler(0f, site.Yaw, 0f) * site.Door;
 				HomesteadSpot.Create(outdoor, door, site.Id + "Spot", () => Catalog.Get<BuildingDef>(captured.Id).Name, () => SiteRole(captured.Id), () => UseSite(captured.Id));
 			}
+			BuildDressing();
 			foreach (Vector3 lamp in new[] { new Vector3(-3.4f, 0f, 5f), new Vector3(3.4f, 0f, 5f), new Vector3(-3.6f, 0f, -3f), new Vector3(3.6f, 0f, -3f), new Vector3(-2.2f, 0f, -12f), new Vector3(2.2f, 0f, -17f) })
 			{
 				GameObject body = VillageBodies.Lamp().Build("Lamp", outdoor, lamp, lamp.x > 0f ? 180f : 0f);
 				lampLights.Add(AddGlow(body.transform, lampLightOffset, lampRange, lampIntensity));
 			}
 		}
+
+		// 집 둘레의 돌담, 돌길, 울타리, 통
+		private void BuildDressing()
+		{
+			foreach ((string key, float x, float z, float yaw) in dressing)
+				Models.Build(key, outdoor, new Vector3(x, 0f, z), yaw);
+		}
+
+		private static readonly (string Key, float X, float Z, float Yaw)[] dressing =
+		{
+			("StoneWall", -18.6f, 8.2f, -6f), ("StoneWall", -8.2f, 8.7f, 14f), ("StoneWall", -5.2f, 5.4f, 70f),
+			("StonePath", -11.9f, 7.2f, 6f), ("StonePath", -11.2f, 3.4f, 14f), ("StonePath", 0f, -2.5f, 0f), ("StonePath", 0f, -6.3f, 0f),
+			("StonePath", 0f, 6.6f, 0f), ("Fence", -18.4f, 13.4f, 96f), ("Fence", -16.8f, 8.4f, -2f), ("Props", -8.6f, 11.2f, 24f), ("Props", -12.6f, 1.6f, -20f),
+		};
 
 		private bool IsNight => manager.Hour >= lampOnHour || manager.Hour < lampOffHour;
 
@@ -176,32 +205,39 @@ namespace WitchMendokusai
 		private void RefreshSites()
 		{
 			RefreshLamps();
-			Show("townhall", Sim.State.TownHall.ToString(), townHallPosition, 0f, () => VillageBodies.TownHall(Sim.State.TownHall));
-			Show("house", Sim.State.HouseTier.ToString(), housePosition, houseYaw, () => VillageBodies.Home(Sim.State.HouseTier));
+			Show("townhall", Sim.State.TownHall.ToString(), () => VillageBodies.TownHall(Sim.State.TownHall).Build("townhall", outdoor, townHallPosition, 0f));
+			Show("house", Sim.State.HouseTier.ToString(), () => Models.Build("HouseMended", outdoor, housePosition, houseYaw));
 			for (int i = 0; i < sites.Length; i++)
 			{
 				BuildingSite site = sites[i];
-				int seed = i * 37 + 5;
+				int order = i;
 				WorkState work = Sim.WorkOn(site.Id);
 				int level = Sim.BuildingLevel(site.Id);
 				if (work != null && level == 0)
 				{
 					bool done = Sim.IsWorkDone(work);
-					Show(site.Id, done ? WORK_DONE : WORK, site.Position, site.Yaw, () => VillageBodies.Scaffold(site.Size, done));
+					Show(site.Id, done ? WORK_DONE : WORK, () => VillageBodies.Scaffold(site.Size, done).Build(site.Id, outdoor, site.Position, site.Yaw));
 				}
 				else if (level == 0)
 				{
-					Show(site.Id, RUIN, site.Position, site.Yaw, () => VillageBodies.Ruin(site.Size, seed));
+					Show(site.Id, RUIN, () => Models.Build(RUIN_MODELS[order % RUIN_MODELS.Length], outdoor, site.Position, site.Yaw));
 				}
 				else
 				{
-					Show(site.Id, level.ToString(), site.Position, site.Yaw, () => VillageBodies.Built(site.Id, level));
+					Show(site.Id, level.ToString(), () => BuiltBody(site, level));
 				}
 			}
 		}
 
+		private GameObject BuiltBody(BuildingSite site, int level)
+		{
+			if (BUILT_MODELS.TryGetValue(site.Id, out string model))
+				return Models.Build(model, outdoor, site.Position, site.Yaw);
+			return VillageBodies.Built(site.Id, level).Build(site.Id, outdoor, site.Position, site.Yaw);
+		}
+
 		// 모습이 바뀐 자리만 다시 지음
-		private void Show(string id, string look, Vector3 position, float yaw, System.Func<VillageKit> make)
+		private void Show(string id, string look, System.Func<GameObject> make)
 		{
 			if (siteBodies.TryGetValue(id, out (string Look, GameObject Body) shown))
 			{
@@ -209,7 +245,7 @@ namespace WitchMendokusai
 					return;
 				Destroy(shown.Body);
 			}
-			GameObject body = make().Build(id, outdoor, position, yaw);
+			GameObject body = make();
 			siteBodies[id] = (look, body);
 			if (risingId == id)
 			{
