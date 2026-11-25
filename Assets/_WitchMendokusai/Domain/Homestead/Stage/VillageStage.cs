@@ -38,7 +38,7 @@ namespace WitchMendokusai
 		[Tooltip("곧은 길. 시작과 끝 (x, z, x, z)")]
 		[SerializeField] private Vector4[] streets =
 		{
-			new(0f, -24f, 0f, 11f), new(-24f, 6f, 24f, 6f), new(-16f, -6f, 13f, -6f), new(-18f, 18f, 24f, 18f), new(-3f, 6f, -3f, 18f), new(24f, 6f, 24f, 18f),
+			new(0f, -24f, 0f, 11f), new(-24f, 6f, 20f, 6f), new(-16f, -6f, 13f, -6f), new(-18f, 18f, 18f, 18f), new(-3f, 6f, -3f, 18f), new(18f, 6f, 18f, 18f),
 		};
 		[SerializeField] private BuildingSite[] sites =
 		{

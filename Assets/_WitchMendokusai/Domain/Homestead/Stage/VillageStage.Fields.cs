@@ -24,8 +24,6 @@ namespace WitchMendokusai
 		[SerializeField] private Vector3 farmOrigin = new(-23.5f, 0f, -6.5f);
 		[SerializeField] private Vector2 plotGap = new(1f, 1f);
 		[SerializeField] private int plotColumns = 6;
-		[Tooltip("밭 한 칸 몸의 배율. 칸은 복셀과 같은 1m")]
-		[SerializeField] private float plotScale = 0.56f;
 		[SerializeField] private Vector2 cropHeight = new(0.25f, 0.95f);
 
 		[Header("Wild")]
@@ -106,52 +104,14 @@ namespace WitchMendokusai
 				int index = i;
 				Vector3 position = PlotPosition(i);
 				PlotView view = new();
-				view.Overgrown = OvergrownBody(i).Build("PlotOvergrown", outdoor, position, 0f, castShadow: false);
-				view.Wild = WildBody(i).Build("PlotWild", outdoor, position, 0f, castShadow: false);
-				view.Dry = PlotBody(new Color(1f, 0.92f, 0.82f)).Build("Plot", outdoor, position, 0f, castShadow: false);
-				view.Wet = PlotBody(new Color(0.62f, 0.56f, 0.56f)).Build("PlotWet", outdoor, position, 0f, castShadow: false);
-				foreach (GameObject body in new[] { view.Overgrown, view.Wild, view.Dry, view.Wet })
-					body.transform.localScale = Vector3.one * plotScale;
+				view.Overgrown = Models.Build("PlotOver", outdoor, position, index * 90f);
+				view.Wild = Models.Build("PlotWild", outdoor, position, index * 90f);
+				view.Dry = Models.Build("PlotDry", outdoor, position, 0f);
+				view.Wet = Models.Build("PlotWet", outdoor, position, 0f);
 				view.Crop = HomesteadSprite.Create(outdoor, position + Vector3.up * 0.14f, null, 1f);
 				view.Spot = HomesteadSpot.Create(outdoor, position, "PlotSpot", () => PlotName(index), () => PlotRole(index), () => UsePlot(index)).gameObject;
 				plots.Add(view);
 			}
-		}
-
-		private static VillageKit OvergrownBody(int seed)
-		{
-			VillageKit kit = new();
-			for (int i = 0; i < 9; i++)
-			{
-				float angle = seed * 0.9f + i * 2.4f;
-				float distance = 0.18f + i * 0.07f;
-				float size = 0.34f + Mathf.PerlinNoise(seed * 0.7f, i * 0.9f) * 0.3f;
-				kit.Prism(Art.Leaf, new Color(0.86f, 1f, 0.8f), new Vector3(Mathf.Cos(angle) * distance, -0.05f, Mathf.Sin(angle) * distance), new Vector3(size, size * 0.7f, size), 6, 0.35f);
-			}
-			return kit;
-		}
-
-		// 아직 안 간 땅. 낮은 흙에 잡초 몇 포기
-		private static VillageKit WildBody(int seed)
-		{
-			VillageKit kit = new();
-			kit.Prism(Art.Soil, new Color(0.86f, 0.9f, 0.7f), new Vector3(0f, -0.05f, 0f), new Vector3(1.6f, 0.08f, 1.45f), 9, 0.9f);
-			for (int i = 0; i < 4; i++)
-			{
-				float angle = seed * 1.3f + i * 1.7f;
-				kit.Prism(Art.Leaf, new Color(0.9f, 1f, 0.72f), new Vector3(Mathf.Cos(angle) * 0.45f, 0f, Mathf.Sin(angle) * 0.4f), new Vector3(0.2f, 0.16f, 0.2f), 6, 0.2f);
-			}
-			return kit;
-		}
-
-		// 도톰한 이랑 셋. 네모 칸이 아니라 두둑으로 읽히게
-		private static VillageKit PlotBody(Color color)
-		{
-			VillageKit kit = new();
-			kit.Prism(Art.Soil, color * 0.9f, new Vector3(0f, -0.04f, 0f), new Vector3(1.75f, 0.1f, 1.6f), 9, 0.92f);
-			for (int i = -1; i <= 1; i++)
-				kit.Prism(Art.Soil, color, new Vector3(0f, 0.02f, i * 0.44f), new Vector3(1.4f, 0.13f, 0.36f), 8, 0.7f);
-			return kit;
 		}
 
 		private string PlotName(int index)
@@ -327,11 +287,8 @@ namespace WitchMendokusai
 			{
 				GatherSite site = gatherSites[i];
 				GatherView view = new() { Def = Catalog.Get<GatherDef>(site.Gather), SpotId = $"{site.Gather}:{i}" };
-				Random.State saved = Random.state;
-				Random.InitState(i * 91 + 7);
 				view.Body = GatherBody(site, i);
-				view.Stump = StumpBody(site).Build("Stump", outdoor, site.Position, i * 53f);
-				Random.state = saved;
+				view.Stump = Models.Build(StumpModel(site), outdoor, site.Position, i * 53f);
 				GatherView captured = view;
 				view.Spot = HomesteadSpot.Create(outdoor, site.Position + new Vector3(0f, 0f, -0.5f), "GatherSpot", () => captured.Def.Name, () => GatherRole(captured), () => UseGather(captured)).gameObject;
 				gathers.Add(view);
@@ -347,53 +304,29 @@ namespace WitchMendokusai
 				case "hardtree":
 					return ground.SpawnTree(index + 3, outdoor, site.Position, index * 41f, 1f);
 				case "rock":
-					VillageKit rock = new();
-					rock.Prism(Art.Stone, Color.white, new Vector3(0f, -0.15f, 0f), new Vector3(1.5f, 1f, 1.3f), 6, 0.6f);
-					rock.Prism(Art.Stone, new Color(0.9f, 0.9f, 0.94f), new Vector3(0.6f, -0.1f, -0.3f), new Vector3(0.8f, 0.5f, 0.7f), 5, 0.6f);
-					rock.Crystal(Art.Gold, Color.white, new Vector3(-0.2f, 0.5f, -0.4f), new Vector3(0.2f, 0.3f, 0.2f), 5);
-					rock.Solid(Vector3.zero, new Vector3(1.2f, 0.8f, 1f));
-					return rock.Build("Rock", outdoor, site.Position, index * 33f);
+					return Models.Build("Rock", outdoor, site.Position, index * 33f);
 				case "mushroompatch":
-					VillageKit caps = new();
-					for (int i = 0; i < 4; i++)
-					{
-						Vector3 foot = new(Random.Range(-0.4f, 0.4f), 0f, Random.Range(-0.4f, 0.4f));
-						float size = Random.Range(0.2f, 0.4f);
-						caps.Prism(Art.Plaster, Color.white, foot, new Vector3(size * 0.4f, size, size * 0.4f), 7, 0.8f);
-						caps.Prism(Art.Cloth, new Color(0.86f, 0.5f, 0.46f), foot + Vector3.up * size * 0.85f, new Vector3(size * 1.3f, size * 0.6f, size * 1.3f), 9, 0.35f);
-					}
-					return caps.Build("Mushrooms", outdoor, site.Position, 0f);
+					return Models.Build("Mushrooms", outdoor, site.Position, index * 71f);
+				case "herb":
+					return Models.Build("Herb", outdoor, site.Position, index * 29f);
 				default:
-					bool isHerb = site.Gather == "herb";
-					VillageKit bush = new();
-					for (int i = 0; i < 5; i++)
-						bush.Prism(Art.Leaf, isHerb ? new Color(0.9f, 1f, 0.95f) : Color.white, new Vector3(Random.Range(-0.4f, 0.4f), -0.05f, Random.Range(-0.4f, 0.4f)), new Vector3(Random.Range(0.5f, 0.8f), Random.Range(0.4f, 0.8f), Random.Range(0.5f, 0.8f)), 7, 0.55f);
-					for (int i = 0; i < 6; i++)
-						bush.Prism(Art.Cloth, isHerb ? new Color(0.76f, 0.66f, 1f) : new Color(1f, 0.62f, 0.56f), new Vector3(Random.Range(-0.4f, 0.4f), Random.Range(0.35f, 0.65f), Random.Range(-0.45f, 0.1f)), Vector3.one * 0.1f, 8, 0.6f);
-					return bush.Build("Bush", outdoor, site.Position, index * 29f);
+					return Models.Build("Bush", outdoor, site.Position, index * 29f);
 			}
 		}
 
-		// 거둔 자리에 남는 것. 다시 나는 것을 알 수 있게
-		private static VillageKit StumpBody(GatherSite site)
+		// 수확한 자리에 남는 것. 다시 나는 것을 알 수 있게
+		private static string StumpModel(GatherSite site)
 		{
-			VillageKit kit = new();
 			switch (site.Gather)
 			{
 				case "tree":
 				case "hardtree":
-					kit.Prism(Art.Wood, new Color(0.8f, 0.68f, 0.58f), Vector3.zero, new Vector3(0.6f, 0.35f, 0.6f), 8, 0.85f);
-					break;
+					return "Stump";
 				case "rock":
-					for (int i = 0; i < 4; i++)
-						kit.Box(Art.Stone, Color.white, new Vector3(Mathf.Cos(i * 1.6f) * 0.4f, -0.05f, Mathf.Sin(i * 1.6f) * 0.4f), Vector3.one * 0.24f, new Vector3(0f, i * 40f, 0f));
-					break;
+					return "Rubble";
 				default:
-					for (int i = 0; i < 3; i++)
-						kit.Prism(Art.Leaf, new Color(0.9f, 1f, 0.8f), new Vector3(Mathf.Cos(i * 2.1f) * 0.2f, 0f, Mathf.Sin(i * 2.1f) * 0.2f), new Vector3(0.18f, 0.16f, 0.18f), 6, 0.3f);
-					break;
+					return "Cut";
 			}
-			return kit;
 		}
 
 		private string GatherRole(GatherView view)

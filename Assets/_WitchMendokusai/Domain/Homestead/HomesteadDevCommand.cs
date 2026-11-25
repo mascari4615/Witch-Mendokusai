@@ -4,7 +4,7 @@ using WitchMendokusai.DomainSDK.Homestead;
 
 namespace WitchMendokusai
 {
-	// 생활 갈래 확인용. homestead go, homestead rich <개수>, homestead time <분>, homestead built, homestead guild <경험>, homestead furniture, homestead rest
+	// 생활 갈래 확인용. homestead go, homestead rich <개수>, homestead time <분>, homestead built, homestead guild <경험>, homestead furniture, homestead rest, homestead grid
 	public sealed class HomesteadDevCommand : IDevCommand
 	{
 		private const int STAGE_ID = 6;
@@ -15,10 +15,11 @@ namespace WitchMendokusai
 		private const string GUILD = "guild";
 		private const string FURNITURE = "furniture";
 		private const string REST = "rest";
-		private static readonly string[] ARGS = { GO, RICH, TIME, BUILT, GUILD, FURNITURE, REST };
+		private const string GRID = "grid";
+		private static readonly string[] ARGS = { GO, RICH, TIME, BUILT, GUILD, FURNITURE, REST, GRID };
 
 		public string Name => "homestead";
-		public string Usage => "homestead go|rich <amount>|time <minutes>|built|guild <exp>|furniture|rest";
+		public string Usage => "homestead go|rich <amount>|time <minutes>|built|guild <exp>|furniture|rest|grid";
 
 		public void Execute(DevCommandContext context, string[] args)
 		{
@@ -52,6 +53,9 @@ namespace WitchMendokusai
 					break;
 				case REST:
 					sim.Rest(-sim.Day - 2, sim.MinutesUntilMorning(manager.Hour, manager.Minute));
+					break;
+				case GRID:
+					UnityEngine.Object.FindAnyObjectByType<VillageStage>().ToggleGrid();
 					break;
 				default:
 					context.LogError(Usage);

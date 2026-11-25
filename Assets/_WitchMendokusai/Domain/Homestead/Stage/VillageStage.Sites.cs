@@ -29,17 +29,29 @@ namespace WitchMendokusai
 		private readonly Dictionary<string, (string Look, GameObject Body)> siteBodies = new();
 		private readonly List<Light> lampLights = new();
 
-		// 모델로 바꾼 건물. 여기 없는 건물은 아직 VillageBodies (그림 판정 뒤 차례로 옮김)
 		private static readonly Dictionary<string, string> BUILT_MODELS = new()
 		{
-			{ "smithy", "HouseDone" },
+			{ "farm", "Shed" },
+			{ "workshop", "Workshop" },
+			{ "dock", "Dock" },
+			{ "quarry", "Quarry" },
+			{ "museum", "Museum" },
+			{ "ranch", "Barn" },
+			{ "tailor", "Tailor" },
+			{ "training", "Training" },
+			{ "shop", "Shop" },
+			{ "smithy", "Smithy" },
 			{ "atelier", "HouseBlue" },
-			{ "workshop", "HouseDone" },
-			{ "tailor", "HouseBlue" },
-			{ "shop", "HouseBlue" },
+			{ "trial", "Trial" },
 		};
 
+		// 회관 단. 마지막 모습은 그 위 단도 같이 씀
+		private static readonly string[] HALL_MODELS = { "Tent", "Hall2", "Hall3", "Hall4" };
+
 		private static readonly string[] RUIN_MODELS = { "RuinA", "RuinB" };
+
+		// 벽이 없는 자리. 폐허와 공사 모습도 집 모양이 아님
+		private static readonly HashSet<string> YARD_SITES = new() { "dock", "quarry", "training", "trial" };
 
 		private VillageModels Models => VillageModels.Instance;
 
@@ -218,38 +230,29 @@ namespace WitchMendokusai
 			for (int i = 0; i < sites.Length; i++)
 			{
 				BuildingSite site = sites[i];
-				int order = i;
+				bool isYard = YARD_SITES.Contains(site.Id);
+				string ruin = isYard ? "RuinYard" : RUIN_MODELS[i % RUIN_MODELS.Length];
 				WorkState work = Sim.WorkOn(site.Id);
 				int level = Sim.BuildingLevel(site.Id);
 				if (work != null && level == 0)
 				{
 					bool done = Sim.IsWorkDone(work);
-					Show(site.Id, done ? WORK_DONE : WORK, () => VillageBodies.Scaffold(site.Size, done).Build(site.Id, outdoor, site.Position, site.Yaw));
+					string body = (isYard ? "YardWork" : "Work") + (done ? "Done" : string.Empty);
+					Show(site.Id, done ? WORK_DONE : WORK, () => Models.BuildOnGrid(body, outdoor, site.Position, site.Yaw));
 				}
 				else if (level == 0)
 				{
-					Show(site.Id, RUIN, () => Models.BuildOnGrid(RUIN_MODELS[order % RUIN_MODELS.Length], outdoor, site.Position, site.Yaw));
+					Show(site.Id, RUIN, () => Models.BuildOnGrid(ruin, outdoor, site.Position, site.Yaw));
 				}
 				else
 				{
-					Show(site.Id, level.ToString(), () => BuiltBody(site, level));
+					Show(site.Id, level.ToString(), () => Models.BuildOnGrid(BUILT_MODELS[site.Id], outdoor, site.Position, site.Yaw));
 				}
 			}
 		}
 
-		private GameObject TownHallBody(int tier)
-		{
-			if (tier <= 1)
-				return Models.BuildOnGrid("Tent", outdoor, townHallPosition, 0f);
-			return VillageBodies.TownHall(tier).Build("townhall", outdoor, townHallPosition, 0f);
-		}
-
-		private GameObject BuiltBody(BuildingSite site, int level)
-		{
-			if (BUILT_MODELS.TryGetValue(site.Id, out string model))
-				return Models.BuildOnGrid(model, outdoor, site.Position, site.Yaw);
-			return VillageBodies.Built(site.Id, level).Build(site.Id, outdoor, site.Position, site.Yaw);
-		}
+		private GameObject TownHallBody(int tier) =>
+			Models.BuildOnGrid(HALL_MODELS[Mathf.Min(tier, HALL_MODELS.Length) - 1], outdoor, townHallPosition, 0f);
 
 		// 모습이 바뀐 자리만 다시 지음
 		private void Show(string id, string look, System.Func<GameObject> make)

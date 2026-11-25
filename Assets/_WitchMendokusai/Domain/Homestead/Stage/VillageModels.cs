@@ -80,6 +80,15 @@ namespace WitchMendokusai
 			return Build(key, parent, center + Quaternion.Euler(0f, yaw, 0f) * new Vector3(0f, 0f, yard), yaw);
 		}
 
+		// 격자에 맞춘 몸이 차지하는 네모 (x, z)
+		public Rect Footprint(string key, Vector3 position, float yaw)
+		{
+			Vector2Int cells = Find(key).Cells;
+			Vector3 center = Snap(key, position, yaw);
+			Vector2 size = Mathf.RoundToInt(yaw / 90f) % 2 != 0 ? new Vector2(cells.y, cells.x) : cells;
+			return new Rect(center.x - size.x * 0.5f, center.z - size.y * 0.5f, size.x, size.y);
+		}
+
 		private Model Find(string key)
 		{
 			foreach (Model model in models)
