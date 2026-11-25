@@ -17,6 +17,8 @@ namespace WitchMendokusai
 		private static readonly int TEXELS_ID = Shader.PropertyToID("_Texels");
 		private static readonly int SHAPE_ID = Shader.PropertyToID("_Shape");
 		private static readonly int FLASH_ID = Shader.PropertyToID("_Flash");
+		private static readonly int ALPHA_ID = Shader.PropertyToID("_Alpha");
+		private static readonly int SHADE_ID = Shader.PropertyToID("_Shade");
 		private static readonly int DISSOLVE_ID = Shader.PropertyToID("_Dissolve");
 		private static readonly int DISSOLVE_FROM_TIP_ID = Shader.PropertyToID("_DissolveFromTip");
 		private const float FEATHER_SHAPE = 1f;
@@ -27,24 +29,26 @@ namespace WitchMendokusai
 		[SerializeField] private Shader energyShader;
 
 		[Header("색")]
-		[SerializeField, ColorUsage(false, true)] private Color coreColor = new(1.15f, 1.12f, 1.02f);
-		[SerializeField, ColorUsage(false, true)] private Color bodyColor = new(0.98f, 0.86f, 0.52f);
+		[SerializeField, ColorUsage(false, true)] private Color coreColor = new(1.02f, 0.99f, 0.86f);
+		[SerializeField, ColorUsage(false, true)] private Color bodyColor = new(0.95f, 0.74f, 0.34f);
 		[SerializeField, ColorUsage(false, true)] private Color tipColor = new(0.62f, 0.46f, 0.2f);
 		[SerializeField, Min(8f)] private float texelsPerUnit = 32f;
 
 		[Header("검기")]
 		[SerializeField, Min(0.1f)] private float crescentRadius = 0.95f;
 		[SerializeField, Range(20f, 300f)] private float crescentDegrees = 140f;
-		[SerializeField, Range(0.05f, 1f), Tooltip("가운데 두께 (반지름 1 당)")] private float crescentWidth = 0.55f;
+		[SerializeField, Range(0.05f, 1f), Tooltip("가운데 두께 (반지름 1 당)")] private float crescentWidth = 0.3f;
 		[SerializeField, Min(0f)] private float height = 0.7f;
 		[SerializeField, Min(0f), Tooltip("나오는 자리 (인물 앞)")] private float startDistance = 0.4f;
 		[SerializeField, Min(0.02f), Tooltip("끝까지 나는 길이 (초)")] private float flySeconds = 0.22f;
 		[SerializeField, Min(0.02f)] private float fadeSeconds = 0.2f;
-		[SerializeField, Min(0.1f), Tooltip("뒤따르는 빛줄의 길이")] private float trailLength = 3.6f;
-		[SerializeField, Min(0.01f)] private float trailWidth = 0.6f;
+		[SerializeField, Min(0.1f), Tooltip("뒤따르는 빛줄의 길이")] private float trailLength = 2.2f;
+		[SerializeField, Min(0.01f)] private float trailWidth = 0.22f;
 		[SerializeField, Min(0), Tooltip("뒤따르는 잔상 수")] private int echoes = 2;
-		[SerializeField, Min(0f), Tooltip("잔상 사이 거리")] private float echoGap = 0.55f;
-		[SerializeField, Range(0f, 1f), Tooltip("잔상마다 줄어드는 비율")] private float echoShrink = 0.22f;
+		[SerializeField, Min(0f), Tooltip("잔상 사이 거리")] private float echoGap = 0.62f;
+		[SerializeField, Range(0f, 1f), Tooltip("잔상의 세기. 겹쳐도 앞 초승달과 갈리게")] private float echoAlpha = 0.45f;
+		[SerializeField, Range(0f, 1f), Tooltip("잔상마다 줄어드는 비율")] private float echoShrink = 0.16f;
+		[SerializeField, Range(0f, 1f), Tooltip("초승달 판을 카메라 쪽으로 세우는 정도. 0 이면 바닥에 누움")] private float stand = 0.75f;
 		[SerializeField, Range(0f, 1f), Tooltip("나는 동안 커지는 정도")] private float grow = 0.15f;
 		[SerializeField, Min(0.01f), Tooltip("나온 번쩍임이 절반이 되는 길이")] private float flashHalfLife = 0.06f;
 
@@ -69,6 +73,7 @@ namespace WitchMendokusai
 			public Transform Trail;
 			public Transform[] Echoes;
 			public Material Material;
+			public Material EchoMaterial;
 			public Vector3 Origin;
 			public Vector3 Direction;
 			public float Length;
@@ -107,13 +112,17 @@ namespace WitchMendokusai
 			Wave wave = waves.Find(candidate => candidate.Alive == false);
 			if (wave == null)
 			{
-				wave = new Wave { Material = Energy(QUEUE) };
+				wave = new Wave { Material = Energy(QUEUE), EchoMaterial = Energy(QUEUE - 1) };
+				wave.EchoMaterial.SetFloat(ALPHA_ID, echoAlpha);
+				wave.EchoMaterial.SetFloat(SHADE_ID, -0.3f);
 				wave.Crescent = UltimateFxStage.CreateMeshObject("SwordCrescent", root, crescentMesh, wave.Material).transform;
 				wave.Trail = UltimateFxStage.CreateMeshObject("SwordTrail", root, sheathMesh, wave.Material).transform;
 				wave.Echoes = new Transform[echoes];
 				for (int i = 0; i < echoes; i++)
-					wave.Echoes[i] = UltimateFxStage.CreateMeshObject("SwordEcho", root, crescentMesh, wave.Material).transform;
-				wave.Material.SetVector(TEXELS_ID, new Vector4(Mathf.Round(crescentRadius * 3f * texelsPerUnit), Mathf.Round(crescentRadius * crescentWidth * texelsPerUnit), 0f, 0f));
+					wave.Echoes[i] = UltimateFxStage.CreateMeshObject("SwordEcho", root, crescentMesh, wave.EchoMaterial).transform;
+				Vector4 texels = new(Mathf.Round(crescentRadius * 3f * texelsPerUnit), Mathf.Round(crescentRadius * crescentWidth * texelsPerUnit), 0f, 0f);
+				wave.Material.SetVector(TEXELS_ID, texels);
+				wave.EchoMaterial.SetVector(TEXELS_ID, texels);
 				waves.Add(wave);
 			}
 			wave.Origin = origin + Vector3.up * height;
@@ -196,7 +205,10 @@ namespace WitchMendokusai
 			float size = crescentRadius * wave.Width * (1f + grow * fly);
 			Vector3 head = wave.Origin + wave.Direction * distance;
 			// 초승달의 앞날이 head 에 오게
-			wave.Crescent.SetPositionAndRotation(head - wave.Direction * size, Quaternion.LookRotation(wave.Direction, Vector3.up));
+			// 옆에서 봐도 초승달로 읽히게 판을 카메라 쪽으로 세움
+			Vector3 toCamera = Vector3.ProjectOnPlane(-viewCamera.transform.forward, wave.Direction);
+			Vector3 plane = Vector3.Slerp(Vector3.up, toCamera.sqrMagnitude > 0.0001f ? toCamera.normalized : Vector3.up, stand);
+			wave.Crescent.SetPositionAndRotation(head - wave.Direction * size, Quaternion.LookRotation(wave.Direction, plane));
 			wave.Crescent.localScale = new Vector3(size, 1f, size);
 			for (int i = 0; i < wave.Echoes.Length; i++)
 			{
@@ -210,6 +222,7 @@ namespace WitchMendokusai
 			wave.Trail.SetPositionAndRotation(head - wave.Direction * (size * 0.2f), Quaternion.FromToRotation(Vector3.up, -wave.Direction));
 			wave.Trail.localScale = new Vector3(trailWidth * wave.Width, Mathf.Max(0.01f, trail), trailWidth * wave.Width);
 			wave.Material.SetFloat(DISSOLVE_ID, fade);
+			wave.EchoMaterial.SetFloat(DISSOLVE_ID, Mathf.Max(fade, 0.35f * fly));
 			wave.Material.SetFloat(FLASH_ID, Mathf.Pow(0.5f, age / flashHalfLife) * 0.8f);
 			wave.Crescent.gameObject.SetActive(true);
 			wave.Trail.gameObject.SetActive(true);

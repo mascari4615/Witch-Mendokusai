@@ -27,7 +27,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Min(0f)] public float FrameThickness { get; private set; } = 8f;
 		[field: SerializeField, Min(0f), Tooltip("틀이 카드 밖으로 나가는 폭")] public float FrameOutset { get; private set; } = 10f;
 		[field: SerializeField, Min(0f)] public float CornerSize { get; private set; } = 34f;
-		[field: SerializeField, Range(0f, 1f), Tooltip("바탕에 깔리는 흐름의 세기")] public float BackFlow { get; private set; } = 0.1f;
+		[field: SerializeField, Range(0f, 1f), Tooltip("바탕에 깔리는 흐름의 세기")] public float BackFlow { get; private set; } = 0.02f;
 
 		[field: Header("공개와 고른 뒤 (실제 초)")]
 		[field: SerializeField, Min(0.05f), Tooltip("빛으로 덮였다가 걷히는 길이")] public float CoverSeconds { get; private set; } = 0.45f;

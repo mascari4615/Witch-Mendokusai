@@ -85,7 +85,7 @@ Shader "WM/UI/FormCardFlow"
 				// 비스듬히 위로 흐르는 굵은 띠
 				float wobble = noise(uv * float2(3.0, 4.0) + float2(0.0, -clock * _Flow)) * 2.6;
 				float ribbon = sin((uv.x * 1.1 + uv.y * 1.5 - clock * _Flow) * 11.0 + wobble) * 0.5 + 0.5;
-				float shade = saturate(0.18 + ribbon * 0.72 + (noise(uv * 9.0) - 0.5) * 0.18);
+				float shade = saturate(0.42 + ribbon * 0.5 + (noise(uv * 9.0) - 0.5) * 0.14);
 				if (_Pillar > 0.5)
 				{
 					// 빛기둥: 가운데가 밝고 가장자리는 칸 계단으로 잘림
