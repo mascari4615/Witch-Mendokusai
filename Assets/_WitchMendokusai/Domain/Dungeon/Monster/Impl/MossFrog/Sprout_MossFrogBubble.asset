@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afdffcaa2dad480d94fa202fbf929ab2, type: 3}
+  m_Name: Sprout_MossFrogBubble
+  m_EditorClassIdentifier: 
+  previewRadius: 1
+  previewLength: 6
+  previewWidth: 1
+  previewTitle: ""
+  previewSubtitle: ""
+  sprites:
+  - {fileID: 21300000, guid: 54773a207ac74517aee22819c67c0ac9, type: 3}
+  - {fileID: 21300000, guid: df3ca57cdca045fd91b53a34bef9dedf, type: 3}
+  - {fileID: 21300000, guid: 661d696d10db4fa9b2bf088eb0b5ada7, type: 3}
+  material: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
+  scaleRange: {x: 1.05, y: 1.25}
+  jitter: 0.08
+  budRatio: 0.22
+  budTremble: 0.04
+  leadSeconds: 0.06
+  riseSeconds: 0.09
+  overshoot: 0.24
+  holdSeconds: 0.95
+  sinkSeconds: 0.26
+  strikeTint: {r: 0.9, g: 1.1, b: 0.65, a: 1}
+  moundSprite: {fileID: 21300000, guid: 2c7598e38ebe400fb8825884b9603079, type: 3}
+  moundScale: 1.25
+  moundDepth: 0.18
+  chunkSprites:
+  - {fileID: 21300000, guid: 9ef35973d837479db0ed15caaeaeafa3, type: 3}
+  chunkCount: 4
+  chunkSpeed: 3.8
+  chunkSeconds: 0.5
+  chunkScale: 0.75
+  stainRadius: 0.8
+  stainColor: {r: 0.22, g: 0.42, b: 0.12, a: 0.65}
+  moment:
+    Shake: 0.05
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 4
+    ShardSpeed: 3.6
+    ShardLife: 0.35
+    ShardSize: 0.12
+    RingSize: 0
+    RingLife: 0.28
+    Color: {r: 0.55, g: 0.78, b: 0.25, a: 1}
+  sound: 17

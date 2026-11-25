@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c9cb325a17a4e2796506500dbbe4580, type: 3}
+  m_Name: Puffs_MossFrogSplash
+  m_EditorClassIdentifier: 
+  previewRadius: 1
+  previewLength: 6
+  previewWidth: 1
+  previewTitle: ""
+  previewSubtitle: ""
+  set: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
+  sheet: {fileID: 2800000, guid: 7281d7fc11e64668b75de368403f1847, type: 3}
+  columns: 4
+  rows: 4
+  frames: {x: 2, y: 14}
+  color: {r: 1.05, g: 1.1, b: 0.9, a: 1}
+  cover: 0.85
+  count: 1
+  seconds: 0.6
+  leadSeconds: 0
+  emitSeconds: 0
+  halfSize: {x: 0.75, y: 1.0}
+  lift: 0.42
+  originLift: 0.5
+  travelRatio: 0
+  spread: 0
+  ringRatio: 0.85
+  ringSeconds: 0.28
+  ringColor: {r: 0.75, g: 1.15, b: 0.45, a: 0.8}
+  moment:
+    Shake: 0
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 0
+    ShardSpeed: 3.6
+    ShardLife: 0.35
+    ShardSize: 0.12
+    RingSize: 0
+    RingLife: 0.28
+    Color: {r: 0.6, g: 0.82, b: 0.28, a: 1}
+  sound: 19
+  stainRadius: 0
+  stainColor: {r: 0.26, g: 0.46, b: 0.16, a: 0.45}

@@ -15,6 +15,30 @@ MonoBehaviour:
   m_GroupName: Monster
   m_GUID: 8441897c411af7449b7a8235e8879cb2
   m_SerializeEntries:
+  - m_GUID: 8aacaa622194476ab481a869a672d93f
+    m_Address: Monster/43
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f1fadc91e3f74415b2f22016a27a0c71
+    m_Address: Monster/42
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e6969d431e72459b92b861c59bfc69b2
+    m_Address: Monster/41
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 45735d6c1bce4553a541b6b1f0901ae5
+    m_Address: Monster/40
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 47eab578dcd24b72ab33be197cce10b5
     m_Address: Monster/39
     m_ReadOnly: 0

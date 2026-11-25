@@ -219,5 +219,68 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(2, cycle);
 			Assert.AreEqual(0.75f, progress, 0.001f, "조각마다 엇갈림");
 		}
+
+		[Test]
+		public void Added_forest_monsters_have_valid_five_part_attacks()
+		{
+			List<string> errors = new();
+			for (int id = 40; id <= 43; id++)
+			{
+				Monster monster = Find(id);
+				Assert.AreEqual(MonsterType.Normal, monster.Type, monster.Name);
+				Assert.IsNotNull(monster.Sprite, $"{monster.Name} 그림");
+				Assert.IsNotEmpty(monster.Sprites, $"{monster.Name} 변종 그림");
+				WindupMonsterAttack attack = monster.Attack as WindupMonsterAttack;
+				Assert.IsNotNull(attack, $"{monster.Name} 예고 공격");
+				Assert.IsNotNull(attack.Pose.Windup, $"{monster.Name} 준비 자세");
+				Assert.IsNotNull(attack.Pose.Strike, $"{monster.Name} 타격 자세");
+				Assert.IsNotNull(attack.Pose.Rest, $"{monster.Name} 쉼 자세");
+				Assert.IsTrue(attack.WindupFx != null || attack.StrikeFx != null, $"{monster.Name} 공격 이펙트");
+				AssertFxRefsValid(attack.WindupFx);
+				AssertFxRefsValid(attack.StrikeFx);
+				attack.Validate(monster, errors);
+				if (monster.BodyFx != null)
+					monster.BodyFx.Validate(errors);
+			}
+			Assert.AreEqual(0, errors.Count, string.Join("\n", errors));
+
+			Assert.IsInstanceOf<ScatterZoneMonsterAttack>(Find(40).Attack, "톡톡 꼬투리 흩뿌림");
+			LineMonsterAttack broom = Find(41).Attack as LineMonsterAttack;
+			Assert.IsNotNull(broom, "꼬마 빗자루 직선 띠");
+			Assert.IsTrue(broom.HitEffect.Pushes, "꼬마 빗자루 밀기");
+			ScatterZoneMonsterAttack frog = Find(42).Attack as ScatterZoneMonsterAttack;
+			Assert.IsNotNull(frog, "이끼 개구리 일렬 솟음");
+			Assert.AreEqual(UnitStatusType.Slow, frog.HitEffect.Status, "이끼 개구리 둔화");
+			ZoneMonsterAttack kettle = Find(43).Attack as ZoneMonsterAttack;
+			Assert.IsNotNull(kettle, "덜컹 주전자 둘레 장판");
+			Assert.AreEqual(ZoneCenter.Caster, kettle.Center, "덜컹 주전자 시전자 중심");
+			Assert.AreEqual(UnitStatusType.Burn, kettle.HitEffect.Status, "덜컹 주전자 화상");
+			Assert.IsNotNull(Find(43).BodyFx, "덜컹 주전자 김 몸 효과");
+		}
+
+		private static void AssertFxRefsValid(CombatFx fx)
+		{
+			if (fx == null)
+				return;
+			SerializedObject serialized = new(fx);
+			if (fx is LobFx)
+			{
+				Assert.Greater(serialized.FindProperty("flySprites").arraySize, 0, fx.name);
+				Assert.IsNotNull(serialized.FindProperty("landedSprite").objectReferenceValue, fx.name);
+				Assert.IsNotNull(serialized.FindProperty("swellSprite").objectReferenceValue, fx.name);
+				Assert.IsNotNull(serialized.FindProperty("material").objectReferenceValue, fx.name);
+			}
+			else if (fx is SproutFx)
+			{
+				Assert.Greater(serialized.FindProperty("sprites").arraySize, 0, fx.name);
+				Assert.IsNotNull(serialized.FindProperty("material").objectReferenceValue, fx.name);
+				Assert.IsNotNull(serialized.FindProperty("moundSprite").objectReferenceValue, fx.name);
+			}
+			else if (fx is PaintedPuffsFx)
+			{
+				Assert.IsNotNull(serialized.FindProperty("set").objectReferenceValue, fx.name);
+				Assert.IsNotNull(serialized.FindProperty("sheet").objectReferenceValue, fx.name);
+			}
+		}
 	}
 }
