@@ -14,10 +14,9 @@ GameObject:
   - component: {fileID: 561227956567855424}
   - component: {fileID: 1039002003960305327}
   - component: {fileID: 583588676360578013}
-  - component: {fileID: 575611921271601471}
-  - component: {fileID: 190725151985998239}
-  - component: {fileID: 102446430032819406}
-  - component: {fileID: 95904184126328538}
+  - component: {fileID: 1140137660872802902}
+  - component: {fileID: 1094278949584187787}
+  - component: {fileID: 833923840108355635}
   m_Layer: 0
   m_Name: NinjaCloseSlash
   m_TagString: Untagged
@@ -122,24 +121,7 @@ MonoBehaviour:
   hitReenterToRehit: 0
   knockbackDirectionKind: 0
   usedByPlayer: 1
---- !u!114 &575611921271601471
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 709171319431316125}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa80815181cc44baa55e1a3f14430cd9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MarkBurstOnHit
-  gateStat: 13061
-  markKey: 11
-  marksEveryNth: 0
-  markSeconds: 4
-  burstPrefab: {fileID: 203709152336722340, guid: cf1249344a904860995f7993b8a9ec31, type: 3}
---- !u!114 &190725151985998239
+--- !u!114 &1140137660872802902
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -154,7 +136,7 @@ MonoBehaviour:
   gateStat: -1
   prefab: {fileID: 7445388606266775766, guid: a727dc5b9a284d1f9870bc78abe3bfed, type: 3}
   followScale: 1
---- !u!114 &102446430032819406
+--- !u!114 &1094278949584187787
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -169,7 +151,7 @@ MonoBehaviour:
   gateStat: -1
   prefab: {fileID: 6817792255399347352, guid: 1a54101517e94169a5b41119e7040bcf, type: 3}
   height: 0.8
---- !u!114 &95904184126328538
+--- !u!114 &833923840108355635
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -182,7 +164,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.BleedOnHit
   gateStat: 13070
-  markKey: 12
-  damagePerTick: 3
-  tickSeconds: 1
   seconds: 3

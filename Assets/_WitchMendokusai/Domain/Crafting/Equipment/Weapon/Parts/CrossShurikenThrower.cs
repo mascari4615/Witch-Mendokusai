@@ -32,6 +32,7 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject fieldPrefab;
 		[SerializeField, Min(0.1f)] private float fieldRadius = 2.5f;
 		[SerializeField, Min(0.1f)] private float fieldSeconds = 2f;
+		[SerializeField, Min(0f), Tooltip("폭발 뒤 전기장까지. 맞은 보스의 피격 무적 (0.1초) 보다 길게")] private float fieldDelaySeconds = 0.15f;
 		[SerializeField, Min(0f)] private float echoGapSeconds = 0.35f;
 		[SerializeField, Range(0, 200)] private int echoPercent = 50;
 		[SerializeField, Min(0f)] private float echoRadius = 0.7f;
@@ -96,16 +97,15 @@ namespace WitchMendokusai
 				body = Instantiate(bodyPrefab);
 			body.SetActive(true);
 			Vector3 fullScale = bodyPrefab.transform.localScale * RadiusMultiplier;
-			Vector3 landing = Vector3.zero;
 			for (float elapsed = 0f; elapsed < windupSeconds; elapsed += Time.deltaTime)
 			{
 				float grown = elapsed / windupSeconds;
 				Vector3 above = playerProvider.Current.transform.position + Vector3.up * raiseHeight;
 				Place(above, fullScale * Mathf.Sin(grown * Mathf.PI * 0.5f));
-				landing = LandingPoint();
 				fx.SetGather(body.transform, grown);
 				yield return null;
 			}
+			Vector3 landing = LandingPoint();
 			CombatSfx.Play(CombatSfxEvent.WeaponThrow, body.transform.position);
 			Vector3 start = body.transform.position;
 			fx.PlayFall(start, flightSeconds);
@@ -143,6 +143,8 @@ namespace WitchMendokusai
 				return new Vector3(point.x, origin.y, point.z);
 			Vector3 aim = playerProvider.Current.AimDirection;
 			aim.y = 0f;
+			if (aim.sqrMagnitude < 0.0001f)
+				aim = playerProvider.Current.transform.forward;
 			return origin + aim.normalized * (targetRange * 0.5f);
 		}
 
@@ -151,10 +153,7 @@ namespace WitchMendokusai
 			int blastPercent = CrossShurikenRules.BlastPercent(Stat(heavyStat) > 0, heavyPercent, Stat(repeatPercentStat));
 			int count = CrossShurikenRules.BlastCount(Stat(echoStat) > 0);
 			if (fieldPrefab != null && Stat(fieldStat) > 0)
-			{
-				SkillSpawn.Spawn(objectPoolManager, fieldPrefab, position, Quaternion.identity, context, 0).SetActive(true);
-				fx.PlayField(position, fieldRadius, fieldSeconds);
-			}
+				StartCoroutine(PlaceField(position));
 			float waited = 0f;
 			for (int i = 0; i < count; i++)
 			{
@@ -166,9 +165,20 @@ namespace WitchMendokusai
 				spawned.transform.localScale *= blast.RadiusMultiplier * RadiusMultiplier;
 				if (spawned.TryGetComponent(out ScaledDamage scaledDamage))
 					scaledDamage.SetPercent(blast.DamagePercent);
+				if (i > 0 && spawned.TryGetComponent(out LightningOnBlast lightning))
+					lightning.Mute();
 				spawned.SetActive(true);
-				fx.PlayBlast(position, blastRadius * blast.RadiusMultiplier * RadiusMultiplier);
+				// 공격 범위 강화까지 든 판정 크기를 그대로 그림에
+				fx.PlayBlast(position, blastRadius * spawned.transform.localScale.x);
 			}
+		}
+
+		private IEnumerator PlaceField(Vector3 position)
+		{
+			yield return new WaitForSeconds(fieldDelaySeconds);
+			GameObject field = SkillSpawn.Spawn(objectPoolManager, fieldPrefab, position, Quaternion.identity, context, 0);
+			field.SetActive(true);
+			fx.PlayField(position, fieldRadius * field.transform.localScale.x, fieldSeconds);
 		}
 	}
 }

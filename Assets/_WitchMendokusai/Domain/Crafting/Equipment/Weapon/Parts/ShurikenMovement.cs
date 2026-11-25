@@ -10,6 +10,7 @@ namespace WitchMendokusai
 	{
 		[SerializeField, Min(0f)] private float outboundSpeed = 16f;
 		[SerializeField, Min(0.01f)] private float outboundSeconds = 0.6f;
+		[SerializeField, Min(1f), Tooltip("돌아오는 수리검은 끝에서 느려져 절반만 가므로 나가는 시간을 늘림")] private float returnOutboundScale = 1.6f;
 		[SerializeField, Min(0f)] private float returnSpeed = 18f;
 		[SerializeField, Min(0.01f)] private float returnTimeoutSeconds = 3f;
 		[SerializeField, Min(0f)] private float catchDistance = 0.8f;
@@ -26,6 +27,7 @@ namespace WitchMendokusai
 		private SkillContext context;
 		private Vector3 direction;
 		private int pierceLeft;
+		private bool returns;
 
 		private PlayerProvider playerProvider;
 
@@ -38,7 +40,8 @@ namespace WitchMendokusai
 			direction = Flat(transform.forward);
 			visited.Clear();
 			pierceLeft = Stat(pierceStat);
-			flight.Begin(outboundSeconds, Stat(returnStat) > 0, Stat(bounceStat), returnTimeoutSeconds);
+			returns = Stat(returnStat) > 0;
+			flight.Begin(returns ? outboundSeconds * returnOutboundScale : outboundSeconds, returns, Stat(bounceStat), returnTimeoutSeconds);
 		}
 
 		// 카드 스탯이 없는 칸은 0 (켜지지 않음)
@@ -55,7 +58,8 @@ namespace WitchMendokusai
 				direction = Flat(next.position - transform.position);
 				return;
 			}
-			if (--pierceLeft >= 0)
+			// 돌아오는 수리검은 되돌아오는빗자루처럼 지나가며 벰
+			if (returns || --pierceLeft >= 0)
 				return;
 			flight.Expend();
 			EndIfDone();

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 482275790664655833}
   - component: {fileID: 228065326501811727}
   - component: {fileID: 77195992989466245}
-  - component: {fileID: 542717475192092453}
+  - component: {fileID: 884951711061840169}
   m_Layer: 0
   m_Name: NinjaSpinSlash
   m_TagString: Untagged
@@ -120,7 +120,7 @@ MonoBehaviour:
   hitReenterToRehit: 0
   knockbackDirectionKind: 0
   usedByPlayer: 1
---- !u!114 &542717475192092453
+--- !u!114 &884951711061840169
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -129,14 +129,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1012778675696452648}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa80815181cc44baa55e1a3f14430cd9, type: 3}
+  m_Script: {fileID: 11500000, guid: ff1bf742afec4a3f83418d2669f34bc8, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MarkBurstOnHit
-  gateStat: 13061
-  markKey: 11
-  marksEveryNth: 0
-  markSeconds: 4
-  burstPrefab: {fileID: 203709152336722340, guid: cf1249344a904860995f7993b8a9ec31, type: 3}
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.FollowUser
 --- !u!1 &756616081598870160
 GameObject:
   m_ObjectHideFlags: 0

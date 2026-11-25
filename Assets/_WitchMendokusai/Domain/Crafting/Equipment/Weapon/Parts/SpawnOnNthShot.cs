@@ -3,7 +3,7 @@ using VContainer;
 
 namespace WitchMendokusai
 {
-	// 같은 오브젝트의 생성기 (Spawner) 발사를 세어 everyNth 번째마다 주인공 자리에 prefab 생성. 카드 스탯 (gateStat) 이 켬
+	// 같은 오브젝트의 생성기 (Spawner) 발사를 한 발씩 세어 everyNth 번째마다 주인공 자리에 prefab 생성. 카드 스탯 (gateStat) 이 켬
 	// 쓰는 곳: 알리사 한 바퀴 베기 (단도 다섯 번째)
 	[RequireComponent(typeof(Spawner))]
 	public class SpawnOnNthShot : SkillComponent

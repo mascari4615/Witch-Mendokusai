@@ -162,9 +162,6 @@ namespace WitchMendokusai
 			if (damageInfo.ignoreInvincible == false && (invincibleRoutine != null || RollDodge() || TryRevive(damageInfo)))
 				return;
 
-			// 낙사 같은 강제 피해는 그대로
-			if (damageInfo.ignoreInvincible == false)
-				damageInfo.damage = ArmorRules.Reduce(damageInfo.damage, UnitStat[UnitStatType.ARMOR]);
 			base.ReceiveDamage(damageInfo);
 		}
 

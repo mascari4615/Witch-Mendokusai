@@ -168,7 +168,7 @@ MonoBehaviour:
   <SpawnDelay>k__BackingField: 0.08
   baseInterval: 1.4
   attackSpeedBonusStatType: 13062
-  attackSpeedReductionPerStack: 0.2
+  attackSpeedReductionPerStack: 0.15
   minIntervalRatio: 0.25
   targetRange: 14
   clockStepDegrees: 30
@@ -194,8 +194,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SpawnerInitializer
   spawner: {fileID: 44853725549616928}
   spawnCountStat: 13010
-  baseCount: 0
-  minCount: 1
+  baseCount: 1
+  minCount: 0
   gateStat: -1
 --- !u!1 &355656947837016374
 GameObject:
@@ -432,7 +432,7 @@ MonoBehaviour:
   distance: 1.8
   spreadDegrees: 120
   followRate: 10
-  maxCount: 3
+  maxCount: 4
   sharePercent: 40
   strongSharePercent: 65
   lifeSeconds: 10

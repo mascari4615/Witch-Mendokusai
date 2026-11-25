@@ -14,9 +14,8 @@ GameObject:
   - component: {fileID: 1076666716325777530}
   - component: {fileID: 998751906856995516}
   - component: {fileID: 360888195946802095}
-  - component: {fileID: 444057744738293392}
-  - component: {fileID: 286892193214243062}
-  - component: {fileID: 521221246975704044}
+  - component: {fileID: 1069778381483110145}
+  - component: {fileID: 1095176470985438138}
   m_Layer: 0
   m_Name: StormBladeFast
   m_TagString: Untagged
@@ -122,24 +121,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57546f23e4564b2590c8ed7821ad292f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.ScaledDamage
---- !u!114 &444057744738293392
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 863171421449493851}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa80815181cc44baa55e1a3f14430cd9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MarkBurstOnHit
-  gateStat: 13061
-  markKey: 11
-  marksEveryNth: 0
-  markSeconds: 4
-  burstPrefab: {fileID: 203709152336722340, guid: cf1249344a904860995f7993b8a9ec31, type: 3}
---- !u!114 &286892193214243062
+--- !u!114 &1069778381483110145
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -154,7 +136,7 @@ MonoBehaviour:
   gateStat: 13060
   splitPrefab: {fileID: 337139234231730900, guid: 4e3533b2dde145cc88a05ec736373cf2, type: 3}
   count: 1
---- !u!114 &521221246975704044
+--- !u!114 &1095176470985438138
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

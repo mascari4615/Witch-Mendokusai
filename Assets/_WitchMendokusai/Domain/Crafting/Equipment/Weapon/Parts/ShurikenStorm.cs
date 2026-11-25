@@ -91,10 +91,13 @@ namespace WitchMendokusai
 			int count = ShurikenStormRules.Count(baseCount, PlayerStat[countStat], 0, maxCount);
 			float ringRadius = ShurikenStormRules.ScatterRadius(scatterElapsed, Radius, scatterDistance, scatterOutSeconds, scatterReturnSpeed);
 			UpdateRing(0, playerProvider.Current.transform.position, count, ringRadius, 100);
-			IReadOnlyList<Vector3> clonePositions = PlayerStat[cloneStat] > 0 ? cloneRunner.Positions : System.Array.Empty<Vector3>();
-			for (int i = 0; i < clonePositions.Count; i++)
-				UpdateRing(i + 1, clonePositions[i], ShurikenStormRules.CloneCount(count, maxCountPerClone), cloneRadius, cloneRunner.SharePercent);
-			for (int i = clonePositions.Count + 1; i < rings.Count; i++)
+			int cloneCount = PlayerStat[cloneStat] > 0 ? cloneRunner.CloneCount : 0;
+			for (int i = 0; i < cloneCount; i++)
+			{
+				bool present = cloneRunner.TryGetPosition(i, out Vector3 position);
+				UpdateRing(i + 1, position, present ? ShurikenStormRules.CloneCount(count, maxCountPerClone) : 0, cloneRadius, cloneRunner.SharePercent);
+			}
+			for (int i = cloneCount + 1; i < rings.Count; i++)
 				Match(rings[i], 0);
 		}
 
@@ -104,11 +107,14 @@ namespace WitchMendokusai
 				rings.Add(new Ring());
 			Ring ring = rings[index];
 			Match(ring, count);
+			// 도는 동안 받은 공격 범위 카드도 바로
+			float scale = PlayerStat.PercentMultiplier(UnitStatType.PROJECTILE_SCALE_BONUS);
 			for (int i = 0; i < ring.Blades.Count; i++)
 			{
 				GameObject blade = ring.Blades[i];
 				Vector3 outward = Quaternion.Euler(0f, ShurikenStormRules.Angle(i, count, spin), 0f) * Vector3.forward;
 				blade.transform.SetPositionAndRotation(center + outward * ringRadius + Vector3.up * height, Quaternion.Euler(0f, spin * bladeSpinRatio, 0f));
+				blade.transform.localScale = bladePrefab.transform.localScale * scale;
 				if (blade.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(PlayerStat[damageBonusStat]);
 				if (blade.TryGetComponent(out ScaledDamage scaledDamage))

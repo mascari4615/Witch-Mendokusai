@@ -43,7 +43,6 @@ namespace WitchMendokusai
 
 		private readonly List<Clone> clones = new();
 		private readonly List<Action<GameObject, Vector3>> handlers = new();
-		private readonly List<Vector3> positions = new();
 		private SkillContext context;
 
 		private PlayerProvider playerProvider;
@@ -60,19 +59,14 @@ namespace WitchMendokusai
 
 		public int SharePercent => ShadowCloneRules.SharePercent(PlayerStat[strongStat] > 0, sharePercent, strongSharePercent);
 
-		// 지금 보이는 분신의 자리
-		public IReadOnlyList<Vector3> Positions
+		public int CloneCount => clones.Count;
+
+		// 분신 index 의 자리. 사라진 동안은 false (번호는 그대로)
+		public bool TryGetPosition(int index, out Vector3 position)
 		{
-			get
-			{
-				positions.Clear();
-				foreach (Clone clone in clones)
-				{
-					if (clone.Cycle.IsPresent)
-						positions.Add(clone.Body.transform.position);
-				}
-				return positions;
-			}
+			Clone clone = clones[index];
+			position = clone.Body.transform.position;
+			return clone.Cycle.IsPresent;
 		}
 
 		public override void InitContext(SkillObject skillObject) => context = skillObject.Context;
@@ -161,8 +155,10 @@ namespace WitchMendokusai
 			if (direction == Vector3.zero)
 				return;
 			int bonus = source.DamageBonusStat == UnitStatType.NONE ? 0 : PlayerStat[source.DamageBonusStat];
-			foreach (Vector3 position in Positions)
+			for (int i = 0; i < clones.Count; i++)
 			{
+				if (TryGetPosition(i, out Vector3 position) == false)
+					continue;
 				GameObject spawned = SkillSpawn.Spawn(objectPoolManager, source.Prefab, position, Quaternion.LookRotation(direction, Vector3.up), context, bonus);
 				if (spawned.TryGetComponent(out ScaledDamage scaledDamage))
 					scaledDamage.SetPercent(SharePercent);

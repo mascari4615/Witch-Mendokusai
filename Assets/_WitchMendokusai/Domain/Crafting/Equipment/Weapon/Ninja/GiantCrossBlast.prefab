@@ -16,8 +16,7 @@ GameObject:
   - component: {fileID: 574757573238892559}
   - component: {fileID: 228428974545510441}
   - component: {fileID: 1018535804015366187}
-  - component: {fileID: 1071074092710056598}
-  - component: {fileID: 1116825485715068233}
+  - component: {fileID: 1127082403409723994}
   m_Layer: 0
   m_Name: GiantCrossBlast
   m_TagString: Untagged
@@ -155,24 +154,7 @@ MonoBehaviour:
   burstPercent: 40
   linkPrefab: {fileID: 782639293330990798, guid: 94047a5e0e584fb29e1a49e0e1607c59, type: 3}
   blastRadius: 3.5
---- !u!114 &1071074092710056598
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1016533516666412268}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa80815181cc44baa55e1a3f14430cd9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MarkBurstOnHit
-  gateStat: 13061
-  markKey: 11
-  marksEveryNth: 0
-  markSeconds: 4
-  burstPrefab: {fileID: 203709152336722340, guid: cf1249344a904860995f7993b8a9ec31, type: 3}
---- !u!114 &1116825485715068233
+--- !u!114 &1127082403409723994
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

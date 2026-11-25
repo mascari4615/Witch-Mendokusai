@@ -20,6 +20,7 @@ namespace WitchMendokusai
 		[SerializeField, Range(0, 200)] private int burstPercent = 40;
 
 		[SerializeField] private GameObject linkPrefab;
+		[SerializeField, Min(0f), Tooltip("폭발 뒤 전기까지. 맞은 보스의 피격 무적 (0.1초) 보다 길게")] private float delaySeconds = 0.12f;
 		[SerializeField, Min(0f), Tooltip("폭발 판정 반지름. 크기 배율이 곱해짐")] private float blastRadius = 2f;
 
 		private readonly HashSet<UnitObject> struck = new();
@@ -29,6 +30,8 @@ namespace WitchMendokusai
 		private SkillContext context;
 		private DamageInfo lastDamage;
 		private bool fired;
+		private bool muted;
+		private float firstHitTime;
 
 		private ObjectPoolManager objectPoolManager;
 
@@ -40,20 +43,31 @@ namespace WitchMendokusai
 			context = skillObject.Context;
 			struck.Clear();
 			fired = false;
+			muted = false;
 		}
+
+		// 두 번째 작은 폭발은 전기를 내지 않음. 판정 초기화 뒤에 부름
+		public void Mute() => muted = true;
 
 		public DamageInfo Modify(DamagingObject source, UnitObject victim, DamageInfo damageInfo)
 		{
-			lastDamage = damageInfo;
+			// 한 적의 치명타나 표식이 번개 전체로 번지지 않게 가장 낮은 피해를 기준으로
+			if (struck.Count == 0 || damageInfo.damage < lastDamage.damage)
+				lastDamage = damageInfo;
 			return damageInfo;
 		}
 
-		public void OnHit(DamagingObject source, UnitObject victim) => struck.Add(victim);
+		public void OnHit(DamagingObject source, UnitObject victim)
+		{
+			if (struck.Count == 0)
+				firstHitTime = Time.time;
+			struck.Add(victim);
+		}
 
-		// 같은 물리 걸음의 적중이 다 모인 다음 프레임에
+		// 적중이 다 모이고 피격 무적이 풀린 뒤에
 		private void Update()
 		{
-			if (fired || struck.Count == 0)
+			if (fired || muted || struck.Count == 0 || Time.time < firstHitTime + delaySeconds)
 				return;
 			fired = true;
 			int chainCount = chainCountStat == UnitStatType.NONE ? 0 : SkillSpawn.Stacks(context, chainCountStat);
@@ -77,7 +91,7 @@ namespace WitchMendokusai
 			targets.Clear();
 			foreach (GameObject monster in ObjectBufferManager.GetObjects(ObjectType.Monster))
 			{
-				if (monster.TryGetComponent(out UnitObject unit) == false || unit.IsAlive == false)
+				if (monster.TryGetComponent(out UnitObject unit) == false || unit.IsAlive == false || unit.Health.IsHitInvincible)
 					continue;
 				Vector3 position = unit.transform.position;
 				victims.Add(unit);

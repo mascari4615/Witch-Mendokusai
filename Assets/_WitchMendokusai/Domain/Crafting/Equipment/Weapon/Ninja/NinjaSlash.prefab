@@ -14,9 +14,8 @@ GameObject:
   - component: {fileID: 1104390907234644822}
   - component: {fileID: 207680954769979713}
   - component: {fileID: 823749500008600590}
-  - component: {fileID: 169174227679511220}
-  - component: {fileID: 564036831250230234}
-  - component: {fileID: 607718770818355463}
+  - component: {fileID: 354917412839337846}
+  - component: {fileID: 709444943189055720}
   m_Layer: 0
   m_Name: NinjaSlash
   m_TagString: Untagged
@@ -121,24 +120,7 @@ MonoBehaviour:
   hitReenterToRehit: 0
   knockbackDirectionKind: 0
   usedByPlayer: 1
---- !u!114 &169174227679511220
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 594064540258667227}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa80815181cc44baa55e1a3f14430cd9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MarkBurstOnHit
-  gateStat: 13061
-  markKey: 11
-  marksEveryNth: 0
-  markSeconds: 4
-  burstPrefab: {fileID: 203709152336722340, guid: cf1249344a904860995f7993b8a9ec31, type: 3}
---- !u!114 &564036831250230234
+--- !u!114 &354917412839337846
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -153,7 +135,7 @@ MonoBehaviour:
   gateStat: -1
   prefab: {fileID: 7445388606266775766, guid: a727dc5b9a284d1f9870bc78abe3bfed, type: 3}
   followScale: 1
---- !u!114 &607718770818355463
+--- !u!114 &709444943189055720
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

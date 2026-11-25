@@ -16,8 +16,7 @@ GameObject:
   - component: {fileID: 242879457339277585}
   - component: {fileID: 400048917247497018}
   - component: {fileID: 366138733607253986}
-  - component: {fileID: 1074820867423775403}
-  - component: {fileID: 538543287075677503}
+  - component: {fileID: 1027357186034070918}
   m_Layer: 0
   m_Name: NinjaCrossBlast
   m_TagString: Untagged
@@ -155,24 +154,7 @@ MonoBehaviour:
   burstPercent: 40
   linkPrefab: {fileID: 782639293330990798, guid: 94047a5e0e584fb29e1a49e0e1607c59, type: 3}
   blastRadius: 2.0
---- !u!114 &1074820867423775403
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 141195612072828973}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa80815181cc44baa55e1a3f14430cd9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.MarkBurstOnHit
-  gateStat: 13061
-  markKey: 11
-  marksEveryNth: 0
-  markSeconds: 4
-  burstPrefab: {fileID: 203709152336722340, guid: cf1249344a904860995f7993b8a9ec31, type: 3}
---- !u!114 &538543287075677503
+--- !u!114 &1027357186034070918
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

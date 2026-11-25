@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 1121822663289293171}
   - component: {fileID: 1067414789417212064}
   - component: {fileID: 219349973521434448}
+  - component: {fileID: 305380968971509432}
   m_Layer: 0
   m_Name: GiantSpin
   m_TagString: Untagged
@@ -135,8 +136,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.StatWhileActive
   gateStat: 13096
-  targetStat: 700
-  amount: 33
+  targetStat: 750
+  amount: 25
+--- !u!114 &305380968971509432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 478226214470024270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff1bf742afec4a3f83418d2669f34bc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.FollowUser
 --- !u!1 &288929143594595655
 GameObject:
   m_ObjectHideFlags: 0
