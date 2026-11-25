@@ -66,7 +66,7 @@ namespace WitchMendokusai
 				float u = (float)i / segments;
 				float angle = startRadians - sweepRadians * u;
 				Vector3 direction = new(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
-				float thickness = width * Mathf.Pow(Mathf.Sin(Mathf.PI * u), taperPower);
+				float thickness = width * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(Mathf.PI * u)), taperPower);
 				vertices[i * 2] = direction * (radius - thickness);
 				vertices[i * 2 + 1] = direction * radius;
 				uvs[i * 2] = new Vector2(u, 0f);
