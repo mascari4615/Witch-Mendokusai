@@ -19,6 +19,7 @@ namespace WitchMendokusai
 			public Mesh Mesh;
 			public Material[] Materials;
 			public bool CastShadow;
+			[Tooltip("차지하는 1m 칸. 건물은 앞마당 한 줄 포함 (BuildingFootprint 와 같은 단위)")] public Vector2Int Cells;
 			public Bounds[] Solids;
 		}
 
@@ -59,6 +60,24 @@ namespace WitchMendokusai
 				box.size = solid.size;
 			}
 			return root;
+		}
+
+		// 복셀과 같은 1m 격자에 바닥이 맞는 자리. 반 바퀴가 아닌 방향은 가로세로가 바뀜
+		public Vector3 Snap(string key, Vector3 position, float yaw)
+		{
+			Vector2Int cells = Find(key).Cells;
+			bool isSideways = Mathf.RoundToInt(yaw / 90f) % 2 != 0;
+			float halfX = (isSideways ? cells.y : cells.x) * 0.5f;
+			float halfZ = (isSideways ? cells.x : cells.y) * 0.5f;
+			return new Vector3(Mathf.Round(position.x - halfX) + halfX, position.y, Mathf.Round(position.z - halfZ) + halfZ);
+		}
+
+		// 칸에 맞춰 세움. 앞마당이 있는 건물은 몸이 그만큼 뒤로
+		public GameObject BuildOnGrid(string key, Transform parent, Vector3 position, float yaw)
+		{
+			Vector3 center = Snap(key, position, yaw);
+			float yard = Find(key).Cells.y >= 5 ? 0.5f : 0f;
+			return Build(key, parent, center + Quaternion.Euler(0f, yaw, 0f) * new Vector3(0f, 0f, yard), yaw);
 		}
 
 		private Model Find(string key)

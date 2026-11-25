@@ -38,7 +38,7 @@ namespace WitchMendokusai
 		[Tooltip("곧은 길. 시작과 끝 (x, z, x, z)")]
 		[SerializeField] private Vector4[] streets =
 		{
-			new(0f, -24f, 0f, 11f), new(-24f, 6f, 24f, 6f), new(-22f, -6f, 13f, -6f), new(-18f, 18f, 24f, 18f), new(-3f, 6f, -3f, 18f), new(24f, 6f, 24f, 18f),
+			new(0f, -24f, 0f, 11f), new(-24f, 6f, 24f, 6f), new(-16f, -6f, 13f, -6f), new(-18f, 18f, 24f, 18f), new(-3f, 6f, -3f, 18f), new(24f, 6f, 24f, 18f),
 		};
 		[SerializeField] private BuildingSite[] sites =
 		{
@@ -46,7 +46,7 @@ namespace WitchMendokusai
 			new() { Id = "workshop", Position = new Vector3(8f, 0f, 10f), Yaw = 0f, Size = new Vector2(4.2f, 3.2f), Door = new Vector3(0f, 0f, -2.4f) },
 			new() { Id = "dock", Position = new Vector3(11.6f, 0f, -11f), Yaw = -90f, Size = new Vector2(2.2f, 2f), Door = new Vector3(0f, 0f, -0.4f) },
 			new() { Id = "quarry", Position = new Vector3(24f, 0f, 14f), Yaw = 0f, Size = new Vector2(4f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
-			new() { Id = "museum", Position = new Vector3(12f, 0f, 22f), Yaw = 0f, Size = new Vector2(6f, 4f), Door = new Vector3(0f, 0f, -4f) },
+			new() { Id = "museum", Position = new Vector3(13f, 0f, 22f), Yaw = 0f, Size = new Vector2(6f, 4f), Door = new Vector3(0f, 0f, -4f) },
 			new() { Id = "ranch", Position = new Vector3(-22f, 0f, 10f), Yaw = 0f, Size = new Vector2(3.6f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
 			new() { Id = "tailor", Position = new Vector3(-6f, 0f, 22f), Yaw = 0f, Size = new Vector2(3.8f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
 			new() { Id = "training", Position = new Vector3(-16f, 0f, 22f), Yaw = 0f, Size = new Vector2(4.6f, 3.6f), Door = new Vector3(0f, 0f, -1.6f) },
@@ -146,6 +146,7 @@ namespace WitchMendokusai
 				MarkGround();
 				ground.Build();
 			}
+			VillageLook.Ensure(transform);
 			BuildSites();
 			BuildFarm();
 			BuildWild();

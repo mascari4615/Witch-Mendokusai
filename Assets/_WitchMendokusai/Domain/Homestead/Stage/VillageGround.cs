@@ -50,10 +50,10 @@ namespace WitchMendokusai
 		[SerializeField] private float grassClumpScale = 0.12f;
 		[SerializeField] private float grassHueScale = 0.04f;
 		[SerializeField, Range(0f, 1f)] private float grassFlowerChance = 0.014f;
-		[SerializeField] private Color32 grassRootA = new(0x35, 0x52, 0x24, 0xff);
-		[SerializeField] private Color32 grassRootB = new(0x3f, 0x5f, 0x2a, 0xff);
-		[SerializeField] private Color32 grassTipA = new(0x92, 0xb2, 0x5a, 0xff);
-		[SerializeField] private Color32 grassTipB = new(0xae, 0xc6, 0x72, 0xff);
+		[SerializeField] private Color32 grassRootA = new(0x22, 0x47, 0x14, 0xff);
+		[SerializeField] private Color32 grassRootB = new(0x2e, 0x54, 0x1a, 0xff);
+		[SerializeField] private Color32 grassTipA = new(0x8c, 0xb8, 0x3e, 0xff);
+		[SerializeField] private Color32 grassTipB = new(0xb8, 0xcc, 0x56, 0xff);
 		[SerializeField] private Color32 grassDryRoot = new(0x7f, 0x9a, 0x3e, 0xff);
 		[SerializeField] private Color32 grassDryTip = new(0xb9, 0xc4, 0x6a, 0xff);
 

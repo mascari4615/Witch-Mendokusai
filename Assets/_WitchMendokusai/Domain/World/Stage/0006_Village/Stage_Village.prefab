@@ -60,7 +60,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 740fff591798d4167e8d6462de065940, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  terrainMaterial: {fileID: 2100000, guid: 9da5a284727d2ad4da57cfe769426fb6, type: 2}
+  terrainMaterial: {fileID: 2100000, guid: 81e13104570e13b385e6426efaee0db5, type: 2}
   grassMaterial: {fileID: 2100000, guid: 8b0904c6f635f374fa2cebe66e681143, type: 2}
   flowerMaterials:
   - {fileID: 2100000, guid: 9933c98ab90a21a42a7abc6a9bbdde43, type: 2}

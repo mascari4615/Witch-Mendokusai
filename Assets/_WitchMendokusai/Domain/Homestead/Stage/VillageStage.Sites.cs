@@ -19,9 +19,6 @@ namespace WitchMendokusai
 		[SerializeField] private float riseSeconds = 0.7f;
 		[SerializeField] private float riseOvershoot = 0.12f;
 
-		[Header("Ruins")]
-		[SerializeField] private Vector2 ruinScale = new(0.72f, 1f);
-
 		[Header("Lamps")]
 		[SerializeField] private int lampOnHour = 17;
 		[SerializeField] private int lampOffHour = 6;
@@ -48,8 +45,8 @@ namespace WitchMendokusai
 
 		private void BuildSites()
 		{
-			Models.Build("Well", outdoor, wellPosition, 24f);
-			Models.Build("Board", outdoor, boardPosition, 0f);
+			Models.BuildOnGrid("Well", outdoor, wellPosition, 0f);
+			Models.BuildOnGrid("Board", outdoor, boardPosition, 0f);
 			HomesteadSpot.Create(outdoor, boardPosition + new Vector3(0f, 0f, -0.9f), "BoardSpot", () => "길드 게시판", () => $"의뢰 {Sim.State.Requests.Count}", () => manager.Panels.Show(HomesteadPanelType.Guild));
 			HomesteadSpot.Create(outdoor, townHallPosition + townHallDoor, "TownHallSpot", () => Sim.TownHallDef(Sim.State.TownHall).Name, () => "마을 돌보기", () => manager.Panels.Show(HomesteadPanelType.Village));
 			HomesteadSpot.Create(outdoor, housePosition + Quaternion.Euler(0f, houseYaw, 0f) * houseDoor, "HouseSpot", () => "집", () => "들어가기", EnterRoom);
@@ -62,23 +59,31 @@ namespace WitchMendokusai
 			BuildDressing();
 			foreach (Vector3 lamp in new[] { new Vector3(-2f, 0f, 8f), new Vector3(2f, 0f, 8f), new Vector3(-2f, 0f, 0f), new Vector3(2f, 0f, 0f), new Vector3(-2f, 0f, -10f), new Vector3(2f, 0f, -10f) })
 			{
-				GameObject body = Models.Build("Lamp", outdoor, lamp, lamp.x > 0f ? 180f : 0f);
+				GameObject body = Models.BuildOnGrid("Lamp", outdoor, lamp, lamp.x > 0f ? 180f : 0f);
 				lampLights.Add(AddGlow(body.transform, lampLightOffset, lampRange, lampIntensity));
 			}
 		}
 
-		// 집 둘레의 돌담, 돌길, 울타리, 통
+		// 돌담, 돌길, 울타리, 통. 한 칸짜리를 칸 수만큼 이어 놓음
 		private void BuildDressing()
 		{
-			foreach ((string key, float x, float z, float yaw) in dressing)
-				Models.Build(key, outdoor, new Vector3(x, 0f, z), yaw);
+			foreach ((string key, int x, int z, int count, bool isAlongZ) in dressing)
+			{
+				for (int i = 0; i < count; i++)
+				{
+					Vector3 cell = new(x + 0.5f + (isAlongZ ? 0 : i), 0f, z + 0.5f + (isAlongZ ? i : 0));
+					bool hasTwin = key == "StoneWall" || key == "StonePath";
+					Models.BuildOnGrid(hasTwin && i % 2 == 1 ? key + "B" : key, outdoor, cell, isAlongZ && key != "StonePath" ? 90f : 0f);
+				}
+			}
 		}
 
-		private static readonly (string Key, float X, float Z, float Yaw)[] dressing =
+		private static readonly (string Key, int X, int Z, int Count, bool IsAlongZ)[] dressing =
 		{
-			("StoneWall", -17f, 7.9f, 0f), ("StoneWall", -20.4f, 15.4f, 90f), ("Fence", -11.6f, 8.2f, 0f),
-			("StonePath", 0f, -3f, 0f), ("StonePath", 0f, -9f, 0f), ("StonePath", 0f, 9f, 0f), ("StonePath", -15f, 6.9f, 0f),
-			("Props", -11.2f, 11f, 0f), ("Props", 11.6f, 10.6f, 0f), ("Fence", -12.2f, -3.6f, 0f),
+			("StoneWall", -23, 7, 5, false), ("StoneWall", -23, 8, 8, true), ("Fence", -11, 8, 2, false), ("Fence", -11, 14, 2, false),
+			("StonePath", -1, -5, 16, true), ("StonePath", 0, -5, 16, true), ("StonePath", -15, 6, 2, true), ("StonePath", -8, 6, 2, true), ("StonePath", 8, -6, 2, true),
+			("Props", -11, 12, 1, false), ("Props", 12, 12, 1, false), ("Fence", -5, -12, 4, false), ("Fence", 1, -12, 4, false),
+			("StoneWall", 2, 12, 2, false), ("StoneWall", -5, 12, 2, false),
 		};
 
 		private bool IsNight => manager.Hour >= lampOnHour || manager.Hour < lampOffHour;
@@ -209,7 +214,7 @@ namespace WitchMendokusai
 		{
 			RefreshLamps();
 			Show("townhall", Sim.State.TownHall.ToString(), () => TownHallBody(Sim.State.TownHall));
-			Show("house", Sim.State.HouseTier.ToString(), () => Models.Build("HouseMended", outdoor, housePosition, houseYaw));
+			Show("house", Sim.State.HouseTier.ToString(), () => Models.BuildOnGrid("HouseMended", outdoor, housePosition, houseYaw));
 			for (int i = 0; i < sites.Length; i++)
 			{
 				BuildingSite site = sites[i];
@@ -223,7 +228,7 @@ namespace WitchMendokusai
 				}
 				else if (level == 0)
 				{
-					Show(site.Id, RUIN, () => Models.Build(RUIN_MODELS[order % RUIN_MODELS.Length], outdoor, site.Position, site.Yaw, Mathf.Lerp(ruinScale.x, ruinScale.y, Mathf.InverseLerp(2f, 6f, site.Size.x))));
+					Show(site.Id, RUIN, () => Models.BuildOnGrid(RUIN_MODELS[order % RUIN_MODELS.Length], outdoor, site.Position, site.Yaw));
 				}
 				else
 				{
@@ -235,14 +240,14 @@ namespace WitchMendokusai
 		private GameObject TownHallBody(int tier)
 		{
 			if (tier <= 1)
-				return Models.Build("Tent", outdoor, townHallPosition, 0f);
+				return Models.BuildOnGrid("Tent", outdoor, townHallPosition, 0f);
 			return VillageBodies.TownHall(tier).Build("townhall", outdoor, townHallPosition, 0f);
 		}
 
 		private GameObject BuiltBody(BuildingSite site, int level)
 		{
 			if (BUILT_MODELS.TryGetValue(site.Id, out string model))
-				return Models.Build(model, outdoor, site.Position, site.Yaw);
+				return Models.BuildOnGrid(model, outdoor, site.Position, site.Yaw);
 			return VillageBodies.Built(site.Id, level).Build(site.Id, outdoor, site.Position, site.Yaw);
 		}
 

@@ -21,10 +21,11 @@ namespace WitchMendokusai
 		}
 
 		[Header("Farm")]
-		[SerializeField] private Vector3 farmOrigin = new(-24f, 0f, -9f);
-		[SerializeField] private Vector2 plotGap = new(2f, 2f);
+		[SerializeField] private Vector3 farmOrigin = new(-23.5f, 0f, -6.5f);
+		[SerializeField] private Vector2 plotGap = new(1f, 1f);
 		[SerializeField] private int plotColumns = 6;
-		[SerializeField] private float plotWobble = 0f;
+		[Tooltip("밭 한 칸 몸의 배율. 칸은 복셀과 같은 1m")]
+		[SerializeField] private float plotScale = 0.56f;
 		[SerializeField] private Vector2 cropHeight = new(0.25f, 0.95f);
 
 		[Header("Wild")]
@@ -86,10 +87,7 @@ namespace WitchMendokusai
 		{
 			int column = index % plotColumns;
 			int row = index / plotColumns;
-			// 자로 잰 격자로 보이지 않게 조금씩 어긋남
-			float offsetX = Mathf.PerlinNoise(index * 1.7f, 0.3f) - 0.5f;
-			float offsetZ = Mathf.PerlinNoise(0.7f, index * 1.3f) - 0.5f;
-			return farmOrigin + new Vector3(column * plotGap.x + offsetX * plotWobble * 4f, 0f, -row * plotGap.y + offsetZ * plotWobble * 4f);
+			return farmOrigin + new Vector3(column * plotGap.x, 0f, -row * plotGap.y);
 		}
 
 		private void MarkFarm()
@@ -97,7 +95,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < PLOT_MAX; i++)
 			{
 				Vector3 position = PlotPosition(i);
-				ground.AddBlock(new Vector2(position.x, position.z), 0.9f);
+				ground.AddBlock(new Vector2(position.x, position.z), 0.6f);
 			}
 		}
 
@@ -108,10 +106,12 @@ namespace WitchMendokusai
 				int index = i;
 				Vector3 position = PlotPosition(i);
 				PlotView view = new();
-				view.Overgrown = OvergrownBody(i).Build("PlotOvergrown", outdoor, position, index * 61f, castShadow: false);
-				view.Wild = WildBody(i).Build("PlotWild", outdoor, position, index * 47f % 20f - 10f, castShadow: false);
-				view.Dry = PlotBody(new Color(1f, 0.92f, 0.82f)).Build("Plot", outdoor, position, index * 47f % 20f - 10f, castShadow: false);
-				view.Wet = PlotBody(new Color(0.62f, 0.56f, 0.56f)).Build("PlotWet", outdoor, position, index * 47f % 20f - 10f, castShadow: false);
+				view.Overgrown = OvergrownBody(i).Build("PlotOvergrown", outdoor, position, 0f, castShadow: false);
+				view.Wild = WildBody(i).Build("PlotWild", outdoor, position, 0f, castShadow: false);
+				view.Dry = PlotBody(new Color(1f, 0.92f, 0.82f)).Build("Plot", outdoor, position, 0f, castShadow: false);
+				view.Wet = PlotBody(new Color(0.62f, 0.56f, 0.56f)).Build("PlotWet", outdoor, position, 0f, castShadow: false);
+				foreach (GameObject body in new[] { view.Overgrown, view.Wild, view.Dry, view.Wet })
+					body.transform.localScale = Vector3.one * plotScale;
 				view.Crop = HomesteadSprite.Create(outdoor, position + Vector3.up * 0.14f, null, 1f);
 				view.Spot = HomesteadSpot.Create(outdoor, position, "PlotSpot", () => PlotName(index), () => PlotRole(index), () => UsePlot(index)).gameObject;
 				plots.Add(view);

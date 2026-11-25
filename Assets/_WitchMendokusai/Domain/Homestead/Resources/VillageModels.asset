@@ -25,17 +25,18 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 0828f00823bb802b133a2e8aef3cfff9, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 6, y: 6}
     Solids:
-    - m_Center: {x: -1.55, y: 1.1, z: -2.1}
+    - m_Center: {x: -1.82, y: 1.1, z: -2.27}
       m_Extent: {x: 0.95, y: 1.1, z: 0.25}
-    - m_Center: {x: 1.45, y: 1.1, z: -2.1}
+    - m_Center: {x: 1.72, y: 1.1, z: -2.27}
       m_Extent: {x: 1.05, y: 1.1, z: 0.25}
-    - m_Center: {x: 0, y: 1.1, z: 2.1}
-      m_Extent: {x: 2.5, y: 1.1, z: 0.25}
-    - m_Center: {x: -2.5, y: 1.1, z: 0}
-      m_Extent: {x: 0.25, y: 1.1, z: 2.1}
-    - m_Center: {x: 2.5, y: 1.1, z: 0}
-      m_Extent: {x: 0.25, y: 1.1, z: 2.1}
+    - m_Center: {x: 0, y: 1.1, z: 2.27}
+      m_Extent: {x: 2.77, y: 1.1, z: 0.25}
+    - m_Center: {x: -2.77, y: 1.1, z: 0}
+      m_Extent: {x: 0.25, y: 1.1, z: 2.27}
+    - m_Center: {x: 2.77, y: 1.1, z: 0}
+      m_Extent: {x: 0.25, y: 1.1, z: 2.27}
   - Key: RuinB
     Mesh: {fileID: 4300000, guid: 5956f605bb748cabd6f2b54cf3723ffb, type: 2}
     Materials:
@@ -48,17 +49,18 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 0828f00823bb802b133a2e8aef3cfff9, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 5, y: 5}
     Solids:
-    - m_Center: {x: 1.35, y: 1.1, z: -1.9}
+    - m_Center: {x: 1.32, y: 1.1, z: -1.77}
       m_Extent: {x: 0.95, y: 1.1, z: 0.25}
-    - m_Center: {x: -1.25, y: 1.1, z: -1.9}
+    - m_Center: {x: -1.22, y: 1.1, z: -1.77}
       m_Extent: {x: 1.05, y: 1.1, z: 0.25}
-    - m_Center: {x: 0, y: 1.1, z: 1.9}
-      m_Extent: {x: 2.3, y: 1.1, z: 0.25}
-    - m_Center: {x: 2.3, y: 1.1, z: 0}
-      m_Extent: {x: 0.25, y: 1.1, z: 1.9}
-    - m_Center: {x: -2.3, y: 1.1, z: 0}
-      m_Extent: {x: 0.25, y: 1.1, z: 1.9}
+    - m_Center: {x: 0, y: 1.1, z: 1.77}
+      m_Extent: {x: 2.27, y: 1.1, z: 0.25}
+    - m_Center: {x: 2.27, y: 1.1, z: 0}
+      m_Extent: {x: 0.25, y: 1.1, z: 1.77}
+    - m_Center: {x: -2.27, y: 1.1, z: 0}
+      m_Extent: {x: 0.25, y: 1.1, z: 1.77}
   - Key: HouseMended
     Mesh: {fileID: 4300000, guid: 72787e884105c7c9e202cfe8b5bd57ed, type: 2}
     Materials:
@@ -68,17 +70,15 @@ MonoBehaviour:
     - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
     - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
     - {fileID: 2100000, guid: 407d1098b56076abeffb2c7d268873fe, type: 2}
-    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
     - {fileID: 2100000, guid: c86a6287c691fa2bffb93b5259890e03, type: 2}
     - {fileID: 2100000, guid: df37b9ad118cebdb93389873033391fa, type: 2}
     - {fileID: 2100000, guid: 0828f00823bb802b133a2e8aef3cfff9, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 6, y: 6}
     Solids:
     - m_Center: {x: 0, y: 1.5, z: 0}
-      m_Extent: {x: 2.85, y: 1.5, z: 2.35}
-    - m_Center: {x: 2.9, y: 0.4, z: -2.6}
-      m_Extent: {x: 0.8, y: 0.4, z: 0.35}
+      m_Extent: {x: 3, y: 1.5, z: 2.5}
   - Key: HouseDone
     Mesh: {fileID: 4300000, guid: c00de5049a96c1f140d1efa4eb141215, type: 2}
     Materials:
@@ -88,17 +88,15 @@ MonoBehaviour:
     - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
     - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
     - {fileID: 2100000, guid: 407d1098b56076abeffb2c7d268873fe, type: 2}
-    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
     - {fileID: 2100000, guid: c86a6287c691fa2bffb93b5259890e03, type: 2}
     - {fileID: 2100000, guid: df37b9ad118cebdb93389873033391fa, type: 2}
     - {fileID: 2100000, guid: 0828f00823bb802b133a2e8aef3cfff9, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 5, y: 5}
     Solids:
     - m_Center: {x: 0, y: 1.5, z: 0}
-      m_Extent: {x: 2.65, y: 1.5, z: 2.2}
-    - m_Center: {x: 2.6, y: 0.4, z: -2.4}
-      m_Extent: {x: 0.8, y: 0.4, z: 0.35}
+      m_Extent: {x: 2.5, y: 1.5, z: 2}
   - Key: HouseBlue
     Mesh: {fileID: 4300000, guid: 97de433f0af2a91402af6e507da7c686, type: 2}
     Materials:
@@ -108,44 +106,58 @@ MonoBehaviour:
     - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
     - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
     - {fileID: 2100000, guid: 407d1098b56076abeffb2c7d268873fe, type: 2}
-    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
     - {fileID: 2100000, guid: c86a6287c691fa2bffb93b5259890e03, type: 2}
     - {fileID: 2100000, guid: df37b9ad118cebdb93389873033391fa, type: 2}
     - {fileID: 2100000, guid: 0828f00823bb802b133a2e8aef3cfff9, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 6, y: 6}
     Solids:
     - m_Center: {x: 0, y: 1.5, z: 0}
-      m_Extent: {x: 2.75, y: 1.5, z: 2.25}
-    - m_Center: {x: -2.7, y: 0.4, z: -2.5}
-      m_Extent: {x: 0.8, y: 0.4, z: 0.35}
+      m_Extent: {x: 3, y: 1.5, z: 2.5}
   - Key: StoneWall
     Mesh: {fileID: 4300000, guid: 962baa32ffabe29e21c2a9cbda9f7944, type: 2}
     Materials:
     - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
-    - {fileID: 2100000, guid: df37b9ad118cebdb93389873033391fa, type: 2}
-    - {fileID: 2100000, guid: 0828f00823bb802b133a2e8aef3cfff9, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 1, y: 1}
     Solids:
-    - m_Center: {x: 0, y: 0.35, z: 0}
-      m_Extent: {x: 2.5, y: 0.35, z: 0.25}
+    - m_Center: {x: 0, y: 0.31, z: 0}
+      m_Extent: {x: 0.5, y: 0.31, z: 0.21}
+  - Key: StoneWallB
+    Mesh: {fileID: 4300000, guid: c063f8efac4e1ff95cbf9b0900162280, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.31, z: 0}
+      m_Extent: {x: 0.5, y: 0.31, z: 0.21}
   - Key: StonePath
     Mesh: {fileID: 4300000, guid: 544d1afe55c98bf8c4698c11fb770bb7, type: 2}
     Materials:
     - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
-    - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 0
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: StonePathB
+    Mesh: {fileID: 4300000, guid: 1ada858e97116ca825f7164f43bc62e5, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    CastShadow: 0
+    Cells: {x: 1, y: 1}
     Solids: []
   - Key: Fence
     Mesh: {fileID: 4300000, guid: 1c586da3c16c79363107f4752c70cc8a, type: 2}
     Materials:
     - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
-    - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 1, y: 1}
     Solids:
     - m_Center: {x: 0, y: 0.4, z: 0}
-      m_Extent: {x: 2.2, y: 0.4, z: 0.075}
+      m_Extent: {x: 0.5, y: 0.4, z: 0.06}
   - Key: Well
     Mesh: {fileID: 4300000, guid: 4671a5b5c7684d8450ce1595a04a310d, type: 2}
     Materials:
@@ -159,6 +171,7 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 0828f00823bb802b133a2e8aef3cfff9, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 2, y: 2}
     Solids:
     - m_Center: {x: 0, y: 0.5, z: 0}
       m_Extent: {x: 0.95, y: 0.5, z: 0.95}
@@ -171,6 +184,7 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 1, y: 1}
     Solids:
     - m_Center: {x: 0, y: 1, z: 0}
       m_Extent: {x: 0.15, y: 1, z: 0.15}
@@ -183,6 +197,7 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 3, y: 1}
     Solids:
     - m_Center: {x: 0, y: 1, z: 0}
       m_Extent: {x: 1.05, y: 1, z: 0.15}
@@ -196,6 +211,7 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 7, y: 6}
     Solids:
     - m_Center: {x: 0, y: 1, z: 2}
       m_Extent: {x: 3, y: 1, z: 0.25}
@@ -209,6 +225,7 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 1, y: 1}
     Solids: []
   - Key: Reeds
     Mesh: {fileID: 4300000, guid: 5313fec5f63bc9b5dca061bef5f2760e, type: 2}
@@ -217,6 +234,7 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 0
+    Cells: {x: 1, y: 1}
     Solids: []
   - Key: LilyPads
     Mesh: {fileID: 4300000, guid: b644ec0670264cfefc5c327d8863b30d, type: 2}
@@ -224,6 +242,7 @@ MonoBehaviour:
     - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
     - {fileID: 2100000, guid: df37b9ad118cebdb93389873033391fa, type: 2}
     CastShadow: 0
+    Cells: {x: 1, y: 1}
     Solids: []
   - Key: Props
     Mesh: {fileID: 4300000, guid: ab54193c8de2cb7cf2cd8c207425a406, type: 2}
@@ -231,8 +250,8 @@ MonoBehaviour:
     - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
     - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
     - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
-    - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 1
+    Cells: {x: 2, y: 1}
     Solids:
-    - m_Center: {x: 0, y: 0.4, z: 0.1}
-      m_Extent: {x: 1, y: 0.4, z: 0.35}
+    - m_Center: {x: 0, y: 0.4, z: 0}
+      m_Extent: {x: 0.9, y: 0.4, z: 0.35}

@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: VillageTerrain
+  m_Shader: {fileID: 4800000, guid: d722055a63954b64a53d7998ebf3aee0, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Control:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _L0:
+        m_Texture: {fileID: 2800000, guid: b10d7a6a383ace54b8a6912d594d4463, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _L1:
+        m_Texture: {fileID: 2800000, guid: b930061924c96104dbd508ac6159a6ba, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _L2:
+        m_Texture: {fileID: 2800000, guid: b5186386300c81a2cff85f7f0278ac86, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _L3:
+        m_Texture: {fileID: 2800000, guid: cef77115977b20f7f2f24afedf95f697, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Noise:
+        m_Texture: {fileID: 2800000, guid: 112ac5bc33ffc324ab5b4015ec8aa3a4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Wall:
+        m_Texture: {fileID: 2800000, guid: e44676e27e8ddc244a491ff490085b53, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Far: 1
+    - _HeightBlend: 0.45
+    - _Hex: 1
+    - _Linear: 0.5
+    - _Macro: 1
+    - _WallOn: 0
+    - _WallTile: 3.2
+    m_Colors:
+    - _Tiles: {r: 2.6, g: 5, b: 3, a: 2.4}
+    - _WorldSize: {r: 0, g: 0, b: 100, a: 100}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
