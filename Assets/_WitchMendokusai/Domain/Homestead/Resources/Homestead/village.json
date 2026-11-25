@@ -155,7 +155,7 @@
 		{"Id": "path_dirt", "X": -8, "Z": 10, "CountX": 4, "CountZ": 1},
 		{"Id": "path_dirt", "X": -8, "Z": 11, "CountX": 2, "CountZ": 1},
 		{"Id": "path_dirt", "X": 8, "Z": 9, "CountX": 2, "CountZ": 3},
-		{"Id": "path_dirt", "X": 2, "Z": -11, "CountX": 9, "CountZ": 2},
+		{"Id": "path_dirt", "X": 1, "Z": -11, "CountX": 10, "CountZ": 2},
 		{"Id": "lamp", "X": -5, "Z": 1, "Turn": 0},
 		{"Id": "lamp", "X": 5, "Z": 8, "Turn": 2},
 		{"Id": "lamp", "X": -2, "Z": -4, "Turn": 0},
