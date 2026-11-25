@@ -19,7 +19,6 @@ namespace WitchMendokusai
 		private readonly VisualElement pips;
 		private readonly Label line;
 		private readonly Label news;
-		private readonly VisualElement stamp;
 
 		public DiscoveryScreenCard(EntryDescriptor entry)
 		{
@@ -42,7 +41,6 @@ namespace WitchMendokusai
 			line = AchievementElements.Text(this, string.Empty, "wm-ach-card__line");
 			news = AchievementElements.Text(this, "NEW", "wm-discovery-news");
 			news.style.display = DisplayStyle.None;
-			stamp = AchievementElements.Part(this, USS_STAMP);
 		}
 
 		public void Bind(DiscoveryRecordInfo record)
@@ -53,10 +51,10 @@ namespace WitchMendokusai
 			EnableInClassList(USS_COMPLETE, record.IsComplete);
 		}
 
-		/// <summary>다 채운 칸에만 찍음. null 이면 도장 없음</summary>
-		public void SetStamp(RenderTexture texture) => ShowStamp(stamp, texture);
+		/// <summary>다 채운 칸에만 찍음</summary>
+		public void AddStamp(RenderTexture texture) => ShowStamp(AchievementElements.Part(this, USS_STAMP), texture);
 
-		/// <summary>도장 하나를 보이거나 숨김. 한 종의 장도 같이 씀</summary>
+		/// <summary>도장 하나를 보이거나, null 이면 숨김. 한 종의 장도 같이 씀</summary>
 		public static void ShowStamp(VisualElement stamp, RenderTexture texture)
 		{
 			stamp.style.backgroundImage = texture != null ? new StyleBackground(Background.FromRenderTexture(texture)) : new StyleBackground(StyleKeyword.None);

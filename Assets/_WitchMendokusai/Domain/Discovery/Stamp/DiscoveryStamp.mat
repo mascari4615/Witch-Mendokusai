@@ -29,9 +29,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _FarShadowScale: 2
+    - _FarShadowStrength: 0.6
     - _Fit: 0.55
-    - _LumHigh: 0.92
-    - _LumLow: 0.12
+    - _LumHigh: 0.85
+    - _LumLow: 0.05
     - _Offset: 0.01
     m_Colors:
     - _Gold0: {r: 0.54, g: 0.32, b: 0.04, a: 1}
@@ -39,6 +41,7 @@ Material:
     - _Gold2: {r: 0.96, g: 0.78, b: 0.31, a: 1}
     - _Gold3: {r: 1, g: 0.93, b: 0.63, a: 1}
     - _Light: {r: 1, g: 0.94, b: 0.69, a: 1}
+    - _LightDirection: {r: -1, g: 1, b: 0, a: 0}
     - _Shadow: {r: 0.43, g: 0.25, b: 0.02, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -216,7 +216,7 @@ namespace WitchMendokusai
 				card.Bind(record);
 				if (record.IsComplete && entry.Source is Monster monster)
 				{
-					card.SetStamp(stampBaker.StampOf(monster));
+					card.AddStamp(stampBaker.StampOf(monster));
 				}
 			}
 			// 방향 키로 화면 밖 카드에 가면 따라 내려감

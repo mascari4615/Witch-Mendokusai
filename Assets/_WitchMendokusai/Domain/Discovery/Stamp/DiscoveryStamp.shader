@@ -17,7 +17,10 @@ Shader "WM/UI/DiscoveryStamp"
 		_Gold3 ("Gold 3 Light", Color) = (1, 0.93, 0.63, 1)
 		_Shadow ("Shadow", Color) = (0.43, 0.25, 0.02, 1)
 		_Light ("Edge Light", Color) = (1, 0.94, 0.69, 1)
+		_LightDirection ("Light Direction On Plate (xy)", Vector) = (-1, 1, 0, 0)
 		_Offset ("Edge Offset On Plate", Range(0, 0.03)) = 0.01
+		_FarShadowScale ("Far Shadow Distance In Edge Offsets", Range(1, 4)) = 2
+		_FarShadowStrength ("Far Shadow Strength", Range(0, 1)) = 0.6
 	}
 	SubShader
 	{
@@ -44,7 +47,10 @@ Shader "WM/UI/DiscoveryStamp"
 			float4 _Gold3;
 			float4 _Shadow;
 			float4 _Light;
+			float4 _LightDirection;
 			float _Offset;
+			float _FarShadowScale;
+			float _FarShadowStrength;
 
 			float4 SampleSprite(float2 uv)
 			{
@@ -60,19 +66,20 @@ Shader "WM/UI/DiscoveryStamp"
 				float4 plate = tex2D(_Plate, input.uv);
 				float3 color = plate.rgb;
 
-				float shadowFar = SampleSprite(input.uv + float2(-2, 2) * _Offset).a;
-				float shadowNear = SampleSprite(input.uv + float2(-1, 1) * _Offset).a;
-				float light = SampleSprite(input.uv + float2(1, -1) * _Offset).a;
-				color = lerp(color, _Shadow.rgb, saturate(max(shadowFar * 0.6, shadowNear)));
+				float2 toLight = _LightDirection.xy * _Offset;
+				float shadowFar = SampleSprite(input.uv + toLight * _FarShadowScale).a;
+				float shadowNear = SampleSprite(input.uv + toLight).a;
+				float light = SampleSprite(input.uv - toLight).a;
+				color = lerp(color, _Shadow.rgb, saturate(max(shadowFar * _FarShadowStrength, shadowNear)));
 				color = lerp(color, _Light.rgb, light);
 
 				float4 sprite = SampleSprite(input.uv);
-				// 밝기는 눈에 보이는 값 (감마) 으로 셈
-				float lum = pow(saturate(dot(sprite.rgb, float3(0.2126, 0.7152, 0.0722))), 1.0 / 2.2);
-				float t = saturate((lum - _LumLow) / max(0.001, _LumHigh - _LumLow)) * 3.0;
-				float3 gold = lerp(_Gold0.rgb, _Gold1.rgb, saturate(t));
-				gold = lerp(gold, _Gold2.rgb, saturate(t - 1.0));
-				gold = lerp(gold, _Gold3.rgb, saturate(t - 2.0));
+				// 밝기 (Rec. 709) 는 눈에 보이는 값 (감마) 으로
+				float brightness = LinearToGammaSpaceExact(saturate(dot(sprite.rgb, float3(0.2126, 0.7152, 0.0722))));
+				float goldStep = saturate((brightness - _LumLow) / max(0.001, _LumHigh - _LumLow)) * 3.0;
+				float3 gold = lerp(_Gold0.rgb, _Gold1.rgb, saturate(goldStep));
+				gold = lerp(gold, _Gold2.rgb, saturate(goldStep - 1.0));
+				gold = lerp(gold, _Gold3.rgb, saturate(goldStep - 2.0));
 				color = lerp(color, gold, sprite.a);
 
 				return float4(color, plate.a);

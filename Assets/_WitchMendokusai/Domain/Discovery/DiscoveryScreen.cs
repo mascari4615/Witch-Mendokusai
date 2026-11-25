@@ -244,6 +244,7 @@ namespace WitchMendokusai
 			detailArea.Clear();
 			shownEntry = null;
 			listPage.Deactivate();
+			stampBaker.Clear();
 			// 닫힌 뒤 확인 키가 숨은 버튼을 누르지 않게 포커스를 놓음
 			if (container.focusController?.focusedElement is VisualElement focused && container.Contains(focused))
 			{

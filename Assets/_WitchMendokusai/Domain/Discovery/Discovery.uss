@@ -4,6 +4,7 @@
 
 /* 배경은 불투명. 흐린 게임 화면을 깔지 않음 (2026-11-22 판정) */
 .wm-discovery {
+    --wm-discovery-gold-on-select: rgb(204, 150, 30);
     background-color: rgb(14, 12, 19);
 }
 
@@ -55,8 +56,8 @@
 
 /* 흰 칸 위에서 밝은 금은 속이 빈 듯 보임 */
 .wm-ach-card:focus .wm-discovery-pip--complete {
-    background-color: rgb(204, 150, 30);
-    border-color: rgb(204, 150, 30);
+    background-color: var(--wm-discovery-gold-on-select);
+    border-color: var(--wm-discovery-gold-on-select);
 }
 
 /* 완성 도장. 그림은 MonsterStampBaker 가 구움 */
