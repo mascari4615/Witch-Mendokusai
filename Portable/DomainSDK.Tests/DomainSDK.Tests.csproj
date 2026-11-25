@@ -209,6 +209,7 @@
     <Compile Include="$(TestsRoot)Alchemy/BrewIngredientTest.cs" />
     <Compile Include="$(TestsRoot)Alchemy/BrewOutcomeTest.cs" />
     <Compile Include="$(TestsRoot)Alchemy/HazardFieldTest.cs" />
+    <Compile Include="$(TestsRoot)Alchemy/TraceRulesTest.cs" />
     <Compile Include="$(TestsRoot)Care/WishResolverTest.cs" />
     <Compile Include="$(TestsRoot)Farming/GreenhousePlotTest.cs" />
     <Compile Include="$(TestsRoot)Farming/GreenhouseTest.cs" />

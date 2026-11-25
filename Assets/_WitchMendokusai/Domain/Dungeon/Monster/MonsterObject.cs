@@ -2,6 +2,7 @@ using System.Collections;
 using FMODUnity;
 using UnityEngine;
 using VContainer;
+using WitchMendokusai.DomainSDK.Alchemy;
 using static WitchMendokusai.WMHelper;
 
 namespace WitchMendokusai
@@ -235,6 +236,7 @@ namespace WitchMendokusai
 			// 전리품/경험치 오브가 바닥에 흩뿌려지거나 DungeonStat 이 오염되지 않게 격리(PlayerObject 선례).
 			if (DungeonManagerBridge.IsDungeon)
 			{
+				dataManager.FeatureSave<TraceSaveSlice>().CountKill(Health.LastDamage.equipmentDataId);
 				DropLoot();
 
 				if (UnitData.Type == MonsterType.Boss)
@@ -270,9 +272,14 @@ namespace WitchMendokusai
 			gameObject.SetActive(false); // 사망 비활성은 컨텍스트 무관(아레나 유닛도 죽으면 사라짐).
 		}
 
+		// 재료에 남는 자취. 보스는 마지막 한 방이 아니라 이번 판에 가장 많이 잡은 도구
+		private TraceType LootTrace() => UnitData.Type == MonsterType.Boss
+			? dataManager.FeatureSave<TraceSaveSlice>().MainTraceOfRun()
+			: TraceSource.OfTool(Health.LastDamage.equipmentDataId);
+
 		protected virtual void DropLoot()
 		{
-			gameLogic.SpawnLootItem(UnitData.Loots, transform.position);
+			gameLogic.SpawnLootItem(UnitData.Loots, transform.position, LootTrace());
 			gameLogic.SpawnGameItem(transform.position);
 			// 경험치는 위협 단계 체력 배율과 무관
 			int rewardMultiplier = Mathf.Clamp(Mathf.CeilToInt((float)threat.UnscaleEnemyHealth(UnitStat[UnitStatType.HP_MAX_STAT]) / healthPerExperienceTier), 1, maxExperienceMultiplier);

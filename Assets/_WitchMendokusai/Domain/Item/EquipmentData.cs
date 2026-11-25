@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using WitchMendokusai.DomainSDK.Alchemy;
 
 namespace WitchMendokusai
 {
@@ -29,6 +30,8 @@ namespace WitchMendokusai
 		[PropertyOrder(26)][field: SerializeField, Tooltip("수선이 이 장비를 강하게 할 때 올리는 스탯 (보통 피해 증가). 비면 수선 대상 아님")] public List<UnitStatType> MendStats { get; private set; } = new();
 		[PropertyOrder(27)][field: SerializeField, Tooltip("이 장비가 주는 수선 (반짇고리). 실 카드를 받아야 돎. 없으면 null")] public MendData Mend { get; private set; }
 		[PropertyOrder(28)][field: SerializeField, Tooltip("이 장비 트리의 레벨 기준 성장 카드 (알리사 정돈된 손 등). 없으면 null")] public LevelGrowthData LevelGrowth { get; private set; }
+
+		[PropertyOrder(29)][field: SerializeField, Tooltip("이 도구로 처치한 적의 재료에 남는 자취. None 이면 없음")] public TraceType Trace { get; private set; } = TraceType.None;
 
 		[PropertyOrder(25)][field: SerializeField] public SurvivalUIKind UIKind { get; private set; } = SurvivalUIKind.Count;
 

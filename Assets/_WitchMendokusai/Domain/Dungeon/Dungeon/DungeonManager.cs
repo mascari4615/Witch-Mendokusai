@@ -243,6 +243,7 @@ namespace WitchMendokusai
 				expChecker.Init();
 				cardManager.Reset();
 				soManager.DungeonItemBuffer.Clear();
+				dataManager.FeatureSave<TraceSaveSlice>().BeginRun();
 				hpRegenElapsed = 0f;
 
 				Context = new DungeonContext

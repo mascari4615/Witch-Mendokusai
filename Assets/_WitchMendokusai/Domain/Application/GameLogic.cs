@@ -4,6 +4,7 @@ using UnityEngine;
 using static WitchMendokusai.SOHelper;
 using static WitchMendokusai.GameDefine;
 using VContainer;
+using WitchMendokusai.DomainSDK.Alchemy;
 using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
@@ -89,7 +90,7 @@ namespace WitchMendokusai
 			objectPoolManager.Spawn(rules.ChestPrefab.gameObject, GetRandomSpawnPosOffset(position)).SetActive(true);
 		}
 
-		public void SpawnLootItem(List<DataSOWithPercentage> lootTable, Vector3 position)
+		public void SpawnLootItem(List<DataSOWithPercentage> lootTable, Vector3 position, TraceType trace = TraceType.None)
 		{
 			Probability<ItemData> probability = new(shouldFill100Percent: true);
 			foreach (DataSOWithPercentage item in lootTable)
@@ -114,7 +115,7 @@ namespace WitchMendokusai
 				GetRandomSpawnPosOffset(position)
 			);
 			lootItem.SetActive(true);
-			lootItem.GetComponent<ItemObject>().Init(dropItem);
+			lootItem.GetComponent<ItemObject>().Init(dropItem, trace);
 		}
 
 		// 처치 바닥 아이템. 회복과 자석은 부서지는 물건 표 전용이라 여기 없음 (mc10)

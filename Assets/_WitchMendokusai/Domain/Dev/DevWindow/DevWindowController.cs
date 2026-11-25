@@ -188,6 +188,7 @@ namespace WitchMendokusai
 			DevCommandRegistry.Instance.Register(new StatusCommand());
 			DevCommandRegistry.Instance.Register(new DropCommand());
 			DevCommandRegistry.Instance.Register(new LevelUpCommand());
+			DevCommandRegistry.Instance.Register(new TraceCommand());
 			DevCommandRegistry.Instance.Register(new ChestCommand());
 			DevCommandRegistry.Instance.Register(new SeedCommand());
 			DevCommandRegistry.Instance.Register(new GodCommand());

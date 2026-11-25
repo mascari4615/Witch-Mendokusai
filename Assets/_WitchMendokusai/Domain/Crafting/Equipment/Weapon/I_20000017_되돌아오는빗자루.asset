@@ -34,5 +34,6 @@ MonoBehaviour:
   <EquipmentType>k__BackingField: 0
   <MendStats>k__BackingField:
   - 11001
+  <Trace>k__BackingField: 1
   <UIKind>k__BackingField: 1
   <ActCostScale>k__BackingField: 1
