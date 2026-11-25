@@ -21,3 +21,11 @@ MonoBehaviour:
     <TargetStat>k__BackingField: 13037
     <AmountPerLevel>k__BackingField: 3
     <Cap>k__BackingField: 30
+  - <CardStat>k__BackingField: 13052
+    <TargetStat>k__BackingField: 13011
+    <AmountPerLevel>k__BackingField: 1
+    <Cap>k__BackingField: 12
+  - <CardStat>k__BackingField: 13053
+    <TargetStat>k__BackingField: 13080
+    <AmountPerLevel>k__BackingField: 1
+    <Cap>k__BackingField: 6

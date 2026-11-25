@@ -244,9 +244,47 @@ namespace WitchMendokusai
 		LIGHTSWORD_MEND = 13_046,
 		LIGHTSWORD_WINGS = 13_047,
 
+		// 알리사 닌자 단계 카드가 켜는 동작. 값은 받은 장수 (켜짐) 이거나 수
+		NINJA_CHAIN = 13_060,
+		NINJA_MARK = 13_061,
+		NINJA_THROW_SPEED = 13_062,
+		NINJA_THROW_LIGHT = 13_063,
+		NINJA_RETURN = 13_064,
+		NINJA_CROSS = 13_065,
+		NINJA_CROSS_RADIUS = 13_066,
+		NINJA_CROSS_CHAIN = 13_067,
+		NINJA_DAGGER = 13_068,
+		NINJA_DAGGER_DOUBLE = 13_069,
+		NINJA_DAGGER_BLEED = 13_070,
+		NINJA_DAGGER_SPIN = 13_071,
+		NINJA_CLONE = 13_072,
+		NINJA_CLONE_COUNT = 13_073,
+		NINJA_CLONE_STRONG = 13_074,
+		NINJA_CLONE_BURST = 13_075,
+
+		// 알리사 표창 폭풍 (닌자 최종). 정본 ShurikenStormRules
+		STORM_COUNT = 13_080,
+		STORM_WIDE = 13_081,
+		STORM_FAST = 13_082,
+		STORM_SCATTER = 13_083,
+		STORM_CLONE = 13_084,
+
+		// 알리사 대형 십자 수리검 (닌자 최종). 정본 CrossShurikenRules
+		GIANT_HEAVY = 13_090,
+		GIANT_FIELD = 13_091,
+		GIANT_ECHO = 13_092,
+		GIANT_BURST = 13_093,
+		GIANT_SPIN = 13_094,
+		GIANT_SPIN_WIDE = 13_095,
+		GIANT_SPIN_GUARD = 13_096,
+		GIANT_WAVE = 13_097,
+		GIANT_DAMAGE_PERCENT = 13_098,
+
 		// 레벨 기준 성장 카드 (LevelGrowthData 의 켜짐 스탯). 값은 받은 장수
 		GROWTH_COOLTIME = 13_050,
 		GROWTH_VOLLEY_DAMAGE = 13_051,
+		GROWTH_THROW_DAMAGE = 13_052,
+		GROWTH_STORM = 13_053,
 
 		// 수선 (반짇고리 실 카드). 빈도는 켜기와 주기 감소, 세기는 한 번의 양. 정본 MendRules
 		MEND_FREQUENCY = 13_100,
