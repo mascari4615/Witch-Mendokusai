@@ -54,6 +54,7 @@ namespace WitchMendokusai
 		// 다른 전체 화면과 같은 오브젝트를 정지 열쇠로 쓰면 서로의 정지를 풀어 버림. 자기 열쇠를 따로
 		private GameObject pauseKey;
 		private Texture2D glowTexture;
+		private MonsterStampBaker stampBaker;
 
 		public EntryProviderRegistry Providers { get; } = new();
 
@@ -113,6 +114,7 @@ namespace WitchMendokusai
 				existingInputManager.UnregisterInputEvent(InputEventType.DiscoveryToggle, InputEventResponseType.Performed, Toggle);
 			}
 			Destroy(glowTexture);
+			stampBaker.Dispose();
 			DestroyToast();
 			container.RemoveFromHierarchy();
 		}
@@ -162,12 +164,13 @@ namespace WitchMendokusai
 			AchievementElements.Text(stage, TITLE, "wm-fullmenu__title");
 
 			VisualElement body = AchievementElements.Part(stage, "wm-ach__body");
-			listPage = new DiscoveryListPage(settings, focus, Providers.Providers, OpenEntry);
+			stampBaker = new MonsterStampBaker(settings);
+			listPage = new DiscoveryListPage(settings, focus, Providers.Providers, stampBaker, OpenEntry);
 			body.Add(listPage);
 
 			glowTexture = MenuStage.CreateGlowTexture(settings.Menu.GlowTextureSize, "DiscoveryGlow");
 			detailArea = AchievementElements.Part(body, "wm-discovery__detail");
-			monsterPage = new MonsterLogPage(monsterLog, glowTexture);
+			monsterPage = new MonsterLogPage(monsterLog, stampBaker, glowTexture);
 
 			// 손가락 조작에서는 KeyHint 규칙으로 숨음
 			VisualElement bottom = AchievementElements.Part(stage, "wm-ach__bottom");

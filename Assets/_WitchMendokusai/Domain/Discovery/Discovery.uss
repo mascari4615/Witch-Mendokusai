@@ -48,6 +48,37 @@
     border-color: var(--wm-ach-tier-3);
 }
 
+/* 고른 칸은 흰 칠이 말하므로 완성의 금테는 남김 */
+.wm-discovery-tile--complete:focus {
+    border-color: var(--wm-ach-tier-3);
+}
+
+/* 흰 칸 위에서 밝은 금은 속이 빈 듯 보임 */
+.wm-ach-card:focus .wm-discovery-pip--complete {
+    background-color: rgb(204, 150, 30);
+    border-color: rgb(204, 150, 30);
+}
+
+/* 완성 도장. 그림은 MonsterStampBaker 가 구움 */
+.wm-discovery-stamp {
+    position: absolute;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-discovery-stamp--card {
+    width: 92px;
+    height: 92px;
+    right: -12px;
+    top: -4px;
+}
+
+.wm-discovery-stamp--page {
+    width: 190px;
+    height: 190px;
+    left: 407px;
+    bottom: -10px;
+}
+
 .wm-discovery-pip--on {
     background-color: var(--wm-fullmenu-glow);
     border-color: var(--wm-fullmenu-glow);

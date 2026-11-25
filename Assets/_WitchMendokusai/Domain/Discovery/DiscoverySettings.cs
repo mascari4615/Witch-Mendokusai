@@ -16,5 +16,9 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("ESC 메뉴 설정. 무대 기준 크기, 칸 이동 수치, FullMenu.uss 를 같이 씀")] public FullMenuSettings Menu { get; private set; }
 		[field: SerializeField, Tooltip("몬스터 분류 아이콘")] public Sprite MonsterIcon { get; private set; }
 		[field: SerializeField, Tooltip("아이콘이 없는 분류")] public Sprite OtherIcon { get; private set; }
+
+		[field: Header("완성 도장")]
+		[field: SerializeField, Tooltip("금판과 금색 단계. 값은 재질에서")] public Material StampMaterial { get; private set; }
+		[field: SerializeField, Tooltip("도장 한 장의 텍스처 크기. 장에서 크게 보이는 것 기준")] public int StampTextureSize { get; private set; } = 256;
 	}
 }

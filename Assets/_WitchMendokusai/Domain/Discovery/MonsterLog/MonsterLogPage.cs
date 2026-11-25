@@ -22,7 +22,9 @@ namespace WitchMendokusai
 		private static readonly string[] SLOT_NAMES = { "첫 기록", "사는 곳", "몸과 버릇", "전리품", "이야기" };
 
 		private readonly MonsterLogManager manager;
+		private readonly MonsterStampBaker stampBaker;
 		private readonly VisualElement picture;
+		private readonly VisualElement stamp;
 		private readonly Label nameLabel;
 		private readonly Label typeLabel;
 		private readonly VisualElement pips;
@@ -31,16 +33,20 @@ namespace WitchMendokusai
 		private readonly Label defeatsLabel;
 		private readonly VisualElement slots;
 
-		public MonsterLogPage(MonsterLogManager manager, Texture2D glowTexture)
+		public MonsterLogPage(MonsterLogManager manager, MonsterStampBaker stampBaker, Texture2D glowTexture)
 		{
 			this.manager = manager;
+			this.stampBaker = stampBaker;
 			AddToClassList("wm-discovery-page");
 
 			VisualElement left = AchievementElements.Part(this, "wm-discovery-page__left");
 			VisualElement glow = AchievementElements.Part(left, "wm-discovery-page__glow");
 			glow.style.backgroundImage = new StyleBackground(glowTexture);
 			picture = AchievementElements.Part(left, "wm-discovery-page__picture");
-			left.Add(MenuStage.CreateWhereRings());
+			VisualElement rings = MenuStage.CreateWhereRings();
+			left.Add(rings);
+			// 장소 고리 위에 겹쳐야 해서 그림이 아니라 고리에 붙임
+			stamp = AchievementElements.Part(rings, "wm-discovery-stamp wm-discovery-stamp--page");
 			nameLabel = AchievementElements.Text(left, string.Empty, "wm-discovery-page__name");
 			VisualElement sub = AchievementElements.Part(left, "wm-discovery-page__sub");
 			typeLabel = AchievementElements.Text(sub, string.Empty, "wm-ach-chip");
@@ -74,6 +80,7 @@ namespace WitchMendokusai
 			nameLabel.text = met ? monster.Name : DiscoveryScreenCard.HIDDEN_NAME;
 			typeLabel.text = MonsterDiscoveryCategory.TypeLabelOf(monster);
 			DiscoveryScreenCard.FillPips(pips, stage, targets.Count);
+			DiscoveryScreenCard.ShowStamp(stamp, stage >= targets.Count ? stampBaker.StampOf(monster) : null);
 			killsLabel.text = $"{record?.Kills ?? 0}";
 			elitesLabel.text = $"{record?.EliteKills ?? 0}";
 			defeatsLabel.text = $"{record?.Defeats ?? 0}";
