@@ -45,7 +45,7 @@ return "WAIT scene=" + SceneManager.GetActiveScene().name;
 '@
 $stopReset = @'
 using UnityEditor;
-if (EditorApplication.isPlaying) { EditorApplication.ExitPlaymode(); return "exiting"; }
+if (EditorApplication.isPlayingOrWillChangePlaymode) { EditorApplication.ExitPlaymode(); return "exiting"; }
 PlayerSettings.productName = "WitchMendokusai";
 return "restored " + PlayerSettings.productName;
 '@
