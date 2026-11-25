@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
-using UnityEngine;
 
 namespace WitchMendokusai.Tests
 {
@@ -12,7 +11,7 @@ namespace WitchMendokusai.Tests
 		private const string RULES_PATH = "Assets/_WitchMendokusai/Domain/Discovery/MonsterLog/SET_0_MonsterLog.asset";
 
 		private MonsterLogRules rules;
-		private Dictionary<int, Monster> monsters;
+		private List<Monster> monsters;
 
 		[SetUp]
 		public void SetUp()
@@ -20,8 +19,7 @@ namespace WitchMendokusai.Tests
 			rules = AssetDatabase.LoadAssetAtPath<MonsterLogRules>(RULES_PATH);
 			monsters = AssetDatabase.FindAssets($"t:{nameof(Monster)}")
 				.Select(guid => AssetDatabase.LoadAssetAtPath<Monster>(AssetDatabase.GUIDToAssetPath(guid)))
-				.GroupBy(monster => monster.ID)
-				.ToDictionary(group => group.Key, group => group.First());
+				.ToList();
 		}
 
 		[Test]
@@ -30,23 +28,30 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Rare_ids_are_normal_monsters_without_duplicates()
 		{
+			Assert.That(rules.RareMonsterIds, Is.Not.Empty);
 			Assert.That(rules.RareMonsterIds, Is.Unique);
 			foreach (int id in rules.RareMonsterIds)
 			{
-				Assert.That(monsters.ContainsKey(id), Is.True, $"드문 종 번호 {id} 의 몬스터 자산이 없음");
-				Assert.That(monsters[id].Type, Is.Not.EqualTo(MonsterType.Boss), $"드문 종 번호 {id} 가 보스");
+				List<Monster> found = monsters.FindAll(monster => monster.ID == id);
+				Assert.That(found.Count, Is.EqualTo(1), $"드문 종 번호 {id} 의 몬스터 자산이 하나가 아님");
+				Assert.That(found[0].Type, Is.Not.EqualTo(MonsterType.Boss), $"드문 종 번호 {id} 가 보스");
 			}
 		}
 
 		[Test]
-		public void Rare_monster_needs_fewer_kills_than_normal()
+		public void Every_rare_target_is_at_most_the_normal_one()
 		{
-			Monster rare = monsters[rules.RareMonsterIds[0]];
-			Monster normal = monsters.Values.First(monster => monster.Type != MonsterType.Boss && rules.IsRare(monster.ID) == false);
+			Monster rare = monsters.Find(monster => rules.IsRare(monster.ID));
+			Monster normal = monsters.First(monster => monster.Type != MonsterType.Boss && rules.IsRare(monster.ID) == false);
 			IReadOnlyList<int> rareTargets = rules.TargetsOf(rare, true);
 			IReadOnlyList<int> normalTargets = rules.TargetsOf(normal, true);
 
-			Assert.That(rareTargets[rareTargets.Count - 1], Is.LessThan(normalTargets[normalTargets.Count - 1]));
+			// 첫 칸은 둘 다 한 마리. 그 뒤로는 드문 쪽이 적어야 함
+			Assert.That(rareTargets.Count, Is.EqualTo(normalTargets.Count));
+			for (int i = 1; i < rareTargets.Count; i++)
+			{
+				Assert.That(rareTargets[i], Is.LessThan(normalTargets[i]), $"{i} 번째 칸");
+			}
 			Assert.That(rules.TargetsOf(rare, false).Count, Is.EqualTo(rareTargets.Count - 1));
 		}
 	}
