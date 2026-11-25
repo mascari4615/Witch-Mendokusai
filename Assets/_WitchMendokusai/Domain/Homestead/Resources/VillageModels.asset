@@ -203,6 +203,28 @@ MonoBehaviour:
       m_Extent: {x: 0.25, y: 0.5, z: 1.6}
     - m_Center: {x: 0, y: 0.4, z: 0.2}
       m_Extent: {x: 1.1, y: 0.4, z: 0.5}
+  - Key: BankStones
+    Mesh: {fileID: 4300000, guid: 0f85e25381e78417f2607875d1254bb6, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
+    CastShadow: 1
+    Solids: []
+  - Key: Reeds
+    Mesh: {fileID: 4300000, guid: 5313fec5f63bc9b5dca061bef5f2760e, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
+    CastShadow: 0
+    Solids: []
+  - Key: LilyPads
+    Mesh: {fileID: 4300000, guid: b644ec0670264cfefc5c327d8863b30d, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    - {fileID: 2100000, guid: df37b9ad118cebdb93389873033391fa, type: 2}
+    CastShadow: 0
+    Solids: []
   - Key: Props
     Mesh: {fileID: 4300000, guid: ab54193c8de2cb7cf2cd8c207425a406, type: 2}
     Materials:

@@ -13,12 +13,9 @@ namespace WitchMendokusai
 		private const int LINE_POINTS = 10;
 
 		[Header("Water")]
-		[SerializeField] private Vector2 waterFlow = new(0.012f, 0.02f);
-		[SerializeField] private Color shoreColor = new(1.18f, 1.2f, 1.14f);
-		[SerializeField] private Color deepColor = new(0.72f, 0.8f, 0.92f);
 		[SerializeField] private Vector3 streamFrom = new(24f, 0f, -5f);
 		[SerializeField] private Vector3 streamTo = new(33f, 0f, 6f);
-		[SerializeField] private float streamWidth = 2.2f;
+		[SerializeField] private float streamWidth = 3.6f;
 		[SerializeField] private Vector3 streamSpot = new(24.4f, 0f, -1.4f);
 		[SerializeField] private float resultSeconds = 1.6f;
 		[SerializeField] private float floatHeight = 0.5f;
@@ -26,7 +23,6 @@ namespace WitchMendokusai
 		[SerializeField] private float lineSag = 0.5f;
 		[SerializeField] private Vector3 rodTip = new(0.4f, 0.9f, 0f);
 
-		private Material waterMaterial;
 		private FishingDuel duel;
 		private string fishingWater;
 		private bool reelHeld;
@@ -37,30 +33,20 @@ namespace WitchMendokusai
 
 		private void BuildWater()
 		{
-			waterMaterial = new Material(Art.Water) { name = "VillageWater", hideFlags = HideFlags.DontSave };
-			Pool(pondCenter, pondRadius, shoreColor, 0f);
-			Pool(pondCenter, pondRadius * 0.86f, Color.white, 0.012f);
-			Pool(pondCenter + new Vector3(0.4f, 0f, 0.3f), pondRadius * 0.62f, deepColor, 0.024f);
-			Vector3 along = streamTo - streamFrom;
-			int steps = Mathf.CeilToInt(along.magnitude / (streamWidth * 0.5f));
-			for (int i = 0; i <= steps; i++)
+			ground.BuildWaterSurface(outdoor, Art.Water);
+			foreach ((string key, float angle, float offset, float yaw) in shoreDressing)
 			{
-				float ratio = i / (float)steps;
-				Vector3 side = new Vector3(-along.z, 0f, along.x).normalized * Mathf.Sin(ratio * 5f) * 0.8f;
-				Pool(streamFrom + along * ratio + side, streamWidth * 0.5f + Mathf.Sin(i * 1.9f) * 0.2f, Color.white, i * 0.0008f);
+				Vector3 foot = ground.ShorePoint(pondCenter, angle * Mathf.Deg2Rad, offset);
+				Models.Build(key, outdoor, foot, yaw);
 			}
-			for (int i = 0; i < 26; i++)
+			foreach ((Vector2 center, float radius) in StreamPools())
 			{
-				float angle = i / 26f * Mathf.PI * 2f;
-				float radius = pondRadius + 0.15f + Mathf.PerlinNoise(i * 0.7f, 1.3f) * 0.5f;
-				Vector3 foot = pondCenter + new Vector3(Mathf.Cos(angle) * radius, -0.1f, Mathf.Sin(angle) * radius);
-				// 낚시터가 들어설 자리는 비움
-				if (Mathf.Abs(Mathf.DeltaAngle(angle * Mathf.Rad2Deg, 180f)) < 22f)
-					continue;
-				VillageKit stone = new();
-				float size = 0.5f + Mathf.PerlinNoise(i * 1.3f, 0.2f) * 0.7f;
-				stone.Prism(Art.Stone, Color.white, Vector3.zero, new Vector3(size, size * 0.5f, size * 0.8f), 6, 0.6f);
-				stone.Build("PondStone", outdoor, foot, i * 57f);
+				GameObject bank = new("StreamBlock");
+				bank.transform.SetParent(outdoor, false);
+				bank.transform.localPosition = new Vector3(center.x, 0f, center.y);
+				CapsuleCollider wall = bank.AddComponent<CapsuleCollider>();
+				wall.radius = radius - 0.5f;
+				wall.height = 4f;
 			}
 			GameObject block = new("PondBlock");
 			block.transform.SetParent(outdoor, false);
@@ -79,14 +65,33 @@ namespace WitchMendokusai
 			streamSpotObject = HomesteadSpot.Create(outdoor, streamSpot, "StreamSpot", () => "개울", () => "낚시", () => StartFishing(STREAM)).gameObject;
 		}
 
-		private void Pool(Vector3 center, float radius, Color color, float lift)
+		// 물가 돌과 갈대는 몇 무더기로만. 둘레를 다 두르지 않음
+		private static readonly (string Key, float Angle, float Offset, float Yaw)[] shoreDressing =
 		{
-			VillageKit kit = new();
-			kit.Prism(waterMaterial, color, Vector3.zero, new Vector3(radius * 2f, 0.05f, radius * 2f), 22);
-			kit.Build("Water", outdoor, center + Vector3.up * (0.01f + lift), 0f, castShadow: false);
+			("BankStones", 62f, -0.2f, 20f), ("BankStones", 232f, -0.3f, 200f), ("BankStones", 318f, 0f, 120f),
+			("Reeds", 84f, -0.5f, 0f), ("Reeds", 100f, -0.4f, 70f), ("Reeds", 250f, -0.5f, 30f), ("Reeds", 336f, -0.4f, 140f),
+			("LilyPads", 300f, -2.6f, 0f), ("LilyPads", 72f, -2.4f, 80f),
+		};
+
+		private void MarkWater()
+		{
+			ground.AddWater(new Vector2(pondCenter.x, pondCenter.z), pondRadius + 0.8f);
+			foreach ((Vector2 center, float radius) in StreamPools())
+				ground.AddWater(center, radius);
 		}
 
-		private void FlowWater() => waterMaterial.SetTextureOffset("_BaseMap", waterFlow * Time.time);
+		private IEnumerable<(Vector2 Center, float Radius)> StreamPools()
+		{
+			Vector3 along = streamTo - streamFrom;
+			int steps = Mathf.CeilToInt(along.magnitude / (streamWidth * 0.25f));
+			for (int i = 0; i <= steps; i++)
+			{
+				float ratio = i / (float)steps;
+				Vector3 side = new Vector3(-along.z, 0f, along.x).normalized * Mathf.Sin(ratio * 5f) * 0.8f;
+				Vector3 point = streamFrom + along * ratio + side;
+				yield return (new Vector2(point.x, point.z), streamWidth * 0.5f);
+			}
+		}
 
 		private void RefreshWaterSpots() => streamSpotObject.SetActive(Sim.BuildingLevel("dock") >= STREAM_DOCK_LEVEL);
 

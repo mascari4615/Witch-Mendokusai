@@ -23,32 +23,37 @@ namespace WitchMendokusai
 		}
 
 		[Header("Layout")]
-		[SerializeField] private Vector3 townHallPosition = new(0f, 0f, 13f);
+		[SerializeField] private Vector3 townHallPosition = new(0f, 0f, 14f);
 		[SerializeField] private Vector3 townHallDoor = new(0f, 0f, -3.6f);
-		[SerializeField] private Vector3 boardPosition = new(5.6f, 0f, 8.4f);
-		[SerializeField] private Vector3 housePosition = new(-13f, 0f, 12f);
+		[SerializeField] private Vector3 boardPosition = new(4f, 0f, 11f);
+		[SerializeField] private Vector3 housePosition = new(-15f, 0f, 10f);
 		[SerializeField] private Vector3 houseDoor = new(0f, 0f, -3.2f);
-		[SerializeField] private float houseYaw = 12f;
-		[SerializeField] private Vector3 wellPosition = new(4.4f, 0f, 0.6f);
-		[SerializeField] private Vector3 plazaCenter = new(0f, 0f, 1.5f);
+		[SerializeField] private float houseYaw = 0f;
+		[SerializeField] private Vector3 wellPosition = new(4f, 0f, 2f);
+		[SerializeField] private Vector3 plazaCenter = new(0f, 0f, 5f);
 		[SerializeField] private Vector3 pondCenter = new(21f, 0f, -11f);
 		[SerializeField] private float pondRadius = 6.5f;
 		[SerializeField] private Vector3 roomOffset = new(300f, 0f, 0f);
 		[SerializeField] private Vector3 mineOffset = new(-300f, 0f, 0f);
+		[Tooltip("곧은 길. 시작과 끝 (x, z, x, z)")]
+		[SerializeField] private Vector4[] streets =
+		{
+			new(0f, -24f, 0f, 11f), new(-24f, 6f, 24f, 6f), new(-22f, -6f, 13f, -6f), new(-18f, 18f, 24f, 18f), new(-3f, 6f, -3f, 18f), new(24f, 6f, 24f, 18f),
+		};
 		[SerializeField] private BuildingSite[] sites =
 		{
-			new() { Id = "farm", Position = new Vector3(-21f, 0f, -3f), Yaw = 14f, Size = new Vector2(3f, 2.6f), Door = new Vector3(0f, 0f, -2f) },
-			new() { Id = "workshop", Position = new Vector3(11f, 0f, 4.5f), Yaw = -16f, Size = new Vector2(4.2f, 3.2f), Door = new Vector3(0f, 0f, -2.4f) },
+			new() { Id = "farm", Position = new Vector3(-20f, 0f, -2f), Yaw = 0f, Size = new Vector2(3f, 2.6f), Door = new Vector3(0f, 0f, -2f) },
+			new() { Id = "workshop", Position = new Vector3(8f, 0f, 10f), Yaw = 0f, Size = new Vector2(4.2f, 3.2f), Door = new Vector3(0f, 0f, -2.4f) },
 			new() { Id = "dock", Position = new Vector3(11.6f, 0f, -11f), Yaw = -90f, Size = new Vector2(2.2f, 2f), Door = new Vector3(0f, 0f, -0.4f) },
-			new() { Id = "quarry", Position = new Vector3(23f, 0f, 14f), Yaw = 24f, Size = new Vector2(4f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
-			new() { Id = "museum", Position = new Vector3(13f, 0f, 24f), Yaw = 0f, Size = new Vector2(6f, 4f), Door = new Vector3(0f, 0f, -4f) },
-			new() { Id = "ranch", Position = new Vector3(-23f, 0f, 9f), Yaw = 8f, Size = new Vector2(3.6f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
-			new() { Id = "tailor", Position = new Vector3(-5f, 0f, 23f), Yaw = 6f, Size = new Vector2(3.8f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
-			new() { Id = "training", Position = new Vector3(-15f, 0f, 22f), Yaw = 0f, Size = new Vector2(4.6f, 3.6f), Door = new Vector3(0f, 0f, -1.6f) },
-			new() { Id = "shop", Position = new Vector3(9f, 0f, -3f), Yaw = -24f, Size = new Vector2(3.4f, 2.8f), Door = new Vector3(0f, 0f, -2.4f) },
-			new() { Id = "smithy", Position = new Vector3(-9.5f, 0f, 3.5f), Yaw = 20f, Size = new Vector2(3.8f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
-			new() { Id = "atelier", Position = new Vector3(-8f, 0f, -4.5f), Yaw = 14f, Size = new Vector2(4f, 3.2f), Door = new Vector3(0f, 0f, -2.6f) },
-			new() { Id = "trial", Position = new Vector3(24f, 0f, 3f), Yaw = 0f, Size = new Vector2(4.6f, 4.6f), Door = new Vector3(0f, 0f, -2.6f) },
+			new() { Id = "quarry", Position = new Vector3(24f, 0f, 14f), Yaw = 0f, Size = new Vector2(4f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
+			new() { Id = "museum", Position = new Vector3(12f, 0f, 22f), Yaw = 0f, Size = new Vector2(6f, 4f), Door = new Vector3(0f, 0f, -4f) },
+			new() { Id = "ranch", Position = new Vector3(-22f, 0f, 10f), Yaw = 0f, Size = new Vector2(3.6f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
+			new() { Id = "tailor", Position = new Vector3(-6f, 0f, 22f), Yaw = 0f, Size = new Vector2(3.8f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
+			new() { Id = "training", Position = new Vector3(-16f, 0f, 22f), Yaw = 0f, Size = new Vector2(4.6f, 3.6f), Door = new Vector3(0f, 0f, -1.6f) },
+			new() { Id = "shop", Position = new Vector3(8f, 0f, -2f), Yaw = 0f, Size = new Vector2(3.4f, 2.8f), Door = new Vector3(0f, 0f, -2.4f) },
+			new() { Id = "smithy", Position = new Vector3(-8f, 0f, 10f), Yaw = 0f, Size = new Vector2(3.8f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
+			new() { Id = "atelier", Position = new Vector3(-8f, 0f, -2f), Yaw = 0f, Size = new Vector2(4f, 3.2f), Door = new Vector3(0f, 0f, -2.6f) },
+			new() { Id = "trial", Position = new Vector3(24f, 0f, 4f), Yaw = 0f, Size = new Vector2(4.6f, 4.6f), Door = new Vector3(0f, 0f, -2.6f) },
 		};
 
 		private UIManager uiManager;
@@ -128,12 +133,6 @@ namespace WitchMendokusai
 			builtFor.Unveiled -= OnUnveiled;
 		}
 
-		private void OnDestroy()
-		{
-			if (waterMaterial != null)
-				Destroy(waterMaterial);
-		}
-
 		private void BuildAll()
 		{
 			ClearBodies();
@@ -186,23 +185,40 @@ namespace WitchMendokusai
 		{
 			Vector2 plaza = new(plazaCenter.x, plazaCenter.z);
 			ground.AddBlock(plaza, 3.2f);
-			ground.AddPath(new Vector2(0f, -24f), plaza);
-			Link(plaza, townHallPosition + townHallDoor, 3.2f, townHallPosition);
-			Link(plaza, housePosition + houseDoor, 2.8f, housePosition);
+			foreach (Vector4 street in streets)
+				ground.AddPath(new Vector2(street.x, street.y), new Vector2(street.z, street.w));
+			Link(townHallPosition + townHallDoor, 3.2f, townHallPosition);
+			Link(housePosition + houseDoor, 2.8f, housePosition);
 			ground.AddBlock(new Vector2(boardPosition.x, boardPosition.z), 1.1f);
 			foreach (BuildingSite site in sites)
 			{
 				Vector3 door = site.Position + Quaternion.Euler(0f, site.Yaw, 0f) * site.Door;
-				Link(plaza, door, Mathf.Max(site.Size.x, site.Size.y) * 0.5f, site.Position);
+				Link(door, Mathf.Max(site.Size.x, site.Size.y) * 0.5f, site.Position);
 			}
-			ground.AddWater(new Vector2(pondCenter.x, pondCenter.z), pondRadius);
+			MarkWater();
 			MarkFarm();
 			MarkWild();
 		}
 
-		private void Link(Vector2 plaza, Vector3 door, float radius, Vector3 center)
+		// 문 앞에서 가장 가까운 길까지 직각으로
+		private void Link(Vector3 door, float radius, Vector3 center)
 		{
-			ground.AddPath(plaza, new Vector2(door.x, door.z));
+			Vector2 from = new(door.x, door.z);
+			Vector2 nearest = from;
+			float best = float.MaxValue;
+			foreach (Vector4 street in streets)
+			{
+				Vector2 start = new(Mathf.Min(street.x, street.z), Mathf.Min(street.y, street.w));
+				Vector2 end = new(Mathf.Max(street.x, street.z), Mathf.Max(street.y, street.w));
+				Vector2 point = new(Mathf.Clamp(from.x, start.x, end.x), Mathf.Clamp(from.y, start.y, end.y));
+				if (Vector2.Distance(from, point) >= best)
+					continue;
+				best = Vector2.Distance(from, point);
+				nearest = point;
+			}
+			Vector2 corner = new(from.x, nearest.y);
+			ground.AddPath(from, corner);
+			ground.AddPath(corner, nearest);
 			ground.AddBlock(new Vector2(center.x, center.z), radius);
 		}
 
@@ -215,7 +231,6 @@ namespace WitchMendokusai
 		{
 			if (manager == null || builtFor == null)
 				return;
-			FlowWater();
 			StepFishing();
 			StepMine();
 			if (refreshQueued == false)

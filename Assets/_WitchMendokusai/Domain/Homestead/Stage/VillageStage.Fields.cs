@@ -21,10 +21,10 @@ namespace WitchMendokusai
 		}
 
 		[Header("Farm")]
-		[SerializeField] private Vector3 farmOrigin = new(-25f, 0f, -9f);
-		[SerializeField] private Vector2 plotGap = new(1.9f, 1.9f);
+		[SerializeField] private Vector3 farmOrigin = new(-24f, 0f, -9f);
+		[SerializeField] private Vector2 plotGap = new(2f, 2f);
 		[SerializeField] private int plotColumns = 6;
-		[SerializeField] private float plotWobble = 0.14f;
+		[SerializeField] private float plotWobble = 0f;
 		[SerializeField] private Vector2 cropHeight = new(0.25f, 0.95f);
 
 		[Header("Wild")]
@@ -45,15 +45,15 @@ namespace WitchMendokusai
 			new() { Gather = "bush", Position = new Vector3(4.4f, 0f, -13f) },
 			new() { Gather = "bush", Position = new Vector3(-17f, 0f, 2f) },
 			new() { Gather = "bush", Position = new Vector3(17f, 0f, 8.5f) },
-			new() { Gather = "bush", Position = new Vector3(5f, 0f, 20f) },
-			new() { Gather = "herb", Position = new Vector3(-10f, 0f, 17f) },
+			new() { Gather = "bush", Position = new Vector3(5f, 0f, 21f) },
+			new() { Gather = "herb", Position = new Vector3(-11f, 0f, 15f) },
 			new() { Gather = "herb", Position = new Vector3(15f, 0f, -16.5f) },
 			new() { Gather = "herb", Position = new Vector3(-18.5f, 0f, 16f) },
 			new() { Gather = "mushroompatch", Position = new Vector3(-21f, 0f, 19f) },
 			new() { Gather = "mushroompatch", Position = new Vector3(19.5f, 0f, 20f) },
 			new() { Gather = "rock", Position = new Vector3(18f, 0f, 12f) },
 			new() { Gather = "rock", Position = new Vector3(28f, 0f, 16f) },
-			new() { Gather = "rock", Position = new Vector3(20f, 0f, 18f) },
+			new() { Gather = "rock", Position = new Vector3(20f, 0f, 20.6f) },
 			new() { Gather = "rock", Position = new Vector3(-15f, 0f, -17f) },
 		};
 

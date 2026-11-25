@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	// 마을 바닥. 평평한 빈터에 숲 지형 셰이더 칠 (R 풀, G 흙 섞인 풀, B 흙길), 풀잎과 꽃, 둘레 숲, 경계 벽
 	// 풀잎과 판 묶음은 숲 바닥 (ForestFloor) 의 것을 그대로. 자리 판정만 마을 것
-	public sealed class VillageGround : MonoBehaviour
+	public sealed partial class VillageGround : MonoBehaviour
 	{
 		private const int FLOWER_KIND_COUNT = 4;
 
@@ -20,7 +20,9 @@ namespace WitchMendokusai
 		[SerializeField] private Material terrainMaterial;
 		[SerializeField] private Rect paintArea = new(-80f, -76f, 160f, 160f);
 		[SerializeField] private int paintResolution = 512;
-		[SerializeField] private Vector2 pathRange = new(0.8f, 1.9f);
+		[SerializeField] private Vector2 pathRange = new(1.1f, 1.9f);
+		[SerializeField] private float pathNoise = 0.25f;
+		[SerializeField] private float pathBend;
 		[SerializeField] private Vector2 forestRange = new(-2f, 4f);
 		[SerializeField, Range(0f, 1f)] private float forestEarth = 0.75f;
 		[SerializeField] private Vector2 wornRange = new(0f, 1.8f);
@@ -40,14 +42,18 @@ namespace WitchMendokusai
 		[SerializeField] private float grassCellSize = 16f;
 		[SerializeField] private Vector2 grassHeight = new(0.28f, 0.6f);
 		[SerializeField] private Vector2 grassWidth = new(0.05f, 0.1f);
+		[Tooltip("마을 안. 풀이 짧고 고르며 꽃 무더기가 적음")]
+		[SerializeField] private Rect settled = new(-24f, -12f, 42f, 38f);
+		[SerializeField] private float settledFade = 5f;
+		[SerializeField, Range(0f, 1f)] private float settledHeight = 0.42f;
 		[SerializeField] private Vector2 grassWind = new(0.32f, 0.2f);
 		[SerializeField] private float grassClumpScale = 0.12f;
 		[SerializeField] private float grassHueScale = 0.04f;
 		[SerializeField, Range(0f, 1f)] private float grassFlowerChance = 0.014f;
-		[SerializeField] private Color32 grassRootA = new(0x1f, 0x58, 0x0c, 0xff);
-		[SerializeField] private Color32 grassRootB = new(0x2a, 0x6a, 0x10, 0xff);
-		[SerializeField] private Color32 grassTipA = new(0x8f, 0xd2, 0x2c, 0xff);
-		[SerializeField] private Color32 grassTipB = new(0xb9, 0xe2, 0x4c, 0xff);
+		[SerializeField] private Color32 grassRootA = new(0x35, 0x52, 0x24, 0xff);
+		[SerializeField] private Color32 grassRootB = new(0x3f, 0x5f, 0x2a, 0xff);
+		[SerializeField] private Color32 grassTipA = new(0x92, 0xb2, 0x5a, 0xff);
+		[SerializeField] private Color32 grassTipB = new(0xae, 0xc6, 0x72, 0xff);
 		[SerializeField] private Color32 grassDryRoot = new(0x7f, 0x9a, 0x3e, 0xff);
 		[SerializeField] private Color32 grassDryTip = new(0xb9, 0xc4, 0x6a, 0xff);
 
@@ -126,7 +132,7 @@ namespace WitchMendokusai
 				Vector2 line = to - from;
 				float along = Mathf.Clamp01(Vector2.Dot(point - from, line) / Mathf.Max(line.sqrMagnitude, 0.001f));
 				// 곧은 선이 아니라 조금 굽은 길
-				Vector2 side = new Vector2(-line.y, line.x).normalized * Mathf.Sin(along * Mathf.PI) * line.magnitude * 0.07f;
+				Vector2 side = new Vector2(-line.y, line.x).normalized * Mathf.Sin(along * Mathf.PI) * line.magnitude * pathBend;
 				nearest = Mathf.Min(nearest, Vector2.Distance(point, from + line * along + side));
 			}
 			return nearest;
@@ -147,11 +153,7 @@ namespace WitchMendokusai
 		{
 			GameObject floor = new("Floor");
 			floor.transform.SetParent(transform, false);
-			Mesh mesh = new() { name = "VillageFloor", hideFlags = HideFlags.DontSave };
-			mesh.vertices = new[] { new Vector3(paintArea.xMin, 0f, paintArea.yMin), new Vector3(paintArea.xMin, 0f, paintArea.yMax), new Vector3(paintArea.xMax, 0f, paintArea.yMax), new Vector3(paintArea.xMax, 0f, paintArea.yMin) };
-			mesh.normals = new[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
-			mesh.uv = new[] { Vector2.zero, Vector2.up, Vector2.one, Vector2.right };
-			mesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };
+			Mesh mesh = FloorMesh();
 			generated.Add(mesh);
 			floor.AddComponent<MeshFilter>().sharedMesh = mesh;
 			MeshRenderer floorRenderer = floor.AddComponent<MeshRenderer>();
@@ -174,15 +176,16 @@ namespace WitchMendokusai
 					float z = paintArea.yMin + (j + 0.5f) / paintResolution * paintArea.height;
 					float noise = (ForestFloor.Fractal(x * edgeNoiseScale, z * edgeNoiseScale, noiseSeed, 3) - 0.5f) * edgeNoiseStrength;
 					float forest = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(forestRange.x, forestRange.y, EdgeDistance(x, z) + noise * 2f));
-					float pathDistance = Mathf.Min(DistanceToPath(x, z), Nearest(waters, x, z) + pathRange.x) + noise * 0.6f;
+					float pathDistance = DistanceToPath(x, z) + noise * pathNoise;
 					float path = (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(pathRange.x, pathRange.y, pathDistance))) * (1f - forest * 0.6f);
 					float worn = (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(wornRange.x, wornRange.y, Nearest(blocks, x, z) + noise))) * wornEarth;
 					float patch = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(patchRange.x, patchRange.y, ForestFloor.Fractal(x * patchScale, z * patchScale, noiseSeed + 36, 4))) * patchStrength;
 					float earth = Mathf.Max(Mathf.Max(forest * forestEarth, worn), patch * (1f - forest));
 					earth = Mathf.Max(earth - path, 0f);
 					float grass = Mathf.Max(0f, 1f - earth - path);
-					float sum = grass + earth + path;
-					controlPixels[j * paintResolution + i] = new Color32((byte)(grass / sum * 255f), (byte)(earth / sum * 255f), (byte)(path / sum * 255f), 0);
+					float bed = BedWeight(x, z, noise);
+					float share = (1f - bed) / (grass + earth + path);
+					controlPixels[j * paintResolution + i] = new Color32((byte)(grass * share * 255f), (byte)(earth * share * 255f), (byte)(path * share * 255f), (byte)(bed * 255f));
 				}
 			}
 			Texture2D control = new(paintResolution, paintResolution, TextureFormat.RGBA32, false, true)
@@ -264,13 +267,14 @@ namespace WitchMendokusai
 				Color32 control = ControlAt(x, z);
 				float path = control.b / 255f;
 				float earth = control.g / 255f;
-				if ((float)random.NextDouble() < path * 1.6f + earth * 0.5f || Nearest(waters, x, z) < 0.2f || Nearest(blocks, x, z) < 0f)
+				if ((float)random.NextDouble() < path * 1.6f + earth * 0.5f + control.a / 255f * 2f || WaterDistance(x, z) < 0f || Nearest(blocks, x, z) < 0f)
 					continue;
 				float clump = ForestFloor.Fractal(x * grassClumpScale, z * grassClumpScale, grassSeed + 76, 3);
 				if ((float)random.NextDouble() > clump * 1.1f + 0.15f)
 					continue;
 				float hue = ForestFloor.Fractal(x * grassHueScale, z * grassHueScale, grassSeed + 78, 2);
-				float height = Range01(random, grassHeight) * (0.55f + clump * 0.8f) * (1f - earth * 0.45f);
+				float tame = Settled(x, z);
+				float height = Range01(random, grassHeight) * Mathf.Lerp(0.55f + clump * 0.8f, 0.8f, tame) * (1f - earth * 0.45f) * Mathf.Lerp(1f, settledHeight, tame);
 				float angle = (float)random.NextDouble() * Mathf.PI * 2f;
 				Vector3 side = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * Range01(random, grassWidth);
 				Vector3 lean = new Vector3(grassWind.x + (float)random.NextDouble() * 0.5f - 0.25f, 0f, grassWind.y + (float)random.NextDouble() * 0.5f - 0.25f) * (height * 0.65f);
@@ -293,6 +297,12 @@ namespace WitchMendokusai
 			}
 		}
 
+		private float Settled(float x, float z)
+		{
+			float outside = Mathf.Max(Mathf.Max(settled.xMin - x, x - settled.xMax), Mathf.Max(settled.yMin - z, z - settled.yMax));
+			return 1f - Mathf.Clamp01(outside / settledFade);
+		}
+
 		private void BuildFlowers()
 		{
 			System.Random random = new(grassSeed + 100);
@@ -303,7 +313,7 @@ namespace WitchMendokusai
 			{
 				float centerX = grassArea.xMin + (float)random.NextDouble() * grassArea.width;
 				float centerZ = grassArea.yMin + (float)random.NextDouble() * grassArea.height;
-				if (EdgeDistance(centerX, centerZ) > 2f || IsBlocked(centerX, centerZ, 1.5f))
+				if (EdgeDistance(centerX, centerZ) > 2f || IsBlocked(centerX, centerZ, 1.5f) || (float)random.NextDouble() < Settled(centerX, centerZ) * 0.85f)
 					continue;
 				int kind = random.Next(FLOWER_KIND_COUNT);
 				int count = random.Next(flowerCount.x, flowerCount.y);

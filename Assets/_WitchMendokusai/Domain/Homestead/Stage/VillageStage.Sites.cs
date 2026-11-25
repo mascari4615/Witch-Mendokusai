@@ -60,7 +60,7 @@ namespace WitchMendokusai
 				HomesteadSpot.Create(outdoor, door, site.Id + "Spot", () => Catalog.Get<BuildingDef>(captured.Id).Name, () => SiteRole(captured.Id), () => UseSite(captured.Id));
 			}
 			BuildDressing();
-			foreach (Vector3 lamp in new[] { new Vector3(-3.4f, 0f, 5f), new Vector3(3.4f, 0f, 5f), new Vector3(-3.6f, 0f, -3f), new Vector3(3.6f, 0f, -3f), new Vector3(-2.2f, 0f, -12f), new Vector3(2.2f, 0f, -17f) })
+			foreach (Vector3 lamp in new[] { new Vector3(-2f, 0f, 8f), new Vector3(2f, 0f, 8f), new Vector3(-2f, 0f, 0f), new Vector3(2f, 0f, 0f), new Vector3(-2f, 0f, -10f), new Vector3(2f, 0f, -10f) })
 			{
 				GameObject body = Models.Build("Lamp", outdoor, lamp, lamp.x > 0f ? 180f : 0f);
 				lampLights.Add(AddGlow(body.transform, lampLightOffset, lampRange, lampIntensity));
@@ -76,9 +76,9 @@ namespace WitchMendokusai
 
 		private static readonly (string Key, float X, float Z, float Yaw)[] dressing =
 		{
-			("StoneWall", -19.2f, 8.4f, -4f), ("StoneWall", -14.2f, 8.2f, 2f), ("StoneWall", -8.4f, 9.4f, 16f), ("StoneWall", -6.6f, 13.6f, 92f),
-			("StonePath", -11.4f, 7.0f, 4f), ("StonePath", -11.0f, 3.0f, 8f), ("StonePath", 0f, -3f, 0f), ("StonePath", 0f, -7f, 0f), ("StonePath", 0f, 7f, 0f),
-			("Fence", -18.6f, 13.6f, 94f), ("Fence", -16.6f, 17.4f, 8f), ("Props", -8.4f, 12.2f, 40f), ("Fence", -5.4f, -8.2f, -8f), ("StoneWall", 6.2f, -7.4f, 12f),
+			("StoneWall", -17f, 7.9f, 0f), ("StoneWall", -20.4f, 15.4f, 90f), ("Fence", -11.6f, 8.2f, 0f),
+			("StonePath", 0f, -3f, 0f), ("StonePath", 0f, -9f, 0f), ("StonePath", 0f, 9f, 0f), ("StonePath", -15f, 6.9f, 0f),
+			("Props", -11.2f, 11f, 0f), ("Props", 11.6f, 10.6f, 0f), ("Fence", -12.2f, -3.6f, 0f),
 		};
 
 		private bool IsNight => manager.Hour >= lampOnHour || manager.Hour < lampOffHour;
