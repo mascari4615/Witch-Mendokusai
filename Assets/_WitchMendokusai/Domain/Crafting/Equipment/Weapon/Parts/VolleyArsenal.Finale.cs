@@ -31,8 +31,9 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float heroPortal = 2.1f;
 		[SerializeField, Tooltip("인물 뒤, 위")] private Vector2 heroOffset = new(2f, 3f);
 		[SerializeField, Min(0.02f)] private float heroEmergeSeconds = 0.3f;
-		[SerializeField, Min(0.02f), Tooltip("날아가 터질 때까지")] private float heroFlySeconds = 0.13f;
+		[SerializeField, Min(0.02f), Tooltip("빛이 막타 자리에 닿을 때까지")] private float heroFlySeconds = 0.13f;
 		[SerializeField, Min(0f)] private float heroBeamWidth = 3f;
+		[SerializeField, Min(0f), Tooltip("막타 빛 탄환의 배율")] private float heroBulletScale = 3f;
 		[SerializeField, Min(0.05f)] private float heroFadeSeconds = 0.4f;
 		[SerializeField, Min(0f), Tooltip("막타 뒤 어둠이 더 머무는 길이")] private float finaleLinger = 0.45f;
 		[SerializeField, Min(0f), Tooltip("카메라 흔들림. 설정에서 끄면 안 흔들림")] private float finaleShake = 0.6f;
@@ -122,7 +123,7 @@ namespace WitchMendokusai
 
 		private void RaiseHero() => heroTime = Time.time;
 
-		// 막타를 쏘는 큰 완드. 인물 뒤 큰 문에서 나와 막타 자리로 꽂히고 굵은 빛을 남김
+		// 막타를 쏘는 큰 완드. 인물 뒤 큰 문에서 나와 빛을 모았다가 막타 자리로 굵은 빛줄기를 쏨. 완드는 문에 남았다가 같이 닫힘
 		private void DrawHero(float sinceFinale)
 		{
 			float age = Time.time - heroTime;
@@ -143,21 +144,24 @@ namespace WitchMendokusai
 			FxQuadLook look = FxQuadLook.Of(Color.Lerp(portalTint, lightTint, 0.3f), 0.9f, Mathf.Max(1f - age / openSeconds, closing), 0.3f);
 			look.Turn = Time.time * portalSpin * 0.5f;
 			heroGate.Add(gate, right * (heroPortal * open), up * (heroPortal * open), look);
+			float kick = flying >= 0f ? Mathf.Pow(0.5f, flying / flashHalfLife) : 0f;
+			float shown = Mathf.Clamp01(Back(age / heroEmergeSeconds) * emergeFraction * (1f - recoil * kick));
+			float gather = Mathf.Clamp01(sinceFinale / Mathf.Max(0.01f, launch));
+			Vector3 muzzle = gate + direction * (gateWands ? heroLength * shown : GATE_LIGHT_OFFSET);
+			if (gateWands)
+				heroWand.AddStrip(gate, muzzle, heroLength / weaponAspects[^1], viewForward, new Rect(1f - shown, 0f, shown, 1f), FxQuadLook.Of(Color.Lerp(Color.white, hotTint, flying < 0f ? gather : kick), 1f - closing, closing, 0.7f));
 			if (flying < 0f)
 			{
-				float shown = Mathf.Clamp01(Back(age / heroEmergeSeconds) * emergeFraction);
-				float gather = Mathf.Clamp01(sinceFinale / Mathf.Max(0.01f, launch));
-				heroWand.AddStrip(gate, gate + direction * (heroLength * shown), heroLength / weaponAspects[^1], viewForward, new Rect(1f - shown, 0f, shown, 1f), FxQuadLook.Of(Color.Lerp(Color.white, hotTint, gather), 1f));
-				Billboard(flashSoft, gate + direction * (heroLength * shown), 0.5f + 0.9f * gather, 0f, FxQuadLook.Of(Scale(goldTint, 0.4f + 0.6f * gather)));
+				Billboard(flashSoft, muzzle, 0.5f + 0.9f * gather, 0f, FxQuadLook.Of(Scale(goldTint, 0.4f + 0.6f * gather)));
 				return;
 			}
-			Vector3 head = Vector3.Lerp(gate, target, flying / heroFlySeconds);
+			Vector3 head = Vector3.Lerp(muzzle, target, flying / heroFlySeconds);
 			look = FxQuadLook.Of(paleTint, 0.7f, closing, 0.2f);
 			look.Distort = 0.02f;
-			heroBeam.AddStrip(gate, head, heroBeamWidth * (1f - 0.6f * closing), viewForward, PaintedFxSet.StreakRow(2), look);
-			heroBeam.AddStrip(gate, head, heroBeamWidth * 0.8f * (1f - 0.6f * closing), viewForward, PaintedFxSet.StreakRow(1), FxQuadLook.Of(goldTint, 0.3f, closing, 0.6f));
+			heroBeam.AddStrip(muzzle, head, heroBeamWidth * (1f - 0.6f * closing), viewForward, PaintedFxSet.StreakRow(3), look);
+			heroBeam.AddStrip(muzzle, head, heroBeamWidth * 0.8f * (1f - 0.6f * closing), viewForward, PaintedFxSet.StreakRow(1), FxQuadLook.Of(goldTint, 0.3f, closing, 0.6f));
 			if (flying < heroFlySeconds)
-				heroWand.AddStrip(head - direction * (heroLength * 0.7f), head + direction * (heroLength * 0.3f), heroLength / weaponAspects[^1], viewForward, new Rect(0f, 0f, 1f, 1f), FxQuadLook.Of(hotTint, 1f));
+				DrawBullet(head, direction, heroBulletScale, viewForward);
 		}
 
 		// 꽃잎처럼 벌어지는 막타. 부채 가운데 한 자리

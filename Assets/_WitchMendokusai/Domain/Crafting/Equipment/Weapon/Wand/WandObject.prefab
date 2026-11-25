@@ -344,6 +344,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.HeldWeapon
   shape: 0
+  handOffset: {x: 0.3, y: 0.25}
   kickSpawners:
   - {fileID: 7377987611665135407}
   - {fileID: 3394973536089151867}

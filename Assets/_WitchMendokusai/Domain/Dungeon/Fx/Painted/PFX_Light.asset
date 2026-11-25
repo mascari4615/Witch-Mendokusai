@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.PaintedFxSet
   <Shader>k__BackingField: {fileID: 4800000, guid: 156b403bdaa84c93bb1cc1d72faf1806, type: 3}
   <Noise>k__BackingField: {fileID: 2800000, guid: 2eb9f6709b1f4be9b718ea9cd70f9675, type: 3}
+  <Gun>k__BackingField: {fileID: 2800000, guid: 9f95593b36ab4a768bdfd49918fa9790, type: 3}
   <Wands>k__BackingField:
   - {fileID: 2800000, guid: c70ab15dc25a4c7ebccd92431d3f7a7b, type: 3}
   - {fileID: 2800000, guid: aa3894a60de8454cb87bfec8249abec0, type: 3}
   - {fileID: 2800000, guid: 55f968d75a2841bbb69bcc5c4615b003, type: 3}
   - {fileID: 2800000, guid: 82748ac0aebb4fc49870f070f1be5a39, type: 3}
   <Streaks>k__BackingField: {fileID: 2800000, guid: a538987da0e243c0a62700dfaeb47d5e, type: 3}
-  <Bolt>k__BackingField: {fileID: 2800000, guid: 39182899357d45f5a0d06b345b6a0fa5, type: 3}
   <Spark>k__BackingField: {fileID: 2800000, guid: 1a01423477654aafbbd93526c909cde1, type: 3}
   <Muzzle>k__BackingField: {fileID: 2800000, guid: 26ce828584b64dbd875b7f2a570a787b, type: 3}
   <MuzzleOrigin>k__BackingField: 0.26

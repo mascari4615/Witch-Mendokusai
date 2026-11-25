@@ -9,10 +9,10 @@ namespace WitchMendokusai
 		[field: SerializeField] public Shader Shader { get; private set; }
 		[field: SerializeField, Tooltip("침식과 왜곡 잡음 (R 덩어리, G 가닥)")] public Texture2D Noise { get; private set; }
 		[field: Header("무기")]
-		[field: SerializeField, Tooltip("촉이 오른쪽인 옆모습")] public Texture2D[] Wands { get; private set; }
+		[field: SerializeField, Tooltip("손에 든 빛 광석 총. 한 칸이 월드의 32분의 1, 총구가 오른쪽")] public Texture2D Gun { get; private set; }
+		[field: SerializeField, Tooltip("알리사 완드. 마법봉이 아니라 직사각형의 빛나는 광석 총 (정본 memo wm/systems/signature-weapon.md 완드의 뜻). 총구가 오른쪽인 옆모습")] public Texture2D[] Wands { get; private set; }
 		[field: Header("빛")]
 		[field: SerializeField, Tooltip("가로 줄기 네 줄 (위부터 바늘, 꼬인 띠, 붓, 연기)")] public Texture2D Streaks { get; private set; }
-		[field: SerializeField, Tooltip("머리가 오른쪽인 큰 줄기")] public Texture2D Bolt { get; private set; }
 		[field: SerializeField] public Texture2D Spark { get; private set; }
 		[field: SerializeField, Tooltip("4x4. 원점은 칸의 왼쪽에서 MuzzleOrigin")] public Texture2D Muzzle { get; private set; }
 		[field: SerializeField, Range(0f, 1f)] public float MuzzleOrigin { get; private set; } = 0.24f;

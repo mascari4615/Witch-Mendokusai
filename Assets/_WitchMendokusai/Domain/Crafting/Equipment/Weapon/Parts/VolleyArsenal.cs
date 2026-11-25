@@ -14,6 +14,8 @@ namespace WitchMendokusai
 	{
 		private const float TAU = Mathf.PI * 2f;
 		private const float GOLDEN_STEP = 0.618034f;
+		// 문 앞으로 나온 빛의 거리
+		private const float GATE_LIGHT_OFFSET = 0.3f;
 
 		[SerializeField] private PaintedFxSet art;
 
@@ -33,6 +35,8 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.02f), Tooltip("문이 열리는 길이")] private float openSeconds = 0.2f;
 		[SerializeField, Min(0f), Tooltip("문이 열리기 시작한 뒤 완드가 나오기까지")] private float emergeDelay = 0.07f;
 		[SerializeField, Min(0.02f)] private float emergeSeconds = 0.18f;
+		[SerializeField, Tooltip("문에서 완드가 나옴. 끄면 문에 빛만 맺힘 (사용자 2026-11-25: 탄환은 빛)")] private bool gateWands;
+		[SerializeField, Min(0.05f), Tooltip("문에 맺히는 빛의 크기")] private float gateLight = 0.6f;
 		[SerializeField, Min(0.05f), Tooltip("막타 뒤 완드와 문이 닫히는 길이")] private float breakSeconds = 0.24f;
 		[SerializeField, Min(0.1f), Tooltip("막타가 안 오면 (끊긴 포화) 마지막 발 뒤 이만큼 지나 닫힘")] private float orphanSeconds = 1.5f;
 		[SerializeField, Min(1), Tooltip("쏘는 자루 수 상한")] private int maxWeapons = 32;
@@ -74,8 +78,6 @@ namespace WitchMendokusai
 			// 부채 안에서 제 몫의 각도 (도). 쏘기 전부터 그쪽을 겨눔
 			public float Fan;
 			public bool Decor;
-			// 막타 무렵 완드째 날아가 문만 남음
-			public bool Launched;
 			public float Phase;
 			public int Kind;
 			public float AppearTime;
@@ -169,7 +171,6 @@ namespace WitchMendokusai
 			{
 				taken.Alive = true;
 				taken.FireTime = float.PositiveInfinity;
-				taken.Launched = false;
 				taken.BreakTime = float.PositiveInfinity;
 			}
 		}
@@ -191,10 +192,8 @@ namespace WitchMendokusai
 				Vector3 muzzle = Muzzle(weapon, out Vector3 aim);
 				MuzzleFlash(muzzle, aim);
 				shotsLeft--;
-				bool last = shotsLeft < finaleShots;
-				weapon.Launched = last;
 				if (shot != null)
-					StartTracer(muzzle, shot, last ? finaleScale : 1f, last ? weapon.Length * weapon.Scale : 0f);
+					StartTracer(muzzle, shot, shotsLeft < finaleShots ? finaleScale : 1f);
 				SpawnPhantoms(Mathf.RoundToInt(Mathf.Lerp(phantomsPerShot.x, phantomsPerShot.y, 1f - shotsLeft / (float)raised.Count)));
 				lightLevel = 1f;
 				lastShotTime = Time.time;
@@ -275,7 +274,7 @@ namespace WitchMendokusai
 				// 나오는 순간과 쏘는 순간의 섬광. 완드 앞에
 				float glint = Mathf.Max(birth, kick);
 				if (glint > 0.03f && weapon.Decor == false)
-					Billboard(flashSoft, position + aim * 0.2f, portalSize * weapon.Scale * (0.4f + 0.6f * glint), 0f, FxQuadLook.Of(Scale(lightTint, glint * 0.45f)));
+					Billboard(flashSoft, position + aim * 0.2f, portalSize * weapon.Scale * (0.4f + 0.6f * glint), 0f, FxQuadLook.Of(Scale(lightTint, glint * (gateWands ? 0.45f : 0.25f))));
 			}
 		}
 
@@ -309,19 +308,24 @@ namespace WitchMendokusai
 				batch.Add(position, right * (size * (1f + 0.5f * ripple)), up * (size * (1f + 0.5f * ripple)), look);
 			}
 			// 완드가 잘린 자리를 덮는 빛
-			portalFront.Add(position + aim * 0.12f, right * (size * 0.42f), up * (size * 0.42f), FxQuadLook.Of(Scale(weapon.Decor ? decorTint : goldTint, (0.5f + 0.5f * busy) * (1f - broken))));
+			portalFront.Add(position + aim * 0.12f, right * (size * 0.42f), up * (size * 0.42f), FxQuadLook.Of(Scale(weapon.Decor ? decorTint : goldTint, (gateWands ? 0.5f + 0.5f * busy : 0.12f + 0.5f * kick) * (1f - broken))));
 		}
 
 		private void DrawWand(Weapon weapon, Vector3 position, Vector3 aim, Vector3 viewForward, float age, float kick, float broken)
 		{
 			float shown = Mathf.Clamp01(Back((age - emergeDelay) / emergeSeconds) * emergeFraction * (1f - recoil * kick));
-			if (age < emergeDelay || shown <= 0.02f || weapon.Launched)
+			if (age < emergeDelay || shown <= 0.02f)
 				return;
+			float heat = Mathf.Max(Mathf.Pow(0.5f, (age - emergeDelay) / 0.1f), kick);
+			if (gateWands == false)
+			{
+				DrawGateLight(weapon, position + aim * GATE_LIGHT_OFFSET, shown / emergeFraction, heat, broken);
+				return;
+			}
 			float full = weapon.Length * weapon.Scale;
 			float length = full * shown;
 			float width = full / weaponAspects[weapon.Kind];
 			Vector3 tip = position + aim * length;
-			float heat = Mathf.Max(Mathf.Pow(0.5f, (age - emergeDelay) / 0.1f), kick);
 			// 사라질 때는 덮기를 거두고 빛으로 풀림 (찢긴 종이처럼 보이지 않게)
 			Color tint = weapon.Decor ? decorTint : Color.Lerp(Color.white * 0.86f, hotTint, heat * 0.75f + broken * 1.2f);
 			FxQuadLook look = FxQuadLook.Of(tint, 1f - Mathf.Clamp01(broken * 2.5f), broken, weapon.Phase);
@@ -329,6 +333,16 @@ namespace WitchMendokusai
 			// 촉의 빛. 숨 쉬듯
 			float breath = 0.5f + 0.25f * Mathf.Sin(Time.time * 7f + weapon.Phase);
 			Billboard(flashSoft, position + aim * (length * 0.82f), 0.42f + 0.3f * heat, 0f, FxQuadLook.Of(Scale(lightTint, (breath + heat) * (weapon.Decor ? 0.15f : 0.5f) * (1f - broken))));
+		}
+
+		// 문에 맺힌 빛. 쏘는 순간 줄었다가 다시 맺힘
+		private void DrawGateLight(Weapon weapon, Vector3 position, float grown, float heat, float broken)
+		{
+			float breath = 0.9f + 0.1f * Mathf.Sin(Time.time * 7f + weapon.Phase);
+			float size = gateLight * weapon.Scale * grown * breath * (1f - broken);
+			float strength = weapon.Decor ? 0.2f : 0.45f;
+			Billboard(flashSoft, position, size, 0f, FxQuadLook.Of(Scale(goldTint, strength)));
+			Billboard(flashSoft, position, size * (0.45f + 0.2f * heat), 0f, FxQuadLook.Of(Scale(hotTint, strength)));
 		}
 
 		private void Pose(Weapon weapon, out Vector3 position, out Vector3 aim)
@@ -348,7 +362,7 @@ namespace WitchMendokusai
 		private Vector3 Muzzle(Weapon weapon, out Vector3 aim)
 		{
 			Pose(weapon, out Vector3 position, out aim);
-			return position + aim * (weapon.Length * weapon.Scale * emergeFraction);
+			return position + aim * (gateWands ? weapon.Length * weapon.Scale * emergeFraction : GATE_LIGHT_OFFSET);
 		}
 
 		private Vector3 Aim() => aimSource();

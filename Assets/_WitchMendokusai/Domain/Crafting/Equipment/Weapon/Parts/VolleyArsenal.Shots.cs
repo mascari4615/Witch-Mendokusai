@@ -13,8 +13,9 @@ namespace WitchMendokusai
 
 		[Header("줄기")]
 		[SerializeField, Min(0.02f), Tooltip("가장 굵은 몸의 폭")] private float beamWidth = 1.1f;
-		[SerializeField, Min(0.02f), Tooltip("머리 그림의 길이")] private float boltLength = 2.8f;
-		[SerializeField, Min(0.02f)] private float boltWidth = 0.95f;
+		[SerializeField, Min(0.02f), Tooltip("빛 탄환의 길이")] private float bulletLength = 1.5f;
+		[SerializeField, Min(0.02f), Tooltip("빛 탄환의 바깥 빛 폭")] private float bulletWidth = 0.9f;
+		[SerializeField, Range(0.05f, 1f), Tooltip("바깥 빛에 대한 흰 심의 크기")] private float bulletCore = 0.42f;
 		[SerializeField, Min(0), Tooltip("곁을 따라 나는 바늘 줄기 수")] private int sideStreaks = 4;
 		[SerializeField, Min(0f)] private float sideSpread = 0.6f;
 		[SerializeField, Min(0f), Tooltip("꼬리가 총구에 머무는 길이")] private float tailHold = 0.3f;
@@ -66,8 +67,6 @@ namespace WitchMendokusai
 			public float Seed;
 			public int Row;
 			public float Scale;
-			// 완드째 날아가면 그 길이
-			public float WandLength;
 			public Color Tint;
 			public bool Alive;
 		}
@@ -97,11 +96,10 @@ namespace WitchMendokusai
 		private readonly List<Burst> bursts = new();
 		private readonly List<Phantom> phantoms = new();
 		private FxQuadBatch phantomBatch;
-		private FxQuadBatch flyingWand;
 		private FxQuadBatch shaftBatch;
 		private FxQuadBatch streakShade;
 		private FxQuadBatch streakFront;
-		private FxQuadBatch boltBatch;
+		private FxQuadBatch bulletBatch;
 		private FxQuadBatch impactBatch;
 		private FxQuadBatch muzzleBatch;
 		private FxQuadBatch flashSoft;
@@ -115,9 +113,8 @@ namespace WitchMendokusai
 			shaftBatch = Layer("Pillar", art.Soft, 3007, true);
 			streakShade = Layer("StreakShade", art.Streaks, 3008, true);
 			streakFront = Layer("Streak", art.Streaks, 3010, true);
-			boltBatch = Layer("Bolt", art.Bolt, 3012, true);
+			bulletBatch = Layer("Bullet", art.Soft, 3012, true);
 			flashSoft = Layer("FlashSoft", art.Soft, 3013, true);
-			flyingWand = Layer("FlyingWand", art.Wands[^1], 3013, true);
 			impactBatch = Layer("Impact", art.Impact, 3014, true);
 			muzzleBatch = Layer("Muzzle", art.Muzzle, 3016, true);
 			Material sparkMaterial = Own(new Material(art.Shader) { name = "VolleySpark", renderQueue = 3018, mainTexture = art.Spark });
@@ -138,7 +135,7 @@ namespace WitchMendokusai
 			flashLight.enabled = false;
 		}
 
-		private void StartTracer(Vector3 muzzle, Transform shot, float scale, float wandLength)
+		private void StartTracer(Vector3 muzzle, Transform shot, float scale)
 		{
 			// 풀이 같은 탄을 바로 다시 냈으면 옛 줄기는 거기서 끝
 			foreach (Tracer old in tracers)
@@ -160,9 +157,8 @@ namespace WitchMendokusai
 			tracer.StartTime = Time.time;
 			tracer.EndTime = float.PositiveInfinity;
 			tracer.Seed = Random.value;
-			tracer.Row = Random.value < 0.5f ? 1 : 2;
+			tracer.Row = Random.value < 0.5f ? 1 : 3;
 			tracer.Scale = scale;
-			tracer.WandLength = wandLength;
 			tracer.Tint = shotsLeft % 2 == 0 ? goldTint : paleTint;
 			tracer.Alive = true;
 		}
@@ -252,7 +248,7 @@ namespace WitchMendokusai
 			float width = beamWidth * tracer.Scale * (1f + 0.7f * birth) * (1f - 0.5f * faded);
 			Color body = Color.Lerp(tracer.Tint, lightTint, 0.25f + 0.4f * birth);
 
-			streakShade.AddStrip(tracer.Tail, tracer.Shown, width * 1.3f, viewForward, PaintedFxSet.StreakRow(2), FxQuadLook.Of(WithAlpha(shadeTint, 0.7f), 1f, faded, tracer.Seed));
+			streakShade.AddStrip(tracer.Tail, tracer.Shown, width * 1.3f, viewForward, PaintedFxSet.StreakRow(3), FxQuadLook.Of(WithAlpha(shadeTint, 0.7f), 1f, faded, tracer.Seed));
 			FxQuadLook look = FxQuadLook.Of(body, 0.85f, faded, tracer.Seed);
 			look.Distort = 0.02f;
 			streakFront.AddStrip(tracer.Tail, tracer.Shown, width, viewForward, PaintedFxSet.StreakRow(tracer.Row), look);
@@ -268,12 +264,18 @@ namespace WitchMendokusai
 			}
 			if (ended)
 				return;
-			float headLength = Mathf.Min(boltLength, length + 0.8f);
-			look = FxQuadLook.Of(body, 0.9f, 0f, tracer.Seed);
-			look.Distort = 0.03f;
-			boltBatch.AddStrip(tracer.Shown - direction * (headLength * 0.85f), tracer.Shown + direction * (headLength * 0.15f), boltWidth * tracer.Scale * (1f + 0.5f * birth), viewForward, new Rect(0f, 0f, 1f, 1f), look);
-			if (tracer.WandLength > 0f)
-				flyingWand.AddStrip(tracer.Shown - direction * (tracer.WandLength * 0.75f), tracer.Shown + direction * (tracer.WandLength * 0.25f), tracer.WandLength / weaponAspects[^1], viewForward, new Rect(0f, 0f, 1f, 1f), FxQuadLook.Of(Color.white * 1.08f, 1f));
+			DrawBullet(tracer.Shown, direction, tracer.Scale * (1f + 0.5f * birth), viewForward);
+		}
+
+		// 빛 탄환. 물체가 아니라 번지는 금빛 안에 흰 심 (사용자 2026-11-25: 완드나 광석을 탄으로 날리지 않음)
+		private void DrawBullet(Vector3 position, Vector3 direction, float scale, Vector3 viewForward)
+		{
+			Rect full = new(0f, 0f, 1f, 1f);
+			float length = bulletLength * scale;
+			float width = bulletWidth * scale;
+			bulletBatch.AddStrip(position - direction * (length * 0.75f), position + direction * (length * 0.25f), width, viewForward, full, FxQuadLook.Of(goldTint, 0.35f));
+			bulletBatch.AddStrip(position - direction * (length * 0.5f), position + direction * (length * 0.2f), width * 0.7f, viewForward, full, FxQuadLook.Of(paleTint, 0.5f));
+			Billboard(bulletBatch, position, width * bulletCore * 0.5f, 0f, FxQuadLook.Of(hotTint, 0.8f));
 		}
 
 		// 판정 없는 가는 줄기. 아직 서 있는 문에서 부채 안 아무 데로

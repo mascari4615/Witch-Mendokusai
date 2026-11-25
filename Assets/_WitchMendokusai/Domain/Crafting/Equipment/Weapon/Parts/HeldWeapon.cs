@@ -10,8 +10,12 @@ namespace WitchMendokusai
 	// - 그린 텍스처 한 장 (PaintedFxSet) 과 뒤의 빛
 	public sealed class HeldWeapon : MonoBehaviour
 	{
+		// 그림 한 칸의 크기. 인물 그림과 같은 밀도
+		private const float TEXELS_PER_UNIT = 32f;
+
 		public enum Shape
 		{
+			// 직사각형의 빛나는 광석 총
 			Wand = 0,
 			Blade = 1,
 		}
@@ -23,9 +27,10 @@ namespace WitchMendokusai
 		[SerializeField] private Color glowTint = new(1f, 0.82f, 0.28f, 1f);
 
 		[Header("크기와 자리 (월드)")]
-		[SerializeField, Min(0.05f)] private float size = 1.35f;
-		[SerializeField, Min(0.1f), Tooltip("그림의 가로 나누기 세로 (완드, 칼)")] private Vector2 aspects = new(2.27f, 1.91f);
-		[SerializeField, Range(0f, 1f), Tooltip("손이 쥐는 자리 (그림의 뒤끝에서)")] private float grip = 0.2f;
+		[SerializeField, Min(0.05f), Tooltip("칼의 길이. 총은 그림 칸 수로 정해짐")] private float size = 1.35f;
+		[SerializeField, Min(0.1f), Tooltip("칼 그림의 가로 나누기 세로")] private float bladeAspect = 1.91f;
+		[SerializeField, Range(0f, 1f), Tooltip("칼을 쥐는 자리 (그림의 뒤끝에서)")] private float bladeGrip = 0.2f;
+		[SerializeField, Tooltip("총 그림에서 손잡이를 쥐는 칸 (왼쪽 위에서). 손은 인물의 손이 앞에 그려짐")] private Vector2 gunHand = new(3f, 13f);
 		[SerializeField, Min(0f)] private float glowSize = 0.4f;
 		[SerializeField, Tooltip("손 자리 (조준 쪽 옆, 위)")] private Vector2 handOffset = new(0.3f, 0.3f);
 		[SerializeField, Tooltip("인물 앞으로")] private float inFront = 0.14f;
@@ -125,14 +130,18 @@ namespace WitchMendokusai
 				- forward * (recoil * kick);
 			float pop = Pop((Time.time - shownTime) / popSeconds);
 			Vector3 crossUp = Vector3.Cross(away, forward) * side;
-			float length = size * pop;
+			bool gun = shape == Shape.Wand;
+			float length = (gun ? art.Gun.width / TEXELS_PER_UNIT : size) * pop;
+			float aspect = gun ? (float)art.Gun.width / art.Gun.height : bladeAspect;
+			float grip = gun ? gunHand.x / art.Gun.width : bladeGrip;
+			// 총은 손이 총신보다 아래. 그만큼 그림을 올림
+			float raise = gun ? (gunHand.y - art.Gun.height * 0.5f) / TEXELS_PER_UNIT * pop : 0f;
 			float heat = Mathf.Max(Mathf.Pow(0.5f, (Time.time - shownTime) / recoilHalfLife), kick * 0.5f);
-			float aspect = shape == Shape.Wand ? aspects.x : aspects.y;
-			Vector3 center = position + forward * (length * (0.5f - grip));
+			Vector3 center = position + forward * (length * (0.5f - grip)) + crossUp * raise;
 			body.Add(center, forward * (length * 0.5f), crossUp * (length * 0.5f / aspect), FxQuadLook.Of(Color.Lerp(Color.white * 0.8f, hotTint, heat), 1f));
 			float breath = 0.16f + 0.06f * Mathf.Sin(clock * bobSpeed) + heat * 0.6f;
 			Transform view = cameraTransform;
-			glow.Add(position + forward * (length * (0.82f - grip)), view.right * glowSize, view.up * glowSize, FxQuadLook.Of(glowTint * breath));
+			glow.Add(center + forward * (length * 0.32f), view.right * glowSize, view.up * glowSize, FxQuadLook.Of(glowTint * breath));
 		}
 
 		private void Create()
@@ -142,7 +151,7 @@ namespace WitchMendokusai
 			root = new GameObject(nameof(HeldWeapon)).transform;
 			root.SetParent(transform, false);
 			// 인물 그림 (큐 3000) 앞
-			body = new FxQuadBatch("HeldWeapon", root, art.Shader, shape == Shape.Wand ? art.Wands[0] : art.Blade, art.Noise, 3002);
+			body = new FxQuadBatch("HeldWeapon", root, art.Shader, shape == Shape.Wand ? art.Gun : art.Blade, art.Noise, 3002);
 			glow = new FxQuadBatch("HeldWeaponGlow", root, art.Shader, art.Soft, art.Noise, 3003);
 		}
 
