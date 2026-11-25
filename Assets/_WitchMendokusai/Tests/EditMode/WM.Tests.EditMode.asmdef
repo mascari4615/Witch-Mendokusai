@@ -3,6 +3,7 @@
     "rootNamespace": "WitchMendokusai.Tests",
     "references": [
         "WM.Tests.Portable",
+        "MessagePipe",
         "Unity.Cinemachine",
         "WM.Foundation",
         "WitchMendokusai.DomainSDK.Building",

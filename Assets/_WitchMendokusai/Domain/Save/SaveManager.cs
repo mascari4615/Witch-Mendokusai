@@ -220,7 +220,7 @@ namespace WitchMendokusai
 			{
 				Debug.Log($"[SaveManager] 중복 모드 퀘스트 정리: {saveData.runtimeQuests.Count} -> {savedQuests.Count}");
 			}
-			// 작업 초기화. 퀘스트를 만들면 자동 작업이 여기에 더해지므로 먼저
+			// 작업 초기화. 퀘스트를 시작하면 자동 작업이 여기에 더해지므로 먼저
 			DataManager.WorkManager.Init(saveData.works, new HashSet<Guid?>(savedQuests.Select(quest => quest.Guid)));
 			DataManager.QuestManager.Init(savedQuests.ConvertAll((RuntimeQuestSaveData questSaveData) => RuntimeQuestFactory.FromSaveData(questSaveData, criteriaContext)));
 			// 새 게임은 첫 퀘스트가 잠겨 있음. 불러올 때 엶

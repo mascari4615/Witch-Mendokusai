@@ -50,16 +50,15 @@ namespace WitchMendokusai
 			return runtimeQuest;
 		}
 
+		// 시작은 부르는 쪽이 목록에 넣은 뒤에 (QuestManager.Init). 여기서 시작하면 조건이 찬 자동 완료가 목록에 들기 전에 끝나 보상이 안 나옴
 		public static RuntimeQuest FromSaveData(RuntimeQuestSaveData saveData, CriteriaContext context = null)
 		{
 			List<RuntimeCriteria> criteria = saveData.Criteria.ConvertAll(criteriaSaveData => RuntimeCriteriaFactory.FromSaveData(criteriaSaveData, context));
 
-			RuntimeQuest runtimeQuest = new(saveData)
+			return new RuntimeQuest(saveData)
 			{
 				Criteria = criteria,
 			};
-			runtimeQuest.StartQuest();
-			return runtimeQuest;
 		}
 	}
 }
