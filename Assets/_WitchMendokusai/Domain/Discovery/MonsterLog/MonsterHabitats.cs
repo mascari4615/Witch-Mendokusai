@@ -8,10 +8,20 @@ namespace WitchMendokusai
 	/// </summary>
 	public static class MonsterHabitats
 	{
+		/// <summary>같은 번호면 같은 종. 자산이 따로 올라온 사본도 하나로 (MonsterGrudge 와 같은 이유)</summary>
+		private sealed class ByIdComparer : IEqualityComparer<Monster>
+		{
+			public bool Equals(Monster left, Monster right) => left.ID == right.ID;
+
+			public int GetHashCode(Monster monster) => monster.ID;
+		}
+
+		private static readonly ByIdComparer BY_ID = new();
+
 		/// <param name="includeDevOnly">개발 빌드 전용 던전까지 셈 (개발 빌드와 에디터)</param>
 		public static Dictionary<Monster, List<MonsterHabitat>> Collect(IEnumerable<Dungeon> dungeons, bool includeDevOnly)
 		{
-			Dictionary<Monster, List<MonsterHabitat>> result = new();
+			Dictionary<Monster, List<MonsterHabitat>> result = new(BY_ID);
 			foreach (Dungeon dungeon in dungeons)
 			{
 				if (dungeon.DevBuildOnly && includeDevOnly == false)
@@ -34,7 +44,7 @@ namespace WitchMendokusai
 
 		private static Dictionary<Monster, List<(float Start, float End)>> CollectSpans(Dungeon dungeon)
 		{
-			Dictionary<Monster, List<(float Start, float End)>> spans = new();
+			Dictionary<Monster, List<(float Start, float End)>> spans = new(BY_ID);
 			foreach (MonsterWave wave in dungeon.MonsterWaves)
 			{
 				foreach (Monster monster in wave.Monsters)
@@ -57,7 +67,7 @@ namespace WitchMendokusai
 			{
 				return;
 			}
-			HashSet<Monster> added = new();
+			HashSet<Monster> added = new(BY_ID);
 			foreach (SurvivalEventEntry entry in dungeon.EventTable.Events)
 			{
 				if (entry.Monster != null && spans.ContainsKey(entry.Monster) == false && added.Add(entry.Monster))
