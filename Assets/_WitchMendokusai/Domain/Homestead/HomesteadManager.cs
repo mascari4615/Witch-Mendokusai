@@ -13,7 +13,10 @@ namespace WitchMendokusai
 	// - 화면 묶음 (UIHomestead) 과 알림 (HomesteadHud) 을 처음 쓸 때 만듦
 	public sealed class HomesteadManager : MonoBehaviour
 	{
-		public const string BOSS_EVENT = "boss:0";
+		public const string BOSS_EVENT = "boss";
+
+		[Tooltip("한 번에 흐른 것으로 볼 최대 분. 넘으면 시각을 새로 맞춘 것")]
+		[SerializeField] private int maxStepMinutes = 240;
 		private const string RESOURCE_FOLDER = "Homestead";
 		private const int MINUTES_PER_HOUR = 60;
 
@@ -36,7 +39,6 @@ namespace WitchMendokusai
 		public HomesteadCostumeDresser Dresser { get; private set; }
 
 		private long lastClockMinutes = -1;
-		private int lastBossKills;
 
 		[Inject]
 		public void Construct(DataManager dataManager, SOManager soManager, GameEventManager gameEventManager, IObjectResolver container)
@@ -46,6 +48,11 @@ namespace WitchMendokusai
 			this.gameEventManager = gameEventManager;
 			this.container = container;
 		}
+
+		// 세이브가 통째로 바뀌어 (처음부터 다시) 규칙을 새로 세움. 마을이 떠 있으면 몸을 다시 지음
+		public event Action Rebuilt = delegate { };
+
+		private HomesteadState SavedState => dataManager.FeatureSave<HomesteadSaveSlice>().State;
 
 		private void Awake()
 		{
@@ -59,26 +66,50 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
-			Sim = new HomesteadSim(LoadCatalog(), dataManager.FeatureSave<HomesteadSaveSlice>().State,
-				new HomesteadPurse(soManager.ItemInventory, dataManager.GameStat), new System.Random());
-			Sim.RefreshRequests();
-			lastBossKills = (int)dataManager.GameStat[GameStatType.TOTAL_BOSS_KILL];
+			BuildSim();
 			gameEventManager.RegisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
+			EventBusBridge.Subscribe<BossKilledEvent>(OnBossKilled);
+		}
+
+		private void BuildSim()
+		{
+			HomesteadCatalog catalog = LoadCatalog();
+			HomesteadState state = SavedState;
+			List<string> dropped = HomesteadRepair.DropUnknown(state, catalog);
+			if (dropped.Count > 0)
+				Debug.LogWarning($"[{nameof(HomesteadManager)}] 자료에 없는 이름을 세이브에서 뺌: {string.Join(", ", dropped)}");
+			Sim = new HomesteadSim(catalog, state, new HomesteadPurse(soManager.ItemInventory, dataManager.GameStat), new System.Random());
+			Sim.RefreshRequests();
 			Dresser = new HomesteadCostumeDresser(Sim);
+			lastClockMinutes = -1;
 		}
 
 		private void OnDestroy()
 		{
 			if (gameEventManager != null)
 				gameEventManager.UnregisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
+			EventBusBridge.Unsubscribe<BossKilledEvent>(OnBossKilled);
 			Dresser?.Dispose();
-			if (Panels != null)
-				Panels.Dispose();
-			if (Hud != null)
-				Destroy(Hud);
+			DisposeScreens();
 			if (Instance == this)
 				Instance = null;
 		}
+
+		private void DisposeScreens()
+		{
+			if (Panels != null)
+			{
+				Panels.Dispose();
+				Destroy(Panels.gameObject);
+			}
+			if (Hud != null)
+				Destroy(Hud);
+			Panels = null;
+			Hud = null;
+		}
+
+		// 풀에 남은 스테이지는 옛 월드의 것을 쥐고 있음. 지금 월드 것으로 다시
+		public void InjectInto(GameObject target) => container.InjectGameObject(target);
 
 		public static HomesteadCatalog LoadCatalog()
 		{
@@ -92,10 +123,18 @@ namespace WitchMendokusai
 
 		private void Update()
 		{
+			if (SavedState != Sim.State)
+			{
+				Dresser.Dispose();
+				DisposeScreens();
+				BuildSim();
+				Rebuilt();
+			}
 			if (WorldClock.TryGetExistingInstance(out WorldClock clock) == false)
 				return;
 			long now = ClockMinutes(clock);
-			if (lastClockMinutes >= 0)
+			// 세계 시각이 늦게 붙어 크게 건너뛴 것은 흐른 시간이 아님
+			if (lastClockMinutes >= 0 && now - lastClockMinutes <= maxStepMinutes)
 				Sim.AdvanceMinutes(now - lastClockMinutes);
 			lastClockMinutes = now;
 		}
@@ -110,16 +149,17 @@ namespace WitchMendokusai
 		public int Hour => WorldClock.TryGetExistingInstance(out WorldClock clock) ? clock.Hour : 0;
 		public int Minute => WorldClock.TryGetExistingInstance(out WorldClock clock) ? clock.Minute : 0;
 
-		// 아침까지 쉼. 하늘의 시계를 밀 수 있으면 밀고 (분은 Update 가 따라감), 세계가 시각을 주는 동안에는 생활 시간만 밂
-		public void RestUntilMorning()
+		private long CalendarDay => WorldClock.TryGetExistingInstance(out WorldClock clock) ? ClockMinutes(clock) / Sim.Catalog.Tuning.MinutesPerDay : Sim.Day;
+
+		public bool CanRest => Sim.CanRest(CalendarDay);
+
+		// 생활 시간을 아침까지 밂. 하늘의 시각은 세계가 주므로 그대로
+		public HomesteadResult RestUntilMorning()
 		{
-			int minutes = Sim.MinutesUntilMorning(Hour, Minute);
-			if (WorldClock.TryGetExistingInstance(out WorldClock clock) && clock.AdvanceMinutes(minutes))
-				Update();
-			else
-				Sim.AdvanceMinutes(minutes);
-			Sim.Rest();
-			Save();
+			HomesteadResult result = Sim.Rest(CalendarDay, Sim.MinutesUntilMorning(Hour, Minute));
+			if (result.Ok)
+				Save();
+			return result;
 		}
 
 		public void Save() => dataManager.SaveManager.SaveData();
@@ -127,13 +167,11 @@ namespace WitchMendokusai
 		private void OnDungeonReturn()
 		{
 			Sim.NotifyExpedition();
-			int kills = (int)dataManager.GameStat[GameStatType.TOTAL_BOSS_KILL];
-			if (kills > lastBossKills)
-				Sim.NotifyEvent(BOSS_EVENT);
-			lastBossKills = kills;
 			Sim.RefreshRequests();
 			Save();
 		}
+
+		private void OnBossKilled(BossKilledEvent killed) => Sim.NotifyEvent(BOSS_EVENT);
 
 		// 화면은 마을에 처음 들어설 때. 로비와 던전만 오가는 판에는 만들지 않음
 		public void EnsureScreens(UIManager uiManager, UIRoot uiRoot)

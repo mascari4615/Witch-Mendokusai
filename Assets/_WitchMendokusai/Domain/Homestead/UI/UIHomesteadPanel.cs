@@ -120,10 +120,36 @@ namespace WitchMendokusai
 					selected = found;
 			}
 			selected = Mathf.Clamp(selected, 0, Mathf.Max(0, entries.Count - 1));
+			// 시간만 흐르고 보이는 것이 같으면 그대로 둠. 다시 지으면 스크롤과 누르는 중인 칸이 끊김
+			string stamp = Stamp();
+			if (keepScroll && stamp == shownStamp)
+				return;
+			shownStamp = stamp;
 			view.SetHead(page.Title, page.Icon, page.Status, Sim.Purse.Nyang);
 			view.SetTabs(page.Tabs, tab);
 			view.SetEntries(entries, page.IsGrid(tab), page.EmptyText(tab));
-			RefreshDetail(scrollTo: true);
+			RefreshDetail(scrollTo: keepScroll == false);
+		}
+
+		private string shownStamp = string.Empty;
+
+		private string Stamp()
+		{
+			System.Text.StringBuilder text = new();
+			text.Append(tab).Append('|').Append(selected).Append('|').Append(page.Status).Append('|').Append(Sim.Purse.Nyang);
+			foreach (HomesteadEntry entry in entries)
+				text.Append('|').Append(entry.Id).Append(',').Append(entry.Name).Append(',').Append(entry.Sub).Append(',').Append(entry.Count).Append(',').Append(entry.IsDim).Append(entry.IsMarked).Append(entry.IsUnknown);
+			if (entries.Count == 0)
+				return text.ToString();
+			HomesteadDetail shown = entries[selected].Detail();
+			text.Append('#').Append(shown.Title).Append(shown.Note).Append(shown.BarText);
+			foreach (string line in shown.Lines)
+				text.Append('|').Append(line);
+			foreach (HomesteadCostLine cost in shown.Costs)
+				text.Append('|').Append(cost.Have);
+			foreach (HomesteadAction action in shown.Actions)
+				text.Append('|').Append(action.Label).Append(action.Can.Failure);
+			return text.ToString();
 		}
 
 		private void RefreshDetail(bool scrollTo)

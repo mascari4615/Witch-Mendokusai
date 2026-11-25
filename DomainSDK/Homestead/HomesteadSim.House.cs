@@ -211,13 +211,28 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			return left > 0 ? left : left + Tuning.MinutesPerDay;
 		}
 
-		// 시계를 민 뒤 부름. 아늑한 만큼 하루 동안 이득
-		public void Rest()
+		// 하늘 달력의 하루에 한 번. 되풀이해 자며 시간을 공짜로 벌지 못하게
+		public bool CanRest(long calendarDay) => State.RestedOn != calendarDay;
+
+		// 시간을 민 뒤 부름. 아늑한 만큼 하루 동안 이득
+		public HomesteadResult Rest(long calendarDay, int minutes)
 		{
+			if (CanRest(calendarDay) == false)
+			{
+				return HomesteadResult.Fail(HomesteadFailure.AlreadyDone);
+			}
+			long dayBefore = Day;
+			AdvanceMinutes(minutes);
+			if (Day == dayBefore)
+			{
+				State.ExtraDays++;
+			}
+			State.RestedOn = calendarDay;
 			State.RestedRank = ComfortRank;
 			State.RestedUntil = State.Minutes + Tuning.MinutesPerDay;
 			RefreshRequests();
 			NotifyChanged();
+			return HomesteadResult.Success;
 		}
 
 		// ---- 옷장. 겉모습만, 성능 없음

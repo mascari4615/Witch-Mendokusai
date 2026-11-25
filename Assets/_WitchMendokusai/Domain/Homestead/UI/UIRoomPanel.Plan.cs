@@ -39,6 +39,7 @@ namespace WitchMendokusai
 					if (held != null)
 						return;
 					TakePiece(uid);
+					justPicked = true;
 					evt.StopPropagation();
 				});
 				element.style.display = uid == heldUid ? DisplayStyle.None : DisplayStyle.Flex;
@@ -253,6 +254,7 @@ namespace WitchMendokusai
 		{
 			if (held == null || evt.deltaPosition.sqrMagnitude <= 0f)
 				return;
+			justPicked = false;
 			float scale = PixelsPerMeter;
 			Vector2 local = plan.WorldToLocal(evt.position);
 			MoveHeld(local.x / scale - Sim.HouseTier.Width / 2f, Sim.HouseTier.Depth / 2f - local.y / scale);
@@ -260,8 +262,15 @@ namespace WitchMendokusai
 
 		private void OnPlanPointerUp(PointerUpEvent evt)
 		{
-			if (held != null)
-				PutDown();
+			if (held == null)
+				return;
+			if (justPicked)
+			{
+				// 누르기만 한 것. 든 채로 두어 돌리기와 거두기를 쓰게
+				justPicked = false;
+				return;
+			}
+			PutDown();
 		}
 	}
 }

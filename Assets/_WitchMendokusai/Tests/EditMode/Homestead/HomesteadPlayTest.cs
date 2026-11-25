@@ -154,7 +154,7 @@ namespace WitchMendokusai.Tests
 			}
 			if (run == 4 || run == 9)
 			{
-				sim.NotifyEvent("boss:0");
+				sim.NotifyEvent("boss");
 			}
 		}
 

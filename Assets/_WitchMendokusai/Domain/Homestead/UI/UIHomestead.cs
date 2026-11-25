@@ -16,6 +16,7 @@ namespace WitchMendokusai
 		Ranch = 6,
 		Room = 7,
 		Mine = 8,
+		Fishing = 9,
 	}
 
 	// 생활 화면 묶음. 마을에 처음 들어설 때 HomesteadManager 가 만듦
@@ -30,6 +31,7 @@ namespace WitchMendokusai
 
 		public SeedPage Seeds { get; private set; }
 		public MinePage Mine { get; private set; }
+		public UIFishingPanel Fishing { get; private set; }
 
 		[Inject]
 		public void Construct(UIManager uiManager) => SetUIManager(uiManager);
@@ -51,6 +53,9 @@ namespace WitchMendokusai
 			UIRoomPanel room = UIManager.CreateToolkitPanel<UIRoomPanel>();
 			Panels[HomesteadPanelType.Room] = room;
 			created.Add(room);
+			Fishing = UIManager.CreateToolkitPanel<UIFishingPanel>();
+			Panels[HomesteadPanelType.Fishing] = Fishing;
+			created.Add(Fishing);
 		}
 
 		private void Add(HomesteadPanelType type, IHomesteadPage page)
@@ -73,8 +78,10 @@ namespace WitchMendokusai
 		{
 			foreach (UIToolkitPanel panel in created)
 			{
-				if (panel != null)
-					Destroy(panel);
+				if (panel == null)
+					continue;
+				panel.Detach();
+				Destroy(panel);
 			}
 			created.Clear();
 		}

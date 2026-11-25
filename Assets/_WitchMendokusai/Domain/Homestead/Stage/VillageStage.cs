@@ -76,9 +76,40 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
-			// 풀의 주입 전 켜짐 (미리 만들기) 은 넘김
-			if (uiManager == null || HomesteadManager.TryGetExistingInstance(out manager) == false)
+			if (HomesteadManager.TryGetExistingInstance(out HomesteadManager found) == false)
 				return;
+			manager = found;
+			// 풀에 남아 있던 몸은 옛 월드의 것을 쥠
+			if (uiManager == null)
+				manager.InjectInto(gameObject);
+			manager.Rebuilt += Rebind;
+			Bind();
+		}
+
+		private void OnDisable()
+		{
+			StopFishing();
+			LeaveMine();
+			if (manager is null)
+				return;
+			manager.Rebuilt -= Rebind;
+			Unbind();
+			if (manager.Panels != null)
+				manager.Panels.ClosePanel();
+			if (manager.Hud != null)
+				manager.Hud.ShowGoal(false);
+		}
+
+		private void Rebind()
+		{
+			StopFishing();
+			LeaveMine();
+			Unbind();
+			Bind();
+		}
+
+		private void Bind()
+		{
 			manager.EnsureScreens(uiManager, uiRoot);
 			if (builtFor != manager.Sim)
 				BuildAll();
@@ -89,22 +120,16 @@ namespace WitchMendokusai
 			manager.Hud.ShowDigest(Sim.MakeDigest());
 		}
 
-		private void OnDisable()
+		private void Unbind()
 		{
-			if (manager == null || manager.Sim == null)
+			if (builtFor == null)
 				return;
-			Sim.Changed -= OnSimChanged;
-			Sim.Unveiled -= OnUnveiled;
-			LeaveMine();
-			StopFishing();
-			manager.Hud.ShowGoal(false);
-			manager.Hud.ShowDuel(false);
-			manager.Hud.ShowMine(false);
+			builtFor.Changed -= OnSimChanged;
+			builtFor.Unveiled -= OnUnveiled;
 		}
 
 		private void OnDestroy()
 		{
-			VillageKit.ReleaseMeshes();
 			if (waterMaterial != null)
 				Destroy(waterMaterial);
 		}
@@ -143,11 +168,14 @@ namespace WitchMendokusai
 			lampLights.Clear();
 			plots.Clear();
 			gathers.Clear();
+			restPoses.Clear();
 			exhibits.Clear();
 			mineNodes.Clear();
 			people.Clear();
 			workers.Clear();
 			animals.Clear();
+			heldCrop = string.Empty;
+			risingId = null;
 			shownRoomTier = 0;
 			shownFurniture = string.Empty;
 			roomShell = null;
@@ -185,7 +213,7 @@ namespace WitchMendokusai
 		// 분이 흐를 때마다 알림이 옴. 모습은 프레임에 한 번만 맞춤
 		private void LateUpdate()
 		{
-			if (manager == null)
+			if (manager == null || builtFor == null)
 				return;
 			FlowWater();
 			StepFishing();
@@ -218,13 +246,17 @@ namespace WitchMendokusai
 			return false;
 		}
 
+		private bool isMoving;
+
 		private void MovePlayer(Vector3 localPosition, Action onMoved = null)
 		{
+			isMoving = true;
 			uiManager.Transition.Transition(
 				aDuringTransition: () =>
 				{
 					playerProvider.CurrentObject.UnitMovement.Teleport(transform.TransformPoint(localPosition));
 					onMoved?.Invoke();
+					isMoving = false;
 				}).Forget();
 		}
 	}

@@ -9,6 +9,9 @@ namespace WitchMendokusai
 	public sealed partial class VillageStage
 	{
 		private const string RUIN = "ruin";
+		private const int GUILD_PEOPLE = 1;
+		private const int GUILD_JOBS = 2;
+		private const int VILLAGE_TOOLS = 1;
 		private const string WORK = "work";
 		private const string WORK_DONE = "done";
 
@@ -88,6 +91,8 @@ namespace WitchMendokusai
 					return "도구 벼리기";
 				case "shop":
 					return "사고팔기";
+				case "atelier":
+					return "인형에게 맡기기";
 				default:
 					return "둘러보기";
 			}
@@ -154,10 +159,13 @@ namespace WitchMendokusai
 					uiManager.NPC.SetPanel(NPCPanelType.Upgrade);
 					break;
 				case "smithy":
-					manager.Panels.Show(HomesteadPanelType.Village, 1);
+					manager.Panels.Show(HomesteadPanelType.Village, VILLAGE_TOOLS);
 					break;
 				case "shop":
 					manager.Panels.Show(HomesteadPanelType.Store);
+					break;
+				case "atelier":
+					manager.Panels.Show(HomesteadPanelType.Guild, GUILD_JOBS);
 					break;
 				default:
 					Say("아직 준비하는 중입니다.");

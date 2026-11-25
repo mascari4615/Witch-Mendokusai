@@ -49,7 +49,7 @@ namespace WitchMendokusai
 				HomesteadSpot.Attach(made.gameObject, () => captured.Name, () => Sim.CanGiftToday(captured.Id) ? "선물할 수 있음" : $"호감 {Sim.AffinityStep(captured.Id)}단", () =>
 				{
 					Sim.Greet(captured.Id);
-					manager.Panels.Show(HomesteadPanelType.Guild, 1);
+					manager.Panels.Show(HomesteadPanelType.Guild, GUILD_PEOPLE);
 				});
 				people.Add(resident.Id, made);
 			}
@@ -71,14 +71,19 @@ namespace WitchMendokusai
 				if (walker == null)
 				{
 					JobDef captured = job;
-					walker = VillageWalker.Create(outdoor, WorkPlace(job), doll.Sprites[0], doll.Sprites[1], personHeight, 2.2f);
+					walker = VillageWalker.Create(outdoor, WorkPlace(job), HeadOf(doll), BodyOf(doll), personHeight, 2.2f);
 					HomesteadSpot.Attach(walker.gameObject, () => SOHelper.GetDoll(Sim.State.Jobs[captured.Id].DollId).Name, () => JobRole(captured), () => UseWorker(captured));
 					workers[job.Id] = walker;
 				}
 				walker.gameObject.SetActive(true);
-				walker.SetSprites(doll.Sprites[0], doll.Sprites[1], personHeight);
+				walker.SetSprites(HeadOf(doll), BodyOf(doll), personHeight);
 			}
 		}
+
+		// 머리와 몸이 나뉜 인형은 두 장, 아니면 한 장
+		private static Sprite HeadOf(Doll doll) => doll.Sprites.Count > 1 ? doll.Sprites[0] : doll.Sprite;
+
+		private static Sprite BodyOf(Doll doll) => doll.Sprites.Count > 1 ? doll.Sprites[1] : null;
 
 		private Vector3 WorkPlace(JobDef job) => job.Building == HomesteadSim.FARM ? farmOrigin + new Vector3(plotGap.x * 2.5f, 0f, 1.4f) : DoorOf(job.Building) + new Vector3(0.8f, 0f, -0.8f);
 
@@ -93,7 +98,7 @@ namespace WitchMendokusai
 			if (Sim.CollectJob(job.Id) > 0)
 				UiSfx.Play(UiSfxEvent.Purchase);
 			else
-				manager.Panels.Show(HomesteadPanelType.Guild, 2);
+				manager.Panels.Show(HomesteadPanelType.Guild, GUILD_JOBS);
 		}
 
 		private void RefreshAnimals()

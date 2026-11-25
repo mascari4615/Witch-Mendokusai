@@ -11,22 +11,10 @@ namespace WitchMendokusai
 		private const float UV_PER_METER = 0.5f;
 
 		private static readonly int BASE_COLOR = Shader.PropertyToID("_BaseColor");
-		private static readonly List<Mesh> generated = new();
 		private static MaterialPropertyBlock block;
 
 		private readonly Dictionary<(Material Material, Color Color), List<CombineInstance>> groups = new();
 		private readonly List<(Vector3 Center, Vector3 Size, Quaternion Rotation)> solids = new();
-
-		// 판을 나갈 때 만든 메시 정리
-		public static void ReleaseMeshes()
-		{
-			foreach (Mesh mesh in generated)
-			{
-				if (mesh != null)
-					Object.Destroy(mesh);
-			}
-			generated.Clear();
-		}
 
 		public VillageKit Box(Material material, Color color, Vector3 foot, Vector3 size, Vector3 euler = default, bool solid = false)
 		{
@@ -124,11 +112,12 @@ namespace WitchMendokusai
 			root.transform.SetParent(parent, false);
 			root.transform.SetLocalPositionAndRotation(localPosition, Quaternion.Euler(0f, yaw, 0f));
 			block ??= new MaterialPropertyBlock();
+			VillageMeshOwner owner = root.AddComponent<VillageMeshOwner>();
 			foreach (KeyValuePair<(Material Material, Color Color), List<CombineInstance>> pair in groups)
 			{
 				Mesh mesh = new() { name = objectName, hideFlags = HideFlags.DontSave, indexFormat = IndexFormat.UInt32 };
 				mesh.CombineMeshes(pair.Value.ToArray(), true, true);
-				generated.Add(mesh);
+				owner.Add(mesh);
 				foreach (CombineInstance part in pair.Value)
 					Object.Destroy(part.mesh);
 				GameObject piece = new(pair.Key.Material.name);
@@ -153,6 +142,23 @@ namespace WitchMendokusai
 				solid.AddComponent<BoxCollider>().size = size;
 			}
 			return root;
+		}
+	}
+
+	// 코드로 만든 메시의 주인. 몸과 같이 사라짐
+	public sealed class VillageMeshOwner : MonoBehaviour
+	{
+		private readonly List<Mesh> meshes = new();
+
+		public void Add(Mesh mesh) => meshes.Add(mesh);
+
+		private void OnDestroy()
+		{
+			foreach (Mesh mesh in meshes)
+			{
+				if (mesh != null)
+					Destroy(mesh);
+			}
 		}
 	}
 }

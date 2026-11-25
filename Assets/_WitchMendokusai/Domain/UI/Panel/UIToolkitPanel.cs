@@ -150,6 +150,9 @@ namespace WitchMendokusai
 			return body;
 		}
 
+		// 월드보다 먼저 치우는 화면 묶음이 부름. 틀이 화면 층에 남지 않게
+		public void Detach() => Root?.RemoveFromHierarchy();
+
 		protected virtual void OnOpen() { }
 		protected virtual void OnClose() { }
 

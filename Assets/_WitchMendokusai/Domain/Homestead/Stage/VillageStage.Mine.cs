@@ -12,6 +12,8 @@ namespace WitchMendokusai
 		[SerializeField] private float mineRadius = 9f;
 		[SerializeField] private float mineNodeGap = 2.6f;
 		[SerializeField] private float mineLampRange = 8f;
+		[Tooltip("이보다 멀어지면 (끼임 탈출 등) 갱도에서 나온 것으로 침 (m)")]
+		[SerializeField] private float mineLeaveDistance = 60f;
 		[SerializeField] private float mineLampIntensity = 3f;
 		[SerializeField] private Vector3 lanternOffset = new(0.3f, 1.8f, -0.6f);
 		[SerializeField] private Color[] mineColors =
@@ -260,6 +262,11 @@ namespace WitchMendokusai
 		{
 			if (run == null)
 				return;
+			if ((playerProvider.CurrentObject.transform.position - mineRoot.position).sqrMagnitude > mineLeaveDistance * mineLeaveDistance && isMoving == false)
+			{
+				LeaveMine();
+				return;
+			}
 			mineLantern.transform.position = playerProvider.CurrentObject.transform.position + lanternOffset;
 			glintPhase = Mathf.Repeat(Time.time / Catalog.Tuning.GlintSeconds, 1f);
 			bool sharp = run.IsGlint(glintPhase);

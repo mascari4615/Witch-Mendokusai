@@ -92,25 +92,20 @@ namespace WitchMendokusai
 
 		private void StartFishing(string water)
 		{
-			// 낚시 중이면 같은 키가 낚아채기
 			if (duel != null)
-			{
-				PressReel();
 				return;
-			}
 			fishingWater = water;
 			duel = Sim.StartDuel(Sim.PickFish(water, manager.Hour, manager.Season));
+			reelHeld = false;
 			resultTimer = 0f;
-			inputManager.IsMoveSuppressed = true;
-			inputManager.RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Started, PressReel);
-			inputManager.RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Canceled, ReleaseReel);
-			inputManager.RegisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, StopFishing);
 			CombatSfx.Play(CombatSfxEvent.FishingCast, playerProvider.Current.transform.position);
 			Vector3 target = water == POND ? pondCenter + new Vector3(-pondRadius * 0.35f, 0.1f, 0.6f) : streamSpot + new Vector3(1.6f, 0.1f, 0.6f);
 			bobber.SetHome(target);
 			bobber.transform.localPosition = target;
 			bobber.gameObject.SetActive(true);
 			manager.Hud.ShowDuel(true);
+			manager.Panels.Fishing.Bind(PressReel, ReleaseReel, EndFishing);
+			manager.Panels.Show(HomesteadPanelType.Fishing);
 		}
 
 		private void PressReel()
@@ -123,22 +118,29 @@ namespace WitchMendokusai
 
 		private void ReleaseReel() => reelHeld = false;
 
+		// 화면을 닫으면 EndFishing 이 뒤따름
 		private void StopFishing()
+		{
+			if (duel == null)
+				return;
+			if (manager.Panels != null && manager.Panels.CurPanelType == HomesteadPanelType.Fishing)
+				manager.Panels.ClosePanel();
+			EndFishing();
+		}
+
+		private void EndFishing()
 		{
 			if (duel == null)
 				return;
 			duel = null;
 			reelHeld = false;
-			inputManager.IsMoveSuppressed = false;
-			inputManager.UnregisterInputEvent(InputEventType.Submit, InputEventResponseType.Started, PressReel);
-			inputManager.UnregisterInputEvent(InputEventType.Submit, InputEventResponseType.Canceled, ReleaseReel);
-			inputManager.UnregisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, StopFishing);
 			if (bobber != null)
 			{
 				bobber.gameObject.SetActive(false);
 				fishingLine.enabled = false;
 			}
-			manager.Hud.ShowDuel(false);
+			if (manager.Hud != null)
+				manager.Hud.ShowDuel(false);
 		}
 
 		private void StepFishing()
@@ -154,10 +156,7 @@ namespace WitchMendokusai
 			}
 			DrawLine();
 			FishingPhase before = duel.Phase;
-			bool reeling = reelHeld || inputManager.IsMouseLeftButtonPressed;
-			if (inputManager.IsMouseLeftButtonPressed && duel.Phase == FishingPhase.Bite)
-				duel.Press();
-			duel.Step(Time.deltaTime, reeling);
+			duel.Step(Time.deltaTime, reelHeld);
 			manager.Hud.SetDuel(duel);
 			if (duel.Phase == FishingPhase.Bite && before == FishingPhase.Waiting)
 			{

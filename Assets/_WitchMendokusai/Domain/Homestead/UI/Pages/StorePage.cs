@@ -64,11 +64,13 @@ namespace WitchMendokusai
 					HomesteadDetail detail = new() { Icon = Art.IconOf(goods), Title = goods.Name, Note = HomesteadText.KindName(goods.Kind) };
 					if (goods.Note.Length > 0)
 						detail.Lines.Add(goods.Note);
-					detail.Lines.Add($"창고 {stored}, 파는 값 {goods.Price}냥");
+					bool canSell = HomesteadSim.CanSell(goods);
+					detail.Lines.Add(canSell ? $"창고 {stored}, 파는 값 {goods.Price}냥" : $"창고 {stored}, 재료는 팔지 않고 의뢰와 제작에");
 					if (Sim.CanExhibit(goods.Id))
 						detail.Lines.Add(Sim.IsDonated(goods.Id) ? "박물관에 있음" : "박물관에 아직 없음");
-					AddAction(detail, $"하나 팔기  {goods.Price}냥", HomesteadResult.Success, () => Sim.Sell(goods.Id, 1), UiSfxEvent.Purchase);
-					if (stored >= SELL_TEN)
+					if (canSell)
+						AddAction(detail, $"하나 팔기  {goods.Price}냥", HomesteadResult.Success, () => Sim.Sell(goods.Id, 1), UiSfxEvent.Purchase);
+					if (canSell && stored >= SELL_TEN)
 						AddAction(detail, $"열 개 팔기  {goods.Price * SELL_TEN}냥", HomesteadResult.Success, () => Sim.Sell(goods.Id, SELL_TEN), UiSfxEvent.Purchase);
 					return detail;
 				},

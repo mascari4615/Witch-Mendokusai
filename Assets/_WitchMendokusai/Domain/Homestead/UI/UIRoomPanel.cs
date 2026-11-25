@@ -54,6 +54,7 @@ namespace WitchMendokusai
 		private float heldZ;
 		private float heldYaw;
 		private VisualElement heldElement;
+		private bool justPicked;
 
 		private readonly Stack<List<PlacedFurniture>> undo = new();
 

@@ -60,6 +60,7 @@ namespace WitchMendokusai
 		private sealed class PlotView
 		{
 			public GameObject Spot;
+			public GameObject Overgrown;
 			public GameObject Wild;
 			public GameObject Dry;
 			public GameObject Wet;
@@ -107,6 +108,7 @@ namespace WitchMendokusai
 				int index = i;
 				Vector3 position = PlotPosition(i);
 				PlotView view = new();
+				view.Overgrown = OvergrownBody(i).Build("PlotOvergrown", outdoor, position, index * 61f, castShadow: false);
 				view.Wild = WildBody(i).Build("PlotWild", outdoor, position, index * 47f % 20f - 10f, castShadow: false);
 				view.Dry = PlotBody(new Color(1f, 0.92f, 0.82f)).Build("Plot", outdoor, position, index * 47f % 20f - 10f, castShadow: false);
 				view.Wet = PlotBody(new Color(0.62f, 0.56f, 0.56f)).Build("PlotWet", outdoor, position, index * 47f % 20f - 10f, castShadow: false);
@@ -114,6 +116,19 @@ namespace WitchMendokusai
 				view.Spot = HomesteadSpot.Create(outdoor, position, "PlotSpot", () => PlotName(index), () => PlotRole(index), () => UsePlot(index)).gameObject;
 				plots.Add(view);
 			}
+		}
+
+		private static VillageKit OvergrownBody(int seed)
+		{
+			VillageKit kit = new();
+			for (int i = 0; i < 9; i++)
+			{
+				float angle = seed * 0.9f + i * 2.4f;
+				float distance = 0.18f + i * 0.07f;
+				float size = 0.34f + Mathf.PerlinNoise(seed * 0.7f, i * 0.9f) * 0.3f;
+				kit.Prism(Art.Leaf, new Color(0.86f, 1f, 0.8f), new Vector3(Mathf.Cos(angle) * distance, -0.05f, Mathf.Sin(angle) * distance), new Vector3(size, size * 0.7f, size), 6, 0.35f);
+			}
+			return kit;
 		}
 
 		// 아직 안 간 땅. 낮은 흙에 잡초 몇 포기
@@ -199,7 +214,7 @@ namespace WitchMendokusai
 					if (Report(Sim.Harvest(index, manager.Season)))
 					{
 						UiSfx.Play(UiSfxEvent.Purchase);
-						StartCoroutine(Pop(plots[index].Crop.transform));
+						StartCoroutine(Pop(plots[index].Wet.activeSelf ? plots[index].Wet.transform : plots[index].Dry.transform));
 					}
 					break;
 				default:
@@ -266,6 +281,7 @@ namespace WitchMendokusai
 				PlotView view = plots[i];
 				bool open = i < Sim.State.Plots.Count;
 				view.Spot.SetActive(open);
+				view.Overgrown.SetActive(open == false);
 				view.Wild.SetActive(open && Sim.State.Plots[i].Tilled == false);
 				if (open == false)
 				{
@@ -405,9 +421,16 @@ namespace WitchMendokusai
 				UiSfx.Play(UiSfxEvent.Purchase);
 		}
 
+		// 흔들리는 중에 또 치면 처음 자세가 기준
+		private readonly Dictionary<Transform, Quaternion> restPoses = new();
+
 		private IEnumerator Shake(Transform body)
 		{
-			Quaternion rest = body.localRotation;
+			if (restPoses.TryGetValue(body, out Quaternion rest) == false)
+			{
+				rest = body.localRotation;
+				restPoses[body] = rest;
+			}
 			for (float time = 0f; time < hitShakeSeconds && body != null; time += Time.deltaTime)
 			{
 				float ratio = 1f - time / hitShakeSeconds;

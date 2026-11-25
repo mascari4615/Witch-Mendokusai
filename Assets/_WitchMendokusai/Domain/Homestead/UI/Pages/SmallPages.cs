@@ -120,9 +120,22 @@ namespace WitchMendokusai
 						AddBuy(detail, crop, 1);
 						AddBuy(detail, crop, BUY_FIVE);
 					}
+					int growing = Sim.State.Plots.FindAll(plot => plot.Crop == crop.Id).Count;
+					if (growing > 0)
+						AddAction(detail, $"심은 {growing}칸 걷어 내기", HomesteadResult.Success, () => UprootAll(crop.Id), UiSfxEvent.Cancel);
 					return detail;
 				},
 			};
+		}
+
+		private HomesteadResult UprootAll(string cropId)
+		{
+			for (int i = 0; i < Sim.State.Plots.Count; i++)
+			{
+				if (Sim.State.Plots[i].Crop == cropId)
+					Sim.Uproot(i);
+			}
+			return HomesteadResult.Success;
 		}
 
 		private void AddBuy(HomesteadDetail detail, CropDef crop, int amount)

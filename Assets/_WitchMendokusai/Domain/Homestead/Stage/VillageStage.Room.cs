@@ -32,6 +32,7 @@ namespace WitchMendokusai
 		private Transform doorSpot;
 		private Transform deskSpot;
 		private Transform restSpot;
+		private int shownComfortRank;
 
 		private void BuildRoom()
 		{
@@ -43,7 +44,7 @@ namespace WitchMendokusai
 			furnitureRoot.SetParent(room, false);
 			doorSpot = HomesteadSpot.Create(room, Vector3.zero, "DoorSpot", () => "문", () => "나가기", LeaveRoom).transform;
 			deskSpot = HomesteadSpot.Create(room, Vector3.zero, "DeskSpot", () => "꾸밈 상자", () => "방 꾸미기", () => manager.Panels.Show(HomesteadPanelType.Room)).transform;
-			restSpot = HomesteadSpot.Create(room, Vector3.zero, "RestSpot", () => "쉬는 자리", () => $"아침까지, 아늑함 {Sim.ComfortRank}단", Rest).transform;
+			restSpot = HomesteadSpot.Create(room, Vector3.zero, "RestSpot", () => "쉬는 자리", () => manager.CanRest ? $"아침까지, 아늑함 {shownComfortRank}단" : "오늘은 이미 쉼", Rest).transform;
 		}
 
 		private void RefreshRoom()
@@ -109,6 +110,7 @@ namespace WitchMendokusai
 			if (wanted == shownFurniture)
 				return;
 			shownFurniture = wanted;
+			shownComfortRank = Sim.ComfortRank;
 			for (int i = furnitureRoot.childCount - 1; i >= 0; i--)
 				Destroy(furnitureRoot.GetChild(i).gameObject);
 			foreach (PlacedFurniture piece in Sim.State.Placed)
@@ -169,6 +171,12 @@ namespace WitchMendokusai
 
 		private void Rest()
 		{
+			if (manager.CanRest == false)
+			{
+				UiSfx.Play(UiSfxEvent.Blocked);
+				Say("오늘은 이미 쉬었습니다.");
+				return;
+			}
 			MovePlayer(roomOffset + restSpot.localPosition + Vector3.up * 0.1f, () =>
 			{
 				manager.RestUntilMorning();

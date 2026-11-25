@@ -51,7 +51,7 @@ namespace WitchMendokusai
 					sim.DevGiveFurniture();
 					break;
 				case REST:
-					manager.RestUntilMorning();
+					sim.Rest(-sim.Day - 2, sim.MinutesUntilMorning(manager.Hour, manager.Minute));
 					break;
 				default:
 					context.LogError(Usage);

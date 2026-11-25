@@ -57,7 +57,10 @@ namespace WitchMendokusai
 		private void ApplyHat(string costumeId)
 		{
 			if (hat != null && hat.transform.parent != player.HeadSprite.transform)
+			{
 				UnityEngine.Object.Destroy(hat.gameObject);
+				hat = null;
+			}
 			if (costumeId.Length == 0)
 			{
 				if (hat != null)

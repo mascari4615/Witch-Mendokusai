@@ -39,6 +39,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public List<PlacedFurniture> Placed { get; set; } = new List<PlacedFurniture>();
 		public int NextPieceUid { get; set; } = 1;
 		public long RestedUntil { get; set; }
+		public long RestedOn { get; set; } = -1;
+		// 자고 일어나 더 넘어간 날. 생활 분만으로는 밤에 자도 날이 안 바뀔 수 있음
+		public int ExtraDays { get; set; }
 		public int RestedRank { get; set; }
 
 		public List<string> OwnedCostumes { get; set; } = new List<string>();

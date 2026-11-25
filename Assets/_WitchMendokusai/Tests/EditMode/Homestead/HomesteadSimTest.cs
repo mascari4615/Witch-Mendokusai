@@ -138,8 +138,61 @@ namespace WitchMendokusai.Tests
 			HomesteadTestKit.BuildNow(sim, purse, "training");
 			Assert.That(sim.IsBuilt("training"));
 			Assert.That(sim.IsOpen("training"), Is.False);
-			sim.NotifyEvent("rescue:training");
+			RecruitDef favor = sim.Catalog.Get<ResidentDef>("r_training").Recruits.Find(recruit => recruit.Kind == RecruitKind.Favor);
+			HomesteadTestKit.Afford(sim, purse, favor.Cost);
+			Assert.That(sim.PayFavor("r_training", favor).Ok);
 			Assert.That(sim.IsOpen("training"));
+		}
+
+		[Test]
+		public void Materials_are_not_sold_so_shop_goods_cannot_be_flipped()
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
+			sim.Give("gold_bar", 1);
+			Assert.That(sim.Sell("gold_bar", 1).Failure, Is.EqualTo(HomesteadFailure.Locked));
+			foreach (RecipeDef recipe in sim.Catalog.Recipes)
+			{
+				GoodsDef made = sim.Catalog.Get<GoodsDef>(recipe.Output);
+				if (HomesteadSim.CanSell(made) == false)
+				{
+					continue;
+				}
+				// 팔 수 있는 것은 밭, 물, 동물에서 난 것이 하나는 들어감
+				bool needsHands = false;
+				foreach (string input in recipe.Inputs.Keys)
+				{
+					needsHands |= sim.Catalog.Get<GoodsDef>(input).Kind != GoodsKind.Material;
+				}
+				Assert.That(needsHands, recipe.Id);
+			}
+		}
+
+		[Test]
+		public void Resting_works_once_per_calendar_day_and_always_turns_the_day()
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
+			long day = sim.Day;
+			Assert.That(sim.Rest(3, 60).Ok);
+			Assert.That(sim.Day, Is.EqualTo(day + 1));
+			Assert.That(sim.Rest(3, 60).Failure, Is.EqualTo(HomesteadFailure.AlreadyDone));
+			Assert.That(sim.Rest(4, 60).Ok);
+		}
+
+		[Test]
+		public void Unknown_names_in_a_save_are_dropped_and_the_rest_stays()
+		{
+			HomesteadState state = new();
+			state.Store["wood"] = 5;
+			state.Store["gone"] = 3;
+			state.Placed.Add(new PlacedFurniture { Uid = 1, Id = "gone" });
+			state.Plots.Add(new PlotState { Crop = "gone", Tilled = true });
+			state.Worn[CostumeSlot.Hat] = "gone";
+			HomesteadCatalog catalog = HomesteadTestKit.LoadCatalog();
+			Assert.That(HomesteadRepair.DropUnknown(state, catalog).Count, Is.EqualTo(4));
+			Assert.That(state.Store["wood"], Is.EqualTo(5));
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _, state: state);
+			sim.AdvanceMinutes(600);
+			Assert.That(sim.State.Plots[0].Tilled);
 		}
 
 		[Test]

@@ -37,7 +37,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			EnsurePlots();
 		}
 
-		public long Day => State.Minutes / Tuning.MinutesPerDay;
+		public long Day => State.Minutes / Tuning.MinutesPerDay + State.ExtraDays;
 
 		// 지나간 게임 분. 되감긴 시계는 0 취급
 		public void AdvanceMinutes(long minutes)
@@ -132,6 +132,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 		}
 
+		// 재료는 의뢰 값으로만. 상점에서 싸게 사서 가공해 되파는 길을 막음
+		public static bool CanSell(GoodsDef goods) => goods.Price > 0 && goods.Kind != GoodsKind.Material;
+
 		public HomesteadResult Sell(string goodsId, int amount)
 		{
 			GoodsDef goods = Catalog.Get<GoodsDef>(goodsId);
@@ -139,7 +142,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				return HomesteadResult.Fail(HomesteadFailure.NotEnoughGoods, goodsId);
 			}
-			if (goods.Price <= 0)
+			if (CanSell(goods) == false)
 			{
 				return HomesteadResult.Fail(HomesteadFailure.Locked, goodsId);
 			}
