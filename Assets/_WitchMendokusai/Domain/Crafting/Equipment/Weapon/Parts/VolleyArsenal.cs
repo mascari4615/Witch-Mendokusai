@@ -109,8 +109,11 @@ namespace WitchMendokusai
 
 		public float WindupSeconds => raiseSeconds + holdSeconds;
 
+		/// <summary> 마지막 발 뒤 막타가 터져 잦아들 때까지 </summary>
+		public float FinaleSeconds => grandDelay + grandSeconds;
+
 		// 자루를 꺼내기 시작. 첫 발은 WindupSeconds 뒤 호출한 쪽이 Fire 로
-		public void Raise(Transform ownerTransform, Func<Vector3> aim, int count, float fanDegrees)
+		public void Raise(Transform ownerTransform, Func<Vector3> aim, Func<Vector3> aimPoint, int count, float fanDegrees)
 		{
 			Prepare();
 			owner = ownerTransform;
@@ -122,7 +125,7 @@ namespace WitchMendokusai
 			heroTime = float.PositiveInfinity;
 			if (InArms)
 			{
-				RaiseArms();
+				RaiseArms(aimPoint);
 				RaiseGround();
 				return;
 			}
@@ -222,7 +225,6 @@ namespace WitchMendokusai
 			foreach (Weapon weapon in weapons)
 				weapon.Alive = false;
 			pendingShots.Clear();
-			IsArmed = false;
 			StopShots();
 			StopGround();
 			foreach (FxQuadBatch batch in batches)
@@ -257,7 +259,7 @@ namespace WitchMendokusai
 			FirePending();
 			DrawGround();
 			if (InArms)
-				DrawArms();
+				DriveArms();
 			else
 				DrawWeapons();
 			DrawShots();
@@ -365,7 +367,8 @@ namespace WitchMendokusai
 		{
 			if (InArms)
 			{
-				PoseArm(weapon, out position, out aim);
+				position = armsModel.Muzzle(weapon.Arm);
+				aim = armsModel.Aim;
 				return;
 			}
 			Transform cameraTransform = viewCamera.transform;
@@ -384,7 +387,7 @@ namespace WitchMendokusai
 		{
 			Pose(weapon, out Vector3 position, out aim);
 			if (InArms)
-				return ArmMuzzle(weapon, position, aim);
+				return position;
 			return position + aim * (gateWands ? weapon.Length * weapon.Scale * emergeFraction : gateLightOffset);
 		}
 
@@ -470,8 +473,6 @@ namespace WitchMendokusai
 			for (int i = 0; i < wandBatches.Length; i++)
 				wandBatches[i] = Layer("Wand" + i, art.Wands[i], 2962 + i);
 			portalFront = Layer("PortalFront", art.Soft, 2970);
-			if (InArms)
-				PrepareArms();
 			PrepareShots();
 		}
 

@@ -53,6 +53,7 @@ namespace WitchMendokusai
 			{ InputEventType.DialogueLog, InputMapType.UI },
 			{ InputEventType.MinimapLargeView, InputMapType.UI },
 			{ InputEventType.AchievementToggle, InputMapType.UI },
+			{ InputEventType.Barrage, InputMapType.Player },
 		};
 
 		// Strategy-owned: cleared on every strategy switch

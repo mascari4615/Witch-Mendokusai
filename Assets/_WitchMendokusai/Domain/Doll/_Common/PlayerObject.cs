@@ -71,6 +71,14 @@ namespace WitchMendokusai
 				bodyRenderer.enabled = visible;
 		}
 
+		/// <summary> 머리 그림을 바꾸고 바꾸기 전 그림을 돌려줌 (등 뒤 시점의 뒷모습) </summary>
+		public Sprite SwapHead(Sprite head)
+		{
+			Sprite previous = headRenderer.sprite;
+			headRenderer.sprite = head;
+			return previous;
+		}
+
 		public override void Init(Unit unitData)
 		{
 			base.Init(unitData);

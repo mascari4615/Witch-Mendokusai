@@ -201,6 +201,7 @@ namespace WitchMendokusai
 			DevCommandRegistry.Instance.Register(new ThreatCommand());
 			DevCommandRegistry.Instance.Register(new RevealCommand());
 			DevCommandRegistry.Instance.Register(new SignatureCardCommand());
+			DevCommandRegistry.Instance.Register(new BarrageCommand());
 
 			if (DevModeRegistry.Instance.FindById("console") == null)
 				DevModeRegistry.Instance.Register(new ConsoleMode());

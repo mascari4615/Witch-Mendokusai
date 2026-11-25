@@ -330,12 +330,13 @@ namespace WitchMendokusai
 				if (age >= muzzleSeconds)
 					return false;
 				Rect cell = FxQuadBatch.Cell(Frame(age / muzzleSeconds, muzzleFirstFrame), 4, 4);
-				float half = muzzleSize * 0.5f;
-				Vector3 center = burst.Position + burst.Forward * ((0.5f - art.MuzzleOrigin) * muzzleSize);
+				float size = muzzleSize * (InArms ? armMuzzleScale : 1f);
+				float half = size * 0.5f;
+				Vector3 center = burst.Position + burst.Forward * ((0.5f - art.MuzzleOrigin) * size);
 				float heat = Mathf.Pow(0.5f, age / 0.05f);
 				muzzleBatch.Add(center, burst.Forward * half, FxQuadBatch.Side(burst.Forward, viewForward) * half, cell, FxQuadLook.Of(Color.Lerp(lightTint, hotTint, heat * 0.4f), 0.8f));
 				if (heat > 0.05f)
-					Billboard(flashSoft, burst.Position, 0.6f, 0f, FxQuadLook.Of(Scale(goldTint, heat * 0.25f)));
+					Billboard(flashSoft, burst.Position, size * 0.3f, 0f, FxQuadLook.Of(Scale(goldTint, heat * 0.25f)));
 				return true;
 			}
 			if (age < impactSeconds)

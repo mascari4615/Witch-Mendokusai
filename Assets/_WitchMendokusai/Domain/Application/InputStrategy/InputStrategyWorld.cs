@@ -88,6 +88,13 @@ namespace WitchMendokusai
 						),
 
 						new(
+							InputEventType.Barrage,
+							InputEventResponseType.Performed,
+							() => EventBusBridge.Publish(new PlayerBarrageRequestedEvent()),
+							() => CanExecute(InputEventType.Barrage)
+						),
+
+						new(
 							InputEventType.BuildModeToggle,
 							InputEventResponseType.Performed,
 							() => gameModeManager.ToggleBuildMode(),
@@ -192,6 +199,7 @@ namespace WitchMendokusai
 				}
 			},
 			{ InputEventType.ChangeMode, new[] { GameConditionType.IsTyping } },
+			{ InputEventType.Barrage, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused, GameConditionType.IsDied, GameConditionType.IsViewingUI, GameConditionType.IsInTransition } },
 			{
 				InputEventType.BuildModeToggle,
 				new[]
