@@ -8,10 +8,10 @@ namespace WitchMendokusai
 	{
 		private enum Stage
 		{
-			None,
-			Windup,
-			Strike,
-			Rest,
+			None = 0,
+			Windup = 1,
+			Strike = 2,
+			Rest = 3,
 		}
 
 		// 공격이 끝나고 이만큼 안에 다음 준비가 없으면 원래대로 (초). 행동 틱 (0.1초) 보다 김
