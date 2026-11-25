@@ -79,6 +79,7 @@ namespace WitchMendokusai
 			public float Seed;
 			public int Row;
 			public bool Pale;
+			public float Scale;
 		}
 
 		private struct Burst
@@ -299,6 +300,7 @@ namespace WitchMendokusai
 					Seed = Random.value,
 					Row = i % 3 == 2 ? 3 : i % 3 == 1 ? 1 : 0,
 					Pale = Random.value < 0.5f,
+					Scale = 1f,
 				});
 			}
 		}
@@ -315,7 +317,7 @@ namespace WitchMendokusai
 			float head = Mathf.Clamp01(progress * 1.6f);
 			float tail = Mathf.Clamp01((progress * 1.6f - 0.75f) / 0.85f);
 			FxQuadLook look = FxQuadLook.Of(WithAlpha(phantom.Pale ? paleTint : goldTint, 0.9f), 0.15f, Mathf.Clamp01(progress * 1.4f - 0.4f), phantom.Seed);
-			phantomBatch.AddStrip(phantom.From + span * tail, phantom.From + span * head, phantomWidth * (1f - 0.5f * progress), viewForward, PaintedFxSet.StreakRow(phantom.Row), look);
+			phantomBatch.AddStrip(phantom.From + span * tail, phantom.From + span * head, phantomWidth * phantom.Scale * (1f - 0.5f * progress), viewForward, PaintedFxSet.StreakRow(phantom.Row), look);
 			return true;
 		}
 

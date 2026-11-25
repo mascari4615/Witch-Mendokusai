@@ -384,7 +384,7 @@ namespace WitchMendokusai
 		{
 			Pose(weapon, out Vector3 position, out aim);
 			if (InArms)
-				return position + aim * (ArmLength * (1f - armGrip));
+				return ArmMuzzle(weapon, position, aim);
 			return position + aim * (gateWands ? weapon.Length * weapon.Scale * emergeFraction : gateLightOffset);
 		}
 

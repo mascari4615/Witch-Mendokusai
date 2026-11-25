@@ -80,9 +80,15 @@ namespace WitchMendokusai
 			finaleAim = Aim();
 			finaleCenter = owner.position + Vector3.up * (groundLift + 0.06f);
 			grandMarked = false;
-			// 남은 문을 한꺼번에 닫음
+			// 남은 문을 한꺼번에 닫음. 몸에 붙은 총은 막타 빛줄기까지 남고 그 순간 크게 밀림
+			float linger = InArms ? armLinger : 0f;
 			foreach (Weapon weapon in weapons)
-				weapon.BreakTime = Mathf.Min(weapon.BreakTime, Time.time + closeSpread * Mathf.Repeat(weapon.Phase, 1f));
+				weapon.BreakTime = Mathf.Min(weapon.BreakTime, Time.time + linger + closeSpread * Mathf.Repeat(weapon.Phase, 1f));
+			if (InArms)
+			{
+				foreach (Weapon weapon in raised)
+					weapon.FireTime = Time.time + grandDelay - heroFlySeconds;
+			}
 			CameraManager.Instance.GenerateCameraImpulse(finaleShake);
 		}
 
