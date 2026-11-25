@@ -8,6 +8,7 @@ namespace WitchMendokusai
 	{
 		private readonly PackMonsterAttack attack;
 		private BTRunner groupBehaviour;
+		private BTRunner soloBehaviour;
 		private float nextCountTime;
 		private bool isGrouped;
 
@@ -34,8 +35,24 @@ namespace WitchMendokusai
 			return groupBehaviour.UpdateBT();
 		}
 
+		// 혼자 공격이 있고 주인공이 그 사거리까지 다가오면 침. 시작한 공격은 끝까지, 끝나면 다시 거리를 둠
+		private bool UsesSoloAttack()
+		{
+			if (attack.SoloAttack == null)
+				return false;
+			if (soloBehaviour is IAttackCycle { IsAttacking: true })
+				return true;
+			return SlimeKingPatternMath.IsWithin(unitObject.transform.position, playerProvider.Current.transform.position, attack.SoloAttack.TriggerRange);
+		}
+
 		private BTState Lure()
 		{
+			if (UsesSoloAttack())
+			{
+				soloBehaviour ??= attack.SoloAttack.CreateBehaviour(unitObject, playerProvider);
+				BTRunner running = soloBehaviour;
+				return running.UpdateBT();
+			}
 			Vector3 direction = PackMonsterAttack.LureDirection(unitObject.transform.position, playerProvider.Current.transform.position, attack.LureDistance, attack.LureBand);
 			unitObject.UnitMovement.SetMoveDirection(direction);
 			return BTState.Success;
@@ -46,6 +63,9 @@ namespace WitchMendokusai
 			if (groupBehaviour != null)
 				attack.GroupAttack.Interrupt(groupBehaviour);
 			groupBehaviour = null;
+			if (soloBehaviour != null)
+				attack.SoloAttack.Interrupt(soloBehaviour);
+			soloBehaviour = null;
 		}
 	}
 }

@@ -28,7 +28,7 @@ namespace WitchMendokusai
 			Seconds = WindupSeconds,
 		};
 
-		public override void Execute(UnitObject unitObject, PlayerObject player, Vector3 target) => unitObject.UseSkill(SkillIndex);
+		public override void Execute(UnitObject unitObject, PlayerObject player, List<Vector3> targets) => unitObject.UseSkill(SkillIndex);
 
 		public override void Validate(Monster owner, List<string> errors)
 		{

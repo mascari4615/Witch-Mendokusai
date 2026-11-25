@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3188a2aa8084f8c82eff08d1919b1ad, type: 3}
+  m_Name: MA_Sequence_GreatCrab2
+  m_EditorClassIdentifier: 
+  <TriggerRange>k__BackingField: 11
+  <WindupSeconds>k__BackingField: 0
+  <RecoverySeconds>k__BackingField: 0
+  <Cooldown>k__BackingField: 0.5
+  <WindupTelegraph>k__BackingField: {fileID: 0}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 2
+  <Steps>k__BackingField:
+  - {fileID: 11400000, guid: 008ef13bf4874e199c924064c6093ed5, type: 2}
+  - {fileID: 11400000, guid: 7bf7e3fd912b4d35baa48f7e492033a2, type: 2}
+  - {fileID: 11400000, guid: 18849d6604e34dd3913f1f3a620eac82, type: 2}
+  - {fileID: 11400000, guid: 5b5c836c81244779bf4529ed349b1d39, type: 2}
+  - {fileID: 11400000, guid: 18849d6604e34dd3913f1f3a620eac82, type: 2}
+  - {fileID: 11400000, guid: e4bec0dfe6a34ebb8a114f030248db6f, type: 2}

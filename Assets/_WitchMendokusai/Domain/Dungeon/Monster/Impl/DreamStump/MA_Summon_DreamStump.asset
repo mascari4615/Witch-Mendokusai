@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da652475083b4449b8a53b6648f29a3b, type: 3}
+  m_Name: MA_Summon_DreamStump
+  m_EditorClassIdentifier: 
+  <TriggerRange>k__BackingField: 14
+  <WindupSeconds>k__BackingField: 1.0
+  <RecoverySeconds>k__BackingField: 0.4
+  <Cooldown>k__BackingField: 0
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 7d0f0ab6735b4a2ab8fb739bbb4cd564, type: 2}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 2
+  <Summoned>k__BackingField: {fileID: 11400000, guid: c6db0cbafde144a6bc4ffca716da44fb, type: 2}
+  <Count>k__BackingField: 3
+  <Distance>k__BackingField: 3.2
+  <MaxAlive>k__BackingField: 6
+  <CountRadius>k__BackingField: 14
+  <TelegraphRadius>k__BackingField: 0.8

@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		[field: Header("혼자")]
 		[field: SerializeField, Tooltip("주인공과의 거리 (m)"), Min(0.5f)] public float LureDistance { get; private set; } = 4.5f;
 		[field: SerializeField, Tooltip("거리가 이만큼 어긋나면 다가가거나 물러남 (m)"), Min(0f)] public float LureBand { get; private set; } = 0.8f;
+		[field: SerializeField, Tooltip("혼자일 때 사거리 (TriggerRange) 안에 들어오면 쓰는 공격. 비우면 안 침")] public MonsterAttack SoloAttack { get; private set; }
 
 		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider) =>
 			new BT_PackAttack(unitObject, playerProvider, this);
@@ -65,6 +66,10 @@ namespace WitchMendokusai
 				errors.Add($"{name}: 무리 공격에 무리를 다시 넣을 수 없음");
 			else
 				GroupAttack.Validate(owner, errors);
+			if (SoloAttack is PackMonsterAttack)
+				errors.Add($"{name}: 혼자 공격에 무리를 다시 넣을 수 없음");
+			else if (SoloAttack != null)
+				SoloAttack.Validate(owner, errors);
 		}
 	}
 }

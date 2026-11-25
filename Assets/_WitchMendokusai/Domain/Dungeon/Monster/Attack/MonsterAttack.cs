@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,11 +21,28 @@ namespace WitchMendokusai
 		[field: Header("예고")]
 		[field: SerializeField, Tooltip("바닥 예고 부품. Seconds 는 WindupSeconds")] public CombatFx WindupTelegraph { get; private set; }
 
+		[field: SerializeField, Tooltip("숨 고르기 동안 발밑 표시 (반격 창). 비우면 없음")] public CombatFx RecoveryFx { get; private set; }
+		[field: SerializeField, Tooltip("반격 창 반지름 (m)"), Min(0.1f)] public float RecoveryFxRadius { get; private set; } = 2f;
+
 		// 이 공격을 돌릴 행동 트리. 몬스터가 켜질 때마다 새로
 		public abstract BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider);
 
 		// 행동이 도중에 끊길 때 (사망, 풀 반납, 패턴 이동, 재배치). 예고 정리
 		public abstract void Interrupt(BTRunner behaviour);
+
+		// 숨 고르기 시작에 반격 창 표시. 돌려받은 함수로 도중에 치움
+		public Action PlayRecovery(UnitObject unitObject)
+		{
+			if (RecoveryFx == null || RecoverySeconds <= 0f)
+				return null;
+			return RecoveryFx.Play(new CombatFxContext
+			{
+				Position = unitObject.transform.position,
+				Follow = unitObject.transform,
+				Radius = RecoveryFxRadius,
+				Seconds = RecoverySeconds,
+			});
+		}
 
 		// owner 는 이 공격을 낀 몬스터 자산
 		public virtual void Validate(Monster owner, List<string> errors)

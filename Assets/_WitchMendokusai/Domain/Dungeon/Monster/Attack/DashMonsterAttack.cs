@@ -14,6 +14,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("돌진 시간 (초). 길이는 속도 x 시간"), Min(0.05f)] public float DashDuration { get; private set; } = 0.6f;
 		[field: SerializeField, Tooltip("바닥 띠 예고 폭 (m)"), Min(0.1f)] public float TelegraphWidth { get; private set; } = 1f;
 		[field: SerializeField, Tooltip("돌진 계획 이동의 이 비율도 못 나가고 닿아 있으면 부딪혀 멈춤"), Range(0f, 1f)] public float BlockedProgressRatio { get; private set; } = 0.3f;
+		[field: SerializeField, Tooltip("주인공 쪽에서 벌어진 돌진 각도 (도). 0 이면 똑바로, 크면 옆걸음"), Range(-90f, 90f)] public float AngleDegrees { get; private set; }
 
 		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider) =>
 			new BT_DashCooldown(unitObject, playerProvider, this);
@@ -25,6 +26,7 @@ namespace WitchMendokusai
 			new(unitObject, playerProvider, TriggerRange, DashSpeed, DashDuration, onDashEnd,
 				dashPreDelay: WindupSeconds, dashPostDelay: RecoverySeconds,
 				telegraph: WindupTelegraph, telegraphWidth: TelegraphWidth,
-				blockedProgressRatio: BlockedProgressRatio);
+				recoveryFx: RecoveryFx, recoveryRadius: RecoveryFxRadius, blockedProgressRatio: BlockedProgressRatio,
+				angleDegrees: AngleDegrees);
 	}
 }

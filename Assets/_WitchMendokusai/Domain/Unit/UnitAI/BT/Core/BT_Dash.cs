@@ -29,12 +29,14 @@ namespace WitchMendokusai
 		private float recoveryEndTime;
 		// 한 tick 에 계획 이동의 이 비율도 못 나가고 무언가에 닿아 있으면 부딪혀 멈춘 것으로 봄. 0 이면 막힘 판정 없음
 		private readonly float blockedProgressRatio;
+		// 주인공 쪽에서 벌어진 돌진 각도 (도)
+		private readonly float angleDegrees;
 		// 준비 예고의 중단 함수. 준비가 도중에 끊기면 예고도 같이 치움
 		private Action stopTelegraph;
 		// 반격 창 표시의 중단 함수. 숨 고르기가 도중에 끊기면 같이 치움
 		private Action stopRecovery;
 
-		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null, float dashPreDelay = 0.2f, float dashPostDelay = 0.5f, CombatFx telegraph = null, float telegraphWidth = 0f, CombatFx recoveryFx = null, float recoveryRadius = 0f, float blockedProgressRatio = 0f) : base(unitObject)
+		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null, float dashPreDelay = 0.2f, float dashPostDelay = 0.5f, CombatFx telegraph = null, float telegraphWidth = 0f, CombatFx recoveryFx = null, float recoveryRadius = 0f, float blockedProgressRatio = 0f, float angleDegrees = 0f) : base(unitObject)
 		{
 			this.playerProvider = playerProvider;
 			this.attackRange = attackRange;
@@ -47,6 +49,7 @@ namespace WitchMendokusai
 			this.recoveryFx = recoveryFx;
 			this.recoveryRadius = recoveryRadius;
 			this.blockedProgressRatio = blockedProgressRatio;
+			this.angleDegrees = angleDegrees;
 			OnDashEnd = onDashEnd;
 		}
 
@@ -116,7 +119,7 @@ namespace WitchMendokusai
 			UpdateDestinationToPlayer();
 			Vector3 direction = moveDest - unitObject.transform.position;
 			direction.y = 0f;
-			dashDirection = direction.sqrMagnitude < 0.0001f ? Vector3.zero : direction.normalized;
+			dashDirection = direction.sqrMagnitude < 0.0001f ? Vector3.zero : Quaternion.Euler(0f, angleDegrees, 0f) * direction.normalized;
 			dashReadyTime = Time.time + dashPreDelay;
 
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);

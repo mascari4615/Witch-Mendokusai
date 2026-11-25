@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using static WitchMendokusai.NodeHelper;
 
@@ -9,11 +10,12 @@ namespace WitchMendokusai
 	public class BT_WindupAttack : BTRunner, IAttackCycle
 	{
 		private readonly WindupMonsterAttack attack;
-		private Vector3 target;
+		private readonly List<Vector3> targets = new();
+		private readonly List<Action> stopTelegraphs = new();
 		private float windupEndTime;
 		private float recoveryEndTime;
 		private float readyTime;
-		private Action stopTelegraph;
+		private Action stopRecovery;
 
 		public int CompletedCount { get; private set; }
 		public bool IsAttacking { get; private set; }
@@ -72,11 +74,15 @@ namespace WitchMendokusai
 			Interrupt();
 			IsAttacking = true;
 			PlayerObject player = playerProvider.CurrentObject;
-			target = attack.ResolveTarget(player.transform.position, SurvivalThreatRules.MoveVelocity(player.UnitMovement));
+			targets.Clear();
+			attack.ResolveTargets(unitObject, player.transform.position, SurvivalThreatRules.MoveVelocity(player.UnitMovement), targets);
 			windupEndTime = Time.time + attack.WindupSeconds;
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
 			if (attack.WindupTelegraph != null && attack.WindupSeconds > 0f)
-				stopTelegraph = attack.WindupTelegraph.Play(attack.WindupContext(unitObject, target));
+			{
+				foreach (Vector3 target in targets)
+					stopTelegraphs.Add(attack.WindupTelegraph.Play(attack.WindupContext(unitObject, target)));
+			}
 			return BTState.Success;
 		}
 
@@ -94,16 +100,21 @@ namespace WitchMendokusai
 		private BTState Execute()
 		{
 			// 예고는 차오름이 끝나며 스스로 번쩍이고 사라짐. 여기서부터 끊을 대상 아님
-			stopTelegraph = null;
+			stopTelegraphs.Clear();
 			// 예고 도중 기절, 빙결이면 실행 없이 숨 고르기로
 			if (unitObject.IsActionSuspended == false)
-				attack.Execute(unitObject, playerProvider.CurrentObject, target);
+				attack.Execute(unitObject, playerProvider.CurrentObject, targets);
 			recoveryEndTime = Time.time + attack.RecoverySeconds;
+			// 반격으로 죽으면 표시를 띄우지 않음 (Interrupt 는 이미 지나감)
+			if (unitObject.IsAlive)
+				stopRecovery = attack.PlayRecovery(unitObject);
 			return BTState.Success;
 		}
 
 		private BTState EndAttack()
 		{
+			// 반격 창 표시는 숨 고르기와 같은 길이라 스스로 마무리
+			stopRecovery = null;
 			readyTime = Time.time + attack.Cooldown;
 			CompletedCount++;
 			IsAttacking = false;
@@ -113,8 +124,11 @@ namespace WitchMendokusai
 		// 예고 중 끊김 (사망, 풀 반납, 패턴 이동). 남은 예고를 치움, 끝난 뒤 불러도 무해
 		public void Interrupt()
 		{
-			stopTelegraph?.Invoke();
-			stopTelegraph = null;
+			foreach (Action stop in stopTelegraphs)
+				stop?.Invoke();
+			stopTelegraphs.Clear();
+			stopRecovery?.Invoke();
+			stopRecovery = null;
 		}
 	}
 }

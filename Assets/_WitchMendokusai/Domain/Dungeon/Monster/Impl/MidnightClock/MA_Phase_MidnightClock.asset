@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 855e7211bdbe46cc9480abaaec05d6ba, type: 3}
+  m_Name: MA_Phase_MidnightClock
+  m_EditorClassIdentifier: 
+  <TriggerRange>k__BackingField: 11
+  <WindupSeconds>k__BackingField: 0
+  <RecoverySeconds>k__BackingField: 0
+  <Cooldown>k__BackingField: 0
+  <WindupTelegraph>k__BackingField: {fileID: 0}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 2
+  <Phases>k__BackingField:
+  - <HealthRatio>k__BackingField: 1
+    <Attack>k__BackingField: {fileID: 11400000, guid: 8aef98df6ffa4dd59c011557429c763f, type: 2}
+  - <HealthRatio>k__BackingField: 0.5
+    <Attack>k__BackingField: {fileID: 11400000, guid: 20a3d6d9f3194230b615b32774db25ba, type: 2}

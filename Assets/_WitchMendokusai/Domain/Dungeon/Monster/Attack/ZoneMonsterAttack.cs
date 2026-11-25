@@ -33,11 +33,11 @@ namespace WitchMendokusai
 			Seconds = WindupSeconds,
 		};
 
-		public override void Execute(UnitObject unitObject, PlayerObject player, Vector3 target)
+		public override void Execute(UnitObject unitObject, PlayerObject player, List<Vector3> targets)
 		{
 			if (player.IsAlive == false)
 				return;
-			Vector3 center = CenterOf(unitObject, target);
+			Vector3 center = CenterOf(unitObject, targets[0]);
 			Vector3 offset = player.transform.position - center;
 			offset.y = 0f;
 			float reach = Radius + player.UnitMovement.BodyRadius;
