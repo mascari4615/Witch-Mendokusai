@@ -7,17 +7,17 @@ using WitchMendokusai.DomainSDK.Discovery;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 한 종의 기록 장. 왼쪽 큰 그림과 장소 고리, 이름, 기록 마름모, 처치 수 셋. 오른쪽 기록 칸 다섯 (첫 기록, 사는 곳, 몸과 버릇, 전리품, 이야기).
+	/// 한 종의 기록 장. 왼쪽 큰 그림과 장소 고리, 이름, 기록 마름모, 처치 수 셋. 오른쪽 기록 칸 (첫 기록, 사는 곳, 몸과 버릇, 전리품, 글이 있는 종은 이야기).
 	/// 칸은 확률 없이 누적 처치로 차례로 열리고, 잠긴 칸은 제목과 여는 데 필요한 수를 보임. 못 만난 종은 실루엣과 ???
 	/// </summary>
 	public class MonsterLogPage : VisualElement
 	{
-		public const int SLOT_COUNT = 5;
 		private const int SLOT_FIRST_RECORD = 0;
 		private const int SLOT_HABITAT = 1;
 		private const int SLOT_BODY = 2;
 		private const int SLOT_LOOT = 3;
 		public const int SLOT_STORY = 4;
+		public const int SLOT_COUNT = SLOT_STORY + 1;
 		private const string NO_ATTACK_KIND = "쫓아옴";
 		private static readonly string[] SLOT_NAMES = { "첫 기록", "사는 곳", "몸과 버릇", "전리품", "이야기" };
 

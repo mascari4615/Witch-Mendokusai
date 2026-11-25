@@ -39,7 +39,7 @@ namespace WitchMendokusai
 		/// <summary>세이브 로드 끝에 SaveManager 가 부름. 다시 불러도 됨 (로드할 때마다 조각이 새것)</summary>
 		public void Begin(MonsterLogSaveSlice slice)
 		{
-			Rules.Prepare();
+			Rules.ValidateTargets();
 			Book = new MonsterLogBook(slice.Records);
 
 			List<Dungeon> dungeons = new();
