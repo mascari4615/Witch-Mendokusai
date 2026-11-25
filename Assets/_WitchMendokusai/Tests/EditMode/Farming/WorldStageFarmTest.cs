@@ -1,5 +1,9 @@
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using KarmoLabs;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using WitchMendokusai.DomainSDK.Farming;
 
 namespace WitchMendokusai.Tests
@@ -16,6 +20,33 @@ namespace WitchMendokusai.Tests
 		private static readonly FarmCoord SOIL = new(1, 63, 1);
 
 		private static PlantGrowthParams CozyParams() => new(60, 2, MAX_VITALITY, 0f, 30f);
+
+		private SOManager soManager;
+		private readonly List<WitchPlantSO> plants = new();
+
+		[SetUp]
+		public void SetUp()
+		{
+			soManager = ScriptableObject.CreateInstance<SOManager>();
+			SOManagerBridge.Register(soManager);
+		}
+
+		[TearDown]
+		public void TearDown()
+		{
+			SOManagerBridge.Register(null);
+			Object.DestroyImmediate(soManager);
+			plants.ForEach(Object.DestroyImmediate);
+			plants.Clear();
+		}
+
+		private void RegisterPlant(int plantId)
+		{
+			WitchPlantSO plant = ScriptableObject.CreateInstance<WitchPlantSO>();
+			plant.ApplyDefaults();
+			plants.Add(plant);
+			soManager.DataSOs[typeof(WitchPlantSO)] = new Dictionary<int, DataSO> { [plantId] = plant };
+		}
 
 		[Test]
 		public void Stage_WritesItsFarm()
@@ -67,6 +98,83 @@ namespace WitchMendokusai.Tests
 			{
 				Assert.DoesNotThrow(() => stage.Load(new WorldStageSaveData { FarmSaveData = null }));
 				Assert.That(stage.Farm, Is.Not.Null);
+			}
+			finally
+			{
+				Object.DestroyImmediate(stage);
+			}
+		}
+
+		[Test]
+		public void Load_RestoresWhatWasSaved()
+		{
+			WorldStage before = ScriptableObject.CreateInstance<WorldStage>();
+			WorldStage after = ScriptableObject.CreateInstance<WorldStage>();
+			try
+			{
+				RegisterPlant(PLANT_ID);
+				GreenhousePlot planted = before.Farm.AddPlot(SOIL);
+				planted.Plant(PLANT_ID, CozyParams(), MAX_VITALITY);
+				planted.Step(70);
+				planted.Observe();
+
+				after.Load(SaveTool.CloneThroughJson(before.Save()));
+
+				GreenhousePlot restored = after.Farm.GetPlot(SOIL);
+				Assert.That(restored, Is.Not.Null, "저장된 밭이 불러올 때 사라진다");
+				Assert.That(restored.PlantDataId, Is.EqualTo(PLANT_ID));
+				Assert.That(restored.GrowthMinutes, Is.EqualTo(70));
+				Assert.That(restored.Vitality, Is.EqualTo(planted.Vitality));
+				Assert.That(restored.Observed, Is.True);
+			}
+			finally
+			{
+				Object.DestroyImmediate(before);
+				Object.DestroyImmediate(after);
+			}
+		}
+
+		[Test]
+		public void Load_GrowsRealClockPlants_ForTimeAway()
+		{
+			const int AWAY_SECONDS = 30 * 60;
+			WorldStage stage = ScriptableObject.CreateInstance<WorldStage>();
+			try
+			{
+				RegisterPlant(PLANT_ID);
+				stage.Farm.AddPlot(SOIL).Plant(PLANT_ID, CozyParams(), MAX_VITALITY, PlantClock.Real);
+				WorldStageSaveData save = stage.Save();
+				save.FarmSaveData.Plots[0].LastSeenStamp -= AWAY_SECONDS;
+
+				stage.Load(save);
+
+				// 저장과 불러오기 사이에 초가 넘어갈 수 있어 1분 여유
+				int expectedMinutes = (int)(AWAY_SECONDS / stage.RealSecondsPerGrowthMinute);
+				Assert.That(stage.Farm.GetPlot(SOIL).GrowthMinutes, Is.EqualTo(expectedMinutes).Within(1), "꺼 둔 동안 자란다");
+			}
+			finally
+			{
+				Object.DestroyImmediate(stage);
+			}
+		}
+
+		[Test]
+		public void Load_SkipsPlants_ThisBuildNoLongerHas()
+		{
+			FarmCoord otherSoil = new(2, 63, 1);
+			WorldStage stage = ScriptableObject.CreateInstance<WorldStage>();
+			try
+			{
+				RegisterPlant(PLANT_ID);
+				stage.Farm.AddPlot(SOIL).Plant(PLANT_ID + 1, CozyParams(), MAX_VITALITY);
+				stage.Farm.AddPlot(otherSoil).Plant(PLANT_ID, CozyParams(), MAX_VITALITY);
+				WorldStageSaveData save = stage.Save();
+				LogAssert.Expect(LogType.Warning, new Regex("밭 1칸"));
+
+				stage.Load(save);
+
+				Assert.That(stage.Farm.PlotCount, Is.EqualTo(1));
+				Assert.That(stage.Farm.GetPlot(otherSoil), Is.Not.Null);
 			}
 			finally
 			{
