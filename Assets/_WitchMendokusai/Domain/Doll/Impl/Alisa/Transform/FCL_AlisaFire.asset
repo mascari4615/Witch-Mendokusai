@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bc490530c7045a7b927dc6851b88dcb, type: 3}
   m_Name: FCL_AlisaFire
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.FormCardLook
-  <FlowShader>k__BackingField: {fileID: 4800000, guid: dba8f923775a43c48003b0c1db659876, type: 3}
-  <SolidShader>k__BackingField: {fileID: 4800000, guid: ffcdeff22cb14f2e8a5a20276529c2e2, type: 3}
+  <LightShader>k__BackingField: {fileID: 4800000, guid: bcbd06f3fa2543cca1f03fad99c2f60a, type: 3}
+  <Icon>k__BackingField: {fileID: 21300000, guid: ec56c6a0022339547ad1042450de0711, type: 3}
+  <Back>k__BackingField: {fileID: 21300000, guid: ae91d04937024e2381eaa7d9febf869b, type: 3}
+  <BackEffect>k__BackingField: {fileID: 2800000, guid: 631f870c2991417fb2f62b99e513a983, type: 3}

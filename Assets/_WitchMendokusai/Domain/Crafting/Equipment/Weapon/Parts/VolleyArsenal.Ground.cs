@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		[SerializeField] private float sigilSpin = 0.7f;
 		[SerializeField, Min(0f)] private float dimRadius = 12f;
 		[SerializeField, Range(0f, 1f)] private float dimAmount = 0.35f;
-		[SerializeField, Range(0f, 1f), Tooltip("배경 전체를 누르는 정도. 인물과 몬스터 그림은 안 눌림")] private float screenDim = 0.52f;
+		[SerializeField, Range(0f, 1f), Tooltip("배경 전체를 누르는 정도. 인물과 몬스터 그림은 안 눌림")] private float screenDim = 0.62f;
 		[SerializeField, Range(0f, 1f), Tooltip("쏘는 동안 진의 밝기")] private float sigilWhileFiring = 0.35f;
 		[SerializeField, Min(0.02f)] private float groundInSeconds = 0.22f;
 		[SerializeField, Min(0.02f)] private float groundOutSeconds = 0.45f;

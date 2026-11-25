@@ -18,6 +18,11 @@ namespace WitchMendokusai
 		[field: SerializeField, Range(0f, 1f)] public float MuzzleOrigin { get; private set; } = 0.24f;
 		[field: SerializeField, Tooltip("4x4, 칸 가운데")] public Texture2D Impact { get; private set; }
 		[field: SerializeField, Tooltip("4x4, 칸 가운데. 막타")] public Texture2D Grand { get; private set; }
+		[field: Header("검")]
+		[field: SerializeField, Tooltip("날이 오른쪽인 검기")] public Texture2D Crescent { get; private set; }
+		[field: SerializeField, Tooltip("얇은 검기. 잔상")] public Texture2D CrescentThin { get; private set; }
+		[field: SerializeField, Tooltip("정면에서 본 날개 한 쌍")] public Texture2D Wings { get; private set; }
+		[field: SerializeField, Tooltip("끝이 오른쪽인 옆모습")] public Texture2D Blade { get; private set; }
 		[field: Header("원과 바닥")]
 		[field: SerializeField, Tooltip("중심이 밝은 문. 앞의 것은 소용돌이치고 나머지는 돌기만 함")] public Texture2D[] Portals { get; private set; }
 		[field: SerializeField, Tooltip("붓결 고리")] public Texture2D Shock { get; private set; }

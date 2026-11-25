@@ -26,10 +26,10 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f), Tooltip("끊긴 프레임에서 허용하는 빠르기 (월드/초)")] private float jumpSpeed = 45f;
 
 		[Header("곁줄기 (그림만)")]
-		[SerializeField, Min(0), Tooltip("한 발마다 다른 문에서 같이 나는 가는 줄기")] private int phantomsPerShot = 6;
+		[SerializeField, Tooltip("한 발마다 다른 문에서 같이 나는 가는 줄기. 첫 발과 마지막 발")] private Vector2 phantomsPerShot = new(3f, 11f);
 		[SerializeField, Min(0.02f)] private float phantomSeconds = 0.3f;
 		[SerializeField] private Vector2 phantomReach = new(6f, 10f);
-		[SerializeField, Range(0f, 90f)] private float phantomFan = 50f;
+		[SerializeField, Range(0f, 90f)] private float phantomFan = 30f;
 		[SerializeField, Min(0f)] private float phantomWidth = 1.15f;
 
 		[Header("총구와 맞은 자리")]
@@ -79,7 +79,7 @@ namespace WitchMendokusai
 			public float StartTime;
 			public float Seed;
 			public int Row;
-			public bool Violet;
+			public bool Pale;
 		}
 
 		private struct Burst
@@ -163,7 +163,7 @@ namespace WitchMendokusai
 			tracer.Row = Random.value < 0.5f ? 1 : 2;
 			tracer.Scale = scale;
 			tracer.WandLength = wandLength;
-			tracer.Tint = shotsLeft % 2 == 0 ? goldTint : violetTint;
+			tracer.Tint = shotsLeft % 2 == 0 ? goldTint : paleTint;
 			tracer.Alive = true;
 		}
 
@@ -263,7 +263,7 @@ namespace WitchMendokusai
 			{
 				float offset = sideSpread * (Mathf.Repeat(tracer.Seed * 13.7f + i * 0.618f, 1f) * 2f - 1f);
 				float start = Mathf.Repeat(tracer.Seed * 5.3f + i * 0.43f, 0.5f);
-				look = FxQuadLook.Of(WithAlpha(i % 2 == 0 ? goldTint : violetTint, 0.8f), 0f, faded, tracer.Seed + i);
+				look = FxQuadLook.Of(WithAlpha(i % 2 == 0 ? goldTint : paleTint, 0.8f), 0f, faded, tracer.Seed + i);
 				streakFront.AddStrip(tracer.Tail + span * start + side * offset, tracer.Shown - span * (0.1f * i) + side * (offset * 0.4f), width * 0.7f, viewForward, PaintedFxSet.StreakRow(i % 2 == 0 ? 0 : 3), look);
 			}
 			if (ended)
@@ -277,13 +277,16 @@ namespace WitchMendokusai
 		}
 
 		// 판정 없는 가는 줄기. 아직 서 있는 문에서 부채 안 아무 데로
-		private void SpawnPhantoms()
+		private void SpawnPhantoms(int count)
 		{
-			for (int i = 0; i < phantomsPerShot; i++)
+			for (int i = 0; i < count; i++)
 			{
 				Weapon from = weapons[Random.Range(0, weapons.Count)];
 				if (from.Alive == false)
 					continue;
+				// 둘러선 문도 쏘는 것처럼 번쩍임
+				if (from.Decor)
+					from.FireTime = Time.time;
 				Pose(from, out Vector3 position, out _);
 				Vector3 direction = Quaternion.Euler(0f, Random.Range(-0.5f, 0.5f) * phantomFan, 0f) * Aim();
 				phantoms.Add(new Phantom
@@ -293,7 +296,7 @@ namespace WitchMendokusai
 					StartTime = Time.time + Random.value * 0.05f,
 					Seed = Random.value,
 					Row = i % 3 == 2 ? 3 : i % 3 == 1 ? 1 : 0,
-					Violet = Random.value < 0.5f,
+					Pale = Random.value < 0.5f,
 				});
 			}
 		}
@@ -309,7 +312,7 @@ namespace WitchMendokusai
 			Vector3 span = phantom.To - phantom.From;
 			float head = Mathf.Clamp01(progress * 1.6f);
 			float tail = Mathf.Clamp01((progress * 1.6f - 0.75f) / 0.85f);
-			FxQuadLook look = FxQuadLook.Of(WithAlpha(phantom.Violet ? violetTint : goldTint, 0.9f), 0.15f, Mathf.Clamp01(progress * 1.4f - 0.4f), phantom.Seed);
+			FxQuadLook look = FxQuadLook.Of(WithAlpha(phantom.Pale ? paleTint : goldTint, 0.9f), 0.15f, Mathf.Clamp01(progress * 1.4f - 0.4f), phantom.Seed);
 			phantomBatch.AddStrip(phantom.From + span * tail, phantom.From + span * head, phantomWidth * (1f - 0.5f * progress), viewForward, PaintedFxSet.StreakRow(phantom.Row), look);
 			return true;
 		}

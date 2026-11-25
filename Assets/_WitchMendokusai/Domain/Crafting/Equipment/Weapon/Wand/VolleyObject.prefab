@@ -437,4 +437,4 @@ MonoBehaviour:
   kickSpawners:
   - {fileID: 7377987611665135407}
   - {fileID: 3394973536089151867}
-  solidShader: {fileID: 4800000, guid: ffcdeff22cb14f2e8a5a20276529c2e2, type: 3}
+  art: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}

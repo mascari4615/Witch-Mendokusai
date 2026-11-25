@@ -2,44 +2,31 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	// 형태 카드 (갈래 확정, 최종) 의 겉모습. 일반 카드와 다른 틀, 전용 그림, 공개와 고른 뒤 빛
+	// 형태 카드 (갈래 확정, 최종) 의 겉모습. 일반 카드와 같은 틀에 둘레의 빛, 흐르는 빛, 아이콘 하나만 다름
 	// 형태 자산 (DollFormData.CardLook) 이 가리킴. 인물과 갈래마다 값만 다른 자산
 	[CreateAssetMenu(fileName = "FCL_New", menuName = "WM/Variable/" + nameof(FormCardLook))]
 	public sealed class FormCardLook : ScriptableObject
 	{
-		[field: SerializeField] public Color Main { get; private set; } = new(1f, 0.82f, 0.36f);
-		[field: SerializeField] public Color Bright { get; private set; } = new(1f, 0.97f, 0.8f);
-		[field: SerializeField] public Color Dark { get; private set; } = new(0.36f, 0.2f, 0.05f);
-		[field: SerializeField, Tooltip("흐르는 빛 (WM/UI/FormCardFlow)")] public Shader FlowShader { get; private set; }
-		[field: SerializeField, Tooltip("그림 속 무기 (WM/Fx/FormSolid)")] public Shader SolidShader { get; private set; }
-		[field: SerializeField, ColorUsage(false, true)] public Color WeaponGlow { get; private set; } = new(1.08f, 0.9f, 0.5f);
+		[field: SerializeField, Tooltip("공개 전 뒷면. 등급 뒷면 대신")] public Sprite Back { get; private set; }
+		[field: SerializeField, Tooltip("뒷면 광택 (6열 4행)")] public Texture2D BackEffect { get; private set; }
+		[field: SerializeField, Tooltip("흐르는 빛과 테두리 (WM/UI/FormCardLight)")] public Shader LightShader { get; private set; }
+		[field: SerializeField, Tooltip("흰 아이콘 하나")] public Sprite Icon { get; private set; }
 
-		[field: Header("전용 그림")]
-		[field: SerializeField] public HeldWeapon.Shape Weapon { get; private set; } = HeldWeapon.Shape.Wand;
-		[field: SerializeField, Min(1), Tooltip("그림 속 무기 수. 여럿이면 부채로 펼침")] public int WeaponCount { get; private set; } = 1;
-		[field: SerializeField] public float FanDegrees { get; private set; } = 130f;
-		[field: SerializeField, Min(0.1f)] public float WeaponSize { get; private set; } = 1.9f;
-		[field: SerializeField] public float WeaponTilt { get; private set; } = 18f;
-		[field: SerializeField, Min(0f)] public float SwayDegrees { get; private set; } = 9f;
-		[field: SerializeField, Min(16), Tooltip("그림 가로 텍셀. 점 필터로 키움")] public int ArtWidth { get; private set; } = 152;
+		[field: Header("색 (어둠에서 밝음)")]
+		[field: SerializeField] public Color Dark { get; private set; } = new(0.26f, 0.18f, 0.05f);
+		[field: SerializeField] public Color Mid { get; private set; } = new(0.84f, 0.62f, 0.16f);
+		[field: SerializeField, Tooltip("카드 꾸러미와 공개 때 빛의 색이기도 함")] public Color Main { get; private set; } = new(1f, 0.86f, 0.4f);
+		[field: SerializeField] public Color Bright { get; private set; } = new(1f, 0.99f, 0.93f);
 
-		[field: Header("틀")]
-		[field: SerializeField, Min(0f)] public float FrameThickness { get; private set; } = 8f;
-		[field: SerializeField, Min(0f), Tooltip("틀이 카드 밖으로 나가는 폭")] public float FrameOutset { get; private set; } = 10f;
-		[field: SerializeField, Min(0f)] public float CornerSize { get; private set; } = 34f;
-		[field: SerializeField, Range(0f, 1f), Tooltip("바탕에 깔리는 빛의 세기. 0 이면 없음 (글자 대비)")] public float BackFlow { get; private set; }
-		[field: SerializeField, Min(0f), Tooltip("덮개 가운데 문장의 크기")] public float EmblemSize { get; private set; } = 96f;
-		[field: SerializeField, Min(0f), Tooltip("덮개 안쪽 테두리의 자리와 두께")] public Vector2 CoverBorder { get; private set; } = new(18f, 5f);
+		[field: Header("크기")]
+		[field: SerializeField, Min(1f)] public float IconSize { get; private set; } = 104f;
+		[field: SerializeField, Tooltip("아이콘 그림자가 내려가는 거리")] public Vector2 IconShadow { get; private set; } = new(0f, -5f);
+		[field: SerializeField, Range(0f, 1f)] public float IconShadowAlpha { get; private set; } = 0.5f;
+		[field: SerializeField, Min(0f), Tooltip("테두리 빛이 카드 밖으로 번지는 폭")] public float BorderMargin { get; private set; } = 60f;
 
-		[field: Header("공개와 고른 뒤 (실제 초)")]
-		[field: SerializeField, Min(0.05f), Tooltip("빛으로 덮였다가 걷히는 길이")] public float CoverSeconds { get; private set; } = 0.45f;
-		[field: SerializeField, Min(0f), Tooltip("덮인 채 머무는 길이")] public float CoverHold { get; private set; } = 0.12f;
-		[field: SerializeField, Min(0)] public int ShardCount { get; private set; } = 22;
-		[field: SerializeField, Min(0f)] public float ShardDistance { get; private set; } = 260f;
-		[field: SerializeField, Min(0.05f)] public float ShardSeconds { get; private set; } = 0.55f;
-		[field: SerializeField, Tooltip("조각 크기 (작은 쪽, 큰 쪽)")] public Vector2 ShardSize { get; private set; } = new(10f, 34f);
-		[field: SerializeField, Min(0f)] public float ShardSpinDegrees { get; private set; } = 260f;
-		[field: SerializeField] public Vector2 PillarSize { get; private set; } = new(190f, 1500f);
+		[field: Header("고른 뒤 (실제 초)")]
+		[field: SerializeField] public Vector2 PillarSize { get; private set; } = new(460f, 2200f);
 		[field: SerializeField, Min(0.05f)] public float PillarSeconds { get; private set; } = 0.6f;
+		[field: SerializeField, Min(0.05f), Tooltip("고른 순간 카드가 희게 번쩍이는 길이")] public float PickFlashSeconds { get; private set; } = 0.22f;
 	}
 }

@@ -46,14 +46,14 @@ namespace WitchMendokusai
 			cardSelectButtons[0].Select();
 		}
 
-		// 형태 카드를 덮은 빛은 공개 연출이 끝난 뒤에 걷음 (연출이 없거나 다시 뽑았을 때는 바로)
+		// 형태 카드 둘레의 빛은 공개 연출이 끝난 뒤에 켬 (연출이 없거나 다시 뽑았을 때는 바로)
 		private void LateUpdate()
 		{
 			if (reveal == null || reveal.IsRevealing)
 				return;
 			foreach (UICardSlot slot in cardSelectButtons)
 				if (slot.ChoiceView.FormFace != null)
-					slot.ChoiceView.FormFace.Uncover();
+					slot.ChoiceView.FormFace.Reveal();
 		}
 
 		private bool PlayReveal()
@@ -68,8 +68,12 @@ namespace WitchMendokusai
 			revealEntries.Clear();
 			CardManager cardManager = PanelGroup as CardManager;
 			foreach (UICardSlot slot in cardSelectButtons)
-				if (slot.gameObject.activeSelf && slot.DataSO is CardData card)
-					revealEntries.Add(new CardRevealEntry((RectTransform)slot.transform, UICardRevealDirector.TierOf(card), cardManager.FormLookOf(card)?.Main));
+			{
+				if (slot.gameObject.activeSelf == false || slot.DataSO is not CardData card)
+					continue;
+				FormCardLook formLook = cardManager.FormLookOf(card);
+				revealEntries.Add(new CardRevealEntry((RectTransform)slot.transform, UICardRevealDirector.TierOf(card), formLook?.Main, formLook?.Back, formLook?.BackEffect));
+			}
 			return reveal.Play(Theme.Reveal.SelectCard, revealEntries, chained: cardManager.IsChainedChoice);
 		}
 
@@ -123,7 +127,6 @@ namespace WitchMendokusai
 			focusSound = UICardFocusSound.AttachTo(gameObject, selected => chestReward.IsOpen || deckTabs.IsTabButton(selected));
 			reveal = UICardRevealDirector.AttachTo(gameObject, (RectTransform)transform, deckPanelContent);
 			reveal.Finished += ShowSelectedInfo;
-			reveal.ExtraBlock = IsFormCardCovered;
 			actions.Init(cardManager);
 			actions.SetInputGate(ConsumeInput);
 			chestReward.Bind(cardManager);
@@ -163,18 +166,7 @@ namespace WitchMendokusai
 		
 		private void OnEnable() => UIHideWhileChatting.Request(this, true);
 
-		// 형태 카드가 빛에 덮여 글을 못 읽는 동안도 막음 (reveal.ExtraBlock. 되돌릴 수 없는 변신을 보지도 않고 고르지 않게)
 		private bool ConsumeInput() => receipt != null || reveal.ConsumeBlockedChoice();
-
-		private bool IsFormCardCovered()
-		{
-			foreach (UICardSlot slot in cardSelectButtons)
-			{
-				if (slot.gameObject.activeSelf && slot.ChoiceView.FormFace != null && slot.ChoiceView.FormFace.IsCovered)
-					return true;
-			}
-			return false;
-		}
 
 		private void ReceiveCard(UICardSlot slot, CardManager manager)
 		{

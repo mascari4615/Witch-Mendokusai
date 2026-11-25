@@ -110,7 +110,7 @@ namespace WitchMendokusai
 
 		private float BackEffect(CardRevealRun run, CardRevealCard card, float at)
 		{
-			Texture2D texture = TierArt(BackEffects, card.Tier);
+			Texture2D texture = card.OwnBackEffect != null ? card.OwnBackEffect : TierArt(BackEffects, card.Tier);
 			if (texture == null)
 				return 0f;
 			float seconds = BackEffectSeconds[(int)card.Tier];

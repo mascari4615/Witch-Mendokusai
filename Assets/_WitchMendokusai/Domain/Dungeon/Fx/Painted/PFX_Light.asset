@@ -26,6 +26,10 @@ MonoBehaviour:
   <MuzzleOrigin>k__BackingField: 0.26
   <Impact>k__BackingField: {fileID: 2800000, guid: 81da463d93b246508c1887903d44a863, type: 3}
   <Grand>k__BackingField: {fileID: 2800000, guid: b4800da8fc7246168c30c077e9498699, type: 3}
+  <Crescent>k__BackingField: {fileID: 2800000, guid: 99c14f7553e046408567e6cfb3650fea, type: 3}
+  <CrescentThin>k__BackingField: {fileID: 2800000, guid: d742663224d94ac5b158b5ceaadac455, type: 3}
+  <Wings>k__BackingField: {fileID: 2800000, guid: 57f05d577c4e44e2b1a87deacca99ddd, type: 3}
+  <Blade>k__BackingField: {fileID: 2800000, guid: ce8acaf466774c448b131228c73383ac, type: 3}
   <Portals>k__BackingField:
   - {fileID: 2800000, guid: 4f9f88eed6df4405ad01cfd6b8bbbc90, type: 3}
   - {fileID: 2800000, guid: bf2a6a94dd784211af4ddd4dd0530920, type: 3}

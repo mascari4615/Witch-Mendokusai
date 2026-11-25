@@ -38,7 +38,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Range(0f, 1f)] public float OtherShade { get; private set; } = 0.55f;
 		[field: SerializeField, Min(0f)] public float EpicLift { get; private set; } = 36f;
 		[field: SerializeField, Min(0f)] public float EpicTremble { get; private set; } = 2.4f;
-		[field: SerializeField, Min(1f)] public float EpicAuraSwell { get; private set; } = 1.2f;
+		[field: SerializeField, Min(1f)] public float EpicAuraSwell { get; private set; } = 1.03f;
 		[field: SerializeField, Min(0f), Tooltip("빨려드는 빛 묶음 간격")] public float InwardGap { get; private set; } = 0.06f;
 		[field: SerializeField] public RevealBurst Inward { get; private set; } = new(4, 2.6f, 0f, 0.36f, 5f, 1f);
 		[field: SerializeField, Tooltip("빨려드는 빛 시작 거리, 카드 높이 대비 최소, 최대")] public Vector2 InwardRadius { get; private set; } = new(0.55f, 0.75f);

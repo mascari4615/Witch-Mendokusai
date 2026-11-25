@@ -10,7 +10,7 @@ Shader "WM/Fx/Painted"
 		_MainTex ("Painted (premultiplied)", 2D) = "black" {}
 		_NoiseTex ("Noise (R soft, G wisp)", 2D) = "gray" {}
 		_NoiseScale ("Erosion noise scale", Float) = 1.3
-		[HDR] _EdgeColor ("Erosion edge", Color) = (2.4, 1.7, 0.8, 1)
+		[HDR] _EdgeColor ("Erosion edge", Color) = (2.4, 1.9, 0.7, 1)
 		_EdgeWidth ("Erosion edge width", Range(0.01, 0.5)) = 0.14
 		_DistortScale ("Distort noise scale", Float) = 0.8
 		_FlowSpeed ("Flow speed", Float) = 0.9

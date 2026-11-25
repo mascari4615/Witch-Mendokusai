@@ -2,41 +2,38 @@ using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
 {
-	// 형태 카드 (갈래 확정, 최종) 의 얼굴. 일반 카드 칸 위에 틀, 전용 그림, 흐르는 빛을 얹음. 값은 FormCardLook
-	// - 공개: 글자가 보이기 전에 빛으로 덮여 이 한 장만 다르다는 것을 먼저 알림
-	// - 고른 뒤: 카드에서 조각이 튀고 빛기둥이 섬 (이어서 변신)
+	// 형태 카드 (갈래 확정, 최종) 의 얼굴. 일반 카드 칸을 그대로 두고 둘레의 가는 빛, 그림 칸의 흐르는 빛, 아이콘 하나만 얹음. 값은 FormCardLook
+	// - 공개: 전용 뒷면 (CardRevealEntry.Back) 으로 나와 이 한 장만 다르다는 것을 먼저 알림. 둘레 빛은 공개가 끝난 뒤
+	// - 고른 뒤: 카드가 희게 번쩍이고 세로 빛이 섬 (이어서 변신)
 	// 카드 칸은 다시 쓰이므로 일반 카드가 오면 Hide
 	public sealed class UIFormCardFace : MonoBehaviour
 	{
+		private static readonly int DARK_ID = Shader.PropertyToID("_Dark");
+		private static readonly int MID_ID = Shader.PropertyToID("_Mid");
 		private static readonly int MAIN_ID = Shader.PropertyToID("_Main");
 		private static readonly int BRIGHT_ID = Shader.PropertyToID("_Bright");
-		private static readonly int DARK_ID = Shader.PropertyToID("_Dark");
-		private static readonly int CELLS_ID = Shader.PropertyToID("_Cells");
-		private static readonly int COVER_ID = Shader.PropertyToID("_Cover");
-		private static readonly int PILLAR_ID = Shader.PropertyToID("_Pillar");
-		private const float CELL_PIXELS = 4f;
+		private static readonly int SIZE_ID = Shader.PropertyToID("_Size");
+		private static readonly int MARGIN_ID = Shader.PropertyToID("_Margin");
+		private static readonly int MODE_ID = Shader.PropertyToID("_Mode");
+
+		private enum Mode
+		{
+			Art = 0,
+			Border = 1,
+			Pillar = 2,
+		}
 
 		private readonly List<Object> owned = new();
 		private FormCardLook look;
-		private RectTransform back;
 		private RectTransform front;
-		private RectTransform frame;
-		private RectTransform emblem;
-		private RawImage art;
-		private Image cover;
-		private Material coverMaterial;
-		private FormCardStage stage;
-		private bool coverPending;
-		private Tween coverTween;
+		private RectTransform artRoot;
+		private Image border;
+		private Image flash;
 
 		private bool IsShown => look != null && front.gameObject.activeSelf;
-
-		// 덮여서 글을 못 읽는 동안. 이 동안 고르기를 막음
-		public bool IsCovered => IsShown && isActiveAndEnabled && cover.gameObject.activeSelf;
 
 		public void Show(FormCardLook newLook, RectTransform artArea)
 		{
@@ -47,86 +44,49 @@ namespace WitchMendokusai
 				Build(artArea);
 			}
 			SetParts(true);
-			coverTween?.Kill();
-			coverMaterial.SetFloat(COVER_ID, 1f);
-			cover.gameObject.SetActive(UIEffects.Enabled);
-			coverPending = UIEffects.Enabled;
-			// 틀은 카드 밖으로 나가 뒷면으로 안 가려짐. 공개가 끝날 때까지 감춤
-			frame.gameObject.SetActive(UIEffects.Enabled == false);
-			emblem.gameObject.SetActive(UIEffects.Enabled);
-			emblem.localScale = Vector3.one;
+			flash.gameObject.SetActive(false);
+			border.gameObject.SetActive(UIEffects.Enabled == false);
 		}
 
 		public void Hide()
 		{
-			coverTween?.Kill();
-			coverPending = false;
 			if (look != null)
 				SetParts(false);
 		}
 
-		// 공개 연출이 끝난 뒤 (연출이 없으면 바로) 덮은 빛을 걷음
-		public void Uncover()
+		// 공개 연출이 끝난 뒤 (연출이 없으면 바로) 둘레 빛을 켬
+		public void Reveal()
 		{
-			if (coverPending == false)
-				return;
-			coverPending = false;
-			frame.gameObject.SetActive(true);
-			coverTween = DOVirtual.Float(1f, 0f, look.CoverSeconds, value =>
-				{
-					coverMaterial.SetFloat(COVER_ID, value);
-					emblem.localScale = Vector3.one * value;
-				})
-				.SetDelay(look.CoverHold).SetUpdate(true).SetLink(gameObject).OnComplete(EndCover);
+			if (IsShown && border.gameObject.activeSelf == false)
+				border.gameObject.SetActive(true);
 		}
 
-		private void EndCover()
-		{
-			cover.gameObject.SetActive(false);
-			emblem.gameObject.SetActive(false);
-		}
-
-		// 고른 순간. 카드는 덱으로 날아가므로 조각과 기둥은 canvas 에 둠
+		// 고른 순간. 카드는 덱으로 날아가므로 세로 빛은 canvas 에 둠
 		public void PlayPicked(Canvas canvas)
 		{
 			if (IsShown == false)
 				return;
 			RectTransform card = (RectTransform)transform;
-			Material pillarMaterial = Own(Flow(look.PillarSize, true));
+			flash.gameObject.SetActive(true);
+			flash.color = look.Bright;
+			flash.DOFade(0f, look.PickFlashSeconds).SetUpdate(true).SetLink(flash.gameObject);
+			Material pillarMaterial = Own(Light(look.PillarSize, Mode.Pillar));
 			Image pillar = NewImage("[FormCard] Pillar", canvas.transform, pillarMaterial);
-			RectTransform pillarRect = pillar.rectTransform;
-			pillarRect.sizeDelta = look.PillarSize;
-			pillarRect.position = card.TransformPoint(card.rect.center);
-			pillarRect.localScale = new Vector3(0.1f, 1f, 1f);
+			RectTransform rect = pillar.rectTransform;
+			rect.sizeDelta = look.PillarSize;
+			rect.pivot = new Vector2(0.5f, 0.1f);
+			rect.position = card.TransformPoint(new Vector2(card.rect.center.x, card.rect.yMin));
+			rect.localScale = new Vector3(0.05f, 1f, 1f);
 			DOTween.Sequence().SetUpdate(true).SetLink(pillar.gameObject)
-				.Append(pillarRect.DOScaleX(1f, look.PillarSeconds * 0.2f).SetEase(Ease.OutBack))
-				.Append(pillarRect.DOScaleX(0f, look.PillarSeconds * 0.8f).SetEase(Ease.InQuad))
+				.Append(rect.DOScaleX(1f, look.PillarSeconds * 0.2f).SetEase(Ease.OutCubic))
+				.Append(rect.DOScaleX(0f, look.PillarSeconds * 0.8f).SetEase(Ease.InQuad))
+				.Join(pillar.DOFade(0f, look.PillarSeconds * 0.8f).SetEase(Ease.InQuad))
 				.OnComplete(() =>
 				{
 					owned.Remove(pillarMaterial);
 					Destroy(pillarMaterial);
 					Destroy(pillar.gameObject);
 				});
-			for (int i = 0; i < look.ShardCount; i++)
-				ThrowShard(card, canvas, i);
-		}
-
-		private void ThrowShard(RectTransform card, Canvas canvas, int index)
-		{
-			Image shard = NewImage("[FormCard] Shard", canvas.transform, null);
-			shard.color = index % 3 == 0 ? look.Bright : index % 3 == 1 ? look.Main : look.Dark;
-			RectTransform rect = shard.rectTransform;
-			float size = Random.Range(look.ShardSize.x, look.ShardSize.y);
-			rect.sizeDelta = new Vector2(size, size * Random.Range(0.4f, 1.2f));
-			Vector2 from = new(Random.Range(card.rect.xMin, card.rect.xMax), Random.Range(card.rect.yMin, card.rect.yMax));
-			rect.position = card.TransformPoint(from);
-			rect.localRotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
-			Vector2 away = (from - card.rect.center).normalized * (look.ShardDistance * Random.Range(0.4f, 1f)) + Vector2.up * (look.ShardDistance * 0.25f);
-			DOTween.Sequence().SetUpdate(true).SetLink(shard.gameObject)
-				.Join(rect.DOLocalMove(rect.localPosition + (Vector3)away, look.ShardSeconds).SetEase(Ease.OutCubic))
-				.Join(rect.DOLocalRotate(new Vector3(0f, 0f, Random.Range(-look.ShardSpinDegrees, look.ShardSpinDegrees)), look.ShardSeconds, RotateMode.LocalAxisAdd))
-				.Join(rect.DOScale(0f, look.ShardSeconds).SetEase(Ease.InCubic))
-				.OnComplete(() => Destroy(shard.gameObject));
 		}
 
 		private void Update()
@@ -135,125 +95,59 @@ namespace WitchMendokusai
 				UIEffects.TickShaderTime();
 		}
 
-		private void OnDisable()
-		{
-			// 걷히던 중에 꺼지면 덮인 채 남지 않게
-			coverTween?.Kill();
-			if (look != null && coverPending == false)
-				EndCover();
-			stage?.SetVisible(false);
-		}
-
-		private void OnEnable() => stage?.SetVisible(IsShown);
-
 		private void OnDestroy() => Clear();
 
 		private void SetParts(bool visible)
 		{
-			back.gameObject.SetActive(visible);
 			front.gameObject.SetActive(visible);
-			art.gameObject.SetActive(visible);
-			stage.SetVisible(visible);
+			artRoot.gameObject.SetActive(visible);
 		}
 
 		private void Build(RectTransform artArea)
 		{
 			RectTransform card = (RectTransform)transform;
-			Vector2 size = card.rect.size;
-			back = NewRect("[FormCard] Back", artArea.parent);
-			// 그림 칸 바로 뒤 (바탕 위, 글자 아래)
-			back.SetSiblingIndex(artArea.GetSiblingIndex());
-			if (look.BackFlow > 0f)
-			{
-				Image flow = NewImage("Flow", back, Own(Flow(size, false)));
-				flow.color = new Color(1f, 1f, 1f, look.BackFlow);
-				Stretch(flow.rectTransform);
-			}
-
-			stage = new FormCardStage(look, artArea.rect.width / artArea.rect.height);
-			art = new GameObject("[FormCard] Art", typeof(RectTransform)).AddComponent<RawImage>();
-			art.transform.SetParent(artArea, false);
-			art.raycastTarget = false;
-			art.texture = stage.Texture;
-			Stretch(art.rectTransform);
+			artRoot = NewRect("[FormCard] Art", artArea);
+			Image light = NewImage("Light", artRoot, Own(Light(artArea.rect.size, Mode.Art)));
+			Stretch(light.rectTransform);
+			AddIcon(artRoot, Vector2.zero, look.IconSize);
 
 			front = NewRect("[FormCard] Front", card);
 			front.SetAsLastSibling();
-			frame = NewRect("Frame", front);
-			BuildFrame(size);
-			coverMaterial = Own(Flow(size, false));
-			cover = NewImage("Cover", front, coverMaterial);
-			Stretch(cover.rectTransform);
-			BuildEmblem(size);
+			Vector2 outer = card.rect.size + Vector2.one * (look.BorderMargin * 2f);
+			Material borderMaterial = Own(Light(outer, Mode.Border));
+			borderMaterial.SetFloat(MARGIN_ID, look.BorderMargin);
+			border = NewImage("Border", front, borderMaterial);
+			border.rectTransform.sizeDelta = outer;
+			flash = NewImage("Flash", front, null);
+			Stretch(flash.rectTransform);
 		}
 
-		// 덮개의 문장: 안쪽 테두리와 가운데 겹마름모. 걷히기 시작하면 같이 사라짐
-		private void BuildEmblem(Vector2 size)
+		// 흰 아이콘과 어두운 그림자
+		private void AddIcon(RectTransform parent, Vector2 position, float size)
 		{
-			emblem = NewRect("Emblem", front);
-			Vector2 half = size * 0.5f - Vector2.one * look.CoverBorder.x;
-			float thick = look.CoverBorder.y;
-			for (int side = -1; side <= 1; side += 2)
-			{
-				Place(emblem, look.Dark, new Vector2(0f, side * half.y), new Vector2(half.x * 2f, thick), 0f);
-				Place(emblem, look.Dark, new Vector2(side * half.x, 0f), new Vector2(thick, half.y * 2f), 0f);
-			}
-			float[] scales = { 1.5f, 1.36f, 1f, 0.8f, 0.36f };
-			Color[] colors = { look.Dark, look.Main, look.Dark, look.Bright, look.Main };
-			for (int i = 0; i < scales.Length; i++)
-				Place(emblem, colors[i], Vector2.zero, Vector2.one * (look.EmblemSize * scales[i]), 45f);
+			AddIcon(parent, position + look.IconShadow, size, new Color(look.Dark.r, look.Dark.g, look.Dark.b, look.IconShadowAlpha));
+			AddIcon(parent, position, size, look.Bright);
 		}
 
-		// 네 변 띠와 모서리 마름모. 카드 밖으로 나가 윤곽부터 다름
-		private void BuildFrame(Vector2 size)
+		private void AddIcon(RectTransform parent, Vector2 position, float size, Color color)
 		{
-			Vector2 half = size * 0.5f + Vector2.one * look.FrameOutset;
-			float thick = look.FrameThickness;
-			Edge(new Vector2(0f, half.y), new Vector2(half.x * 2f, thick));
-			Edge(new Vector2(0f, -half.y), new Vector2(half.x * 2f, thick));
-			Edge(new Vector2(half.x, 0f), new Vector2(thick, half.y * 2f));
-			Edge(new Vector2(-half.x, 0f), new Vector2(thick, half.y * 2f));
-			for (int side = -1; side <= 1; side += 2)
-			for (int top = -1; top <= 1; top += 2)
-				Gem(new Vector2(side * half.x, top * half.y), look.CornerSize);
-			Gem(new Vector2(0f, half.y), look.CornerSize * 1.5f);
+			Image icon = NewImage("Icon", parent, null);
+			icon.sprite = look.Icon;
+			icon.preserveAspect = true;
+			icon.color = color;
+			icon.rectTransform.sizeDelta = Vector2.one * size;
+			icon.rectTransform.anchoredPosition = position;
 		}
 
-		private void Edge(Vector2 position, Vector2 size)
+		private Material Light(Vector2 size, Mode mode)
 		{
-			bool flat = size.x > size.y;
-			Place(look.Dark, position, size + Vector2.one * 4f, 0f);
-			Place(look.Main, position, size, 0f);
-			Place(look.Bright, position + (flat ? Vector2.up : Vector2.left) * (look.FrameThickness * 0.2f), flat ? new Vector2(size.x, size.y * 0.25f) : new Vector2(size.x * 0.25f, size.y), 0f);
-		}
-
-		private void Gem(Vector2 position, float size)
-		{
-			Place(look.Dark, position, Vector2.one * (size + 6f), 45f);
-			Place(look.Main, position, Vector2.one * size, 45f);
-			Place(look.Bright, position, Vector2.one * (size * 0.45f), 45f);
-		}
-
-		private void Place(Color color, Vector2 position, Vector2 size, float angle) => Place(frame, color, position, size, angle);
-
-		private static void Place(RectTransform parent, Color color, Vector2 position, Vector2 size, float angle)
-		{
-			Image image = NewImage("Part", parent, null);
-			image.color = color;
-			image.rectTransform.anchoredPosition = position;
-			image.rectTransform.sizeDelta = size;
-			image.rectTransform.localRotation = Quaternion.Euler(0f, 0f, angle);
-		}
-
-		private Material Flow(Vector2 size, bool pillar)
-		{
-			Material material = new(look.FlowShader) { name = "FormCardFlow" };
+			Material material = new(look.LightShader) { name = "FormCardLight" };
+			material.SetColor(DARK_ID, look.Dark);
+			material.SetColor(MID_ID, look.Mid);
 			material.SetColor(MAIN_ID, look.Main);
 			material.SetColor(BRIGHT_ID, look.Bright);
-			material.SetColor(DARK_ID, look.Dark);
-			material.SetVector(CELLS_ID, new Vector4(Mathf.Round(size.x / CELL_PIXELS), Mathf.Round(size.y / CELL_PIXELS), 0f, 0f));
-			material.SetFloat(PILLAR_ID, pillar ? 1f : 0f);
-			material.SetFloat(COVER_ID, 1f);
+			material.SetVector(SIZE_ID, size);
+			material.SetFloat(MODE_ID, (float)mode);
 			return material;
 		}
 
@@ -265,17 +159,13 @@ namespace WitchMendokusai
 
 		private void Clear()
 		{
-			coverTween?.Kill();
 			foreach (Object target in owned)
 				Destroy(target);
 			owned.Clear();
-			stage?.Dispose();
-			stage = null;
 			if (look == null)
 				return;
-			Destroy(back.gameObject);
 			Destroy(front.gameObject);
-			Destroy(art.gameObject);
+			Destroy(artRoot.gameObject);
 			look = null;
 		}
 

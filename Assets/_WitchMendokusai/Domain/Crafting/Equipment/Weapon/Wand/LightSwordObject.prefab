@@ -392,9 +392,8 @@ MonoBehaviour:
   kickSpawners:
   - {fileID: 7377987611665135407}
   - {fileID: 3394973536089151867}
-  solidShader: {fileID: 4800000, guid: ffcdeff22cb14f2e8a5a20276529c2e2, type: 3}
-  emissionColor: {r: 1.1, g: 1.08, b: 1, a: 1}
-  size: 1.15
+  art: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
+  size: 1.9
   restTilt: 38
   recoil: 0.05
 --- !u!114 &7719023344518206611
@@ -409,4 +408,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b17627170b8415abb6d7063fada020d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SwordWaveFx
-  energyShader: {fileID: 4800000, guid: e61a4233b9a045cb973c5198ac7a5f17, type: 3}
+  art: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
