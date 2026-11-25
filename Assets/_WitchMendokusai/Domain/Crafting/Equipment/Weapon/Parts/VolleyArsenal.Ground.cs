@@ -13,27 +13,21 @@ namespace WitchMendokusai
 		[SerializeField] private float sigilSpin = 0.7f;
 		[SerializeField, Min(0f)] private float dimRadius = 12f;
 		[SerializeField, Range(0f, 1f)] private float dimAmount = 0.6f;
-		[SerializeField, Min(0f)] private float fanLength = 11f;
-		[SerializeField, Min(0f)] private float fanWidth = 9f;
-		[SerializeField, Range(0f, 1f)] private float fanShade = 0.5f;
-		[SerializeField, Min(0f)] private float fanGlow = 0.16f;
-		[SerializeField] private Color fanTint = new(0.95f, 0.88f, 1f, 1f);
-		[SerializeField, Range(0f, 1f), Tooltip("배경 전체를 누르는 정도. 인물과 몬스터 그림은 안 눌림")] private float screenDim = 0.62f;
+		[SerializeField, Range(0f, 1f), Tooltip("배경 전체를 누르는 정도. 인물과 몬스터 그림은 안 눌림")] private float screenDim = 0.66f;
 		[SerializeField, Range(0f, 1f), Tooltip("쏘는 동안 진의 밝기")] private float sigilWhileFiring = 0.35f;
 		[SerializeField, Min(0.02f)] private float groundInSeconds = 0.22f;
 		[SerializeField, Min(0.02f)] private float groundOutSeconds = 0.45f;
 		[SerializeField, Min(0f), Tooltip("마지막 발 뒤 바닥이 머무는 길이")] private float groundLinger = 0.3f;
 
 		[Header("빛기둥")]
-		[SerializeField, Min(0)] private int shafts = 12;
+		[SerializeField, Min(0)] private int shafts = 8;
 		[SerializeField, Min(0f)] private float shaftHeight = 3.2f;
 		[SerializeField, Min(0f)] private float shaftWidth = 0.4f;
 		[SerializeField, Min(0f), Tooltip("꺼내는 동안 문으로 모이는 불티 (초당)")] private float gatherRate = 60f;
 
 		private FxQuadBatch dimBatch;
-		private FxQuadBatch fanBatch;
 		private FxQuadBatch sigilBatch;
-		private FxQuadBatch poolBatch;
+		private FxQuadBatch shockBatch;
 		private FxQuadBatch scorchBatch;
 		private float raiseTime = float.NegativeInfinity;
 		private float lastShotTime = float.NegativeInfinity;
@@ -43,9 +37,8 @@ namespace WitchMendokusai
 		private void PrepareGround()
 		{
 			dimBatch = Layer("Dim", art.Soft, 2940);
-			fanBatch = Layer("Fan", art.Fan, 2942);
 			scorchBatch = Layer("Scorch", art.Scorch, 2944);
-			poolBatch = Layer("Pool", art.Portal, 2946);
+			shockBatch = Layer("Shock", art.Shock, 2951);
 			sigilBatch = Layer("Sigil", art.Sigil, 2948);
 		}
 
@@ -55,32 +48,20 @@ namespace WitchMendokusai
 
 		private void DrawGround()
 		{
-			bool active = Time.time < Mathf.Max(raiseTime + WindupSeconds, lastShotTime) + groundLinger;
+			bool active = Time.time < Mathf.Max(raiseTime + WindupSeconds, lastShotTime) + groundLinger + (finaleTime < float.PositiveInfinity ? finaleLinger : 0f);
 			groundLevel = Mathf.MoveTowards(groundLevel, active ? 1f : 0f, Time.deltaTime / (active ? groundInSeconds : groundOutSeconds));
 			if (groundLevel <= 0f)
 				return;
 			Vector3 center = owner.position + Vector3.up * groundLift;
-			Vector3 aim = Aim();
-			Vector3 side = Vector3.Cross(Vector3.up, aim);
 			float smooth = Mathf.SmoothStep(0f, 1f, groundLevel);
-			float firing = Mathf.Clamp01(1f - (Time.time - lastShotTime) / 0.35f);
 
 			DimScreen(smooth);
 			Flat(dimBatch, center, dimRadius, FxQuadLook.Of(WithAlpha(shadeTint, dimAmount * smooth), 1f));
-			Vector3 fanCenter = center + aim * (fanLength * 0.5f) + Vector3.up * 0.01f;
-			fanBatch.Add(fanCenter, aim * (fanLength * 0.5f), side * (fanWidth * 0.5f), FxQuadLook.Of(WithAlpha(shadeTint, fanShade * smooth), 1f));
-			fanBatch.Add(fanCenter + Vector3.up * 0.01f, aim * (fanLength * 0.5f), side * (fanWidth * 0.5f), FxQuadLook.Of(Scale(fanTint, fanGlow * firing * smooth)));
-
 			float grown = active ? Back(groundLevel) : 1f + 0.15f * (1f - groundLevel);
-			FxQuadLook look = FxQuadLook.Of(Scale(lightTint, 0.35f), 0.1f, 1f - groundLevel, 0.4f);
-			look.Turn = -Time.time * sigilSpin * 2.2f;
-			look.Swirl = 2.5f;
-			look.Distort = 0.04f;
-			Flat(poolBatch, center + Vector3.up * 0.02f, sigilRadius * 0.55f * grown, look);
 			// 꺼낼 때 밝고, 쏘는 동안 낮췄다가 발마다 맥동, 막타에 부서짐
 			float calm = Mathf.Lerp(1f, sigilWhileFiring, Mathf.Clamp01((Time.time - raiseTime - WindupSeconds + 0.1f) / 0.15f));
 			float shattered = Mathf.Max(1f - groundLevel, Mathf.Clamp01((Time.time - finaleTime) / finaleSeconds));
-			look = FxQuadLook.Of(WithAlpha(Color.Lerp(lightTint, hotTint, lightLevel * 0.4f), Mathf.Min(1f, calm + lightLevel * 0.25f)), 0.3f, shattered, 0.1f);
+			FxQuadLook look = FxQuadLook.Of(WithAlpha(Color.Lerp(lightTint, hotTint, lightLevel * 0.4f), Mathf.Min(1f, calm + lightLevel * 0.25f)), 0.3f, shattered, 0.1f);
 			look.Turn = Time.time * sigilSpin;
 			Flat(sigilBatch, center + Vector3.up * 0.04f, sigilRadius * grown, look);
 
@@ -88,7 +69,7 @@ namespace WitchMendokusai
 			Gather();
 		}
 
-		// 카메라 바로 앞에 어둠 한 장. 불투명한 지형 뒤, 인물 그림 앞에 그려짐
+		// 카메라 바로 앞에 어둠 한 장. 지형 위, 인물과 몬스터 그림 아래에 그려짐
 		private void DimScreen(float level)
 		{
 			Transform cameraTransform = viewCamera.transform;
@@ -112,7 +93,7 @@ namespace WitchMendokusai
 				Vector3 bottom = foot + Vector3.up * (height * 0.35f * cycle);
 				Vector3 half = Vector3.up * (height * 0.5f);
 				float width = shaftWidth * Mathf.Lerp(0.5f, 1f, Mathf.Repeat(i * 0.41f, 1f));
-				glowBehind.Add(bottom + half, half, Vector3.Cross(viewForward, Vector3.up).normalized * (width * 0.5f), FxQuadLook.Of(Scale(lightTint, strength * 0.55f)));
+				glowBehind.Add(bottom + half, half, Vector3.Cross(viewForward, Vector3.up).normalized * (width * 0.5f), FxQuadLook.Of(Scale(goldTint, strength * 0.35f)));
 			}
 		}
 
@@ -136,16 +117,15 @@ namespace WitchMendokusai
 		{
 			Vector3 ground = new(burst.Position.x, burst.Ground, burst.Position.z);
 			float faded = Mathf.Clamp01(age / scorchSeconds);
-			FxQuadLook look = FxQuadLook.Of(Scale(lightTint, 1.2f * (1f - 0.5f * faded)), 0.6f, Mathf.Clamp01((faded - 0.35f) / 0.65f), burst.Seed);
+			FxQuadLook look = FxQuadLook.Of(WithAlpha(lightTint, 1f - faded), 0.6f, Mathf.Clamp01((faded - 0.35f) / 0.65f), burst.Seed);
 			look.Turn = burst.Seed * TAU;
 			Flat(scorchBatch, ground + Vector3.up * (0.01f + 0.01f * burst.Seed), scorchSize * burst.Scale * Back(age / 0.14f), look);
 			float ring = age / ringSeconds;
 			if (ring >= 1f)
 				return;
-			look = FxQuadLook.Of(Color.Lerp(hotTint, lightTint, ring), 0.2f, ring, burst.Seed);
+			look = FxQuadLook.Of(Color.Lerp(hotTint, lightTint, ring), 0.3f, ring, burst.Seed);
 			look.Turn = burst.Seed * TAU;
-			look.Swirl = 3f * (1f - ring);
-			Flat(poolBatch, ground + Vector3.up * 0.03f, ringSize * burst.Scale * (0.25f + 0.75f * Mathf.Sqrt(ring)), look);
+			Flat(shockBatch, ground + Vector3.up * 0.03f, ringSize * burst.Scale * 1.25f * (0.3f + 0.7f * Mathf.Sqrt(ring)), look);
 		}
 
 		private static void Flat(FxQuadBatch batch, Vector3 center, float radius, in FxQuadLook look) => batch.Add(center, Vector3.right * radius, Vector3.forward * radius, look);

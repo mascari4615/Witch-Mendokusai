@@ -21,7 +21,10 @@ namespace WitchMendokusai
 		[SerializeField, ColorUsage(false, true)] private Color lightTint = new(1f, 0.98f, 0.95f);
 		[SerializeField, ColorUsage(false, true)] private Color hotTint = new(1.4f, 1.36f, 1.32f);
 		[SerializeField, Tooltip("빛 뒤에 까는 어둠")] private Color shadeTint = new(0.02f, 0.012f, 0.07f, 1f);
-		[SerializeField, Tooltip("뒤쪽에 깔리는 작은 자루")] private Color decorTint = new(0.42f, 0.5f, 0.82f, 1f);
+		[SerializeField, Tooltip("뒤쪽에 깔리는 작은 자루")] private Color decorTint = new(0.5f, 0.46f, 0.8f, 0.9f);
+		[SerializeField, Tooltip("줄기의 두 색")] private Color goldTint = new(1f, 0.86f, 0.5f, 1f);
+		[SerializeField] private Color violetTint = new(0.74f, 0.66f, 1f, 1f);
+		[SerializeField] private Color portalTint = new(0.78f, 0.76f, 0.8f, 1f);
 		[SerializeField] private Color lightColor = new(1f, 0.92f, 0.78f, 1f);
 
 		[Header("꺼냄")]
@@ -35,7 +38,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(1), Tooltip("쏘는 자루 수 상한")] private int maxWeapons = 32;
 		[SerializeField, Min(0), Tooltip("쏘지 않고 뒤에 둘러선 자루")] private int decorWeapons = 12;
 		[SerializeField, Range(0.1f, 1f)] private float decorScale = 0.5f;
-		[SerializeField, Tooltip("쏘는 자루의 크기. 차례로 돌아가며 씀. 가장 큰 것은 마지막 완드 그림")] private float[] sizeTiers = { 1f, 0.72f, 1.35f };
+		[SerializeField, Tooltip("쏘는 자루의 크기. 차례로 돌아가며 씀. 가장 큰 것은 마지막 완드 그림")] private float[] sizeTiers = { 1.35f, 0.72f, 1f };
 
 		[Header("배치 (월드)")]
 		[SerializeField, Tooltip("가장 안쪽과 바깥의 반지름")] private Vector2 radiusRange = new(2.2f, 4.8f);
@@ -48,8 +51,10 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("완드 길이의 범위")] private Vector2 weaponLength = new(2.6f, 3.2f);
 		[SerializeField, Tooltip("완드 그림의 가로 나누기 세로 (Wands 순서)")] private float[] weaponAspects = { 2.27f, 2.47f, 2.97f, 1.88f };
 		[SerializeField, Range(0.1f, 1f), Tooltip("다 나왔을 때 문 밖으로 보이는 비율")] private float emergeFraction = 0.82f;
-		[SerializeField, Min(0.05f)] private float portalSize = 0.72f;
+		[SerializeField, Min(0.05f)] private float portalSize = 0.78f;
 		[SerializeField, Min(0.1f), Tooltip("자루 크기에 곱하는 문 크기")] private float portalScale = 1.15f;
+		[SerializeField, Min(0f), Tooltip("자루끼리 떨어지는 거리 (크기 1 기준)")] private float slotGap = 1.6f;
+		[SerializeField, Tooltip("밀려난 자루의 가장 낮은 자리")] private float slotFloor = -0.2f;
 		[SerializeField, Min(0f), Tooltip("문을 카메라 쪽으로 돌리는 세기")] private float portalFacing = 0.75f;
 		[SerializeField, Tooltip("문이 도는 빠르기 (라디안/초)")] private float portalSpin = 3.4f;
 		[SerializeField, Tooltip("가만히 있을 때와 열리고 쏠 때의 감김")] private Vector2 portalSwirl = new(1.2f, 6f);
@@ -67,6 +72,8 @@ namespace WitchMendokusai
 			// 부채 안에서 제 몫의 각도 (도). 쏘기 전부터 그쪽을 겨눔
 			public float Fan;
 			public bool Decor;
+			// 막타 무렵 완드째 날아가 문만 남음
+			public bool Launched;
 			public float Phase;
 			public int Kind;
 			public float AppearTime;
@@ -78,6 +85,7 @@ namespace WitchMendokusai
 		// 지금 포화가 쓰는 자루. 앞 포화에서 타는 중인 자루는 그대로 두고 다른 자루를 씀
 		private readonly List<Weapon> raised = new();
 		private readonly List<Weapon> decor = new();
+		private readonly List<Weapon> arranged = new();
 		private readonly List<FxQuadBatch> batches = new();
 		private readonly List<UnityEngine.Object> owned = new();
 		private readonly List<(Weapon weapon, Transform shot)> pendingShots = new();
@@ -86,7 +94,8 @@ namespace WitchMendokusai
 		private Transform owner;
 		private Func<Vector3> aimSource;
 		private FxQuadBatch glowBehind;
-		private FxQuadBatch portalBatch;
+		private FxQuadBatch[] portalBatches;
+		private FxQuadBatch portalFront;
 		private FxQuadBatch[] wandBatches;
 		private int shotsLeft;
 
@@ -125,6 +134,7 @@ namespace WitchMendokusai
 				weapon.Fan = VolleyGaugeRules.FanAngle(decor.Count - 1 - i, decor.Count, fanDegrees);
 				weapon.AppearTime = Time.time + raiseSeconds * Mathf.Repeat(i * GOLDEN_STEP, 1f);
 			}
+			SpreadSlots();
 			RaiseGround();
 		}
 
@@ -151,6 +161,7 @@ namespace WitchMendokusai
 			{
 				taken.Alive = true;
 				taken.FireTime = float.PositiveInfinity;
+				taken.Launched = false;
 			}
 		}
 
@@ -171,8 +182,11 @@ namespace WitchMendokusai
 				Vector3 muzzle = Muzzle(weapon, out Vector3 aim);
 				MuzzleFlash(muzzle, aim);
 				shotsLeft--;
+				bool last = shotsLeft < finaleShots;
+				weapon.Launched = last;
 				if (shot != null)
-					StartTracer(muzzle, shot, shotsLeft < finaleShots ? finaleScale : 1f);
+					StartTracer(muzzle, shot, last ? finaleScale : 1f, last ? weapon.Length * weapon.Scale : 0f);
+				SpawnPhantoms();
 				lightLevel = 1f;
 				lastShotTime = Time.time;
 				if (shotsLeft == 0)
@@ -263,22 +277,30 @@ namespace WitchMendokusai
 			float size = portalSize * weapon.Scale * portalScale * open * (1f + 0.25f * kick) * (1f - 0.85f * broken);
 			float busy = Mathf.Max(Mathf.Pow(0.5f, age / 0.12f), kick);
 			glowBehind.Add(position - facing * 0.05f, right * (size * 1.7f), up * (size * 1.7f), FxQuadLook.Of(WithAlpha(shadeTint, 0.85f * (1f - broken) * Mathf.Clamp01(open)), 1f));
-			FxQuadLook look = FxQuadLook.Of(weapon.Decor ? decorTint : Color.Lerp(lightTint, hotTint, busy * 0.5f), 0.8f, Mathf.Max(1f - age / openSeconds, broken), weapon.Phase);
-			look.Turn = Time.time * portalSpin + weapon.Phase;
-			look.Swirl = Mathf.Lerp(portalSwirl.x, portalSwirl.y, busy) + portalSwirl.y * broken;
-			look.Distort = 0.03f;
-			portalBatch.Add(position, right * size, up * size, look);
-			// 반대로 도는 안쪽 한 겹
-			look.Turn = -Time.time * portalSpin * 1.6f;
-			look.Color = Scale(hotTint, weapon.Decor ? 0.12f : 0.4f);
-			look.Cover = 0f;
-			portalBatch.Add(position + facing * 0.02f, right * (size * 0.55f), up * (size * 0.55f), look);
+			bool swirls = weapon.Kind % portalBatches.Length == 0;
+			FxQuadBatch batch = portalBatches[weapon.Kind % portalBatches.Length];
+			FxQuadLook look = FxQuadLook.Of(weapon.Decor ? decorTint : Color.Lerp(portalTint, hotTint, busy * 0.5f), 0.9f, Mathf.Max(1f - age / openSeconds, broken), weapon.Phase);
+			look.Turn = Time.time * portalSpin * (swirls ? 1f : 0.4f) + weapon.Phase;
+			look.Swirl = (swirls ? 1f : 0.25f) * (Mathf.Lerp(portalSwirl.x, portalSwirl.y, busy) + portalSwirl.y * broken);
+			look.Distort = 0.02f;
+			batch.Add(position, right * size, up * size, look);
+			// 바깥으로 번지는 물결 한 겹
+			if (weapon.Decor == false)
+			{
+				float ripple = Mathf.Repeat(Time.time * 1.3f + weapon.Phase * 0.31f, 1f);
+				look.Color = WithAlpha(violetTint, 0.35f * Mathf.Sin(ripple * Mathf.PI) * (1f - broken));
+				look.Cover = 0f;
+				look.Dissolve = 0.35f + 0.5f * ripple;
+				batch.Add(position, right * (size * (1f + 0.5f * ripple)), up * (size * (1f + 0.5f * ripple)), look);
+			}
+			// 완드가 잘린 자리를 덮는 빛
+			portalFront.Add(position + aim * 0.12f, right * (size * 0.42f), up * (size * 0.42f), FxQuadLook.Of(Scale(weapon.Decor ? decorTint : goldTint, (0.5f + 0.5f * busy) * (1f - broken))));
 		}
 
 		private void DrawWand(Weapon weapon, Vector3 position, Vector3 aim, Vector3 viewForward, float age, float kick, float broken)
 		{
 			float shown = Mathf.Clamp01(Back((age - emergeDelay) / emergeSeconds) * emergeFraction * (1f - recoil * kick));
-			if (age < emergeDelay || shown <= 0.02f)
+			if (age < emergeDelay || shown <= 0.02f || weapon.Launched)
 				return;
 			float full = weapon.Length * weapon.Scale;
 			float length = full * shown;
@@ -341,6 +363,35 @@ namespace WitchMendokusai
 			return new Vector2(Mathf.Cos(angle) * spreadWide, Mathf.Sin(angle)) * radius;
 		}
 
+		// 겹친 자루를 조금씩 밀어냄
+		private void SpreadSlots()
+		{
+			const int ROUNDS = 40;
+			arranged.Clear();
+			arranged.AddRange(raised);
+			arranged.AddRange(decor);
+			for (int round = 0; round < ROUNDS; round++)
+			{
+				for (int i = 0; i < arranged.Count; i++)
+				{
+					for (int j = i + 1; j < arranged.Count; j++)
+						PushApart(arranged[i], arranged[j]);
+				}
+			}
+		}
+
+		private void PushApart(Weapon one, Weapon other)
+		{
+			Vector2 apart = one.Slot - other.Slot;
+			float distance = Mathf.Max(0.01f, apart.magnitude);
+			float wanted = slotGap * (one.Scale + other.Scale) * 0.5f;
+			if (distance >= wanted)
+				return;
+			Vector2 push = apart * ((wanted - distance) / distance * 0.25f);
+			one.Slot = new Vector2(one.Slot.x + push.x, Mathf.Max(slotFloor, one.Slot.y + push.y));
+			other.Slot = new Vector2(other.Slot.x - push.x, Mathf.Max(slotFloor, other.Slot.y - push.y));
+		}
+
 		// 둘러선 자루는 바깥 테두리에 한 줄
 		private Vector2 DecorSlot(int index)
 		{
@@ -358,10 +409,13 @@ namespace WitchMendokusai
 			root.SetParent(transform, false);
 			PrepareGround();
 			glowBehind = Layer("PortalShade", art.Soft, 2956);
-			portalBatch = Layer("Portal", art.Portal, 2960);
+			portalBatches = new FxQuadBatch[art.Portals.Length];
+			for (int i = 0; i < portalBatches.Length; i++)
+				portalBatches[i] = Layer("Portal" + i, art.Portals[i], 2958 + i);
 			wandBatches = new FxQuadBatch[art.Wands.Length];
 			for (int i = 0; i < wandBatches.Length; i++)
 				wandBatches[i] = Layer("Wand" + i, art.Wands[i], 2962 + i);
+			portalFront = Layer("PortalFront", art.Soft, 2970);
 			PrepareShots();
 		}
 

@@ -25,17 +25,24 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f), Tooltip("한 프레임에 이보다 멀리 뛰면 다른 탄으로 다시 쓰인 것으로 봄")] private float jumpDistance = 3f;
 		[SerializeField, Min(0f), Tooltip("끊긴 프레임에서 허용하는 빠르기 (월드/초)")] private float jumpSpeed = 45f;
 
+		[Header("곁줄기 (그림만)")]
+		[SerializeField, Min(0), Tooltip("한 발마다 다른 문에서 같이 나는 가는 줄기")] private int phantomsPerShot = 3;
+		[SerializeField, Min(0.02f)] private float phantomSeconds = 0.26f;
+		[SerializeField] private Vector2 phantomReach = new(6f, 10f);
+		[SerializeField, Range(0f, 90f)] private float phantomFan = 50f;
+		[SerializeField, Min(0f)] private float phantomWidth = 0.95f;
+
 		[Header("총구와 맞은 자리")]
-		[SerializeField, Min(0f)] private float muzzleSize = 2.8f;
-		[SerializeField, Min(0.02f)] private float muzzleSeconds = 0.34f;
+		[SerializeField, Min(0f)] private float muzzleSize = 2.1f;
+		[SerializeField, Min(0.02f)] private float muzzleSeconds = 0.22f;
 		[SerializeField, Min(0f)] private float impactSize = 3.4f;
 		[SerializeField, Min(0.02f)] private float impactSeconds = 0.5f;
 		[SerializeField, Min(0f)] private float pillarHeight = 2.6f;
 		[SerializeField, Min(0f)] private float pillarWidth = 0.32f;
 		[SerializeField, Min(0f)] private float ringSize = 1.5f;
 		[SerializeField, Min(0.02f)] private float ringSeconds = 0.32f;
-		[SerializeField, Min(0f)] private float scorchSize = 0.9f;
-		[SerializeField, Min(0.02f)] private float scorchSeconds = 1.4f;
+		[SerializeField, Min(0f)] private float scorchSize = 0.75f;
+		[SerializeField, Min(0.02f)] private float scorchSeconds = 0.55f;
 		[SerializeField, Min(0), Tooltip("플립북의 앞쪽 빈 칸을 건너뜀")] private int impactFirstFrame = 2;
 		[SerializeField, Min(0)] private int muzzleFirstFrame = 2;
 		[SerializeField, Min(0)] private int sparksPerMuzzle = 5;
@@ -43,7 +50,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float sparkIntensity = 2.4f;
 
 		[Header("빛")]
-		[SerializeField, Min(0f)] private float lightIntensity = 4f;
+		[SerializeField, Min(0f)] private float lightIntensity = 3f;
 		[SerializeField, Min(0.1f)] private float lightRange = 9f;
 
 		private sealed class Tracer
@@ -59,7 +66,20 @@ namespace WitchMendokusai
 			public float Seed;
 			public int Row;
 			public float Scale;
+			// 완드째 날아가면 그 길이
+			public float WandLength;
+			public Color Tint;
 			public bool Alive;
+		}
+
+		private struct Phantom
+		{
+			public Vector3 From;
+			public Vector3 To;
+			public float StartTime;
+			public float Seed;
+			public int Row;
+			public bool Violet;
 		}
 
 		private struct Burst
@@ -75,6 +95,9 @@ namespace WitchMendokusai
 
 		private readonly List<Tracer> tracers = new();
 		private readonly List<Burst> bursts = new();
+		private readonly List<Phantom> phantoms = new();
+		private FxQuadBatch phantomBatch;
+		private FxQuadBatch flyingWand;
 		private FxQuadBatch shaftBatch;
 		private FxQuadBatch streakShade;
 		private FxQuadBatch streakFront;
@@ -88,11 +111,13 @@ namespace WitchMendokusai
 
 		private void PrepareShots()
 		{
+			phantomBatch = Layer("Phantom", art.Streaks, 3006);
 			shaftBatch = Layer("Pillar", art.Soft, 3007);
 			streakShade = Layer("StreakShade", art.Streaks, 3008);
 			streakFront = Layer("Streak", art.Streaks, 3010);
 			boltBatch = Layer("Bolt", art.Bolt, 3012);
 			flashSoft = Layer("FlashSoft", art.Soft, 3013);
+			flyingWand = Layer("FlyingWand", art.Wands[^1], 3013);
 			impactBatch = Layer("Impact", art.Impact, 3014);
 			muzzleBatch = Layer("Muzzle", art.Muzzle, 3016);
 			Material sparkMaterial = Own(new Material(art.Shader) { name = "VolleySpark", renderQueue = 3018, mainTexture = art.Spark });
@@ -113,7 +138,7 @@ namespace WitchMendokusai
 			flashLight.enabled = false;
 		}
 
-		private void StartTracer(Vector3 muzzle, Transform shot, float scale)
+		private void StartTracer(Vector3 muzzle, Transform shot, float scale, float wandLength)
 		{
 			// 풀이 같은 탄을 바로 다시 냈으면 옛 줄기는 거기서 끝
 			foreach (Tracer old in tracers)
@@ -137,6 +162,8 @@ namespace WitchMendokusai
 			tracer.Seed = Random.value;
 			tracer.Row = Random.value < 0.5f ? 1 : 2;
 			tracer.Scale = scale;
+			tracer.WandLength = wandLength;
+			tracer.Tint = shotsLeft % 2 == 0 ? goldTint : violetTint;
 			tracer.Alive = true;
 		}
 
@@ -152,6 +179,11 @@ namespace WitchMendokusai
 			{
 				if (DrawBurst(bursts[i], viewForward) == false)
 					bursts.RemoveAt(i);
+			}
+			for (int i = phantoms.Count - 1; i >= 0; i--)
+			{
+				if (DrawPhantom(phantoms[i], viewForward) == false)
+					phantoms.RemoveAt(i);
 			}
 			DrawFinale();
 			lightLevel *= Mathf.Pow(0.5f, Time.deltaTime / 0.08f);
@@ -218,29 +250,68 @@ namespace WitchMendokusai
 			// 나온 순간 굵고 금방 제 굵기로
 			float birth = Mathf.Pow(0.5f, (Time.time - tracer.StartTime) / 0.06f);
 			float width = beamWidth * tracer.Scale * (1f + 0.7f * birth) * (1f - 0.5f * faded);
-			Color body = Color.Lerp(lightTint, hotTint, birth * 0.5f);
+			Color body = Color.Lerp(tracer.Tint, lightTint, 0.25f + 0.4f * birth);
 
 			streakShade.AddStrip(tracer.Tail, tracer.Shown, width * 1.3f, viewForward, PaintedFxSet.StreakRow(2), FxQuadLook.Of(WithAlpha(shadeTint, 0.7f), 1f, faded, tracer.Seed));
-			FxQuadLook look = FxQuadLook.Of(body, 0.6f, faded, tracer.Seed);
+			FxQuadLook look = FxQuadLook.Of(body, 0.85f, faded, tracer.Seed);
 			look.Distort = 0.02f;
 			streakFront.AddStrip(tracer.Tail, tracer.Shown, width, viewForward, PaintedFxSet.StreakRow(tracer.Row), look);
 			look = FxQuadLook.Of(WithAlpha(hotTint, 0.8f), 0f, faded, tracer.Seed);
-			streakFront.AddStrip(tracer.Tail, tracer.Shown, width * 0.9f, viewForward, PaintedFxSet.StreakRow(0), look);
+			streakFront.AddStrip(tracer.Tail, tracer.Shown, width * 0.6f, viewForward, PaintedFxSet.StreakRow(0), look);
 			Vector3 side = FxQuadBatch.Side(direction, viewForward);
 			for (int i = 0; i < sideStreaks; i++)
 			{
 				float offset = sideSpread * (Mathf.Repeat(tracer.Seed * 13.7f + i * 0.618f, 1f) * 2f - 1f);
 				float start = Mathf.Repeat(tracer.Seed * 5.3f + i * 0.43f, 0.5f);
-				look = FxQuadLook.Of(Scale(lightTint, 0.8f), 0f, faded, tracer.Seed + i);
+				look = FxQuadLook.Of(WithAlpha(i % 2 == 0 ? goldTint : violetTint, 0.8f), 0f, faded, tracer.Seed + i);
 				streakFront.AddStrip(tracer.Tail + span * start + side * offset, tracer.Shown - span * (0.1f * i) + side * (offset * 0.4f), width * 0.7f, viewForward, PaintedFxSet.StreakRow(i % 2 == 0 ? 0 : 3), look);
 			}
 			if (ended)
 				return;
 			float headLength = Mathf.Min(boltLength, length + 0.8f);
-			look = FxQuadLook.Of(body, 0.7f, 0f, tracer.Seed);
+			look = FxQuadLook.Of(body, 0.9f, 0f, tracer.Seed);
 			look.Distort = 0.03f;
 			boltBatch.AddStrip(tracer.Shown - direction * (headLength * 0.85f), tracer.Shown + direction * (headLength * 0.15f), boltWidth * tracer.Scale * (1f + 0.5f * birth), viewForward, new Rect(0f, 0f, 1f, 1f), look);
-			Billboard(flashSoft, tracer.Shown, 0.5f, 0f, FxQuadLook.Of(Scale(lightTint, 0.22f)));
+			if (tracer.WandLength > 0f)
+				flyingWand.AddStrip(tracer.Shown - direction * (tracer.WandLength * 0.75f), tracer.Shown + direction * (tracer.WandLength * 0.25f), tracer.WandLength / weaponAspects[^1], viewForward, new Rect(0f, 0f, 1f, 1f), FxQuadLook.Of(Color.white * 1.08f, 1f));
+		}
+
+		// 판정 없는 가는 줄기. 아직 서 있는 문에서 부채 안 아무 데로
+		private void SpawnPhantoms()
+		{
+			for (int i = 0; i < phantomsPerShot; i++)
+			{
+				Weapon from = weapons[Random.Range(0, weapons.Count)];
+				if (from.Alive == false)
+					continue;
+				Pose(from, out Vector3 position, out _);
+				Vector3 direction = Quaternion.Euler(0f, Random.Range(-0.5f, 0.5f) * phantomFan, 0f) * Aim();
+				phantoms.Add(new Phantom
+				{
+					From = position,
+					To = owner.position + Vector3.up * shotHeight + direction * Random.Range(phantomReach.x, phantomReach.y),
+					StartTime = Time.time + Random.value * 0.05f,
+					Seed = Random.value,
+					Row = i % 3 == 2 ? 3 : i % 3 == 1 ? 1 : 0,
+					Violet = Random.value < 0.5f,
+				});
+			}
+		}
+
+		// 끝났으면 false
+		private bool DrawPhantom(in Phantom phantom, Vector3 viewForward)
+		{
+			float progress = (Time.time - phantom.StartTime) / phantomSeconds;
+			if (progress < 0f)
+				return true;
+			if (progress >= 1f)
+				return false;
+			Vector3 span = phantom.To - phantom.From;
+			float head = Mathf.Clamp01(progress * 1.6f);
+			float tail = Mathf.Clamp01((progress * 1.6f - 0.75f) / 0.85f);
+			FxQuadLook look = FxQuadLook.Of(WithAlpha(phantom.Violet ? violetTint : goldTint, 0.9f), 0.15f, Mathf.Clamp01(progress * 1.4f - 0.4f), phantom.Seed);
+			phantomBatch.AddStrip(phantom.From + span * tail, phantom.From + span * head, phantomWidth * (1f - 0.5f * progress), viewForward, PaintedFxSet.StreakRow(phantom.Row), look);
+			return true;
 		}
 
 		// 끝났으면 false
@@ -255,9 +326,9 @@ namespace WitchMendokusai
 				float half = muzzleSize * 0.5f;
 				Vector3 center = burst.Position + burst.Forward * ((0.5f - art.MuzzleOrigin) * muzzleSize);
 				float heat = Mathf.Pow(0.5f, age / 0.05f);
-				muzzleBatch.Add(center, burst.Forward * half, FxQuadBatch.Side(burst.Forward, viewForward) * half, cell, FxQuadLook.Of(Color.Lerp(lightTint, hotTint, heat * 0.6f), 0.5f));
+				muzzleBatch.Add(center, burst.Forward * half, FxQuadBatch.Side(burst.Forward, viewForward) * half, cell, FxQuadLook.Of(Color.Lerp(lightTint, hotTint, heat * 0.4f), 0.8f));
 				if (heat > 0.05f)
-					Billboard(flashSoft, burst.Position, 0.8f, 0f, FxQuadLook.Of(Scale(lightTint, heat * 0.35f)));
+					Billboard(flashSoft, burst.Position, 0.6f, 0f, FxQuadLook.Of(Scale(goldTint, heat * 0.25f)));
 				return true;
 			}
 			if (age < impactSeconds)
@@ -268,7 +339,7 @@ namespace WitchMendokusai
 				// 짧은 빛기둥
 				Vector3 pillar = Vector3.up * (pillarHeight * burst.Scale * (0.4f + 0.6f * Mathf.Sqrt(progress)));
 				Vector3 pillarSide = Vector3.Cross(viewForward, Vector3.up).normalized * (pillarWidth * burst.Scale * (1f - progress));
-				shaftBatch.Add(burst.Position + pillar - Vector3.up * shotHeight, pillarSide, pillar, FxQuadLook.Of(Scale(lightTint, 0.9f * (1f - progress))));
+				shaftBatch.Add(burst.Position + pillar - Vector3.up * shotHeight, pillarSide, pillar, FxQuadLook.Of(Scale(goldTint, 0.8f * (1f - progress))));
 				Billboard(flashSoft, burst.Position, impactSize * 0.75f, 0f, FxQuadLook.Of(WithAlpha(shadeTint, 0.5f * (1f - progress)), 1f));
 				Billboard(impactBatch, burst.Position, impactSize * burst.Scale * 0.5f * (0.9f + 0.25f * progress), (burst.Seed - 0.5f) * 50f, cell, FxQuadLook.Of(Color.Lerp(Scale(lightTint, 0.9f), hotTint, heat * 0.35f), 0.8f));
 				if (heat > 0.05f)
@@ -285,6 +356,7 @@ namespace WitchMendokusai
 			foreach (Tracer tracer in tracers)
 				tracer.Alive = false;
 			bursts.Clear();
+			phantoms.Clear();
 			StopFinale();
 			if (flashLight != null)
 				flashLight.enabled = false;
