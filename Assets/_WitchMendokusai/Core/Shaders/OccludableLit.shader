@@ -13,6 +13,8 @@ Shader "WM/Occludable Lit"
         _Cutoff ("Alpha cutoff", Range(0, 1)) = 0.5
         [Toggle(_ALPHATEST_ON)] _AlphaClip ("Alpha clip", Float) = 0
         [Toggle(_VERTEX_COLOR)] _VertexColor ("Vertex color tint (0.5 is unchanged)", Float) = 0
+        _AmbientBounce ("Warm bounce in shade (replaces sky tint)", Range(0, 1)) = 0
+        _AmbientBounceColor ("Bounce color", Color) = (1.4, 1.28, 1.12, 1)
         [ToggleOff(_SPECULARHIGHLIGHTS_OFF)] _SpecularHighlights ("Specular highlights", Float) = 1
         [ToggleOff(_ENVIRONMENTREFLECTIONS_OFF)] _EnvironmentReflections ("Environment reflections", Float) = 1
         [HDR] _EmissionColor ("Emission color", Color) = (0, 0, 0, 1)
@@ -49,6 +51,8 @@ Shader "WM/Occludable Lit"
             half _Cutoff;
             half4 _EmissionColor;
             half _WM_ObjectFade;
+            half _AmbientBounce;
+            half4 _AmbientBounceColor;
         CBUFFER_END
 
         // 원과 카메라 앞 비움 + 물체 단위 페이드 (OcclusionFadeTarget 이 렌더러마다 넣는 _WM_ObjectFade)
@@ -167,7 +171,8 @@ Shader "WM/Occludable Lit"
                 inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
                 inputData.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
                 inputData.fogCoord = input.fogFactor;
-                inputData.bakedGI = SampleSH(normalWS);
+                half3 ambient = SampleSH(normalWS);
+                inputData.bakedGI = lerp(ambient, Luminance(ambient) * _AmbientBounceColor.rgb, _AmbientBounce);
                 inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
                 inputData.shadowMask = half4(1, 1, 1, 1);
 
