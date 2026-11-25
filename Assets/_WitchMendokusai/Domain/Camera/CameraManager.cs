@@ -461,10 +461,8 @@ namespace WitchMendokusai
 				ContentCameraMode.CityView => ContentCameraMode.FreeFly,
 				_ => ContentCameraMode.Normal,
 			};
-			SetContentCameraMode(HasContentCamera(next) ? next : ContentCameraMode.Normal);
+			SetContentCameraMode(Array.Exists(cameras, candidate => candidate.ContentCameraMode == next) ? next : ContentCameraMode.Normal);
 		}
-
-		private bool HasContentCamera(ContentCameraMode mode) => Array.Exists(cameras, candidate => candidate.ContentCameraMode == mode);
 
 		public void Zoom()
 		{
