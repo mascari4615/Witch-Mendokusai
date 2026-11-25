@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Linq;
 
 namespace WitchMendokusai
 {
@@ -19,7 +19,8 @@ namespace WitchMendokusai
 				holding.ReturnHeldFrom(this);
 			BoundDoll = doll;
 			Capacity = Doll.EQUIPMENT_SLOT_COUNT;
-			Data = doll != null ? doll.Equipment : new List<Item>();
+			// 인형이 없어도 목록 길이는 칸 수와 같게. 짧으면 칸을 그리는 쪽이 범위를 벗어나 읽음
+			Data = doll != null ? doll.Equipment : Enumerable.Repeat<Item>(null, Capacity).ToList();
 			UpdateUI();
 		}
 
