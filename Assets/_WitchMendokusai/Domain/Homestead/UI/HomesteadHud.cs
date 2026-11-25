@@ -22,6 +22,8 @@ namespace WitchMendokusai
 		private VisualElement feed;
 		private VisualElement notices;
 		private VisualElement digest;
+		private VisualElement goal;
+		private bool goalShown;
 		private VisualElement duel;
 		private VisualElement duelIcon;
 		private VisualElement tensionFill;
@@ -48,11 +50,14 @@ namespace WitchMendokusai
 			feed = Make("feed", root);
 			notices = Make("notices", root);
 			digest = Make("digest", root);
+			goal = Make("goal", root);
+			ShowGoal(false);
 			BuildDuel();
 			BuildMine();
 			ShowDuel(false);
 			ShowMine(false);
 
+			Sim.Changed += RefreshGoal;
 			Sim.Gained += OnGained;
 			Sim.RelicFound += OnRelicFound;
 			Sim.Arrived += OnArrived;
@@ -65,6 +70,7 @@ namespace WitchMendokusai
 			root?.RemoveFromHierarchy();
 			if (manager == null || manager.Sim == null)
 				return;
+			Sim.Changed -= RefreshGoal;
 			Sim.Gained -= OnGained;
 			Sim.RelicFound -= OnRelicFound;
 			Sim.Arrived -= OnArrived;
@@ -201,6 +207,51 @@ namespace WitchMendokusai
 			VisualElement row = Make("digest-row", card);
 			Make("digest-icon", row).style.backgroundImage = new StyleBackground(Art.Icon(iconKey));
 			MakeLabel("digest-text", row, text);
+		}
+
+		// ---- 다음 회관까지. 마을에 있는 동안 늘 보임
+
+		public void ShowGoal(bool visible)
+		{
+			goalShown = visible;
+			goal.EnableInClassList($"{BLOCK}--none", visible == false);
+			RefreshGoal();
+		}
+
+		private void RefreshGoal()
+		{
+			if (goalShown == false)
+				return;
+			string key = GoalKey();
+			if (goal.userData as string == key)
+				return;
+			goal.userData = key;
+			goal.Clear();
+			if (Sim.TryGetNextTownHall(out TownHallDef next) == false)
+				return;
+			MakeLabel("goal-title", goal, next.Name);
+			foreach (KeyValuePair<string, int> pair in next.Cost.Goods)
+				AddGoal(Art.IconOf(Sim.Catalog.Get<GoodsDef>(pair.Key)), Sim.Count(pair.Key), pair.Value);
+			if (next.Cost.Nyang > 0)
+				AddGoal(Art.Icon("nyang"), Sim.Purse.Nyang, next.Cost.Nyang);
+		}
+
+		private string GoalKey()
+		{
+			if (Sim.TryGetNextTownHall(out TownHallDef next) == false)
+				return "max";
+			System.Text.StringBuilder key = new(next.Name);
+			foreach (KeyValuePair<string, int> pair in next.Cost.Goods)
+				key.Append(';').Append(Sim.Count(pair.Key));
+			return key.Append(';').Append(Sim.Purse.Nyang >= next.Cost.Nyang).Append(Sim.Purse.Nyang).ToString();
+		}
+
+		private void AddGoal(Sprite icon, int have, int need)
+		{
+			VisualElement row = Make("goal-row", goal);
+			Make("goal-icon", row).style.backgroundImage = new StyleBackground(icon);
+			Label value = MakeLabel("goal-value", row, $"{Mathf.Min(have, need)} / {need}");
+			value.EnableInClassList($"{BLOCK}__goal-value--done", have >= need);
 		}
 
 		// ---- 낚시

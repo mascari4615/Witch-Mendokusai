@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using WitchMendokusai.DomainSDK.Network;
 using WitchMendokusai.Net;
 
 namespace WitchMendokusai
@@ -141,7 +142,11 @@ namespace WitchMendokusai
 			link.RequestGather(nearestId);
 		}
 
+		// 공용 세계의 자리와 이어지지 않는 스테이지 (마을, 숲길) 에는 공용 채집물을 세우지 않음
+		private static bool IsSharedStage() => LocalPlayerProbeBridge.TryGetPose(out float _, out float _, out float _, out float _);
+
 		private static bool CanGatherHere() => GameConditionBridge.Get(GameConditionType.IsInDungeon) == false
+			&& IsSharedStage()
 			&& GameConditionBridge.Get(GameConditionType.IsViewingUI) == false;
 
 		private bool TryGetGroundHeight(GatherableView node, out float height)

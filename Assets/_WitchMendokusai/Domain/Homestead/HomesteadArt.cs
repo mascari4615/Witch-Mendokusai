@@ -38,6 +38,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public Material Glow { get; private set; }
 		[field: SerializeField] public Material GlowPurple { get; private set; }
 		[field: SerializeField] public Material Cloth { get; private set; }
+		[field: SerializeField] public Material Water { get; private set; }
 		[field: SerializeField] public Material SpriteMaterial { get; private set; }
 
 		private static HomesteadArt instance;

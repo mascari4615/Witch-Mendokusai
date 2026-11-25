@@ -245,7 +245,7 @@ namespace WitchMendokusai
 				Make("wm-hs__row-image", box).style.backgroundImage = new StyleBackground(Art.Icon(spare[i].Id));
 				VisualElement texts = Make("wm-hs__row-texts", row);
 				MakeLabel("wm-hs__row-name", texts, spare[i].Name);
-				MakeLabel("wm-hs__row-sub", texts, $"{spare[i].Theme}  아늑함 {spare[i].Comfort}");
+				MakeLabel("wm-hs__row-sub", texts, $"{spare[i].Theme}, 아늑함 {spare[i].Comfort}");
 				MakeLabel("wm-hs__row-count", row, Sim.SpareCount(spare[i].Id).ToString());
 				row.RegisterCallback<ClickEvent>(_ =>
 				{
@@ -294,9 +294,9 @@ namespace WitchMendokusai
 			List<int> steps = Sim.Catalog.Tuning.ComfortSteps;
 			int from = steps[rank];
 			bool hasNext = rank + 1 < steps.Count;
-			comfortText.text = hasNext ? $"아늑함 {Sim.Comfort}   {rank}단, 다음 {steps[rank + 1]}" : $"아늑함 {Sim.Comfort}   {rank}단";
+			comfortText.text = hasNext ? $"아늑함 {Sim.Comfort}, {rank}단, 다음 {steps[rank + 1]}" : $"아늑함 {Sim.Comfort}, {rank}단";
 			comfortFill.style.width = Length.Percent(hasNext ? Mathf.Clamp01((Sim.Comfort - from) / (float)(steps[rank + 1] - from)) * 100f : 100f);
-			pieceText.text = $"{Sim.HouseTier.Name}   가구 {Sim.State.Placed.Count} / {Sim.HouseTier.PieceLimit}   쉬면 하루 동안 두 배 얻을 확률 {Mathf.RoundToInt(rank * Sim.Catalog.Tuning.RestDoubleChancePerRank * 100f)}%";
+			pieceText.text = $"{Sim.HouseTier.Name}, 가구 {Sim.State.Placed.Count} / {Sim.HouseTier.PieceLimit}, 쉬면 하루 동안 두 배 얻을 확률 {Mathf.RoundToInt(rank * Sim.Catalog.Tuning.RestDoubleChancePerRank * 100f)}%";
 		}
 
 		// ---- 평면

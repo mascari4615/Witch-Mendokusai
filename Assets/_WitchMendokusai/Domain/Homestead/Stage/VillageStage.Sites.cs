@@ -16,7 +16,15 @@ namespace WitchMendokusai
 		[SerializeField] private float riseSeconds = 0.7f;
 		[SerializeField] private float riseOvershoot = 0.12f;
 
+		[Header("Lamps")]
+		[SerializeField] private int lampOnHour = 17;
+		[SerializeField] private int lampOffHour = 6;
+		[SerializeField] private float lampRange = 7f;
+		[SerializeField] private float lampIntensity = 2.4f;
+		[SerializeField] private Vector3 lampLightOffset = new(0.4f, 1.6f, 0f);
+
 		private readonly Dictionary<string, (string Look, GameObject Body)> siteBodies = new();
+		private readonly List<Light> lampLights = new();
 
 		private void BuildSites()
 		{
@@ -32,7 +40,18 @@ namespace WitchMendokusai
 				HomesteadSpot.Create(outdoor, door, site.Id + "Spot", () => Catalog.Get<BuildingDef>(captured.Id).Name, () => SiteRole(captured.Id), () => UseSite(captured.Id));
 			}
 			foreach (Vector3 lamp in new[] { new Vector3(-3.4f, 0f, 5f), new Vector3(3.4f, 0f, 5f), new Vector3(-3.6f, 0f, -3f), new Vector3(3.6f, 0f, -3f), new Vector3(-2.2f, 0f, -12f), new Vector3(2.2f, 0f, -17f) })
-				VillageBodies.Lamp().Build("Lamp", outdoor, lamp, lamp.x > 0f ? 180f : 0f);
+			{
+				GameObject body = VillageBodies.Lamp().Build("Lamp", outdoor, lamp, lamp.x > 0f ? 180f : 0f);
+				lampLights.Add(AddGlow(body.transform, lampLightOffset, lampRange, lampIntensity));
+			}
+		}
+
+		private bool IsNight => manager.Hour >= lampOnHour || manager.Hour < lampOffHour;
+
+		private void RefreshLamps()
+		{
+			foreach (Light lamp in lampLights)
+				lamp.enabled = IsNight;
 		}
 
 		private string SiteRole(string id)
@@ -119,6 +138,7 @@ namespace WitchMendokusai
 
 		private void RefreshSites()
 		{
+			RefreshLamps();
 			Show("townhall", Sim.State.TownHall.ToString(), townHallPosition, 0f, () => VillageBodies.TownHall(Sim.State.TownHall));
 			Show("house", Sim.State.HouseTier.ToString(), housePosition, houseYaw, () => VillageBodies.Home(Sim.State.HouseTier));
 			for (int i = 0; i < sites.Length; i++)

@@ -74,6 +74,9 @@ soup
 stew
 grill
 pie
+hide
+bone
+moonmoss
 nyang
 board
 house

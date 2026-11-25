@@ -309,7 +309,7 @@ namespace WitchMendokusai
 					for (int i = 0; i < 5; i++)
 						bush.Prism(Art.Leaf, isHerb ? new Color(0.9f, 1f, 0.95f) : Color.white, new Vector3(Random.Range(-0.4f, 0.4f), -0.05f, Random.Range(-0.4f, 0.4f)), new Vector3(Random.Range(0.5f, 0.8f), Random.Range(0.4f, 0.8f), Random.Range(0.5f, 0.8f)), 7, 0.55f);
 					for (int i = 0; i < 6; i++)
-						bush.Prism(Art.Cloth, isHerb ? new Color(0.76f, 0.66f, 1f) : new Color(1f, 0.62f, 0.56f), new Vector3(Random.Range(-0.4f, 0.4f), Random.Range(0.35f, 0.65f), Random.Range(-0.45f, 0.1f)), Vector3.one * 0.13f, 6, 0.7f);
+						bush.Prism(Art.Cloth, isHerb ? new Color(0.76f, 0.66f, 1f) : new Color(1f, 0.62f, 0.56f), new Vector3(Random.Range(-0.4f, 0.4f), Random.Range(0.35f, 0.65f), Random.Range(-0.45f, 0.1f)), Vector3.one * 0.1f, 8, 0.6f);
 					return bush.Build("Bush", outdoor, site.Position, index * 29f);
 			}
 		}

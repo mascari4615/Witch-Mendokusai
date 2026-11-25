@@ -11,6 +11,11 @@ namespace WitchMendokusai
 
 		[Header("Room")]
 		[SerializeField] private float roomHeight = 2.8f;
+		[SerializeField] private Color glowColor = new(1f, 0.82f, 0.6f);
+		[SerializeField] private Color shadeColor = new(0.35f, 0.3f, 0.42f);
+		[SerializeField] private float roomLightIntensity = 3.2f;
+		[SerializeField] private float furnitureGlowRange = 3.5f;
+		[SerializeField] private float furnitureGlowIntensity = 1.6f;
 
 		[Header("Museum garden")]
 		[SerializeField] private Vector3 gardenOrigin = new(5.6f, 0f, 18.2f);
@@ -33,6 +38,7 @@ namespace WitchMendokusai
 			room = new GameObject("Room").transform;
 			room.SetParent(transform, false);
 			room.localPosition = roomOffset;
+			BuildShade(room, 13f, 8f, 1.4f);
 			furnitureRoot = new GameObject("Furniture").transform;
 			furnitureRoot.SetParent(room, false);
 			doorSpot = HomesteadSpot.Create(room, Vector3.zero, "DoorSpot", () => "문", () => "나가기", LeaveRoom).transform;
@@ -87,7 +93,7 @@ namespace WitchMendokusai
 			Light lamp = lightObject.AddComponent<Light>();
 			lamp.type = LightType.Point;
 			lamp.range = Mathf.Max(width, depth) * 1.2f;
-			lamp.intensity = 1.4f;
+			lamp.intensity = roomLightIntensity;
 			lamp.color = new Color(1f, 0.9f, 0.74f);
 			doorSpot.localPosition = new Vector3(0f, 0f, -depth / 2f - 0.4f);
 			deskSpot.localPosition = new Vector3(width / 2f - 0.6f, 0f, -depth / 2f + 0.7f);
@@ -116,20 +122,45 @@ namespace WitchMendokusai
 				if (furniture.Shape == "bed")
 					restSpot.localPosition = new Vector3(piece.X, 0f, piece.Z) + Quaternion.Euler(0f, piece.Yaw, 0f) * new Vector3(furniture.Width * 0.5f + 0.4f, 0f, 0f);
 				if (furniture.Shape == "lamp" || furniture.Shape == "fireplace" || furniture.Shape == "candle")
-					AddGlow(body.transform);
+					AddGlow(body.transform, new Vector3(0f, 1f, -0.3f), furnitureGlowRange, furnitureGlowIntensity);
 			}
 		}
 
-		private static void AddGlow(Transform body)
+		private Light AddGlow(Transform body, Vector3 localPosition, float range, float intensity)
 		{
 			GameObject lightObject = new("Glow");
 			lightObject.transform.SetParent(body, false);
-			lightObject.transform.localPosition = new Vector3(0f, 1f, -0.3f);
+			lightObject.transform.localPosition = localPosition;
 			Light lamp = lightObject.AddComponent<Light>();
 			lamp.type = LightType.Point;
-			lamp.range = 3.5f;
-			lamp.intensity = 1.1f;
-			lamp.color = new Color(1f, 0.8f, 0.6f);
+			lamp.range = range;
+			lamp.intensity = intensity;
+			lamp.color = glowColor;
+			return lamp;
+		}
+
+		// 바깥 하늘과 해를 가림. 어두운 바닥과 둘레 벽, 해만 막는 지붕
+		private void BuildShade(Transform root, float radius, float height, float depth)
+		{
+			VillageKit dark = new();
+			dark.Prism(Art.Dark, shadeColor, new Vector3(0f, -depth, 0f), new Vector3(radius * 6f, 0.3f, radius * 6f), 24);
+			VillageKit roof = new();
+			roof.Prism(Art.Dark, Color.white, new Vector3(0f, height, 0f), new Vector3(radius * 2.4f, 0.4f, radius * 2.4f), 16);
+			const int COUNT = 20;
+			for (int i = 0; i < COUNT; i++)
+			{
+				float angle = i / (float)COUNT * Mathf.PI * 2f;
+				Vector3 direction = new(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+				Vector3 euler = new(0f, 90f - angle * Mathf.Rad2Deg, 0f);
+				float far = radius * 1.6f;
+				// 카메라가 서는 남쪽은 비움
+				if (direction.z > -0.5f)
+					dark.Box(Art.Dark, shadeColor, direction * far - Vector3.up * depth, new Vector3(far * 0.36f, height * 2.6f, 0.4f), euler);
+				roof.Box(Art.Dark, Color.white, direction * radius * 1.15f - Vector3.up * depth, new Vector3(radius * 0.4f, height + depth, 0.4f), euler);
+			}
+			dark.Build("Dark", root, Vector3.zero, 0f, castShadow: false);
+			foreach (MeshRenderer part in roof.Build("Shade", root, Vector3.zero, 0f).GetComponentsInChildren<MeshRenderer>())
+				part.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
 		}
 
 		private void EnterRoom() => MovePlayer(roomOffset + new Vector3(0f, 0.1f, -Sim.HouseTier.Depth / 2f + 0.6f));

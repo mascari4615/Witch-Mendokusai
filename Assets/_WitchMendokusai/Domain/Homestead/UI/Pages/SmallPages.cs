@@ -221,7 +221,7 @@ namespace WitchMendokusai
 		public override string Title => "승강기";
 		protected override string IconKey => "quarry";
 		public override IReadOnlyList<string> Tabs => TABS;
-		public override string Status => $"가장 깊이 {Sim.State.MineDeepest} / {Sim.MineMaxDepth}   등불 {Sim.LanternCapacity}";
+		public override string Status => $"가장 깊이 {Sim.State.MineDeepest} / {Sim.MineMaxDepth}, 등불 {Sim.LanternCapacity}";
 
 		public void Ask(Action<int> picked) => onPick = picked;
 

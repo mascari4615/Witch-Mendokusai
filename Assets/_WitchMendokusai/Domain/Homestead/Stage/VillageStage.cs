@@ -29,7 +29,8 @@ namespace WitchMendokusai
 		[SerializeField] private Vector3 housePosition = new(-13f, 0f, 12f);
 		[SerializeField] private Vector3 houseDoor = new(0f, 0f, -3.2f);
 		[SerializeField] private float houseYaw = 12f;
-		[SerializeField] private Vector3 wellPosition = new(0f, 0f, 1.5f);
+		[SerializeField] private Vector3 wellPosition = new(4.4f, 0f, 0.6f);
+		[SerializeField] private Vector3 plazaCenter = new(0f, 0f, 1.5f);
 		[SerializeField] private Vector3 pondCenter = new(21f, 0f, -11f);
 		[SerializeField] private float pondRadius = 6.5f;
 		[SerializeField] private Vector3 roomOffset = new(300f, 0f, 0f);
@@ -84,6 +85,7 @@ namespace WitchMendokusai
 			Sim.Changed += OnSimChanged;
 			Sim.Unveiled += OnUnveiled;
 			RefreshAll();
+			manager.Hud.ShowGoal(true);
 			manager.Hud.ShowDigest(Sim.MakeDigest());
 		}
 
@@ -95,11 +97,17 @@ namespace WitchMendokusai
 			Sim.Unveiled -= OnUnveiled;
 			LeaveMine();
 			StopFishing();
+			manager.Hud.ShowGoal(false);
 			manager.Hud.ShowDuel(false);
 			manager.Hud.ShowMine(false);
 		}
 
-		private void OnDestroy() => VillageKit.ReleaseMeshes();
+		private void OnDestroy()
+		{
+			VillageKit.ReleaseMeshes();
+			if (waterMaterial != null)
+				Destroy(waterMaterial);
+		}
 
 		private void BuildAll()
 		{
@@ -132,6 +140,7 @@ namespace WitchMendokusai
 			Destroy(room.gameObject);
 			Destroy(mineRoot.gameObject);
 			siteBodies.Clear();
+			lampLights.Clear();
 			plots.Clear();
 			gathers.Clear();
 			exhibits.Clear();
@@ -147,7 +156,7 @@ namespace WitchMendokusai
 		// 길과 비울 자리를 바닥에 먼저 알림
 		private void MarkGround()
 		{
-			Vector2 plaza = new(wellPosition.x, wellPosition.z);
+			Vector2 plaza = new(plazaCenter.x, plazaCenter.z);
 			ground.AddBlock(plaza, 3.2f);
 			ground.AddPath(new Vector2(0f, -24f), plaza);
 			Link(plaza, townHallPosition + townHallDoor, 3.2f, townHallPosition);
@@ -178,6 +187,7 @@ namespace WitchMendokusai
 		{
 			if (manager == null)
 				return;
+			FlowWater();
 			StepFishing();
 			StepMine();
 			if (refreshQueued == false)

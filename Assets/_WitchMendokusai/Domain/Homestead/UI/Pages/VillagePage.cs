@@ -20,7 +20,7 @@ namespace WitchMendokusai
 		public override string Title => "회관";
 		protected override string IconKey => HALL_ID;
 		public override IReadOnlyList<string> Tabs => TABS;
-		public override string Status => $"{Sim.TownHallDef(Sim.State.TownHall).Name}   공사 {Sim.State.Works.Count} / {Sim.WorkSlots}";
+		public override string Status => $"{Sim.TownHallDef(Sim.State.TownHall).Name}, 공사 {Sim.State.Works.Count} / {Sim.WorkSlots}";
 
 		public override List<HomesteadEntry> Entries(int tab)
 		{

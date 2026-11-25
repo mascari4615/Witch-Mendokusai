@@ -12,7 +12,9 @@ namespace WitchMendokusai
 		private const int STREAM_DOCK_LEVEL = 2;
 
 		[Header("Water")]
-		[SerializeField] private Color waterColor = new(0.42f, 0.74f, 0.86f, 0.82f);
+		[SerializeField] private Vector2 waterFlow = new(0.012f, 0.02f);
+		[SerializeField] private Color shoreColor = new(1.18f, 1.2f, 1.14f);
+		[SerializeField] private Color deepColor = new(0.72f, 0.8f, 0.92f);
 		[SerializeField] private Vector3 streamFrom = new(24f, 0f, -5f);
 		[SerializeField] private Vector3 streamTo = new(33f, 0f, 6f);
 		[SerializeField] private float streamWidth = 2.2f;
@@ -30,16 +32,17 @@ namespace WitchMendokusai
 
 		private void BuildWater()
 		{
-			waterMaterial = new Material(Art.Glass) { name = "VillageWater", color = waterColor };
-			waterMaterial.SetColor("_BaseColor", waterColor);
-			Pool(pondCenter, pondRadius);
+			waterMaterial = new Material(Art.Water) { name = "VillageWater", hideFlags = HideFlags.DontSave };
+			Pool(pondCenter, pondRadius, shoreColor, 0f);
+			Pool(pondCenter, pondRadius * 0.86f, Color.white, 0.012f);
+			Pool(pondCenter + new Vector3(0.4f, 0f, 0.3f), pondRadius * 0.62f, deepColor, 0.024f);
 			Vector3 along = streamTo - streamFrom;
 			int steps = Mathf.CeilToInt(along.magnitude / (streamWidth * 0.5f));
 			for (int i = 0; i <= steps; i++)
 			{
 				float ratio = i / (float)steps;
 				Vector3 side = new Vector3(-along.z, 0f, along.x).normalized * Mathf.Sin(ratio * 5f) * 0.8f;
-				Pool(streamFrom + along * ratio + side, streamWidth * 0.5f + Mathf.Sin(i * 1.9f) * 0.2f);
+				Pool(streamFrom + along * ratio + side, streamWidth * 0.5f + Mathf.Sin(i * 1.9f) * 0.2f, Color.white, i * 0.0008f);
 			}
 			for (int i = 0; i < 26; i++)
 			{
@@ -65,12 +68,14 @@ namespace WitchMendokusai
 			streamSpotObject = HomesteadSpot.Create(outdoor, streamSpot, "StreamSpot", () => "개울", () => "낚시", () => StartFishing(STREAM)).gameObject;
 		}
 
-		private void Pool(Vector3 center, float radius)
+		private void Pool(Vector3 center, float radius, Color color, float lift)
 		{
 			VillageKit kit = new();
-			kit.Prism(waterMaterial, Color.white, Vector3.zero, new Vector3(radius * 2f, 0.05f, radius * 2f), 18);
-			kit.Build("Water", outdoor, center + Vector3.up * 0.01f, 0f, castShadow: false);
+			kit.Prism(waterMaterial, color, Vector3.zero, new Vector3(radius * 2f, 0.05f, radius * 2f), 22);
+			kit.Build("Water", outdoor, center + Vector3.up * (0.01f + lift), 0f, castShadow: false);
 		}
+
+		private void FlowWater() => waterMaterial.SetTextureOffset("_BaseMap", waterFlow * Time.time);
 
 		private void RefreshWaterSpots() => streamSpotObject.SetActive(Sim.BuildingLevel("dock") >= STREAM_DOCK_LEVEL);
 

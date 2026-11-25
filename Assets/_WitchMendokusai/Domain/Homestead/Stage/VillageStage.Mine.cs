@@ -11,6 +11,9 @@ namespace WitchMendokusai
 		[Header("Mine")]
 		[SerializeField] private float mineRadius = 9f;
 		[SerializeField] private float mineNodeGap = 2.6f;
+		[SerializeField] private float mineLampRange = 8f;
+		[SerializeField] private float mineLampIntensity = 3f;
+		[SerializeField] private Vector3 lanternOffset = new(0.3f, 1.8f, -0.6f);
 		[SerializeField] private Color[] mineColors =
 		{
 			new(0.86f, 0.76f, 0.66f), new(0.92f, 0.72f, 0.58f), new(0.74f, 0.76f, 0.82f), new(0.94f, 0.84f, 0.56f), new(0.78f, 0.72f, 0.96f), new(0.60f, 0.58f, 0.80f),
@@ -27,6 +30,7 @@ namespace WitchMendokusai
 		private Transform mineFloor;
 		private readonly List<NodeView> mineNodes = new();
 		private GameObject minePassage;
+		private Light mineLantern;
 		private MineRun run;
 		private float glintPhase;
 
@@ -36,8 +40,8 @@ namespace WitchMendokusai
 			mineRoot.SetParent(transform, false);
 			mineRoot.localPosition = mineOffset;
 			VillageKit shell = new();
-			shell.Prism(Art.Soil, new Color(0.9f, 0.84f, 0.8f), new Vector3(0f, -0.5f, 0f), new Vector3(mineRadius * 2.6f, 0.5f, mineRadius * 2.6f), 18);
-			const int WALL_COUNT = 22;
+			shell.Prism(Art.Soil, new Color(0.74f, 0.66f, 0.72f), new Vector3(0f, -0.5f, 0f), new Vector3(mineRadius * 2.6f, 0.5f, mineRadius * 2.6f), 18);
+			const int WALL_COUNT = 26;
 			for (int i = 0; i < WALL_COUNT; i++)
 			{
 				float angle = i / (float)WALL_COUNT * Mathf.PI * 2f;
@@ -46,7 +50,10 @@ namespace WitchMendokusai
 				// 카메라 쪽 (남쪽) 벽은 낮게
 				if (Mathf.Sin(angle) < -0.4f)
 					height = 0.7f;
-				shell.Prism(Art.Stone, new Color(0.72f, 0.70f, 0.78f), foot, new Vector3(3.2f, height, 2.8f), 6, 0.7f, new Vector3(0f, -angle * Mathf.Rad2Deg, 0f));
+				float turn = -angle * Mathf.Rad2Deg + Mathf.PerlinNoise(i * 1.7f, 2.2f) * 50f;
+				shell.Prism(Art.Stone, new Color(0.72f, 0.70f, 0.78f), foot, new Vector3(4.2f, height, 3.4f), 7, 0.72f, new Vector3(0f, turn, 0f));
+				if (Mathf.Sin(angle) > -0.2f)
+					shell.Prism(Art.Stone, new Color(0.5f, 0.48f, 0.58f), foot * 1.22f, new Vector3(5f, height + 2.4f, 4f), 6, 0.6f, new Vector3(0f, turn + 25f, 0f));
 				shell.Solid(foot, new Vector3(2.8f, 4f, 2.8f), new Vector3(0f, -angle * Mathf.Rad2Deg, 0f));
 			}
 			shell.Box(Art.Wood, Color.white, new Vector3(0f, 0f, -6.6f), new Vector3(2f, 0.12f, 2f));
@@ -55,6 +62,9 @@ namespace WitchMendokusai
 			shell.Box(Art.Wood, Color.white, new Vector3(0f, 2.3f, -5.8f), new Vector3(2.3f, 0.18f, 0.2f));
 			shell.Box(Art.Glow, Color.white, new Vector3(0.8f, 1.7f, -5.95f), new Vector3(0.22f, 0.3f, 0.22f));
 			shell.Build("MineShell", mineRoot, Vector3.zero, 0f);
+			BuildShade(mineRoot, mineRadius + 5f, 9f, 0.8f);
+			AddGlow(mineRoot, new Vector3(0.8f, 2f, -6.2f), mineLampRange, mineLampIntensity);
+			mineLantern = AddGlow(mineRoot, Vector3.zero, mineLampRange, mineLampIntensity);
 			GameObject floor = new("MineFloor");
 			floor.transform.SetParent(mineRoot, false);
 			BoxCollider box = floor.AddComponent<BoxCollider>();
@@ -250,6 +260,7 @@ namespace WitchMendokusai
 		{
 			if (run == null)
 				return;
+			mineLantern.transform.position = playerProvider.CurrentObject.transform.position + lanternOffset;
 			glintPhase = Mathf.Repeat(Time.time / Catalog.Tuning.GlintSeconds, 1f);
 			bool sharp = run.IsGlint(glintPhase);
 			float scale = sharp ? 1.6f : 0.35f + glintPhase * 0.6f;

@@ -26,7 +26,7 @@ namespace WitchMendokusai
 			get
 			{
 				string level = $"길드 레벨 {Sim.GuildLevel}";
-				return Sim.TryGetGuildProgress(out int current, out int needed) ? $"{level}   {current} / {needed}" : level;
+				return Sim.TryGetGuildProgress(out int current, out int needed) ? $"{level}, {current} / {needed}" : level;
 			}
 		}
 
