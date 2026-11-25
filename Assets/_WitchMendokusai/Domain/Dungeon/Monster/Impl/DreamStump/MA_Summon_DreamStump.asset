@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da652475083b4449b8a53b6648f29a3b, type: 3}
   m_Name: MA_Summon_DreamStump
   m_EditorClassIdentifier:
-  <TriggerRange>k__BackingField: 14
+  <TriggerRange>k__BackingField: 8
   <WindupSeconds>k__BackingField: 1.4
   <RecoverySeconds>k__BackingField: 0.4
   <Cooldown>k__BackingField: 0

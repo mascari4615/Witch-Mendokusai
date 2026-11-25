@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ea52fd10544422ea504323591256bf5, type: 3}
   m_Name: MA_Line_DreamStumpBreath
   m_EditorClassIdentifier:
-  <TriggerRange>k__BackingField: 6.5
+  <TriggerRange>k__BackingField: 5.5
   <WindupSeconds>k__BackingField: 1.1
   <RecoverySeconds>k__BackingField: 0.5
   <Cooldown>k__BackingField: 0
-  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 536b324af8b24877b11c6ef6a6a5442a, type: 2}
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: a75e4ea1aa4f42bd8bc2b49aa466dce1, type: 2}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
   <Pose>k__BackingField:

@@ -24,7 +24,7 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
   scaleRange: {x: 0.95, y: 1.2}
   jitter: 0.12
-  budRatio: 0.24
+  budRatio: 0.32
   budTremble: 0.05
   riseSeconds: 0.09
   overshoot: 0.3
