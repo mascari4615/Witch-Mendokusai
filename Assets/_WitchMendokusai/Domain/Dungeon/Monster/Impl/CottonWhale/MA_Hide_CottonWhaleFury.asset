@@ -13,21 +13,21 @@ MonoBehaviour:
   m_Name: MA_Hide_CottonWhaleFury
   m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 40
-  <WindupSeconds>k__BackingField: 1.0
-  <RecoverySeconds>k__BackingField: 1.0
+  <WindupSeconds>k__BackingField: 1.7
+  <RecoverySeconds>k__BackingField: 1.2
   <Cooldown>k__BackingField: 0
   <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
   <Pose>k__BackingField:
-    <Windup>k__BackingField: {fileID: 21300000, guid: 57d57ef659284b9b958609a766ef8598, type: 3}
+    <Windup>k__BackingField: {fileID: 21300000, guid: 1fa99f24e9024ee1807c96cd9506480e, type: 3}
     <Strike>k__BackingField: {fileID: 21300000, guid: 68dbbf9aa97c4deb8a549159b390f97f, type: 3}
     <Rest>k__BackingField: {fileID: 21300000, guid: 1fa99f24e9024ee1807c96cd9506480e, type: 3}
-    <Crouch>k__BackingField: -0.2
+    <Crouch>k__BackingField: -0.25
     <Stretch>k__BackingField: -0.4
     <StrikeSeconds>k__BackingField: 0.5
     <StrikeLeadSeconds>k__BackingField: 0
-    <Tremble>k__BackingField: 0.14
+    <Tremble>k__BackingField: 0.2
     <Breath>k__BackingField: 0
   <WindupFx>k__BackingField: {fileID: 0}
   <StrikeFx>k__BackingField: {fileID: 11400000, guid: bedcd8bc8f824679ad64cba506eda430, type: 2}
@@ -35,13 +35,13 @@ MonoBehaviour:
   <RiseSeconds>k__BackingField: 0.45
   <FallSeconds>k__BackingField: 0.26
   <LandLeadSeconds>k__BackingField: 0.03
-  <RiseSprite>k__BackingField: {fileID: 21300000, guid: 75f29e9f8b33412fa4c169533de6e8de, type: 3}
+  <RiseSprite>k__BackingField: {fileID: 21300000, guid: 14e2223c7ef541d196188a743aff33b7, type: 3}
   <FallSprite>k__BackingField: {fileID: 21300000, guid: 68dbbf9aa97c4deb8a549159b390f97f, type: 3}
-  <LeaveFx>k__BackingField: {fileID: 11400000, guid: 27426ef5d9c944f4a8bba376d40fedb5, type: 2}
+  <LeaveFx>k__BackingField: {fileID: 11400000, guid: bedcd8bc8f824679ad64cba506eda430, type: 2}
   <LeaveFxRadius>k__BackingField: 1.4
   <ShadowFx>k__BackingField: {fileID: 11400000, guid: d99d4d9008f94719bfeafe2edcad5d4e, type: 2}
-  <ChaseSeconds>k__BackingField: 1.0
-  <ChaseSpeed>k__BackingField: 2.6
+  <ChaseSeconds>k__BackingField: 1.5
+  <ChaseSpeed>k__BackingField: 5
   <LockSeconds>k__BackingField: 1.6
   <Count>k__BackingField: 1
   <Distance>k__BackingField: 2.9

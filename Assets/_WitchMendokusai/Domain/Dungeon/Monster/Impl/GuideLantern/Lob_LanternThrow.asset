@@ -27,7 +27,7 @@ MonoBehaviour:
   arcHeight: 3.0
   fuseSeconds: 0
   lingerSeconds: 0.06
-  scale: 1
+  scale: 1.3
   swellScale: 1.15
   landPuff: {fileID: 11400000, guid: b832db029b7047c2aac2750d04cba40c, type: 2}
   maxFlySeconds: 0.55

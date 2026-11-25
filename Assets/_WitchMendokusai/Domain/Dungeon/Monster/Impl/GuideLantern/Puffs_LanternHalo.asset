@@ -38,8 +38,8 @@ MonoBehaviour:
   flatTurn: 0
   onTop: 0
   ringPuffCount: 18
-  ringPuffScale: 0.95
-  ringRatio: 1
+  ringPuffScale: 1.1
+  ringRatio: 0
   ringSeconds: 0.35
   ringColor: {r: 2.2, g: 1.4, b: 0.5, a: 0.9}
   moment:

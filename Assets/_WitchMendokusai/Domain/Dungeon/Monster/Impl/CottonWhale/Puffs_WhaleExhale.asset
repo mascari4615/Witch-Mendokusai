@@ -26,8 +26,8 @@ MonoBehaviour:
   cover: 0.85
   count: 30
   seconds: 0.6
-  leadSeconds: 0.4
-  emitSeconds: 0.18
+  leadSeconds: 0.24
+  emitSeconds: 0.12
   halfSize: {x: 0.7, y: 1.5}
   lift: 0.6
   originLift: 1.3
