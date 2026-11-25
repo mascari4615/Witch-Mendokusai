@@ -13,3 +13,6 @@ MonoBehaviour:
   m_Name: MT_Ambush
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  leadSeconds: 1.2
+  closeRange: 2

@@ -62,6 +62,7 @@ namespace WitchMendokusai
 			if (activeAttack != null)
 				activeAttack.Interrupt(attackBehaviour);
 			LingerField.Abandon(UnitObject);
+			MonsterTemperamentDriver.Forget(UnitObject);
 			activeAttack = null;
 			attackBehaviour = null;
 		}

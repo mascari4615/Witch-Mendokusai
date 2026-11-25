@@ -13,3 +13,6 @@ MonoBehaviour:
   m_Name: MT_Bashful
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  watchedHalfAngle: 60
+  sneakSpeed: 1

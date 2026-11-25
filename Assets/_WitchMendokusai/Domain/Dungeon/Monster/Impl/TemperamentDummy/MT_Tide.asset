@@ -13,3 +13,10 @@ MonoBehaviour:
   m_Name: MT_Tide
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  chaseSeconds: 7
+  scatterSeconds: 4
+  scatterDistance: 9
+  scatterSpreadDegrees: 60
+  arriveDistance: 0.5
+  turnPunch: 1.15

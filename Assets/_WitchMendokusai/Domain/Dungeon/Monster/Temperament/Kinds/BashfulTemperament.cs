@@ -24,7 +24,11 @@ namespace WitchMendokusai
 		public override TemperamentStep Steer(in TemperamentContext context, TemperamentMemory memory)
 		{
 			if (IsWatched(context, watchedHalfAngle))
-				return TemperamentStep.Stay;
+			{
+				TemperamentStep frozen = TemperamentStep.Stay;
+				frozen.HoldsAttack = true;
+				return frozen;
+			}
 			return TemperamentStep.Walk(TemperamentContext.Toward(context.Self, context.Player), sneakSpeed);
 		}
 	}

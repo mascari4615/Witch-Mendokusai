@@ -13,3 +13,10 @@ MonoBehaviour:
   m_Name: MT_Passive
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  wanderRadius: 3
+  wanderSpeed: 0.35
+  wanderSeconds: 2.5
+  arriveDistance: 0.3
+  angrySeconds: 6
+  angerPunch: 1.3

@@ -32,13 +32,17 @@ namespace WitchMendokusai
 			{
 				case ASLEEP:
 					if (context.Distance > wakeRadius && context.SinceHit > wakeOnHitSeconds)
-						return new TemperamentStep { Direction = Vector3.zero, Speed = 0f };
+						return TemperamentStep.Idle;
 					memory.Phase = STARTLED;
 					memory.NextTime = context.Now + startleSeconds;
-					return new TemperamentStep { Direction = Vector3.zero, Speed = 0f, Punch = startlePunch, FacesPlayer = true };
+					return new TemperamentStep { Direction = Vector3.zero, Speed = 0f, Punch = startlePunch, FacesPlayer = true, HoldsAttack = true };
 				case STARTLED:
 					if (context.Now < memory.NextTime)
-						return TemperamentStep.Stay;
+					{
+						TemperamentStep frozen = TemperamentStep.Stay;
+						frozen.HoldsAttack = true;
+						return frozen;
+					}
 					memory.Phase = AWAKE;
 					memory.UntilTime = 0f;
 					return TemperamentStep.Burst(toPlayer * pounceSpeed, pounceSeconds);
@@ -50,7 +54,7 @@ namespace WitchMendokusai
 					else if (context.Now - memory.UntilTime >= sleepSeconds)
 					{
 						memory.Phase = ASLEEP;
-						return new TemperamentStep { Direction = Vector3.zero, Speed = 0f };
+						return TemperamentStep.Idle;
 					}
 					return TemperamentStep.Walk(toPlayer);
 			}

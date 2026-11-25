@@ -8,7 +8,7 @@ namespace WitchMendokusai
 	public sealed class OrbitTemperament : MonsterTemperament
 	{
 		[SerializeField, Tooltip("처음 도는 반지름 (m)"), Min(0.5f)] private float startRadius = 6f;
-		[SerializeField, Tooltip("가장 좁은 반지름 (m)"), Min(0f)] private float endRadius = 1.5f;
+		[SerializeField, Tooltip("가장 좁은 반지름 (m)"), Min(0.5f)] private float endRadius = 1.5f;
 		[SerializeField, Tooltip("넓은 원에서 좁은 원까지 걸리는 초"), Min(0.1f)] private float closeSeconds = 6f;
 		[SerializeField, Tooltip("반지름을 맞추려 안팎으로 끌리는 세기"), Min(0f)] private float radialPull = 1.2f;
 

@@ -13,3 +13,6 @@ MonoBehaviour:
   m_Name: MT_Zigzag
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  swingDegrees: 60
+  periodSeconds: 1.4

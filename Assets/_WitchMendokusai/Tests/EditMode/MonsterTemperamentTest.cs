@@ -108,18 +108,34 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void Hop_rests_then_bursts_toward_player()
+		public void Hop_waits_then_crouches_then_bursts_toward_player()
 		{
 			HopTemperament hop = Make<HopTemperament>();
 			TemperamentMemory memory = Fresh();
 			TemperamentStep first = hop.Steer(At(8f, 0f), memory);
-			Assert.Greater(first.BurstSeconds, 0f, "처음 차례는 뜀");
-			Assert.Less(first.BurstVelocity.x, 0f, "주인공 쪽 (-x) 으로");
-			Assert.Greater(first.Punch, 1f, "뛰기 전 웅크림");
-			TemperamentStep landed = hop.Steer(At(5f, 0.5f), memory);
-			Assert.AreEqual(0f, landed.Speed, "뛴 뒤에는 멈춤");
-			TemperamentStep resting = hop.Steer(At(5f, 0.6f), memory);
-			Assert.AreEqual(0f, resting.BurstSeconds, "쉬는 동안 다시 안 뜀");
+			Assert.AreEqual(0f, first.BurstSeconds, "막 태어나면 바로 뛰지 않고 유닛마다 다른 쉼부터");
+			TemperamentStep crouch = hop.Steer(At(8f, 5f), memory);
+			Assert.IsTrue(HopTemperament.IsCrouching(memory), "쉼 뒤에는 웅크림");
+			Assert.Greater(crouch.Punch, 1f, "웅크릴 때 부풂");
+			Assert.AreEqual(0f, crouch.Speed, "웅크린 동안 멈춤");
+			Assert.IsTrue(crouch.HoldsAttack);
+			TemperamentStep jump = hop.Steer(At(8f, 6f), memory);
+			Assert.Greater(jump.BurstSeconds, 0f, "웅크림 뒤 뜀");
+			Assert.Less(jump.BurstVelocity.x, 0f, "주인공 쪽 (-x) 으로");
+			TemperamentStep landed = hop.Steer(At(5f, 7f), memory);
+			Assert.AreEqual(0f, landed.Speed, "뛴 뒤 멈춤");
+			Assert.AreEqual(0f, hop.Steer(At(5f, 7.1f), memory).BurstSeconds, "쉬는 동안 다시 안 뜀");
+		}
+
+		[Test]
+		public void Hop_first_rest_differs_by_seed()
+		{
+			HopTemperament hop = Make<HopTemperament>();
+			TemperamentMemory early = Fresh(0f);
+			TemperamentMemory late = Fresh(1f);
+			hop.Steer(At(8f, 0f), early);
+			hop.Steer(At(8f, 0f), late);
+			Assert.Less(early.NextTime, late.NextTime, "같은 물결이 한꺼번에 첫 뜀을 하지 않음");
 		}
 
 		[Test]
@@ -147,12 +163,16 @@ namespace WitchMendokusai.Tests
 			TemperamentMemory memory = Fresh();
 			memory.Reset(new Vector3(10f, 0f, 0f), 0.25f);
 			TemperamentStep calm = passive.Steer(At(10f, 0f), memory);
-			Assert.LessOrEqual(calm.Speed, 0.5f, "모른 척 천천히 거닒");
+			Assert.Greater(calm.Speed, 0f, "거닒");
+			Assert.LessOrEqual(calm.Speed, 0.5f, "천천히");
+			Assert.IsTrue(calm.HoldsAttack, "모른 척하는 동안 공격 안 함");
 			TemperamentContext hit = At(10f, 1f);
 			hit.SinceHit = 0f;
 			Assert.Greater(passive.Steer(hit, memory).Punch, 1f, "맞은 순간 화남 (부풀림)");
 			hit.SinceHit = 0.5f;
-			Assert.Greater(TowardPlayer(passive.Steer(hit, memory), hit), 0.9f, "화나면 쫓아옴");
+			TemperamentStep angry = passive.Steer(hit, memory);
+			Assert.Greater(TowardPlayer(angry, hit), 0.9f, "화나면 쫓아옴");
+			Assert.IsFalse(angry.HoldsAttack, "화나면 공격도 함");
 			TemperamentContext later = At(10f, 20f);
 			later.SinceHit = 20f;
 			Assert.LessOrEqual(passive.Steer(later, memory).Speed, 0.5f, "풀리면 다시 거닒");
@@ -165,6 +185,8 @@ namespace WitchMendokusai.Tests
 			TemperamentMemory memory = Fresh();
 			Assert.AreEqual(0f, sleeper.Steer(At(8f, 0f), memory).Speed, "멀면 잠");
 			Assert.IsTrue(SleeperTemperament.IsAsleep(memory));
+			Assert.IsTrue(sleeper.Steer(At(8f, 0.1f), memory).HoldsAttack, "자는 동안 공격 안 함");
+			Assert.IsFalse(sleeper.Steer(At(8f, 0.2f), memory).FacesPlayer, "자면서 주인공 쪽으로 안 돎");
 			TemperamentStep startle = sleeper.Steer(At(2f, 1f), memory);
 			Assert.Greater(startle.Punch, 1f, "가까이 오면 놀람");
 			Assert.AreEqual(0f, sleeper.Steer(At(2f, 1.2f), memory).Speed, "놀란 동안은 굳음");
@@ -195,7 +217,9 @@ namespace WitchMendokusai.Tests
 			TemperamentContext context = At(5f);
 			Assert.Greater(TowardPlayer(coward.Steer(context, Fresh()), context), 0.9f);
 			context.SinceHit = 0.1f;
-			Assert.Less(TowardPlayer(coward.Steer(context, Fresh()), context), -0.9f, "맞으면 움찔해 달아남");
+			TemperamentStep flinch = coward.Steer(context, Fresh());
+			Assert.Less(TowardPlayer(flinch, context), -0.9f, "맞으면 움찔해 달아남");
+			Assert.IsTrue(flinch.HoldsAttack, "달아나는 동안 공격 안 함");
 			context.SinceHit = 10f;
 			context.HealthRatio = 0.2f;
 			Assert.Less(TowardPlayer(coward.Steer(context, Fresh()), context), -0.9f, "체력이 적으면 계속 달아남");
@@ -206,7 +230,9 @@ namespace WitchMendokusai.Tests
 		{
 			BashfulTemperament bashful = Make<BashfulTemperament>();
 			// 주인공은 +x 를 봄
-			Assert.AreEqual(0f, bashful.Steer(At(5f), Fresh()).Speed, "앞에 있으면 얼어붙음");
+			TemperamentStep frozen = bashful.Steer(At(5f), Fresh());
+			Assert.AreEqual(0f, frozen.Speed, "앞에 있으면 얼어붙음");
+			Assert.IsTrue(frozen.HoldsAttack);
 			TemperamentContext behind = At(-5f);
 			Assert.Greater(TowardPlayer(bashful.Steer(behind, Fresh()), behind), 0.9f, "등 뒤면 다가옴");
 		}
@@ -230,12 +256,30 @@ namespace WitchMendokusai.Tests
 			TideTemperament tide = Make<TideTemperament>();
 			Assert.IsTrue(tide.IsChasing(1f));
 			Assert.IsFalse(tide.IsChasing(8f));
-			TemperamentMemory first = Fresh(0f);
-			TemperamentMemory second = Fresh(0.5f);
-			Assert.Greater(TowardPlayer(tide.Steer(At(5f, 1f), first), At(5f, 1f)), 0.9f);
-			TemperamentStep turn = tide.Steer(At(5f, 8f), first);
-			Assert.Greater(turn.Punch, 1f, "물결이 바뀌는 순간 몸짓");
-			Assert.Less(TowardPlayer(tide.Steer(At(5f, 8.1f), second), At(5f, 8.1f)), 0f, "썰물에는 구석 (멀리) 으로");
+			TemperamentMemory memory = Fresh();
+			Assert.Greater(TowardPlayer(tide.Steer(At(5f, 1f), memory), At(5f, 1f)), 0.9f);
+			Assert.Greater(tide.Steer(At(5f, 8f), memory).Punch, 1f, "물결이 바뀌는 순간 몸짓");
+		}
+
+		// 구석을 썰물 시작에 정해 두므로, 비껴 흩어지는 유닛 (Seed 0 이면 60도) 도 주인공 둘레를 돌지 않고 멀어짐
+		[TestCase(0f)]
+		[TestCase(0.5f)]
+		[TestCase(1f)]
+		public void Tide_scatter_moves_away_and_reaches_corner(float seed)
+		{
+			TideTemperament tide = Make<TideTemperament>();
+			TemperamentMemory memory = Fresh(seed);
+			tide.Steer(At(5f, 1f), memory);
+			Vector3 self = new(5f, 0f, 0f);
+			float startDistance = self.magnitude;
+			for (int i = 0; i < 40; i++)
+			{
+				TemperamentContext context = At(self.x, 7.05f + i * 0.1f, self.z);
+				TemperamentStep step = tide.Steer(context, memory);
+				self += step.Direction.normalized * step.Speed * 0.4f;
+			}
+			Assert.Greater(self.magnitude, startDistance + 2.5f, "흩어지면 주인공에게서 멀어짐");
+			Assert.Less(Vector3.Distance(self, memory.Anchor), 1f, "정한 구석에 닿음");
 		}
 
 		[Test]

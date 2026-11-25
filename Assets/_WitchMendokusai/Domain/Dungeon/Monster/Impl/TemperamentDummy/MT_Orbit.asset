@@ -13,3 +13,8 @@ MonoBehaviour:
   m_Name: MT_Orbit
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  startRadius: 6
+  endRadius: 1.5
+  closeSeconds: 6
+  radialPull: 1.2

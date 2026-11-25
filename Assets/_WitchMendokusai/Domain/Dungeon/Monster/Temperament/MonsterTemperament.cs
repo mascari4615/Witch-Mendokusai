@@ -12,6 +12,7 @@ namespace WitchMendokusai
 		public abstract string KindName { get; }
 
 		[field: SerializeField, Tooltip("몸 부풀림 (놀람, 도움닫기) 이 돌아오는 초"), Min(0.05f)] public float PunchSeconds { get; private set; } = 0.25f;
+		[field: SerializeField, Tooltip("카메라 옆 방향 성분이 이보다 작으면 (거의 위아래로 걸음) 좌우를 안 바꿈. 떨림 방지"), Range(0f, 1f)] public float FaceDeadZone { get; private set; } = 0.05f;
 
 		public abstract TemperamentStep Steer(in TemperamentContext context, TemperamentMemory memory);
 	}
