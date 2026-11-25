@@ -15,6 +15,9 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Phase", menuName = "WM/Variable/MonsterAttack/" + nameof(PhaseMonsterAttack))]
 	public class PhaseMonsterAttack : MonsterAttack
 	{
+		[field: Header("등장")]
+		[field: SerializeField, Tooltip("나타난 뒤 공격하지 않고 서 있는 초 (이름 배너가 예고를 가리지 않게). 체력이 가득일 때만, 재배치 뒤에는 없음"), Min(0f)] public float OpeningSeconds { get; private set; } = 2.5f;
+
 		[field: Header("체력 단계")]
 		[field: SerializeField, Tooltip("비율이 큰 것부터")] public List<MonsterAttackPhase> Phases { get; private set; } = new();
 

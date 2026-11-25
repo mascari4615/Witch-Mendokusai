@@ -94,6 +94,7 @@ namespace WitchMendokusai.Tests
 				Assert.AreEqual(MonsterType.Boss, monster.Type, monster.Name);
 				Assert.AreEqual(prefab, monster.Prefab, monster.Name);
 				Assert.IsInstanceOf<PhaseMonsterAttack>(monster.Attack, monster.Name);
+				Assert.Greater(((PhaseMonsterAttack)monster.Attack).OpeningSeconds, 0f, "이름 배너 동안 공격 없음: " + monster.Name);
 			}
 			Assert.IsNotNull(Find(1).Prefab.GetComponent<FSMSlimeKing>(), "아쿠아쿠는 그대로");
 		}

@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: MA_Dash_ElderFlowerBite1
   m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 2.6
-  <WindupSeconds>k__BackingField: 0.4
+  <WindupSeconds>k__BackingField: 0.55
   <RecoverySeconds>k__BackingField: 0.15
   <Cooldown>k__BackingField: 0
   <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 46b2e5f4c13145e29c3f172dad86148e, type: 2}
   <DashSpeed>k__BackingField: 8
-  <DashDuration>k__BackingField: 0.22
-  <TelegraphWidth>k__BackingField: 0.9
+  <DashDuration>k__BackingField: 0.3
+  <TelegraphWidth>k__BackingField: 1.2
   <BlockedProgressRatio>k__BackingField: 0.3

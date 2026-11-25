@@ -19,6 +19,7 @@ MonoBehaviour:
   <WindupTelegraph>k__BackingField: {fileID: 0}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
+  <OpeningSeconds>k__BackingField: 2.5
   <Phases>k__BackingField:
   - <HealthRatio>k__BackingField: 1
     <Attack>k__BackingField: {fileID: 11400000, guid: 22cbc3df59454d15ab4aaf4129242333, type: 2}
