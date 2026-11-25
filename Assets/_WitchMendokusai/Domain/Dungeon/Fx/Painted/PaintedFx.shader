@@ -81,12 +81,12 @@ Shader "WM/Fx/Painted"
 				float2 noise = SAMPLE_TEXTURE2D(_NoiseTex, sampler_NoiseTex, noiseUv).rg;
 				float keep = noise.r * 0.5 + noise.g * 0.2 + light * 0.3;
 				float cut = dissolve * 1.12 - 0.06;
-				float left = dissolve <= 0.0 ? 1.0 : smoothstep(cut - 0.03, cut + 0.05, keep);
+				float left = dissolve <= 0.0 ? 1.0 : smoothstep(cut - 0.10, cut + 0.12, keep);
 				float edge = dissolve <= 0.0 ? 0.0 : left * (1.0 - smoothstep(cut, cut + _EdgeWidth, keep));
 
 				float3 color = painted.rgb * input.color.rgb * _Intensity;
 				color += _EdgeColor.rgb * edge * painted.a * input.color.rgb;
-				float strength = left * input.color.a;
+				float strength = left * input.color.a * saturate((1.0 - dissolve) * 3.0);
 				float cover = max(input.look.x, _ParticleCover);
 				return float4(color * strength, painted.a * strength * cover);
 			}

@@ -26,11 +26,11 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f), Tooltip("끊긴 프레임에서 허용하는 빠르기 (월드/초)")] private float jumpSpeed = 45f;
 
 		[Header("곁줄기 (그림만)")]
-		[SerializeField, Min(0), Tooltip("한 발마다 다른 문에서 같이 나는 가는 줄기")] private int phantomsPerShot = 3;
-		[SerializeField, Min(0.02f)] private float phantomSeconds = 0.26f;
+		[SerializeField, Min(0), Tooltip("한 발마다 다른 문에서 같이 나는 가는 줄기")] private int phantomsPerShot = 6;
+		[SerializeField, Min(0.02f)] private float phantomSeconds = 0.3f;
 		[SerializeField] private Vector2 phantomReach = new(6f, 10f);
 		[SerializeField, Range(0f, 90f)] private float phantomFan = 50f;
-		[SerializeField, Min(0f)] private float phantomWidth = 0.95f;
+		[SerializeField, Min(0f)] private float phantomWidth = 1.15f;
 
 		[Header("총구와 맞은 자리")]
 		[SerializeField, Min(0f)] private float muzzleSize = 2.1f;
