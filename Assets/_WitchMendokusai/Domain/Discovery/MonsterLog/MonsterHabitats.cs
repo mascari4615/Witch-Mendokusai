@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WitchMendokusai.DomainSDK.Discovery;
 
 namespace WitchMendokusai
 {
@@ -32,7 +33,7 @@ namespace WitchMendokusai
 				foreach (KeyValuePair<Monster, List<(float Start, float End)>> pair in spans)
 				{
 					List<MonsterHabitat> habitats = GetOrAdd(result, pair.Key);
-					foreach ((float start, float end) in Merge(pair.Value))
+					foreach ((float start, float end) in DiscoverySpans.Merge(pair.Value))
 					{
 						habitats.Add(new MonsterHabitat(dungeon, true, start, end));
 					}
@@ -94,27 +95,6 @@ namespace WitchMendokusai
 					GetOrAdd(result, entry.Monster).Add(new MonsterHabitat(dungeon, false, 0f, 0f));
 				}
 			}
-		}
-
-		/// <summary>겹치거나 이어진 시간대를 하나로</summary>
-		public static List<(float Start, float End)> Merge(List<(float Start, float End)> spans)
-		{
-			List<(float Start, float End)> sorted = new(spans);
-			sorted.Sort((left, right) => left.Start.CompareTo(right.Start));
-			List<(float Start, float End)> merged = new();
-			foreach ((float start, float end) in sorted)
-			{
-				int last = merged.Count - 1;
-				if (last >= 0 && start <= merged[last].End)
-				{
-					merged[last] = (merged[last].Start, end > merged[last].End ? end : merged[last].End);
-				}
-				else
-				{
-					merged.Add((start, end));
-				}
-			}
-			return merged;
 		}
 
 		private static List<MonsterHabitat> GetOrAdd(Dictionary<Monster, List<MonsterHabitat>> result, Monster monster)
