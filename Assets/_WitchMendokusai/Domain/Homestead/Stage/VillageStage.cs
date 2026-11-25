@@ -15,7 +15,6 @@ namespace WitchMendokusai
 		[Header("Layout")]
 		[SerializeField] private Vector3 pondCenter = new(21f, 0f, -11f);
 		[SerializeField] private float pondRadius = 6.5f;
-		[SerializeField] private Vector3 roomOffset = new(300f, 0f, 0f);
 		[SerializeField] private Vector3 mineOffset = new(-300f, 0f, 0f);
 		[Tooltip("마을 밖과 이어진 길. 시작과 끝 (x, z, x, z)")]
 		[SerializeField] private Vector4 entryRoad = new(0f, -24f, 0f, -13f);
@@ -122,7 +121,6 @@ namespace WitchMendokusai
 			BuildWild();
 			BuildWater();
 			BuildMuseumGarden();
-			BuildRoom();
 			BuildMine();
 		}
 
@@ -132,7 +130,6 @@ namespace WitchMendokusai
 			if (builtFor == null)
 				return;
 			Destroy(outdoor.gameObject);
-			Destroy(room.gameObject);
 			Destroy(mineRoot.gameObject);
 			siteBodies.Clear();
 			decorBodies.Clear();
@@ -147,9 +144,6 @@ namespace WitchMendokusai
 			animals.Clear();
 			heldCrop = string.Empty;
 			risingId = null;
-			shownRoomTier = 0;
-			shownFurniture = string.Empty;
-			roomShell = null;
 		}
 
 		// 물, 밭, 채집 자리를 바닥에 먼저 알림. 놓인 것 아래는 RefreshGroundCells
@@ -217,7 +211,6 @@ namespace WitchMendokusai
 			RefreshFarm();
 			RefreshWild();
 			RefreshMuseumGarden();
-			RefreshRoom();
 			RefreshLife();
 		}
 

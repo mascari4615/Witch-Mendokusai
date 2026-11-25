@@ -1071,6 +1071,28 @@ MonoBehaviour:
     Solids:
     - m_Center: {x: 0, y: 0.3, z: 0}
       m_Extent: {x: 0.4, y: 0.3, z: 0.25}
+  - Key: Workbench
+    Mesh: {fileID: 4300000, guid: 18894e88851285cfcd41b3054ad6daa9, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.5, z: 0}
+      m_Extent: {x: 0.95, y: 0.5, z: 0.45}
+  - Key: Wardrobe
+    Mesh: {fileID: 4300000, guid: d4d0a7c5fff3720a50dc380aa6efe52d, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 1, z: 0}
+      m_Extent: {x: 0.7, y: 1, z: 0.3}
   - Key: Pedestal
     Mesh: {fileID: 4300000, guid: ffc96f35e45152c9a104e762a8c0a05d, type: 2}
     Materials:

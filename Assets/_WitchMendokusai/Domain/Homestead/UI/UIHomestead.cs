@@ -17,6 +17,8 @@ namespace WitchMendokusai
 		Room = 7,
 		Mine = 8,
 		Fishing = 9,
+		Workshop = 10,
+		Bench = 11,
 	}
 
 	// 생활 화면 묶음. 마을에 처음 들어설 때 HomesteadManager 가 만듦
@@ -44,7 +46,9 @@ namespace WitchMendokusai
 			Mine = new MinePage(manager);
 			Add(HomesteadPanelType.Village, new VillagePage(manager));
 			Add(HomesteadPanelType.Guild, new GuildPage(manager));
-			Add(HomesteadPanelType.Store, new StorePage(manager));
+			Add(HomesteadPanelType.Store, new StorePage(manager, StorePlace.Shop));
+			Add(HomesteadPanelType.Workshop, new StorePage(manager, StorePlace.Workshop));
+			Add(HomesteadPanelType.Bench, new StorePage(manager, StorePlace.Bench));
 			Add(HomesteadPanelType.Museum, new MuseumPage(manager));
 			Add(HomesteadPanelType.Wardrobe, new WardrobePage(manager));
 			Add(HomesteadPanelType.Seeds, Seeds);

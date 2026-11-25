@@ -282,7 +282,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public float Depth { get; set; } = 1f;
 		public int Comfort { get; set; } = 1;
 		public CostDef Cost { get; set; } = new CostDef();
-		// 빈 값이면 공작소에서 만듦. 보상 전용은 reward
+		// 나는 곳. bench 집 제작대, workshop 공작소, shop 상점, reward 보상 전용
 		public string Source { get; set; } = string.Empty;
 		public int Level { get; set; } = 1;
 		public string Shape { get; set; } = string.Empty;

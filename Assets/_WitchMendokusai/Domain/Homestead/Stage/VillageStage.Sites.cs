@@ -243,7 +243,7 @@ namespace WitchMendokusai
 					ChooseSeed();
 					break;
 				case "workshop":
-					manager.Panels.Show(HomesteadPanelType.Store, StorePage.TAB_CRAFT);
+					manager.Panels.Show(HomesteadPanelType.Workshop);
 					break;
 				case "museum":
 					manager.Panels.Show(HomesteadPanelType.Museum);

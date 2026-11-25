@@ -17,11 +17,12 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public HomesteadResult CanCraft(string recipeId)
 		{
 			RecipeDef recipe = Catalog.Get<RecipeDef>(recipeId);
-			if (BuildingLevel(recipe.Building) < recipe.Level)
+			bool isBench = recipe.Building == BENCH;
+			if (isBench == false && BuildingLevel(recipe.Building) < recipe.Level)
 			{
 				return HomesteadResult.Fail(HomesteadFailure.NotBuilt, recipe.Building);
 			}
-			if (State.Crafts.Count >= CraftSlots)
+			if (isBench == false && State.Crafts.Count >= CraftSlots)
 			{
 				return HomesteadResult.Fail(HomesteadFailure.Busy);
 			}
@@ -46,6 +47,12 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			foreach (KeyValuePair<string, int> pair in recipe.Inputs)
 			{
 				Take(pair.Key, pair.Value);
+			}
+			if (recipe.Building == BENCH)
+			{
+				Give(recipe.Output, recipe.Amount);
+				NotifyChanged();
+				return HomesteadResult.Success;
 			}
 			State.Crafts.Add(new CraftState { Recipe = recipeId, ReadyAt = State.Minutes + recipe.Minutes });
 			NotifyChanged();

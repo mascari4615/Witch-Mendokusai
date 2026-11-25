@@ -7,6 +7,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 	public sealed partial class HomesteadSim
 	{
 		public const string REWARD_ONLY = "reward";
+		// 집 제작대. 처음부터 있고 바로 만들어짐. 여기서 못 만드는 것은 마을 공작소가, 파는 것은 상점이
+		public const string BENCH = "bench";
+		public const string SHOP = "shop";
 		private const string FIRST_PLACE = "place:";
 		public const string WORKSHOP = "workshop";
 		public const string TAILOR = "tailor";
@@ -63,15 +66,17 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public HomesteadResult CanMakeFurniture(string furnitureId)
 		{
 			FurnitureDef furniture = Catalog.Get<FurnitureDef>(furnitureId);
-			if (furniture.Source == REWARD_ONLY)
+			switch (furniture.Source)
 			{
-				return HomesteadResult.Fail(HomesteadFailure.Locked, furnitureId);
+				case REWARD_ONLY:
+					return HomesteadResult.Fail(HomesteadFailure.Locked, furnitureId);
+				case BENCH:
+					return CanPay(furniture.Cost);
+				case SHOP:
+					return IsOpen(SHOP) ? CanPay(furniture.Cost) : HomesteadResult.Fail(HomesteadFailure.NotBuilt, SHOP);
+				default:
+					return BuildingLevel(WORKSHOP) < furniture.Level ? HomesteadResult.Fail(HomesteadFailure.NotBuilt, WORKSHOP) : CanPay(furniture.Cost);
 			}
-			if (BuildingLevel(WORKSHOP) < furniture.Level)
-			{
-				return HomesteadResult.Fail(HomesteadFailure.NotBuilt, WORKSHOP);
-			}
-			return CanPay(furniture.Cost);
 		}
 
 		public HomesteadResult MakeFurniture(string furnitureId)

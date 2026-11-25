@@ -240,10 +240,22 @@ namespace WitchMendokusai.Tests
 					return false;
 				}
 			}
-			return true;
+			// 승급 재료가 다 모였으면 냥도 남김
+			if (sim.TryGetNextTownHall(out TownHallDef next) == false)
+			{
+				return true;
+			}
+			foreach (KeyValuePair<string, int> pair in next.Cost.Goods)
+			{
+				if (sim.Count(pair.Key) < pair.Value)
+				{
+					return true;
+				}
+			}
+			return sim.Purse.Nyang - cost.Nyang >= next.Cost.Nyang;
 		}
 
-		// 다음 승급과 건물에 모자란 것부터 만듦
+		// 다음 승급과 건물에 모자란 것부터 만듦. 승급에 쓸 재료는 다른 데 안 씀
 		private static void Produce(HomesteadSim sim)
 		{
 			sim.CollectCrafts();
@@ -266,7 +278,7 @@ namespace WitchMendokusai.Tests
 				}
 				foreach (RecipeDef recipe in sim.Catalog.Recipes)
 				{
-					if (sim.Count(recipe.Output) < 8)
+					if (sim.Count(recipe.Output) < 8 && KeepsTownHall(sim, new CostDef { Goods = recipe.Inputs }))
 					{
 						sim.StartCraft(recipe.Id);
 					}

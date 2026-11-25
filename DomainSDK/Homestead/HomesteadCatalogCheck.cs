@@ -142,7 +142,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 			foreach (RecipeDef recipe in catalog.Recipes)
 			{
-				Need<BuildingDef>(catalog, recipe.Building, recipe.Id, problems);
+				if (recipe.Building != HomesteadSim.BENCH)
+				{
+					Need<BuildingDef>(catalog, recipe.Building, recipe.Id, problems);
+				}
 				Need<GoodsDef>(catalog, recipe.Output, recipe.Id, problems);
 				foreach (string input in recipe.Inputs.Keys)
 				{

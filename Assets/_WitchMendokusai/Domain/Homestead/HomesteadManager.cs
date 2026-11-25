@@ -69,6 +69,7 @@ namespace WitchMendokusai
 			BuildSim();
 			gameEventManager.RegisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
 			EventBusBridge.Subscribe<BossKilledEvent>(OnBossKilled);
+			StageManager.OnStageChanged += OnStageChanged;
 		}
 
 		private void BuildSim()
@@ -89,6 +90,7 @@ namespace WitchMendokusai
 			if (gameEventManager != null)
 				gameEventManager.UnregisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
 			EventBusBridge.Unsubscribe<BossKilledEvent>(OnBossKilled);
+			StageManager.OnStageChanged -= OnStageChanged;
 			Dresser?.Dispose();
 			DisposeScreens();
 			if (Instance == this)
@@ -163,6 +165,13 @@ namespace WitchMendokusai
 		}
 
 		public void Save() => dataManager.SaveManager.SaveData();
+
+		// 욘의 집 안에 들어서면 방을 붙임
+		private void OnStageChanged(Stage stage, StageObject stageObject)
+		{
+			if (stage.ID == HomeRoom.STAGE_ID && stage is WorldStage)
+				HomeRoom.Attach(this, stageObject);
+		}
 
 		private void OnDungeonReturn()
 		{
