@@ -7,7 +7,8 @@ namespace WitchMendokusai
 	// 알리사 빛의 검의 그림. 검기는 앞으로 나는 초승달과 뒤따르는 빛줄, 최상 단계는 끝에서 별 모양으로 터지고, 날개 폭발은 깃이 한 번 펼쳐짐
 	// - 판정 없음. SwordWaveEmitter 가 검기를 낼 때 같은 자리, 방향, 길이로 부름
 	// - 결은 변신 연출과 같음 (FormEnergy. 캐릭터 PPU 와 같은 텍셀, 네 단 색). 게임 시간
-	// - 검기 판정 오브젝트 (0.2초) 보다 그림이 길어서 따로 둠. 만든 물체는 다시 쓰고 파괴될 때 지움
+	// - 검기 판정 오브젝트 (0.2초) 보다 그림이 길어서 따로 둠. 만든 물체는 이 오브젝트의 자식 (풀과 같이 씬을 넘어 살아남음), 다시 쓰고 파괴될 때 지움
+	// - 그림은 LateUpdate 에서만 그림. PlayWave 와 PlayWings 는 예약만 해서 부른 쪽 (판정) 을 끊지 않음
 	public sealed class SwordWaveFx : MonoBehaviour
 	{
 		private static readonly int CORE_COLOR_ID = Shader.PropertyToID("_CoreColor");
@@ -32,16 +33,17 @@ namespace WitchMendokusai
 		[SerializeField, Min(8f)] private float texelsPerUnit = 32f;
 
 		[Header("검기")]
-		[SerializeField, Min(0.1f)] private float crescentRadius = 1.15f;
-		[SerializeField, Range(20f, 300f)] private float crescentDegrees = 170f;
+		[SerializeField, Min(0.1f)] private float crescentRadius = 0.64f;
+		[SerializeField, Range(20f, 300f)] private float crescentDegrees = 150f;
 		[SerializeField, Range(0.05f, 1f), Tooltip("가운데 두께 (반지름 1 당)")] private float crescentWidth = 0.42f;
 		[SerializeField, Min(0f)] private float height = 0.7f;
 		[SerializeField, Min(0f), Tooltip("나오는 자리 (인물 앞)")] private float startDistance = 0.4f;
 		[SerializeField, Min(0.02f), Tooltip("끝까지 나는 길이 (초)")] private float flySeconds = 0.17f;
 		[SerializeField, Min(0.02f)] private float fadeSeconds = 0.16f;
 		[SerializeField, Min(0.1f), Tooltip("뒤따르는 빛줄의 길이")] private float trailLength = 2.4f;
-		[SerializeField, Min(0.01f)] private float trailWidth = 0.32f;
-		[SerializeField, Range(0f, 1f), Tooltip("나는 동안 커지는 정도")] private float grow = 0.35f;
+		[SerializeField, Min(0.01f)] private float trailWidth = 0.5f;
+		[SerializeField, Range(0f, 1f), Tooltip("나는 동안 커지는 정도")] private float grow = 0.15f;
+		[SerializeField, Min(0.01f), Tooltip("나온 번쩍임이 절반이 되는 길이")] private float flashHalfLife = 0.06f;
 
 		[Header("끝 폭발")]
 		[SerializeField, Min(0f)] private float burstSize = 2f;
@@ -86,6 +88,8 @@ namespace WitchMendokusai
 		private readonly List<Transform> feathers = new();
 		private Transform root;
 		private Transform wingOwner;
+		private Camera viewCamera;
+		private bool wingsShown;
 		private Material wingMaterial;
 		private Mesh crescentMesh;
 		private Mesh sheathMesh;
@@ -112,7 +116,6 @@ namespace WitchMendokusai
 			wave.BurstAtEnd = burstAtEnd;
 			wave.StartTime = Time.time;
 			wave.Alive = true;
-			UpdateWave(wave);
 		}
 
 		public void PlayWings(Transform owner)
@@ -145,12 +148,14 @@ namespace WitchMendokusai
 		{
 			foreach (UnityEngine.Object target in owned)
 				Destroy(target);
-			if (root != null)
-				Destroy(root.gameObject);
 		}
 
 		private void LateUpdate()
 		{
+			viewCamera = Camera.main;
+			// 씬이 바뀌는 사이에는 카메라가 없음. 그 프레임은 그리지 않음
+			if (viewCamera == null)
+				return;
 			foreach (Wave wave in waves)
 			{
 				if (wave.Alive)
@@ -161,7 +166,7 @@ namespace WitchMendokusai
 				if (burst.Alive)
 					UpdateBurst(burst);
 			}
-			if (feathers.Count > 0)
+			if (wingsShown || Time.time - wingStart < wingHold + wingBreak)
 				UpdateWings();
 		}
 
@@ -190,7 +195,7 @@ namespace WitchMendokusai
 			wave.Trail.SetPositionAndRotation(head - wave.Direction * (size * 0.2f), Quaternion.FromToRotation(Vector3.up, -wave.Direction));
 			wave.Trail.localScale = new Vector3(trailWidth * wave.Width, Mathf.Max(0.01f, trail), trailWidth * wave.Width);
 			wave.Material.SetFloat(DISSOLVE_ID, fade);
-			wave.Material.SetFloat(FLASH_ID, Mathf.Pow(0.5f, age / 0.05f) * 0.8f);
+			wave.Material.SetFloat(FLASH_ID, Mathf.Pow(0.5f, age / flashHalfLife) * 0.8f);
 			wave.Crescent.gameObject.SetActive(true);
 			wave.Trail.gameObject.SetActive(true);
 		}
@@ -207,10 +212,10 @@ namespace WitchMendokusai
 					burst.Rays[i] = UltimateFxStage.CreateMeshObject("SwordRay", root, rayMesh, burst.Material).transform;
 				bursts.Add(burst);
 			}
-			Vector3 facing = -Camera.main.transform.forward;
+			Vector3 facing = -viewCamera.transform.forward;
 			for (int i = 0; i < burst.Rays.Length; i++)
 			{
-				Vector3 direction = Quaternion.AngleAxis(360f * i / burst.Rays.Length, facing) * Camera.main.transform.up;
+				Vector3 direction = Quaternion.AngleAxis(360f * i / burst.Rays.Length, facing) * viewCamera.transform.up;
 				burst.Rays[i].SetPositionAndRotation(position + facing * 0.1f, Quaternion.LookRotation(-facing, direction));
 				burst.Rays[i].gameObject.SetActive(true);
 			}
@@ -240,12 +245,13 @@ namespace WitchMendokusai
 		{
 			float age = Time.time - wingStart;
 			bool visible = age < wingHold + wingBreak && wingOwner != null;
+			wingsShown = visible;
 			if (visible)
 			{
 				wingMaterial.SetFloat(DISSOLVE_ID, Mathf.Clamp01((age - wingHold) / wingBreak));
-				wingMaterial.SetFloat(FLASH_ID, Mathf.Pow(0.5f, age / 0.08f));
+				wingMaterial.SetFloat(FLASH_ID, Mathf.Pow(0.5f, age / flashHalfLife));
 			}
-			Transform cameraTransform = Camera.main.transform;
+			Transform cameraTransform = viewCamera.transform;
 			Vector3 right = cameraTransform.right;
 			Vector3 up = Vector3.Slerp(Vector3.up, cameraTransform.up, faceCamera).normalized;
 			Vector3 away = Vector3.Cross(right, up).normalized;
@@ -285,6 +291,7 @@ namespace WitchMendokusai
 			if (energyShader == null)
 				throw new InvalidOperationException($"{name}: 검기 셰이더 미연결");
 			root = new GameObject(nameof(SwordWaveFx)).transform;
+			root.SetParent(transform, false);
 			crescentMesh = Own(FormMeshes.Crescent(28, crescentDegrees, crescentWidth));
 			sheathMesh = Own(FormMeshes.Sheath(2, 10, 1f));
 			rayMesh = Own(FormMeshes.Sheath(1, 8, 1f));

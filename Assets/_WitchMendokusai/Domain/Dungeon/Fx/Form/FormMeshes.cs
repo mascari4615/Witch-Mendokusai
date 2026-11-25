@@ -158,6 +158,10 @@ namespace WitchMendokusai
 			return builder.Build("FormBar");
 		}
 
+		/// <summary> Wand 메시의 짙은 윤곽 두께와 부서지는 높이 구간 (FormSolid 의 _Outline, _DissolveRange). 완드를 그리는 곳이 같이 씀 </summary>
+		public const float WAND_OUTLINE = 0.045f;
+		public static readonly Vector4 WAND_DISSOLVE_RANGE = new(-0.42f, 0.2f, 0f, 0f);
+
 		/// <summary> 권총형 완드 (각진 마법공학풍, 임시 외형). 총구가 +X, 손잡이가 -Y, 길이 약 1. 꼭짓점 a 는 발광 </summary>
 		public static Mesh Wand()
 		{

@@ -24,6 +24,7 @@ namespace WitchMendokusai
 		private FormCardLook look;
 		private RectTransform back;
 		private RectTransform front;
+		private RectTransform frame;
 		private RawImage art;
 		private Image cover;
 		private Material coverMaterial;
@@ -32,6 +33,9 @@ namespace WitchMendokusai
 		private Tween coverTween;
 
 		private bool IsShown => look != null && front.gameObject.activeSelf;
+
+		// 덮여서 글을 못 읽는 동안. 이 동안 고르기를 막음
+		public bool IsCovered => IsShown && isActiveAndEnabled && cover.gameObject.activeSelf;
 
 		public void Show(FormCardLook newLook, RectTransform artArea)
 		{
@@ -46,6 +50,8 @@ namespace WitchMendokusai
 			coverMaterial.SetFloat(COVER_ID, 1f);
 			cover.gameObject.SetActive(UIEffects.Enabled);
 			coverPending = UIEffects.Enabled;
+			// 틀은 카드 밖으로 나가 뒷면으로 안 가려짐. 공개가 끝날 때까지 감춤
+			frame.gameObject.SetActive(UIEffects.Enabled == false);
 		}
 
 		public void Hide()
@@ -62,6 +68,7 @@ namespace WitchMendokusai
 			if (coverPending == false)
 				return;
 			coverPending = false;
+			frame.gameObject.SetActive(true);
 			coverTween = DOVirtual.Float(1f, 0f, look.CoverSeconds, value => coverMaterial.SetFloat(COVER_ID, value))
 				.SetDelay(look.CoverHold).SetUpdate(true).SetLink(gameObject).OnComplete(() => cover.gameObject.SetActive(false));
 		}
@@ -72,7 +79,7 @@ namespace WitchMendokusai
 			if (IsShown == false)
 				return;
 			RectTransform card = (RectTransform)transform;
-			Material pillarMaterial = Flow(look.PillarSize, true);
+			Material pillarMaterial = Own(Flow(look.PillarSize, true));
 			Image pillar = NewImage("[FormCard] Pillar", canvas.transform, pillarMaterial);
 			RectTransform pillarRect = pillar.rectTransform;
 			pillarRect.sizeDelta = look.PillarSize;
@@ -83,6 +90,7 @@ namespace WitchMendokusai
 				.Append(pillarRect.DOScaleX(0f, look.PillarSeconds * 0.8f).SetEase(Ease.InQuad))
 				.OnComplete(() =>
 				{
+					owned.Remove(pillarMaterial);
 					Destroy(pillarMaterial);
 					Destroy(pillar.gameObject);
 				});
@@ -95,7 +103,7 @@ namespace WitchMendokusai
 			Image shard = NewImage("[FormCard] Shard", canvas.transform, null);
 			shard.color = index % 3 == 0 ? look.Bright : index % 3 == 1 ? look.Main : look.Dark;
 			RectTransform rect = shard.rectTransform;
-			float size = Random.Range(10f, 34f);
+			float size = Random.Range(look.ShardSize.x, look.ShardSize.y);
 			rect.sizeDelta = new Vector2(size, size * Random.Range(0.4f, 1.2f));
 			Vector2 from = new(Random.Range(card.rect.xMin, card.rect.xMax), Random.Range(card.rect.yMin, card.rect.yMax));
 			rect.position = card.TransformPoint(from);
@@ -103,7 +111,7 @@ namespace WitchMendokusai
 			Vector2 away = (from - card.rect.center).normalized * (look.ShardDistance * Random.Range(0.4f, 1f)) + Vector2.up * (look.ShardDistance * 0.25f);
 			DOTween.Sequence().SetUpdate(true).SetLink(shard.gameObject)
 				.Join(rect.DOLocalMove(rect.localPosition + (Vector3)away, look.ShardSeconds).SetEase(Ease.OutCubic))
-				.Join(rect.DOLocalRotate(new Vector3(0f, 0f, Random.Range(-260f, 260f)), look.ShardSeconds, RotateMode.LocalAxisAdd))
+				.Join(rect.DOLocalRotate(new Vector3(0f, 0f, Random.Range(-look.ShardSpinDegrees, look.ShardSpinDegrees)), look.ShardSeconds, RotateMode.LocalAxisAdd))
 				.Join(rect.DOScale(0f, look.ShardSeconds).SetEase(Ease.InCubic))
 				.OnComplete(() => Destroy(shard.gameObject));
 		}
@@ -116,7 +124,10 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
+			// 걷히던 중에 꺼지면 덮인 채 남지 않게
 			coverTween?.Kill();
+			if (look != null && coverPending == false)
+				cover.gameObject.SetActive(false);
 			stage?.SetVisible(false);
 		}
 
@@ -152,6 +163,7 @@ namespace WitchMendokusai
 
 			front = NewRect("[FormCard] Front", card);
 			front.SetAsLastSibling();
+			frame = NewRect("Frame", front);
 			BuildFrame(size);
 			coverMaterial = Own(Flow(size, false));
 			cover = NewImage("Cover", front, coverMaterial);
@@ -190,7 +202,7 @@ namespace WitchMendokusai
 
 		private void Place(Color color, Vector2 position, Vector2 size, float angle)
 		{
-			Image image = NewImage("Frame", front, null);
+			Image image = NewImage("Part", frame, null);
 			image.color = color;
 			image.rectTransform.anchoredPosition = position;
 			image.rectTransform.sizeDelta = size;

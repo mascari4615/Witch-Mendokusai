@@ -18,6 +18,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.02f), Tooltip("탄이 꺼진 뒤 줄기가 부서지는 길이")] private float beamFade = 0.14f;
 		[SerializeField, Min(0f), Tooltip("탄 중심에서 그림 높이 (탄 충돌 높이와 같게)")] private float shotHeight = 0.8f;
 		[SerializeField, Min(0f), Tooltip("한 프레임에 이보다 멀리 뛰면 다른 탄으로 다시 쓰인 것으로 봄")] private float jumpDistance = 3f;
+		[SerializeField, Min(0f), Tooltip("끊긴 프레임에서 허용하는 빠르기 (월드/초)")] private float jumpSpeed = 45f;
 
 		[Header("섬광")]
 		[SerializeField, Min(0f)] private float muzzleSize = 1.05f;
@@ -91,6 +92,12 @@ namespace WitchMendokusai
 
 		private void StartTracer(Vector3 muzzle, Transform shot)
 		{
+			// 풀이 같은 탄을 바로 다시 냈으면 옛 줄기는 거기서 끝
+			foreach (Tracer old in tracers)
+			{
+				if (old.Alive && old.Shot == shot)
+					EndTracer(old);
+			}
 			Tracer tracer = tracers.Find(candidate => candidate.Alive == false);
 			if (tracer == null)
 			{
@@ -129,16 +136,24 @@ namespace WitchMendokusai
 			flashLight.transform.position = owner.position + Vector3.up * 1.4f + Aim() * 0.8f;
 		}
 
+		// 줄기 끝을 실제 맞은 자리에 맞추고 터뜨림
+		private void EndTracer(Tracer tracer)
+		{
+			tracer.Shot = null;
+			tracer.EndTime = Time.time;
+			tracer.Shown = tracer.Head;
+			Flash(tracer.Head, Vector3.up, impactSize);
+		}
+
 		private void UpdateTracer(Tracer tracer)
 		{
 			if (tracer.EndTime == float.PositiveInfinity)
 			{
 				Vector3 now = tracer.Shot == null ? tracer.Head : tracer.Shot.position + Vector3.up * shotHeight;
-				bool gone = tracer.Shot == null || tracer.Shot.gameObject.activeInHierarchy == false || (now - tracer.Head).magnitude > jumpDistance;
+				bool gone = tracer.Shot == null || tracer.Shot.gameObject.activeInHierarchy == false || (now - tracer.Head).magnitude > Mathf.Max(jumpDistance, jumpSpeed * Time.deltaTime);
 				if (gone)
 				{
-					tracer.EndTime = Time.time;
-					Flash(tracer.Head, Vector3.up, impactSize);
+					EndTracer(tracer);
 				}
 				else
 				{
@@ -201,7 +216,7 @@ namespace WitchMendokusai
 			Vector3 facing = -CameraForward();
 			Vector3 axis = Vector3.ProjectOnPlane(forward, facing).normalized;
 			if (axis.sqrMagnitude < 0.01f)
-				axis = Camera.main.transform.up;
+				axis = viewCamera.transform.up;
 			for (int i = 0; i < burst.Rays.Length; i++)
 			{
 				float angle = 360f * i / burst.Rays.Length + Random.Range(-18f, 18f);

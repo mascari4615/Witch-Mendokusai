@@ -17,8 +17,6 @@ namespace WitchMendokusai
 		private static readonly int OUTLINE_ID = Shader.PropertyToID("_Outline");
 		private static readonly int HEAT_ID = Shader.PropertyToID("_Heat");
 
-		private const float WAND_OUTLINE = 0.045f;
-
 		public enum Shape
 		{
 			Wand = 0,
@@ -52,6 +50,7 @@ namespace WitchMendokusai
 		private GameManager gameManager;
 		private Spawner[] spawners;
 		private Transform body;
+		private Camera viewCamera;
 		private Mesh mesh;
 		private Material material;
 		private float shownTime;
@@ -67,7 +66,8 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
-			spawners ??= GetComponentsInChildren<Spawner>(true);
+			// 같은 오브젝트의 베기만. 자식 (요정 등) 이 쏠 때는 손이 안 밀림
+			spawners ??= GetComponents<Spawner>();
 			foreach (Spawner spawner in spawners)
 				spawner.Shot += OnShot;
 		}
@@ -82,8 +82,6 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
-			if (body != null)
-				Destroy(body.gameObject);
 			Destroy(mesh);
 			Destroy(material);
 		}
@@ -92,7 +90,9 @@ namespace WitchMendokusai
 
 		private void LateUpdate()
 		{
-			bool visible = gameManager.IsFormMomentPlaying == false;
+			viewCamera = Camera.main;
+			// 씬이 바뀌는 사이에는 카메라나 인물이 없음
+			bool visible = gameManager.IsFormMomentPlaying == false && viewCamera != null && playerProvider.Current != null;
 			if (visible && body == null)
 				Create();
 			if (body == null)
@@ -106,7 +106,7 @@ namespace WitchMendokusai
 
 		private void Place()
 		{
-			Transform cameraTransform = Camera.main.transform;
+			Transform cameraTransform = viewCamera.transform;
 			Vector3 right = cameraTransform.right;
 			Vector3 up = Vector3.Slerp(Vector3.up, cameraTransform.up, faceCamera).normalized;
 			Vector3 away = Vector3.Cross(right, up).normalized;
@@ -148,9 +148,9 @@ namespace WitchMendokusai
 			material.SetColor(EMISSION_ID, emissionColor);
 			material.SetColor(EDGE_ID, emissionColor * 1.3f);
 			material.SetVector(DENSITY_ID, shape == Shape.Wand ? Vector3.one * (size * texelsPerUnit) : new Vector3(5f, size * texelsPerUnit, 5f));
-			material.SetVector(DISSOLVE_RANGE_ID, new Vector4(-0.42f, 0.2f, 0f, 0f));
-			material.SetFloat(OUTLINE_ID, shape == Shape.Wand ? WAND_OUTLINE : 0f);
-			body = UltimateFxStage.CreateMeshObject(nameof(HeldWeapon), null, mesh, material).transform;
+			material.SetVector(DISSOLVE_RANGE_ID, FormMeshes.WAND_DISSOLVE_RANGE);
+			material.SetFloat(OUTLINE_ID, shape == Shape.Wand ? FormMeshes.WAND_OUTLINE : 0f);
+			body = UltimateFxStage.CreateMeshObject(nameof(HeldWeapon), transform, mesh, material).transform;
 			body.gameObject.SetActive(false);
 		}
 

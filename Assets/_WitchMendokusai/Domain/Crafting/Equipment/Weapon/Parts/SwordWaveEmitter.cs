@@ -123,7 +123,8 @@ namespace WitchMendokusai
 		{
 			GameObject wave = SpawnWaveObject(origin, direction, length, width, 100);
 			bool topTier = tier >= tierThresholds.Length;
-			waveFx.PlayWave(origin, direction, waveLength * wave.transform.localScale.z, width, topTier);
+			// 크기 강화까지 든 판정 크기를 그대로 그림에
+			waveFx.PlayWave(origin, direction, waveLength * wave.transform.localScale.z, wave.transform.localScale.x, topTier);
 			if (topTier && tipBurstPrefab != null)
 				SkillSpawn.Spawn(objectPoolManager, tipBurstPrefab, origin + direction * waveLength * wave.transform.localScale.z, Quaternion.identity, context, 0).SetActive(true);
 		}
@@ -147,8 +148,8 @@ namespace WitchMendokusai
 			for (int i = 0; i < wingsCount; i++)
 			{
 				Vector3 direction = Quaternion.Euler(0f, 360f * i / wingsCount, 0f) * Vector3.forward;
-				SpawnWaveObject(origin, direction, wingsRadius / waveLength, 1f, wingsDamagePercent);
-				waveFx.PlayWave(origin, direction, wingsRadius, 1f, false);
+				GameObject wave = SpawnWaveObject(origin, direction, wingsRadius / waveLength, 1f, wingsDamagePercent);
+				waveFx.PlayWave(origin, direction, waveLength * wave.transform.localScale.z, wave.transform.localScale.x, false);
 			}
 		}
 

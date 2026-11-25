@@ -162,7 +162,18 @@ namespace WitchMendokusai
 		
 		private void OnEnable() => UIHideWhileChatting.Request(this, true);
 
-		private bool ConsumeInput() => receipt != null || reveal.ConsumeBlockedChoice();
+		// 형태 카드가 빛에 덮여 글을 못 읽는 동안도 막음 (되돌릴 수 없는 변신을 보지도 않고 고르지 않게)
+		private bool ConsumeInput() => receipt != null || IsFormCardCovered() || reveal.ConsumeBlockedChoice();
+
+		private bool IsFormCardCovered()
+		{
+			foreach (UICardSlot slot in cardSelectButtons)
+			{
+				if (slot.gameObject.activeSelf && slot.ChoiceView.FormFace != null && slot.ChoiceView.FormFace.IsCovered)
+					return true;
+			}
+			return false;
+		}
 
 		private void ReceiveCard(UICardSlot slot, CardManager manager)
 		{

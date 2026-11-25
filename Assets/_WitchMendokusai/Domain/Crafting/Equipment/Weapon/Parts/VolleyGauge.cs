@@ -101,29 +101,30 @@ namespace WitchMendokusai
 			bool focus = PlayerStat[focusStat] > 0;
 			int percent = VolleyGaugeRules.DamagePercent(PlayerStat[growthPercentStat], split, splitPercent, focus, focusPercent);
 			int waves = split ? 2 : 1;
+			// 무기를 꺼내는 길이는 화력 주기에 안 셈 (첫 발만 늦음). 나눠 쏘기의 두 번째는 쉬는 시간에 꺼냄
+			float raiseDelay = 0f;
 			for (int wave = 0; wave < waves; wave++)
 			{
-				yield return Burst(focus ? focusFanDegrees : fanDegrees, percent);
-				if (wave + 1 < waves)
-					yield return new WaitForSeconds(splitGapSeconds);
+				float gap = wave == 0 ? 0f : splitGapSeconds;
+				float wait = Mathf.Max(gap, arsenal.WindupSeconds);
+				raiseDelay += wait - gap;
+				int count = VolleyGaugeRules.ShotCount(baseWeapons, PlayerStat[bonusWeaponsStat], shotsPerWeapon);
+				if (count > 0)
+					arsenal.Raise(playerProvider.Current.transform, AimDirection, count);
+				yield return new WaitForSeconds(wait);
+				yield return Burst(count, focus ? focusFanDegrees : fanDegrees, percent);
 			}
 			if (PlayerStat[blastStat] > 0)
 				SpawnBlast();
-			lastFireTime = Time.time;
+			lastFireTime = Time.time - raiseDelay;
 			firing = false;
 		}
 
-		private IEnumerator Burst(float fan, int percent)
+		private IEnumerator Burst(int count, float fan, int percent)
 		{
-			int count = VolleyGaugeRules.ShotCount(baseWeapons, PlayerStat[bonusWeaponsStat], shotsPerWeapon);
 			bool homing = PlayerStat[homingStat] > 0;
 			int beams = PlayerStat[beamStat] > 0 ? beamCount : 0;
 			float step = count > 0 ? burstSeconds / count : 0f;
-			if (count > 0)
-			{
-				arsenal.Raise(playerProvider.Current.transform, AimDirection, count);
-				yield return new WaitForSeconds(arsenal.WindupSeconds);
-			}
 			for (int i = 0; i < count; i++)
 			{
 				GameObject prefab = homing && Random.Range(0, 100) < homingPercent ? homingShotPrefab : shotPrefab;

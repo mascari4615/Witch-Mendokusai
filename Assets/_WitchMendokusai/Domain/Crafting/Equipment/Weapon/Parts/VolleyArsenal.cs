@@ -7,7 +7,8 @@ namespace WitchMendokusai
 	// 알리사 일제 사격의 그림. 빛 완드를 등 뒤에 잔뜩 꺼내고 (한 자루마다 금빛 고리), 한 자루가 한 발씩 쏘고 부서짐
 	// - 판정 없음. 피해는 VolleyGauge 가 내는 탄이 함. 줄기는 그 탄의 머리를 따라가 그림과 피해 시점이 어긋나지 않음
 	// - 결은 변신 연출과 같음 (FormSolid, FormEnergy. 캐릭터 PPU 와 같은 텍셀, 네 단 색, 끊긴 움직임)
-	// - 게임 시간으로 흐름 (카드 창에서 같이 멈춤). 만든 물체는 다시 쓰고 파괴될 때 지움
+	// - 게임 시간으로 흐름 (카드 창에서 같이 멈춤). 만든 물체는 이 오브젝트의 자식 (풀과 같이 씬을 넘어 살아남음), 다시 쓰고 파괴될 때 지움
+	// - 그림은 LateUpdate 에서만 그림. Raise 와 Fire 는 예약만 해서 부른 쪽 (발사 코루틴) 을 끊지 않음
 	// - 이 파일: 값, 꺼냄, 무기 자세. 줄기와 총구와 맞은 자리는 .Shots.cs
 	public sealed partial class VolleyArsenal : MonoBehaviour
 	{
@@ -64,6 +65,14 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.05f)] private float ringSize = 0.5f;
 		[SerializeField, Min(0f), Tooltip("쏠 때 뒤로 밀리는 거리")] private float recoil = 0.3f;
 		[SerializeField, Range(0f, 1f), Tooltip("고리의 밝기 바닥값")] private float ringGlow = 0.4f;
+		[SerializeField, Min(0.01f), Tooltip("밀림과 번쩍임이 절반이 되는 길이")] private float flashHalfLife = 0.07f;
+		[SerializeField, Min(0f)] private float popOver = 0.35f;
+		[SerializeField, Min(0f)] private float bobHeight = 0.04f;
+		[SerializeField, Min(0f)] private float bobSpeed = 5f;
+		[SerializeField, Tooltip("고리가 도는 빠르기 (도/초)")] private float ringSpin = 140f;
+		[SerializeField, Min(0f), Tooltip("고리를 카메라 쪽으로 돌리는 세기")] private float ringFacing = 1.4f;
+		[SerializeField, Min(0f), Tooltip("쏠 때 고리가 더 퍼지는 비율")] private float ringSpread = 0.7f;
+		[SerializeField, Min(0.02f)] private float ringBreakSeconds = 0.2f;
 
 		private sealed class Weapon
 		{
@@ -81,7 +90,9 @@ namespace WitchMendokusai
 
 		private readonly List<Weapon> weapons = new();
 		private readonly List<UnityEngine.Object> owned = new();
+		private readonly List<(Weapon weapon, Transform shot)> pendingShots = new();
 		private Transform root;
+		private Camera viewCamera;
 		private Mesh wandMesh;
 		private Mesh ringMesh;
 		private Transform owner;
@@ -121,15 +132,36 @@ namespace WitchMendokusai
 		// 한 발. 쏘는 자루를 골라 총구를 터뜨리고, 줄기가 탄을 따라가게 함
 		public void Fire(int shotIndex, GameObject shot)
 		{
-			// 옆 자루가 잇달아 쏘지 않게 서로소 걸음으로 섞음
-			int stride = raisedCount % 5 == 0 ? 3 : 5;
-			Weapon weapon = weapons[shotIndex * stride % raisedCount];
+			// 옆 자루가 잇달아 쏘지 않게 서로소 걸음으로 섞음. 자루보다 발이 많으면 부서진 자루가 다시 나와 쏨
+			Weapon weapon = weapons[shotIndex * CoprimeStride(raisedCount) % raisedCount];
 			weapon.FireTime = Time.time;
-			Vector3 muzzle = Muzzle(weapon);
-			Flash(muzzle, Aim(), muzzleSize);
-			StartTracer(muzzle, shot.transform);
-			lightLevel = 1f;
+			weapon.Alive = true;
+			pendingShots.Add((weapon, shot.transform));
 		}
+
+		private void FirePending()
+		{
+			foreach ((Weapon weapon, Transform shot) in pendingShots)
+			{
+				Vector3 muzzle = Muzzle(weapon);
+				Flash(muzzle, Aim(), muzzleSize);
+				StartTracer(muzzle, shot);
+				lightLevel = 1f;
+			}
+			pendingShots.Clear();
+		}
+
+		private static int CoprimeStride(int count)
+		{
+			for (int stride = Mathf.Max(2, count / 3); stride < count; stride++)
+			{
+				if (GreatestCommonDivisor(stride, count) == 1)
+					return stride;
+			}
+			return 1;
+		}
+
+		private static int GreatestCommonDivisor(int left, int right) => right == 0 ? left : GreatestCommonDivisor(right, left % right);
 
 		private void OnDisable()
 		{
@@ -138,6 +170,7 @@ namespace WitchMendokusai
 				weapon.Alive = false;
 				Show(weapon, false);
 			}
+			pendingShots.Clear();
 			StopShots();
 		}
 
@@ -145,14 +178,15 @@ namespace WitchMendokusai
 		{
 			foreach (UnityEngine.Object target in owned)
 				Destroy(target);
-			if (root != null)
-				Destroy(root.gameObject);
 		}
 
 		private void LateUpdate()
 		{
-			if (root == null || owner == null)
+			viewCamera = Camera.main;
+			// 씬이 바뀌는 사이에는 카메라가 없음. 그 프레임은 그리지 않음
+			if (root == null || owner == null || viewCamera == null)
 				return;
+			FirePending();
 			UpdateWeapons();
 			UpdateShots();
 		}
@@ -175,29 +209,29 @@ namespace WitchMendokusai
 				Show(weapon, true);
 				Pose(weapon, out Vector3 position, out Vector3 aim, out Vector3 up);
 				float pop = Pop(age / popSeconds);
-				float kick = sinceFire >= 0f ? Mathf.Pow(0.5f, sinceFire / 0.06f) : 0f;
+				float kick = sinceFire >= 0f ? Mathf.Pow(0.5f, sinceFire / flashHalfLife) : 0f;
 				weapon.Body.SetPositionAndRotation(position - aim * (recoil * kick), WeaponRotation(aim, up));
 				weapon.Body.localScale = Vector3.one * (weapon.Size * pop);
-				weapon.BodyMaterial.SetFloat(HEAT_ID, Mathf.Max(Mathf.Pow(0.5f, age / 0.07f), kick * 0.8f));
+				weapon.BodyMaterial.SetFloat(HEAT_ID, Mathf.Max(Mathf.Pow(0.5f, age / flashHalfLife), kick * 0.8f));
 				weapon.BodyMaterial.SetFloat(DISSOLVE_ID, broken);
 
 				// 고리는 카메라 쪽으로 반쯤 돌려 옆에서도 둥글게 보임. 쏘면 퍼지며 부서짐
-				Vector3 facing = (aim - CameraForward() * 1.4f).normalized;
-				float spread = 1f + 0.7f * Mathf.Clamp01(sinceFire / 0.16f);
-				weapon.Ring.SetPositionAndRotation(position - aim * (weapon.Size * 0.15f), Quaternion.FromToRotation(Vector3.up, facing) * Quaternion.Euler(0f, Stepped() * 140f + weapon.Phase * 60f, 0f));
+				Vector3 facing = (aim - CameraForward() * ringFacing).normalized;
+				float spread = 1f + ringSpread * Mathf.Clamp01(sinceFire / ringBreakSeconds);
+				weapon.Ring.SetPositionAndRotation(position - aim * (weapon.Size * 0.15f), Quaternion.FromToRotation(Vector3.up, facing) * Quaternion.Euler(0f, Stepped() * ringSpin + weapon.Phase * 60f, 0f));
 				weapon.Ring.localScale = Vector3.one * (ringSize * pop * spread);
-				weapon.RingMaterial.SetFloat(DISSOLVE_ID, sinceFire >= 0f ? Mathf.Clamp01(sinceFire / 0.2f) : 0f);
-				weapon.RingMaterial.SetFloat(FLASH_ID, Mathf.Max(ringGlow, Mathf.Max(Mathf.Pow(0.5f, age / 0.08f), kick)));
+				weapon.RingMaterial.SetFloat(DISSOLVE_ID, sinceFire >= 0f ? Mathf.Clamp01(sinceFire / ringBreakSeconds) : 0f);
+				weapon.RingMaterial.SetFloat(FLASH_ID, Mathf.Max(ringGlow, Mathf.Max(Mathf.Pow(0.5f, age / flashHalfLife), kick)));
 			}
 		}
 
 		private void Pose(Weapon weapon, out Vector3 position, out Vector3 aim, out Vector3 up)
 		{
-			Transform cameraTransform = Camera.main.transform;
+			Transform cameraTransform = viewCamera.transform;
 			Vector3 right = cameraTransform.right;
 			up = Vector3.Slerp(Vector3.up, cameraTransform.up, faceCamera).normalized;
 			Vector3 away = Vector3.Cross(right, up).normalized;
-			float bob = 0.04f * Mathf.Sin(Stepped() * 5f + weapon.Phase);
+			float bob = bobHeight * Mathf.Sin(Stepped() * bobSpeed + weapon.Phase);
 			position = owner.position + Vector3.up * centerHeight + right * weapon.Slot.x + up * (weapon.Slot.y + bob) + away * behind;
 			aim = Aim();
 		}
@@ -210,7 +244,7 @@ namespace WitchMendokusai
 
 		private Vector3 Aim() => aimSource();
 
-		private static Vector3 CameraForward() => Camera.main.transform.forward;
+		private Vector3 CameraForward() => viewCamera.transform.forward;
 
 		private float Stepped() => Mathf.Floor(Time.time * poseSteps) / poseSteps;
 
@@ -218,10 +252,10 @@ namespace WitchMendokusai
 		private static Quaternion WeaponRotation(Vector3 aim, Vector3 up) => Quaternion.LookRotation(Vector3.Cross(aim, up), up);
 
 		// 처음에 넘쳤다가 제 크기로
-		private static float Pop(float progress)
+		private float Pop(float progress)
 		{
 			float clamped = Mathf.Clamp01(progress);
-			return 1f + 0.35f * Mathf.Sin(clamped * Mathf.PI) - Mathf.Pow(1f - clamped, 3f);
+			return 1f + popOver * Mathf.Sin(clamped * Mathf.PI) - Mathf.Pow(1f - clamped, 3f);
 		}
 
 		// 줄마다 부채꼴로 고르게. 바깥 줄일수록 많이
@@ -257,6 +291,7 @@ namespace WitchMendokusai
 			if (energyShader == null || solidShader == null)
 				throw new InvalidOperationException($"{name}: 일제 사격 셰이더 미연결");
 			root = new GameObject(nameof(VolleyArsenal)).transform;
+			root.SetParent(transform, false);
 			wandMesh = Own(FormMeshes.Wand());
 			ringMesh = Own(FormMeshes.Ring(24, 0.74f));
 			PrepareShots();
@@ -272,8 +307,8 @@ namespace WitchMendokusai
 				RingMaterial = Energy(BEHIND_BODY_QUEUE),
 			};
 			weapon.BodyMaterial.SetVector(DENSITY_ID, Vector3.one * (weapon.Size * texelsPerUnit));
-			weapon.BodyMaterial.SetVector(DISSOLVE_RANGE_ID, new Vector4(-0.42f, 0.2f, 0f, 0f));
-			weapon.BodyMaterial.SetFloat(OUTLINE_ID, 0.045f);
+			weapon.BodyMaterial.SetVector(DISSOLVE_RANGE_ID, FormMeshes.WAND_DISSOLVE_RANGE);
+			weapon.BodyMaterial.SetFloat(OUTLINE_ID, FormMeshes.WAND_OUTLINE);
 			weapon.RingMaterial.SetVector(TEXELS_ID, new Vector4(ringSize * 6.28f * texelsPerUnit, 4f, 0f, 0f));
 			weapon.Body = UltimateFxStage.CreateMeshObject("VolleyWand", root, wandMesh, weapon.BodyMaterial).transform;
 			weapon.Ring = UltimateFxStage.CreateMeshObject("VolleyRing", root, ringMesh, weapon.RingMaterial).transform;

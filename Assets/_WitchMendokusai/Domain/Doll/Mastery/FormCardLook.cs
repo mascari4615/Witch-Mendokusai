@@ -30,11 +30,13 @@ namespace WitchMendokusai
 		[field: SerializeField, Range(0f, 1f), Tooltip("바탕에 깔리는 흐름의 세기")] public float BackFlow { get; private set; } = 0.22f;
 
 		[field: Header("공개와 고른 뒤 (실제 초)")]
-		[field: SerializeField, Min(0.05f), Tooltip("빛으로 덮였다가 걷히는 길이")] public float CoverSeconds { get; private set; } = 0.7f;
-		[field: SerializeField, Min(0f), Tooltip("덮인 채 머무는 길이")] public float CoverHold { get; private set; } = 0.25f;
+		[field: SerializeField, Min(0.05f), Tooltip("빛으로 덮였다가 걷히는 길이")] public float CoverSeconds { get; private set; } = 0.45f;
+		[field: SerializeField, Min(0f), Tooltip("덮인 채 머무는 길이")] public float CoverHold { get; private set; } = 0.12f;
 		[field: SerializeField, Min(0)] public int ShardCount { get; private set; } = 22;
 		[field: SerializeField, Min(0f)] public float ShardDistance { get; private set; } = 260f;
 		[field: SerializeField, Min(0.05f)] public float ShardSeconds { get; private set; } = 0.55f;
+		[field: SerializeField, Tooltip("조각 크기 (작은 쪽, 큰 쪽)")] public Vector2 ShardSize { get; private set; } = new(10f, 34f);
+		[field: SerializeField, Min(0f)] public float ShardSpinDegrees { get; private set; } = 260f;
 		[field: SerializeField] public Vector2 PillarSize { get; private set; } = new(190f, 1500f);
 		[field: SerializeField, Min(0.05f)] public float PillarSeconds { get; private set; } = 0.6f;
 	}

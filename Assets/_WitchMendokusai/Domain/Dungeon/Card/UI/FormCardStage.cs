@@ -8,7 +8,9 @@ namespace WitchMendokusai
 	// 시간이 멈춘 카드 창에서도 돌게 실제 시간으로 흔들림
 	public sealed class FormCardStage : IDisposable
 	{
-		private static readonly Vector3 FAR_AWAY = new(0f, -4000f, 0f);
+		// 미리보기 전용 층 (전체 메뉴 코어, 도감과 같은 층). 자리로 떼어 놓음
+		private const int PREVIEW_LAYER = 30;
+		private static readonly Vector3 FAR_AWAY = new(10000f, -10000f, 0f);
 		private const int SPOTS = 64;
 		private const float SPOT_GAP = 20f;
 		private static int created;
@@ -38,7 +40,14 @@ namespace WitchMendokusai
 			camera.clearFlags = CameraClearFlags.SolidColor;
 			camera.backgroundColor = Color.clear;
 			camera.targetTexture = Texture;
-			camera.GetUniversalAdditionalCameraData().renderPostProcessing = false;
+			camera.cullingMask = 1 << PREVIEW_LAYER;
+			UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
+			cameraData.renderType = CameraRenderType.Base;
+			cameraData.renderPostProcessing = false;
+			cameraData.volumeLayerMask = 0;
+			cameraData.requiresColorOption = CameraOverrideOption.Off;
+			cameraData.requiresDepthOption = CameraOverrideOption.Off;
+			cameraData.renderShadows = false;
 
 			bool wand = look.Weapon == HeldWeapon.Shape.Wand;
 			mesh = wand ? FormMeshes.Wand() : FormMeshes.Bar(0.16f);
@@ -47,7 +56,7 @@ namespace WitchMendokusai
 			material.SetColor("_EdgeColor", look.WeaponGlow * 1.3f);
 			float texels = look.ArtWidth / (2f * aspect) * look.WeaponSize;
 			material.SetVector("_TexelDensity", wand ? Vector3.one * texels : new Vector3(5f, texels, 5f));
-			material.SetFloat("_Outline", wand ? 0.05f : 0f);
+			material.SetFloat("_Outline", wand ? FormMeshes.WAND_OUTLINE : 0f);
 			Transform pivot = new GameObject("Pivot").transform;
 			pivot.SetParent(root.transform, false);
 			for (int i = 0; i < look.WeaponCount; i++)
@@ -59,6 +68,7 @@ namespace WitchMendokusai
 		private void Place(Transform weapon, int index)
 		{
 			bool wand = look.Weapon == HeldWeapon.Shape.Wand;
+			weapon.gameObject.layer = PREVIEW_LAYER;
 			weapon.localScale = Vector3.one * look.WeaponSize;
 			if (look.WeaponCount == 1)
 			{
@@ -73,14 +83,22 @@ namespace WitchMendokusai
 			weapon.localPosition = new Vector3(0f, -0.95f, index * 0.12f) + outward * (index % 2 == 0 ? 0.75f : 0.5f);
 		}
 
-		public void SetVisible(bool visible) => root.SetActive(visible);
+		public void SetVisible(bool visible)
+		{
+			if (root != null)
+				root.SetActive(visible);
+		}
 
 		public void Dispose()
 		{
-			camera.targetTexture = null;
-			UnityEngine.Object.Destroy(root);
 			UnityEngine.Object.Destroy(mesh);
 			UnityEngine.Object.Destroy(material);
+			// 씬이 내려갈 때는 무대가 먼저 파괴됐을 수 있음
+			if (root != null)
+			{
+				camera.targetTexture = null;
+				UnityEngine.Object.Destroy(root);
+			}
 			Texture.Release();
 			UnityEngine.Object.Destroy(Texture);
 		}
