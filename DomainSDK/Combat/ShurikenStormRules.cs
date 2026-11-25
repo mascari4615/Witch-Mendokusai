@@ -3,9 +3,11 @@ using System;
 namespace WitchMendokusai
 {
 	// 알리사 표창 폭풍 (닌자 최종) 의 정본. 주위를 도는 표창의 수, 각도, 반지름, 흩어짐
-	// 같은 적 재타격 간격은 표창마다가 아니라 폭풍 하나가 같이 셈 (HitLedger 하나를 나눠 씀). 표창마다 세면 수가 늘 때 피해가 그대로 곱해짐
+	// 같은 적 재타격은 표창마다 따로 (기존 RepeatingDamagingObject). 폭풍 하나가 같이 세면 4자루나 12자루나 초당 두 번이라 표창을 늘리는 카드가 빈 카드가 됨
 	public static class ShurikenStormRules
 	{
+		private const float FULL_TURN = 360f;
+
 		// 도는 표창 수. 기본 4 + 소용돌이 뿌리 2 + 레벨 성장 (그림자 마무리). 상한은 화면이 표창으로 덮이지 않게
 		public static int Count(int baseCount, int bonusCount, int growthCount, int maxCount)
 			=> Math.Max(0, Math.Min(maxCount, baseCount + Math.Max(0, bonusCount) + Math.Max(0, growthCount)));
@@ -13,16 +15,18 @@ namespace WitchMendokusai
 		// 분신의 폭풍은 본체보다 적은 수로. 분신 셋이 본체 수를 그대로 따라 하면 물체가 네 배
 		public static int CloneCount(int ownerCount, int maxPerClone) => Math.Max(0, Math.Min(ownerCount, maxPerClone));
 
-		// 표창 index 의 각도 (도, 0 이상 360 미만). 고르게 나누고 같이 돎
+		// 표창 index 의 각도 (도, 0 이상 360 미만). 0 은 월드 앞 (+z), 위에서 볼 때 시계 방향 (Quaternion.Euler y 와 같음)
 		public static float Angle(int index, int count, float spinDegrees)
 		{
 			if (count <= 0)
 				return 0f;
-			float angle = (spinDegrees + 360f * index / count) % 360f;
-			return angle < 0f ? angle + 360f : angle;
+			float angle = (spinDegrees + FULL_TURN * index / count) % FULL_TURN;
+			if (angle < 0f)
+				angle += FULL_TURN;
+			return angle >= FULL_TURN ? 0f : angle;
 		}
 
-		// 흩어졌다 돌아오는 데 걸리는 시간. 흩어질 거리가 도는 반지름 이하면 0
+		// 흩어졌다 돌아오는 데 걸리는 시간. scatterDistance 는 주인에게서 잰 반지름. 도는 반지름 이하면 0
 		public static float ScatterSeconds(float stormRadius, float scatterDistance, float outSeconds, float returnSpeed)
 		{
 			if (scatterDistance <= stormRadius || returnSpeed <= 0f)
@@ -35,12 +39,13 @@ namespace WitchMendokusai
 		{
 			if (elapsed <= 0f || elapsed >= ScatterSeconds(stormRadius, scatterDistance, outSeconds, returnSpeed))
 				return stormRadius;
-			if (elapsed < outSeconds)
+			float outbound = Math.Max(0f, outSeconds);
+			if (elapsed < outbound)
 			{
-				float left = 1f - elapsed / outSeconds;
+				float left = 1f - elapsed / outbound;
 				return scatterDistance - (scatterDistance - stormRadius) * left * left;
 			}
-			return Math.Max(stormRadius, scatterDistance - (elapsed - outSeconds) * returnSpeed);
+			return Math.Max(stormRadius, scatterDistance - (elapsed - outbound) * returnSpeed);
 		}
 	}
 }

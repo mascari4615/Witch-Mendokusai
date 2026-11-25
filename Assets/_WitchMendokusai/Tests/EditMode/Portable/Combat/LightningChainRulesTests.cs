@@ -5,24 +5,22 @@ namespace WitchMendokusai.Tests
 {
 	public sealed class LightningChainRulesTests
 	{
-		private static readonly LightningPoint origin = new(0f, 0f);
 		private readonly List<LightningHop> hops = new();
 
-		private static List<LightningPoint> Line(params float[] xs)
+		private static List<LightningTarget> Line(params float[] xs)
 		{
-			List<LightningPoint> points = new();
+			List<LightningTarget> targets = new();
 			foreach (float x in xs)
-				points.Add(new LightningPoint(x, 0f));
-			return points;
+				targets.Add(new LightningTarget(x, 0f, false));
+			return targets;
 		}
 
 		[Test]
 		public void ChainHopsFromFoeToFoe()
 		{
-			List<LightningPoint> foes = Line(8f, 2f, 5f);
-			LightningChainRules.Chain(origin, foes, new bool[3], 3, 3.5f, hops);
+			LightningChainRules.Chain(0f, 0f, 0f, Line(8f, 2f, 5f), 3, 3.5f, hops);
 			Assert.AreEqual(3, hops.Count, "사거리 3.5 씩 건너 8 까지 닿음");
-			Assert.AreEqual(LightningChainRules.NO_POINT, hops[0].From);
+			Assert.AreEqual(LightningChainRules.BLAST, hops[0].From);
 			Assert.AreEqual(1, hops[0].To);
 			Assert.AreEqual(1, hops[1].From);
 			Assert.AreEqual(2, hops[1].To);
@@ -30,61 +28,73 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void BurstReachesOnlyFromOrigin()
+		public void ChainMeasuresFirstHopFromBlastEdge()
 		{
-			List<LightningPoint> foes = Line(8f, 2f, 5f);
-			LightningChainRules.Burst(origin, foes, new bool[3], 5, 6f, hops);
+			LightningChainRules.Chain(0f, 0f, 2f, Line(4f), 3, 2f, hops);
+			Assert.AreEqual(1, hops.Count, "폭발 반경 2 밖으로 사거리 2");
+			LightningChainRules.Chain(0f, 0f, 2f, Line(4f, 8f), 3, 2f, hops);
+			Assert.AreEqual(1, hops.Count, "두 번째 줄은 사거리 2 만");
+		}
+
+		[Test]
+		public void BurstReachesOnlyFromBlast()
+		{
+			LightningChainRules.Burst(0f, 0f, Line(8f, 2f, 5f), 5, 6f, hops);
 			Assert.AreEqual(2, hops.Count);
 			foreach (LightningHop hop in hops)
-				Assert.AreEqual(LightningChainRules.NO_POINT, hop.From);
+				Assert.AreEqual(LightningChainRules.BLAST, hop.From);
 			Assert.AreEqual(1, hops[0].To, "가까운 적부터");
 			Assert.AreEqual(2, hops[1].To);
 		}
 
 		[Test]
-		public void BlastVictimsAreNotHitAgain()
+		public void FreshFoesComeBeforeStruckOnes()
 		{
-			List<LightningPoint> foes = Line(1f, 2f);
-			LightningChainRules.Burst(origin, foes, new[] { true, false }, 5, 6f, hops);
-			Assert.AreEqual(1, hops.Count);
-			Assert.AreEqual(1, hops[0].To);
+			List<LightningTarget> targets = new() { new(1f, 0f, true), new(5f, 0f, false), new(2f, 0f, true) };
+			LightningChainRules.Burst(0f, 0f, targets, 2, 6f, hops);
+			Assert.AreEqual(1, hops[0].To, "멀어도 안 맞은 적 먼저");
+			Assert.AreEqual(0, hops[1].To, "모자라면 맞은 적");
 		}
 
 		[Test]
-		public void SameFoeIsNeverUsedTwiceAcrossCalls()
+		public void PackInsideBlastStillGetsLightning()
 		{
-			List<LightningPoint> foes = Line(1f, 2f, 3f);
-			bool[] used = new bool[3];
-			LightningChainRules.Chain(origin, foes, used, 2, 5f, hops);
-			LightningChainRules.Burst(origin, foes, used, 5, 5f, hops);
-			Assert.AreEqual(1, hops.Count, "이어짐이 쓴 둘을 뺀 하나");
-			Assert.AreEqual(2, hops[0].To);
+			List<LightningTarget> targets = new() { new(1f, 0f, true), new(2f, 0f, true) };
+			LightningChainRules.Burst(0f, 0f, targets, 5, 6f, hops);
+			Assert.AreEqual(2, hops.Count);
+			LightningChainRules.Chain(0f, 0f, 2f, targets, 3, 2f, hops);
+			Assert.AreEqual(2, hops.Count, "같은 적을 두 번 고르지 않음");
 		}
 
 		[Test]
-		public void HopLimitAndEmptyField()
+		public void LimitsAndEmptyField()
 		{
-			LightningChainRules.Chain(origin, Line(1f, 2f, 3f), new bool[3], 0, 5f, hops);
+			LightningChainRules.Chain(0f, 0f, 1f, Line(1f, 2f, 3f), 0, 5f, hops);
 			Assert.AreEqual(0, hops.Count);
-			LightningChainRules.Chain(origin, Line(), new bool[0], 3, 5f, hops);
+			LightningChainRules.Chain(0f, 0f, 1f, Line(), 3, 5f, hops);
 			Assert.AreEqual(0, hops.Count);
+			LightningChainRules.Burst(0f, 0f, Line(3f), 5, -5f, hops);
+			Assert.AreEqual(0, hops.Count, "음수 사거리는 아무도 안 닿음");
 		}
 
 		[Test]
 		public void RangeEdgeCountsAndTieGoesToTheFirstFoe()
 		{
-			LightningChainRules.Chain(origin, Line(5f, -5f), new bool[2], 1, 5f, hops);
+			LightningChainRules.Burst(0f, 0f, Line(5f, -5f), 1, 5f, hops);
 			Assert.AreEqual(1, hops.Count);
 			Assert.AreEqual(0, hops[0].To);
 		}
 
 		[Test]
-		public void DamageIsAtLeastOne()
+		public void DamageRoundsHalfUpAndIsAtLeastOne()
 		{
 			Assert.AreEqual(24, LightningChainRules.Damage(60, 40));
+			Assert.AreEqual(13, LightningChainRules.Damage(25, 50), "반은 올림");
+			Assert.AreEqual(3, LightningChainRules.Damage(5, 55));
 			Assert.AreEqual(1, LightningChainRules.Damage(1, 40));
 			Assert.AreEqual(0, LightningChainRules.Damage(0, 40));
 			Assert.AreEqual(0, LightningChainRules.Damage(60, 0));
+			Assert.AreEqual(24000000, LightningChainRules.Damage(60000000, 40));
 		}
 	}
 }
