@@ -43,12 +43,14 @@ namespace WitchMendokusai
 		public void BindDataManager(DataManager dataManager) => DataManager = dataManager;
 
 		private AchievementManager achievementManager;
+		private MonsterLogManager monsterLogManager;
 
 		[Inject]
-		public void Construct(SOManager soManager, AchievementManager achievementManager)
+		public void Construct(SOManager soManager, AchievementManager achievementManager, MonsterLogManager monsterLogManager)
 		{
 			this.soManager = soManager;
 			this.achievementManager = achievementManager;
+			this.monsterLogManager = monsterLogManager;
 		}
 
 		public void CreateNewGameData()
@@ -278,6 +280,7 @@ namespace WitchMendokusai
 
 			// 업적 판정 시작. 조각과 통계가 다 들어온 뒤라 첫 판정이 맞음
 			achievementManager.Begin(DataManager.FeatureSave<AchievementSaveSlice>(), criteriaContext);
+			monsterLogManager.Begin(DataManager.FeatureSave<MonsterLogSaveSlice>());
 
 			// 던전 초기화
 			ForEach<Dungeon>(dungeon => { dungeon.Init(); }); // 먼저 전부 Init (새로 추가된 던전 포함)

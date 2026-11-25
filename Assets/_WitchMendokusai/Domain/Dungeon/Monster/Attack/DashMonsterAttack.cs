@@ -7,6 +7,8 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Dash", menuName = "WM/Variable/MonsterAttack/" + nameof(DashMonsterAttack))]
 	public class DashMonsterAttack : MonsterAttack
 	{
+		public override string KindName => "돌진";
+
 		[field: Header("돌진")]
 		[field: SerializeField, Tooltip("돌진 속도 (m/s)"), Min(0.1f)] public float DashSpeed { get; private set; } = 9f;
 		[field: SerializeField, Tooltip("돌진 시간 (초). 길이는 속도 x 시간"), Min(0.05f)] public float DashDuration { get; private set; } = 0.6f;

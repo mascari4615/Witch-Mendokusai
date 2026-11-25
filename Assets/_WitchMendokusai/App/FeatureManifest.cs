@@ -20,6 +20,7 @@ namespace WitchMendokusai
 			new ArenaFeature(),
 			new AlchemyMapFeature(),
 			new AchievementFeature(),
+			new MonsterLogFeature(),
 		};
 
 		public static IReadOnlyList<IFeatureInstaller> Installers => installers;

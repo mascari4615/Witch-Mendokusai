@@ -8,6 +8,9 @@ namespace WitchMendokusai
 	// 예고 뒤 한 번 실행하는 종류는 WindupMonsterAttack, 돌진은 기존 돌진 행동 (BT_Dash) 을 씀. 정본 memo wm/design/crossing-threat-20261119 th6
 	public abstract class MonsterAttack : ScriptableObject
 	{
+		/// <summary>도감에 보이는 공격 종류 이름</summary>
+		public abstract string KindName { get; }
+
 		[field: Header("박자")]
 		[field: SerializeField, Tooltip("이 거리 안에 들어오면 준비 시작 (m)"), Min(0.5f)] public float TriggerRange { get; private set; } = 6f;
 		[field: SerializeField, Tooltip("멈춰서 예고하는 초. 피할 틈"), Min(0f)] public float WindupSeconds { get; private set; } = 0.8f;

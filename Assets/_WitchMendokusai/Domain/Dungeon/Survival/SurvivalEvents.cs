@@ -19,10 +19,18 @@ namespace WitchMendokusai
 		public int Count;
 	}
 
-	// 몬스터 한 마리 처치 (정예와 보스 포함). 처치 연쇄 표시가 셈
+	// 몬스터 한 마리 처치 (정예와 보스 포함). 처치 연쇄 표시와 도감 기록이 셈
 	public struct MonsterKilledEvent
 	{
 		public Vector3 Position;
+		public Monster Monster;
+		public bool IsElite;
+	}
+
+	// 플레이어가 던전에서 쓰러짐. 때린 것이 몬스터가 아니거나 모르면 Monster 는 null
+	public struct PlayerDefeatedEvent
+	{
+		public Monster Monster;
 	}
 
 	public struct EliteKilledEvent

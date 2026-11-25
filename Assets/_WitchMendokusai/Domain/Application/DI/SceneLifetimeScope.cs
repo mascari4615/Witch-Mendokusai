@@ -107,8 +107,8 @@ namespace WitchMendokusai
 			DevWindowController devWindowControllerPrefab = catalog.Get<DevWindowController>();
 			builder.RegisterComponentInNewPrefab(devWindowControllerPrefab, Lifetime.Scoped);
 
-			DiscoveryWindowController discoveryWindowControllerPrefab = catalog.Get<DiscoveryWindowController>();
-			builder.RegisterComponentInNewPrefab(discoveryWindowControllerPrefab, Lifetime.Scoped);
+			DiscoveryScreen discoveryScreenPrefab = catalog.Get<DiscoveryScreen>();
+			builder.RegisterComponentInNewPrefab(discoveryScreenPrefab, Lifetime.Scoped);
 
 			// 갈래는 자기가 심는다. 여기는 이름을 모른다 (목록은 WM.App 의 FeatureManifest 가 부팅 때 FeatureRegistry 에 채움)
 			installedFeatures.Clear();
@@ -137,7 +137,7 @@ namespace WitchMendokusai
 				ResolveIfPresent<StageManager>(container);
 				ResolveIfPresent<DungeonManager>(container);
 				BootGuard.EagerResolve<DevWindowController>(container, "Scene");
-				BootGuard.EagerResolve<DiscoveryWindowController>(container, "Scene");
+				BootGuard.EagerResolve<DiscoveryScreen>(container, "Scene");
 				for (int index = 0; index < installedFeatures.Count; index++)
 					installedFeatures[index].ResolveScene(container);
 				ResolveIfPresent<UIManager>(container);

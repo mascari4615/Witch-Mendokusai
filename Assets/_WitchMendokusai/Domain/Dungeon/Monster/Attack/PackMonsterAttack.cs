@@ -8,6 +8,8 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Pack", menuName = "WM/Variable/MonsterAttack/" + nameof(PackMonsterAttack))]
 	public class PackMonsterAttack : MonsterAttack
 	{
+		public override string KindName => "무리";
+
 		[field: Header("무리")]
 		[field: SerializeField, Tooltip("무리일 때 쓰는 공격")] public MonsterAttack GroupAttack { get; private set; }
 		[field: SerializeField, Tooltip("나를 포함해 이만큼 모이면 무리"), Min(2)] public int PackSize { get; private set; } = 3;

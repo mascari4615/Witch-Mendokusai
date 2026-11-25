@@ -8,6 +8,8 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Sequence", menuName = "WM/Variable/MonsterAttack/" + nameof(SequenceMonsterAttack))]
 	public class SequenceMonsterAttack : MonsterAttack
 	{
+		public override string KindName => "연속 공격";
+
 		[field: SerializeField, Tooltip("차례. 순서나 무리를 다시 넣지 않음")] public List<MonsterAttack> Steps { get; private set; } = new();
 
 		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider) =>

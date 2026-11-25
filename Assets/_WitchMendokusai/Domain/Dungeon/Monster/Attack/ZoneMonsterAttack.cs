@@ -15,6 +15,8 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Zone", menuName = "WM/Variable/MonsterAttack/" + nameof(ZoneMonsterAttack))]
 	public class ZoneMonsterAttack : WindupMonsterAttack
 	{
+		public override string KindName => "장판";
+
 		[field: Header("장판")]
 		[field: SerializeField, Tooltip("원 중심")] public ZoneCenter Center { get; private set; } = ZoneCenter.Target;
 		[field: SerializeField, Tooltip("원 반지름 (m)"), Min(0.3f)] public float Radius { get; private set; } = 2f;

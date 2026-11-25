@@ -265,6 +265,7 @@ namespace WitchMendokusai
 				CombatSfx.Play(CombatSfxEvent.PlayerDeath);
 				SurvivalFeel.Instance.OnPlayerDied(transform.position);
 				gameEventManager.Raise(GameEventType.OnPlayerDied);
+				EventBusBridge.Publish(new PlayerDefeatedEvent { Monster = Health.LastDamage.damageSource is MonsterObject killer ? killer.UnitData : null });
 				timeManager.DoSlowMotion();
 			}
 

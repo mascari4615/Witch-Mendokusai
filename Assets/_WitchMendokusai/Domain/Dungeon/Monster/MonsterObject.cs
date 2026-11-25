@@ -259,7 +259,7 @@ namespace WitchMendokusai
 					EventBusBridge.Publish(new BossKilledEvent { Monster = UnitData });
 				}
 				dataManager.DungeonStat[DungeonStatType.MONSTER_KILL]++;
-				EventBusBridge.Publish(new MonsterKilledEvent { Position = transform.position });
+				EventBusBridge.Publish(new MonsterKilledEvent { Position = transform.position, Monster = UnitData, IsElite = eliteProfile != null });
 			}
 
 			StopAllCoroutines();
