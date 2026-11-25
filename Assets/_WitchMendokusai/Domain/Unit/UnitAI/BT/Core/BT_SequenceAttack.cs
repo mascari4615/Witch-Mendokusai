@@ -11,6 +11,7 @@ namespace WitchMendokusai
 		private BTRunner step;
 		private int stepIndex;
 		private float readyTime;
+		private float stepStartTime;
 
 		public int CompletedCount { get; private set; }
 		public bool IsAttacking => step is IAttackCycle { IsAttacking: true };
@@ -28,7 +29,17 @@ namespace WitchMendokusai
 		{
 			if (step == null && Time.time < readyTime)
 				return chase.UpdateBT();
-			step ??= attack.Steps[stepIndex].CreateBehaviour(unitObject, playerProvider);
+			if (step == null)
+			{
+				step = attack.Steps[stepIndex].CreateBehaviour(unitObject, playerProvider);
+				stepStartTime = Time.time;
+			}
+			if (attack.SkipSeconds > 0f && IsAttacking == false && Time.time - stepStartTime > attack.SkipSeconds)
+			{
+				attack.Steps[stepIndex].Interrupt(step);
+				Advance();
+				return chase.UpdateBT();
+			}
 			// 공격 도중 반격으로 죽으면 Interrupt 가 step 을 비움
 			BTRunner running = step;
 			BTState state = running.UpdateBT();

@@ -105,8 +105,10 @@ namespace WitchMendokusai
 				rented.Add(mound);
 			}
 
-			float budSeconds = Mathf.Max(0f, context.Seconds - leadSeconds);
-			for (float time = 0f; time < budSeconds; time += Time.deltaTime)
+			// 다음 프레임이 때리는 순간을 넘기기 전에 솟기 시작. 낮은 프레임에서도 피해가 먼저 오지 않게
+			float budSeconds = Mathf.Max(0.01f, context.Seconds - leadSeconds);
+			float startTime = Time.time;
+			for (float time = 0f; time < budSeconds - Time.deltaTime; time = Time.time - startTime)
 			{
 				float progress = time / budSeconds;
 				if (fallHeight > 0f)
@@ -130,7 +132,8 @@ namespace WitchMendokusai
 			Chunk[] chunks = ThrowChunks(runner, ground, rented);
 			FxHold hold = context.Hold;
 			float sinkTime = 0f;
-			for (float time = 0f; time < chunkSeconds || sinkTime < sinkSeconds; time += Time.deltaTime)
+			float burstTime = Time.time;
+			for (float time = 0f; time < chunkSeconds || sinkTime < sinkSeconds; time = Time.time - burstTime)
 			{
 				bool isOver = hold != null ? Time.time >= hold.EndTime : time >= riseSeconds + holdSeconds;
 				if (hold != null && hold.IsGone)
@@ -144,7 +147,10 @@ namespace WitchMendokusai
 				float sink = Mathf.Clamp01(sinkTime / sinkSeconds);
 				bool isCracked = hold != null && hold.IsCracked;
 				body.sprite = isCracked && crackedSprite != null ? crackedSprite : settled;
-				Set(root, ground, isCracked ? Mathf.Sin(Time.time * trembleSpeed) * budTremble : 0f, scale, stretch, height * (up - 1f) - height * 1.05f * sink * sink);
+				// 떨어진 물체는 땅에 안 박혀 있어 오므라들며 사라짐
+				float buried = fallHeight > 0f ? 0f : height * 1.05f * sink * sink;
+				float size = fallHeight > 0f ? scale * (1f - sink * sink) : scale;
+				Set(root, ground, isCracked ? Mathf.Sin(Time.time * trembleSpeed) * budTremble : 0f, size, stretch, height * (up - 1f) - buried);
 				body.color = Color.Lerp(strikeTint, RestTint(hold), Mathf.Clamp01(settle / strikeTintSeconds));
 				body.enabled = sink < 1f;
 				SetMound(mound, ground, scale * (1f - sink));

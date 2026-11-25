@@ -17,7 +17,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("나갈 때. 앞이 오른쪽")] private Texture2D headOut;
 		[SerializeField, Tooltip("끝에 닿은 뒤와 돌아올 때. 앞이 오른쪽")] private Texture2D headBack;
 		[SerializeField, Tooltip("줄 한 마디. 가로로 이어짐")] private Texture2D link;
-		[SerializeField, Tooltip("머리 길이 (m)"), Min(0.1f)] private float headLength = 2.4f;
+		[SerializeField, Tooltip("머리 그림의 1m 당 칸. 몸과 칸 크기가 같게"), Min(1f)] private float headPixelsPerUnit = 23f;
 		[SerializeField, Tooltip("줄 한 마디 길이와 폭 (m)")] private Vector2 linkSize = new(0.7f, 0.35f);
 
 		[SerializeField] private Color shadowColor = new(0f, 0f, 0f, 0.35f);
@@ -62,10 +62,12 @@ namespace WitchMendokusai
 
 		private IEnumerator Routine(CombatFxContext context, FxQuadBatch[] batches)
 		{
-			yield return new WaitForSeconds(Mathf.Max(0f, context.Seconds - outSeconds - leadSeconds));
+			float flyTime = Time.time + context.Seconds - outSeconds - leadSeconds;
+			while (Time.time + Time.deltaTime < flyTime)
+				yield return null;
 			Vector3 direction = context.Direction.normalized;
 			Vector3 start = context.Origin;
-			Vector3 end = start + direction * (context.Length - headLength * 0.5f) + Vector3.up * endHeight;
+			Vector3 end = start + direction * (context.Length - HeadLength(headOut) * 0.5f) + Vector3.up * endHeight;
 			CombatSfx.Play(CombatSfxEvent.WeaponThrow, start);
 			for (float time = 0f; time < outSeconds; time += Time.deltaTime)
 			{
@@ -91,6 +93,8 @@ namespace WitchMendokusai
 				yield return null;
 			}
 		}
+
+		private float HeadLength(Texture2D texture) => texture.width / headPixelsPerUnit;
 
 		// 시전자가 사라져도 놓인 자리에서 마저 움직임
 		private Vector3 Root(CombatFxContext context, Vector3 start) => (context.Follow != null ? context.Follow.position : start) + context.Direction.normalized * launchForward + Vector3.up * launchHeight;
@@ -119,11 +123,12 @@ namespace WitchMendokusai
 			{
 				Vector3 forward = view.transform.forward;
 				FxQuadLook plain = FxQuadLook.Of(Color.white, 1f);
+				Texture2D texture = isOut ? headOut : headBack;
+				float headLength = HeadLength(texture);
 				Vector3 half = direction * (headLength * 0.5f);
 				Vector3 ground = new(head.x, context.Position.y + 0.06f, head.z);
 				batches[0].Add(ground, half, Vector3.Cross(direction, Vector3.up) * (headLength * 0.3f), FxQuadLook.Of(shadowColor, 1f));
 				// 머리 폭은 그림 비율대로
-				Texture2D texture = isOut ? headOut : headBack;
 				float width = headLength * texture.height / texture.width;
 				batches[isOut ? 2 : 3].AddStrip(head - half, head + half, width, forward, new Rect(0f, 0f, 1f, 1f), plain);
 				DrawCord(batches[1], Root(context, context.Origin), head - half * 0.9f, sag, forward, plain);

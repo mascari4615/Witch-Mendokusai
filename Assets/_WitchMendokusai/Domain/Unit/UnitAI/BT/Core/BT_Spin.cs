@@ -44,6 +44,19 @@ namespace WitchMendokusai
 				};
 				if (attack.WindupTelegraph != null)
 					stops.Add(attack.WindupTelegraph.Play(context));
+				if (attack.SweepTelegraph != null)
+				{
+					float half = Mathf.Sign(arm.DegreesPerSecond) * attack.SweepDegrees * 0.5f;
+					stops.Add(attack.SweepTelegraph.Play(new CombatFxContext
+					{
+						Position = unitObject.transform.position,
+						Follow = unitObject.transform,
+						Direction = Quaternion.Euler(0f, half, 0f) * context.Direction,
+						Radius = arm.Length,
+						ArcDegrees = attack.SweepDegrees,
+						Seconds = attack.WindupSeconds,
+					}));
+				}
 				// 바늘은 예고부터 끝까지 한 물체. 예고 동안 각도 0
 				context.Seconds = attack.WindupSeconds + attack.SpinSeconds;
 				context.Turn = seconds => arm.AngleAt(seconds - attack.WindupSeconds);

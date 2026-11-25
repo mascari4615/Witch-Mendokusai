@@ -32,8 +32,9 @@ MonoBehaviour:
   <WindupFx>k__BackingField: {fileID: 11400000, guid: 8f83f9a88f8640da9faeb981d7ea4b6d, type: 2}
   <StrikeFx>k__BackingField: {fileID: 0}
   <WindupFxOnce>k__BackingField: 0
+  <TelegraphInTurn>k__BackingField: 0
   <Linger>k__BackingField:
-    <Seconds>k__BackingField: 3.4
+    <Seconds>k__BackingField: 2.6
     <CoolSeconds>k__BackingField: 0.4
     <Radius>k__BackingField: 0.45
     <Damage>k__BackingField: 2

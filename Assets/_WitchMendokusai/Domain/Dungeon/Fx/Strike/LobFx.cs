@@ -37,7 +37,8 @@ namespace WitchMendokusai
 			Vector3 to = context.Position + Vector3.up * 0.25f;
 			float flySeconds = Mathf.Max(0.1f, context.Seconds - fuseSeconds);
 			CombatSfx.Play(CombatSfxEvent.WeaponThrow, context.Origin);
-			for (float time = 0f; time < flySeconds; time += Time.deltaTime)
+			float startTime = Time.time;
+			for (float time = 0f; time < flySeconds; time = Time.time - startTime)
 			{
 				body.sprite = flySprites[(int)(time * flyFps) % flySprites.Length];
 				body.transform.position = SlimeKingPatternMath.ArcPoint(from, to, arcHeight, time / flySeconds);

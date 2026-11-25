@@ -19,12 +19,12 @@ MonoBehaviour:
   previewSubtitle: ""
   set: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
   headOut: {fileID: 2800000, guid: b8e9066cbcd246448bf1de02602c3147, type: 3}
-  headBack: {fileID: 2800000, guid: c5f03e92267d4d2099c77c6c7e3780e8, type: 3}
+  headBack: {fileID: 2800000, guid: b8e9066cbcd246448bf1de02602c3147, type: 3}
   link: {fileID: 2800000, guid: e0c8fc80820e48acb1da318db0fed3fc, type: 3}
-  headLength: 2.3
+  headPixelsPerUnit: 23
   linkSize: {x: 0.9, y: 0.4}
-  launchHeight: 1.1
-  endHeight: 0.7
+  launchHeight: 0.75
+  endHeight: 0.45
   outSeconds: 0.16
   backSeconds: 0.24
   tugTremble: 0.14

@@ -12,6 +12,8 @@ namespace WitchMendokusai
 
 		[field: SerializeField, Tooltip("차례. 순서, 무리, 단계를 다시 넣지 않음")] public List<MonsterAttack> Steps { get; private set; } = new();
 
+		[field: SerializeField, Tooltip("한 차례를 이 초 동안 시작도 못 하면 (장애물에 막혀 사거리에 못 듦) 다음 차례로. 0 이면 계속 기다림"), Min(0f)] public float SkipSeconds { get; private set; }
+
 		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider) =>
 			new BT_SequenceAttack(unitObject, playerProvider, this);
 

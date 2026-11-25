@@ -7,6 +7,7 @@ namespace WitchMendokusai
 	public abstract class WindupMonsterAttack : MonsterAttack
 	{
 		[field: SerializeField, Tooltip("예고 물체를 첫 자리에만. 한 물체가 여러 번 때릴 때")] public bool WindupFxOnce { get; private set; }
+		[field: SerializeField, Tooltip("늦게 때리는 자리의 바닥 예고를 앞 자리가 때린 뒤에 띄움. 꺼져 있으면 모두 처음부터")] public bool TelegraphInTurn { get; private set; }
 		[field: SerializeField, Tooltip("때린 자리에 남는 물체. 초가 0 이면 안 남음")] public LingerSettings Linger { get; private set; } = new();
 
 		public override void Validate(Monster owner, List<string> errors)

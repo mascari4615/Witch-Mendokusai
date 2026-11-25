@@ -17,6 +17,8 @@ namespace WitchMendokusai
 		private readonly List<float> strikeTimes = new();
 		// 자리마다 남는 물체의 수명. 안 남는 공격은 null
 		private readonly List<FxHold> holds = new();
+		// 아직 안 띄운 자리의 예고 시각 (TelegraphInTurn). 띄웠으면 무한대
+		private readonly List<float> telegraphTimes = new();
 		private float recoveryEndTime;
 		private float readyTime;
 		private Action stopRecovery;
@@ -82,6 +84,7 @@ namespace WitchMendokusai
 			attack.ResolveTargets(unitObject, player.transform.position, SurvivalThreatRules.MoveVelocity(player.UnitMovement), targets);
 			strikeTimes.Clear();
 			holds.Clear();
+			telegraphTimes.Clear();
 			float windupEndTime = Time.time + attack.WindupSeconds;
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
 			attack.PlayWindupPose(unitObject, attack.WindupSeconds);
@@ -94,7 +97,9 @@ namespace WitchMendokusai
 				holds.Add(attack.Linger.Open(strikeTimes[i]));
 				CombatFxContext context = StrikeContext(i);
 				context.Seconds += delay;
-				if (attack.WindupTelegraph != null && attack.WindupSeconds > 0f)
+				bool isLater = attack.TelegraphInTurn && i > 0;
+				telegraphTimes.Add(isLater ? strikeTimes[i - 1] : float.PositiveInfinity);
+				if (isLater == false && attack.WindupTelegraph != null && attack.WindupSeconds > 0f)
 				{
 					Action stop = attack.WindupTelegraph.Play(context);
 					stopTelegraphs.Add(stop);
@@ -121,6 +126,7 @@ namespace WitchMendokusai
 				ClearTelegraphs();
 				return true;
 			}
+			PlayLaterTelegraphs();
 			dueIndices.Clear();
 			bool isWaiting = false;
 			for (int i = 0; i < targets.Count; i++)
@@ -141,6 +147,22 @@ namespace WitchMendokusai
 				Strike();
 			}
 			return isWaiting == false;
+		}
+
+		private void PlayLaterTelegraphs()
+		{
+			for (int i = 0; i < telegraphTimes.Count; i++)
+			{
+				if (Time.time < telegraphTimes[i] || attack.WindupTelegraph == null)
+					continue;
+				telegraphTimes[i] = float.PositiveInfinity;
+				CombatFxContext context = StrikeContext(i);
+				context.Seconds = Mathf.Max(0.05f, strikeTimes[i] - Time.time);
+				Action stop = attack.WindupTelegraph.Play(context);
+				stopTelegraphs.Add(stop);
+				if (GroundTelegraph.IsSkipped(stop))
+					strikeTimes[i] = float.PositiveInfinity;
+			}
 		}
 
 		private void Strike()

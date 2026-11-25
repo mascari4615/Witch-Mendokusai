@@ -25,6 +25,7 @@ MonoBehaviour:
   growSeconds: 0.6
   foldSeconds: 0.25
   tremble: 1.5
+  startOffset: 1.2
   trailCount: 7
   trailStep: 0.035
   trailColor: {r: 1.5, g: 0.85, b: 0.25, a: 0.3}

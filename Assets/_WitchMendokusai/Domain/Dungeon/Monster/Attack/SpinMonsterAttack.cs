@@ -39,6 +39,8 @@ namespace WitchMendokusai
 		public override string KindName => "도는 바늘";
 
 		[field: Header("도는 바늘")]
+		[field: SerializeField, Tooltip("예고 동안 바늘마다 쓸고 갈 쪽 부채. 비우면 없음")] public CombatFx SweepTelegraph { get; private set; }
+		[field: SerializeField, Range(5f, 180f)] public float SweepDegrees { get; private set; } = 55f;
 		[field: SerializeField, Tooltip("도는 초"), Min(0.5f)] public float SpinSeconds { get; private set; } = 5f;
 		[field: SerializeField] public List<SpinArm> Arms { get; private set; } = new();
 		[field: SerializeField, Tooltip("끝에서 이만큼은 거둬지는 중이라 안 아픔 (초). 바늘 그림의 거둬지는 초와 같게"), Min(0f)] public float FoldSeconds { get; private set; } = 0.25f;

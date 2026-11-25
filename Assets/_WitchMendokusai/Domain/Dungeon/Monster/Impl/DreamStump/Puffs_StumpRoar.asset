@@ -21,22 +21,24 @@ MonoBehaviour:
   sheet: {fileID: 2800000, guid: d05499cfcd5147cfb848ed6ff801ae89, type: 3}
   columns: 4
   rows: 4
-  frames: {x: 2, y: 14}
+  frames: {x: 3, y: 14}
   color: {r: 1.3, g: 1, b: 1.4, a: 1}
   cover: 0.85
-  count: 10
+  count: 18
   seconds: 0.8
   leadSeconds: 0
-  emitSeconds: 0.2
-  halfSize: {x: 0.6, y: 1.3}
-  lift: 0.2
+  emitSeconds: 0.14
+  halfSize: {x: 0.6, y: 1.2}
+  lift: 0.15
   originLift: 1.3
   travelRatio: 0
-  spread: 3.6
+  spread: 3.2
   alongPath: 0
   isFlat: 0
   flatTurn: 0
   onTop: 0
+  ringPuffCount: 18
+  ringPuffScale: 0.95
   ringRatio: 1
   ringSeconds: 0.35
   ringColor: {r: 1.4, g: 1, b: 1.8, a: 0.9}

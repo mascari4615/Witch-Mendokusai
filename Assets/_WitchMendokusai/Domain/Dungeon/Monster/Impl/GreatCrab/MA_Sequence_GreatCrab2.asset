@@ -28,3 +28,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9ce8f2df06bc41a49a3d903ffdb8e3a5, type: 2}
   - {fileID: 11400000, guid: cb062e5051254ca6a67661fe979d5808, type: 2}
   - {fileID: 11400000, guid: 729b792d528f49deadf19a8ac68fbffc, type: 2}
+  <SkipSeconds>k__BackingField: 4

@@ -39,6 +39,8 @@ namespace WitchMendokusai
 		private Action stopTrail;
 		// 준비 예고의 중단 함수. 준비가 도중에 끊기면 예고도 같이 치움
 		private Action stopTelegraph;
+		/// <summary> 다가가기를 끝내고 준비를 시작했는가 </summary>
+		public bool HasStarted { get; private set; }
 		// 이 행동이 건 밀림이 도는 중
 		private bool isDashing;
 		// 반격 창 표시의 중단 함수. 숨 고르기가 도중에 끊기면 같이 치움
@@ -125,6 +127,7 @@ namespace WitchMendokusai
 		private BTState PrepareDash()
 		{
 			CancelTelegraph();
+			HasStarted = true;
 			UpdateDestinationToPlayer();
 			Vector3 direction = moveDest - unitObject.transform.position;
 			direction.y = 0f;

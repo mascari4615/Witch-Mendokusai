@@ -16,22 +16,23 @@ MonoBehaviour:
   <WindupSeconds>k__BackingField: 1.5
   <RecoverySeconds>k__BackingField: 1.0
   <Cooldown>k__BackingField: 0
-  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 6ce4d759c4cb4e129b9f3c0c46223761, type: 2}
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
   <Pose>k__BackingField:
-    <Windup>k__BackingField: {fileID: 21300000, guid: c48354cde61d465d849fdfb72e025ca9, type: 3}
+    <Windup>k__BackingField: {fileID: 21300000, guid: cdbfe1447b614f1d813dc2ea0e82c6da, type: 3}
     <Strike>k__BackingField: {fileID: 21300000, guid: cdbfe1447b614f1d813dc2ea0e82c6da, type: 3}
     <Rest>k__BackingField: {fileID: 21300000, guid: cdbfe1447b614f1d813dc2ea0e82c6da, type: 3}
-    <Crouch>k__BackingField: 0.2
-    <Stretch>k__BackingField: 0.35
+    <Crouch>k__BackingField: 0.25
+    <Stretch>k__BackingField: 0.4
     <StrikeSeconds>k__BackingField: 1
     <StrikeLeadSeconds>k__BackingField: 0
-    <Tremble>k__BackingField: 0.12
+    <Tremble>k__BackingField: 0.14
     <Breath>k__BackingField: 0
   <WindupFx>k__BackingField: {fileID: 0}
   <StrikeFx>k__BackingField: {fileID: 11400000, guid: 2b4421a25e554eb3a9b305ad296d132c, type: 2}
   <WindupFxOnce>k__BackingField: 0
+  <TelegraphInTurn>k__BackingField: 0
   <Linger>k__BackingField:
     <Seconds>k__BackingField: 0
     <CoolSeconds>k__BackingField: 0.4

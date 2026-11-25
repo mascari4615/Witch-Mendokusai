@@ -37,6 +37,7 @@ MonoBehaviour:
   hotTint: {r: 1, g: 0.68, b: 0.95, a: 1}
   coolTint: {r: 0.5, g: 0.48, b: 0.55, a: 1}
   hotPulseSpeed: 7
+  hotPulse: 0.3
   crackedSprite: {fileID: 21300000, guid: 332474e147b0474492994d5072763c43, type: 3}
   moundSprite: {fileID: 0}
   moundScale: 1.3

@@ -16,7 +16,7 @@ MonoBehaviour:
   <WindupSeconds>k__BackingField: 1.2
   <RecoverySeconds>k__BackingField: 0.5
   <Cooldown>k__BackingField: 0
-  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 6ce4d759c4cb4e129b9f3c0c46223761, type: 2}
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
   <Pose>k__BackingField:
@@ -32,6 +32,7 @@ MonoBehaviour:
   <WindupFx>k__BackingField: {fileID: 11400000, guid: 8b6ba7a7d3e34e57a6bbdecfac9aef15, type: 2}
   <StrikeFx>k__BackingField: {fileID: 11400000, guid: 0caa9cd971fc462384da111e2ec16af5, type: 2}
   <WindupFxOnce>k__BackingField: 1
+  <TelegraphInTurn>k__BackingField: 1
   <Linger>k__BackingField:
     <Seconds>k__BackingField: 1.0499999999999998
     <CoolSeconds>k__BackingField: 0.4

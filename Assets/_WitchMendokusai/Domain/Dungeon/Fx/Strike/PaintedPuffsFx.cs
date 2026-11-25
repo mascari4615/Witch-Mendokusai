@@ -31,6 +31,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("바닥에서 높이 (m)")] private float lift = 0.7f;
 		[SerializeField, Tooltip("뿜는 높이 (m). 입 높이"), Min(0f)] private float originLift = 1.2f;
 		[SerializeField, Tooltip("Length 의 이만큼까지 감. 0 이면 제자리"), Range(0f, 1.2f)] private float travelRatio;
+		[SerializeField, Tooltip("덩이마다 가는 거리를 흔드는 비율 (최소, 최대)")] private Vector2 travelRange = new(0.7f, 1.05f);
 		[SerializeField, Tooltip("옆으로 흩어짐 (m)"), Min(0f)] private float spread;
 
 		[SerializeField, Tooltip("길 (Direction, Length) 위에 고르게 놓고 emitSeconds (0 이면 Seconds) 동안 차례로")] private bool alongPath;
@@ -78,8 +79,9 @@ namespace WitchMendokusai
 
 		private IEnumerator Routine(CombatFxContext context, FxQuadBatch puffBatch, FxQuadBatch ringBatch)
 		{
-			if (leadSeconds > 0f)
-				yield return new WaitForSeconds(Mathf.Max(0f, context.Seconds - leadSeconds));
+			float strikeTime = Time.time + context.Seconds;
+			while (leadSeconds > 0f && Time.time + Time.deltaTime < strikeTime - leadSeconds)
+				yield return null;
 			Begin(context);
 			Puff[] puffs = MakePuffs(context);
 			float end = Mathf.Max(EmitSeconds(context) + seconds, ringRatio > 0f ? ringSeconds : 0f);
@@ -171,15 +173,15 @@ namespace WitchMendokusai
 				return MakeRingPuffs(context);
 			Puff[] puffs = new Puff[count];
 			Vector3 direction = context.Direction.normalized;
-			bool isStream = travelRatio > 0f;
+			bool isStream = travelRatio > 0f && alongPath == false;
 			for (int i = 0; i < count; i++)
 			{
 				Vector2 side = Random.insideUnitCircle * spread;
 				Vector3 to = context.Position + Vector3.up * lift + new Vector3(side.x, 0f, side.y);
 				if (alongPath)
-					to += direction * (context.Length * i / Mathf.Max(1, count - 1));
+					to += direction * (context.Length * (travelRatio > 0f ? travelRatio : 1f) * i / Mathf.Max(1, count - 1));
 				else if (isStream)
-					to += direction * (context.Length * travelRatio * Random.Range(0.55f, 1f));
+					to += direction * (context.Length * travelRatio * Random.Range(travelRange.x, travelRange.y));
 				puffs[i] = new Puff
 				{
 					Start = count > 1 ? EmitSeconds(context) * i / (count - 1) : 0f,

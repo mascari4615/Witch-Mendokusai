@@ -9,13 +9,15 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "SpinArm_0", menuName = "WM/CombatFx/" + nameof(SpinArmFx))]
 	public class SpinArmFx : CombatFx
 	{
+		// 몸 그림 (3000) 보다 먼저 그려 몸과 주인공이 바늘 위에
 		private const int SHADOW_QUEUE = 2991;
-		private const int TRAIL_QUEUE = 3040;
-		private const int ARM_QUEUE = 3041;
+		private const int TRAIL_QUEUE = 2992;
+		private const int ARM_QUEUE = 2993;
 
 		[SerializeField, Tooltip("셰이더와 잡음을 빌리는 묶음")] private PaintedFxSet set;
 		[SerializeField, Tooltip("축이 왼쪽, 끝이 오른쪽인 그림")] private Texture2D texture;
 		[SerializeField, ColorUsage(true, true)] private Color color = Color.white;
+		[SerializeField, ColorUsage(true, true), Tooltip("예고와 방향을 바꾸려 멈춘 동안 달아오르는 색")] private Color stillColor = new(2.2f, 1.5f, 0.8f, 1f);
 		[SerializeField, Tooltip("그림 폭 (판정 폭의 배)"), Min(0.1f)] private float widthRatio = 1.6f;
 		[SerializeField, Tooltip("몸에서 이만큼 떨어진 데서 자라 나옴 (m). 몸 그림을 안 가리게. 판정과 별개"), Min(0f)] private float startOffset = 1.2f;
 		[SerializeField, Tooltip("바닥에서 높이 (m)"), Min(0f)] private float height = 0.45f;
@@ -72,7 +74,7 @@ namespace WitchMendokusai
 					if (Mathf.Approximately(past, turned) == false)
 						Add(trail, context, past, grown, height, FxQuadLook.Of(faded));
 				}
-				Add(arm, context, angle, grown, height, FxQuadLook.Of(color, 1f));
+				Add(arm, context, angle, grown, height, FxQuadLook.Of(isStill && grown >= 1f ? Color.Lerp(color, stillColor, 0.5f + 0.5f * Mathf.Sin(time * trembleSpeed * 0.4f)) : color, 1f));
 				shadow.Commit();
 				trail.Commit();
 				arm.Commit();
