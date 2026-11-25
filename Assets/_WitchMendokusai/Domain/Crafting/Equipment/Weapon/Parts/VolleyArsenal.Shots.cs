@@ -4,40 +4,50 @@ using Random = UnityEngine.Random;
 
 namespace WitchMendokusai
 {
-	// 일제 사격의 줄기, 총구 섬광, 맞은 자리. 줄기는 총구에서 탄 머리까지 이어지고 꼬리가 뒤따라 줄어듦
-	// 탄이 꺼지면 (맞음이나 수명 끝) 마지막 자리에서 터짐
+	// 일제 사격의 줄기, 총구 섬광, 맞은 자리
+	// - 줄기는 어둠, 몸, 심, 곁가지, 머리 다섯 겹. 총구에서 탄 머리까지 이어지고 꼬리가 뒤따라 줄어듦
+	// - 탄이 꺼지면 (맞음이나 수명 끝) 마지막 자리에서 플립북이 터지고 바닥에 자국이 남음
 	public sealed partial class VolleyArsenal
 	{
+		private static readonly int INTENSITY_ID = Shader.PropertyToID("_Intensity");
+
 		[Header("줄기")]
-		[SerializeField, Min(0.02f)] private float beamWidth = 0.62f;
-		[SerializeField, Min(0.02f), Tooltip("줄기 안을 나는 빛 무기의 길이")] private float boltLength = 1.3f;
+		[SerializeField, Min(0.02f), Tooltip("가장 굵은 몸의 폭")] private float beamWidth = 1.1f;
+		[SerializeField, Min(0.02f), Tooltip("머리 그림의 길이")] private float boltLength = 2.8f;
+		[SerializeField, Min(0.02f)] private float boltWidth = 0.95f;
+		[SerializeField, Min(0), Tooltip("곁을 따라 나는 바늘 줄기 수")] private int sideStreaks = 4;
+		[SerializeField, Min(0f)] private float sideSpread = 0.6f;
 		[SerializeField, Min(0f), Tooltip("꼬리가 총구에 머무는 길이")] private float tailHold = 0.3f;
 		[SerializeField, Min(1f), Tooltip("꼬리가 머리를 쫓는 빠르기")] private float tailSpeed = 25f;
-		[SerializeField, Min(0.02f), Tooltip("총구에서 나간 줄기가 실제 탄의 길로 모이는 길이")] private float convergeSeconds = 0.75f;
-		[SerializeField, Min(0.01f)] private float boltWidth = 0.2f;
-		[SerializeField, Min(0.02f), Tooltip("탄이 꺼진 뒤 줄기가 부서지는 길이")] private float beamFade = 0.22f;
+		[SerializeField, Min(0.02f), Tooltip("총구에서 나간 줄기가 실제 탄의 길로 모이는 길이")] private float convergeSeconds = 0.35f;
+		[SerializeField, Min(0.02f), Tooltip("탄이 꺼진 뒤 줄기가 깎이는 길이")] private float beamFade = 0.35f;
 		[SerializeField, Min(0f), Tooltip("탄 중심에서 그림 높이 (탄 충돌 높이와 같게)")] private float shotHeight = 0.8f;
 		[SerializeField, Min(0f), Tooltip("한 프레임에 이보다 멀리 뛰면 다른 탄으로 다시 쓰인 것으로 봄")] private float jumpDistance = 3f;
 		[SerializeField, Min(0f), Tooltip("끊긴 프레임에서 허용하는 빠르기 (월드/초)")] private float jumpSpeed = 45f;
 
-		[Header("섬광")]
-		[SerializeField, Min(0f)] private float muzzleSize = 1.05f;
-		[SerializeField, Min(0f)] private float impactSize = 1.5f;
-		[SerializeField, Min(0.02f)] private float flashSeconds = 0.22f;
-		[SerializeField, Min(1)] private int flashRays = 9;
-		[SerializeField, Min(0)] private int sparksPerFlash = 9;
-		[SerializeField, Range(0.05f, 1f), Tooltip("섬광 줄기의 폭 (길이 1 당)")] private float rayWidth = 0.13f;
-		[SerializeField, Range(0f, 1f), Tooltip("짧은 줄기의 길이 비율")] private float shortRay = 0.35f;
+		[Header("총구와 맞은 자리")]
+		[SerializeField, Min(0f)] private float muzzleSize = 2.8f;
+		[SerializeField, Min(0.02f)] private float muzzleSeconds = 0.34f;
+		[SerializeField, Min(0f)] private float impactSize = 3.4f;
+		[SerializeField, Min(0.02f)] private float impactSeconds = 0.5f;
+		[SerializeField, Min(0f)] private float pillarHeight = 2.6f;
+		[SerializeField, Min(0f)] private float pillarWidth = 0.32f;
+		[SerializeField, Min(0f)] private float ringSize = 1.5f;
+		[SerializeField, Min(0.02f)] private float ringSeconds = 0.32f;
+		[SerializeField, Min(0f)] private float scorchSize = 0.9f;
+		[SerializeField, Min(0.02f)] private float scorchSeconds = 1.4f;
+		[SerializeField, Min(0), Tooltip("플립북의 앞쪽 빈 칸을 건너뜀")] private int impactFirstFrame = 2;
+		[SerializeField, Min(0)] private int muzzleFirstFrame = 2;
+		[SerializeField, Min(0)] private int sparksPerMuzzle = 5;
+		[SerializeField, Min(0)] private int sparksPerImpact = 16;
+		[SerializeField, Min(0f)] private float sparkIntensity = 2.4f;
 
 		[Header("빛")]
 		[SerializeField, Min(0f)] private float lightIntensity = 4f;
-		[SerializeField, Min(0.1f)] private float lightRange = 7f;
+		[SerializeField, Min(0.1f)] private float lightRange = 9f;
 
 		private sealed class Tracer
 		{
-			public Transform Beam;
-			public Transform Bolt;
-			public Material BeamMaterial;
 			public Transform Shot;
 			public Vector3 Head;
 			public Vector3 Tail;
@@ -46,42 +56,55 @@ namespace WitchMendokusai
 			public Vector3 Shown;
 			public float StartTime;
 			public float EndTime;
+			public float Seed;
+			public int Row;
+			public float Scale;
 			public bool Alive;
 		}
 
-		private sealed class Burst
+		private struct Burst
 		{
-			public Transform[] Rays;
-			public float[] Lengths;
-			public Material Material;
+			public Vector3 Position;
+			public Vector3 Forward;
+			public float Ground;
 			public float StartTime;
-			public float Size;
-			public bool Alive;
+			public float Seed;
+			public float Scale;
+			public bool Muzzle;
 		}
 
 		private readonly List<Tracer> tracers = new();
 		private readonly List<Burst> bursts = new();
-		private Mesh beamMesh;
-		private Mesh boltMesh;
-		private Mesh rayMesh;
-		private Material boltMaterial;
+		private FxQuadBatch shaftBatch;
+		private FxQuadBatch streakShade;
+		private FxQuadBatch streakFront;
+		private FxQuadBatch boltBatch;
+		private FxQuadBatch impactBatch;
+		private FxQuadBatch muzzleBatch;
+		private FxQuadBatch flashSoft;
 		private ParticleSystem sparks;
 		private Light flashLight;
 		private float lightLevel;
 
 		private void PrepareShots()
 		{
-			beamMesh = Own(FormMeshes.Sheath(2, 12, 1f));
-			boltMesh = Own(FormMeshes.Bar(1f));
-			rayMesh = Own(FormMeshes.Sheath(1, 8, 1f));
-			boltMaterial = Solid();
-			boltMaterial.SetVector(DENSITY_ID, new Vector4(5f, boltLength * texelsPerUnit, 5f, 0f));
-			boltMaterial.SetVector(DISSOLVE_RANGE_ID, new Vector4(0f, 1f, 0f, 0f));
-			boltMaterial.SetFloat(HEAT_ID, 0.55f);
-			Material sparkMaterial = Energy(FRONT_QUEUE + 2);
-			sparkMaterial.SetVector(TEXELS_ID, Vector4.zero);
-			sparks = UltimateFxStage.CreateParticles("VolleySparks", root, sparkMaterial, 400, 0.35f, true);
-			UltimateFxStage.SetLifetimeLook(sparks, null, AnimationCurve.Linear(0f, 1f, 1f, 0.2f));
+			shaftBatch = Layer("Pillar", art.Soft, 3007);
+			streakShade = Layer("StreakShade", art.Streaks, 3008);
+			streakFront = Layer("Streak", art.Streaks, 3010);
+			boltBatch = Layer("Bolt", art.Bolt, 3012);
+			flashSoft = Layer("FlashSoft", art.Soft, 3013);
+			impactBatch = Layer("Impact", art.Impact, 3014);
+			muzzleBatch = Layer("Muzzle", art.Muzzle, 3016);
+			Material sparkMaterial = Own(new Material(art.Shader) { name = "VolleySpark", renderQueue = 3018, mainTexture = art.Spark });
+			sparkMaterial.SetTexture("_NoiseTex", art.Noise);
+			sparkMaterial.SetFloat(INTENSITY_ID, sparkIntensity);
+			sparks = UltimateFxStage.CreateParticles("VolleySparks", root, sparkMaterial, 600, 0.5f, true);
+			UltimateFxStage.SetLifetimeLook(sparks, UltimateFxStage.FadeGradient(Color.white, 0.02f, 0.45f), AnimationCurve.Linear(0f, 1f, 1f, 0.15f));
+			ParticleSystem.NoiseModule turbulence = sparks.noise;
+			turbulence.enabled = true;
+			turbulence.strength = 0.8f;
+			turbulence.frequency = 1.4f;
+			PrepareFinale();
 			flashLight = new GameObject("VolleyLight").AddComponent<Light>();
 			flashLight.transform.SetParent(root, false);
 			flashLight.type = LightType.Point;
@@ -90,7 +113,7 @@ namespace WitchMendokusai
 			flashLight.enabled = false;
 		}
 
-		private void StartTracer(Vector3 muzzle, Transform shot)
+		private void StartTracer(Vector3 muzzle, Transform shot, float scale)
 		{
 			// 풀이 같은 탄을 바로 다시 냈으면 옛 줄기는 거기서 끝
 			foreach (Tracer old in tracers)
@@ -101,11 +124,7 @@ namespace WitchMendokusai
 			Tracer tracer = tracers.Find(candidate => candidate.Alive == false);
 			if (tracer == null)
 			{
-				tracer = new Tracer { BeamMaterial = Energy(FRONT_QUEUE) };
-				tracer.BeamMaterial.SetFloat(SHAPE_ID, GLOW_SHAPE);
-				tracer.BeamMaterial.SetFloat(DISSOLVE_FROM_TIP_ID, 0f);
-				tracer.Beam = UltimateFxStage.CreateMeshObject("VolleyBeam", root, beamMesh, tracer.BeamMaterial).transform;
-				tracer.Bolt = UltimateFxStage.CreateMeshObject("VolleyBolt", root, boltMesh, boltMaterial).transform;
+				tracer = new Tracer();
 				tracers.Add(tracer);
 			}
 			tracer.Shot = shot;
@@ -115,21 +134,26 @@ namespace WitchMendokusai
 			tracer.Shown = muzzle;
 			tracer.StartTime = Time.time;
 			tracer.EndTime = float.PositiveInfinity;
+			tracer.Seed = Random.value;
+			tracer.Row = Random.value < 0.5f ? 1 : 2;
+			tracer.Scale = scale;
 			tracer.Alive = true;
 		}
 
-		private void UpdateShots()
+		private void DrawShots()
 		{
+			Vector3 viewForward = viewCamera.transform.forward;
 			foreach (Tracer tracer in tracers)
 			{
 				if (tracer.Alive)
-					UpdateTracer(tracer);
+					DrawTracer(tracer, viewForward);
 			}
-			foreach (Burst burst in bursts)
+			for (int i = bursts.Count - 1; i >= 0; i--)
 			{
-				if (burst.Alive)
-					UpdateBurst(burst);
+				if (DrawBurst(bursts[i], viewForward) == false)
+					bursts.RemoveAt(i);
 			}
+			DrawFinale();
 			lightLevel *= Mathf.Pow(0.5f, Time.deltaTime / 0.08f);
 			flashLight.enabled = lightLevel > 0.02f;
 			flashLight.intensity = lightIntensity * lightLevel;
@@ -142,134 +166,126 @@ namespace WitchMendokusai
 			tracer.Shot = null;
 			tracer.EndTime = Time.time;
 			tracer.Shown = tracer.Head;
-			Flash(tracer.Head, Vector3.up, impactSize);
+			bursts.Add(new Burst { Position = tracer.Head, Forward = Vector3.up, Ground = tracer.Head.y - shotHeight + groundLift, StartTime = Time.time, Seed = Random.value, Scale = tracer.Scale });
+			for (int i = 0; i < sparksPerImpact; i++)
+			{
+				Vector3 velocity = (Vector3.up * 0.8f + Random.onUnitSphere).normalized * Random.Range(2f, 8f);
+				UltimateFxStage.Emit(sparks, tracer.Head, velocity, Random.Range(0.08f, 0.2f), Random.Range(0.25f, 0.6f), Color.white);
+			}
 		}
 
-		private void UpdateTracer(Tracer tracer)
+		private void MuzzleFlash(Vector3 position, Vector3 forward)
 		{
-			if (tracer.EndTime == float.PositiveInfinity)
+			bursts.Add(new Burst { Position = position, Forward = forward, StartTime = Time.time, Seed = Random.value, Muzzle = true });
+			for (int i = 0; i < sparksPerMuzzle; i++)
+			{
+				Vector3 velocity = (forward * 1.6f + Random.onUnitSphere).normalized * Random.Range(3f, 9f);
+				UltimateFxStage.Emit(sparks, position, velocity, Random.Range(0.06f, 0.14f), Random.Range(0.15f, 0.35f), Color.white);
+			}
+		}
+
+		private void DrawTracer(Tracer tracer, Vector3 viewForward)
+		{
+			bool ended = tracer.EndTime != float.PositiveInfinity;
+			if (ended == false)
 			{
 				Vector3 now = tracer.Shot == null ? tracer.Head : tracer.Shot.position + Vector3.up * shotHeight;
 				bool gone = tracer.Shot == null || tracer.Shot.gameObject.activeInHierarchy == false || (now - tracer.Head).magnitude > Mathf.Max(jumpDistance, jumpSpeed * Time.deltaTime);
 				if (gone)
 				{
 					EndTracer(tracer);
+					ended = true;
 				}
 				else
 				{
 					tracer.Head = now;
-					tracer.Shown = now + tracer.Offset * (1f - Mathf.SmoothStep(0f, 1f, (Time.time - tracer.StartTime) / convergeSeconds));
+					tracer.Shown = now + tracer.Offset * (1f - Mathf.Clamp01((Time.time - tracer.StartTime) / convergeSeconds));
 				}
 			}
 			if (Time.time - tracer.StartTime > tailHold)
 				tracer.Tail = Vector3.MoveTowards(tracer.Tail, tracer.Shown, tailSpeed * Time.deltaTime);
+			float faded = ended ? Mathf.Clamp01((Time.time - tracer.EndTime) / beamFade) : 0f;
 			Vector3 span = tracer.Shown - tracer.Tail;
 			float length = span.magnitude;
-			float faded = Mathf.Clamp01((Time.time - tracer.EndTime) / beamFade);
-			bool ended = tracer.EndTime != float.PositiveInfinity;
 			if (faded >= 1f || (ended && length < 0.05f))
 			{
 				tracer.Alive = false;
-				ShowTracer(tracer, false);
 				return;
 			}
 			if (length < 0.05f)
-			{
-				ShowTracer(tracer, false);
 				return;
-			}
-			ShowTracer(tracer, true);
 			Vector3 direction = span / length;
-			Quaternion rotation = Quaternion.FromToRotation(Vector3.up, direction);
 			// 나온 순간 굵고 금방 제 굵기로
-			float birth = Mathf.Pow(0.5f, (Time.time - tracer.StartTime) / 0.05f);
-			float width = beamWidth * (1f + birth) * (1f - 0.5f * faded);
-			// 메시는 뿌리가 뾰족하고 끝으로 가늘어짐. 굵은 쪽이 머리에 오게 뒤집음
-			tracer.Beam.SetPositionAndRotation(tracer.Shown, Quaternion.FromToRotation(Vector3.up, -direction));
-			tracer.Beam.localScale = new Vector3(width, length, width);
-			tracer.BeamMaterial.SetVector(TEXELS_ID, new Vector4(Mathf.Max(4f, Mathf.Round(length * texelsPerUnit)), Mathf.Max(4f, Mathf.Round(beamWidth * texelsPerUnit)), 0f, 0f));
-			tracer.BeamMaterial.SetFloat(DISSOLVE_ID, faded);
-			tracer.BeamMaterial.SetFloat(FLASH_ID, birth * 0.5f);
-			float boltSize = Mathf.Min(boltLength, length);
-			tracer.Bolt.SetPositionAndRotation(tracer.Shown - direction * boltSize, rotation * Quaternion.Euler(0f, 45f, 0f));
-			tracer.Bolt.localScale = new Vector3(boltWidth, boltSize, boltWidth);
-			tracer.Bolt.gameObject.SetActive(ended == false);
-		}
+			float birth = Mathf.Pow(0.5f, (Time.time - tracer.StartTime) / 0.06f);
+			float width = beamWidth * tracer.Scale * (1f + 0.7f * birth) * (1f - 0.5f * faded);
+			Color body = Color.Lerp(lightTint, hotTint, birth * 0.5f);
 
-		// 별 모양 섬광. 앞 (forward) 이 위면 맞은 자리 (위로 퍼짐), 아니면 총구 (앞으로 퍼짐)
-		private void Flash(Vector3 position, Vector3 forward, float size)
-		{
-			Burst burst = bursts.Find(candidate => candidate.Alive == false);
-			if (burst == null)
+			streakShade.AddStrip(tracer.Tail, tracer.Shown, width * 1.3f, viewForward, PaintedFxSet.StreakRow(2), FxQuadLook.Of(WithAlpha(shadeTint, 0.7f), 1f, faded, tracer.Seed));
+			FxQuadLook look = FxQuadLook.Of(body, 0.6f, faded, tracer.Seed);
+			look.Distort = 0.02f;
+			streakFront.AddStrip(tracer.Tail, tracer.Shown, width, viewForward, PaintedFxSet.StreakRow(tracer.Row), look);
+			look = FxQuadLook.Of(WithAlpha(hotTint, 0.8f), 0f, faded, tracer.Seed);
+			streakFront.AddStrip(tracer.Tail, tracer.Shown, width * 0.9f, viewForward, PaintedFxSet.StreakRow(0), look);
+			Vector3 side = FxQuadBatch.Side(direction, viewForward);
+			for (int i = 0; i < sideStreaks; i++)
 			{
-				burst = new Burst { Material = Energy(FRONT_QUEUE + 1), Rays = new Transform[flashRays], Lengths = new float[flashRays] };
-				burst.Material.SetFloat(SHAPE_ID, GLOW_SHAPE);
-				burst.Material.SetFloat(DISSOLVE_FROM_TIP_ID, 0f);
-				burst.Material.SetVector(TEXELS_ID, new Vector4(24f, 6f, 0f, 0f));
-				for (int i = 0; i < flashRays; i++)
-					burst.Rays[i] = UltimateFxStage.CreateMeshObject("VolleyRay", root, rayMesh, burst.Material).transform;
-				bursts.Add(burst);
+				float offset = sideSpread * (Mathf.Repeat(tracer.Seed * 13.7f + i * 0.618f, 1f) * 2f - 1f);
+				float start = Mathf.Repeat(tracer.Seed * 5.3f + i * 0.43f, 0.5f);
+				look = FxQuadLook.Of(Scale(lightTint, 0.8f), 0f, faded, tracer.Seed + i);
+				streakFront.AddStrip(tracer.Tail + span * start + side * offset, tracer.Shown - span * (0.1f * i) + side * (offset * 0.4f), width * 0.7f, viewForward, PaintedFxSet.StreakRow(i % 2 == 0 ? 0 : 3), look);
 			}
-			burst.StartTime = Time.time;
-			burst.Size = size;
-			burst.Alive = true;
-			Vector3 facing = -CameraForward();
-			Vector3 axis = Vector3.ProjectOnPlane(forward, facing).normalized;
-			if (axis.sqrMagnitude < 0.01f)
-				axis = viewCamera.transform.up;
-			for (int i = 0; i < burst.Rays.Length; i++)
-			{
-				float angle = 360f * i / burst.Rays.Length + Random.Range(-18f, 18f);
-				Vector3 direction = Quaternion.AngleAxis(angle, facing) * axis;
-				// 앞쪽 줄기가 길고 뒤쪽이 짧음
-				burst.Lengths[i] = Mathf.Lerp(0.4f, 1f, Vector3.Dot(direction, axis) * 0.5f + 0.5f) * Random.Range(0.8f, 1.1f) * (i % 2 == 0 ? 1f : shortRay);
-				burst.Rays[i].SetPositionAndRotation(position + facing * 0.1f, Quaternion.LookRotation(-facing, direction));
-				burst.Rays[i].gameObject.SetActive(true);
-			}
-			UpdateBurst(burst);
-			for (int i = 0; i < sparksPerFlash; i++)
-			{
-				Vector3 velocity = (forward * 0.9f + Random.onUnitSphere).normalized * Random.Range(2.5f, 7f);
-				UltimateFxStage.Emit(sparks, position, velocity, Random.Range(0.05f, 0.1f), Random.Range(0.18f, 0.35f), Color.white);
-			}
-		}
-
-		private void UpdateBurst(Burst burst)
-		{
-			float progress = (Time.time - burst.StartTime) / flashSeconds;
-			if (progress >= 1f)
-			{
-				burst.Alive = false;
-				foreach (Transform ray in burst.Rays)
-					ray.gameObject.SetActive(false);
+			if (ended)
 				return;
-			}
-			burst.Material.SetFloat(DISSOLVE_ID, Mathf.Clamp01((progress - 0.35f) / 0.65f));
-			burst.Material.SetFloat(FLASH_ID, 1f - progress);
-			burst.Material.SetFloat(INTENSITY_ID, Mathf.Lerp(1.5f, 1f, progress));
-			for (int i = 0; i < burst.Rays.Length; i++)
-				burst.Rays[i].localScale = new Vector3(burst.Size * rayWidth, burst.Size * burst.Lengths[i] * (0.85f + 0.25f * progress), 1f);
+			float headLength = Mathf.Min(boltLength, length + 0.8f);
+			look = FxQuadLook.Of(body, 0.7f, 0f, tracer.Seed);
+			look.Distort = 0.03f;
+			boltBatch.AddStrip(tracer.Shown - direction * (headLength * 0.85f), tracer.Shown + direction * (headLength * 0.15f), boltWidth * tracer.Scale * (1f + 0.5f * birth), viewForward, new Rect(0f, 0f, 1f, 1f), look);
+			Billboard(flashSoft, tracer.Shown, 0.5f, 0f, FxQuadLook.Of(Scale(lightTint, 0.22f)));
 		}
 
-		private static void ShowTracer(Tracer tracer, bool visible)
+		// 끝났으면 false
+		private bool DrawBurst(in Burst burst, Vector3 viewForward)
 		{
-			tracer.Beam.gameObject.SetActive(visible);
-			tracer.Bolt.gameObject.SetActive(visible);
+			float age = Time.time - burst.StartTime;
+			if (burst.Muzzle)
+			{
+				if (age >= muzzleSeconds)
+					return false;
+				Rect cell = FxQuadBatch.Cell(Frame(age / muzzleSeconds, muzzleFirstFrame), 4, 4);
+				float half = muzzleSize * 0.5f;
+				Vector3 center = burst.Position + burst.Forward * ((0.5f - art.MuzzleOrigin) * muzzleSize);
+				float heat = Mathf.Pow(0.5f, age / 0.05f);
+				muzzleBatch.Add(center, burst.Forward * half, FxQuadBatch.Side(burst.Forward, viewForward) * half, cell, FxQuadLook.Of(Color.Lerp(lightTint, hotTint, heat * 0.6f), 0.5f));
+				if (heat > 0.05f)
+					Billboard(flashSoft, burst.Position, 0.8f, 0f, FxQuadLook.Of(Scale(lightTint, heat * 0.35f)));
+				return true;
+			}
+			if (age < impactSeconds)
+			{
+				Rect cell = FxQuadBatch.Cell(Frame(age / impactSeconds, impactFirstFrame), 4, 4);
+				float heat = Mathf.Pow(0.5f, age / 0.06f);
+				float progress = age / impactSeconds;
+				// 짧은 빛기둥
+				Vector3 pillar = Vector3.up * (pillarHeight * burst.Scale * (0.4f + 0.6f * Mathf.Sqrt(progress)));
+				Vector3 pillarSide = Vector3.Cross(viewForward, Vector3.up).normalized * (pillarWidth * burst.Scale * (1f - progress));
+				shaftBatch.Add(burst.Position + pillar - Vector3.up * shotHeight, pillarSide, pillar, FxQuadLook.Of(Scale(lightTint, 0.9f * (1f - progress))));
+				Billboard(flashSoft, burst.Position, impactSize * 0.75f, 0f, FxQuadLook.Of(WithAlpha(shadeTint, 0.5f * (1f - progress)), 1f));
+				Billboard(impactBatch, burst.Position, impactSize * burst.Scale * 0.5f * (0.9f + 0.25f * progress), (burst.Seed - 0.5f) * 50f, cell, FxQuadLook.Of(Color.Lerp(Scale(lightTint, 0.9f), hotTint, heat * 0.35f), 0.8f));
+				if (heat > 0.05f)
+					Billboard(flashSoft, burst.Position, impactSize * 0.5f, 0f, FxQuadLook.Of(Scale(lightTint, heat * 0.3f)));
+			}
+			DrawImpactGround(burst, age);
+			return age < scorchSeconds;
 		}
+
+		private static int Frame(float progress, int first) => Mathf.Min(15, first + Mathf.FloorToInt(progress * (16 - first)));
 
 		private void StopShots()
 		{
 			foreach (Tracer tracer in tracers)
-			{
 				tracer.Alive = false;
-				ShowTracer(tracer, false);
-			}
-			foreach (Burst burst in bursts)
-			{
-				burst.Alive = false;
-				foreach (Transform ray in burst.Rays)
-					ray.gameObject.SetActive(false);
-			}
+			bursts.Clear();
+			StopFinale();
 			if (flashLight != null)
 				flashLight.enabled = false;
 			lightLevel = 0f;

@@ -420,8 +420,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91f17afce6a54103967376c3d9adc212, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.VolleyArsenal
-  energyShader: {fileID: 4800000, guid: e61a4233b9a045cb973c5198ac7a5f17, type: 3}
-  solidShader: {fileID: 4800000, guid: ffcdeff22cb14f2e8a5a20276529c2e2, type: 3}
+  art: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
 --- !u!114 &5518027364091727732
 MonoBehaviour:
   m_ObjectHideFlags: 0

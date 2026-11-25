@@ -45,6 +45,15 @@ namespace WitchMendokusai
 
 		private static int GreatestCommonDivisor(int left, int right) => right == 0 ? left : GreatestCommonDivisor(right, left % right);
 
+		// 포화 길이 안에서 탄 index 가 나가는 때 (0 에서 1). acceleration 이 1 보다 크면 뒤로 갈수록 몰아침. 처음은 0, 끝은 1
+		public static float BurstProgress(int index, int count, float acceleration)
+		{
+			if (count <= 0)
+				return 1f;
+			float left = Math.Max(0f, 1f - index / (float)count);
+			return 1f - (float)Math.Pow(left, Math.Max(1f, acceleration));
+		}
+
 		// 탄 i 의 부채꼴 안 각도 (도). 고르게 나누고 가운데가 0
 		public static float FanAngle(int index, int count, float fanDegrees)
 		{

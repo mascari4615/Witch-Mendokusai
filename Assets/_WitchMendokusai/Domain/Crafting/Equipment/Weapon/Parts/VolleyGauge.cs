@@ -29,6 +29,7 @@ namespace WitchMendokusai
 		[SerializeField] private float fanDegrees = 50f;
 		[SerializeField] private float focusFanDegrees = 20f;
 		[SerializeField, Min(0f)] private float burstSeconds = 1f;
+		[SerializeField, Min(1f), Tooltip("1 이면 고른 간격. 클수록 또박또박 시작해 뒤로 몰아침 (전체 길이는 그대로)")] private float burstAcceleration = 1.7f;
 		[SerializeField, Min(0f), Tooltip("연속 포화의 두 번째까지 쉬는 시간")] private float splitGapSeconds = 0.4f;
 		[SerializeField, Min(0f), Tooltip("포화 탄이 나오는 자리의 옆 폭")] private float weaponSpread = 1.2f;
 		[SerializeField, Range(0, 200)] private int splitPercent = 60;
@@ -110,7 +111,7 @@ namespace WitchMendokusai
 				raiseDelay += wait - gap;
 				int count = VolleyGaugeRules.ShotCount(baseWeapons, PlayerStat[bonusWeaponsStat], shotsPerWeapon);
 				if (count > 0)
-					arsenal.Raise(playerProvider.Current.transform, AimDirection, count);
+					arsenal.Raise(playerProvider.Current.transform, AimDirection, count, focus ? focusFanDegrees : fanDegrees);
 				yield return new WaitForSeconds(wait);
 				yield return Burst(count, focus ? focusFanDegrees : fanDegrees, percent);
 			}
@@ -124,15 +125,14 @@ namespace WitchMendokusai
 		{
 			bool homing = PlayerStat[homingStat] > 0;
 			int beams = PlayerStat[beamStat] > 0 ? beamCount : 0;
-			float step = count > 0 ? burstSeconds / count : 0f;
 			for (int i = 0; i < count; i++)
 			{
 				GameObject prefab = homing && Random.Range(0, 100) < homingPercent ? homingShotPrefab : shotPrefab;
 				arsenal.Fire(i, SpawnShot(prefab, VolleyGaugeRules.FanAngle(i, count, fan), percent));
 				if (i < beams)
 					SpawnShot(beamPrefab, VolleyGaugeRules.FanAngle(i, beams, fan), percent);
-				if (step > 0f)
-					yield return new WaitForSeconds(step);
+				if (burstSeconds > 0f)
+					yield return new WaitForSeconds(burstSeconds * (VolleyGaugeRules.BurstProgress(i + 1, count, burstAcceleration) - VolleyGaugeRules.BurstProgress(i, count, burstAcceleration)));
 			}
 		}
 
