@@ -11,6 +11,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			CheckReferences(catalog, problems);
 			CheckShapes(catalog, problems);
 			CheckSources(catalog, problems);
+			CheckLayout(catalog, problems);
 			return problems;
 		}
 
@@ -205,6 +206,36 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			if (catalog.Tuning.GuildSteps.Count < 2 || catalog.Tuning.ComfortSteps.Count < 2)
 			{
 				problems.Add("길드나 아늑함 단계표가 비었음");
+			}
+		}
+
+		// 건물마다 배치 정의와 처음 자리가 있고, 처음 배치끼리 겹치지 않음
+		private static void CheckLayout(HomesteadCatalog catalog, List<string> problems)
+		{
+			foreach (BuildingDef building in catalog.Buildings)
+			{
+				Need<PlaceableDef>(catalog, building.Id, "건물 자리", problems);
+			}
+			List<PlacedPiece> laid = new List<PlacedPiece>();
+			foreach (PlacedPiece piece in VillageRules.Expand(catalog))
+			{
+				if (catalog.TryGet(piece.Id, out PlaceableDef placeable) == false)
+				{
+					problems.Add($"처음 배치: {piece.Id} 없음");
+					continue;
+				}
+				if (VillageRules.IsInside(catalog.VillageArea, placeable, piece.X, piece.Z, piece.Turn) == false)
+				{
+					problems.Add($"처음 배치: {piece.Id} ({piece.X}, {piece.Z}) 마을 밖");
+				}
+				foreach (PlacedPiece other in laid)
+				{
+					if (VillageRules.Collides(placeable, piece, catalog.Get<PlaceableDef>(other.Id), other))
+					{
+						problems.Add($"처음 배치: {piece.Id} ({piece.X}, {piece.Z}) 와 {other.Id} ({other.X}, {other.Z}) 겹침");
+					}
+				}
+				laid.Add(piece);
 			}
 		}
 

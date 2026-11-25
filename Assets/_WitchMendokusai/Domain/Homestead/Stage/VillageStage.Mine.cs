@@ -104,8 +104,7 @@ namespace WitchMendokusai
 
 		private void LeaveMineByLift()
 		{
-			BuildingSite quarry = System.Array.Find(sites, site => site.Id == "quarry");
-			Vector3 door = quarry.Position + Quaternion.Euler(0f, quarry.Yaw, 0f) * (quarry.Door + new Vector3(0f, 0f, -1f));
+			Vector3 door = DoorPoint("quarry", 0.8f);
 			MovePlayer(door + Vector3.up * 0.1f, LeaveMine);
 			manager.Save();
 		}

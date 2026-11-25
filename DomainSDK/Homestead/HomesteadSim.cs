@@ -35,6 +35,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			Purse = purse;
 			this.random = random;
 			EnsurePlots();
+			EnsureLayout();
 		}
 
 		public long Day => State.Minutes / Tuning.MinutesPerDay + State.ExtraDays;

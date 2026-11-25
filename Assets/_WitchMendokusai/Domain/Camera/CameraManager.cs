@@ -452,18 +452,19 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>마을 경영 시점 순환 (F6): Normal → CityView(부감) → FreeFly(자유비행) → Normal. TASK-WM-193.
-		/// Dungeon/Arena 등 특수 모드 중엔 Normal 로 복귀.</summary>
+		/// 카메라가 놓이지 않은 시점은 건너뜀. Dungeon/Arena 등 특수 모드 중엔 Normal 로 복귀.</summary>
 		public void CycleContentView()
 		{
 			ContentCameraMode next = CurrentContentMode switch
 			{
 				ContentCameraMode.Normal => ContentCameraMode.CityView,
 				ContentCameraMode.CityView => ContentCameraMode.FreeFly,
-				ContentCameraMode.FreeFly => ContentCameraMode.Normal,
 				_ => ContentCameraMode.Normal,
 			};
-			SetContentCameraMode(next);
+			SetContentCameraMode(HasContentCamera(next) ? next : ContentCameraMode.Normal);
 		}
+
+		private bool HasContentCamera(ContentCameraMode mode) => Array.Exists(cameras, candidate => candidate.ContentCameraMode == mode);
 
 		public void Zoom()
 		{

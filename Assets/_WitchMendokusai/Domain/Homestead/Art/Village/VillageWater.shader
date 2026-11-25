@@ -40,6 +40,7 @@ Shader "WM/VillageWater"
             #pragma multi_compile_fog
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "VillageSky.hlsl"
 
             TEXTURE2D(_Noise);
             SAMPLER(sampler_Noise);
@@ -133,10 +134,17 @@ Shader "WM/VillageWater"
                 float2 bed = input.positionWS.xz - viewWS.xz / max(viewWS.y, 0.2) * depth * _MaxDepth * 0.75 + normalWS.xz * 0.5;
                 float caustic = Caustic(bed) * _CausticStrength * shadow * saturate(light.direction.y * 1.5) * smoothstep(0.02, 0.2, depth) * (1.0 - through * 0.75);
 
-                float fresnel = 0.03 + 0.97 * pow(1.0 - saturate(dot(normalWS, viewWS)), 5.0);
+                // 하늘과 구름을 그대로 비춤. 낮은 쪽은 둘레 숲의 그늘빛
+                float fresnel = 0.02 + 0.98 * pow(1.0 - saturate(dot(normalWS, viewWS)), 4.0);
                 float3 reflected = reflect(-viewWS, normalWS);
-                half3 sky = GlossyEnvironmentReflection(reflected, 0.12, 1.0);
-                float mirror = saturate(fresnel * 1.6 + 0.06) * _Reflect;
+                reflected.y = abs(reflected.y) + 0.02;
+                reflected = normalize(reflected);
+                half3 sky = VillageSky(reflected, 3);
+                half3 bank = half3(0.10, 0.17, 0.08) * (ambient + light.color * 0.35);
+                sky = lerp(bank, sky, smoothstep(0.10, 0.30, reflected.y));
+                float mirror = saturate(fresnel * 1.5 + _Reflect * 0.32) * smoothstep(0.0, 0.35, depth + 0.1);
+                // 비스듬히 볼수록 속이 안 보임
+                alpha = saturate(alpha + (1.0 - saturate(viewWS.y)) * 0.35 * smoothstep(0.02, 0.2, depth));
 
                 float3 halfway = normalize(light.direction + viewWS);
                 float glint = pow(saturate(dot(normalWS, halfway)), _GlintPower) * _GlintStrength * shadow;

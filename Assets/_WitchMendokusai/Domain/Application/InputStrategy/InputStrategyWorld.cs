@@ -212,6 +212,7 @@ namespace WitchMendokusai
 				InputEventType.Submit,
 				new[]
 				{
+					GameConditionType.IsFreeCameraMode,
 					GameConditionType.IsPaused,
 					GameConditionType.IsTyping,
 					GameConditionType.IsDied,

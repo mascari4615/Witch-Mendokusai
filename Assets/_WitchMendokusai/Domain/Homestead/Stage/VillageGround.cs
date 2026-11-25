@@ -6,6 +6,7 @@ namespace WitchMendokusai
 {
 	// 마을 바닥. 평평한 빈터에 숲 지형 셰이더 칠 (R 풀, G 흙 섞인 풀, B 흙길), 풀잎과 꽃, 둘레 숲, 경계 벽
 	// 풀잎과 판 묶음은 숲 바닥 (ForestFloor) 의 것을 그대로. 자리 판정만 마을 것
+	// 놓인 것 아래의 풀과 흙길은 VillageGround.Cells
 	public sealed partial class VillageGround : MonoBehaviour
 	{
 		private const int FLOWER_KIND_COUNT = 4;
@@ -82,6 +83,8 @@ namespace WitchMendokusai
 		private readonly List<(Vector2 Center, float Radius)> blocks = new();
 		private readonly List<(Vector2 Center, float Radius)> waters = new();
 		private Color32[] controlPixels;
+		private float[] edgeNoise;
+		private Texture2D control;
 
 		private void OnDestroy()
 		{
@@ -168,6 +171,7 @@ namespace WitchMendokusai
 		private void Paint(MeshRenderer floorRenderer)
 		{
 			controlPixels = new Color32[paintResolution * paintResolution];
+			edgeNoise = new float[paintResolution * paintResolution];
 			for (int j = 0; j < paintResolution; j++)
 			{
 				for (int i = 0; i < paintResolution; i++)
@@ -186,9 +190,10 @@ namespace WitchMendokusai
 					float bed = BedWeight(x, z, noise);
 					float share = (1f - bed) / (grass + earth + path);
 					controlPixels[j * paintResolution + i] = new Color32((byte)(grass * share * 255f), (byte)(earth * share * 255f), (byte)(path * share * 255f), (byte)(bed * 255f));
+					edgeNoise[j * paintResolution + i] = noise;
 				}
 			}
-			Texture2D control = new(paintResolution, paintResolution, TextureFormat.RGBA32, false, true)
+			control = new Texture2D(paintResolution, paintResolution, TextureFormat.RGBA32, false, true)
 			{
 				name = "VillageControl",
 				hideFlags = HideFlags.DontSave,
@@ -293,7 +298,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < cells.Length; i++)
 			{
 				if (cells[i].IsEmpty == false)
-					AddChildMesh("Grass " + i, cells[i].ToMesh("VillageGrass" + i), grassMaterial);
+					KeepGrass(AddChildMesh("Grass " + i, cells[i].ToMesh("VillageGrass" + i), grassMaterial));
 			}
 		}
 
@@ -335,7 +340,7 @@ namespace WitchMendokusai
 				}
 			}
 			for (int i = 0; i < FLOWER_KIND_COUNT; i++)
-				AddChildMesh("Flowers " + i, batches[i].ToMesh("VillageFlowers" + i), flowerMaterials[i]);
+				KeepGrass(AddChildMesh("Flowers " + i, batches[i].ToMesh("VillageFlowers" + i), flowerMaterials[i]), FLOWER_VERTICES);
 		}
 
 		private void BuildFerns()
@@ -365,7 +370,7 @@ namespace WitchMendokusai
 			AddChildMesh("Ferns", batch.ToMesh("VillageFerns"), fernMaterial);
 		}
 
-		private void AddChildMesh(string objectName, Mesh mesh, Material material)
+		private Mesh AddChildMesh(string objectName, Mesh mesh, Material material)
 		{
 			generated.Add(mesh);
 			GameObject child = new(objectName);
@@ -374,6 +379,7 @@ namespace WitchMendokusai
 			MeshRenderer childRenderer = child.AddComponent<MeshRenderer>();
 			childRenderer.sharedMaterial = material;
 			childRenderer.shadowCastingMode = ShadowCastingMode.Off;
+			return mesh;
 		}
 
 		private void BuildForest()

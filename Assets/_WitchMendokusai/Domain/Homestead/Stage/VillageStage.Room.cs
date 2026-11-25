@@ -8,6 +8,7 @@ namespace WitchMendokusai
 	public sealed partial class VillageStage
 	{
 		private const string FURNITURE_KEY = "F_";
+		private const int EXHIBIT_ROWS = 5;
 
 		[Header("Room")]
 		[SerializeField] private float roomHeight = 2.8f;
@@ -18,9 +19,9 @@ namespace WitchMendokusai
 		[SerializeField] private float furnitureGlowIntensity = 1.6f;
 
 		[Header("Museum garden")]
-		[SerializeField] private Vector3 gardenOrigin = new(6.5f, 0f, 16.5f);
-		[SerializeField] private int gardenColumns = 15;
-		[SerializeField] private Vector2 gardenGap = new(1f, 1f);
+		[SerializeField] private Vector3 exhibitOrigin = new(-8.5f, 0f, 25.5f);
+		[SerializeField] private int exhibitColumns = 15;
+		[SerializeField] private Vector2 exhibitGap = new(1f, 1f);
 
 		private Transform room;
 		private GameObject roomShell;
@@ -184,7 +185,7 @@ namespace WitchMendokusai
 
 		private void EnterRoom() => MovePlayer(roomOffset + new Vector3(0f, 0.1f, -Sim.HouseTier.Depth / 2f + 0.6f));
 
-		private void LeaveRoom() => MovePlayer(housePosition + Quaternion.Euler(0f, houseYaw, 0f) * (houseDoor + new Vector3(0f, 0f, -0.8f)) + Vector3.up * 0.1f);
+		private void LeaveRoom() => MovePlayer(DoorPoint(HomesteadSim.HOME, 0.6f) + Vector3.up * 0.1f);
 
 		private void Rest()
 		{
@@ -214,10 +215,10 @@ namespace WitchMendokusai
 			}
 			garden = new GameObject("MuseumGarden");
 			garden.transform.SetParent(outdoor, false);
-			garden.transform.localPosition = gardenOrigin;
+			garden.transform.localPosition = exhibitOrigin;
 			for (int i = 0; i < order.Count; i++)
 			{
-				Vector3 position = new(i % gardenColumns * gardenGap.x, 0f, -(i / gardenColumns) * gardenGap.y);
+				Vector3 position = new(i % exhibitColumns * exhibitGap.x, 0f, -(i / exhibitColumns) * exhibitGap.y);
 				Models.Build(i % 2 == 0 ? "StonePath" : "StonePathB", garden.transform, position, 0f);
 				Models.Build("Pedestal", garden.transform, position, 0f);
 				HomesteadSprite sprite = HomesteadSprite.Create(garden.transform, position + Vector3.up * 0.52f, Art.IconOf(Catalog.Get<GoodsDef>(order[i])), 0.5f, 0.04f);

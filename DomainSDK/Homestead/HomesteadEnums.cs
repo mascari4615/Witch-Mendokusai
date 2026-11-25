@@ -54,6 +54,14 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		Ripe = 2,
 	}
 
+	// 마을 배치물의 층. 길 위에 꾸밈은 겹쳐도 되고 나머지는 서로 못 겹침
+	public enum PlaceableKind
+	{
+		Building = 0,
+		Decor = 1,
+		Path = 2,
+	}
+
 	// 거절 사유. 화면 글은 표현 층 담당
 	public enum HomesteadFailure
 	{

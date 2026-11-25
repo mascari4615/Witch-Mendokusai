@@ -35,6 +35,9 @@ namespace WitchMendokusai
 			return distance + (ForestFloor.Fractal(x * bankNoiseScale, z * bankNoiseScale, noiseSeed + 11, 2) - 0.5f) * bankNoiseStrength;
 		}
 
+		// 물과 물가. 놓을 수 없는 자리
+		public bool IsWet(float x, float z) => WaterDistance(x, z) < 1f;
+
 		private Rect WaterBounds()
 		{
 			float margin = bankWidth;

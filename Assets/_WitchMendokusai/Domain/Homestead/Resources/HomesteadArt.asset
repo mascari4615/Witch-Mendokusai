@@ -34,3 +34,4 @@ MonoBehaviour:
   <Cloth>k__BackingField: {fileID: 2100000, guid: b53dee4773af2317de37bdc754328df1, type: 2}
   <Water>k__BackingField: {fileID: 2100000, guid: 8562b1d94492a1aa3eed5ae791f47dd0, type: 2}
   <SpriteMaterial>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
+  <Sky>k__BackingField: {fileID: 2100000, guid: 55da0a3d7dd599da6e09e5edc67a779b, type: 2}

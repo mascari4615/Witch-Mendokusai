@@ -10,19 +10,12 @@ namespace WitchMendokusai
 		[Header("Life")]
 		[SerializeField] private float personHeight = 1.15f;
 		[SerializeField] private float animalHeight = 0.9f;
-		[SerializeField] private Vector3 ranchYard = new(-21.6f, 0f, 4.8f);
 
 		private readonly Dictionary<string, VillageWalker> people = new();
 		private readonly Dictionary<string, VillageWalker> workers = new();
 		private readonly Dictionary<int, VillageWalker> animals = new();
 
-		private BuildingSite SiteOf(string id) => System.Array.Find(sites, site => site.Id == id);
-
-		private Vector3 DoorOf(string id)
-		{
-			BuildingSite site = SiteOf(id);
-			return site.Position + Quaternion.Euler(0f, site.Yaw, 0f) * (site.Door + new Vector3(1.2f, 0f, -0.6f));
-		}
+		private Vector3 DoorOf(string id) => DoorPoint(id, 0.6f, 1.2f);
 
 		private void RefreshLife()
 		{
@@ -38,7 +31,7 @@ namespace WitchMendokusai
 			{
 				if (Sim.HasArrived(resident.Id) == false)
 					continue;
-				Vector3 home = Sim.IsBuilt(resident.Building) ? DoorOf(resident.Building) : townHallPosition + townHallDoor + new Vector3(-2.4f + people.Count * 0.8f, 0f, -1f);
+				Vector3 home = Sim.IsBuilt(resident.Building) ? DoorOf(resident.Building) : DoorPoint(HomesteadSim.HALL, 1f, -2.4f + people.Count * 0.8f);
 				if (people.TryGetValue(resident.Id, out VillageWalker walker))
 				{
 					walker.SetHome(home);
@@ -108,7 +101,7 @@ namespace WitchMendokusai
 				if (animals.ContainsKey(animal.Uid))
 					continue;
 				AnimalState captured = animal;
-				Vector3 home = ranchYard + new Vector3(animals.Count % 3 * 1.1f, 0f, -(animals.Count / 3) * 1.1f);
+				Vector3 home = DoorPoint(HomesteadSim.RANCH, 0.8f + animals.Count / 3 * 1.1f, -1.4f + animals.Count % 3 * 1.1f);
 				VillageWalker walker = VillageWalker.Create(outdoor, home, Art.Icon(animal.Id), null, animalHeight, 1.4f);
 				HomesteadSpot.Attach(walker.gameObject, () => Catalog.Get<AnimalDef>(captured.Id).Name, () => AnimalRole(captured), () => CareAnimal(captured, walker));
 				animals.Add(animal.Uid, walker);

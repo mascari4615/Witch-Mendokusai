@@ -19,6 +19,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			DropKeys<FishDef>(state.FishRecords, catalog, dropped);
 			Drop<BuildingDef, WorkState>(state.Works, work => work.Building, catalog, dropped);
 			Drop<FurnitureDef, PlacedFurniture>(state.Placed, piece => piece.Id, catalog, dropped);
+			Drop<PlaceableDef, PlacedPiece>(state.Village, piece => piece.Id, catalog, dropped);
 			Drop<AnimalDef, AnimalState>(state.Animals, animal => animal.Id, catalog, dropped);
 			Drop<RecipeDef, CraftState>(state.Crafts, craft => craft.Recipe, catalog, dropped);
 			Drop<RequestDef, RequestState>(state.Requests, request => request.Template, catalog, dropped);

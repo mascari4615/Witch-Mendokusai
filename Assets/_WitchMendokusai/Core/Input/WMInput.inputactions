@@ -1133,6 +1133,33 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "VillageTurn",
+                    "type": "Button",
+                    "id": "932d7d8d-0d1c-72be-8e32-c73716212168",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "VillageRemove",
+                    "type": "Button",
+                    "id": "e890f1bd-5d73-e23b-a73d-8e51bba6642f",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "VillageUndo",
+                    "type": "Button",
+                    "id": "b7fb61ef-b6a6-917d-b640-fc0636eb9500",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "DollToggle",
                     "type": "Button",
                     "id": "de54bf9a-2c1b-4c00-9f3d-a90c0e84fa01",
@@ -1759,6 +1786,39 @@
                     "processors": "",
                     "groups": "",
                     "action": "AchievementToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fdd951d2-007b-2b54-7fc0-f09dc0b2fc31",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "VillageTurn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1461366d-ce7f-0a43-4033-80695b3f2880",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "VillageRemove",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b9171e9c-3c0d-d582-ea5f-570cd742ff02",
+                    "path": "<Keyboard>/u",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "VillageUndo",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

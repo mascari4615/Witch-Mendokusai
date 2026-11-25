@@ -231,6 +231,39 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int Exp { get; set; }
 	}
 
+	// 마을 배치물. 칸은 복셀과 같은 1m. 건물은 하나뿐이고 옮기기만
+	public sealed class PlaceableDef : HomesteadDef
+	{
+		public PlaceableKind Kind { get; set; }
+		public int Width { get; set; } = 1;
+		public int Depth { get; set; } = 1;
+		// 물가처럼 자리가 정해진 것
+		public bool Fixed { get; set; }
+		public int TownHall { get; set; } = 1;
+		public CostDef Cost { get; set; } = new CostDef();
+		// 모델 이름. 건물은 상태마다 달라 화면이 고름
+		public List<string> Models { get; set; } = new List<string>();
+	}
+
+	public sealed class VillageAreaDef
+	{
+		public int X { get; set; }
+		public int Z { get; set; }
+		public int Width { get; set; }
+		public int Depth { get; set; }
+	}
+
+	// 처음 마을의 배치 한 줄. 길과 담은 이어진 개수
+	public sealed class LayoutDef
+	{
+		public string Id { get; set; } = string.Empty;
+		public int X { get; set; }
+		public int Z { get; set; }
+		public int Turn { get; set; }
+		public int CountX { get; set; } = 1;
+		public int CountZ { get; set; } = 1;
+	}
+
 	public sealed class HouseTierDef
 	{
 		public int Tier { get; set; }

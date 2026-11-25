@@ -8,12 +8,9 @@ namespace WitchMendokusai
 	// 건물 자리. 폐허, 가림막, 선 건물 셋 중 하나를 규칙 상태대로
 	public sealed partial class VillageStage
 	{
-		private const string RUIN = "ruin";
 		private const int GUILD_PEOPLE = 1;
 		private const int GUILD_JOBS = 2;
 		private const int VILLAGE_TOOLS = 1;
-		private const string WORK = "work";
-		private const string WORK_DONE = "done";
 
 		[Header("Unveil")]
 		[SerializeField] private float riseSeconds = 0.7f;
@@ -27,7 +24,6 @@ namespace WitchMendokusai
 		[SerializeField] private Vector3 lampLightOffset = new(0.4f, 1.6f, 0f);
 
 		private readonly Dictionary<string, (string Look, GameObject Body)> siteBodies = new();
-		private readonly List<Light> lampLights = new();
 
 		private static readonly Dictionary<string, string> BUILT_MODELS = new()
 		{
@@ -48,62 +44,123 @@ namespace WitchMendokusai
 		// 회관 단. 마지막 모습은 그 위 단도 같이 씀
 		private static readonly string[] HALL_MODELS = { "Tent", "Hall2", "Hall3", "Hall4" };
 
-		private static readonly string[] RUIN_MODELS = { "RuinA", "RuinB" };
+		private static readonly string[] RUIN_MODELS = { "RuinA", "RuinB", "RuinC", "RuinD", "RuinE", "RuinF", "RuinG" };
 
 		// 벽이 없는 자리. 폐허와 공사 모습도 집 모양이 아님
 		private static readonly HashSet<string> YARD_SITES = new() { "dock", "quarry", "training", "trial" };
 
+		[Header("Doors")]
+		[SerializeField] private float doorAhead = 0.45f;
+
+		private readonly Dictionary<string, GameObject> spotObjects = new();
+		private readonly Dictionary<int, (string Look, GameObject Body)> decorBodies = new();
+
 		private VillageModels Models => VillageModels.Instance;
+
+		// ---- 놓인 자리
+
+		private Vector3 CenterOf(PlacedPiece piece) => CenterOf(Sim.PlaceableOf(piece), piece.X, piece.Z, piece.Turn);
+
+		private static Vector3 CenterOf(PlaceableDef placeable, int x, int z, int turn) =>
+			new(x + VillageRules.WidthOf(placeable, turn) * 0.5f, 0f, z + VillageRules.DepthOf(placeable, turn) * 0.5f);
+
+		private static Quaternion FacingOf(int turn) => Quaternion.Euler(0f, turn * 90f, 0f);
+
+		// 앞 (문 쪽) 으로 나온 자리
+		private Vector3 DoorPoint(string id, float ahead = 0f, float side = 0f)
+		{
+			PlacedPiece piece = Sim.PieceOf(id);
+			return CenterOf(piece) + FacingOf(piece.Turn) * new Vector3(side, 0f, -Sim.PlaceableOf(piece).Depth * 0.5f - doorAhead - ahead);
+		}
 
 		private void BuildSites()
 		{
-			Models.BuildOnGrid("Well", outdoor, wellPosition, 0f);
-			Models.BuildOnGrid("Board", outdoor, boardPosition, 0f);
-			HomesteadSpot.Create(outdoor, boardPosition + new Vector3(0f, 0f, -0.9f), "BoardSpot", () => "길드 게시판", () => $"의뢰 {Sim.State.Requests.Count}", () => manager.Panels.Show(HomesteadPanelType.Guild));
-			HomesteadSpot.Create(outdoor, townHallPosition + townHallDoor, "TownHallSpot", () => Sim.TownHallDef(Sim.State.TownHall).Name, () => "마을 돌보기", () => manager.Panels.Show(HomesteadPanelType.Village));
-			HomesteadSpot.Create(outdoor, housePosition + Quaternion.Euler(0f, houseYaw, 0f) * houseDoor, "HouseSpot", () => "집", () => "들어가기", EnterRoom);
-			foreach (BuildingSite site in sites)
+			AddSpot("board", "길드 게시판", () => $"의뢰 {Sim.State.Requests.Count}", () => manager.Panels.Show(HomesteadPanelType.Guild));
+			AddSpot(HomesteadSim.HALL, null, () => "마을 돌보기", () => manager.Panels.Show(HomesteadPanelType.Village));
+			AddSpot(HomesteadSim.HOME, "집", () => "들어가기", EnterRoom);
+			foreach (BuildingDef building in Catalog.Buildings)
 			{
-				BuildingSite captured = site;
-				Vector3 door = site.Position + Quaternion.Euler(0f, site.Yaw, 0f) * site.Door;
-				HomesteadSpot.Create(outdoor, door, site.Id + "Spot", () => Catalog.Get<BuildingDef>(captured.Id).Name, () => SiteRole(captured.Id), () => UseSite(captured.Id));
+				string id = building.Id;
+				AddSpot(id, building.Name, () => SiteRole(id), () => UseSite(id));
 			}
-			BuildDressing();
-			foreach (Vector3 lamp in new[] { new Vector3(-2f, 0f, 8f), new Vector3(2f, 0f, 8f), new Vector3(-2f, 0f, 0f), new Vector3(2f, 0f, 0f), new Vector3(-2f, 0f, -10f), new Vector3(2f, 0f, -10f) })
-			{
-				GameObject body = Models.BuildOnGrid("Lamp", outdoor, lamp, lamp.x > 0f ? 180f : 0f);
-				lampLights.Add(AddGlow(body.transform, lampLightOffset, lampRange, lampIntensity));
-			}
+			RefreshLayout();
 		}
 
-		// 돌담, 돌길, 울타리, 통. 한 칸짜리를 칸 수만큼 이어 놓음
-		private void BuildDressing()
+		private void AddSpot(string id, string spotName, System.Func<string> role, System.Action use)
 		{
-			foreach ((string key, int x, int z, int count, bool isAlongZ) in dressing)
+			System.Func<string> nameSource = spotName != null ? () => spotName : () => Sim.TownHallDef(Sim.State.TownHall).Name;
+			spotObjects[id] = HomesteadSpot.Create(outdoor, DoorPoint(id), id + "Spot", nameSource, role, use).gameObject;
+		}
+
+		private void OnLayoutChanged() => RefreshLayout();
+
+		private void RefreshLayout()
+		{
+			foreach (KeyValuePair<string, GameObject> pair in spotObjects)
+				pair.Value.transform.localPosition = DoorPoint(pair.Key);
+			RefreshDecor();
+			RefreshGroundCells();
+			RefreshSites();
+		}
+
+		private void RefreshDecor()
+		{
+			HashSet<int> seen = new();
+			foreach (PlacedPiece piece in Sim.State.Village)
 			{
-				for (int i = 0; i < count; i++)
+				PlaceableDef placeable = Sim.PlaceableOf(piece);
+				if (placeable.Models.Count == 0)
+					continue;
+				seen.Add(piece.Uid);
+				string look = LookOf(piece, piece.Id);
+				if (decorBodies.TryGetValue(piece.Uid, out (string Look, GameObject Body) shown) && shown.Look == look)
+					continue;
+				if (shown.Body != null)
+					Destroy(shown.Body);
+				GameObject body = Models.Build(placeable.Models[Mathf.Abs(piece.X * 7 + piece.Z * 13) % placeable.Models.Count], outdoor, CenterOf(piece), piece.Turn * 90f);
+				if (piece.Id == "lamp")
+					AddGlow(body.transform, lampLightOffset, lampRange, lampIntensity);
+				decorBodies[piece.Uid] = (look, body);
+			}
+			foreach (int uid in new List<int>(decorBodies.Keys))
+			{
+				if (seen.Contains(uid))
+					continue;
+				Destroy(decorBodies[uid].Body);
+				decorBodies.Remove(uid);
+			}
+			RefreshLamps();
+		}
+
+		private static string LookOf(PlacedPiece piece, string look) => $"{look}@{piece.X},{piece.Z},{piece.Turn}";
+
+		private void RefreshGroundCells()
+		{
+			HashSet<Vector2Int> dirt = new();
+			HashSet<Vector2Int> bare = new();
+			foreach (PlacedPiece piece in Sim.State.Village)
+			{
+				PlaceableDef placeable = Sim.PlaceableOf(piece);
+				HashSet<Vector2Int> cells = piece.Id == "path_dirt" ? dirt : bare;
+				for (int x = 0; x < VillageRules.WidthOf(placeable, piece.Turn); x++)
 				{
-					Vector3 cell = new(x + 0.5f + (isAlongZ ? 0 : i), 0f, z + 0.5f + (isAlongZ ? i : 0));
-					bool hasTwin = key == "StoneWall" || key == "StonePath";
-					Models.BuildOnGrid(hasTwin && i % 2 == 1 ? key + "B" : key, outdoor, cell, isAlongZ && key != "StonePath" ? 90f : 0f);
+					for (int z = 0; z < VillageRules.DepthOf(placeable, piece.Turn); z++)
+						cells.Add(new Vector2Int(piece.X + x, piece.Z + z));
 				}
 			}
+			ground.SetCells(dirt, bare);
 		}
-
-		private static readonly (string Key, int X, int Z, int Count, bool IsAlongZ)[] dressing =
-		{
-			("StoneWall", -23, 7, 5, false), ("StoneWall", -23, 8, 8, true), ("Fence", -11, 8, 2, false), ("Fence", -11, 14, 2, false),
-			("StonePath", -1, -5, 16, true), ("StonePath", 0, -5, 16, true), ("StonePath", -15, 6, 2, true), ("StonePath", -8, 6, 2, true), ("StonePath", 8, -6, 2, true),
-			("Props", -11, 12, 1, false), ("Props", 12, 12, 1, false), ("Fence", -5, -12, 4, false), ("Fence", 1, -12, 4, false),
-			("StoneWall", 2, 12, 2, false), ("StoneWall", -5, 12, 2, false),
-		};
 
 		private bool IsNight => manager.Hour >= lampOnHour || manager.Hour < lampOffHour;
 
 		private void RefreshLamps()
 		{
-			foreach (Light lamp in lampLights)
-				lamp.enabled = IsNight;
+			foreach ((string _, GameObject body) in decorBodies.Values)
+			{
+				Light lamp = body.GetComponentInChildren<Light>();
+				if (lamp != null)
+					lamp.enabled = IsNight;
+			}
 		}
 
 		private string SiteRole(string id)
@@ -225,45 +282,37 @@ namespace WitchMendokusai
 		private void RefreshSites()
 		{
 			RefreshLamps();
-			Show("townhall", Sim.State.TownHall.ToString(), () => TownHallBody(Sim.State.TownHall));
-			Show("house", Sim.State.HouseTier.ToString(), () => Models.BuildOnGrid("HouseMended", outdoor, housePosition, houseYaw));
-			for (int i = 0; i < sites.Length; i++)
+			Show(HomesteadSim.HALL, HALL_MODELS[Mathf.Min(Sim.State.TownHall, HALL_MODELS.Length) - 1]);
+			Show(HomesteadSim.HOME, "HouseMended");
+			Show("well", "Well");
+			Show("board", "Board");
+			for (int i = 0; i < Catalog.Buildings.Count; i++)
 			{
-				BuildingSite site = sites[i];
-				bool isYard = YARD_SITES.Contains(site.Id);
-				string ruin = isYard ? "RuinYard" : RUIN_MODELS[i % RUIN_MODELS.Length];
-				WorkState work = Sim.WorkOn(site.Id);
-				int level = Sim.BuildingLevel(site.Id);
-				if (work != null && level == 0)
-				{
-					bool done = Sim.IsWorkDone(work);
-					string body = (isYard ? "YardWork" : "Work") + (done ? "Done" : string.Empty);
-					Show(site.Id, done ? WORK_DONE : WORK, () => Models.BuildOnGrid(body, outdoor, site.Position, site.Yaw));
-				}
-				else if (level == 0)
-				{
-					Show(site.Id, RUIN, () => Models.BuildOnGrid(ruin, outdoor, site.Position, site.Yaw));
-				}
+				string id = Catalog.Buildings[i].Id;
+				WorkState work = Sim.WorkOn(id);
+				bool isYard = YARD_SITES.Contains(id);
+				if (Sim.IsBuilt(id))
+					Show(id, BUILT_MODELS[id]);
+				else if (work != null)
+					Show(id, (isYard ? "YardWork" : "Work") + (Sim.IsWorkDone(work) ? "Done" : string.Empty));
 				else
-				{
-					Show(site.Id, level.ToString(), () => Models.BuildOnGrid(BUILT_MODELS[site.Id], outdoor, site.Position, site.Yaw));
-				}
+					Show(id, isYard ? "RuinYard" : RUIN_MODELS[i % RUIN_MODELS.Length]);
 			}
 		}
 
-		private GameObject TownHallBody(int tier) =>
-			Models.BuildOnGrid(HALL_MODELS[Mathf.Min(tier, HALL_MODELS.Length) - 1], outdoor, townHallPosition, 0f);
-
 		// 모습이 바뀐 자리만 다시 지음
-		private void Show(string id, string look, System.Func<GameObject> make)
+		private void Show(string id, string model)
 		{
+			PlacedPiece piece = Sim.PieceOf(id);
+			string look = LookOf(piece, model);
 			if (siteBodies.TryGetValue(id, out (string Look, GameObject Body) shown))
 			{
 				if (shown.Look == look)
 					return;
 				Destroy(shown.Body);
 			}
-			GameObject body = make();
+			GameObject body = Models.Build(model, outdoor, CenterOf(piece), piece.Turn * 90f);
+			body.SetActive(piece.Uid != heldUid);
 			siteBodies[id] = (look, body);
 			if (risingId == id)
 			{

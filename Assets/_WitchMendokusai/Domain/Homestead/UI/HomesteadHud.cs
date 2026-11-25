@@ -94,6 +94,27 @@ namespace WitchMendokusai
 			return label;
 		}
 
+		// ---- 건설
+
+		private VillageBuildHud build;
+
+		public VillageBuildHud ShowBuild(IReadOnlyList<PlaceableDef> palette, System.Action<PlaceableDef> onTake, System.Action onUndo, System.Action onLeave)
+		{
+			HideBuild();
+			build = new VillageBuildHud(root, palette, onTake, onUndo, onLeave);
+			ShowGoal(false);
+			return build;
+		}
+
+		public void HideBuild()
+		{
+			if (build == null)
+				return;
+			build.Remove();
+			build = null;
+			ShowGoal(true);
+		}
+
 		// ---- 얻은 것
 
 		private readonly Dictionary<string, (Label Count, int Amount, VisualElement Row)> shownRows = new();

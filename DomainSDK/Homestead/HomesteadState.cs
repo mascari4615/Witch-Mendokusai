@@ -44,6 +44,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int ExtraDays { get; set; }
 		public int RestedRank { get; set; }
 
+		// 마을에 놓인 것. 좌표는 차지한 네모의 작은 쪽 칸
+		public List<PlacedPiece> Village { get; set; } = new List<PlacedPiece>();
+		public int NextVillageUid { get; set; } = 1;
+
 		public List<string> OwnedCostumes { get; set; } = new List<string>();
 		public Dictionary<CostumeSlot, string> Worn { get; set; } = new Dictionary<CostumeSlot, string>();
 
@@ -103,6 +107,16 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public float X { get; set; }
 		public float Z { get; set; }
 		public float Yaw { get; set; }
+	}
+
+	public sealed class PlacedPiece
+	{
+		public int Uid { get; set; }
+		public string Id { get; set; } = string.Empty;
+		public int X { get; set; }
+		public int Z { get; set; }
+		// 시계 방향 90도 몇 번
+		public int Turn { get; set; }
 	}
 
 	public sealed class AnimalState

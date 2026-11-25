@@ -151,6 +151,9 @@ namespace WitchMendokusai
 				ResolveIfPresent<CityPaintManager>(container); // TASK-WM-164 step5 — 등록↔해소 짝
 				ResolveIfPresent<FreeFlyCameraController>(container);
 				ResolveIfPresent<OverheadContentCameraController>(container);
+				// 부감 카메라는 모드마다 하나 (개척, 마을). 등록은 첫 하나만 주입하므로 나머지도
+				foreach (OverheadContentCameraController overhead in FindObjectsByType<OverheadContentCameraController>(FindObjectsInactive.Include))
+					container.InjectGameObject(overhead.gameObject);
 				ResolveIfPresent<FreeFlyCrosshair>(container);
 				ResolveIfPresent<ChatManager>(container);
 				ResolveIfPresent<ToolTipPopupManager>(container);

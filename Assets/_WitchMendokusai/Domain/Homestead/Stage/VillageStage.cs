@@ -12,54 +12,19 @@ namespace WitchMendokusai
 	[RequireComponent(typeof(VillageGround))]
 	public sealed partial class VillageStage : MonoBehaviour
 	{
-		[Serializable]
-		public struct BuildingSite
-		{
-			public string Id;
-			public Vector3 Position;
-			public float Yaw;
-			[Tooltip("폐허와 가림막의 크기 (m)")] public Vector2 Size;
-			[Tooltip("건물 기준 문 자리")] public Vector3 Door;
-		}
-
 		[Header("Layout")]
-		[SerializeField] private Vector3 townHallPosition = new(0f, 0f, 14f);
-		[SerializeField] private Vector3 townHallDoor = new(0f, 0f, -3.6f);
-		[SerializeField] private Vector3 boardPosition = new(4f, 0f, 11f);
-		[SerializeField] private Vector3 housePosition = new(-15f, 0f, 10f);
-		[SerializeField] private Vector3 houseDoor = new(0f, 0f, -3.2f);
-		[SerializeField] private float houseYaw = 0f;
-		[SerializeField] private Vector3 wellPosition = new(4f, 0f, 2f);
-		[SerializeField] private Vector3 plazaCenter = new(0f, 0f, 5f);
 		[SerializeField] private Vector3 pondCenter = new(21f, 0f, -11f);
 		[SerializeField] private float pondRadius = 6.5f;
 		[SerializeField] private Vector3 roomOffset = new(300f, 0f, 0f);
 		[SerializeField] private Vector3 mineOffset = new(-300f, 0f, 0f);
-		[Tooltip("곧은 길. 시작과 끝 (x, z, x, z)")]
-		[SerializeField] private Vector4[] streets =
-		{
-			new(0f, -24f, 0f, 11f), new(-24f, 6f, 20f, 6f), new(-16f, -6f, 13f, -6f), new(-18f, 18f, 18f, 18f), new(-3f, 6f, -3f, 18f), new(18f, 6f, 18f, 18f),
-		};
-		[SerializeField] private BuildingSite[] sites =
-		{
-			new() { Id = "farm", Position = new Vector3(-20f, 0f, -2f), Yaw = 0f, Size = new Vector2(3f, 2.6f), Door = new Vector3(0f, 0f, -2f) },
-			new() { Id = "workshop", Position = new Vector3(8f, 0f, 10f), Yaw = 0f, Size = new Vector2(4.2f, 3.2f), Door = new Vector3(0f, 0f, -2.4f) },
-			new() { Id = "dock", Position = new Vector3(11.6f, 0f, -11f), Yaw = -90f, Size = new Vector2(2.2f, 2f), Door = new Vector3(0f, 0f, -0.4f) },
-			new() { Id = "quarry", Position = new Vector3(24f, 0f, 14f), Yaw = 0f, Size = new Vector2(4f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
-			new() { Id = "museum", Position = new Vector3(13f, 0f, 22f), Yaw = 0f, Size = new Vector2(6f, 4f), Door = new Vector3(0f, 0f, -4f) },
-			new() { Id = "ranch", Position = new Vector3(-22f, 0f, 10f), Yaw = 0f, Size = new Vector2(3.6f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
-			new() { Id = "tailor", Position = new Vector3(-6f, 0f, 22f), Yaw = 0f, Size = new Vector2(3.8f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
-			new() { Id = "training", Position = new Vector3(-16f, 0f, 22f), Yaw = 0f, Size = new Vector2(4.6f, 3.6f), Door = new Vector3(0f, 0f, -1.6f) },
-			new() { Id = "shop", Position = new Vector3(8f, 0f, -2f), Yaw = 0f, Size = new Vector2(3.4f, 2.8f), Door = new Vector3(0f, 0f, -2.4f) },
-			new() { Id = "smithy", Position = new Vector3(-8f, 0f, 10f), Yaw = 0f, Size = new Vector2(3.8f, 3f), Door = new Vector3(0f, 0f, -2.6f) },
-			new() { Id = "atelier", Position = new Vector3(-8f, 0f, -2f), Yaw = 0f, Size = new Vector2(4f, 3.2f), Door = new Vector3(0f, 0f, -2.6f) },
-			new() { Id = "trial", Position = new Vector3(24f, 0f, 4f), Yaw = 0f, Size = new Vector2(4.6f, 4.6f), Door = new Vector3(0f, 0f, -2.6f) },
-		};
+		[Tooltip("마을 밖과 이어진 길. 시작과 끝 (x, z, x, z)")]
+		[SerializeField] private Vector4 entryRoad = new(0f, -24f, 0f, -13f);
 
 		private UIManager uiManager;
 		private UIRoot uiRoot;
 		private PlayerProvider playerProvider;
 		private InputManager inputManager;
+		private CameraManager cameraManager;
 		private VillageGround ground;
 		private Transform outdoor;
 		private HomesteadSim builtFor;
@@ -71,12 +36,13 @@ namespace WitchMendokusai
 		private static HomesteadArt Art => HomesteadArt.Instance;
 
 		[Inject]
-		public void Construct(UIManager uiManager, UIRoot uiRoot, PlayerProvider playerProvider, InputManager inputManager)
+		public void Construct(UIManager uiManager, UIRoot uiRoot, PlayerProvider playerProvider, InputManager inputManager, CameraManager cameraManager)
 		{
 			this.uiManager = uiManager;
 			this.uiRoot = uiRoot;
 			this.playerProvider = playerProvider;
 			this.inputManager = inputManager;
+			this.cameraManager = cameraManager;
 		}
 
 		private void OnEnable()
@@ -93,6 +59,7 @@ namespace WitchMendokusai
 
 		private void OnDisable()
 		{
+			StopBuilding();
 			StopFishing();
 			LeaveMine();
 			if (manager is null)
@@ -119,6 +86,7 @@ namespace WitchMendokusai
 			if (builtFor != manager.Sim)
 				BuildAll();
 			Sim.Changed += OnSimChanged;
+			Sim.LayoutChanged += OnLayoutChanged;
 			Sim.Unveiled += OnUnveiled;
 			RefreshAll();
 			manager.Hud.ShowGoal(true);
@@ -130,6 +98,7 @@ namespace WitchMendokusai
 			if (builtFor == null)
 				return;
 			builtFor.Changed -= OnSimChanged;
+			builtFor.LayoutChanged -= OnLayoutChanged;
 			builtFor.Unveiled -= OnUnveiled;
 		}
 
@@ -147,6 +116,7 @@ namespace WitchMendokusai
 				ground.Build();
 			}
 			VillageLook.Ensure(transform);
+			Sim.SetVillageBlocked(BlockedCells());
 			BuildSites();
 			BuildFarm();
 			BuildWild();
@@ -165,7 +135,8 @@ namespace WitchMendokusai
 			Destroy(room.gameObject);
 			Destroy(mineRoot.gameObject);
 			siteBodies.Clear();
-			lampLights.Clear();
+			decorBodies.Clear();
+			spotObjects.Clear();
 			plots.Clear();
 			gathers.Clear();
 			restPoses.Clear();
@@ -181,46 +152,45 @@ namespace WitchMendokusai
 			roomShell = null;
 		}
 
-		// 길과 비울 자리를 바닥에 먼저 알림
+		// 물, 밭, 채집 자리를 바닥에 먼저 알림. 놓인 것 아래는 RefreshGroundCells
 		private void MarkGround()
 		{
-			Vector2 plaza = new(plazaCenter.x, plazaCenter.z);
-			ground.AddBlock(plaza, 3.2f);
-			foreach (Vector4 street in streets)
-				ground.AddPath(new Vector2(street.x, street.y), new Vector2(street.z, street.w));
-			Link(townHallPosition + townHallDoor, 3.2f, townHallPosition);
-			Link(housePosition + houseDoor, 2.8f, housePosition);
-			ground.AddBlock(new Vector2(boardPosition.x, boardPosition.z), 1.1f);
-			foreach (BuildingSite site in sites)
-			{
-				Vector3 door = site.Position + Quaternion.Euler(0f, site.Yaw, 0f) * site.Door;
-				Link(door, Mathf.Max(site.Size.x, site.Size.y) * 0.5f, site.Position);
-			}
+			ground.AddPath(new Vector2(entryRoad.x, entryRoad.y), new Vector2(entryRoad.z, entryRoad.w));
 			MarkWater();
 			MarkFarm();
 			MarkWild();
 		}
 
-		// 문 앞에서 가장 가까운 길까지 직각으로
-		private void Link(Vector3 door, float radius, Vector3 center)
+		// 규칙 밖에서 막힌 칸. 물과 물가, 밭, 채집 자리
+		private IEnumerable<(int X, int Z)> BlockedCells()
 		{
-			Vector2 from = new(door.x, door.z);
-			Vector2 nearest = from;
-			float best = float.MaxValue;
-			foreach (Vector4 street in streets)
+			VillageAreaDef area = Catalog.VillageArea;
+			for (int x = area.X; x < area.X + area.Width; x++)
 			{
-				Vector2 start = new(Mathf.Min(street.x, street.z), Mathf.Min(street.y, street.w));
-				Vector2 end = new(Mathf.Max(street.x, street.z), Mathf.Max(street.y, street.w));
-				Vector2 point = new(Mathf.Clamp(from.x, start.x, end.x), Mathf.Clamp(from.y, start.y, end.y));
-				if (Vector2.Distance(from, point) >= best)
-					continue;
-				best = Vector2.Distance(from, point);
-				nearest = point;
+				for (int z = area.Z; z < area.Z + area.Depth; z++)
+				{
+					if (ground.IsWet(x + 0.5f, z + 0.5f) || IsWorkedCell(x, z))
+						yield return (x, z);
+				}
 			}
-			Vector2 corner = new(from.x, nearest.y);
-			ground.AddPath(from, corner);
-			ground.AddPath(corner, nearest);
-			ground.AddBlock(new Vector2(center.x, center.z), radius);
+		}
+
+		private bool IsWorkedCell(int x, int z)
+		{
+			for (int i = 0; i < PLOT_MAX; i++)
+			{
+				Vector3 plot = PlotPosition(i);
+				if (Mathf.FloorToInt(plot.x) == x && Mathf.FloorToInt(plot.z) == z)
+					return true;
+			}
+			if (x >= Mathf.FloorToInt(exhibitOrigin.x) && x <= exhibitOrigin.x + exhibitColumns && z >= Mathf.FloorToInt(exhibitOrigin.z) - EXHIBIT_ROWS && z <= exhibitOrigin.z)
+				return true;
+			foreach (GatherSite site in gatherSites)
+			{
+				if (Mathf.Abs(site.Position.x - x - 0.5f) < 1f && Mathf.Abs(site.Position.z - z - 0.5f) < 1f)
+					return true;
+			}
+			return false;
 		}
 
 		private bool refreshQueued;
@@ -234,6 +204,7 @@ namespace WitchMendokusai
 				return;
 			StepFishing();
 			StepMine();
+			StepBuilding();
 			if (refreshQueued == false)
 				return;
 			refreshQueued = false;
