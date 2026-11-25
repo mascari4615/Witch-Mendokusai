@@ -26,7 +26,7 @@ MonoBehaviour:
   <SameKindSpacing>k__BackingField: 40
   <AvoidSameKindInRow>k__BackingField: 1
   <RouteSampleSpacing>k__BackingField: 0.2
-  <RouteMaxSamples>k__BackingField: 128
+  <RouteMaxSamples>k__BackingField: 160
   <RouteGroundDeviation>k__BackingField: 0.2
   <MarkerMaterial>k__BackingField: {fileID: 2100000, guid: 4f6b547898f8475d96e593174a241bc7, type: 2}
   <StoneMaterial>k__BackingField: {fileID: 2100000, guid: 8a4faf22147a68c40bca1f4d9419546d, type: 2}
