@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	// 알리사 일제 사격의 그림. 소용돌이 문에서 완드가 밀려 나오고, 한 자루가 한 발씩 쏘고 타서 사라짐
+	// 알리사 일제 사격의 그림. 배치 둘 (허공의 문, 몸에 붙은 총) 이 빛 탄환, 맞은 자리, 바닥, 막타를 같이 씀
 	// - 판정 없음. 피해는 VolleyGauge 가 내는 탄이 함. 줄기는 그 탄의 머리를 따라가 그림과 피해 시점이 어긋나지 않음
 	// - 그린 텍스처 (PaintedFxSet) 를 겹겹이 쌓음. 텍스처마다 FxQuadBatch 하나라 그리기는 층 수만큼
 	// - 게임 시간으로 흐름 (카드 창에서 같이 멈춤). 만든 물체는 이 오브젝트의 자식 (풀과 같이 씬을 넘어 살아남음)
 	// - 그림은 LateUpdate 에서만 그림. Raise 와 Fire 는 예약만 해서 부른 쪽 (발사 코루틴) 을 끊지 않음
-	// - 이 파일: 꺼냄, 문, 완드. 줄기와 총구와 맞은 자리는 .Shots.cs, 바닥과 어둠은 .Ground.cs
+	// - 이 파일: 꺼냄, 문, 완드. 몸 배치는 .Arms.cs, 줄기와 총구와 맞은 자리는 .Shots.cs, 바닥과 어둠은 .Ground.cs
 	public sealed partial class VolleyArsenal : MonoBehaviour
 	{
 		private const float TAU = Mathf.PI * 2f;
@@ -79,6 +79,8 @@ namespace WitchMendokusai
 			public bool Decor;
 			public float Phase;
 			public int Kind;
+			// 몸 배치의 자리
+			public int Arm;
 			public float AppearTime;
 			public float FireTime;
 			// 이때부터 닫힘
@@ -93,7 +95,7 @@ namespace WitchMendokusai
 		private readonly List<Weapon> arranged = new();
 		private readonly List<FxQuadBatch> batches = new();
 		private readonly List<UnityEngine.Object> owned = new();
-		private readonly List<(Weapon weapon, Transform shot)> pendingShots = new();
+		private readonly List<(Weapon weapon, Transform shot, float scale)> pendingShots = new();
 		private Transform root;
 		private Camera viewCamera;
 		private Transform owner;
@@ -118,6 +120,12 @@ namespace WitchMendokusai
 			arcCenter = 90f + arcLean * Mathf.Clamp(Vector3.Dot(aim(), Camera.main.transform.right), -1f, 1f);
 			finaleTime = float.PositiveInfinity;
 			heroTime = float.PositiveInfinity;
+			if (InArms)
+			{
+				RaiseArms();
+				RaiseGround();
+				return;
+			}
 			Take(raised, Mathf.Clamp(count, 1, maxWeapons));
 			for (int i = 0; i < raised.Count; i++)
 			{
@@ -178,22 +186,27 @@ namespace WitchMendokusai
 		public void Fire(int shotIndex, GameObject shot)
 		{
 			// 옆 자루가 잇달아 쏘지 않게 서로소 걸음으로 섞음. 자루보다 발이 많으면 사라진 자루가 다시 나와 쏨
-			Weapon weapon = raised[shotIndex * VolleyGaugeRules.SpreadStride(raised.Count) % raised.Count];
+			(Weapon weapon, float scale) = InArms ? ArmShot(shotIndex) : (raised[shotIndex * VolleyGaugeRules.SpreadStride(raised.Count) % raised.Count], 1f);
 			weapon.FireTime = Time.time;
 			weapon.Alive = true;
-			pendingShots.Add((weapon, shot.transform));
+			pendingShots.Add((weapon, shot.transform, scale));
 		}
 
 		private void FirePending()
 		{
-			foreach ((Weapon weapon, Transform shot) in pendingShots)
+			foreach ((Weapon weapon, Transform shot, float scale) in pendingShots)
 			{
+				if (InArms && bodyBurstPending)
+					BodyBurst();
 				Vector3 muzzle = Muzzle(weapon, out Vector3 aim);
 				MuzzleFlash(muzzle, aim);
 				shotsLeft--;
 				if (shot != null)
-					StartTracer(muzzle, shot, shotsLeft < finaleShots ? finaleScale : 1f);
-				SpawnPhantoms(Mathf.RoundToInt(Mathf.Lerp(phantomsPerShot.x, phantomsPerShot.y, 1f - shotsLeft / (float)raised.Count)));
+					StartTracer(muzzle, shot, Mathf.Max(scale, shotsLeft < finaleShots ? finaleScale : 0f));
+				if (InArms && scale >= layerScales.z)
+					CameraManager.Instance.GenerateCameraImpulse(heavyShake);
+				if (InArms == false)
+					SpawnPhantoms(Mathf.RoundToInt(Mathf.Lerp(phantomsPerShot.x, phantomsPerShot.y, 1f - shotsLeft / (float)raised.Count)));
 				lightLevel = 1f;
 				lastShotTime = Time.time;
 				if (shotsLeft == finaleShots - 1)
@@ -209,6 +222,7 @@ namespace WitchMendokusai
 			foreach (Weapon weapon in weapons)
 				weapon.Alive = false;
 			pendingShots.Clear();
+			IsArmed = false;
 			StopShots();
 			StopGround();
 			foreach (FxQuadBatch batch in batches)
@@ -242,7 +256,10 @@ namespace WitchMendokusai
 				batch.Begin();
 			FirePending();
 			DrawGround();
-			DrawWeapons();
+			if (InArms)
+				DrawArms();
+			else
+				DrawWeapons();
 			DrawShots();
 			foreach (FxQuadBatch batch in batches)
 				batch.Commit();
@@ -346,6 +363,11 @@ namespace WitchMendokusai
 
 		private void Pose(Weapon weapon, out Vector3 position, out Vector3 aim)
 		{
+			if (InArms)
+			{
+				PoseArm(weapon, out position, out aim);
+				return;
+			}
 			Transform cameraTransform = viewCamera.transform;
 			Vector3 right = cameraTransform.right;
 			Vector3 up = Vector3.Slerp(Vector3.up, cameraTransform.up, faceCamera).normalized;
@@ -361,6 +383,8 @@ namespace WitchMendokusai
 		private Vector3 Muzzle(Weapon weapon, out Vector3 aim)
 		{
 			Pose(weapon, out Vector3 position, out aim);
+			if (InArms)
+				return position + aim * (ArmLength * (1f - armGrip));
 			return position + aim * (gateWands ? weapon.Length * weapon.Scale * emergeFraction : gateLightOffset);
 		}
 
@@ -446,6 +470,8 @@ namespace WitchMendokusai
 			for (int i = 0; i < wandBatches.Length; i++)
 				wandBatches[i] = Layer("Wand" + i, art.Wands[i], 2962 + i);
 			portalFront = Layer("PortalFront", art.Soft, 2970);
+			if (InArms)
+				PrepareArms();
 			PrepareShots();
 		}
 

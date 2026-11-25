@@ -380,7 +380,7 @@ MonoBehaviour:
   gaugeSize: 120
   normalCharge: 1
   strongCharge: 3
-  minIntervalSeconds: 6
+  minIntervalSeconds: 4.4
   shotPrefab: {fileID: 8891603708961370830, guid: 6f133cf6a0ac4050886de5036cb78f17, type: 3}
   homingShotPrefab: {fileID: 8891603708961370830, guid: 006cfd3bdb074582b7eaabbdea03d0b3, type: 3}
   homingPercent: 25
@@ -392,7 +392,8 @@ MonoBehaviour:
   shotsPerWeapon: 2
   fanDegrees: 50
   focusFanDegrees: 20
-  burstSeconds: 1
+  burstSeconds: 2.6
+  burstAcceleration: 1.15
   splitGapSeconds: 0.4
   weaponSpread: 1.2
   splitPercent: 60
@@ -421,6 +422,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.VolleyArsenal
   art: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
+  raiseSeconds: 0.45
+  holdSeconds: 0.5
+  formation: 1
 --- !u!114 &5518027364091727732
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -433,6 +437,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e396b0b6ee1443da24331fefd3cad2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.HeldWeapon
+  arsenal: {fileID: 4471920365518834627}
   shape: 0
   handOffset: {x: 0.3, y: 0.25}
   kickSpawners:
