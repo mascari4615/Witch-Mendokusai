@@ -25,6 +25,7 @@ namespace WitchMendokusai
 	public sealed class FxQuadBatch
 	{
 		private static readonly int MAIN_TEX_ID = Shader.PropertyToID("_MainTex");
+		private static readonly int Z_TEST_ID = Shader.PropertyToID("_ZTest");
 		private static readonly int NOISE_TEX_ID = Shader.PropertyToID("_NoiseTex");
 		private static readonly Rect FULL = new(0f, 0f, 1f, 1f);
 		private static readonly Bounds EVERYWHERE = new(Vector3.zero, Vector3.one * 4000f);
@@ -40,11 +41,14 @@ namespace WitchMendokusai
 
 		public Material Material => material;
 
-		public FxQuadBatch(string name, Transform root, Shader shader, Texture texture, Texture noise, int queue)
+		// onTop 이면 지형에 안 가려짐 (서 있는 판이 바닥에 잘리지 않게)
+		public FxQuadBatch(string name, Transform root, Shader shader, Texture texture, Texture noise, int queue, bool onTop = false)
 		{
 			material = new Material(shader) { name = name, renderQueue = queue };
 			material.SetTexture(MAIN_TEX_ID, texture);
 			material.SetTexture(NOISE_TEX_ID, noise);
+			if (onTop)
+				material.SetFloat(Z_TEST_ID, (float)CompareFunction.Always);
 			mesh = new Mesh { name = name, indexFormat = IndexFormat.UInt32 };
 			mesh.MarkDynamic();
 			target = UltimateFxStage.CreateMeshObject(name, root, mesh, material);

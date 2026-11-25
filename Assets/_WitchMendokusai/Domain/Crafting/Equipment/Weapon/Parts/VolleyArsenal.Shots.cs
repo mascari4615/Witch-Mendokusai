@@ -111,15 +111,15 @@ namespace WitchMendokusai
 
 		private void PrepareShots()
 		{
-			phantomBatch = Layer("Phantom", art.Streaks, 3006);
-			shaftBatch = Layer("Pillar", art.Soft, 3007);
-			streakShade = Layer("StreakShade", art.Streaks, 3008);
-			streakFront = Layer("Streak", art.Streaks, 3010);
-			boltBatch = Layer("Bolt", art.Bolt, 3012);
-			flashSoft = Layer("FlashSoft", art.Soft, 3013);
-			flyingWand = Layer("FlyingWand", art.Wands[^1], 3013);
-			impactBatch = Layer("Impact", art.Impact, 3014);
-			muzzleBatch = Layer("Muzzle", art.Muzzle, 3016);
+			phantomBatch = Layer("Phantom", art.Streaks, 3006, true);
+			shaftBatch = Layer("Pillar", art.Soft, 3007, true);
+			streakShade = Layer("StreakShade", art.Streaks, 3008, true);
+			streakFront = Layer("Streak", art.Streaks, 3010, true);
+			boltBatch = Layer("Bolt", art.Bolt, 3012, true);
+			flashSoft = Layer("FlashSoft", art.Soft, 3013, true);
+			flyingWand = Layer("FlyingWand", art.Wands[^1], 3013, true);
+			impactBatch = Layer("Impact", art.Impact, 3014, true);
+			muzzleBatch = Layer("Muzzle", art.Muzzle, 3016, true);
 			Material sparkMaterial = Own(new Material(art.Shader) { name = "VolleySpark", renderQueue = 3018, mainTexture = art.Spark });
 			sparkMaterial.SetTexture("_NoiseTex", art.Noise);
 			sparkMaterial.SetFloat(INTENSITY_ID, sparkIntensity);

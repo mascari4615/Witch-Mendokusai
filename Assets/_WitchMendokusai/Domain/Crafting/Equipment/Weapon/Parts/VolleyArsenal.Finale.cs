@@ -49,8 +49,8 @@ namespace WitchMendokusai
 
 		private void PrepareFinale()
 		{
-			grandBatch = Layer("Grand", art.Grand, 3017);
-			dustBatch = Layer("Dust", art.Impact, 3019);
+			grandBatch = Layer("Grand", art.Grand, 3017, true);
+			dustBatch = Layer("Dust", art.Impact, 3019, true);
 		}
 
 		private void StartFinale()

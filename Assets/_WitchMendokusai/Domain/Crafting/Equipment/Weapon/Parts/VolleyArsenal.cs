@@ -55,7 +55,8 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.1f), Tooltip("자루 크기에 곱하는 문 크기")] private float portalScale = 1.15f;
 		[SerializeField, Min(0f), Tooltip("자루끼리 떨어지는 거리 (크기 1 기준)")] private float slotGap = 1.6f;
 		[SerializeField, Tooltip("밀려난 자루의 가장 낮은 자리")] private float slotFloor = -0.2f;
-		[SerializeField, Min(0f), Tooltip("문을 카메라 쪽으로 돌리는 세기")] private float portalFacing = 0.75f;
+		[SerializeField, Range(0f, 1f), Tooltip("완드가 화면 안쪽을 겨눌 때 눌려 보이지 않게 화면 쪽으로 눕히는 정도")] private float flattenAim = 0.75f;
+		[SerializeField, Min(0f), Tooltip("문을 카메라 쪽으로 돌리는 세기")] private float portalFacing = 1.1f;
 		[SerializeField, Tooltip("문이 도는 빠르기 (라디안/초)")] private float portalSpin = 3.4f;
 		[SerializeField, Tooltip("가만히 있을 때와 열리고 쏠 때의 감김")] private Vector2 portalSwirl = new(1.2f, 6f);
 		[SerializeField, Range(0f, 1f), Tooltip("쏠 때 문 안으로 밀려 들어가는 비율")] private float recoil = 0.3f;
@@ -269,7 +270,9 @@ namespace WitchMendokusai
 		private void DrawPortal(Weapon weapon, Vector3 position, Vector3 aim, Vector3 viewForward, float age, float kick, float broken)
 		{
 			// 카메라 쪽으로 반쯤 돌려 옆에서도 둥글게 보임
-			Vector3 facing = (aim - viewForward * portalFacing).normalized;
+			// 겨눔이 카메라 쪽이든 반대쪽이든 원판의 앞면이 보이게
+			Vector3 toward = Vector3.Dot(aim, viewForward) > 0f ? -aim : aim;
+			Vector3 facing = (toward - viewForward * portalFacing).normalized;
 			Vector3 right = Vector3.Cross(Vector3.up, facing).normalized;
 			Vector3 up = Vector3.Cross(facing, right);
 			float open = Back(age / openSeconds);
@@ -325,7 +328,9 @@ namespace WitchMendokusai
 			float bob = bobHeight * Mathf.Sin(Time.time * bobSpeed + weapon.Phase);
 			position = owner.position + Vector3.up * centerHeight + right * weapon.Slot.x + up * (weapon.Slot.y + bob) + away * behind;
 			Vector3 mark = Quaternion.Euler(0f, weapon.Fan, 0f) * Aim() * convergeDistance;
-			aim = (owner.position + Vector3.up * shotHeight + mark - position).normalized;
+			aim = owner.position + Vector3.up * shotHeight + mark - position;
+			Vector3 viewForward = cameraTransform.forward;
+			aim = (aim - viewForward * (Vector3.Dot(aim, viewForward) * flattenAim)).normalized;
 		}
 
 		private Vector3 Muzzle(Weapon weapon, out Vector3 aim)
@@ -420,9 +425,9 @@ namespace WitchMendokusai
 		}
 
 		// 인물 그림은 큐 3000. 그보다 작으면 뒤
-		private FxQuadBatch Layer(string layerName, Texture texture, int queue)
+		private FxQuadBatch Layer(string layerName, Texture texture, int queue, bool onTop = false)
 		{
-			FxQuadBatch batch = new("Volley" + layerName, root, art.Shader, texture, art.Noise, queue);
+			FxQuadBatch batch = new("Volley" + layerName, root, art.Shader, texture, art.Noise, queue, onTop);
 			batches.Add(batch);
 			return batch;
 		}

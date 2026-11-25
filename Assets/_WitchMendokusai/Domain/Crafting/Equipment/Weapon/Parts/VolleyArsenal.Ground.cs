@@ -12,8 +12,8 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float sigilRadius = 2.7f;
 		[SerializeField] private float sigilSpin = 0.7f;
 		[SerializeField, Min(0f)] private float dimRadius = 12f;
-		[SerializeField, Range(0f, 1f)] private float dimAmount = 0.6f;
-		[SerializeField, Range(0f, 1f), Tooltip("배경 전체를 누르는 정도. 인물과 몬스터 그림은 안 눌림")] private float screenDim = 0.66f;
+		[SerializeField, Range(0f, 1f)] private float dimAmount = 0.35f;
+		[SerializeField, Range(0f, 1f), Tooltip("배경 전체를 누르는 정도. 인물과 몬스터 그림은 안 눌림")] private float screenDim = 0.52f;
 		[SerializeField, Range(0f, 1f), Tooltip("쏘는 동안 진의 밝기")] private float sigilWhileFiring = 0.35f;
 		[SerializeField, Min(0.02f)] private float groundInSeconds = 0.22f;
 		[SerializeField, Min(0.02f)] private float groundOutSeconds = 0.45f;
@@ -25,6 +25,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0f)] private float shaftWidth = 0.4f;
 		[SerializeField, Min(0f), Tooltip("꺼내는 동안 문으로 모이는 불티 (초당)")] private float gatherRate = 60f;
 
+		private FxQuadBatch screenBatch;
 		private FxQuadBatch dimBatch;
 		private FxQuadBatch sigilBatch;
 		private FxQuadBatch shockBatch;
@@ -36,6 +37,7 @@ namespace WitchMendokusai
 
 		private void PrepareGround()
 		{
+			screenBatch = Layer("DimScreen", art.Soft, 2938, true);
 			dimBatch = Layer("Dim", art.Soft, 2940);
 			scorchBatch = Layer("Scorch", art.Scorch, 2944);
 			shockBatch = Layer("Shock", art.Shock, 2951);
@@ -73,10 +75,11 @@ namespace WitchMendokusai
 		private void DimScreen(float level)
 		{
 			Transform cameraTransform = viewCamera.transform;
-			float distance = viewCamera.nearClipPlane + 0.2f;
-			float halfHeight = distance * Mathf.Tan(viewCamera.fieldOfView * 0.5f * Mathf.Deg2Rad) * 1.2f;
+			// 이 뒤에 카메라가 흔들려도 덮이게 멀리 크게
+			float distance = viewCamera.nearClipPlane + 3f;
+			float halfHeight = distance * Mathf.Tan(viewCamera.fieldOfView * 0.5f * Mathf.Deg2Rad) * 3f;
 			Vector3 right = cameraTransform.right * (halfHeight * viewCamera.aspect);
-			dimBatch.Add(cameraTransform.position + cameraTransform.forward * distance, right, cameraTransform.up * halfHeight, new Rect(0.5f, 0.5f, 0f, 0f), FxQuadLook.Of(WithAlpha(shadeTint, screenDim * level), 1f));
+			screenBatch.Add(cameraTransform.position + cameraTransform.forward * distance, right, cameraTransform.up * halfHeight, new Rect(0.5f, 0.5f, 0f, 0f), FxQuadLook.Of(WithAlpha(shadeTint, screenDim * level), 1f));
 		}
 
 		// 진 둘레에서 솟는 빛기둥. 저마다 다른 때에 솟고 사라짐

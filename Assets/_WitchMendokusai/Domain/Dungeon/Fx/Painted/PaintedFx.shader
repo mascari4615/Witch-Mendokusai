@@ -16,6 +16,7 @@ Shader "WM/Fx/Painted"
 		_FlowSpeed ("Flow speed", Float) = 0.9
 		_ParticleCover ("Cover for particles", Range(0, 1)) = 0
 		_Intensity ("Intensity", Float) = 1
+		[Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4
 	}
 	SubShader
 	{
@@ -25,6 +26,7 @@ Shader "WM/Fx/Painted"
 			Tags { "LightMode"="SRPDefaultUnlit" }
 			Blend One OneMinusSrcAlpha
 			ZWrite Off
+			ZTest [_ZTest]
 			Cull Off
 			HLSLPROGRAM
 			#pragma vertex Vert
