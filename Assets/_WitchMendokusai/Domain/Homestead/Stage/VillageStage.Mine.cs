@@ -27,6 +27,12 @@ namespace WitchMendokusai
 		[SerializeField] private float holeGlowIntensity = 2.4f;
 		[SerializeField] private float glintHeight = 1.05f;
 		[SerializeField] private float glintTurn = 120f;
+		[Tooltip("빛이 가장 밝을 때, 그 밖의 가장 작을 때와 커지는 폭")]
+		[SerializeField] private Vector3 glintScale = new(1.6f, 0.35f, 0.6f);
+		[SerializeField] private Vector3 mineWallSize = new(3f, 4f, 1f);
+		[SerializeField] private Vector3 liftGlow = new(1f, 2f, 0f);
+		[SerializeField] private Vector3 liftSpot = new(0f, 0f, 0.4f);
+		[SerializeField] private Vector3 holeGlow = new(0.7f, 1.2f, 0.4f);
 		[SerializeField] private float mineRadius = 9f;
 		[SerializeField] private float mineNodeGap = 2.6f;
 		[SerializeField] private float mineLampRange = 8f;
@@ -74,11 +80,11 @@ namespace WitchMendokusai
 				float angle = i / (float)MINE_WALLS * Mathf.PI * 2f;
 				GameObject wall = new("Wall");
 				wall.transform.SetParent(mineRoot, false);
-				wall.transform.SetLocalPositionAndRotation(new Vector3(Mathf.Cos(angle) * (mineRadius + 1f), 2f, Mathf.Sin(angle) * (mineRadius + 1f)), Quaternion.Euler(0f, 90f - angle * Mathf.Rad2Deg, 0f));
-				wall.AddComponent<BoxCollider>().size = new Vector3(3f, 4f, 1f);
+				wall.transform.SetLocalPositionAndRotation(new Vector3(Mathf.Cos(angle) * (mineRadius + mineWallSize.z), mineWallSize.y * 0.5f, Mathf.Sin(angle) * (mineRadius + mineWallSize.z)), Quaternion.Euler(0f, 90f - angle * Mathf.Rad2Deg, 0f));
+				wall.AddComponent<BoxCollider>().size = mineWallSize;
 			}
 			Models.Build("MineLift", mineRoot, liftPosition, 0f);
-			AddGlow(mineRoot, liftPosition + new Vector3(1f, 2f, 0f), mineLampRange, mineLampIntensity);
+			AddGlow(mineRoot, liftPosition + liftGlow, mineLampRange, mineLampIntensity);
 			mineLantern = AddGlow(mineRoot, Vector3.zero, mineLampRange, mineLampIntensity);
 			GameObject floor = new("MineFloor");
 			floor.transform.SetParent(mineRoot, false);
@@ -87,9 +93,9 @@ namespace WitchMendokusai
 			box.size = new Vector3(mineRadius * 3f, 1f, mineRadius * 3f);
 			mineFloor = new GameObject("Nodes").transform;
 			mineFloor.SetParent(mineRoot, false);
-			HomesteadSpot.Create(mineRoot, liftPosition + new Vector3(0f, 0f, 0.4f), "LiftSpot", () => "승강기", () => "올라가기", LeaveMineByLift);
+			HomesteadSpot.Create(mineRoot, liftPosition + liftSpot, "LiftSpot", () => "승강기", () => "올라가기", LeaveMineByLift);
 			minePassage = Models.Build("MineHole", mineRoot, holePosition, 0f);
-			AddGlow(minePassage.transform, new Vector3(0.7f, 1.2f, 0.4f), holeGlowRange, holeGlowIntensity);
+			AddGlow(minePassage.transform, holeGlow, holeGlowRange, holeGlowIntensity);
 			HomesteadSpot.Attach(minePassage, () => "내리막", () => run != null && run.Depth >= Sim.MineMaxDepth ? "더는 없음" : "내려가기", Descend);
 			minePassage.SetActive(false);
 		}
@@ -245,7 +251,7 @@ namespace WitchMendokusai
 			mineLantern.transform.position = playerProvider.CurrentObject.transform.position + lanternOffset;
 			glintPhase = Mathf.Repeat(Time.time / Catalog.Tuning.GlintSeconds, 1f);
 			bool sharp = run.IsGlint(glintPhase);
-			float scale = sharp ? 1.6f : 0.35f + glintPhase * 0.6f;
+			float scale = sharp ? glintScale.x : glintScale.y + glintPhase * glintScale.z;
 			foreach (NodeView view in mineNodes)
 			{
 				if (view.Root.activeSelf == false)

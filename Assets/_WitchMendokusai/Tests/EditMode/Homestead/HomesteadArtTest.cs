@@ -51,11 +51,26 @@ namespace WitchMendokusai.Tests
 				if (keys.Contains(key) == false)
 					missing.Add(key);
 			}
-			Need("CropSprout");
+			foreach (string key in new[] { "CropSprout", "FieldEdge", "Scarecrow", "MineShell", "MineLift", "MineHole", "MineGlint", "Museum_hall" })
+				Need(key);
+			foreach (WingDef wing in catalog.Wings)
+			{
+				Need("Museum_" + wing.Id);
+				Need("Stand_" + wing.Id);
+			}
 			foreach (string stage in new[] { "_a", "_b", "_c" })
 				catalog.Crops.ForEach(crop => Need("Crop_" + crop.Id + stage));
 			catalog.MineNodes.ForEach(node => Need("Mine_" + node.Id));
 			Assert.IsEmpty(missing, string.Join(", ", missing));
+		}
+
+		// 걸음은 선 모습 한 장과 걸음 한 장 이상
+		[Test]
+		public void Every_animal_has_walking_frames()
+		{
+			HomesteadArt art = Resources.Load<HomesteadArt>(nameof(HomesteadArt));
+			foreach (AnimalDef animal in HomesteadManager.LoadCatalog().Animals)
+				Assert.GreaterOrEqual(art.FramesOf(animal.Id, 0).Length, 2, animal.Id);
 		}
 
 		[Test]

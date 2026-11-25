@@ -10,7 +10,7 @@ namespace WitchMendokusai
 		private const string POND = "pond";
 		private const string STREAM = "stream";
 		private const int STREAM_DOCK_LEVEL = 2;
-		private const int POND_WALLS = 44;
+		[SerializeField] private int pondWalls = 44;
 
 		[Header("Water")]
 		[SerializeField] private Vector3 streamFrom = new(24f, 0f, -5f);
@@ -20,6 +20,11 @@ namespace WitchMendokusai
 		[SerializeField] private float dockHalfWidth = 0.72f;
 		[SerializeField] private float dockLength = 5.5f;
 		[SerializeField] private float wallHeight = 3f;
+		[SerializeField] private float wallThickness = 0.4f;
+		[Tooltip("물가 벽을 물 쪽으로 들이는 길이")]
+		[SerializeField] private float wallInset = 0.2f;
+		[Tooltip("나루 발치에서 옆 벽이 시작하는 길이. 물가를 밟고 올라서는 자리")]
+		[SerializeField] private float dockLanding = 1.2f;
 		[SerializeField] private float resultSeconds = 1.6f;
 		[Tooltip("찌가 떨어지는 자리. 못 가운데와 개울 자리에서")]
 		[SerializeField] private Vector3 pondCast = new(0f, -0.16f, 0.6f);
@@ -63,21 +68,21 @@ namespace WitchMendokusai
 			Vector3 foot = CenterOf(dock);
 			Vector3 along = FacingOf(dock.Turn) * Vector3.back;
 			Vector3 side = Vector3.Cross(Vector3.up, along);
-			float radius = pondRadius - 0.2f;
-			float span = radius * Mathf.PI * 2f / POND_WALLS;
-			for (int i = 0; i < POND_WALLS; i++)
+			float radius = pondRadius - wallInset;
+			float span = radius * Mathf.PI * 2f / pondWalls;
+			for (int i = 0; i < pondWalls; i++)
 			{
-				float angle = i / (float)POND_WALLS * Mathf.PI * 2f;
+				float angle = i / (float)pondWalls * Mathf.PI * 2f;
 				Vector3 point = pondCenter + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
 				Vector3 offset = point - foot;
-				bool isDock = Vector3.Dot(offset, along) is > 0f and < 6f && Mathf.Abs(Vector3.Dot(offset, side)) < dockHalfWidth + span * 0.5f;
+				bool isDock = Vector3.Dot(offset, along) > 0f && Vector3.Dot(offset, along) < dockLength + dockLanding && Mathf.Abs(Vector3.Dot(offset, side)) < dockHalfWidth + span * 0.5f;
 				if (isDock == false)
-					AddWall(root, point, new Vector3(span + 0.2f, wallHeight, 0.4f), Quaternion.Euler(0f, 90f - angle * Mathf.Rad2Deg, 0f));
+					AddWall(root, point, new Vector3(span + wallInset, wallHeight, wallThickness), Quaternion.Euler(0f, 90f - angle * Mathf.Rad2Deg, 0f));
 			}
 			Quaternion facing = Quaternion.LookRotation(along);
 			for (int sign = -1; sign <= 1; sign += 2)
-				AddWall(root, foot + along * (dockLength * 0.5f + 1.2f) + side * (sign * (dockHalfWidth + 0.2f)), new Vector3(0.4f, wallHeight, dockLength - 2.4f), facing);
-			AddWall(root, foot + along * dockLength, new Vector3(dockHalfWidth * 2f + 0.8f, wallHeight, 0.4f), facing);
+				AddWall(root, foot + along * (dockLength * 0.5f + dockLanding) + side * (sign * (dockHalfWidth + wallThickness * 0.5f)), new Vector3(wallThickness, wallHeight, dockLength - dockLanding * 2f), facing);
+			AddWall(root, foot + along * dockLength, new Vector3(dockHalfWidth * 2f + wallThickness * 2f, wallHeight, wallThickness), facing);
 		}
 
 		private void AddWall(Transform root, Vector3 position, Vector3 size, Quaternion rotation)

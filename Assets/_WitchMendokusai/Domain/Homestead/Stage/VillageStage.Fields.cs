@@ -247,9 +247,15 @@ namespace WitchMendokusai
 			manager.Panels.Show(HomesteadPanelType.Seeds);
 		}
 
-		private static IEnumerator Pop(Transform target)
+		private readonly Dictionary<Transform, Vector3> popBases = new();
+
+		private IEnumerator Pop(Transform target)
 		{
-			Vector3 scale = target.localScale;
+			if (popBases.TryGetValue(target, out Vector3 scale) == false)
+			{
+				scale = target.localScale;
+				popBases[target] = scale;
+			}
 			const float SECONDS = 0.22f;
 			for (float time = 0f; time < SECONDS && target != null; time += Time.deltaTime)
 			{
@@ -258,6 +264,7 @@ namespace WitchMendokusai
 			}
 			if (target != null)
 				target.localScale = scale;
+			popBases.Remove(target);
 		}
 
 		private void RefreshFarm()

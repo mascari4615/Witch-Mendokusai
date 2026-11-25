@@ -29,17 +29,30 @@ namespace WitchMendokusai
 		[SerializeField] private float duelSway = 0.5f;
 		[SerializeField] private float duelSwaySeconds = 1.1f;
 		[SerializeField] private float shakePerSecond = 9f;
+		[Tooltip("몸부림칠 때 끄는 힘의 배수")]
+		[SerializeField] private float surgeSway = 1.6f;
+		[Tooltip("다 감을 때까지 찌가 다가오는 거리 (m)")]
+		[SerializeField] private float reelDistance = 1.6f;
+		[SerializeField] private float idleBob = 0.03f;
+		[SerializeField] private float idleBobSpeed = 2.4f;
+		[Tooltip("팽팽할 때 낚싯대 끝이 앞으로 숙는 정도")]
+		[SerializeField] private float rodLean = 0.4f;
 		[Header("Ripples")]
 		[SerializeField] private Vector2 ringRadius = new(0.1f, 0.85f);
 		[SerializeField] private float ringSeconds = 0.9f;
 		[SerializeField] private float ringWidth = 0.035f;
 		[SerializeField] private float duelRingEvery = 0.45f;
+		[Tooltip("첨벙 때 고리가 차례로 퍼지는 간격 (고리 시간에 대한 비율)")]
+		[SerializeField] private float ringStagger = 0.25f;
+		[SerializeField] private float ringLift = 0.02f;
 		[SerializeField] private Color ringColor = new(0.92f, 0.97f, 1f, 1f);
 		[Header("Catch")]
 		[SerializeField] private float leapSeconds = 0.65f;
 		[SerializeField] private float leapHeight = 1.5f;
 		[SerializeField] private float fishHeight = 0.6f;
 		[SerializeField] private float holdHeight = 1.35f;
+		[SerializeField] private float holdBob = 0.04f;
+		[SerializeField] private float holdBobSpeed = 4f;
 
 		private readonly LineRenderer[] rings = new LineRenderer[RING_COUNT];
 		private readonly float[] ringTimes = new float[RING_COUNT];
@@ -111,6 +124,8 @@ namespace WitchMendokusai
 			rod.enabled = true;
 			line.enabled = true;
 			bobber.transform.position = target;
+			DrawRod(0f);
+			DrawLine(0f);
 			Splash(target);
 		}
 
@@ -139,7 +154,7 @@ namespace WitchMendokusai
 		{
 			for (int i = 0; i < RING_COUNT; i++)
 			{
-				ringTimes[i] = -i * ringSeconds * 0.25f;
+				ringTimes[i] = -i * ringSeconds * ringStagger;
 				ringCenters[i] = center;
 				rings[i].enabled = false;
 			}
@@ -165,8 +180,8 @@ namespace WitchMendokusai
 			{
 				// 감긴 만큼 다가오고 고기가 좌우로 끎
 				Vector3 side = Vector3.Cross(Vector3.up, aim);
-				float strength = duel.IsSurging ? 1.6f : 1f;
-				position = Vector3.Lerp(water, water - aim * 1.6f, duel.Progress) + side * (Mathf.Sin(Time.time / duelSwaySeconds * Mathf.PI * 2f * strength) * duelSway);
+				float strength = duel.IsSurging ? surgeSway : 1f;
+				position = Vector3.Lerp(water, water - aim * reelDistance, duel.Progress) + side * (Mathf.Sin(Time.time / duelSwaySeconds * Mathf.PI * 2f * strength) * duelSway);
 				position.y -= duelDip + (duel.IsSurging ? biteDip * Mathf.Abs(Mathf.Sin(Time.time * shakePerSecond)) : 0f);
 				ringTimer -= Time.deltaTime * strength;
 				if (ringTimer <= 0f)
@@ -178,7 +193,7 @@ namespace WitchMendokusai
 				}
 			}
 			else
-				position.y += Mathf.Sin(Time.time * 2.4f) * 0.03f;
+				position.y += Mathf.Sin(Time.time * idleBobSpeed) * idleBob;
 			bobber.transform.position = position;
 		}
 
@@ -198,7 +213,7 @@ namespace WitchMendokusai
 		{
 			Vector3 grip = angler.position + hand + Vector3.Cross(Vector3.up, aim) * handSide;
 			float angle = rodAngle * Mathf.Deg2Rad;
-			return grip + (aim * Mathf.Cos(angle) + Vector3.up * Mathf.Sin(angle)) * rodLength + (aim * 0.4f + Vector3.down) * (rodBend * tension);
+			return grip + (aim * Mathf.Cos(angle) + Vector3.up * Mathf.Sin(angle)) * rodLength + (aim * rodLean + Vector3.down) * (rodBend * tension);
 		}
 
 		private void DrawRod(float tension)
@@ -245,7 +260,7 @@ namespace WitchMendokusai
 				for (int point = 0; point < RING_POINTS; point++)
 				{
 					float angle = point / (float)RING_POINTS * Mathf.PI * 2f;
-					rings[i].SetPosition(point, ringCenters[i] + new Vector3(Mathf.Cos(angle) * radius, 0.02f, Mathf.Sin(angle) * radius));
+					rings[i].SetPosition(point, ringCenters[i] + new Vector3(Mathf.Cos(angle) * radius, ringLift, Mathf.Sin(angle) * radius));
 				}
 			}
 		}
@@ -256,7 +271,7 @@ namespace WitchMendokusai
 				return;
 			leap = Mathf.Min(1f, leap + Time.deltaTime / leapSeconds);
 			Vector3 hold = angler.position + Vector3.up * holdHeight;
-			float bounce = leap >= 1f ? Mathf.Sin(Time.time * 4f) * 0.04f : Mathf.Sin(leap * Mathf.PI) * leapHeight;
+			float bounce = leap >= 1f ? Mathf.Sin(Time.time * holdBobSpeed) * holdBob : Mathf.Sin(leap * Mathf.PI) * leapHeight;
 			fish.transform.position = Vector3.Lerp(leapFrom, hold, leap) + Vector3.up * bounce;
 		}
 	}

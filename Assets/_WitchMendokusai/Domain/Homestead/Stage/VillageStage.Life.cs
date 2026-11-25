@@ -9,6 +9,7 @@ namespace WitchMendokusai
 	{
 		[Header("Life")]
 		[SerializeField] private float personHeight = 1.15f;
+		[SerializeField] private float animalRange = 1.4f;
 
 		private readonly Dictionary<string, VillageWalker> people = new();
 		private readonly Dictionary<string, VillageWalker> workers = new();
@@ -101,7 +102,7 @@ namespace WitchMendokusai
 					continue;
 				AnimalState captured = animal;
 				Vector3 home = DoorPoint(HomesteadSim.RANCH, 0.8f + animals.Count / 3 * 1.1f, -1.4f + animals.Count % 3 * 1.1f);
-				VillageWalker walker = VillageWalker.CreateAnimal(outdoor, home, Art.FramesOf(animal.Id, animal.Uid), 1.4f);
+				VillageWalker walker = VillageWalker.CreateAnimal(outdoor, home, Art.FramesOf(animal.Id, animal.Uid), animalRange);
 				HomesteadSpot.Attach(walker.gameObject, () => Catalog.Get<AnimalDef>(captured.Id).Name, () => AnimalRole(captured), () => CareAnimal(captured, walker));
 				animals.Add(animal.Uid, walker);
 			}
