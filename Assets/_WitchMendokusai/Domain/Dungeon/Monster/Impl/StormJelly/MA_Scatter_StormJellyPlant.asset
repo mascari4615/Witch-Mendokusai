@@ -56,11 +56,11 @@ MonoBehaviour:
       <SlowRatio>k__BackingField: 0
       <PushSpeed>k__BackingField: 0
       <PushSeconds>k__BackingField: 0
-  <Arrangement>k__BackingField: 2
+  <Arrangement>k__BackingField: 3
   <Count>k__BackingField: 5
   <Radius>k__BackingField: 0.8
   <Distance>k__BackingField: 2.7
-  <DistanceJitter>k__BackingField: 0.9
+  <DistanceJitter>k__BackingField: 0.3
   <StaggerSeconds>k__BackingField: 0.13
   <Damage>k__BackingField: 2
   <HitEffect>k__BackingField:
@@ -70,4 +70,6 @@ MonoBehaviour:
     <SlowRatio>k__BackingField: 0
     <PushSpeed>k__BackingField: 0
     <PushSeconds>k__BackingField: 0
+    <HitFx>k__BackingField: {fileID: 0}
+    <HitFxRadius>k__BackingField: 1
     <Pulls>k__BackingField: 0

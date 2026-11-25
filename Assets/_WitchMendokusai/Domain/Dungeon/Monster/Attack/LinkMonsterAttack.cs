@@ -8,12 +8,6 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Link", menuName = "WM/Variable/MonsterAttack/" + nameof(LinkMonsterAttack))]
 	public class LinkMonsterAttack : WindupMonsterAttack
 	{
-		// 같은 물체로 보는 거리 제곱 (m)
-		private const float SAME_SPOT_SQUARED = 0.01f;
-
-		// 행동 틱이 늦어 때리는 여유 (초)
-		private const float STRIKE_MARGIN = 0.2f;
-
 		private static readonly List<Vector3> posts = new();
 
 		public override string KindName => "잇기";
@@ -21,6 +15,7 @@ namespace WitchMendokusai
 		[field: Header("잇기")]
 		[field: SerializeField, Tooltip("띠 폭 (m)"), Min(0.2f)] public float Width { get; private set; } = 1f;
 		[field: SerializeField, Tooltip("이보다 먼 물체끼리는 안 이음 (m)"), Min(1f)] public float MaxLength { get; private set; } = 9f;
+		[field: SerializeField, Tooltip("행동 틱이 늦어 때리는 여유 (초). 이만큼 더 남을 물체만 이음"), Min(0f)] public float LateMargin { get; private set; } = 0.2f;
 		[field: SerializeField, Tooltip("기본 피해"), Min(1)] public int Damage { get; private set; } = 4;
 		[field: SerializeField, Tooltip("피해가 실제로 들어간 순간 주인공에게 거는 것")] public MonsterHitEffect HitEffect { get; private set; } = new();
 
@@ -28,7 +23,7 @@ namespace WitchMendokusai
 		public override bool IsReady(UnitObject unitObject)
 		{
 			int count = Collect(unitObject, 0f).Count;
-			return count >= 2 && Collect(unitObject, WindupSeconds + STRIKE_MARGIN).Count == count;
+			return count >= 2 && Collect(unitObject, WindupSeconds + LateMargin).Count == count;
 		}
 
 		// 이을 물체가 없으면 기다려도 안 생김
@@ -75,7 +70,7 @@ namespace WitchMendokusai
 			List<Vector3> ordered = Collect(unitObject, 0f);
 			for (int i = 0; i < ordered.Count && ordered.Count >= 2; i++)
 			{
-				if ((ordered[i] - start).sqrMagnitude > SAME_SPOT_SQUARED)
+				if (ordered[i] != start)
 					continue;
 				end = ordered[(i + 1) % ordered.Count];
 				return true;

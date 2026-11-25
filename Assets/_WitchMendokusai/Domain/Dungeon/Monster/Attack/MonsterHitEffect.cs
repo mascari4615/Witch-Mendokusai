@@ -16,6 +16,8 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("미는 속도 (m/s). 0 이면 안 밂"), Min(0f)] public float PushSpeed { get; private set; }
 		[field: SerializeField, Tooltip("미는 초. 길이는 속도 x 초"), Min(0f)] public float PushSeconds { get; private set; }
 
+		[field: SerializeField, Tooltip("맞은 주인공 자리의 이펙트. 긴 것의 중간에 맞아도 보이게. 비우면 없음")] public CombatFx HitFx { get; private set; }
+		[field: SerializeField, Min(0.1f)] public float HitFxRadius { get; private set; } = 1f;
 		[field: SerializeField, Tooltip("밀지 않고 중심 쪽으로 당김")] public bool Pulls { get; private set; }
 
 		public bool Pushes => PushSpeed > 0f && PushSeconds > 0f;
@@ -36,6 +38,8 @@ namespace WitchMendokusai
 			else if (AppliesStatus)
 				UnitStatus.Apply(player, Status, source, StatusSeconds);
 
+			if (HitFx != null)
+				HitFx.Play(new CombatFxContext { Position = player.transform.position, Origin = center, Radius = HitFxRadius });
 			if (Pushes == false)
 				return;
 			Vector3 direction = PushDirection(center, player.transform.position);

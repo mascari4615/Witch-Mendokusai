@@ -13,6 +13,10 @@ namespace WitchMendokusai
 		Ring = 1,
 		// 주인공 자리 하나와 그 둘레
 		Scatter = 2,
+		// 주인공 둘레만. 가운데가 안전
+		Around = 3,
+		// 주인공 뒤를 막는 벽. 시전자 쪽에서 본 주인공 너머에 가로로 한 줄
+		Wall = 4,
 	}
 
 	// 여러 자리 장판. 준비를 시작한 순간 자리를 모두 고정, 예고가 찬 원 안에 있으면 피해 한 번 (자리마다 늦추면 때마다 한 번)
@@ -25,7 +29,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public ScatterArrangement Arrangement { get; private set; } = ScatterArrangement.Scatter;
 		[field: SerializeField, Min(1)] public int Count { get; private set; } = 5;
 		[field: SerializeField, Tooltip("원 반지름 (m)"), Min(0.3f)] public float Radius { get; private set; } = 1.2f;
-		[field: SerializeField, Tooltip("줄은 칸 간격, 고리와 흩뿌림은 중심에서 거리 (m)"), Min(0.1f)] public float Distance { get; private set; } = 2.6f;
+		[field: SerializeField, Tooltip("줄과 벽은 칸 간격, 고리와 흩뿌림은 중심에서 거리 (m). 벽은 주인공에서 벽까지도 같은 거리 + 흔듦"), Min(0.1f)] public float Distance { get; private set; } = 2.6f;
 		[field: SerializeField, Tooltip("고리와 흩뿌림. 거리를 이만큼까지 더 멀리 흔듦 (m)"), Min(0f)] public float DistanceJitter { get; private set; }
 		[field: SerializeField, Tooltip("자리마다 늦어지는 초. 0 이면 동시"), Min(0f)] public float StaggerSeconds { get; private set; }
 		[field: SerializeField, Tooltip("터질 때 기본 피해"), Min(1)] public int Damage { get; private set; } = 4;
@@ -64,6 +68,15 @@ namespace WitchMendokusai
 				case ScatterArrangement.Ring:
 					AddRing(caster, count, distance, jitter, startAngle, random01, results);
 					return;
+				case ScatterArrangement.Around:
+					AddRing(player, count, distance, jitter, startAngle, random01, results);
+					return;
+				case ScatterArrangement.Wall:
+					Vector3 away = FlatDirection(caster, player);
+					Vector3 side = Vector3.Cross(Vector3.up, away);
+					for (int i = 0; i < count; i++)
+						results.Add(player + away * (distance + jitter) + side * (distance * (i - (count - 1) * 0.5f)));
+					return;
 				default:
 					results.Add(player);
 					AddRing(player, count - 1, distance, jitter, startAngle, random01, results);
@@ -95,9 +108,10 @@ namespace WitchMendokusai
 			int ringCount = Arrangement == ScatterArrangement.Scatter ? Count - 1 : Count;
 			bool ringOverlaps = ringCount > 1 && 2f * Distance * Mathf.Sin(Mathf.PI / ringCount) < Radius * 2f;
 			bool centerOverlaps = Arrangement == ScatterArrangement.Scatter && Count > 1 && Distance < Radius * 2f;
-			if (Arrangement != ScatterArrangement.Line && (ringOverlaps || centerOverlaps))
+			bool isLine = Arrangement is ScatterArrangement.Line or ScatterArrangement.Wall;
+			if (isLine == false && (ringOverlaps || centerOverlaps))
 				errors.Add($"{name}: 원이 겹쳐 사이 틈이 없음 (거리 {Distance}, 반지름 {Radius}, {Count}개)");
-			if (Arrangement == ScatterArrangement.Line && Distance > Radius * 2f)
+			if (isLine && Distance > Radius * 2f)
 				errors.Add($"{name}: 줄 간격 {Distance} 이 지름보다 커 줄이 끊김");
 			HitEffect.Validate(name, errors);
 		}

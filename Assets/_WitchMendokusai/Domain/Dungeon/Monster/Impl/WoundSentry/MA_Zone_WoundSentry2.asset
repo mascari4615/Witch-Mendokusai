@@ -45,7 +45,7 @@ MonoBehaviour:
       <SlowRatio>k__BackingField: 0
       <PushSpeed>k__BackingField: 0
       <PushSeconds>k__BackingField: 0
-    <BurstRadius>k__BackingField: 1.6
+    <BurstRadius>k__BackingField: 1.3
     <BurstDamage>k__BackingField: 3
     <BurstTelegraph>k__BackingField: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}
     <BurstFx>k__BackingField: {fileID: 11400000, guid: b754b8947fd34f17968eb56dc50cbffb, type: 2}

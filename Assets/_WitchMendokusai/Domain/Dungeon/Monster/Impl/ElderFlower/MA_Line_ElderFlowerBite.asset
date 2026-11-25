@@ -25,8 +25,8 @@ MonoBehaviour:
     <Rest>k__BackingField: {fileID: 0}
     <Crouch>k__BackingField: 0.12
     <Stretch>k__BackingField: 0.1
-    <StrikeSeconds>k__BackingField: 0.87
-    <StrikeLeadSeconds>k__BackingField: 0.2
+    <StrikeSeconds>k__BackingField: 0.1
+    <StrikeLeadSeconds>k__BackingField: 0.25
     <Tremble>k__BackingField: 0.05
     <Breath>k__BackingField: 0
   <WindupFx>k__BackingField: {fileID: 11400000, guid: dc668296592242e1ade0aef0986362fc, type: 2}
@@ -62,4 +62,7 @@ MonoBehaviour:
     <StatusSeconds>k__BackingField: 0
     <SlowRatio>k__BackingField: 0
     <PushSpeed>k__BackingField: 4
-    <PushSeconds>k__BackingField: 0.2
+    <PushSeconds>k__BackingField: 0.25
+    <HitFx>k__BackingField: {fileID: 11400000, guid: 09c060390aad43e397b4fb83535df33d, type: 2}
+    <HitFxRadius>k__BackingField: 1
+    <Pulls>k__BackingField: 0

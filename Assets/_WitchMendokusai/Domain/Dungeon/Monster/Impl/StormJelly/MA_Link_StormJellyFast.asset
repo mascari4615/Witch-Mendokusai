@@ -59,4 +59,6 @@ MonoBehaviour:
     <SlowRatio>k__BackingField: 0
     <PushSpeed>k__BackingField: 0
     <PushSeconds>k__BackingField: 0
+    <HitFx>k__BackingField: {fileID: 0}
+    <HitFxRadius>k__BackingField: 1
     <Pulls>k__BackingField: 0

@@ -34,7 +34,7 @@ MonoBehaviour:
   <WindupFxOnce>k__BackingField: 1
   <TelegraphInTurn>k__BackingField: 0
   <Linger>k__BackingField:
-    <Seconds>k__BackingField: 0.4
+    <Seconds>k__BackingField: 0.27
     <CoolSeconds>k__BackingField: 0.4
     <Radius>k__BackingField: 0.5
     <Damage>k__BackingField: 0
@@ -62,4 +62,6 @@ MonoBehaviour:
     <SlowRatio>k__BackingField: 0.3
     <PushSpeed>k__BackingField: 12
     <PushSeconds>k__BackingField: 0.25
+    <HitFx>k__BackingField: {fileID: 11400000, guid: 78c55cb9b647471ba00863c4ca532431, type: 2}
+    <HitFxRadius>k__BackingField: 1
     <Pulls>k__BackingField: 1

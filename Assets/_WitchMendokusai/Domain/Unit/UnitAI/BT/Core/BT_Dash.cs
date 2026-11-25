@@ -247,6 +247,9 @@ namespace WitchMendokusai
 			isDashing = false;
 			uncrack?.Invoke();
 			uncrack = null;
+			// 막히거나 밀려 일찍 멈췄으면 먼지가 길 끝까지 혼자 가지 않게
+			if (Time.time < dashReadyTime + dashDuration)
+				stopTrail?.Invoke();
 			stopTrail = null;
 			recoveryEndTime = Time.time + dashPostDelay;
 			unitObject.UnitMovement.CancelImpulse();

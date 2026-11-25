@@ -24,15 +24,15 @@ MonoBehaviour:
   frames: {x: 0, y: 13}
   color: {r: 1, g: 1, b: 1, a: 1}
   cover: 0.85
-  count: 7
-  seconds: 0.55
+  count: 9
+  seconds: 0.5
   leadSeconds: 0
-  emitSeconds: 0.06
-  halfSize: {x: 0.9, y: 1.5}
+  emitSeconds: 0.02
+  halfSize: {x: 1.0, y: 1.6}
   lift: 0.6
   originLift: 1.3
-  travelRatio: 0.65
-  spread: 0.8
+  travelRatio: 0.85
+  spread: 0.5
   alongPath: 0
   isFlat: 0
   flatTurn: 0

@@ -34,7 +34,7 @@ MonoBehaviour:
   <WindupFxOnce>k__BackingField: 1
   <TelegraphInTurn>k__BackingField: 1
   <Linger>k__BackingField:
-    <Seconds>k__BackingField: 1.8
+    <Seconds>k__BackingField: 2.4
     <CoolSeconds>k__BackingField: 0.4
     <Radius>k__BackingField: 0.5
     <Damage>k__BackingField: 0
@@ -57,10 +57,10 @@ MonoBehaviour:
     <Delay>k__BackingField: 0
   - <Inner>k__BackingField: 1.5
     <Outer>k__BackingField: 3.0
-    <Delay>k__BackingField: 0.6
+    <Delay>k__BackingField: 0.9
   - <Inner>k__BackingField: 3.0
     <Outer>k__BackingField: 4.5
-    <Delay>k__BackingField: 1.2
+    <Delay>k__BackingField: 1.8
   <Damage>k__BackingField: 4
   <HitEffect>k__BackingField:
     <AppliesStatus>k__BackingField: 0

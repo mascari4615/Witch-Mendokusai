@@ -319,6 +319,21 @@ namespace WitchMendokusai.Tests
 		};
 
 		[Test]
+		public void Wall_stands_behind_the_player_and_ring_leaves_the_middle()
+		{
+			List<Vector3> points = new();
+			ScatterZoneMonsterAttack.Arrange(ScatterArrangement.Wall, Vector3.zero, new Vector3(0f, 0f, 5f), 3, 1.2f, 0.4f, 0f, () => 0f, points);
+			Assert.AreEqual(3, points.Count);
+			foreach (Vector3 point in points)
+				Assert.AreEqual(6.6f, point.z, 0.001f, "주인공 너머 한 줄");
+			Assert.AreEqual(2.4f, Vector3.Distance(points[0], points[2]), 0.001f);
+			points.Clear();
+			ScatterZoneMonsterAttack.Arrange(ScatterArrangement.Around, Vector3.zero, Vector3.one, 5, 2.6f, 0f, 10f, () => 0f, points);
+			foreach (Vector3 point in points)
+				Assert.AreEqual(2.6f, Vector3.Distance(point, Vector3.one), 0.001f, "가운데는 비움");
+		}
+
+		[Test]
 		public void Links_go_around_without_crossing()
 		{
 			List<Vector3> points = new() { new Vector3(1f, 0f, 1f), new Vector3(-1f, 0f, -1f), new Vector3(1f, 0f, -1f), new Vector3(-1f, 0f, 1f) };

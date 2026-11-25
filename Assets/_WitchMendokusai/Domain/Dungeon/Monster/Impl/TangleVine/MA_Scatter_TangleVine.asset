@@ -45,6 +45,8 @@ MonoBehaviour:
       <SlowRatio>k__BackingField: 0.3
       <PushSpeed>k__BackingField: 0
       <PushSeconds>k__BackingField: 0
+      <HitFx>k__BackingField: {fileID: 0}
+      <HitFxRadius>k__BackingField: 1
       <Pulls>k__BackingField: 0
     <BurstRadius>k__BackingField: 0
     <BurstDamage>k__BackingField: 0
@@ -57,11 +59,11 @@ MonoBehaviour:
       <SlowRatio>k__BackingField: 0
       <PushSpeed>k__BackingField: 0
       <PushSeconds>k__BackingField: 0
-  <Arrangement>k__BackingField: 2
+  <Arrangement>k__BackingField: 4
   <Count>k__BackingField: 6
   <Radius>k__BackingField: 0.8
-  <Distance>k__BackingField: 2.6
-  <DistanceJitter>k__BackingField: 0.3
+  <Distance>k__BackingField: 1.35
+  <DistanceJitter>k__BackingField: 0.5
   <StaggerSeconds>k__BackingField: 0.06
   <Damage>k__BackingField: 2
   <HitEffect>k__BackingField:
@@ -71,4 +73,6 @@ MonoBehaviour:
     <SlowRatio>k__BackingField: 0.3
     <PushSpeed>k__BackingField: 0
     <PushSeconds>k__BackingField: 0
+    <HitFx>k__BackingField: {fileID: 0}
+    <HitFxRadius>k__BackingField: 1
     <Pulls>k__BackingField: 0
