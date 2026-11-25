@@ -69,7 +69,7 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>이 종의 단계 목표. 보스는 적게</summary>
-		public IReadOnlyList<int> TargetsOf(Monster monster) => Rules.TargetsOf(monster.Type == MonsterType.Boss, HasStory(monster));
+		public IReadOnlyList<int> TargetsOf(Monster monster) => Rules.TargetsOf(monster, HasStory(monster));
 
 		/// <summary>이야기 글이 적힌 종인지. 없으면 이야기 칸도 단계도 없음. 글이 생기면 처치 수로 다시 매겨짐</summary>
 		public static bool HasStory(Monster monster) => string.IsNullOrWhiteSpace(monster.Description) == false;
