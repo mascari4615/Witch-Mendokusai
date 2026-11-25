@@ -127,7 +127,7 @@ namespace WitchMendokusai
 
 		public override void Build(CardRevealRun run)
 		{
-			Color top = run.TierColor(run.Best);
+			Color top = run.BestColor;
 			bool chain = IsChain(run);
 			float packHeight = PackHeight(run);
 			RevealSource source = run.ChestSprite != null

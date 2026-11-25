@@ -36,6 +36,8 @@ namespace WitchMendokusai
 
 		public RectTransform Rect => card;
 		public CardRevealTier Tier { get; }
+		// 등급 색을 대신하는 빛 (형태 카드)
+		public Color? Tint { get; }
 		public Vector3 HomePosition => homePosition;
 		public Quaternion HomeRotation => homeRotation;
 		public Vector3 HomeScale => homeScale;
@@ -44,6 +46,7 @@ namespace WitchMendokusai
 		{
 			card = entry.Card;
 			Tier = entry.Tier;
+			Tint = entry.Tint;
 			if (card.TryGetComponent(out group) == false)
 				group = card.gameObject.AddComponent<CanvasGroup>();
 		}

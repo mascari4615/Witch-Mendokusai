@@ -18,7 +18,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public HeldWeapon.Shape Weapon { get; private set; } = HeldWeapon.Shape.Wand;
 		[field: SerializeField, Min(1), Tooltip("그림 속 무기 수. 여럿이면 부채로 펼침")] public int WeaponCount { get; private set; } = 1;
 		[field: SerializeField] public float FanDegrees { get; private set; } = 130f;
-		[field: SerializeField, Min(0.1f)] public float WeaponSize { get; private set; } = 1.5f;
+		[field: SerializeField, Min(0.1f)] public float WeaponSize { get; private set; } = 1.9f;
 		[field: SerializeField] public float WeaponTilt { get; private set; } = 18f;
 		[field: SerializeField, Min(0f)] public float SwayDegrees { get; private set; } = 9f;
 		[field: SerializeField, Min(16), Tooltip("그림 가로 텍셀. 점 필터로 키움")] public int ArtWidth { get; private set; } = 152;
@@ -27,7 +27,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Min(0f)] public float FrameThickness { get; private set; } = 8f;
 		[field: SerializeField, Min(0f), Tooltip("틀이 카드 밖으로 나가는 폭")] public float FrameOutset { get; private set; } = 10f;
 		[field: SerializeField, Min(0f)] public float CornerSize { get; private set; } = 34f;
-		[field: SerializeField, Range(0f, 1f), Tooltip("바탕에 깔리는 흐름의 세기")] public float BackFlow { get; private set; } = 0.22f;
+		[field: SerializeField, Range(0f, 1f), Tooltip("바탕에 깔리는 흐름의 세기")] public float BackFlow { get; private set; } = 0.1f;
 
 		[field: Header("공개와 고른 뒤 (실제 초)")]
 		[field: SerializeField, Min(0.05f), Tooltip("빛으로 덮였다가 걷히는 길이")] public float CoverSeconds { get; private set; } = 0.45f;

@@ -83,8 +83,9 @@ Shader "WM/UI/FormCardFlow"
 				float2 uv = (cell + 0.5) / _Cells.xy;
 				float clock = floor(_WMUIUnscaledTime * _Steps) / _Steps;
 				// 비스듬히 위로 흐르는 굵은 띠
-				float2 drift = float2(uv.x * 3.0 + uv.y * 0.8, uv.y * 2.2 - clock * _Flow);
-				float shade = noise(drift) * 0.65 + noise(drift * 2.3 + 11.0) * 0.35;
+				float wobble = noise(uv * float2(3.0, 4.0) + float2(0.0, -clock * _Flow)) * 2.6;
+				float ribbon = sin((uv.x * 1.1 + uv.y * 1.5 - clock * _Flow) * 11.0 + wobble) * 0.5 + 0.5;
+				float shade = saturate(0.18 + ribbon * 0.72 + (noise(uv * 9.0) - 0.5) * 0.18);
 				if (_Pillar > 0.5)
 				{
 					// 빛기둥: 가운데가 밝고 가장자리는 칸 계단으로 잘림

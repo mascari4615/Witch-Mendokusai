@@ -33,15 +33,18 @@ namespace WitchMendokusai
 		[SerializeField, Min(8f)] private float texelsPerUnit = 32f;
 
 		[Header("검기")]
-		[SerializeField, Min(0.1f)] private float crescentRadius = 0.64f;
-		[SerializeField, Range(20f, 300f)] private float crescentDegrees = 150f;
-		[SerializeField, Range(0.05f, 1f), Tooltip("가운데 두께 (반지름 1 당)")] private float crescentWidth = 0.42f;
+		[SerializeField, Min(0.1f)] private float crescentRadius = 0.95f;
+		[SerializeField, Range(20f, 300f)] private float crescentDegrees = 140f;
+		[SerializeField, Range(0.05f, 1f), Tooltip("가운데 두께 (반지름 1 당)")] private float crescentWidth = 0.55f;
 		[SerializeField, Min(0f)] private float height = 0.7f;
 		[SerializeField, Min(0f), Tooltip("나오는 자리 (인물 앞)")] private float startDistance = 0.4f;
-		[SerializeField, Min(0.02f), Tooltip("끝까지 나는 길이 (초)")] private float flySeconds = 0.17f;
-		[SerializeField, Min(0.02f)] private float fadeSeconds = 0.16f;
-		[SerializeField, Min(0.1f), Tooltip("뒤따르는 빛줄의 길이")] private float trailLength = 2.4f;
-		[SerializeField, Min(0.01f)] private float trailWidth = 0.5f;
+		[SerializeField, Min(0.02f), Tooltip("끝까지 나는 길이 (초)")] private float flySeconds = 0.22f;
+		[SerializeField, Min(0.02f)] private float fadeSeconds = 0.2f;
+		[SerializeField, Min(0.1f), Tooltip("뒤따르는 빛줄의 길이")] private float trailLength = 3.6f;
+		[SerializeField, Min(0.01f)] private float trailWidth = 0.6f;
+		[SerializeField, Min(0), Tooltip("뒤따르는 잔상 수")] private int echoes = 2;
+		[SerializeField, Min(0f), Tooltip("잔상 사이 거리")] private float echoGap = 0.55f;
+		[SerializeField, Range(0f, 1f), Tooltip("잔상마다 줄어드는 비율")] private float echoShrink = 0.22f;
 		[SerializeField, Range(0f, 1f), Tooltip("나는 동안 커지는 정도")] private float grow = 0.15f;
 		[SerializeField, Min(0.01f), Tooltip("나온 번쩍임이 절반이 되는 길이")] private float flashHalfLife = 0.06f;
 
@@ -64,6 +67,7 @@ namespace WitchMendokusai
 		{
 			public Transform Crescent;
 			public Transform Trail;
+			public Transform[] Echoes;
 			public Material Material;
 			public Vector3 Origin;
 			public Vector3 Direction;
@@ -106,6 +110,9 @@ namespace WitchMendokusai
 				wave = new Wave { Material = Energy(QUEUE) };
 				wave.Crescent = UltimateFxStage.CreateMeshObject("SwordCrescent", root, crescentMesh, wave.Material).transform;
 				wave.Trail = UltimateFxStage.CreateMeshObject("SwordTrail", root, sheathMesh, wave.Material).transform;
+				wave.Echoes = new Transform[echoes];
+				for (int i = 0; i < echoes; i++)
+					wave.Echoes[i] = UltimateFxStage.CreateMeshObject("SwordEcho", root, crescentMesh, wave.Material).transform;
 				wave.Material.SetVector(TEXELS_ID, new Vector4(Mathf.Round(crescentRadius * 3f * texelsPerUnit), Mathf.Round(crescentRadius * crescentWidth * texelsPerUnit), 0f, 0f));
 				waves.Add(wave);
 			}
@@ -191,6 +198,14 @@ namespace WitchMendokusai
 			// 초승달의 앞날이 head 에 오게
 			wave.Crescent.SetPositionAndRotation(head - wave.Direction * size, Quaternion.LookRotation(wave.Direction, Vector3.up));
 			wave.Crescent.localScale = new Vector3(size, 1f, size);
+			for (int i = 0; i < wave.Echoes.Length; i++)
+			{
+				float echoSize = size * (1f - echoShrink * (i + 1));
+				Vector3 echoHead = head - wave.Direction * Mathf.Min(distance, echoGap * (i + 1));
+				wave.Echoes[i].SetPositionAndRotation(echoHead - wave.Direction * echoSize, wave.Crescent.rotation);
+				wave.Echoes[i].localScale = new Vector3(echoSize, 1f, echoSize);
+				wave.Echoes[i].gameObject.SetActive(true);
+			}
 			float trail = Mathf.Min(trailLength, distance) * (1f - fade);
 			wave.Trail.SetPositionAndRotation(head - wave.Direction * (size * 0.2f), Quaternion.FromToRotation(Vector3.up, -wave.Direction));
 			wave.Trail.localScale = new Vector3(trailWidth * wave.Width, Mathf.Max(0.01f, trail), trailWidth * wave.Width);
@@ -263,7 +278,7 @@ namespace WitchMendokusai
 				float side = i < feathersPerSide ? 1f : -1f;
 				float along = feathersPerSide <= 1 ? 0.5f : i % feathersPerSide / (feathersPerSide - 1f);
 				float angle = Mathf.Lerp(featherAngles.x, featherAngles.y, along);
-				Vector3 outward = Quaternion.AngleAxis(angle * side, -away) * (right * side);
+				Vector3 outward = Quaternion.AngleAxis(angle * side, away) * (right * side);
 				Vector3 featherUp = Vector3.Cross(away, outward) * side;
 				feathers[i].SetPositionAndRotation(wingOwner.position + Vector3.up * wingHeight + away * 0.2f, Quaternion.LookRotation(Vector3.Cross(outward, featherUp), featherUp));
 				feathers[i].localScale = Vector3.one * (featherLength * Mathf.Lerp(0.65f, 1f, along));
@@ -275,6 +290,8 @@ namespace WitchMendokusai
 			wave.Alive = false;
 			wave.Crescent.gameObject.SetActive(false);
 			wave.Trail.gameObject.SetActive(false);
+			foreach (Transform echo in wave.Echoes)
+				echo.gameObject.SetActive(false);
 		}
 
 		private static void End(Burst burst)

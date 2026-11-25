@@ -28,7 +28,7 @@ namespace WitchMendokusai
 		[SerializeField, ColorUsage(false, true)] private Color emissionColor = new(1.08f, 0.9f, 0.5f);
 
 		[Header("크기와 자리 (월드)")]
-		[SerializeField, Min(0.05f)] private float size = 0.72f;
+		[SerializeField, Min(0.05f)] private float size = 0.9f;
 		[SerializeField, Min(0.01f), Tooltip("칼날의 두께 배율")] private float bladeWidth = 0.16f;
 		[SerializeField, Tooltip("손 자리 (조준 쪽 옆, 위)")] private Vector2 handOffset = new(0.3f, 0.3f);
 		[SerializeField, Tooltip("인물 앞으로")] private float inFront = 0.14f;
@@ -118,7 +118,7 @@ namespace WitchMendokusai
 			float tilt = Mathf.Clamp(Mathf.Atan2(onScreen.y, Mathf.Abs(onScreen.x)) * Mathf.Rad2Deg, -maxTilt, maxTilt) + restTilt;
 			float clock = Mathf.Floor(Time.time * poseSteps) / poseSteps;
 			float kick = Mathf.Pow(0.5f, (Time.time - shotTime) / recoilHalfLife);
-			Vector3 forward = Quaternion.AngleAxis(tilt * side, -away) * (right * side);
+			Vector3 forward = Quaternion.AngleAxis(tilt * side, away) * (right * side);
 			Vector3 position = playerProvider.Current.transform.position
 				+ right * (handOffset.x * side)
 				+ up * (handOffset.y + bobHeight * Mathf.Sin(clock * bobSpeed))
