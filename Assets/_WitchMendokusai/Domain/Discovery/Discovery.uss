@@ -229,7 +229,7 @@
     align-items: center;
     height: 148px;
     margin-bottom: 14px;
-    padding: 0 48px 0 56px;
+    padding: 0 40px 0 56px;
     background-image: url("../../Art/Texture/UI/Vector.png");
     -unity-slice-left: 30;
     -unity-slice-right: 30;
@@ -351,13 +351,13 @@
 .wm-discovery-loot {
     flex-direction: row;
     align-items: center;
-    margin-right: 22px;
+    margin-right: 4px;
 }
 
 .wm-discovery-loot__icon {
-    width: 56px;
-    height: 56px;
-    margin-right: 10px;
+    width: 44px;
+    height: 44px;
+    margin-right: 2px;
     -unity-background-scale-mode: scale-to-fit;
 }
 
