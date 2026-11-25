@@ -75,7 +75,7 @@ namespace WitchMendokusai
 		Inventory,
 		[InputEvent("창", "개발자 창", "<Keyboard>/slash", EnabledInRelease = false)]
 		DevWindowToggle,
-		[InputEvent("창", "도감", "<Keyboard>/b", EnabledInRelease = false)]
+		[InputEvent("창", "도감", "<Keyboard>/b")]
 		DiscoveryToggle,
 		[InputEvent("창", "퀘스트", "<Keyboard>/j")]
 		QuestToggle,

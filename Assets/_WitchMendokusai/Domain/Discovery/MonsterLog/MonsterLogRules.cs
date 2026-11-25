@@ -12,14 +12,27 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("일반 몬스터. 칸마다 필요한 누적 처치 수. 칸 순서는 첫 기록, 사는 곳, 몸과 버릇, 전리품, 이야기. 임시 값")] private int[] normalTargets = { 1, 20, 100, 300, 1000 };
 		[SerializeField, Tooltip("보스. 임시 값")] private int[] bossTargets = { 1, 2, 4, 7, 10 };
 
-		public IReadOnlyList<int> NormalTargets => normalTargets;
-		public IReadOnlyList<int> BossTargets => bossTargets;
+		// 처치마다 읽으므로 미리 만들어 둠
+		[NonSerialized] private int[] normalTargetsWithoutStory;
+		[NonSerialized] private int[] bossTargetsWithoutStory;
 
-		/// <summary>목표 표가 칸 수와 맞고 오름차순인지. 틀리면 던짐</summary>
-		public void ValidateTargets()
+		/// <summary>이 종의 단계 목표. 이야기 글이 없는 종은 마지막 칸 없이</summary>
+		public IReadOnlyList<int> TargetsOf(bool isBoss, bool hasStory)
+		{
+			if (hasStory)
+			{
+				return isBoss ? bossTargets : normalTargets;
+			}
+			return isBoss ? bossTargetsWithoutStory : normalTargetsWithoutStory;
+		}
+
+		/// <summary>목표 표가 칸 수와 맞고 오름차순인지 보고 (틀리면 던짐) 이야기 없는 종의 표를 만듦</summary>
+		public void Prepare()
 		{
 			ValidateTargets(nameof(normalTargets), normalTargets);
 			ValidateTargets(nameof(bossTargets), bossTargets);
+			normalTargetsWithoutStory = normalTargets[..MonsterLogPage.SLOT_STORY];
+			bossTargetsWithoutStory = bossTargets[..MonsterLogPage.SLOT_STORY];
 		}
 
 		private void ValidateTargets(string label, int[] targets)

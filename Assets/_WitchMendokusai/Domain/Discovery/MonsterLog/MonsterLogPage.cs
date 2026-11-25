@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		private const int SLOT_HABITAT = 1;
 		private const int SLOT_BODY = 2;
 		private const int SLOT_LOOT = 3;
+		public const int SLOT_STORY = 4;
 		private const string NO_ATTACK_KIND = "쫓아옴";
 		private static readonly string[] SLOT_NAMES = { "첫 기록", "사는 곳", "몸과 버릇", "전리품", "이야기" };
 
@@ -78,7 +79,8 @@ namespace WitchMendokusai
 			defeatsLabel.text = $"{record?.Defeats ?? 0}";
 
 			slots.Clear();
-			for (int slot = 0; slot < SLOT_COUNT; slot++)
+			// 이야기 글이 없는 종은 마지막 칸이 없음. 앞 칸의 자리는 그대로
+			for (int slot = 0; slot < targets.Count; slot++)
 			{
 				AddSlot(slot, monster, record, stage, targets, met);
 			}
@@ -115,8 +117,8 @@ namespace WitchMendokusai
 				case SLOT_LOOT:
 					FillLoot(body, monster);
 					break;
-				default:
-					FillStory(body, monster);
+				case SLOT_STORY:
+					AchievementElements.Text(body, monster.Description, "wm-discovery-slot__story");
 					break;
 			}
 		}
@@ -247,13 +249,6 @@ namespace WitchMendokusai
 				AchievementElements.Text(texts, loot.DataSO.Name, "wm-discovery-field__value");
 				AchievementElements.Text(texts, $"{loot.Percentage:0.##}%", "wm-discovery-field__caption");
 			}
-		}
-
-		// 글은 자산의 Description. 비어 있으면 빈 자리임을 그대로 보임 (글은 사람 몫)
-		private static void FillStory(VisualElement body, Monster monster)
-		{
-			bool isWritten = string.IsNullOrWhiteSpace(monster.Description) == false;
-			AchievementElements.Text(body, isWritten ? monster.Description : "아직 적히지 않은 장", isWritten ? "wm-discovery-slot__story" : "wm-discovery-slot__need");
 		}
 	}
 }
