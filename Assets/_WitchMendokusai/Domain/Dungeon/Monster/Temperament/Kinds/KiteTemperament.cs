@@ -14,7 +14,12 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("뒷걸음 세기 0~1"), Range(0f, 1f)] private float backSpeed = 0.7f;
 		[SerializeField, Tooltip("옆걸음 세기 0~1"), Range(0f, 1f)] private float strafeSpeed = 0.5f;
 
+		// 뒷걸음 거리와 다가올 거리 사이는 이만큼 벌림 (옆걸음 띠)
+		private const float MIN_BAND = 0.5f;
+
 		public override string KindName => "거리 두기";
+
+		private void OnValidate() => farDistance = Mathf.Max(farDistance, nearDistance + MIN_BAND);
 
 		// 기억의 Side 는 옆걸음 쪽, NextTime 은 쪽을 바꿀 시각
 		public override TemperamentStep Steer(in TemperamentContext context, TemperamentMemory memory)

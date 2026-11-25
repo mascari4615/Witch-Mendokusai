@@ -13,3 +13,10 @@ MonoBehaviour:
   m_Name: MT_Hop
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  restSeconds: 0.6
+  restJitter: 0.4
+  crouchSeconds: 0.3
+  hopSeconds: 0.35
+  hopSpeed: 9
+  crouchPunch: 1.25

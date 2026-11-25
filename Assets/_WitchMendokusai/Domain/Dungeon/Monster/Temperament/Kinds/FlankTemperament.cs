@@ -20,7 +20,7 @@ namespace WitchMendokusai
 		{
 			Vector3 look = TemperamentContext.Flat(context.PlayerLook);
 			if (look.sqrMagnitude < NO_LOOK_SQUARED)
-				look = -TemperamentContext.Toward(context.Player, context.Self);
+				look = TemperamentContext.Toward(context.Player, context.Self);
 			look.Normalize();
 			Vector3 behind = context.Player - look * behindDistance;
 			if (Vector3.Distance(TemperamentContext.Flat(context.Self), TemperamentContext.Flat(behind)) <= strikeRange)

@@ -13,3 +13,7 @@ MonoBehaviour:
   m_Name: MT_Flank
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  behindDistance: 2.5
+  sideDistance: 2.5
+  strikeRange: 1.2

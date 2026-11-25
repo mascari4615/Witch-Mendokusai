@@ -68,10 +68,13 @@ namespace WitchMendokusai
 
 		private void FacePlayer() => unitObject.SpriteRenderer.flipX = IsPlayerOnLeft();
 
-		// 기절, 빙결 중에는 준비를 시작하지 않음
+		// 기절, 빙결 중과 성격이 막을 때는 준비를 시작하지 않음
 		private bool CanStart()
 		{
 			if (Time.time < readyTime || unitObject.IsActionSuspended || attack.IsReady(unitObject) == false)
+				return false;
+			// 성격이 막음 (잠듦, 모른 척, 겁먹음, 튀어 나가는 중)
+			if (MonsterTemperamentDriver.HoldsAttack(unitObject))
 				return false;
 			float range = attack.TriggerRange;
 			Vector3 offset = playerProvider.Current.transform.position - unitObject.transform.position;

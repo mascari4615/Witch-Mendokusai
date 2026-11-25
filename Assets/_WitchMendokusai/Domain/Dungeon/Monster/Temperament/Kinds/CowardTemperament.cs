@@ -18,7 +18,9 @@ namespace WitchMendokusai
 			bool isScared = context.SinceHit < flinchSeconds || context.HealthRatio < panicBelow;
 			if (isScared == false)
 				return TemperamentStep.Walk(TemperamentContext.Toward(context.Self, context.Player));
-			return TemperamentStep.Walk(TemperamentContext.Toward(context.Player, context.Self), fleeSpeed);
+			TemperamentStep flee = TemperamentStep.Walk(TemperamentContext.Toward(context.Player, context.Self), fleeSpeed);
+			flee.HoldsAttack = true;
+			return flee;
 		}
 	}
 }

@@ -13,3 +13,7 @@ MonoBehaviour:
   m_Name: MT_Mirror
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  stillSpeed: 0.3
+  leashDistance: 9
+  returnSpeed: 0.6

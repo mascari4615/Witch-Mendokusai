@@ -13,3 +13,7 @@ MonoBehaviour:
   m_Name: MT_Coward
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  flinchSeconds: 1.2
+  panicBelow: 0.35
+  fleeSpeed: 1

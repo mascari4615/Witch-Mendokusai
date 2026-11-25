@@ -26,7 +26,7 @@ namespace WitchMendokusai
 			if (isAngry && memory.IsOn == false)
 			{
 				memory.IsOn = true;
-				return new TemperamentStep { Direction = Vector3.zero, Speed = 0f, Punch = angerPunch, FacesPlayer = true };
+				return new TemperamentStep { Direction = Vector3.zero, Speed = 0f, Punch = angerPunch, FacesPlayer = true, HoldsAttack = true };
 			}
 			memory.IsOn = isAngry;
 			if (isAngry)
@@ -40,8 +40,10 @@ namespace WitchMendokusai
 			Vector3 goal = memory.Anchor + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * wanderRadius;
 			Vector3 toGoal = TemperamentContext.Flat(goal - context.Self);
 			if (toGoal.magnitude < arriveDistance)
-				return new TemperamentStep { Direction = Vector3.zero, Speed = 0f };
-			return TemperamentStep.Walk(toGoal.normalized, wanderSpeed);
+				return TemperamentStep.Idle;
+			TemperamentStep wander = TemperamentStep.Walk(toGoal.normalized, wanderSpeed);
+			wander.HoldsAttack = true;
+			return wander;
 		}
 	}
 }

@@ -13,3 +13,12 @@ MonoBehaviour:
   m_Name: MT_Sleeper
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  wakeRadius: 3
+  wakeOnHitSeconds: 0.3
+  startleSeconds: 0.5
+  pounceSpeed: 11
+  pounceSeconds: 0.3
+  sleepRadius: 10
+  sleepSeconds: 4
+  startlePunch: 1.4

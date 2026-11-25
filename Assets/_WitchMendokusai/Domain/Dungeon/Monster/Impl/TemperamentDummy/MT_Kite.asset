@@ -13,3 +13,10 @@ MonoBehaviour:
   m_Name: MT_Kite
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
+  <FaceDeadZone>k__BackingField: 0.05
+  nearDistance: 4
+  farDistance: 7
+  strafeSeconds: 2
+  strafeJitter: 0.5
+  backSpeed: 0.7
+  strafeSpeed: 0.5
