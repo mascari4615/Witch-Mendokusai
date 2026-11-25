@@ -82,7 +82,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Range(0f, 1f)] public float OtherShade { get; private set; } = 0.55f;
 		[field: SerializeField, Min(0f)] public float EpicLift { get; private set; } = 36f;
 		[field: SerializeField, Min(0f)] public float EpicTremble { get; private set; } = 2.2f;
-		[field: SerializeField, Min(1f)] public float EpicAuraSwell { get; private set; } = 1.18f;
+		[field: SerializeField, Min(1f)] public float EpicAuraSwell { get; private set; } = 1.03f;
 		[field: SerializeField, Min(0)] public int InwardWaves { get; private set; } = 10;
 		[field: SerializeField] public RevealBurst Inward { get; private set; } = new(4, 2.6f, 0f, 0.36f, 5f, 1f);
 		[field: SerializeField, Tooltip("빨려드는 빛 시작 거리 최소, 최대")] public Vector2 InwardRadius { get; private set; } = new(310f, 410f);
@@ -110,7 +110,10 @@ namespace WitchMendokusai
 			RevealSource source = run.ChestSprite != null
 				? RevealSource.Chest(run, run.ChestSprite, ChestSize)
 				: RevealSource.Pack(run, cardSize, PackGold, PackBody);
-			Image leak = run.Stage.NewImage(false, RevealTextures.Ring, new Color(top.r, top.g, top.b, 0f), run.Origin, source.Size * AuraSizeRatio, "[Reveal] Leak");
+			float spread = source.Size.y * AuraSpread;
+			Image leak = run.Stage.NewImage(false, RevealTextures.CardGlow, new Color(top.r, top.g, top.b, 0f), run.Origin, source.Size + Vector2.one * (spread * 2f), "[Reveal] Leak");
+			leak.type = Image.Type.Sliced;
+			leak.pixelsPerUnitMultiplier = RevealTextures.CARD_GLOW_BORDER / (Mathf.Max(1f, spread) * leak.pixelsPerUnit);
 			leak.transform.SetSiblingIndex(source.Root.GetSiblingIndex());
 
 			// 1. 모으기: 나타나서 점점 세게 떨고 등급 색 빛이 샘

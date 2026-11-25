@@ -337,6 +337,13 @@ namespace WitchMendokusai
 				return;
 			}
 
+			// 도감도 창 관리자 밖의 전체 화면. 장, 목록 순으로 한 단계씩 뒤로
+			if (DiscoveryScreen.TryGetExistingInstance(out DiscoveryScreen discoveryScreen) && discoveryScreen.IsOpen)
+			{
+				discoveryScreen.Back();
+				return;
+			}
+
 			// 마도서는 창 관리자 밖의 전체 화면. 여기서 닫지 않으면 마도서 위에 메뉴가 열림. 팝업, 화면 순으로 한 단계씩
 			if (uiRoot.MagicBookView.IsOpen)
 			{

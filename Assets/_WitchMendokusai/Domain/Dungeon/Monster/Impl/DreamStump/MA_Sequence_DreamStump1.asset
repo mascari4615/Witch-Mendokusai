@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3188a2aa8084f8c82eff08d1919b1ad, type: 3}
+  m_Name: MA_Sequence_DreamStump1
+  m_EditorClassIdentifier: 
+  <TriggerRange>k__BackingField: 10
+  <WindupSeconds>k__BackingField: 0
+  <RecoverySeconds>k__BackingField: 0
+  <Cooldown>k__BackingField: 1.2
+  <WindupTelegraph>k__BackingField: {fileID: 0}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 2
+  <Steps>k__BackingField:
+  - {fileID: 11400000, guid: 7308a3ef7daa4f2586d3e4edccaf0e00, type: 2}
+  - {fileID: 11400000, guid: 7308a3ef7daa4f2586d3e4edccaf0e00, type: 2}
+  - {fileID: 11400000, guid: 8e3dd07983804d73ba3a1f469bed5013, type: 2}
+  - {fileID: 11400000, guid: 19dddde9121d4aa9974fe0d96e906bcd, type: 2}
+  - {fileID: 11400000, guid: e3aa75bf9b9942efa9a21c57831c084f, type: 2}
+  - {fileID: 11400000, guid: ebc6322825dc438594f72ed0b795260b, type: 2}

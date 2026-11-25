@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -10,6 +11,9 @@ namespace WitchMendokusai
 
 		// 판 시작 전 설정 검사. 빠진 적 참조는 여기서 예외
 		public abstract void Validate();
+
+		/// <summary>이 패턴이 내보내는 적. 도감의 사는 곳이 읽음. 자기 생성이 없으면 빈 목록</summary>
+		public abstract IReadOnlyList<Monster> SpawnedMonsters { get; }
 
 		protected void RequireMonsters(Monster[] monsters, string fieldName)
 		{

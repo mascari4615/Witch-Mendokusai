@@ -8,7 +8,9 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Sequence", menuName = "WM/Variable/MonsterAttack/" + nameof(SequenceMonsterAttack))]
 	public class SequenceMonsterAttack : MonsterAttack
 	{
-		[field: SerializeField, Tooltip("차례. 순서나 무리를 다시 넣지 않음")] public List<MonsterAttack> Steps { get; private set; } = new();
+		public override string KindName => "연속 공격";
+
+		[field: SerializeField, Tooltip("차례. 순서, 무리, 단계를 다시 넣지 않음")] public List<MonsterAttack> Steps { get; private set; } = new();
 
 		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider) =>
 			new BT_SequenceAttack(unitObject, playerProvider, this);
@@ -24,7 +26,7 @@ namespace WitchMendokusai
 			{
 				if (step == null)
 					errors.Add($"{name}: 차례에 빈 칸");
-				else if (step is SequenceMonsterAttack or PackMonsterAttack)
+				else if (step is SequenceMonsterAttack or PackMonsterAttack or PhaseMonsterAttack)
 					errors.Add($"{name}: 차례 안에 {step.name} 을 넣을 수 없음 (낱개 공격만)");
 				else
 					step.Validate(owner, errors);

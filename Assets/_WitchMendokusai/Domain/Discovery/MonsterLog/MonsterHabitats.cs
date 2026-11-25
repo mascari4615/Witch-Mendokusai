@@ -1,0 +1,110 @@
+using System.Collections.Generic;
+using WitchMendokusai.DomainSDK.Discovery;
+
+namespace WitchMendokusai
+{
+	/// <summary>
+	/// 던전의 웨이브와 사건표에서 어느 몬스터가 어디에 언제 나오는지 모음. 도감 목록과 사는 곳 칸이 같은 것을 읽음.
+	/// 도감에 실을 종을 자산에 따로 적지 않음: 들어갈 수 있는 던전에 나오면 실림
+	/// </summary>
+	public static class MonsterHabitats
+	{
+		/// <summary>같은 번호면 같은 종. 자산이 따로 올라온 사본도 하나로 (MonsterGrudge 와 같은 이유)</summary>
+		private sealed class ByIdComparer : IEqualityComparer<Monster>
+		{
+			public bool Equals(Monster left, Monster right) => left.ID == right.ID;
+
+			public int GetHashCode(Monster monster) => monster.ID;
+		}
+
+		private static readonly ByIdComparer BY_ID = new();
+
+		/// <param name="includeDevOnly">개발 빌드 전용 던전까지 셈 (개발 빌드와 에디터)</param>
+		public static Dictionary<Monster, List<MonsterHabitat>> Collect(IEnumerable<Dungeon> dungeons, bool includeDevOnly)
+		{
+			Dictionary<Monster, List<MonsterHabitat>> result = new(BY_ID);
+			foreach (Dungeon dungeon in dungeons)
+			{
+				if (dungeon.DevBuildOnly && includeDevOnly == false)
+				{
+					continue;
+				}
+				Dictionary<Monster, List<(float Start, float End)>> spans = CollectSpans(dungeon);
+				foreach (KeyValuePair<Monster, List<(float Start, float End)>> pair in spans)
+				{
+					List<MonsterHabitat> habitats = GetOrAdd(result, pair.Key);
+					foreach ((float start, float end) in DiscoverySpans.Merge(pair.Value))
+					{
+						habitats.Add(new MonsterHabitat(dungeon, true, start, end));
+					}
+				}
+				AddEventMonsters(dungeon, spans, result);
+			}
+			return result;
+		}
+
+		private static Dictionary<Monster, List<(float Start, float End)>> CollectSpans(Dungeon dungeon)
+		{
+			Dictionary<Monster, List<(float Start, float End)>> spans = new(BY_ID);
+			foreach (MonsterWave wave in dungeon.MonsterWaves)
+			{
+				// 한 번 나오는 웨이브 (보스) 는 나오는 그 시각만
+				AddSpans(spans, wave.Monsters, wave.StartTime, wave.Once ? wave.StartTime : wave.EndTime);
+			}
+			foreach (WavePatternSlot slot in dungeon.WavePatterns)
+			{
+				AddSpans(spans, slot.Pattern != null ? slot.Pattern.SpawnedMonsters : null, slot.StartTime, slot.StartTime);
+			}
+			return spans;
+		}
+
+		// 빈 칸은 건너뜀. 던전 자산 오류는 입장 검사 (Dungeon.ValidateWaves) 몫이고, 여기서 던지면 들어가지 않을 던전 하나가 세이브 로드를 막음
+		private static void AddSpans(Dictionary<Monster, List<(float Start, float End)>> spans, IReadOnlyList<Monster> monsters, float start, float end)
+		{
+			if (monsters == null)
+			{
+				return;
+			}
+			foreach (Monster monster in monsters)
+			{
+				if (monster == null)
+				{
+					continue;
+				}
+				if (spans.TryGetValue(monster, out List<(float Start, float End)> list) == false)
+				{
+					list = new List<(float Start, float End)>();
+					spans[monster] = list;
+				}
+				list.Add((start, end));
+			}
+		}
+
+		// 사건 (정예, 무리) 으로만 나오는 종. 웨이브에도 나오면 시간대는 웨이브 것
+		private static void AddEventMonsters(Dungeon dungeon, Dictionary<Monster, List<(float Start, float End)>> spans, Dictionary<Monster, List<MonsterHabitat>> result)
+		{
+			if (dungeon.EventTable == null)
+			{
+				return;
+			}
+			HashSet<Monster> added = new(BY_ID);
+			foreach (SurvivalEventEntry entry in dungeon.EventTable.Events)
+			{
+				if (entry.Monster != null && spans.ContainsKey(entry.Monster) == false && added.Add(entry.Monster))
+				{
+					GetOrAdd(result, entry.Monster).Add(new MonsterHabitat(dungeon, false, 0f, 0f));
+				}
+			}
+		}
+
+		private static List<MonsterHabitat> GetOrAdd(Dictionary<Monster, List<MonsterHabitat>> result, Monster monster)
+		{
+			if (result.TryGetValue(monster, out List<MonsterHabitat> list) == false)
+			{
+				list = new List<MonsterHabitat>();
+				result[monster] = list;
+			}
+			return list;
+		}
+	}
+}

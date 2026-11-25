@@ -2,7 +2,7 @@ using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
-	/// <summary>업적 화면들이 같이 쓰는 작은 요소 짓기. 모두 누르기 대상이 아님 (pickingMode Ignore). 모양은 USS 클래스</summary>
+	/// <summary>업적과 도감 화면이 같이 쓰는 작은 요소 짓기. 모두 누르기 대상이 아님 (pickingMode Ignore). 모양은 USS 클래스</summary>
 	public static class AchievementElements
 	{
 		/// <summary>빈 칸 하나. 클래스는 빈칸으로 여럿</summary>
@@ -27,6 +27,14 @@ namespace WitchMendokusai
 		{
 			VisualElement bar = Part(parent, "wm-ach-bar " + ussClasses);
 			return Part(bar, "wm-ach-bar__fill");
+		}
+
+		/// <summary>아래 줄 키 안내 하나. 돌려주는 것은 글 (나중에 바꿀 수 있게)</summary>
+		public static Label Hint(VisualElement hints, string key, string text)
+		{
+			VisualElement hint = Part(hints, "wm-ach-hint");
+			Text(hint, key, "wm-fullmenu-key wm-ach-hint__key");
+			return Text(hint, text, "wm-ach-hint__text");
 		}
 
 		public static void AddClasses(VisualElement element, string ussClasses)

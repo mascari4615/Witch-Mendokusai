@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30284bfe5bd403f4a94529bd768db142, type: 3}
+  m_Name: MOB_37_큰집게수정게
+  m_EditorClassIdentifier: 
+  <ID>k__BackingField: 37
+  <Name>k__BackingField: "큰집게 수정게"
+  <Description>k__BackingField: 
+  <Sprite>k__BackingField: {fileID: 21300000, guid: 7f03de6ee19345069de9574633045b8f, type: 3}
+  <Sprites>k__BackingField:
+  - {fileID: 21300000, guid: 7f03de6ee19345069de9574633045b8f, type: 3}
+  <Affiliation>k__BackingField: -1
+  <Prefab>k__BackingField: {fileID: 7779617929997501086, guid: 707d4b823e934523bd7d405586cea04d, type: 3}
+  <DefaultSkills>k__BackingField: []
+  <Material>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
+  <InitStatInfos>k__BackingField:
+    initStats:
+    - unitStat: 2
+      value: 500
+    - unitStat: 300
+      value: 20
+    - unitStat: 4000
+      value: 100
+  <Type>k__BackingField: 1
+  <Loots>k__BackingField:
+  - <DataSO>k__BackingField: {fileID: 11400000, guid: a20ab7c98307d814f86c2538869bd7d3, type: 2}
+    <Percentage>k__BackingField: 100
+  <Attack>k__BackingField: {fileID: 11400000, guid: 955290da3b304208bb8da8d3b596be34, type: 2}

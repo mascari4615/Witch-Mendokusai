@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -8,6 +9,8 @@ namespace WitchMendokusai
 	public class DensityCurvePattern : WavePattern
 	{
 		[field: SerializeField, Tooltip("자기 생성에서 고를 적. 비우면 자기 생성 없음")] public Monster[] Monsters { get; private set; }
+
+		public override IReadOnlyList<Monster> SpawnedMonsters => Monsters;
 		[field: SerializeField, Tooltip("지속 초"), Min(0.1f)] public float Duration { get; private set; } = 90f;
 		[field: SerializeField, Tooltip("가로: 패턴 시작부터 초, 세로: 초당 생성 수")] public AnimationCurve SpawnsPerSecond { get; private set; } = new(new Keyframe(0f, 2f), new Keyframe(30f, 8f), new Keyframe(45f, 0f), new Keyframe(90f, 0f));
 		[field: SerializeField, Tooltip("가로: 패턴 시작부터 초, 세로: 기존 주기 웨이브와 짝 패턴 생성률 배율. 0 이면 멈춤")] public AnimationCurve PeriodicRate { get; private set; } = new(new Keyframe(0f, 1f), new Keyframe(30f, 1.5f), new Keyframe(45f, 0.2f), new Keyframe(90f, 1f));

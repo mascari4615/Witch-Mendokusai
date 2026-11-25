@@ -3,3 +3,5 @@ License: Witch Mendokusai project art. Card labels use Galmuri, SIL Open Font Li
 pack-*: textured green paper sleeve with the existing WM slime icon.
 band-*: matching removable paper seal. back-*: common engraved spellbook back with four original rank seals.
 fx-*: local card light animations from the approved mockup; 24 RGBA frames in a 6-column by 4-row grid.
+back-form: back-common recolored to ivory and yellow, rank seal replaced by the same star (form cards).
+fx-form: fx-epic recolored to ivory and yellow (form cards).

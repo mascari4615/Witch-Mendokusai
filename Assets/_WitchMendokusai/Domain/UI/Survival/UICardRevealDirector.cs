@@ -97,7 +97,7 @@ namespace WitchMendokusai
 			foreach (CardRevealEntry entry in entries)
 			{
 				CardRevealCard card = new(entry);
-				card.Prepare(skin.TierColor(entry.Tier), skin.AuraSizeRatio, skin.ShineAngle, skin.BackSprite(entry.Tier));
+				card.Prepare(entry.Tint ?? skin.TierColor(entry.Tier), skin.AuraSpread, skin.ShineAngle, entry.Back != null ? entry.Back : skin.BackSprite(entry.Tier));
 				cards.Add(card);
 			}
 			Vector2 originPosition = origin != null ? stage.ToLocal(origin) : CardsCenter();
@@ -154,7 +154,7 @@ namespace WitchMendokusai
 		{
 			if (BlocksChoice == false)
 				return false;
-			if (InSkipGuard == false)
+			if (IsRevealing && InSkipGuard == false)
 				SkipAll();
 			else
 				HoldPointerUntilRelease();

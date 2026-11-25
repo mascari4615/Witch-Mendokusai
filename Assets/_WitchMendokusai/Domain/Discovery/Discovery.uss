@@ -1,0 +1,417 @@
+/* 도감 전체 화면. 기준 화면 높이 1080, DiscoveryScreen 이 MenuStage.Fit 으로 맞춤.
+   색 토큰, 평행사변형 판, 키 칸, 닫기, 장소 고리는 FullMenu.uss, 카드와 분류 판과 거르기와 막대와 띠는 Achievement.uss 를 같이 씀.
+   시안: memo wm/reference/discovery-bench-20261125 discovery-draft.html */
+
+/* 배경은 불투명. 흐린 게임 화면을 깔지 않음 (2026-11-22 판정) */
+.wm-discovery {
+    background-color: rgb(14, 12, 19);
+}
+
+.wm-discovery__detail {
+    flex-grow: 1;
+    padding-top: 36px;
+    min-width: 0;
+}
+
+/* ===== 목록 ===== */
+
+.wm-discovery-tile__picture {
+    width: 150px;
+    height: 150px;
+    margin-top: 6px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* 검은 실루엣이 보이게 칸을 밝힘. 고른 칸 (흰 칠) 이 이기도록 focus 는 따로 */
+.wm-discovery-tile--locked {
+    background-color: rgb(38, 35, 46);
+}
+
+.wm-discovery-tile--locked:focus {
+    background-color: var(--wm-fullmenu-select);
+}
+
+.wm-discovery-tile--locked .wm-discovery-tile__picture {
+    -unity-background-image-tint-color: rgb(0, 0, 0);
+}
+
+.wm-discovery-tile--locked .wm-ach-card__name {
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-discovery-tile--locked:focus .wm-ach-card__name {
+    color: var(--wm-fullmenu-ink-dark);
+}
+
+.wm-discovery-tile--complete {
+    border-color: var(--wm-ach-tier-3);
+}
+
+.wm-discovery-pip--on {
+    background-color: var(--wm-fullmenu-glow);
+    border-color: var(--wm-fullmenu-glow);
+}
+
+.wm-discovery-pip--complete {
+    background-color: var(--wm-ach-tier-3);
+    border-color: var(--wm-ach-tier-3);
+}
+
+.wm-discovery-news {
+    position: absolute;
+    left: -2px;
+    top: 12px;
+    height: 32px;
+    padding: 0 16px;
+    font-size: 18px;
+    color: rgb(255, 255, 255);
+    -unity-text-align: middle-center;
+    background-image: url("../../Art/Texture/UI/Vector.png");
+    -unity-slice-left: 30;
+    -unity-slice-right: 30;
+    -unity-slice-scale: 0.5px;
+    -unity-background-image-tint-color: rgb(120, 72, 190);
+}
+
+.wm-discovery-complete {
+    margin-top: 34px;
+    padding: 22px 26px;
+    background-color: var(--wm-fullmenu-panel-deep);
+    border-width: 2px;
+    border-color: var(--wm-fullmenu-line);
+}
+
+.wm-discovery-complete__label {
+    font-size: 22px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-discovery-complete__number {
+    flex-direction: row;
+    align-items: flex-end;
+    margin: 8px 0 14px 0;
+}
+
+.wm-discovery-complete__count {
+    font-size: 72px;
+    color: rgb(255, 255, 255);
+    padding: 0;
+    margin-right: 12px;
+}
+
+.wm-discovery-complete__total {
+    font-size: 30px;
+    color: var(--wm-fullmenu-ink-soft);
+    margin-bottom: 8px;
+}
+
+/* 기본 회색 스크롤 막대 대신 얇은 보라 손잡이. 화살표 단추는 없음 */
+.wm-discovery .unity-scroller--vertical {
+    width: 8px;
+    margin-left: 10px;
+    border-width: 0;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.wm-discovery .unity-scroller__low-button,
+.wm-discovery .unity-scroller__high-button {
+    display: none;
+}
+
+.wm-discovery .unity-scroller__slider {
+    margin: 0;
+    width: 8px;
+}
+
+.wm-discovery .unity-base-slider__tracker {
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+}
+
+.wm-discovery .unity-base-slider__dragger {
+    left: 0;
+    width: 8px;
+    border-width: 0;
+    border-radius: 0;
+    background-color: var(--wm-fullmenu-glow);
+}
+
+/* ===== 한 종의 장 ===== */
+
+.wm-discovery-page {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+.wm-discovery-page__left {
+    width: 640px;
+    min-width: 580px;
+    flex-shrink: 1;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 8px;
+}
+
+.wm-discovery-page__glow {
+    position: absolute;
+    left: -60px;
+    right: -60px;
+    top: -10px;
+    height: 700px;
+    -unity-background-image-tint-color: var(--wm-fullmenu-glow-soft);
+}
+
+.wm-discovery-page__picture {
+    width: 420px;
+    height: 390px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-discovery-page__picture--locked {
+    -unity-background-image-tint-color: rgb(0, 0, 0);
+}
+
+.wm-discovery-page__name {
+    margin-top: 4px;
+    font-size: 52px;
+    color: rgb(255, 255, 255);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+}
+
+.wm-discovery-page__sub {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.wm-discovery-page__pips {
+    margin: 0 0 0 18px;
+}
+
+.wm-discovery-page__numbers {
+    flex-direction: row;
+    margin: 24px 0 18px 0;
+}
+
+.wm-discovery-number {
+    width: 180px;
+    margin: 0 7px;
+    padding: 10px 0;
+    align-items: center;
+    background-color: var(--wm-fullmenu-panel-deep);
+    border-width: 2px;
+    border-color: var(--wm-fullmenu-line);
+}
+
+.wm-discovery-number__value {
+    font-size: 38px;
+    color: var(--wm-fullmenu-value);
+}
+
+.wm-discovery-number__caption {
+    font-size: 20px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-discovery-page__slots {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 900px;
+    margin-left: 60px;
+    min-width: 0;
+}
+
+.wm-discovery-slot {
+    flex-direction: row;
+    align-items: center;
+    height: 148px;
+    margin-bottom: 14px;
+    padding: 0 40px 0 56px;
+    background-image: url("../../Art/Texture/UI/Vector.png");
+    -unity-slice-left: 30;
+    -unity-slice-right: 30;
+    -unity-slice-scale: 1.4px;
+    -unity-background-image-tint-color: var(--wm-fullmenu-panel);
+}
+
+.wm-discovery-slot--next {
+    -unity-background-image-tint-color: var(--wm-fullmenu-panel-current);
+}
+
+.wm-discovery-slot__mark {
+    width: 26px;
+    height: 26px;
+    margin-right: 28px;
+    flex-shrink: 0;
+    rotate: 45deg;
+    border-width: 3px;
+    border-color: var(--wm-fullmenu-line);
+}
+
+.wm-discovery-slot--open .wm-discovery-slot__mark {
+    background-color: var(--wm-fullmenu-glow);
+    border-color: var(--wm-fullmenu-glow);
+}
+
+.wm-discovery-slot--complete .wm-discovery-slot__mark {
+    background-color: var(--wm-ach-tier-3);
+    border-color: var(--wm-ach-tier-3);
+}
+
+.wm-discovery-slot__name {
+    width: 160px;
+    flex-shrink: 0;
+    font-size: 28px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-discovery-slot--open .wm-discovery-slot__name {
+    color: var(--wm-fullmenu-ink);
+}
+
+.wm-discovery-slot__body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.wm-discovery-slot__bar {
+    width: 260px;
+    margin-right: 24px;
+}
+
+.wm-discovery-slot__need {
+    font-size: 24px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-discovery-slot__story {
+    flex-shrink: 1;
+    font-size: 22px;
+    white-space: normal;
+    color: var(--wm-fullmenu-ink);
+}
+
+.wm-discovery-field {
+    margin-right: 40px;
+}
+
+.wm-discovery-field__caption {
+    font-size: 20px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-discovery-field__value {
+    font-size: 24px;
+    color: var(--wm-fullmenu-ink);
+}
+
+.wm-discovery-habitats {
+    flex-grow: 1;
+}
+
+.wm-discovery-habitat {
+    flex-direction: row;
+    align-items: center;
+    height: 36px;
+}
+
+.wm-discovery-habitat__name {
+    width: 210px;
+    font-size: 22px;
+}
+
+.wm-discovery-habitat__track {
+    flex-grow: 1;
+    height: 14px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.wm-discovery-habitat__span {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    min-width: 8px;
+    background-color: var(--wm-fullmenu-glow);
+}
+
+.wm-discovery-habitat__time {
+    width: 140px;
+    font-size: 20px;
+    -unity-text-align: middle-right;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-discovery-loot {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 4px;
+}
+
+.wm-discovery-loot__icon {
+    width: 44px;
+    height: 44px;
+    margin-right: 2px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* ===== 그 밖의 분류의 장 (DiscoveryDetailPanel) ===== */
+
+.wm-discovery-detail {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.wm-discovery-detail__illustration {
+    width: 560px;
+    height: 560px;
+    margin-right: 78px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--wm-fullmenu-panel-deep);
+    border-width: 2px;
+    border-color: var(--wm-fullmenu-line);
+}
+
+.wm-discovery-detail__illustration-image {
+    width: 420px;
+    height: 420px;
+}
+
+.wm-discovery-detail__name {
+    font-size: 52px;
+    color: rgb(255, 255, 255);
+}
+
+.wm-discovery-detail__meta {
+    margin: 8px 0 24px 0;
+    font-size: 22px;
+    color: var(--wm-fullmenu-ink-soft);
+}
+
+.wm-discovery-detail__body Label {
+    margin-bottom: 12px;
+    font-size: 24px;
+    white-space: normal;
+    color: var(--wm-fullmenu-ink);
+}
+
+/* ===== 새 기록 띠 (OverlayLayer, 기준 화면 높이 800). 자리와 모양은 업적 띠, 대기열도 같이 써서 겹치지 않음 ===== */
+
+.wm-discovery-toast__picture {
+    width: 46px;
+    height: 46px;
+    margin-right: 12px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.wm-discovery-toast__pips {
+    margin: 0 0 0 14px;
+}

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -9,6 +10,8 @@ namespace WitchMendokusai
 		[field: SerializeField] public Monster StrongMonster { get; private set; }
 		[field: SerializeField, Tooltip("강한 적 초당 생성 수"), Min(0f)] public float StrongPerSecond { get; private set; } = 0.5f;
 		[field: SerializeField] public Monster WeakMonster { get; private set; }
+
+		public override IReadOnlyList<Monster> SpawnedMonsters => new[] { StrongMonster, WeakMonster };
 		[field: SerializeField, Tooltip("약한 적 초당 생성 수"), Min(0f)] public float WeakPerSecond { get; private set; } = 3f;
 		[field: SerializeField, Tooltip("지속 초"), Min(0.1f)] public float Duration { get; private set; } = 60f;
 		[field: SerializeField, Tooltip("숨 고르기 패턴과 최종 보스 뒤 생성률 배율을 따름")] public bool FollowPeriodicRate { get; private set; } = true;

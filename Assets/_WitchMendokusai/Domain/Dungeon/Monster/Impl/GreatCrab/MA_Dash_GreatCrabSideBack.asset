@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27b2b474745a45438a23603feff359fd, type: 3}
+  m_Name: MA_Dash_GreatCrabSideBack
+  m_EditorClassIdentifier: 
+  <TriggerRange>k__BackingField: 10
+  <WindupSeconds>k__BackingField: 0.6
+  <RecoverySeconds>k__BackingField: 0.3
+  <Cooldown>k__BackingField: 0
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: d546be139c4e4d1aa3cc73e1ada5eb44, type: 2}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 2
+  <DashSpeed>k__BackingField: 11
+  <DashDuration>k__BackingField: 0.7
+  <TelegraphWidth>k__BackingField: 2.2
+  <BlockedProgressRatio>k__BackingField: 0.3
+  <AngleDegrees>k__BackingField: -65

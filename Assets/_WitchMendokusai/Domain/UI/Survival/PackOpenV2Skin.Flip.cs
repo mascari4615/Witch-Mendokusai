@@ -38,7 +38,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Range(0f, 1f)] public float OtherShade { get; private set; } = 0.55f;
 		[field: SerializeField, Min(0f)] public float EpicLift { get; private set; } = 36f;
 		[field: SerializeField, Min(0f)] public float EpicTremble { get; private set; } = 2.4f;
-		[field: SerializeField, Min(1f)] public float EpicAuraSwell { get; private set; } = 1.2f;
+		[field: SerializeField, Min(1f)] public float EpicAuraSwell { get; private set; } = 1.03f;
 		[field: SerializeField, Min(0f), Tooltip("빨려드는 빛 묶음 간격")] public float InwardGap { get; private set; } = 0.06f;
 		[field: SerializeField] public RevealBurst Inward { get; private set; } = new(4, 2.6f, 0f, 0.36f, 5f, 1f);
 		[field: SerializeField, Tooltip("빨려드는 빛 시작 거리, 카드 높이 대비 최소, 최대")] public Vector2 InwardRadius { get; private set; } = new(0.55f, 0.75f);
@@ -106,7 +106,7 @@ namespace WitchMendokusai
 			run.Play(at, rect.DOLocalMoveY(home.y + (rare ? Lift * 1.4f : Lift), LiftUp).SetEase(Ease.OutQuad));
 			run.Play(at + LiftUp, rect.DOLocalMoveY(home.y, LiftDown).SetEase(Ease.OutBack));
 			float reveal = AddFlip(run, card, at, Flip);
-			Color tint = run.TierColor(card.Tier);
+			Color tint = run.ColorOf(card);
 			run.Play(reveal, rect.DOScale(card.HomeScale * (rare ? RarePunch : CommonPunch), PunchUp).SetEase(Ease.OutQuad));
 			run.Play(reveal + PunchUp, rect.DOScale(card.HomeScale, PunchDown).SetEase(Ease.OutQuad));
 			Sweep(run, card, reveal);
@@ -126,7 +126,7 @@ namespace WitchMendokusai
 			Vector3 home = card.HomePosition;
 			Vector2 center = run.Stage.ToLocal(rect);
 			float cardHeight = rect.rect.height;
-			Color gold = run.TierColor(card.Tier);
+			Color gold = run.ColorOf(card);
 			float hold = Mathf.Max(IsChain(run) ? ChainEpicHold : EpicHold, BackEffect(run, card, at));
 			foreach (CardRevealCard other in run.Cards)
 				if (other != card)
@@ -172,7 +172,7 @@ namespace WitchMendokusai
 		// 0도에서 90도, 뒷면 끄고 -90도에서 0도. 앞면 효과 시각을 돌려줌
 		private float AddFlip(CardRevealRun run, CardRevealCard card, float at, float duration)
 		{
-			card.BuildFlipEdge(run.TierColor(card.Tier));
+			card.BuildFlipEdge(run.ColorOf(card));
 			run.Play(at, DOVirtual.Float(0f, 1f, duration, card.SetFlipPose).SetEase(Ease.InOutSine));
 			return at + duration * RevealRatio;
 		}

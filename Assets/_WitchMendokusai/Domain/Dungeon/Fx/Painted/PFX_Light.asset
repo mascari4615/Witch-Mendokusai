@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61393117a5ee43d5a1fde0b1cc6f95b5, type: 3}
+  m_Name: PFX_Light
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.PaintedFxSet
+  <Shader>k__BackingField: {fileID: 4800000, guid: 156b403bdaa84c93bb1cc1d72faf1806, type: 3}
+  <Noise>k__BackingField: {fileID: 2800000, guid: 2eb9f6709b1f4be9b718ea9cd70f9675, type: 3}
+  <Gun>k__BackingField: {fileID: 2800000, guid: 9f95593b36ab4a768bdfd49918fa9790, type: 3}
+  <Wands>k__BackingField:
+  - {fileID: 2800000, guid: c70ab15dc25a4c7ebccd92431d3f7a7b, type: 3}
+  - {fileID: 2800000, guid: aa3894a60de8454cb87bfec8249abec0, type: 3}
+  - {fileID: 2800000, guid: 55f968d75a2841bbb69bcc5c4615b003, type: 3}
+  - {fileID: 2800000, guid: 82748ac0aebb4fc49870f070f1be5a39, type: 3}
+  <Streaks>k__BackingField: {fileID: 2800000, guid: a538987da0e243c0a62700dfaeb47d5e, type: 3}
+  <Spark>k__BackingField: {fileID: 2800000, guid: 1a01423477654aafbbd93526c909cde1, type: 3}
+  <Muzzle>k__BackingField: {fileID: 2800000, guid: 26ce828584b64dbd875b7f2a570a787b, type: 3}
+  <MuzzleOrigin>k__BackingField: 0.26
+  <Impact>k__BackingField: {fileID: 2800000, guid: 81da463d93b246508c1887903d44a863, type: 3}
+  <Grand>k__BackingField: {fileID: 2800000, guid: b4800da8fc7246168c30c077e9498699, type: 3}
+  <Crescent>k__BackingField: {fileID: 2800000, guid: 99c14f7553e046408567e6cfb3650fea, type: 3}
+  <CrescentThin>k__BackingField: {fileID: 2800000, guid: d742663224d94ac5b158b5ceaadac455, type: 3}
+  <Wings>k__BackingField: {fileID: 2800000, guid: 57f05d577c4e44e2b1a87deacca99ddd, type: 3}
+  <Blade>k__BackingField: {fileID: 2800000, guid: ce8acaf466774c448b131228c73383ac, type: 3}
+  <Portals>k__BackingField:
+  - {fileID: 2800000, guid: 4f9f88eed6df4405ad01cfd6b8bbbc90, type: 3}
+  - {fileID: 2800000, guid: bf2a6a94dd784211af4ddd4dd0530920, type: 3}
+  <Shock>k__BackingField: {fileID: 2800000, guid: f2a8f08c5c1141fda3cf3af5d4f1b3ee, type: 3}
+  <Sigil>k__BackingField: {fileID: 2800000, guid: 44462e0ab0c044c1977aa61948079519, type: 3}
+  <Scorch>k__BackingField: {fileID: 2800000, guid: 18423d178b2547f2aa8856b6d292f813, type: 3}
+  <Soft>k__BackingField: {fileID: 2800000, guid: a2d7224797464c83b7a053f61335377a, type: 3}

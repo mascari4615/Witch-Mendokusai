@@ -17,11 +17,20 @@ namespace WitchMendokusai
 	{
 		public readonly RectTransform Card;
 		public readonly CardRevealTier Tier;
+		// 등급 색을 대신하는 빛 (형태 카드). 없으면 스킨의 등급 색
+		public readonly Color? Tint;
+		// 등급 뒷면을 대신하는 뒷면 (형태 카드). 없으면 스킨의 등급 뒷면
+		public readonly Sprite Back;
+		// 등급 뒷면 광택을 대신하는 광택 (6열 4행)
+		public readonly Texture2D BackEffect;
 
-		public CardRevealEntry(RectTransform card, CardRevealTier tier)
+		public CardRevealEntry(RectTransform card, CardRevealTier tier, Color? tint = null, Sprite back = null, Texture2D backEffect = null)
 		{
 			Card = card;
 			Tier = tier;
+			Tint = tint;
+			Back = back;
+			BackEffect = backEffect;
 		}
 	}
 
@@ -87,7 +96,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Range(0f, 45f), Tooltip("카드 위 빛 줄 기울기 (도)")] public float ShineAngle { get; private set; } = 20f;
 		[field: SerializeField, Range(0f, 60f), Tooltip("상자 뚜껑이 열리는 각도 (도)")] public float LidOpenAngle { get; private set; } = 24f;
 		[field: SerializeField, Range(0.02f, 0.2f), Tooltip("꾸러미 위 찢김 띠 높이, 꾸러미 대비")] public float PackTearRatio { get; private set; } = 0.07f;
-		[field: SerializeField, Min(1f), Tooltip("카드 뒤 오라 크기, 카드 대비")] public float AuraSizeRatio { get; private set; } = 1.55f;
+		[field: SerializeField, Min(1f), Tooltip("카드 둘레 빛이 번지는 폭, 카드 높이 대비")] public float AuraSpread { get; private set; } = 0.06f;
 		[field: SerializeField, Range(0f, 1f), Tooltip("공개 뒤 희귀 이상 오라 밝기")] public float IdleAuraAlpha { get; private set; } = 0.5f;
 		[field: SerializeField, Min(0.1f), Tooltip("영웅 오라 숨쉬기 주기")] public float IdleAuraPeriod { get; private set; } = 1.2f;
 

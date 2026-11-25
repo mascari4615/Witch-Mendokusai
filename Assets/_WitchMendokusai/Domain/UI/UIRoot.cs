@@ -80,6 +80,9 @@ namespace WitchMendokusai
 		/// <summary> 툴팁 전용 최상단 층 — 여기 붙은 것은 무엇에도 안 가려진다. </summary>
 		public VisualElement TooltipLayer { get; private set; }
 		public HoldingOverlay HoldingOverlay { get; private set; }
+
+		/// <summary> 아래 작은 띠 (업적, 도감) 의 한 줄 대기열 </summary>
+		public UIToastQueue Toasts { get; private set; }
 		public SettingView SettingView { get; private set; }
 		public SaveNoticeView SaveNoticeView { get; private set; }
 		public MenuConfirmView MenuConfirmView { get; private set; }
@@ -111,6 +114,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private void CreateViews()
 		{
+			Toasts = new UIToastQueue(this, () => TimeManager.TryGetExistingInstance(out TimeManager timeManager) && timeManager.IsPaused);
 			SettingView = gameObject.AddComponent<SettingView>();
 			SaveNoticeView = gameObject.AddComponent<SaveNoticeView>();
 			// 전체 메뉴의 종료, 포기, 로비로 확인. 메뉴 위에 따로 뜨는 팝업

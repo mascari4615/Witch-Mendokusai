@@ -47,6 +47,22 @@ namespace WitchMendokusai
 
 		public Color TierColor(CardRevealTier tier) => Skin.TierColor(tier);
 
+		public Color ColorOf(CardRevealCard card) => card.Tint ?? Skin.TierColor(card.Tier);
+
+		// 묶음 (꾸러미) 의 빛. 최고 등급 카드 가운데 따로 빛이 있는 것이 이김
+		public Color BestColor
+		{
+			get
+			{
+				foreach (CardRevealCard card in Cards)
+				{
+					if (card.Tier == Best && card.Tint != null)
+						return card.Tint.Value;
+				}
+				return Skin.TierColor(Best);
+			}
+		}
+
 		public void At(float time, Action action)
 		{
 			sequence.InsertCallback(time, () => action());

@@ -10,6 +10,7 @@
         "WitchMendokusai.DomainSDK.City",
         "WitchMendokusai.DomainSDK.Common",
         "WitchMendokusai.DomainSDK.Criteria",
+        "WitchMendokusai.DomainSDK.Discovery",
         "WitchMendokusai.DomainSDK.Effect",
         "WitchMendokusai.DomainSDK.Reward",
         "WitchMendokusai.DomainSDK.GameEvent",

@@ -7,6 +7,8 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Ranged", menuName = "WM/Variable/MonsterAttack/" + nameof(RangedMonsterAttack))]
 	public class RangedMonsterAttack : WindupMonsterAttack
 	{
+		public override string KindName => "원거리";
+
 		[field: Header("원거리")]
 		[field: SerializeField, Tooltip("쓸 기본 스킬 번호 (몬스터 자산 DefaultSkills 순서)"), Min(0)] public int SkillIndex { get; private set; }
 		[field: SerializeField, Tooltip("발밑 예고 원 반지름 (m)"), Min(0.1f)] public float TelegraphRadius { get; private set; } = 1.2f;
@@ -26,7 +28,7 @@ namespace WitchMendokusai
 			Seconds = WindupSeconds,
 		};
 
-		public override void Execute(UnitObject unitObject, PlayerObject player, Vector3 target) => unitObject.UseSkill(SkillIndex);
+		public override void Execute(UnitObject unitObject, PlayerObject player, List<Vector3> targets) => unitObject.UseSkill(SkillIndex);
 
 		public override void Validate(Monster owner, List<string> errors)
 		{

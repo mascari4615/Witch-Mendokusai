@@ -5,6 +5,7 @@ using UnityEngine.UI;
 namespace WitchMendokusai
 {
 	// 공개 중인 칸 하나의 꾸밈. 뒷면, 뒤 오라, 광택 훑기, 어둡게
+	// - 오라는 카드 네모를 따라 얇게 번지는 빛 (타원 후광은 폐기, 사용자 2026-11-25)
 	// - 뒷면은 칸 맨 앞에 덮어 앞면을 가림. 뒤집기 절반에서 끔
 	// - 위치, 회전, 크기는 시작 값을 기억해 끝나면 정확히 되돌림
 	public sealed class CardRevealCard
@@ -36,6 +37,10 @@ namespace WitchMendokusai
 
 		public RectTransform Rect => card;
 		public CardRevealTier Tier { get; }
+		// 등급 색을 대신하는 빛 (형태 카드)
+		public Color? Tint { get; }
+		// 등급 광택을 대신하는 뒷면 광택
+		public Texture2D OwnBackEffect { get; }
 		public Vector3 HomePosition => homePosition;
 		public Quaternion HomeRotation => homeRotation;
 		public Vector3 HomeScale => homeScale;
@@ -44,13 +49,15 @@ namespace WitchMendokusai
 		{
 			card = entry.Card;
 			Tier = entry.Tier;
+			Tint = entry.Tint;
+			OwnBackEffect = entry.BackEffect;
 			if (card.TryGetComponent(out group) == false)
 				group = card.gameObject.AddComponent<CanvasGroup>();
 		}
 
 		// 시작 전 상태 기억, 뒷면 덮기, 숨김
 		// backSprite 가 있으면 그 그림 뒷면, 없으면 도형 뒷면
-		public void Prepare(Color tierColor, float auraSizeRatio, float shineAngle, Sprite backSprite = null)
+		public void Prepare(Color tierColor, float auraSpread, float shineAngle, Sprite backSprite = null)
 		{
 			Dispose();
 			homePosition = card.localPosition;
@@ -58,7 +65,11 @@ namespace WitchMendokusai
 			homeScale = card.localScale;
 			Vector2 size = card.rect.size;
 			back = backSprite != null ? NewImage("[Reveal] Back", backSprite, Color.white, size).gameObject : BuildBack(size);
-			aura = NewImage("[Reveal] Aura", RevealTextures.Ring, new Color(tierColor.r, tierColor.g, tierColor.b, 0f), size * auraSizeRatio);
+			float spread = size.y * auraSpread;
+			aura = NewImage("[Reveal] Aura", RevealTextures.CardGlow, new Color(tierColor.r, tierColor.g, tierColor.b, 0f), size + Vector2.one * (spread * 2f));
+			aura.type = Image.Type.Sliced;
+			// 조각 테두리 두께를 번짐 폭에 맞춤 (캔버스의 기준 픽셀까지)
+			aura.pixelsPerUnitMultiplier = RevealTextures.CARD_GLOW_BORDER / (Mathf.Max(1f, spread) * aura.pixelsPerUnit);
 			aura.transform.SetAsFirstSibling();
 			shade = NewImage("[Reveal] Shade", null, new Color(SHADE.r, SHADE.g, SHADE.b, 0f), size);
 			shine = BuildShine(size, shineAngle);

@@ -14,4 +14,5 @@
 #   DungeonRecordRulesTest (4): DungeonRecord 가 DungeonManager, DataManager 를 보는 DungeonRecorder.cs 안에 있음. 같은 방법으로 확인
 #   KeybindRegistryRebindTest (11): KeybindRegistry 가 UnityEngine.InputSystem 을 씀
 #   갚는 길: DungeonRecord 와 업적 장부의 규칙을 DomainSDK 로 떼면 14개를 다시 내림 (구조 변경이라 설계 승인 뒤)
-312
+# 2026-11-25: 312 -> 313. MonsterLogTest (1): 세이브 조각이 Domain 과 Newtonsoft 라 못 데려옴. 장부 규칙은 DomainSDK 로 옮겨 5개는 엔진 밖에서 돎
+313

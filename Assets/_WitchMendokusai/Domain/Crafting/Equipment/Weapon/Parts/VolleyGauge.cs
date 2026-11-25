@@ -29,11 +29,13 @@ namespace WitchMendokusai
 		[SerializeField] private float fanDegrees = 50f;
 		[SerializeField] private float focusFanDegrees = 20f;
 		[SerializeField, Min(0f)] private float burstSeconds = 1f;
+		[SerializeField, Min(1f), Tooltip("1 이면 고른 간격. 클수록 또박또박 시작해 뒤로 몰아침 (전체 길이는 그대로)")] private float burstAcceleration = 1.7f;
 		[SerializeField, Min(0f), Tooltip("연속 포화의 두 번째까지 쉬는 시간")] private float splitGapSeconds = 0.4f;
 		[SerializeField, Min(0f), Tooltip("포화 탄이 나오는 자리의 옆 폭")] private float weaponSpread = 1.2f;
 		[SerializeField, Range(0, 200)] private int splitPercent = 60;
 		[SerializeField, Range(0, 300)] private int focusPercent = 140;
 		[SerializeField] private string readyText = "일제 사격!";
+		[SerializeField, Tooltip("꺼낸 무기와 줄기 그림. 다 나온 뒤 첫 발")] private VolleyArsenal arsenal;
 
 		[Header("Stat")]
 		[SerializeField] private UnitStatType chargePercentStat = UnitStatType.NONE;
@@ -100,44 +102,53 @@ namespace WitchMendokusai
 			bool focus = PlayerStat[focusStat] > 0;
 			int percent = VolleyGaugeRules.DamagePercent(PlayerStat[growthPercentStat], split, splitPercent, focus, focusPercent);
 			int waves = split ? 2 : 1;
+			// 무기를 꺼내는 길이는 화력 주기에 안 셈 (첫 발만 늦음). 나눠 쏘기의 두 번째는 쉬는 시간에 꺼냄
+			float raiseDelay = 0f;
 			for (int wave = 0; wave < waves; wave++)
 			{
-				yield return Burst(focus ? focusFanDegrees : fanDegrees, percent);
-				if (wave + 1 < waves)
-					yield return new WaitForSeconds(splitGapSeconds);
+				float gap = wave == 0 ? 0f : splitGapSeconds;
+				float wait = Mathf.Max(gap, arsenal.WindupSeconds);
+				raiseDelay += wait - gap;
+				int count = VolleyGaugeRules.ShotCount(baseWeapons, PlayerStat[bonusWeaponsStat], shotsPerWeapon);
+				if (count > 0)
+					arsenal.Raise(playerProvider.Current.transform, AimDirection, count, focus ? focusFanDegrees : fanDegrees);
+				yield return new WaitForSeconds(wait);
+				yield return Burst(count, focus ? focusFanDegrees : fanDegrees, percent);
 			}
 			if (PlayerStat[blastStat] > 0)
 				SpawnBlast();
-			lastFireTime = Time.time;
+			lastFireTime = Time.time - raiseDelay;
 			firing = false;
 		}
 
-		private IEnumerator Burst(float fan, int percent)
+		private IEnumerator Burst(int count, float fan, int percent)
 		{
-			int count = VolleyGaugeRules.ShotCount(baseWeapons, PlayerStat[bonusWeaponsStat], shotsPerWeapon);
 			bool homing = PlayerStat[homingStat] > 0;
 			int beams = PlayerStat[beamStat] > 0 ? beamCount : 0;
-			float step = count > 0 ? burstSeconds / count : 0f;
 			for (int i = 0; i < count; i++)
 			{
 				GameObject prefab = homing && Random.Range(0, 100) < homingPercent ? homingShotPrefab : shotPrefab;
-				SpawnShot(prefab, VolleyGaugeRules.FanAngle(i, count, fan), percent);
+				arsenal.Fire(i, SpawnShot(prefab, VolleyGaugeRules.FanAngle(i, count, fan), percent));
 				if (i < beams)
 					SpawnShot(beamPrefab, VolleyGaugeRules.FanAngle(i, beams, fan), percent);
-				if (step > 0f)
-					yield return new WaitForSeconds(step);
+				if (burstSeconds > 0f)
+					yield return new WaitForSeconds(burstSeconds * (VolleyGaugeRules.BurstProgress(i + 1, count, burstAcceleration) - VolleyGaugeRules.BurstProgress(i, count, burstAcceleration)));
 			}
 		}
 
-		private void SpawnShot(GameObject prefab, float angle, int percent)
+		private Vector3 AimDirection()
 		{
-			Transform player = playerProvider.Current.transform;
 			Vector3 aim = playerProvider.Current.AimDirection;
 			aim.y = 0f;
-			if (aim.sqrMagnitude < 0.0001f)
-				aim = player.forward;
-			Vector3 direction = Quaternion.Euler(0f, angle, 0f) * aim.normalized;
-			Vector3 side = Vector3.Cross(Vector3.up, aim.normalized) * Random.Range(-weaponSpread, weaponSpread);
+			return aim.sqrMagnitude < 0.0001f ? playerProvider.Current.transform.forward : aim.normalized;
+		}
+
+		private GameObject SpawnShot(GameObject prefab, float angle, int percent)
+		{
+			Transform player = playerProvider.Current.transform;
+			Vector3 aim = AimDirection();
+			Vector3 direction = Quaternion.Euler(0f, angle, 0f) * aim;
+			Vector3 side = Vector3.Cross(Vector3.up, aim) * Random.Range(-weaponSpread, weaponSpread);
 			GameObject spawned = SkillSpawn.Spawn(objectPoolManager, prefab, player.position + side, Quaternion.LookRotation(direction, Vector3.up), context, PlayerStat[damageBonusStat]);
 			// 유도 탄은 판정 초기화 때 가까운 적을 향해 방향을 정함. 덮어쓰지 않음
 			if (prefab != homingShotPrefab && spawned.TryGetComponent(out BulletMovement bulletMovement))
@@ -145,14 +156,12 @@ namespace WitchMendokusai
 			if (spawned.TryGetComponent(out ScaledDamage scaledDamage))
 				scaledDamage.SetPercent(percent);
 			spawned.SetActive(true);
+			return spawned;
 		}
 
 		private void SpawnBlast()
 		{
-			Transform player = playerProvider.Current.transform;
-			Vector3 aim = playerProvider.Current.AimDirection;
-			aim.y = 0f;
-			Vector3 position = player.position + (aim.sqrMagnitude < 0.0001f ? player.forward : aim.normalized) * blastDistance;
+			Vector3 position = playerProvider.Current.transform.position + AimDirection() * blastDistance;
 			SkillSpawn.Spawn(objectPoolManager, blastPrefab, position, Quaternion.identity, context, 0).SetActive(true);
 		}
 	}

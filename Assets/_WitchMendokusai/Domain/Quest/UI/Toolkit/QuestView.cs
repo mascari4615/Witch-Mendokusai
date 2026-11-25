@@ -65,7 +65,8 @@ namespace WitchMendokusai
 				inputManager.UnregisterInputEvent(InputEventType.QuestToggle, InputEventResponseType.Performed, OnToggle);
 		}
 
-		private void OnQuestSelected(RuntimeQuest quest) => questDetail?.Bind(SOHelper.GetQuestSO(quest.QuestSOID), quest);
+		// 목록이 비면 null 이 옴 (세이브를 다시 읽을 때)
+		private void OnQuestSelected(RuntimeQuest quest) => questDetail?.Bind(quest == null ? null : SOHelper.GetQuestSO(quest.QuestSOID), quest);
 
 		private void OnToggle() => window?.Toggle();
 	}

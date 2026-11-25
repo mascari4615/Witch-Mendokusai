@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using WitchMendokusai.DomainSDK.Discovery;
 
 namespace WitchMendokusai
 {
@@ -21,19 +22,7 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>값이 닿은 가장 높은 단계. 아무것도 못 닿으면 0</summary>
-		public static int Resolve(int value, IReadOnlyList<int> targets)
-		{
-			int tier = 0;
-			for (int i = 0; i < targets.Count; i++)
-			{
-				if (value < targets[i])
-				{
-					break;
-				}
-				tier = i + 1;
-			}
-			return tier;
-		}
+		public static int Resolve(int value, IReadOnlyList<int> targets) => DiscoveryStages.Resolve(value, targets);
 
 		/// <summary>옛 세이브에서 옮길 단계가 그 업적의 단계 안인지 (1 ~ 단계 수)</summary>
 		public static void ValidateLegacyTier(string owner, int legacyTier, int maxTier)
@@ -51,17 +40,7 @@ namespace WitchMendokusai
 			{
 				throw new ArgumentException($"{owner}: 단계 목표값은 1~{MAX_TIER_COUNT}개");
 			}
-			for (int i = 0; i < targets.Count; i++)
-			{
-				if (targets[i] <= 0)
-				{
-					throw new ArgumentException($"{owner}: 단계 목표값은 0보다 커야 함 ({targets[i]})");
-				}
-				if (i > 0 && targets[i] <= targets[i - 1])
-				{
-					throw new ArgumentException($"{owner}: 단계 목표값은 오름차순 ({targets[i - 1]} 다음 {targets[i]})");
-				}
-			}
+			DiscoveryStages.Validate(owner, targets);
 		}
 	}
 }

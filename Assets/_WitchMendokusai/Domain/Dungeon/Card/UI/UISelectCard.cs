@@ -46,6 +46,16 @@ namespace WitchMendokusai
 			cardSelectButtons[0].Select();
 		}
 
+		// 형태 카드 둘레의 빛은 공개 연출이 끝난 뒤에 켬 (연출이 없거나 다시 뽑았을 때는 바로)
+		private void LateUpdate()
+		{
+			if (reveal == null || reveal.IsRevealing)
+				return;
+			foreach (UICardSlot slot in cardSelectButtons)
+				if (slot.ChoiceView.FormFace != null)
+					slot.ChoiceView.FormFace.Reveal();
+		}
+
 		private bool PlayReveal()
 		{
 			if (devPending != null)
@@ -56,10 +66,14 @@ namespace WitchMendokusai
 				return true;
 			}
 			revealEntries.Clear();
-			foreach (UICardSlot slot in cardSelectButtons)
-				if (slot.gameObject.activeSelf && slot.DataSO is CardData card)
-					revealEntries.Add(new CardRevealEntry((RectTransform)slot.transform, UICardRevealDirector.TierOf(card)));
 			CardManager cardManager = PanelGroup as CardManager;
+			foreach (UICardSlot slot in cardSelectButtons)
+			{
+				if (slot.gameObject.activeSelf == false || slot.DataSO is not CardData card)
+					continue;
+				FormCardLook formLook = cardManager.FormLookOf(card);
+				revealEntries.Add(new CardRevealEntry((RectTransform)slot.transform, UICardRevealDirector.TierOf(card), formLook?.Main, formLook?.Back, formLook?.BackEffect));
+			}
 			return reveal.Play(Theme.Reveal.SelectCard, revealEntries, chained: cardManager.IsChainedChoice);
 		}
 
@@ -174,6 +188,8 @@ namespace WitchMendokusai
 			receiptScale = rect.localScale;
 			receipt = DOTween.Sequence().SetUpdate(true);
 			slot.ChoiceView.ChoiceCard.PlayConfirm();
+			if (slot.ChoiceView.FormFace != null)
+				slot.ChoiceView.FormFace.PlayPicked(canvas);
 			foreach (UICardSlot other in cardSelectButtons)
 			{
 				if (other == slot || other.gameObject.activeSelf == false)
@@ -248,12 +264,12 @@ namespace WitchMendokusai
 				cardSelectButtons[i].SetActive(i < cardDataList.Count);
 				if (i < cardDataList.Count)
 				{
-					cardSelectButtons[i].SetChoice(cardDataList[i], equipment, selectedCards, deckCards);
+					cardSelectButtons[i].SetChoice(cardDataList[i], equipment, selectedCards, deckCards, ((CardManager)PanelGroup).FormLookOf(cardDataList[i]));
 					cardSelectButtons[i].UpdateUI();
 				}
 				else
 				{
-					cardSelectButtons[i].SetChoice(null, equipment, selectedCards, deckCards);
+					cardSelectButtons[i].SetChoice(null, equipment, selectedCards, deckCards, null);
 				}
 			}
 		}

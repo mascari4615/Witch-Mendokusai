@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b999e8918db4266b9647b7978eee573, type: 3}
+  m_Name: Telegraph_10_Guard
+  m_EditorClassIdentifier:
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle:
+  style: {fileID: 11400000, guid: 812d3af2810b4eebb3ce2b53597849c4, type: 2}
+  liftHeight: 0.03
+  defaultSeconds: 1
+  innerRingInset: 0.32
+  innerRingWidth: 0.016
+  patternLineWidth: 0.016
+  runeCount: 32
+  runeLength: 0.16
+  runeLengthMin: 0.4
+  runeCrossChance: 0.35
+  runeCrossWidth: 0.07
+  starPoints: 6
+  starStep: 2
+  starRadius: 0.72
+  patternSpeed: 0.12

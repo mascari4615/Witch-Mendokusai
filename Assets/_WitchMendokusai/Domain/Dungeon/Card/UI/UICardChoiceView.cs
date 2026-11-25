@@ -40,10 +40,11 @@ namespace WitchMendokusai
 
 		private readonly List<Image> pips = new();
 		private GameObject evolutionBadge;
+		private UIFormCardFace formFace;
 
 		public UIChoiceCard ChoiceCard => choiceCard;
 
-		public void Set(CardData card, EquipmentData equipment, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards)
+		public void Set(CardData card, EquipmentData equipment, IReadOnlyList<CardData> selectedCards, IReadOnlyList<CardData> deckCards, FormCardLook formLook)
 		{
 			SurvivalUITheme.KindStyle style = theme.Style(card.UIKind);
 			choiceCard.SetKind(card.UIKind);
@@ -59,6 +60,7 @@ namespace WitchMendokusai
 
 			SetEvolutionBadge(card);
 			ShowTier(UICardRevealDirector.TierOf(card));
+			SetFormFace(formLook);
 
 			int current = selectedCards.Count(selected => selected.ID == card.ID);
 			string action = current == 0 ? "획득" : "강화";
@@ -72,6 +74,26 @@ namespace WitchMendokusai
 				conditionIcon.sprite = advanced.Sprite;
 				conditionText.text = condition;
 			}
+		}
+
+		// 형태 카드가 아니면 null 이거나 감춘 상태
+		public UIFormCardFace FormFace => formFace;
+
+		// 형태 카드면 전용 얼굴. 마름모 아이콘과 표식은 그림을 가리므로 감춤
+		private void SetFormFace(FormCardLook formLook)
+		{
+			diamond.gameObject.SetActive(formLook == null);
+			if (formLook == null)
+			{
+				if (formFace != null)
+					formFace.Hide();
+				return;
+			}
+			if (formFace == null)
+				formFace = gameObject.AddComponent<UIFormCardFace>();
+			evolutionBadge.SetActive(false);
+			rarityRoot.SetActive(false);
+			formFace.Show(formLook, (RectTransform)tile.transform.parent);
 		}
 
 		// 진화 표식. 희귀도 표식의 사본을 그 아래에 배치, 첫 Set에서 UITermIcon 부착 전에 복제

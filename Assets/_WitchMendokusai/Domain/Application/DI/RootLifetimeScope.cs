@@ -83,6 +83,8 @@ namespace WitchMendokusai
 			builder.Register<QuestManager>(Lifetime.Singleton);
 			// 업적 판정. 퀘스트와 따로, 씬을 넘어 삶. SaveManager 가 로드 끝에 Begin
 			builder.Register<AchievementManager>(Lifetime.Singleton);
+			// 몬스터 기록 (도감). 씬을 넘어 삶. SaveManager 가 로드 끝에 Begin
+			builder.Register<MonsterLogManager>(Lifetime.Singleton);
 			builder.Register<WorkManager>(Lifetime.Singleton);
 			builder.Register<SaveManager>(Lifetime.Singleton);
 			builder.Register<WorldClockViewModel>(Lifetime.Singleton);

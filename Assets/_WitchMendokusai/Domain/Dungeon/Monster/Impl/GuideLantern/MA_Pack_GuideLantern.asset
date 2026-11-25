@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c23e766b4b23444f9a7c7abdd2efbffa, type: 3}
+  m_Name: MA_Pack_GuideLantern
+  m_EditorClassIdentifier: 
+  <TriggerRange>k__BackingField: 6
+  <WindupSeconds>k__BackingField: 0
+  <RecoverySeconds>k__BackingField: 0
+  <Cooldown>k__BackingField: 0
+  <WindupTelegraph>k__BackingField: {fileID: 0}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 2
+  <GroupAttack>k__BackingField: {fileID: 11400000, guid: 591a2414085b4a94af4e6270c75f6eac, type: 2}
+  <PackSize>k__BackingField: 99
+  <PackRadius>k__BackingField: 5
+  <CountInterval>k__BackingField: 0.5
+  <LureDistance>k__BackingField: 4
+  <LureBand>k__BackingField: 0.8
+  <SoloAttack>k__BackingField: {fileID: 11400000, guid: 591a2414085b4a94af4e6270c75f6eac, type: 2}

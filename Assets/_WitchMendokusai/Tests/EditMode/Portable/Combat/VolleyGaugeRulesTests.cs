@@ -45,6 +45,33 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 쏘는_걸음은_모든_자루를_한_번씩_돈다()
+		{
+			for (int count = 1; count <= 40; count++)
+			{
+				int stride = VolleyGaugeRules.SpreadStride(count);
+				System.Collections.Generic.HashSet<int> used = new();
+				for (int i = 0; i < count; i++)
+					used.Add(i * stride % count);
+				Assert.AreEqual(count, used.Count, $"자루 {count}, 걸음 {stride}");
+			}
+		}
+
+		[Test]
+		public void 포화_박자는_처음_0_끝_1_이고_뒤로_갈수록_몰아침()
+		{
+			Assert.AreEqual(0f, VolleyGaugeRules.BurstProgress(0, 16, 1.7f), 0.0001f);
+			Assert.AreEqual(1f, VolleyGaugeRules.BurstProgress(16, 16, 1.7f), 0.0001f);
+			Assert.AreEqual(0.5f, VolleyGaugeRules.BurstProgress(8, 16, 1f), 0.0001f);
+			for (int i = 1; i < 16; i++)
+			{
+				float before = VolleyGaugeRules.BurstProgress(i, 16, 1.7f) - VolleyGaugeRules.BurstProgress(i - 1, 16, 1.7f);
+				float after = VolleyGaugeRules.BurstProgress(i + 1, 16, 1.7f) - VolleyGaugeRules.BurstProgress(i, 16, 1.7f);
+				Assert.Less(after, before, $"발 {i}");
+			}
+		}
+
+		[Test]
 		public void 부채꼴은_고르게_나누고_가운데가_0()
 		{
 			Assert.AreEqual(0f, VolleyGaugeRules.FanAngle(0, 1, 50f), 0.0001f);

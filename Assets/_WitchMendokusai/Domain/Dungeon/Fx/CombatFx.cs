@@ -12,6 +12,8 @@ namespace WitchMendokusai
 	{
 		/// <summary> 연출이 놓일 자리 (바닥 예고면 바닥 위 중심, 선형이면 시작점) </summary>
 		public Vector3 Position;
+		/// <summary> 날아오는 것의 출발 (시전자 자리) </summary>
+		public Vector3 Origin;
 		/// <summary> 향하는 쪽 (선형, 부채꼴). 수평 성분만 씀 </summary>
 		public Vector3 Direction;
 		/// <summary> 따라다닐 대상. 비우면 Position 에 고정 </summary>
