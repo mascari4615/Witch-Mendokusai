@@ -18,6 +18,7 @@ namespace WitchMendokusai
 		private const string MOVES_FORMAT = "남은 수 {0}";
 		private const string SOLVED = "다 이음";
 		private const string NO_MOVES = "남은 수 없음";
+		private const string QUEUE_FORMAT = "{0} 다음";
 		private const string PUT = "놓는다";
 		private const string UNDO = "무르기";
 		private const string CLEAR = "비우기";
@@ -250,7 +251,7 @@ namespace WitchMendokusai
 			{
 				Button button = new(() => SelectDoll(candidate)) { text = DollName(candidate) };
 				button.AddToClassList("wm-mb-tab");
-				Focus.Register(button);
+				Navigation.Register(button);
 				dollButtons.Add(candidate.Habit, button);
 				dollRow.Add(button);
 			}
@@ -269,6 +270,9 @@ namespace WitchMendokusai
 		private void ShowQueue()
 		{
 			queueRow.Clear();
+			Label next = new(string.Format(QUEUE_FORMAT, DollName(doll))) { pickingMode = PickingMode.Ignore };
+			next.AddToClassList("wm-aspect-queue__name");
+			queueRow.Add(next);
 			for (int i = 0; i < Settings.DollQueueShown; i++)
 			{
 				VisualElement icon = Part(queueRow, "wm-aspect-queue__icon");

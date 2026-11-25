@@ -191,6 +191,13 @@
     margin-top: 8px;
 }
 
+.wm-aspect-queue__name {
+    margin: 0 16px 0 0;
+    padding: 0;
+    font-size: 20px;
+    color: var(--wm-mb-ink-soft);
+}
+
 .wm-aspect-queue__icon {
     width: 36px;
     height: 36px;

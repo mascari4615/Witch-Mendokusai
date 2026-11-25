@@ -32,7 +32,7 @@ namespace WitchMendokusai
 		{
 			Settings = settings;
 			Links = links;
-			Focus = focus;
+			Navigation = focus;
 			AddToClassList(USS_CLASS);
 
 			puzzleList = Part(this, "wm-aspect-list");
@@ -56,7 +56,7 @@ namespace WitchMendokusai
 
 		protected AspectPuzzleSettings Settings { get; }
 		protected AspectLinks Links { get; }
-		protected MenuFocus Focus { get; }
+		protected MenuFocus Navigation { get; }
 		protected VisualElement Side { get; }
 		protected VisualElement Actions { get; }
 		protected AspectPalette Palette { get; }
@@ -83,7 +83,7 @@ namespace WitchMendokusai
 				Button button = new(() => selected(index)) { text = ids[i] == PRACTICE_ID ? PRACTICE_NAME : i.ToString() };
 				button.AddToClassList("wm-mb-tab");
 				button.AddToClassList("wm-aspect-tab");
-				Focus.Register(button);
+				Navigation.Register(button);
 				puzzleButtons.Add(button);
 				puzzleList.Add(button);
 			}
@@ -104,7 +104,7 @@ namespace WitchMendokusai
 			Button button = new(clicked) { text = text };
 			button.AddToClassList("wm-mb-arena");
 			button.AddToClassList("wm-aspect-action");
-			Focus.Register(button);
+			Navigation.Register(button);
 			Actions.Add(button);
 			return button;
 		}
@@ -116,7 +116,7 @@ namespace WitchMendokusai
 
 		protected void AddCell(AspectCell cell)
 		{
-			Focus.Register(cell);
+			Navigation.Register(cell);
 			board.Add(cell);
 		}
 
