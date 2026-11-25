@@ -114,7 +114,7 @@ namespace WitchMendokusai
 		/// </summary>
 		private void CreateViews()
 		{
-			Toasts = new UIToastQueue(this);
+			Toasts = new UIToastQueue(this, () => TimeManager.TryGetExistingInstance(out TimeManager timeManager) && timeManager.IsPaused);
 			SettingView = gameObject.AddComponent<SettingView>();
 			SaveNoticeView = gameObject.AddComponent<SaveNoticeView>();
 			// 전체 메뉴의 종료, 포기, 로비로 확인. 메뉴 위에 따로 뜨는 팝업

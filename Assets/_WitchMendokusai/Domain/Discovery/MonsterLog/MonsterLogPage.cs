@@ -143,21 +143,29 @@ namespace WitchMendokusai
 		private void FillHabitat(VisualElement body, Monster monster)
 		{
 			VisualElement list = AchievementElements.Part(body, "wm-discovery-habitats");
-			Dictionary<Dungeon, VisualElement> tracks = new();
+			Dictionary<Dungeon, List<MonsterHabitat>> byDungeon = new();
 			foreach (MonsterHabitat habitat in manager.HabitatsOf(monster))
 			{
-				if (tracks.TryGetValue(habitat.Dungeon, out VisualElement track) == false)
+				if (byDungeon.TryGetValue(habitat.Dungeon, out List<MonsterHabitat> spans) == false)
 				{
-					VisualElement line = AchievementElements.Part(list, "wm-discovery-habitat");
-					AchievementElements.Text(line, habitat.Dungeon.Name, "wm-discovery-habitat__name");
-					track = AchievementElements.Part(line, "wm-discovery-habitat__track");
-					AchievementElements.Text(line, habitat.HasTime ? TimeText(habitat) : "사건", "wm-discovery-habitat__time");
-					tracks[habitat.Dungeon] = track;
+					spans = new List<MonsterHabitat>();
+					byDungeon[habitat.Dungeon] = spans;
 				}
-				if (habitat.HasTime)
+				spans.Add(habitat);
+			}
+			foreach (KeyValuePair<Dungeon, List<MonsterHabitat>> pair in byDungeon)
+			{
+				VisualElement line = AchievementElements.Part(list, "wm-discovery-habitat");
+				AchievementElements.Text(line, pair.Key.Name, "wm-discovery-habitat__name");
+				VisualElement track = AchievementElements.Part(line, "wm-discovery-habitat__track");
+				foreach (MonsterHabitat habitat in pair.Value)
 				{
-					AddSpan(track, habitat);
+					if (habitat.HasTime)
+					{
+						AddSpan(track, habitat);
+					}
 				}
+				AchievementElements.Text(line, TimeText(pair.Value), "wm-discovery-habitat__time");
 			}
 		}
 
@@ -183,14 +191,21 @@ namespace WitchMendokusai
 			}
 		}
 
-		private static string TimeText(MonsterHabitat habitat)
+		// 첫 등장부터 마지막 구간 끝까지. 구간 사이의 빈 때는 막대가 보임 (시간대는 시작 순서)
+		private static string TimeText(IReadOnlyList<MonsterHabitat> spans)
 		{
-			string start = Clock(habitat.StartSeconds);
-			if (habitat.EndSeconds <= habitat.StartSeconds)
+			MonsterHabitat first = spans[0];
+			if (first.HasTime == false)
+			{
+				return "사건";
+			}
+			float end = spans[spans.Count - 1].EndSeconds;
+			string start = Clock(first.StartSeconds);
+			if (end <= first.StartSeconds)
 			{
 				return start;
 			}
-			return habitat.EndSeconds >= habitat.Dungeon.TimeBySecond ? $"{start} 부터" : $"{start} ~ {Clock(habitat.EndSeconds)}";
+			return end >= first.Dungeon.TimeBySecond ? $"{start} 부터" : $"{start} ~ {Clock(end)}";
 		}
 
 		private static string Clock(float seconds)

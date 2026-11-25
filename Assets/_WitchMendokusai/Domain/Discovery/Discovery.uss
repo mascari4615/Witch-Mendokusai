@@ -106,6 +106,37 @@
     margin-bottom: 8px;
 }
 
+/* 기본 회색 스크롤 막대 대신 얇은 보라 손잡이. 화살표 단추는 없음 */
+.wm-discovery .unity-scroller--vertical {
+    width: 8px;
+    margin-left: 10px;
+    border-width: 0;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.wm-discovery .unity-scroller__low-button,
+.wm-discovery .unity-scroller__high-button {
+    display: none;
+}
+
+.wm-discovery .unity-scroller__slider {
+    margin: 0;
+    width: 8px;
+}
+
+.wm-discovery .unity-base-slider__tracker {
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+}
+
+.wm-discovery .unity-base-slider__dragger {
+    left: 0;
+    width: 8px;
+    border-width: 0;
+    border-radius: 0;
+    background-color: var(--wm-fullmenu-glow);
+}
+
 /* ===== 한 종의 장 ===== */
 
 .wm-discovery-page {
@@ -292,7 +323,7 @@
 }
 
 .wm-discovery-habitat__name {
-    width: 170px;
+    width: 210px;
     font-size: 22px;
 }
 

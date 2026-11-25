@@ -419,6 +419,8 @@
 .wm-ach-album__header {
     flex-direction: row;
     align-items: center;
+    /* 카드가 넘쳐도 머리줄이 눌리지 않게 */
+    flex-shrink: 0;
     height: 56px;
     margin-bottom: 26px;
 }
@@ -469,6 +471,8 @@
 
 .wm-ach-album__scroll {
     flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
 }
 
 /* 격자 사이 22px (ui.md 칸 격자 2vh). 카드에 반씩 */
