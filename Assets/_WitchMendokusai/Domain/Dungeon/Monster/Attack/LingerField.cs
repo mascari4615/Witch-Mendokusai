@@ -46,6 +46,17 @@ namespace WitchMendokusai
 		public void Add(UnitObject source, LingerSettings settings, Vector3 position, FxHold hold) =>
 			pieces.Add(new Piece { Source = source, Settings = settings, Position = position, Hold = hold });
 
+		// source 가 남긴 것 가운데 아직 아픈 것의 자리
+		public void CollectHot(UnitObject source, List<Vector3> results)
+		{
+			results.Clear();
+			foreach (Piece piece in pieces)
+			{
+				if (piece.Source == source && piece.Hold.IsHot(Time.time))
+					results.Add(piece.Position);
+			}
+		}
+
 		// 주인이 켜진 채 다른 데로 옮겨짐 (재배치). 남긴 것을 모두 식힘
 		public static void Abandon(UnitObject source)
 		{

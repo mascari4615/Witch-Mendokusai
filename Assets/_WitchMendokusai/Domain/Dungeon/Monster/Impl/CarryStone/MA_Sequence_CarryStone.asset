@@ -11,8 +11,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3188a2aa8084f8c82eff08d1919b1ad, type: 3}
   m_Name: MA_Sequence_CarryStone
-  m_EditorClassIdentifier: 
-  <TriggerRange>k__BackingField: 7
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 11
   <WindupSeconds>k__BackingField: 0
   <RecoverySeconds>k__BackingField: 0
   <Cooldown>k__BackingField: 2
@@ -20,5 +20,8 @@ MonoBehaviour:
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
   <Steps>k__BackingField:
-  - {fileID: 11400000, guid: f04ec073128a4054a208937d6917c4e4, type: 2}
+  - {fileID: 11400000, guid: 47505d606c0c451b9663ec6f5c8fd871, type: 2}
+  - {fileID: 11400000, guid: 47741383b68a41c5ac1f333ac1c0b6be, type: 2}
+  - {fileID: 11400000, guid: 47505d606c0c451b9663ec6f5c8fd871, type: 2}
   - {fileID: 11400000, guid: 427fa63dfb5b421483dc82d69ddc2bc2, type: 2}
+  <SkipSeconds>k__BackingField: 4

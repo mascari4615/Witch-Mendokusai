@@ -12,12 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3188a2aa8084f8c82eff08d1919b1ad, type: 3}
   m_Name: MA_Sequence_WoundSentry
   m_EditorClassIdentifier:
-  <TriggerRange>k__BackingField: 8
+  <TriggerRange>k__BackingField: 11
   <WindupSeconds>k__BackingField: 0
   <RecoverySeconds>k__BackingField: 0
-  <Cooldown>k__BackingField: 2.0
+  <Cooldown>k__BackingField: 2
   <WindupTelegraph>k__BackingField: {fileID: 0}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 2
   <Steps>k__BackingField:
   - {fileID: 11400000, guid: 781bad2559884ce7ba5d2c82b9606ce4, type: 2}
   - {fileID: 11400000, guid: c98af61aff7c48bebfb779ccc691d202, type: 2}
   - {fileID: 11400000, guid: 875e9d24b4f44caab24f490de1621b77, type: 2}
+  - {fileID: 11400000, guid: 556c0ecfadfa43f48d7ca27ead5d0534, type: 2}
+  <SkipSeconds>k__BackingField: 4

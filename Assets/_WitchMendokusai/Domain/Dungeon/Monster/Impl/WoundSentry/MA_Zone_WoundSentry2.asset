@@ -13,10 +13,49 @@ MonoBehaviour:
   m_Name: MA_Zone_WoundSentry2
   m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 8
-  <WindupSeconds>k__BackingField: 0.7
+  <WindupSeconds>k__BackingField: 0.75
   <RecoverySeconds>k__BackingField: 0.15
   <Cooldown>k__BackingField: 0
-  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: b2cf3055dd844fe0a41d025984b7dc1e, type: 2}
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 6ce4d759c4cb4e129b9f3c0c46223761, type: 2}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 2
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 21300000, guid: ab28f8fc1d3f4a2aa6021c92610994be, type: 3}
+    <Strike>k__BackingField: {fileID: 21300000, guid: 98be154c25d849dabb529f4dd2fa5596, type: 3}
+    <Rest>k__BackingField: {fileID: 0}
+    <Crouch>k__BackingField: -0.12
+    <Stretch>k__BackingField: 0.2
+    <StrikeSeconds>k__BackingField: 0.3
+    <StrikeLeadSeconds>k__BackingField: 0
+    <Tremble>k__BackingField: 0.04
+    <Breath>k__BackingField: 0
+  <WindupFx>k__BackingField: {fileID: 11400000, guid: f2ffca50a8b9414d8488abfea134d562, type: 2}
+  <StrikeFx>k__BackingField: {fileID: 11400000, guid: 74c44be897ef433aabd3b4d9286c1ae4, type: 2}
+  <WindupFxOnce>k__BackingField: 0
+  <TelegraphInTurn>k__BackingField: 0
+  <Linger>k__BackingField:
+    <Seconds>k__BackingField: 6
+    <CoolSeconds>k__BackingField: 0.5
+    <Radius>k__BackingField: 0.45
+    <Damage>k__BackingField: 2
+    <HitEffect>k__BackingField:
+      <AppliesStatus>k__BackingField: 0
+      <Status>k__BackingField: 3
+      <StatusSeconds>k__BackingField: 0
+      <SlowRatio>k__BackingField: 0
+      <PushSpeed>k__BackingField: 0
+      <PushSeconds>k__BackingField: 0
+    <BurstRadius>k__BackingField: 1.6
+    <BurstDamage>k__BackingField: 3
+    <BurstTelegraph>k__BackingField: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}
+    <BurstFx>k__BackingField: {fileID: 11400000, guid: b754b8947fd34f17968eb56dc50cbffb, type: 2}
+    <BurstHitEffect>k__BackingField:
+      <AppliesStatus>k__BackingField: 0
+      <Status>k__BackingField: 3
+      <StatusSeconds>k__BackingField: 0
+      <SlowRatio>k__BackingField: 0
+      <PushSpeed>k__BackingField: 4
+      <PushSeconds>k__BackingField: 0.2
   <Center>k__BackingField: 0
   <Radius>k__BackingField: 1.3
   <Damage>k__BackingField: 3

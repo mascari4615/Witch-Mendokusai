@@ -16,6 +16,8 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("미는 속도 (m/s). 0 이면 안 밂"), Min(0f)] public float PushSpeed { get; private set; }
 		[field: SerializeField, Tooltip("미는 초. 길이는 속도 x 초"), Min(0f)] public float PushSeconds { get; private set; }
 
+		[field: SerializeField, Tooltip("밀지 않고 중심 쪽으로 당김")] public bool Pulls { get; private set; }
+
 		public bool Pushes => PushSpeed > 0f && PushSeconds > 0f;
 
 		// 피해를 주고, 체력이 실제로 줄었을 때만 효과를 걺. 무적, 회피, 보호막에 막히면 효과도 없음
@@ -38,7 +40,7 @@ namespace WitchMendokusai
 				return;
 			Vector3 direction = PushDirection(center, player.transform.position);
 			if (direction != Vector3.zero)
-				player.UnitMovement.ApplyImpulse(direction * PushSpeed, PushSeconds);
+				player.UnitMovement.ApplyImpulse(direction * (Pulls ? -PushSpeed : PushSpeed), PushSeconds);
 		}
 
 		// 중심에서 바깥으로. 중심에 겹쳐 있으면 방향 없음

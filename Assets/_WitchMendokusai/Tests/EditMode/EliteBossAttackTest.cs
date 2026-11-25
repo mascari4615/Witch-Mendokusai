@@ -292,6 +292,15 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Links_go_around_without_crossing()
+		{
+			List<Vector3> points = new() { new Vector3(1f, 0f, 1f), new Vector3(-1f, 0f, -1f), new Vector3(1f, 0f, -1f), new Vector3(-1f, 0f, 1f) };
+			LinkMonsterAttack.SortAround(points);
+			for (int i = 0; i < points.Count; i++)
+				Assert.AreEqual(2f, Vector3.Distance(points[i], points[(i + 1) % points.Count]), 0.001f, "대각선 없이 변으로만 " + i);
+		}
+
+		[Test]
 		public void Remade_bosses_have_an_entrance()
 		{
 			foreach (int id in new[] { 36, 37, 38, 39 })

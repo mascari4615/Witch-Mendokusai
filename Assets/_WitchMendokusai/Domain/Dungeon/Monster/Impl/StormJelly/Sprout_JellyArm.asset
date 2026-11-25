@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afdffcaa2dad480d94fa202fbf929ab2, type: 3}
+  m_Name: Sprout_JellyArm
+  m_EditorClassIdentifier:
+  previewRadius: 1
+  previewLength: 7
+  previewWidth: 1
+  previewTitle: ""
+  previewSubtitle: ""
+  sprites:
+  - {fileID: 21300000, guid: cf9518f710bb4b95a513d315feb0894d, type: 3}
+  - {fileID: 21300000, guid: f755391402fe4c5a9062e8e20c5fc3f1, type: 3}
+  material: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
+  scaleRange: {x: 1.0, y: 1.15}
+  jitter: 0.05
+  budRatio: 0.22
+  budTremble: 0.05
+  fallHeight: 0
+  fallSeconds: 0.3
+  fallSprite: {fileID: 0}
+  leadSeconds: 0.06
+  riseSeconds: 0.1
+  overshoot: 0.22
+  holdSeconds: 0.5
+  sinkSeconds: 0.3
+  strikeTint: {r: 1.6, g: 1.5, b: 1, a: 1}
+  hotTint: {r: 1.3, g: 1.25, b: 0.85, a: 1}
+  coolTint: {r: 0.6, g: 0.58, b: 0.6, a: 1}
+  hotPulseSpeed: 7
+  hotPulse: 0.3
+  crackedSprite: {fileID: 21300000, guid: 831a5655eb894507925838af0e43cf52, type: 3}
+  moundSprite: {fileID: 0}
+  moundScale: 1.3
+  moundDepth: 0.2
+  chunkSprites: []
+  chunkCount: 4
+  chunkSpeed: 4.5
+  chunkSeconds: 0.6
+  chunkScale: 0.45
+  stainRadius: 0.35
+  stainColor: {r: 0.23, g: 0.14, b: 0.08, a: 0.6}
+  moment:
+    Shake: 0.05
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 5
+    ShardSpeed: 4
+    ShardLife: 0.35
+    ShardSize: 0.14
+    RingSize: 0
+    RingLife: 0.3
+    Color: {r: 1.5, g: 1.3, b: 0.5, a: 1}
+  sound: 17
