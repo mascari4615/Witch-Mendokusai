@@ -34,9 +34,10 @@ namespace WitchMendokusai
 		protected override void OnEffect()
 		{
 			CombatSfx.Play(CombatSfxEvent.Equip, transform.position);
-			soManager.ItemInventory.Add(itemData);
+			int excess = soManager.ItemInventory.Add(itemData);
 			soManager.DungeonItemBuffer.Add(itemData);
-			if (trace != TraceType.None)
+			// 가방이 차서 못 받은 재료는 기록도 없음
+			if (trace != TraceType.None && excess == 0)
 				dataManager.FeatureSave<TraceSaveSlice>().Notebook.Record(itemData.ID, trace);
 		}
 	}

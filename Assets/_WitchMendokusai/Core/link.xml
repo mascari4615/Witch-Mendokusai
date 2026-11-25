@@ -27,5 +27,10 @@
     <type fullname="WitchMendokusai.SkillTreeNodeFile" preserve="all" />
     <type fullname="WitchMendokusai.SkillTreeEffectFile" preserve="all" />
     <type fullname="WitchMendokusai.SkillTreeRequireFile" preserve="all" />
+    <type fullname="WitchMendokusai.TraceSaveSlice" preserve="all" />
+  </assembly>
+  <assembly fullname="WitchMendokusai.DomainSDK.Alchemy">
+    <!-- 세이브 JSON 복원용. StudyItemId setter 는 개발 명령만 부름 -->
+    <type fullname="WitchMendokusai.DomainSDK.Alchemy.TraceNotebook" preserve="all" />
   </assembly>
 </linker>

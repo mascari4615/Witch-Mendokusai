@@ -236,8 +236,9 @@ namespace WitchMendokusai
 			// 전리품/경험치 오브가 바닥에 흩뿌려지거나 DungeonStat 이 오염되지 않게 격리(PlayerObject 선례).
 			if (DungeonManagerBridge.IsDungeon)
 			{
-				dataManager.FeatureSave<TraceSaveSlice>().CountKill(Health.LastDamage.equipmentDataId);
 				DropLoot();
+				// 드롭 뒤에 셈. 보스 자신의 막타가 보스 재료의 자취를 바꾸지 않게
+				dataManager.FeatureSave<TraceSaveSlice>().CountKill(Health.LastDamage.equipmentDataId);
 
 				if (UnitData.Type == MonsterType.Boss)
 				{
@@ -272,10 +273,15 @@ namespace WitchMendokusai
 			gameObject.SetActive(false); // 사망 비활성은 컨텍스트 무관(아레나 유닛도 죽으면 사라짐).
 		}
 
-		// 재료에 남는 자취. 보스는 마지막 한 방이 아니라 이번 판에 가장 많이 잡은 도구
-		private TraceType LootTrace() => UnitData.Type == MonsterType.Boss
-			? dataManager.FeatureSave<TraceSaveSlice>().MainTraceOfRun()
-			: TraceSource.OfTool(Health.LastDamage.equipmentDataId);
+		// 재료에 남는 자취. 던전 안에서만. 보스는 마지막 한 방이 아니라 이번 판에 가장 많이 잡은 도구
+		private TraceType LootTrace()
+		{
+			if (DungeonManagerBridge.IsDungeon == false)
+				return TraceType.None;
+			return UnitData.Type == MonsterType.Boss
+				? dataManager.FeatureSave<TraceSaveSlice>().MainTraceOfRun()
+				: TraceSource.OfTool(Health.LastDamage.equipmentDataId);
+		}
 
 		protected virtual void DropLoot()
 		{

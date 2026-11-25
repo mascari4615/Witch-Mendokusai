@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using WitchMendokusai.DomainSDK.Alchemy;
 
 namespace WitchMendokusai.Tests
 {
@@ -87,6 +88,38 @@ namespace WitchMendokusai.Tests
 			Assert.AreEqual(0, slice.Relics);
 			Assert.AreEqual(0, slice.UnlockedTowers.Count);
 			Assert.IsNull(slice.Resume);
+		}
+
+		[Test]
+		public void Trace_RoundTrips_ThroughText_WithNumberKeys()
+		{
+			TraceSaveSlice source = new();
+			source.Notebook.StudyItemId = 92;
+			source.Notebook.Record(92, TraceType.Calm);
+			source.CountKill(20000018);
+			string json = source.Capture();
+			TraceSaveSlice loaded = new();
+
+			loaded.Restore(json);
+
+			StringAssert.DoesNotContain("Calm", json);
+			StringAssert.DoesNotContain("RunKills", json);
+			Assert.AreEqual(92, loaded.Notebook.StudyItemId);
+			Assert.AreEqual(1, loaded.Notebook.CountOf(92, TraceType.Calm));
+			Assert.AreEqual(0, loaded.RunKills.Count);
+		}
+
+		[Test]
+		public void Trace_OldSave_WithoutSlice_IsEmpty()
+		{
+			TraceSaveSlice slice = new();
+			slice.Notebook.StudyItemId = 92;
+			slice.Notebook.Record(92, TraceType.Calm);
+
+			slice.RestoreLegacy(new GameData());
+
+			Assert.AreEqual(TraceNotebook.NO_STUDY, slice.Notebook.StudyItemId);
+			Assert.AreEqual(0, slice.Notebook.CountOf(92, TraceType.Calm));
 		}
 
 		/// <summary>열쇠가 겹치면 뒤의 갈래가 앞의 조각을 덮어씀. 목록을 늘릴 때 여기서 걸림</summary>
