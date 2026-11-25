@@ -305,8 +305,9 @@ namespace WitchMendokusai
 			if (form != null)
 			{
 				int track = SOHelper.GetDoll(dataManager.CurDollID).FindForm(form).ConfirmMasteryTrack;
-				for (int i = 0; track != DollMastery.NO_TRACK && DollMasteryRun.IsTrackReady(track) == false && i < DollMasteryRun.Data.Tracks[track].Threshold; i++)
-					DollMasteryRun.Pickup(track, playerProvider.CurrentObject, playerProvider.CurrentObject.transform.position);
+				// 줍는 연출과 숙련 완료 연출 없이. 변신 연출과 안 겹치게
+				if (track != DollMastery.NO_TRACK && DollMasteryRun.IsTrackReady(track) == false)
+					DollMasteryRun.AddShard(track, DollMasteryRun.Data.Tracks[track].Threshold);
 			}
 			GrantChestCard(card);
 			return true;

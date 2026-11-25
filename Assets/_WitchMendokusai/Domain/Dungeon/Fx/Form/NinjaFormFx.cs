@@ -41,6 +41,8 @@ namespace WitchMendokusai
 		private const int BACK_QUEUE = 2962;
 		private const int WISP_QUEUE = 2970;
 		private const int FRONT_QUEUE = 3050;
+		// 덮는 동안의 뒤 구름. 다른 유닛과 몸 위, 실루엣 아래
+		private const int COVER_ORDER = 5;
 		private const int OUTLINE_ORDER = 9;
 		private const int FILL_ORDER = 10;
 		private const int FRONT_ORDER = 20;
@@ -94,7 +96,7 @@ namespace WitchMendokusai
 		[Header("실루엣")]
 		[SerializeField] private Color fillColor = new(0.024f, 0.02f, 0.055f, 1f);
 		[SerializeField] private Color outlineColor = new(0.69f, 0.73f, 1f, 1f);
-		[SerializeField, Min(0f), Tooltip("터지는 순간 색이 뒤집힌 채 남는 길이")] private float invertSeconds = 0.08f;
+		[SerializeField, Min(0f), Tooltip("터지는 순간 색이 뒤집힌 채 남는 길이")] private float invertSeconds = 0.1f;
 
 		[Header("터짐")]
 		[SerializeField, Min(0f)] private float brushHeight = 0.55f;
@@ -119,12 +121,13 @@ namespace WitchMendokusai
 		private sealed class Layers
 		{
 			public FxQuadBatch Ink;
+			public FxQuadBatch Cover;
 			public FxQuadBatch Back;
 			public FxQuadBatch Wisp;
 			public FxQuadBatch Front;
 			public FxQuadBatch Brush;
 
-			public IEnumerable<FxQuadBatch> All => new[] { Ink, Back, Wisp, Front, Brush };
+			public IEnumerable<FxQuadBatch> All => new[] { Ink, Cover, Back, Wisp, Front, Brush };
 		}
 
 		private sealed class Silhouette
@@ -181,6 +184,7 @@ namespace WitchMendokusai
 			{
 				Ink = Batch("Ink", inkTexture, INK_QUEUE, false, 0),
 				// 아래쪽 구름이 바닥에 잘리지 않게 지형 위에
+				Cover = Batch("Cover", smokeSheet, FRONT_QUEUE, true, COVER_ORDER),
 				Back = Batch("Back", smokeSheet, BACK_QUEUE, true, 0),
 				Wisp = Batch("Wisp", wispTexture, WISP_QUEUE, true, 0),
 				Front = Batch("Front", smokeSheet, FRONT_QUEUE, true, FRONT_ORDER),
@@ -227,7 +231,8 @@ namespace WitchMendokusai
 				return;
 			float spread = age < 0f ? 1f : scatterSpread.x + scatterSpread.y * UltimateFxRun.EaseOut(age / scatterSeconds);
 			Vector3 center = pose.Foot + pose.Right * (puff.Offset.x * spread) + pose.Up * (puff.Offset.y * (1f + (spread - 1f) * 0.5f));
-			AddCell(puff.Layer == PuffLayer.Back ? layers.Back : layers.Front, pose, center, smokeSheet, frame, puff.Offset.x > 0f);
+			FxQuadBatch back = age < invertSeconds ? layers.Cover : layers.Back;
+			AddCell(puff.Layer == PuffLayer.Back ? back : layers.Front, pose, center, smokeSheet, frame, puff.Offset.x > 0f);
 		}
 
 		// 안 그릴 때 -1
