@@ -42,6 +42,7 @@ namespace WitchMendokusai
 		public void Build(UIRoot uiRoot, HomesteadManager owner)
 		{
 			manager = owner;
+			baseRoot = uiRoot;
 			root = new VisualElement { name = "HomesteadHud", pickingMode = PickingMode.Ignore };
 			root.AddToClassList(BLOCK);
 			root.styleSheets.Add(Art.StyleSheet);
@@ -67,6 +68,7 @@ namespace WitchMendokusai
 
 		private void OnDestroy()
 		{
+			baseHud.Restore();
 			root?.RemoveFromHierarchy();
 			if (manager == null || manager.Sim == null)
 				return;
@@ -97,12 +99,15 @@ namespace WitchMendokusai
 		// ---- 건설
 
 		private VillageBuildHud build;
+		private UIRoot baseRoot;
+		private readonly BaseHudHider baseHud = new();
 
 		public VillageBuildHud ShowBuild(IReadOnlyList<PlaceableDef> palette, System.Action<PlaceableDef> onTake, System.Action onUndo, System.Action onLeave)
 		{
 			HideBuild();
 			build = new VillageBuildHud(root, palette, onTake, onUndo, onLeave);
 			ShowGoal(false);
+			baseHud.Hide(baseRoot);
 			return build;
 		}
 
@@ -112,6 +117,7 @@ namespace WitchMendokusai
 				return;
 			build.Remove();
 			build = null;
+			baseHud.Restore();
 			ShowGoal(true);
 		}
 

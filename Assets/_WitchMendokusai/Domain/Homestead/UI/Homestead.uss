@@ -935,7 +935,8 @@
     font-size: 17px;
     padding: 5px 16px;
     margin-bottom: 8px;
-    background-color: rgba(15, 12, 20, 0.66);
+    color: rgb(245, 240, 250);
+    background-color: rgba(15, 12, 20, 0.86);
 }
 
 .wm-hs-build__hint--no {
@@ -945,7 +946,7 @@
 .wm-hs-build__bar {
     flex-direction: row;
     padding: 6px;
-    background-color: rgba(15, 12, 20, 0.72);
+    background-color: rgba(15, 12, 20, 0.86);
     border-top-width: 3px;
     border-color: rgb(242, 226, 122);
 }
@@ -976,11 +977,13 @@
 
 .wm-hs-build__number {
     font-size: 13px;
+    -unity-text-align: upper-left;
     color: rgb(242, 226, 122);
 }
 
 .wm-hs-build__name {
     font-size: 16px;
+    color: rgb(245, 240, 250);
 }
 
 .wm-hs-build__cost {

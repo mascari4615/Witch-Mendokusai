@@ -48,7 +48,7 @@ float3 SkyBase(float3 dir)
     float up = saturate(dir.y);
     float3 sky = lerp(SkyHorizonColor(), SkyZenithColor(), pow(up, 0.55));
     float facing = saturate(dot(dir, _VillageSunDirection.xyz));
-    sky += _VillageSunColor.rgb * (pow(facing, 6.0) * 0.10 + pow(facing, 60.0) * 0.28);
+    sky += _VillageSunColor.rgb * (pow(facing, 10.0) * 0.06 + pow(facing, 80.0) * 0.22);
     return sky;
 }
 
@@ -61,14 +61,14 @@ float4 SkyCloud(float3 dir, int octaves)
     float2 uv = plane_ * 0.95 + float2(_Time.y * 0.004, _Time.y * 0.0016);
     float shape = SkyFractal(uv, octaves);
     float big = SkyNoise(uv * 0.42 + 7.3);
-    float density = smoothstep(0.50, 0.66, shape * 0.82 + big * 0.28);
+    float density = smoothstep(0.53, 0.66, shape * 0.82 + big * 0.28);
     float2 toward = _VillageSunDirection.xz * 0.16;
     float ahead = smoothstep(0.46, 0.74, SkyFractal(uv + toward, octaves) * 0.82 + big * 0.28);
     float lit = saturate(0.62 + (density - ahead) * 0.9 + (0.66 - shape) * 0.5);
-    float3 bright = saturate(_VillageSunColor.rgb * 0.95 + 0.12);
+    float3 bright = lerp(_VillageSunColor.rgb, dot(_VillageSunColor.rgb, float3(0.3, 0.6, 0.1)), 0.7) * 1.02 + 0.06;
     float3 shade = lerp(SkyHorizonColor(), SkyZenithColor(), 0.35) * 0.92;
     float facing = saturate(dot(dir, _VillageSunDirection.xyz));
-    float3 color = lerp(shade, bright, lit) + _VillageSunColor.rgb * pow(facing, 10.0) * 0.18;
+    float3 color = lerp(shade, bright, lit) + _VillageSunColor.rgb * pow(facing, 14.0) * 0.10;
     float fade = smoothstep(0.015, 0.16, dir.y);
     return float4(color, density * fade * 0.95);
 }

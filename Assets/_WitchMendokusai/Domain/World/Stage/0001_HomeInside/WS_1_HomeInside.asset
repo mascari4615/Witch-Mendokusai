@@ -19,5 +19,6 @@ MonoBehaviour:
   <Sprites>k__BackingField: []
   <Type>k__BackingField: 0
   <Prefab>k__BackingField: {fileID: 4152634056299416412, guid: c2fd504e20a80a14bb2e3a7ab4ad2969, type: 3}
+  <ShareWorldPosition>k__BackingField: 0
   <DevOnly>k__BackingField: 1
   <DisplayName>k__BackingField: "욘의 집"

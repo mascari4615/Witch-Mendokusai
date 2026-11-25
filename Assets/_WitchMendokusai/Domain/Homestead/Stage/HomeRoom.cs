@@ -16,7 +16,7 @@ namespace WitchMendokusai
 
 		[Header("Room")]
 		[Tooltip("방 앞턱의 자리. 스테이지의 포탈 앞")]
-		[SerializeField] private Vector3 doorstep = new(-0.5f, 0.02f, -11f);
+		[SerializeField] private Vector3 doorstep = new(-0.5f, 0.14f, -11f);
 		[SerializeField] private int hallLength = 5;
 		[SerializeField] private float roomHeight = 2.8f;
 		[SerializeField] private Color lampColor = new(1f, 0.9f, 0.74f);
@@ -25,6 +25,7 @@ namespace WitchMendokusai
 		[SerializeField] private float glowRange = 3.5f;
 		[SerializeField] private float glowIntensity = 1.6f;
 		[SerializeField] private Color shadeColor = new(0.35f, 0.3f, 0.42f);
+		[SerializeField] private float domeRadius = 26f;
 		[Tooltip("임시 모형. 방이 대신함")]
 		[SerializeField] private string placeholderName = "TreeHouse";
 
@@ -111,7 +112,7 @@ namespace WitchMendokusai
 			}
 			room = new GameObject("Room").transform;
 			room.SetParent(transform, false);
-			VillageLights.BuildShade(room, 15f, 8f, 1.4f, shadeColor);
+			VillageLights.BuildDome(room, domeRadius, 8f, shadeColor);
 			furnitureRoot = new GameObject("Furniture").transform;
 			furnitureRoot.SetParent(room, false);
 			deskSpot = AddSpot("DeskSpot", "꾸밈 상자", () => "방 꾸미기", () => manager.Panels.Show(HomesteadPanelType.Room));

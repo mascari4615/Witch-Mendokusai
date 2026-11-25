@@ -15,6 +15,9 @@ namespace WitchMendokusai
 		[Header("Build")]
 		[SerializeField] private float buildHeight = 24f;
 		[SerializeField] private float buildLimit = 30f;
+		[Tooltip("휠로 오가는 높이와 한 칸의 변화")]
+		[SerializeField] private Vector2 buildZoom = new(9f, 46f);
+		[SerializeField] private float buildZoomStep = 4f;
 		[SerializeField] private float pointerWake = 3f;
 		[SerializeField] private float footprintHeight = 0.12f;
 		[SerializeField] private Color footprintOk = new(0.45f, 1f, 0.55f, 0.42f);
@@ -38,6 +41,9 @@ namespace WitchMendokusai
 
 		private void StepBuilding()
 		{
+			// 시점 순환이 자유비행으로 넘어가지 않고 바로 평소 시점으로
+			if (isBuilding && cameraManager.CurrentContentMode == ContentCameraMode.FreeFly)
+				LeaveBuildView();
 			bool wanted = cameraManager != null && cameraManager.CurrentContentMode == ContentCameraMode.CityView;
 			if (wanted != isBuilding)
 			{
@@ -65,9 +71,10 @@ namespace WitchMendokusai
 			if (OverheadContentCameraController.TryGet(ContentCameraMode.CityView, out OverheadContentCameraController overhead))
 			{
 				overhead.SetFocusBounds(transform.TransformPoint(new Vector3(Catalog.VillageArea.X + Catalog.VillageArea.Width * 0.5f, 0f, Catalog.VillageArea.Z + Catalog.VillageArea.Depth * 0.5f)), buildLimit);
+				overhead.ConfigureZoom(buildZoom.x, buildZoom.y, buildZoomStep);
 				overhead.ResetView(player, cameraManager.OrbitAngles.x, buildHeight);
 			}
-			buildHud = manager.Hud.ShowBuild(palette, TakeNew, Undo, () => cameraManager.CycleContentView());
+			buildHud = manager.Hud.ShowBuild(palette, TakeNew, Undo, LeaveBuildView);
 			inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
 			inputManager.RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, UseCell);
 			inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Started, DropHeld);
@@ -79,6 +86,8 @@ namespace WitchMendokusai
 			ShowGrid(true);
 			RefreshBuildHud();
 		}
+
+		private void LeaveBuildView() => cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
 
 		private void StopBuilding()
 		{
