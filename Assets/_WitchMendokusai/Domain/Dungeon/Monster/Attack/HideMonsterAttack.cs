@@ -25,6 +25,7 @@ namespace WitchMendokusai
 		[field: Header("쫓음과 자리")]
 		[field: SerializeField, Tooltip("사라진 뒤 자리를 고정하기까지 (초). 떠오르는 초 뒤부터 쫓음"), Min(0f)] public float ChaseSeconds { get; private set; }
 		[field: SerializeField, Tooltip("쫓는 빠르기 (m/s). 0 이면 안 쫓음"), Min(0f)] public float ChaseSpeed { get; private set; } = 3.4f;
+		[field: SerializeField, Tooltip("쫓는 자리를 다시 잡는 간격 (초). 장애물을 피한 자리 계산이라 가끔만"), Min(0f)] public float AimInterval { get; private set; } = 0.1f;
 		[field: SerializeField, Tooltip("자리를 고정하고 때리기까지 (초). 피할 틈"), Min(0.2f)] public float LockSeconds { get; private set; } = 1f;
 		[field: SerializeField, Tooltip("자리 수. 1 이면 쫓아간 자리, 여럿이면 주인공 둘레 고리"), Min(1)] public int Count { get; private set; } = 1;
 		[field: SerializeField, Tooltip("고리 반지름 (m)"), Min(0f)] public float Distance { get; private set; } = 2.9f;

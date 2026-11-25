@@ -20,7 +20,6 @@ namespace WitchMendokusai
 		// 다시 나타났지만 주인공과 겹쳐 있어 충돌을 미루는 중
 		private bool isSettling;
 		private float settleEndTime;
-		private const float AIM_INTERVAL = 0.1f;
 		private float nextAimTime;
 		private Vector3 aim;
 
@@ -131,7 +130,7 @@ namespace WitchMendokusai
 			// 장애물을 피한 자리 계산은 가끔만
 			if (Time.time >= nextAimTime)
 			{
-				nextAimTime = Time.time + AIM_INTERVAL;
+				nextAimTime = Time.time + attack.AimInterval;
 				aim = PlayerGround();
 			}
 			monster.UnitMovement.Reposition(Vector3.MoveTowards(transform.position, aim, attack.ChaseSpeed * Time.deltaTime));
