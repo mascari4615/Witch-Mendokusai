@@ -46,8 +46,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 832c79019a80086439c1eebb9ec24392, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &6100000000000000005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58,16 +58,96 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 740fff591798d4167e8d6462de065940, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
+  waterMaxDepth: 1.2
+  waterLevel: 0.2
+  bankWidth: 2.4
+  bankNoiseScale: 0.45
+  bankNoiseStrength: 1.1
+  waterCell: 0.35
+  bedRange: {x: -0.4, y: 0.7}
+  clearing:
+    serializedVersion: 2
+    x: -31
+    y: -25
+    width: 62
+    height: 58
+  cornerRadius: 20
+  wobbleAmount: 6
+  wobbleFrequency: 1.5
   terrainMaterial: {fileID: 2100000, guid: 81e13104570e13b385e6426efaee0db5, type: 2}
+  paintArea:
+    serializedVersion: 2
+    x: -80
+    y: -76
+    width: 160
+    height: 160
+  paintResolution: 512
+  pathRange: {x: 1.1, y: 1.9}
+  pathNoise: 0.25
+  pathBend: 0
+  forestRange: {x: -2, y: 4}
+  forestEarth: 0.75
+  wornRange: {x: 0, y: 1.8}
+  wornEarth: 0.55
+  edgeNoiseScale: 0.3
+  edgeNoiseStrength: 1.6
+  patchScale: 0.09
+  patchRange: {x: 0.46, y: 0.64}
+  patchStrength: 0.6
+  noiseSeed: 73
   grassMaterial: {fileID: 2100000, guid: 8b0904c6f635f374fa2cebe66e681143, type: 2}
+  grassSeed: 9
+  grassArea:
+    serializedVersion: 2
+    x: -40
+    y: -34
+    width: 80
+    height: 76
+  grassAttempts: 900000
+  grassCellSize: 16
+  grassHeight: {x: 0.28, y: 0.6}
+  grassWidth: {x: 0.05, y: 0.1}
+  settled:
+    serializedVersion: 2
+    x: -24
+    y: -12
+    width: 42
+    height: 38
+  settledFade: 5
+  settledHeight: 0.42
+  grassWind: {x: 0.32, y: 0.2}
+  grassClumpScale: 0.12
+  grassHueScale: 0.04
+  grassFlowerChance: 0.014
+  grassRootA:
+    serializedVersion: 2
+    rgba: 4279519010
+  grassRootB:
+    serializedVersion: 2
+    rgba: 4279915566
+  grassTipA:
+    serializedVersion: 2
+    rgba: 4282300556
+  grassTipB:
+    serializedVersion: 2
+    rgba: 4283878584
+  grassDryRoot:
+    serializedVersion: 2
+    rgba: 4282292863
+  grassDryTip:
+    serializedVersion: 2
+    rgba: 4285187257
   flowerMaterials:
   - {fileID: 2100000, guid: 9933c98ab90a21a42a7abc6a9bbdde43, type: 2}
   - {fileID: 2100000, guid: 897b16df68d0387488752e02e2993938, type: 2}
   - {fileID: 2100000, guid: 6165073b6ca5a954795bff969f8b8d69, type: 2}
   - {fileID: 2100000, guid: df7b861629cfc904d8f08b64d9531a08, type: 2}
   fernMaterial: {fileID: 2100000, guid: a33bb3eaa37baa64582ad214e3e9682a, type: 2}
+  flowerPatches: 90
+  flowerCount: {x: 25, y: 70}
+  fernPatches: 120
   treeTemplates:
   - {fileID: 3991521269109639060, guid: bf8cae9b3188f8b4d8f327e84feda21d, type: 3}
   - {fileID: 6763951534541960177, guid: 04564050f39ead34bacafb980a1c877b, type: 3}
@@ -77,6 +157,13 @@ MonoBehaviour:
   - {fileID: 5493285148316628696, guid: 8900e6380ea8de148900d3119eafd8d2, type: 3}
   - {fileID: 1942483586514367004, guid: 1a8661ce6a782b547b657cda64bec82b, type: 3}
   - {fileID: 1670033125049862828, guid: bb2866388c11d2440bc53639713ce780, type: 3}
+  treeSeed: 31
+  treeAttempts: 1500
+  treeGap: 3.4
+  treeEdge: {x: 2.5, y: 30}
+  treeScale: {x: 0.8, y: 1.25}
+  wallHeight: 4
+  wallSegments: 48
 --- !u!114 &6100000000000000004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -87,8 +174,190 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ad7ab954ee0c48ff6dae7b3560c015fe, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
+  farmOrigin: {x: -23.5, y: 0, z: -6.5}
+  plotGap: {x: 1, y: 1}
+  plotColumns: 6
+  cropHeight: {x: 0.25, y: 0.95}
+  hitShakeSeconds: 0.18
+  hitShakeAngle: 5
+  gatherSites:
+  - Gather: tree
+    Position: {x: -6, y: 0, z: -17}
+  - Gather: tree
+    Position: {x: 7, y: 0, z: -18}
+  - Gather: tree
+    Position: {x: -12, y: 0, z: -20}
+  - Gather: tree
+    Position: {x: 12.5, y: 0, z: -20}
+  - Gather: tree
+    Position: {x: -27, y: 0, z: 3}
+  - Gather: tree
+    Position: {x: 27, y: 0, z: 8.5}
+  - Gather: tree
+    Position: {x: 4, y: 0, z: 28}
+  - Gather: hardtree
+    Position: {x: -24, y: 0, z: 24}
+  - Gather: hardtree
+    Position: {x: 24, y: 0, z: 24.5}
+  - Gather: bush
+    Position: {x: -3.6, y: 0, z: -14}
+  - Gather: bush
+    Position: {x: 4.4, y: 0, z: -13}
+  - Gather: bush
+    Position: {x: -17, y: 0, z: 2}
+  - Gather: bush
+    Position: {x: 17, y: 0, z: 8.5}
+  - Gather: bush
+    Position: {x: 5, y: 0, z: 21}
+  - Gather: herb
+    Position: {x: -11, y: 0, z: 15}
+  - Gather: herb
+    Position: {x: 15, y: 0, z: -16.5}
+  - Gather: herb
+    Position: {x: -18.5, y: 0, z: 16}
+  - Gather: mushroompatch
+    Position: {x: -21, y: 0, z: 19}
+  - Gather: mushroompatch
+    Position: {x: 19.5, y: 0, z: 20}
+  - Gather: rock
+    Position: {x: 18, y: 0, z: 12}
+  - Gather: rock
+    Position: {x: 28, y: 0, z: 16}
+  - Gather: rock
+    Position: {x: 20, y: 0, z: 20.6}
+  - Gather: rock
+    Position: {x: -15, y: 0, z: -17}
+  gridArea:
+    x: -30
+    y: -24
+    width: 60
+    height: 52
+  gridHeight: 0.16
+  gridColor: {r: 1, g: 1, b: 1, a: 0.16}
+  gridTakenColor: {r: 1, g: 0.86, b: 0.35, a: 0.95}
+  personHeight: 1.15
+  animalHeight: 0.9
+  ranchYard: {x: -21.6, y: 0, z: 4.8}
+  mineRadius: 9
+  mineNodeGap: 2.6
+  mineLampRange: 8
+  mineLeaveDistance: 60
+  mineLampIntensity: 3
+  lanternOffset: {x: 0.3, y: 1.8, z: -0.6}
+  mineColors:
+  - {r: 0.86, g: 0.76, b: 0.66, a: 1}
+  - {r: 0.92, g: 0.72, b: 0.58, a: 1}
+  - {r: 0.74, g: 0.76, b: 0.82, a: 1}
+  - {r: 0.94, g: 0.84, b: 0.56, a: 1}
+  - {r: 0.78, g: 0.72, b: 0.96, a: 1}
+  - {r: 0.6, g: 0.58, b: 0.8, a: 1}
+  roomHeight: 2.8
+  glowColor: {r: 1, g: 0.82, b: 0.6, a: 1}
+  shadeColor: {r: 0.35, g: 0.3, b: 0.42, a: 1}
+  roomLightIntensity: 3.2
+  furnitureGlowRange: 3.5
+  furnitureGlowIntensity: 1.6
+  gardenOrigin: {x: 5.6, y: 0, z: 18.2}
+  gardenColumns: 15
+  gardenGap: {x: 1.05, y: 1.25}
+  riseSeconds: 0.7
+  riseOvershoot: 0.12
+  lampOnHour: 17
+  lampOffHour: 6
+  lampRange: 7
+  lampIntensity: 2.4
+  lampLightOffset: {x: 0.4, y: 1.6, z: 0}
+  streamFrom: {x: 24, y: 0, z: -5}
+  streamTo: {x: 33, y: 0, z: 6}
+  streamWidth: 3.6
+  streamSpot: {x: 24.4, y: 0, z: -1.4}
+  resultSeconds: 1.6
+  floatHeight: 0.5
+  lineWidth: 0.02
+  lineSag: 0.5
+  rodTip: {x: 0.4, y: 0.9, z: 0}
+  townHallPosition: {x: 0, y: 0, z: 14}
+  townHallDoor: {x: 0, y: 0, z: -3.6}
+  boardPosition: {x: 4, y: 0, z: 11}
+  housePosition: {x: -15, y: 0, z: 10}
+  houseDoor: {x: 0, y: 0, z: -3.2}
+  houseYaw: 0
+  wellPosition: {x: 4, y: 0, z: 2}
+  plazaCenter: {x: 0, y: 0, z: 5}
+  pondCenter: {x: 21, y: 0, z: -11}
+  pondRadius: 6.5
+  roomOffset: {x: 300, y: 0, z: 0}
+  mineOffset: {x: -300, y: 0, z: 0}
+  streets:
+  - {x: 0, y: -24, z: 0, w: 11}
+  - {x: -24, y: 6, z: 20, w: 6}
+  - {x: -16, y: -6, z: 13, w: -6}
+  - {x: -18, y: 18, z: 18, w: 18}
+  - {x: -3, y: 6, z: -3, w: 18}
+  - {x: 18, y: 6, z: 18, w: 18}
+  sites:
+  - Id: farm
+    Position: {x: -20, y: 0, z: -2}
+    Yaw: 0
+    Size: {x: 3, y: 2.6}
+    Door: {x: 0, y: 0, z: -2}
+  - Id: workshop
+    Position: {x: 8, y: 0, z: 10}
+    Yaw: 0
+    Size: {x: 4.2, y: 3.2}
+    Door: {x: 0, y: 0, z: -2.4}
+  - Id: dock
+    Position: {x: 11.6, y: 0, z: -11}
+    Yaw: -90
+    Size: {x: 2.2, y: 2}
+    Door: {x: 0, y: 0, z: -0.4}
+  - Id: quarry
+    Position: {x: 24, y: 0, z: 14}
+    Yaw: 0
+    Size: {x: 4, y: 3}
+    Door: {x: 0, y: 0, z: -2.6}
+  - Id: museum
+    Position: {x: 13, y: 0, z: 22}
+    Yaw: 0
+    Size: {x: 6, y: 4}
+    Door: {x: 0, y: 0, z: -4}
+  - Id: ranch
+    Position: {x: -22, y: 0, z: 10}
+    Yaw: 0
+    Size: {x: 3.6, y: 3}
+    Door: {x: 0, y: 0, z: -2.6}
+  - Id: tailor
+    Position: {x: -6, y: 0, z: 22}
+    Yaw: 0
+    Size: {x: 3.8, y: 3}
+    Door: {x: 0, y: 0, z: -2.6}
+  - Id: training
+    Position: {x: -16, y: 0, z: 22}
+    Yaw: 0
+    Size: {x: 4.6, y: 3.6}
+    Door: {x: 0, y: 0, z: -1.6}
+  - Id: shop
+    Position: {x: 8, y: 0, z: -2}
+    Yaw: 0
+    Size: {x: 3.4, y: 2.8}
+    Door: {x: 0, y: 0, z: -2.4}
+  - Id: smithy
+    Position: {x: -8, y: 0, z: 10}
+    Yaw: 0
+    Size: {x: 3.8, y: 3}
+    Door: {x: 0, y: 0, z: -2.6}
+  - Id: atelier
+    Position: {x: -8, y: 0, z: -2}
+    Yaw: 0
+    Size: {x: 4, y: 3.2}
+    Door: {x: 0, y: 0, z: -2.6}
+  - Id: trial
+    Position: {x: 24, y: 0, z: 4}
+    Yaw: 0
+    Size: {x: 4.6, y: 4.6}
+    Door: {x: 0, y: 0, z: -2.6}
 --- !u!114 &6100000000000000007
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,8 +368,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 040dd685ef626fa4bb47dbffe8e0f113, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &6100000000000000006
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -14,6 +14,8 @@ namespace WitchMendokusai
 			if (string.IsNullOrWhiteSpace(input))
 				return System.Array.Empty<string>();
 
+			// 창을 여는 키가 / 라 입력 앞에 딸려 들어옴
+			input = input.TrimStart(' ', '/');
 			List<string> tokens = new();
 			StringBuilder current = new();
 			bool inQuote = false;

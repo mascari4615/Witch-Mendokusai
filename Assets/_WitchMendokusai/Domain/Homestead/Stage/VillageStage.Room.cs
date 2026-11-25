@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	// 집 안과 박물관 뜰. 놓은 가구와 기증한 것이 그대로 보임
 	public sealed partial class VillageStage
 	{
-		private const float WALL_THICKNESS = 0.3f;
+		private const string FURNITURE_KEY = "F_";
 
 		[Header("Room")]
 		[SerializeField] private float roomHeight = 2.8f;
@@ -18,9 +18,9 @@ namespace WitchMendokusai
 		[SerializeField] private float furnitureGlowIntensity = 1.6f;
 
 		[Header("Museum garden")]
-		[SerializeField] private Vector3 gardenOrigin = new(5.6f, 0f, 18.2f);
+		[SerializeField] private Vector3 gardenOrigin = new(6.5f, 0f, 16.5f);
 		[SerializeField] private int gardenColumns = 15;
-		[SerializeField] private Vector2 gardenGap = new(1.05f, 1.25f);
+		[SerializeField] private Vector2 gardenGap = new(1f, 1f);
 
 		private Transform room;
 		private GameObject roomShell;
@@ -62,32 +62,9 @@ namespace WitchMendokusai
 				Destroy(roomShell);
 			float width = Sim.HouseTier.Width;
 			float depth = Sim.HouseTier.Depth;
-			VillageKit kit = new();
-			int boards = Mathf.CeilToInt(width / 0.5f);
-			for (int i = 0; i < boards; i++)
-				kit.Box(Art.Wood, i % 2 == 0 ? Color.white : new Color(0.92f, 0.9f, 0.88f), new Vector3(-width / 2f + (i + 0.5f) * width / boards, -0.2f, 0f), new Vector3(width / boards, 0.2f, depth));
-			// 뒤와 옆 벽만 높고 앞은 낮은 턱. 내려다보는 카메라가 방을 봄
-			kit.Box(Art.Plaster, Color.white, new Vector3(0f, -0.2f, depth / 2f + WALL_THICKNESS / 2f), new Vector3(width + WALL_THICKNESS * 2f, roomHeight, WALL_THICKNESS), default, true);
-			for (int side = -1; side <= 1; side += 2)
-			{
-				kit.Box(Art.Plaster, new Color(0.97f, 0.95f, 0.97f), new Vector3(side * (width / 2f + WALL_THICKNESS / 2f), -0.2f, 0f), new Vector3(WALL_THICKNESS, roomHeight, depth), default, true);
-				kit.Box(Art.Frame, Color.white, new Vector3(side * (width / 2f), -0.2f, depth / 2f), new Vector3(0.24f, roomHeight, 0.24f));
-				kit.Box(Art.Frame, Color.white, new Vector3(side * (width / 2f - 0.02f), 0f, 0f), new Vector3(0.06f, 0.22f, depth));
-			}
-			kit.Box(Art.Frame, Color.white, new Vector3(0f, 0f, depth / 2f - 0.02f), new Vector3(width, 0.22f, 0.06f));
-			kit.Box(Art.Frame, Color.white, new Vector3(0f, roomHeight - 0.4f, depth / 2f - 0.02f), new Vector3(width, 0.18f, 0.1f));
-			float half = width / 2f - 0.7f;
-			for (int side = -1; side <= 1; side += 2)
-				kit.Box(Art.Wood, Color.white, new Vector3(side * (0.7f + half / 2f), -0.2f, -depth / 2f - WALL_THICKNESS / 2f), new Vector3(half, 0.4f, WALL_THICKNESS));
-			kit.Solid(new Vector3(0f, 0f, -depth / 2f - 1.2f), new Vector3(width + 1f, 3f, 0.3f));
-			for (int side = -1; side <= 1; side += 2)
-				kit.Solid(new Vector3(side * (0.7f + half / 2f), 0f, -depth / 2f - WALL_THICKNESS / 2f), new Vector3(half, 3f, WALL_THICKNESS));
-			kit.Box(Art.Stone, Color.white, new Vector3(0f, -0.2f, -depth / 2f - 0.6f), new Vector3(1.4f, 0.2f, 1.2f));
-			kit.Solid(new Vector3(0f, -1.2f, 0f), new Vector3(width + 4f, 1.2f, depth + 4f));
-			// 꾸밈 상자는 문 옆 구석
-			kit.Box(Art.Wood, new Color(0.8f, 0.68f, 0.9f), new Vector3(width / 2f - 0.5f, 0f, -depth / 2f + 0.4f), new Vector3(0.6f, 0.42f, 0.4f));
-			kit.Box(Art.Gold, Color.white, new Vector3(width / 2f - 0.5f, 0.3f, -depth / 2f + 0.18f), new Vector3(0.12f, 0.12f, 0.06f));
-			roomShell = kit.Build("RoomShell", room, Vector3.zero, 0f);
+			roomShell = new GameObject("RoomShell");
+			roomShell.transform.SetParent(room, false);
+			BuildShell(roomShell.transform, Mathf.RoundToInt(width), Mathf.RoundToInt(depth));
 			GameObject lightObject = new("RoomLight");
 			lightObject.transform.SetParent(roomShell.transform, false);
 			lightObject.transform.localPosition = new Vector3(0f, roomHeight - 0.4f, 0f);
@@ -99,6 +76,49 @@ namespace WitchMendokusai
 			doorSpot.localPosition = new Vector3(0f, 0f, -depth / 2f - 0.4f);
 			deskSpot.localPosition = new Vector3(width / 2f - 0.6f, 0f, -depth / 2f + 0.7f);
 			restSpot.localPosition = new Vector3(-width / 2f + 0.7f, 0f, -depth / 2f + 0.7f);
+		}
+
+		// 바닥과 벽을 1m 조각으로. 뒤와 옆 벽만 높고 앞은 낮은 턱이라 내려다보는 카메라가 방을 봄
+		private void BuildShell(Transform shell, int width, int depth)
+		{
+			float halfWidth = width * 0.5f;
+			float halfDepth = depth * 0.5f;
+			for (int x = 0; x < width; x++)
+			{
+				float along = x - halfWidth + 0.5f;
+				for (int z = 0; z < depth; z++)
+					Models.Build((x + z) % 2 == 0 ? "RoomFloor" : "RoomFloorB", shell, new Vector3(along, 0f, z - halfDepth + 0.5f), 0f);
+				Models.Build(WallPiece(x), shell, new Vector3(along, 0f, halfDepth), 0f);
+				if (Mathf.Abs(along) > 1f)
+					Models.Build("RoomSill", shell, new Vector3(along, 0f, -halfDepth), 0f);
+			}
+			for (int z = 0; z < depth; z++)
+			{
+				float along = z - halfDepth + 0.5f;
+				Models.Build(WallPiece(z), shell, new Vector3(halfWidth, 0f, along), 90f);
+				Models.Build(WallPiece(z), shell, new Vector3(-halfWidth, 0f, along), -90f);
+			}
+			for (int side = -1; side <= 1; side += 2)
+			{
+				Models.Build("RoomCorner", shell, new Vector3(side * halfWidth, 0f, halfDepth), 0f);
+				AddSolid(shell, new Vector3(side * (halfWidth + 0.15f), 1.4f, 0f), new Vector3(0.3f, 3f, depth));
+				AddSolid(shell, new Vector3(side * (halfWidth + 1f) * 0.5f, 1.4f, -halfDepth - 0.15f), new Vector3(halfWidth - 1f, 3f, 0.3f));
+			}
+			AddSolid(shell, new Vector3(0f, 1.4f, halfDepth + 0.15f), new Vector3(width, 3f, 0.3f));
+			AddSolid(shell, new Vector3(0f, 1.4f, -halfDepth - 1.2f), new Vector3(width + 1f, 3f, 0.3f));
+			AddSolid(shell, new Vector3(0f, -0.6f, 0f), new Vector3(width + 4f, 1.2f, depth + 4f));
+			Models.Build("RoomFloor", shell, new Vector3(-0.5f, 0f, -halfDepth - 0.5f), 0f);
+			Models.Build("RoomFloorB", shell, new Vector3(0.5f, 0f, -halfDepth - 0.5f), 0f);
+			Models.Build("RoomChest", shell, new Vector3(halfWidth - 0.5f, 0f, -halfDepth + 0.4f), 0f);
+		}
+
+		private static string WallPiece(int index) => index % 2 == 0 ? "RoomWallPost" : "RoomWall";
+
+		private static void AddSolid(Transform parent, Vector3 center, Vector3 size)
+		{
+			BoxCollider box = parent.gameObject.AddComponent<BoxCollider>();
+			box.center = center;
+			box.size = size;
 		}
 
 		private void RefreshFurniture()
@@ -116,10 +136,7 @@ namespace WitchMendokusai
 			foreach (PlacedFurniture piece in Sim.State.Placed)
 			{
 				FurnitureDef furniture = Catalog.Get<FurnitureDef>(piece.Id);
-				VillageKit kit = FurnitureBodies.Make(furniture);
-				if (furniture.Layer == FurnitureLayer.Floor)
-					kit.Solid(Vector3.zero, new Vector3(furniture.Width * 0.9f, 1f, furniture.Depth * 0.9f));
-				GameObject body = kit.Build(furniture.Name, furnitureRoot, new Vector3(piece.X, 0f, piece.Z), piece.Yaw);
+				GameObject body = Models.Build(FURNITURE_KEY + furniture.Id, furnitureRoot, new Vector3(piece.X, 0f, piece.Z), piece.Yaw);
 				// 쉬는 자리는 침대가 있으면 침대 곁
 				if (furniture.Shape == "bed")
 					restSpot.localPosition = new Vector3(piece.X, 0f, piece.Z) + Quaternion.Euler(0f, piece.Yaw, 0f) * new Vector3(furniture.Width * 0.5f + 0.4f, 0f, 0f);
@@ -189,7 +206,6 @@ namespace WitchMendokusai
 
 		private void BuildMuseumGarden()
 		{
-			VillageKit stands = new();
 			List<string> order = new();
 			foreach (WingDef wing in Catalog.Wings)
 			{
@@ -199,26 +215,14 @@ namespace WitchMendokusai
 			garden = new GameObject("MuseumGarden");
 			garden.transform.SetParent(outdoor, false);
 			garden.transform.localPosition = gardenOrigin;
-			VillageKit paving = new();
-			int rows = Mathf.CeilToInt(order.Count / (float)gardenColumns);
-			paving.Box(Art.Stone, Color.white, new Vector3((gardenColumns - 1) * gardenGap.x * 0.5f, -0.18f, -(rows - 1) * gardenGap.y * 0.5f), new Vector3(gardenColumns * gardenGap.x + 0.8f, 0.22f, rows * gardenGap.y + 0.6f));
-			paving.Build("Paving", garden.transform, Vector3.zero, 0f);
 			for (int i = 0; i < order.Count; i++)
 			{
-				Vector3 position = new(i % gardenColumns * gardenGap.x, 0.04f, -(i / gardenColumns) * gardenGap.y);
-				stands.Prism(Art.Stone, Color.white, position, new Vector3(0.6f, 0.1f, 0.6f), 8);
-				stands.Prism(Art.Plaster, Color.white, position + Vector3.up * 0.08f, new Vector3(0.38f, 0.36f, 0.38f), 8, 0.9f);
-				stands.Prism(Art.Gold, Color.white, position + Vector3.up * 0.42f, new Vector3(0.48f, 0.06f, 0.48f), 8);
+				Vector3 position = new(i % gardenColumns * gardenGap.x, 0f, -(i / gardenColumns) * gardenGap.y);
+				Models.Build(i % 2 == 0 ? "StonePath" : "StonePathB", garden.transform, position, 0f);
+				Models.Build("Pedestal", garden.transform, position, 0f);
 				HomesteadSprite sprite = HomesteadSprite.Create(garden.transform, position + Vector3.up * 0.52f, Art.IconOf(Catalog.Get<GoodsDef>(order[i])), 0.5f, 0.04f);
 				exhibits.Add((order[i], sprite));
 			}
-			stands.Build("Stands", garden.transform, Vector3.zero, 0f);
-			Vector3 center = gardenOrigin + new Vector3((gardenColumns - 1) * gardenGap.x * 0.5f, 0f, -(rows - 1) * gardenGap.y * 0.5f);
-			GameObject blocker = new("GardenBlock");
-			blocker.transform.SetParent(outdoor, false);
-			blocker.transform.localPosition = center + Vector3.up * 0.5f;
-			blocker.AddComponent<BoxCollider>().size = new Vector3(gardenColumns * gardenGap.x, 1f, rows * gardenGap.y);
-			blocker.transform.SetParent(garden.transform, true);
 		}
 
 		private void RefreshMuseumGarden()
