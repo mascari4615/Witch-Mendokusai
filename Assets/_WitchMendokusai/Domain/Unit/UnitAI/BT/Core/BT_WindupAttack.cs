@@ -54,8 +54,11 @@ namespace WitchMendokusai
 				);
 		}
 
+		// 공격을 기다리는 동안의 걸음. 성격이 있으면 성격대로, 없으면 곧장
 		private BTState ChasePlayer()
 		{
+			if (MonsterTemperamentDriver.TryMove(unitObject, playerProvider))
+				return BTState.Success;
 			Vector3 toPlayer = playerProvider.Current.transform.position - unitObject.transform.position;
 			toPlayer.y = 0f;
 			unitObject.UnitMovement.SetMoveDirection(toPlayer.normalized);
