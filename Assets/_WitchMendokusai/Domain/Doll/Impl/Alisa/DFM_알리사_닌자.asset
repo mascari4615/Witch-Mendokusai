@@ -22,4 +22,4 @@ MonoBehaviour:
   <PushRadius>k__BackingField: 3.4
   <PushForce>k__BackingField: 9
   <PushSeconds>k__BackingField: 0.35
-  <CardLook>k__BackingField: {fileID: 0}
+  <CardLook>k__BackingField: {fileID: 11400000, guid: 7b89de2a1539452caf45f7e29d2a5e74, type: 2}

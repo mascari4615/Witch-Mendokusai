@@ -547,6 +547,8 @@ GameObject:
   - component: {fileID: 588606788563740952}
   - component: {fileID: 82661773690501231}
   - component: {fileID: 931043684922373873}
+  - component: {fileID: 387331954460174628}
+  - component: {fileID: 566406941368338404}
   m_Layer: 0
   m_Name: Wave
   m_TagString: Untagged
@@ -619,3 +621,37 @@ MonoBehaviour:
   baseCount: 0
   minCount: 0
   gateStat: 13097
+--- !u!114 &387331954460174628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 456643937285498444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b17627170b8415abb6d7063fada020d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SwordWaveFx
+  art: {fileID: 11400000, guid: 73568200365743f7b9af6430ec8abdaa, type: 2}
+  lightTint: {r: 0.8, g: 0.86, b: 1, a: 1}
+  hotTint: {r: 1.1, g: 1.2, b: 1.35, a: 1}
+  goldTint: {r: 0.35, g: 0.65, b: 1, a: 1}
+  paleTint: {r: 0.8, g: 0.93, b: 1, a: 1}
+  shadeTint: {r: 0.008, g: 0.015, b: 0.05, a: 1}
+  crescentSize: 1.5
+--- !u!114 &566406941368338404
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 456643937285498444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 482b7a96db9c490f820d74d3ca52e3f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.WaveFxOnShot
+  fx: {fileID: 387331954460174628}
+  length: 10
+  width: 1.5

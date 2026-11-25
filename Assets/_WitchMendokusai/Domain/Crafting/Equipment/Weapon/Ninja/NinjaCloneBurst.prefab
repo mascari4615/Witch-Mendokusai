@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 308101863560161427}
   - component: {fileID: 225411991230033608}
   - component: {fileID: 500893978775367580}
+  - component: {fileID: 729206632318545331}
   m_Layer: 0
   m_Name: NinjaCloneBurst
   m_TagString: Untagged
@@ -152,6 +153,26 @@ MonoBehaviour:
     ShardSpeed: 6
     ShardLife: 0.3
     ShardSize: 0.16
-    RingSize: 5
+    RingSize: 0
     RingLife: 0.3
     Color: {r: 0.16, g: 0.15, b: 0.3, a: 1}
+--- !u!114 &729206632318545331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 128192244441211080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5bc58c8bdba4949bd71088eeadfff6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.PaintedBurst
+  art: {fileID: 11400000, guid: 60d20066aaf24e5e99ed13c4624456ab, type: 2}
+  radius: 2.5
+  seconds: 0.42
+  ringSeconds: 0.3
+  tint: {r: 0.9, g: 0.88, b: 1, a: 1}
+  ringTint: {r: 0.85, g: 0.82, b: 1, a: 1}
+  shade: {r: 0.01, g: 0.008, b: 0.03, a: 0.65}
+  cover: 1

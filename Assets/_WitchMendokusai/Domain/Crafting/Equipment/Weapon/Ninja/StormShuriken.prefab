@@ -191,6 +191,8 @@ MonoBehaviour:
   marksEveryNth: 4
   markSeconds: 4
   burstPrefab: {fileID: 203709152336722340, guid: cf1249344a904860995f7993b8a9ec31, type: 3}
+  markerPrefab: {fileID: 35995615843292178, guid: 2be3fac61ec0466791abb5b9ef345546, type: 3}
+  markerHeight: 1.7
 --- !u!114 &776112561953345609
 MonoBehaviour:
   m_ObjectHideFlags: 0

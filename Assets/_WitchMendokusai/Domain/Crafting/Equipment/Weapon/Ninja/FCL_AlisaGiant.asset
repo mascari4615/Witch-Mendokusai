@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bc490530c7045a7b927dc6851b88dcb, type: 3}
+  m_Name: FCL_AlisaGiant
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.FormCardLook
+  <LightShader>k__BackingField: {fileID: 4800000, guid: bcbd06f3fa2543cca1f03fad99c2f60a, type: 3}
+  <Icon>k__BackingField: {fileID: 21300000, guid: 939d156b0b13484f8db0a84a7d69a9c3, type: 3}
+  <Back>k__BackingField: {fileID: 21300000, guid: ae91d04937024e2381eaa7d9febf869b, type: 3}
+  <BackEffect>k__BackingField: {fileID: 2800000, guid: 631f870c2991417fb2f62b99e513a983, type: 3}
+  <Dark>k__BackingField: {r: 0.05, g: 0.12, b: 0.28, a: 1}
+  <Mid>k__BackingField: {r: 0.18, g: 0.42, b: 0.85, a: 1}
+  <Main>k__BackingField: {r: 0.45, g: 0.78, b: 1, a: 1}
+  <Bright>k__BackingField: {r: 0.95, g: 0.99, b: 1, a: 1}

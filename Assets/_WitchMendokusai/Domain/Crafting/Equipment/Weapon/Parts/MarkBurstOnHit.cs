@@ -13,6 +13,8 @@ namespace WitchMendokusai
 		[SerializeField, Min(1)] private int marksEveryNth = 4;
 		[SerializeField, Min(0f)] private float markSeconds = 4f;
 		[SerializeField] private GameObject burstPrefab;
+		[SerializeField, Tooltip("표식이 붙은 동안 머리 위에 뜨는 그림")] private GameObject markerPrefab;
+		[SerializeField, Min(0f)] private float markerHeight = 1.7f;
 
 		// 나머지만 쓰므로 판이 바뀌어도 되돌릴 필요 없음
 		private static int throwCount;
@@ -51,22 +53,31 @@ namespace WitchMendokusai
 			bool watching = HitMarks.IsMarked(markKey, victim);
 			HitMarks.Mark(markKey, victim, markSeconds);
 			if (watching == false)
-				CombatFxRunner.Instance.Run(Watch(victim, markKey, objectPoolManager, burstPrefab, context));
+				CombatFxRunner.Instance.Run(Watch(victim, context));
 		}
 
-		// 이 탄은 풀로 돌아가므로 실행기에서 지켜봄. 죽으면 바로 끝내 풀에서 다시 나온 적에 이어지지 않게
-		private static IEnumerator Watch(UnitObject victim, int markKey, ObjectPoolManager objectPoolManager, GameObject burstPrefab, SkillContext context)
+		// 이 탄은 풀로 돌아가므로 실행기에서 지켜봄. 프리팹 값은 켜질 때 넘겨 이 부품의 상태를 읽지 않음
+		private IEnumerator Watch(UnitObject victim, SkillContext owner) => Watch(victim, owner, markKey, markerHeight, objectPoolManager, burstPrefab, markerPrefab);
+
+		// 죽으면 바로 끝내 풀에서 다시 나온 적에 이어지지 않게
+		private static IEnumerator Watch(UnitObject victim, SkillContext owner, int key, float height, ObjectPoolManager pool, GameObject burst, GameObject markerSource)
 		{
-			while (victim != null && HitMarks.IsMarked(markKey, victim))
+			GameObject marker = pool.Spawn(markerSource, victim.transform.position + Vector3.up * height, Quaternion.identity);
+			marker.SetActive(true);
+			while (victim != null && HitMarks.IsMarked(key, victim))
 			{
 				if (victim.IsAlive == false || victim.isActiveAndEnabled == false)
 				{
-					HitMarks.Mark(markKey, victim, 0f);
-					Burst(objectPoolManager, burstPrefab, victim.transform.position, context);
-					yield break;
+					HitMarks.Mark(key, victim, 0f);
+					Burst(pool, burst, victim.transform.position, owner);
+					break;
 				}
+				if (marker != null)
+					marker.transform.position = victim.transform.position + Vector3.up * height;
 				yield return null;
 			}
+			if (marker != null)
+				marker.SetActive(false);
 		}
 
 		private static void Burst(ObjectPoolManager objectPoolManager, GameObject prefab, Vector3 position, SkillContext context)
