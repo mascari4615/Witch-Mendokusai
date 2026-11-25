@@ -1,0 +1,228 @@
+using System.Collections.Generic;
+using UnityEngine;
+using WitchMendokusai.DomainSDK.Homestead;
+
+namespace WitchMendokusai
+{
+	// 마을에 사는 것들. 온 주민, 일하는 인형, 동물
+	public sealed partial class VillageStage
+	{
+		[Header("Life")]
+		[SerializeField] private float personHeight = 1.15f;
+		[SerializeField] private float animalHeight = 0.9f;
+		[SerializeField] private Vector3 ranchYard = new(-21.6f, 0f, 4.8f);
+
+		private readonly Dictionary<string, VillageWalker> people = new();
+		private readonly Dictionary<string, VillageWalker> workers = new();
+		private readonly Dictionary<int, VillageWalker> animals = new();
+
+		private BuildingSite SiteOf(string id) => System.Array.Find(sites, site => site.Id == id);
+
+		private Vector3 DoorOf(string id)
+		{
+			BuildingSite site = SiteOf(id);
+			return site.Position + Quaternion.Euler(0f, site.Yaw, 0f) * (site.Door + new Vector3(1.2f, 0f, -0.6f));
+		}
+
+		private void RefreshLife()
+		{
+			RefreshPeople();
+			RefreshWorkers();
+			RefreshAnimals();
+		}
+
+		// 건물이 아직이면 길드 (회관) 앞에서 기다림
+		private void RefreshPeople()
+		{
+			foreach (ResidentDef resident in Catalog.Residents)
+			{
+				if (Sim.HasArrived(resident.Id) == false)
+					continue;
+				Vector3 home = Sim.IsBuilt(resident.Building) ? DoorOf(resident.Building) : townHallPosition + townHallDoor + new Vector3(-2.4f + people.Count * 0.8f, 0f, -1f);
+				if (people.TryGetValue(resident.Id, out VillageWalker walker))
+				{
+					walker.SetHome(home);
+					continue;
+				}
+				ResidentDef captured = resident;
+				VillageWalker made = VillageWalker.Create(outdoor, home, Art.Icon(resident.Id), null, personHeight, 1.6f);
+				HomesteadSpot.Attach(made.gameObject, () => captured.Name, () => Sim.CanGiftToday(captured.Id) ? "선물할 수 있음" : $"호감 {Sim.AffinityStep(captured.Id)}단", () =>
+				{
+					Sim.Greet(captured.Id);
+					manager.Panels.Show(HomesteadPanelType.Guild, 1);
+				});
+				people.Add(resident.Id, made);
+			}
+		}
+
+		private void RefreshWorkers()
+		{
+			foreach (JobDef job in Catalog.Jobs)
+			{
+				bool staffed = Sim.IsStaffed(job.Id);
+				workers.TryGetValue(job.Id, out VillageWalker walker);
+				if (staffed == false)
+				{
+					if (walker != null)
+						walker.gameObject.SetActive(false);
+					continue;
+				}
+				Doll doll = SOHelper.GetDoll(Sim.State.Jobs[job.Id].DollId);
+				if (walker == null)
+				{
+					JobDef captured = job;
+					walker = VillageWalker.Create(outdoor, WorkPlace(job), doll.Sprites[0], doll.Sprites[1], personHeight, 2.2f);
+					HomesteadSpot.Attach(walker.gameObject, () => SOHelper.GetDoll(Sim.State.Jobs[captured.Id].DollId).Name, () => JobRole(captured), () => UseWorker(captured));
+					workers[job.Id] = walker;
+				}
+				walker.gameObject.SetActive(true);
+				walker.SetSprites(doll.Sprites[0], doll.Sprites[1], personHeight);
+			}
+		}
+
+		private Vector3 WorkPlace(JobDef job) => job.Building == HomesteadSim.FARM ? farmOrigin + new Vector3(plotGap.x * 2.5f, 0f, 1.4f) : DoorOf(job.Building) + new Vector3(0.8f, 0f, -0.8f);
+
+		private string JobRole(JobDef job)
+		{
+			int ready = Sim.JobReady(job.Id);
+			return ready > 0 ? $"거두기 {ready}" : job.Name;
+		}
+
+		private void UseWorker(JobDef job)
+		{
+			if (Sim.CollectJob(job.Id) > 0)
+				UiSfx.Play(UiSfxEvent.Purchase);
+			else
+				manager.Panels.Show(HomesteadPanelType.Guild, 2);
+		}
+
+		private void RefreshAnimals()
+		{
+			foreach (AnimalState animal in Sim.State.Animals)
+			{
+				if (animals.ContainsKey(animal.Uid))
+					continue;
+				AnimalState captured = animal;
+				Vector3 home = ranchYard + new Vector3(animals.Count % 3 * 1.1f, 0f, -(animals.Count / 3) * 1.1f);
+				VillageWalker walker = VillageWalker.Create(outdoor, home, Art.Icon(animal.Id), null, animalHeight, 1.4f);
+				HomesteadSpot.Attach(walker.gameObject, () => Catalog.Get<AnimalDef>(captured.Id).Name, () => AnimalRole(captured), () => CareAnimal(captured, walker));
+				animals.Add(animal.Uid, walker);
+			}
+		}
+
+		private string AnimalRole(AnimalState animal)
+		{
+			if (Sim.IsProductReady(animal))
+				return "거두기";
+			return animal.CareDay != Sim.Day ? "쓰다듬기" : $"정 {animal.Affinity}";
+		}
+
+		private void CareAnimal(AnimalState animal, VillageWalker walker)
+		{
+			if (Report(Sim.Care(animal.Uid, out bool collected)) == false)
+				return;
+			UiSfx.Play(collected ? UiSfxEvent.Purchase : UiSfxEvent.Confirm);
+			walker.Hop();
+		}
+	}
+
+	// 제자리 둘레를 느긋하게 거니는 그림. 인형은 머리와 몸 두 장
+	public sealed class VillageWalker : MonoBehaviour
+	{
+		[SerializeField] private float speed = 0.7f;
+		[SerializeField] private Vector2 restSeconds = new(1.5f, 5f);
+		[SerializeField] private float stepHeight = 0.05f;
+		[SerializeField] private float stepsPerSecond = 3f;
+		[SerializeField] private float hopHeight = 0.35f;
+		[SerializeField] private float hopSeconds = 0.35f;
+
+		private HomesteadSprite head;
+		private HomesteadSprite body;
+		private Vector3 home;
+		private Vector3 target;
+		private float range;
+		private float rest;
+		private float hop;
+		private float headBase;
+
+		public static VillageWalker Create(Transform parent, Vector3 home, Sprite headSprite, Sprite bodySprite, float height, float range)
+		{
+			GameObject walkerObject = new("Walker");
+			walkerObject.transform.SetParent(parent, false);
+			walkerObject.transform.localPosition = home;
+			VillageWalker walker = walkerObject.AddComponent<VillageWalker>();
+			walker.body = HomesteadSprite.Create(walkerObject.transform, Vector3.zero, null, height);
+			walker.head = HomesteadSprite.Create(walkerObject.transform, Vector3.zero, null, height);
+			walker.range = range;
+			walker.SetHome(home);
+			walker.target = home;
+			walker.rest = Random.Range(0f, walker.restSeconds.y);
+			walker.SetSprites(headSprite, bodySprite, height);
+			return walker;
+		}
+
+		public void SetHome(Vector3 newHome)
+		{
+			if ((newHome - home).sqrMagnitude < 0.01f)
+				return;
+			home = newHome;
+			target = newHome;
+		}
+
+		public void SetSprites(Sprite headSprite, Sprite bodySprite, float height)
+		{
+			bool isDoll = bodySprite != null;
+			body.gameObject.SetActive(isDoll);
+			if (isDoll)
+			{
+				body.SetSprite(bodySprite, height * 0.42f);
+				head.SetSprite(headSprite, height * 0.68f);
+				headBase = height * 0.34f;
+				head.Renderer.sortingOrder = 1;
+			}
+			else
+			{
+				head.SetSprite(headSprite, height);
+				headBase = 0f;
+			}
+			Place(0f);
+		}
+
+		public void Hop() => hop = hopSeconds;
+
+		private void Place(float lift)
+		{
+			head.transform.localPosition = Vector3.up * (headBase + lift);
+			body.transform.localPosition = Vector3.up * lift;
+		}
+
+		private void Update()
+		{
+			float lift = 0f;
+			if (hop > 0f)
+			{
+				hop -= Time.deltaTime;
+				lift = Mathf.Sin(Mathf.Clamp01(hop / hopSeconds) * Mathf.PI) * hopHeight;
+			}
+			if (rest > 0f)
+			{
+				rest -= Time.deltaTime;
+				Place(lift);
+				return;
+			}
+			Vector3 delta = target - transform.localPosition;
+			if (delta.magnitude < 0.05f)
+			{
+				Vector2 offset = Random.insideUnitCircle * range;
+				target = home + new Vector3(offset.x, 0f, offset.y);
+				rest = Random.Range(restSeconds.x, restSeconds.y);
+				return;
+			}
+			transform.localPosition += delta.normalized * Mathf.Min(speed * Time.deltaTime, delta.magnitude);
+			bool left = delta.x < 0f;
+			head.Renderer.flipX = left;
+			body.Renderer.flipX = left;
+			Place(lift + Mathf.Abs(Mathf.Sin(Time.time * stepsPerSecond * Mathf.PI)) * stepHeight);
+		}
+	}
+}

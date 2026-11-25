@@ -139,7 +139,7 @@ namespace WitchMendokusai
 			}
 
 			bool isTouchMode = IsTouchMode();
-			int siteStamp = current.TryGetComponent(out MapObjectSite currentSite) ? currentSite.PromptStamp() : 0;
+			int siteStamp = PromptStamp(current);
 			if (current != shownTarget || isTouchMode != shownTouchMode || siteStamp != shownSiteStamp)
 				ApplyContent(current, isTouchMode, siteStamp);
 
@@ -201,12 +201,27 @@ namespace WitchMendokusai
 				roleLabel.text = site.Data.Role;
 				ApplyMapObjectContent(site);
 			}
+			else if (target.TryGetComponent(out IInteractPromptSource source))
+			{
+				nameLabel.text = source.PromptName;
+				roleLabel.text = source.PromptRole;
+			}
 			else
 			{
 				nameLabel.text = target.name.Replace(CLONE_SUFFIX, string.Empty).Trim();
 				roleLabel.text = string.Empty;
 			}
 			roleLabel.style.display = roleLabel.text.Length > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
+		// 글자를 다시 쓸지 판단하는 값. 대상이 같아도 상태가 바뀌면 달라짐
+		private static int PromptStamp(InteractiveObject target)
+		{
+			if (target == null)
+				return 0;
+			if (target.TryGetComponent(out MapObjectSite site))
+				return site.PromptStamp();
+			return target.TryGetComponent(out IInteractPromptSource source) ? source.PromptStamp : 0;
 		}
 
 		// 보상 예고 (수락 전 범주) 와 비용. 못 내는 비용은 다른 색

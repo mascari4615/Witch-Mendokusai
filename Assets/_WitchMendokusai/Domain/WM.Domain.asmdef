@@ -36,6 +36,7 @@
         "WitchMendokusai.DomainSDK.EventBus",
         "WitchMendokusai.DomainSDK.Farming",
         "WitchMendokusai.DomainSDK.GameEvent",
+        "WitchMendokusai.DomainSDK.Homestead",
         "WitchMendokusai.DomainSDK.Item",
         "WitchMendokusai.DomainSDK.Life",
         "WitchMendokusai.DomainSDK.Logistics",

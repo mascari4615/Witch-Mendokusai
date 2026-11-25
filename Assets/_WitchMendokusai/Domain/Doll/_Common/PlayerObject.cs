@@ -93,6 +93,12 @@ namespace WitchMendokusai
 		// 모델 공유, 인형별 차이는 재질 색 값만
 		private void ApplyBodyTint() => ApplyTint(UnitData is Doll doll ? doll.BodyTint : Color.white);
 
+		// 머리 그림. 모자 (HomesteadCostumeDresser) 가 붙는 자리
+		public SpriteRenderer HeadSprite => headRenderer;
+
+		// 옷 물들임. 보이는 몸 그림에만, 흰색이면 원색
+		public void SetOutfitTint(Color tint) => bodyRenderer.color = new Color(tint.r, tint.g, tint.b, bodyRenderer.color.a);
+
 		// 판 중 형태 (변신) 의 몸 색. 다음 판 Init 이 인형 기본 색으로 되돌림
 		public void ApplyFormTint(Color tint) => ApplyTint(tint);
 

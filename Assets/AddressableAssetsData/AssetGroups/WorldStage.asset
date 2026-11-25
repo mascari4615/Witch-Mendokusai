@@ -15,6 +15,12 @@ MonoBehaviour:
   m_GroupName: WorldStage
   m_GUID: 71e45a9f2fadf5548a0ea18fffc1fcdb
   m_SerializeEntries:
+  - m_GUID: c222034614579f087210a1ba4c6d6f9e
+    m_Address: WorldStage/6
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - WorldStage
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2c2aefb624d3d0d43a05b0c0f01540be
     m_Address: WorldStage/4
     m_ReadOnly: 0

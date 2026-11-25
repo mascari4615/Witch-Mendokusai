@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8302b2306f8d8fa551cdc237a838722, type: 3}
+  m_Name: HomesteadArt
+  m_EditorClassIdentifier:
+  <StyleSheet>k__BackingField: {fileID: 7433441132597879392, guid: a91784eb50c4d00364624f4679710c93, type: 3}
+  <ShopStyleSheet>k__BackingField: {fileID: 7433441132597879392, guid: 1abd8061192a44bcbf30fd19438ec666, type: 3}
+  <FullMenuStyleSheet>k__BackingField: {fileID: 7433441132597879392, guid: 191d3549f4e64c78ac11e40352cd2020, type: 3}
+  iconSheet: {fileID: 2800000, guid: 5d7525d1515829089a01aba0b58a343b, type: 3}
+  iconNames: {fileID: 4900000, guid: 086551acdca712ac65af5af0a5242c28, type: 3}
+  iconSize: 24
+  <Plaster>k__BackingField: {fileID: 2100000, guid: ac943161114264d2bae6c571429e12a6, type: 2}
+  <Frame>k__BackingField: {fileID: 2100000, guid: bdbebed548f11221d1a2fd44f6742bd6, type: 2}
+  <Wood>k__BackingField: {fileID: 2100000, guid: 9bc8c7d5e5abf73f0865fb8e719e3a04, type: 2}
+  <Gold>k__BackingField: {fileID: 2100000, guid: 4921200763d2f914c868859ebde3a013, type: 2}
+  <Roof>k__BackingField: {fileID: 2100000, guid: ecb8e6ae41d0246a9dcc83965eb91eb3, type: 2}
+  <Stone>k__BackingField: {fileID: 2100000, guid: 8a4faf22147a68c40bca1f4d9419546d, type: 2}
+  <Soil>k__BackingField: {fileID: 2100000, guid: f757de4735655967ae08cf9d3958b3c8, type: 2}
+  <Leaf>k__BackingField: {fileID: 2100000, guid: f7ac3ab682f06b08981c3927e9ece1df, type: 2}
+  <Metal>k__BackingField: {fileID: 2100000, guid: d0e684ab6a16326aeb634bc65645b2a0, type: 2}
+  <Dark>k__BackingField: {fileID: 2100000, guid: df34226acd90d1d42a94a418fc439a51, type: 2}
+  <Glass>k__BackingField: {fileID: 2100000, guid: a279b95cdd3cd6743ba1f45e3fdb7f2b, type: 2}
+  <Glow>k__BackingField: {fileID: 2100000, guid: ebf60e5237cafa447ac802cef00d3936, type: 2}
+  <GlowPurple>k__BackingField: {fileID: 2100000, guid: d0ebfa64e60c1874598a68116ae0d79f, type: 2}
+  <Cloth>k__BackingField: {fileID: 2100000, guid: b53dee4773af2317de37bdc754328df1, type: 2}
+  <SpriteMaterial>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
