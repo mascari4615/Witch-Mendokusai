@@ -19,6 +19,7 @@ namespace WitchMendokusai
 
 		[Header("Motion")]
 		[SerializeField, Tooltip("수리검 그림. 판정 없음")] private GameObject bodyPrefab;
+		[SerializeField, Tooltip("모이는 빛, 폭발, 전기장 그림")] private CrossShurikenFx fx;
 		[SerializeField, Min(0.01f)] private float windupSeconds = 0.4f;
 		[SerializeField, Min(0.01f)] private float flightSeconds = 0.22f;
 		[SerializeField, Min(0f)] private float raiseHeight = 2.6f;
@@ -27,7 +28,10 @@ namespace WitchMendokusai
 
 		[Header("Blast")]
 		[SerializeField] private GameObject blastPrefab;
+		[SerializeField, Min(0.1f), Tooltip("폭발 프리팹의 판정 반지름. 그림 크기")] private float blastRadius = 2f;
 		[SerializeField] private GameObject fieldPrefab;
+		[SerializeField, Min(0.1f)] private float fieldRadius = 2.5f;
+		[SerializeField, Min(0.1f)] private float fieldSeconds = 2f;
 		[SerializeField, Min(0f)] private float echoGapSeconds = 0.35f;
 		[SerializeField, Range(0, 200)] private int echoPercent = 50;
 		[SerializeField, Min(0f)] private float echoRadius = 0.7f;
@@ -99,10 +103,12 @@ namespace WitchMendokusai
 				Vector3 above = playerProvider.Current.transform.position + Vector3.up * raiseHeight;
 				Place(above, fullScale * Mathf.Sin(grown * Mathf.PI * 0.5f));
 				landing = LandingPoint();
+				fx.SetGather(body.transform, grown);
 				yield return null;
 			}
 			CombatSfx.Play(CombatSfxEvent.WeaponThrow, body.transform.position);
 			Vector3 start = body.transform.position;
+			fx.PlayFall(start, flightSeconds);
 			for (float elapsed = 0f; elapsed < flightSeconds; elapsed += Time.deltaTime)
 			{
 				float progress = elapsed / flightSeconds;
@@ -145,7 +151,10 @@ namespace WitchMendokusai
 			int blastPercent = CrossShurikenRules.BlastPercent(Stat(heavyStat) > 0, heavyPercent, Stat(repeatPercentStat));
 			int count = CrossShurikenRules.BlastCount(Stat(echoStat) > 0);
 			if (fieldPrefab != null && Stat(fieldStat) > 0)
+			{
 				SkillSpawn.Spawn(objectPoolManager, fieldPrefab, position, Quaternion.identity, context, 0).SetActive(true);
+				fx.PlayField(position, fieldRadius, fieldSeconds);
+			}
 			float waited = 0f;
 			for (int i = 0; i < count; i++)
 			{
@@ -158,6 +167,7 @@ namespace WitchMendokusai
 				if (spawned.TryGetComponent(out ScaledDamage scaledDamage))
 					scaledDamage.SetPercent(blast.DamagePercent);
 				spawned.SetActive(true);
+				fx.PlayBlast(position, blastRadius * blast.RadiusMultiplier * RadiusMultiplier);
 			}
 		}
 	}

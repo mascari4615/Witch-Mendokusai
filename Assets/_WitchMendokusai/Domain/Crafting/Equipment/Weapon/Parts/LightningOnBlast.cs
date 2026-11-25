@@ -107,7 +107,7 @@ namespace WitchMendokusai
 			if (linkPrefab == null)
 				return;
 			GameObject spawned = objectPoolManager.Spawn(linkPrefab);
-			if (spawned.TryGetComponent(out ChainLink link))
+			if (spawned.TryGetComponent(out LightningLink link))
 				link.SetPoints(from, to);
 			spawned.SetActive(true);
 		}

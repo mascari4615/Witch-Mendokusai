@@ -25,6 +25,7 @@ namespace WitchMendokusai
 		[SerializeField] private float degreesPerSecond = 180f;
 		[SerializeField, Min(1f)] private float fastMultiplier = 1.5f;
 		[SerializeField, Min(0f)] private float height = 0.5f;
+		[SerializeField, Tooltip("도는 각도에 대한 표창 자신의 회전")] private float bladeSpinRatio = 5f;
 
 		[Header("Scatter")]
 		[SerializeField, Min(0.1f)] private float scatterIntervalSeconds = 6f;
@@ -107,7 +108,7 @@ namespace WitchMendokusai
 			{
 				GameObject blade = ring.Blades[i];
 				Vector3 outward = Quaternion.Euler(0f, ShurikenStormRules.Angle(i, count, spin), 0f) * Vector3.forward;
-				blade.transform.SetPositionAndRotation(center + outward * ringRadius + Vector3.up * height, Quaternion.LookRotation(outward, Vector3.up));
+				blade.transform.SetPositionAndRotation(center + outward * ringRadius + Vector3.up * height, Quaternion.Euler(0f, spin * bladeSpinRatio, 0f));
 				if (blade.TryGetComponent(out DamagingObject damagingObject))
 					damagingObject.SetDamageBonus(PlayerStat[damageBonusStat]);
 				if (blade.TryGetComponent(out ScaledDamage scaledDamage))
