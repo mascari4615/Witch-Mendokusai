@@ -144,6 +144,9 @@ namespace WitchMendokusai
 		// 얼음, 기절 상태이상으로 이동과 공격이 막힌 상태. 정본은 UnitStat 의 상태이상 칸
 		public virtual bool IsActionSuspended => UnitStat[UnitStatType.FREEZE] > 0 || UnitStat[UnitStatType.STUN] > 0;
 
+		// 둔화 뒤 남는 이동 속도 비율. 쓰는 곳은 UnitSlow 하나, 이동 속도 계산 (InputContributor.GetBaseSpeed) 이 곱함
+		public float SlowMultiplier { get; set; } = 1f;
+
 		// 상태이상 물들임을 입힐 그림들. 첫 그림이 머리 위 칸과 작은 효과의 기준
 		private SpriteRenderer[] statusBodies;
 		public virtual SpriteRenderer[] StatusBodies => statusBodies ??= new[] { SpriteRenderer };

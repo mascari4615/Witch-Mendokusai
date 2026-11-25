@@ -138,6 +138,20 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Slow_ReducesBonusAndKeepsStats()
+		{
+			unit.UnitStat[UnitStatType.MOVEMENT_SPEED] = 28;
+			unit.UnitStat[UnitStatType.MOVEMENT_SPEED_BONUS] = 10;
+			UnitSlow.Apply(unit, 0.9f, 1f);
+			Assert.That(InputContributor.GetBaseSpeed(unit), Is.EqualTo(0.38f).Within(EPSILON), "이동 강화분도 줄어듦");
+			UnitSlow.Apply(unit, 0.4f, 5f);
+			Assert.That(InputContributor.GetBaseSpeed(unit), Is.EqualTo(0.38f).Within(EPSILON), "약한 둔화는 강한 둔화를 안 덮음");
+			unit.UnitStat[UnitStatType.MOVEMENT_SPEED_BONUS] = 20;
+			Assert.That(InputContributor.GetBaseSpeed(unit), Is.EqualTo(0.48f).Within(EPSILON), "걸린 동안 얻은 강화를 잃지 않음");
+			Assert.That(unit.UnitStat[UnitStatType.MOVEMENT_SPEED], Is.EqualTo(28));
+		}
+
+		[Test]
 		public void StatReinitialization_DoesNotSubtractAnExpiredApproachBonus()
 		{
 			InputContributor input = new(unit, 2f) { MinimumHorizontalSpeed = 3f };

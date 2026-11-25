@@ -59,8 +59,8 @@ namespace WitchMendokusai
 		/// </summary>
 		public const float STAT_PER_UNIT_PER_SECOND = 10f;
 
-		/// <summary> 스탯 기준 걷기 속도 (초당 월드 단위). 달리기, 웅크리기, 최소 속도 제외. 끌어당김 세기 기준 </summary>
-		public static float GetBaseSpeed(UnitObject unit) => (unit.UnitStat[UnitStatType.MOVEMENT_SPEED] + unit.UnitStat[UnitStatType.MOVEMENT_SPEED_BONUS]) / STAT_PER_UNIT_PER_SECOND;
+		/// <summary> 스탯 기준 걷기 속도 (초당 월드 단위). 이동 강화와 둔화 반영, 달리기, 웅크리기, 최소 속도 제외. 끌어당김 세기 기준 </summary>
+		public static float GetBaseSpeed(UnitObject unit) => (unit.UnitStat[UnitStatType.MOVEMENT_SPEED] + unit.UnitStat[UnitStatType.MOVEMENT_SPEED_BONUS]) / STAT_PER_UNIT_PER_SECOND * unit.SlowMultiplier;
 
 		/// <summary> 걷기 속도. 웅크리기 반영, 달리기와 최소 속도 제외 </summary>
 		public float GetWalkSpeed()
