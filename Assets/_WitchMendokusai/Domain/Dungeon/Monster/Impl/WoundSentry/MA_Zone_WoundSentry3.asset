@@ -28,3 +28,5 @@ MonoBehaviour:
     <SlowRatio>k__BackingField: 0
     <PushSpeed>k__BackingField: 0
     <PushSeconds>k__BackingField: 0
+  <RecoveryFx>k__BackingField: {fileID: 11400000, guid: e653203c5fcd4dbd9743fbc7093afa91, type: 2}
+  <RecoveryFxRadius>k__BackingField: 1.6

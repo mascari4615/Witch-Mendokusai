@@ -23,6 +23,7 @@ MonoBehaviour:
   <PullSeconds>k__BackingField: 1.8
   <SpeedRatio>k__BackingField: 0.75
   <CoreRadius>k__BackingField: 1.6
+  <CoreTelegraph>k__BackingField: {fileID: 11400000, guid: fb85769a4b1c42d78fc107c2b728451c, type: 2}
   <CoreDamage>k__BackingField: 3
   <CoreInterval>k__BackingField: 0.8
   <HoldSeconds>k__BackingField: 0.25

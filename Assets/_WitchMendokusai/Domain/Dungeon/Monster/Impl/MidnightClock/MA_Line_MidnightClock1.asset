@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: MA_Line_MidnightClock1
   m_EditorClassIdentifier: 
   <TriggerRange>k__BackingField: 11
-  <WindupSeconds>k__BackingField: 0.6
-  <RecoverySeconds>k__BackingField: 0.1
+  <WindupSeconds>k__BackingField: 0.9
+  <RecoverySeconds>k__BackingField: 0.3
   <Cooldown>k__BackingField: 0
   <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 9b854ca860f44479be35a06b95aef26f, type: 2}
   <RecoveryFx>k__BackingField: {fileID: 0}
@@ -22,7 +22,12 @@ MonoBehaviour:
   <Length>k__BackingField: 10
   <Width>k__BackingField: 1.6
   <Angles>k__BackingField:
+  - 60
+  - 30
   - 0
+  - -30
+  - -60
+  <StaggerSeconds>k__BackingField: 0.25
   <Damage>k__BackingField: 4
   <HitEffect>k__BackingField:
     <AppliesStatus>k__BackingField: 0

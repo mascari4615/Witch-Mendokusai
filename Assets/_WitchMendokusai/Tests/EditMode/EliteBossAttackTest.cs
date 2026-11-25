@@ -164,7 +164,7 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void Sequence_and_phase_reject_nested_phase()
+		public void Sequence_rejects_nested_phase()
 		{
 			Monster owner = Find(FIRST_BOSS);
 			SequenceMonsterAttack sequence = Make<SequenceMonsterAttack>("Sequence");

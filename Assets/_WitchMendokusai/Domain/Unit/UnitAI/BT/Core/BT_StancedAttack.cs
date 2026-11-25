@@ -5,7 +5,7 @@ using static WitchMendokusai.NodeHelper;
 namespace WitchMendokusai
 {
 	// 예고 뒤 한동안 이어지는 공격의 박자 (끌기, 웅크리기). 추적 -> 예고 -> 자세 -> 숨 고르기 -> 대기 동안 추적
-	// 자세는 시작과 끝이 짝. 기절, 사망, 풀 반납으로 끊겨도 OnStanceEnd 가 한 번 불림
+	// 자세는 시작과 끝이 짝. 기절, 사망, 풀 반납, 단계 전환으로 끊겨도 OnStanceEnd 가 한 번 불림 (끊겼으면 interrupted)
 	public abstract class BT_StancedAttack : BTRunner, IAttackCycle
 	{
 		private readonly MonsterAttack attack;
@@ -30,7 +30,7 @@ namespace WitchMendokusai
 		protected virtual void OnWindup() { }
 		protected virtual void OnStanceBegin() { }
 		protected virtual void OnStanceTick() { }
-		protected abstract void OnStanceEnd();
+		protected abstract void OnStanceEnd(bool interrupted);
 
 		protected override Node MakeNode() =>
 			Sequence
@@ -38,7 +38,7 @@ namespace WitchMendokusai
 				Action(ChasePlayer),
 				Condition(CanStart),
 				Action(BeginWindup),
-				WaitUntil(IsPhaseOver),
+				WaitUntil(IsWindupOver),
 				Action(BeginStance),
 				WaitUntil(IsStanceOver),
 				Action(BeginRecovery),
@@ -69,10 +69,19 @@ namespace WitchMendokusai
 
 		private bool IsPhaseOver() => Time.time >= phaseEndTime;
 
+		// 예고 도중 기절, 빙결이면 예고를 치우고 자세 없이 숨 고르기로
+		private bool IsWindupOver()
+		{
+			if (unitObject.IsActionSuspended == false)
+				return IsPhaseOver();
+			CloseStance(true);
+			return true;
+		}
+
 		private BTState BeginStance()
 		{
-			phaseEndTime = Time.time + (unitObject.IsActionSuspended ? 0f : StanceSeconds);
-			if (unitObject.IsActionSuspended == false)
+			phaseEndTime = Time.time + (isOpen ? StanceSeconds : 0f);
+			if (isOpen)
 				OnStanceBegin();
 			return BTState.Success;
 		}
@@ -80,7 +89,9 @@ namespace WitchMendokusai
 		// 기절, 빙결이면 바로 끝
 		private bool IsStanceOver()
 		{
-			if (unitObject.IsActionSuspended || Time.time >= phaseEndTime)
+			if (unitObject.IsActionSuspended)
+				CloseStance(true);
+			if (isOpen == false || Time.time >= phaseEndTime)
 				return true;
 			OnStanceTick();
 			return false;
@@ -88,7 +99,7 @@ namespace WitchMendokusai
 
 		private BTState BeginRecovery()
 		{
-			CloseStance();
+			CloseStance(false);
 			phaseEndTime = Time.time + attack.RecoverySeconds;
 			stopRecovery = attack.PlayRecovery(unitObject);
 			return BTState.Success;
@@ -103,18 +114,18 @@ namespace WitchMendokusai
 			return BTState.Success;
 		}
 
-		private void CloseStance()
+		private void CloseStance(bool interrupted)
 		{
 			if (isOpen == false)
 				return;
 			isOpen = false;
-			OnStanceEnd();
+			OnStanceEnd(interrupted);
 		}
 
 		// 도중에 끊김 (사망, 풀 반납, 단계 전환). 끝난 뒤 불러도 무해
 		public void Interrupt()
 		{
-			CloseStance();
+			CloseStance(true);
 			stopRecovery?.Invoke();
 			stopRecovery = null;
 			IsAttacking = false;

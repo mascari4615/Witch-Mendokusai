@@ -65,6 +65,9 @@ namespace WitchMendokusai
 		private static Mesh plateMesh;
 		private static MaterialPropertyBlock propertyBlock;
 		private static readonly Action NoStop = delegate { };
+
+		/// <summary> 판 상한에 걸려 안 뜬 재생의 중단 함수인가 </summary>
+		public static bool IsSkipped(Action stop) => stop == NoStop;
 		// 재생 중인 판. 씬이 바뀌어 실행기와 함께 파괴된 판은 세지 않음 (null 로 걸러냄)
 		private static readonly System.Collections.Generic.List<GameObject> activePlates = new();
 

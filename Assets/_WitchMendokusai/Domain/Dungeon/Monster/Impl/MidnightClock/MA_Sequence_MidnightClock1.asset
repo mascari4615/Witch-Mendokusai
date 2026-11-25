@@ -22,7 +22,6 @@ MonoBehaviour:
   <Steps>k__BackingField:
   - {fileID: 11400000, guid: dc7c288bf2f840cd83003076aab807dc, type: 2}
   - {fileID: 11400000, guid: 64595dc50b9d4c1481d4e2a42124e47b, type: 2}
-  - {fileID: 11400000, guid: 67ca53c43b0f48c1986868ffa99dbbd7, type: 2}
   - {fileID: 11400000, guid: e607911bbef54138980efe526ee077b5, type: 2}
   - {fileID: 11400000, guid: 12335b57c6da495189f52ff60264649b, type: 2}
   - {fileID: 11400000, guid: 68f7da9965ef464f928542a290510a59, type: 2}

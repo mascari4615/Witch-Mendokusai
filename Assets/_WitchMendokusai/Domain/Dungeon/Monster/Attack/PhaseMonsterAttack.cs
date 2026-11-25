@@ -11,7 +11,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public MonsterAttack Attack { get; private set; }
 	}
 
-	// 체력 단계. 비율이 낮아지면 다음 공격으로 바꾸고, 바뀌는 순간 하던 예고를 치움. 회복해도 앞 단계로 안 돌아감
+	// 체력 단계. 비율이 낮아지면 하던 공격과 반격 창을 끝낸 뒤 다음 공격으로 바꿈. 회복해도 앞 단계로 안 돌아감
 	[CreateAssetMenu(fileName = "MA_Phase", menuName = "WM/Variable/MonsterAttack/" + nameof(PhaseMonsterAttack))]
 	public class PhaseMonsterAttack : MonsterAttack
 	{
@@ -40,13 +40,15 @@ namespace WitchMendokusai
 			base.Validate(owner, errors);
 			if (Phases.Count == 0)
 				errors.Add($"{name}: 단계가 비어 있음");
+			else if (Phases[0].HealthRatio < 1f)
+				errors.Add($"{name}: 첫 단계 비율은 1 ({Phases[0].HealthRatio})");
 			for (int i = 0; i < Phases.Count; i++)
 			{
 				MonsterAttack attack = Phases[i].Attack;
 				if (attack == null)
 					errors.Add($"{name}: {i}번 단계 공격이 비어 있음");
-				else if (attack is PhaseMonsterAttack)
-					errors.Add($"{name}: 단계 안에 단계를 넣을 수 없음");
+				else if (attack is PhaseMonsterAttack or PackMonsterAttack)
+					errors.Add($"{name}: 단계 안에 {attack.name} 을 넣을 수 없음 (순서나 낱개 공격만)");
 				else
 					attack.Validate(owner, errors);
 				if (i > 0 && Phases[i].HealthRatio >= Phases[i - 1].HealthRatio)

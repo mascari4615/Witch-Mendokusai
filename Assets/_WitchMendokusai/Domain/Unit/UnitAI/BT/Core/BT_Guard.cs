@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	public class BT_Guard : BT_StancedAttack
 	{
 		private readonly GuardMonsterAttack attack;
-		private bool isGuarding;
+		private int addedArmor;
 		private Action stopGuard;
 
 		public BT_Guard(UnitObject unitObject, PlayerProvider playerProvider, GuardMonsterAttack attack) : base(unitObject, playerProvider, attack)
@@ -19,8 +19,8 @@ namespace WitchMendokusai
 
 		protected override void OnStanceBegin()
 		{
-			isGuarding = true;
-			unitObject.UnitStat[UnitStatType.ARMOR] += attack.Armor;
+			addedArmor = attack.Armor;
+			unitObject.UnitStat[UnitStatType.ARMOR] += addedArmor;
 			if (attack.GuardFx == null)
 				return;
 			stopGuard = attack.GuardFx.Play(new CombatFxContext
@@ -32,14 +32,14 @@ namespace WitchMendokusai
 			});
 		}
 
-		protected override void OnStanceEnd()
+		protected override void OnStanceEnd(bool interrupted)
 		{
-			stopGuard?.Invoke();
+			// 끝까지 갔으면 표시가 같은 길이라 스스로 마무리
+			if (interrupted)
+				stopGuard?.Invoke();
 			stopGuard = null;
-			if (isGuarding == false)
-				return;
-			isGuarding = false;
-			unitObject.UnitStat[UnitStatType.ARMOR] -= attack.Armor;
+			unitObject.UnitStat[UnitStatType.ARMOR] -= addedArmor;
+			addedArmor = 0;
 		}
 	}
 }

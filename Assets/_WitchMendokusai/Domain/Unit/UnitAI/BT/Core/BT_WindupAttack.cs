@@ -12,7 +12,9 @@ namespace WitchMendokusai
 		private readonly WindupMonsterAttack attack;
 		private readonly List<Vector3> targets = new();
 		private readonly List<Action> stopTelegraphs = new();
-		private float windupEndTime;
+		// 때가 된 자리만 모아 넘기는 칸
+		private readonly List<Vector3> dueTargets = new();
+		private readonly List<float> strikeTimes = new();
 		private float recoveryEndTime;
 		private float readyTime;
 		private Action stopRecovery;
@@ -39,8 +41,8 @@ namespace WitchMendokusai
 					Sequence
 					(
 						Action(BeginWindup),
-						WaitUntil(IsWindupOver),
-						Action(Execute),
+						WaitUntil(StrikeDue),
+						Action(BeginRecovery),
 						WaitUntil(() => Time.time >= recoveryEndTime),
 						Action(EndAttack)
 					)
@@ -76,34 +78,58 @@ namespace WitchMendokusai
 			PlayerObject player = playerProvider.CurrentObject;
 			targets.Clear();
 			attack.ResolveTargets(unitObject, player.transform.position, SurvivalThreatRules.MoveVelocity(player.UnitMovement), targets);
-			windupEndTime = Time.time + attack.WindupSeconds;
+			strikeTimes.Clear();
+			float windupEndTime = Time.time + attack.WindupSeconds;
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
-			if (attack.WindupTelegraph != null && attack.WindupSeconds > 0f)
+			bool isMany = targets.Count > 1;
+			for (int i = 0; i < targets.Count; i++)
 			{
-				foreach (Vector3 target in targets)
-					stopTelegraphs.Add(attack.WindupTelegraph.Play(attack.WindupContext(unitObject, target)));
+				float delay = attack.StrikeDelay(i);
+				strikeTimes.Add(windupEndTime + delay);
+				if (attack.WindupTelegraph == null || attack.WindupSeconds <= 0f)
+					continue;
+				CombatFxContext context = attack.WindupContext(unitObject, targets[i]);
+				context.Seconds += delay;
+				Action stop = attack.WindupTelegraph.Play(context);
+				stopTelegraphs.Add(stop);
+				// 예고 판 상한에 걸려 안 보이는 자리는 때리지도 않음 (자리 하나짜리 공격은 전과 같음)
+				if (GroundTelegraph.IsSkipped(stop) && isMany)
+					strikeTimes[i] = float.PositiveInfinity;
 			}
 			return BTState.Success;
 		}
 
-		// 예고 도중 기절, 빙결이면 예고를 치우고 바로 끝 (실행은 건너뜀)
-		private bool IsWindupOver()
+		// 때가 된 자리를 실행하고, 남은 자리가 없으면 끝. 도중 기절, 빙결이면 남은 예고를 치우고 끝 (나머지 실행은 건너뜀)
+		private bool StrikeDue()
 		{
 			if (unitObject.IsActionSuspended)
 			{
-				Interrupt();
+				ClearTelegraphs();
 				return true;
 			}
-			return Time.time >= windupEndTime;
+			dueTargets.Clear();
+			bool isWaiting = false;
+			for (int i = 0; i < targets.Count; i++)
+			{
+				if (float.IsPositiveInfinity(strikeTimes[i]))
+					continue;
+				if (strikeTimes[i] > Time.time)
+				{
+					isWaiting = true;
+					continue;
+				}
+				dueTargets.Add(targets[i]);
+				strikeTimes[i] = float.PositiveInfinity;
+			}
+			if (dueTargets.Count > 0)
+				attack.Execute(unitObject, playerProvider.CurrentObject, dueTargets);
+			return isWaiting == false;
 		}
 
-		private BTState Execute()
+		private BTState BeginRecovery()
 		{
 			// 예고는 차오름이 끝나며 스스로 번쩍이고 사라짐. 여기서부터 끊을 대상 아님
 			stopTelegraphs.Clear();
-			// 예고 도중 기절, 빙결이면 실행 없이 숨 고르기로
-			if (unitObject.IsActionSuspended == false)
-				attack.Execute(unitObject, playerProvider.CurrentObject, targets);
 			recoveryEndTime = Time.time + attack.RecoverySeconds;
 			// 반격으로 죽으면 표시를 띄우지 않음 (Interrupt 는 이미 지나감)
 			if (unitObject.IsAlive)
@@ -124,11 +150,17 @@ namespace WitchMendokusai
 		// 예고 중 끊김 (사망, 풀 반납, 패턴 이동). 남은 예고를 치움, 끝난 뒤 불러도 무해
 		public void Interrupt()
 		{
+			ClearTelegraphs();
+			stopRecovery?.Invoke();
+			stopRecovery = null;
+			IsAttacking = false;
+		}
+
+		private void ClearTelegraphs()
+		{
 			foreach (Action stop in stopTelegraphs)
 				stop?.Invoke();
 			stopTelegraphs.Clear();
-			stopRecovery?.Invoke();
-			stopRecovery = null;
 		}
 	}
 }

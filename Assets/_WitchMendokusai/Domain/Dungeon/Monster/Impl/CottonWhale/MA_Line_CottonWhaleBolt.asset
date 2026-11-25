@@ -25,6 +25,7 @@ MonoBehaviour:
   - 0
   - -30
   - 30
+  <StaggerSeconds>k__BackingField: 0
   <Damage>k__BackingField: 3
   <HitEffect>k__BackingField:
     <AppliesStatus>k__BackingField: 1

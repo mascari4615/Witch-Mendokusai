@@ -42,7 +42,7 @@ namespace WitchMendokusai
 
 		public void Interrupt()
 		{
-			dash?.CancelTelegraph();
+			dash?.Cancel();
 			dash = null;
 		}
 	}

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	// 일반 적의 정면 외 위협 한 종류 (원거리, 돌진, 장판). 몬스터 자산 (Monster.Attack) 에 끼우면 FSMSlime 이 추적 대신 이것을 돌림
+	// 적의 정면 외 위협 한 종류 (원거리, 돌진, 장판 등). 일반 적, 정예, 보스가 같이 씀. 몬스터 자산 (Monster.Attack) 에 끼우면 FSMSlime 이 추적 대신 이것을 돌림
 	// 공통 박자: 사거리 안 + 준비됨 -> 멈추고 예고 (WindupSeconds) -> 실행 -> 숨 고르기 (RecoverySeconds) -> 대기 (Cooldown, 그동안 추적)
 	// 예고 뒤 한 번 실행하는 종류는 WindupMonsterAttack, 돌진은 기존 돌진 행동 (BT_Dash) 을 씀. 정본 memo wm/design/crossing-threat-20261119 th6
 	public abstract class MonsterAttack : ScriptableObject
@@ -49,6 +49,8 @@ namespace WitchMendokusai
 		{
 			if (WindupSeconds > 0f && WindupTelegraph == null)
 				errors.Add($"{name}: 예고 초 {WindupSeconds} 인데 {nameof(WindupTelegraph)} 비어 있음");
+			if (RecoveryFx != null && RecoverySeconds <= 0f)
+				errors.Add($"{name}: 반격 창 표시가 있는데 숨 고르기 초가 0");
 			// 공격을 돌리는 것은 FSMSlime 뿐. 다른 UnitBrain 프리팹이면 공격 없이 추적만 함
 			if (owner.Prefab == null || owner.Prefab.GetComponent<FSMSlime>() == null)
 				errors.Add($"{owner.name}: 공격 {name} 을 돌릴 {nameof(FSMSlime)} 이 프리팹에 없음");

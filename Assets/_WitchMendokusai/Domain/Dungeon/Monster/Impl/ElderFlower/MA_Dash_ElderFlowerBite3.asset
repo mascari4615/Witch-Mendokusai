@@ -21,3 +21,5 @@ MonoBehaviour:
   <DashDuration>k__BackingField: 0.38
   <TelegraphWidth>k__BackingField: 0.9
   <BlockedProgressRatio>k__BackingField: 0.3
+  <RecoveryFx>k__BackingField: {fileID: 11400000, guid: e653203c5fcd4dbd9743fbc7093afa91, type: 2}
+  <RecoveryFxRadius>k__BackingField: 1.6

@@ -3,7 +3,7 @@ using static WitchMendokusai.NodeHelper;
 
 namespace WitchMendokusai
 {
-	// 체력 단계 (PhaseMonsterAttack). 단계가 바뀌면 앞 공격을 끊고 새 공격의 행동을 새로 만듦
+	// 체력 단계 (PhaseMonsterAttack). 하던 공격 (숨 고르기까지) 을 끝낸 뒤 단계를 바꾸고 새 공격의 행동을 새로 만듦
 	public class BT_PhaseAttack : BTRunner, IAttackCycle
 	{
 		private readonly PhaseMonsterAttack attack;
@@ -25,7 +25,7 @@ namespace WitchMendokusai
 		{
 			float ratio = (float)unitObject.UnitStat[UnitStatType.HP_CUR] / unitObject.UnitStat[UnitStatType.HP_MAX];
 			int next = attack.PhaseIndex(ratio, phaseIndex);
-			if (next != phaseIndex)
+			if (next != phaseIndex && IsAttacking == false)
 			{
 				Interrupt();
 				phaseIndex = next;

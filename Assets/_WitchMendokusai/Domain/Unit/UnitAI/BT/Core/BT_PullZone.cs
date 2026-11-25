@@ -10,6 +10,7 @@ namespace WitchMendokusai
 		private float nextCoreHitTime;
 		private bool holdsPull;
 		private Action stopZone;
+		private Action stopCore;
 
 		public BT_PullZone(UnitObject unitObject, PlayerProvider playerProvider, PullMonsterAttack attack) : base(unitObject, playerProvider, attack)
 		{
@@ -18,12 +19,16 @@ namespace WitchMendokusai
 
 		protected override float StanceSeconds => attack.PullSeconds;
 
-		protected override void OnWindup() => stopZone = PlayZone(attack.WindupSeconds);
+		protected override void OnWindup()
+		{
+			stopZone = Play(attack.WindupTelegraph, attack.Radius, attack.WindupSeconds);
+			stopCore = Play(attack.CoreTelegraph, attack.CoreRadius, attack.WindupSeconds + attack.PullSeconds);
+		}
 
 		// 앞 예고는 끝 번쩍임이 남도록 끊지 않음 (끝나면 스스로 치움)
 		protected override void OnStanceBegin()
 		{
-			stopZone = PlayZone(attack.PullSeconds);
+			stopZone = Play(attack.WindupTelegraph, attack.Radius, attack.PullSeconds);
 			nextCoreHitTime = Time.time;
 		}
 
@@ -35,18 +40,29 @@ namespace WitchMendokusai
 			Vector3 center = unitObject.transform.position;
 			Vector3 target = player.transform.position;
 			float speed = SlimeKingPatternMath.PullSpeed(player.UnitMovement.WalkSpeed, attack.SpeedRatio);
-			player.UnitMovement.SetExternalPull(SlimeKingPatternMath.PullVelocity(center, target, attack.Radius, speed), attack.HoldSeconds);
-			holdsPull = true;
+			Vector3 velocity = SlimeKingPatternMath.PullVelocity(center, target, attack.Radius, speed);
+			// 범위 밖이면 남이 건 끌림을 덮지 않음 (끌림 칸은 주인공에 하나)
+			if (velocity != Vector3.zero)
+			{
+				player.UnitMovement.SetExternalPull(velocity, attack.HoldSeconds);
+				holdsPull = true;
+			}
 			if (Time.time < nextCoreHitTime || SlimeKingPatternMath.IsWithin(center, target, attack.CoreRadius + player.UnitMovement.BodyRadius) == false)
 				return;
 			nextCoreHitTime = Time.time + attack.CoreInterval;
 			player.ReceiveDamage(attack.MakeCoreDamage(unitObject));
 		}
 
-		protected override void OnStanceEnd()
+		protected override void OnStanceEnd(bool interrupted)
 		{
-			stopZone?.Invoke();
+			// 끝까지 갔으면 끝 번쩍임이 남도록 끊지 않음
+			if (interrupted)
+			{
+				stopZone?.Invoke();
+				stopCore?.Invoke();
+			}
 			stopZone = null;
+			stopCore = null;
 			if (holdsPull == false)
 				return;
 			holdsPull = false;
@@ -55,11 +71,11 @@ namespace WitchMendokusai
 				player.UnitMovement.ClearExternalPull();
 		}
 
-		private Action PlayZone(float seconds) => attack.WindupTelegraph == null ? null : attack.WindupTelegraph.Play(new CombatFxContext
+		private Action Play(CombatFx telegraph, float radius, float seconds) => telegraph == null ? null : telegraph.Play(new CombatFxContext
 		{
 			Position = unitObject.transform.position,
 			Follow = unitObject.transform,
-			Radius = attack.Radius,
+			Radius = radius,
 			Seconds = seconds,
 		});
 	}

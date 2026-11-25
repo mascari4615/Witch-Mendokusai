@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace WitchMendokusai
 {
-	// 예고 뒤 한 번 실행하는 공격 (원거리, 장판). 박자는 BT_WindupAttack, 종류마다 다른 것은 예고 자리와 실행만
+	// 예고 뒤 실행하는 공격 (원거리, 장판, 직선 띠, 소환). 박자는 BT_WindupAttack, 종류마다 다른 것은 예고 자리와 실행만
 	public abstract class WindupMonsterAttack : MonsterAttack
 	{
 		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider) =>
@@ -24,7 +24,10 @@ namespace WitchMendokusai
 		// 예고 위치. target 은 준비를 시작한 순간 고정한 자리 (ResolveTarget)
 		public abstract CombatFxContext WindupContext(UnitObject unitObject, Vector3 target);
 
-		// 예고가 끝난 순간 한 번. targets 는 준비 시작 때 고정한 자리들
+		// 자리마다 예고가 이만큼 더 길고 늦게 실행됨 (초). 기본은 모두 동시
+		public virtual float StrikeDelay(int index) => 0f;
+
+		// 예고가 끝난 순간. targets 는 준비 시작 때 고정한 자리들 중 지금 때가 된 것
 		public abstract void Execute(UnitObject unitObject, PlayerObject player, List<Vector3> targets);
 	}
 }

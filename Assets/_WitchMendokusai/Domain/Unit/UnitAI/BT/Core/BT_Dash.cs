@@ -33,6 +33,8 @@ namespace WitchMendokusai
 		private readonly float angleDegrees;
 		// 준비 예고의 중단 함수. 준비가 도중에 끊기면 예고도 같이 치움
 		private Action stopTelegraph;
+		// 이 행동이 건 밀림이 도는 중
+		private bool isDashing;
 		// 반격 창 표시의 중단 함수. 숨 고르기가 도중에 끊기면 같이 치움
 		private Action stopRecovery;
 
@@ -148,6 +150,16 @@ namespace WitchMendokusai
 			stopRecovery = null;
 		}
 
+		/// <summary> 켜진 채 끊김 (단계 전환). 예고를 치우고 이 돌진이 건 밀림도 멈춤 </summary>
+		public void Cancel()
+		{
+			CancelTelegraph();
+			if (isDashing == false)
+				return;
+			isDashing = false;
+			unitObject.UnitMovement.CancelImpulse();
+		}
+
 		private bool IsDashReady() => Time.time >= dashReadyTime;
 
 		private BTState Dash()
@@ -159,6 +171,7 @@ namespace WitchMendokusai
 				return BTState.Success;
 
 			unitObject.UnitMovement.ApplyImpulse(dashDirection * dashSpeed, dashDuration);
+			isDashing = true;
 			return BTState.Success;
 		}
 
@@ -189,6 +202,7 @@ namespace WitchMendokusai
 
 		private BTState StopDash()
 		{
+			isDashing = false;
 			recoveryEndTime = Time.time + dashPostDelay;
 			unitObject.UnitMovement.CancelImpulse();
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
