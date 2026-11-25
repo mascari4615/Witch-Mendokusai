@@ -147,7 +147,7 @@ namespace WitchMendokusai
 			float kick = flying >= 0f ? Mathf.Pow(0.5f, flying / flashHalfLife) : 0f;
 			float shown = Mathf.Clamp01(Back(age / heroEmergeSeconds) * emergeFraction * (1f - recoil * kick));
 			float gather = Mathf.Clamp01(sinceFinale / Mathf.Max(0.01f, launch));
-			Vector3 muzzle = gate + direction * (gateWands ? heroLength * shown : GATE_LIGHT_OFFSET);
+			Vector3 muzzle = gate + direction * (gateWands ? heroLength * shown : gateLightOffset);
 			if (gateWands)
 				heroWand.AddStrip(gate, muzzle, heroLength / weaponAspects[^1], viewForward, new Rect(1f - shown, 0f, shown, 1f), FxQuadLook.Of(Color.Lerp(Color.white, hotTint, flying < 0f ? gather : kick), 1f - closing, closing, 0.7f));
 			if (flying < 0f)

@@ -14,8 +14,6 @@ namespace WitchMendokusai
 	{
 		private const float TAU = Mathf.PI * 2f;
 		private const float GOLDEN_STEP = 0.618034f;
-		// 문 앞으로 나온 빛의 거리
-		private const float GATE_LIGHT_OFFSET = 0.3f;
 
 		[SerializeField] private PaintedFxSet art;
 
@@ -37,6 +35,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.02f)] private float emergeSeconds = 0.18f;
 		[SerializeField, Tooltip("문에서 완드가 나옴. 끄면 문에 빛만 맺힘 (사용자 2026-11-25: 탄환은 빛)")] private bool gateWands;
 		[SerializeField, Min(0.05f), Tooltip("문에 맺히는 빛의 크기")] private float gateLight = 0.6f;
+		[SerializeField, Min(0f), Tooltip("맺힌 빛이 문 앞으로 나온 거리")] private float gateLightOffset = 0.3f;
 		[SerializeField, Min(0.05f), Tooltip("막타 뒤 완드와 문이 닫히는 길이")] private float breakSeconds = 0.24f;
 		[SerializeField, Min(0.1f), Tooltip("막타가 안 오면 (끊긴 포화) 마지막 발 뒤 이만큼 지나 닫힘")] private float orphanSeconds = 1.5f;
 		[SerializeField, Min(1), Tooltip("쏘는 자루 수 상한")] private int maxWeapons = 32;
@@ -319,7 +318,7 @@ namespace WitchMendokusai
 			float heat = Mathf.Max(Mathf.Pow(0.5f, (age - emergeDelay) / 0.1f), kick);
 			if (gateWands == false)
 			{
-				DrawGateLight(weapon, position + aim * GATE_LIGHT_OFFSET, shown / emergeFraction, heat, broken);
+				DrawGateLight(weapon, position + aim * gateLightOffset, shown / emergeFraction, heat, broken);
 				return;
 			}
 			float full = weapon.Length * weapon.Scale;
@@ -362,7 +361,7 @@ namespace WitchMendokusai
 		private Vector3 Muzzle(Weapon weapon, out Vector3 aim)
 		{
 			Pose(weapon, out Vector3 position, out aim);
-			return position + aim * (gateWands ? weapon.Length * weapon.Scale * emergeFraction : GATE_LIGHT_OFFSET);
+			return position + aim * (gateWands ? weapon.Length * weapon.Scale * emergeFraction : gateLightOffset);
 		}
 
 		private Vector3 Aim() => aimSource();
