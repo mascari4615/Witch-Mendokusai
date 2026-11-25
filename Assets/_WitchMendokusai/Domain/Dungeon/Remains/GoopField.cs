@@ -9,7 +9,7 @@ namespace WitchMendokusai
 	/// - 불 (Ignite): 불붙는 칸이 타고 이웃 불붙는 칸으로 번짐. 다 타면 칸이 사라지고 그을음
 	/// - 감전 (Shock): 전기가 통하는 칸에서 이어진 같은 웅덩이 전체로 즉시 퍼짐. 나중에 쏟은 칸에는 안 남음
 	/// - 밟은 몬스터와 주인공에게 간격마다 피해, 상태, 느려짐
-	/// - 그림은 GoopField.Render (낮은 해상도 텍스처 두 장과 바닥 판)
+	/// - 그림은 GoopField.Render (낮은 해상도 텍스처 두 장과 바닥 판), 불은 GoopFire (VFX 그래프)
 	/// </summary>
 	public sealed partial class GoopField : IDamageSource
 	{
@@ -26,6 +26,8 @@ namespace WitchMendokusai
 		private static readonly Vector2Int[] NEIGHBORS = { Vector2Int.right, Vector2Int.left, Vector2Int.up, Vector2Int.down };
 
 		private readonly RemainsSettings settings;
+		private readonly GoopFire fire;
+		private readonly List<Vector2Int> burningCells = new();
 		private readonly Dictionary<Vector2Int, Cell> cells = new();
 		private readonly List<Vector2Int> removed = new();
 		private readonly List<Vector2Int> igniteNext = new();
@@ -45,6 +47,7 @@ namespace WitchMendokusai
 			this.settings = settings;
 			CreateRenderer(parent);
 			CreateParticles(parent);
+			fire = new GoopFire(parent, settings);
 		}
 
 		private Vector2Int CellOf(Vector3 position) => new(Mathf.FloorToInt(position.x / settings.GoopCellSize), Mathf.FloorToInt(position.z / settings.GoopCellSize));
@@ -207,6 +210,7 @@ namespace WitchMendokusai
 			}
 			TickRender(deltaTime, focus, groundHeight);
 			TickParticles(deltaTime, groundHeight);
+			fire.Tick(deltaTime, burningCells, groundHeight, player);
 		}
 
 		private void TickBurning(Vector2Int key, Cell cell, float deltaTime, float groundHeight)
@@ -315,6 +319,7 @@ namespace WitchMendokusai
 			damageCarry.Clear();
 			effectTimer = 0f;
 			ClearParticles();
+			fire.Clear();
 			MarkDirty();
 		}
 	}

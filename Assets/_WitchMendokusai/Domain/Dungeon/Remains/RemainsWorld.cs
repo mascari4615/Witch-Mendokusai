@@ -34,6 +34,7 @@ namespace WitchMendokusai
 		public RemainsWorld()
 		{
 			Settings = RemainsSettings.Load();
+			GoopFire.RequirePrefab(Settings.FirePrefab);
 			root = new GameObject("RemainsWorld").transform;
 			Debris = new DebrisField(root);
 			Stains = new GroundStainCanvas(root, Settings.StainUtilityShader, Settings.GroundStainShader);

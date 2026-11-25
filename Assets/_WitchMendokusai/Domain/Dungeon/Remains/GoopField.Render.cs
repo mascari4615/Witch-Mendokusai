@@ -106,6 +106,7 @@ namespace WitchMendokusai
 			if (visible == false && plane.gameObject.activeSelf)
 				plane.gameObject.SetActive(false);
 			hidden = visible == false;
+			fire.SetVisible(visible);
 		}
 
 		private void DestroyTextures()
@@ -121,7 +122,7 @@ namespace WitchMendokusai
 		public void Dispose()
 		{
 			DestroyTextures();
-			DisposeParticles();
+			fire.Dispose();
 			Object.Destroy(material);
 			Object.Destroy(planeMesh);
 			if (plane != null)

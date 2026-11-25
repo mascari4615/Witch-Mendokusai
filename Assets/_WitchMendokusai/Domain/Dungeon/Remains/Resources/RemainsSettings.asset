@@ -81,4 +81,4 @@ MonoBehaviour:
   - -1
   DefaultLingerChoice: 2
   GoopParticleMaterial: {fileID: 2100000, guid: 98d4b1602e054aefad62c339e5256356, type: 2}
-  FireFlameShader: {fileID: 4800000, guid: a8cf1aca42f74e52afd9e4d5bd130056, type: 3}
+  FirePrefab: {fileID: 3050692447017785382, guid: f405ebf0de762d541b4ee83a9c7492a5, type: 3}
