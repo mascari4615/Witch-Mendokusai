@@ -65,6 +65,11 @@
     <Compile Include="$(TestsRoot)Combat/LevelGrowthRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/VolleyGaugeRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/AttackSpeedTierRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/ShurikenFlightTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/ShurikenStormRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/LightningChainRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/CrossShurikenRulesTests.cs" />
+    <Compile Include="$(TestsRoot)Combat/ShadowCloneRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonThreatRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonRiskRewardRulesTests.cs" />
     <Compile Include="$(TestsRoot)Combat/DungeonConstraintRunRulesTests.cs" />
