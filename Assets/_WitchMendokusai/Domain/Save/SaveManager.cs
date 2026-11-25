@@ -53,100 +53,47 @@ namespace WitchMendokusai
 			this.monsterLogManager = monsterLogManager;
 		}
 
-		public void CreateNewGameData()
+		/// <summary>
+		/// 세이브 초기화. 저장 파일, 내 안의 세계 (world.json), 파고 심은 지형을 모두 새 게임으로. 로비에서만
+		/// 다른 프로세스가 주인이면 파일은 두고 메모리만 새 게임
+		/// </summary>
+		public void ResetToNewGame()
 		{
-			GameData newGameData = new()
+			bool isOwner = EnsureOwner();
+			// 저장 파일과 세계의 주인이 다를 수 있음 (먼저 켠 창은 로비, 나중 창이 세계). 반만 지우지 않게 손대기 전에 봄
+			if (isOwner && WitchMendokusai.Net.WorldDoor.CanResetSolo == false)
+				throw new InvalidOperationException($"{nameof(ResetToNewGame)}: 내 안의 세계를 지울 수 없음 (세계에 들어가 있거나 다른 프로세스가 쓰는 중). 아무것도 안 지움");
+
+			StartNewGame();
+			// 세계와 지형은 새 게임이 선 뒤에. 먼저 지우면 새 게임을 못 만들었을 때 옛 진행에 세계만 사라짐. 여기서 터지면 다시 누르면 됨
+			if (isOwner)
 			{
-				curDollIndex = 0,
-				dummyDollCount = 1,
-				inventoryItems = new(),
-				hotbarItems = new(),
-				dolls = new(),
-				works = new()
-				{
-					{ WorkListType.DollWork, new() },
-					{ WorkListType.DummyWork, new() },
-					{ WorkListType.VQuestWork, new() }
-				},
-				questStates = new(),
-				hasRecipe = new(),
-				hasSpecimen = new(),
-				runtimeQuests = new(),
-				gameStats = new(),
-				dungeons = new(),
-				worldStages = new(),
-				upgrades = new(),
-				windowLayouts = new()
-			};
-
-			// 인형, 인형 아이템(장비) 초기화
-			{
-				Inventory inventory = soManager.ItemInventory;
-				inventory.Load(newGameData.inventoryItems);
-
-				ForEach<Doll>(doll =>
-				{
-					// newGameData.dolls.Add(doll.Save());
-					InitDoll(doll.ID);
-				});
-
-				void InitDoll(int dollID)
-				{
-					Doll doll = GetDoll(dollID);
-					doll.Load(doll.CreateDefaultSaveData());
-					newGameData.dolls.Add(doll.Save());
-				}
-
-				newGameData.inventoryItems = inventory.Save();
+				WitchMendokusai.Net.WorldDoor.ResetSolo();
+				ChunkStorage.DeleteAll(Application.persistentDataPath);
 			}
+			LastLoadOutcome = IsReadOnly ? SaveLoadOutcome.ReadOnlyOtherOwner : SaveLoadOutcome.Loaded;
+		}
 
-			// 레시피 초기화
-			// 모든 아이템 ID에 대해 bool
-			DataManager.IsRecipeUnlocked = soManager.DataSOs[typeof(ItemData)].Values.ToDictionary(itemData => itemData.ID, itemData => false);
-
-			// 마도 온실 표본(TASK-WM-167) 초기화 — 새 게임 = 채집 0(빈 dict, 봐준 게 없음). 작물 .asset 없어도 안전.
-			DataManager.SpecimenCollected = new();
-
-			// 갈래 조각 초기화. 새 게임은 기록 없음
-			foreach (IFeatureSaveSlice slice in DataManager.FeatureSaves)
-			{
-				slice.Reset();
-			}
-
-			// 퀘스트 상태 초기화 이후 저장
-			Dictionary<int, QuestState> questStates = new();
-			ForEach<QuestSO>(questData => questStates.Add(questData.ID, QuestState.Locked));
-			DataManager.QuestManager.LoadQuestState(questStates);
-
-			// 초기 퀘스트 추가 — 정사 챕터 첫 노드만. prototype 챕터 (Q_6000+) 는 별도 trigger (dev menu / NPC / 챕터 진입 이벤트) 로 unlock.
-			DataManager.QuestManager.Init(new());
-			DataManager.QuestManager.UnlockQuest(GetQuestSO(5000));
-			// 마도서 첫 페이지는 열기만 하지 않고 실행 중 퀘스트로 넣음. 판 HUD 와 결과창이 이 퀘스트를 읽음
-			DataManager.QuestManager.StartMagicBook(GetQuestSO(QuestManager.FIRST_MAGIC_BOOK_PAGE_ID));
-
-			// 던전 초기화
-			ForEach<Dungeon>(dungeon => { dungeon.Init(); });
-
-			// 통계 초기화
-			DataManager.GameStat.Init();
-			DataManager.GameStat[GameStatType.NYANG] = 1000;
-
-			// 업그레이드 초기화
-			ForEach<UpgradeData>(upgradeData => { upgradeData.CurLevel = 0; });
-
+		/// <summary>
+		/// 새 게임. 빈 자료를 불러오는 것이라 불러오기와 같은 길을 탐. 살아 있는 메모리를 떠서 쓰지 않으므로 앞 게임 값이 섞이지 않음
+		/// 파일을 먼저 씀. 못 쓰면 메모리도 그대로, 쓴 뒤 터지면 다음 실행은 새 게임
+		/// </summary>
+		private void StartNewGame()
+		{
+			GameData newGame = NewGameData.Create(soManager.WindowLayoutData.Save());
 			// 주인이 아니면 파일은 그대로 두고 메모리에만 새 게임을 올림. 남의 세이브를 지우지 않음
-			if (EnsureOwner() == false)
+			bool isOwner = EnsureOwner();
+			if (isOwner)
 			{
-				// 파일을 거치는 주인 경로와 같게 직렬화 왕복으로 떼어 냄. 살아 있는 참조를 그대로 넘기면
-				// Load 가 자기 사전을 제자리에서 비우고 다시 읽어 통계가 기본값이 됨 (GameStat.Save 가 내부 사전을 돌려줌)
-				LoadData(SaveTool.CloneThroughJson(CaptureGameData()));
-				return;
+				// 앞 판도 비움. 남기면 지운 진행이 앞 판으로 되살아남
+				SaveTool.DeleteSaveFile(SAVE_FILE_NAME);
+				SaveTool.SaveFile(SAVE_FILE_NAME, newGame);
 			}
 
-			// 새 게임은 앞 판도 비움. 남기면 지운 진행이 앞 판으로 되살아남
-			SaveTool.DeleteSaveFile(SAVE_FILE_NAME);
-			WriteSaveData();
-			LoadLocalData();
+			// 파일을 거친 것과 같게 사본으로 읽음. 그대로 넘기면 자료와 메모리가 컬렉션을 나눠 가짐
+			LoadData(SaveTool.CloneThroughJson(newGame));
+			// 불러오며 연 첫 퀘스트들까지 저장
+			SaveData();
 		}
 
 		public void LoadLocalData()
@@ -168,8 +115,8 @@ namespace WitchMendokusai
 			}
 			else
 			{
-				// 새 게임 만들기가 안에서 다시 불러오며 Loaded 로 덮으므로 끝난 뒤에 적음
-				CreateNewGameData();
+				// 내 안의 세계와 지형은 안 지움. 저장 파일만 잃었을 수 있음
+				StartNewGame();
 				LastLoadOutcome = source == SaveReadSource.Unreadable ? SaveLoadOutcome.ResetUnreadable : SaveLoadOutcome.FirstRun;
 				if (isOwner == false)
 					LastLoadOutcome = SaveLoadOutcome.ReadOnlyOtherOwner;
@@ -225,6 +172,7 @@ namespace WitchMendokusai
 				soManager.DollBuffer.Add(GetDoll(Doll.DUMMY_ID));
 
 			// 퀘스트 초기화
+			soManager.QuestDataBuffer.Clear();
 			Dictionary<int, QuestState> questStates = new();
 			foreach ((int id, int state) in saveData.questStates)
 			{
@@ -256,8 +204,6 @@ namespace WitchMendokusai
 				}
 			}
 
-			// 작업 초기화
-			DataManager.WorkManager.Init(saveData.works);
 			CriteriaContext criteriaContext = DataManager.QuestManager.CreateCriteriaContext();
 			List<RuntimeQuestSaveData> savedQuests = ModQuestInstaller.NormalizeSavedQuests(saveData.runtimeQuests, ModLoader.Content.HiddenQuestIds);
 			// 업적이 퀘스트였던 시절 진행 중이던 것은 저장된 타입이 Achievement. 자산은 일반으로 바뀌었으므로 맞춤 (업적은 AchievementManager 가 따로)
@@ -274,7 +220,11 @@ namespace WitchMendokusai
 			{
 				Debug.Log($"[SaveManager] 중복 모드 퀘스트 정리: {saveData.runtimeQuests.Count} -> {savedQuests.Count}");
 			}
+			// 작업 초기화. 퀘스트를 만들면 자동 작업이 여기에 더해지므로 먼저
+			DataManager.WorkManager.Init(saveData.works, new HashSet<Guid?>(savedQuests.Select(quest => quest.Guid)));
 			DataManager.QuestManager.Init(savedQuests.ConvertAll((RuntimeQuestSaveData questSaveData) => RuntimeQuestFactory.FromSaveData(questSaveData, criteriaContext)));
+			// 새 게임은 첫 퀘스트가 잠겨 있음. 불러올 때 엶
+			DataManager.QuestManager.UnlockFirstStoryQuest();
 			// 마도서 페이지가 생기기 전에 시작한 세이브는 첫 페이지가 잠겨 있음. 불러올 때 한 번 열어 줌
 			DataManager.QuestManager.StartMagicBook(GetQuestSO(QuestManager.FIRST_MAGIC_BOOK_PAGE_ID));
 
@@ -292,14 +242,16 @@ namespace WitchMendokusai
 			// 저장된 최고 기록을 기록판에 알림 (앞선 실행에서 플랫폼에 못 올린 기록 포함)
 			ForEach<Dungeon>(dungeon => { dungeon.ReportRecords(); });
 
-			// WorldStage 초기화
+			// WorldStage 초기화. 먼저 전부 비움 (세이브에 없는 스테이지에 앞 게임 것이 남지 않게)
+			ForEach<WorldStage>(worldStage => worldStage.Load(default));
 			foreach ((int worldStageID, WorldStageSaveData worldStageData) in saveData.worldStages)
 			{
 				if (TryGetSaved(worldStageID, out WorldStage worldStage))
 					worldStage.Load(worldStageData);
 			}
 
-			// 업그레이드 초기화
+			// 업그레이드 초기화. 먼저 전부 비움
+			ForEach<UpgradeData>(upgradeData => upgradeData.Load(default));
 			foreach ((int upgradeID, UpgradeSaveData upgradeData) in saveData.upgrades)
 			{
 				if (TryGetSaved(upgradeID, out UpgradeData upgrade))

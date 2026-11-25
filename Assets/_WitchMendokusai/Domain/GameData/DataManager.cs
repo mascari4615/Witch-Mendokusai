@@ -142,9 +142,7 @@ namespace WitchMendokusai
 			SaveManager.SaveData();
 		}
 
-		public void CreateNewGameData()
-		{
-			SaveManager.CreateNewGameData();
-		}
+		/// <summary>세이브 초기화 (설정창). 로비에서만</summary>
+		public void CreateNewGameData() => SaveManager.ResetToNewGame();
 	}
 }

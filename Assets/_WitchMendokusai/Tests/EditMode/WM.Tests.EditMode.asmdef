@@ -37,6 +37,7 @@
         "WM.Editor",
         "WM.Presentation",
         "WM.Idle",
+        "WM.Network",
         "WitchMendokusai.DomainSDK.Alchemy",
         "WitchMendokusai.DomainSDK.Item",
         "WitchMendokusai.DomainSDK.WorldSim",

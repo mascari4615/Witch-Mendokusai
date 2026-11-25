@@ -37,6 +37,8 @@ namespace WitchMendokusai
 		/// <summary>바로 앞 판 — 지금 것이 깨졌을 때 돌아갈 자리 (TASK-WM-218).</summary>
 		public static string BackupPath => Path + ".bak";
 
+		private static string TemporaryPath => Path + ".tmp";
+
 		/// <summary>지난 기억. 지금 것이 깨졌으면 <b>바로 앞 판</b>으로 되살린다. 둘 다 안 되면 빈 세계.</summary>
 		public static WorldSaveData TryLoad()
 		{
@@ -51,6 +53,19 @@ namespace WitchMendokusai
 				Debug.LogWarning("[world] 지금 기억이 깨졌다 — 바로 앞 판으로 되살린다.");
 
 			return backup;
+		}
+
+		/// <summary>이 프로세스가 이 세계를 써도 되나. 처음 부를 때 잠금을 잡는다.</summary>
+		public static bool IsOwned => SaveOwnerLock.ClaimForProcess(Path, out SaveOwnerLockResult _);
+
+		/// <summary>기억을 지운다. 앞 판부터 (본 파일만 지우다 멈추면 다음 읽기가 앞 판을 되살린다). 주인일 때만 부를 것.</summary>
+		public static void Delete()
+		{
+			foreach (string target in new[] { TemporaryPath, BackupPath, Path })
+			{
+				if (File.Exists(target))
+					File.Delete(target);
+			}
 		}
 
 		private static WorldSaveData TryRead(string path)
@@ -81,7 +96,7 @@ namespace WitchMendokusai
 
 			try
 			{
-				string temporary = Path + ".tmp";
+				string temporary = TemporaryPath;
 				File.WriteAllText(temporary, JsonUtility.ToJson(data, true));
 
 				// 갈아끼우기 전에 지금 판을 앞 판으로 — 새 판이 깨져도 돌아갈 자리가 남는다.
