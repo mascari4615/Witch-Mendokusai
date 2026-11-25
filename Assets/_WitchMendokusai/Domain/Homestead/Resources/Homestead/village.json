@@ -1,0 +1,96 @@
+{
+	"Tuning": {"GuildSteps": [0, 60, 150, 280, 450, 680, 980, 1360, 1840, 2440], "ComfortSteps": [0, 20, 50, 90, 140, 210]},
+	"Tools": [
+		{"Id": "hoe", "Name": "괭이", "Kind": "Hoe", "Tiers": [{"Name": "낡은 괭이", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "구리 괭이", "Power": 2, "Cost": {"Nyang": 300, "Goods": {"copper_bar": 3, "wood": 10}}, "TownHall": 2}, {"Name": "철 괭이", "Power": 4, "Cost": {"Nyang": 900, "Goods": {"iron_bar": 4}}, "TownHall": 3}]},
+		{"Id": "can", "Name": "물뿌리개", "Kind": "WateringCan", "Tiers": [{"Name": "낡은 물뿌리개", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "구리 물뿌리개", "Power": 2, "Cost": {"Nyang": 300, "Goods": {"copper_bar": 3}}, "TownHall": 2}, {"Name": "철 물뿌리개", "Power": 4, "Cost": {"Nyang": 900, "Goods": {"iron_bar": 4}}, "TownHall": 3}]},
+		{"Id": "sickle", "Name": "낫", "Kind": "Sickle", "Tiers": [{"Name": "낡은 낫", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "구리 낫", "Power": 2, "Cost": {"Nyang": 240, "Goods": {"copper_bar": 2}}, "TownHall": 2}]},
+		{"Id": "axe", "Name": "도끼", "Kind": "Axe", "Tiers": [{"Name": "낡은 도끼", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "구리 도끼", "Power": 2, "Cost": {"Nyang": 300, "Goods": {"copper_bar": 3, "wood": 15}}, "TownHall": 2}, {"Name": "철 도끼", "Power": 3, "Cost": {"Nyang": 900, "Goods": {"iron_bar": 4, "wood": 25}}, "TownHall": 3}]},
+		{"Id": "pick", "Name": "곡괭이", "Kind": "Pickaxe", "Tiers": [{"Name": "낡은 곡괭이", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "구리 곡괭이", "Power": 2, "Cost": {"Nyang": 300, "Goods": {"copper_bar": 4, "wood": 10}}, "TownHall": 1}, {"Name": "철 곡괭이", "Power": 3, "Cost": {"Nyang": 900, "Goods": {"iron_bar": 5}}, "TownHall": 2}, {"Name": "금 곡괭이", "Power": 4, "Cost": {"Nyang": 2000, "Goods": {"gold_bar": 5}}, "TownHall": 3}, {"Name": "흑요 곡괭이", "Power": 6, "Cost": {"Nyang": 4000, "Goods": {"gold_bar": 4, "obsidian": 10}}, "TownHall": 4}]},
+		{"Id": "rod", "Name": "낚싯대", "Kind": "Rod", "Tiers": [{"Name": "대나무 낚싯대", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "실 낚싯대", "Power": 2, "Cost": {"Nyang": 350, "Goods": {"thread": 6, "wood": 10}}, "TownHall": 2}, {"Name": "은실 낚싯대", "Power": 3, "Cost": {"Nyang": 1200, "Goods": {"thread": 12, "iron_bar": 3}}, "TownHall": 3}, {"Name": "달빛 낚싯대", "Power": 4, "Cost": {"Nyang": 3000, "Goods": {"fine_wool": 3, "gold_bar": 3}}, "TownHall": 4}]}
+	],
+	"TownHalls": [
+		{"Tier": 1, "Name": "천막 회관", "Note": "무너진 길드 옆의 천막", "Cost": {"Nyang": 0, "Goods": {}}, "PlotCount": 4, "WorkSlots": 1, "Reward": {"Nyang": 0, "GuildExp": 0, "Goods": {}, "Furniture": [], "Costumes": []}},
+		{"Tier": 2, "Name": "나무 회관", "Note": "대장간, 인형 공방, 박물관이 열림", "Cost": {"Nyang": 400, "Goods": {"tulip": 8, "dandelion": 8, "wood": 40, "stone": 30}}, "PlotCount": 6, "WorkSlots": 2, "Reward": {"Nyang": 0, "GuildExp": 20, "Goods": {"seed_tomato": 3}, "Furniture": [], "Costumes": []}},
+		{"Tier": 3, "Name": "돌 회관", "Note": "의상실, 목장, 시련소가 열림", "Cost": {"Nyang": 1200, "Goods": {"cotton": 14, "sundew": 14, "plank": 30, "brick": 30, "copper_bar": 6}}, "PlotCount": 8, "WorkSlots": 2, "Reward": {"Nyang": 0, "GuildExp": 40, "Goods": {}, "Furniture": [], "Costumes": []}},
+		{"Tier": 4, "Name": "흰 회관", "Note": "마을다운 마을", "Cost": {"Nyang": 3000, "Goods": {"hide": 12, "bone": 12, "plank": 60, "brick": 60, "iron_bar": 12}}, "PlotCount": 10, "WorkSlots": 3, "Reward": {"Nyang": 0, "GuildExp": 80, "Goods": {}, "Furniture": [], "Costumes": []}},
+		{"Tier": 5, "Name": "모험가의 회관", "Note": "되살아난 마을", "Cost": {"Nyang": 8000, "Goods": {"hide": 30, "bone": 30, "glass": 30, "gold_bar": 15, "rainbow": 1}}, "PlotCount": 12, "WorkSlots": 3, "Reward": {"Nyang": 0, "GuildExp": 150, "Goods": {}, "Furniture": ["guild_statue"], "Costumes": []}}
+	],
+	"Buildings": [
+		{"Id": "farm", "Name": "텃밭", "TownHall": 1, "Resident": "", "Note": "갈고 심어 수확하는 땅", "Levels": [{"Cost": {"Nyang": 0, "Goods": {"wood": 8, "stone": 4}}, "TownHall": 1, "Minutes": 60, "Effect": "밭 두 칸 더", "GuildExp": 10}, {"Cost": {"Nyang": 300, "Goods": {"plank": 12, "brick": 6}}, "TownHall": 2, "Minutes": 240, "Effect": "밭 네 칸 더", "GuildExp": 15}, {"Cost": {"Nyang": 900, "Goods": {"plank": 24, "iron_bar": 2}}, "TownHall": 3, "Minutes": 360, "Effect": "밭 여섯 칸 더", "GuildExp": 20}]},
+		{"Id": "workshop", "Name": "공작소", "TownHall": 1, "Resident": "", "Note": "가공과 가구", "Levels": [{"Cost": {"Nyang": 80, "Goods": {"wood": 15, "stone": 10}}, "TownHall": 1, "Minutes": 120, "Effect": "가공 두 칸, 기본 가구", "GuildExp": 12}, {"Cost": {"Nyang": 500, "Goods": {"plank": 15, "brick": 12}}, "TownHall": 2, "Minutes": 300, "Effect": "가공 세 칸, 새 가구", "GuildExp": 18}, {"Cost": {"Nyang": 1500, "Goods": {"plank": 30, "iron_bar": 5, "glass": 6}}, "TownHall": 3, "Minutes": 480, "Effect": "가공 네 칸, 좋은 가구", "GuildExp": 25}]},
+		{"Id": "dock", "Name": "낚시터", "TownHall": 1, "Resident": "", "Note": "못과 개울의 낚시 자리", "Levels": [{"Cost": {"Nyang": 50, "Goods": {"wood": 12, "fiber": 8}}, "TownHall": 1, "Minutes": 120, "Effect": "못에서 낚시", "GuildExp": 10}, {"Cost": {"Nyang": 400, "Goods": {"plank": 12, "thread": 4}}, "TownHall": 2, "Minutes": 240, "Effect": "개울에서도 낚시", "GuildExp": 15}]},
+		{"Id": "quarry", "Name": "갱도", "TownHall": 1, "Resident": "", "Note": "땅속으로 내려가는 길", "Levels": [{"Cost": {"Nyang": 100, "Goods": {"wood": 20, "stone": 20}}, "TownHall": 1, "Minutes": 180, "Effect": "갱도를 엶", "GuildExp": 12}, {"Cost": {"Nyang": 700, "Goods": {"plank": 20, "iron_bar": 3}}, "TownHall": 2, "Minutes": 300, "Effect": "맡긴 일이 더 쌓임", "GuildExp": 18}]},
+		{"Id": "museum", "Name": "박물관", "TownHall": 2, "Resident": "", "Note": "모은 것을 전시하는 곳", "Levels": [{"Cost": {"Nyang": 400, "Goods": {"plank": 20, "brick": 20}}, "TownHall": 2, "Minutes": 360, "Effect": "기증과 유물 손질", "GuildExp": 25}]},
+		{"Id": "ranch", "Name": "목장", "TownHall": 3, "Resident": "", "Note": "동물이 사는 울타리", "Levels": [{"Cost": {"Nyang": 600, "Goods": {"plank": 25, "fiber": 30}}, "TownHall": 3, "Minutes": 300, "Effect": "두 마리", "GuildExp": 15}, {"Cost": {"Nyang": 1500, "Goods": {"plank": 40, "iron_bar": 4}}, "TownHall": 3, "Minutes": 360, "Effect": "네 마리", "GuildExp": 20}, {"Cost": {"Nyang": 3500, "Goods": {"plank": 60, "gold_bar": 4}}, "TownHall": 4, "Minutes": 480, "Effect": "여섯 마리", "GuildExp": 25}]},
+		{"Id": "tailor", "Name": "의상실", "TownHall": 3, "Resident": "", "Note": "입을 것을 짓는 곳", "Levels": [{"Cost": {"Nyang": 700, "Goods": {"plank": 20, "cloth": 6}}, "TownHall": 3, "Minutes": 300, "Effect": "모자와 옷", "GuildExp": 15}, {"Cost": {"Nyang": 2000, "Goods": {"cloth": 15, "glass": 8}}, "TownHall": 4, "Minutes": 360, "Effect": "고운 옷", "GuildExp": 20}]},
+		{"Id": "training", "Name": "훈련소", "TownHall": 1, "Resident": "r_training", "Note": "영구 강화", "Levels": [{"Cost": {"Nyang": 150, "Goods": {"wood": 15, "tulip": 5, "dandelion": 5}}, "TownHall": 1, "Minutes": 180, "Effect": "영구 강화", "GuildExp": 20}]},
+		{"Id": "shop", "Name": "상점", "TownHall": 1, "Resident": "r_shop", "Note": "출동 전 물건", "Levels": [{"Cost": {"Nyang": 120, "Goods": {"wood": 15, "cotton": 5}}, "TownHall": 1, "Minutes": 180, "Effect": "물건 사고팔기", "GuildExp": 20}]},
+		{"Id": "smithy", "Name": "대장간", "TownHall": 2, "Resident": "r_smithy", "Note": "장비", "Levels": [{"Cost": {"Nyang": 500, "Goods": {"brick": 15, "coal": 10, "sundew": 8}}, "TownHall": 2, "Minutes": 300, "Effect": "장비와 도구", "GuildExp": 25}]},
+		{"Id": "atelier", "Name": "인형 공방", "TownHall": 2, "Resident": "r_atelier", "Note": "인형", "Levels": [{"Cost": {"Nyang": 500, "Goods": {"plank": 15, "cotton": 15, "thread": 4}}, "TownHall": 2, "Minutes": 300, "Effect": "인형 돌보기", "GuildExp": 25}]},
+		{"Id": "trial", "Name": "시련소", "TownHall": 3, "Resident": "r_trial", "Note": "위협과 제약", "Levels": [{"Cost": {"Nyang": 1200, "Goods": {"brick": 25, "hide": 8, "bone": 8}}, "TownHall": 3, "Minutes": 420, "Effect": "더 어려운 출동", "GuildExp": 30}]}
+	],
+	"Residents": [
+		{"Id": "r_training", "Name": "훈련소 사람", "Building": "training", "Recruits": [{"Kind": "Rescue", "Key": "rescue:training", "Count": 1, "Cost": {"Nyang": 0, "Goods": {}}, "Hint": "던전에 갇힌 사람을 구함"}, {"Kind": "GuildLevel", "Key": "", "Count": 2, "Cost": {"Nyang": 0, "Goods": {}}, "Hint": "길드 레벨 2"}], "Likes": ["Dish"], "Favorites": ["grill"], "AffinitySteps": [60, 160, 320], "AffinityRewards": [{"Nyang": 100, "GuildExp": 0, "Goods": {"thread": 2}, "Furniture": [], "Costumes": []}, {"Nyang": 250, "GuildExp": 0, "Goods": {"cloth": 2}, "Furniture": [], "Costumes": []}, {"Nyang": 500, "GuildExp": 0, "Goods": {"gold_bar": 1}, "Furniture": [], "Costumes": []}], "Lines": []},
+		{"Id": "r_shop", "Name": "상점 사람", "Building": "shop", "Recruits": [{"Kind": "Build", "Key": "shop", "Count": 0, "Cost": {"Nyang": 0, "Goods": {}}, "Hint": "상점을 지음"}, {"Kind": "Favor", "Key": "", "Count": 0, "Cost": {"Nyang": 0, "Goods": {"tulip": 8, "plum": 4}}, "Hint": "튤립과 매실을 건넴"}], "Likes": ["Forage", "Product"], "Favorites": ["honey"], "AffinitySteps": [40, 100, 200, 340, 520], "AffinityRewards": [{"Nyang": 80, "GuildExp": 0, "Goods": {}, "Furniture": [], "Costumes": []}, {"Nyang": 150, "GuildExp": 0, "Goods": {"seed_potato": 5}, "Furniture": [], "Costumes": []}, {"Nyang": 250, "GuildExp": 0, "Goods": {"cloth": 2}, "Furniture": [], "Costumes": []}, {"Nyang": 400, "GuildExp": 0, "Goods": {"glass": 4}, "Furniture": [], "Costumes": []}, {"Nyang": 900, "GuildExp": 0, "Goods": {}, "Furniture": ["shop_sign"], "Costumes": []}], "Lines": []},
+		{"Id": "r_smithy", "Name": "대장간 사람", "Building": "smithy", "Recruits": [{"Kind": "Event", "Key": "boss:0", "Count": 1, "Cost": {"Nyang": 0, "Goods": {}}, "Hint": "슬라임 숲의 왕을 처음 이김"}, {"Kind": "GuildLevel", "Key": "", "Count": 4, "Cost": {"Nyang": 0, "Goods": {}}, "Hint": "길드 레벨 4"}], "Likes": ["Ore"], "Favorites": ["obsidian"], "AffinitySteps": [60, 160, 320], "AffinityRewards": [{"Nyang": 100, "GuildExp": 0, "Goods": {"thread": 2}, "Furniture": [], "Costumes": []}, {"Nyang": 250, "GuildExp": 0, "Goods": {"cloth": 2}, "Furniture": [], "Costumes": []}, {"Nyang": 500, "GuildExp": 0, "Goods": {"gold_bar": 1}, "Furniture": [], "Costumes": []}], "Lines": []},
+		{"Id": "r_atelier", "Name": "공방 사람", "Building": "atelier", "Recruits": [{"Kind": "Favor", "Key": "", "Count": 0, "Cost": {"Nyang": 0, "Goods": {"cloth": 3, "silver_needle": 1}}, "Hint": "천 셋과 은바늘을 건넴"}, {"Kind": "Rescue", "Key": "rescue:atelier", "Count": 1, "Cost": {"Nyang": 0, "Goods": {}}, "Hint": "던전에 갇힌 사람을 구함"}], "Likes": ["Relic", "Material"], "Favorites": ["silver_needle"], "AffinitySteps": [40, 100, 200, 340, 520], "AffinityRewards": [{"Nyang": 80, "GuildExp": 0, "Goods": {}, "Furniture": [], "Costumes": []}, {"Nyang": 150, "GuildExp": 0, "Goods": {"thread": 5}, "Furniture": [], "Costumes": []}, {"Nyang": 250, "GuildExp": 0, "Goods": {"cloth": 3}, "Furniture": [], "Costumes": []}, {"Nyang": 400, "GuildExp": 0, "Goods": {}, "Furniture": [], "Costumes": ["outfit_apron"]}, {"Nyang": 900, "GuildExp": 0, "Goods": {}, "Furniture": ["doll_shelf"], "Costumes": []}], "Lines": []},
+		{"Id": "r_trial", "Name": "시련소 사람", "Building": "trial", "Recruits": [{"Kind": "GuildLevel", "Key": "", "Count": 6, "Cost": {"Nyang": 0, "Goods": {}}, "Hint": "길드 레벨 6"}, {"Kind": "Event", "Key": "boss:0", "Count": 2, "Cost": {"Nyang": 0, "Goods": {}}, "Hint": "슬라임 숲의 왕을 다시 이김"}], "Likes": ["Fish"], "Favorites": ["eel"], "AffinitySteps": [80, 220], "AffinityRewards": [{"Nyang": 100, "GuildExp": 0, "Goods": {"thread": 2}, "Furniture": [], "Costumes": []}, {"Nyang": 250, "GuildExp": 0, "Goods": {"cloth": 2}, "Furniture": [], "Costumes": []}], "Lines": []}
+	],
+	"Jobs": [
+		{"Id": "j_water", "Name": "물 주기", "Building": "farm", "IntervalMinutes": 60, "Cap": 0, "Yields": [], "Perk": "water", "Note": "밭이 늘 젖어 있음"},
+		{"Id": "j_wood", "Name": "나무 하기", "Building": "workshop", "IntervalMinutes": 90, "Cap": 8, "Yields": [{"Goods": "wood", "Min": 1, "Max": 2, "Weight": 5}, {"Goods": "fiber", "Min": 1, "Max": 2, "Weight": 3}, {"Goods": "twig", "Min": 1, "Max": 2, "Weight": 2}]},
+		{"Id": "j_fish", "Name": "그물 보기", "Building": "dock", "IntervalMinutes": 180, "Cap": 4, "Yields": [{"Goods": "minnow", "Min": 1, "Max": 1, "Weight": 5}, {"Goods": "crucian", "Min": 1, "Max": 1, "Weight": 3}, {"Goods": "dace", "Min": 1, "Max": 1, "Weight": 3}, {"Goods": "carp", "Min": 1, "Max": 1, "Weight": 1}]},
+		{"Id": "j_mine", "Name": "갱도 정리", "Building": "quarry", "IntervalMinutes": 120, "Cap": 6, "Yields": [{"Goods": "stone", "Min": 1, "Max": 3, "Weight": 5}, {"Goods": "coal", "Min": 1, "Max": 2, "Weight": 3}, {"Goods": "copper", "Min": 1, "Max": 2, "Weight": 2}]},
+		{"Id": "j_ranch", "Name": "울타리 손질", "Building": "ranch", "IntervalMinutes": 240, "Cap": 3, "Yields": [{"Goods": "egg", "Min": 1, "Max": 1, "Weight": 3}, {"Goods": "wool", "Min": 1, "Max": 1, "Weight": 1}]},
+		{"Id": "j_museum", "Name": "먼지 털기", "Building": "museum", "IntervalMinutes": 480, "Cap": 2, "Yields": [{"Goods": "thread", "Min": 1, "Max": 2, "Weight": 3}, {"Goods": "glass", "Min": 1, "Max": 1, "Weight": 1}]}
+	],
+	"Requests": [
+		{"Id": "q_wood", "Name": "땔감이 모자라요", "GuildLevel": 1, "Goods": ["wood", "twig"], "Min": 8, "Max": 14, "Pay": 1.8, "Exp": 12},
+		{"Id": "q_stone", "Name": "길을 고쳐요", "GuildLevel": 1, "Goods": ["stone"], "Min": 8, "Max": 14, "Pay": 1.8, "Exp": 12},
+		{"Id": "q_crop", "Name": "밥상에 올릴 것", "GuildLevel": 1, "Goods": ["turnip", "potato", "carrot"], "Min": 3, "Max": 5, "Pay": 1.7, "Exp": 16},
+		{"Id": "q_forage", "Name": "들에서 나는 것", "GuildLevel": 1, "Goods": ["mugwort", "plum", "mushroom"], "Min": 3, "Max": 5, "Pay": 1.8, "Exp": 14},
+		{"Id": "q_fish", "Name": "오늘은 생선", "GuildLevel": 1, "Goods": ["minnow", "crucian", "dace"], "Min": 2, "Max": 3, "Pay": 1.8, "Exp": 16},
+		{"Id": "q_flower", "Name": "던전의 꽃", "GuildLevel": 1, "Goods": ["tulip", "dandelion"], "Min": 4, "Max": 8, "Pay": 2.0, "Exp": 16},
+		{"Id": "q_copper", "Name": "못이 필요해요", "GuildLevel": 2, "Goods": ["copper", "copper_bar"], "Min": 2, "Max": 4, "Pay": 1.7, "Exp": 18},
+		{"Id": "q_cotton", "Name": "이불을 꿰매요", "GuildLevel": 2, "Goods": ["cotton", "thread"], "Min": 3, "Max": 5, "Pay": 1.8, "Exp": 18},
+		{"Id": "q_tea", "Name": "손님이 와요", "GuildLevel": 2, "Goods": ["tea", "bread", "pickle"], "Min": 2, "Max": 3, "Pay": 1.7, "Exp": 22},
+		{"Id": "q_bigfish", "Name": "큰 고기", "GuildLevel": 3, "Goods": ["carp", "sweetfish", "catfish"], "Min": 2, "Max": 2, "Pay": 1.8, "Exp": 24},
+		{"Id": "q_gem", "Name": "반짝이는 것", "GuildLevel": 4, "Goods": ["amethyst", "quartz"], "Min": 2, "Max": 3, "Pay": 1.7, "Exp": 26},
+		{"Id": "q_cloth", "Name": "새 커튼", "GuildLevel": 4, "Goods": ["cloth"], "Min": 3, "Max": 5, "Pay": 1.7, "Exp": 26},
+		{"Id": "q_dish", "Name": "잔치 준비", "GuildLevel": 5, "Goods": ["soup", "grill", "stew"], "Min": 2, "Max": 3, "Pay": 1.7, "Exp": 32},
+		{"Id": "q_hide", "Name": "튼튼한 주머니", "GuildLevel": 5, "Goods": ["hide", "bone"], "Min": 4, "Max": 6, "Pay": 2.0, "Exp": 32},
+		{"Id": "q_jam", "Name": "달콤한 것", "GuildLevel": 6, "Goods": ["jam", "honey", "strawberry"], "Min": 2, "Max": 4, "Pay": 1.7, "Exp": 36},
+		{"Id": "q_iron", "Name": "대장간 일손", "GuildLevel": 6, "Goods": ["iron_bar"], "Min": 3, "Max": 4, "Pay": 1.6, "Exp": 36},
+		{"Id": "q_pie", "Name": "파이 하나", "GuildLevel": 7, "Goods": ["pie", "cheese"], "Min": 2, "Max": 2, "Pay": 1.7, "Exp": 42},
+		{"Id": "q_gold", "Name": "회관 장식", "GuildLevel": 8, "Goods": ["gold_bar", "emerald"], "Min": 2, "Max": 2, "Pay": 1.6, "Exp": 50}
+	],
+	"Recipes": [
+		{"Id": "c_plank", "Name": "판자 켜기", "Building": "workshop", "Level": 1, "Inputs": {"wood": 3}, "Output": "plank", "Amount": 2, "Minutes": 40},
+		{"Id": "c_brick", "Name": "벽돌 굽기", "Building": "workshop", "Level": 1, "Inputs": {"stone": 4, "coal": 1}, "Output": "brick", "Amount": 2, "Minutes": 60},
+		{"Id": "c_thread", "Name": "실 잣기", "Building": "workshop", "Level": 1, "Inputs": {"fiber": 6}, "Output": "thread", "Amount": 1, "Minutes": 60},
+		{"Id": "c_thread2", "Name": "목화 잣기", "Building": "workshop", "Level": 1, "Inputs": {"cotton": 3}, "Output": "thread", "Amount": 2, "Minutes": 60},
+		{"Id": "c_copper", "Name": "구리 녹이기", "Building": "workshop", "Level": 1, "Inputs": {"copper": 3, "coal": 1}, "Output": "copper_bar", "Amount": 1, "Minutes": 90},
+		{"Id": "c_iron", "Name": "철 녹이기", "Building": "workshop", "Level": 2, "Inputs": {"iron": 3, "coal": 2}, "Output": "iron_bar", "Amount": 1, "Minutes": 120},
+		{"Id": "c_gold", "Name": "금 녹이기", "Building": "workshop", "Level": 2, "Inputs": {"gold": 3, "coal": 2}, "Output": "gold_bar", "Amount": 1, "Minutes": 180},
+		{"Id": "c_glass", "Name": "유리 굽기", "Building": "workshop", "Level": 2, "Inputs": {"quartz": 2, "coal": 1}, "Output": "glass", "Amount": 2, "Minutes": 90},
+		{"Id": "c_cloth", "Name": "천 짜기", "Building": "workshop", "Level": 1, "Inputs": {"thread": 2}, "Output": "cloth", "Amount": 1, "Minutes": 90},
+		{"Id": "c_cloth2", "Name": "양털 짜기", "Building": "workshop", "Level": 2, "Inputs": {"wool": 1}, "Output": "cloth", "Amount": 1, "Minutes": 60},
+		{"Id": "c_flour", "Name": "밀 빻기", "Building": "workshop", "Level": 1, "Inputs": {"wheat": 3}, "Output": "flour", "Amount": 1, "Minutes": 40},
+		{"Id": "c_bread", "Name": "빵 굽기", "Building": "workshop", "Level": 1, "Inputs": {"flour": 1, "egg": 1}, "Output": "bread", "Amount": 1, "Minutes": 60},
+		{"Id": "c_bread2", "Name": "들빵 굽기", "Building": "workshop", "Level": 1, "Inputs": {"flour": 2}, "Output": "bread", "Amount": 1, "Minutes": 90},
+		{"Id": "c_soup", "Name": "수프 끓이기", "Building": "workshop", "Level": 1, "Inputs": {"potato": 1, "carrot": 1, "turnip": 1}, "Output": "soup", "Amount": 1, "Minutes": 90},
+		{"Id": "c_grill", "Name": "생선 굽기", "Building": "workshop", "Level": 1, "Inputs": {"crucian": 1, "twig": 2}, "Output": "grill", "Amount": 1, "Minutes": 60},
+		{"Id": "c_stew", "Name": "버섯 스튜", "Building": "workshop", "Level": 2, "Inputs": {"mushroom": 3, "milk": 1}, "Output": "stew", "Amount": 1, "Minutes": 90},
+		{"Id": "c_pie", "Name": "호박 파이", "Building": "workshop", "Level": 2, "Inputs": {"pumpkin": 1, "flour": 1, "egg": 1}, "Output": "pie", "Amount": 1, "Minutes": 120},
+		{"Id": "c_jam", "Name": "딸기잼", "Building": "workshop", "Level": 2, "Inputs": {"strawberry": 2}, "Output": "jam", "Amount": 1, "Minutes": 120},
+		{"Id": "c_pickle", "Name": "절임", "Building": "workshop", "Level": 1, "Inputs": {"turnip": 2}, "Output": "pickle", "Amount": 1, "Minutes": 180},
+		{"Id": "c_cheese", "Name": "치즈", "Building": "workshop", "Level": 2, "Inputs": {"milk": 2}, "Output": "cheese", "Amount": 1, "Minutes": 180},
+		{"Id": "c_tea", "Name": "쑥차", "Building": "workshop", "Level": 1, "Inputs": {"mugwort": 3}, "Output": "tea", "Amount": 1, "Minutes": 60},
+		{"Id": "c_candle", "Name": "초 굳히기", "Building": "workshop", "Level": 2, "Inputs": {"honey": 2, "thread": 1}, "Output": "candle", "Amount": 1, "Minutes": 90}
+	],
+	"Animals": [
+		{"Id": "hen", "Name": "닭", "Cost": {"Nyang": 300, "Goods": {}}, "Product": "egg", "FineProduct": "fine_egg", "IntervalMinutes": 480, "RanchLevel": 1, "FineAffinity": 40},
+		{"Id": "sheep", "Name": "양", "Cost": {"Nyang": 900, "Goods": {}}, "Product": "wool", "FineProduct": "fine_wool", "IntervalMinutes": 900, "RanchLevel": 1, "FineAffinity": 56},
+		{"Id": "cow", "Name": "소", "Cost": {"Nyang": 1500, "Goods": {}}, "Product": "milk", "FineProduct": "fine_milk", "IntervalMinutes": 720, "RanchLevel": 2, "FineAffinity": 56}
+	]
+}

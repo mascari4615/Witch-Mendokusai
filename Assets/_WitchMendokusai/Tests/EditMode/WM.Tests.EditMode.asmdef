@@ -15,6 +15,7 @@
         "WitchMendokusai.DomainSDK.GameEvent",
         "WitchMendokusai.DomainSDK.EventBus",
         "WitchMendokusai.DomainSDK.Farming",
+        "WitchMendokusai.DomainSDK.Homestead",
         "WitchMendokusai.DomainSDK.Idle",
         "WitchMendokusai.DomainSDK.Input",
         "WitchMendokusai.DomainSDK.Life",

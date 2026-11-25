@@ -26,6 +26,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
   </ItemGroup>
 
@@ -248,6 +249,12 @@
     <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/DialogueLineAdvancerTest.cs" Link="DialogueStage/DialogueLineAdvancerTest.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/DialogueStageCueTest.cs" Link="DialogueStage/DialogueStageCueTest.cs" />
     <Compile Include="../../Assets/_WitchMendokusai/Tests/EditMode/DialogueStagePlanTest.cs" Link="DialogueStage/DialogueStagePlanTest.cs" />
+  </ItemGroup>
+
+  <!-- 생활 컨텐츠. 자료 파일을 읽는 시험이라 EditMode 폴더에 있고, 읽는 코드 (엔진 타입 없음) 와 함께 이어 굽음 -->
+  <ItemGroup>
+    <Compile Include="$(TestsRoot)../Homestead/*.cs" Exclude="$(TestsRoot)../Homestead/HomesteadArtTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)../../Assets/_WitchMendokusai/Domain/Homestead/HomesteadCatalogJson.cs" />
   </ItemGroup>
 
 </Project>

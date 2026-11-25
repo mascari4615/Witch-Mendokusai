@@ -1,0 +1,83 @@
+{
+	"Crops": [
+		{"Id": "turnip", "Name": "순무", "Seed": "seed_turnip", "Harvest": "turnip", "GrowMinutes": 240, "Stages": 3, "YieldMin": 1, "YieldMax": 2, "RegrowMinutes": 0, "Seasons": [0], "SeedPrice": 10, "TownHall": 1},
+		{"Id": "potato", "Name": "감자", "Seed": "seed_potato", "Harvest": "potato", "GrowMinutes": 360, "Stages": 4, "YieldMin": 1, "YieldMax": 3, "RegrowMinutes": 0, "Seasons": [0, 1], "SeedPrice": 14, "TownHall": 1},
+		{"Id": "wheat", "Name": "밀", "Seed": "seed_wheat", "Harvest": "wheat", "GrowMinutes": 300, "Stages": 4, "YieldMin": 2, "YieldMax": 4, "RegrowMinutes": 0, "Seasons": [1, 2], "SeedPrice": 8, "TownHall": 1},
+		{"Id": "carrot", "Name": "당근", "Seed": "seed_carrot", "Harvest": "carrot", "GrowMinutes": 320, "Stages": 4, "YieldMin": 1, "YieldMax": 2, "RegrowMinutes": 0, "Seasons": [0, 2], "SeedPrice": 13, "TownHall": 1},
+		{"Id": "tomato", "Name": "토마토", "Seed": "seed_tomato", "Harvest": "tomato", "GrowMinutes": 540, "Stages": 5, "YieldMin": 1, "YieldMax": 2, "RegrowMinutes": 240, "Seasons": [1], "SeedPrice": 40, "TownHall": 2},
+		{"Id": "chili", "Name": "고추", "Seed": "seed_chili", "Harvest": "chili", "GrowMinutes": 480, "Stages": 4, "YieldMin": 1, "YieldMax": 3, "RegrowMinutes": 240, "Seasons": [1], "SeedPrice": 36, "TownHall": 2},
+		{"Id": "pumpkin", "Name": "호박", "Seed": "seed_pumpkin", "Harvest": "pumpkin", "GrowMinutes": 900, "Stages": 5, "YieldMin": 1, "YieldMax": 1, "RegrowMinutes": 0, "Seasons": [2], "SeedPrice": 45, "TownHall": 2},
+		{"Id": "strawberry", "Name": "딸기", "Seed": "seed_strawberry", "Harvest": "strawberry", "GrowMinutes": 600, "Stages": 5, "YieldMin": 2, "YieldMax": 3, "RegrowMinutes": 300, "Seasons": [0], "SeedPrice": 60, "TownHall": 3},
+		{"Id": "moonbean", "Name": "달콩", "Seed": "seed_moonbean", "Harvest": "moonbean", "GrowMinutes": 1080, "Stages": 5, "YieldMin": 2, "YieldMax": 3, "RegrowMinutes": 0, "Seasons": [3], "SeedPrice": 80, "TownHall": 3},
+		{"Id": "snowcress", "Name": "눈냉이", "Seed": "seed_snowcress", "Harvest": "snowcress", "GrowMinutes": 720, "Stages": 4, "YieldMin": 2, "YieldMax": 3, "RegrowMinutes": 0, "Seasons": [3], "SeedPrice": 50, "TownHall": 3}
+	],
+	"Gathers": [
+		{"Id": "tree", "Name": "나무", "Tool": "Axe", "Tier": 0, "Hits": 3, "RespawnMinutes": 960, "Rolls": 2, "Drops": [{"Goods": "wood", "Min": 2, "Max": 4, "Weight": 6}, {"Goods": "twig", "Min": 1, "Max": 3, "Weight": 2}, {"Goods": "acorn", "Min": 1, "Max": 2, "Weight": 2}], "RelicChance": 0},
+		{"Id": "hardtree", "Name": "굵은 나무", "Tool": "Axe", "Tier": 2, "Hits": 6, "RespawnMinutes": 1440, "Rolls": 3, "Drops": [{"Goods": "wood", "Min": 3, "Max": 6, "Weight": 5}, {"Goods": "honey", "Min": 1, "Max": 1, "Weight": 2}, {"Goods": "moonmoss", "Min": 1, "Max": 1, "Weight": 1}], "RelicChance": 0.03},
+		{"Id": "bush", "Name": "덤불", "Tool": "Sickle", "Tier": 0, "Hits": 1, "RespawnMinutes": 480, "Rolls": 1, "Drops": [{"Goods": "fiber", "Min": 2, "Max": 4, "Weight": 5}, {"Goods": "plum", "Min": 1, "Max": 2, "Weight": 3}, {"Goods": "clover", "Min": 1, "Max": 2, "Weight": 2}], "RelicChance": 0.02},
+		{"Id": "herb", "Name": "약초", "Tool": "Sickle", "Tier": 0, "Hits": 1, "RespawnMinutes": 600, "Rolls": 1, "Drops": [{"Goods": "mugwort", "Min": 1, "Max": 2, "Weight": 5}, {"Goods": "lavender", "Min": 1, "Max": 2, "Weight": 2}, {"Goods": "honey", "Min": 1, "Max": 1, "Weight": 1}], "RelicChance": 0.02},
+		{"Id": "mushroompatch", "Name": "버섯", "Tool": "Sickle", "Tier": 0, "Hits": 1, "RespawnMinutes": 720, "Rolls": 1, "Drops": [{"Goods": "mushroom", "Min": 1, "Max": 3, "Weight": 6}, {"Goods": "moonmoss", "Min": 1, "Max": 1, "Weight": 1}], "RelicChance": 0.02},
+		{"Id": "rock", "Name": "바위", "Tool": "Pickaxe", "Tier": 0, "Hits": 3, "RespawnMinutes": 960, "Rolls": 2, "Drops": [{"Goods": "stone", "Min": 2, "Max": 4, "Weight": 7}, {"Goods": "coal", "Min": 1, "Max": 2, "Weight": 2}, {"Goods": "copper", "Min": 1, "Max": 1, "Weight": 1}], "RelicChance": 0.06}
+	],
+	"Fishes": [
+		{"Id": "minnow", "Name": "송사리", "Goods": "minnow", "Waters": ["pond", "stream"], "HourFrom": 0, "HourTo": 24, "Seasons": [], "Weight": 10, "RodTier": 0, "Strength": 0.12, "Temper": 0.1, "SizeMin": 2, "SizeMax": 6, "RelicChance": 0.03},
+		{"Id": "crucian", "Name": "붕어", "Goods": "crucian", "Waters": ["pond"], "HourFrom": 0, "HourTo": 24, "Seasons": [], "Weight": 8, "RodTier": 0, "Strength": 0.22, "Temper": 0.2, "SizeMin": 10, "SizeMax": 28, "RelicChance": 0.03},
+		{"Id": "loach", "Name": "미꾸라지", "Goods": "loach", "Waters": ["pond"], "HourFrom": 0, "HourTo": 24, "Seasons": [], "Weight": 6, "RodTier": 0, "Strength": 0.28, "Temper": 0.55, "SizeMin": 8, "SizeMax": 18, "RelicChance": 0.03},
+		{"Id": "dace", "Name": "피라미", "Goods": "dace", "Waters": ["stream"], "HourFrom": 5, "HourTo": 20, "Seasons": [], "Weight": 9, "RodTier": 0, "Strength": 0.2, "Temper": 0.35, "SizeMin": 7, "SizeMax": 15, "RelicChance": 0.03},
+		{"Id": "goldfish", "Name": "금붕어", "Goods": "goldfish", "Waters": ["pond"], "HourFrom": 9, "HourTo": 16, "Seasons": [], "Weight": 2.5, "RodTier": 0, "Strength": 0.25, "Temper": 0.4, "SizeMin": 6, "SizeMax": 20, "RelicChance": 0.03},
+		{"Id": "carp", "Name": "잉어", "Goods": "carp", "Waters": ["pond"], "HourFrom": 0, "HourTo": 24, "Seasons": [], "Weight": 4, "RodTier": 0, "Strength": 0.5, "Temper": 0.25, "SizeMin": 30, "SizeMax": 80, "RelicChance": 0.03},
+		{"Id": "sweetfish", "Name": "은어", "Goods": "sweetfish", "Waters": ["stream"], "HourFrom": 4, "HourTo": 11, "Seasons": [], "Weight": 5, "RodTier": 0, "Strength": 0.38, "Temper": 0.5, "SizeMin": 12, "SizeMax": 26, "RelicChance": 0.03},
+		{"Id": "catfish", "Name": "메기", "Goods": "catfish", "Waters": ["pond", "stream"], "HourFrom": 18, "HourTo": 6, "Seasons": [], "Weight": 4, "RodTier": 1, "Strength": 0.6, "Temper": 0.3, "SizeMin": 30, "SizeMax": 90, "RelicChance": 0.03},
+		{"Id": "perch", "Name": "쏘가리", "Goods": "perch", "Waters": ["stream"], "HourFrom": 0, "HourTo": 24, "Seasons": [], "Weight": 3, "RodTier": 1, "Strength": 0.58, "Temper": 0.5, "SizeMin": 20, "SizeMax": 50, "RelicChance": 0.03},
+		{"Id": "eel", "Name": "장어", "Goods": "eel", "Waters": ["stream"], "HourFrom": 19, "HourTo": 5, "Seasons": [], "Weight": 2.5, "RodTier": 1, "Strength": 0.62, "Temper": 0.75, "SizeMin": 40, "SizeMax": 100, "RelicChance": 0.03},
+		{"Id": "snakehead", "Name": "가물치", "Goods": "snakehead", "Waters": ["pond"], "HourFrom": 10, "HourTo": 18, "Seasons": [], "Weight": 2, "RodTier": 1, "Strength": 0.78, "Temper": 0.45, "SizeMin": 40, "SizeMax": 95, "RelicChance": 0.03},
+		{"Id": "turtle", "Name": "자라", "Goods": "turtle", "Waters": ["pond"], "HourFrom": 0, "HourTo": 24, "Seasons": [], "Weight": 1.2, "RodTier": 2, "Strength": 0.7, "Temper": 0.2, "SizeMin": 15, "SizeMax": 35, "RelicChance": 0.03},
+		{"Id": "salmon", "Name": "연어", "Goods": "salmon", "Waters": ["stream"], "HourFrom": 6, "HourTo": 20, "Seasons": [], "Weight": 2, "RodTier": 2, "Strength": 0.75, "Temper": 0.55, "SizeMin": 50, "SizeMax": 95, "RelicChance": 0.03},
+		{"Id": "mooncarp", "Name": "달빛잉어", "Goods": "mooncarp", "Waters": ["pond"], "HourFrom": 21, "HourTo": 4, "Seasons": [], "Weight": 0.8, "RodTier": 2, "Strength": 0.85, "Temper": 0.6, "SizeMin": 40, "SizeMax": 110, "RelicChance": 0.03},
+		{"Id": "startrout", "Name": "별송어", "Goods": "startrout", "Waters": ["stream"], "HourFrom": 20, "HourTo": 4, "Seasons": [], "Weight": 0.6, "RodTier": 2, "Strength": 0.8, "Temper": 0.85, "SizeMin": 30, "SizeMax": 70, "RelicChance": 0.03},
+		{"Id": "mistking", "Name": "안개메기", "Goods": "mistking", "Waters": ["stream"], "HourFrom": 4, "HourTo": 7, "Seasons": [], "Weight": 0.25, "RodTier": 3, "Strength": 0.95, "Temper": 0.8, "SizeMin": 120, "SizeMax": 220, "RelicChance": 0.03}
+	],
+	"MineNodes": [
+		{"Id": "n_stone", "Name": "돌덩이", "Tier": 0, "Hits": 3, "Drops": [{"Goods": "stone", "Min": 2, "Max": 4, "Weight": 8}, {"Goods": "coal", "Min": 1, "Max": 2, "Weight": 2}]},
+		{"Id": "n_coal", "Name": "석탄 바위", "Tier": 0, "Hits": 3, "Drops": [{"Goods": "coal", "Min": 2, "Max": 4, "Weight": 1}]},
+		{"Id": "n_copper", "Name": "구리 바위", "Tier": 0, "Hits": 4, "Drops": [{"Goods": "copper", "Min": 2, "Max": 4, "Weight": 1}]},
+		{"Id": "n_quartz", "Name": "수정 무더기", "Tier": 0, "Hits": 4, "Drops": [{"Goods": "quartz", "Min": 1, "Max": 3, "Weight": 1}]},
+		{"Id": "n_iron", "Name": "철 바위", "Tier": 1, "Hits": 6, "Drops": [{"Goods": "iron", "Min": 2, "Max": 4, "Weight": 1}]},
+		{"Id": "n_amethyst", "Name": "자수정 무더기", "Tier": 1, "Hits": 6, "Drops": [{"Goods": "amethyst", "Min": 1, "Max": 2, "Weight": 1}]},
+		{"Id": "n_gold", "Name": "금 바위", "Tier": 2, "Hits": 8, "Drops": [{"Goods": "gold", "Min": 1, "Max": 3, "Weight": 1}]},
+		{"Id": "n_gem", "Name": "보석 바위", "Tier": 2, "Hits": 9, "Drops": [{"Goods": "sapphire", "Min": 1, "Max": 1, "Weight": 2}, {"Goods": "ruby", "Min": 1, "Max": 1, "Weight": 2}, {"Goods": "emerald", "Min": 1, "Max": 1, "Weight": 1}]},
+		{"Id": "n_obsidian", "Name": "흑요석", "Tier": 3, "Hits": 12, "Drops": [{"Goods": "obsidian", "Min": 1, "Max": 3, "Weight": 1}]},
+		{"Id": "n_rainbow", "Name": "무지개 바위", "Tier": 3, "Hits": 14, "Drops": [{"Goods": "rainbow", "Min": 1, "Max": 1, "Weight": 1}]}
+	],
+	"MineBands": [
+		{"Id": "b1", "Name": "얕은 굴", "From": 1, "To": 5, "Nodes": 8, "Weights": [{"Node": "n_stone", "Weight": 6}, {"Node": "n_coal", "Weight": 3}, {"Node": "n_copper", "Weight": 4}, {"Node": "n_quartz", "Weight": 1}], "RelicChance": 0.03, "Mood": "earth"},
+		{"Id": "b2", "Name": "구리 줄기", "From": 6, "To": 10, "Nodes": 9, "Weights": [{"Node": "n_stone", "Weight": 5}, {"Node": "n_coal", "Weight": 3}, {"Node": "n_copper", "Weight": 5}, {"Node": "n_quartz", "Weight": 2}, {"Node": "n_iron", "Weight": 2}], "RelicChance": 0.04, "Mood": "copper"},
+		{"Id": "b3", "Name": "철의 방", "From": 11, "To": 15, "Nodes": 9, "Weights": [{"Node": "n_stone", "Weight": 4}, {"Node": "n_coal", "Weight": 3}, {"Node": "n_iron", "Weight": 6}, {"Node": "n_amethyst", "Weight": 2}, {"Node": "n_quartz", "Weight": 2}], "RelicChance": 0.05, "Mood": "iron"},
+		{"Id": "b4", "Name": "금빛 틈", "From": 16, "To": 20, "Nodes": 10, "Weights": [{"Node": "n_stone", "Weight": 4}, {"Node": "n_iron", "Weight": 4}, {"Node": "n_gold", "Weight": 4}, {"Node": "n_amethyst", "Weight": 3}, {"Node": "n_gem", "Weight": 1}], "RelicChance": 0.06, "Mood": "gold"},
+		{"Id": "b5", "Name": "수정 홀", "From": 21, "To": 25, "Nodes": 10, "Weights": [{"Node": "n_stone", "Weight": 3}, {"Node": "n_gold", "Weight": 4}, {"Node": "n_gem", "Weight": 4}, {"Node": "n_amethyst", "Weight": 3}, {"Node": "n_obsidian", "Weight": 2}], "RelicChance": 0.08, "Mood": "crystal"},
+		{"Id": "b6", "Name": "가장 깊은 곳", "From": 26, "To": 30, "Nodes": 10, "Weights": [{"Node": "n_stone", "Weight": 3}, {"Node": "n_gold", "Weight": 3}, {"Node": "n_gem", "Weight": 4}, {"Node": "n_obsidian", "Weight": 4}, {"Node": "n_rainbow", "Weight": 1}], "RelicChance": 0.1, "Mood": "deep"}
+	],
+	"Relics": [
+		{"Id": "thimble", "Name": "낡은 골무", "Goods": "thimble", "Set": "바느질", "Weight": 3, "Grime": [0, 1]},
+		{"Id": "silver_needle", "Name": "은바늘", "Goods": "silver_needle", "Set": "바느질", "Weight": 2, "Grime": [0, 2]},
+		{"Id": "gold_shears", "Name": "금가위", "Goods": "gold_shears", "Set": "바느질", "Weight": 1, "Grime": [1, 0, 2]},
+		{"Id": "teacup", "Name": "이 빠진 찻잔", "Goods": "teacup", "Set": "찻자리", "Weight": 3, "Grime": [0, 0, 1]},
+		{"Id": "kettle", "Name": "그을린 주전자", "Goods": "kettle", "Set": "찻자리", "Weight": 2, "Grime": [2, 0, 1]},
+		{"Id": "teaspoon", "Name": "은숟가락", "Goods": "teaspoon", "Set": "찻자리", "Weight": 1, "Grime": [1, 1, 0]},
+		{"Id": "gear", "Name": "오르골 톱니", "Goods": "gear", "Set": "소리", "Weight": 3, "Grime": [0, 1, 2]},
+		{"Id": "handbell", "Name": "작은 종", "Goods": "handbell", "Set": "소리", "Weight": 2, "Grime": [2, 1]},
+		{"Id": "flute", "Name": "금 간 피리", "Goods": "flute", "Set": "소리", "Weight": 1, "Grime": [0, 2, 1]},
+		{"Id": "star_shard", "Name": "별 조각", "Goods": "star_shard", "Set": "별", "Weight": 3, "Grime": [1, 2, 0, 1]},
+		{"Id": "compass", "Name": "멈춘 나침반", "Goods": "compass", "Set": "별", "Weight": 2, "Grime": [0, 1, 0]},
+		{"Id": "lens", "Name": "망원 렌즈", "Goods": "lens", "Set": "별", "Weight": 1, "Grime": [2, 0, 2]},
+		{"Id": "badge", "Name": "모험가 휘장", "Goods": "badge", "Set": "길드", "Weight": 3, "Grime": [1, 0]},
+		{"Id": "old_key", "Name": "녹슨 열쇠", "Goods": "old_key", "Set": "길드", "Weight": 2, "Grime": [0, 1, 1]},
+		{"Id": "old_map", "Name": "빛바랜 지도", "Goods": "old_map", "Set": "길드", "Weight": 1, "Grime": [2, 0, 1, 0]}
+	],
+	"Wings": [
+		{"Id": "plants", "Name": "들과 밭", "Note": "작물과 채집물", "Kinds": ["Crop", "Forage"], "Milestones": [{"Count": 3, "Reward": {"Nyang": 150, "GuildExp": 10, "Goods": {}, "Furniture": ["plant_pot"], "Costumes": []}}, {"Count": 7, "Reward": {"Nyang": 300, "GuildExp": 15, "Goods": {"seed_tomato": 5}, "Furniture": [], "Costumes": []}}, {"Count": 12, "Reward": {"Nyang": 500, "GuildExp": 25, "Goods": {}, "Furniture": ["flower_stand"], "Costumes": []}}, {"Count": 18, "Reward": {"Nyang": 1200, "GuildExp": 50, "Goods": {}, "Furniture": ["herb_rack"], "Costumes": ["hat_straw"]}}]},
+		{"Id": "waters", "Name": "물", "Note": "못과 개울의 것", "Kinds": ["Fish"], "Milestones": [{"Count": 3, "Reward": {"Nyang": 150, "GuildExp": 10, "Goods": {"thread": 3}, "Furniture": [], "Costumes": []}}, {"Count": 6, "Reward": {"Nyang": 350, "GuildExp": 15, "Goods": {}, "Furniture": ["fish_bowl"], "Costumes": []}}, {"Count": 10, "Reward": {"Nyang": 700, "GuildExp": 30, "Goods": {}, "Furniture": ["net_wall"], "Costumes": []}}, {"Count": 16, "Reward": {"Nyang": 2000, "GuildExp": 60, "Goods": {}, "Furniture": ["big_tank"], "Costumes": ["hat_fisher"]}}]},
+		{"Id": "stones", "Name": "땅속", "Note": "광석과 보석", "Kinds": ["Ore"], "Milestones": [{"Count": 2, "Reward": {"Nyang": 200, "GuildExp": 10, "Goods": {"coal": 10}, "Furniture": [], "Costumes": []}}, {"Count": 5, "Reward": {"Nyang": 500, "GuildExp": 20, "Goods": {}, "Furniture": ["gem_lamp"], "Costumes": []}}, {"Count": 10, "Reward": {"Nyang": 2000, "GuildExp": 60, "Goods": {}, "Furniture": ["crystal_cluster"], "Costumes": ["hat_miner"]}}]},
+		{"Id": "relics", "Name": "옛것", "Note": "손질한 유물", "Kinds": ["Relic"], "Milestones": [{"Count": 3, "Reward": {"Nyang": 250, "GuildExp": 15, "Goods": {}, "Furniture": ["old_frame"], "Costumes": []}}, {"Count": 6, "Reward": {"Nyang": 500, "GuildExp": 25, "Goods": {}, "Furniture": ["music_box"], "Costumes": []}}, {"Count": 10, "Reward": {"Nyang": 900, "GuildExp": 40, "Goods": {}, "Furniture": ["star_globe"], "Costumes": []}}, {"Count": 15, "Reward": {"Nyang": 2500, "GuildExp": 80, "Goods": {}, "Furniture": ["guild_banner"], "Costumes": ["outfit_curator"]}}]}
+	]
+}
