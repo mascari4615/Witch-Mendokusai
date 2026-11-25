@@ -32,4 +32,6 @@ MonoBehaviour:
     DataSOs: []
   - Type: 9
     DataSOs: []
+  - Type: 11
+    DataSOs: []
   <QuestData>k__BackingField: []

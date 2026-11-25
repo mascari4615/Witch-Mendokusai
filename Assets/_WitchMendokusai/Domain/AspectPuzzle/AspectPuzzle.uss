@@ -1,0 +1,306 @@
+/* 성질 놀이. 기준 화면 높이 1080 (MenuStage.Fit). 색 이름은 MagicBook.uss (--wm-mb-*), 마름모는 SkillTree.uss
+   임시 모습 (2026-11-25). 육각 칸은 선으로만, 보라는 이을 칸, 금은 이어진 칸 */
+
+.wm-aspect {
+    background-color: var(--wm-mb-sky);
+}
+
+.wm-aspect--hidden {
+    display: none;
+}
+
+.wm-aspect-view {
+    flex-grow: 1;
+    flex-direction: row;
+    margin-top: 24px;
+}
+
+/* ===== 왼쪽 문제 목록 ===== */
+
+.wm-aspect-list {
+    width: 128px;
+    flex-shrink: 0;
+}
+
+.wm-mb .wm-aspect-tab {
+    margin: 0 0 8px 0;
+}
+
+.wm-mb .wm-aspect-tab--solved {
+    color: var(--wm-mb-gold);
+}
+
+.wm-mb .wm-aspect-tab--current,
+.wm-mb .wm-aspect-tab--current:focus,
+.wm-mb .wm-aspect-tab--current:hover {
+    border-color: var(--wm-mb-gold);
+    color: var(--wm-mb-ink);
+}
+
+/* ===== 가운데 판 ===== */
+
+.wm-aspect-board {
+    flex-grow: 1;
+    margin: 0 32px;
+}
+
+/* 사용자 속성은 상속으로 안 읽혀 그리는 요소마다 값을 둠 (MagicBook.uss 와 같은 까닭) */
+.wm-aspect-lines {
+    --wm-aspect-link: rgb(255, 214, 120);
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.wm-mb .wm-aspect-cell {
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+}
+
+.wm-mb .wm-aspect-cell:hover,
+.wm-mb .wm-aspect-cell:active,
+.wm-mb .wm-aspect-cell:focus {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.wm-aspect-cell__icon {
+    width: 46%;
+    height: 46%;
+    background-size: contain;
+    -unity-background-image-tint-color: var(--wm-mb-ink);
+}
+
+.wm-aspect-cell__doll {
+    position: absolute;
+    right: 16%;
+    bottom: 16%;
+    width: 30%;
+    height: 30%;
+    background-size: contain;
+}
+
+.wm-aspect-cell--doll .wm-aspect-cell__doll {
+    border-width: 2px;
+    border-color: var(--wm-mb-ink-soft);
+    background-color: var(--wm-mb-card);
+}
+
+.wm-aspect-cell--ghost .wm-aspect-cell__icon,
+.wm-aspect-cell--ghost .wm-aspect-cell__doll {
+    opacity: 0.45;
+}
+
+.wm-aspect-cell--anchor .wm-aspect-cell__icon {
+    -unity-background-image-tint-color: var(--wm-mb-violet);
+}
+
+.wm-aspect-cell--linked .wm-aspect-cell__icon {
+    -unity-background-image-tint-color: var(--wm-mb-gold);
+}
+
+/* 육각 칸. 채움과 선은 HexCell 이 사용자 속성으로 읽어 그림 */
+.wm-mb .wm-aspect-hex {
+    --wm-aspect-hex-fill: rgba(22, 19, 44, 0.9);
+    --wm-aspect-hex-line: rgba(170, 180, 220, 0.32);
+    --wm-aspect-hex-line-width: 2;
+}
+
+.wm-mb .wm-aspect-hex.wm-aspect-cell--placed {
+    --wm-aspect-hex-fill: rgb(36, 31, 66);
+    --wm-aspect-hex-line: rgba(236, 232, 244, 0.6);
+}
+
+.wm-mb .wm-aspect-hex.wm-aspect-cell--anchor {
+    --wm-aspect-hex-fill: rgb(50, 36, 84);
+    --wm-aspect-hex-line: rgb(190, 140, 255);
+    --wm-aspect-hex-line-width: 3;
+}
+
+.wm-mb .wm-aspect-hex.wm-aspect-cell--linked {
+    --wm-aspect-hex-line: rgb(255, 214, 120);
+    --wm-aspect-hex-line-width: 3;
+}
+
+.wm-mb .wm-aspect-hex.wm-aspect-cell--loose {
+    --wm-aspect-hex-line: rgb(224, 120, 120);
+}
+
+.wm-mb .wm-aspect-hex.wm-aspect-cell--selected {
+    --wm-aspect-hex-fill: rgba(255, 214, 120, 0.22);
+}
+
+.wm-mb .wm-aspect-hex:hover,
+.wm-mb .wm-aspect-hex:focus {
+    --wm-aspect-hex-line: rgb(255, 255, 255);
+    --wm-aspect-hex-line-width: 4;
+}
+
+/* 마름모 칸 */
+.wm-aspect-diamond .wm-skilltree__diamond {
+    border-color: rgba(170, 180, 220, 0.32);
+    background-color: rgba(22, 19, 44, 0.9);
+}
+
+.wm-aspect-diamond.wm-aspect-cell--placed .wm-skilltree__diamond {
+    border-color: rgba(236, 232, 244, 0.6);
+    background-color: rgb(36, 31, 66);
+}
+
+.wm-aspect-diamond.wm-aspect-cell--anchor .wm-skilltree__diamond {
+    border-color: rgb(190, 140, 255);
+    background-color: rgb(50, 36, 84);
+}
+
+.wm-aspect-diamond.wm-aspect-cell--linked .wm-skilltree__diamond {
+    border-color: rgb(255, 214, 120);
+}
+
+.wm-aspect-diamond.wm-aspect-cell--selected .wm-skilltree__diamond {
+    background-color: rgba(255, 214, 120, 0.22);
+}
+
+.wm-aspect-diamond .wm-aspect-cell__icon {
+    width: 38%;
+    height: 38%;
+}
+
+/* ===== 오른쪽 ===== */
+
+.wm-aspect-side {
+    width: 460px;
+    flex-shrink: 0;
+}
+
+.wm-aspect-dolls,
+.wm-aspect-queue {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.wm-aspect-queue {
+    height: 64px;
+    margin-top: 8px;
+}
+
+.wm-aspect-queue__icon {
+    width: 36px;
+    height: 36px;
+    margin-right: 14px;
+    background-size: contain;
+    -unity-background-image-tint-color: var(--wm-mb-ink-dim);
+}
+
+.wm-aspect-queue__icon--now {
+    width: 48px;
+    height: 48px;
+    -unity-background-image-tint-color: var(--wm-mb-gold);
+}
+
+.wm-aspect-status {
+    flex-shrink: 0;
+    margin: 0 0 8px 0;
+    padding: 0;
+    font-size: 32px;
+    color: var(--wm-mb-gold);
+}
+
+.wm-aspect-help {
+    flex-shrink: 0;
+    margin: 0 0 20px 0;
+    padding: 0;
+    font-size: 20px;
+    white-space: normal;
+    color: var(--wm-mb-ink-soft);
+}
+
+.wm-aspect-notice {
+    flex-shrink: 0;
+    height: 60px;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    white-space: normal;
+    color: var(--wm-mb-violet);
+}
+
+.wm-aspect-palette {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.wm-mb .wm-aspect-chip {
+    width: 82px;
+    height: 92px;
+    margin: 0 8px 8px 0;
+    padding: 8px 0 4px 0;
+    border-width: 2px;
+    border-radius: 0;
+    border-color: rgba(170, 180, 220, 0.32);
+    background-color: var(--wm-mb-card);
+    align-items: center;
+    justify-content: space-between;
+}
+
+.wm-mb .wm-aspect-chip:hover,
+.wm-mb .wm-aspect-chip:focus {
+    border-color: rgb(255, 255, 255);
+    background-color: rgba(190, 140, 255, 0.14);
+}
+
+.wm-mb .wm-aspect-chip--fits {
+    border-color: var(--wm-mb-violet);
+}
+
+.wm-mb .wm-aspect-chip--fits-all {
+    border-color: var(--wm-mb-gold);
+}
+
+.wm-mb .wm-aspect-chip--idle {
+    opacity: 0.4;
+}
+
+.wm-mb .wm-aspect-chip--selected {
+    border-color: var(--wm-mb-gold);
+    background-color: rgba(255, 214, 120, 0.22);
+    opacity: 1;
+}
+
+.wm-aspect-chip__icon {
+    width: 42px;
+    height: 42px;
+    background-size: contain;
+    -unity-background-image-tint-color: var(--wm-mb-ink);
+}
+
+.wm-aspect-chip__name {
+    margin: 0;
+    padding: 0;
+    font-size: 18px;
+    -unity-text-align: middle-center;
+    color: var(--wm-mb-ink);
+}
+
+.wm-aspect-actions {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-top: 20px;
+}
+
+.wm-mb .wm-aspect-action {
+    width: 140px;
+    margin: 0 12px 0 0;
+}
+
+.wm-mb .wm-aspect-action--idle {
+    opacity: 0.4;
+}
