@@ -24,6 +24,9 @@ namespace WitchMendokusai
 		// 예고 위치. target 은 준비를 시작한 순간 고정한 자리 (ResolveTarget)
 		public abstract CombatFxContext WindupContext(UnitObject unitObject, Vector3 target);
 
+		// 바닥 예고를 그릴 자리인가. 물체가 예고를 대신하는 자리는 비움
+		public virtual bool ShowsTelegraph(int index, int count) => true;
+
 		// 자리마다 예고가 이만큼 더 길고 늦게 실행됨 (초). 기본은 모두 동시
 		public virtual float StrikeDelay(int index) => 0f;
 

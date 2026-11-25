@@ -7,6 +7,8 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Guard", menuName = "WM/Variable/MonsterAttack/" + nameof(GuardMonsterAttack))]
 	public class GuardMonsterAttack : MonsterAttack
 	{
+		public override string KindName => "웅크리기";
+
 		[field: Header("웅크리기")]
 		[field: SerializeField, Tooltip("올릴 방어력"), Min(1)] public int Armor { get; private set; } = 300;
 		[field: SerializeField, Tooltip("웅크린 초"), Min(0.1f)] public float GuardSeconds { get; private set; } = 3f;

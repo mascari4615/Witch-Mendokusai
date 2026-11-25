@@ -8,6 +8,8 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Summon", menuName = "WM/Variable/MonsterAttack/" + nameof(SummonMonsterAttack))]
 	public class SummonMonsterAttack : WindupMonsterAttack
 	{
+		public override string KindName => "소환";
+
 		[field: Header("소환")]
 		[field: SerializeField] public Monster Summoned { get; private set; }
 		[field: SerializeField, Min(1)] public int Count { get; private set; } = 3;

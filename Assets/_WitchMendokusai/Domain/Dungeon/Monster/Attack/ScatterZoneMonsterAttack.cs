@@ -19,17 +19,22 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Scatter", menuName = "WM/Variable/MonsterAttack/" + nameof(ScatterZoneMonsterAttack))]
 	public class ScatterZoneMonsterAttack : WindupMonsterAttack
 	{
+		public override string KindName => "여러 자리 장판";
+
 		[field: Header("여러 자리")]
 		[field: SerializeField] public ScatterArrangement Arrangement { get; private set; } = ScatterArrangement.Scatter;
 		[field: SerializeField, Min(1)] public int Count { get; private set; } = 5;
 		[field: SerializeField, Tooltip("원 반지름 (m)"), Min(0.3f)] public float Radius { get; private set; } = 1.2f;
 		[field: SerializeField, Tooltip("줄은 칸 간격, 고리와 흩뿌림은 중심에서 거리 (m)"), Min(0.1f)] public float Distance { get; private set; } = 2.6f;
 		[field: SerializeField, Tooltip("고리와 흩뿌림. 거리를 이만큼까지 더 멀리 흔듦 (m)"), Min(0f)] public float DistanceJitter { get; private set; }
+		[field: SerializeField, Tooltip("자리마다 늦어지는 초. 0 이면 동시"), Min(0f)] public float StaggerSeconds { get; private set; }
 		[field: SerializeField, Tooltip("터질 때 기본 피해"), Min(1)] public int Damage { get; private set; } = 4;
 		[field: SerializeField, Tooltip("피해가 실제로 들어간 순간 주인공에게 거는 것")] public MonsterHitEffect HitEffect { get; private set; } = new();
 
 		public override void ResolveTargets(UnitObject unitObject, Vector3 playerPosition, Vector3 moveVelocity, List<Vector3> results) =>
 			Arrange(Arrangement, unitObject.transform.position, playerPosition, Count, Distance, DistanceJitter, Random.value * 360f, () => Random.value, results);
+
+		public override float StrikeDelay(int index) => StaggerSeconds * index;
 
 		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target) => new()
 		{

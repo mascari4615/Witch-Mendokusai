@@ -8,6 +8,8 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Pull", menuName = "WM/Variable/MonsterAttack/" + nameof(PullMonsterAttack))]
 	public class PullMonsterAttack : MonsterAttack
 	{
+		public override string KindName => "끌기";
+
 		[field: Header("끌기")]
 		[field: SerializeField, Tooltip("끄는 거리 (m)"), Min(0.5f)] public float Radius { get; private set; } = 7f;
 		[field: SerializeField, Tooltip("끄는 초"), Min(0.1f)] public float PullSeconds { get; private set; } = 2f;

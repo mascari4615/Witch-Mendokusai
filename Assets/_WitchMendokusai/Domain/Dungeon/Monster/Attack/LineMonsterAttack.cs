@@ -8,11 +8,14 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MA_Line", menuName = "WM/Variable/MonsterAttack/" + nameof(LineMonsterAttack))]
 	public class LineMonsterAttack : WindupMonsterAttack
 	{
+		public override string KindName => "직선 띠";
+
 		[field: Header("직선 띠")]
 		[field: SerializeField, Tooltip("길이 (m)"), Min(0.5f)] public float Length { get; private set; } = 9f;
 		[field: SerializeField, Tooltip("폭 (m)"), Min(0.2f)] public float Width { get; private set; } = 1.4f;
 		[field: SerializeField, Tooltip("주인공 쪽에서 벌어진 각도 (도). 하나마다 띠 하나")] public List<float> Angles { get; private set; } = new() { 0f };
 		[field: SerializeField, Tooltip("띠마다 늦어지는 초. 0 이면 동시. 예고는 처음에 모두 보이고 순서대로 차오름"), Min(0f)] public float StaggerSeconds { get; private set; }
+		[field: SerializeField, Tooltip("쓸기의 처음과 끝 띠만 바닥에 예고. 사이는 몸 자세와 물체가 알림")] public bool EdgeTelegraphOnly { get; private set; }
 		[field: SerializeField, Tooltip("기본 피해"), Min(1)] public int Damage { get; private set; } = 4;
 		[field: SerializeField, Tooltip("피해가 실제로 들어간 순간 주인공에게 거는 것")] public MonsterHitEffect HitEffect { get; private set; } = new();
 
@@ -24,6 +27,8 @@ namespace WitchMendokusai
 		}
 
 		public override float StrikeDelay(int index) => StaggerSeconds * index;
+
+		public override bool ShowsTelegraph(int index, int count) => EdgeTelegraphOnly == false || index == 0 || index == count - 1;
 
 		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target) => new()
 		{

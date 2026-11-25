@@ -11,17 +11,28 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: da652475083b4449b8a53b6648f29a3b, type: 3}
   m_Name: MA_Summon_DreamStump
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 14
-  <WindupSeconds>k__BackingField: 1.0
+  <WindupSeconds>k__BackingField: 1.4
   <RecoverySeconds>k__BackingField: 0.4
   <Cooldown>k__BackingField: 0
   <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 7d0f0ab6735b4a2ab8fb739bbb4cd564, type: 2}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 21300000, guid: d539873bece3494ca4bac6f8e7885240, type: 3}
+    <Strike>k__BackingField: {fileID: 0}
+    <Rest>k__BackingField: {fileID: 0}
+    <Crouch>k__BackingField: 0.12
+    <Stretch>k__BackingField: 0.25
+    <StrikeSeconds>k__BackingField: 0.25
+    <Tremble>k__BackingField: 0.02
+    <Breath>k__BackingField: 0
+  <WindupFx>k__BackingField: {fileID: 11400000, guid: ad6aaaa260bf4b4ea20d0eec52669744, type: 2}
+  <StrikeFx>k__BackingField: {fileID: 11400000, guid: bf1af18ff0d94038ac426c86a0df9739, type: 2}
   <Summoned>k__BackingField: {fileID: 11400000, guid: c6db0cbafde144a6bc4ffca716da44fb, type: 2}
   <Count>k__BackingField: 3
-  <Distance>k__BackingField: 3.2
+  <Distance>k__BackingField: 3.4
   <MaxAlive>k__BackingField: 6
   <CountRadius>k__BackingField: 14
-  <TelegraphRadius>k__BackingField: 0.8
+  <TelegraphRadius>k__BackingField: 0.6
