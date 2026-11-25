@@ -17,8 +17,8 @@ MonoBehaviour:
   <BodyTint>k__BackingField: {r: 0.62, g: 0.66, b: 0.86, a: 1}
   <SignatureObject>k__BackingField: {fileID: 359087184371326412, guid: 21e96fac7ff74223bc3c92249cc6b537, type: 3}
   <ConfirmMasteryTrack>k__BackingField: 1
-  <TransformFx>k__BackingField: {fileID: 0}
-  <TransformSeconds>k__BackingField: 2.6
+  <TransformFx>k__BackingField: {fileID: 11400000, guid: 1adff72fd287466dbb95eac1592e6221, type: 2}
+  <TransformSeconds>k__BackingField: 1.6
   <PushRadius>k__BackingField: 3.4
   <PushForce>k__BackingField: 9
   <PushSeconds>k__BackingField: 0.35

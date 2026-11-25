@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d54b3f031bf4a938321eac6e820b2e8, type: 3}
+  m_Name: FormFx_AlisaNinja_Body
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.NinjaFormFx
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle: 
+  devKey: 
+  spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
+  shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
+  gradeShader: {fileID: 4800000, guid: 1ebe1525f751440ea76b9cca2137b714, type: 3}
+  overlayFlashCap: 0.32
+  backgroundFlashCap: 0.85
+  spawnTemporaryFoliage: 0
+  foliageAreaRadius: 14
+  foliage: []
+  foliageResponse:
+    Bend: 78
+    DecaySeconds: 1.2
+    Hertz: 1.7
+    BladeCount: 70
+    BladeSpeed: 11
+    BladeColor: {r: 0.45, g: 0.7, b: 0.3, a: 1}
+  tailSeconds: 0.6
+  screenSortingOrder: 2400
+  meshGlowShader: {fileID: 4800000, guid: 4d07b8e2c11b28449a3f241e98f42971, type: 3}
+  litParticleShader: {fileID: 4800000, guid: ebe2a5585f6714b4a807c9a0a60454ed, type: 3}
+  spriteLightGain: 0.12
+  spriteTintCap: 2.2
+  targetDistance: 0
+  art: {fileID: 11400000, guid: 60d20066aaf24e5e99ed13c4624456ab, type: 2}
+  smokeSheet: {fileID: 2800000, guid: 3299f2461eff4374b9c1deaa9dfbc5fd, type: 3}
+  brushSheet: {fileID: 2800000, guid: 3acda624bbd84c00905c9c6c0eca9ddb, type: 3}
+  inkTexture: {fileID: 2800000, guid: 81295382cd20448b86fe1f4ce2f512d4, type: 3}
+  wispTexture: {fileID: 2800000, guid: 5a22e9746ace4633b945c57239bd2538, type: 3}
+  silhouetteShader: {fileID: 4800000, guid: dcdcc633669a4b8bb3306419f998fd19, type: 3}
+  puffs:
+  - Offset: {x: -0.95, y: 0.55}
+    Delay: 0.02
+    PeakFrame: 7
+    Layer: 0
+  - Offset: {x: 0.95, y: 0.6}
+    Delay: 0.04
+    PeakFrame: 8
+    Layer: 0
+  - Offset: {x: 0, y: 1.25}
+    Delay: 0.05
+    PeakFrame: 8
+    Layer: 0
+  - Offset: {x: -0.6, y: 1.05}
+    Delay: 0.03
+    PeakFrame: 7
+    Layer: 0
+  - Offset: {x: 0.6, y: 1.1}
+    Delay: 0.06
+    PeakFrame: 7
+    Layer: 0
+  - Offset: {x: 0, y: 0.6}
+    Delay: 0
+    PeakFrame: 8
+    Layer: 0
+  - Offset: {x: -0.1, y: 0.45}
+    Delay: 0
+    PeakFrame: 8
+    Layer: 2
+  - Offset: {x: -0.35, y: 0.85}
+    Delay: 0.05
+    PeakFrame: 6
+    Layer: 2
+  - Offset: {x: 0.4, y: 0.8}
+    Delay: 0.07
+    PeakFrame: 6
+    Layer: 2
+  - Offset: {x: 0.25, y: 0.2}
+    Delay: 0.04
+    PeakFrame: 5
+    Layer: 2
+  - Offset: {x: -1.1, y: 0.12}
+    Delay: 0.03
+    PeakFrame: 5
+    Layer: 1
+  - Offset: {x: 1.1, y: 0.1}
+    Delay: 0.05
+    PeakFrame: 5
+    Layer: 1
+  - Offset: {x: -0.62, y: -0.12}
+    Delay: 0.06
+    PeakFrame: 3
+    Layer: 1
+  - Offset: {x: 0.66, y: -0.12}
+    Delay: 0.07
+    PeakFrame: 3
+    Layer: 1
