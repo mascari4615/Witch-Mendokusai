@@ -46,13 +46,13 @@ namespace WitchMendokusai
 		public void Add(UnitObject source, LingerSettings settings, Vector3 position, FxHold hold) =>
 			pieces.Add(new Piece { Source = source, Settings = settings, Position = position, Hold = hold });
 
-		// source 가 남긴 것 가운데 아직 아픈 것의 자리
-		public void CollectHot(UnitObject source, List<Vector3> results)
+		// source 가 남긴 것 가운데 앞으로 seconds 초 뒤에도 아픈 것의 자리
+		public void CollectHot(UnitObject source, float seconds, List<Vector3> results)
 		{
 			results.Clear();
 			foreach (Piece piece in pieces)
 			{
-				if (piece.Source == source && piece.Hold.IsHot(Time.time))
+				if (piece.Source == source && piece.Hold.IsHot(Time.time) && piece.Hold.IsHot(Time.time + seconds))
 					results.Add(piece.Position);
 			}
 		}

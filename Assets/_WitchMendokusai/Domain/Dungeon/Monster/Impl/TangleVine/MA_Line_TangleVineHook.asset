@@ -25,8 +25,8 @@ MonoBehaviour:
     <Rest>k__BackingField: {fileID: 21300000, guid: 3766dd5ef758407baf47d1e5778eb8dd, type: 3}
     <Crouch>k__BackingField: 0.1
     <Stretch>k__BackingField: 0.15
-    <StrikeSeconds>k__BackingField: 0.6
-    <StrikeLeadSeconds>k__BackingField: 0.15
+    <StrikeSeconds>k__BackingField: 0.5
+    <StrikeLeadSeconds>k__BackingField: 0.2
     <Tremble>k__BackingField: 0.05
     <Breath>k__BackingField: 0
   <WindupFx>k__BackingField: {fileID: 11400000, guid: 3425004659514503a149fde647954015, type: 2}
@@ -34,7 +34,7 @@ MonoBehaviour:
   <WindupFxOnce>k__BackingField: 1
   <TelegraphInTurn>k__BackingField: 0
   <Linger>k__BackingField:
-    <Seconds>k__BackingField: 0.65
+    <Seconds>k__BackingField: 0.4
     <CoolSeconds>k__BackingField: 0.4
     <Radius>k__BackingField: 0.5
     <Damage>k__BackingField: 0

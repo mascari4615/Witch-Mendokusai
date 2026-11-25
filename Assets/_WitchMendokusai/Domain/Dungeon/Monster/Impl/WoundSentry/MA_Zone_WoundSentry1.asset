@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MA_Zone_WoundSentry1
   m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 8
-  <WindupSeconds>k__BackingField: 0.75
+  <WindupSeconds>k__BackingField: 0.95
   <RecoverySeconds>k__BackingField: 0.15
   <Cooldown>k__BackingField: 0
   <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 6ce4d759c4cb4e129b9f3c0c46223761, type: 2}
@@ -26,7 +26,7 @@ MonoBehaviour:
     <Crouch>k__BackingField: -0.12
     <Stretch>k__BackingField: 0.2
     <StrikeSeconds>k__BackingField: 0.3
-    <StrikeLeadSeconds>k__BackingField: 0
+    <StrikeLeadSeconds>k__BackingField: 0.3
     <Tremble>k__BackingField: 0.04
     <Breath>k__BackingField: 0
   <WindupFx>k__BackingField: {fileID: 11400000, guid: f2ffca50a8b9414d8488abfea134d562, type: 2}
@@ -57,7 +57,7 @@ MonoBehaviour:
       <PushSpeed>k__BackingField: 4
       <PushSeconds>k__BackingField: 0.2
   <Center>k__BackingField: 0
-  <Radius>k__BackingField: 1.3
+  <Radius>k__BackingField: 1.2
   <Damage>k__BackingField: 3
   <LeadSeconds>k__BackingField: 0
   <HitEffect>k__BackingField:

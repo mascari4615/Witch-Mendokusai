@@ -34,7 +34,8 @@ namespace WitchMendokusai
 				step = attack.Steps[stepIndex].CreateBehaviour(unitObject, playerProvider);
 				stepStartTime = Time.time;
 			}
-			if (attack.SkipSeconds > 0f && IsAttacking == false && Time.time - stepStartTime > attack.SkipSeconds)
+			bool isStuck = attack.SkipSeconds > 0f && Time.time - stepStartTime > attack.SkipSeconds;
+			if (IsAttacking == false && (isStuck || attack.Steps[stepIndex].IsPointless(unitObject)))
 			{
 				attack.Steps[stepIndex].Interrupt(step);
 				Advance();

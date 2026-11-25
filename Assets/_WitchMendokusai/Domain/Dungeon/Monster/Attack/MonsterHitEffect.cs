@@ -39,8 +39,17 @@ namespace WitchMendokusai
 			if (Pushes == false)
 				return;
 			Vector3 direction = PushDirection(center, player.transform.position);
-			if (direction != Vector3.zero)
-				player.UnitMovement.ApplyImpulse(direction * (Pulls ? -PushSpeed : PushSpeed), PushSeconds);
+			if (direction == Vector3.zero)
+				return;
+			if (Pulls == false)
+			{
+				player.UnitMovement.ApplyImpulse(direction * PushSpeed, PushSeconds);
+				return;
+			}
+			// 당길 때는 시전자 몸 앞까지만
+			float gap = Vector3.Distance(center, player.transform.position) - source.UnitMovement.BodyRadius - player.UnitMovement.BodyRadius;
+			if (gap > 0f)
+				player.UnitMovement.ApplyImpulse(-direction * PushSpeed, Mathf.Min(PushSeconds, gap / PushSpeed));
 		}
 
 		// 중심에서 바깥으로. 중심에 겹쳐 있으면 방향 없음

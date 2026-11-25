@@ -22,11 +22,11 @@ MonoBehaviour:
   <Pose>k__BackingField:
     <Windup>k__BackingField: {fileID: 21300000, guid: 55a293f903dd462090eb3cc35962d9e1, type: 3}
     <Strike>k__BackingField: {fileID: 21300000, guid: f870dddc94804bfa827b56c9db7f7aa9, type: 3}
-    <Rest>k__BackingField: {fileID: 21300000, guid: f870dddc94804bfa827b56c9db7f7aa9, type: 3}
+    <Rest>k__BackingField: {fileID: 0}
     <Crouch>k__BackingField: 0.12
     <Stretch>k__BackingField: 0.1
-    <StrikeSeconds>k__BackingField: 0.75
-    <StrikeLeadSeconds>k__BackingField: 0.15
+    <StrikeSeconds>k__BackingField: 0.87
+    <StrikeLeadSeconds>k__BackingField: 0.2
     <Tremble>k__BackingField: 0.05
     <Breath>k__BackingField: 0
   <WindupFx>k__BackingField: {fileID: 11400000, guid: dc668296592242e1ade0aef0986362fc, type: 2}
@@ -34,7 +34,7 @@ MonoBehaviour:
   <WindupFxOnce>k__BackingField: 1
   <TelegraphInTurn>k__BackingField: 1
   <Linger>k__BackingField:
-    <Seconds>k__BackingField: 0.87
+    <Seconds>k__BackingField: 0.9
     <CoolSeconds>k__BackingField: 0.4
     <Radius>k__BackingField: 0.5
     <Damage>k__BackingField: 0
@@ -54,7 +54,7 @@ MonoBehaviour:
   <Angles>k__BackingField:
   - 0
   - 0
-  <StaggerSeconds>k__BackingField: 0.75
+  <StaggerSeconds>k__BackingField: 0.85
   <Damage>k__BackingField: 4
   <HitEffect>k__BackingField:
     <AppliesStatus>k__BackingField: 0

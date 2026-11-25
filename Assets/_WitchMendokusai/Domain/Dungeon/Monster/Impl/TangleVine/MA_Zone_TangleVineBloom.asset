@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MA_Zone_TangleVineBloom
   m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 40
-  <WindupSeconds>k__BackingField: 1.15
+  <WindupSeconds>k__BackingField: 1.4
   <RecoverySeconds>k__BackingField: 2.8
   <Cooldown>k__BackingField: 0
   <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}

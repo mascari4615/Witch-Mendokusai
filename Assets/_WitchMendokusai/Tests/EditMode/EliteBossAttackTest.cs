@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -290,6 +291,32 @@ namespace WitchMendokusai.Tests
 				Assert.GreaterOrEqual(hide.LockSeconds, distance / 2.9f + 0.3f, hide.name);
 			}
 		}
+
+		// 주인공 자리 장판 (예측 없음) 은 멈춰 있던 주인공이 걸어서 나갈 틈. 정예와 보스 폴더만
+		[Test]
+		public void Elite_zones_leave_time_to_walk_out()
+		{
+			int checkedCount = 0;
+			for (int id = FIRST_ELITE; id <= LAST_BOSS; id++)
+			{
+				foreach (MonsterAttack step in StepsOf(Find(id).Attack))
+				{
+					if (step is not ZoneMonsterAttack zone || zone.Center != ZoneCenter.Target || zone.LeadSeconds > 0f)
+						continue;
+					Assert.GreaterOrEqual(zone.WindupSeconds, (zone.Radius + 0.3f) / 2.9f + 0.3f, zone.name);
+					checkedCount++;
+				}
+			}
+			Assert.Greater(checkedCount, 0);
+		}
+
+		private static IEnumerable<MonsterAttack> StepsOf(MonsterAttack attack) => attack switch
+		{
+			SequenceMonsterAttack sequence => sequence.Steps,
+			PhaseMonsterAttack phase => phase.Phases.SelectMany(each => StepsOf(each.Attack)),
+			PackMonsterAttack pack => StepsOf(pack.SoloAttack),
+			_ => new[] { attack },
+		};
 
 		[Test]
 		public void Links_go_around_without_crossing()

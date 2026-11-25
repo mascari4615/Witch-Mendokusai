@@ -33,8 +33,8 @@ MonoBehaviour:
   <StrikeFx>k__BackingField: {fileID: 11400000, guid: 01244973cd7c4403b458e2f3a99e7950, type: 2}
   <DashSpeed>k__BackingField: 10.5
   <DashDuration>k__BackingField: 0.8
-  <TelegraphWidth>k__BackingField: 2.2
-  <TelegraphExtraLength>k__BackingField: 1.5
+  <TelegraphWidth>k__BackingField: 1.7
+  <TelegraphExtraLength>k__BackingField: 0.6
   <BlockedProgressRatio>k__BackingField: 0.3
   <AngleDegrees>k__BackingField: 0
   <CracksLinger>k__BackingField: 1

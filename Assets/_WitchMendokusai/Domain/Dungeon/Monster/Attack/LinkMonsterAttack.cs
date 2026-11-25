@@ -11,6 +11,9 @@ namespace WitchMendokusai
 		// 같은 물체로 보는 거리 제곱 (m)
 		private const float SAME_SPOT_SQUARED = 0.01f;
 
+		// 행동 틱이 늦어 때리는 여유 (초)
+		private const float STRIKE_MARGIN = 0.2f;
+
 		private static readonly List<Vector3> posts = new();
 
 		public override string KindName => "잇기";
@@ -21,11 +24,19 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("기본 피해"), Min(1)] public int Damage { get; private set; } = 4;
 		[field: SerializeField, Tooltip("피해가 실제로 들어간 순간 주인공에게 거는 것")] public MonsterHitEffect HitEffect { get; private set; } = new();
 
-		public override bool IsReady(UnitObject unitObject) => Collect(unitObject).Count >= 2;
+		// 예고 동안 하나라도 식으면 이은 짝이 바뀌므로 시작하지 않음
+		public override bool IsReady(UnitObject unitObject)
+		{
+			int count = Collect(unitObject, 0f).Count;
+			return count >= 2 && Collect(unitObject, WindupSeconds + STRIKE_MARGIN).Count == count;
+		}
+
+		// 이을 물체가 없으면 기다려도 안 생김
+		public override bool IsPointless(UnitObject unitObject) => IsReady(unitObject) == false;
 
 		public override void ResolveTargets(UnitObject unitObject, Vector3 playerPosition, Vector3 moveVelocity, List<Vector3> results)
 		{
-			List<Vector3> ordered = Collect(unitObject);
+			List<Vector3> ordered = Collect(unitObject, 0f);
 			// 둘이면 띠 하나
 			int count = ordered.Count == 2 ? 1 : ordered.Count;
 			for (int i = 0; i < count; i++)
@@ -61,7 +72,7 @@ namespace WitchMendokusai
 
 		private static bool TryEnd(UnitObject unitObject, Vector3 start, out Vector3 end)
 		{
-			List<Vector3> ordered = Collect(unitObject);
+			List<Vector3> ordered = Collect(unitObject, 0f);
 			for (int i = 0; i < ordered.Count && ordered.Count >= 2; i++)
 			{
 				if ((ordered[i] - start).sqrMagnitude > SAME_SPOT_SQUARED)
@@ -73,9 +84,9 @@ namespace WitchMendokusai
 			return false;
 		}
 
-		private static List<Vector3> Collect(UnitObject unitObject)
+		private static List<Vector3> Collect(UnitObject unitObject, float seconds)
 		{
-			LingerField.Instance.CollectHot(unitObject, posts);
+			LingerField.Instance.CollectHot(unitObject, seconds, posts);
 			SortAround(posts);
 			return posts;
 		}
