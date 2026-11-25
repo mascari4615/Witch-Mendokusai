@@ -17,6 +17,7 @@ MonoBehaviour:
   wanderRadius: 3
   wanderSpeed: 0.35
   wanderSeconds: 2.5
+  wanderTurnDegrees: 137.5
   arriveDistance: 0.3
   angrySeconds: 6
   angerPunch: 1.3

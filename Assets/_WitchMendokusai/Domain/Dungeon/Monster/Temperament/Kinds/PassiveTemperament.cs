@@ -7,12 +7,10 @@ namespace WitchMendokusai
 	[CreateAssetMenu(fileName = "MT_Passive", menuName = "WM/Monster/Temperament/Passive")]
 	public sealed class PassiveTemperament : MonsterTemperament
 	{
-		// 거닐 목표를 차례마다 이 각만큼 돌림 (황금각). 무작위 없이도 고르게 퍼지고 시험에서 재현됨
-		private const float GOLDEN_ANGLE_DEGREES = 137.5f;
-
 		[SerializeField, Tooltip("거니는 반지름 (m)"), Min(0f)] private float wanderRadius = 3f;
 		[SerializeField, Tooltip("거니는 세기 0~1"), Range(0f, 1f)] private float wanderSpeed = 0.35f;
 		[SerializeField, Tooltip("거닐 목표를 바꾸는 간격 (초)"), Min(0.1f)] private float wanderSeconds = 2.5f;
+		[SerializeField, Tooltip("거닐 목표를 차례마다 이 각만큼 돌림 (도). 137.5 (황금각) 면 무작위 없이도 고르게 퍼짐"), Range(0f, 360f)] private float wanderTurnDegrees = 137.5f;
 		[SerializeField, Tooltip("목표에서 이 거리 안이면 멈춰 섬 (m)"), Min(0f)] private float arriveDistance = 0.3f;
 		[SerializeField, Tooltip("맞은 뒤 화가 나 있는 초. 또 맞으면 그때부터 다시 셈"), Min(0f)] private float angrySeconds = 6f;
 		[SerializeField, Tooltip("화날 때 몸 부풀림 배율"), Min(1f)] private float angerPunch = 1.3f;
@@ -36,7 +34,7 @@ namespace WitchMendokusai
 				memory.Phase++;
 				memory.NextTime = context.Now + wanderSeconds;
 			}
-			float angle = (memory.Phase * GOLDEN_ANGLE_DEGREES + memory.Seed * 360f) * Mathf.Deg2Rad;
+			float angle = (memory.Phase * wanderTurnDegrees + memory.Seed * 360f) * Mathf.Deg2Rad;
 			Vector3 goal = memory.Anchor + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * wanderRadius;
 			Vector3 toGoal = TemperamentContext.Flat(goal - context.Self);
 			if (toGoal.magnitude < arriveDistance)
