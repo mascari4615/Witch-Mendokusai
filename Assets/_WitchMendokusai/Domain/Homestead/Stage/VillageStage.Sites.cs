@@ -19,6 +19,9 @@ namespace WitchMendokusai
 		[SerializeField] private float riseSeconds = 0.7f;
 		[SerializeField] private float riseOvershoot = 0.12f;
 
+		[Header("Ruins")]
+		[SerializeField] private Vector2 ruinScale = new(0.72f, 1f);
+
 		[Header("Lamps")]
 		[SerializeField] private int lampOnHour = 17;
 		[SerializeField] private int lampOffHour = 6;
@@ -45,8 +48,8 @@ namespace WitchMendokusai
 
 		private void BuildSites()
 		{
-			VillageBodies.Well().Build("Well", outdoor, wellPosition, 0f);
-			VillageBodies.Board().Build("Board", outdoor, boardPosition, 0f);
+			Models.Build("Well", outdoor, wellPosition, 24f);
+			Models.Build("Board", outdoor, boardPosition, 0f);
 			HomesteadSpot.Create(outdoor, boardPosition + new Vector3(0f, 0f, -0.9f), "BoardSpot", () => "길드 게시판", () => $"의뢰 {Sim.State.Requests.Count}", () => manager.Panels.Show(HomesteadPanelType.Guild));
 			HomesteadSpot.Create(outdoor, townHallPosition + townHallDoor, "TownHallSpot", () => Sim.TownHallDef(Sim.State.TownHall).Name, () => "마을 돌보기", () => manager.Panels.Show(HomesteadPanelType.Village));
 			HomesteadSpot.Create(outdoor, housePosition + Quaternion.Euler(0f, houseYaw, 0f) * houseDoor, "HouseSpot", () => "집", () => "들어가기", EnterRoom);
@@ -59,7 +62,7 @@ namespace WitchMendokusai
 			BuildDressing();
 			foreach (Vector3 lamp in new[] { new Vector3(-3.4f, 0f, 5f), new Vector3(3.4f, 0f, 5f), new Vector3(-3.6f, 0f, -3f), new Vector3(3.6f, 0f, -3f), new Vector3(-2.2f, 0f, -12f), new Vector3(2.2f, 0f, -17f) })
 			{
-				GameObject body = VillageBodies.Lamp().Build("Lamp", outdoor, lamp, lamp.x > 0f ? 180f : 0f);
+				GameObject body = Models.Build("Lamp", outdoor, lamp, lamp.x > 0f ? 180f : 0f);
 				lampLights.Add(AddGlow(body.transform, lampLightOffset, lampRange, lampIntensity));
 			}
 		}
@@ -73,9 +76,9 @@ namespace WitchMendokusai
 
 		private static readonly (string Key, float X, float Z, float Yaw)[] dressing =
 		{
-			("StoneWall", -18.6f, 8.2f, -6f), ("StoneWall", -8.2f, 8.7f, 14f), ("StoneWall", -5.2f, 5.4f, 70f),
-			("StonePath", -11.9f, 7.2f, 6f), ("StonePath", -11.2f, 3.4f, 14f), ("StonePath", 0f, -2.5f, 0f), ("StonePath", 0f, -6.3f, 0f),
-			("StonePath", 0f, 6.6f, 0f), ("Fence", -18.4f, 13.4f, 96f), ("Fence", -16.8f, 8.4f, -2f), ("Props", -8.6f, 11.2f, 24f), ("Props", -12.6f, 1.6f, -20f),
+			("StoneWall", -19.2f, 8.4f, -4f), ("StoneWall", -14.2f, 8.2f, 2f), ("StoneWall", -8.4f, 9.4f, 16f), ("StoneWall", -6.6f, 13.6f, 92f),
+			("StonePath", -11.4f, 7.0f, 4f), ("StonePath", -11.0f, 3.0f, 8f), ("StonePath", 0f, -3f, 0f), ("StonePath", 0f, -7f, 0f), ("StonePath", 0f, 7f, 0f),
+			("Fence", -18.6f, 13.6f, 94f), ("Fence", -16.6f, 17.4f, 8f), ("Props", -8.4f, 12.2f, 40f), ("Fence", -5.4f, -8.2f, -8f), ("StoneWall", 6.2f, -7.4f, 12f),
 		};
 
 		private bool IsNight => manager.Hour >= lampOnHour || manager.Hour < lampOffHour;
@@ -205,7 +208,7 @@ namespace WitchMendokusai
 		private void RefreshSites()
 		{
 			RefreshLamps();
-			Show("townhall", Sim.State.TownHall.ToString(), () => VillageBodies.TownHall(Sim.State.TownHall).Build("townhall", outdoor, townHallPosition, 0f));
+			Show("townhall", Sim.State.TownHall.ToString(), () => TownHallBody(Sim.State.TownHall));
 			Show("house", Sim.State.HouseTier.ToString(), () => Models.Build("HouseMended", outdoor, housePosition, houseYaw));
 			for (int i = 0; i < sites.Length; i++)
 			{
@@ -220,13 +223,20 @@ namespace WitchMendokusai
 				}
 				else if (level == 0)
 				{
-					Show(site.Id, RUIN, () => Models.Build(RUIN_MODELS[order % RUIN_MODELS.Length], outdoor, site.Position, site.Yaw));
+					Show(site.Id, RUIN, () => Models.Build(RUIN_MODELS[order % RUIN_MODELS.Length], outdoor, site.Position, site.Yaw, Mathf.Lerp(ruinScale.x, ruinScale.y, Mathf.InverseLerp(2f, 6f, site.Size.x))));
 				}
 				else
 				{
 					Show(site.Id, level.ToString(), () => BuiltBody(site, level));
 				}
 			}
+		}
+
+		private GameObject TownHallBody(int tier)
+		{
+			if (tier <= 1)
+				return Models.Build("Tent", outdoor, townHallPosition, 0f);
+			return VillageBodies.TownHall(tier).Build("townhall", outdoor, townHallPosition, 0f);
 		}
 
 		private GameObject BuiltBody(BuildingSite site, int level)

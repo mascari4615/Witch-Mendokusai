@@ -146,6 +146,63 @@ MonoBehaviour:
     Solids:
     - m_Center: {x: 0, y: 0.4, z: 0}
       m_Extent: {x: 2.2, y: 0.4, z: 0.075}
+  - Key: Well
+    Mesh: {fileID: 4300000, guid: 4671a5b5c7684d8450ce1595a04a310d, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: 1f09afe12f102f1f194f154b5f85605f, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 407d1098b56076abeffb2c7d268873fe, type: 2}
+    - {fileID: 2100000, guid: c86a6287c691fa2bffb93b5259890e03, type: 2}
+    - {fileID: 2100000, guid: df37b9ad118cebdb93389873033391fa, type: 2}
+    - {fileID: 2100000, guid: 0828f00823bb802b133a2e8aef3cfff9, type: 2}
+    - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
+    CastShadow: 1
+    Solids:
+    - m_Center: {x: 0, y: 0.5, z: 0}
+      m_Extent: {x: 0.95, y: 0.5, z: 0.95}
+  - Key: Lamp
+    Mesh: {fileID: 4300000, guid: dcfa081a918c9621e7cb62781dbcfd5c, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
+    - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
+    CastShadow: 1
+    Solids:
+    - m_Center: {x: 0, y: 1, z: 0}
+      m_Extent: {x: 0.15, y: 1, z: 0.15}
+  - Key: Board
+    Mesh: {fileID: 4300000, guid: 78f27ee0be5adad14d59d1dff8494d6f, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: 1f09afe12f102f1f194f154b5f85605f, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
+    CastShadow: 1
+    Solids:
+    - m_Center: {x: 0, y: 1, z: 0}
+      m_Extent: {x: 1.05, y: 1, z: 0.15}
+  - Key: Tent
+    Mesh: {fileID: 4300000, guid: 9424989a7d39c5f4cf8e5089c71e2e96, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
+    CastShadow: 1
+    Solids:
+    - m_Center: {x: 0, y: 1, z: 2}
+      m_Extent: {x: 3, y: 1, z: 0.25}
+    - m_Center: {x: -3, y: 0.5, z: 0.4}
+      m_Extent: {x: 0.25, y: 0.5, z: 1.6}
+    - m_Center: {x: 0, y: 0.4, z: 0.2}
+      m_Extent: {x: 1.1, y: 0.4, z: 0.5}
   - Key: Props
     Mesh: {fileID: 4300000, guid: ab54193c8de2cb7cf2cd8c207425a406, type: 2}
     Materials:
