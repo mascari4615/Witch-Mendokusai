@@ -1016,6 +1016,13 @@
     background-color: rgb(60, 28, 26);
 }
 
+/* 지금 쓸 수 없는 버튼 (월드에서의 세이브 초기화). 위험 색이 남으면 꺼진 줄 모름. 흐림은 Unity 의 :disabled 몫 */
+.wm-setting-btn:disabled {
+    background-color: rgba(0, 0, 0, 0);
+    color: rgb(160, 160, 168);
+    border-color: rgb(71, 71, 77);
+}
+
 .wm-setting-close {
     position: absolute;
     right: 36px;
