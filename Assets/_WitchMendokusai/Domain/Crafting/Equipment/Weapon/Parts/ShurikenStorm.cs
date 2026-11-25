@@ -16,6 +16,7 @@ namespace WitchMendokusai
 		[SerializeField] private GameObject bladePrefab;
 		[SerializeField, Tooltip("빠른 회전 카드의 표창 (재타격이 짧음)")] private GameObject fastBladePrefab;
 		[SerializeField] private ShadowCloneRunner cloneRunner;
+		[SerializeField] private ShurikenStormFx fx;
 		[SerializeField, Min(0)] private int baseCount = 4;
 		[SerializeField, Min(1)] private int maxCount = 12;
 		[SerializeField, Min(0), Tooltip("분신 하나가 도는 표창 수의 상한")] private int maxCountPerClone = 4;
@@ -31,6 +32,7 @@ namespace WitchMendokusai
 		[SerializeField, Min(0.1f)] private float scatterIntervalSeconds = 6f;
 		[SerializeField, Min(0f)] private float scatterDistance = 8f;
 		[SerializeField, Min(0f)] private float scatterOutSeconds = 0.3f;
+		[SerializeField, Min(0f), Tooltip("가장 멀리서 멈춰 달아오르는 길이")] private float scatterHoverSeconds = 0.2f;
 		[SerializeField, Min(0f)] private float scatterReturnSpeed = 18f;
 
 		[Header("Stat")]
@@ -44,6 +46,7 @@ namespace WitchMendokusai
 		private readonly List<Ring> rings = new();
 		private SkillContext context;
 		private bool fastBlades;
+		private bool hotBlades;
 		private float spin;
 		private float scatterElapsed;
 		private float nextScatterTime;
@@ -86,19 +89,50 @@ namespace WitchMendokusai
 			{
 				nextScatterTime = Time.time + scatterIntervalSeconds;
 				scatterElapsed = 0f;
+				fx.PlayLaunch(playerProvider.Current.transform.position);
 			}
 
 			int count = ShurikenStormRules.Count(baseCount, PlayerStat[countStat], 0, maxCount);
-			float ringRadius = ShurikenStormRules.ScatterRadius(scatterElapsed, Radius, scatterDistance, scatterOutSeconds, scatterReturnSpeed);
+			float ringRadius = ShurikenStormRules.ScatterRadius(scatterElapsed, Radius, scatterDistance, scatterOutSeconds, scatterReturnSpeed, scatterHoverSeconds);
+			bool hot = ShurikenStormRules.IsHovering(scatterElapsed, Radius, scatterDistance, scatterOutSeconds, scatterHoverSeconds);
+			bool outgoing = ShurikenStormRules.IsOutgoing(scatterElapsed, Radius, scatterDistance, scatterOutSeconds, scatterHoverSeconds);
+			fx.Begin();
 			UpdateRing(0, playerProvider.Current.transform.position, count, ringRadius, 100);
+			Heat(hot);
+			fx.Add(View(playerProvider.Current.transform.position, ringRadius, Radius, count, 100, hot, outgoing));
 			int cloneCount = PlayerStat[cloneStat] > 0 ? cloneRunner.CloneCount : 0;
 			for (int i = 0; i < cloneCount; i++)
 			{
 				bool present = cloneRunner.TryGetPosition(i, out Vector3 position);
-				UpdateRing(i + 1, position, present ? ShurikenStormRules.CloneCount(count, maxCountPerClone) : 0, cloneRadius, cloneRunner.SharePercent);
+				int perClone = present ? ShurikenStormRules.CloneCount(count, maxCountPerClone) : 0;
+				UpdateRing(i + 1, position, perClone, cloneRadius, cloneRunner.SharePercent);
+				fx.Add(View(position, cloneRadius, cloneRadius, perClone, cloneRunner.SharePercent, false, false));
 			}
 			for (int i = cloneCount + 1; i < rings.Count; i++)
 				Match(rings[i], 0);
+		}
+
+		private ShurikenStormFx.Ring View(Vector3 center, float ringRadius, float restRadius, int count, int percent, bool hot, bool outgoing) => new()
+		{
+			Center = center,
+			Radius = ringRadius,
+			RestRadius = restRadius,
+			Height = height,
+			Count = count,
+			Spin = spin,
+			Strength = percent / 100f,
+			Hot = hot,
+			Outgoing = outgoing,
+		};
+
+		// 본체의 표창만 흩어지므로 첫 고리만
+		private void Heat(bool hot)
+		{
+			if (hot == hotBlades)
+				return;
+			hotBlades = hot;
+			foreach (GameObject blade in rings[0].Blades)
+				fx.Heat(blade, hot);
 		}
 
 		private void UpdateRing(int index, Vector3 center, int count, float ringRadius, int percent)
@@ -126,6 +160,8 @@ namespace WitchMendokusai
 		{
 			while (ring.Blades.Count > count)
 			{
+				if (hotBlades)
+					fx.Heat(ring.Blades[^1], false);
 				ring.Blades[^1].SetActive(false);
 				ring.Blades.RemoveAt(ring.Blades.Count - 1);
 			}
@@ -143,11 +179,15 @@ namespace WitchMendokusai
 			{
 				foreach (GameObject blade in ring.Blades)
 				{
-					if (blade != null)
-						blade.SetActive(false);
+					if (blade == null)
+						continue;
+					if (hotBlades)
+						fx.Heat(blade, false);
+					blade.SetActive(false);
 				}
 				ring.Blades.Clear();
 			}
+			hotBlades = false;
 		}
 	}
 }

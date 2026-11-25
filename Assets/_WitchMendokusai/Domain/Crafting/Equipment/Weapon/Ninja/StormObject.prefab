@@ -450,7 +450,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 770287000473821741}
-  - component: {fileID: 1069052268906563787}
+  - component: {fileID: 247483022696510768}
+  - component: {fileID: 935955898745896725}
   m_Layer: 0
   m_Name: Storm
   m_TagString: Untagged
@@ -473,7 +474,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 720824874192197916}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1069052268906563787
+--- !u!114 &247483022696510768
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 904275570814465579}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb13928551614fb09753ffe73a5092fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.ShurikenStormFx
+  art: {fileID: 11400000, guid: 60d20066aaf24e5e99ed13c4624456ab, type: 2}
+  brushSheet: {fileID: 2800000, guid: 3acda624bbd84c00905c9c6c0eca9ddb, type: 3}
+  trailTexture: {fileID: 2800000, guid: 9b22bfdf71d24810bd7fb5a4f9fedd23, type: 3}
+  sparkTexture: {fileID: 2800000, guid: 5b6e6a17ff3245cfa6663c1771038b59, type: 3}
+  hotShader: {fileID: 4800000, guid: dcdcc633669a4b8bb3306419f998fd19, type: 3}
+--- !u!114 &935955898745896725
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -488,6 +506,8 @@ MonoBehaviour:
   bladePrefab: {fileID: 15803932082445317, guid: f4b5db00bb7c4314ad5e1c385764b894, type: 3}
   fastBladePrefab: {fileID: 863171421449493851, guid: bee8e37dd407419294bec00206a58cf6, type: 3}
   cloneRunner: {fileID: 116070467780095341}
+  fx: {fileID: 247483022696510768}
+  scatterHoverSeconds: 0.2
   baseCount: 4
   maxCount: 12
   maxCountPerClone: 4
