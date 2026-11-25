@@ -43,6 +43,7 @@ namespace WitchMendokusai
 			Follow = Center == ZoneCenter.Caster ? unitObject.transform : null,
 			Direction = Center == ZoneCenter.Caster ? target : Vector3.forward,
 			Radius = Bands[index].Outer,
+			Length = Bands[index].Outer,
 			InnerRadius = Bands[index].Inner,
 			ArcDegrees = ArcDegrees,
 			Seconds = WindupSeconds,

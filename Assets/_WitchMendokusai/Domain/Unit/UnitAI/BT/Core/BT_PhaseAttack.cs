@@ -50,7 +50,13 @@ namespace WitchMendokusai
 				Begin(attack.Phases[next].Entrance);
 			}
 			if (IsEntranceOver())
+			{
+				// 기절로 끊겼으면 전환을 다시
+				bool wasCut = behaviour is IAttackCycle { WasCut: true };
 				Interrupt();
+				if (wasCut)
+					Begin(attack.Phases[phaseIndex].Entrance);
+			}
 			if (behaviour == null)
 				Begin(attack.Phases[phaseIndex].Attack);
 			// 공격 도중 반격으로 죽으면 Interrupt 가 behaviour 를 비움

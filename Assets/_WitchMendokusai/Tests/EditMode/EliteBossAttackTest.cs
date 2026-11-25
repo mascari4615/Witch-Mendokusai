@@ -247,9 +247,41 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Only_the_real_spot_is_safe()
+		{
+			int checkedCount = 0;
+			foreach (string guid in AssetDatabase.FindAssets("t:HideMonsterAttack", new[] { MONSTER_FOLDER }))
+			{
+				HideMonsterAttack hide = AssetDatabase.LoadAssetAtPath<HideMonsterAttack>(AssetDatabase.GUIDToAssetPath(guid));
+				if (hide.HasSafeSpot == false)
+					continue;
+				List<Vector3> spots = new();
+				HideMonsterAttack.Arrange(Vector3.one, hide.Count, hide.Distance, 17f, spots);
+				Assert.AreEqual(hide.Count, spots.Count);
+				Assert.IsTrue(HideMonsterAttack.Hits(spots, 0, hide.Radius, Vector3.one, 0f), hide.name + " 가운데");
+				Assert.IsFalse(HideMonsterAttack.Hits(spots, 0, hide.Radius, spots[0], 0.3f), hide.name + " 진짜 자리");
+				for (int i = 1; i < spots.Count; i++)
+					Assert.IsTrue(HideMonsterAttack.Hits(spots, 0, hide.Radius, spots[i], 0f), hide.name + " 가짜 자리 " + i);
+				checkedCount++;
+			}
+			Assert.Greater(checkedCount, 0);
+		}
+
+		[Test]
+		public void Dive_strikes_where_the_shadow_stopped()
+		{
+			List<Vector3> spots = new() { Vector3.zero };
+			HideMonsterAttack.Arrange(new Vector3(3f, 0f, 0f), 1, 9f, 50f, spots);
+			Assert.AreEqual(1, spots.Count, "앞 자리를 비움");
+			Assert.AreEqual(new Vector3(3f, 0f, 0f), spots[0]);
+			Assert.IsTrue(HideMonsterAttack.Hits(spots, -1, 2f, new Vector3(5.2f, 4f, 0f), 0.3f), "몸이 걸침, 높이는 무시");
+			Assert.IsFalse(HideMonsterAttack.Hits(spots, -1, 2f, new Vector3(5.4f, 0f, 0f), 0.3f));
+		}
+
+		[Test]
 		public void Remade_bosses_have_an_entrance()
 		{
-			foreach (int id in new[] { 36, 37, 38 })
+			foreach (int id in new[] { 36, 37, 38, 39 })
 			{
 				PhaseMonsterAttack phase = (PhaseMonsterAttack)Find(id).Attack;
 				Assert.IsNull(phase.Phases[0].Entrance, "첫 단계는 등장 멈춤: " + id);

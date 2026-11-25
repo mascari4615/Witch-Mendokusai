@@ -12,6 +12,8 @@ namespace WitchMendokusai
 			Windup = 1,
 			Strike = 2,
 			Rest = 3,
+			// 떠 있음 (Hold). 크기는 그대로
+			Air = 4,
 		}
 
 		// 공격이 끝나고 이만큼 안에 다음 준비가 없으면 원래대로 (초). 행동 틱 (0.1초) 보다 김
@@ -28,6 +30,8 @@ namespace WitchMendokusai
 		private float seconds;
 		private float lastStretch = 1f;
 		private bool restsNext;
+		// 그림을 땅에서 이만큼 위로 (m)
+		private float lift;
 		private float releaseTime = float.PositiveInfinity;
 
 		public static MonsterPoseDriver Of(UnitObject unitObject)
@@ -50,6 +54,19 @@ namespace WitchMendokusai
 			SetSprite(pose.Windup);
 		}
 
+		// 공중에 뜬 몸. 그림과 높이를 매 프레임 밖에서 정함
+		public void Hold(AttackPose newPose, Sprite sprite, float newLift)
+		{
+			Capture();
+			pose = newPose;
+			restsNext = false;
+			releaseTime = float.PositiveInfinity;
+			lift = newLift;
+			if (stage != Stage.Air)
+				Enter(Stage.Air, 1f);
+			SetSprite(sprite);
+		}
+
 		// 단계가 바뀌어 원래 그림 자체가 바뀜
 		public void SetBase(Sprite sprite)
 		{
@@ -63,6 +80,7 @@ namespace WitchMendokusai
 		{
 			if (stage == Stage.None)
 				return;
+			lift = 0f;
 			Enter(Stage.Strike, pose.StrikeSeconds);
 			SetSprite(pose.Strike);
 		}
@@ -72,7 +90,7 @@ namespace WitchMendokusai
 		{
 			if (stage == Stage.Strike)
 				restsNext = true;
-			else if (stage == Stage.Windup)
+			else if (stage is Stage.Windup or Stage.Air)
 				BeginRest();
 		}
 
@@ -159,6 +177,8 @@ namespace WitchMendokusai
 			target.localScale = new Vector3(baseScale.x / Mathf.Sqrt(lastStretch), baseScale.y * lastStretch, baseScale.z);
 			// 떨림 폭은 월드 단위. 보스 몸은 배율이 커서 나눔
 			target.localPosition = basePosition + Vector3.right * (shake / target.parent.lossyScale.x);
+			if (stage == Stage.Air)
+				target.position += Vector3.up * lift;
 		}
 
 		private float StrikeStretch(float time) => 1f + pose.Stretch * Mathf.Exp(-time * pose.WobbleDamping) * Mathf.Cos(time * pose.WobbleSpeed);

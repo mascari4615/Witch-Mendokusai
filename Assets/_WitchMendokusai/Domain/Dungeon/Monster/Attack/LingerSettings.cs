@@ -15,9 +15,10 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("닿아 있는 동안 피해를 다시 시도하는 간격 (초). 회피에 성공해도 이만큼 쉼"), Min(0.1f)] public float TouchInterval { get; private set; } = 0.6f;
 		[field: SerializeField, Tooltip("닿아서 피해가 들어간 순간 거는 것")] public MonsterHitEffect HitEffect { get; private set; } = new();
 
-		[field: Header("터짐 (DashMonsterAttack.CracksLinger)")]
+		[field: Header("터짐 (돌진이 밟거나 끌기가 빨아들임, CracksLinger)")]
 		[field: SerializeField, Tooltip("터지는 반지름 (m). 0 이면 안 터짐"), Min(0f)] public float BurstRadius { get; private set; }
 		[field: SerializeField, Min(0)] public int BurstDamage { get; private set; }
+		[field: SerializeField, Tooltip("터져서 피해가 들어간 순간 거는 것")] public MonsterHitEffect BurstHitEffect { get; private set; } = new();
 		[field: SerializeField] public CombatFx BurstTelegraph { get; private set; }
 		[field: SerializeField] public CombatFx BurstFx { get; private set; }
 
@@ -48,6 +49,7 @@ namespace WitchMendokusai
 			if (BurstRadius > 0f && (BurstDamage <= 0 || BurstTelegraph == null || BurstFx == null))
 				errors.Add($"{ownerName}: 터지는 물체는 피해, 예고, 이펙트가 모두 있어야 함");
 			HitEffect.Validate(ownerName, errors);
+			BurstHitEffect.Validate(ownerName, errors);
 		}
 	}
 }

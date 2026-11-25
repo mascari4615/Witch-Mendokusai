@@ -17,8 +17,12 @@ namespace WitchMendokusai
 
 		public int CompletedCount { get; private set; }
 		public bool IsAttacking { get; private set; }
+		public bool WasCut { get; private set; }
 
 		protected abstract float StanceSeconds { get; }
+
+		// 자세를 시작할 때 때리는 그림으로. 끝에 때리는 종류는 false
+		protected virtual bool StrikesAtBegin => true;
 
 		protected BT_StancedAttack(UnitObject unitObject, PlayerProvider playerProvider, MonsterAttack attack) : base(unitObject)
 		{
@@ -60,6 +64,7 @@ namespace WitchMendokusai
 		{
 			Interrupt();
 			IsAttacking = true;
+			WasCut = false;
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
 			phaseEndTime = Time.time + attack.WindupSeconds;
 			isOpen = true;
@@ -84,7 +89,7 @@ namespace WitchMendokusai
 			phaseEndTime = Time.time + (isOpen ? StanceSeconds : 0f);
 			if (isOpen)
 			{
-				if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				if (StrikesAtBegin && unitObject.TryGetComponent(out MonsterPoseDriver pose))
 					pose.Strike();
 				OnStanceBegin();
 			}
@@ -128,6 +133,7 @@ namespace WitchMendokusai
 			if (isOpen == false)
 				return;
 			isOpen = false;
+			WasCut = interrupted;
 			OnStanceEnd(interrupted);
 		}
 

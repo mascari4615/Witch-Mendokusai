@@ -46,19 +46,46 @@ namespace WitchMendokusai
 		public void Add(UnitObject source, LingerSettings settings, Vector3 position, FxHold hold) =>
 			pieces.Add(new Piece { Source = source, Settings = settings, Position = position, Hold = hold });
 
+		// 주인이 켜진 채 다른 데로 옮겨짐 (재배치). 남긴 것을 모두 식힘
+		public static void Abandon(UnitObject source)
+		{
+			if (instance == null)
+				return;
+			foreach (Piece piece in instance.pieces)
+			{
+				if (piece.Source != source)
+					continue;
+				Uncrack(piece);
+				piece.Hold.Cancel(Time.time);
+			}
+		}
+
 		// source 가 남긴 것 중 길 (source 앞 띠) 위의 것에 금을 냄. 지나가는 순간 터짐. 돌려받은 함수로 되돌림
 		public Action Crack(UnitObject source, Vector3 direction, float length, float width, float startTime, float speed)
 		{
 			Vector3 origin = source.transform.position;
+			return CrackWhere(source,
+				piece => LineMonsterAttack.IsInStrip(origin, direction, length, width, piece.Position, piece.Settings.Radius),
+				piece => startTime + Mathf.Max(0f, Vector3.Dot(piece.Position - origin, direction)) / speed);
+		}
+
+		// source 둘레에 남긴 것에 금을 냄. 가까운 것부터 speed 로 퍼지며 터짐. 돌려받은 함수로 되돌림
+		public Action CrackAround(UnitObject source, float radius, float startTime, float speed)
+		{
+			Vector3 origin = source.transform.position;
+			return CrackWhere(source,
+				piece => SlimeKingPatternMath.IsWithin(origin, piece.Position, radius),
+				piece => startTime + Vector3.Distance(origin, piece.Position) / speed);
+		}
+
+		private Action CrackWhere(UnitObject source, Func<Piece, bool> includes, Func<Piece, float> burstTimeOf)
+		{
 			List<Piece> cracked = new();
 			foreach (Piece piece in pieces)
 			{
-				if (piece.Source != source || CanCrack(piece) == false)
+				if (piece.Source != source || CanCrack(piece) == false || includes(piece) == false)
 					continue;
-				if (LineMonsterAttack.IsInStrip(origin, direction, length, width, piece.Position, piece.Settings.Radius) == false)
-					continue;
-				Vector3 offset = piece.Position - origin;
-				float burstTime = startTime + Mathf.Max(0f, Vector3.Dot(offset, direction)) / speed;
+				float burstTime = burstTimeOf(piece);
 				Action stop = piece.Settings.BurstTelegraph.Play(new CombatFxContext
 				{
 					Position = piece.Position,
@@ -143,7 +170,7 @@ namespace WitchMendokusai
 			piece.Hold.EndTime = Time.time;
 			piece.Settings.BurstFx.Play(new CombatFxContext { Position = piece.Position, Origin = piece.Position, Radius = piece.Settings.BurstRadius });
 			if (Touches(piece, player, piece.Settings.BurstRadius))
-				piece.Settings.HitEffect.Strike(piece.Source, piece.Position, player, MonsterAttack.MakeDamage(piece.Source, piece.Settings.BurstDamage));
+				piece.Settings.BurstHitEffect.Strike(piece.Source, piece.Position, player, MonsterAttack.MakeDamage(piece.Source, piece.Settings.BurstDamage));
 		}
 
 		private static bool Touches(Piece piece, PlayerObject player, float radius) =>

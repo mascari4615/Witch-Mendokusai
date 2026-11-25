@@ -60,6 +60,7 @@ namespace WitchMendokusai
 		{
 			if (activeAttack != null)
 				activeAttack.Interrupt(attackBehaviour);
+			LingerField.Abandon(UnitObject);
 			activeAttack = null;
 			attackBehaviour = null;
 		}

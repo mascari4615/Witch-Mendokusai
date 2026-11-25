@@ -15,6 +15,8 @@ namespace WitchMendokusai
 
 		public new Monster UnitData => base.UnitData as Monster;
 		public bool IsElite => eliteProfile != null;
+		// 숨어서 안 맞고 안 보이는 중 (MonsterHideaway)
+		public bool IsHidden { get; private set; }
 
 		public override float HitInvincibleSeconds
 		{
@@ -39,6 +41,8 @@ namespace WitchMendokusai
 		private HpBarView hpBarView;
 		private Animator spriteAnimator;
 		private MonsterBodyFx bodyFx;
+		// 숨기 전에 체력 바가 켜져 있었음
+		private bool hidHpBar;
 
 		private HpBarView HpBarView
 		{
@@ -127,6 +131,9 @@ namespace WitchMendokusai
 		// 방어력. 상태이상 틱 (몸 안 피해) 과 강제 피해 (화면 청소의 즉사) 는 안 줄임
 		public override void ReceiveDamage(DamageInfo damageInfo)
 		{
+			// 강제 피해 (화면 청소) 만 들어감
+			if (IsHidden && damageInfo.ignoreInvincible == false)
+				return;
 			if (damageInfo.type != DamageType.StatusTick && damageInfo.ignoreInvincible == false)
 				damageInfo.damage = ArmorRules.Reduce(damageInfo.damage, UnitStat[UnitStatType.ARMOR]);
 			base.ReceiveDamage(damageInfo);
@@ -144,6 +151,24 @@ namespace WitchMendokusai
 			if (bodyFx == null)
 				bodyFx = gameObject.AddComponent<MonsterBodyFx>();
 			bodyFx.Show(UnitData.BodyFx);
+		}
+
+		// 몸 효과와 체력 바까지 감춤. 그림은 떠오르고 떨어지는 동안 보여야 해서 부르는 쪽이 정함
+		public void SetHidden(bool isHidden)
+		{
+			if (IsHidden == isHidden)
+				return;
+			IsHidden = isHidden;
+			if (isHidden)
+			{
+				hidHpBar = hpBar.gameObject.activeSelf;
+				hpBar.gameObject.SetActive(false);
+				if (bodyFx != null)
+					bodyFx.Hide();
+				return;
+			}
+			hpBar.gameObject.SetActive(hidHpBar);
+			ApplyBodyFx();
 		}
 
 		private void ApplyThreat()
@@ -197,6 +222,7 @@ namespace WitchMendokusai
 			GroundGenerator.UnregisterAnchor(UnitMovement);
 			ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
 			StopAllCoroutines();
+			IsHidden = false;
 			hpBar.gameObject.SetActive(false);
 			ClearElite();
 			threat = DungeonThreatEffect.Identity;

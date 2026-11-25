@@ -25,6 +25,7 @@ namespace WitchMendokusai
 
 		public int CompletedCount { get; private set; }
 		public bool IsAttacking { get; private set; }
+		public bool WasCut { get; private set; }
 
 		public BT_WindupAttack(UnitObject unitObject, PlayerProvider playerProvider, WindupMonsterAttack attack) : base(unitObject)
 		{
@@ -79,6 +80,7 @@ namespace WitchMendokusai
 		{
 			Interrupt();
 			IsAttacking = true;
+			WasCut = false;
 			PlayerObject player = playerProvider.CurrentObject;
 			targets.Clear();
 			attack.ResolveTargets(unitObject, player.transform.position, SurvivalThreatRules.MoveVelocity(player.UnitMovement), targets);
@@ -123,6 +125,7 @@ namespace WitchMendokusai
 		{
 			if (unitObject.IsActionSuspended)
 			{
+				WasCut = true;
 				ClearTelegraphs();
 				return true;
 			}

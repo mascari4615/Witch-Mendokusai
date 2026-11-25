@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22e4a06ccdbe419c9a884f3990bc8008, type: 3}
+  m_Name: MA_Band_GuideLanternHalo
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 5
+  <WindupSeconds>k__BackingField: 1.4
+  <RecoverySeconds>k__BackingField: 0.5
+  <Cooldown>k__BackingField: 0
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 2
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 21300000, guid: 9c7543b3154d46e19a5a210867999f93, type: 3}
+    <Strike>k__BackingField: {fileID: 21300000, guid: 9c7543b3154d46e19a5a210867999f93, type: 3}
+    <Rest>k__BackingField: {fileID: 21300000, guid: 9c7543b3154d46e19a5a210867999f93, type: 3}
+    <Crouch>k__BackingField: -0.14
+    <Stretch>k__BackingField: 0.25
+    <StrikeSeconds>k__BackingField: 0.4
+    <StrikeLeadSeconds>k__BackingField: 0
+    <Tremble>k__BackingField: 0.05
+    <Breath>k__BackingField: 0
+  <WindupFx>k__BackingField: {fileID: 0}
+  <StrikeFx>k__BackingField: {fileID: 11400000, guid: da6d3eee56ae4d2299afbe8ae298cb98, type: 2}
+  <WindupFxOnce>k__BackingField: 0
+  <TelegraphInTurn>k__BackingField: 0
+  <Linger>k__BackingField:
+    <Seconds>k__BackingField: 0
+    <CoolSeconds>k__BackingField: 0.4
+    <Radius>k__BackingField: 0.5
+    <Damage>k__BackingField: 0
+    <HitEffect>k__BackingField:
+      <AppliesStatus>k__BackingField: 0
+      <Status>k__BackingField: 3
+      <StatusSeconds>k__BackingField: 0
+      <SlowRatio>k__BackingField: 0
+      <PushSpeed>k__BackingField: 0
+      <PushSeconds>k__BackingField: 0
+    <BurstRadius>k__BackingField: 0
+    <BurstDamage>k__BackingField: 0
+    <BurstTelegraph>k__BackingField: {fileID: 0}
+    <BurstFx>k__BackingField: {fileID: 0}
+  <Center>k__BackingField: 1
+  <ArcDegrees>k__BackingField: 360
+  <Bands>k__BackingField:
+  - <Inner>k__BackingField: 1.9
+    <Outer>k__BackingField: 5.4
+    <Delay>k__BackingField: 0
+  <Damage>k__BackingField: 4
+  <HitEffect>k__BackingField:
+    <AppliesStatus>k__BackingField: 0
+    <Status>k__BackingField: 3
+    <StatusSeconds>k__BackingField: 0
+    <SlowRatio>k__BackingField: 0
+    <PushSpeed>k__BackingField: 5
+    <PushSeconds>k__BackingField: 0.2

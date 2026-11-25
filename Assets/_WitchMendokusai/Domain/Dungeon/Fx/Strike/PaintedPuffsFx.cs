@@ -34,6 +34,8 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("덩이마다 가는 거리를 흔드는 비율 (최소, 최대)")] private Vector2 travelRange = new(0.7f, 1.05f);
 		[SerializeField, Tooltip("옆으로 흩어짐 (m)"), Min(0f)] private float spread;
 
+		[SerializeField, Tooltip("둘레 (Radius) 에서 가운데로 빨려 듦. 나오는 데 Seconds 동안")] private bool gathers;
+
 		[SerializeField, Tooltip("길 (Direction, Length) 위에 고르게 놓고 emitSeconds (0 이면 Seconds) 동안 차례로")] private bool alongPath;
 		[SerializeField, Tooltip("바닥에 눕힘. halfSize 는 Radius 의 배")] private bool isFlat;
 		[SerializeField, Tooltip("눕힌 그림을 Direction 에서 돌리는 각도 (도)")] private float flatTurn;
@@ -96,7 +98,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		private float EmitSeconds(CombatFxContext context) => alongPath && emitSeconds <= 0f ? context.Seconds : emitSeconds;
+		private float EmitSeconds(CombatFxContext context) => (alongPath || gathers) && emitSeconds <= 0f ? context.Seconds : emitSeconds;
 
 		private void DrawPuffs(FxQuadBatch batch, Puff[] puffs, float time, CombatFxContext context, Transform view)
 		{
@@ -117,7 +119,8 @@ namespace WitchMendokusai
 				float progress = (time - puff.Start) / seconds;
 				if (progress < 0f || progress >= 1f)
 					continue;
-				float eased = 1f - (1f - progress) * (1f - progress);
+				// 빨려 드는 것은 점점 빨리, 나가는 것은 점점 느리게
+				float eased = gathers ? progress * progress : 1f - (1f - progress) * (1f - progress);
 				float half = Mathf.Lerp(halfSize.x, halfSize.y, eased) * puff.Scale * unit;
 				Rect cell = FxQuadBatch.Cell(frames.x + Mathf.Min(span - 1, (int)(progress * span)), columns, rows);
 				FxQuadLook look = FxQuadLook.Of(color, cover, Mathf.Clamp01((progress - 0.75f) * 3f), puff.Seed);
@@ -153,6 +156,10 @@ namespace WitchMendokusai
 				RemainsWorld.Current.Stain(context.Position, stainRadius, stainColor);
 		}
 
+		// 부채 (ArcDegrees) 안에서 흩어지는 각도
+		private static float FanAngle(CombatFxContext context) =>
+			context.ArcDegrees > 0f && context.ArcDegrees < 360f ? Random.Range(-0.5f, 0.5f) * context.ArcDegrees : 0f;
+
 		private Puff[] MakeRingPuffs(CombatFxContext context)
 		{
 			Puff[] puffs = new Puff[ringPuffCount];
@@ -167,8 +174,30 @@ namespace WitchMendokusai
 			return puffs;
 		}
 
+		private Puff[] MakeGatherPuffs(CombatFxContext context)
+		{
+			Puff[] puffs = new Puff[count];
+			// 마지막 덩이가 Seconds 안에 닿게
+			float emit = Mathf.Max(0f, EmitSeconds(context) - seconds);
+			for (int i = 0; i < count; i++)
+			{
+				Vector3 side = Quaternion.Euler(0f, Random.value * 360f, 0f) * Vector3.forward;
+				puffs[i] = new Puff
+				{
+					Start = emit * i / Mathf.Max(1, count - 1),
+					From = context.Position + side * (context.Radius * Random.Range(travelRange.x, travelRange.y)) + Vector3.up * lift,
+					To = context.Position + side * 0.3f + Vector3.up * originLift,
+					Seed = Random.value * 10f,
+					Scale = Random.Range(0.75f, 1.1f),
+				};
+			}
+			return puffs;
+		}
+
 		private Puff[] MakePuffs(CombatFxContext context)
 		{
+			if (gathers)
+				return MakeGatherPuffs(context);
 			if (context.InnerRadius > 0f)
 				return MakeRingPuffs(context);
 			Puff[] puffs = new Puff[count];
@@ -181,7 +210,7 @@ namespace WitchMendokusai
 				if (alongPath)
 					to += direction * (context.Length * (travelRatio > 0f ? travelRatio : 1f) * i / Mathf.Max(1, count - 1));
 				else if (isStream)
-					to += direction * (context.Length * travelRatio * Random.Range(travelRange.x, travelRange.y));
+					to += Quaternion.Euler(0f, FanAngle(context), 0f) * direction * (context.Length * travelRatio * Random.Range(travelRange.x, travelRange.y));
 				puffs[i] = new Puff
 				{
 					Start = count > 1 ? EmitSeconds(context) * i / (count - 1) : 0f,

@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d5e00179b664f1097ae6335a30a1307, type: 3}
+  m_Name: MA_Hide_GuideLantern
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 8
+  <WindupSeconds>k__BackingField: 0.85
+  <RecoverySeconds>k__BackingField: 2.8
+  <Cooldown>k__BackingField: 0
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 6ce4d759c4cb4e129b9f3c0c46223761, type: 2}
+  <RecoveryFx>k__BackingField: {fileID: 11400000, guid: e653203c5fcd4dbd9743fbc7093afa91, type: 2}
+  <RecoveryFxRadius>k__BackingField: 1.4
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 21300000, guid: a8540500a999460b9c9610145c28c771, type: 3}
+    <Strike>k__BackingField: {fileID: 21300000, guid: d637904809244f3395b224efb96b0acb, type: 3}
+    <Rest>k__BackingField: {fileID: 21300000, guid: 53d687b1ad354542b28320c21e6dd856, type: 3}
+    <Crouch>k__BackingField: 0.18
+    <Stretch>k__BackingField: 0.3
+    <StrikeSeconds>k__BackingField: 0.5
+    <StrikeLeadSeconds>k__BackingField: 0
+    <Tremble>k__BackingField: 0.06
+    <Breath>k__BackingField: 0.04
+  <WindupFx>k__BackingField: {fileID: 11400000, guid: 57832d4740ff4e8e9176e579f4195a8f, type: 2}
+  <StrikeFx>k__BackingField: {fileID: 11400000, guid: da3d057cb4a849039b04f96ceb6f3e57, type: 2}
+  <RiseHeight>k__BackingField: 0
+  <RiseSeconds>k__BackingField: 0.45
+  <FallSeconds>k__BackingField: 0.26
+  <LandLeadSeconds>k__BackingField: 0.03
+  <RiseSprite>k__BackingField: {fileID: 0}
+  <FallSprite>k__BackingField: {fileID: 0}
+  <LeaveFx>k__BackingField: {fileID: 11400000, guid: fa97a841e3e54ec9bc99b07bd64f307a, type: 2}
+  <LeaveFxRadius>k__BackingField: 1.4
+  <ShadowFx>k__BackingField: {fileID: 0}
+  <ChaseSeconds>k__BackingField: 0
+  <ChaseSpeed>k__BackingField: 3.3
+  <LockSeconds>k__BackingField: 2.3
+  <Count>k__BackingField: 5
+  <Distance>k__BackingField: 2.9
+  <HasSafeSpot>k__BackingField: 1
+  <EmergeOffset>k__BackingField: 1.1
+  <Radius>k__BackingField: 2.9
+  <Damage>k__BackingField: 5
+  <HitEffect>k__BackingField:
+    <AppliesStatus>k__BackingField: 0
+    <Status>k__BackingField: 3
+    <StatusSeconds>k__BackingField: 0
+    <SlowRatio>k__BackingField: 0
+    <PushSpeed>k__BackingField: 5
+    <PushSeconds>k__BackingField: 0.2
+  <SafeFx>k__BackingField: {fileID: 11400000, guid: e3fa01338d794bd1b9f23c1c0ac5cf67, type: 2}
+  <SafeMargin>k__BackingField: 0.5
