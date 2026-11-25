@@ -30,33 +30,36 @@ namespace WitchMendokusai
 
 		[Header("색")]
 		[SerializeField, ColorUsage(false, true)] private Color coreColor = new(1.02f, 0.99f, 0.86f);
-		[SerializeField, ColorUsage(false, true)] private Color bodyColor = new(0.95f, 0.74f, 0.34f);
-		[SerializeField, ColorUsage(false, true)] private Color tipColor = new(0.62f, 0.46f, 0.2f);
+		[SerializeField, ColorUsage(false, true)] private Color bodyColor = new(0.9f, 0.88f, 0.84f);
+		[SerializeField, ColorUsage(false, true)] private Color tipColor = new(0.5f, 0.56f, 0.78f);
 		[SerializeField, Min(8f)] private float texelsPerUnit = 32f;
 
 		[Header("검기")]
-		[SerializeField, Min(0.1f)] private float crescentRadius = 0.95f;
+		[SerializeField, Min(0.1f)] private float crescentRadius = 0.78f;
 		[SerializeField, Range(20f, 300f)] private float crescentDegrees = 140f;
 		[SerializeField, Range(0.05f, 1f), Tooltip("가운데 두께 (반지름 1 당)")] private float crescentWidth = 0.3f;
 		[SerializeField, Min(0f)] private float height = 0.7f;
 		[SerializeField, Min(0f), Tooltip("나오는 자리 (인물 앞)")] private float startDistance = 0.4f;
 		[SerializeField, Min(0.02f), Tooltip("끝까지 나는 길이 (초)")] private float flySeconds = 0.22f;
 		[SerializeField, Min(0.02f)] private float fadeSeconds = 0.2f;
-		[SerializeField, Min(0.1f), Tooltip("뒤따르는 빛줄의 길이")] private float trailLength = 2.2f;
+		[SerializeField, Min(0f), Tooltip("뒤따르는 빛줄의 길이. 0 이면 없음")] private float trailLength = 0f;
 		[SerializeField, Min(0.01f)] private float trailWidth = 0.22f;
 		[SerializeField, Min(0), Tooltip("뒤따르는 잔상 수")] private int echoes = 2;
 		[SerializeField, Min(0f), Tooltip("잔상 사이 거리")] private float echoGap = 0.62f;
 		[SerializeField, Range(0f, 1f), Tooltip("잔상의 세기. 겹쳐도 앞 초승달과 갈리게")] private float echoAlpha = 0.45f;
+		[SerializeField, Range(-1f, 0f), Tooltip("잔상을 어둡게 하는 정도")] private float echoShade = -0.3f;
+		[SerializeField, Range(0f, 1f), Tooltip("나는 동안 잔상이 부서지는 정도")] private float echoBreak = 0.35f;
 		[SerializeField, Range(0f, 1f), Tooltip("잔상마다 줄어드는 비율")] private float echoShrink = 0.16f;
 		[SerializeField, Range(0f, 1f), Tooltip("초승달 판을 카메라 쪽으로 세우는 정도. 0 이면 바닥에 누움")] private float stand = 0.75f;
-		[SerializeField, Range(0f, 1f), Tooltip("나는 동안 커지는 정도")] private float grow = 0.15f;
+		[SerializeField, Range(0f, 1f), Tooltip("나는 동안 커지는 정도")] private float grow = 0.1f;
 		[SerializeField, Min(0.01f), Tooltip("나온 번쩍임이 절반이 되는 길이")] private float flashHalfLife = 0.06f;
 
 		[Header("끝 폭발")]
-		[SerializeField, Min(0f)] private float burstSize = 2f;
+		[SerializeField, Min(0f)] private float burstSize = 1.5f;
 		[SerializeField, Min(1)] private int burstRays = 8;
 		[SerializeField, Range(0.02f, 1f)] private float rayWidth = 0.14f;
-		[SerializeField, Min(0.02f)] private float burstSeconds = 0.26f;
+		[SerializeField, Min(0.02f)] private float burstSeconds = 0.2f;
+		[SerializeField, Range(0f, 1f), Tooltip("광선 길이가 흩어지는 정도")] private float burstJitter = 0.45f;
 
 		[Header("날개")]
 		[SerializeField, Min(1)] private int feathersPerSide = 7;
@@ -66,6 +69,7 @@ namespace WitchMendokusai
 		[SerializeField, Range(0f, 1f), Tooltip("날개 판을 카메라 쪽으로 눕히는 정도")] private float faceCamera = 0.55f;
 		[SerializeField, Min(0.02f)] private float wingHold = 0.45f;
 		[SerializeField, Min(0.02f)] private float wingBreak = 0.4f;
+		[SerializeField, Range(0f, 1f), Tooltip("날개가 나오는 순간의 번쩍임")] private float wingFlash = 0.45f;
 
 		private sealed class Wave
 		{
@@ -86,6 +90,7 @@ namespace WitchMendokusai
 		private sealed class Burst
 		{
 			public Transform[] Rays;
+			public float[] Lengths;
 			public Material Material;
 			public float StartTime;
 			public bool Alive;
@@ -114,17 +119,19 @@ namespace WitchMendokusai
 			{
 				wave = new Wave { Material = Energy(QUEUE), EchoMaterial = Energy(QUEUE - 1) };
 				wave.EchoMaterial.SetFloat(ALPHA_ID, echoAlpha);
-				wave.EchoMaterial.SetFloat(SHADE_ID, -0.3f);
+				wave.EchoMaterial.SetFloat(SHADE_ID, echoShade);
 				wave.Crescent = UltimateFxStage.CreateMeshObject("SwordCrescent", root, crescentMesh, wave.Material).transform;
 				wave.Trail = UltimateFxStage.CreateMeshObject("SwordTrail", root, sheathMesh, wave.Material).transform;
 				wave.Echoes = new Transform[echoes];
 				for (int i = 0; i < echoes; i++)
 					wave.Echoes[i] = UltimateFxStage.CreateMeshObject("SwordEcho", root, crescentMesh, wave.EchoMaterial).transform;
-				Vector4 texels = new(Mathf.Round(crescentRadius * 3f * texelsPerUnit), Mathf.Round(crescentRadius * crescentWidth * texelsPerUnit), 0f, 0f);
-				wave.Material.SetVector(TEXELS_ID, texels);
-				wave.EchoMaterial.SetVector(TEXELS_ID, texels);
 				waves.Add(wave);
 			}
+			// 크기 강화로 커져도 텍셀 밀도는 같게
+			float worldRadius = crescentRadius * width;
+			Vector4 texels = new(Mathf.Round(worldRadius * 3f * texelsPerUnit), Mathf.Max(2f, Mathf.Round(worldRadius * crescentWidth * texelsPerUnit)), 0f, 0f);
+			wave.Material.SetVector(TEXELS_ID, texels);
+			wave.EchoMaterial.SetVector(TEXELS_ID, texels);
 			wave.Origin = origin + Vector3.up * height;
 			wave.Direction = direction.normalized;
 			wave.Length = length;
@@ -168,8 +175,13 @@ namespace WitchMendokusai
 
 		private void LateUpdate()
 		{
+			if (root == null)
+				return;
 			viewCamera = Camera.main;
-			// 씬이 바뀌는 사이에는 카메라가 없음. 그 프레임은 그리지 않음
+			// 무기 오브젝트는 베기마다 자리를 옮김. 그림은 월드 자리라 뿌리를 원점에 되돌림
+			root.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+			// 씬이 바뀌는 사이에는 카메라가 없음. 그동안 감춤
+			root.gameObject.SetActive(viewCamera != null);
 			if (viewCamera == null)
 				return;
 			foreach (Wave wave in waves)
@@ -222,10 +234,10 @@ namespace WitchMendokusai
 			wave.Trail.SetPositionAndRotation(head - wave.Direction * (size * 0.2f), Quaternion.FromToRotation(Vector3.up, -wave.Direction));
 			wave.Trail.localScale = new Vector3(trailWidth * wave.Width, Mathf.Max(0.01f, trail), trailWidth * wave.Width);
 			wave.Material.SetFloat(DISSOLVE_ID, fade);
-			wave.EchoMaterial.SetFloat(DISSOLVE_ID, Mathf.Max(fade, 0.35f * fly));
+			wave.EchoMaterial.SetFloat(DISSOLVE_ID, Mathf.Max(fade, echoBreak * fly));
 			wave.Material.SetFloat(FLASH_ID, Mathf.Pow(0.5f, age / flashHalfLife) * 0.8f);
 			wave.Crescent.gameObject.SetActive(true);
-			wave.Trail.gameObject.SetActive(true);
+			wave.Trail.gameObject.SetActive(trailLength > 0f);
 		}
 
 		private void PlayBurst(Vector3 position)
@@ -233,7 +245,7 @@ namespace WitchMendokusai
 			Burst burst = bursts.Find(candidate => candidate.Alive == false);
 			if (burst == null)
 			{
-				burst = new Burst { Material = Energy(QUEUE + 1), Rays = new Transform[burstRays] };
+				burst = new Burst { Material = Energy(QUEUE + 1), Rays = new Transform[burstRays], Lengths = new float[burstRays] };
 				burst.Material.SetFloat(SHAPE_ID, GLOW_SHAPE);
 				burst.Material.SetVector(TEXELS_ID, new Vector4(Mathf.Round(burstSize * texelsPerUnit), 6f, 0f, 0f));
 				for (int i = 0; i < burstRays; i++)
@@ -241,9 +253,11 @@ namespace WitchMendokusai
 				bursts.Add(burst);
 			}
 			Vector3 facing = -viewCamera.transform.forward;
+			float turn = UnityEngine.Random.Range(0f, 360f);
 			for (int i = 0; i < burst.Rays.Length; i++)
 			{
-				Vector3 direction = Quaternion.AngleAxis(360f * i / burst.Rays.Length, facing) * viewCamera.transform.up;
+				burst.Lengths[i] = (i % 2 == 0 ? 1f : 0.5f) * (1f - burstJitter * UnityEngine.Random.value);
+				Vector3 direction = Quaternion.AngleAxis(turn + 360f * i / burst.Rays.Length, facing) * viewCamera.transform.up;
 				burst.Rays[i].SetPositionAndRotation(position + facing * 0.1f, Quaternion.LookRotation(-facing, direction));
 				burst.Rays[i].gameObject.SetActive(true);
 			}
@@ -264,7 +278,7 @@ namespace WitchMendokusai
 			burst.Material.SetFloat(FLASH_ID, 1f - progress);
 			for (int i = 0; i < burst.Rays.Length; i++)
 			{
-				float length = burstSize * (i % 2 == 0 ? 1f : 0.5f) * (0.8f + 0.3f * progress);
+				float length = burstSize * burst.Lengths[i] * (0.8f + 0.3f * progress);
 				burst.Rays[i].localScale = new Vector3(burstSize * rayWidth, length, 1f);
 			}
 		}
@@ -277,7 +291,7 @@ namespace WitchMendokusai
 			if (visible)
 			{
 				wingMaterial.SetFloat(DISSOLVE_ID, Mathf.Clamp01((age - wingHold) / wingBreak));
-				wingMaterial.SetFloat(FLASH_ID, Mathf.Pow(0.5f, age / flashHalfLife));
+				wingMaterial.SetFloat(FLASH_ID, wingFlash * Mathf.Pow(0.5f, age / flashHalfLife));
 			}
 			Transform cameraTransform = viewCamera.transform;
 			Vector3 right = cameraTransform.right;

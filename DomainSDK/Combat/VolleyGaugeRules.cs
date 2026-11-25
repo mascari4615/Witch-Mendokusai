@@ -32,6 +32,19 @@ namespace WitchMendokusai
 			return (int)Math.Round(percent);
 		}
 
+		// 무기 count 자루를 한 번씩만 쓰며 돌 때의 걸음. 옆 자루가 잇달아 쏘지 않게 1 보다 크고 count 와 서로소 (없으면 1)
+		public static int SpreadStride(int count)
+		{
+			for (int stride = Math.Max(2, count / 3); stride < count; stride++)
+			{
+				if (GreatestCommonDivisor(stride, count) == 1)
+					return stride;
+			}
+			return 1;
+		}
+
+		private static int GreatestCommonDivisor(int left, int right) => right == 0 ? left : GreatestCommonDivisor(right, left % right);
+
 		// 탄 i 의 부채꼴 안 각도 (도). 고르게 나누고 가운데가 0
 		public static float FanAngle(int index, int count, float fanDegrees)
 		{

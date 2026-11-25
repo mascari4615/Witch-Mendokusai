@@ -29,8 +29,11 @@ namespace WitchMendokusai
 		private int pointerReleasedFrame = -1;
 
 		public bool IsRevealing { get; private set; }
+		// 공개가 끝난 뒤에도 고르기를 막는 조건 (형태 카드가 덮인 동안). 이때 누른 포인터는 뗄 때까지 막음
+		public Func<bool> ExtraBlock { get; set; } = () => false;
+		private bool IsExtraBlocked => IsRevealing == false && ExtraBlock();
 		// 공개 중, 건너뛰기 직후, 건너뛴 클릭을 떼는 프레임까지 고르기 입력 무시
-		public bool BlocksChoice => IsRevealing || Time.unscaledTime < choiceUnlockAt || waitPointerRelease || Time.frameCount <= pointerReleasedFrame;
+		public bool BlocksChoice => IsRevealing || IsExtraBlocked || Time.unscaledTime < choiceUnlockAt || waitPointerRelease || Time.frameCount <= pointerReleasedFrame;
 		// 시작 직후 보호 구간. 입력이 고르기도 건너뛰기도 하지 않음 (스킨 SkipGuard)
 		public bool InSkipGuard => IsRevealing && (guardedThisFrame || run.Elapsed < skin.SkipGuard);
 		// 공개가 끝난 순간. 자연 종료와 건너뛰기 모두
@@ -154,7 +157,7 @@ namespace WitchMendokusai
 		{
 			if (BlocksChoice == false)
 				return false;
-			if (InSkipGuard == false)
+			if (IsRevealing && InSkipGuard == false)
 				SkipAll();
 			else
 				HoldPointerUntilRelease();
@@ -235,6 +238,10 @@ namespace WitchMendokusai
 					SkipAll();
 				else
 					HoldPointerUntilRelease();
+			}
+			else if (hasInput && inputManager.IsPointerPressed && IsExtraBlocked)
+			{
+				HoldPointerUntilRelease();
 			}
 			if (waitPointerRelease && (hasInput == false || inputManager.IsPointerPressed == false))
 			{

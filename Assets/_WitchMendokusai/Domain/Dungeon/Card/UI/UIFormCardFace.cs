@@ -25,6 +25,7 @@ namespace WitchMendokusai
 		private RectTransform back;
 		private RectTransform front;
 		private RectTransform frame;
+		private RectTransform emblem;
 		private RawImage art;
 		private Image cover;
 		private Material coverMaterial;
@@ -52,6 +53,8 @@ namespace WitchMendokusai
 			coverPending = UIEffects.Enabled;
 			// 틀은 카드 밖으로 나가 뒷면으로 안 가려짐. 공개가 끝날 때까지 감춤
 			frame.gameObject.SetActive(UIEffects.Enabled == false);
+			emblem.gameObject.SetActive(UIEffects.Enabled);
+			emblem.localScale = Vector3.one;
 		}
 
 		public void Hide()
@@ -69,8 +72,18 @@ namespace WitchMendokusai
 				return;
 			coverPending = false;
 			frame.gameObject.SetActive(true);
-			coverTween = DOVirtual.Float(1f, 0f, look.CoverSeconds, value => coverMaterial.SetFloat(COVER_ID, value))
-				.SetDelay(look.CoverHold).SetUpdate(true).SetLink(gameObject).OnComplete(() => cover.gameObject.SetActive(false));
+			coverTween = DOVirtual.Float(1f, 0f, look.CoverSeconds, value =>
+				{
+					coverMaterial.SetFloat(COVER_ID, value);
+					emblem.localScale = Vector3.one * value;
+				})
+				.SetDelay(look.CoverHold).SetUpdate(true).SetLink(gameObject).OnComplete(EndCover);
+		}
+
+		private void EndCover()
+		{
+			cover.gameObject.SetActive(false);
+			emblem.gameObject.SetActive(false);
 		}
 
 		// 고른 순간. 카드는 덱으로 날아가므로 조각과 기둥은 canvas 에 둠
@@ -127,7 +140,7 @@ namespace WitchMendokusai
 			// 걷히던 중에 꺼지면 덮인 채 남지 않게
 			coverTween?.Kill();
 			if (look != null && coverPending == false)
-				cover.gameObject.SetActive(false);
+				EndCover();
 			stage?.SetVisible(false);
 		}
 
@@ -150,9 +163,12 @@ namespace WitchMendokusai
 			back = NewRect("[FormCard] Back", artArea.parent);
 			// 그림 칸 바로 뒤 (바탕 위, 글자 아래)
 			back.SetSiblingIndex(artArea.GetSiblingIndex());
-			Image flow = NewImage("Flow", back, Own(Flow(size, false)));
-			flow.color = new Color(1f, 1f, 1f, look.BackFlow);
-			Stretch(flow.rectTransform);
+			if (look.BackFlow > 0f)
+			{
+				Image flow = NewImage("Flow", back, Own(Flow(size, false)));
+				flow.color = new Color(1f, 1f, 1f, look.BackFlow);
+				Stretch(flow.rectTransform);
+			}
 
 			stage = new FormCardStage(look, artArea.rect.width / artArea.rect.height);
 			art = new GameObject("[FormCard] Art", typeof(RectTransform)).AddComponent<RawImage>();
@@ -168,6 +184,24 @@ namespace WitchMendokusai
 			coverMaterial = Own(Flow(size, false));
 			cover = NewImage("Cover", front, coverMaterial);
 			Stretch(cover.rectTransform);
+			BuildEmblem(size);
+		}
+
+		// 덮개의 문장: 안쪽 테두리와 가운데 겹마름모. 걷히기 시작하면 같이 사라짐
+		private void BuildEmblem(Vector2 size)
+		{
+			emblem = NewRect("Emblem", front);
+			Vector2 half = size * 0.5f - Vector2.one * look.CoverBorder.x;
+			float thick = look.CoverBorder.y;
+			for (int side = -1; side <= 1; side += 2)
+			{
+				Place(emblem, look.Dark, new Vector2(0f, side * half.y), new Vector2(half.x * 2f, thick), 0f);
+				Place(emblem, look.Dark, new Vector2(side * half.x, 0f), new Vector2(thick, half.y * 2f), 0f);
+			}
+			float[] scales = { 1.5f, 1.36f, 1f, 0.8f, 0.36f };
+			Color[] colors = { look.Dark, look.Main, look.Dark, look.Bright, look.Main };
+			for (int i = 0; i < scales.Length; i++)
+				Place(emblem, colors[i], Vector2.zero, Vector2.one * (look.EmblemSize * scales[i]), 45f);
 		}
 
 		// 네 변 띠와 모서리 마름모. 카드 밖으로 나가 윤곽부터 다름
@@ -200,9 +234,11 @@ namespace WitchMendokusai
 			Place(look.Bright, position, Vector2.one * (size * 0.45f), 45f);
 		}
 
-		private void Place(Color color, Vector2 position, Vector2 size, float angle)
+		private void Place(Color color, Vector2 position, Vector2 size, float angle) => Place(frame, color, position, size, angle);
+
+		private static void Place(RectTransform parent, Color color, Vector2 position, Vector2 size, float angle)
 		{
-			Image image = NewImage("Part", frame, null);
+			Image image = NewImage("Part", parent, null);
 			image.color = color;
 			image.rectTransform.anchoredPosition = position;
 			image.rectTransform.sizeDelta = size;

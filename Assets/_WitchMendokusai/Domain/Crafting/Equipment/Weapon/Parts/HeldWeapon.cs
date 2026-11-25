@@ -24,6 +24,7 @@ namespace WitchMendokusai
 		}
 
 		[SerializeField] private Shape shape = Shape.Wand;
+		[SerializeField, Tooltip("쏠 때 손이 밀리는 발사기 (베기, 빛탄). 요정은 빼 둠")] private Spawner[] kickSpawners = Array.Empty<Spawner>();
 		[SerializeField] private Shader solidShader;
 		[SerializeField, ColorUsage(false, true)] private Color emissionColor = new(1.08f, 0.9f, 0.5f);
 
@@ -48,7 +49,6 @@ namespace WitchMendokusai
 
 		private PlayerProvider playerProvider;
 		private GameManager gameManager;
-		private Spawner[] spawners;
 		private Transform body;
 		private Camera viewCamera;
 		private Mesh mesh;
@@ -66,15 +66,13 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
-			// 같은 오브젝트의 베기만. 자식 (요정 등) 이 쏠 때는 손이 안 밀림
-			spawners ??= GetComponents<Spawner>();
-			foreach (Spawner spawner in spawners)
+			foreach (Spawner spawner in kickSpawners)
 				spawner.Shot += OnShot;
 		}
 
 		private void OnDisable()
 		{
-			foreach (Spawner spawner in spawners)
+			foreach (Spawner spawner in kickSpawners)
 				spawner.Shot -= OnShot;
 			if (body != null)
 				body.gameObject.SetActive(false);

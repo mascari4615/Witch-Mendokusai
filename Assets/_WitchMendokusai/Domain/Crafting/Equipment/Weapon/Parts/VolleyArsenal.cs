@@ -55,9 +55,9 @@ namespace WitchMendokusai
 		[SerializeField, Min(1), Tooltip("그리는 자루 수 상한")] private int maxWeapons = 32;
 
 		[Header("배치 (월드)")]
-		[SerializeField, Tooltip("가장 안쪽 줄과 바깥 줄의 반지름")] private Vector2 rowRadius = new(1.25f, 3f);
+		[SerializeField, Tooltip("가장 안쪽 줄과 바깥 줄의 반지름")] private Vector2 rowRadius = new(1.5f, 3.1f);
 		[SerializeField, Min(1)] private int rows = 3;
-		[SerializeField, Tooltip("부채 양 끝 각도 (도). 0 이 화면 오른쪽, 90 이 위")] private Vector2 fanAngles = new(-8f, 188f);
+		[SerializeField, Tooltip("부채 양 끝 각도 (도). 0 이 화면 오른쪽, 90 이 위")] private Vector2 fanAngles = new(14f, 166f);
 		[SerializeField] private float centerHeight = 0.75f;
 		[SerializeField, Tooltip("인물 뒤로")] private float behind = 0.45f;
 		[SerializeField, Range(0f, 1f), Tooltip("배치 판을 카메라 쪽으로 눕히는 정도")] private float faceCamera = 0.55f;
@@ -89,6 +89,8 @@ namespace WitchMendokusai
 		}
 
 		private readonly List<Weapon> weapons = new();
+		// 지금 포화가 쓰는 자루. 앞 포화에서 부서지는 중인 자루는 그대로 두고 다른 자루를 씀
+		private readonly List<Weapon> raised = new();
 		private readonly List<UnityEngine.Object> owned = new();
 		private readonly List<(Weapon weapon, Transform shot)> pendingShots = new();
 		private Transform root;
@@ -97,7 +99,6 @@ namespace WitchMendokusai
 		private Mesh ringMesh;
 		private Transform owner;
 		private Func<Vector3> aimSource;
-		private int raisedCount;
 
 		public float WindupSeconds => raiseSeconds + holdSeconds;
 
@@ -107,21 +108,26 @@ namespace WitchMendokusai
 			Prepare();
 			owner = ownerTransform;
 			aimSource = aim;
-			raisedCount = Mathf.Clamp(count, 1, maxWeapons);
-			while (weapons.Count < raisedCount)
-				weapons.Add(CreateWeapon(weapons.Count));
-			for (int i = 0; i < weapons.Count; i++)
+			int wanted = Mathf.Clamp(count, 1, maxWeapons);
+			raised.Clear();
+			foreach (Weapon free in weapons)
 			{
-				Weapon weapon = weapons[i];
-				weapon.Alive = i < raisedCount;
-				if (weapon.Alive == false)
-				{
-					Show(weapon, false);
-					continue;
-				}
-				weapon.Slot = SlotFor(i, raisedCount);
-				// 안쪽 줄부터 바깥으로, 양쪽이 번갈아 나오게 흔듦
-				weapon.AppearTime = Time.time + raiseSeconds * i / Mathf.Max(1, raisedCount - 1);
+				if (free.Alive == false && raised.Count < wanted)
+					raised.Add(free);
+			}
+			while (raised.Count < wanted)
+			{
+				Weapon made = CreateWeapon(weapons.Count);
+				weapons.Add(made);
+				raised.Add(made);
+			}
+			for (int i = 0; i < raised.Count; i++)
+			{
+				Weapon weapon = raised[i];
+				weapon.Alive = true;
+				weapon.Slot = SlotFor(i, raised.Count);
+				// 안쪽 줄부터 바깥으로
+				weapon.AppearTime = Time.time + raiseSeconds * i / Mathf.Max(1, raised.Count - 1);
 				weapon.FireTime = float.PositiveInfinity;
 				weapon.BodyMaterial.SetFloat(DISSOLVE_ID, 0f);
 				weapon.RingMaterial.SetFloat(DISSOLVE_ID, 0f);
@@ -133,7 +139,7 @@ namespace WitchMendokusai
 		public void Fire(int shotIndex, GameObject shot)
 		{
 			// 옆 자루가 잇달아 쏘지 않게 서로소 걸음으로 섞음. 자루보다 발이 많으면 부서진 자루가 다시 나와 쏨
-			Weapon weapon = weapons[shotIndex * CoprimeStride(raisedCount) % raisedCount];
+			Weapon weapon = raised[shotIndex * VolleyGaugeRules.SpreadStride(raised.Count) % raised.Count];
 			weapon.FireTime = Time.time;
 			weapon.Alive = true;
 			pendingShots.Add((weapon, shot.transform));
@@ -145,23 +151,12 @@ namespace WitchMendokusai
 			{
 				Vector3 muzzle = Muzzle(weapon);
 				Flash(muzzle, Aim(), muzzleSize);
-				StartTracer(muzzle, shot);
+				if (shot != null)
+					StartTracer(muzzle, shot);
 				lightLevel = 1f;
 			}
 			pendingShots.Clear();
 		}
-
-		private static int CoprimeStride(int count)
-		{
-			for (int stride = Mathf.Max(2, count / 3); stride < count; stride++)
-			{
-				if (GreatestCommonDivisor(stride, count) == 1)
-					return stride;
-			}
-			return 1;
-		}
-
-		private static int GreatestCommonDivisor(int left, int right) => right == 0 ? left : GreatestCommonDivisor(right, left % right);
 
 		private void OnDisable()
 		{
@@ -182,10 +177,19 @@ namespace WitchMendokusai
 
 		private void LateUpdate()
 		{
-			viewCamera = Camera.main;
-			// 씬이 바뀌는 사이에는 카메라가 없음. 그 프레임은 그리지 않음
-			if (root == null || owner == null || viewCamera == null)
+			if (root == null)
 				return;
+			viewCamera = Camera.main;
+			// 무기 오브젝트는 베기마다 자리를 옮김. 그림은 월드 자리라 뿌리를 원점에 되돌림
+			root.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+			// 씬이 바뀌는 사이에는 카메라나 인물이 없음. 그동안 감추고 예약을 버림
+			bool visible = owner != null && viewCamera != null;
+			root.gameObject.SetActive(visible);
+			if (visible == false)
+			{
+				pendingShots.Clear();
+				return;
+			}
 			FirePending();
 			UpdateWeapons();
 			UpdateShots();

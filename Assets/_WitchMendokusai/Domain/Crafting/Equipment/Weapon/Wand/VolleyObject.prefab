@@ -435,4 +435,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.HeldWeapon
   shape: 0
+  kickSpawners:
+  - {fileID: 7377987611665135407}
+  - {fileID: 3394973536089151867}
   solidShader: {fileID: 4800000, guid: ffcdeff22cb14f2e8a5a20276529c2e2, type: 3}

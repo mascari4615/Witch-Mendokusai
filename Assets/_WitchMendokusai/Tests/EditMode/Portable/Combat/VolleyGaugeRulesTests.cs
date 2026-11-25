@@ -45,6 +45,19 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void 쏘는_걸음은_모든_자루를_한_번씩_돈다()
+		{
+			for (int count = 1; count <= 40; count++)
+			{
+				int stride = VolleyGaugeRules.SpreadStride(count);
+				System.Collections.Generic.HashSet<int> used = new();
+				for (int i = 0; i < count; i++)
+					used.Add(i * stride % count);
+				Assert.AreEqual(count, used.Count, $"자루 {count}, 걸음 {stride}");
+			}
+		}
+
+		[Test]
 		public void 부채꼴은_고르게_나누고_가운데가_0()
 		{
 			Assert.AreEqual(0f, VolleyGaugeRules.FanAngle(0, 1, 50f), 0.0001f);

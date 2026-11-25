@@ -123,6 +123,7 @@ namespace WitchMendokusai
 			focusSound = UICardFocusSound.AttachTo(gameObject, selected => chestReward.IsOpen || deckTabs.IsTabButton(selected));
 			reveal = UICardRevealDirector.AttachTo(gameObject, (RectTransform)transform, deckPanelContent);
 			reveal.Finished += ShowSelectedInfo;
+			reveal.ExtraBlock = IsFormCardCovered;
 			actions.Init(cardManager);
 			actions.SetInputGate(ConsumeInput);
 			chestReward.Bind(cardManager);
@@ -162,8 +163,8 @@ namespace WitchMendokusai
 		
 		private void OnEnable() => UIHideWhileChatting.Request(this, true);
 
-		// 형태 카드가 빛에 덮여 글을 못 읽는 동안도 막음 (되돌릴 수 없는 변신을 보지도 않고 고르지 않게)
-		private bool ConsumeInput() => receipt != null || IsFormCardCovered() || reveal.ConsumeBlockedChoice();
+		// 형태 카드가 빛에 덮여 글을 못 읽는 동안도 막음 (reveal.ExtraBlock. 되돌릴 수 없는 변신을 보지도 않고 고르지 않게)
+		private bool ConsumeInput() => receipt != null || reveal.ConsumeBlockedChoice();
 
 		private bool IsFormCardCovered()
 		{

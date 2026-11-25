@@ -11,11 +11,11 @@ namespace WitchMendokusai
 		[Header("줄기")]
 		[SerializeField, Min(0.02f)] private float beamWidth = 0.62f;
 		[SerializeField, Min(0.02f), Tooltip("줄기 안을 나는 빛 무기의 길이")] private float boltLength = 1.3f;
-		[SerializeField, Min(0f), Tooltip("꼬리가 총구에 머무는 길이")] private float tailHold = 0.16f;
+		[SerializeField, Min(0f), Tooltip("꼬리가 총구에 머무는 길이")] private float tailHold = 0.3f;
 		[SerializeField, Min(1f), Tooltip("꼬리가 머리를 쫓는 빠르기")] private float tailSpeed = 25f;
-		[SerializeField, Min(0.02f), Tooltip("총구에서 나간 줄기가 실제 탄의 길로 모이는 길이")] private float convergeSeconds = 0.3f;
+		[SerializeField, Min(0.02f), Tooltip("총구에서 나간 줄기가 실제 탄의 길로 모이는 길이")] private float convergeSeconds = 0.75f;
 		[SerializeField, Min(0.01f)] private float boltWidth = 0.2f;
-		[SerializeField, Min(0.02f), Tooltip("탄이 꺼진 뒤 줄기가 부서지는 길이")] private float beamFade = 0.14f;
+		[SerializeField, Min(0.02f), Tooltip("탄이 꺼진 뒤 줄기가 부서지는 길이")] private float beamFade = 0.22f;
 		[SerializeField, Min(0f), Tooltip("탄 중심에서 그림 높이 (탄 충돌 높이와 같게)")] private float shotHeight = 0.8f;
 		[SerializeField, Min(0f), Tooltip("한 프레임에 이보다 멀리 뛰면 다른 탄으로 다시 쓰인 것으로 봄")] private float jumpDistance = 3f;
 		[SerializeField, Min(0f), Tooltip("끊긴 프레임에서 허용하는 빠르기 (월드/초)")] private float jumpSpeed = 45f;

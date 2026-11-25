@@ -83,9 +83,11 @@ Shader "WM/UI/FormCardFlow"
 				float2 uv = (cell + 0.5) / _Cells.xy;
 				float clock = floor(_WMUIUnscaledTime * _Steps) / _Steps;
 				// 비스듬히 위로 흐르는 굵은 띠
-				float wobble = noise(uv * float2(3.0, 4.0) + float2(0.0, -clock * _Flow)) * 2.6;
-				float ribbon = sin((uv.x * 1.1 + uv.y * 1.5 - clock * _Flow) * 11.0 + wobble) * 0.5 + 0.5;
-				float shade = saturate(0.42 + ribbon * 0.5 + (noise(uv * 9.0) - 0.5) * 0.14);
+				float2 fromCenter = (uv - 0.5) * float2(_Cells.x / max(_Cells.y, 1.0), 1.0);
+				float radius = length(fromCenter) * 1.7;
+				float ray = sin(atan2(fromCenter.y, fromCenter.x) * 14.0 + clock * _Flow * 1.6) * 0.5 + 0.5;
+				// 가운데가 가장 밝고 빛살이 바깥으로 갈수록 갈림
+				float shade = saturate(1.02 - radius * 0.62 + (ray - 0.5) * 0.4 * saturate(radius * 1.6) + (noise(uv * 9.0) - 0.5) * 0.1);
 				if (_Pillar > 0.5)
 				{
 					// 빛기둥: 가운데가 밝고 가장자리는 칸 계단으로 잘림
