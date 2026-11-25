@@ -1,0 +1,41 @@
+{
+  "recipes": [
+    {"result":4,"first":0,"second":1},
+    {"result":24,"first":1,"second":5},
+    {"result":2,"first":0,"second":3},
+    {"result":16,"first":25,"second":5},
+    {"result":17,"first":3,"second":10},
+    {"result":8,"first":25,"second":10},
+    {"result":6,"first":4,"second":3},
+    {"result":12,"first":4,"second":25},
+    {"result":15,"first":4,"second":24},
+    {"result":13,"first":15,"second":5},
+    {"result":30,"first":24,"second":16},
+    {"result":18,"first":2,"second":8},
+    {"result":23,"first":8,"second":25},
+    {"result":27,"first":8,"second":4},
+    {"result":9,"first":10,"second":4}
+  ],
+  "dolls": [
+    {"dollId":4,"habit":0},
+    {"dollId":0,"habit":1},
+    {"dollId":-1,"habit":2}
+  ],
+  "papers": [
+    {"id":"practice","radius":1,"ink":2,"holes":[],"anchors":[{"q":-1,"r":0,"aspect":0},{"q":1,"r":0,"aspect":1}],"solution":[{"q":0,"r":0,"aspect":4}]},
+    {"id":"tea","radius":2,"ink":5,"holes":[{"q":0,"r":0}],"anchors":[{"q":-2,"r":1,"aspect":0},{"q":2,"r":-1,"aspect":1},{"q":0,"r":2,"aspect":13}],"solution":[{"q":-1,"r":1,"aspect":4},{"q":0,"r":1,"aspect":15},{"q":1,"r":0,"aspect":4}]},
+    {"id":"doll","radius":2,"ink":7,"holes":[{"q":0,"r":-1},{"q":1,"r":0}],"anchors":[{"q":-2,"r":0,"aspect":15},{"q":2,"r":-2,"aspect":3},{"q":1,"r":1,"aspect":8}],"solution":[{"q":-2,"r":1,"aspect":4},{"q":-1,"r":0,"aspect":0},{"q":0,"r":0,"aspect":4},{"q":0,"r":1,"aspect":27},{"q":1,"r":-1,"aspect":6}]},
+    {"id":"star","radius":3,"ink":11,"holes":[{"q":0,"r":0},{"q":-1,"r":0},{"q":1,"r":-2},{"q":1,"r":1}],"anchors":[{"q":-3,"r":1,"aspect":10},{"q":3,"r":-2,"aspect":25},{"q":0,"r":-3,"aspect":12},{"q":0,"r":3,"aspect":27}],"solution":[{"q":-3,"r":0,"aspect":8},{"q":-2,"r":1,"aspect":17},{"q":-1,"r":1,"aspect":3},{"q":0,"r":1,"aspect":6},{"q":0,"r":2,"aspect":4},{"q":1,"r":0,"aspect":4},{"q":2,"r":-1,"aspect":12},{"q":-2,"r":-1,"aspect":23},{"q":-1,"r":-2,"aspect":25}]}
+  ],
+  "boards": [
+    {"id":"practice","holes":[],"anchors":[{"cell":10,"aspect":0},{"cell":14,"aspect":5}],"pool":[0,1,5,4,24],"queue":[1,5,4,4],"runs":[{"habit":0,"limit":3,"solution":[{"cell":13,"aspect":24},{"cell":11,"aspect":4}]},{"habit":1,"limit":3,"solution":[{"cell":11,"aspect":4},{"cell":13,"aspect":24}]},{"habit":2,"limit":4,"solution":[{"cell":11,"aspect":4},{"cell":12,"aspect":1},{"cell":13,"aspect":24}]}]},
+    {"id":"tea","holes":[],"anchors":[{"cell":4,"aspect":4},{"cell":7,"aspect":3},{"cell":22,"aspect":5}],"pool":[0,1,3,5,4,24,2,6,15],"queue":[1,6,5,1,15],"runs":[{"habit":0,"limit":5,"solution":[{"cell":23,"aspect":24},{"cell":13,"aspect":4},{"cell":2,"aspect":2},{"cell":3,"aspect":0}]},{"habit":1,"limit":5,"solution":[{"cell":8,"aspect":2},{"cell":17,"aspect":24},{"cell":9,"aspect":0},{"cell":11,"aspect":4}]}]},
+    {"id":"doll","holes":[3,10],"anchors":[{"cell":0,"aspect":23},{"cell":4,"aspect":8},{"cell":18,"aspect":25}],"pool":[0,1,3,5,25,17,8,12,23],"queue":[25,23,25,23,0,8],"runs":[{"habit":0,"limit":5,"solution":[{"cell":13,"aspect":8},{"cell":9,"aspect":25},{"cell":1,"aspect":8},{"cell":7,"aspect":25}]},{"habit":1,"limit":5,"solution":[{"cell":13,"aspect":8},{"cell":9,"aspect":25},{"cell":1,"aspect":8},{"cell":6,"aspect":25}]},{"habit":2,"limit":5,"solution":[{"cell":5,"aspect":25},{"cell":6,"aspect":8},{"cell":9,"aspect":25},{"cell":13,"aspect":8}]}]},
+    {"id":"star","holes":[2,22],"anchors":[{"cell":4,"aspect":0},{"cell":6,"aspect":25},{"cell":15,"aspect":4},{"cell":19,"aspect":8}],"pool":[0,3,25,10,4,24,2,8,12,23],"queue":[23,25,23,8,23,0,2],"runs":[{"habit":0,"limit":6,"solution":[{"cell":16,"aspect":12},{"cell":18,"aspect":23},{"cell":9,"aspect":4},{"cell":13,"aspect":25},{"cell":14,"aspect":12}]},{"habit":1,"limit":5,"solution":[{"cell":9,"aspect":4},{"cell":16,"aspect":12},{"cell":13,"aspect":25},{"cell":8,"aspect":12}]},{"habit":2,"limit":6,"solution":[{"cell":16,"aspect":12},{"cell":17,"aspect":25},{"cell":13,"aspect":25},{"cell":14,"aspect":12},{"cell":9,"aspect":4}]}]},
+    {"id":"ex1","holes":[],"anchors":[{"cell":0,"aspect":25},{"cell":14,"aspect":12},{"cell":23,"aspect":23}],"pool":[0,1,3,5,25,16,8,12,23],"queue":[8,0,16,8,12,12],"runs":[{"habit":0,"limit":5,"solution":[{"cell":13,"aspect":25},{"cell":18,"aspect":8},{"cell":7,"aspect":25},{"cell":1,"aspect":23}]},{"habit":1,"limit":5,"solution":[{"cell":13,"aspect":25},{"cell":1,"aspect":16},{"cell":6,"aspect":25},{"cell":11,"aspect":23}]},{"habit":2,"limit":5,"solution":[{"cell":13,"aspect":25},{"cell":18,"aspect":8},{"cell":6,"aspect":23},{"cell":7,"aspect":25}]}]},
+    {"id":"ex2","holes":[12],"anchors":[{"cell":0,"aspect":23},{"cell":14,"aspect":2},{"cell":16,"aspect":25}],"pool":[0,3,25,4,2,16,8,12,23],"queue":[23,4,25,4,16,23],"runs":[{"habit":0,"limit":5,"solution":[{"cell":5,"aspect":25},{"cell":11,"aspect":8},{"cell":13,"aspect":0},{"cell":17,"aspect":12}]},{"habit":1,"limit":5,"solution":[{"cell":1,"aspect":8},{"cell":9,"aspect":0},{"cell":3,"aspect":12},{"cell":11,"aspect":8}]},{"habit":2,"limit":5,"solution":[{"cell":13,"aspect":0},{"cell":6,"aspect":25},{"cell":7,"aspect":12},{"cell":1,"aspect":8}]}]},
+    {"id":"ex3","holes":[17,2],"anchors":[{"cell":0,"aspect":16},{"cell":3,"aspect":5},{"cell":12,"aspect":24},{"cell":19,"aspect":0}],"pool":[0,1,3,5,25,10,4,24,16],"queue":[1,24,10,25,5,5],"runs":[{"habit":0,"limit":5,"solution":[{"cell":8,"aspect":24},{"cell":1,"aspect":5},{"cell":9,"aspect":1},{"cell":14,"aspect":4}]},{"habit":1,"limit":5,"solution":[{"cell":14,"aspect":4},{"cell":7,"aspect":1},{"cell":6,"aspect":24},{"cell":1,"aspect":5}]},{"habit":2,"limit":5,"solution":[{"cell":5,"aspect":5},{"cell":6,"aspect":24},{"cell":9,"aspect":1},{"cell":14,"aspect":4}]}]},
+    {"id":"ex4","holes":[],"anchors":[{"cell":4,"aspect":24},{"cell":6,"aspect":23},{"cell":19,"aspect":5},{"cell":22,"aspect":8}],"pool":[1,3,5,25,4,24,8,12,23],"queue":[8,4,25,24,12,23],"runs":[{"habit":0,"limit":5,"solution":[{"cell":17,"aspect":23},{"cell":9,"aspect":1},{"cell":12,"aspect":25},{"cell":13,"aspect":12}]},{"habit":1,"limit":6,"solution":[{"cell":11,"aspect":25},{"cell":17,"aspect":25},{"cell":1,"aspect":8},{"cell":9,"aspect":1},{"cell":8,"aspect":4}]},{"habit":2,"limit":6,"solution":[{"cell":9,"aspect":1},{"cell":17,"aspect":23},{"cell":14,"aspect":24},{"cell":8,"aspect":4},{"cell":13,"aspect":12}]}]},
+    {"id":"ex5","holes":[21],"anchors":[{"cell":4,"aspect":2},{"cell":12,"aspect":24},{"cell":20,"aspect":4},{"cell":23,"aspect":1}],"pool":[0,1,3,10,4,24,2,17,23],"queue":[2,0,4,3,17,10],"runs":[{"habit":0,"limit":6,"solution":[{"cell":13,"aspect":1},{"cell":18,"aspect":4},{"cell":9,"aspect":0},{"cell":15,"aspect":0},{"cell":16,"aspect":4}]},{"habit":1,"limit":6,"solution":[{"cell":11,"aspect":1},{"cell":16,"aspect":4},{"cell":13,"aspect":1},{"cell":8,"aspect":4},{"cell":9,"aspect":0}]},{"habit":2,"limit":6,"solution":[{"cell":18,"aspect":4},{"cell":17,"aspect":0},{"cell":13,"aspect":1},{"cell":3,"aspect":0},{"cell":8,"aspect":4}]}]}
+  ]
+}
