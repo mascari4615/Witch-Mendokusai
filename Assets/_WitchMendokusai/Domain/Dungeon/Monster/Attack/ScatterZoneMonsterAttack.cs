@@ -15,7 +15,7 @@ namespace WitchMendokusai
 		Scatter = 2,
 	}
 
-	// 여러 자리 장판. 준비를 시작한 순간 자리를 모두 고정, 예고가 차면 어느 원이든 안에 있으면 피해 한 번
+	// 여러 자리 장판. 준비를 시작한 순간 자리를 모두 고정, 예고가 찬 원 안에 있으면 피해 한 번 (자리마다 늦추면 때마다 한 번)
 	[CreateAssetMenu(fileName = "MA_Scatter", menuName = "WM/Variable/MonsterAttack/" + nameof(ScatterZoneMonsterAttack))]
 	public class ScatterZoneMonsterAttack : WindupMonsterAttack
 	{

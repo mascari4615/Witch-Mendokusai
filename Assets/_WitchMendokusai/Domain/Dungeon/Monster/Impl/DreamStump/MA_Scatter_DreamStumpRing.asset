@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19612c53f13342878d58f2a107a1c479, type: 3}
   m_Name: MA_Scatter_DreamStumpRing
   m_EditorClassIdentifier:
-  <TriggerRange>k__BackingField: 6
+  <TriggerRange>k__BackingField: 4.2
   <WindupSeconds>k__BackingField: 1.0
   <RecoverySeconds>k__BackingField: 3.2
   <Cooldown>k__BackingField: 0
-  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 7d0f0ab6735b4a2ab8fb739bbb4cd564, type: 2}
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: fb85769a4b1c42d78fc107c2b728451c, type: 2}
   <RecoveryFx>k__BackingField: {fileID: 11400000, guid: e653203c5fcd4dbd9743fbc7093afa91, type: 2}
   <RecoveryFxRadius>k__BackingField: 2.4
   <Pose>k__BackingField:

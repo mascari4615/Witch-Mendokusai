@@ -16,6 +16,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("예고 끝 떨림 폭 (m)"), Min(0f)] public float Tremble { get; private set; }
 		[field: SerializeField, Tooltip("숨 고르기 동안 숨 쉬는 비율"), Range(0f, 0.2f)] public float Breath { get; private set; }
 
-		public bool IsEmpty => Windup == null && Strike == null && Rest == null && Crouch == 0f && Stretch == 0f && Breath == 0f;
+		public bool HasSprite => Windup != null || Strike != null || Rest != null;
+		public bool IsEmpty => HasSprite == false && Crouch == 0f && Stretch == 0f && Tremble == 0f && Breath == 0f;
 	}
 }

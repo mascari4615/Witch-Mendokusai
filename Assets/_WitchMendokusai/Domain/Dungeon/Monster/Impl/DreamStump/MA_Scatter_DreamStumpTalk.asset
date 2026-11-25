@@ -16,7 +16,7 @@ MonoBehaviour:
   <WindupSeconds>k__BackingField: 1.5
   <RecoverySeconds>k__BackingField: 0.5
   <Cooldown>k__BackingField: 0
-  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 7d0f0ab6735b4a2ab8fb739bbb4cd564, type: 2}
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: fb85769a4b1c42d78fc107c2b728451c, type: 2}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
   <Pose>k__BackingField:

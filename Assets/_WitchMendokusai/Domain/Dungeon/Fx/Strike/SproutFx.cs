@@ -23,7 +23,7 @@ namespace WitchMendokusai
 
 		[Header("솟음과 남음")]
 		[SerializeField, Min(0.01f)] private float riseSeconds = 0.09f;
-		[SerializeField, Tooltip("솟을 때 세로로 더 늘어나는 비율"), Min(0f)] private float overshoot = 0.28f;
+		[SerializeField, Tooltip("솟을 때 세로로 더 늘어나는 비율"), Range(0f, 0.8f)] private float overshoot = 0.28f;
 		[SerializeField, Tooltip("솟은 뒤 서 있는 초"), Min(0f)] private float holdSeconds = 0.8f;
 		[SerializeField, Min(0.01f)] private float sinkSeconds = 0.28f;
 		[SerializeField, Tooltip("때리는 순간 달아오르는 색")] private Color strikeTint = new(1f, 0.82f, 0.55f, 1f);
@@ -51,14 +51,21 @@ namespace WitchMendokusai
 		protected override Action Play(CombatFxRunner runner, CombatFxContext context)
 		{
 			List<SpriteRenderer> rented = new();
-			return runner.Run(Routine(runner, context, rented), () =>
+			bool hasBurst = false;
+			Action stop = runner.Run(Routine(runner, context, rented, () => hasBurst = true), () =>
 			{
 				foreach (SpriteRenderer body in rented)
 					FxSpritePool.Return(runner, body);
 			});
+			// 솟은 뒤에는 공격이 끊겨도 스스로 들어감
+			return () =>
+			{
+				if (hasBurst == false)
+					stop();
+			};
 		}
 
-		private IEnumerator Routine(CombatFxRunner runner, CombatFxContext context, List<SpriteRenderer> rented)
+		private IEnumerator Routine(CombatFxRunner runner, CombatFxContext context, List<SpriteRenderer> rented, Action onBurst)
 		{
 			Vector2 offset = Random.insideUnitCircle * jitter;
 			Vector3 ground = context.Position + new Vector3(offset.x, 0f, offset.y);
@@ -76,10 +83,11 @@ namespace WitchMendokusai
 				// 쑥 나왔다가 때리기 직전 움츠림
 				float rise = Mathf.Min(1f, progress * 5f) - Mathf.Clamp01((progress - 0.85f) / 0.15f) * 0.6f;
 				float shake = Mathf.Sin(time * 70f) * budTremble * progress;
-				Set(root, ground + Vector3.right * shake, scale, 1f, height * (budRatio * rise - 1f));
+				Set(root, ground, shake, scale, 1f, height * (budRatio * rise - 1f));
 				yield return null;
 			}
 
+			onBurst();
 			Burst(ground);
 			Chunk[] chunks = ThrowChunks(runner, ground, rented);
 			float total = riseSeconds + holdSeconds + sinkSeconds;
@@ -91,7 +99,7 @@ namespace WitchMendokusai
 				// 늘어났다가 찰랑이며 제 키로
 				float stretch = 1f + overshoot * up * Mathf.Exp(-settle * 11f) * Mathf.Cos(settle * 30f);
 				float sink = Mathf.Clamp01((time - riseSeconds - holdSeconds) / sinkSeconds);
-				Set(root, ground, scale, stretch, height * (up - 1f) - height * 1.05f * sink * sink);
+				Set(root, ground, 0f, scale, stretch, height * (up - 1f) - height * 1.05f * sink * sink);
 				body.color = Color.Lerp(strikeTint, Color.white, Mathf.Clamp01(settle / 0.25f));
 				body.enabled = time < total;
 				MoveChunks(chunks, ground, time);
@@ -99,9 +107,19 @@ namespace WitchMendokusai
 			}
 		}
 
-		private static void Set(Transform root, Vector3 ground, float scale, float stretch, float lift)
+		// 카메라를 보게 누운 판의 세로축을 따라 밀어 넣음. 월드 위아래로 옮기면 나오는 점이 자리에서 밀림
+		private static void Set(Transform root, Vector3 ground, float shake, float scale, float stretch, float lift)
 		{
-			root.position = ground + Vector3.up * lift;
+			Camera view = Camera.main;
+			Vector3 right = Vector3.right;
+			Vector3 up = Vector3.up;
+			if (view != null)
+			{
+				Vector3 forward = (ground - view.transform.position).normalized;
+				right = Vector3.Cross(Vector3.up, forward).normalized;
+				up = Vector3.Cross(forward, right);
+			}
+			root.position = ground + up * lift + right * shake;
 			root.localScale = new Vector3(scale / Mathf.Sqrt(stretch), scale * stretch, scale);
 		}
 

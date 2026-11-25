@@ -24,11 +24,6 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("숨 고르기 동안 발밑 표시 (반격 창). 비우면 없음")] public CombatFx RecoveryFx { get; private set; }
 		[field: SerializeField, Tooltip("반격 창 반지름 (m)"), Min(0.1f)] public float RecoveryFxRadius { get; private set; } = 2f;
 
-		[field: Header("몸과 물체")]
-		[field: SerializeField] public AttackPose Pose { get; private set; } = new();
-		[field: SerializeField, Tooltip("예고 동안 나타나는 물체 (날아오는 것, 땅에서 돋는 것). 때리는 자리마다 하나, Seconds 가 때리는 순간")] public CombatFx WindupFx { get; private set; }
-		[field: SerializeField, Tooltip("때리는 순간 이펙트. 빗나가도 나옴. 때리는 자리마다 하나")] public CombatFx StrikeFx { get; private set; }
-
 		// 이 공격을 돌릴 행동 트리. 몬스터가 켜질 때마다 새로
 		public abstract BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider);
 

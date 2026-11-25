@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("던지는 높이 (m)"), Min(0f)] private float launchHeight = 1.4f;
 		[SerializeField, Tooltip("포물선 높이 (m)"), Min(0f)] private float arcHeight = 3f;
 		[SerializeField, Tooltip("앉은 뒤 터지기까지 (초)"), Min(0f)] private float fuseSeconds = 0.45f;
+		[SerializeField, Tooltip("터질 때까지 더 남는 초"), Min(0f)] private float lingerSeconds = 0.06f;
 		[SerializeField, Min(0.05f)] private float scale = 1f;
 		[SerializeField, Min(1f)] private float swellScale = 1.35f;
 		[SerializeField, Tooltip("앉을 때 먼지. 비우면 없음")] private MonsterSpawnStyle landPuff;
@@ -43,9 +44,10 @@ namespace WitchMendokusai
 			if (landPuff != null)
 				landPuff.PlayPuff(context.Position, 0.6f);
 			body.transform.position = to;
-			for (float time = 0f; time < fuseSeconds; time += Time.deltaTime)
+			// 터짐 (StrikeFx) 은 행동 틱에 맞춰 최대 0.1초 늦음. 그동안 부푼 채 남음
+			for (float time = 0f; time < fuseSeconds + lingerSeconds; time += Time.deltaTime)
 			{
-				float progress = time / fuseSeconds;
+				float progress = Mathf.Clamp01(time / fuseSeconds);
 				// 앞 1/4 은 납작하게 눌렸다가, 뒤는 점점 빠르게 깜빡이며 부풂
 				bool isSquashed = progress < 0.25f;
 				bool isLit = isSquashed == false && Mathf.Sin(progress * progress * 60f) > -0.2f;

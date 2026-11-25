@@ -6,7 +6,16 @@ namespace WitchMendokusai
 	// 몸 하나에 하나, 첫 공격 때 붙고 공격이 끝나거나 끊기면 원래대로
 	public sealed class MonsterPoseDriver : MonoBehaviour
 	{
-		private enum Stage { None, Windup, Strike, Rest }
+		private enum Stage
+		{
+			None,
+			Windup,
+			Strike,
+			Rest,
+		}
+
+		// 공격이 끝나고 이만큼 안에 다음 준비가 없으면 원래대로 (초). 행동 틱 (0.1초) 보다 김
+		private const float RELEASE_SECONDS = 0.18f;
 
 		private SpriteRenderer body;
 		private Transform target;
@@ -18,6 +27,8 @@ namespace WitchMendokusai
 		private float startTime;
 		private float seconds;
 		private float lastStretch = 1f;
+		private bool restsNext;
+		private float releaseTime = float.PositiveInfinity;
 
 		public static MonsterPoseDriver Of(UnitObject unitObject)
 		{
@@ -33,6 +44,8 @@ namespace WitchMendokusai
 				return;
 			Capture();
 			pose = newPose;
+			restsNext = false;
+			releaseTime = float.PositiveInfinity;
 			Enter(Stage.Windup, newSeconds);
 			SetSprite(pose.Windup);
 		}
@@ -45,18 +58,36 @@ namespace WitchMendokusai
 			SetSprite(pose.Strike);
 		}
 
-		// 때린 자세를 다 보인 뒤 처짐
-		public void Rest(float newSeconds)
+		// 때린 자세를 다 보인 뒤 처짐. 때리지 못하고 끊겼으면 바로
+		public void Rest()
 		{
-			if (stage != Stage.None)
-				Enter(Stage.Rest, newSeconds);
+			if (stage == Stage.Strike)
+				restsNext = true;
+			else if (stage == Stage.Windup)
+				BeginRest();
 		}
 
-		public void Clear()
+		// 공격 하나가 끝남. 곧 다음 준비가 오면 이어지고, 아니면 원래대로
+		public void Release()
+		{
+			if (stage != Stage.None && float.IsPositiveInfinity(releaseTime))
+				releaseTime = Time.time + RELEASE_SECONDS;
+		}
+
+		private void BeginRest()
+		{
+			restsNext = false;
+			Enter(Stage.Rest, 1f);
+			SetSprite(pose.Rest);
+		}
+
+		private void Clear()
 		{
 			if (stage == Stage.None)
 				return;
 			stage = Stage.None;
+			restsNext = false;
+			releaseTime = float.PositiveInfinity;
 			target.localScale = baseScale;
 			target.localPosition = basePosition;
 			body.sprite = baseSprite;
@@ -88,6 +119,13 @@ namespace WitchMendokusai
 		{
 			if (stage == Stage.None)
 				return;
+			if (Time.time >= releaseTime)
+			{
+				Clear();
+				return;
+			}
+			if (stage == Stage.Strike && restsNext && Time.time - startTime >= pose.StrikeSeconds)
+				BeginRest();
 			float time = Time.time - startTime;
 			float progress = Mathf.Clamp01(time / seconds);
 			float stretch = 1f;
@@ -101,18 +139,15 @@ namespace WitchMendokusai
 				case Stage.Strike:
 					stretch = StrikeStretch(time);
 					break;
-				case Stage.Rest when time < pose.StrikeSeconds:
-					stretch = StrikeStretch(time);
-					break;
 				case Stage.Rest:
-					SetSprite(pose.Rest);
-					stretch = 1f + pose.Breath * Mathf.Sin((time - pose.StrikeSeconds) * 3.2f);
+					stretch = 1f + pose.Breath * Mathf.Sin(time * 3.2f);
 					break;
 			}
 			// 단계가 바뀔 때 튀지 않게 따라감. 때리는 순간은 바로
 			lastStretch = stage == Stage.Strike ? stretch : Mathf.Lerp(lastStretch, stretch, 1f - Mathf.Exp(-Time.deltaTime * 18f));
 			target.localScale = new Vector3(baseScale.x / Mathf.Sqrt(lastStretch), baseScale.y * lastStretch, baseScale.z);
-			target.localPosition = basePosition + Vector3.right * shake;
+			// 떨림 폭은 월드 단위. 보스 몸은 배율이 커서 나눔
+			target.localPosition = basePosition + Vector3.right * (shake / target.parent.lossyScale.x);
 		}
 
 		private float StrikeStretch(float time) => 1f + pose.Stretch * Mathf.Exp(-time * 7f) * Mathf.Cos(time * 22f);

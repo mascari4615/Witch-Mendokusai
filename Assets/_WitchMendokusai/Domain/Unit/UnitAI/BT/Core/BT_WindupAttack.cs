@@ -81,7 +81,8 @@ namespace WitchMendokusai
 			strikeTimes.Clear();
 			float windupEndTime = Time.time + attack.WindupSeconds;
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
-			MonsterPoseDriver.Of(unitObject).Windup(attack.Pose, attack.WindupSeconds);
+			if (attack.Pose.IsEmpty == false)
+				MonsterPoseDriver.Of(unitObject).Windup(attack.Pose, attack.WindupSeconds);
 			bool isMany = targets.Count > 1;
 			for (int i = 0; i < targets.Count; i++)
 			{
@@ -89,15 +90,19 @@ namespace WitchMendokusai
 				strikeTimes.Add(windupEndTime + delay);
 				CombatFxContext context = StrikeContext(targets[i]);
 				context.Seconds += delay;
+				if (attack.WindupTelegraph != null && attack.WindupSeconds > 0f)
+				{
+					Action stop = attack.WindupTelegraph.Play(context);
+					stopTelegraphs.Add(stop);
+					// 예고 판 상한에 걸려 안 보이는 자리는 때리지도, 물체를 내지도 않음 (자리 하나짜리 공격은 전과 같음)
+					if (GroundTelegraph.IsSkipped(stop) && isMany)
+					{
+						strikeTimes[i] = float.PositiveInfinity;
+						continue;
+					}
+				}
 				if (attack.WindupFx != null)
 					stopTelegraphs.Add(attack.WindupFx.Play(context));
-				if (attack.WindupTelegraph == null || attack.WindupSeconds <= 0f || attack.ShowsTelegraph(i, targets.Count) == false)
-					continue;
-				Action stop = attack.WindupTelegraph.Play(context);
-				stopTelegraphs.Add(stop);
-				// 예고 판 상한에 걸려 안 보이는 자리는 때리지도 않음 (자리 하나짜리 공격은 전과 같음)
-				if (GroundTelegraph.IsSkipped(stop) && isMany)
-					strikeTimes[i] = float.PositiveInfinity;
 			}
 			return BTState.Success;
 		}
@@ -135,7 +140,8 @@ namespace WitchMendokusai
 		// 맞든 빗나가든 같은 그림
 		private void PlayStrike()
 		{
-			MonsterPoseDriver.Of(unitObject).Strike();
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Strike();
 			if (attack.StrikeFx == null)
 				return;
 			foreach (Vector3 target in dueTargets)
@@ -154,7 +160,8 @@ namespace WitchMendokusai
 			// 예고는 차오름이 끝나며 스스로 번쩍이고 사라짐. 여기서부터 끊을 대상 아님
 			stopTelegraphs.Clear();
 			recoveryEndTime = Time.time + attack.RecoverySeconds;
-			MonsterPoseDriver.Of(unitObject).Rest(attack.RecoverySeconds);
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Rest();
 			// 반격으로 죽으면 표시를 띄우지 않음 (Interrupt 는 이미 지나감)
 			if (unitObject.IsAlive)
 				stopRecovery = attack.PlayRecovery(unitObject);
@@ -165,7 +172,8 @@ namespace WitchMendokusai
 		{
 			// 반격 창 표시는 숨 고르기와 같은 길이라 스스로 마무리
 			stopRecovery = null;
-			MonsterPoseDriver.Of(unitObject).Clear();
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Release();
 			readyTime = Time.time + attack.Cooldown;
 			CompletedCount++;
 			IsAttacking = false;
@@ -178,7 +186,8 @@ namespace WitchMendokusai
 			ClearTelegraphs();
 			stopRecovery?.Invoke();
 			stopRecovery = null;
-			MonsterPoseDriver.Of(unitObject).Clear();
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Release();
 			IsAttacking = false;
 		}
 

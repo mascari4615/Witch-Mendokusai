@@ -56,11 +56,11 @@ namespace WitchMendokusai
 			GameObject root = new(name);
 			root.transform.SetParent(runner.transform, false);
 			FxQuadBatch puffBatch = new(name, root.transform, set.Shader, sheet, set.Noise, PUFF_QUEUE);
-			FxQuadBatch ringBatch = new("Ring", root.transform, set.Shader, set.Shock, set.Noise, RING_QUEUE);
+			FxQuadBatch ringBatch = ringRatio > 0f ? new("Ring", root.transform, set.Shader, set.Shock, set.Noise, RING_QUEUE) : null;
 			return runner.Run(Routine(context, puffBatch, ringBatch), () =>
 			{
 				puffBatch.Destroy();
-				ringBatch.Destroy();
+				ringBatch?.Destroy();
 				if (root != null)
 					Destroy(root);
 			});
@@ -73,8 +73,11 @@ namespace WitchMendokusai
 			float end = Mathf.Max(emitSeconds + seconds, ringRatio > 0f ? ringSeconds : 0f);
 			for (float time = 0f; time < end; time += Time.deltaTime)
 			{
-				DrawPuffs(puffBatch, puffs, time, Camera.main.transform);
-				DrawRing(ringBatch, context, time);
+				Camera view = Camera.main;
+				if (view != null)
+					DrawPuffs(puffBatch, puffs, time, view.transform);
+				if (ringBatch != null)
+					DrawRing(ringBatch, context, time);
 				yield return null;
 			}
 		}
@@ -101,7 +104,7 @@ namespace WitchMendokusai
 		{
 			batch.Begin();
 			float progress = time / ringSeconds;
-			if (ringRatio > 0f && progress < 1f)
+			if (progress < 1f)
 			{
 				float half = context.Radius * ringRatio * (1f - (1f - progress) * (1f - progress)) * 1.15f;
 				Color faded = ringColor;
