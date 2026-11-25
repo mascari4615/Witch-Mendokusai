@@ -22,13 +22,16 @@ Shader "WM/ForestGrass"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #define _WM_OCCLUDABLE
             #include "../../../../Core/Shaders/WMOcclusionCutout.hlsl"
+            #include "../../../../Core/Shaders/WMWind.hlsl"
             CBUFFER_START(UnityPerMaterial) float _Wrap; CBUFFER_END
             struct A { float4 pos : POSITION; float4 col : COLOR; };
             struct V { float4 cs : SV_POSITION; float3 ws : TEXCOORD0; float4 col : COLOR; float fog : TEXCOORD1; float4 sp : TEXCOORD2; };
             V vert(A i)
             {
-                V o; VertexPositionInputs p = GetVertexPositionInputs(i.pos.xyz);
-                o.cs = p.positionCS; o.ws = p.positionWS; o.col = i.col; o.fog = ComputeFogFactor(p.positionCS.z); o.sp = ComputeScreenPos(p.positionCS); return o;
+                V o; o.ws = TransformObjectToWorld(i.pos.xyz);
+                // 뿌리는 색 알파 0, 끝은 1. 짧은 잎이라 세 배로
+                o.ws += WMWind(o.ws, i.col.a * 3.0);
+                o.cs = TransformWorldToHClip(o.ws); o.col = i.col; o.fog = ComputeFogFactor(o.cs.z); o.sp = ComputeScreenPos(o.cs); return o;
             }
             half4 frag(V i) : SV_Target
             {
@@ -55,8 +58,9 @@ Shader "WM/ForestGrass"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #define _WM_OCCLUDABLE
             #include "../../../../Core/Shaders/WMOcclusionCutout.hlsl"
+            #include "../../../../Core/Shaders/WMWind.hlsl"
             struct DV { float4 cs : SV_POSITION; float3 ws : TEXCOORD0; float4 sp : TEXCOORD1; };
-            DV v(float4 p : POSITION) { DV o; o.ws = TransformObjectToWorld(p.xyz); o.cs = TransformWorldToHClip(o.ws); o.sp = ComputeScreenPos(o.cs); return o; }
+            DV v(float4 p : POSITION, float4 col : COLOR) { DV o; o.ws = TransformObjectToWorld(p.xyz); o.ws += WMWind(o.ws, col.a * 3.0); o.cs = TransformWorldToHClip(o.ws); o.sp = ComputeScreenPos(o.cs); return o; }
             half f(DV i) : SV_Target { WMCutoutClip(WMCutoutCoverage(i.sp, i.ws), i.cs.xy); return 0; }
             ENDHLSL
         }

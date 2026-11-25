@@ -11,6 +11,8 @@ namespace WitchMendokusai
 	{
 		private static readonly int SUN_DIRECTION = Shader.PropertyToID("_VillageSunDirection");
 		private static readonly int SUN_COLOR = Shader.PropertyToID("_VillageSunColor");
+		private static readonly int WIND = Shader.PropertyToID("_WM_Wind");
+		private static readonly int DAYLIGHT = Shader.PropertyToID("_VillageDaylight");
 		private static readonly int NORMALIZED_TIME = Shader.PropertyToID("_WMNormalizedTime");
 
 		[Header("Sun")]
@@ -27,6 +29,11 @@ namespace WitchMendokusai
 		[SerializeField] private float ambient = 0.86f;
 		[SerializeField] private float fogDensity = 0.55f;
 		[SerializeField, Range(0f, 1f)] private float fogBlue = 0.5f;
+
+		[Header("Wind")]
+		[Tooltip("방향과 세기 (m)")]
+		[SerializeField] private Vector2 wind = new(0.1f, 0.06f);
+		[SerializeField] private float windSpeed = 1.3f;
 
 		[Header("Screen")]
 		[SerializeField] private float priority = 10f;
@@ -81,6 +88,7 @@ namespace WitchMendokusai
 		{
 			skybox = RenderSettings.skybox;
 			RenderSettings.skybox = HomesteadArt.Instance.Sky;
+			Shader.SetGlobalVector(WIND, new Vector4(wind.x, wind.y, windSpeed, transform.position.y));
 			sun = RenderSettings.sun;
 			if (sun == null)
 				return;
@@ -94,6 +102,7 @@ namespace WitchMendokusai
 		private void OnDisable()
 		{
 			RenderSettings.skybox = skybox;
+			Shader.SetGlobalVector(WIND, Vector4.zero);
 			if (sun != null)
 			{
 				sun.shadows = sunShadows;
@@ -122,6 +131,8 @@ namespace WitchMendokusai
 			sun.transform.rotation = Quaternion.Euler(Mathf.Lerp(lowestSun, highestSun, altitude), Mathf.Lerp(sunAzimuth.x, sunAzimuth.y, Mathf.InverseLerp(0.2f, 0.8f, time)), 0f);
 			Shader.SetGlobalVector(SUN_DIRECTION, -sun.transform.forward);
 			Shader.SetGlobalColor(SUN_COLOR, sunColor * Mathf.Clamp01(preset.SunIntensity.Evaluate(time)));
+			// 하늘 시계의 해 높이 (0 밤, 1 한낮). 햇살 줄기처럼 낮에만 보이는 것
+			Shader.SetGlobalFloat(DAYLIGHT, altitude);
 
 			Color air = preset.AmbientColor.Evaluate(time) * ambient;
 			RenderSettings.ambientSkyColor = air * preset.AmbientSkyTint;

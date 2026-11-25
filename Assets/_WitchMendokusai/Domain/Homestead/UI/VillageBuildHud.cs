@@ -6,7 +6,7 @@ using WitchMendokusai.DomainSDK.Homestead;
 
 namespace WitchMendokusai
 {
-	// 건설 중 아래 막대. 놓을 것 아홉 칸과 하는 일 안내
+	// 건설 중 아래 막대. 놓을 것과 하는 일 안내
 	public sealed class VillageBuildHud
 	{
 		private const string BLOCK = "wm-hs-build";
@@ -19,7 +19,7 @@ namespace WitchMendokusai
 		private IVisualElementScheduledItem reasonTimer;
 		private string idleHint = string.Empty;
 
-		public VillageBuildHud(VisualElement parent, IReadOnlyList<PlaceableDef> palette, Action<PlaceableDef> onTake, Action onUndo, Action onLeave)
+		public VillageBuildHud(VisualElement parent, IReadOnlyList<PlaceableDef> palette, int keyCount, Action<PlaceableDef> onTake, Action onUndo, Action onLeave)
 		{
 			root = Make("root", parent);
 			hint = new Label { pickingMode = PickingMode.Ignore };
@@ -30,15 +30,11 @@ namespace WitchMendokusai
 			{
 				PlaceableDef placeable = palette[i];
 				Button slot = AddButton(bar, "slot", () => onTake(placeable));
-				Label number = new((i + 1).ToString());
-				number.AddToClassList(BLOCK + "__number");
-				slot.Add(number);
-				Label title = new(placeable.Name);
-				title.AddToClassList(BLOCK + "__name");
-				slot.Add(title);
-				Label cost = new();
-				cost.AddToClassList(BLOCK + "__cost");
-				slot.Add(cost);
+				VisualElement icon = Make("icon", slot);
+				icon.style.backgroundImage = new StyleBackground(HomesteadArt.Instance.Icon(placeable.Id));
+				MakeLabel("number", slot, i < keyCount ? (i + 1).ToString() : string.Empty);
+				MakeLabel("name", slot, placeable.Name);
+				Label cost = MakeLabel("cost", slot, string.Empty);
 				slots.Add((placeable, slot, cost));
 			}
 			undoButton = AddButton(bar, "tool", onUndo);
@@ -54,6 +50,14 @@ namespace WitchMendokusai
 			made.AddToClassList($"{BLOCK}__{element}");
 			parent.Add(made);
 			return made;
+		}
+
+		private static Label MakeLabel(string element, VisualElement parent, string text)
+		{
+			Label label = new(text) { pickingMode = PickingMode.Ignore };
+			label.AddToClassList($"{BLOCK}__{element}");
+			parent.Add(label);
+			return label;
 		}
 
 		private static Button AddButton(VisualElement parent, string element, Action onClick)

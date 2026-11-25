@@ -85,10 +85,13 @@ namespace WitchMendokusai
 			RefreshLayout();
 		}
 
+		// 다 지은 나루는 끝에 서서 낚음
+		private Vector3 SpotPoint(string id) => id == "dock" && Sim.IsBuilt(id) ? DoorPoint(id, dockLength - 2.4f) : DoorPoint(id);
+
 		private void AddSpot(string id, string spotName, System.Func<string> role, System.Action use)
 		{
 			System.Func<string> nameSource = spotName != null ? () => spotName : () => Sim.TownHallDef(Sim.State.TownHall).Name;
-			spotObjects[id] = HomesteadSpot.Create(outdoor, DoorPoint(id), id + "Spot", nameSource, role, use).gameObject;
+			spotObjects[id] = HomesteadSpot.Create(outdoor, SpotPoint(id), id + "Spot", nameSource, role, use).gameObject;
 		}
 
 		private void OnLayoutChanged() => RefreshLayout();
@@ -96,7 +99,7 @@ namespace WitchMendokusai
 		private void RefreshLayout()
 		{
 			foreach (KeyValuePair<string, GameObject> pair in spotObjects)
-				pair.Value.transform.localPosition = DoorPoint(pair.Key);
+				pair.Value.transform.localPosition = SpotPoint(pair.Key);
 			RefreshDecor();
 			RefreshGroundCells();
 			RefreshSites();
@@ -184,8 +187,6 @@ namespace WitchMendokusai
 					return "낚시";
 				case "quarry":
 					return "내려가기";
-				case "museum":
-					return "기증과 손질";
 				case "tailor":
 					return "옷 고르기";
 				case "ranch":
@@ -198,6 +199,8 @@ namespace WitchMendokusai
 					return "사고팔기";
 				case "atelier":
 					return "인형에게 맡기기";
+				case "museum":
+					return "들어가기";
 				default:
 					return "둘러보기";
 			}
@@ -246,7 +249,7 @@ namespace WitchMendokusai
 					manager.Panels.Show(HomesteadPanelType.Workshop);
 					break;
 				case "museum":
-					manager.Panels.Show(HomesteadPanelType.Museum);
+					EnterMuseum();
 					break;
 				case "tailor":
 					manager.Panels.Show(HomesteadPanelType.Wardrobe);
@@ -281,6 +284,7 @@ namespace WitchMendokusai
 		private void RefreshSites()
 		{
 			RefreshLamps();
+			spotObjects["dock"].transform.localPosition = SpotPoint("dock");
 			Show(HomesteadSim.HALL, HALL_MODELS[Mathf.Min(Sim.State.TownHall, HALL_MODELS.Length) - 1]);
 			Show("well", "Well");
 			Show("board", "Board");
@@ -310,6 +314,8 @@ namespace WitchMendokusai
 				Destroy(shown.Body);
 			}
 			GameObject body = Models.Build(model, outdoor, CenterOf(piece), piece.Turn * 90f);
+			// 카메라 가림 해소 (CinemachineComponentDeoccluder) 가 벽으로 보게
+			body.AddComponent<GroundSurface>();
 			body.SetActive(piece.Uid != heldUid);
 			siteBodies[id] = (look, body);
 			if (risingId == id)

@@ -23,6 +23,24 @@ namespace WitchMendokusai
 		[SerializeField] private TextAsset iconNames;
 		[SerializeField, Min(1)] private int iconSize = 32;
 
+		// 걷는 그림. 첫 장은 선 모습, 나머지는 걸음. 오른쪽을 봄
+		[Serializable]
+		public struct AnimalFrames
+		{
+			public string Id;
+			public Sprite[] Frames;
+		}
+
+		[Header("Animals")]
+		[SerializeField] private AnimalFrames[] animals;
+
+		// 같은 종의 생김새가 여럿이면 번호로 고름
+		public Sprite[] FramesOf(string animalId, int number)
+		{
+			AnimalFrames[] kinds = Array.FindAll(animals, entry => entry.Id == animalId);
+			return kinds[number % kinds.Length].Frames;
+		}
+
 		[field: Header("Materials")]
 		[field: SerializeField] public Material Plaster { get; private set; }
 		[field: SerializeField] public Material Frame { get; private set; }
@@ -41,6 +59,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public Material Water { get; private set; }
 		[field: SerializeField] public Material SpriteMaterial { get; private set; }
 		[field: SerializeField] public Material Sky { get; private set; }
+		[field: SerializeField] public Material Shaft { get; private set; }
 
 		private static HomesteadArt instance;
 

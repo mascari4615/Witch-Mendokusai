@@ -952,14 +952,22 @@
 }
 
 .wm-hs-build__slot {
-    width: 104px;
-    height: 74px;
+    width: 92px;
+    height: 104px;
     margin: 3px;
-    padding: 5px 8px;
-    justify-content: space-between;
+    padding: 4px 2px 5px 2px;
+    align-items: center;
+    justify-content: flex-end;
     background-color: rgba(255, 255, 255, 0.07);
     border-width: 2px;
     border-color: rgba(255, 255, 255, 0.16);
+}
+
+.wm-hs-build__icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 3px;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .wm-hs-build__slot:hover {
@@ -976,13 +984,15 @@
 }
 
 .wm-hs-build__number {
-    font-size: 13px;
-    -unity-text-align: upper-left;
+    position: absolute;
+    left: 6px;
+    top: 3px;
+    font-size: 14px;
     color: rgb(242, 226, 122);
 }
 
 .wm-hs-build__name {
-    font-size: 16px;
+    font-size: 15px;
     color: rgb(245, 240, 250);
 }
 
@@ -992,9 +1002,9 @@
 }
 
 .wm-hs-build__tool {
-    height: 74px;
+    height: 104px;
     margin: 3px;
-    padding: 0 16px;
+    padding: 0 14px;
     justify-content: center;
     font-size: 15px;
     background-color: rgba(255, 255, 255, 0.07);

@@ -102,10 +102,10 @@ namespace WitchMendokusai
 		private UIRoot baseRoot;
 		private readonly BaseHudHider baseHud = new();
 
-		public VillageBuildHud ShowBuild(IReadOnlyList<PlaceableDef> palette, System.Action<PlaceableDef> onTake, System.Action onUndo, System.Action onLeave)
+		public VillageBuildHud ShowBuild(IReadOnlyList<PlaceableDef> palette, int keyCount, System.Action<PlaceableDef> onTake, System.Action onUndo, System.Action onLeave)
 		{
 			HideBuild();
-			build = new VillageBuildHud(root, palette, onTake, onUndo, onLeave);
+			build = new VillageBuildHud(root, palette, keyCount, onTake, onUndo, onLeave);
 			ShowGoal(false);
 			baseHud.Hide(baseRoot);
 			return build;

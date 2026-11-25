@@ -34,6 +34,27 @@ namespace WitchMendokusai.Tests
 			catalog.Animals.ForEach(animal => Need(animal.Id));
 			catalog.Furniture.ForEach(furniture => Need(furniture.Id));
 			catalog.Costumes.ForEach(costume => Need(costume.Id));
+			catalog.Placeables.FindAll(placeable => placeable.Kind != PlaceableKind.Building).ForEach(placeable => Need(placeable.Id));
+			Assert.IsEmpty(missing, string.Join(", ", missing));
+		}
+
+		[Test]
+		public void Every_crop_and_rock_has_a_model()
+		{
+			HomesteadCatalog catalog = HomesteadManager.LoadCatalog();
+			HashSet<string> keys = new();
+			foreach (VillageModels.Model model in VillageModels.Instance.Models)
+				keys.Add(model.Key);
+			List<string> missing = new();
+			void Need(string key)
+			{
+				if (keys.Contains(key) == false)
+					missing.Add(key);
+			}
+			Need("CropSprout");
+			foreach (string stage in new[] { "_a", "_b", "_c" })
+				catalog.Crops.ForEach(crop => Need("Crop_" + crop.Id + stage));
+			catalog.MineNodes.ForEach(node => Need("Mine_" + node.Id));
 			Assert.IsEmpty(missing, string.Join(", ", missing));
 		}
 

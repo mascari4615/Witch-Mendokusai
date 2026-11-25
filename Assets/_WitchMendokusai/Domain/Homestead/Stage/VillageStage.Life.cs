@@ -9,7 +9,6 @@ namespace WitchMendokusai
 	{
 		[Header("Life")]
 		[SerializeField] private float personHeight = 1.15f;
-		[SerializeField] private float animalHeight = 0.9f;
 
 		private readonly Dictionary<string, VillageWalker> people = new();
 		private readonly Dictionary<string, VillageWalker> workers = new();
@@ -102,7 +101,7 @@ namespace WitchMendokusai
 					continue;
 				AnimalState captured = animal;
 				Vector3 home = DoorPoint(HomesteadSim.RANCH, 0.8f + animals.Count / 3 * 1.1f, -1.4f + animals.Count % 3 * 1.1f);
-				VillageWalker walker = VillageWalker.Create(outdoor, home, Art.Icon(animal.Id), null, animalHeight, 1.4f);
+				VillageWalker walker = VillageWalker.CreateAnimal(outdoor, home, Art.FramesOf(animal.Id, animal.Uid), 1.4f);
 				HomesteadSpot.Attach(walker.gameObject, () => Catalog.Get<AnimalDef>(captured.Id).Name, () => AnimalRole(captured), () => CareAnimal(captured, walker));
 				animals.Add(animal.Uid, walker);
 			}
@@ -142,6 +141,7 @@ namespace WitchMendokusai
 		private float rest;
 		private float hop;
 		private float headBase;
+		private Sprite[] frames;
 
 		public static VillageWalker Create(Transform parent, Vector3 home, Sprite headSprite, Sprite bodySprite, float height, float range)
 		{
@@ -156,6 +156,14 @@ namespace WitchMendokusai
 			walker.target = home;
 			walker.rest = Random.Range(0f, walker.restSeconds.y);
 			walker.SetSprites(headSprite, bodySprite, height);
+			return walker;
+		}
+
+		// 배율 1 로 제 크기 (PPU 32). 걸음은 그림 장면을 끊어서
+		public static VillageWalker CreateAnimal(Transform parent, Vector3 home, Sprite[] frames, float range)
+		{
+			VillageWalker walker = Create(parent, home, frames[0], null, frames[0].bounds.size.y, range);
+			walker.frames = frames;
 			return walker;
 		}
 
@@ -194,6 +202,14 @@ namespace WitchMendokusai
 			body.transform.localPosition = Vector3.up * lift;
 		}
 
+		private void ShowFrame(bool isWalking)
+		{
+			if (frames == null)
+				return;
+			int step = isWalking ? 1 + (int)(Time.time * stepsPerSecond) % (frames.Length - 1) : 0;
+			head.Renderer.sprite = frames[step];
+		}
+
 		private void Update()
 		{
 			float lift = 0f;
@@ -205,6 +221,7 @@ namespace WitchMendokusai
 			if (rest > 0f)
 			{
 				rest -= Time.deltaTime;
+				ShowFrame(false);
 				Place(lift);
 				return;
 			}
@@ -217,10 +234,13 @@ namespace WitchMendokusai
 				return;
 			}
 			transform.localPosition += delta.normalized * Mathf.Min(speed * Time.deltaTime, delta.magnitude);
-			bool left = delta.x < 0f;
+			// 자유 카메라라 화면 기준으로 왼쪽
+			Camera view = Camera.main;
+			bool left = view != null && Vector3.Dot(delta, view.transform.right) < 0f;
+			ShowFrame(true);
 			head.Renderer.flipX = left;
 			body.Renderer.flipX = left;
-			Place(lift + Mathf.Abs(Mathf.Sin(Time.time * stepsPerSecond * Mathf.PI)) * stepHeight);
+			Place(frames != null ? lift : lift + Mathf.Abs(Mathf.Sin(Time.time * stepsPerSecond * Mathf.PI)) * stepHeight);
 		}
 	}
 }

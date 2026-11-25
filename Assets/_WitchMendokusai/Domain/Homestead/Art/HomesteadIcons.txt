@@ -163,3 +163,13 @@ outfit_honey
 outfit_night
 outfit_apron
 outfit_curator
+path_dirt
+path_stone
+wall_stone
+fence
+lamp
+props
+flowerbed
+bench
+hedge
+garden_tree

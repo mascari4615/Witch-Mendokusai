@@ -11,7 +11,9 @@ namespace WitchMendokusai
 	public sealed partial class VillageStage
 	{
 		private const int PLOT_MAX = 18;
-		private const int CROP_STAGES = 4;
+		private const string CROP_KEY = "Crop_";
+		private const string CROP_SPROUT = "CropSprout";
+		private const string FIELD_EDGE = "FieldEdge";
 
 		[Serializable]
 		public struct GatherSite
@@ -24,7 +26,12 @@ namespace WitchMendokusai
 		[SerializeField] private Vector3 farmOrigin = new(-23.5f, 0f, -6.5f);
 		[SerializeField] private Vector2 plotGap = new(1f, 1f);
 		[SerializeField] private int plotColumns = 6;
-		[SerializeField] private Vector2 cropHeight = new(0.25f, 0.95f);
+		[Tooltip("새싹, 어린 것, 다 큰 것으로 바뀌는 자란 정도")]
+		[SerializeField] private Vector2 cropSteps = new(0.25f, 0.62f);
+		[SerializeField] private float fieldClear = 1f;
+		[SerializeField] private float fieldEdgeOut = 0.62f;
+		[SerializeField] private Vector3 scarecrowPosition = new(-24.8f, 0f, -9.8f);
+		[SerializeField] private float scarecrowYaw = 30f;
 
 		[Header("Wild")]
 		[SerializeField] private float hitShakeSeconds = 0.18f;
@@ -63,7 +70,9 @@ namespace WitchMendokusai
 			public GameObject Wild;
 			public GameObject Dry;
 			public GameObject Wet;
-			public HomesteadSprite Crop;
+			public Transform CropRoot;
+			public GameObject Crop;
+			public string CropKey = string.Empty;
 		}
 
 		private sealed class GatherView
@@ -93,7 +102,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < PLOT_MAX; i++)
 			{
 				Vector3 position = PlotPosition(i);
-				ground.AddBlock(new Vector2(position.x, position.z), 0.6f);
+				ground.AddBlock(new Vector2(position.x, position.z), fieldClear);
 			}
 		}
 
@@ -104,14 +113,31 @@ namespace WitchMendokusai
 				int index = i;
 				Vector3 position = PlotPosition(i);
 				PlotView view = new();
-				view.Overgrown = Models.Build("PlotOver", outdoor, position, index * 90f);
-				view.Wild = Models.Build("PlotWild", outdoor, position, index * 90f);
+				view.Overgrown = Models.Build("PlotOver", outdoor, position, index % 2 * 180f);
+				view.Wild = Models.Build("PlotWild", outdoor, position, index % 2 * 180f);
 				view.Dry = Models.Build("PlotDry", outdoor, position, 0f);
 				view.Wet = Models.Build("PlotWet", outdoor, position, 0f);
-				view.Crop = HomesteadSprite.Create(outdoor, position + Vector3.up * 0.14f, null, 1f);
+				view.CropRoot = new GameObject("Crop").transform;
+				view.CropRoot.SetParent(outdoor, false);
+				view.CropRoot.SetLocalPositionAndRotation(position, Quaternion.Euler(0f, index % 2 * 180f, 0f));
 				view.Spot = HomesteadSpot.Create(outdoor, position, "PlotSpot", () => PlotName(index), () => PlotRole(index), () => UsePlot(index)).gameObject;
 				plots.Add(view);
 			}
+			BuildFieldEdge();
+		}
+
+		// 밭 둘레의 낮은 통나무. 길이 오는 북쪽은 비움
+		private void BuildFieldEdge()
+		{
+			int rows = Mathf.CeilToInt(PLOT_MAX / (float)plotColumns);
+			for (int column = 0; column < plotColumns; column++)
+				Models.Build(FIELD_EDGE, outdoor, PlotPosition((rows - 1) * plotColumns + column) + Vector3.back * fieldEdgeOut, 0f);
+			for (int row = 0; row < rows; row++)
+			{
+				Models.Build(FIELD_EDGE, outdoor, PlotPosition(row * plotColumns) + Vector3.left * fieldEdgeOut, 90f);
+				Models.Build(FIELD_EDGE, outdoor, PlotPosition(row * plotColumns + plotColumns - 1) + Vector3.right * fieldEdgeOut, -90f);
+			}
+			Models.Build("Scarecrow", outdoor, scarecrowPosition, scarecrowYaw);
 		}
 
 		private string PlotName(int index)
@@ -247,7 +273,7 @@ namespace WitchMendokusai
 				{
 					view.Dry.SetActive(false);
 					view.Wet.SetActive(false);
-					view.Crop.gameObject.SetActive(false);
+					ShowCropModel(view, string.Empty);
 					continue;
 				}
 				PlotState plot = Sim.State.Plots[i];
@@ -258,19 +284,33 @@ namespace WitchMendokusai
 			}
 		}
 
-		private void ShowCrop(PlotView view, PlotState plot)
+		private void ShowCrop(PlotView view, PlotState plot) =>
+			ShowCropModel(view, plot.Crop.Length == 0 ? string.Empty : CropModel(plot));
+
+		// 다시 열리는 작물은 거둔 뒤에도 다 큰 모습
+		private string CropModel(PlotState plot)
 		{
-			bool planted = plot.Crop.Length > 0;
-			view.Crop.gameObject.SetActive(planted);
-			if (planted == false)
-				return;
+			if (Sim.PhaseOf(plot) == PlotPhase.Ripe)
+				return CROP_KEY + plot.Crop + "_c";
 			float ripeness = Sim.Ripeness(plot);
-			bool ripe = Sim.PhaseOf(plot) == PlotPhase.Ripe;
-			int stage = Mathf.Min(CROP_STAGES - 1, Mathf.FloorToInt(ripeness * (CROP_STAGES - 1)));
-			Sprite sprite = ripe ? Art.IconOf(Catalog.Get<GoodsDef>(Catalog.Get<CropDef>(plot.Crop).Harvest)) : Art.Icon("sprout_" + stage);
-			float height = Mathf.Lerp(cropHeight.x, cropHeight.y, ripe ? 0.75f : ripeness * 0.7f);
-			if (view.Crop.Renderer.sprite != sprite)
-				view.Crop.SetSprite(sprite, height);
+			if (plot.Harvests > 0 || ripeness >= cropSteps.y)
+				return CROP_KEY + plot.Crop + "_b";
+			return ripeness >= cropSteps.x ? CROP_KEY + plot.Crop + "_a" : CROP_SPROUT;
+		}
+
+		private void ShowCropModel(PlotView view, string key)
+		{
+			if (view.CropKey == key)
+				return;
+			view.CropKey = key;
+			if (view.Crop != null)
+				Destroy(view.Crop);
+			view.Crop = null;
+			if (key.Length == 0)
+				return;
+			view.Crop = Models.Build(key, view.CropRoot, Vector3.zero, 0f);
+			if (view.CropRoot.gameObject.activeInHierarchy)
+				StartCoroutine(Pop(view.Crop.transform));
 		}
 
 		// ---- 들

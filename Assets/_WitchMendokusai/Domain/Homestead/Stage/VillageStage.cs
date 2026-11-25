@@ -120,7 +120,7 @@ namespace WitchMendokusai
 			BuildFarm();
 			BuildWild();
 			BuildWater();
-			BuildMuseumGarden();
+			BuildMuseum();
 			BuildMine();
 		}
 
@@ -138,6 +138,9 @@ namespace WitchMendokusai
 			gathers.Clear();
 			restPoses.Clear();
 			exhibits.Clear();
+			foreach (GameObject room in museumRooms)
+				Destroy(room);
+			museumRooms.Clear();
 			mineNodes.Clear();
 			people.Clear();
 			workers.Clear();
@@ -177,7 +180,7 @@ namespace WitchMendokusai
 				if (Mathf.FloorToInt(plot.x) == x && Mathf.FloorToInt(plot.z) == z)
 					return true;
 			}
-			if (x >= Mathf.FloorToInt(exhibitOrigin.x) && x <= exhibitOrigin.x + exhibitColumns && z >= Mathf.FloorToInt(exhibitOrigin.z) - EXHIBIT_ROWS && z <= exhibitOrigin.z)
+			if (Mathf.FloorToInt(scarecrowPosition.x) == x && Mathf.FloorToInt(scarecrowPosition.z) == z)
 				return true;
 			foreach (GatherSite site in gatherSites)
 			{
@@ -210,7 +213,7 @@ namespace WitchMendokusai
 			RefreshSites();
 			RefreshFarm();
 			RefreshWild();
-			RefreshMuseumGarden();
+			RefreshMuseum();
 			RefreshLife();
 		}
 

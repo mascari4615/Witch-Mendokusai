@@ -41,12 +41,12 @@ namespace WitchMendokusai
 		[SerializeField] private Rect grassArea = new(-40f, -34f, 80f, 76f);
 		[SerializeField] private int grassAttempts = 900000;
 		[SerializeField] private float grassCellSize = 16f;
-		[SerializeField] private Vector2 grassHeight = new(0.28f, 0.6f);
+		[SerializeField] private Vector2 bladeHeight = new(0.16f, 0.34f);
 		[SerializeField] private Vector2 grassWidth = new(0.05f, 0.1f);
 		[Tooltip("마을 안. 풀이 짧고 고르며 꽃 무더기가 적음")]
 		[SerializeField] private Rect settled = new(-24f, -12f, 42f, 38f);
 		[SerializeField] private float settledFade = 5f;
-		[SerializeField, Range(0f, 1f)] private float settledHeight = 0.42f;
+		[SerializeField, Range(0f, 1f)] private float settledBlade = 0.7f;
 		[SerializeField] private Vector2 grassWind = new(0.32f, 0.2f);
 		[SerializeField] private float grassClumpScale = 0.12f;
 		[SerializeField] private float grassHueScale = 0.04f;
@@ -111,6 +111,7 @@ namespace WitchMendokusai
 			BuildFlowers();
 			BuildFerns();
 			BuildForest();
+			BuildShafts();
 		}
 
 		// 빈터 경계까지의 부호 거리. 안쪽 음수
@@ -279,7 +280,7 @@ namespace WitchMendokusai
 					continue;
 				float hue = ForestFloor.Fractal(x * grassHueScale, z * grassHueScale, grassSeed + 78, 2);
 				float tame = Settled(x, z);
-				float height = Range01(random, grassHeight) * Mathf.Lerp(0.55f + clump * 0.8f, 0.8f, tame) * (1f - earth * 0.45f) * Mathf.Lerp(1f, settledHeight, tame);
+				float height = Range01(random, bladeHeight) * Mathf.Lerp(0.55f + clump * 0.8f, 0.8f, tame) * (1f - earth * 0.45f) * Mathf.Lerp(1f, settledBlade, tame);
 				float angle = (float)random.NextDouble() * Mathf.PI * 2f;
 				Vector3 side = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * Range01(random, grassWidth);
 				Vector3 lean = new Vector3(grassWind.x + (float)random.NextDouble() * 0.5f - 0.25f, 0f, grassWind.y + (float)random.NextDouble() * 0.5f - 0.25f) * (height * 0.65f);

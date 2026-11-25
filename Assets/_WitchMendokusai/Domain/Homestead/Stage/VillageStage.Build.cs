@@ -10,6 +10,7 @@ namespace WitchMendokusai
 	// 커서는 마우스가 가리킨 칸. 키만 쓸 때는 화면 가운데 칸이라 카메라를 움직여 고름
 	public sealed partial class VillageStage
 	{
+		// 번호 키가 있는 칸. 그 뒤 칸은 눌러서 고름
 		private const int SLOT_COUNT = 9;
 
 		[Header("Build")]
@@ -64,7 +65,7 @@ namespace WitchMendokusai
 			palette.Clear();
 			foreach (PlaceableDef placeable in Catalog.Placeables)
 			{
-				if (placeable.Kind != PlaceableKind.Building && palette.Count < SLOT_COUNT)
+				if (placeable.Kind != PlaceableKind.Building)
 					palette.Add(placeable);
 			}
 			Vector3 player = playerProvider.Current.transform.position;
@@ -74,7 +75,7 @@ namespace WitchMendokusai
 				overhead.ConfigureZoom(buildZoom.x, buildZoom.y, buildZoomStep);
 				overhead.ResetView(player, cameraManager.OrbitAngles.x, buildHeight);
 			}
-			buildHud = manager.Hud.ShowBuild(palette, TakeNew, Undo, LeaveBuildView);
+			buildHud = manager.Hud.ShowBuild(palette, SLOT_COUNT, TakeNew, Undo, LeaveBuildView);
 			inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
 			inputManager.RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, UseCell);
 			inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Started, DropHeld);

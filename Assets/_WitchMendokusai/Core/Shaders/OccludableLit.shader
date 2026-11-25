@@ -38,6 +38,7 @@ Shader "WM/Occludable Lit"
         HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "WMOcclusionCutout.hlsl"
+        #include "WMWind.hlsl"
 
         TEXTURE2D(_BaseMap);
         SAMPLER(sampler_BaseMap);
@@ -65,6 +66,16 @@ Shader "WM/Occludable Lit"
             return coverage;
         }
 
+        // 잎 판 (_ALPHATEST_ON) 만 바람에 흔들림
+        float3 SwayedPosition(float3 positionOS)
+        {
+            float3 positionWS = TransformObjectToWorld(positionOS);
+            #if defined(_ALPHATEST_ON)
+                positionWS += WMWind(positionWS, 1.0);
+            #endif
+            return positionWS;
+        }
+
         // 알파 잘라내기 (잎 판처럼 _ALPHATEST_ON 재질)
         void AlphaTest(float2 uv)
         {
@@ -90,7 +101,7 @@ Shader "WM/Occludable Lit"
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
             #pragma multi_compile_instancing
@@ -131,13 +142,12 @@ Shader "WM/Occludable Lit"
                 Varyings output;
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
-                VertexPositionInputs position = GetVertexPositionInputs(input.positionOS.xyz);
-                output.positionCS = position.positionCS;
-                output.positionWS = position.positionWS;
+                output.positionWS = SwayedPosition(input.positionOS.xyz);
+                output.positionCS = TransformWorldToHClip(output.positionWS);
                 output.normalWS = TransformObjectToWorldNormal(input.normalOS);
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
-                output.screenPosition = ComputeScreenPos(position.positionCS);
-                output.fogFactor = ComputeFogFactor(position.positionCS.z);
+                output.screenPosition = ComputeScreenPos(output.positionCS);
+                output.fogFactor = ComputeFogFactor(output.positionCS.z);
                 #if defined(_VERTEX_COLOR)
                     output.tint = input.color.rgb * 2.0;
                 #endif
@@ -213,7 +223,7 @@ Shader "WM/Occludable Lit"
             #pragma vertex vertShadow
             #pragma fragment fragShadow
             #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local _ALPHATEST_ON
             #pragma multi_compile_instancing
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
@@ -237,7 +247,7 @@ Shader "WM/Occludable Lit"
             ShadowVaryings vertShadow(ShadowAttributes input)
             {
                 UNITY_SETUP_INSTANCE_ID(input);
-                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                float3 positionWS = SwayedPosition(input.positionOS.xyz);
                 float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
                 #if defined(_CASTING_PUNCTUAL_LIGHT_SHADOW)
                     float3 lightDirectionWS = normalize(_LightPosition - positionWS);
@@ -277,7 +287,7 @@ Shader "WM/Occludable Lit"
             #pragma vertex vertDepth
             #pragma fragment fragDepth
             #pragma shader_feature_local _WM_OCCLUDABLE
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local _ALPHATEST_ON
             #pragma multi_compile_instancing
 
             struct DepthAttributes
@@ -300,10 +310,9 @@ Shader "WM/Occludable Lit"
                 DepthVaryings output;
                 UNITY_SETUP_INSTANCE_ID(input);
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
-                VertexPositionInputs position = GetVertexPositionInputs(input.positionOS.xyz);
-                output.positionCS = position.positionCS;
-                output.positionWS = position.positionWS;
-                output.screenPosition = ComputeScreenPos(position.positionCS);
+                output.positionWS = SwayedPosition(input.positionOS.xyz);
+                output.positionCS = TransformWorldToHClip(output.positionWS);
+                output.screenPosition = ComputeScreenPos(output.positionCS);
                 return output;
             }
 
@@ -327,7 +336,7 @@ Shader "WM/Occludable Lit"
             #pragma vertex vertDepthNormals
             #pragma fragment fragDepthNormals
             #pragma shader_feature_local _WM_OCCLUDABLE
-            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local _ALPHATEST_ON
             #pragma multi_compile_instancing
 
             struct DepthNormalsAttributes
@@ -352,10 +361,9 @@ Shader "WM/Occludable Lit"
                 DepthNormalsVaryings output;
                 UNITY_SETUP_INSTANCE_ID(input);
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
-                VertexPositionInputs position = GetVertexPositionInputs(input.positionOS.xyz);
-                output.positionCS = position.positionCS;
-                output.positionWS = position.positionWS;
-                output.screenPosition = ComputeScreenPos(position.positionCS);
+                output.positionWS = SwayedPosition(input.positionOS.xyz);
+                output.positionCS = TransformWorldToHClip(output.positionWS);
+                output.screenPosition = ComputeScreenPos(output.positionCS);
                 output.normalWS = TransformObjectToWorldNormal(input.normalOS);
                 return output;
             }

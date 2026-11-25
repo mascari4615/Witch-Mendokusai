@@ -8,7 +8,25 @@ namespace WitchMendokusai
 	// 갱도. 층마다 바위를 다시 놓고, 바위에 도는 빛에 맞춰 침
 	public sealed partial class VillageStage
 	{
+		private const string MINE_KEY = "Mine_";
+		private const int MINE_LAMPS = 5;
+		private const int MINE_WALLS = 26;
+		private const int SHELL_TINT_PARTS = 2;
+		private const float MINE_ROOF = 9f;
+		private static readonly int BASE_COLOR = Shader.PropertyToID("_BaseColor");
+
 		[Header("Mine")]
+		[SerializeField] private float mineDomeRadius = 30f;
+		[SerializeField, Range(0f, 1f)] private float mineShade = 0.35f;
+		[SerializeField] private float mineLampAngle = 0.52f;
+		[SerializeField] private float mineLampRadius = 9.2f;
+		[SerializeField] private float mineLampHeight = 2.4f;
+		[SerializeField] private Vector3 liftPosition = new(0f, 0f, -6.8f);
+		[SerializeField] private Vector3 holePosition = new(0f, 0f, 5.2f);
+		[SerializeField] private float holeGlowRange = 4f;
+		[SerializeField] private float holeGlowIntensity = 2.4f;
+		[SerializeField] private float glintHeight = 1.05f;
+		[SerializeField] private float glintTurn = 120f;
 		[SerializeField] private float mineRadius = 9f;
 		[SerializeField] private float mineNodeGap = 2.6f;
 		[SerializeField] private float mineLampRange = 8f;
@@ -33,6 +51,9 @@ namespace WitchMendokusai
 		private readonly List<NodeView> mineNodes = new();
 		private GameObject minePassage;
 		private Light mineLantern;
+		private MeshRenderer mineShell;
+		private MaterialPropertyBlock shellBlock;
+		private bool isInsideMine;
 		private MineRun run;
 		private float glintPhase;
 
@@ -41,31 +62,23 @@ namespace WitchMendokusai
 			mineRoot = new GameObject("Mine").transform;
 			mineRoot.SetParent(transform, false);
 			mineRoot.localPosition = mineOffset;
-			VillageKit shell = new();
-			shell.Prism(Art.Soil, new Color(0.74f, 0.66f, 0.72f), new Vector3(0f, -0.5f, 0f), new Vector3(mineRadius * 2.6f, 0.5f, mineRadius * 2.6f), 18);
-			const int WALL_COUNT = 26;
-			for (int i = 0; i < WALL_COUNT; i++)
+			VillageLights.BuildDome(mineRoot, mineDomeRadius, MINE_ROOF, shadeColor * mineShade);
+			mineShell = Models.Build("MineShell", mineRoot, Vector3.zero, 0f).GetComponent<MeshRenderer>();
+			for (int i = 0; i < MINE_LAMPS; i++)
 			{
-				float angle = i / (float)WALL_COUNT * Mathf.PI * 2f;
-				float height = 2.4f + Mathf.PerlinNoise(i * 0.8f, 0.4f) * 2f;
-				Vector3 foot = new(Mathf.Cos(angle) * (mineRadius + 1.4f), -0.3f, Mathf.Sin(angle) * (mineRadius + 1.4f));
-				// 카메라 쪽 (남쪽) 벽은 낮게
-				if (Mathf.Sin(angle) < -0.4f)
-					height = 0.7f;
-				float turn = -angle * Mathf.Rad2Deg + Mathf.PerlinNoise(i * 1.7f, 2.2f) * 50f;
-				shell.Prism(Art.Stone, new Color(0.72f, 0.70f, 0.78f), foot, new Vector3(4.2f, height, 3.4f), 7, 0.72f, new Vector3(0f, turn, 0f));
-				if (Mathf.Sin(angle) > -0.2f)
-					shell.Prism(Art.Stone, new Color(0.5f, 0.48f, 0.58f), foot * 1.22f, new Vector3(5f, height + 2.4f, 4f), 6, 0.6f, new Vector3(0f, turn + 25f, 0f));
-				shell.Solid(foot, new Vector3(2.8f, 4f, 2.8f), new Vector3(0f, -angle * Mathf.Rad2Deg, 0f));
+				float angle = mineLampAngle + i / (float)MINE_LAMPS * Mathf.PI * 2f;
+				AddGlow(mineRoot, new Vector3(Mathf.Cos(angle) * mineLampRadius, mineLampHeight, Mathf.Sin(angle) * mineLampRadius), mineLampRange, mineLampIntensity);
 			}
-			shell.Box(Art.Wood, Color.white, new Vector3(0f, 0f, -6.6f), new Vector3(2f, 0.12f, 2f));
-			for (int side = -1; side <= 1; side += 2)
-				shell.Box(Art.Wood, Color.white, new Vector3(side * 1f, 0f, -5.8f), new Vector3(0.16f, 2.4f, 0.16f));
-			shell.Box(Art.Wood, Color.white, new Vector3(0f, 2.3f, -5.8f), new Vector3(2.3f, 0.18f, 0.2f));
-			shell.Box(Art.Glow, Color.white, new Vector3(0.8f, 1.7f, -5.95f), new Vector3(0.22f, 0.3f, 0.22f));
-			shell.Build("MineShell", mineRoot, Vector3.zero, 0f);
-			BuildShade(mineRoot, mineRadius + 5f, 9f, 0.8f);
-			AddGlow(mineRoot, new Vector3(0.8f, 2f, -6.2f), mineLampRange, mineLampIntensity);
+			for (int i = 0; i < MINE_WALLS; i++)
+			{
+				float angle = i / (float)MINE_WALLS * Mathf.PI * 2f;
+				GameObject wall = new("Wall");
+				wall.transform.SetParent(mineRoot, false);
+				wall.transform.SetLocalPositionAndRotation(new Vector3(Mathf.Cos(angle) * (mineRadius + 1f), 2f, Mathf.Sin(angle) * (mineRadius + 1f)), Quaternion.Euler(0f, 90f - angle * Mathf.Rad2Deg, 0f));
+				wall.AddComponent<BoxCollider>().size = new Vector3(3f, 4f, 1f);
+			}
+			Models.Build("MineLift", mineRoot, liftPosition, 0f);
+			AddGlow(mineRoot, liftPosition + new Vector3(1f, 2f, 0f), mineLampRange, mineLampIntensity);
 			mineLantern = AddGlow(mineRoot, Vector3.zero, mineLampRange, mineLampIntensity);
 			GameObject floor = new("MineFloor");
 			floor.transform.SetParent(mineRoot, false);
@@ -74,15 +87,20 @@ namespace WitchMendokusai
 			box.size = new Vector3(mineRadius * 3f, 1f, mineRadius * 3f);
 			mineFloor = new GameObject("Nodes").transform;
 			mineFloor.SetParent(mineRoot, false);
-			HomesteadSpot.Create(mineRoot, new Vector3(0f, 0f, -6.4f), "LiftSpot", () => "승강기", () => "올라가기", LeaveMineByLift);
-			VillageKit hole = new();
-			hole.Prism(Art.Dark, Color.white, new Vector3(0f, -0.06f, 0f), new Vector3(1.6f, 0.1f, 1.6f), 10);
-			hole.Prism(Art.Wood, Color.white, new Vector3(0.5f, 0f, 0.6f), new Vector3(0.12f, 0.8f, 0.12f), 6);
-			hole.Prism(Art.Wood, Color.white, new Vector3(-0.5f, 0f, 0.6f), new Vector3(0.12f, 0.8f, 0.12f), 6);
-			hole.Box(Art.Glow, Color.white, new Vector3(0f, 0.02f, 0f), new Vector3(0.9f, 0.03f, 0.9f), new Vector3(0f, 45f, 0f));
-			minePassage = hole.Build("Passage", mineRoot, new Vector3(0f, 0f, 5.2f), 0f);
+			HomesteadSpot.Create(mineRoot, liftPosition + new Vector3(0f, 0f, 0.4f), "LiftSpot", () => "승강기", () => "올라가기", LeaveMineByLift);
+			minePassage = Models.Build("MineHole", mineRoot, holePosition, 0f);
+			AddGlow(minePassage.transform, new Vector3(0.7f, 1.2f, 0.4f), holeGlowRange, holeGlowIntensity);
 			HomesteadSpot.Attach(minePassage, () => "내리막", () => run != null && run.Depth >= Sim.MineMaxDepth ? "더는 없음" : "내려가기", Descend);
 			minePassage.SetActive(false);
+		}
+
+		// 깊이 구간마다 바위 빛깔이 다름. 돌과 흙 조각만
+		private void TintShell()
+		{
+			shellBlock ??= new MaterialPropertyBlock();
+			shellBlock.SetColor(BASE_COLOR, mineColors[Mathf.Clamp(Catalog.MineBands.IndexOf(run.Band), 0, mineColors.Length - 1)]);
+			for (int i = 0; i < SHELL_TINT_PARTS; i++)
+				mineShell.SetPropertyBlock(shellBlock, i);
 		}
 
 		private void OpenLift()
@@ -112,6 +130,7 @@ namespace WitchMendokusai
 		private void LeaveMine()
 		{
 			run = null;
+			isInsideMine = false;
 			if (manager != null && manager.Hud != null)
 				manager.Hud.ShowMine(false);
 			if (minePassage != null)
@@ -134,13 +153,14 @@ namespace WitchMendokusai
 					float angle = (float)random.NextDouble() * Mathf.PI * 2f;
 					float radius = Mathf.Sqrt((float)random.NextDouble()) * (mineRadius - 2f);
 					point = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius);
-					bool clear = point.y > -3.4f && Vector2.Distance(point, new Vector2(0f, 5.2f)) > 2f && placed.Exists(other => Vector2.Distance(other, point) < mineNodeGap) == false;
+					bool clear = point.y > -3.4f && Vector2.Distance(point, new Vector2(holePosition.x, holePosition.z)) > 2f && placed.Exists(other => Vector2.Distance(other, point) < mineNodeGap) == false;
 					if (clear)
 						break;
 				}
 				placed.Add(point);
 				mineNodes.Add(MakeNode(i, new Vector3(point.x, 0f, point.y), (float)random.NextDouble() * 360f));
 			}
+			TintShell();
 			RefreshMine();
 		}
 
@@ -150,58 +170,11 @@ namespace WitchMendokusai
 			NodeView view = new() { Root = new GameObject("Node") };
 			view.Root.transform.SetParent(mineFloor, false);
 			view.Root.transform.localPosition = position;
-			int band = Mathf.Clamp(Catalog.MineBands.IndexOf(run.Band), 0, mineColors.Length - 1);
-			view.Body = NodeBody(node.Def, mineColors[band]).Build("Body", view.Root.transform, Vector3.zero, yaw);
-			VillageKit glint = new();
-			glint.Crystal(Art.Glow, Color.white, new Vector3(0f, -0.15f, 0f), new Vector3(0.22f, 0.3f, 0.22f), 4);
-			view.Glint = glint.Build("Glint", view.Root.transform, new Vector3(0f, 0.8f, -0.6f), 0f, castShadow: false).transform;
+			view.Body = Models.Build(MINE_KEY + node.Def.Id, view.Root.transform, Vector3.zero, yaw);
+			view.Glint = Models.Build("MineGlint", view.Root.transform, Vector3.up * glintHeight, 0f).transform;
 			int captured = index;
 			HomesteadSpot.Attach(view.Root, () => run.Nodes[captured].Def.Name, () => NodeRole(captured), () => StrikeNode(captured));
 			return view;
-		}
-
-		private static VillageKit NodeBody(MineNodeDef def, Color rockColor)
-		{
-			VillageKit kit = new();
-			kit.Prism(Art.Stone, rockColor, new Vector3(0f, -0.15f, 0f), new Vector3(1.5f, 1f, 1.3f), 6, 0.62f);
-			kit.Prism(Art.Stone, rockColor * 0.9f, new Vector3(0.5f, -0.1f, 0.3f), new Vector3(0.9f, 0.6f, 0.8f), 5, 0.6f);
-			Color vein = VeinColor(def.Id, out bool glows);
-			Material material = glows ? Art.GlowPurple : Art.Gold;
-			for (int i = 0; i < 4; i++)
-			{
-				float angle = i * 1.7f + 0.4f;
-				kit.Crystal(material, vein, new Vector3(Mathf.Cos(angle) * 0.42f, 0.25f + (i % 2) * 0.25f, Mathf.Sin(angle) * 0.36f), new Vector3(0.26f, 0.42f, 0.26f), 5, new Vector3(Mathf.Sin(angle) * 35f, 0f, -Mathf.Cos(angle) * 35f));
-			}
-			kit.Solid(Vector3.zero, new Vector3(1.1f, 0.9f, 1f));
-			return kit;
-		}
-
-		private static Color VeinColor(string nodeId, out bool glows)
-		{
-			glows = nodeId == "n_amethyst" || nodeId == "n_gem" || nodeId == "n_quartz" || nodeId == "n_rainbow";
-			switch (nodeId)
-			{
-				case "n_coal":
-					return new Color(0.24f, 0.22f, 0.26f);
-				case "n_copper":
-					return new Color(1.1f, 0.62f, 0.44f);
-				case "n_iron":
-					return new Color(0.9f, 0.92f, 1.2f);
-				case "n_gold":
-					return new Color(1.2f, 1.1f, 0.7f);
-				case "n_obsidian":
-					return new Color(0.34f, 0.26f, 0.5f);
-				case "n_quartz":
-					return new Color(0.8f, 0.95f, 1f);
-				case "n_gem":
-					return new Color(0.6f, 0.9f, 1f);
-				case "n_rainbow":
-					return new Color(1f, 0.8f, 1f);
-				case "n_amethyst":
-					return new Color(0.9f, 0.7f, 1f);
-				default:
-					return new Color(0.8f, 0.78f, 0.76f);
-			}
 		}
 
 		private string NodeRole(int index)
@@ -261,7 +234,10 @@ namespace WitchMendokusai
 		{
 			if (run == null)
 				return;
-			if ((playerProvider.CurrentObject.transform.position - mineRoot.position).sqrMagnitude > mineLeaveDistance * mineLeaveDistance && isMoving == false)
+			// 옮긴 첫 프레임은 보간 때문에 아직 옛 자리. 안에 있는 것을 한 번 본 뒤에만 나간 것으로 침
+			bool isNear = (playerProvider.CurrentObject.transform.position - mineRoot.position).sqrMagnitude < mineLeaveDistance * mineLeaveDistance;
+			isInsideMine |= isNear;
+			if (isInsideMine && isNear == false && isMoving == false)
 			{
 				LeaveMine();
 				return;
@@ -272,8 +248,10 @@ namespace WitchMendokusai
 			float scale = sharp ? 1.6f : 0.35f + glintPhase * 0.6f;
 			foreach (NodeView view in mineNodes)
 			{
-				if (view.Root.activeSelf)
-					view.Glint.localScale = Vector3.one * scale;
+				if (view.Root.activeSelf == false)
+					continue;
+				view.Glint.localScale = Vector3.one * scale;
+				view.Glint.localRotation = Quaternion.Euler(0f, Time.time * glintTurn, 0f);
 			}
 		}
 	}

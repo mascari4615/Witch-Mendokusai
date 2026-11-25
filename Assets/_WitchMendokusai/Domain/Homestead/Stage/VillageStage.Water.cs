@@ -10,25 +10,26 @@ namespace WitchMendokusai
 		private const string POND = "pond";
 		private const string STREAM = "stream";
 		private const int STREAM_DOCK_LEVEL = 2;
-		private const int LINE_POINTS = 10;
+		private const int POND_WALLS = 44;
 
 		[Header("Water")]
 		[SerializeField] private Vector3 streamFrom = new(24f, 0f, -5f);
 		[SerializeField] private Vector3 streamTo = new(33f, 0f, 6f);
 		[SerializeField] private float streamWidth = 3.6f;
 		[SerializeField] private Vector3 streamSpot = new(24.4f, 0f, -1.4f);
+		[SerializeField] private float dockHalfWidth = 0.72f;
+		[SerializeField] private float dockLength = 5.5f;
+		[SerializeField] private float wallHeight = 3f;
 		[SerializeField] private float resultSeconds = 1.6f;
-		[SerializeField] private float floatHeight = 0.5f;
-		[SerializeField] private float lineWidth = 0.02f;
-		[SerializeField] private float lineSag = 0.5f;
-		[SerializeField] private Vector3 rodTip = new(0.4f, 0.9f, 0f);
+		[Tooltip("찌가 떨어지는 자리. 못 가운데와 개울 자리에서")]
+		[SerializeField] private Vector3 pondCast = new(0f, -0.16f, 0.6f);
+		[SerializeField] private Vector3 streamCast = new(2f, -0.16f, 0.8f);
 
 		private FishingDuel duel;
 		private string fishingWater;
 		private bool reelHeld;
 		private float resultTimer;
-		private HomesteadSprite bobber;
-		private LineRenderer fishingLine;
+		private VillageFishingRig rig;
 		private GameObject streamSpotObject;
 
 		private void BuildWater()
@@ -48,21 +49,43 @@ namespace WitchMendokusai
 				wall.radius = radius - 0.5f;
 				wall.height = 4f;
 			}
-			GameObject block = new("PondBlock");
-			block.transform.SetParent(outdoor, false);
-			block.transform.localPosition = pondCenter;
-			CapsuleCollider capsule = block.AddComponent<CapsuleCollider>();
-			capsule.radius = pondRadius - 0.2f;
-			capsule.height = pondRadius * 2f + 4f;
-			bobber = HomesteadSprite.Create(outdoor, pondCenter, Art.Icon("bobber"), floatHeight, 0.05f);
-			bobber.gameObject.SetActive(false);
-			fishingLine = new GameObject("FishingLine").AddComponent<LineRenderer>();
-			fishingLine.transform.SetParent(outdoor, false);
-			fishingLine.sharedMaterial = Art.Cloth;
-			fishingLine.widthMultiplier = lineWidth;
-			fishingLine.positionCount = LINE_POINTS;
-			fishingLine.enabled = false;
+			BuildPondWalls();
+			rig = VillageFishingRig.Create(outdoor);
 			streamSpotObject = HomesteadSpot.Create(outdoor, streamSpot, "StreamSpot", () => "개울", () => "낚시", () => StartFishing(STREAM)).gameObject;
+		}
+
+		// 물가를 따라 선 보이지 않는 벽. 나루가 놓인 쪽은 열고 나루 양옆과 끝을 막음
+		private void BuildPondWalls()
+		{
+			Transform root = new GameObject("PondWalls").transform;
+			root.SetParent(outdoor, false);
+			PlacedPiece dock = Sim.PieceOf("dock");
+			Vector3 foot = CenterOf(dock);
+			Vector3 along = FacingOf(dock.Turn) * Vector3.back;
+			Vector3 side = Vector3.Cross(Vector3.up, along);
+			float radius = pondRadius - 0.2f;
+			float span = radius * Mathf.PI * 2f / POND_WALLS;
+			for (int i = 0; i < POND_WALLS; i++)
+			{
+				float angle = i / (float)POND_WALLS * Mathf.PI * 2f;
+				Vector3 point = pondCenter + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
+				Vector3 offset = point - foot;
+				bool isDock = Vector3.Dot(offset, along) is > 0f and < 6f && Mathf.Abs(Vector3.Dot(offset, side)) < dockHalfWidth + span * 0.5f;
+				if (isDock == false)
+					AddWall(root, point, new Vector3(span + 0.2f, wallHeight, 0.4f), Quaternion.Euler(0f, 90f - angle * Mathf.Rad2Deg, 0f));
+			}
+			Quaternion facing = Quaternion.LookRotation(along);
+			for (int sign = -1; sign <= 1; sign += 2)
+				AddWall(root, foot + along * (dockLength * 0.5f + 1.2f) + side * (sign * (dockHalfWidth + 0.2f)), new Vector3(0.4f, wallHeight, dockLength - 2.4f), facing);
+			AddWall(root, foot + along * dockLength, new Vector3(dockHalfWidth * 2f + 0.8f, wallHeight, 0.4f), facing);
+		}
+
+		private void AddWall(Transform root, Vector3 position, Vector3 size, Quaternion rotation)
+		{
+			GameObject wall = new("Wall");
+			wall.transform.SetParent(root, false);
+			wall.transform.SetLocalPositionAndRotation(position + Vector3.up * (size.y * 0.5f), rotation);
+			wall.AddComponent<BoxCollider>().size = size;
 		}
 
 		// 물가 돌과 갈대는 몇 무더기로만. 둘레를 다 두르지 않음
@@ -104,10 +127,8 @@ namespace WitchMendokusai
 			reelHeld = false;
 			resultTimer = 0f;
 			CombatSfx.Play(CombatSfxEvent.FishingCast, playerProvider.Current.transform.position);
-			Vector3 target = water == POND ? pondCenter + new Vector3(-pondRadius * 0.35f, 0.1f, 0.6f) : streamSpot + new Vector3(1.6f, 0.1f, 0.6f);
-			bobber.SetHome(target);
-			bobber.transform.localPosition = target;
-			bobber.gameObject.SetActive(true);
+			Vector3 target = water == POND ? pondCenter + pondCast : streamSpot + streamCast;
+			rig.Cast(playerProvider.CurrentObject.transform, transform.TransformPoint(target));
 			manager.Hud.ShowDuel(true);
 			manager.Panels.Fishing.Bind(PressReel, ReleaseReel, EndFishing);
 			manager.Panels.Show(HomesteadPanelType.Fishing);
@@ -139,11 +160,8 @@ namespace WitchMendokusai
 				return;
 			duel = null;
 			reelHeld = false;
-			if (bobber != null)
-			{
-				bobber.gameObject.SetActive(false);
-				fishingLine.enabled = false;
-			}
+			if (rig != null)
+				rig.Stop();
 			if (manager.Hud != null)
 				manager.Hud.ShowDuel(false);
 		}
@@ -152,6 +170,7 @@ namespace WitchMendokusai
 		{
 			if (duel == null)
 				return;
+			rig.Step(duel);
 			if (duel.IsOver)
 			{
 				resultTimer -= Time.deltaTime;
@@ -159,31 +178,17 @@ namespace WitchMendokusai
 					StopFishing();
 				return;
 			}
-			DrawLine();
 			FishingPhase before = duel.Phase;
 			duel.Step(Time.deltaTime, reelHeld);
 			manager.Hud.SetDuel(duel);
 			if (duel.Phase == FishingPhase.Bite && before == FishingPhase.Waiting)
 			{
-				CombatSfx.Play(CombatSfxEvent.FishingBite, bobber.transform.position);
+				CombatSfx.Play(CombatSfxEvent.FishingBite, rig.FloatPosition);
+				rig.Splash(rig.FloatPosition);
 				uiManager.SpeechBubble.Show(playerProvider.Current.transform, "!", Catalog.Tuning.BiteWindow);
 			}
 			if (duel.IsOver)
 				FinishFishing();
-		}
-
-		// 팽팽할수록 곧게
-		private void DrawLine()
-		{
-			fishingLine.enabled = true;
-			Vector3 from = playerProvider.CurrentObject.transform.position + rodTip;
-			Vector3 to = bobber.transform.position + Vector3.up * floatHeight * 0.8f;
-			float sag = lineSag * (1f - duel.Tension);
-			for (int i = 0; i < LINE_POINTS; i++)
-			{
-				float ratio = i / (LINE_POINTS - 1f);
-				fishingLine.SetPosition(i, Vector3.Lerp(from, to, ratio) + Vector3.down * (Mathf.Sin(ratio * Mathf.PI) * sag));
-			}
 		}
 
 		private void FinishFishing()
@@ -192,17 +197,20 @@ namespace WitchMendokusai
 			switch (duel.Phase)
 			{
 				case FishingPhase.Caught:
+					rig.Land(Art.IconOf(Catalog.Get<GoodsDef>(duel.Fish.Goods)));
 					float size = Sim.Land(duel.Fish, duel.IsPerfect, out bool isRecord);
 					UiSfx.Play(duel.IsPerfect ? UiSfxEvent.LevelUp : UiSfxEvent.Purchase);
 					string text = $"{size}cm{(isRecord ? ", 가장 큰 것" : string.Empty)}{(duel.IsPerfect ? ", 완벽" : string.Empty)}";
 					manager.Hud.Notice(duel.Fish.Name, text, Art.IconOf(Catalog.Get<GoodsDef>(duel.Fish.Goods)));
 					break;
 				case FishingPhase.Snapped:
-					CombatSfx.Play(CombatSfxEvent.FishingMiss, bobber.transform.position);
+					CombatSfx.Play(CombatSfxEvent.FishingMiss, rig.FloatPosition);
+					rig.Lose();
 					Say("실이 끊어졌습니다.");
 					break;
 				default:
-					CombatSfx.Play(CombatSfxEvent.FishingMiss, bobber.transform.position);
+					CombatSfx.Play(CombatSfxEvent.FishingMiss, rig.FloatPosition);
+					rig.Lose();
 					Say("놓쳤습니다.");
 					break;
 			}

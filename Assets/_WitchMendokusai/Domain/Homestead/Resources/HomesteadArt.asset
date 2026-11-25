@@ -35,3 +35,25 @@ MonoBehaviour:
   <Water>k__BackingField: {fileID: 2100000, guid: 8562b1d94492a1aa3eed5ae791f47dd0, type: 2}
   <SpriteMaterial>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
   <Sky>k__BackingField: {fileID: 2100000, guid: 55da0a3d7dd599da6e09e5edc67a779b, type: 2}
+  <Shaft>k__BackingField: {fileID: 2100000, guid: e9df3cb527d0a10b73219eae44f34454, type: 2}
+  animals:
+  - Id: hen
+    Frames:
+    - {fileID: 21300000, guid: 7899f249b9e8eeb658c06bee9440742e, type: 3}
+    - {fileID: 21300000, guid: f90f49f62bbe3b5856a28db5d261a3d3, type: 3}
+    - {fileID: 21300000, guid: ee86d28885b5cde0ce475a4a763b48e7, type: 3}
+  - Id: hen
+    Frames:
+    - {fileID: 21300000, guid: e0eaee37e3c871b24af68b3853d65839, type: 3}
+    - {fileID: 21300000, guid: 0253a3a055e97be1f406af307ebf5b20, type: 3}
+    - {fileID: 21300000, guid: b01db19c73d7fe9da44af446fdfb0910, type: 3}
+  - Id: sheep
+    Frames:
+    - {fileID: 21300000, guid: 91edd4aa14a8cbcdc8972926619388e1, type: 3}
+    - {fileID: 21300000, guid: fde33c24d16e675158485e7d25f11a6d, type: 3}
+    - {fileID: 21300000, guid: 316fde7e1722441aa9cbc18723552751, type: 3}
+  - Id: cow
+    Frames:
+    - {fileID: 21300000, guid: f57b38496def07902e366cf6f1414d79, type: 3}
+    - {fileID: 21300000, guid: abef4693777c59c77c04ef504123bdb4, type: 3}
+    - {fileID: 21300000, guid: 36c6e355a296685f779524bd2d6be405, type: 3}

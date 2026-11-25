@@ -522,6 +522,7 @@ MonoBehaviour:
   - Key: PlotWild
     Mesh: {fileID: 4300000, guid: 741dc6fd27379627cfacc909816c6e92, type: 2}
     Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
     - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 0
@@ -532,7 +533,6 @@ MonoBehaviour:
     Materials:
     - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
     - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
-    - {fileID: 2100000, guid: 761ca133275d3bf7baca0a5fd9f076af, type: 2}
     - {fileID: 2100000, guid: d5d3b2bae1d403402a1c4b7656298917, type: 2}
     CastShadow: 0
     Cells: {x: 1, y: 1}
@@ -1154,6 +1154,495 @@ MonoBehaviour:
     Solids:
     - m_Center: {x: 0, y: 0.8, z: 0}
       m_Extent: {x: 0.2, y: 0.8, z: 0.2}
+  - Key: CropSprout
+    Mesh: {fileID: 4300000, guid: 3dc3b6b16ba68598fad2e43a1164a190, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 0
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: FieldEdge
+    Mesh: {fileID: 4300000, guid: 7ae2058bf833ef9808468e8316416214, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    CastShadow: 0
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Scarecrow
+    Mesh: {fileID: 4300000, guid: 65af53afbf47c660597bf79b851d5369, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.7, z: 0}
+      m_Extent: {x: 0.15, y: 0.7, z: 0.15}
+  - Key: Crop_turnip_a
+    Mesh: {fileID: 4300000, guid: 2708151c60a1312e02e38b130657ea45, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_turnip_b
+    Mesh: {fileID: 4300000, guid: 69b98a16c2ab7c4bf2697df64cf697d2, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_turnip_c
+    Mesh: {fileID: 4300000, guid: 7a98f6c7c708a60374144c2ba9e76c0e, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_potato_a
+    Mesh: {fileID: 4300000, guid: d6b18d2ed7a01b6abe6c5419e10111e1, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_potato_b
+    Mesh: {fileID: 4300000, guid: 7ff07f65d31ac53a00bae65c720b0616, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: df37b9ad118cebdb93389873033391fa, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_potato_c
+    Mesh: {fileID: 4300000, guid: 384f1bbc9bfbf1d42a11c84aab1cca27, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_wheat_a
+    Mesh: {fileID: 4300000, guid: c3601bb62eb2f60ed3bc9a34622d79c1, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_wheat_b
+    Mesh: {fileID: 4300000, guid: 439f10740eff2e919c11fa8b293f11a2, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_wheat_c
+    Mesh: {fileID: 4300000, guid: a678a47d15b36cccfe40a4d8b5056a7a, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_carrot_a
+    Mesh: {fileID: 4300000, guid: 2946e44591a0e568b0dccb11bcba2518, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_carrot_b
+    Mesh: {fileID: 4300000, guid: 8725fb54f6fc8c1bcc7845342ad14dc0, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_carrot_c
+    Mesh: {fileID: 4300000, guid: 24e5a010d61598338d46bfc7a21b0347, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_tomato_a
+    Mesh: {fileID: 4300000, guid: 4ba0d55c293ff18c73bc49c02f15ff66, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_tomato_b
+    Mesh: {fileID: 4300000, guid: 6d7e87fb6ce88565c0b0fc7551573962, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 0828f00823bb802b133a2e8aef3cfff9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_tomato_c
+    Mesh: {fileID: 4300000, guid: 1193b9574590f4ae8b88ad43983a3a94, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_chili_a
+    Mesh: {fileID: 4300000, guid: 6d5e5c6c2fc36139df6726d69a813d87, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_chili_b
+    Mesh: {fileID: 4300000, guid: 0f1ba01af5693839b8374d31ad19082d, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: df37b9ad118cebdb93389873033391fa, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_chili_c
+    Mesh: {fileID: 4300000, guid: 190967cd97408f6c08c50af816902bfc, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_pumpkin_a
+    Mesh: {fileID: 4300000, guid: 5192b4279e4f0fbb97f7550783dbe9b6, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_pumpkin_b
+    Mesh: {fileID: 4300000, guid: 21e99642ea91e984730260eee9c83843, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: 0828f00823bb802b133a2e8aef3cfff9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_pumpkin_c
+    Mesh: {fileID: 4300000, guid: cb4938570416b64958104c5cc0683cd8, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_strawberry_a
+    Mesh: {fileID: 4300000, guid: 8c59a8e4eec2b854d5babd175e6924e8, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_strawberry_b
+    Mesh: {fileID: 4300000, guid: 6e65d9a1bd9eb6c9d64ee1fb3a93e3c6, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: df37b9ad118cebdb93389873033391fa, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_strawberry_c
+    Mesh: {fileID: 4300000, guid: 52e3cbc799833c5ffae8176e3dcffb1c, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_moonbean_a
+    Mesh: {fileID: 4300000, guid: 9d479b924ad1945a0673a4c7e864cf19, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_moonbean_b
+    Mesh: {fileID: 4300000, guid: 650fddd5546eea86ba953770d131105c, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 0828f00823bb802b133a2e8aef3cfff9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_moonbean_c
+    Mesh: {fileID: 4300000, guid: 60e721f59ed12eaa6768ddbe1194e0b2, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_snowcress_a
+    Mesh: {fileID: 4300000, guid: 8b78656fdecc8f83416ee7e1add7dedc, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_snowcress_b
+    Mesh: {fileID: 4300000, guid: 939b490ccd5622c796b5d5f7ecab5bc3, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Crop_snowcress_c
+    Mesh: {fileID: 4300000, guid: 084f71d56a4fa823c8eb22f148565294, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: MineShell
+    Mesh: {fileID: 4300000, guid: dfa5ebcdb823f9cd0df0fe0752fe23dc, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: MineLift
+    Mesh: {fileID: 4300000, guid: bb7baf8a41428289aa9851e031af1a6d, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: MineHole
+    Mesh: {fileID: 4300000, guid: e97a4ac3e401c1ba025bbe6eb6161409, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 0
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: MineGlint
+    Mesh: {fileID: 4300000, guid: 0e7db780ee430c884e6979c0394aa80c, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
+    CastShadow: 0
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Mine_n_stone
+    Mesh: {fileID: 4300000, guid: 74b2f67b24fe5e05ec1b57841004e49b, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.45, z: 0}
+      m_Extent: {x: 0.55, y: 0.45, z: 0.5}
+  - Key: Mine_n_coal
+    Mesh: {fileID: 4300000, guid: a212b06ae029e8cc39fae3bb08eb395b, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.45, z: 0}
+      m_Extent: {x: 0.55, y: 0.45, z: 0.5}
+  - Key: Mine_n_copper
+    Mesh: {fileID: 4300000, guid: 70d3d86030f46e9af2beb37d55acff26, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.45, z: 0}
+      m_Extent: {x: 0.55, y: 0.45, z: 0.5}
+  - Key: Mine_n_iron
+    Mesh: {fileID: 4300000, guid: d880fba73bccb011df83c5b9e963081e, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.45, z: 0}
+      m_Extent: {x: 0.55, y: 0.45, z: 0.5}
+  - Key: Mine_n_gold
+    Mesh: {fileID: 4300000, guid: af57c3a3f8684d2ca34b222fcdcfb1b6, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.45, z: 0}
+      m_Extent: {x: 0.55, y: 0.45, z: 0.5}
+  - Key: Mine_n_quartz
+    Mesh: {fileID: 4300000, guid: 62cfea08e7cac64420cbcde6ad614da8, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.45, z: 0}
+      m_Extent: {x: 0.55, y: 0.45, z: 0.5}
+  - Key: Mine_n_amethyst
+    Mesh: {fileID: 4300000, guid: 1d00239da5eb1d0e6888a51b09c43f41, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.45, z: 0}
+      m_Extent: {x: 0.55, y: 0.45, z: 0.5}
+  - Key: Mine_n_gem
+    Mesh: {fileID: 4300000, guid: ac35423688534c53a7926fff3ccdf3fd, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.45, z: 0}
+      m_Extent: {x: 0.55, y: 0.45, z: 0.5}
+  - Key: Mine_n_obsidian
+    Mesh: {fileID: 4300000, guid: a3f805d085ebefa3122ccf8f0597ec1d, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.45, z: 0}
+      m_Extent: {x: 0.55, y: 0.45, z: 0.5}
+  - Key: Mine_n_rainbow
+    Mesh: {fileID: 4300000, guid: f67cb6a4ba8db85c97d6a9d3438ef710, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.45, z: 0}
+      m_Extent: {x: 0.55, y: 0.45, z: 0.5}
+  - Key: Museum_hall
+    Mesh: {fileID: 4300000, guid: 0a142cd2ca3c387e114c8c753aa269a2, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 0
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.6, z: 2.6}
+      m_Extent: {x: 1.7, y: 0.6, z: 0.55}
+    - m_Center: {x: -3.4, y: 0.25, z: -2.1}
+      m_Extent: {x: 0.9, y: 0.25, z: 0.25}
+    - m_Center: {x: 3.4, y: 0.25, z: -2.1}
+      m_Extent: {x: 0.9, y: 0.25, z: 0.25}
+  - Key: Museum_plants
+    Mesh: {fileID: 4300000, guid: b11d35bd374a305ff9f8a375d1099ad9, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
+    - {fileID: 2100000, guid: c86a6287c691fa2bffb93b5259890e03, type: 2}
+    CastShadow: 0
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Museum_waters
+    Mesh: {fileID: 4300000, guid: 58fec1f05934fc95d9b46fc0aee1c26b, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    CastShadow: 0
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Museum_stones
+    Mesh: {fileID: 4300000, guid: 7ba707cc053cd1d34ce96aa94a1babab, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
+    - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    CastShadow: 0
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Museum_relics
+    Mesh: {fileID: 4300000, guid: 3911b33e5ace4c86d3f653b2bac50829, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
+    CastShadow: 0
+    Cells: {x: 1, y: 1}
+    Solids: []
+  - Key: Stand_plants
+    Mesh: {fileID: 4300000, guid: 3f8ef100e16e85804ff771c8e9c535b1, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.3, z: 0}
+      m_Extent: {x: 0.5, y: 0.3, z: 0.475}
+  - Key: Stand_waters
+    Mesh: {fileID: 4300000, guid: fcbf234220951d7951547d11cce026ca, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: e5e3cb20a70d0fa0b83be809b28a51cc, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.7, z: 0}
+      m_Extent: {x: 0.875, y: 0.7, z: 0.425}
+  - Key: Stand_stones
+    Mesh: {fileID: 4300000, guid: 6ae8dc9f126922e79838a780a95135af, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.3, z: 0}
+      m_Extent: {x: 0.4, y: 0.3, z: 0.375}
+  - Key: Stand_relics
+    Mesh: {fileID: 4300000, guid: de9956eebe01f52933591aea5190180c, type: 2}
+    Materials:
+    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
+    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
+    CastShadow: 1
+    Cells: {x: 1, y: 1}
+    Solids:
+    - m_Center: {x: 0, y: 0.4, z: 0}
+      m_Extent: {x: 0.4, y: 0.4, z: 0.4}
   - Key: RuinA
     Mesh: {fileID: 4300000, guid: a2225b4c9bd8f441aa161e25c3f0b39d, type: 2}
     Materials:

@@ -113,13 +113,13 @@ namespace WitchMendokusai
 					if (crop.RegrowMinutes > 0)
 						detail.Lines.Add($"거둔 뒤 {HomesteadText.Minutes(crop.RegrowMinutes)}마다 다시 열림");
 					detail.Lines.Add($"한 번에 {crop.YieldMin}에서 {crop.YieldMax}개, 하나에 {harvest.Price}냥");
-					HomesteadResult canPlant = owned > 0 ? HomesteadResult.Success : HomesteadResult.Fail(HomesteadFailure.NotEnoughGoods, crop.Seed);
-					AddAction(detail, "심기", canPlant, () => Done(() => onPick(crop.Id)));
-					if (Sim.State.TownHall >= crop.TownHall)
-					{
-						AddBuy(detail, crop, 1);
+					bool sold = Sim.State.TownHall >= crop.TownHall;
+					if (owned > 0)
+						AddAction(detail, "심기", HomesteadResult.Success, () => Done(() => onPick(crop.Id)));
+					else if (sold)
+						AddAction(detail, $"하나 사서 심기  {crop.SeedPrice}냥", CanBuy(crop, 1), () => BuyAndPick(crop), UiSfxEvent.Purchase);
+					if (sold)
 						AddBuy(detail, crop, BUY_FIVE);
-					}
 					int growing = Sim.State.Plots.FindAll(plot => plot.Crop == crop.Id).Count;
 					if (growing > 0)
 						AddAction(detail, $"심은 {growing}칸 걷어 내기", HomesteadResult.Success, () => UprootAll(crop.Id), UiSfxEvent.Cancel);
@@ -138,11 +138,17 @@ namespace WitchMendokusai
 			return HomesteadResult.Success;
 		}
 
-		private void AddBuy(HomesteadDetail detail, CropDef crop, int amount)
+		private HomesteadResult BuyAndPick(CropDef crop)
 		{
-			HomesteadResult can = Sim.Purse.Nyang >= crop.SeedPrice * amount ? HomesteadResult.Success : HomesteadResult.Fail(HomesteadFailure.NotEnoughNyang);
-			AddAction(detail, $"씨앗 {amount}개 사기  {crop.SeedPrice * amount}냥", can, () => Sim.BuySeed(crop.Id, amount), UiSfxEvent.Purchase);
+			HomesteadResult bought = Sim.BuySeed(crop.Id, 1);
+			return bought.Ok ? Done(() => onPick(crop.Id)) : bought;
 		}
+
+		private HomesteadResult CanBuy(CropDef crop, int amount) =>
+			Sim.Purse.Nyang >= crop.SeedPrice * amount ? HomesteadResult.Success : HomesteadResult.Fail(HomesteadFailure.NotEnoughNyang);
+
+		private void AddBuy(HomesteadDetail detail, CropDef crop, int amount) =>
+			AddAction(detail, $"씨앗 {amount}개 사기  {crop.SeedPrice * amount}냥", CanBuy(crop, amount), () => Sim.BuySeed(crop.Id, amount), UiSfxEvent.Purchase);
 	}
 
 	// 목장. 데려오기와 지금 있는 동물
