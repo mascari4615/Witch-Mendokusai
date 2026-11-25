@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -22,7 +23,7 @@ namespace WitchMendokusai.SequenceLibrary
         private Slider timeline;
         private bool opened;
         public bool IsOpen { get { return opened; } }
-        public ContentScenePlayer Player { get { return player; } }
+        public ContentScenePlayer Player { get { return stage == null ? null : stage.Player; } }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Register()
@@ -96,10 +97,10 @@ namespace WitchMendokusai.SequenceLibrary
             timeline.style.flexGrow = 1;
             timeline.RegisterValueChangedCallback(change =>
             {
-                if (player == null || player.IsLoaded == false) return;
-                player.Pause();
-                try { player.Seek(change.newValue); }
-                catch (Exception exception) { status.text = PlaybackFailure(exception.Message); timeline.SetValueWithoutNotify(player.Time); }
+                if (Player == null || Player.IsLoaded == false) return;
+                Player.Pause();
+                try { Player.Seek(change.newValue); }
+                catch (Exception exception) { status.text = PlaybackFailure(exception.Message); timeline.SetValueWithoutNotify(Player.Time); }
             });
             transport.Add(timeline);
             transport.Add(new Button(ShowEntries) { text = "목록으로", name = "sequence-list" });
@@ -140,18 +141,16 @@ namespace WitchMendokusai.SequenceLibrary
             entries.style.display = DisplayStyle.Flex;
             transport.style.display = DisplayStyle.None;
             panel.style.backgroundColor = new Color(.08f, .09f, .12f, 1);
-            string directory = SequenceLibraryLocation.Directory;
             try
             {
-                string[] files = Directory.Exists(directory) ? Directory.GetFiles(directory, "*.sequence.json", SearchOption.TopDirectoryOnly) : new string[0];
-                Array.Sort(files, StringComparer.Ordinal);
-                Array.Reverse(files);
+                List<string> keys = new List<string>(SequenceCatalog.Keys);
+                keys.Reverse();
                 status.text = "연출을 선택하면 재생돼요.";
-                if (files.Length == 0) status.text = "아직 연출이 없어요. 장면 편집기에서 '게임 보관함에 내보내기'로 추가하세요.";
-                foreach (string file in files)
+                if (keys.Count == 0) status.text = "아직 연출이 없어요. 장면 편집기에서 '게임 보관함에 내보내기'로 추가하세요.";
+                foreach (string key in keys)
                 {
-                    string selected = file;
-                    Button entry = new Button(() => LoadSequence(selected)) { text = Path.GetFileName(file).Replace(".sequence.json", ""), tooltip = Path.GetFileName(file), name = "sequence-entry" };
+                    string selected = SequenceCatalog.FileOf(key);
+                    Button entry = new Button(() => LoadSequence(selected)) { text = key, tooltip = Path.GetFileName(selected), name = "sequence-entry" };
                     entry.style.minHeight = 48;
                     entries.Add(entry);
                 }

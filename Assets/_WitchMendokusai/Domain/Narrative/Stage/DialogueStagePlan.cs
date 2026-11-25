@@ -78,6 +78,9 @@ namespace WitchMendokusai
 		public string ShotTarget { get; internal set; }
 		public DialogueStageShot Shot { get; internal set; }
 		public bool ShotChanged { get; internal set; }
+		// 켜져 있는 3D 연출 이름. null 이면 3D 연출 없음
+		public string SceneKey { get; internal set; }
+		public bool SceneChanged { get; internal set; }
 
 		public List<DialogueStageActorChange> Entered { get; } = new();
 		public List<DialogueStageActorChange> Exited { get; } = new();
@@ -109,12 +112,15 @@ namespace WitchMendokusai
 		private bool cinema;
 		private string shotTarget;
 		private DialogueStageShot shot;
+		private string sceneKey;
+		private bool isPresentationRaisedForScene;
 
 		public DialogueStagePresentation Presentation { get; private set; } = DialogueStagePresentation.World;
 		public bool HasPending => pending.Count > 0;
 		public IReadOnlyList<DialogueStageActor> Actors => actors;
 		public string Speaker => speaker;
 		public string ShotTarget => shotTarget;
+		public string SceneKey => sceneKey;
 
 		public void Queue(IReadOnlyList<DialogueStageCue> cues)
 		{
@@ -169,6 +175,7 @@ namespace WitchMendokusai
 			delta.Cinema = cinema;
 			delta.ShotTarget = shotTarget;
 			delta.Shot = shot;
+			delta.SceneKey = sceneKey;
 			delta.Actors.AddRange(actors);
 			return delta;
 		}
@@ -178,11 +185,8 @@ namespace WitchMendokusai
 			switch (cue.Kind)
 			{
 				case DialogueStageCueKind.Presentation:
-					if (Presentation != cue.Presentation)
-					{
-						Presentation = cue.Presentation;
-						delta.PresentationChanged = true;
-					}
+					SetPresentation(delta, cue.Presentation);
+					isPresentationRaisedForScene = false;
 					break;
 
 				case DialogueStageCueKind.Enter:
@@ -249,8 +253,55 @@ namespace WitchMendokusai
 					}
 					break;
 
+				case DialogueStageCueKind.Scene:
+					StartScene(delta, cue.SceneKey);
+					break;
+
+				case DialogueStageCueKind.SceneEnd:
+					EndScene(delta);
+					break;
+
 				default:
 					throw new ArgumentOutOfRangeException(nameof(cue), cue.Kind, "Unknown stage cue kind");
+			}
+		}
+
+		private void SetPresentation(DialogueStageDelta delta, DialogueStagePresentation next)
+		{
+			if (Presentation != next)
+			{
+				Presentation = next;
+				delta.PresentationChanged = true;
+			}
+		}
+
+		// 말풍선은 월드 화면에 붙어 3D 연출에 가려짐. 말풍선 방식이었으면 자막으로 올리고 끌 때 복구
+		private void StartScene(DialogueStageDelta delta, string key)
+		{
+			if (string.Equals(sceneKey, key, StringComparison.Ordinal) == false)
+			{
+				sceneKey = key;
+				delta.SceneChanged = true;
+			}
+			if (Presentation == DialogueStagePresentation.World)
+			{
+				SetPresentation(delta, DialogueStagePresentation.Feature);
+				isPresentationRaisedForScene = true;
+			}
+		}
+
+		private void EndScene(DialogueStageDelta delta)
+		{
+			if (sceneKey == null)
+			{
+				return;
+			}
+			sceneKey = null;
+			delta.SceneChanged = true;
+			if (isPresentationRaisedForScene)
+			{
+				SetPresentation(delta, DialogueStagePresentation.World);
+				isPresentationRaisedForScene = false;
 			}
 		}
 

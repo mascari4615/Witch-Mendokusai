@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		public const string SHOT = "샷";
 		public const string EFFECT = "이펙트";
 		public const string CINEMA = "띠";
+		public const string SCENE = "연출";
 		public const string OFF = "끔";
 		public const string ON = "켬";
 		public const string END = "끝";

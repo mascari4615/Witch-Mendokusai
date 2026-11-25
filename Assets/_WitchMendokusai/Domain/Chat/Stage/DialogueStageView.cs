@@ -58,6 +58,7 @@ namespace WitchMendokusai
 		private void OnDestroy()
 		{
 			DialogueStageBridge.Clear(this);
+			HideScene();
 			cameraDirector?.Release();
 			SetHudHidden(false);
 			SetTimePaused(false);
@@ -152,6 +153,7 @@ namespace WitchMendokusai
 			isChoosing = false;
 			HideChoiceList();
 			CloseLog();
+			HideScene();
 			cameraDirector.Release();
 			SetHudHidden(false);
 			if (UIEffects.Enabled == false || root.style.display == DisplayStyle.None)

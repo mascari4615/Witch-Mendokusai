@@ -65,6 +65,8 @@ namespace WitchMendokusai
 		ShotEnd = 8,
 		Effect = 9,
 		Cinema = 10,
+		Scene = 11,
+		SceneEnd = 12,
 	}
 
 	// 무대 신호 한 줄. 보이는 것만 바꿈, 게임 상태 효과 `!`와 분리
@@ -83,6 +85,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public DialogueStageShot Shot { get; private set; }
 		[field: SerializeField] public string EffectName { get; private set; }
 		[field: SerializeField] public bool IsOn { get; private set; }
+		[field: SerializeField] public string SceneKey { get; private set; }
 
 		public bool TargetsAllActors => string.Equals(Actor, ALL_ACTORS, StringComparison.Ordinal);
 
@@ -118,5 +121,12 @@ namespace WitchMendokusai
 
 		public static DialogueStageCue Cinema(bool isOn) =>
 			new() { Kind = DialogueStageCueKind.Cinema, IsOn = isOn };
+
+		// 3D 연출 장면 켜기. 키는 장면 편집기에서 내보낸 연출 이름
+		public static DialogueStageCue Scene(string sceneKey) =>
+			new() { Kind = DialogueStageCueKind.Scene, SceneKey = sceneKey };
+
+		public static DialogueStageCue SceneEnd() =>
+			new() { Kind = DialogueStageCueKind.SceneEnd };
 	}
 }

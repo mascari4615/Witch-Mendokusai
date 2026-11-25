@@ -184,6 +184,7 @@ namespace WitchMendokusai
 			DevCommandRegistry.Instance.Register(new StartDungeonCommand());
 			DevCommandRegistry.Instance.Register(new UnlockQuestCommand());
 			DevCommandRegistry.Instance.Register(new DialogueStageSampleCommand());
+			DevCommandRegistry.Instance.Register(new DialogueSceneSampleCommand());
 			DevCommandRegistry.Instance.Register(new FxCommand());
 			DevCommandRegistry.Instance.Register(new StatusCommand());
 			DevCommandRegistry.Instance.Register(new DropCommand());

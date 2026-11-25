@@ -32,6 +32,9 @@ namespace WitchMendokusai
 			if (delta.ShotChanged)
 				cameraDirector.Apply(delta.ShotTarget, delta.Shot);
 
+			if (delta.SceneChanged)
+				ApplyScene(delta.SceneKey);
+
 			if (showOneShots)
 				PlayOneShots(delta);
 
