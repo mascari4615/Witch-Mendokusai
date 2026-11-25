@@ -28,7 +28,20 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats: []
-    m_Colors: []
+    m_Floats:
+    - _ShallowAlpha: 0.1
+    - _DeepAlpha: 0.62
+    - _DepthCurve: 1.5
+    - _Reflect: 0.5
+    - _CausticScale: 1.5
+    - _CausticStrength: 0.28
+    - _WaveScale: 0.1
+    - _WaveStrength: 0.9
+    - _GlintPower: 420
+    - _GlintStrength: 3.2
+    - _FoamWidth: 0.05
+    m_Colors:
+    - _ShallowColor: {r: 0.46, g: 0.7, b: 0.62, a: 1}
+    - _DeepColor: {r: 0.1, g: 0.38, b: 0.4, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
