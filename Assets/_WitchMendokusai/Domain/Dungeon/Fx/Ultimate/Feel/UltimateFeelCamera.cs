@@ -34,6 +34,7 @@ namespace WitchMendokusai
 		private float roll;
 		private float zoom;
 		private float dolly;
+		private Vector2 orbit;
 		private bool applied;
 		private bool disposed;
 
@@ -52,13 +53,15 @@ namespace WitchMendokusai
 		/// <param name="rollDegrees"> 화면 기울기 </param>
 		/// <param name="zoomRatio"> 화면 배율 증가 비율 (시야각을 좁힘), 음수는 무시 </param>
 		/// <param name="dollyRatio"> 표적까지 거리 비율 전진 </param>
-		public void Set(Vector3 focus, Vector2 screenOffset, float rollDegrees, float zoomRatio, float dollyRatio)
+		/// <param name="orbitDegrees"> 표적 둘레로 도는 각 (위아래, 좌우). 위아래 음수는 낮은 자리로 내려감 </param>
+		public void Set(Vector3 focus, Vector2 screenOffset, float rollDegrees, float zoomRatio, float dollyRatio, Vector2 orbitDegrees = default)
 		{
 			target = focus;
 			offset = screenOffset;
 			roll = rollDegrees;
 			zoom = Mathf.Max(0f, zoomRatio);
 			dolly = dollyRatio;
+			orbit = orbitDegrees;
 		}
 
 		public void Dispose()
@@ -102,6 +105,13 @@ namespace WitchMendokusai
 			Vector3 currentPosition = cameraTransform.position;
 			Quaternion currentRotation = cameraTransform.rotation;
 			float currentFieldOfView = camera.fieldOfView;
+			if (orbit != Vector2.zero)
+			{
+				Quaternion turn = Quaternion.AngleAxis(orbit.y, Vector3.up) * Quaternion.AngleAxis(orbit.x, cameraTransform.right);
+				currentPosition = target + turn * (currentPosition - target);
+				currentRotation = turn * currentRotation;
+				cameraTransform.SetPositionAndRotation(currentPosition, currentRotation);
+			}
 			float distance = Mathf.Max(0.5f, Vector3.Distance(currentPosition, target));
 			float halfTangent = Mathf.Tan(currentFieldOfView * 0.5f * Mathf.Deg2Rad) / (1f + zoom);
 			float baseFieldOfView = Mathf.Max(5f, 2f * Mathf.Atan(halfTangent) * Mathf.Rad2Deg);
@@ -115,7 +125,7 @@ namespace WitchMendokusai
 			UltimateImpactScreen.SetCenter(new Vector2(viewport.x, viewport.y), camera.aspect);
 		}
 
-		private bool IsIdle => offset == Vector2.zero && roll == 0f && zoom == 0f && dolly == 0f;
+		private bool IsIdle => offset == Vector2.zero && roll == 0f && zoom == 0f && dolly == 0f && orbit == Vector2.zero;
 
 		private void OnEnd(ScriptableRenderContext context, Camera rendering)
 		{

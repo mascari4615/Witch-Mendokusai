@@ -71,10 +71,260 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+  cameraPath:
+    Pitch:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.42
+        value: -16
+        inSlope: -14.634147
+        outSlope: -14.634147
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.82
+        value: -19
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.98
+        value: -9
+        inSlope: 11.666666
+        outSlope: 11.666666
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 2.02
+        value: -5
+        inSlope: 4.639176
+        outSlope: 4.639176
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 2.9199998
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Yaw:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.42
+        value: 13
+        inSlope: 21.95122
+        outSlope: 21.95122
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.82
+        value: 18
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.98
+        value: -11
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 2.02
+        value: -4
+        inSlope: 5.6701035
+        outSlope: 5.6701035
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 2.9199998
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Roll:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.42
+        value: -2
+        inSlope: -2.4390244
+        outSlope: -2.4390244
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.82
+        value: -2.5
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.98
+        value: 1.2
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.3199999
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 2.9199998
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Zoom:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.252
+        value: 0.55
+        inSlope: 3.095238
+        outSlope: 3.095238
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.42
+        value: 1.3
+        inSlope: 1.8485916
+        outSlope: 1.8485916
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.82
+        value: 1.6
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.98
+        value: 0.42
+        inSlope: -0.26666638
+        outSlope: -0.26666638
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.72
+        value: 0.36
+        inSlope: -0.12371129
+        outSlope: -0.12371129
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 2.9199998
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
   swells:
   - Label: "\uBAA8\uC784"
     FxStart: 0
-    FxEnd: 0.635
+    FxEnd: 0.815
     ReleaseSeconds: 0.28
     Shape:
       serializedVersion: 2
@@ -101,16 +351,16 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     TimeScale: 1
-    Exposure: -0.35
-    Saturation: -18
-    Contrast: 10
+    Exposure: -0.12
+    Saturation: -10
+    Contrast: 8
     Vignette: 0.25
-    Zoom: 1
-    Dolly: 0.06
+    Zoom: 0
+    Dolly: 0
     Rumble: 0.12
   - Label: "\uBA38\uBB3E"
     FxStart: 0
-    FxEnd: 2.1399999
+    FxEnd: 2.32
     ReleaseSeconds: 0.9
     Shape:
       serializedVersion: 2
@@ -150,12 +400,12 @@ MonoBehaviour:
     Saturation: 0
     Contrast: 0
     Vignette: 0
-    Zoom: 0.65
+    Zoom: 0
     Dolly: 0
     Rumble: 0
   beats:
   - Label: "\uBF51\uC74C"
-    FxTime: 0.33499998
+    FxTime: 0.415
     HoldSeconds: 0.04
     HoldTimeScale: 0
     SlowScale: 1
@@ -183,7 +433,7 @@ MonoBehaviour:
       Hold: 0.03
       HalfLife: 0.05
     Bloom:
-      Amount: 0.5
+      Amount: 0.1
       Attack: 0
       Hold: 0.03
       HalfLife: 0.08
@@ -198,10 +448,10 @@ MonoBehaviour:
       Hold: 0
       HalfLife: 0
     Chromatic:
-      Amount: 0.1
+      Amount: 0
       Attack: 0
-      Hold: 0.02
-      HalfLife: 0.05
+      Hold: 0
+      HalfLife: 0
     LensDistortion:
       Amount: 0
       Attack: 0
@@ -227,7 +477,7 @@ MonoBehaviour:
     ImpactFrameSeconds: 0
     ImpactFrameStrength: 0
   - Label: "\uD130\uC9D0"
-    FxTime: 0.635
+    FxTime: 0.815
     HoldSeconds: 0.12
     HoldTimeScale: 0
     SlowScale: 0.35
@@ -273,7 +523,7 @@ MonoBehaviour:
       Hold: 0.04
       HalfLife: 0.08
     Bloom:
-      Amount: 0.7
+      Amount: 0.15
       Attack: 0
       Hold: 0.05
       HalfLife: 0.12
@@ -288,25 +538,25 @@ MonoBehaviour:
       Hold: 0.1
       HalfLife: 0.3
     Chromatic:
-      Amount: 0.15
+      Amount: 0
       Attack: 0
-      Hold: 0.03
-      HalfLife: 0.06
+      Hold: 0
+      HalfLife: 0
     LensDistortion:
-      Amount: -0.22
+      Amount: 0
       Attack: 0
-      Hold: 0.03
-      HalfLife: 0.1
+      Hold: 0
+      HalfLife: 0
     Vignette:
       Amount: 0
       Attack: 0
       Hold: 0
       HalfLife: 0
     RadialBlur:
-      Amount: 0.25
+      Amount: 0
       Attack: 0
-      Hold: 0.03
-      HalfLife: 0.06
+      Hold: 0
+      HalfLife: 0
     Ripple:
       Amount: 0
       Attack: 0

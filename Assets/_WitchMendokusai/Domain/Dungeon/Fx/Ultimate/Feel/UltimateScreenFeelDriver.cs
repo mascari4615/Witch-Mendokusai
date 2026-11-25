@@ -210,7 +210,11 @@ namespace WitchMendokusai
 			shake.Step(feel.Trauma, realNow, run.RealDelta, rumble, ComfortShake, out Vector2 offset, out float roll);
 			// 물림은 움직임을 줄이는 쪽이라 세기 줄이기 대상 아님. 연출 시간 기준이라 정지 동안 그대로 머묾
 			float pullBack = feel.PullBack.Amount * feel.PullBack.Evaluate(fxNow, pullBackEnd);
-			feelCamera.Set(target, offset, roll, zoom * ComfortZoom, dolly * ComfortZoom - pullBack);
+			UltimateScreenFeel.CameraPath path = feel.Path;
+			Vector2 orbit = new Vector2(UltimateScreenFeel.CameraPath.At(path.Pitch, fxNow), UltimateScreenFeel.CameraPath.At(path.Yaw, fxNow)) * ComfortZoom;
+			roll += UltimateScreenFeel.CameraPath.At(path.Roll, fxNow) * ComfortZoom;
+			zoom += UltimateScreenFeel.CameraPath.At(path.Zoom, fxNow);
+			feelCamera.Set(target, offset, roll, zoom * ComfortZoom, dolly * ComfortZoom - pullBack, orbit);
 		}
 
 		// ---- 후처리 ----

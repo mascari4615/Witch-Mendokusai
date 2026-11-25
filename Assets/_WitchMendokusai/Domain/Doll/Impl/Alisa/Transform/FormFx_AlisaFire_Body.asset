@@ -41,87 +41,86 @@ MonoBehaviour:
   spriteTintCap: 2.2
   targetDistance: 0
   layers:
-  - Count: 8
+  - Count: 6
     Angles: {x: 70, y: -14}
     Lengths: {x: 1.8, y: 0.95}
     Roots: {x: 0.5, y: 0.12}
-    Width: 0.26
+    Width: 0.36
     Forward: 0
-    BodyAlpha: 0.58
-    Intensity: 0.95
-  - Count: 7
+    Intensity: 1
+  - Count: 5
     Angles: {x: 62, y: -8}
     Lengths: {x: 1.1, y: 0.55}
     Roots: {x: 0.42, y: 0.1}
-    Width: 0.24
+    Width: 0.32
     Forward: 0.05
-    BodyAlpha: 0.5
-    Intensity: 0.9
-  - Count: 6
+    Intensity: 1
+  - Count: 4
     Angles: {x: 54, y: 2}
     Lengths: {x: 0.62, y: 0.34}
     Roots: {x: 0.32, y: 0.08}
-    Width: 0.2
+    Width: 0.27
     Forward: 0.09
-    BodyAlpha: 0.5
-    Intensity: 0.95
+    Intensity: 1
   featherShape: {x: 0.16, y: 0.22, z: 0.5}
   wingScale: 1.7
   shoulderGap: 0.16
   wingYaw: 10
+  wingShade: -0.16
   wingDepth: 0.2
   driftFeathers: 26
   pillarRadius: 0.85
   pillarHeight: 9
   pillarMotesPerSecond: 90
-  pillarIntensity: 0.3
-  haloRadius: {x: 0.25, y: 0.62}
-  haloTilt: {x: 6, y: 18}
-  petalCount: 0
-  petalLength: {x: 0.6, y: 1.1}
+  pillarIntensity: 0.8
+  haloRadius: {x: 0.4, y: 0.44}
+  haloTilt: {x: 4, y: 9}
   shockRadius: 4.2
   barLength: 2.9
-  barWidth: 0.2
-  sheathWidth: 0.42
+  barWidth: 0.24
+  sheathWidth: 0.5
   barLean: 0.42
   needleCount: 9
   needleLength: {x: 0.8, y: 1.9}
   breakPerSecond: 220
-  wandSize: 0.95
+  wandSize: 0.85
   energyShader: {fileID: 4800000, guid: e61a4233b9a045cb973c5198ac7a5f17, type: 3}
-  beamShader: {fileID: 4800000, guid: 094650be7f3c4c4b98208e741fa6fc5f, type: 3}
-  coreColor: {r: 2, g: 1.75, b: 1.15, a: 1}
-  bodyColor: {r: 1.35, g: 0.78, b: 0.16, a: 1}
-  tipColor: {r: 1.2, g: 0.45, b: 0.06, a: 1}
+  solidShader: {fileID: 4800000, guid: ffcdeff22cb14f2e8a5a20276529c2e2, type: 3}
+  columnShader: {fileID: 4800000, guid: c61c05088f664cac9a42e84f8f0550f7, type: 3}
+  texelsPerUnit: 32
+  poseSteps: 15
+  coreColor: {r: 1.08, g: 0.9, b: 0.5, a: 1}
+  bodyColor: {r: 0.98, g: 0.54, b: 0.1, a: 1}
+  tipColor: {r: 0.6, g: 0.2, b: 0.04, a: 1}
   lightColor: {r: 1, g: 0.7, b: 0.36, a: 1}
-  gatherSeconds: 0.34
-  raiseSeconds: 0.16
-  impactDelay: 0.3
-  pillarDelay: 0.04
-  haloDelay: 0.24
-  barBreakDelay: 0.14
-  barBreakSeconds: 0.4
+  gatherSeconds: 0.42
+  raiseSeconds: 0.24
+  impactDelay: 0.4
+  pillarDelay: 0.12
+  haloDelay: 0.3
+  barBreakDelay: 0.04
+  barBreakSeconds: 0.3
   wingHold: 0.95
   wingBreakSeconds: 0.5
   pillarHold: 0.75
   pillarFade: 0.3
   haloHold: 0.6
   wandHold: 2.9
-  gatherTimeScale: 0.08
-  chestHeight: 0.46
-  headHeight: 1.75
+  gatherTimeScale: 0.3
+  chestHeight: 0.42
+  headHeight: 1.5
   handOffset: {x: 0.3, y: 0.34}
   faceCamera: 0.55
   threadCount: 18
   threadRadius: {x: 1.4, y: 2.9}
   threadHeight: {x: 0.05, y: 2}
-  threadWidth: 0.06
+  threadWidth: 0.04
   orbSize: 0.15
-  orbGlowSize: 0.55
-  sunDim: 0.22
-  ambientDim: 0.3
+  orbGlowSize: 0.7
+  sunDim: 0.35
+  ambientDim: 0.42
   gatherLight: 5
-  impactLight: 9
+  impactLight: 5
   lightRange: 9
-  bloom: 0.65
+  bloom: 0.18
   restoreSeconds: 0.7

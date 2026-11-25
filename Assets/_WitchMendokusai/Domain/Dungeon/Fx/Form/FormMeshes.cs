@@ -13,23 +13,21 @@ namespace WitchMendokusai
 		/// <summary> 칼날 모양 깃 하나. 뿌리가 원점, 끝이 +X, 길이 1. 아래 (-Y) 로 bend, 뒤 (+Z) 로 sweep 만큼 휨. 가로로 살짝 볼록 (camber) </summary>
 		public static Mesh Feather(int segments, float width, float bend, float sweep, float camber)
 		{
-			const int COLUMNS = 5;
+			const int COLUMNS = 3;
 			List<Vector3> vertices = new();
 			List<Vector2> uvs = new();
 			List<int> triangles = new();
 			for (int segment = 0; segment <= segments; segment++)
 			{
 				float along = segment / (float)segments;
-				// 뿌리에서 빠르게 넓어지고 끝은 날카롭게
-				float half = width * 0.5f * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(Mathf.PI * Mathf.Pow(along, 0.72f))), 0.75f);
+				// 윤곽은 셰이더가 텍셀로 자름. 메시는 폭이 고른 휜 띠
+				float half = width * 0.5f;
 				Vector3 center = new(along, -bend * along * along, sweep * along * along);
 				for (int column = 0; column < COLUMNS; column++)
 				{
 					float across = column / (float)(COLUMNS - 1);
 					float side = across * 2f - 1f;
-					// 아랫깃을 더 넓게 (깃의 비대칭)
-					float reach = side < 0f ? half * 1.25f : half * 0.75f;
-					vertices.Add(center + new Vector3(0f, side * reach, -camber * (1f - side * side) * half));
+					vertices.Add(center + new Vector3(0f, side * half, -camber * (1f - side * side) * half));
 					uvs.Add(new Vector2(along, across));
 				}
 			}
@@ -87,32 +85,31 @@ namespace WitchMendokusai
 			return Build("FormHelix", vertices, uvs, triangles);
 		}
 
-		/// <summary> 빛기둥 옆면 (UltimateBeamVolume 용). 높이 -1~1, 반지름 0.5, 법선은 옆 </summary>
-		public static Mesh Column(int segments)
+		/// <summary> 부피로 그리는 빛기둥의 상자. 바닥 가운데 원점, 높이 1, 한 변 1 </summary>
+		public static Mesh Bounds()
+		{
+			FacetBuilder builder = new();
+			builder.Box(new Vector3(0f, 0.5f, 0f), new Vector3(0.5f, 0.5f, 0.5f), Color.white);
+			return builder.Build("FormBounds");
+		}
+
+		/// <summary> XZ 평면 납작 고리. 바깥 반지름 1, 안 innerRatio. u 는 둘레, v 는 안 0 에서 바깥 1 </summary>
+		public static Mesh Ring(int segments, float innerRatio)
 		{
 			List<Vector3> vertices = new();
-			List<Vector3> normals = new();
+			List<Vector2> uvs = new();
 			List<int> triangles = new();
 			for (int segment = 0; segment <= segments; segment++)
 			{
 				float angle = Mathf.PI * 2f * segment / segments;
 				Vector3 direction = new(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
-				vertices.Add(direction * 0.5f + Vector3.down);
-				vertices.Add(direction * 0.5f + Vector3.up);
-				normals.Add(direction);
-				normals.Add(direction);
+				vertices.Add(direction * innerRatio);
+				vertices.Add(direction);
+				uvs.Add(new Vector2(segment / (float)segments, 0f));
+				uvs.Add(new Vector2(segment / (float)segments, 1f));
 			}
-			for (int segment = 0; segment < segments; segment++)
-			{
-				int start = segment * 2;
-				triangles.AddRange(new[] { start, start + 1, start + 2, start + 1, start + 3, start + 2 });
-			}
-			Mesh mesh = new() { name = "FormColumn" };
-			mesh.SetVertices(vertices);
-			mesh.SetNormals(normals);
-			mesh.SetTriangles(triangles, 0);
-			mesh.RecalculateBounds();
-			return mesh;
+			Strip(triangles, segments, 2, 0);
+			return Build("FormRing", vertices, uvs, triangles);
 		}
 
 		/// <summary> 네모 단면 빛 막대 심. 원점에서 +Y 로 길이 1. 밑동과 끝이 뾰족, 손 위에 마디 하나 </summary>
@@ -121,6 +118,9 @@ namespace WitchMendokusai
 			FacetBuilder builder = new();
 			float[] heights = { 0f, 0.04f, 0.1f, 0.12f, 0.15f, 0.8f, 1f };
 			float[] halves = { 0.05f, 0.5f, 0.5f, 0.85f, 0.42f, 0.36f, 0f };
+			Color gold = new(0.86f, 0.56f, 0.2f, 0f);
+			Color pale = new(1f, 0.86f, 0.5f, 0.5f);
+			Color[] tones = { gold, gold, gold, gold, pale, pale };
 			for (int ring = 0; ring + 1 < heights.Length; ring++)
 			{
 				for (int side = 0; side < 4; side++)
@@ -129,7 +129,7 @@ namespace WitchMendokusai
 					Vector3 b = Corner(side, halves[ring + 1] * width, heights[ring + 1]);
 					Vector3 c = Corner(side + 1, halves[ring + 1] * width, heights[ring + 1]);
 					Vector3 d = Corner(side + 1, halves[ring] * width, heights[ring]);
-					builder.Quad(a, b, c, d, Color.white);
+					builder.Quad(a, b, c, d, tones[ring]);
 				}
 			}
 			return builder.Build("FormBar");

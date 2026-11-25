@@ -12,15 +12,15 @@ namespace WitchMendokusai
 	{
 		[Header("빛 막대")]
 		[SerializeField, Min(0.5f)] private float barLength = 2.9f;
-		[SerializeField, Min(0.01f)] private float barWidth = 0.2f;
-		[SerializeField, Min(0.05f), Tooltip("둘레 빛 폭")] private float sheathWidth = 0.42f;
+		[SerializeField, Min(0.01f)] private float barWidth = 0.24f;
+		[SerializeField, Min(0.05f), Tooltip("둘레 빛 폭")] private float sheathWidth = 0.5f;
 		[SerializeField, Tooltip("화면 오른쪽으로 기우는 정도")] private float barLean = 0.42f;
 		[SerializeField, Min(0)] private int needleCount = 9;
 		[SerializeField] private Vector2 needleLength = new(0.8f, 1.9f);
 		[SerializeField, Min(0), Tooltip("막대가 부서질 때 초당 빛 조각")] private int breakPerSecond = 220;
 
 		[Header("완드")]
-		[SerializeField, Min(0.1f)] private float wandSize = 0.95f;
+		[SerializeField, Min(0.1f)] private float wandSize = 0.85f;
 
 		private Vector3 BarDirection(in Pose pose) => (pose.Up + pose.Right * barLean).normalized;
 
@@ -36,26 +36,20 @@ namespace WitchMendokusai
 			float breakStart = ImpactTime + barBreakDelay;
 			float end = breakStart + barBreakSeconds + 0.1f;
 
-			Material coreMaterial = Glow(run, new Color(1f, 0.9f, 0.65f, 1f), coreColor, coreColor * 1.6f, false);
-			coreMaterial.SetFloat(DISSOLVE_DIRECTION_ID, -1f);
+			Material coreMaterial = Solid(run, new Vector3(5f, barLength * texelsPerUnit, 5f));
 			coreMaterial.SetVector(DISSOLVE_RANGE_ID, new Vector4(0f, 1f, 0f, 0f));
-			coreMaterial.SetColor(DISSOLVE_EDGE_ID, coreColor * 1.5f);
 			GameObject bar = UltimateFxStage.CreateMeshObject("FormBar", run.Root, Keep(run, FormMeshes.Bar(1f)), coreMaterial);
 			Material sheathMaterial = Energy(run, FRONT_QUEUE);
-			sheathMaterial.SetFloat("_Softness", 1f);
-			sheathMaterial.SetFloat("_BodyAlpha", 0.3f);
-			sheathMaterial.SetFloat("_CoreWidth", 0.05f);
-			sheathMaterial.SetFloat("_EdgeAmount", 0f);
-			sheathMaterial.SetFloat("_Cover", 0.35f);
-			GameObject sheath = UltimateFxStage.CreateMeshObject("FormSheath", run.Root, Keep(run, FormMeshes.Sheath(3, 20, 1f)), sheathMaterial);
+			sheathMaterial.SetFloat(SHAPE_ID, GLOW);
+			sheathMaterial.SetFloat("_NoiseAmount", 0.18f);
+			sheathMaterial.SetFloat(COVER_ID, 0.5f);
+			sheathMaterial.SetVector(TEXELS_ID, new Vector4(barLength * texelsPerUnit, sheathWidth * texelsPerUnit, 0f, 0f));
+			GameObject sheath = UltimateFxStage.CreateMeshObject("FormSheath", run.Root, Keep(run, FormMeshes.Sheath(2, 12, 1f)), sheathMaterial);
 			Material windMaterial = Energy(run, FRONT_QUEUE + 1);
-			windMaterial.SetFloat("_Softness", 0.6f);
-			windMaterial.SetFloat("_BodyAlpha", 0.2f);
-			windMaterial.SetFloat("_CoreWidth", 0.3f);
-			windMaterial.SetFloat("_Cover", 0.3f);
+			windMaterial.SetVector(TEXELS_ID, new Vector4(barLength * texelsPerUnit, 4f, 0f, 0f));
 			List<GameObject> winds = new();
 			for (int i = 0; i < 2; i++)
-				winds.Add(UltimateFxStage.CreateMeshObject("FormBarWind", run.Root, Keep(run, FormMeshes.Helix(60, 1.1f + i * 0.25f, 0.14f + 0.03f * i, 0.3f + 0.06f * i, 0.22f, i / 3f)), windMaterial));
+				winds.Add(UltimateFxStage.CreateMeshObject("FormBarWind", run.Root, Keep(run, FormMeshes.Helix(22, 1.1f + i * 0.25f, 0.14f + 0.03f * i, 0.3f + 0.06f * i, 0.12f, i / 3f)), windMaterial));
 			bar.SetActive(false);
 			sheath.SetActive(false);
 			foreach (GameObject wind in winds)
@@ -68,13 +62,13 @@ namespace WitchMendokusai
 					wind.SetActive(true);
 			});
 
-			ParticleSystem pieces = Motes(run, "FormBarPieces", breakPerSecond + 60, 0f, 0.35f);
+			ParticleSystem pieces = PixelMotes(run, "FormBarPieces", breakPerSecond + 60, 0f, 0.35f);
 			ParticleSystem sparks = Streaks(run, "FormBarSparks", 80, 0.05f);
 			float carry = 0f;
 			run.Track(DrawTime, end - DrawTime, _ =>
 			{
 				Pose pose = PoseNow(run);
-				float now = run.Now;
+				float now = Stepped(run.Now);
 				Vector3 origin = BarBase(pose, now);
 				Vector3 direction = BarDirection(pose);
 				Quaternion rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(pose.Away, direction), direction);
@@ -89,15 +83,16 @@ namespace WitchMendokusai
 				bar.transform.SetPositionAndRotation(origin, rotation * Quaternion.Euler(0f, 45f, 0f));
 				bar.transform.localScale = new Vector3(barWidth * thick, length, barWidth * thick);
 				coreMaterial.SetFloat(DISSOLVE_ID, broken);
-				coreMaterial.SetColor(EMISSION_ID, Color.Lerp(bodyColor * 1.4f, coreColor * 2.4f, Mathf.Max(charge, birth)));
+				coreMaterial.SetColor(EMISSION_ID, Color.Lerp(coreColor, coreColor * 1.5f, charge));
+				coreMaterial.SetFloat(HEAT_ID, birth);
 				sheath.transform.SetPositionAndRotation(origin, rotation);
 				float pulse = 1f + 0.06f * Mathf.Sin(now * 34f);
 				sheath.transform.localScale = new Vector3(sheathWidth * thick * pulse, length * 1.04f, sheathWidth * thick * pulse);
 				sheathMaterial.SetFloat(DISSOLVE_ID, broken);
-				sheathMaterial.SetFloat(INTENSITY_ID, 1f + charge * 1.2f);
-				sheathMaterial.SetFloat(FLASH_ID, Mathf.Max(birth * 0.35f, charge * 0.1f));
+				sheathMaterial.SetFloat(INTENSITY_ID, 1f + charge * 0.5f);
+				sheathMaterial.SetFloat(FLASH_ID, birth * 0.3f);
 				float windStrength = UltimateFxRun.Span(now, DrawTime, DrawTime + 0.1f) * (1f - UltimateFxRun.Span(now, ImpactTime + 0.25f, breakStart + 0.2f));
-				windMaterial.SetFloat(ALPHA_ID, windStrength * 0.65f);
+				windMaterial.SetFloat(ALPHA_ID, windStrength > 0.3f ? 1f : 0f);
 				for (int i = 0; i < winds.Count; i++)
 				{
 					winds[i].transform.SetPositionAndRotation(origin, rotation * Quaternion.Euler(0f, now * (520f + 90f * i), 0f));
@@ -136,12 +131,8 @@ namespace WitchMendokusai
 		{
 			UltimateFxRun run = stage.Run;
 			Material material = Energy(run, FRONT_QUEUE + 2);
-			material.SetFloat("_Softness", 1f);
-			material.SetFloat("_CoreWidth", 0.7f);
-			material.SetFloat("_EdgeAmount", 0f);
 			material.SetFloat("_DissolveFromTip", 0f);
-			material.SetFloat("_Cover", 0.5f);
-			material.SetFloat(INTENSITY_ID, 1.8f);
+			material.SetVector(TEXELS_ID, new Vector4(36f, 2f, 0f, 0f));
 			Mesh mesh = Keep(run, FormMeshes.Sheath(2, 8, 1f));
 			List<(Transform needle, float angle, float length)> needles = new();
 			for (int i = 0; i < needleCount; i++)
@@ -177,10 +168,9 @@ namespace WitchMendokusai
 			float appear = ImpactTime + barBreakDelay + barBreakSeconds * 0.5f;
 			float show = ImpactTime + wingHold + wingBreakSeconds;
 			float end = ImpactTime + wandHold;
-			Material material = Glow(run, Color.white, bodyColor, bodyColor * 0.25f, true);
-			material.SetFloat(DISSOLVE_DIRECTION_ID, -1f);
+			Material material = Solid(run, Vector3.one * (wandSize * texelsPerUnit));
 			material.SetVector(DISSOLVE_RANGE_ID, new Vector4(-0.42f, 0.2f, 0f, 0f));
-			material.SetColor(DISSOLVE_EDGE_ID, coreColor);
+			material.SetFloat("_Outline", 0.045f);
 			GameObject wand = UltimateFxStage.CreateMeshObject("FormWand", run.Root, Keep(run, FormMeshes.Wand()), material);
 			wand.SetActive(false);
 			ParticleSystem glint = Streaks(run, "FormWandGlint", 40, 0.05f);
@@ -208,7 +198,8 @@ namespace WitchMendokusai
 				Vector3 position = Hand(pose) + pose.Up * (0.05f * Mathf.Sin(now * 5f)) - pose.Up * 0.12f;
 				wand.transform.SetPositionAndRotation(position, pose.Facing * Quaternion.Euler(0f, 0f, 14f));
 				wand.transform.localScale = Vector3.one * wandSize * pop;
-				material.SetColor(EMISSION_ID, Color.Lerp(bodyColor, Color.white * 4f, birth));
+				material.SetColor(EMISSION_ID, coreColor);
+				material.SetFloat(HEAT_ID, birth);
 				material.SetFloat(DISSOLVE_ID, UltimateFxRun.Span(now, end - 0.3f, end));
 			}, () => run.Destroy(wand));
 		}

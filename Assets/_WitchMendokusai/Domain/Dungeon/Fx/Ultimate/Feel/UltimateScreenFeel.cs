@@ -146,6 +146,18 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary> 연출 시간을 따라 카메라가 표적 둘레를 도는 길. 빈 곡선은 0 </summary>
+		[Serializable]
+		public struct CameraPath
+		{
+			[Tooltip("위아래 각 (도). 음수면 낮은 자리")] public AnimationCurve Pitch;
+			[Tooltip("좌우 각 (도)")] public AnimationCurve Yaw;
+			[Tooltip("화면 기울기 (도)")] public AnimationCurve Roll;
+			[Tooltip("줌 (화면 배율 증가 비율)")] public AnimationCurve Zoom;
+
+			public static float At(AnimationCurve curve, float time) => curve != null && curve.length > 0 ? curve.Evaluate(time) : 0f;
+		}
+
 		[SerializeField, Tooltip("광과민 대비 세기 줄이기. 비우면 그대로")] private UltimateFeelComfort comfort;
 		[SerializeField] private TraumaSettings trauma = new()
 		{
@@ -163,6 +175,7 @@ namespace WitchMendokusai
 			OutSeconds = 0.8f,
 			Curve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f),
 		};
+		[SerializeField, Tooltip("카메라가 도는 길 (연출 시간). 비우면 안 돎")] private CameraPath cameraPath;
 		[SerializeField] private Swell[] swells = Array.Empty<Swell>();
 		[SerializeField] private Beat[] beats = Array.Empty<Beat>();
 		[SerializeField, Min(0f), Tooltip("방사 흐림 표본 거리 상한 (화면 비율)")] private float radialBlurReach = 0.07f;
@@ -173,6 +186,7 @@ namespace WitchMendokusai
 		public UltimateFeelComfort Comfort => comfort;
 		public TraumaSettings Trauma => trauma;
 		public PullBackSettings PullBack => pullBack;
+		public CameraPath Path => cameraPath;
 		public Swell[] Swells => swells;
 		public Beat[] Beats => beats;
 		public float RadialBlurReach => radialBlurReach;
@@ -191,6 +205,10 @@ namespace WitchMendokusai
 			beats = beatList;
 			targetForward = targetForwardDistance;
 		}
+#endif
+
+#if UNITY_EDITOR
+		public void EditorSeedPath(CameraPath path) => cameraPath = path;
 #endif
 
 		/// <summary> 정지 한 박 합 (실제 시간이 연출 시간보다 늘어나는 양의 하한) </summary>
