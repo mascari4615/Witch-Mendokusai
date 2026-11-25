@@ -61,7 +61,36 @@ namespace WitchMendokusai
 				return Sim.IsWorkDone(work) ? "가림막 걷기" : $"공사 중 {HomesteadText.Minutes(work.ReadyAt - Sim.State.Minutes)}";
 			if (Sim.IsBuilt(id) == false)
 				return "무너진 자리";
-			return Sim.IsOpen(id) ? "쓰기" : "맡을 사람을 기다림";
+			return Sim.IsOpen(id) ? VerbOf(id) : "맡을 사람을 기다림";
+		}
+
+		private static string VerbOf(string id)
+		{
+			switch (id)
+			{
+				case "farm":
+					return "씨앗 고르기";
+				case "workshop":
+					return "만들기";
+				case "dock":
+					return "낚시";
+				case "quarry":
+					return "내려가기";
+				case "museum":
+					return "기증과 손질";
+				case "tailor":
+					return "옷 고르기";
+				case "ranch":
+					return "동물 돌보기";
+				case "training":
+					return "강화";
+				case "smithy":
+					return "도구 벼리기";
+				case "shop":
+					return "사고팔기";
+				default:
+					return "둘러보기";
+			}
 		}
 
 		private void UseSite(string id)
@@ -101,7 +130,7 @@ namespace WitchMendokusai
 			switch (id)
 			{
 				case "farm":
-					manager.Panels.Show(HomesteadPanelType.Seeds);
+					ChooseSeed();
 					break;
 				case "workshop":
 					manager.Panels.Show(HomesteadPanelType.Store, StorePage.TAB_CRAFT);

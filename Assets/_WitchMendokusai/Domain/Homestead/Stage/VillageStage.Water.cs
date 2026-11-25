@@ -10,6 +10,7 @@ namespace WitchMendokusai
 		private const string POND = "pond";
 		private const string STREAM = "stream";
 		private const int STREAM_DOCK_LEVEL = 2;
+		private const int LINE_POINTS = 10;
 
 		[Header("Water")]
 		[SerializeField] private Vector2 waterFlow = new(0.012f, 0.02f);
@@ -21,6 +22,9 @@ namespace WitchMendokusai
 		[SerializeField] private Vector3 streamSpot = new(24.4f, 0f, -1.4f);
 		[SerializeField] private float resultSeconds = 1.6f;
 		[SerializeField] private float floatHeight = 0.5f;
+		[SerializeField] private float lineWidth = 0.02f;
+		[SerializeField] private float lineSag = 0.5f;
+		[SerializeField] private Vector3 rodTip = new(0.4f, 0.9f, 0f);
 
 		private Material waterMaterial;
 		private FishingDuel duel;
@@ -28,6 +32,7 @@ namespace WitchMendokusai
 		private bool reelHeld;
 		private float resultTimer;
 		private HomesteadSprite bobber;
+		private LineRenderer fishingLine;
 		private GameObject streamSpotObject;
 
 		private void BuildWater()
@@ -65,6 +70,12 @@ namespace WitchMendokusai
 			capsule.height = pondRadius * 2f + 4f;
 			bobber = HomesteadSprite.Create(outdoor, pondCenter, Art.Icon("bobber"), floatHeight, 0.05f);
 			bobber.gameObject.SetActive(false);
+			fishingLine = new GameObject("FishingLine").AddComponent<LineRenderer>();
+			fishingLine.transform.SetParent(outdoor, false);
+			fishingLine.sharedMaterial = Art.Cloth;
+			fishingLine.widthMultiplier = lineWidth;
+			fishingLine.positionCount = LINE_POINTS;
+			fishingLine.enabled = false;
 			streamSpotObject = HomesteadSpot.Create(outdoor, streamSpot, "StreamSpot", () => "개울", () => "낚시", () => StartFishing(STREAM)).gameObject;
 		}
 
@@ -123,7 +134,10 @@ namespace WitchMendokusai
 			inputManager.UnregisterInputEvent(InputEventType.Submit, InputEventResponseType.Canceled, ReleaseReel);
 			inputManager.UnregisterInputEvent(InputEventType.Cancel, InputEventResponseType.Performed, StopFishing);
 			if (bobber != null)
+			{
 				bobber.gameObject.SetActive(false);
+				fishingLine.enabled = false;
+			}
 			manager.Hud.ShowDuel(false);
 		}
 
@@ -138,6 +152,7 @@ namespace WitchMendokusai
 					StopFishing();
 				return;
 			}
+			DrawLine();
 			FishingPhase before = duel.Phase;
 			bool reeling = reelHeld || inputManager.IsMouseLeftButtonPressed;
 			if (inputManager.IsMouseLeftButtonPressed && duel.Phase == FishingPhase.Bite)
@@ -151,6 +166,20 @@ namespace WitchMendokusai
 			}
 			if (duel.IsOver)
 				FinishFishing();
+		}
+
+		// 팽팽할수록 곧게
+		private void DrawLine()
+		{
+			fishingLine.enabled = true;
+			Vector3 from = playerProvider.CurrentObject.transform.position + rodTip;
+			Vector3 to = bobber.transform.position + Vector3.up * floatHeight * 0.8f;
+			float sag = lineSag * (1f - duel.Tension);
+			for (int i = 0; i < LINE_POINTS; i++)
+			{
+				float ratio = i / (LINE_POINTS - 1f);
+				fishingLine.SetPosition(i, Vector3.Lerp(from, to, ratio) + Vector3.down * (Mathf.Sin(ratio * Mathf.PI) * sag));
+			}
 		}
 
 		private void FinishFishing()

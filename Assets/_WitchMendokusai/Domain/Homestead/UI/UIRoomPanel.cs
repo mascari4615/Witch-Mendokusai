@@ -94,6 +94,7 @@ namespace WitchMendokusai
 			VisualElement planBox = Make(BLOCK + "plan-box", rightBody);
 			plan = new VisualElement();
 			plan.AddToClassList(BLOCK + "plan");
+			plan.style.backgroundImage = new StyleBackground((Texture2D)Art.Wood.mainTexture);
 			planBox.Add(plan);
 			Make(BLOCK + "door", plan);
 			hintText = MakeLabel(BLOCK + "hint", rightBody);

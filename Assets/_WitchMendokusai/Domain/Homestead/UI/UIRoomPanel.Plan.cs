@@ -59,6 +59,7 @@ namespace WitchMendokusai
 			VisualElement element = new();
 			element.AddToClassList(BLOCK + "piece");
 			element.AddToClassList(BLOCK + "piece--" + furniture.Layer.ToString().ToLowerInvariant());
+			element.AddToClassList(BLOCK + "shape--" + furniture.Shape.Replace('_', '-'));
 			Make(BLOCK + "piece-icon", element).style.backgroundImage = new StyleBackground(Art.Icon(furniture.Id));
 			Make(BLOCK + "piece-front", element);
 			plan.Add(element);

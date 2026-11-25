@@ -67,6 +67,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		public bool IsWorkDone(WorkState work) => State.Minutes >= work.ReadyAt;
 
+		// 다 되고 가림막만 남은 자리는 칸을 차지하지 않음
+		public int BusyWorks => State.Works.FindAll(work => IsWorkDone(work) == false).Count;
+
 		public bool TryGetNextLevel(string buildingId, out BuildingLevelDef next)
 		{
 			List<BuildingLevelDef> levels = Catalog.Get<BuildingDef>(buildingId).Levels;
@@ -89,7 +92,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				return HomesteadResult.Fail(HomesteadFailure.TownHallTooLow);
 			}
-			if (State.Works.Count >= WorkSlots)
+			if (BusyWorks >= WorkSlots)
 			{
 				return HomesteadResult.Fail(HomesteadFailure.Busy);
 			}

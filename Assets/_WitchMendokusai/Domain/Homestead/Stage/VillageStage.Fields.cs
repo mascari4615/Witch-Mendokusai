@@ -60,6 +60,7 @@ namespace WitchMendokusai
 		private sealed class PlotView
 		{
 			public GameObject Spot;
+			public GameObject Wild;
 			public GameObject Dry;
 			public GameObject Wet;
 			public HomesteadSprite Crop;
@@ -106,12 +107,26 @@ namespace WitchMendokusai
 				int index = i;
 				Vector3 position = PlotPosition(i);
 				PlotView view = new();
+				view.Wild = WildBody(i).Build("PlotWild", outdoor, position, index * 47f % 20f - 10f, castShadow: false);
 				view.Dry = PlotBody(new Color(1f, 0.92f, 0.82f)).Build("Plot", outdoor, position, index * 47f % 20f - 10f, castShadow: false);
 				view.Wet = PlotBody(new Color(0.62f, 0.56f, 0.56f)).Build("PlotWet", outdoor, position, index * 47f % 20f - 10f, castShadow: false);
 				view.Crop = HomesteadSprite.Create(outdoor, position + Vector3.up * 0.14f, null, 1f);
 				view.Spot = HomesteadSpot.Create(outdoor, position, "PlotSpot", () => PlotName(index), () => PlotRole(index), () => UsePlot(index)).gameObject;
 				plots.Add(view);
 			}
+		}
+
+		// 아직 안 간 땅. 낮은 흙에 잡초 몇 포기
+		private static VillageKit WildBody(int seed)
+		{
+			VillageKit kit = new();
+			kit.Prism(Art.Soil, new Color(0.86f, 0.9f, 0.7f), new Vector3(0f, -0.05f, 0f), new Vector3(1.6f, 0.08f, 1.45f), 9, 0.9f);
+			for (int i = 0; i < 4; i++)
+			{
+				float angle = seed * 1.3f + i * 1.7f;
+				kit.Prism(Art.Leaf, new Color(0.9f, 1f, 0.72f), new Vector3(Mathf.Cos(angle) * 0.45f, 0f, Mathf.Sin(angle) * 0.4f), new Vector3(0.2f, 0.16f, 0.2f), 6, 0.2f);
+			}
+			return kit;
 		}
 
 		// 도톰한 이랑 셋. 네모 칸이 아니라 두둑으로 읽히게
@@ -138,7 +153,7 @@ namespace WitchMendokusai
 			switch (Sim.PhaseOf(plot))
 			{
 				case PlotPhase.Empty:
-					return "심기";
+					return CanSowHeld ? $"{Catalog.Get<CropDef>(heldCrop).Name} 심기" : "씨앗 고르기";
 				case PlotPhase.Ripe:
 					return "거두기";
 				default:
@@ -175,7 +190,10 @@ namespace WitchMendokusai
 			switch (Sim.PhaseOf(plot))
 			{
 				case PlotPhase.Empty:
-					AskSeed(index);
+					if (CanSowHeld)
+						Sow(index, heldCrop);
+					else
+						AskSeed(index);
 					break;
 				case PlotPhase.Ripe:
 					if (Report(Sim.Harvest(index, manager.Season)))
@@ -193,12 +211,37 @@ namespace WitchMendokusai
 			}
 		}
 
+		// 한 번 고른 씨앗은 손에 남아 다음 칸에 바로 심음. 바꾸려면 텃밭 창고에서
+		private string heldCrop = string.Empty;
+
+		private bool CanSowHeld => heldCrop.Length > 0 && Sim.Count(Catalog.Get<CropDef>(heldCrop).Seed) > 0;
+
+		private void Sow(int index, string cropId)
+		{
+			if (Report(Sim.Plant(index, cropId)) == false)
+				return;
+			UiSfx.Play(UiSfxEvent.Confirm);
+			StartCoroutine(Pop(plots[index].Dry.transform));
+		}
+
 		private void AskSeed(int index)
 		{
 			manager.Panels.Seeds.Ask(cropId =>
 			{
-				if (Report(Sim.Plant(index, cropId)))
-					manager.Panels.ClosePanel();
+				heldCrop = cropId;
+				manager.Panels.ClosePanel();
+				Sow(index, cropId);
+			});
+			manager.Panels.Show(HomesteadPanelType.Seeds);
+		}
+
+		private void ChooseSeed()
+		{
+			manager.Panels.Seeds.Ask(cropId =>
+			{
+				heldCrop = cropId;
+				manager.Panels.ClosePanel();
+				Say($"{Catalog.Get<CropDef>(cropId).Name} 씨앗을 듭니다.");
 			});
 			manager.Panels.Show(HomesteadPanelType.Seeds);
 		}
@@ -223,6 +266,7 @@ namespace WitchMendokusai
 				PlotView view = plots[i];
 				bool open = i < Sim.State.Plots.Count;
 				view.Spot.SetActive(open);
+				view.Wild.SetActive(open && Sim.State.Plots[i].Tilled == false);
 				if (open == false)
 				{
 					view.Dry.SetActive(false);

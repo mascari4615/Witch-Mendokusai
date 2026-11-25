@@ -479,8 +479,14 @@
     justify-content: center;
 }
 
+.wm-hs-room__shape--rug-round {
+    border-radius: 50%;
+}
+
 .wm-hs-room__plan {
-    background-color: rgb(112, 82, 62);
+    -unity-background-image-tint-color: rgb(168, 126, 98);
+    background-repeat: repeat;
+    background-size: 220px 220px;
     border-top-width: 10px;
     border-left-width: 6px;
     border-right-width: 6px;

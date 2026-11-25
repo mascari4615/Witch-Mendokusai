@@ -215,6 +215,7 @@ namespace WitchMendokusai
 		{
 			goalShown = visible;
 			goal.EnableInClassList($"{BLOCK}--none", visible == false);
+			goal.userData = null;
 			RefreshGoal();
 		}
 
@@ -227,7 +228,9 @@ namespace WitchMendokusai
 				return;
 			goal.userData = key;
 			goal.Clear();
-			if (Sim.TryGetNextTownHall(out TownHallDef next) == false)
+			bool hasNext = Sim.TryGetNextTownHall(out TownHallDef next);
+			goal.EnableInClassList($"{BLOCK}--none", hasNext == false);
+			if (hasNext == false)
 				return;
 			MakeLabel("goal-title", goal, next.Name);
 			foreach (KeyValuePair<string, int> pair in next.Cost.Goods)
