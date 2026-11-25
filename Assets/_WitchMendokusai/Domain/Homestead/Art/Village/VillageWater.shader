@@ -106,8 +106,8 @@ Shader "WM/VillageWater"
                 float2 uv = xz * _CausticScale * 0.35;
                 float first = SAMPLE_TEXTURE2D(_Noise, sampler_Noise, uv + float2(time, -time * 0.6)).r;
                 float second = SAMPLE_TEXTURE2D(_Noise, sampler_Noise, uv * 1.31 + float2(-time * 0.8, time)).g;
-                float line = 1.0 - abs(first - second) * 5.0;
-                return pow(saturate(line), 4.0);
+                float thread = 1.0 - abs(first - second) * 5.0;
+                return pow(saturate(thread), 4.0);
             }
 
             half4 frag(Varyings input) : SV_Target
