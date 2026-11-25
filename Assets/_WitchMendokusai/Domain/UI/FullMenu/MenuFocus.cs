@@ -68,6 +68,33 @@ namespace WitchMendokusai
 			root.schedule.Execute(() => done = isOpen() == false || FocusFirst()).Every(0).Until(() => done);
 		}
 
+		/// <summary>화면을 바꾼 직후 정한 칸에 포커스. 배치 계산 전이면 칸이 잡힐 때까지 기다리고, 칸이 사라졌거나 비면 처음 칸으로</summary>
+		public void FocusLater(VisualElement target)
+		{
+			if (target == null)
+			{
+				FocusWhenReady();
+				return;
+			}
+			bool done = false;
+			root.schedule.Execute(() =>
+			{
+				if (isOpen() == false)
+				{
+					done = true;
+				}
+				else if (target.panel == null)
+				{
+					done = FocusFirst();
+				}
+				else if (target.worldBound.width > 0f && IsShown(target))
+				{
+					target.Focus();
+					done = true;
+				}
+			}).Every(0).Until(() => done);
+		}
+
 		private void OnNavigationMove(NavigationMoveEvent evt)
 		{
 			evt.StopPropagation();

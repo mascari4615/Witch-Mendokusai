@@ -205,7 +205,7 @@
     position: absolute;
     width: 1100px;
     height: 700px;
-    -unity-background-image-tint-color: rgba(150, 84, 230, 0.34);
+    -unity-background-image-tint-color: var(--wm-fullmenu-glow-soft);
 }
 
 /* 칸 자리 (left, top) 는 AchievementView 가 설정 SO 값으로. 판 크기는 마지막 칸 오른쪽 끝까지 */
@@ -597,7 +597,7 @@
     right: -150px;
     top: -150px;
     height: 700px;
-    -unity-background-image-tint-color: rgba(150, 84, 230, 0.34);
+    -unity-background-image-tint-color: var(--wm-fullmenu-glow-soft);
 }
 
 /* 고리는 ESC 메뉴 크기라 왼쪽 칸보다 넓음. 칸 안으로 줄임 */
@@ -663,7 +663,7 @@
 
 /* 지금 단계: 고른 칸 (흰 칠) 과 헷갈리지 않게 보라 기운 판. 고름은 버튼에만 */
 .wm-ach-step--current {
-    -unity-background-image-tint-color: rgb(58, 44, 82);
+    -unity-background-image-tint-color: var(--wm-fullmenu-panel-current);
 }
 
 .wm-ach-step--todo .wm-ach-step__condition {

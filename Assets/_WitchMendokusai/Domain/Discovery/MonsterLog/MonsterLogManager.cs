@@ -33,12 +33,12 @@ namespace WitchMendokusai
 			this.resourceManager = resourceManager;
 		}
 
-		private DiscoverySettings Settings => resourceManager.Discovery;
+		private MonsterLogRules Rules => resourceManager.MonsterLog;
 
 		/// <summary>세이브 로드 끝에 SaveManager 가 부름. 다시 불러도 됨 (로드할 때마다 조각이 새것)</summary>
 		public void Begin(MonsterLogSaveSlice slice)
 		{
-			Settings.ValidateTargets();
+			Rules.ValidateTargets();
 			Book = new MonsterLogBook(slice.Records);
 
 			List<Dungeon> dungeons = new();
@@ -68,7 +68,7 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>이 종의 단계 목표. 보스는 적게</summary>
-		public IReadOnlyList<int> TargetsOf(Monster monster) => monster.Type == MonsterType.Boss ? Settings.BossTargets : Settings.NormalTargets;
+		public IReadOnlyList<int> TargetsOf(Monster monster) => monster.Type == MonsterType.Boss ? Rules.BossTargets : Rules.NormalTargets;
 
 		public int StageOf(Monster monster) => Book.StageOf(monster.ID, TargetsOf(monster));
 
@@ -76,6 +76,9 @@ namespace WitchMendokusai
 
 		public IReadOnlyList<MonsterHabitat> HabitatsOf(Monster monster) =>
 			habitats.TryGetValue(monster, out List<MonsterHabitat> list) ? list : Array.Empty<MonsterHabitat>();
+
+		/// <summary>판 밖의 기본 능력치 (위협 단계와 정예 배율 전)</summary>
+		public UnitStat BaseStatOf(Monster monster) => monster.InitStatInfos.GetUnitStat(resourceManager.UnitBaseStats);
 
 		public void MarkSeen(Monster monster)
 		{

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7700000000000000002}
   - component: {fileID: 7700000000000000003}
   m_Layer: 0
-  m_Name: DiscoveryWindowController
+  m_Name: DiscoveryScreen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,4 +44,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef305d81f70c4196a50ff45222cd025f, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  dontDestroyOnLoad: 1
+  settings: {fileID: 11400000, guid: b3bb51ef3c49461e8ef39f43a2f5d9b8, type: 2}

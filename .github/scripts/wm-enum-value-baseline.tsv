@@ -36,7 +36,6 @@ Domain/Item/UI/UIItemSlot.cs	PriceType
 Domain/Narrative/DialogueGraphTraversal.cs	DialogueStepKind
 Domain/Narrative/Nodes/DialogueWaitNode.cs	DialogueWaitKind
 Domain/Narrative/PortraitData.cs	PortraitMood
-Domain/Discovery/DiscoveryView.cs	DiscoveryMode
 Domain/Upgrade/ScriptableObject/UpgradeData.cs	DowngradeFailReason
 Domain/Upgrade/ScriptableObject/UpgradeData.cs	UpgradeFailReason
 Domain/Upgrade/ScriptableObject/UpgradeData.cs	UpgradeType

@@ -47,17 +47,36 @@ namespace WitchMendokusai
 			Dictionary<Monster, List<(float Start, float End)>> spans = new(BY_ID);
 			foreach (MonsterWave wave in dungeon.MonsterWaves)
 			{
-				foreach (Monster monster in wave.Monsters)
-				{
-					if (spans.TryGetValue(monster, out List<(float Start, float End)> list) == false)
-					{
-						list = new List<(float Start, float End)>();
-						spans[monster] = list;
-					}
-					list.Add((wave.StartTime, wave.EndTime));
-				}
+				// 한 번 나오는 웨이브 (보스) 는 나오는 그 시각만
+				AddSpans(spans, wave.Monsters, wave.StartTime, wave.Once ? wave.StartTime : wave.EndTime);
+			}
+			foreach (WavePatternSlot slot in dungeon.WavePatterns)
+			{
+				AddSpans(spans, slot.Pattern != null ? slot.Pattern.SpawnedMonsters : null, slot.StartTime, slot.StartTime);
 			}
 			return spans;
+		}
+
+		// 빈 칸은 건너뜀. 던전 자산 오류는 입장 검사 (Dungeon.ValidateWaves) 몫이고, 여기서 던지면 들어가지 않을 던전 하나가 세이브 로드를 막음
+		private static void AddSpans(Dictionary<Monster, List<(float Start, float End)>> spans, IReadOnlyList<Monster> monsters, float start, float end)
+		{
+			if (monsters == null)
+			{
+				return;
+			}
+			foreach (Monster monster in monsters)
+			{
+				if (monster == null)
+				{
+					continue;
+				}
+				if (spans.TryGetValue(monster, out List<(float Start, float End)> list) == false)
+				{
+					list = new List<(float Start, float End)>();
+					spans[monster] = list;
+				}
+				list.Add((start, end));
+			}
 		}
 
 		// 사건 (정예, 무리) 으로만 나오는 종. 웨이브에도 나오면 시간대는 웨이브 것

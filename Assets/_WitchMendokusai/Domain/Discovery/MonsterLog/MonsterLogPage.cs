@@ -6,18 +6,18 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	/// <summary>
-	/// 한 종의 기록 장. 왼쪽 큰 그림과 장소 고리, 이름, 기록 마름모, 처치 수 셋. 오른쪽 기록 칸 다섯 (첫 만남, 사는 곳, 몸과 버릇, 전리품, 이야기).
+	/// 한 종의 기록 장. 왼쪽 큰 그림과 장소 고리, 이름, 기록 마름모, 처치 수 셋. 오른쪽 기록 칸 다섯 (첫 기록, 사는 곳, 몸과 버릇, 전리품, 이야기).
 	/// 칸은 확률 없이 누적 처치로 차례로 열리고, 잠긴 칸은 제목과 여는 데 필요한 수를 보임. 못 만난 종은 실루엣과 ???
 	/// </summary>
 	public class MonsterLogPage : VisualElement
 	{
 		public const int SLOT_COUNT = 5;
-		private const int SLOT_FIRST_MEET = 0;
+		private const int SLOT_FIRST_RECORD = 0;
 		private const int SLOT_HABITAT = 1;
 		private const int SLOT_BODY = 2;
 		private const int SLOT_LOOT = 3;
 		private const string NO_ATTACK_KIND = "쫓아옴";
-		private static readonly string[] SLOT_NAMES = { "첫 만남", "사는 곳", "몸과 버릇", "전리품", "이야기" };
+		private static readonly string[] SLOT_NAMES = { "첫 기록", "사는 곳", "몸과 버릇", "전리품", "이야기" };
 
 		private readonly MonsterLogManager manager;
 		private readonly VisualElement picture;
@@ -38,10 +38,7 @@ namespace WitchMendokusai
 			VisualElement glow = AchievementElements.Part(left, "wm-discovery-page__glow");
 			glow.style.backgroundImage = new StyleBackground(glowTexture);
 			picture = AchievementElements.Part(left, "wm-discovery-page__picture");
-			VisualElement where = MenuStage.CreateWhereRings();
-			left.Add(where);
-			picture.BringToFront();
-			where.PlaceBehind(picture);
+			left.Add(MenuStage.CreateWhereRings());
 			nameLabel = AchievementElements.Text(left, string.Empty, "wm-discovery-page__name");
 			VisualElement sub = AchievementElements.Part(left, "wm-discovery-page__sub");
 			typeLabel = AchievementElements.Text(sub, string.Empty, "wm-ach-chip");
@@ -104,9 +101,9 @@ namespace WitchMendokusai
 			}
 			switch (slot)
 			{
-				case SLOT_FIRST_MEET:
-					AddField(body, "처음 만난 날", record.FirstKilledOn);
-					AddField(body, "처음 만난 곳", SOHelper.TryGet(record.FirstDungeonId, out Dungeon dungeon) ? dungeon.Name : "알 수 없음");
+				case SLOT_FIRST_RECORD:
+					AddField(body, "처음 잡은 날", record.FirstKilledOn);
+					AddField(body, "처음 잡은 곳", SOHelper.TryGet(record.FirstDungeonId, out Dungeon dungeon) ? dungeon.Name : "알 수 없음");
 					break;
 				case SLOT_HABITAT:
 					FillHabitat(body, monster);
@@ -170,14 +167,29 @@ namespace WitchMendokusai
 			float start = Mathf.Clamp01(habitat.StartSeconds / total);
 			float end = Mathf.Clamp01(habitat.EndSeconds / total);
 			VisualElement span = AchievementElements.Part(track, "wm-discovery-habitat__span");
-			// 끝 시각에 나오는 보스는 폭이 0. 최소 폭은 USS, 트랙 밖으로 안 나가게 오른쪽에서 잡음
-			span.style.left = Length.Percent(100f * start);
-			span.style.right = Length.Percent(100f * (1f - end));
+			// 한 번 나오는 종은 폭이 0 이라 USS 최소 폭으로 점처럼 보임. 끝 시각의 점은 트랙 밖으로 안 나가게 오른쪽에서 잡음
+			if (start < end)
+			{
+				span.style.left = Length.Percent(100f * start);
+				span.style.width = Length.Percent(100f * (end - start));
+			}
+			else if (start < 0.5f)
+			{
+				span.style.left = Length.Percent(100f * start);
+			}
+			else
+			{
+				span.style.right = Length.Percent(100f * (1f - start));
+			}
 		}
 
 		private static string TimeText(MonsterHabitat habitat)
 		{
 			string start = Clock(habitat.StartSeconds);
+			if (habitat.EndSeconds <= habitat.StartSeconds)
+			{
+				return start;
+			}
 			return habitat.EndSeconds >= habitat.Dungeon.TimeBySecond ? $"{start} 부터" : $"{start} ~ {Clock(habitat.EndSeconds)}";
 		}
 
@@ -187,12 +199,20 @@ namespace WitchMendokusai
 			return $"{(int)time.TotalMinutes}:{time.Seconds:00}";
 		}
 
-		private static void FillBody(VisualElement body, Monster monster)
+		private void FillBody(VisualElement body, Monster monster)
 		{
-			UnitStat unitStat = monster.InitStatInfos.GetUnitStat(ResourceManager.Instance.UnitBaseStats);
+			UnitStat unitStat = manager.BaseStatOf(monster);
 			AddField(body, "체력", $"{unitStat[UnitStatType.HP_MAX_STAT]}");
 			AddField(body, "빠르기", $"{unitStat[UnitStatType.MOVEMENT_SPEED]}");
-			AddField(body, "버릇", monster.Attack != null ? monster.Attack.KindName : NO_ATTACK_KIND);
+			// 보스의 공격은 Attack 자산이 아니라 자기 상태기계에 있어 비어 있어도 "쫓아옴" 이 아님
+			if (monster.Attack != null)
+			{
+				AddField(body, "버릇", monster.Attack.KindName);
+			}
+			else if (monster.Type != MonsterType.Boss)
+			{
+				AddField(body, "버릇", NO_ATTACK_KIND);
+			}
 		}
 
 		private static void FillLoot(VisualElement body, Monster monster)

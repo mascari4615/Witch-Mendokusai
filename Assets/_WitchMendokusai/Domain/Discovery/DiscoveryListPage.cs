@@ -89,6 +89,25 @@ namespace WitchMendokusai
 		// 기록이 있는 분류는 못 만난 것도 장을 엶 (무엇이 적힐지 보임). 그 밖의 분류는 잠기면 안 엶
 		private bool CanOpen(EntryDescriptor entry) => entry.IsUnlocked || CurrentProvider is IDiscoveryRecordProvider;
 
+		/// <summary>항목을 새로 읽음. 화면을 열 때와 기록이 바뀐 때 한 번. 장에서 돌아올 때는 안 부름</summary>
+		public void Activate()
+		{
+			foreach (IEntryProvider provider in providers)
+			{
+				provider.OnActivate();
+			}
+		}
+
+		public void Deactivate()
+		{
+			grid.Clear();
+			cards.Clear();
+			foreach (IEntryProvider provider in providers)
+			{
+				provider.OnDeactivate();
+			}
+		}
+
 		public void Bind()
 		{
 			BuildCategories();
@@ -101,7 +120,6 @@ namespace WitchMendokusai
 			categoryList.Clear();
 			foreach (IEntryProvider provider in providers)
 			{
-				provider.OnActivate();
 				(int unlocked, int total) = Count(provider);
 				IEntryProvider captured = provider;
 				Button button = new(() => SelectCategory(captured));

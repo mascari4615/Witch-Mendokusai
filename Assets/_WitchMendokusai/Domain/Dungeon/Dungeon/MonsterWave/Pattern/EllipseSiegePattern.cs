@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -7,6 +8,8 @@ namespace WitchMendokusai
 	public class EllipseSiegePattern : WavePattern
 	{
 		[field: SerializeField] public Monster[] Monsters { get; private set; }
+
+		public override IReadOnlyList<Monster> SpawnedMonsters => Monsters;
 		[field: SerializeField, Tooltip("마릿수. 위협 단계 물량 배율 적용"), Min(1)] public int Count { get; private set; } = 30;
 		[field: SerializeField, Tooltip("가로 반지름"), Min(0.5f)] public float RadiusX { get; private set; } = 7.5f;
 		[field: SerializeField, Tooltip("세로 반지름"), Min(0.5f)] public float RadiusZ { get; private set; } = 5f;

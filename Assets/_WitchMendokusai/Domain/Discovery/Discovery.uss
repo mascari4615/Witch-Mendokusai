@@ -5,7 +5,6 @@
 /* 배경은 불투명. 흐린 게임 화면을 깔지 않음 (2026-11-22 판정) */
 .wm-discovery {
     background-color: rgb(14, 12, 19);
-    --wm-discovery-complete: rgb(246, 204, 86);
 }
 
 .wm-discovery__detail {
@@ -46,7 +45,7 @@
 }
 
 .wm-discovery-tile--complete {
-    border-color: var(--wm-discovery-complete);
+    border-color: var(--wm-ach-tier-3);
 }
 
 .wm-discovery-pip--on {
@@ -55,8 +54,8 @@
 }
 
 .wm-discovery-pip--complete {
-    background-color: rgb(246, 204, 86);
-    border-color: rgb(246, 204, 86);
+    background-color: var(--wm-ach-tier-3);
+    border-color: var(--wm-ach-tier-3);
 }
 
 .wm-discovery-news {
@@ -116,7 +115,8 @@
 
 .wm-discovery-page__left {
     width: 640px;
-    flex-shrink: 0;
+    min-width: 580px;
+    flex-shrink: 1;
     align-items: center;
     justify-content: flex-end;
     padding-bottom: 8px;
@@ -128,7 +128,7 @@
     right: -60px;
     top: -10px;
     height: 700px;
-    -unity-background-image-tint-color: rgba(150, 84, 230, 0.34);
+    -unity-background-image-tint-color: var(--wm-fullmenu-glow-soft);
 }
 
 .wm-discovery-page__picture {
@@ -187,7 +187,9 @@
 
 .wm-discovery-page__slots {
     flex-grow: 1;
-    margin-left: 78px;
+    flex-shrink: 1;
+    flex-basis: 900px;
+    margin-left: 60px;
     min-width: 0;
 }
 
@@ -196,7 +198,7 @@
     align-items: center;
     height: 148px;
     margin-bottom: 14px;
-    padding: 0 60px 0 64px;
+    padding: 0 48px 0 56px;
     background-image: url("../../Art/Texture/UI/Vector.png");
     -unity-slice-left: 30;
     -unity-slice-right: 30;
@@ -205,13 +207,13 @@
 }
 
 .wm-discovery-slot--next {
-    -unity-background-image-tint-color: rgb(58, 44, 82);
+    -unity-background-image-tint-color: var(--wm-fullmenu-panel-current);
 }
 
 .wm-discovery-slot__mark {
     width: 26px;
     height: 26px;
-    margin-right: 36px;
+    margin-right: 28px;
     flex-shrink: 0;
     rotate: 45deg;
     border-width: 3px;
@@ -224,12 +226,12 @@
 }
 
 .wm-discovery-slot--complete .wm-discovery-slot__mark {
-    background-color: rgb(246, 204, 86);
-    border-color: rgb(246, 204, 86);
+    background-color: var(--wm-ach-tier-3);
+    border-color: var(--wm-ach-tier-3);
 }
 
 .wm-discovery-slot__name {
-    width: 190px;
+    width: 160px;
     flex-shrink: 0;
     font-size: 28px;
     color: var(--wm-fullmenu-ink-soft);
@@ -244,6 +246,7 @@
     flex-shrink: 1;
     min-width: 0;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
 }
 
@@ -289,7 +292,7 @@
 }
 
 .wm-discovery-habitat__name {
-    width: 190px;
+    width: 170px;
     font-size: 22px;
 }
 
@@ -308,7 +311,7 @@
 }
 
 .wm-discovery-habitat__time {
-    width: 160px;
+    width: 140px;
     font-size: 20px;
     -unity-text-align: middle-right;
     color: var(--wm-fullmenu-ink-soft);
@@ -369,11 +372,7 @@
     color: var(--wm-fullmenu-ink);
 }
 
-/* ===== 새 기록 띠 (OverlayLayer, 기준 화면 높이 800). 업적 띠가 같이 떠도 겹치지 않게 그 위 ===== */
-
-.wm-discovery-toast {
-    bottom: 24%;
-}
+/* ===== 새 기록 띠 (OverlayLayer, 기준 화면 높이 800). 자리와 모양은 업적 띠, 대기열도 같이 써서 겹치지 않음 ===== */
 
 .wm-discovery-toast__picture {
     width: 46px;

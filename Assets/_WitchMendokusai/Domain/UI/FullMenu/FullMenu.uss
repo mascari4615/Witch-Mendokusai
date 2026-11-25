@@ -15,6 +15,8 @@
     --wm-fullmenu-ink-dark-soft: rgb(86, 80, 96);
     --wm-fullmenu-select: rgb(232, 232, 236);
     --wm-fullmenu-glow: rgb(180, 108, 255);
+    --wm-fullmenu-glow-soft: rgba(150, 84, 230, 0.34);
+    --wm-fullmenu-panel-current: rgb(58, 44, 82);
     --wm-fullmenu-value: rgb(242, 226, 122);
     --wm-fullmenu-teal: rgb(43, 117, 115);
 
@@ -248,7 +250,7 @@
     top: -150px;
     right: -150px;
     bottom: -150px;
-    -unity-background-image-tint-color: rgba(150, 84, 230, 0.34);
+    -unity-background-image-tint-color: var(--wm-fullmenu-glow-soft);
 }
 
 .wm-fullmenu-core__model {

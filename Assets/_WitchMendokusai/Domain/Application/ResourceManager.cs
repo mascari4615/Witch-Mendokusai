@@ -34,6 +34,6 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("상태이상 규칙과 표시 (UnitStatusType 전부, 종류는 줄 추가로)")] public UnitStatusConfig UnitStatus { get; private set; } = null;
 		[field: SerializeField, Tooltip("생존 모드 화면 알림 (정예, 무리, 보스 띠)")] public SurvivalAnnounceSettings SurvivalAnnounce { get; private set; } = null;
 		[field: SerializeField, Tooltip("모든 유닛 능력치 시작값 (기본 치명타 확률과 피해)")] public UnitBaseStats UnitBaseStats { get; private set; } = null;
-		[field: SerializeField, Tooltip("도감 화면 모양과 몬스터 기록 단계 목표")] public DiscoverySettings Discovery { get; private set; } = null;
+		[field: SerializeField, Tooltip("몬스터 기록의 단계 목표")] public MonsterLogRules MonsterLog { get; private set; } = null;
 	}
 }

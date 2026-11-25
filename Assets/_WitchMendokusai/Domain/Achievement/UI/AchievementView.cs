@@ -156,20 +156,13 @@ namespace WitchMendokusai
 			// 키 안내. 손가락 조작에서는 KeyHint 규칙으로 숨음
 			bottom = AchievementElements.Part(stage, "wm-ach__bottom");
 			VisualElement hints = KeyHint.KeyOnly(AchievementElements.Part(bottom, "wm-ach-hints"));
-			AddHint(hints, "방향키", "고르기");
-			AddHint(hints, "Z", "자세히, 고르기");
-			AddHint(hints, "ESC", "뒤로");
+			AchievementElements.Hint(hints, "방향키", "고르기");
+			AchievementElements.Hint(hints, "Z", "자세히, 고르기");
+			AchievementElements.Hint(hints, "ESC", "뒤로");
 
 			detail = new AchievementDetail(Settings, focus, glowTexture, ToggleWall, Back);
 			detail.pickingMode = PickingMode.Position;
 			stage.Add(detail);
-		}
-
-		private static void AddHint(VisualElement hints, string key, string text)
-		{
-			VisualElement hint = AchievementElements.Part(hints, "wm-ach-hint");
-			AchievementElements.Text(hint, key, "wm-fullmenu-key wm-ach-hint__key");
-			AchievementElements.Text(hint, text, "wm-ach-hint__text");
 		}
 
 		public void Toggle()
@@ -319,25 +312,13 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 화면을 바꾼 직후에는 배치 계산 전. 정한 칸이 있으면 그 칸, 없으면 그 화면의 처음 칸
+		// 손가락 조작에는 선택 칸이 없음
 		private void FocusLater(VisualElement target)
 		{
-			if (inputManager.IsTouchMode)
+			if (inputManager.IsTouchMode == false)
 			{
-				return;
+				focus.FocusLater(target);
 			}
-			if (target == null)
-			{
-				focus.FocusWhenReady();
-				return;
-			}
-			container.schedule.Execute(() =>
-			{
-				if (target.panel != null)
-				{
-					target.Focus();
-				}
-			});
 		}
 
 		private bool FocusFirst()

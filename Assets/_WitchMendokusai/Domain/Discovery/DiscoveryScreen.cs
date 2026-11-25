@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
@@ -31,13 +30,15 @@ namespace WitchMendokusai
 		private const string NAV_CLASS = "wm-discovery-nav";
 		private const string TITLE = "도감";
 
+		[SerializeField, Tooltip("도감 화면 모양")] private DiscoverySettings settings;
+
 		public bool IsOpen { get; private set; }
 
 		private InputManager inputManager;
 		private UIRoot uiRoot;
 		private TimeManager timeManager;
 		private MonsterLogManager monsterLog;
-		private ResourceManager resourceManager;
+		private WindowManager windowManager;
 
 		private VisualElement container;
 		private VisualElement safeContent;
@@ -46,7 +47,8 @@ namespace WitchMendokusai
 		private DiscoveryListPage listPage;
 		private VisualElement detailArea;
 		private MonsterLogPage monsterPage;
-		private Label detailHint;
+		private Label moveHint;
+		private VisualElement openHint;
 		private Button backButton;
 		private EntryDescriptor shownEntry;
 		// 다른 전체 화면과 같은 오브젝트를 정지 열쇠로 쓰면 서로의 정지를 풀어 버림. 자기 열쇠를 따로
@@ -55,16 +57,14 @@ namespace WitchMendokusai
 
 		public EntryProviderRegistry Providers { get; } = new();
 
-		private DiscoverySettings Settings => resourceManager.Discovery;
-
 		[Inject]
-		public void Construct(InputManager inputManager, UIRoot uiRoot, TimeManager timeManager, MonsterLogManager monsterLog, ResourceManager resourceManager)
+		public void Construct(InputManager inputManager, UIRoot uiRoot, TimeManager timeManager, MonsterLogManager monsterLog, WindowManager windowManager)
 		{
 			this.inputManager = inputManager;
 			this.uiRoot = uiRoot;
 			this.timeManager = timeManager;
 			this.monsterLog = monsterLog;
-			this.resourceManager = resourceManager;
+			this.windowManager = windowManager;
 		}
 
 		private void Awake()
@@ -79,6 +79,10 @@ namespace WitchMendokusai
 
 		private void Start()
 		{
+			if (settings == null)
+			{
+				throw new InvalidOperationException($"{nameof(DiscoveryScreen)}: 프리팹의 settings 가 비어 있음");
+			}
 			RegisterBuiltins();
 			BuildScreen();
 			BuildToast();
@@ -119,7 +123,7 @@ namespace WitchMendokusai
 			DiscoveryUnlocks.Register(new MonsterLogUnlockSource(monsterLog));
 			DiscoveryUnlocks.Register(new PlantSpecimenUnlockSource());
 
-			Providers.Register(new MonsterDiscoveryCategory(monsterLog, Settings));
+			Providers.Register(new MonsterDiscoveryCategory(monsterLog, settings));
 			// 잠금 기록이 없거나 데모에서 안 쓰는 분류는 개발 빌드에만
 			if (Debug.isDebugBuild)
 			{
@@ -138,7 +142,7 @@ namespace WitchMendokusai
 			AddStyles(container);
 			// 칸 이동보다 먼저. 장에서 좌우는 다른 항목으로
 			container.RegisterCallback<NavigationMoveEvent>(OnNavigationMove, TrickleDown.TrickleDown);
-			focus = new MenuFocus(container, NAV_CLASS, () => IsOpen, () => Settings.Menu.NavOverlapTolerance, () => Settings.Menu.NavAcrossWeight)
+			focus = new MenuFocus(container, NAV_CLASS, () => IsOpen, () => settings.Menu.NavOverlapTolerance, () => settings.Menu.NavAcrossWeight)
 			{
 				FocusFirst = FocusFirst,
 			};
@@ -147,7 +151,7 @@ namespace WitchMendokusai
 
 			stage = AchievementElements.Part(safeContent, "wm-fullmenu__stage");
 			stage.pickingMode = PickingMode.Position;
-			safeContent.RegisterCallback<GeometryChangedEvent>(_ => MenuStage.Fit(safeContent, stage, Settings.Menu.ReferenceHeight, Settings.Menu.MinimumWidth));
+			safeContent.RegisterCallback<GeometryChangedEvent>(_ => MenuStage.Fit(safeContent, stage, settings.Menu.ReferenceHeight, settings.Menu.MinimumWidth));
 
 			VisualElement top = AchievementElements.Part(stage, "wm-fullmenu__top");
 			AchievementElements.Part(top, "wm-fullmenu__spacer");
@@ -158,32 +162,26 @@ namespace WitchMendokusai
 			AchievementElements.Text(stage, TITLE, "wm-fullmenu__title");
 
 			VisualElement body = AchievementElements.Part(stage, "wm-ach__body");
-			listPage = new DiscoveryListPage(Settings, focus, Providers.Providers, OpenEntry);
+			listPage = new DiscoveryListPage(settings, focus, Providers.Providers, OpenEntry);
 			body.Add(listPage);
 
-			glowTexture = MenuStage.CreateGlowTexture(Settings.Menu.GlowTextureSize, "DiscoveryGlow");
+			glowTexture = MenuStage.CreateGlowTexture(settings.Menu.GlowTextureSize, "DiscoveryGlow");
 			detailArea = AchievementElements.Part(body, "wm-discovery__detail");
 			monsterPage = new MonsterLogPage(monsterLog, glowTexture);
 
 			// 손가락 조작에서는 KeyHint 규칙으로 숨음
 			VisualElement bottom = AchievementElements.Part(stage, "wm-ach__bottom");
 			VisualElement hints = KeyHint.KeyOnly(AchievementElements.Part(bottom, "wm-ach-hints"));
-			detailHint = AddHint(hints, "방향키", string.Empty);
-			AddHint(hints, "ESC", "뒤로");
+			moveHint = AchievementElements.Hint(hints, "방향키", string.Empty);
+			openHint = AchievementElements.Hint(hints, "Z", "기록 보기").parent;
+			AchievementElements.Hint(hints, "ESC", "뒤로");
 		}
 
 		private void AddStyles(VisualElement element)
 		{
-			element.styleSheets.Add(Settings.Menu.Style);
-			element.styleSheets.Add(Settings.Cards);
-			element.styleSheets.Add(Settings.Style);
-		}
-
-		private static Label AddHint(VisualElement hints, string key, string text)
-		{
-			VisualElement hint = AchievementElements.Part(hints, "wm-ach-hint");
-			AchievementElements.Text(hint, key, "wm-fullmenu-key wm-ach-hint__key");
-			return AchievementElements.Text(hint, text, "wm-ach-hint__text");
+			element.styleSheets.Add(settings.Menu.Style);
+			element.styleSheets.Add(settings.Cards);
+			element.styleSheets.Add(settings.Style);
 		}
 
 		public void Toggle()
@@ -205,11 +203,31 @@ namespace WitchMendokusai
 				return;
 			}
 			IsOpen = true;
+			CloseOthers();
+			listPage.Activate();
 			ShowList();
 			UiSfx.Play(UiSfxEvent.WindowOpen);
 			UIMotion.Show(container, USS_ACTIVE);
 			timeManager.Pause(pauseKey);
 			FocusLater(null);
+		}
+
+		// 열린 다른 창과 전체 화면을 먼저 닫음. 안 그러면 도감 뒤에 깔린 채 ESC 한 번에 둘이 움직임
+		private void CloseOthers()
+		{
+			while (windowManager.GetTopmostOpen() != null)
+			{
+				windowManager.GetTopmostOpen().Close();
+			}
+			if (uiRoot.MagicBookView.IsOpen)
+			{
+				uiRoot.MagicBookView.Close();
+			}
+			AchievementView achievementView = uiRoot.GetComponent<AchievementView>();
+			if (achievementView != null)
+			{
+				achievementView.Close();
+			}
 		}
 
 		public void Close()
@@ -219,6 +237,10 @@ namespace WitchMendokusai
 				return;
 			}
 			IsOpen = false;
+			// 장을 비워 3D 미리보기 카메라가 닫힌 뒤에도 도는 일이 없게
+			detailArea.Clear();
+			shownEntry = null;
+			listPage.Deactivate();
 			// 닫힌 뒤 확인 키가 숨은 버튼을 누르지 않게 포커스를 놓음
 			if (container.focusController?.focusedElement is VisualElement focused && container.Contains(focused))
 			{
@@ -253,7 +275,8 @@ namespace WitchMendokusai
 			detailArea.Clear();
 			listPage.RemoveFromClassList(USS_HIDDEN);
 			detailArea.AddToClassList(USS_HIDDEN);
-			detailHint.text = "고르기";
+			moveHint.text = "고르기";
+			openHint.RemoveFromClassList(USS_HIDDEN);
 			listPage.Bind();
 		}
 
@@ -269,7 +292,8 @@ namespace WitchMendokusai
 			shownEntry = entry;
 			listPage.AddToClassList(USS_HIDDEN);
 			detailArea.RemoveFromClassList(USS_HIDDEN);
-			detailHint.text = "좌우로 다른 항목";
+			moveHint.text = "좌우로 다른 항목";
+			openHint.AddToClassList(USS_HIDDEN);
 			detailArea.Clear();
 			if (entry.Source is Monster monster)
 			{
@@ -320,7 +344,11 @@ namespace WitchMendokusai
 			}
 			if (shownEntry == null)
 			{
+				string focusedId = (container.focusController?.focusedElement as DiscoveryScreenCard)?.Entry.Id;
+				listPage.Activate();
 				listPage.Bind();
+				// 카드를 새로 지었으므로 고르던 항목의 새 카드로
+				FocusLater(focusedId == null ? null : listPage.CardOf(focusedId));
 			}
 			else if (shownEntry.Source is Monster monster)
 			{
@@ -328,25 +356,13 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 화면을 바꾼 직후에는 배치 계산 전. 손가락 조작에는 선택 칸이 없음
+		// 손가락 조작에는 선택 칸이 없음
 		private void FocusLater(VisualElement target)
 		{
-			if (inputManager.IsTouchMode)
+			if (inputManager.IsTouchMode == false)
 			{
-				return;
+				focus.FocusLater(target);
 			}
-			if (target == null)
-			{
-				focus.FocusWhenReady();
-				return;
-			}
-			container.schedule.Execute(() =>
-			{
-				if (target.panel != null)
-				{
-					target.Focus();
-				}
-			});
 		}
 
 		private bool FocusFirst()

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -17,6 +18,8 @@ namespace WitchMendokusai
 	public class MovingWallPattern : WavePattern
 	{
 		[field: SerializeField] public Monster[] Monsters { get; private set; }
+
+		public override IReadOnlyList<Monster> SpawnedMonsters => Monsters;
 		[field: SerializeField, Tooltip("한 파의 줄 수"), Min(1)] public int LaneCount { get; private set; } = 21;
 		[field: SerializeField, Tooltip("한 파의 빈 줄 수"), Min(0)] public int GapCount { get; private set; } = 2;
 		[field: SerializeField, Tooltip("파마다 빈 줄 묶음이 움직일 수 있는 최대 줄 수"), Min(0)] public int GapStepLanes { get; private set; } = 2;

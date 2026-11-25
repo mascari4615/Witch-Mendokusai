@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 데이터 탐색 베이스 view — 좌 사이드바(SubGroups) + 우 카드 그리드.
-	/// Discovery (런타임 도감) + DataSOWindow (에디터 툴) 둘 다 사용. (구) DiscoveryView 의 Category 모드 부분을 추출.
+	/// DataSOWindow (에디터 툴) 가 사용. 런타임 도감은 DiscoveryListPage 로 옮겨 감 (2026-11-25).
 	///
 	/// 디테일 영역은 X — 도메인 controller 가 OnEntrySelected 받아 자체 처리:
 	/// - Discovery = Detail 모드 전환 (DiscoveryDetailPanel)
@@ -84,7 +84,7 @@ namespace WitchMendokusai
 				allButton.AddToClassList(USS_SIDEBAR_BUTTON_ACTIVE);
 		}
 
-		/// <summary>외부 controller (DiscoveryView 등) 가 entry 선택 시 카드 강조 토글.</summary>
+		/// <summary>외부 controller 가 entry 선택 시 카드 강조 토글.</summary>
 		public void SetEntryActive(EntryDescriptor entry, bool active)
 		{
 			if (entry == null)

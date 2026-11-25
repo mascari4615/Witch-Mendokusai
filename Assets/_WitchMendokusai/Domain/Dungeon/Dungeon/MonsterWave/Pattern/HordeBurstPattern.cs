@@ -17,6 +17,8 @@ namespace WitchMendokusai
 	{
 		[field: SerializeField, Tooltip("패턴 시작부터 초")] public List<float> BurstTimes { get; private set; } = new() { 0f };
 		[field: SerializeField] public Monster[] Monsters { get; private set; }
+
+		public override IReadOnlyList<Monster> SpawnedMonsters => Monsters;
 		[field: SerializeField, Tooltip("무리 하나 마릿수. 위협 단계 물량 배율 적용"), Min(1)] public int Count { get; private set; } = 18;
 		[field: SerializeField] public HordeFormation Formation { get; private set; } = HordeFormation.Cluster;
 		[field: SerializeField, Tooltip("플레이어에서 떨어진 거리"), Min(1f)] public float Distance { get; private set; } = 12f;
