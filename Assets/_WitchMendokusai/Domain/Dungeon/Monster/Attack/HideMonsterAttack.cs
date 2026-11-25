@@ -29,12 +29,14 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("자리 수. 1 이면 쫓아간 자리, 여럿이면 주인공 둘레 고리"), Min(1)] public int Count { get; private set; } = 1;
 		[field: SerializeField, Tooltip("고리 반지름 (m)"), Min(0f)] public float Distance { get; private set; } = 2.9f;
 		[field: SerializeField, Tooltip("자리 하나는 진짜. 안 때리고 거기서 나타남")] public bool HasSafeSpot { get; private set; }
+		[field: SerializeField, Tooltip("진짜 자리가 막힌 데 (경계 밖, 장애물) 걸리면 고리를 돌려 다시 놓는 횟수"), Min(1)] public int ArrangeTries { get; private set; } = 12;
 		[field: SerializeField, Tooltip("나타날 때 자리보다 이만큼 바깥 (m). 안전한 자리에 선 주인공과 안 겹치게"), Min(0f)] public float EmergeOffset { get; private set; }
 
 		[field: Header("타격")]
 		[field: SerializeField, Tooltip("자리마다 반지름 (m)"), Min(0.3f)] public float Radius { get; private set; } = 2.4f;
 		[field: SerializeField, Min(1)] public int Damage { get; private set; } = 6;
 		[field: SerializeField, Tooltip("피해가 실제로 들어간 순간 주인공에게 거는 것")] public MonsterHitEffect HitEffect { get; private set; } = new();
+		[field: SerializeField, Tooltip("나타난 뒤 주인공과 겹쳐 있는 동안 몸 충돌을 미루는 최대 초"), Min(0f)] public float SettleSeconds { get; private set; } = 0.8f;
 		[field: SerializeField, Tooltip("진짜 자리의 예고 물체")] public CombatFx SafeFx { get; private set; }
 		[field: SerializeField, Tooltip("진짜 자리와 옆 원 사이 최소 틈 (m). 주인공 몸 반지름과 여유, 검사용"), Min(0f)] public float SafeMargin { get; private set; } = 0.5f;
 
@@ -61,18 +63,17 @@ namespace WitchMendokusai
 				results.Add(center + Quaternion.Euler(0f, startAngle + 360f / count * i, 0f) * Vector3.forward * distance);
 		}
 
-		// 때리는 자리 가운데 하나라도 닿는가. safeIndex 는 안 때리는 자리, 없으면 음수
-		public static bool Hits(IReadOnlyList<Vector3> spots, int safeIndex, float radius, Vector3 point, float bodyRadius)
+		// 때리는 자리 가운데 하나라도 닿는가
+		public static bool Hits(IReadOnlyList<Vector3> strikes, float radius, Vector3 point, float bodyRadius)
 		{
-			for (int i = 0; i < spots.Count; i++)
+			foreach (Vector3 strike in strikes)
 			{
-				if (i != safeIndex && SlimeKingPatternMath.IsWithin(spots[i], point, radius + bodyRadius))
+				if (SlimeKingPatternMath.IsWithin(strike, point, radius + bodyRadius))
 					return true;
 			}
 			return false;
 		}
 
-		public int PickSafeIndex() => HasSafeSpot ? Random.Range(0, Count) : -1;
 
 		public override void Validate(Monster owner, List<string> errors)
 		{
@@ -81,6 +82,10 @@ namespace WitchMendokusai
 				errors.Add($"{name}: 사라지기 전 예고가 있어야 함 ({nameof(WindupSeconds)} 0)");
 			if (Pose.IsEmpty)
 				errors.Add($"{name}: 사라지고 나타나는 자세가 비어 있음");
+			if (RiseHeight > 0f && RiseSeconds + FallSeconds + LandLeadSeconds > HiddenSeconds)
+				errors.Add($"{name}: 떠오르고 떨어질 초가 사라진 초 {HiddenSeconds} 보다 김");
+			if (ChaseSeconds > 0f && (ChaseSeconds <= RiseSeconds || Count > 1))
+				errors.Add($"{name}: 쫓을 틈이 없음 (떠오르는 초 {RiseSeconds}, 자리 {Count})");
 			if (LandLeadSeconds + FallSeconds > LockSeconds)
 				errors.Add($"{name}: 떨어지는 초 {FallSeconds} 가 피할 틈 {LockSeconds} 보다 김");
 			if (RiseHeight > 0f && (RiseSprite == null || FallSprite == null))

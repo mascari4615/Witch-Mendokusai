@@ -27,7 +27,7 @@ MonoBehaviour:
   count: 6
   seconds: 0.4
   leadSeconds: 0
-  emitSeconds: 0.16
+  emitSeconds: 0.03
   halfSize: {x: 1.3, y: 1.4}
   lift: 1.25
   originLift: 1.3

@@ -97,7 +97,10 @@ namespace WitchMendokusai
 		// 공격 하나가 끝남. 곧 다음 준비가 오면 이어지고, 아니면 원래대로
 		public void Release()
 		{
-			if (stage != Stage.None && float.IsPositiveInfinity(releaseTime))
+			// 떠 있다 끊기면 바로 땅으로
+			if (stage == Stage.Air)
+				Clear();
+			else if (stage != Stage.None && float.IsPositiveInfinity(releaseTime))
 				releaseTime = Time.time + RELEASE_SECONDS;
 		}
 

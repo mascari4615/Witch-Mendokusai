@@ -35,6 +35,8 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("옆으로 흩어짐 (m)"), Min(0f)] private float spread;
 
 		[SerializeField, Tooltip("둘레 (Radius) 에서 가운데로 빨려 듦. 나오는 데 Seconds 동안")] private bool gathers;
+		[SerializeField, Tooltip("빨려 든 끝의 반지름 (m)"), Min(0f)] private float gatherEndRadius = 0.3f;
+		[SerializeField, Tooltip("덩이마다 크기 (최소, 최대 배)")] private Vector2 scaleRange = new(0.75f, 1.1f);
 
 		[SerializeField, Tooltip("길 (Direction, Length) 위에 고르게 놓고 emitSeconds (0 이면 Seconds) 동안 차례로")] private bool alongPath;
 		[SerializeField, Tooltip("바닥에 눕힘. halfSize 는 Radius 의 배")] private bool isFlat;
@@ -186,9 +188,9 @@ namespace WitchMendokusai
 				{
 					Start = emit * i / Mathf.Max(1, count - 1),
 					From = context.Position + side * (context.Radius * Random.Range(travelRange.x, travelRange.y)) + Vector3.up * lift,
-					To = context.Position + side * 0.3f + Vector3.up * originLift,
+					To = context.Position + side * gatherEndRadius + Vector3.up * originLift,
 					Seed = Random.value * 10f,
-					Scale = Random.Range(0.75f, 1.1f),
+					Scale = Random.Range(scaleRange.x, scaleRange.y),
 				};
 			}
 			return puffs;
@@ -217,7 +219,7 @@ namespace WitchMendokusai
 					From = alongPath ? to : context.Position + Vector3.up * (isStream ? originLift : lift) + new Vector3(side.x, 0f, side.y) * (isStream ? 0.2f : 1f),
 					To = to,
 					Seed = Random.value * 10f,
-					Scale = count > 1 ? Random.Range(0.75f, 1.1f) : 1f,
+					Scale = count > 1 ? Random.Range(scaleRange.x, scaleRange.y) : 1f,
 				};
 			}
 			return puffs;

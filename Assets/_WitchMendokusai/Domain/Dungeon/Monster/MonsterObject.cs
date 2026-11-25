@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
 using VContainer;
@@ -43,6 +44,11 @@ namespace WitchMendokusai
 		private MonsterBodyFx bodyFx;
 		// 숨기 전에 체력 바가 켜져 있었음
 		private bool hidHpBar;
+		private readonly List<SpriteRenderer> hidShadows = new();
+		private static readonly HashSet<GameObject> hiddenMonsters = new();
+
+		// 자동 조준이 거를 것. 숨은 몸이 없으면 바로 끝
+		public static bool IsHiddenMonster(GameObject candidate) => hiddenMonsters.Count > 0 && hiddenMonsters.Contains(candidate);
 
 		private HpBarView HpBarView
 		{
@@ -131,8 +137,8 @@ namespace WitchMendokusai
 		// 방어력. 상태이상 틱 (몸 안 피해) 과 강제 피해 (화면 청소의 즉사) 는 안 줄임
 		public override void ReceiveDamage(DamageInfo damageInfo)
 		{
-			// 강제 피해 (화면 청소) 만 들어감
-			if (IsHidden && damageInfo.ignoreInvincible == false)
+			// 강제 피해 (화면 청소) 만 들어감. 상태이상 틱은 강제여도 막음
+			if (IsHidden && (damageInfo.ignoreInvincible == false || damageInfo.type == DamageType.StatusTick))
 				return;
 			if (damageInfo.type != DamageType.StatusTick && damageInfo.ignoreInvincible == false)
 				damageInfo.damage = ArmorRules.Reduce(damageInfo.damage, UnitStat[UnitStatType.ARMOR]);
@@ -161,14 +167,40 @@ namespace WitchMendokusai
 			IsHidden = isHidden;
 			if (isHidden)
 			{
+				hiddenMonsters.Add(gameObject);
 				hidHpBar = hpBar.gameObject.activeSelf;
 				hpBar.gameObject.SetActive(false);
 				if (bodyFx != null)
 					bodyFx.Hide();
+				HideShadows();
 				return;
 			}
+			hiddenMonsters.Remove(gameObject);
 			hpBar.gameObject.SetActive(hidHpBar);
 			ApplyBodyFx();
+			ShowShadows();
+		}
+
+		// 몸 그림 말고 따라다니는 그림 (바닥 그림자)
+		private void HideShadows()
+		{
+			foreach (SpriteRenderer part in GetComponentsInChildren<SpriteRenderer>())
+			{
+				if (part == SpriteRenderer || part.enabled == false)
+					continue;
+				part.enabled = false;
+				hidShadows.Add(part);
+			}
+		}
+
+		private void ShowShadows()
+		{
+			foreach (SpriteRenderer part in hidShadows)
+			{
+				if (part != null)
+					part.enabled = true;
+			}
+			hidShadows.Clear();
 		}
 
 		private void ApplyThreat()
@@ -223,6 +255,8 @@ namespace WitchMendokusai
 			ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
 			StopAllCoroutines();
 			IsHidden = false;
+			hiddenMonsters.Remove(gameObject);
+			ShowShadows();
 			hpBar.gameObject.SetActive(false);
 			ClearElite();
 			threat = DungeonThreatEffect.Identity;
@@ -252,7 +286,10 @@ namespace WitchMendokusai
 
 			// hpBar 갱신은 컨텍스트 무관(아레나 관전서도 체력 표시 유용).
 			HpBarView.SetRatio((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX]);
-			hpBar.gameObject.SetActive(true);
+			if (IsHidden)
+				hidHpBar = true;
+			else
+				hpBar.gameObject.SetActive(true);
 		}
 
 		protected virtual void HandleDeathEffects()

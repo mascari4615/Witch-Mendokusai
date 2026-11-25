@@ -17,6 +17,9 @@ namespace WitchMendokusai
 		private float landTime;
 		private Vector3 landing;
 		private bool isAway;
+		// 다시 나타났지만 주인공과 겹쳐 있어 충돌을 미루는 중
+		private bool isSettling;
+		private float settleEndTime;
 
 		private bool HasLanded => Time.time >= landTime;
 
@@ -32,6 +35,7 @@ namespace WitchMendokusai
 		public void Leave(HideMonsterAttack newAttack, PlayerProvider newPlayerProvider)
 		{
 			Return();
+			Restore();
 			attack = newAttack;
 			playerProvider = newPlayerProvider;
 			isAway = true;
@@ -57,7 +61,7 @@ namespace WitchMendokusai
 			landTime = strikeTime - attack.LandLeadSeconds;
 		}
 
-		// 다시 보이고 맞고 부딪힘. 안 사라졌으면 무해
+		// 다시 보이고 맞음. 부딪힘은 주인공과 떨어진 뒤 (겹친 채 켜지면 서로 튕김). 안 사라졌으면 무해
 		public void Return()
 		{
 			if (isAway == false)
@@ -65,6 +69,25 @@ namespace WitchMendokusai
 			isAway = false;
 			if (HasLanded)
 				monster.UnitMovement.Reposition(landing);
+			monster.SpriteRenderer.enabled = true;
+			monster.SetHidden(false);
+			isSettling = true;
+			settleEndTime = Time.time + attack.SettleSeconds;
+			if (OverlapsPlayer() == false)
+				Restore();
+		}
+
+		private bool OverlapsPlayer()
+		{
+			PlayerObject player = playerProvider.CurrentObject;
+			return player != null && SlimeKingPatternMath.IsWithin(transform.position, player.transform.position, monster.UnitMovement.BodyRadius + player.UnitMovement.BodyRadius);
+		}
+
+		private void Restore()
+		{
+			if (isSettling == false)
+				return;
+			isSettling = false;
 			foreach (Collider part in disabledColliders)
 			{
 				if (part != null)
@@ -73,15 +96,19 @@ namespace WitchMendokusai
 			disabledColliders.Clear();
 			monster.UnitMovement.enabled = true;
 			monster.UnitMovement.CancelImpulse();
-			monster.SpriteRenderer.enabled = true;
-			monster.SetHidden(false);
 		}
 
-		private void OnDisable() => Return();
+		private void OnDisable()
+		{
+			Return();
+			Restore();
+		}
 
 		// 몸동작 (MonsterPoseDriver.LateUpdate) 보다 먼저
 		private void Update()
 		{
+			if (isSettling && (Time.time >= settleEndTime || OverlapsPlayer() == false))
+				Restore();
 			if (isAway == false)
 				return;
 			if (float.IsPositiveInfinity(landTime) == false)
@@ -95,15 +122,20 @@ namespace WitchMendokusai
 			Draw();
 		}
 
-		// 뛰어오른 높이는 안 따라감
+		// 뛰어오른 높이는 안 따라감. 벽 밖과 장애물 속은 그 앞까지
 		private Vector3 PlayerGround()
 		{
 			PlayerObject player = playerProvider.CurrentObject;
+			if (player == null)
+				return transform.position;
 			Vector3 position = player.transform.position;
 			if (player.UnitMovement.IsGrounded() == false)
 				position.y = transform.position.y;
-			return position;
+			return Clamp(monster, position);
 		}
+
+		public static Vector3 Clamp(UnitObject unitObject, Vector3 position) =>
+			DungeonManagerBridge.IsDungeon ? DungeonManager.Instance.MonsterSpawner.ClampToArena(position, unitObject.UnitMovement.BodyRadius) : position;
 
 		private void Draw()
 		{

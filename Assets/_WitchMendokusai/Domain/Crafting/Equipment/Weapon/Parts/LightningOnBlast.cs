@@ -91,7 +91,7 @@ namespace WitchMendokusai
 			targets.Clear();
 			foreach (GameObject monster in ObjectBufferManager.GetObjects(ObjectType.Monster))
 			{
-				if (monster.TryGetComponent(out UnitObject unit) == false || unit.IsAlive == false || unit.Health.IsHitInvincible)
+				if (monster.TryGetComponent(out UnitObject unit) == false || unit.IsAlive == false || unit.Health.IsHitInvincible || MonsterObject.IsHiddenMonster(monster))
 					continue;
 				Vector3 position = unit.transform.position;
 				victims.Add(unit);

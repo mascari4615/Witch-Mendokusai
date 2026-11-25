@@ -100,7 +100,7 @@ namespace WitchMendokusai
 				// 때리기 직전에 앉으면 잠깐 안 뜨거움. 식은 것과 구별
 				bool isCool = Time.time >= hold.HarmlessTime;
 				body.sprite = hold.IsCracked ? swellSprite : isCool && coolSprite != null ? coolSprite : plain;
-				body.color = isCool ? coolTint : Color.Lerp(Color.white, hotTint, 0.5f + 0.5f * Mathf.Sin(Time.time * hotPulseSpeed));
+				body.color = isCool ? coolTint : Color.Lerp(Color.white, hotTint, Mathf.PingPong(Time.time * hotPulseSpeed / Mathf.PI, 1f));
 				if (Time.time >= hold.EndTime)
 					sinkTime += Time.deltaTime;
 				body.transform.localScale = Vector3.one * (scale * (1f - Mathf.Clamp01(sinkTime / sinkSeconds)));

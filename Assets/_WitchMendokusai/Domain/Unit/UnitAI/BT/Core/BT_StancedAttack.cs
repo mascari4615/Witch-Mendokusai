@@ -111,6 +111,9 @@ namespace WitchMendokusai
 		{
 			CloseStance(false);
 			phaseEndTime = Time.time + attack.RecoverySeconds;
+			// 끝에 때리고 반격으로 죽었으면 표시를 띄우지 않음 (Interrupt 는 이미 지나감)
+			if (unitObject.IsAlive == false)
+				return BTState.Success;
 			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
 				pose.Rest();
 			stopRecovery = attack.PlayRecovery(unitObject);

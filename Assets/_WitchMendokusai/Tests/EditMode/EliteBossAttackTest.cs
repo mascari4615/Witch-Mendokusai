@@ -258,10 +258,11 @@ namespace WitchMendokusai.Tests
 				List<Vector3> spots = new();
 				HideMonsterAttack.Arrange(Vector3.one, hide.Count, hide.Distance, 17f, spots);
 				Assert.AreEqual(hide.Count, spots.Count);
-				Assert.IsTrue(HideMonsterAttack.Hits(spots, 0, hide.Radius, Vector3.one, 0f), hide.name + " 가운데");
-				Assert.IsFalse(HideMonsterAttack.Hits(spots, 0, hide.Radius, spots[0], 0.3f), hide.name + " 진짜 자리");
-				for (int i = 1; i < spots.Count; i++)
-					Assert.IsTrue(HideMonsterAttack.Hits(spots, 0, hide.Radius, spots[i], 0f), hide.name + " 가짜 자리 " + i);
+				List<Vector3> strikes = spots.GetRange(1, spots.Count - 1);
+				Assert.IsTrue(HideMonsterAttack.Hits(strikes, hide.Radius, Vector3.one, 0f), hide.name + " 가운데");
+				Assert.IsFalse(HideMonsterAttack.Hits(strikes, hide.Radius, spots[0], 0.3f), hide.name + " 진짜 자리");
+				foreach (Vector3 strike in strikes)
+					Assert.IsTrue(HideMonsterAttack.Hits(strikes, hide.Radius, strike, 0f), hide.name + " 가짜 자리");
 				checkedCount++;
 			}
 			Assert.Greater(checkedCount, 0);
@@ -274,8 +275,20 @@ namespace WitchMendokusai.Tests
 			HideMonsterAttack.Arrange(new Vector3(3f, 0f, 0f), 1, 9f, 50f, spots);
 			Assert.AreEqual(1, spots.Count, "앞 자리를 비움");
 			Assert.AreEqual(new Vector3(3f, 0f, 0f), spots[0]);
-			Assert.IsTrue(HideMonsterAttack.Hits(spots, -1, 2f, new Vector3(5.2f, 4f, 0f), 0.3f), "몸이 걸침, 높이는 무시");
-			Assert.IsFalse(HideMonsterAttack.Hits(spots, -1, 2f, new Vector3(5.4f, 0f, 0f), 0.3f));
+			Assert.IsTrue(HideMonsterAttack.Hits(spots, 2f, new Vector3(5.2f, 4f, 0f), 0.3f), "몸이 걸침, 높이는 무시");
+			Assert.IsFalse(HideMonsterAttack.Hits(spots, 2f, new Vector3(5.4f, 0f, 0f), 0.3f));
+		}
+
+		// 원에 갇힌 채 멈춰 있던 주인공이 걸어서 나갈 틈 (걷기 2.9 m/s, 몸 0.3m, 반응 0.2초)
+		[Test]
+		public void Dives_leave_time_to_walk_out()
+		{
+			foreach (string guid in AssetDatabase.FindAssets("t:HideMonsterAttack", new[] { MONSTER_FOLDER }))
+			{
+				HideMonsterAttack hide = AssetDatabase.LoadAssetAtPath<HideMonsterAttack>(AssetDatabase.GUIDToAssetPath(guid));
+				float distance = hide.HasSafeSpot ? hide.Distance : hide.Radius + 0.3f;
+				Assert.GreaterOrEqual(hide.LockSeconds, distance / 2.9f + 0.2f, hide.name);
+			}
 		}
 
 		[Test]

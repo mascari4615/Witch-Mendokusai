@@ -13,6 +13,8 @@ namespace WitchMendokusai
 		private int phaseIndex;
 		// 등장 멈춤이 끝나는 시각. 첫 틱에 정함
 		private float openingEndTime = -1f;
+		// 이 단계의 전환 공격을 다시 했음
+		private bool hasRetried;
 
 		public int CompletedCount => behaviour is IAttackCycle cycle ? cycle.CompletedCount : 0;
 		public bool IsAttacking => behaviour is IAttackCycle { IsAttacking: true };
@@ -46,16 +48,21 @@ namespace WitchMendokusai
 			{
 				Interrupt();
 				phaseIndex = next;
+				hasRetried = false;
 				ApplyBody();
 				Begin(attack.Phases[next].Entrance);
 			}
 			if (IsEntranceOver())
 			{
-				// 기절로 끊겼으면 전환을 다시
-				bool wasCut = behaviour is IAttackCycle { WasCut: true };
+				// 기절로 끊겼으면 전환을 한 번 더. 끊기기 전에 남긴 물체는 식힘
+				bool wasCut = behaviour is IAttackCycle { WasCut: true } && hasRetried == false;
 				Interrupt();
 				if (wasCut)
+				{
+					hasRetried = true;
+					LingerField.Abandon(unitObject);
 					Begin(attack.Phases[phaseIndex].Entrance);
+				}
 			}
 			if (behaviour == null)
 				Begin(attack.Phases[phaseIndex].Attack);

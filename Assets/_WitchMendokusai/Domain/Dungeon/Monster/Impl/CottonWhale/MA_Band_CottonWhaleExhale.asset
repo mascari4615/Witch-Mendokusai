@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MA_Band_CottonWhaleExhale
   m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 6
-  <WindupSeconds>k__BackingField: 1.15
+  <WindupSeconds>k__BackingField: 1.5
   <RecoverySeconds>k__BackingField: 0.45
   <Cooldown>k__BackingField: 0
   <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}
@@ -26,7 +26,7 @@ MonoBehaviour:
     <Crouch>k__BackingField: -0.12
     <Stretch>k__BackingField: -0.15
     <StrikeSeconds>k__BackingField: 0.6
-    <StrikeLeadSeconds>k__BackingField: 0
+    <StrikeLeadSeconds>k__BackingField: 0.4
     <Tremble>k__BackingField: 0.06
     <Breath>k__BackingField: 0
   <WindupFx>k__BackingField: {fileID: 11400000, guid: 193addf2011747b39aa9b4bc7d01da4e, type: 2}
@@ -50,7 +50,7 @@ MonoBehaviour:
     <BurstTelegraph>k__BackingField: {fileID: 0}
     <BurstFx>k__BackingField: {fileID: 0}
   <Center>k__BackingField: 1
-  <ArcDegrees>k__BackingField: 110
+  <ArcDegrees>k__BackingField: 100
   <Bands>k__BackingField:
   - <Inner>k__BackingField: 0
     <Outer>k__BackingField: 6.2
