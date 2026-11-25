@@ -24,6 +24,7 @@ namespace WitchMendokusai
 		[Header("덩이")]
 		[SerializeField, Min(1)] private int count = 1;
 		[SerializeField, Tooltip("덩이 하나의 초"), Min(0.05f)] private float seconds = 0.7f;
+		[SerializeField, Tooltip("예고 물체로 쓸 때: 때리는 순간보다 이만큼 먼저 나감 (초). 0 이면 곧바로"), Min(0f)] private float leadSeconds;
 		[SerializeField, Tooltip("덩이들이 나오는 데 걸리는 초"), Min(0f)] private float emitSeconds;
 		[SerializeField, Tooltip("반 변 (m) 처음과 끝")] private Vector2 halfSize = new(1.4f, 1.8f);
 		[SerializeField, Tooltip("바닥에서 높이 (m)")] private float lift = 0.7f;
@@ -68,6 +69,8 @@ namespace WitchMendokusai
 
 		private IEnumerator Routine(CombatFxContext context, FxQuadBatch puffBatch, FxQuadBatch ringBatch)
 		{
+			if (leadSeconds > 0f)
+				yield return new WaitForSeconds(Mathf.Max(0f, context.Seconds - leadSeconds));
 			Begin(context);
 			Puff[] puffs = MakePuffs(context);
 			float end = Mathf.Max(emitSeconds + seconds, ringRatio > 0f ? ringSeconds : 0f);

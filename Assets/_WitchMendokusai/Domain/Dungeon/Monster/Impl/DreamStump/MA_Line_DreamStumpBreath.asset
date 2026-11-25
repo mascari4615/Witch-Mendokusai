@@ -24,12 +24,12 @@ MonoBehaviour:
     <Strike>k__BackingField: {fileID: 21300000, guid: d539873bece3494ca4bac6f8e7885240, type: 3}
     <Rest>k__BackingField: {fileID: 0}
     <Crouch>k__BackingField: -0.12
-    <Stretch>k__BackingField: 0.08
-    <StrikeSeconds>k__BackingField: 0.35
+    <Stretch>k__BackingField: 0.06
+    <StrikeSeconds>k__BackingField: 0.6
     <Tremble>k__BackingField: 0.05
     <Breath>k__BackingField: 0
-  <WindupFx>k__BackingField: {fileID: 0}
-  <StrikeFx>k__BackingField: {fileID: 11400000, guid: 06185e55b9db44c9b2bd87f9407c61fe, type: 2}
+  <WindupFx>k__BackingField: {fileID: 11400000, guid: 06185e55b9db44c9b2bd87f9407c61fe, type: 2}
+  <StrikeFx>k__BackingField: {fileID: 0}
   <Length>k__BackingField: 7
   <Width>k__BackingField: 1.5
   <Angles>k__BackingField:

@@ -24,9 +24,9 @@ MonoBehaviour:
   landedSprite: {fileID: 21300000, guid: 99e2f71432cb48288b3d63e88fab1938, type: 3}
   swellSprite: {fileID: 21300000, guid: cdbe2565aca04ac2971f010ef528227f, type: 3}
   material: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
-  launchHeight: 2.2
-  arcHeight: 3.6
+  launchHeight: 1.1
+  arcHeight: 3.0
   fuseSeconds: 0.35
-  scale: 1.05
+  scale: 0.75
   swellScale: 1.1
   landPuff: {fileID: 11400000, guid: b832db029b7047c2aac2750d04cba40c, type: 2}

@@ -20,11 +20,11 @@ MonoBehaviour:
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
   <Pose>k__BackingField:
-    <Windup>k__BackingField: {fileID: 0}
-    <Strike>k__BackingField: {fileID: 21300000, guid: 0c8a077dda3742d28e5d72fe8c35542c, type: 3}
+    <Windup>k__BackingField: {fileID: 21300000, guid: 21945b27688140199c07af0bbb21c8a5, type: 3}
+    <Strike>k__BackingField: {fileID: 0}
     <Rest>k__BackingField: {fileID: 0}
-    <Crouch>k__BackingField: 0.2
-    <Stretch>k__BackingField: 0.3
+    <Crouch>k__BackingField: 0.16
+    <Stretch>k__BackingField: 0.12
     <StrikeSeconds>k__BackingField: 0.3
     <Tremble>k__BackingField: 0.02
     <Breath>k__BackingField: 0

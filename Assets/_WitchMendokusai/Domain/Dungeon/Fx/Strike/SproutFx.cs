@@ -22,6 +22,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("예고 동안 떨리는 폭 (m)"), Min(0f)] private float budTremble = 0.05f;
 
 		[Header("솟음과 남음")]
+		[SerializeField, Tooltip("솟기 시작을 때리는 순간보다 이만큼 앞당김 (초). 피해가 그림보다 먼저 오지 않게"), Min(0f)] private float leadSeconds = 0.05f;
 		[SerializeField, Min(0.01f)] private float riseSeconds = 0.09f;
 		[SerializeField, Tooltip("솟을 때 세로로 더 늘어나는 비율"), Range(0f, 0.8f)] private float overshoot = 0.28f;
 		[SerializeField, Tooltip("솟은 뒤 서 있는 초"), Min(0f)] private float holdSeconds = 0.8f;
@@ -29,6 +30,9 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("때리는 순간 달아오르는 색")] private Color strikeTint = new(1f, 0.82f, 0.55f, 1f);
 
 		[Header("흙")]
+		[SerializeField, Tooltip("밑동을 덮는 흙더미. 비우면 없음")] private Sprite moundSprite;
+		[SerializeField, Min(0.05f)] private float moundScale = 1.1f;
+		[SerializeField, Tooltip("흙더미를 카메라 쪽으로 당기는 거리 (m)"), Min(0f)] private float moundDepth = 0.15f;
 		[SerializeField] private Sprite[] chunkSprites;
 		[SerializeField, Min(0)] private int chunkCount = 5;
 		[SerializeField, Min(0f)] private float chunkSpeed = 4f;
@@ -76,14 +80,21 @@ namespace WitchMendokusai
 			float height = body.sprite.bounds.size.y * scale;
 			Transform root = body.transform;
 
-			float budSeconds = Mathf.Max(0f, context.Seconds);
+			SpriteRenderer mound = null;
+			if (moundSprite != null)
+			{
+				mound = FxSpritePool.Rent(runner, moundSprite, material);
+				rented.Add(mound);
+			}
+
+			float budSeconds = Mathf.Max(0f, context.Seconds - leadSeconds);
 			for (float time = 0f; time < budSeconds; time += Time.deltaTime)
 			{
 				float progress = time / budSeconds;
-				// 쑥 나왔다가 때리기 직전 움츠림
-				float rise = Mathf.Min(1f, progress * 5f) - Mathf.Clamp01((progress - 0.85f) / 0.15f) * 0.6f;
+				float rise = Mathf.Min(1f, progress * 4f);
 				float shake = Mathf.Sin(time * 70f) * budTremble * progress;
 				Set(root, ground, shake, scale, 1f, height * (budRatio * rise - 1f));
+				SetMound(mound, ground, scale * rise * 0.7f);
 				yield return null;
 			}
 
@@ -102,6 +113,7 @@ namespace WitchMendokusai
 				Set(root, ground, 0f, scale, stretch, height * (up - 1f) - height * 1.05f * sink * sink);
 				body.color = Color.Lerp(strikeTint, Color.white, Mathf.Clamp01(settle / 0.25f));
 				body.enabled = time < total;
+				SetMound(mound, ground, scale * (1f - sink));
 				MoveChunks(chunks, ground, time);
 				yield return null;
 			}
@@ -121,6 +133,16 @@ namespace WitchMendokusai
 			}
 			root.position = ground + up * lift + right * shake;
 			root.localScale = new Vector3(scale / Mathf.Sqrt(stretch), scale * stretch, scale);
+		}
+
+		private void SetMound(SpriteRenderer mound, Vector3 ground, float size)
+		{
+			if (mound == null)
+				return;
+			Camera view = Camera.main;
+			Vector3 toward = view == null ? Vector3.zero : (view.transform.position - ground).normalized * moundDepth;
+			mound.transform.position = ground + toward + Vector3.up * (0.1f * size);
+			mound.transform.localScale = Vector3.one * (moundScale * size);
 		}
 
 		private void Burst(Vector3 ground)
