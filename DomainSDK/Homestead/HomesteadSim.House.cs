@@ -27,7 +27,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				return HomesteadResult.Fail(HomesteadFailure.AtMaxLevel);
 			}
-			return State.TownHall < next.TownHall ? HomesteadResult.Fail(HomesteadFailure.TownHallTooLow) : CanPay(next.Cost);
+			return CanPay(next.Cost);
 		}
 
 		public HomesteadResult ExpandHouse()

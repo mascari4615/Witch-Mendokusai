@@ -7,7 +7,6 @@ namespace WitchMendokusai.DomainSDK.Homestead
 	public sealed partial class HomesteadSim
 	{
 		public const string HALL = "townhall";
-		public const string HOME = "house";
 
 		private readonly HashSet<(int X, int Z)> villageBlocked = new HashSet<(int X, int Z)>();
 

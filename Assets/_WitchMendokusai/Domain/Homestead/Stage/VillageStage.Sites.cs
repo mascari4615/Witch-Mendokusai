@@ -77,7 +77,6 @@ namespace WitchMendokusai
 		{
 			AddSpot("board", "길드 게시판", () => $"의뢰 {Sim.State.Requests.Count}", () => manager.Panels.Show(HomesteadPanelType.Guild));
 			AddSpot(HomesteadSim.HALL, null, () => "마을 돌보기", () => manager.Panels.Show(HomesteadPanelType.Village));
-			AddSpot(HomesteadSim.HOME, "집", () => "들어가기", EnterRoom);
 			foreach (BuildingDef building in Catalog.Buildings)
 			{
 				string id = building.Id;
@@ -283,7 +282,6 @@ namespace WitchMendokusai
 		{
 			RefreshLamps();
 			Show(HomesteadSim.HALL, HALL_MODELS[Mathf.Min(Sim.State.TownHall, HALL_MODELS.Length) - 1]);
-			Show(HomesteadSim.HOME, "HouseMended");
 			Show("well", "Well");
 			Show("board", "Board");
 			for (int i = 0; i < Catalog.Buildings.Count; i++)

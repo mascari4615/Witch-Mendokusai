@@ -272,7 +272,6 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public float Depth { get; set; }
 		public int PieceLimit { get; set; }
 		public CostDef Cost { get; set; } = new CostDef();
-		public int TownHall { get; set; } = 1;
 	}
 
 	public sealed class FurnitureDef : HomesteadDef

@@ -4,7 +4,7 @@ using WitchMendokusai.DomainSDK.Homestead;
 
 namespace WitchMendokusai
 {
-	// 생활 갈래 확인용. homestead go, homestead rich <개수>, homestead time <분>, homestead built, homestead guild <경험>, homestead furniture, homestead rest, homestead grid
+	// 생활 갈래 확인용. homestead go, homestead rich <개수>, homestead time <분>, homestead built, homestead guild <경험>, homestead furniture, homestead rest, homestead grid, homestead room
 	public sealed class HomesteadDevCommand : IDevCommand
 	{
 		private const int STAGE_ID = 6;
@@ -16,10 +16,11 @@ namespace WitchMendokusai
 		private const string FURNITURE = "furniture";
 		private const string REST = "rest";
 		private const string GRID = "grid";
-		private static readonly string[] ARGS = { GO, RICH, TIME, BUILT, GUILD, FURNITURE, REST, GRID };
+		private const string ROOM = "room";
+		private static readonly string[] ARGS = { GO, RICH, TIME, BUILT, GUILD, FURNITURE, REST, GRID, ROOM };
 
 		public string Name => "homestead";
-		public string Usage => "homestead go|rich <amount>|time <minutes>|built|guild <exp>|furniture|rest|grid";
+		public string Usage => "homestead go|rich <amount>|time <minutes>|built|guild <exp>|furniture|rest|grid|room";
 
 		public void Execute(DevCommandContext context, string[] args)
 		{
@@ -56,6 +57,9 @@ namespace WitchMendokusai
 					break;
 				case GRID:
 					UnityEngine.Object.FindAnyObjectByType<VillageStage>().ToggleGrid();
+					break;
+				case ROOM:
+					UnityEngine.Object.FindAnyObjectByType<VillageStage>().EnterRoom();
 					break;
 				default:
 					context.LogError(Usage);

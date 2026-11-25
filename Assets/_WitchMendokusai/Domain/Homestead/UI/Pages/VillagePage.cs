@@ -9,7 +9,6 @@ namespace WitchMendokusai
 		private const int TAB_BUILDINGS = 0;
 		private const int TAB_TOOLS = 1;
 		private const string HALL_ID = "townhall";
-		private const string HOUSE_ID = "house";
 
 		private static readonly string[] TABS = { "공사", "도구" };
 
@@ -32,7 +31,6 @@ namespace WitchMendokusai
 				return entries;
 			}
 			entries.Add(HallEntry());
-			entries.Add(HouseEntry());
 			foreach (BuildingDef building in Catalog.Buildings)
 				entries.Add(BuildingEntry(building));
 			return entries;
@@ -61,31 +59,6 @@ namespace WitchMendokusai
 					detail.Lines.Add($"밭 {Sim.TownHallDef(Sim.State.TownHall).PlotCount} → {next.PlotCount}, 공사 칸 {Sim.WorkSlots} → {next.WorkSlots}");
 					AddCost(detail, next.Cost);
 					AddAction(detail, "회관 키우기", Sim.CanUpgradeTownHall(), () => Saved(Sim.UpgradeTownHall()), UiSfxEvent.LevelUp);
-					return detail;
-				},
-			};
-		}
-
-		private HomesteadEntry HouseEntry()
-		{
-			return new HomesteadEntry
-			{
-				Id = HOUSE_ID,
-				Icon = Art.Icon(HOUSE_ID),
-				Name = "집",
-				Sub = Sim.HouseTier.Name,
-				IsMarked = Sim.CanExpandHouse().Ok,
-				Detail = () =>
-				{
-					HomesteadDetail detail = new() { Icon = Art.Icon(HOUSE_ID), Title = "집", Note = Sim.HouseTier.Name };
-					detail.Lines.Add($"방 {Sim.HouseTier.Width} x {Sim.HouseTier.Depth}, 가구 {Sim.State.Placed.Count} / {Sim.HouseTier.PieceLimit}");
-					if (Sim.TryGetNextHouseTier(out HouseTierDef next) == false)
-						return detail;
-					detail.Lines.Add($"다음: {next.Name}. 방 {next.Width} x {next.Depth}, 가구 {next.PieceLimit}");
-					if (Sim.State.TownHall < next.TownHall)
-						detail.Lines.Add($"회관 {next.TownHall}단부터");
-					AddCost(detail, next.Cost);
-					AddAction(detail, "넓히기", Sim.CanExpandHouse(), () => Saved(Sim.ExpandHouse()), UiSfxEvent.LevelUp);
 					return detail;
 				},
 			};

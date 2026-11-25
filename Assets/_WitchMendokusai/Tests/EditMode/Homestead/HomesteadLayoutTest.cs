@@ -64,7 +64,7 @@ namespace WitchMendokusai.Tests
 		public void Piece_can_stay_where_it_is_while_turning()
 		{
 			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
-			PlacedPiece house = sim.PieceOf(HomesteadSim.HOME);
+			PlacedPiece house = sim.PieceOf("workshop");
 			Assert.That(sim.MovePiece(house.Uid, house.X, house.Z, (house.Turn + 1) % VillageRules.TURNS).Ok);
 		}
 

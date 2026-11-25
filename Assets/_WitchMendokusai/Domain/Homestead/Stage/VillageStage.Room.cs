@@ -183,9 +183,10 @@ namespace WitchMendokusai
 				part.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
 		}
 
-		private void EnterRoom() => MovePlayer(roomOffset + new Vector3(0f, 0.1f, -Sim.HouseTier.Depth / 2f + 0.6f));
+		// 욘의 집은 마을에 없음. 방 꾸미기를 집 스테이지로 옮기기 전까지 개발 명령으로만 들어감
+		public void EnterRoom() => MovePlayer(roomOffset + new Vector3(0f, 0.1f, -Sim.HouseTier.Depth / 2f + 0.6f));
 
-		private void LeaveRoom() => MovePlayer(DoorPoint(HomesteadSim.HOME, 0.6f) + Vector3.up * 0.1f);
+		private void LeaveRoom() => MovePlayer(DoorPoint("board", 0.6f) + Vector3.up * 0.1f);
 
 		private void Rest()
 		{

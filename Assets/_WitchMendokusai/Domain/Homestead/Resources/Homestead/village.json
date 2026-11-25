@@ -95,7 +95,6 @@
 	],
 	"Placeables": [
 		{"Id": "townhall", "Name": "회관", "Kind": "Building", "Width": 7, "Depth": 5},
-		{"Id": "house", "Name": "집", "Kind": "Building", "Width": 4, "Depth": 4},
 		{"Id": "well", "Name": "우물", "Kind": "Building", "Width": 2, "Depth": 2},
 		{"Id": "board", "Name": "게시판", "Kind": "Building", "Width": 3, "Depth": 1},
 		{"Id": "farm", "Name": "텃밭 헛간", "Kind": "Building", "Width": 4, "Depth": 4},
@@ -131,7 +130,9 @@
 		{"Id": "smithy", "X": -8, "Z": -6, "Turn": 2},
 		{"Id": "shop", "X": 4, "Z": -6, "Turn": 2},
 		{"Id": "workshop", "X": -9, "Z": 0, "Turn": 3},
-		{"Id": "house", "X": -9, "Z": 6, "Turn": 3},
+		{"Id": "garden_tree", "X": -9, "Z": 7, "Turn": 0},
+		{"Id": "flowerbed", "X": -7, "Z": 7, "CountX": 2},
+		{"Id": "bench", "X": -9, "Z": 6, "Turn": 0},
 		{"Id": "museum", "X": 5, "Z": 0, "Turn": 1},
 		{"Id": "training", "X": -15, "Z": 7, "Turn": 0},
 		{"Id": "ranch", "X": -21, "Z": 7, "Turn": 0},

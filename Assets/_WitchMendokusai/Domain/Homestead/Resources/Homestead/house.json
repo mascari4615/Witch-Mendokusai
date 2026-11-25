@@ -1,9 +1,9 @@
 {
 	"HouseTiers": [
-		{"Tier": 1, "Name": "작은 방", "Width": 6, "Depth": 5, "PieceLimit": 16, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1},
-		{"Tier": 2, "Name": "넓은 방", "Width": 8, "Depth": 6, "PieceLimit": 30, "Cost": {"Nyang": 500, "Goods": {"plank": 25, "stone": 20}}, "TownHall": 2},
-		{"Tier": 3, "Name": "큰 방", "Width": 10, "Depth": 8, "PieceLimit": 50, "Cost": {"Nyang": 1800, "Goods": {"plank": 50, "brick": 30, "glass": 8}}, "TownHall": 3},
-		{"Tier": 4, "Name": "마녀의 거실", "Width": 12, "Depth": 10, "PieceLimit": 80, "Cost": {"Nyang": 5000, "Goods": {"plank": 90, "brick": 60, "gold_bar": 6}}, "TownHall": 4}
+		{"Tier": 1, "Name": "작은 방", "Width": 6, "Depth": 5, "PieceLimit": 16, "Cost": {"Nyang": 0, "Goods": {}}},
+		{"Tier": 2, "Name": "넓은 방", "Width": 8, "Depth": 6, "PieceLimit": 30, "Cost": {"Nyang": 500, "Goods": {"plank": 25, "stone": 20}}},
+		{"Tier": 3, "Name": "큰 방", "Width": 10, "Depth": 8, "PieceLimit": 50, "Cost": {"Nyang": 1800, "Goods": {"plank": 50, "brick": 30, "glass": 8}}},
+		{"Tier": 4, "Name": "마녀의 거실", "Width": 12, "Depth": 10, "PieceLimit": 80, "Cost": {"Nyang": 5000, "Goods": {"plank": 90, "brick": 60, "gold_bar": 6}}}
 	],
 	"Furniture": [
 		{"Id": "wood_bed", "Name": "나무 침대", "Layer": "Floor", "Theme": "나무", "Width": 1.2, "Depth": 2.0, "Comfort": 6, "Cost": {"Nyang": 0, "Goods": {"plank": 6, "cloth": 1}}, "Source": "", "Level": 1, "Shape": "bed"},
