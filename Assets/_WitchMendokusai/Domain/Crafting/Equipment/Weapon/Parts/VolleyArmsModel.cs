@@ -55,7 +55,7 @@ namespace WitchMendokusai
 		[Header("빛줄기")]
 		[SerializeField, Min(0f)] private float beamWidth = 0.85f;
 		[SerializeField, Min(0f), Tooltip("밝은 심의 폭")] private float beamCoreWidth = 0.4f;
-		[SerializeField, Min(0f)] private float beamLength = 8.5f;
+		[SerializeField, Min(0f)] private float beamLength = 17f;
 		[SerializeField, Min(0f), Tooltip("조준점을 넘어 더 뻗는 길이")] private float beamOvershoot = 1.2f;
 		[SerializeField, ColorUsage(false, true)] private Color beamCore = new(1.55f, 1.4f, 0.9f);
 		[SerializeField, ColorUsage(false, true)] private Color beamBody = new(1.35f, 0.92f, 0.24f);
@@ -121,7 +121,9 @@ namespace WitchMendokusai
 			aimSource = aimDirection;
 			pointSource = aimPoint;
 			aim = aimDirection();
-			raiseTime = Time.time;
+			// 이미 나와 있으면 다시 자라지 않음 (연달은 포화)
+			if (IsShown == false)
+				raiseTime = Time.time;
 			dismissTime = float.PositiveInfinity;
 			finalTime = float.PositiveInfinity;
 			firing = false;

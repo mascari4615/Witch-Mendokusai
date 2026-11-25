@@ -5,8 +5,8 @@ namespace WitchMendokusai
 {
 	// 직접 누르는 큰 포화. 따로 모으는 게이지가 다 차면 키로 발동
 	// - 발동 동안 등 뒤 시점 (CameraManager.BeginSweepView). 바라보는 쪽으로 포화가 나가고 마우스 좌우로 훑음
-	// - 그동안 피해를 안 받음 (보호막 자리 IDamageAbsorber). 자동 발동은 쉼
-	// - 끝나거나 끊기면 (무기 교체, 판 나감, 사망) 시점과 조작을 되돌림
+	// - 그동안 피해를 안 받음 (PlayerObject.IsBarrageInvincible). 자동 발동은 쉼. 자동 포화 중에 누르면 끝난 뒤 나감
+	// - 끝나거나 끊기면 (무기 교체, 사망, 판 끝, 예외) 시점과 조작을 되돌림
 	// - 무장, 탄, 막타 그림은 일제 사격과 같은 VolleyArsenal. 판정은 탄 수와 피해만 다름
 	public partial class VolleyGauge
 	{
@@ -17,28 +17,23 @@ namespace WitchMendokusai
 		[SerializeField, Min(1)] private int barrageShotsPerWeapon = 6;
 		[SerializeField, Min(0), Tooltip("탄 피해 배율 (퍼센트)")] private int barragePercent = 120;
 		[SerializeField, Range(0f, 60f), Tooltip("포화 탄이 흩어지는 폭 (도)")] private float barrageFanDegrees = 12f;
+		[SerializeField, Min(1f), Tooltip("빛줄기와 탄이 모이는 앞쪽 거리")] private float barrageRange = 15f;
 		[SerializeField] private string barrageReadyText = "포화 준비 (R)";
 		[SerializeField] private string barrageText = "일제 포화!";
 		[SerializeField] private OrbitCameraProfile barrageView = new();
 		[SerializeField, Tooltip("등 뒤 시점에 인물 머리 대신 그릴 뒷모습")] private Sprite barrageBackHead;
 
-		private readonly BarrageGuard barrageGuard = new();
 		private float barrageGauge;
 		private Coroutine barrageRoutine;
 		private Player barragePlayer;
 		private Sprite frontHead;
 		private bool barraging;
+		private bool barrageQueued;
 
 		/// <summary> 0 에서 1 </summary>
 		public float BarrageFill01 => barrageGauge / barrageSize;
 
 		public bool IsBarrageReady => barrageEnabled && barraging == false && barrageGauge >= barrageSize;
-
-		// 피해를 전부 막음. 낙사처럼 무적을 뚫는 피해는 PlayerObject 가 여기로 안 보냄
-		private sealed class BarrageGuard : IDamageAbsorber
-		{
-			public bool TryAbsorb(DamageInfo damageInfo) => true;
-		}
 
 		/// <summary> 개발자 창. 게이지를 바로 채움 </summary>
 		public void FillBarrage() => ChargeBarrage(barrageSize);
@@ -52,42 +47,52 @@ namespace WitchMendokusai
 				PopText(barrageReadyText);
 		}
 
-		// 누른 때 게이지가 차 있고 다른 포화가 안 나가는 중이면 시작
-		private void OnBarrageRequested(PlayerBarrageRequestedEvent evt)
+		private void OnBarrageRequested(PlayerBarrageRequestedEvent evt) => barrageQueued = IsBarrageReady;
+
+		private void Update()
 		{
-			if (IsBarrageReady && firing == false && DungeonManagerBridge.IsDungeon)
+			bool playing = DungeonManagerBridge.IsDungeon && DungeonManagerBridge.IsEnding == false;
+			if (barraging && (playing == false || barragePlayer == null || barragePlayer.Object.IsAlive == false))
+				FinishBarrage();
+			if (barrageQueued == false || firing || playing == false)
+				return;
+			barrageQueued = false;
+			if (IsBarrageReady)
 				barrageRoutine = StartCoroutine(Barrage());
 		}
 
 		private IEnumerator Barrage()
 		{
+			// 들어가기 전 조준. 들어간 뒤의 조준은 시점이 바라보는 쪽
+			Vector3 forward = AimDirection();
 			barraging = true;
 			firing = true;
 			barrageGauge = 0f;
 			barragePlayer = playerProvider.Current;
-			Vector3 forward = AimDirection();
-			barragePlayer.Object.AddAbsorber(barrageGuard);
-			CameraManager.Instance.BeginSweepView(barrageView, forward);
-			SetBackHead(true);
-			arsenal.SetBackView(true);
-			PopText(barrageText);
-			int count = VolleyGaugeRules.ShotCount(baseWeapons, PlayerStat[bonusWeaponsStat], barrageShotsPerWeapon);
-			arsenal.Raise(barragePlayer.transform, AimDirection, AimPoint, count, barrageFanDegrees);
-			yield return new WaitForSeconds(arsenal.WindupSeconds);
-			yield return Barrage(count);
-			// 막타 빛줄기가 터질 때까지 등 뒤 시점을 지킴
-			yield return new WaitForSeconds(arsenal.FinaleSeconds);
-			FinishBarrage();
-			lastFireTime = Time.time;
-		}
-
-		private IEnumerator Barrage(int count)
-		{
-			for (int i = 0; i < count; i++)
+			try
 			{
-				arsenal.Fire(i, SpawnShot(shotPrefab, VolleyGaugeRules.FanAngle(i * VolleyGaugeRules.SpreadStride(count) % count, count, barrageFanDegrees), barragePercent));
-				yield return new WaitForSeconds(barrageSeconds / count);
+				barragePlayer.Object.IsBarrageInvincible = true;
+				CameraManager.Instance.BeginSweepView(barrageView, forward);
+				SetBackHead(true);
+				arsenal.SetBackView(true);
+				PopText(barrageText);
+				int count = VolleyGaugeRules.ShotCount(baseWeapons, PlayerStat[bonusWeaponsStat], barrageShotsPerWeapon);
+				int percent = VolleyGaugeRules.DamagePercent(PlayerStat[growthPercentStat], false, splitPercent, PlayerStat[focusStat] > 0, focusPercent) * barragePercent / 100;
+				arsenal.Raise(barragePlayer.transform, AimDirection, AimPoint, count, barrageFanDegrees);
+				yield return new WaitForSeconds(arsenal.WindupSeconds);
+				for (int i = 0; i < count; i++)
+				{
+					arsenal.Fire(i, SpawnShot(shotPrefab, VolleyGaugeRules.FanAngle(i * VolleyGaugeRules.SpreadStride(count) % count, count, barrageFanDegrees), percent));
+					yield return new WaitForSeconds(barrageSeconds / count);
+				}
+				// 막타가 터질 때까지 등 뒤 시점을 지킴
+				yield return new WaitForSeconds(arsenal.FinaleSeconds);
 			}
+			finally
+			{
+				FinishBarrage();
+			}
+			lastFireTime = Time.time;
 		}
 
 		// 시점, 무적, 인물 그림을 되돌림. 두 번 불러도 됨
@@ -96,13 +101,15 @@ namespace WitchMendokusai
 			if (barraging == false)
 				return;
 			barraging = false;
+			barrageQueued = false;
 			firing = false;
-			if (barrageRoutine != null)
-				StopCoroutine(barrageRoutine);
+			Coroutine running = barrageRoutine;
 			barrageRoutine = null;
+			if (running != null)
+				StopCoroutine(running);
 			if (barragePlayer != null)
 			{
-				barragePlayer.Object.RemoveAbsorber(barrageGuard);
+				barragePlayer.Object.IsBarrageInvincible = false;
 				SetBackHead(false);
 			}
 			arsenal.SetBackView(false);

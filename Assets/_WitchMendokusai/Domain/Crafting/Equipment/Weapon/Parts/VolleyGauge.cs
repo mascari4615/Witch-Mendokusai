@@ -158,7 +158,7 @@ namespace WitchMendokusai
 		{
 			Vector3 player = playerProvider.Current.transform.position;
 			if (barraging)
-				return player + AimDirection() * focusDistance.y;
+				return player + AimDirection() * barrageRange;
 			Vector3 offset = playerProvider.Current.AimPos - player;
 			offset.y = 0f;
 			return player + AimDirection() * Mathf.Clamp(offset.magnitude, focusDistance.x, focusDistance.y);

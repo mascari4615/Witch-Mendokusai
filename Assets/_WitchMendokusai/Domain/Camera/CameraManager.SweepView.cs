@@ -13,6 +13,8 @@ namespace WitchMendokusai
 		private OrbitCameraProfile sweepReturnProfile;
 		private CameraControlMode sweepReturnMode;
 		private float sweepReturnYaw;
+		private float sweepReturnZoom;
+		private MCamera sweepCamera;
 		private float sweepFromYaw;
 		private float sweepStartTime;
 
@@ -29,6 +31,8 @@ namespace WitchMendokusai
 			sweepReturnProfile = OrbitProfile;
 			sweepReturnMode = ControlMode;
 			sweepReturnYaw = yaw;
+			sweepCamera = curCamera;
+			sweepReturnZoom = curCamera.ZoomTarget;
 			sweepFromYaw = pitchPivot != null ? pitchPivot.eulerAngles.y : yaw;
 			sweepStartTime = Time.time;
 			IsSweepView = true;
@@ -46,6 +50,9 @@ namespace WitchMendokusai
 			IsSweepView = false;
 			SetControlMode(sweepReturnMode);
 			SetOrbitProfile(sweepReturnProfile);
+			// 궤도 설정을 거두면 거리가 기본값이 됨. 손으로 맞춘 거리로
+			if (sweepCamera == curCamera)
+				curCamera.ZoomTarget = sweepReturnZoom;
 			// 시점 조작 방식이 마우스 시점이면 되돌리지 않음. 그쪽은 지금 보는 방향이 곧 조작
 			if (ControlMode == CameraControlMode.PointAndClick)
 				yaw = sweepReturnYaw;
