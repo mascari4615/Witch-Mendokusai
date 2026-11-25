@@ -25,18 +25,21 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _BaseGlow: 1.2
-    - _Disc: 0
-    - _Flicker: 2.4
-    - _Haze: 0.35
-    - _Intensity: 1.7
-    - _Speed: 0.9
-    - _Streaks: 18
-    - _TopFade: 1.6
+    - _GroundGlow: 3
+    - _HazeDensity: 2.6
+    - _Intensity: 1
+    - _MoteSize: 0.018
+    - _NeedleDensity: 24
+    - _NeedleLength: 1
+    - _NeedleWidth: 1
+    - _PoolDensity: 16
+    - _Radius: 0.194
+    - _RayDensity: 22
+    - _Speed: 1
     m_Colors:
-    - _CoreColor: {r: 1, g: 1, b: 1, a: 1}
-    - _MidColor: {r: 0.41999996, g: 0.85, b: 1, a: 1}
-    - _OuterColor: {r: 0.92, g: 0.54999995, b: 1, a: 1}
-    - _RimColor: {r: 0.6, g: 0.95, b: 1, a: 1}
+    - _CoreColor: {r: 0.96999997, g: 0.97999996, b: 1, a: 1}
+    - _EdgeColor: {r: 0.56, g: 0.72, b: 1, a: 1}
+    - _SplashColor: {r: 0.7, g: 0.9, b: 1, a: 1}
+    - _TopColor: {r: 0.95, g: 0.76, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
