@@ -166,11 +166,15 @@ namespace WitchMendokusai
 
 		public void Save() => dataManager.SaveManager.SaveData();
 
-		// 욘의 집 안에 들어서면 방을 붙임
+		// 욘의 집 안과 박물관 안에 들어서면 방을 붙임
 		private void OnStageChanged(Stage stage, StageObject stageObject)
 		{
-			if (stage.ID == HomeRoom.STAGE_ID && stage is WorldStage)
+			if (stage is WorldStage == false)
+				return;
+			if (stage.ID == HomeRoom.STAGE_ID)
 				HomeRoom.Attach(this, stageObject);
+			else if (stage.ID == MuseumRoom.STAGE_ID)
+				MuseumRoom.Attach(this, stageObject);
 		}
 
 		private void OnDungeonReturn()

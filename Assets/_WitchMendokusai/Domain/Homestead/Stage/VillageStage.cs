@@ -12,6 +12,8 @@ namespace WitchMendokusai
 	[RequireComponent(typeof(VillageGround))]
 	public sealed partial class VillageStage : MonoBehaviour
 	{
+		public const int STAGE_ID = 6;
+
 		[Header("Layout")]
 		[SerializeField] private Vector3 pondCenter = new(21f, 0f, -11f);
 		[SerializeField] private float pondRadius = 6.5f;
@@ -120,7 +122,6 @@ namespace WitchMendokusai
 			BuildFarm();
 			BuildWild();
 			BuildWater();
-			BuildMuseum();
 			BuildMine();
 		}
 
@@ -137,10 +138,6 @@ namespace WitchMendokusai
 			plots.Clear();
 			gathers.Clear();
 			restPoses.Clear();
-			exhibits.Clear();
-			foreach (GameObject room in museumRooms)
-				Destroy(room);
-			museumRooms.Clear();
 			mineNodes.Clear();
 			people.Clear();
 			workers.Clear();
@@ -213,7 +210,7 @@ namespace WitchMendokusai
 			RefreshSites();
 			RefreshFarm();
 			RefreshWild();
-			RefreshMuseum();
+			RefreshWaterSpots();
 			RefreshLife();
 		}
 

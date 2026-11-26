@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -236,6 +237,17 @@ namespace WitchMendokusai
 			if (resident.Length > 0 && Sim.ResidentOf(resident).Greeted == false)
 				Sim.Greet(resident);
 		}
+
+		// 박물관은 다른 스테이지 (MuseumRoom). 들어서면 HomesteadManager 가 방을 붙임
+		private void EnterMuseum()
+		{
+			manager.Save();
+			uiManager.Transition.Transition(aDuringTransition: () => StageManager.Instance.LoadStage(SOHelper.Get<WorldStage>(MuseumRoom.STAGE_ID))).Forget();
+		}
+
+		// 다른 스테이지에서 돌아올 때 건물 문 앞에 세움
+		public void PlaceAtDoor(string buildingId, float step) =>
+			playerProvider.CurrentObject.UnitMovement.Teleport(transform.TransformPoint(DoorPoint(buildingId, step) + Vector3.up * 0.1f));
 
 		// 정한 다섯 건물은 기존 창으로. 나머지는 생활 화면
 		private void OpenFacility(string id)
