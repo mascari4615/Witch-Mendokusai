@@ -64,12 +64,12 @@ MonoBehaviour:
     <LookHeight>k__BackingField: -0.12
     <FieldOfView>k__BackingField: 28
   <Close>k__BackingField:
-    <Distance>k__BackingField: 1.1
-    <Height>k__BackingField: 0
-    <LookHeight>k__BackingField: -0.1
+    <Distance>k__BackingField: 1.2
+    <Height>k__BackingField: 0.02
+    <LookHeight>k__BackingField: 0.02
     <FieldOfView>k__BackingField: 24
-  <ShoulderSide>k__BackingField: 0.45
-  <ShoulderBack>k__BackingField: 0.8
+  <ShoulderSide>k__BackingField: 0.85
+  <ShoulderBack>k__BackingField: 1.1
   <MinCameraFront>k__BackingField: 0.4
   <BlendSeconds>k__BackingField: 0.35
   <PushSpeed>k__BackingField: 0.03
