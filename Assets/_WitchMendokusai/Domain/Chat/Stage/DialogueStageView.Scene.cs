@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
@@ -29,6 +30,13 @@ namespace WitchMendokusai
 				return;
 			}
 			RefreshStageMood();
+		}
+
+		// 3D 연출 중에는 2D 입상 숨김. 3D 인물이 무대. 입상 상태는 그대로 두어 연출이 끝나면 다시 보임
+		private void RefreshSceneLayer()
+		{
+			if (cast != null)
+				cast.style.display = IsSceneShowing ? DisplayStyle.None : DisplayStyle.Flex;
 		}
 
 		private void HideScene()
