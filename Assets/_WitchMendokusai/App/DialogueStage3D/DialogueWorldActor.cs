@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
@@ -16,6 +17,7 @@ namespace WitchMendokusai.DialogueStage3D
 		private Animator animator;
 		private Transform head;
 		private Transform hips;
+		private readonly List<SpriteRenderer> spriteParts = new List<SpriteRenderer>();
 		private Transform sprite;
 		private Vector3 spriteRest;
 		private PlayableGraph graph;
@@ -69,12 +71,32 @@ namespace WitchMendokusai.DialogueStage3D
 				graph.Play();
 				return;
 			}
-			SpriteRenderer spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-			if (spriteRenderer != null)
+			foreach (SpriteRenderer spriteRenderer in GetComponentsInChildren<SpriteRenderer>())
 			{
-				sprite = spriteRenderer.transform;
-				spriteRest = sprite.localPosition;
+				if (IsStandingSprite(spriteRenderer))
+					spriteParts.Add(spriteRenderer);
 			}
+			sprite = CommonParent(spriteParts);
+			if (sprite != null)
+				spriteRest = sprite.localPosition;
+		}
+
+		// 서 있는 그림만 인물로 셈. 꺼진 렌더러 (플레이어 HeadAnchor) 와 바닥에 눕힌 그림자, 표식은 제외
+		private bool IsStandingSprite(SpriteRenderer spriteRenderer) =>
+			spriteRenderer.enabled && spriteRenderer.sprite != null && spriteRenderer.bounds.size.y >= settings.SpriteMinStandingHeight;
+
+		// 몸과 머리가 따로인 그림 (플레이어) 도 같이 움직이게 공통 부모를 흔듦. 인물 뿌리 자신이면 이동을 건드리지 않게 비움
+		private Transform CommonParent(List<SpriteRenderer> parts)
+		{
+			if (parts.Count == 0)
+				return null;
+			Transform common = parts.Count == 1 ? parts[0].transform : parts[0].transform.parent;
+			foreach (SpriteRenderer part in parts)
+			{
+				while (common != null && part.transform.IsChildOf(common) == false)
+					common = common.parent;
+			}
+			return common == transform ? null : common;
 		}
 
 		public void Speak(string lineText)
@@ -210,11 +232,16 @@ namespace WitchMendokusai.DialogueStage3D
 				sprite.localPosition = spriteRest + spriteOffset;
 		}
 
-		// 스프라이트 인물은 그 그림 하나로 잼 (아래에 이름표, 아이콘 같은 다른 렌더러가 있음)
+		// 스프라이트 인물은 서 있는 그림들로만 잼 (아래에 이름표, 아이콘 같은 다른 렌더러가 있음)
 		private Bounds VisualBounds()
 		{
-			if (sprite != null && sprite.TryGetComponent(out SpriteRenderer spriteRenderer))
-				return spriteRenderer.bounds;
+			if (spriteParts.Count > 0)
+			{
+				Bounds sprites = spriteParts[0].bounds;
+				foreach (SpriteRenderer part in spriteParts)
+					sprites.Encapsulate(part.bounds);
+				return sprites;
+			}
 			Renderer[] renderers = GetComponentsInChildren<Renderer>();
 			if (renderers.Length == 0)
 				return new Bounds(transform.position + Vector3.up * settings.ActorHeight * 0.5f, Vector3.up * settings.ActorHeight);

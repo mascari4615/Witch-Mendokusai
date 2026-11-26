@@ -75,6 +75,7 @@ namespace WitchMendokusai.DialogueStage3D
 		[field: SerializeField, Tooltip("대화가 끝나고 게임 카메라 자리로 돌아가는 블렌드 (초)")] public float WorldReturnSeconds { get; private set; } = 0.6f;
 		[field: SerializeField, Tooltip("벽에 가린 카메라를 막힌 곳보다 이만큼 앞으로 (m)")] public float OcclusionPadding { get; private set; } = 0.2f;
 		[field: SerializeField, Tooltip("스프라이트 인물의 머리 높이, 그림 위에서부터 키 비율")] public float SpriteHeadFromTop { get; private set; } = 0.15f;
+		[field: SerializeField, Tooltip("이보다 낮은 그림은 바닥에 눕힌 그림자나 표식으로 보고 인물 키에서 뺌 (m)")] public float SpriteMinStandingHeight { get; private set; } = 0.3f;
 
 		[field: Header("무대")]
 		[field: SerializeField, Tooltip("게임 월드와 겹치지 않는 자리")] public Vector3 StageOrigin { get; private set; } = new Vector3(0f, -2000f, 0f);
