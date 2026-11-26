@@ -64,10 +64,11 @@ namespace WitchMendokusai.DialogueStage3D
 		[field: SerializeField, Tooltip("어깨 너머 샷의 옆 비킴 (m)")] public float ShoulderSide { get; private set; } = 0.45f;
 		[field: SerializeField, Tooltip("어깨 너머 샷에서 듣는 사람 머리 뒤로 물러나는 거리 (m)")] public float ShoulderBack { get; private set; } = 0.8f;
 		[field: SerializeField, Tooltip("카메라가 화자보다 무대 앞쪽에 있어야 하는 최소 거리 (m)")] public float MinCameraFront { get; private set; } = 0.4f;
-		[field: SerializeField] public float BlendSeconds { get; private set; } = 0.35f;
 		[field: SerializeField, Tooltip("샷에 머무는 동안 다가가는 속도 (m/s)")] public float PushSpeed { get; private set; } = 0.03f;
 		[field: SerializeField] public float PushMax { get; private set; } = 0.25f;
 		[field: SerializeField] public float CameraDepth { get; private set; } = 100f;
+		[field: SerializeField] public float CameraNearClip { get; private set; } = 0.05f;
+		[field: SerializeField] public float CameraFarClip { get; private set; } = 60f;
 
 		[field: Header("무대")]
 		[field: SerializeField, Tooltip("게임 월드와 겹치지 않는 자리")] public Vector3 StageOrigin { get; private set; } = new Vector3(0f, -2000f, 0f);

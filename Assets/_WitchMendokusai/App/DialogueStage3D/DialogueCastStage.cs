@@ -95,9 +95,10 @@ namespace WitchMendokusai.DialogueStage3D
 			if (delta.ShotChanged)
 			{
 				shotTarget = delta.ShotTarget;
+				// 블렌드는 카메라가 두 배우 사이를 지나며 앞사람 몸을 통과할 수 있어 컷
 				if (shotTarget != null)
 				{
-					stageCamera.Blend(ShotOn(shotTarget, delta.Shot));
+					stageCamera.Cut(ShotOn(shotTarget, delta.Shot));
 					return;
 				}
 			}

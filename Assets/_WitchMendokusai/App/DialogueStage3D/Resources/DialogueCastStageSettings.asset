@@ -71,10 +71,11 @@ MonoBehaviour:
   <ShoulderSide>k__BackingField: 0.85
   <ShoulderBack>k__BackingField: 1.1
   <MinCameraFront>k__BackingField: 0.4
-  <BlendSeconds>k__BackingField: 0.35
   <PushSpeed>k__BackingField: 0.03
   <PushMax>k__BackingField: 0.25
   <CameraDepth>k__BackingField: 100
+  <CameraNearClip>k__BackingField: 0.05
+  <CameraFarClip>k__BackingField: 60
   <StageOrigin>k__BackingField: {x: 0, y: -2000, z: 0}
   <ContentLayer>k__BackingField: 31
   <Background>k__BackingField: {r: 0.62, g: 0.7, b: 0.78, a: 1}
