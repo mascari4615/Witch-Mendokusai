@@ -212,7 +212,11 @@ namespace WitchMendokusai.DialogueStage3D
 				headSum += actor.HeadPosition.y - actor.Feet.y;
 			}
 			float headHeight = feet.Count > 0 ? headSum / feet.Count : Settings.ActorHeight;
-			return DialogueShotMath.Wide(feet, headHeight, Settings.StageOrigin, CameraSide(), Settings.Wide);
+			DialogueShotPose pose = DialogueShotMath.Wide(feet, headHeight, Settings.StageOrigin, CameraSide(), Settings.Wide);
+			// 월드는 인물이 카메라 쪽 앞뒤로 서기도 해서, 눈높이면 앞사람이 뒷사람을 가림. 같은 곳을 위에서 내려다봄
+			if (space == DialogueStageSpace.World)
+				pose = new DialogueShotPose(pose.Position + Vector3.up * Settings.WorldWideRaise, pose.LookPoint, pose.FieldOfView);
+			return pose;
 		}
 
 		// 미디엄은 가장 가까운 상대의 어깨 너머, 클로즈는 정면, 상대가 없으면 정면. 대상이 무대에 없으면 성립 샷
