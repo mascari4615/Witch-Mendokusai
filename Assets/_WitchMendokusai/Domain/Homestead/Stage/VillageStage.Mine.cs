@@ -108,7 +108,7 @@ namespace WitchMendokusai
 			HomesteadSpot.Create(mineRoot, liftPosition + liftSpot, "LiftSpot", () => "승강기", () => "올라가기", LeaveMineByLift);
 			minePassage = Models.Build("MineHole", mineRoot, holePosition, 0f);
 			AddGlow(minePassage.transform, holeGlow, holeGlowRange, holeGlowIntensity);
-			HomesteadSpot.Attach(minePassage, () => "내리막", () => run != null && run.Depth >= Sim.MineMaxDepth ? "더는 없음" : "내려가기", Descend);
+			HomesteadSpot.Attach(minePassage, () => "내리막", () => run != null && run.Depth >= Sim.MineMaxDepth ? "더는 없음" : run != null && run.Lantern <= 0 ? "등불이 다함" : "내려가기", Descend);
 			minePassage.SetActive(false);
 		}
 
@@ -232,6 +232,8 @@ namespace WitchMendokusai
 				Say("여기가 가장 깊은 곳입니다.");
 				return;
 			}
+			if (Report(run.CanDescend()) == false)
+				return;
 			MovePlayer(mineOffset + mineArrival, () =>
 			{
 				run.Descend();

@@ -353,7 +353,7 @@ namespace WitchMendokusai
 			mineDepth.text = $"{run.Depth}층  {run.Band.Name}";
 			lanternFill.style.width = Length.Percent(run.Lantern * 100f / run.LanternMax);
 			lanternText.text = $"등불 {run.Lantern}";
-			mineHint.text = run.PassageOpen ? "내리막이 열렸습니다" : run.Lantern == 0 ? "등불이 다했습니다. 승강기로" : "바위 아래 내리막이 숨어 있습니다";
+			mineHint.text = run.Lantern == 0 ? "등불이 다했습니다. 승강기로" : run.PassageOpen ? "내리막이 열렸습니다" : "바위 아래 내리막이 숨어 있습니다";
 		}
 	}
 }
