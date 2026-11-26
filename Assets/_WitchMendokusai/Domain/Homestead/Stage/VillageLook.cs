@@ -112,7 +112,11 @@ namespace WitchMendokusai
 			if (SkyDirector.TryGetExistingInstance(out SkyDirector sky) && sky.ActivePreset != null)
 			{
 				float time = Shader.GetGlobalFloat(NORMALIZED_TIME);
-				SkyPresetApplier.ApplyEnvironment(sky.ActivePreset, time);
+				// 박물관을 다시 지을 때처럼 실내인 채 꺼지면 실내 빛으로 되돌림
+				if (IndoorScope.IsIndoor)
+					SkyPresetApplier.ApplyIndoorEnvironment(sky.ActivePreset, time, sky.Indoor);
+				else
+					SkyPresetApplier.ApplyEnvironment(sky.ActivePreset, time);
 				if (sun != null)
 					SkyPresetApplier.ApplyDirectionalLight(sky.ActivePreset, sun, time, sunRotation.eulerAngles.y);
 			}
@@ -134,11 +138,15 @@ namespace WitchMendokusai
 			// 하늘 시계의 해 높이 (0 밤, 1 한낮). 햇살 줄기처럼 낮에만 보이는 것
 			Shader.SetGlobalFloat(DAYLIGHT, altitude);
 
-			Color air = preset.AmbientColor.Evaluate(time) * ambient;
+			// 박물관과 갱도도 이 빛을 씀. 실내면 시계를 약하게만 따름
+			bool isIndoor = IndoorScope.IsIndoor;
+			Color air = (isIndoor ? sky.Indoor.Ambient(preset.AmbientColor, time) : preset.AmbientColor.Evaluate(time)) * ambient;
 			RenderSettings.ambientSkyColor = air * preset.AmbientSkyTint;
 			RenderSettings.ambientEquatorColor = air * preset.AmbientEquatorTint;
 			RenderSettings.ambientGroundColor = air * preset.AmbientGroundTint;
-			RenderSettings.fogColor = Color.Lerp(preset.FogColor.Evaluate(time), preset.ZenithColor.Evaluate(time), fogBlue);
+			Color fog = isIndoor ? sky.Indoor.Blend(preset.FogColor, time) : preset.FogColor.Evaluate(time);
+			Color zenith = isIndoor ? sky.Indoor.Blend(preset.ZenithColor, time) : preset.ZenithColor.Evaluate(time);
+			RenderSettings.fogColor = Color.Lerp(fog, zenith, fogBlue);
 			RenderSettings.fogDensity = preset.FogDensity.Evaluate(time) * fogDensity;
 		}
 

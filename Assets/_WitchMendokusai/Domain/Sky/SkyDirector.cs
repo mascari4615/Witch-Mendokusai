@@ -36,12 +36,17 @@ namespace WitchMendokusai
 		[Header("C2 — Sun Rotation")]
 		[SerializeField, Range(0f, 360f)] private float sunAzimuth = 30f;
 
+		[Header("실내. 시계를 약하게 따르고 주변광에 하한")]
+		[SerializeField] private IndoorLight indoorLight = IndoorLight.Default;
+		public IndoorLight Indoor => indoorLight;
+
 		[Header("Debug")]
 		[SerializeField] private bool debugLogStartup = false;
 
 		private Light directionalLight;
 		private float cachedNormalizedTime = -1f;
 		private bool survivalLightingActive;
+		private bool indoorActive;
 
 		private void Awake()
 		{
@@ -164,11 +169,13 @@ namespace WitchMendokusai
 			DungeonManager dungeonManager = DungeonManager.Instance;
 			bool isSurvivalLighting = ActivePreset.UseSurvivalReadability && dungeonManager != null && dungeonManager.IsDungeon && dungeonManager.CurDungeon != null && dungeonManager.CurDungeon.MapType == DungeonMapType.SurvivorsLike;
 
-			if (force == false && Mathf.Approximately(normalizedTime, cachedNormalizedTime) == true && survivalLightingActive == isSurvivalLighting)
+			bool isIndoor = IndoorScope.IsIndoor;
+			if (force == false && Mathf.Approximately(normalizedTime, cachedNormalizedTime) == true && survivalLightingActive == isSurvivalLighting && indoorActive == isIndoor)
 				return;
 
 			cachedNormalizedTime = normalizedTime;
 			survivalLightingActive = isSurvivalLighting;
+			indoorActive = isIndoor;
 
 			ApplySky(normalizedTime);
 			ApplyShaderGlobals(normalizedTime);
@@ -208,7 +215,13 @@ namespace WitchMendokusai
 		// 밤의 달빛 겸용. 해가 지평선 아래여도 빛 방향은 위쪽
 		public static float ComputeLightPitch(float altitude, float minPitch) => SkyPresetApplier.ComputeLightPitch(altitude, minPitch);
 
-		private void ApplyEnvironment(float t) => SkyPresetApplier.ApplyEnvironment(ActivePreset, t, survivalLightingActive);
+		private void ApplyEnvironment(float t)
+		{
+			if (indoorActive)
+				SkyPresetApplier.ApplyIndoorEnvironment(ActivePreset, t, indoorLight);
+			else
+				SkyPresetApplier.ApplyEnvironment(ActivePreset, t, survivalLightingActive);
+		}
 
 		[ContextMenu("Debug/Reapply Now")]
 		private void DebugReapplyNow()

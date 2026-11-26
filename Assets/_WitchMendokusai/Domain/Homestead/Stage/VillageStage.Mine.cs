@@ -132,7 +132,11 @@ namespace WitchMendokusai
 			manager.Panels.ClosePanel();
 			MovePlayer(mineOffset + mineArrival, () =>
 			{
+				// 옮기는 사이 마을이 꺼졌으면 (LeaveMine 이 이미 지나감) 들어가지 않음. 실내 신호가 남지 않게
+				if (isActiveAndEnabled == false)
+					return;
 				run = Sim.EnterMine(depth);
+				IndoorScope.Enter(this);
 				manager.Hud.ShowMine(true);
 				LayFloor();
 			});
@@ -149,6 +153,7 @@ namespace WitchMendokusai
 		{
 			run = null;
 			isInsideMine = false;
+			IndoorScope.Leave(this);
 			if (manager != null && manager.Hud != null)
 				manager.Hud.ShowMine(false);
 			if (minePassage != null)

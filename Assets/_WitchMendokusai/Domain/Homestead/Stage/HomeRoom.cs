@@ -74,6 +74,7 @@ namespace WitchMendokusai
 			manager.EnsureScreens(uiManager, uiRoot);
 			if (room == null)
 				Build();
+			IndoorScope.Enter(this);
 			shownSim = Sim;
 			shownTier = 0;
 			shownFurniture = string.Empty;
@@ -82,7 +83,11 @@ namespace WitchMendokusai
 			Refresh();
 		}
 
-		private void OnDisable() => Unbind();
+		private void OnDisable()
+		{
+			IndoorScope.Leave(this);
+			Unbind();
+		}
 
 		private void Unbind()
 		{
@@ -266,7 +271,7 @@ namespace WitchMendokusai
 				{
 					manager.RestUntilMorning();
 					manager.Hud.Notice("잘 쉬었습니다", $"하루 동안 두 배로 얻을 확률 {Mathf.RoundToInt(Sim.State.RestedRank * Sim.Catalog.Tuning.RestDoubleChancePerRank * 100f)}%", HomesteadArt.Instance.Icon("house"));
-					manager.Hud.ShowDigest(Sim.MakeDigest());
+					manager.Hud.ShowDigest(Sim.TakeNewDigest());
 				}).Forget();
 		}
 	}

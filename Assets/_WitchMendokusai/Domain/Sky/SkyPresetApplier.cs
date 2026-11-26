@@ -77,6 +77,13 @@ namespace WitchMendokusai
 			directionalLight.transform.rotation = Quaternion.Euler(pitchDegrees, sunAzimuth, 0f);
 		}
 
+		// 실내. 주변광과 안개 색을 한낮 쪽으로 섞고 주변광에 하한
+		public static void ApplyIndoorEnvironment(SkyPresetSO preset, float t, IndoorLight indoor)
+		{
+			ApplyAmbient(preset, indoor.Ambient(preset.AmbientColor, t));
+			ApplyFog(preset, t, indoor.Blend(preset.FogColor, t));
+		}
+
 		public static void ApplyEnvironment(SkyPresetSO preset, float t, bool survivalLighting = false)
 		{
 			Color ambient = preset.AmbientColor.Evaluate(t);
@@ -87,6 +94,12 @@ namespace WitchMendokusai
 				if (luminance > .0001f && luminance < preset.SurvivalAmbientMinimumLuminance)
 					ambient *= preset.SurvivalAmbientMinimumLuminance / luminance;
 			}
+			ApplyAmbient(preset, ambient);
+			ApplyFog(preset, t, preset.FogColor.Evaluate(t));
+		}
+
+		private static void ApplyAmbient(SkyPresetSO preset, Color ambient)
+		{
 			RenderSettings.ambientMode = preset.UseHemisphereAmbient ? AmbientMode.Trilight : AmbientMode.Flat;
 			if (preset.UseHemisphereAmbient)
 			{
@@ -95,10 +108,13 @@ namespace WitchMendokusai
 				RenderSettings.ambientGroundColor = ambient * preset.AmbientGroundTint;
 			}
 			else RenderSettings.ambientLight = ambient;
+		}
 
+		private static void ApplyFog(SkyPresetSO preset, float t, Color fogColor)
+		{
 			RenderSettings.fog = true;
 			RenderSettings.fogMode = preset.FogMode;
-			RenderSettings.fogColor = preset.FogColor.Evaluate(t);
+			RenderSettings.fogColor = fogColor;
 			RenderSettings.fogDensity = preset.FogDensity.Evaluate(t);
 		}
 
