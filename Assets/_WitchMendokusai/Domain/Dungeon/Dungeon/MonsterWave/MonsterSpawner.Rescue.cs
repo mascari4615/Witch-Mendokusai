@@ -7,8 +7,8 @@ namespace WitchMendokusai
 	// 전투 규칙과 예산 뽑기는 그대로. 머무름이 차면 열쇠를 이벤트로 알리고 끝 (누구인지는 마을이 앎)
 	public partial class MonsterSpawner
 	{
-		// 판 시드 갈래. 예산 자리 (+1), 운 굴림 (+2) 과 겹치지 않게
-		private const int RESCUE_SEED_OFFSET = 3;
+		[SerializeField, Tooltip("갇힌 사람 등장 시각 굴림의 판 시드 갈래. 예산 자리 (+1), 운 굴림 (+2) 과 겹치지 않게")]
+		private int rescueSeedOffset = 3;
 
 		private string rescueKey = string.Empty;
 
@@ -18,7 +18,7 @@ namespace WitchMendokusai
 			if (rescueKey.Length == 0)
 				return;
 			MapObjectData captive = MapObjectSettings.LoadAllData().First(data => data.Category == MapObjectCategory.Rescue);
-			System.Random random = new(RunSeed.Derive(seedSalt + RESCUE_SEED_OFFSET));
+			System.Random random = new(RunSeed.Derive(seedSalt + rescueSeedOffset));
 			float spawnTime = Mathf.Lerp(captive.SpawnTime.x, captive.SpawnTime.y, (float)random.NextDouble());
 			// 계획은 등장 시각 순. 같은 자리를 지켜 끼움
 			int index = mapObjectPlans.FindIndex(plan => plan.SpawnTime > spawnTime);
