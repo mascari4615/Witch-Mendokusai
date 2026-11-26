@@ -79,7 +79,7 @@ namespace WitchMendokusai.DialogueStage3D
 			return new DialogueShotPose(position, speakerHead + Vector3.up * shot.LookHeight, shot.FieldOfView);
 		}
 
-		// 두 인물을 잇는 선에 수직이면서 지금 카메라 쪽을 향한 방향. 인물이 하나면 카메라 쪽
+		// 인물들 가운데에서 지금 카메라를 향한 수평 방향. 월드 대화는 이쪽을 카메라 쪽으로 고정
 		public static Vector3 FrontFromCamera(IReadOnlyList<Vector3> feet, Vector3 cameraPosition)
 		{
 			if (feet.Count == 0)
@@ -88,13 +88,12 @@ namespace WitchMendokusai.DialogueStage3D
 			foreach (Vector3 foot in feet)
 				center += foot;
 			center /= feet.Count;
-			Vector3 toCamera = FlatUnit(cameraPosition - center, Vector3.back);
-			if (feet.Count < 2)
-				return toCamera;
-			Vector3 line = FlatUnit(feet[1] - feet[0], Vector3.right);
-			Vector3 front = Vector3.Cross(Vector3.up, line);
-			return Vector3.Dot(front, toCamera) >= 0f ? front : -front;
+			return FlatUnit(cameraPosition - center, Vector3.back);
 		}
+
+		// 듣는 사람이 화자보다 카메라 쪽에 있나. 아니면 어깨 너머 자리가 화자 뒤편이 되어 쓸 수 없음
+		public static bool IsInFront(Vector3 listener, Vector3 speaker, Vector3 front) =>
+			Vector3.Dot(listener - speaker, FlatUnit(front, Vector3.back)) > 0f;
 
 		// 화자보다 카메라 반대쪽으로 넘어가면 앞쪽으로 되돌림
 		private static Vector3 KeepInFront(Vector3 position, Vector3 subject, Vector3 front, float minFront)

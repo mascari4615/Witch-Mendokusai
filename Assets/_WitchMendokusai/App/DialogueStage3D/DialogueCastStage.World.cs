@@ -101,7 +101,7 @@ namespace WitchMendokusai.DialogueStage3D
 			return changed;
 		}
 
-		// 서로 마주 보게 돌리고, 지금 게임 카메라가 있던 쪽을 대화 카메라 쪽으로 정함
+		// 서로 마주 보게 돌리고, 대화를 시작할 때 게임 카메라가 있던 쪽을 대화 카메라 쪽으로 정함
 		private void FaceEachOther()
 		{
 			List<Vector3> feet = new List<Vector3>();

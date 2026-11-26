@@ -234,9 +234,12 @@ namespace WitchMendokusai.DialogueStage3D
 					listener = other;
 				}
 			}
-			if (shot == DialogueStageShot.Medium && listener != null)
+			// 월드는 인물이 앞뒤로 서 있기도 해서, 듣는 사람이 카메라 쪽에 있을 때만 어깨 너머. 스프라이트는 몸 방향 대신 카메라 쪽에서 정면
+			bool canOverShoulder = listener != null && (space == DialogueStageSpace.Stage || DialogueShotMath.IsInFront(listener.Feet, subject.Feet, CameraSide()));
+			if (shot == DialogueStageShot.Medium && canOverShoulder)
 				return DialogueShotMath.OverShoulder(subject.HeadPosition, listener.HeadPosition, CameraSide(), entry, Settings.ShoulderSide, Settings.ShoulderBack, Settings.MinCameraFront);
-			return DialogueShotMath.Front(subject.HeadPosition, subject.Facing, CameraSide(), entry, Settings.MinCameraFront);
+			Vector3 facing = space == DialogueStageSpace.World ? CameraSide() : subject.Facing;
+			return DialogueShotMath.Front(subject.HeadPosition, facing, CameraSide(), entry, Settings.MinCameraFront);
 		}
 
 		private Vector3 CameraSide() => space == DialogueStageSpace.World ? worldFront : Vector3.back;
