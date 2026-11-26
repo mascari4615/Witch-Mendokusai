@@ -13,8 +13,6 @@ namespace WitchMendokusai.Tests
 	{
 		private const string MONSTER_FOLDER = "Assets/_WitchMendokusai/Domain/Dungeon/Monster/Impl/PatternDummy";
 		private const string ADDRESS_GROUP = "Assets/AddressableAssetsData/AssetGroups/Monster.asset";
-		// 주인공 몸 반지름. EliteBossAttackTest 와 같은 값 (UnitMovement.BodyRadius 는 장면이 있어야 읽힘)
-		private const float PLAYER_BODY_RADIUS = 0.3f;
 
 		// 시키는 행동. 설계 표 (memo README) 와 같은 말. 겹치면 같은 패턴으로 보임
 		private static readonly Dictionary<int, string> asks = new()
@@ -93,8 +91,8 @@ namespace WitchMendokusai.Tests
 			HideMonsterAttack burrow = (HideMonsterAttack)Find(938).Attack;
 			// 이웃한 두 원이 겹쳐 고리에 틈이 없음
 			Assert.LessOrEqual(2f * burrow.Distance * Mathf.Sin(Mathf.PI / burrow.Count), burrow.Radius * 2f, "고리에 빠져나갈 틈");
-			// 가운데에 선 주인공 몸이 어느 원에도 안 닿음
-			Assert.Greater(burrow.Distance, burrow.Radius + PLAYER_BODY_RADIUS, "가운데 서 있으면 안 맞아야 함");
+			// 가운데에 선 주인공 몸이 어느 원에도 안 닿음. 몸과 여유는 자산의 SafeMargin
+			Assert.Greater(burrow.Distance, burrow.Radius + burrow.SafeMargin, "가운데 서 있으면 안 맞아야 함");
 		}
 
 		[Test]
@@ -103,7 +101,8 @@ namespace WitchMendokusai.Tests
 			HideMonsterAttack blink = (HideMonsterAttack)Find(933).Attack;
 			// 쫓기는 떠오르는 초 뒤부터 자리를 정할 때까지 (MonsterHideaway)
 			float chaseReach = (blink.ChaseSeconds - blink.RiseSeconds) * blink.ChaseSpeed;
-			Assert.GreaterOrEqual(chaseReach, blink.TriggerRange - blink.Radius - PLAYER_BODY_RADIUS, "사거리 끝에서 시작하면 그림자가 못 닿음");
+			// 몸 반지름을 빼지 않아 실제보다 엄함
+			Assert.GreaterOrEqual(chaseReach, blink.TriggerRange - blink.Radius, "사거리 끝에서 시작하면 그림자가 못 닿음");
 		}
 
 		[Test]
@@ -111,7 +110,8 @@ namespace WitchMendokusai.Tests
 		{
 			SequenceMonsterAttack volley = (SequenceMonsterAttack)Find(931).Attack;
 			ScatterZoneMonsterAttack line = volley.Steps.OfType<ScatterZoneMonsterAttack>().Single();
-			Assert.GreaterOrEqual(line.Distance * line.Count + line.Radius + PLAYER_BODY_RADIUS, line.TriggerRange, "사거리 끝에 선 주인공에게 줄이 안 닿음");
+			// 몸 반지름을 더하지 않아 실제보다 엄함
+			Assert.GreaterOrEqual(line.Distance * line.Count + line.Radius, line.TriggerRange, "사거리 끝에 선 주인공에게 줄이 안 닿음");
 		}
 
 		private static Monster Find(int id) => LoadDummies().Single(monster => monster.ID == id);
