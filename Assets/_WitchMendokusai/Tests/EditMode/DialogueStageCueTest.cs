@@ -69,12 +69,30 @@ namespace WitchMendokusai.Tests
 				"등장 링 왼쪽 슬라이드", "퇴장 링 페이드", "퇴장 모두 슬라이드", "이동 링 오른쪽끝",
 				"강조 링", "강조 끔", "들썩임 링", "끄덕임 링", "점프 링", "흔들림 링",
 				"아이콘 링 놀람", "샷 플레이어 클로즈", "샷 끝", "이펙트 반짝 링", "이펙트 플래시", "띠 켬", "띠 끔",
+				"연출 걷기 시험", "연출 끝", "무대 3D", "무대 2D", "무대 월드", "동작 욘 마법",
 			};
 			foreach (string text in cues)
 			{
 				Assert.That(DialogueStageCueText.TryRead(text, out DialogueStageCue cue, out string problem), Is.True, problem);
 				Assert.That(DialogueStageCueText.Write(cue), Is.EqualTo(text));
 			}
+		}
+
+		[Test]
+		public void SceneCue_KeepsSpacesInName()
+		{
+			DialogueStageCue cue = FirstCue(Parse("## 시작", "> @연출 부착물 자산 변환 (2)", "> 욘: \"응.\""));
+
+			Assert.That(cue.Kind, Is.EqualTo(DialogueStageCueKind.Scene));
+			Assert.That(cue.SceneKey, Is.EqualTo("부착물 자산 변환 (2)"));
+		}
+
+		[Test]
+		public void SceneCueWithoutName_IsAnIssue()
+		{
+			ParsedDialogueScript parsed = Parse("## 시작", "> @연출", "> 욘: \"응.\"");
+			Assert.That(parsed.Issues.Count, Is.EqualTo(1));
+			Assert.That(parsed.Issues[0].LineNumber, Is.EqualTo(2));
 		}
 
 		[Test]

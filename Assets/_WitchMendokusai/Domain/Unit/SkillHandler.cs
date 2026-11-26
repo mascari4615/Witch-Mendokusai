@@ -53,8 +53,8 @@ namespace WitchMendokusai
 		// WM-165 — 아레나 전술 코어가 타겟 지정 시전. target=null 이면 레거시(던전/플레이어) 동작.
 		public bool UseSkill(int skillIndex, UnitObject target)
 		{
-			// 침묵 상태이상. 스킬 사용 봉쇄
-			if (UnitStatus.IsSkillBlocked(unitObject))
+			// 침묵 상태이상. 스킬 사용 봉쇄. 기절, 빙결 중에도 (주인공이 낙인 문턱에서 기절, 자동 시전 Tick 과 같게)
+			if (UnitStatus.IsSkillBlocked(unitObject) || unitObject.IsActionSuspended)
 				return false;
 
 			if (skillDic.TryGetValue(skillIndex, out Skill skill))

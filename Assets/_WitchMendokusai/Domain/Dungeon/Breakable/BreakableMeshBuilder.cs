@@ -25,9 +25,21 @@ namespace WitchMendokusai
 
 		public System.Random Random => random;
 
+		// Build 전까지 쌓인 법선
+		public IReadOnlyList<Vector3> Normals => normals;
+
 		public float Range(float min, float max) => Mathf.Lerp(min, max, (float)random.NextDouble());
 
 		public void SetMatrix(Matrix4x4 newMatrix) => matrix = newMatrix;
+
+		// 길이 0 법선은 셰이더 normalize 에서 NaN 이 되고 블룸이 화면 가득 번지게 함. normalized 는 작은 면 (외적 1e-5 미만) 도 0 으로 만들어 직접 나눔
+		private static Vector3 FaceNormal(Vector3 across, Vector3 along)
+		{
+			Vector3 area = Vector3.Cross(across, along);
+			float magnitude = area.magnitude;
+			// 넓이 0 인 면은 그려지지 않아 방향은 아무래도 되고 길이만 1 이면 됨
+			return magnitude > 0f ? area / magnitude : Vector3.up;
+		}
 
 		// a에서 b가 결을 가로지르는 방향. 결은 a에서 d 방향으로 흐름
 		public void AddQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, int row)
@@ -36,7 +48,8 @@ namespace WitchMendokusai
 			b = matrix.MultiplyPoint3x4(b);
 			c = matrix.MultiplyPoint3x4(c);
 			d = matrix.MultiplyPoint3x4(d);
-			Vector3 normal = Vector3.Cross(b - a, d - a).normalized;
+			// 이웃한 두 변 대신 대각선. 꼭지처럼 한 변이 점으로 접힌 사각형에서도 법선이 나옴
+			Vector3 normal = FaceNormal(c - a, d - b);
 			float v = atlas.RowV(row);
 			float uStart = (float)random.NextDouble();
 			float uEnd = uStart + Vector3.Distance(a, b) * grainPerMeter;
@@ -64,7 +77,7 @@ namespace WitchMendokusai
 			a = matrix.MultiplyPoint3x4(a);
 			b = matrix.MultiplyPoint3x4(b);
 			c = matrix.MultiplyPoint3x4(c);
-			Vector3 normal = Vector3.Cross(b - a, c - a).normalized;
+			Vector3 normal = FaceNormal(b - a, c - a);
 			float v = atlas.RowV(row);
 			float uStart = (float)random.NextDouble();
 			int start = vertices.Count;

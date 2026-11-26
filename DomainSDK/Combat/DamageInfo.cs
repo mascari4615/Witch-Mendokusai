@@ -14,6 +14,8 @@ namespace WitchMendokusai
 		public int equipmentDataId;
 		public int skillDataId;
 		public bool ignoreInvincible;
+		// 맞아도 피격 무적을 시작하지 않음 (남은 물체에 닿은 작은 피해). 무적 중이면 막히는 것은 같음
+		public bool skipsHitInvincibility;
 		// type 이 StatusTick 일 때만 뜻이 있음. 어떤 상태이상의 틱인지 (숫자 색과 아이콘)
 		public UnitStatusType statusType;
 		// 상태 폭발이 일어난 타격. 소모된 상태 (표시용)

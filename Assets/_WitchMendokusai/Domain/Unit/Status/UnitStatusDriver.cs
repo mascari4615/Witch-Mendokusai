@@ -178,7 +178,7 @@ namespace WitchMendokusai
 			chainCandidates.Clear();
 			foreach (GameObject monsterObject in ObjectBufferManager.GetObjects(ObjectType.Monster))
 			{
-				if (monsterObject == null || monsterObject.activeInHierarchy == false)
+				if (monsterObject == null || monsterObject.activeInHierarchy == false || MonsterObject.IsHiddenMonster(monsterObject))
 					continue;
 				if (monsterObject.TryGetComponent(out MonsterObject monster) == false || monster == from || monster.IsAlive == false)
 					continue;

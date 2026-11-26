@@ -136,6 +136,13 @@ namespace WitchMendokusai
 
 		public float BasePitch => originalLocalEuler.x;
 
+		/// <summary> 손으로 맞춘 거리. 궤도 설정을 거둔 뒤 되돌릴 때 씀 </summary>
+		public float ZoomTarget
+		{
+			get => targetZoom;
+			set => targetZoom = Mathf.Clamp(value, minZoom, maxZoom);
+		}
+
 		public void ResetCameraDistance()
 		{
 			if (positionComposer == null)

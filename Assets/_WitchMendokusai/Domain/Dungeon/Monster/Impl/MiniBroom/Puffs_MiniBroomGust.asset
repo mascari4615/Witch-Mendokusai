@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c9cb325a17a4e2796506500dbbe4580, type: 3}
+  m_Name: Puffs_MiniBroomGust
+  m_EditorClassIdentifier: 
+  previewRadius: 1
+  previewLength: 6
+  previewWidth: 1
+  previewTitle: ""
+  previewSubtitle: ""
+  set: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
+  sheet: {fileID: 2800000, guid: 79ec57814d3342af9bd16694c3a573a7, type: 3}
+  columns: 4
+  rows: 4
+  frames: {x: 1, y: 13}
+  color: {r: 1.35, g: 1.2, b: 0.95, a: 1}
+  cover: 0.95
+  count: 8
+  seconds: 0.72
+  leadSeconds: 0.2
+  emitSeconds: 0.22
+  halfSize: {x: 0.65, y: 1.05}
+  lift: 0.4
+  originLift: 0.48
+  travelRatio: 1.0
+  spread: 0.32
+  ringRatio: 0
+  ringSeconds: 0.3
+  ringColor: {r: 1.2, g: 0.95, b: 0.55, a: 0.7}
+  moment:
+    Shake: 0.05
+    Hitstop: 0
+    HitstopScale: 0.05
+    Shards: 5
+    ShardSpeed: 3.6
+    ShardLife: 0.35
+    ShardSize: 0.12
+    RingSize: 0
+    RingLife: 0.28
+    Color: {r: 0.85, g: 0.65, b: 0.32, a: 1}
+  sound: 17
+  stainRadius: 0.85
+  stainColor: {r: 0.42, g: 0.3, b: 0.14, a: 0.58}

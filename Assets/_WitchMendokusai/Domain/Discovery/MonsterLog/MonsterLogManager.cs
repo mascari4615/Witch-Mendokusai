@@ -39,7 +39,7 @@ namespace WitchMendokusai
 		/// <summary>세이브 로드 끝에 SaveManager 가 부름. 다시 불러도 됨 (로드할 때마다 조각이 새것)</summary>
 		public void Begin(MonsterLogSaveSlice slice)
 		{
-			Rules.Prepare();
+			Rules.ValidateTargets();
 			Book = new MonsterLogBook(slice.Records);
 
 			List<Dungeon> dungeons = new();
@@ -68,8 +68,8 @@ namespace WitchMendokusai
 			}
 		}
 
-		/// <summary>이 종의 단계 목표. 보스는 적게</summary>
-		public IReadOnlyList<int> TargetsOf(Monster monster) => Rules.TargetsOf(monster.Type == MonsterType.Boss, HasStory(monster));
+		/// <summary>이 종의 단계 목표. 흔한 종, 드문 종, 보스 표가 따로</summary>
+		public IReadOnlyList<int> TargetsOf(Monster monster) => Rules.TargetsOf(monster, HasStory(monster));
 
 		/// <summary>이야기 글이 적힌 종인지. 없으면 이야기 칸도 단계도 없음. 글이 생기면 처치 수로 다시 매겨짐</summary>
 		public static bool HasStory(Monster monster) => string.IsNullOrWhiteSpace(monster.Description) == false;

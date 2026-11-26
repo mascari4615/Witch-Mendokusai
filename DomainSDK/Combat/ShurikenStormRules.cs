@@ -27,17 +27,17 @@ namespace WitchMendokusai
 		}
 
 		// 흩어졌다 돌아오는 데 걸리는 시간. scatterDistance 는 주인에게서 잰 반지름. 도는 반지름 이하면 0
-		public static float ScatterSeconds(float stormRadius, float scatterDistance, float outSeconds, float returnSpeed)
+		public static float ScatterSeconds(float stormRadius, float scatterDistance, float outSeconds, float returnSpeed, float hoverSeconds = 0f)
 		{
 			if (scatterDistance <= stormRadius || returnSpeed <= 0f)
 				return 0f;
-			return Math.Max(0f, outSeconds) + (scatterDistance - stormRadius) / returnSpeed;
+			return Math.Max(0f, outSeconds) + Math.Max(0f, hoverSeconds) + (scatterDistance - stormRadius) / returnSpeed;
 		}
 
-		// 흩어지기 시작하고 elapsed 초 뒤의 반지름. 나갈 때는 끝에서 느려지고, 돌아올 때는 고른 속도. 끝나면 도는 반지름
-		public static float ScatterRadius(float elapsed, float stormRadius, float scatterDistance, float outSeconds, float returnSpeed)
+		// 흩어지기 시작하고 elapsed 초 뒤의 반지름. 나갈 때는 끝에서 느려지고, 끝에서 hoverSeconds 멈췄다, 돌아올 때는 고른 속도. 끝나면 도는 반지름
+		public static float ScatterRadius(float elapsed, float stormRadius, float scatterDistance, float outSeconds, float returnSpeed, float hoverSeconds = 0f)
 		{
-			if (elapsed <= 0f || elapsed >= ScatterSeconds(stormRadius, scatterDistance, outSeconds, returnSpeed))
+			if (elapsed <= 0f || elapsed >= ScatterSeconds(stormRadius, scatterDistance, outSeconds, returnSpeed, hoverSeconds))
 				return stormRadius;
 			float outbound = Math.Max(0f, outSeconds);
 			if (elapsed < outbound)
@@ -45,7 +45,16 @@ namespace WitchMendokusai
 				float left = 1f - elapsed / outbound;
 				return scatterDistance - (scatterDistance - stormRadius) * left * left;
 			}
-			return Math.Max(stormRadius, scatterDistance - (elapsed - outbound) * returnSpeed);
+			float returning = Math.Max(0f, elapsed - outbound - Math.Max(0f, hoverSeconds));
+			return Math.Max(stormRadius, scatterDistance - returning * returnSpeed);
 		}
+
+		// 가장 멀리 나가 멈춘 동안 (달아오름)
+		public static bool IsHovering(float elapsed, float stormRadius, float scatterDistance, float outSeconds, float hoverSeconds)
+			=> scatterDistance > stormRadius && elapsed >= Math.Max(0f, outSeconds) && elapsed < Math.Max(0f, outSeconds) + Math.Max(0f, hoverSeconds);
+
+		// 나가는 중이거나 멈춘 동안
+		public static bool IsOutgoing(float elapsed, float stormRadius, float scatterDistance, float outSeconds, float hoverSeconds)
+			=> scatterDistance > stormRadius && elapsed > 0f && elapsed < Math.Max(0f, outSeconds) + Math.Max(0f, hoverSeconds);
 	}
 }

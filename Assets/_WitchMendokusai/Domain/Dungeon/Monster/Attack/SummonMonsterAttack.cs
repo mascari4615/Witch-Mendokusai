@@ -21,19 +21,18 @@ namespace WitchMendokusai
 		public override void ResolveTargets(UnitObject unitObject, Vector3 playerPosition, Vector3 moveVelocity, List<Vector3> results) =>
 			ScatterZoneMonsterAttack.Arrange(ScatterArrangement.Ring, unitObject.transform.position, playerPosition, AllowedCount(CountAlive(unitObject.transform.position), Count, MaxAlive), Distance, 0f, Random.value * 360f, () => 0f, results);
 
-		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target) => new()
+		public override CombatFxContext WindupContext(UnitObject unitObject, Vector3 target, int index) => new()
 		{
 			Position = target,
 			Radius = TelegraphRadius,
 			Seconds = WindupSeconds,
 		};
 
-		public override void Execute(UnitObject unitObject, PlayerObject player, List<Vector3> targets)
+		public override bool Execute(UnitObject unitObject, PlayerObject player, Vector3 target, int index)
 		{
-			if (player.IsAlive == false)
-				return;
-			foreach (Vector3 target in targets)
+			if (player.IsAlive)
 				Spawn(target);
+			return false;
 		}
 
 		public static int AllowedCount(int alive, int requested, int maxAlive) => Mathf.Clamp(maxAlive - alive, 0, requested);
@@ -51,9 +50,12 @@ namespace WitchMendokusai
 			return count;
 		}
 
-		private void Spawn(Vector3 position)
+		private void Spawn(Vector3 position) => SpawnMonster(Summoned, position);
+
+		// 몬스터 하나를 이 자리에 세우고 돌려줌. 소환, 분열 (SplitAffix), 부술 물체 (WardMonsterAttack) 가 같이 씀
+		public static MonsterObject SpawnMonster(Monster monster, Vector3 position)
 		{
-			GameObject spawnedObject = ObjectPoolManager.Instance.Spawn(Summoned.Prefab);
+			GameObject spawnedObject = ObjectPoolManager.Instance.Spawn(monster.Prefab);
 			MonsterObject spawnedMonster = spawnedObject.GetComponent<MonsterObject>();
 			// 던전이면 경계 안쪽, 장애물 밖, 물결 몬스터와 같은 위협 단계
 			if (DungeonManagerBridge.IsDungeon)
@@ -62,8 +64,9 @@ namespace WitchMendokusai
 				spawnedMonster.SetThreat(DungeonManager.Instance.CurThreat);
 			}
 			spawnedObject.transform.position = position;
-			spawnedMonster.Init(Summoned);
+			spawnedMonster.Init(monster);
 			spawnedObject.SetActive(true);
+			return spawnedMonster;
 		}
 
 		public override void Validate(Monster owner, List<string> errors)

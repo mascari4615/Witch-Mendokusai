@@ -13,7 +13,7 @@ namespace WitchMendokusai
 			float bestSqr = radius * radius;
 			foreach (GameObject monster in monsters)
 			{
-				if (monster == null || monster.activeInHierarchy == false)
+				if (monster == null || monster.activeInHierarchy == false || MonsterObject.IsHiddenMonster(monster))
 					continue;
 				Vector3 offset = monster.transform.position - origin;
 				offset.y = 0f;

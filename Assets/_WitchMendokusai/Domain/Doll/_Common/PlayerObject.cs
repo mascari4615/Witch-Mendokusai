@@ -71,6 +71,14 @@ namespace WitchMendokusai
 				bodyRenderer.enabled = visible;
 		}
 
+		/// <summary> 머리 그림을 바꾸고 바꾸기 전 그림을 돌려줌 (등 뒤 시점의 뒷모습) </summary>
+		public Sprite SwapHead(Sprite head)
+		{
+			Sprite previous = headRenderer.sprite;
+			headRenderer.sprite = head;
+			return previous;
+		}
+
 		public override void Init(Unit unitData)
 		{
 			base.Init(unitData);
@@ -129,6 +137,11 @@ namespace WitchMendokusai
 		// 개발자 창 무적. 낙사처럼 무적 관통을 명시한 피해만 받음
 		public bool IsDevInvincible { get; set; }
 
+		// 큰 포화 동안. 보호막보다 먼저 막아 방패를 안 깎고, 상태이상 틱도 막음
+		public bool IsBarrageInvincible { get; set; }
+
+		private bool IsForcedInvincible => IsDevInvincible || IsBarrageInvincible;
+
 		// 피해를 대신 맞는 보호막 (방패). 있는 동안 피격 연출과 피격 무적을 시작하지 않고 보호막이 먼저 막음
 		private readonly List<IDamageAbsorber> absorbers = new();
 
@@ -150,13 +163,13 @@ namespace WitchMendokusai
 			// 상태이상 틱. 무적과 부활은 지키고, 보호막과 회피는 안 거침 (보호막이 1 짜리 틱에 다 깎이지 않게)
 			if (damageInfo.type == DamageType.StatusTick)
 			{
-				if (IsDevInvincible || invincibleRoutine != null || TryRevive(damageInfo))
+				if (IsForcedInvincible || invincibleRoutine != null || TryRevive(damageInfo))
 					return;
 				base.ReceiveDamage(damageInfo);
 				return;
 			}
 
-			if (damageInfo.ignoreInvincible == false && IsDevInvincible)
+			if (damageInfo.ignoreInvincible == false && IsForcedInvincible)
 				return;
 
 			// 피격 무적 중에는 보호막을 깎지 않음
@@ -234,8 +247,8 @@ namespace WitchMendokusai
 			// 상태이상 틱은 몸 물들임이 이미 보여 화면 연출과 몸 번쩍임 없음
 			bool statusTick = damageInfo.type == DamageType.StatusTick;
 			SurvivalFeel.Instance.OnPlayerHit(this, damageInfo.damage, statusTick);
-			// 틱은 피격 무적을 시작하지 않음. 시작하면 걸린 동안 다른 공격이 막힘
-			if (statusTick)
+			// 틱과 남은 물체에 닿은 피해는 피격 무적을 시작하지 않음. 시작하면 바로 뒤의 큰 공격이 막힘
+			if (statusTick || damageInfo.skipsHitInvincibility)
 				return;
 
 			if (invincibleRoutine != null)

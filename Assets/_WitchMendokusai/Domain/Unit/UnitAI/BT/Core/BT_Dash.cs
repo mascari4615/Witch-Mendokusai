@@ -31,14 +31,24 @@ namespace WitchMendokusai
 		private readonly float blockedProgressRatio;
 		// 주인공 쪽에서 벌어진 돌진 각도 (도)
 		private readonly float angleDegrees;
+		// 몸동작, 물체 칸. 비우면 없음 (아쿠아쿠)
+		private readonly DashMonsterAttack look;
+		// 길 위 남은 물체에 낸 금을 되돌림. 막혀 일찍 멈추면 못 지나간 것도
+		private Action uncrack;
+		// 지나간 자리 먼지의 중단 함수
+		private Action stopTrail;
 		// 준비 예고의 중단 함수. 준비가 도중에 끊기면 예고도 같이 치움
 		private Action stopTelegraph;
+		/// <summary> 다가가기를 끝내고 준비를 시작했는가 </summary>
+		public bool HasStarted { get; private set; }
 		// 이 행동이 건 밀림이 도는 중
 		private bool isDashing;
 		// 반격 창 표시의 중단 함수. 숨 고르기가 도중에 끊기면 같이 치움
 		private Action stopRecovery;
+		// 이번 돌진이 지형이나 맵 물체에 막혀 멈췄음 (벽에 박기)
+		private bool slammedTerrain;
 
-		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null, float dashPreDelay = 0.2f, float dashPostDelay = 0.5f, CombatFx telegraph = null, float telegraphWidth = 0f, CombatFx recoveryFx = null, float recoveryRadius = 0f, float blockedProgressRatio = 0f, float angleDegrees = 0f) : base(unitObject)
+		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null, float dashPreDelay = 0.2f, float dashPostDelay = 0.5f, CombatFx telegraph = null, float telegraphWidth = 0f, CombatFx recoveryFx = null, float recoveryRadius = 0f, float blockedProgressRatio = 0f, float angleDegrees = 0f, DashMonsterAttack look = null) : base(unitObject)
 		{
 			this.playerProvider = playerProvider;
 			this.attackRange = attackRange;
@@ -52,6 +62,7 @@ namespace WitchMendokusai
 			this.recoveryRadius = recoveryRadius;
 			this.blockedProgressRatio = blockedProgressRatio;
 			this.angleDegrees = angleDegrees;
+			this.look = look;
 			OnDashEnd = onDashEnd;
 		}
 
@@ -118,6 +129,7 @@ namespace WitchMendokusai
 		private BTState PrepareDash()
 		{
 			CancelTelegraph();
+			HasStarted = true;
 			UpdateDestinationToPlayer();
 			Vector3 direction = moveDest - unitObject.transform.position;
 			direction.y = 0f;
@@ -133,13 +145,35 @@ namespace WitchMendokusai
 					Position = unitObject.transform.position,
 					Direction = dashDirection,
 					Follow = unitObject.transform,
-					Length = dashSpeed * dashDuration,
+					Length = dashSpeed * dashDuration + (look != null ? look.TelegraphExtraLength : 0f),
 					Width = telegraphWidth,
 					Seconds = dashPreDelay,
 				});
 			}
+			PlayLook();
 			return BTState.Success;
 		}
+
+		private void PlayLook()
+		{
+			if (look == null || dashDirection == Vector3.zero)
+				return;
+			look.PlayWindupPose(unitObject, dashPreDelay);
+			if (look.WindupFx != null)
+				stopTelegraph += look.WindupFx.Play(DashContext(dashPreDelay));
+			if (look.CracksLinger)
+				uncrack = LingerField.Instance.Crack(unitObject, dashDirection, dashSpeed * dashDuration, telegraphWidth, dashReadyTime, dashSpeed);
+		}
+
+		private CombatFxContext DashContext(float seconds) => new()
+		{
+			Position = unitObject.transform.position,
+			Origin = unitObject.transform.position,
+			Direction = dashDirection,
+			Length = dashSpeed * dashDuration,
+			Width = telegraphWidth,
+			Seconds = seconds,
+		};
 
 		/// <summary> 준비 중이던 예고와 반격 창 표시를 치움. 상태 전환과 AI 리셋 등으로 돌진이 끊길 때 부름 (끝난 뒤 불러도 무해) </summary>
 		public void CancelTelegraph()
@@ -148,6 +182,10 @@ namespace WitchMendokusai
 			stopTelegraph = null;
 			stopRecovery?.Invoke();
 			stopRecovery = null;
+			uncrack?.Invoke();
+			uncrack = null;
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Release();
 		}
 
 		/// <summary> 켜진 채 끊김 (단계 전환). 예고를 치우고 이 돌진이 건 밀림도 멈춤 </summary>
@@ -157,6 +195,8 @@ namespace WitchMendokusai
 			if (isDashing == false)
 				return;
 			isDashing = false;
+			stopTrail?.Invoke();
+			stopTrail = null;
 			unitObject.UnitMovement.CancelImpulse();
 		}
 
@@ -167,11 +207,16 @@ namespace WitchMendokusai
 			// 예고는 준비가 끝나며 스스로 마무리 (번쩍임). 돌진부터는 끊을 대상이 아님
 			stopTelegraph = null;
 			dashStartTick = unitObject.UnitMovement.SimulationTicks;
+			slammedTerrain = false;
 			if (dashDirection == Vector3.zero)
 				return BTState.Success;
 
 			unitObject.UnitMovement.ApplyImpulse(dashDirection * dashSpeed, dashDuration);
 			isDashing = true;
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Strike();
+			if (look != null && look.StrikeFx != null)
+				stopTrail = look.StrikeFx.Play(DashContext(dashDuration));
 			return BTState.Success;
 		}
 
@@ -195,7 +240,11 @@ namespace WitchMendokusai
 			if (expected <= 0f)
 				return false;
 			float progress = Vector3.Dot(movement.LastMoveDelta, dashDirection);
-			return progress < expected * blockedProgressRatio;
+			if (progress >= expected * blockedProgressRatio)
+				return false;
+			// 무엇에 막혔는지 기억. 지형이면 벽에 박기 (켜졌을 때)
+			slammedTerrain = DashMonsterAttack.IsTerrain(movement.LastWallCollider);
+			return true;
 		}
 
 		private bool IsRecoveryOver() => Time.time >= recoveryEndTime;
@@ -203,19 +252,45 @@ namespace WitchMendokusai
 		private BTState StopDash()
 		{
 			isDashing = false;
-			recoveryEndTime = Time.time + dashPostDelay;
+			uncrack?.Invoke();
+			uncrack = null;
+			// 막히거나 밀려 일찍 멈췄으면 먼지가 길 끝까지 혼자 가지 않게
+			if (Time.time < dashReadyTime + dashDuration)
+				stopTrail?.Invoke();
+			stopTrail = null;
+			// 벽에 박기가 꺼졌으면 (기본, 보스 돌진) 지금과 같은 숨 고르기
+			// 미끄러지며 지형에 닿았어도 주인공이 돌진 앞에 붙어 있으면 주인공에게 막힌 것
+			bool isPlayerAhead = Vector3.Distance(playerProvider.Current.transform.position, unitObject.transform.position) <= telegraphWidth;
+			slammedTerrain = slammedTerrain && isPlayerAhead == false;
+			bool isSlam = look != null && look.WallSlamSeconds > 0f && slammedTerrain;
+			float rest = look != null ? look.RecoveryAfter(slammedTerrain) : dashPostDelay;
+			CombatFx restFx = isSlam && look.WallSlamFx != null ? look.WallSlamFx : recoveryFx;
+			recoveryEndTime = Time.time + rest;
 			unitObject.UnitMovement.CancelImpulse();
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
-			if (recoveryFx != null && dashPostDelay > 0f)
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Rest();
+			Action stopImpact = null;
+			if (isSlam && look.WallImpactFx != null)
+				stopImpact = look.WallImpactFx.Play(new CombatFxContext
+				{
+					Position = unitObject.transform.position + dashDirection * 0.5f * telegraphWidth,
+					Origin = unitObject.transform.position,
+					Direction = dashDirection,
+					Radius = telegraphWidth,
+					Seconds = rest,
+				});
+			if (restFx != null && rest > 0f)
 			{
-				stopRecovery = recoveryFx.Play(new CombatFxContext
+				stopRecovery = restFx.Play(new CombatFxContext
 				{
 					Position = unitObject.transform.position,
 					Follow = unitObject.transform,
 					Radius = recoveryRadius,
-					Seconds = dashPostDelay,
+					Seconds = rest,
 				});
 			}
+			stopRecovery += stopImpact;
 			return BTState.Success;
 		}
 
@@ -223,6 +298,8 @@ namespace WitchMendokusai
 		{
 			// 반격 창 표시는 숨 고르기와 같은 길이라 스스로 마무리
 			stopRecovery = null;
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Release();
 			OnDashEnd?.Invoke();
 			return BTState.Success;
 		}

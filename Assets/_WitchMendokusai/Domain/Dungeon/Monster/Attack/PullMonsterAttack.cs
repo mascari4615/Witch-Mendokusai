@@ -20,6 +20,13 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("안쪽 피해 간격 (초)"), Min(0.1f)] public float CoreInterval { get; private set; } = 0.8f;
 		[field: SerializeField, Tooltip("한 번 건 끌림이 남는 초. 시전자가 사라지면 이 시간 뒤 풀림"), Min(0.05f)] public float HoldSeconds { get; private set; } = 0.25f;
 
+		[field: SerializeField, Tooltip("끄는 거리 안에 이 유닛이 남긴 물체 (Linger) 를 빨아들여 터뜨림")] public bool CracksLinger { get; private set; }
+		[field: SerializeField, Tooltip("끌기 시작에서 첫 터짐까지 (초)"), Min(0.3f)] public float CrackDelaySeconds { get; private set; } = 0.7f;
+		[field: SerializeField, Tooltip("가까운 것부터 먼 것으로 터짐이 퍼지는 빠르기 (m/s)"), Min(0.5f)] public float CrackSpeed { get; private set; } = 6f;
+
+		// 때리는 순간 이펙트는 끌기 시작에, 길이는 끄는 초
+		protected override bool PlaysStrikeFx => true;
+
 		public override BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider) =>
 			new BT_PullZone(unitObject, playerProvider, this);
 
@@ -36,6 +43,8 @@ namespace WitchMendokusai
 				errors.Add($"{name}: 안쪽 피해 원의 예고가 없음 ({nameof(CoreTelegraph)})");
 			if (CoreRadius >= Radius)
 				errors.Add($"{name}: 안쪽 원 {CoreRadius} 이 끄는 거리 {Radius} 보다 큼");
+			if (CracksLinger && CrackDelaySeconds + Radius / CrackSpeed > PullSeconds + RecoverySeconds)
+				errors.Add($"{name}: 먼 물체가 끌기와 숨 고르기가 끝난 뒤에 터짐 (거리 {Radius}, 빠르기 {CrackSpeed})");
 		}
 	}
 }

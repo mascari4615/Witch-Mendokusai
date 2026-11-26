@@ -12,6 +12,12 @@ namespace WitchMendokusai.Net
 		/// <summary>세계에서 나온다. 내 안의 세계는 저장하고, 멀리 있는 세계는 접속을 끊는다. 다음 입장은 새로 붙는다.</summary>
 		void Leave();
 
+		/// <summary>내 안의 세계를 지울 수 있나. 어느 세계에든 들어가 있거나 다른 프로세스가 그 세계를 쓰면 false.</summary>
+		bool CanResetSolo { get; }
+
+		/// <summary>내 안의 세계를 지워 다음 싱글 입장이 빈 세계에서 시작하게. 멀리 있는 세계는 그대로. CanResetSolo 가 false 면 던짐.</summary>
+		void ResetSolo();
+
 		/// <summary>지금 이어진 줄 — 아직 안 들어갔으면 null.</summary>
 		IWorldLink Current { get; }
 	}
@@ -46,5 +52,11 @@ namespace WitchMendokusai.Net
 
 		/// <summary>나가기 — 월드에서 로비로 돌아갈 때.</summary>
 		public static void Leave() => door?.Leave();
+
+		/// <summary>내 안의 세계를 지울 수 있나. 문이 안 섰으면 던짐.</summary>
+		public static bool CanResetSolo => door.CanResetSolo;
+
+		/// <summary>내 안의 세계를 지움. 문이 안 섰으면 못 지운 것이라 조용히 넘기지 않고 던짐.</summary>
+		public static void ResetSolo() => door.ResetSolo();
 	}
 }

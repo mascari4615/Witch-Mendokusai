@@ -19,10 +19,10 @@ MonoBehaviour:
   <WindupTelegraph>k__BackingField: {fileID: 0}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
-  <GroupAttack>k__BackingField: {fileID: 11400000, guid: 591a2414085b4a94af4e6270c75f6eac, type: 2}
+  <GroupAttack>k__BackingField: {fileID: 11400000, guid: d747fcba6c3e4b76900644c7e414786c, type: 2}
   <PackSize>k__BackingField: 99
   <PackRadius>k__BackingField: 5
   <CountInterval>k__BackingField: 0.5
   <LureDistance>k__BackingField: 4
   <LureBand>k__BackingField: 0.8
-  <SoloAttack>k__BackingField: {fileID: 11400000, guid: 591a2414085b4a94af4e6270c75f6eac, type: 2}
+  <SoloAttack>k__BackingField: {fileID: 11400000, guid: d747fcba6c3e4b76900644c7e414786c, type: 2}

@@ -40,6 +40,6 @@ MonoBehaviour:
     <Percentage>k__BackingField: 1
   - <DataSO>k__BackingField: {fileID: 11400000, guid: fa1e42f560679c74eb12d34c2b39de1f, type: 2}
     <Percentage>k__BackingField: 0.5
-  <Attack>k__BackingField: {fileID: 11400000, guid: a75a05af85944754b7c374ccf4ad217c, type: 2}
+  <Attack>k__BackingField: {fileID: 11400000, guid: 4cf3f756f8af4d42ac6b1276775cc50f, type: 2}
   <Remains>k__BackingField: {fileID: 11400000, guid: e9009759b03fea140b38dce86c34a3a0, type: 2}
   <KeepsTintAsElite>k__BackingField: 1

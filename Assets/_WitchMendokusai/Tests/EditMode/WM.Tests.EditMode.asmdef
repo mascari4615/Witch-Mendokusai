@@ -3,6 +3,7 @@
     "rootNamespace": "WitchMendokusai.Tests",
     "references": [
         "WM.Tests.Portable",
+        "MessagePipe",
         "Unity.Cinemachine",
         "WM.Foundation",
         "WitchMendokusai.DomainSDK.Building",
@@ -38,6 +39,7 @@
         "WM.Editor",
         "WM.Presentation",
         "WM.Idle",
+        "WM.Network",
         "WitchMendokusai.DomainSDK.Alchemy",
         "WitchMendokusai.DomainSDK.Item",
         "WitchMendokusai.DomainSDK.WorldSim",

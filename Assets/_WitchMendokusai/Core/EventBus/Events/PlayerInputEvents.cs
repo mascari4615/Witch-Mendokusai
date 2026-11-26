@@ -8,6 +8,11 @@ namespace WitchMendokusai
 	{
 	}
 
+	/// <summary> 직접 누르는 큰 포화 </summary>
+	public struct PlayerBarrageRequestedEvent
+	{
+	}
+
 	public struct PlayerSkillUseRequestedEvent
 	{
 		public int SkillIndex;

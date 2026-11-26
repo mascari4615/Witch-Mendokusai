@@ -28,6 +28,7 @@
     <PackageReference Include="NUnit" Version="3.14.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,10 +37,15 @@
 
   <!-- 진짜 시험 파일 (복사 X) -->
   <ItemGroup>
+    <Compile Include="$(TestsRoot)Aspect/AspectPuzzleBookFile.cs" />
+    <Compile Include="$(TestsRoot)Aspect/BoardArrowsTests.cs" />
+    <Compile Include="$(TestsRoot)Aspect/HexPaperTests.cs" />
+    <Compile Include="$(TestsRoot)Aspect/TurnBoardTests.cs" />
     <Compile Include="$(TestsRoot)DiscoveryUnlocksTest.cs" />
     <Compile Include="$(TestsRoot)DiscoveryTiersTest.cs" />
     <Compile Include="$(TestsRoot)DiscoveryStagesTest.cs" />
     <Compile Include="$(TestsRoot)MonsterLogBookTest.cs" />
+    <Compile Include="$(TestsRoot)Quest/RuntimeQuestListeningTest.cs" />
     <Compile Include="$(TestsRoot)Idle/IdleDollDiscoveryTests.cs" />
     <Compile Include="$(TestsRoot)BuildingProductionModelTest.cs" />
     <Compile Include="$(TestsRoot)CityEconomyTest.cs" />

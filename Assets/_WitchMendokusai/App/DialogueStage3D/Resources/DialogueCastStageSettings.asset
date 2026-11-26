@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96aefd9c7b5e458eaeafa2261f718b5b, type: 3}
+  m_Name: DialogueCastStageSettings
+  m_EditorClassIdentifier:
+  <Cast>k__BackingField:
+  - <Name>k__BackingField: 욘
+    <Prefab>k__BackingField: {fileID: 919132149155446097, guid: 8403658c3298ac34db76445e300408d8, type: 3}
+    <Materials>k__BackingField: []
+    <HeightScale>k__BackingField: 1
+  - <Name>k__BackingField: 링
+    <Prefab>k__BackingField: {fileID: 919132149155446097, guid: bcf214c0056d4a9a9ea709c029d74a42, type: 3}
+    <Materials>k__BackingField: []
+    <HeightScale>k__BackingField: 1
+  <FallbackPrefab>k__BackingField: {fileID: 919132149155446097, guid: bc6bb9f63573eff468de7d395b5e9126, type: 3}
+  <ActorHeight>k__BackingField: 1.45
+  <SlotSpacing>k__BackingField: 1.1
+  <FacingTowardCamera>k__BackingField: 0.35
+  <MoveSeconds>k__BackingField: 0.45
+  <IdleClip>k__BackingField: {fileID: 7994627924475153551, guid: 4e7bbcd45e4321d428d41a41fbff4425, type: 3}
+  <TalkClip>k__BackingField: {fileID: 6476497563760123848, guid: 4e7bbcd45e4321d428d41a41fbff4425, type: 3}
+  <Gestures>k__BackingField:
+  - <Name>k__BackingField: 놀람
+    <Clip>k__BackingField: {fileID: -245273357908900549, guid: 4e7bbcd45e4321d428d41a41fbff4425, type: 3}
+  - <Name>k__BackingField: 점프
+    <Clip>k__BackingField: {fileID: -1862932125039169580, guid: 4e7bbcd45e4321d428d41a41fbff4425, type: 3}
+  - <Name>k__BackingField: 마법
+    <Clip>k__BackingField: {fileID: -5255406209399062677, guid: 4e7bbcd45e4321d428d41a41fbff4425, type: 3}
+  - <Name>k__BackingField: 상호작용
+    <Clip>k__BackingField: {fileID: -2328835098782832033, guid: 4e7bbcd45e4321d428d41a41fbff4425, type: 3}
+  - <Name>k__BackingField: 춤
+    <Clip>k__BackingField: {fileID: 8800687838965813479, guid: 4e7bbcd45e4321d428d41a41fbff4425, type: 3}
+  - <Name>k__BackingField: 아픔
+    <Clip>k__BackingField: {fileID: -8534173349268677819, guid: 4e7bbcd45e4321d428d41a41fbff4425, type: 3}
+  - <Name>k__BackingField: 줍기
+    <Clip>k__BackingField: {fileID: 2857599376137209812, guid: 4e7bbcd45e4321d428d41a41fbff4425, type: 3}
+  <HopGesture>k__BackingField: 점프
+  <ShakeGesture>k__BackingField: 놀람
+  <CrossFadeSeconds>k__BackingField: 0.25
+  <TalkSecondsPerCharacter>k__BackingField: 0.07
+  <TalkMinSeconds>k__BackingField: 1.2
+  <TalkMaxSeconds>k__BackingField: 6
+  <NodDegrees>k__BackingField: 14
+  <NodSeconds>k__BackingField: 0.55
+  <BobHeight>k__BackingField: 0.06
+  <BobSeconds>k__BackingField: 0.4
+  <Wide>k__BackingField:
+    <Distance>k__BackingField: 3.6
+    <Height>k__BackingField: 0.1
+    <LookHeight>k__BackingField: -0.5
+    <FieldOfView>k__BackingField: 38
+    <BodyFraction>k__BackingField: 0
+  <Medium>k__BackingField:
+    <Distance>k__BackingField: 2
+    <Height>k__BackingField: 0
+    <LookHeight>k__BackingField: -0.12
+    <FieldOfView>k__BackingField: 28
+    <BodyFraction>k__BackingField: 0.48
+  <Close>k__BackingField:
+    <Distance>k__BackingField: 1.2
+    <Height>k__BackingField: 0.02
+    <LookHeight>k__BackingField: 0.02
+    <FieldOfView>k__BackingField: 24
+    <BodyFraction>k__BackingField: 0.26
+  <ScreenBottomReserve>k__BackingField: 0.3
+  <FrameMargin>k__BackingField: 1.1
+  <SpriteFrameScale>k__BackingField: 1.7
+  <WideTurnStep>k__BackingField: 15
+  <WideTurnMax>k__BackingField: 45
+  <ShoulderSide>k__BackingField: 0.85
+  <ShoulderBack>k__BackingField: 1.1
+  <MinCameraFront>k__BackingField: 0.4
+  <PushSpeed>k__BackingField: 0.03
+  <PushMax>k__BackingField: 0.25
+  <CameraDepth>k__BackingField: 100
+  <CameraNearClip>k__BackingField: 0.05
+  <CameraFarClip>k__BackingField: 60
+  <WorldEnterSeconds>k__BackingField: 0.6
+  <WorldReturnSeconds>k__BackingField: 0.6
+  <OcclusionPadding>k__BackingField: 0.2
+  <OverShoulderDepthMargin>k__BackingField: 0.4
+  <WorldWideRaise>k__BackingField: 1.3
+  <SpriteHeadFromTop>k__BackingField: 0.15
+  <SpriteMinStandingHeight>k__BackingField: 0.3
+  <StageOrigin>k__BackingField: {x: 0, y: -2000, z: 0}
+  <ContentLayer>k__BackingField: 31
+  <Background>k__BackingField: {r: 0.62, g: 0.7, b: 0.78, a: 1}
+  <FloorColor>k__BackingField: {r: 0.82, g: 0.8, b: 0.74, a: 1}
+  <FloorSize>k__BackingField: 3
+  <KeyLightAngles>k__BackingField: {x: 35, y: 160, z: 0}
+  <KeyLightIntensity>k__BackingField: 1.1
+  <KeyLightColor>k__BackingField: {r: 1, g: 0.96, b: 0.9, a: 1}
+  <FillLightIntensity>k__BackingField: 0.45

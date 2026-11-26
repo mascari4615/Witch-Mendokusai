@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc7679b26e844d7ca7702501cc5d6d13, type: 3}
+  m_Name: Lob_StoneBaby
+  m_EditorClassIdentifier:
+  previewRadius: 1
+  previewLength: 7
+  previewWidth: 1
+  previewTitle: ""
+  previewSubtitle: ""
+  flySprites:
+  - {fileID: 21300000, guid: f7865d23b5ba42ce8616b3d803973425, type: 3}
+  flyFps: 10
+  landedSprite: {fileID: 21300000, guid: 11fa65c3fb0a4132bde20baaa3b70cfe, type: 3}
+  swellSprite: {fileID: 21300000, guid: 11fa65c3fb0a4132bde20baaa3b70cfe, type: 3}
+  material: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
+  launchHeight: 1.6
+  arcHeight: 3.2
+  fuseSeconds: 0
+  lingerSeconds: 0.06
+  scale: 1
+  swellScale: 1.15
+  landPuff: {fileID: 11400000, guid: b832db029b7047c2aac2750d04cba40c, type: 2}
+  maxFlySeconds: 0.6
+  standSprite: {fileID: 21300000, guid: 11fa65c3fb0a4132bde20baaa3b70cfe, type: 3}
+  coolSprite: {fileID: 0}
+  hotTint: {r: 1, g: 1, b: 1, a: 1}
+  coolTint: {r: 1, g: 1, b: 1, a: 1}

@@ -11,6 +11,8 @@ namespace WitchMendokusai
 		private bool holdsPull;
 		private Action stopZone;
 		private Action stopCore;
+		private Action stopInhale;
+		private Action uncrack;
 
 		public BT_PullZone(UnitObject unitObject, PlayerProvider playerProvider, PullMonsterAttack attack) : base(unitObject, playerProvider, attack)
 		{
@@ -30,6 +32,9 @@ namespace WitchMendokusai
 		{
 			stopZone = Play(attack.WindupTelegraph, attack.Radius, attack.PullSeconds);
 			nextCoreHitTime = Time.time;
+			stopInhale = Play(attack.StrikeFx, attack.Radius, attack.PullSeconds);
+			if (attack.CracksLinger)
+				uncrack = LingerField.Instance.CrackAround(unitObject, attack.Radius, Time.time + attack.CrackDelaySeconds, attack.CrackSpeed);
 		}
 
 		protected override void OnStanceTick()
@@ -60,9 +65,13 @@ namespace WitchMendokusai
 			{
 				stopZone?.Invoke();
 				stopCore?.Invoke();
+				stopInhale?.Invoke();
+				uncrack?.Invoke();
 			}
 			stopZone = null;
 			stopCore = null;
+			stopInhale = null;
+			uncrack = null;
 			if (holdsPull == false)
 				return;
 			holdsPull = false;

@@ -1,16 +1,18 @@
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace WitchMendokusai
 {
 	/// <summary>
 	/// 도감 격자의 카드 하나. 업적 카드와 같은 칸 (wm-ach-card) 에 그림, 이름, 기록 마름모, 아래 한 줄.
-	/// 못 만난 것은 검은 실루엣과 ???, 새 기록은 왼쪽 위 NEW, 다 채우면 금테
+	/// 못 만난 것은 검은 실루엣과 ???, 새 기록은 왼쪽 위 NEW, 다 채우면 금테와 오른쪽 위 도장
 	/// </summary>
 	public class DiscoveryScreenCard : Button
 	{
 		public const string HIDDEN_NAME = "???";
 		private const string USS_LOCKED = "wm-discovery-tile--locked";
 		private const string USS_COMPLETE = "wm-discovery-tile--complete";
+		private const string USS_STAMP = "wm-discovery-stamp wm-discovery-stamp--card";
 
 		public EntryDescriptor Entry { get; }
 
@@ -47,6 +49,15 @@ namespace WitchMendokusai
 			line.text = record.Line;
 			news.style.display = record.HasNews ? DisplayStyle.Flex : DisplayStyle.None;
 			EnableInClassList(USS_COMPLETE, record.IsComplete);
+		}
+
+		/// <summary>다 채운 칸에만 찍음</summary>
+		public void AddStamp(RenderTexture texture) => ShowStamp(AchievementElements.Part(this, USS_STAMP), texture);
+
+		/// <summary>도장 하나를 보이거나, null 이면 숨김. 한 종의 장도 같이 씀</summary>
+		public static void ShowStamp(VisualElement stamp, RenderTexture texture)
+		{
+			stamp.style.backgroundImage = texture != null ? new StyleBackground(Background.FromRenderTexture(texture)) : new StyleBackground(StyleKeyword.None);
 		}
 
 		/// <summary>기록 칸 마름모. 채운 칸은 보라, 다 채우면 모두 금색. 한 종의 장과 띠도 같이 씀</summary>

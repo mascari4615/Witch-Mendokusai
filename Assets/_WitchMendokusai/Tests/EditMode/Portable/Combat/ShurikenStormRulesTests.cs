@@ -52,6 +52,23 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void ScatterHoversAtFarEndBeforeReturning()
+		{
+			const float HOVER = 0.2f;
+			float seconds = ShurikenStormRules.ScatterSeconds(STORM, FAR, OUT, RETURN, HOVER);
+			Assert.AreEqual(ShurikenStormRules.ScatterSeconds(STORM, FAR, OUT, RETURN) + HOVER, seconds, 0.0001f);
+			Assert.AreEqual(FAR, ShurikenStormRules.ScatterRadius(OUT + HOVER * 0.5f, STORM, FAR, OUT, RETURN, HOVER), 0.0001f);
+			Assert.AreEqual(FAR - 0.1f * RETURN, ShurikenStormRules.ScatterRadius(OUT + HOVER + 0.1f, STORM, FAR, OUT, RETURN, HOVER), 0.001f);
+			Assert.AreEqual(STORM, ShurikenStormRules.ScatterRadius(seconds, STORM, FAR, OUT, RETURN, HOVER), 0.0001f);
+			Assert.IsFalse(ShurikenStormRules.IsHovering(OUT - 0.01f, STORM, FAR, OUT, HOVER));
+			Assert.IsTrue(ShurikenStormRules.IsHovering(OUT + 0.01f, STORM, FAR, OUT, HOVER));
+			Assert.IsFalse(ShurikenStormRules.IsHovering(OUT + HOVER + 0.01f, STORM, FAR, OUT, HOVER));
+			Assert.IsTrue(ShurikenStormRules.IsOutgoing(0.01f, STORM, FAR, OUT, HOVER));
+			Assert.IsFalse(ShurikenStormRules.IsOutgoing(OUT + HOVER + 0.01f, STORM, FAR, OUT, HOVER));
+			Assert.IsFalse(ShurikenStormRules.IsHovering(OUT + 0.01f, FAR, FAR, OUT, HOVER), "안 나가는 폭풍은 안 달아오름");
+		}
+
+		[Test]
 		public void ScatterEdgeValues()
 		{
 			Assert.AreEqual(0f, ShurikenStormRules.ScatterSeconds(3.5f, 3f, OUT, RETURN), 0.0001f);

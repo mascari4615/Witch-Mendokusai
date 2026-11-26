@@ -184,6 +184,8 @@ namespace WitchMendokusai
 			DevCommandRegistry.Instance.Register(new StartDungeonCommand());
 			DevCommandRegistry.Instance.Register(new UnlockQuestCommand());
 			DevCommandRegistry.Instance.Register(new DialogueStageSampleCommand());
+			DevCommandRegistry.Instance.Register(new DialogueSceneSampleCommand());
+			DevCommandRegistry.Instance.Register(new DialogueWorldSampleCommand());
 			DevCommandRegistry.Instance.Register(new FxCommand());
 			DevCommandRegistry.Instance.Register(new StatusCommand());
 			DevCommandRegistry.Instance.Register(new DropCommand());
@@ -201,6 +203,8 @@ namespace WitchMendokusai
 			DevCommandRegistry.Instance.Register(new ThreatCommand());
 			DevCommandRegistry.Instance.Register(new RevealCommand());
 			DevCommandRegistry.Instance.Register(new HomesteadDevCommand());
+			DevCommandRegistry.Instance.Register(new SignatureCardCommand());
+			DevCommandRegistry.Instance.Register(new BarrageCommand());
 
 			if (DevModeRegistry.Instance.FindById("console") == null)
 				DevModeRegistry.Instance.Register(new ConsoleMode());

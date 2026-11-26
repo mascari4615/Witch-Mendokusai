@@ -15,6 +15,7 @@ namespace WitchMendokusai
 		private Coroutine coroutine;
 
 		private DataManager dataManager;
+		private GameStat subscribedStat;
 
 		[Inject]
 		public void Construct(DataManager dataManager)
@@ -25,9 +26,13 @@ namespace WitchMendokusai
 		private void Start()
 		{
 			text.text = "0냥";
-			dataManager.GameStat.AddListener(GameStatType.NYANG, UpdateNyang);
+			subscribedStat = dataManager.GameStat;
+			subscribedStat.AddListener(GameStatType.NYANG, UpdateNyang);
 			UpdateNyang();
 		}
+
+		// 통계는 씬보다 오래 삶. 안 풀면 사라진 화면이 냥 변경을 계속 들음
+		private void OnDestroy() => subscribedStat?.RemoveListener(GameStatType.NYANG, UpdateNyang);
 
 		private void UpdateNyang()
 		{

@@ -343,6 +343,7 @@ GameObject:
   - component: {fileID: 5896939421359804131}
   - component: {fileID: 1645866962905614981}
   - component: {fileID: 4471920365518834627}
+  - component: {fileID: 7260334418205517733}
   m_Layer: 0
   m_Name: Volley
   m_TagString: Untagged
@@ -380,7 +381,7 @@ MonoBehaviour:
   gaugeSize: 120
   normalCharge: 1
   strongCharge: 3
-  minIntervalSeconds: 6
+  minIntervalSeconds: 4.4
   shotPrefab: {fileID: 8891603708961370830, guid: 6f133cf6a0ac4050886de5036cb78f17, type: 3}
   homingShotPrefab: {fileID: 8891603708961370830, guid: 006cfd3bdb074582b7eaabbdea03d0b3, type: 3}
   homingPercent: 25
@@ -392,7 +393,18 @@ MonoBehaviour:
   shotsPerWeapon: 2
   fanDegrees: 50
   focusFanDegrees: 20
-  burstSeconds: 1
+  burstSeconds: 2.6
+  burstAcceleration: 1.15
+  focusOnAimPoint: 1
+  barrageEnabled: 1
+  barrageView:
+    <Distance>k__BackingField: 5.6
+    <Pitch>k__BackingField: 17
+    <FieldOfView>k__BackingField: 62
+    <TargetOffset>k__BackingField: {x: 0, y: 0.9, z: 0}
+    <FollowDamping>k__BackingField: {x: 0.12, y: 0.2, z: 0.12}
+    <BlendTime>k__BackingField: 0.18
+  barrageBackHead: {fileID: 21300000, guid: 6b1c0e7f52d84a1c9e3d7f408a25cb31, type: 3}
   splitGapSeconds: 0.4
   weaponSpread: 1.2
   splitPercent: 60
@@ -421,6 +433,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.VolleyArsenal
   art: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
+  raiseSeconds: 0.45
+  holdSeconds: 0.5
+  formation: 1
+  armsModel: {fileID: 7260334418205517733}
 --- !u!114 &5518027364091727732
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -433,9 +449,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e396b0b6ee1443da24331fefd3cad2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.HeldWeapon
+  arsenal: {fileID: 4471920365518834627}
   shape: 0
   handOffset: {x: 0.3, y: 0.25}
   kickSpawners:
   - {fileID: 7377987611665135407}
   - {fileID: 3394973536089151867}
   art: {fileID: 11400000, guid: 06cff1a1848847afaac4e10b08838baf, type: 2}
+--- !u!114 &7260334418205517733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5687485566707264102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d0c3f1e8ab94c0f9d2f4a7b61e83c52, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.VolleyArmsModel
+  solidShader: {fileID: 4800000, guid: ffcdeff22cb14f2e8a5a20276529c2e2, type: 3}
+  energyShader: {fileID: 4800000, guid: e61a4233b9a045cb973c5198ac7a5f17, type: 3}
+  ribbonShader: {fileID: 4800000, guid: 89815181421a4de99eb3b3ef07d2abef, type: 3}

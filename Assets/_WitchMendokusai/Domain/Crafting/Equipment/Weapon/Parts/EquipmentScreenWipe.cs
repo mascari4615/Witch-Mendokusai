@@ -81,6 +81,8 @@ namespace WitchMendokusai
 				effect.SetActive(true);
 			}
 
+			// 몬스터 탄막의 탄도 같은 반경에서 걷음
+			VolleyField.ClearWithin(origin, radius);
 			targets.Clear();
 			targets.AddRange(ObjectBufferManager.GetObjects(ObjectType.Monster));
 			float radiusSquared = radius * radius;

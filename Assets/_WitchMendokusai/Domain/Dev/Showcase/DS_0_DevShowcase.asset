@@ -66,6 +66,9 @@ MonoBehaviour:
   - Label: "\uCE68\uBB35"
     Statuses:
     - 9
+  - Label: "\uB099\uC778"
+    Statuses:
+    - 10
   - Label: "\uD654\uC0C1 + \uB3C5"
     Statuses:
     - 0

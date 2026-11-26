@@ -79,6 +79,7 @@ namespace WitchMendokusai
 			public float Seed;
 			public int Row;
 			public bool Pale;
+			public float Scale;
 		}
 
 		private struct Burst
@@ -299,6 +300,7 @@ namespace WitchMendokusai
 					Seed = Random.value,
 					Row = i % 3 == 2 ? 3 : i % 3 == 1 ? 1 : 0,
 					Pale = Random.value < 0.5f,
+					Scale = 1f,
 				});
 			}
 		}
@@ -315,7 +317,7 @@ namespace WitchMendokusai
 			float head = Mathf.Clamp01(progress * 1.6f);
 			float tail = Mathf.Clamp01((progress * 1.6f - 0.75f) / 0.85f);
 			FxQuadLook look = FxQuadLook.Of(WithAlpha(phantom.Pale ? paleTint : goldTint, 0.9f), 0.15f, Mathf.Clamp01(progress * 1.4f - 0.4f), phantom.Seed);
-			phantomBatch.AddStrip(phantom.From + span * tail, phantom.From + span * head, phantomWidth * (1f - 0.5f * progress), viewForward, PaintedFxSet.StreakRow(phantom.Row), look);
+			phantomBatch.AddStrip(phantom.From + span * tail, phantom.From + span * head, phantomWidth * phantom.Scale * (1f - 0.5f * progress), viewForward, PaintedFxSet.StreakRow(phantom.Row), look);
 			return true;
 		}
 
@@ -328,12 +330,13 @@ namespace WitchMendokusai
 				if (age >= muzzleSeconds)
 					return false;
 				Rect cell = FxQuadBatch.Cell(Frame(age / muzzleSeconds, muzzleFirstFrame), 4, 4);
-				float half = muzzleSize * 0.5f;
-				Vector3 center = burst.Position + burst.Forward * ((0.5f - art.MuzzleOrigin) * muzzleSize);
+				float size = muzzleSize * (InArms ? armMuzzleScale : 1f);
+				float half = size * 0.5f;
+				Vector3 center = burst.Position + burst.Forward * ((0.5f - art.MuzzleOrigin) * size);
 				float heat = Mathf.Pow(0.5f, age / 0.05f);
 				muzzleBatch.Add(center, burst.Forward * half, FxQuadBatch.Side(burst.Forward, viewForward) * half, cell, FxQuadLook.Of(Color.Lerp(lightTint, hotTint, heat * 0.4f), 0.8f));
 				if (heat > 0.05f)
-					Billboard(flashSoft, burst.Position, 0.6f, 0f, FxQuadLook.Of(Scale(goldTint, heat * 0.25f)));
+					Billboard(flashSoft, burst.Position, size * 0.3f, 0f, FxQuadLook.Of(Scale(goldTint, heat * 0.25f)));
 				return true;
 			}
 			if (age < impactSeconds)

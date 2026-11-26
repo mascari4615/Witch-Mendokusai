@@ -9,6 +9,7 @@ namespace WitchMendokusai
 	/// 바닥 예고의 공통 부분. 바닥에 눕힌 사각판 하나에 GroundTelegraph 셰이더로 모양을 그림
 	/// - 차오름: Seconds 동안 진행도 0 -> 1 (채움 곡선). 게임 시간 (판정과 맞아야 함)
 	/// - 끝: 진행도 1 이 되는 순간 번쩍이고 겉모습의 FlashSeconds 동안 사라짐
+	/// - Turn 이 있으면 매 프레임 Direction 에서 그만큼 돌림 (따라 도는 조준). 없으면 방향은 재생 시작 값으로 고정
 	/// - Follow 가 있으면 그 자리를 따라가고, Follow 가 꺼지거나 없어지면 바로 치움 (시전자 사망)
 	/// - 판은 실행기의 Rent, Return 으로 재사용. 값은 MaterialPropertyBlock (재질 에셋은 하나를 같이 씀)
 	/// 모양 (원, 띠) 은 파생 클래스, 색과 굵기와 채움 방식은 겉모습 에셋 (TelegraphStyle) 이 정함
@@ -88,7 +89,7 @@ namespace WitchMendokusai
 		protected virtual float CornerRadius => 0f;
 
 		/// <summary> 모양 전용 셰이더 값 (원의 마법진, 띠의 화살 무늬). 매 프레임 공통 값 뒤에 부름 </summary>
-		protected abstract void ApplyShapeProperties(MaterialPropertyBlock block);
+		protected abstract void ApplyShapeProperties(MaterialPropertyBlock block, CombatFxContext context);
 
 		/// <summary> 모양의 반크기. x 는 가로 (원은 반지름), y 는 향하는 쪽 </summary>
 		protected abstract Vector2 GetShapeHalfSize(CombatFxContext context);
@@ -140,12 +141,13 @@ namespace WitchMendokusai
 				if (hasFollow && IsAlive(context.Follow) == false)
 					yield break;
 
+				centerOffset = TurnPlate(plate, context, direction, centerOffset, elapsed);
 				PlacePlate(plate, context, hasFollow, groundHeight, centerOffset);
 				float appear = style.AppearSeconds > 0f ? Mathf.Clamp01(elapsed / style.AppearSeconds) : 1f;
 				// 등장: 가장자리가 그려지면서 작은 크기에서 제 크기로 (끝이 느려지는 곡선)
 				float appearEased = 1f - (1f - appear) * (1f - appear);
 				plate.transform.localScale = Vector3.Scale(fullScale, new Vector3(Mathf.Lerp(style.AppearStartScale, 1f, appearEased), 1f, Mathf.Lerp(style.AppearStartScale, 1f, appearEased)));
-				ApplyProperties(plateRenderer, halfSize, plateSize, style.FillCurve.Evaluate(elapsed / seconds), 0f, 0f, appearEased, Mathf.Clamp01(appear * 2f));
+				ApplyProperties(plateRenderer, context, halfSize, plateSize, style.FillCurve.Evaluate(elapsed / seconds), 0f, 0f, appearEased, Mathf.Clamp01(appear * 2f));
 				yield return null;
 				elapsed += Time.deltaTime;
 			}
@@ -153,21 +155,33 @@ namespace WitchMendokusai
 			// 끝: 가득 찬 채로 번쩍이고 사라짐
 			if (style.PlaySfx)
 				CombatSfx.Play(CombatSfxEvent.TelegraphFire, GetSoundPosition(context, hasFollow));
+			float chargeSeconds = elapsed;
 			elapsed = 0f;
 			while (elapsed < style.FlashSeconds)
 			{
 				if (hasFollow && IsAlive(context.Follow) == false)
 					yield break;
 
+				centerOffset = TurnPlate(plate, context, direction, centerOffset, chargeSeconds + elapsed);
 				PlacePlate(plate, context, hasFollow, groundHeight, centerOffset);
 				float fade = elapsed / style.FlashSeconds;
 				plate.transform.localScale = fullScale;
 				// 충격파는 처음에 빠르게 퍼지고 느려짐
 				float shock = 1f - (1f - fade) * (1f - fade);
-				ApplyProperties(plateRenderer, halfSize, plateSize, 1f, (1f - fade) * (1f - fade), shock, 1f, 1f - fade * fade);
+				ApplyProperties(plateRenderer, context, halfSize, plateSize, 1f, (1f - fade) * (1f - fade), shock, 1f, 1f - fade * fade);
 				yield return null;
 				elapsed += Time.deltaTime;
 			}
+		}
+
+		// 도는 예고만 판을 돌리고 중심 거리도 다시 잼. 안 돌면 받은 값 그대로
+		private Vector3 TurnPlate(GameObject plate, CombatFxContext context, Vector3 direction, Vector3 centerOffset, float elapsed)
+		{
+			if (context.Turn == null)
+				return centerOffset;
+			Vector3 turned = Quaternion.Euler(0f, context.Turn(elapsed), 0f) * direction;
+			plate.transform.rotation = Quaternion.LookRotation(turned, Vector3.up);
+			return GetCenterOffset(context, turned);
 		}
 
 		private static Vector3 GetSoundPosition(CombatFxContext context, bool hasFollow) => hasFollow ? context.Follow.position : context.Position;
@@ -181,7 +195,7 @@ namespace WitchMendokusai
 			plate.transform.position = origin + centerOffset;
 		}
 
-		private void ApplyProperties(MeshRenderer plateRenderer, Vector2 halfSize, Vector2 plateSize, float progress, float flash, float shock, float appear, float alpha)
+		private void ApplyProperties(MeshRenderer plateRenderer, CombatFxContext context, Vector2 halfSize, Vector2 plateSize, float progress, float flash, float shock, float appear, float alpha)
 		{
 			propertyBlock ??= new MaterialPropertyBlock();
 			propertyBlock.SetFloat(ShapeId, ShapeValue);
@@ -228,7 +242,7 @@ namespace WitchMendokusai
 			propertyBlock.SetFloat(AlphaId, alpha);
 			propertyBlock.SetVector(PlateSizeId, plateSize);
 			propertyBlock.SetVector(ShapeHalfSizeId, halfSize);
-			ApplyShapeProperties(propertyBlock);
+			ApplyShapeProperties(propertyBlock, context);
 			plateRenderer.SetPropertyBlock(propertyBlock);
 		}
 

@@ -52,7 +52,10 @@ namespace WitchMendokusai
 			MonsterBuffer.Clear();
 			List<GameObject> monsters = ObjectBufferManager.GetObjects(ObjectType.Monster);
 			for (int i = 0; i < monsters.Count; i++)
-				MonsterBuffer.Add(monsters[i].transform.position);
+			{
+				if (MonsterObject.IsHiddenMonster(monsters[i]) == false)
+					MonsterBuffer.Add(monsters[i].transform.position);
+			}
 			bool found = TryFindDensest(MonsterBuffer, origin, range, clusterRadius, minCount, out point, out count);
 			MonsterBuffer.Clear();
 			return found;

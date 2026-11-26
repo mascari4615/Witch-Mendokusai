@@ -10,6 +10,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("침식과 왜곡 잡음 (R 덩어리, G 가닥)")] public Texture2D Noise { get; private set; }
 		[field: Header("무기")]
 		[field: SerializeField, Tooltip("손에 든 빛 광석 총. 한 칸이 월드의 32분의 1, 총구가 오른쪽")] public Texture2D Gun { get; private set; }
+		[field: SerializeField, Tooltip("일제 사격에서 몸에 붙는 큰 총. 세로 가운데가 총신")] public Texture2D BigGun { get; private set; }
 		[field: SerializeField, Tooltip("알리사 완드. 마법봉이 아니라 직사각형의 빛나는 광석 총 (정본 memo wm/systems/signature-weapon.md 완드의 뜻). 총구가 오른쪽인 옆모습")] public Texture2D[] Wands { get; private set; }
 		[field: Header("빛")]
 		[field: SerializeField, Tooltip("가로 줄기 네 줄 (위부터 바늘, 꼬인 띠, 붓, 연기)")] public Texture2D Streaks { get; private set; }

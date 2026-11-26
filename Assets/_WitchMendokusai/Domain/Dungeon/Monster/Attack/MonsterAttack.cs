@@ -24,8 +24,20 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("숨 고르기 동안 발밑 표시 (반격 창). 비우면 없음")] public CombatFx RecoveryFx { get; private set; }
 		[field: SerializeField, Tooltip("반격 창 반지름 (m)"), Min(0.1f)] public float RecoveryFxRadius { get; private set; } = 2f;
 
+		[field: Header("몸과 물체")]
+		[field: SerializeField] public AttackPose Pose { get; private set; } = new();
+		[field: SerializeField, Tooltip("예고 동안 나타나는 물체 (날아오는 것, 땅에서 돋는 것). 때리는 자리마다 하나, Seconds 가 때리는 순간")] public CombatFx WindupFx { get; private set; }
+		[field: SerializeField, Tooltip("때리는 순간 이펙트. 빗나가도 나옴. 때리는 자리마다 하나")] public CombatFx StrikeFx { get; private set; }
+
+		// 이 종류의 행동이 실제로 재생하는가. 안 하면 끼웠을 때 검사가 알림
+		protected virtual bool PlaysWindupFx => false;
+		protected virtual bool PlaysStrikeFx => false;
+
 		// 이 공격을 돌릴 행동 트리. 몬스터가 켜질 때마다 새로
 		public abstract BTRunner CreateBehaviour(UnitObject unitObject, PlayerProvider playerProvider);
+
+		// 기다려도 시작할 수 없음 (이을 물체가 없음). 순서가 바로 다음으로 넘어감
+		public virtual bool IsPointless(UnitObject unitObject) => false;
 
 		// 행동이 도중에 끊길 때 (사망, 풀 반납, 패턴 이동, 재배치). 예고 정리
 		public abstract void Interrupt(BTRunner behaviour);
@@ -44,6 +56,13 @@ namespace WitchMendokusai
 			});
 		}
 
+		// 몸동작. 자세가 비었으면 몸에 아무것도 안 붙임
+		public void PlayWindupPose(UnitObject unitObject, float seconds)
+		{
+			if (Pose.IsEmpty == false)
+				MonsterPoseDriver.Of(unitObject).Windup(Pose, seconds);
+		}
+
 		// owner 는 이 공격을 낀 몬스터 자산
 		public virtual void Validate(Monster owner, List<string> errors)
 		{
@@ -51,13 +70,20 @@ namespace WitchMendokusai
 				errors.Add($"{name}: 예고 초 {WindupSeconds} 인데 {nameof(WindupTelegraph)} 비어 있음");
 			if (RecoveryFx != null && RecoverySeconds <= 0f)
 				errors.Add($"{name}: 반격 창 표시가 있는데 숨 고르기 초가 0");
+			if ((WindupFx != null && PlaysWindupFx == false) || (StrikeFx != null && PlaysStrikeFx == false))
+				errors.Add($"{name}: {KindName} 은 이 물체나 타격 이펙트를 재생하지 않음");
+			if (WindupFx != null && WindupSeconds <= 0f)
+				errors.Add($"{name}: 예고 물체가 있는데 예고 초가 0");
+			// 애니메이터가 도는 몸은 매 프레임 그림을 덮음
+			if (Pose.HasSprite && (owner.Sprites == null || owner.Sprites.Count == 0))
+				errors.Add($"{name}: 자세 그림이 있는데 {owner.name} 이 애니메이터 몸 ({nameof(owner.Sprites)} 비어 있음)");
 			// 공격을 돌리는 것은 FSMSlime 뿐. 다른 UnitBrain 프리팹이면 공격 없이 추적만 함
 			if (owner.Prefab == null || owner.Prefab.GetComponent<FSMSlime>() == null)
 				errors.Add($"{owner.name}: 공격 {name} 을 돌릴 {nameof(FSMSlime)} 이 프리팹에 없음");
 		}
 
 		// 공격 피해 한 건. 시간 상승, 적 피해 %, 위협 배율은 다른 적 피해와 같은 길 (DamagingObject.ScaleEnemyDamage)
-		protected static DamageInfo MakeDamage(UnitObject source, int baseDamage) => new()
+		public static DamageInfo MakeDamage(UnitObject source, int baseDamage) => new()
 		{
 			type = DamageType.Normal,
 			damage = DamagingObject.ScaleEnemyDamage(baseDamage, source),

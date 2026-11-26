@@ -24,6 +24,7 @@
         "WM.ViewModel",
         "WitchMendokusai.DomainSDK.Act",
         "WitchMendokusai.DomainSDK.Alchemy",
+        "WitchMendokusai.DomainSDK.Aspect",
         "WitchMendokusai.DomainSDK.Building",
         "WitchMendokusai.DomainSDK.Care",
         "WitchMendokusai.DomainSDK.City",

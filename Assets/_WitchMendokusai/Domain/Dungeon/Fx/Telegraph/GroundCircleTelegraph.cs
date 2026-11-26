@@ -5,11 +5,14 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 원형 바닥 예고. Position (또는 Follow) 이 중심, Radius 가 반지름. 중심에서 바깥으로 차오름
 	/// 안쪽에 천천히 도는 마법진 무늬 (안쪽 고리, 룬 획, 별 다각형)
+	/// InnerRadius 가 있으면 안이 빈 고리, ArcDegrees 가 있으면 Direction 쪽 부채
 	/// 안쪽 화살을 켜면 마법진 대신 중심으로 흐르는 V 화살 (끌어당김 범위)
 	/// </summary>
 	[CreateAssetMenu(fileName = "Telegraph_0_Circle", menuName = "WM/CombatFx/" + nameof(GroundCircleTelegraph))]
 	public class GroundCircleTelegraph : GroundTelegraph
 	{
+		private static readonly int InnerRadiusId = Shader.PropertyToID("_InnerRadius");
+		private static readonly int HalfArcId = Shader.PropertyToID("_HalfArc");
 		private static readonly int InnerRingInsetId = Shader.PropertyToID("_InnerRingInset");
 		private static readonly int InnerRingWidthId = Shader.PropertyToID("_InnerRingWidth");
 		private static readonly int PatternLineWidthId = Shader.PropertyToID("_PatternLineWidth");
@@ -67,11 +70,17 @@ namespace WitchMendokusai
 
 		protected override Vector3 GetCenterOffset(CombatFxContext context, Vector3 direction) => Vector3.zero;
 
-		// 원은 방향이 없음
-		protected override Vector3 ResolveDirection(CombatFxContext context) => Vector3.forward;
+		private static bool IsArc(CombatFxContext context) => context.ArcDegrees > 0f && context.ArcDegrees < 360f;
 
-		protected override void ApplyShapeProperties(MaterialPropertyBlock block)
+		// 온전한 원은 방향이 없음
+		protected override Vector3 ResolveDirection(CombatFxContext context) =>
+			IsArc(context) ? new Vector3(context.Direction.x, 0f, context.Direction.z).normalized : Vector3.forward;
+
+		protected override void ApplyShapeProperties(MaterialPropertyBlock block, CombatFxContext context)
 		{
+			block.SetFloat(InnerRadiusId, context.InnerRadius);
+			// 반 바퀴보다 크면 잘라내는 변이 없음
+			block.SetFloat(HalfArcId, IsArc(context) ? context.ArcDegrees * 0.5f * Mathf.Deg2Rad : Mathf.PI * 2f);
 			block.SetFloat(InnerRingInsetId, innerRingInset);
 			block.SetFloat(InnerRingWidthId, innerRingWidth);
 			block.SetFloat(PatternLineWidthId, patternLineWidth);

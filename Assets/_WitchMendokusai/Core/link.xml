@@ -28,4 +28,16 @@
     <type fullname="WitchMendokusai.SkillTreeEffectFile" preserve="all" />
     <type fullname="WitchMendokusai.SkillTreeRequireFile" preserve="all" />
   </assembly>
+  <assembly fullname="WitchMendokusai.DomainSDK.Aspect">
+    <!-- Json.NET 이 반사로 만드는 성질 놀이 자료 -->
+    <type fullname="WitchMendokusai.DomainSDK.Aspect.AspectPuzzleBook" preserve="all" />
+    <type fullname="WitchMendokusai.DomainSDK.Aspect.AspectRecipe" preserve="all" />
+    <type fullname="WitchMendokusai.DomainSDK.Aspect.HexSpot" preserve="all" />
+    <type fullname="WitchMendokusai.DomainSDK.Aspect.HexAspect" preserve="all" />
+    <type fullname="WitchMendokusai.DomainSDK.Aspect.HexPaperData" preserve="all" />
+    <type fullname="WitchMendokusai.DomainSDK.Aspect.TurnCell" preserve="all" />
+    <type fullname="WitchMendokusai.DomainSDK.Aspect.TurnDoll" preserve="all" />
+    <type fullname="WitchMendokusai.DomainSDK.Aspect.TurnRun" preserve="all" />
+    <type fullname="WitchMendokusai.DomainSDK.Aspect.TurnBoardData" preserve="all" />
+  </assembly>
 </linker>

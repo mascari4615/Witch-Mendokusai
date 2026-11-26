@@ -11,19 +11,34 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cafd0e4c9b704ab997dcc323b1334566, type: 3}
   m_Name: MA_Pull_CottonWhale
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 8
-  <WindupSeconds>k__BackingField: 1.0
-  <RecoverySeconds>k__BackingField: 0.4
+  <WindupSeconds>k__BackingField: 0.9
+  <RecoverySeconds>k__BackingField: 0.25
   <Cooldown>k__BackingField: 0
   <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 21b6bcde32c7480885ec85e59dbfbd8a, type: 2}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 21300000, guid: 054165ef207941838ce166454df03242, type: 3}
+    <Strike>k__BackingField: {fileID: 21300000, guid: 054165ef207941838ce166454df03242, type: 3}
+    <Rest>k__BackingField: {fileID: 0}
+    <Crouch>k__BackingField: -0.16
+    <Stretch>k__BackingField: 0.14
+    <StrikeSeconds>k__BackingField: 2.2
+    <StrikeLeadSeconds>k__BackingField: 0
+    <Tremble>k__BackingField: 0.06
+    <Breath>k__BackingField: 0
+  <WindupFx>k__BackingField: {fileID: 0}
+  <StrikeFx>k__BackingField: {fileID: 11400000, guid: 71115b367140432c8d9b74709c4e141f, type: 2}
   <Radius>k__BackingField: 8
-  <PullSeconds>k__BackingField: 1.8
-  <SpeedRatio>k__BackingField: 0.75
-  <CoreRadius>k__BackingField: 1.6
+  <PullSeconds>k__BackingField: 2.2
+  <SpeedRatio>k__BackingField: 0.72
+  <CoreRadius>k__BackingField: 1.7
   <CoreTelegraph>k__BackingField: {fileID: 11400000, guid: fb85769a4b1c42d78fc107c2b728451c, type: 2}
   <CoreDamage>k__BackingField: 3
   <CoreInterval>k__BackingField: 0.8
   <HoldSeconds>k__BackingField: 0.25
+  <CracksLinger>k__BackingField: 1
+  <CrackDelaySeconds>k__BackingField: 0.8
+  <CrackSpeed>k__BackingField: 6

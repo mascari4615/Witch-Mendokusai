@@ -23,6 +23,7 @@ Shader "WM/Fx/Painted"
 		Tags { "Queue"="Transparent" "RenderType"="Transparent" "RenderPipeline"="UniversalPipeline" "IgnoreProjector"="True" }
 		Pass
 		{
+			Name "PAINTED"
 			Tags { "LightMode"="SRPDefaultUnlit" }
 			Blend One OneMinusSrcAlpha
 			ZWrite Off

@@ -83,6 +83,9 @@ namespace WitchMendokusai
 			// 남은 문을 한꺼번에 닫음
 			foreach (Weapon weapon in weapons)
 				weapon.BreakTime = Mathf.Min(weapon.BreakTime, Time.time + closeSpread * Mathf.Repeat(weapon.Phase, 1f));
+			// 몸에 붙은 무장은 막타 빛줄기까지 남고 그 순간 크게 밀림
+			if (InArms)
+				armsModel.Dismiss(grandDelay - heroFlySeconds, armLinger);
 			CameraManager.Instance.GenerateCameraImpulse(finaleShake);
 		}
 
@@ -134,7 +137,7 @@ namespace WitchMendokusai
 				return;
 			Vector3 aim = Aim();
 			Vector3 viewForward = viewCamera.transform.forward;
-			Vector3 gate = owner.position - aim * heroOffset.x + Vector3.up * heroOffset.y;
+			Vector3 gate = InArms ? owner.position + aim * armHeroOffset.x + Vector3.up * armHeroOffset.y : owner.position - aim * heroOffset.x + Vector3.up * heroOffset.y;
 			Vector3 target = owner.position + aim * grandDistance + Vector3.up * grandHeight;
 			Vector3 direction = (target - gate).normalized;
 			float open = Back(age / openSeconds) * (1f - closing);
@@ -143,7 +146,8 @@ namespace WitchMendokusai
 			Vector3 up = Vector3.Cross(facing, right);
 			FxQuadLook look = FxQuadLook.Of(Color.Lerp(portalTint, lightTint, 0.3f), 0.9f, Mathf.Max(1f - age / openSeconds, closing), 0.3f);
 			look.Turn = Time.time * portalSpin * 0.5f;
-			heroGate.Add(gate, right * (heroPortal * open), up * (heroPortal * open), look);
+			if (InArms == false)
+				heroGate.Add(gate, right * (heroPortal * open), up * (heroPortal * open), look);
 			float kick = flying >= 0f ? Mathf.Pow(0.5f, flying / flashHalfLife) : 0f;
 			float shown = Mathf.Clamp01(Back(age / heroEmergeSeconds) * emergeFraction * (1f - recoil * kick));
 			float gather = Mathf.Clamp01(sinceFinale / Mathf.Max(0.01f, launch));

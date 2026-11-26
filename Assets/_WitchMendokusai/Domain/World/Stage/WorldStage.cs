@@ -71,6 +71,8 @@ namespace WitchMendokusai
 			{
 				PowerSourceRegistry.Load(saveData.PowerSourceSaveData);
 			}
+
+			LoadFarm(saveData.FarmSaveData);
 		}
 
 		public WorldStageSaveData Save()
@@ -93,6 +95,16 @@ namespace WitchMendokusai
 			Farm = new Greenhouse();
 		}
 
+		// 옛 세이브엔 밭 부재 (null). FarmPersistence 가 건너뜀
+		private void LoadFarm(FarmSaveData farmSaveData)
+		{
+			int skippedCount = FarmPersistence.Load(Farm, farmSaveData, WorldMinutesNow(), RealUnixSecondsNow(), RealSecondsPerGrowthMinute, GrowthParamsOf);
+			if (skippedCount > 0)
+			{
+				Debug.LogWarning($"[{nameof(WorldStage)}] {name}: 세이브의 밭 {skippedCount}칸을 되살리지 못함 (이 빌드에 없는 작물이거나 겹친 칸)");
+			}
+		}
+
 		private static long WorldMinutesNow()
 		{
 			if (WorldClock.TryGetExistingInstance(out WorldClock clock) == false || clock.Config == null)
@@ -106,11 +118,15 @@ namespace WitchMendokusai
 
 		private static long RealUnixSecondsNow() => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-		// 성장 수치는 게임 데이터(작물 SO) - 코어가 안 든다.
+		// 성장 수치는 게임 데이터(작물 SO) - 코어 밖. 번호는 저장 파일에서 온 값이라 이 빌드에 없을 수 있음
 		private static PlantGrowthParams? GrowthParamsOf(int plantDataId)
 		{
-			WitchPlantSO plant = SOHelper.Get<WitchPlantSO>(plantDataId);
-			return plant == null ? null : plant.ToGrowthParams();
+			if (SOHelper.TryGet(plantDataId, out WitchPlantSO plant) == false)
+			{
+				return null;
+			}
+
+			return plant.ToGrowthParams();
 		}
 	}
 }

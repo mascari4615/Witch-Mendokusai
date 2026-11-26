@@ -41,8 +41,8 @@ namespace WitchMendokusai
 
 		public Material Material => material;
 
-		// onTop 이면 지형에 안 가려짐 (서 있는 판이 바닥에 잘리지 않게)
-		public FxQuadBatch(string name, Transform root, Shader shader, Texture texture, Texture noise, int queue, bool onTop = false)
+		// onTop 이면 지형에 안 가려짐 (서 있는 판이 바닥에 잘리지 않게). order 는 스프라이트와 겹치는 차례
+		public FxQuadBatch(string name, Transform root, Shader shader, Texture texture, Texture noise, int queue, bool onTop = false, int order = 0)
 		{
 			material = new Material(shader) { name = name, renderQueue = queue };
 			material.SetTexture(MAIN_TEX_ID, texture);
@@ -52,6 +52,7 @@ namespace WitchMendokusai
 			mesh = new Mesh { name = name, indexFormat = IndexFormat.UInt32 };
 			mesh.MarkDynamic();
 			target = UltimateFxStage.CreateMeshObject(name, root, mesh, material);
+			target.GetComponent<Renderer>().sortingOrder = order;
 		}
 
 		public void Begin()

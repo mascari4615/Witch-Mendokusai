@@ -22,6 +22,9 @@ namespace WitchMendokusai
 		/// <summary>후보가 없거나 선택 밖에서 방향을 누르면 부름. 처음 고를 칸을 정함</summary>
 		public Func<bool> FocusFirst { get; set; }
 
+		/// <summary>이웃 칸의 경계가 겹쳐 화면 자리로 못 찾는 판 (육각, 마름모) 이 다음 칸을 먼저 정함. null 을 내면 화면 자리로</summary>
+		public Func<VisualElement, NavigationMoveEvent.Direction, VisualElement> Step { get; set; } = (_, _) => null;
+
 		/// <param name="overlapTolerance">수치는 화면 설정 SO 에서 매번 읽음</param>
 		public MenuFocus(VisualElement root, string navClass, Func<bool> isOpen, Func<float> overlapTolerance, Func<float> acrossWeight)
 		{
@@ -108,7 +111,7 @@ namespace WitchMendokusai
 				return;
 			}
 
-			VisualElement next = WMFocusNavigation.FindNext(current, candidates, evt.direction, overlapTolerance(), acrossWeight());
+			VisualElement next = Step(current, evt.direction) ?? WMFocusNavigation.FindNext(current, candidates, evt.direction, overlapTolerance(), acrossWeight());
 			if (next != null)
 			{
 				WMFocusNavigation.MoveFocus(next);

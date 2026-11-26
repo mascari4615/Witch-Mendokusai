@@ -149,5 +149,117 @@ namespace WitchMendokusai.Tests
 			Assert.That(same.CinemaChanged, Is.False);
 			Assert.That(same.Cinema, Is.True);
 		}
+
+		[Test]
+		public void SceneStaysUntilSceneEnd()
+		{
+			DialogueStagePlan plan = PlanWith("방식 미연시", "연출 걷기 시험");
+			DialogueStageDelta first = plan.FlushForLine("욘");
+			Assert.That(first.SceneChanged, Is.True);
+			Assert.That(first.SceneKey, Is.EqualTo("걷기 시험"));
+
+			DialogueStageDelta second = plan.FlushForLine("링");
+			Assert.That(second.SceneChanged, Is.False);
+			Assert.That(second.SceneKey, Is.EqualTo("걷기 시험"));
+
+			plan.Queue(new[] { Cue("연출 끝") });
+			DialogueStageDelta third = plan.Flush();
+			Assert.That(third.SceneChanged, Is.True);
+			Assert.That(third.SceneKey, Is.Null);
+			Assert.That(third.Presentation, Is.EqualTo(DialogueStagePresentation.Novel));
+		}
+
+		[Test]
+		public void SceneFromBubbles_RaisesToFeature_AndEndRestoresBubbles()
+		{
+			DialogueStagePlan plan = PlanWith("연출 걷기 시험");
+			DialogueStageDelta started = plan.FlushForLine("욘");
+			Assert.That(started.PresentationChanged, Is.True);
+			Assert.That(started.Presentation, Is.EqualTo(DialogueStagePresentation.Feature));
+
+			plan.Queue(new[] { Cue("연출 끝") });
+			DialogueStageDelta ended = plan.Flush();
+			Assert.That(ended.PresentationChanged, Is.True);
+			Assert.That(ended.Presentation, Is.EqualTo(DialogueStagePresentation.World));
+		}
+
+		[Test]
+		public void PresentationChosenDuringScene_SurvivesSceneEnd()
+		{
+			DialogueStagePlan plan = PlanWith("연출 걷기 시험", "방식 미연시", "연출 끝");
+			DialogueStageDelta delta = plan.Flush();
+			Assert.That(delta.Presentation, Is.EqualTo(DialogueStagePresentation.Novel));
+			Assert.That(delta.SceneKey, Is.Null);
+		}
+
+		[Test]
+		public void SceneEndWithoutScene_ChangesNothing()
+		{
+			DialogueStagePlan plan = PlanWith("연출 끝");
+			DialogueStageDelta delta = plan.Flush();
+			Assert.That(delta.SceneChanged, Is.False);
+			Assert.That(delta.PresentationChanged, Is.False);
+		}
+
+		[Test]
+		public void Stage3D_RaisesBubblesToFeature_AndBackWhenOff()
+		{
+			DialogueStagePlan plan = PlanWith("무대 3D");
+			DialogueStageDelta on = plan.FlushForLine("욘");
+			Assert.That(on.StageSpaceChanged, Is.True);
+			Assert.That(on.StageSpace, Is.EqualTo(DialogueStageSpace.Stage));
+			Assert.That(on.Presentation, Is.EqualTo(DialogueStagePresentation.Feature));
+
+			plan.Queue(new[] { Cue("무대 2D") });
+			DialogueStageDelta off = plan.Flush();
+			Assert.That(off.StageSpaceChanged, Is.True);
+			Assert.That(off.StageSpace, Is.EqualTo(DialogueStageSpace.Flat));
+			Assert.That(off.Presentation, Is.EqualTo(DialogueStagePresentation.World));
+		}
+
+		[Test]
+		public void Stage3DAndScene_KeepFeatureUntilBothAreOff()
+		{
+			DialogueStagePlan plan = PlanWith("무대 3D", "연출 걷기 시험", "무대 2D");
+			DialogueStageDelta delta = plan.Flush();
+			Assert.That(delta.Presentation, Is.EqualTo(DialogueStagePresentation.Feature));
+
+			plan.Queue(new[] { Cue("연출 끝") });
+			Assert.That(plan.Flush().Presentation, Is.EqualTo(DialogueStagePresentation.World));
+		}
+
+		[Test]
+		public void WorldSpace_IsItsOwnSpace_AndSwitchingFromStageReportsChange()
+		{
+			DialogueStagePlan plan = PlanWith("무대 3D");
+			plan.Flush();
+			plan.Queue(new[] { Cue("무대 월드") });
+			DialogueStageDelta delta = plan.Flush();
+			Assert.That(delta.StageSpaceChanged, Is.True);
+			Assert.That(delta.StageSpace, Is.EqualTo(DialogueStageSpace.World));
+			Assert.That(delta.Presentation, Is.EqualTo(DialogueStagePresentation.Feature));
+		}
+
+		[Test]
+		public void Gesture_IsOneShot()
+		{
+			DialogueStagePlan plan = PlanWith("동작 욘 마법");
+			DialogueStageDelta first = plan.Flush();
+			Assert.That(first.Gestures.Count, Is.EqualTo(1));
+			Assert.That(first.Gestures[0].Actor, Is.EqualTo("욘"));
+			Assert.That(first.Gestures[0].GestureName, Is.EqualTo("마법"));
+			Assert.That(plan.Flush().Gestures.Count, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void SwitchingScene_ReportsTheNewName()
+		{
+			DialogueStagePlan plan = PlanWith("연출 걷기 시험");
+			plan.Flush();
+			plan.Queue(new[] { Cue("연출 손 목표 연습") });
+			DialogueStageDelta delta = plan.Flush();
+			Assert.That(delta.SceneChanged, Is.True);
+			Assert.That(delta.SceneKey, Is.EqualTo("손 목표 연습"));
+		}
 	}
 }

@@ -17,8 +17,12 @@ namespace WitchMendokusai
 
 		public int CompletedCount { get; private set; }
 		public bool IsAttacking { get; private set; }
+		public bool WasCut { get; private set; }
 
 		protected abstract float StanceSeconds { get; }
+
+		// 자세를 시작할 때 때리는 그림으로. 끝에 때리는 종류는 false
+		protected virtual bool StrikesAtBegin => true;
 
 		protected BT_StancedAttack(UnitObject unitObject, PlayerProvider playerProvider, MonsterAttack attack) : base(unitObject)
 		{
@@ -60,9 +64,11 @@ namespace WitchMendokusai
 		{
 			Interrupt();
 			IsAttacking = true;
+			WasCut = false;
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
 			phaseEndTime = Time.time + attack.WindupSeconds;
 			isOpen = true;
+			attack.PlayWindupPose(unitObject, attack.WindupSeconds);
 			OnWindup();
 			return BTState.Success;
 		}
@@ -82,7 +88,11 @@ namespace WitchMendokusai
 		{
 			phaseEndTime = Time.time + (isOpen ? StanceSeconds : 0f);
 			if (isOpen)
+			{
+				if (StrikesAtBegin && unitObject.TryGetComponent(out MonsterPoseDriver pose))
+					pose.Strike();
 				OnStanceBegin();
+			}
 			return BTState.Success;
 		}
 
@@ -101,6 +111,11 @@ namespace WitchMendokusai
 		{
 			CloseStance(false);
 			phaseEndTime = Time.time + attack.RecoverySeconds;
+			// 끝에 때리고 반격으로 죽었으면 표시를 띄우지 않음 (Interrupt 는 이미 지나감)
+			if (unitObject.IsAlive == false)
+				return BTState.Success;
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Rest();
 			stopRecovery = attack.PlayRecovery(unitObject);
 			return BTState.Success;
 		}
@@ -108,6 +123,8 @@ namespace WitchMendokusai
 		private BTState EndAttack()
 		{
 			stopRecovery = null;
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Release();
 			readyTime = Time.time + attack.Cooldown;
 			CompletedCount++;
 			IsAttacking = false;
@@ -119,6 +136,7 @@ namespace WitchMendokusai
 			if (isOpen == false)
 				return;
 			isOpen = false;
+			WasCut = interrupted;
 			OnStanceEnd(interrupted);
 		}
 
@@ -128,6 +146,8 @@ namespace WitchMendokusai
 			CloseStance(true);
 			stopRecovery?.Invoke();
 			stopRecovery = null;
+			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
+				pose.Release();
 			IsAttacking = false;
 		}
 	}
