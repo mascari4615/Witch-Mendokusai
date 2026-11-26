@@ -43,7 +43,7 @@ MonoBehaviour:
     <BurstDamage>k__BackingField: 0
     <BurstTelegraph>k__BackingField: {fileID: 0}
     <BurstFx>k__BackingField: {fileID: 0}
-  <Summoned>k__BackingField: {fileID: 11400000, guid: 473eb54ca0151684ca8411fd1914123f, type: 2}
+  <Summoned>k__BackingField: {fileID: 11400000, guid: ea3fea77ca6e48fbb3a9a3d00db7799e, type: 2}
   <Count>k__BackingField: 2
   <Distance>k__BackingField: 1.6
   <MaxAlive>k__BackingField: 4

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c88cc2c8c5394d70810095037bed5683, type: 3}
   m_Name: MA_PD946_Pendulum
   m_EditorClassIdentifier:
-  <TriggerRange>k__BackingField: 4.2
+  <TriggerRange>k__BackingField: 3
   <WindupSeconds>k__BackingField: 1.1
   <RecoverySeconds>k__BackingField: 0.8
   <Cooldown>k__BackingField: 4
@@ -32,12 +32,12 @@ MonoBehaviour:
   <WindupFx>k__BackingField: {fileID: 0}
   <StrikeFx>k__BackingField: {fileID: 11400000, guid: 4e98738942424ce3b2d5a6281d7bdb9d, type: 2}
   <SweepTelegraph>k__BackingField: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}
-  <SweepDegrees>k__BackingField: 70
-  <SpinSeconds>k__BackingField: 4.2
+  <SweepDegrees>k__BackingField: 90
+  <SpinSeconds>k__BackingField: 3.5
   <Arms>k__BackingField:
-  - <Length>k__BackingField: 4.4
+  - <Length>k__BackingField: 5
     <Width>k__BackingField: 1.0
-    <InnerRadius>k__BackingField: 0.6
+    <InnerRadius>k__BackingField: 1.2
     <StartAngle>k__BackingField: -50
     <DegreesPerSecond>k__BackingField: 60
     <SpinUpSeconds>k__BackingField: 0.4

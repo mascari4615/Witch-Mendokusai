@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ea52fd10544422ea504323591256bf5, type: 3}
   m_Name: MA_PD941_Fork
   m_EditorClassIdentifier:
-  <TriggerRange>k__BackingField: 5
+  <TriggerRange>k__BackingField: 3.5
   <WindupSeconds>k__BackingField: 0.9
   <RecoverySeconds>k__BackingField: 0.6
   <Cooldown>k__BackingField: 3
@@ -43,12 +43,12 @@ MonoBehaviour:
     <BurstDamage>k__BackingField: 0
     <BurstTelegraph>k__BackingField: {fileID: 0}
     <BurstFx>k__BackingField: {fileID: 0}
-  <Length>k__BackingField: 6
+  <Length>k__BackingField: 7
   <Width>k__BackingField: 0.9
   <Angles>k__BackingField:
   - 0
-  - -35
-  - 35
+  - -30
+  - 30
   <StaggerSeconds>k__BackingField: 0.3
   <Damage>k__BackingField: 3
   <HitEffect>k__BackingField:

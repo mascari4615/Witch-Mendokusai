@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cafd0e4c9b704ab997dcc323b1334566, type: 3}
   m_Name: MA_PD940_Inhale
   m_EditorClassIdentifier:
-  <TriggerRange>k__BackingField: 5
+  <TriggerRange>k__BackingField: 3.5
   <WindupSeconds>k__BackingField: 0.8
   <RecoverySeconds>k__BackingField: 0.9
   <Cooldown>k__BackingField: 4
@@ -25,16 +25,16 @@ MonoBehaviour:
     <Rest>k__BackingField: {fileID: 0}
     <Crouch>k__BackingField: -0.2
     <Stretch>k__BackingField: 0.2
-    <StrikeSeconds>k__BackingField: 1.6
+    <StrikeSeconds>k__BackingField: 1.8
     <StrikeLeadSeconds>k__BackingField: 0
     <Tremble>k__BackingField: 0.05
     <Breath>k__BackingField: 0
   <WindupFx>k__BackingField: {fileID: 0}
   <StrikeFx>k__BackingField: {fileID: 11400000, guid: 71115b367140432c8d9b74709c4e141f, type: 2}
-  <Radius>k__BackingField: 5
-  <PullSeconds>k__BackingField: 1.6
-  <SpeedRatio>k__BackingField: 0.55
-  <CoreRadius>k__BackingField: 1.2
+  <Radius>k__BackingField: 6
+  <PullSeconds>k__BackingField: 1.8
+  <SpeedRatio>k__BackingField: 0.7
+  <CoreRadius>k__BackingField: 1.3
   <CoreTelegraph>k__BackingField: {fileID: 11400000, guid: 6ce4d759c4cb4e129b9f3c0c46223761, type: 2}
   <CoreDamage>k__BackingField: 2
   <CoreInterval>k__BackingField: 0.8
