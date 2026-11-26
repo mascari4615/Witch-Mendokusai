@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fc94cac8baf4e98a37a6749b755be42, type: 3}
   m_Name: MA_Choice_DreamStumpCaps
   m_EditorClassIdentifier:
-  <TriggerRange>k__BackingField: 5
+  <TriggerRange>k__BackingField: 3.5
   <WindupSeconds>k__BackingField: 0
   <RecoverySeconds>k__BackingField: 0
   <Cooldown>k__BackingField: 0

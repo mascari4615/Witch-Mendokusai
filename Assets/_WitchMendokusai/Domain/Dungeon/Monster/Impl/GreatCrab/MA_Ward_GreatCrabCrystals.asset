@@ -35,6 +35,6 @@ MonoBehaviour:
   <Count>k__BackingField: 3
   <Distance>k__BackingField: 3
   <Payoff>k__BackingField: {fileID: 11400000, guid: 760d3fa289c54525bcc887867178ec99, type: 2}
-  <TelegraphRadius>k__BackingField: 7
+  <TelegraphRadius>k__BackingField: 5.5
   <WardFxRadius>k__BackingField: 0.9
   <BreakFx>k__BackingField: {fileID: 11400000, guid: aeee90da6ba3483d9c76edd663824a15, type: 2}

@@ -88,7 +88,7 @@ MonoBehaviour:
   <Planted>k__BackingField:
     <Seconds>k__BackingField: 3
     <CoolSeconds>k__BackingField: 0.6
-    <Radius>k__BackingField: 0.5
+    <Radius>k__BackingField: 0.35
     <Damage>k__BackingField: 2
     <HitEffect>k__BackingField:
       <AppliesStatus>k__BackingField: 0

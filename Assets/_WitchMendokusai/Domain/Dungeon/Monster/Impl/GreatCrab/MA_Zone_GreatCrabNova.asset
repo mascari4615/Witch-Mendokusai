@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MA_Zone_GreatCrabNova
   m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 40
-  <WindupSeconds>k__BackingField: 1.0
+  <WindupSeconds>k__BackingField: 1.6
   <RecoverySeconds>k__BackingField: 0.8
   <Cooldown>k__BackingField: 0
   <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: fb85769a4b1c42d78fc107c2b728451c, type: 2}
@@ -50,7 +50,7 @@ MonoBehaviour:
     <BurstTelegraph>k__BackingField: {fileID: 0}
     <BurstFx>k__BackingField: {fileID: 0}
   <Center>k__BackingField: 1
-  <Radius>k__BackingField: 7
+  <Radius>k__BackingField: 5.5
   <Damage>k__BackingField: 7
   <LeadSeconds>k__BackingField: 0
   <HitEffect>k__BackingField:

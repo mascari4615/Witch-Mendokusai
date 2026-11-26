@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22e4a06ccdbe419c9a884f3990bc8008, type: 3}
   m_Name: MA_Band_DreamStumpCapNear
   m_EditorClassIdentifier:
-  <TriggerRange>k__BackingField: 5
+  <TriggerRange>k__BackingField: 3.5
   <WindupSeconds>k__BackingField: 0.8
   <RecoverySeconds>k__BackingField: 0.5
   <Cooldown>k__BackingField: 0
@@ -52,8 +52,8 @@ MonoBehaviour:
   <Center>k__BackingField: 1
   <ArcDegrees>k__BackingField: 360
   <Bands>k__BackingField:
-  - <Inner>k__BackingField: 1.4
-    <Outer>k__BackingField: 6.2
+  - <Inner>k__BackingField: 2.4
+    <Outer>k__BackingField: 10
     <Delay>k__BackingField: 0
   <Damage>k__BackingField: 5
   <HitEffect>k__BackingField:
