@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using SceneContent.Storage;
 using SceneContent.Unity;
 using SceneSequence;
 using SceneSequence.Storage;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using WitchMendokusai.ContentRuntime;
 
 namespace WitchMendokusai.SequenceLibrary
@@ -15,8 +13,6 @@ namespace WitchMendokusai.SequenceLibrary
     // 소비자: 로비 연출 보관함, 대화의 `@연출`
     public sealed class SequenceStage : MonoBehaviour
     {
-        // 화면은 한 번에 한 무대만. 겹치면 두 번째가 꺼진 상태를 원래 값으로 기억해 복구 불가
-        private static SequenceStage screenHolder;
         [SerializeField] private int contentLayer = 31;
         [SerializeField] private float cameraDepth = 100;
         [SerializeField] private float fieldOfView = 35;
@@ -25,10 +21,7 @@ namespace WitchMendokusai.SequenceLibrary
         [SerializeField] private Vector3 fallbackLightAngles = new Vector3(40, -30, 0);
         private GameObject stage;
         private ContentScenePlayer player;
-        private readonly Dictionary<Camera, int> cameras = new Dictionary<Camera, int>();
-        private readonly Dictionary<Canvas, bool> canvases = new Dictionary<Canvas, bool>();
-        private SkyDirector capturedSky;
-        private bool capturedSkyEnabled;
+        private readonly ScreenTakeover takeover = new ScreenTakeover("저장된 연출");
 
         public ContentScenePlayer Player { get { return player; } }
         public bool IsShowing { get { return player != null && player.IsLoaded; } }
@@ -47,7 +40,7 @@ namespace WitchMendokusai.SequenceLibrary
                 StandardSurfaceFactory surfaces = new StandardSurfaceFactory(Shader.Find("Universal Render Pipeline/Unlit"), Shader.Find("Universal Render Pipeline/Lit"), Shader.Find("WM/Toon Surface"));
                 next.Initialize(sequence, new DirectoryContentSource(Path.GetDirectoryName(Path.GetFullPath(file))), surfaces, useUnscaledTime: true);
                 PrepareCamera(candidate, next.Instance);
-                EnsureScreenFree();
+                takeover.EnsureFree();
                 Hide();
                 stage = candidate;
                 player = next;
@@ -72,19 +65,7 @@ namespace WitchMendokusai.SequenceLibrary
             player = null;
             stage = null;
             Duration = 0;
-            foreach (KeyValuePair<Camera, int> entry in cameras) if (entry.Key != null) entry.Key.cullingMask = entry.Value;
-            foreach (KeyValuePair<Canvas, bool> entry in canvases) if (entry.Key != null) entry.Key.enabled = entry.Value;
-            cameras.Clear();
-            canvases.Clear();
-            if (capturedSky != null) capturedSky.enabled = capturedSkyEnabled;
-            capturedSky = null;
-            if (screenHolder == this) screenHolder = null;
-        }
-
-        private void EnsureScreenFree()
-        {
-            if (screenHolder != null && screenHolder != this)
-                throw new InvalidOperationException("다른 연출이 화면을 쓰는 중이다 (" + screenHolder.name + "). 그쪽을 닫은 뒤 다시 열어야 한다");
+            takeover.Release();
         }
 
         private void OnDestroy()
@@ -139,21 +120,9 @@ namespace WitchMendokusai.SequenceLibrary
             return preview;
         }
 
-        // 지금 씬의 카메라는 켠 채 그리는 층만 비움 (Camera.main 을 매 프레임 쓰는 게임 코드가 있음). Canvas, 하늘 조절은 끄기. UI Toolkit 대화창은 계속 보임
         private void CaptureScreen()
         {
-            EnsureScreenFree();
-            screenHolder = this;
-            if (SkyDirector.TryGetExistingInstance(out capturedSky))
-            {
-                capturedSkyEnabled = capturedSky.enabled;
-                capturedSky.enabled = false;
-            }
-            foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
-            {
-                foreach (Camera camera in root.GetComponentsInChildren<Camera>(true)) { cameras.Add(camera, camera.cullingMask); camera.cullingMask = 0; }
-                foreach (Canvas canvas in root.GetComponentsInChildren<Canvas>(true)) { canvases.Add(canvas, canvas.enabled); canvas.enabled = false; }
-            }
+            takeover.Take();
         }
     }
 }

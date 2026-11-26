@@ -53,6 +53,18 @@ namespace WitchMendokusai
 		}
 	}
 
+	public readonly struct DialogueStageActorGesture
+	{
+		public string Actor { get; }
+		public string GestureName { get; }
+
+		public DialogueStageActorGesture(string actor, string gestureName)
+		{
+			Actor = actor;
+			GestureName = gestureName;
+		}
+	}
+
 	public readonly struct DialogueStageEffectRequest
 	{
 		public string EffectName { get; }
@@ -81,12 +93,16 @@ namespace WitchMendokusai
 		// 켜져 있는 3D 연출 이름. null 이면 3D 연출 없음
 		public string SceneKey { get; internal set; }
 		public bool SceneChanged { get; internal set; }
+		// 3D 배우 무대가 켜져 있는지
+		public bool Stage3D { get; internal set; }
+		public bool Stage3DChanged { get; internal set; }
 
 		public List<DialogueStageActorChange> Entered { get; } = new();
 		public List<DialogueStageActorChange> Exited { get; } = new();
 		public List<DialogueStageActorChange> Moved { get; } = new();
 		public List<DialogueStageActorMotion> Motions { get; } = new();
 		public List<DialogueStageActorEmote> Emotes { get; } = new();
+		public List<DialogueStageActorGesture> Gestures { get; } = new();
 		public List<DialogueStageEffectRequest> Effects { get; } = new();
 		public List<DialogueStageActor> Actors { get; } = new();
 	}
@@ -113,6 +129,7 @@ namespace WitchMendokusai
 		private string shotTarget;
 		private DialogueStageShot shot;
 		private string sceneKey;
+		private bool stage3D;
 		private bool isPresentationRaisedForScene;
 
 		public DialogueStagePresentation Presentation { get; private set; } = DialogueStagePresentation.World;
@@ -121,6 +138,7 @@ namespace WitchMendokusai
 		public string Speaker => speaker;
 		public string ShotTarget => shotTarget;
 		public string SceneKey => sceneKey;
+		public bool IsStage3D => stage3D;
 
 		public void Queue(IReadOnlyList<DialogueStageCue> cues)
 		{
@@ -176,6 +194,7 @@ namespace WitchMendokusai
 			delta.ShotTarget = shotTarget;
 			delta.Shot = shot;
 			delta.SceneKey = sceneKey;
+			delta.Stage3D = stage3D;
 			delta.Actors.AddRange(actors);
 			return delta;
 		}
@@ -261,6 +280,14 @@ namespace WitchMendokusai
 					EndScene(delta);
 					break;
 
+				case DialogueStageCueKind.Stage3D:
+					SetStage3D(delta, cue.IsOn);
+					break;
+
+				case DialogueStageCueKind.Gesture:
+					delta.Gestures.Add(new DialogueStageActorGesture(cue.Actor, cue.GestureName));
+					break;
+
 				default:
 					throw new ArgumentOutOfRangeException(nameof(cue), cue.Kind, "Unknown stage cue kind");
 			}
@@ -275,7 +302,6 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 말풍선은 월드 화면에 붙어 3D 연출에 가려짐. 말풍선 방식이었으면 자막으로 올리고 끌 때 복구
 		private void StartScene(DialogueStageDelta delta, string key)
 		{
 			if (string.Equals(sceneKey, key, StringComparison.Ordinal) == false)
@@ -283,11 +309,7 @@ namespace WitchMendokusai
 				sceneKey = key;
 				delta.SceneChanged = true;
 			}
-			if (Presentation == DialogueStagePresentation.World)
-			{
-				SetPresentation(delta, DialogueStagePresentation.Feature);
-				isPresentationRaisedForScene = true;
-			}
+			RefreshRaisedPresentation(delta);
 		}
 
 		private void EndScene(DialogueStageDelta delta)
@@ -298,7 +320,29 @@ namespace WitchMendokusai
 			}
 			sceneKey = null;
 			delta.SceneChanged = true;
-			if (isPresentationRaisedForScene)
+			RefreshRaisedPresentation(delta);
+		}
+
+		private void SetStage3D(DialogueStageDelta delta, bool isOn)
+		{
+			if (stage3D != isOn)
+			{
+				stage3D = isOn;
+				delta.Stage3DChanged = true;
+			}
+			RefreshRaisedPresentation(delta);
+		}
+
+		// 말풍선은 월드 화면에 붙어 3D 화면에 가려짐. 3D 연출이나 3D 무대가 켜지면 자막으로 올리고 둘 다 꺼지면 복구
+		private void RefreshRaisedPresentation(DialogueStageDelta delta)
+		{
+			bool isAny3D = sceneKey != null || stage3D;
+			if (isAny3D && Presentation == DialogueStagePresentation.World)
+			{
+				SetPresentation(delta, DialogueStagePresentation.Feature);
+				isPresentationRaisedForScene = true;
+			}
+			else if (isAny3D == false && isPresentationRaisedForScene)
 			{
 				SetPresentation(delta, DialogueStagePresentation.World);
 				isPresentationRaisedForScene = false;

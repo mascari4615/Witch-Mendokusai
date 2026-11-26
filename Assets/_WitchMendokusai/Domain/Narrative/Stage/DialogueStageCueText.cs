@@ -43,6 +43,10 @@ namespace WitchMendokusai
 					return ReadCinema(args, out cue, out problem);
 				case DialogueStageVocabulary.SCENE:
 					return ReadScene(args, out cue, out problem);
+				case DialogueStageVocabulary.STAGE:
+					return ReadStage(args, out cue, out problem);
+				case DialogueStageVocabulary.GESTURE:
+					return ReadGesture(args, out cue, out problem);
 			}
 
 			if (DialogueStageVocabulary.TryRead(DialogueStageVocabulary.Motions, command, out DialogueStageMotion motion))
@@ -94,6 +98,10 @@ namespace WitchMendokusai
 					return Line(DialogueStageVocabulary.SCENE, cue.SceneKey);
 				case DialogueStageCueKind.SceneEnd:
 					return Line(DialogueStageVocabulary.SCENE, DialogueStageVocabulary.END);
+				case DialogueStageCueKind.Stage3D:
+					return Line(DialogueStageVocabulary.STAGE, cue.IsOn ? DialogueStageVocabulary.STAGE_3D : DialogueStageVocabulary.STAGE_2D);
+				case DialogueStageCueKind.Gesture:
+					return Line(DialogueStageVocabulary.GESTURE, cue.Actor, cue.GestureName);
 				default:
 					throw new ArgumentOutOfRangeException(nameof(cue), cue.Kind, "Unknown stage cue kind");
 			}
@@ -257,6 +265,33 @@ namespace WitchMendokusai
 				return true;
 			}
 			cue = DialogueStageCue.Scene(string.Join(" ", args));
+			return true;
+		}
+
+		private static bool ReadStage(string[] args, out DialogueStageCue cue, out string problem)
+		{
+			cue = null;
+			problem = null;
+			if (args.Length != 1 || (args[0] != DialogueStageVocabulary.STAGE_3D && args[0] != DialogueStageVocabulary.STAGE_2D))
+			{
+				problem = $"@{DialogueStageVocabulary.STAGE} <{DialogueStageVocabulary.STAGE_3D}|{DialogueStageVocabulary.STAGE_2D}>";
+				return false;
+			}
+			cue = DialogueStageCue.Stage3D(args[0] == DialogueStageVocabulary.STAGE_3D);
+			return true;
+		}
+
+		// 동작 이름은 3D 무대 설정이 아는 것. 여기서는 모양만 검사
+		private static bool ReadGesture(string[] args, out DialogueStageCue cue, out string problem)
+		{
+			cue = null;
+			problem = null;
+			if (args.Length != 2)
+			{
+				problem = $"@{DialogueStageVocabulary.GESTURE} <인물> <동작 이름>";
+				return false;
+			}
+			cue = DialogueStageCue.Gesture(args[0], args[1]);
 			return true;
 		}
 

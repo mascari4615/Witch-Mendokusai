@@ -67,6 +67,8 @@ namespace WitchMendokusai
 		Cinema = 10,
 		Scene = 11,
 		SceneEnd = 12,
+		Stage3D = 13,
+		Gesture = 14,
 	}
 
 	// 무대 신호 한 줄. 보이는 것만 바꿈, 게임 상태 효과 `!`와 분리
@@ -86,6 +88,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public string EffectName { get; private set; }
 		[field: SerializeField] public bool IsOn { get; private set; }
 		[field: SerializeField] public string SceneKey { get; private set; }
+		[field: SerializeField] public string GestureName { get; private set; }
 
 		public bool TargetsAllActors => string.Equals(Actor, ALL_ACTORS, StringComparison.Ordinal);
 
@@ -128,5 +131,13 @@ namespace WitchMendokusai
 
 		public static DialogueStageCue SceneEnd() =>
 			new() { Kind = DialogueStageCueKind.SceneEnd };
+
+		// 3D 배우 무대 켜기와 끄기. 켜진 동안 등장, 이동, 화자, 몸짓, 샷이 3D 배우에 적용
+		public static DialogueStageCue Stage3D(bool isOn) =>
+			new() { Kind = DialogueStageCueKind.Stage3D, IsOn = isOn };
+
+		// 이름 붙은 한 번짜리 동작. 낱말과 클립의 짝은 3D 무대 설정 자산
+		public static DialogueStageCue Gesture(string actor, string gestureName) =>
+			new() { Kind = DialogueStageCueKind.Gesture, Actor = actor, GestureName = gestureName };
 	}
 }

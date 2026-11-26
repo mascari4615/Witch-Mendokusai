@@ -202,6 +202,44 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Stage3D_RaisesBubblesToFeature_AndBackWhenOff()
+		{
+			DialogueStagePlan plan = PlanWith("무대 3D");
+			DialogueStageDelta on = plan.FlushForLine("욘");
+			Assert.That(on.Stage3DChanged, Is.True);
+			Assert.That(on.Stage3D, Is.True);
+			Assert.That(on.Presentation, Is.EqualTo(DialogueStagePresentation.Feature));
+
+			plan.Queue(new[] { Cue("무대 2D") });
+			DialogueStageDelta off = plan.Flush();
+			Assert.That(off.Stage3DChanged, Is.True);
+			Assert.That(off.Stage3D, Is.False);
+			Assert.That(off.Presentation, Is.EqualTo(DialogueStagePresentation.World));
+		}
+
+		[Test]
+		public void Stage3DAndScene_KeepFeatureUntilBothAreOff()
+		{
+			DialogueStagePlan plan = PlanWith("무대 3D", "연출 걷기 시험", "무대 2D");
+			DialogueStageDelta delta = plan.Flush();
+			Assert.That(delta.Presentation, Is.EqualTo(DialogueStagePresentation.Feature));
+
+			plan.Queue(new[] { Cue("연출 끝") });
+			Assert.That(plan.Flush().Presentation, Is.EqualTo(DialogueStagePresentation.World));
+		}
+
+		[Test]
+		public void Gesture_IsOneShot()
+		{
+			DialogueStagePlan plan = PlanWith("동작 욘 마법");
+			DialogueStageDelta first = plan.Flush();
+			Assert.That(first.Gestures.Count, Is.EqualTo(1));
+			Assert.That(first.Gestures[0].Actor, Is.EqualTo("욘"));
+			Assert.That(first.Gestures[0].GestureName, Is.EqualTo("마법"));
+			Assert.That(plan.Flush().Gestures.Count, Is.EqualTo(0));
+		}
+
+		[Test]
 		public void SwitchingScene_ReportsTheNewName()
 		{
 			DialogueStagePlan plan = PlanWith("연출 걷기 시험");

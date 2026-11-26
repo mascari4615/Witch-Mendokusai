@@ -23,8 +23,8 @@ namespace WitchMendokusai
 		{
 			DialogueStageSettings.PresentationEntry entry = settings.FindPresentation(presentation);
 			SetTimePaused(isSessionOpen && entry.PausesTime);
-			// 3D 연출 중에는 흐림 없음. 연출 자체가 배경
-			SetBlurred((isSessionOpen || isClosing) && entry.BlursBackground && UIEffects.Enabled && IsSceneShowing == false);
+			// 3D 화면 중에는 흐림 없음. 3D 가 배경
+			SetBlurred((isSessionOpen || isClosing) && entry.BlursBackground && UIEffects.Enabled && Is3DShowing == false);
 			RefreshSceneLayer();
 		}
 

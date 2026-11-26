@@ -20,6 +20,10 @@ namespace WitchMendokusai
 		public const string EFFECT = "이펙트";
 		public const string CINEMA = "띠";
 		public const string SCENE = "연출";
+		public const string STAGE = "무대";
+		public const string GESTURE = "동작";
+		public const string STAGE_3D = "3D";
+		public const string STAGE_2D = "2D";
 		public const string OFF = "끔";
 		public const string ON = "켬";
 		public const string END = "끝";
