@@ -79,6 +79,41 @@ namespace WitchMendokusai.DialogueStage3D
 			return new DialogueShotPose(position, speakerHead + Vector3.up * shot.LookHeight, shot.FieldOfView);
 		}
 
+		// 몸 크기로 거리를 정하는 정면 샷 (Hawkins 2003, 샷 크기와 화각에서 거리 역산).
+		// 키의 위쪽 fraction 을 대사 창 위 화면에 담음. 1m 스프라이트와 1.45m 3D 배우가 같은 샷 크기로 보임
+		public static DialogueShotPose FramedFront(Bounds body, Vector3 facing, Vector3 front, float fraction, float fieldOfView, float bottomReserve, float margin, float minFront)
+		{
+			float framedHeight = body.size.y * Mathf.Clamp01(fraction);
+			float extent = framedHeight * margin;
+			float visible = extent / Mathf.Max(0.1f, 1f - bottomReserve);
+			float distance = visible * 0.5f / Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad);
+			float top = body.max.y + framedHeight * (margin - 1f);
+			Vector3 look = new Vector3(body.center.x, top - visible * 0.5f, body.center.z);
+			Vector3 position = look + FlatUnit(facing, front) * distance;
+			position = KeepInFront(position, look, front, minFront);
+			return new DialogueShotPose(position, look, fieldOfView);
+		}
+
+		// 카메라에서 본 누군가의 머리가 다른 인물 몸에 가리나. 스프라이트는 충돌체가 없어 물리 광선 대신 그림 상자로 검사
+		public static bool HidesAnyHead(Vector3 camera, IReadOnlyList<Bounds> bodies, IReadOnlyList<Vector3> heads)
+		{
+			for (int i = 0; i < heads.Count; i++)
+			{
+				Vector3 toHead = heads[i] - camera;
+				float headDistance = toHead.magnitude;
+				Ray ray = new Ray(camera, toHead / Mathf.Max(0.0001f, headDistance));
+				for (int j = 0; j < bodies.Count; j++)
+				{
+					if (j != i && bodies[j].IntersectRay(ray, out float hit) && hit < headDistance)
+						return true;
+				}
+			}
+			return false;
+		}
+
+		// 수평으로 돌린 방향
+		public static Vector3 Turn(Vector3 direction, float degrees) => Quaternion.Euler(0f, degrees, 0f) * direction;
+
 		// 인물들 가운데에서 지금 카메라를 향한 수평 방향. 월드 대화는 이쪽을 카메라 쪽으로 고정
 		public static Vector3 FrontFromCamera(IReadOnlyList<Vector3> feet, Vector3 cameraPosition)
 		{

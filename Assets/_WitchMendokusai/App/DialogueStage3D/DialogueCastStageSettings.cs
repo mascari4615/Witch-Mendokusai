@@ -32,6 +32,7 @@ namespace WitchMendokusai.DialogueStage3D
 			[field: SerializeField, Tooltip("카메라 높이, 머리 기준 (m)")] public float Height { get; private set; } = 0f;
 			[field: SerializeField, Tooltip("바라보는 점 높이, 머리 기준 (m)")] public float LookHeight { get; private set; } = -0.15f;
 			[field: SerializeField] public float FieldOfView { get; private set; } = 30f;
+			[field: SerializeField, Tooltip("인물 키의 위쪽 이 비율을 화면에 담도록 거리를 계산 (0 이면 Distance 고정)")] public float BodyFraction { get; private set; } = 0f;
 		}
 
 		[field: Header("배우")]
@@ -61,6 +62,11 @@ namespace WitchMendokusai.DialogueStage3D
 		[field: SerializeField] public ShotEntry Wide { get; private set; } = new ShotEntry();
 		[field: SerializeField] public ShotEntry Medium { get; private set; } = new ShotEntry();
 		[field: SerializeField] public ShotEntry Close { get; private set; } = new ShotEntry();
+		[field: SerializeField, Tooltip("대사 창이 덮는 화면 아래 비율. 인물은 그 위에 담음")] public float ScreenBottomReserve { get; private set; } = 0.3f;
+		[field: SerializeField, Tooltip("담을 몸 높이에 곱하는 여유 (머리 위 빈 곳)")] public float FrameMargin { get; private set; } = 1.1f;
+		[field: SerializeField, Tooltip("스프라이트 인물의 몸 비율 배수. 2등신은 머리가 키의 절반이라 더 담아야 같은 샷 크기")] public float SpriteFrameScale { get; private set; } = 1.7f;
+		[field: SerializeField, Tooltip("성립 샷에서 인물끼리 가리면 무리 둘레로 이만큼씩 돌려 봄 (도)")] public float WideTurnStep { get; private set; } = 15f;
+		[field: SerializeField, Tooltip("성립 샷을 돌려 보는 최대 각 (도). 넘으면 위로 올림")] public float WideTurnMax { get; private set; } = 45f;
 		[field: SerializeField, Tooltip("어깨 너머 샷의 옆 비킴 (m)")] public float ShoulderSide { get; private set; } = 0.45f;
 		[field: SerializeField, Tooltip("어깨 너머 샷에서 듣는 사람 머리 뒤로 물러나는 거리 (m)")] public float ShoulderBack { get; private set; } = 0.8f;
 		[field: SerializeField, Tooltip("카메라가 화자보다 무대 앞쪽에 있어야 하는 최소 거리 (m)")] public float MinCameraFront { get; private set; } = 0.4f;
@@ -74,7 +80,7 @@ namespace WitchMendokusai.DialogueStage3D
 		[field: SerializeField, Tooltip("게임 카메라 자리에서 첫 대화 샷까지 블렌드 (초)")] public float WorldEnterSeconds { get; private set; } = 0.6f;
 		[field: SerializeField, Tooltip("대화가 끝나고 게임 카메라 자리로 돌아가는 블렌드 (초)")] public float WorldReturnSeconds { get; private set; } = 0.6f;
 		[field: SerializeField, Tooltip("월드 어깨 너머 판정. 듣는 사람이 화자보다 이만큼 뒤까지는 카메라 쪽으로 침 (나란히 선 두 사람) (m)")] public float OverShoulderDepthMargin { get; private set; } = 0.4f;
-		[field: SerializeField, Tooltip("월드 성립 샷을 이만큼 위에서 내려다봄. 카메라 쪽 앞뒤로 선 인물이 뒷사람을 가리지 않게 (m)")] public float WorldWideRaise { get; private set; } = 1.3f;
+		[field: SerializeField, Tooltip("성립 샷을 돌려도 인물끼리 가리면 이만큼 위에서 내려다봄 (m)")] public float WorldWideRaise { get; private set; } = 1.3f;
 		[field: SerializeField, Tooltip("벽에 가린 카메라를 막힌 곳보다 이만큼 앞으로 (m)")] public float OcclusionPadding { get; private set; } = 0.2f;
 		[field: SerializeField, Tooltip("스프라이트 인물의 머리 높이, 그림 위에서부터 키 비율")] public float SpriteHeadFromTop { get; private set; } = 0.15f;
 		[field: SerializeField, Tooltip("이보다 낮은 그림은 바닥에 눕힌 그림자나 표식으로 보고 인물 키에서 뺌 (m)")] public float SpriteMinStandingHeight { get; private set; } = 0.3f;

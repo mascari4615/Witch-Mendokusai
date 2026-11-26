@@ -11,6 +11,7 @@ namespace WitchMendokusai.DialogueStage3D
 	// 대화 코어는 DialogueCastStageBridge 로만 호출
 	public sealed partial class DialogueCastStage : MonoBehaviour, IDialogueCastStage
 	{
+		private static readonly float[] TURN_SIGNS = { 1f, -1f };
 		private readonly ScreenTakeover takeover = new ScreenTakeover("3D 무대");
 		private readonly Dictionary<string, IDialogueCastPerformer> actors = new Dictionary<string, IDialogueCastPerformer>();
 		private DialogueCastStageSettings settings;
@@ -212,11 +213,30 @@ namespace WitchMendokusai.DialogueStage3D
 				headSum += actor.HeadPosition.y - actor.Feet.y;
 			}
 			float headHeight = feet.Count > 0 ? headSum / feet.Count : Settings.ActorHeight;
+			List<Bounds> bodies = new List<Bounds>();
+			List<Vector3> heads = new List<Vector3>();
+			foreach (IDialogueCastPerformer actor in actors.Values)
+			{
+				bodies.Add(actor.VisualBounds);
+				heads.Add(actor.HeadPosition);
+			}
+			// 인물끼리 머리를 가리면 무리 둘레로 조금씩 돌려 봄 (Hawkins 2003, 막히면 정해진 순서의 다음 샷)
+			for (float turn = 0f; turn <= Settings.WideTurnMax; turn += Settings.WideTurnStep)
+			{
+				foreach (float sign in TURN_SIGNS)
+				{
+					DialogueShotPose turned = DialogueShotMath.Wide(feet, headHeight, Settings.StageOrigin, DialogueShotMath.Turn(CameraSide(), turn * sign), Settings.Wide);
+					if (DialogueShotMath.HidesAnyHead(turned.Position, bodies, heads) == false)
+						return turned;
+					if (turn == 0f)
+						break;
+				}
+				if (Settings.WideTurnStep <= 0f)
+					break;
+			}
+			// 돌려도 가리면 같은 곳을 위에서 내려다봄
 			DialogueShotPose pose = DialogueShotMath.Wide(feet, headHeight, Settings.StageOrigin, CameraSide(), Settings.Wide);
-			// 월드는 인물이 카메라 쪽 앞뒤로 서기도 해서, 눈높이면 앞사람이 뒷사람을 가림. 같은 곳을 위에서 내려다봄
-			if (space == DialogueStageSpace.World)
-				pose = new DialogueShotPose(pose.Position + Vector3.up * Settings.WorldWideRaise, pose.LookPoint, pose.FieldOfView);
-			return pose;
+			return new DialogueShotPose(pose.Position + Vector3.up * Settings.WorldWideRaise, pose.LookPoint, pose.FieldOfView);
 		}
 
 		// 미디엄은 가장 가까운 상대의 어깨 너머, 클로즈는 정면, 상대가 없으면 정면. 대상이 무대에 없으면 성립 샷
@@ -246,6 +266,8 @@ namespace WitchMendokusai.DialogueStage3D
 			if (useOverShoulder)
 				return DialogueShotMath.OverShoulder(subject.HeadPosition, listener.HeadPosition, CameraSide(), entry, Settings.ShoulderSide, Settings.ShoulderBack, Settings.MinCameraFront);
 			Vector3 facing = isWorld ? CameraSide() : subject.Facing;
+			if (entry.BodyFraction > 0f)
+				return DialogueShotMath.FramedFront(subject.VisualBounds, facing, CameraSide(), entry.BodyFraction * subject.FrameScale, entry.FieldOfView, Settings.ScreenBottomReserve, Settings.FrameMargin, Settings.MinCameraFront);
 			return DialogueShotMath.Front(subject.HeadPosition, facing, CameraSide(), entry, Settings.MinCameraFront);
 		}
 

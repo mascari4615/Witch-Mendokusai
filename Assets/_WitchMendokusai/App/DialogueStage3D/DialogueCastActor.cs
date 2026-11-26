@@ -38,6 +38,21 @@ namespace WitchMendokusai.DialogueStage3D
 		public Vector3 Facing => transform.forward;
 		public Vector3 Feet => transform.position;
 		public Transform Root => transform;
+		public float FrameScale => 1f;
+
+		public Bounds VisualBounds
+		{
+			get
+			{
+				Renderer[] renderers = GetComponentsInChildren<Renderer>();
+				if (renderers.Length == 0)
+					return new Bounds(Feet + Vector3.up * settings.ActorHeight * 0.5f, new Vector3(0.5f, settings.ActorHeight, 0.5f));
+				Bounds bounds = renderers[0].bounds;
+				foreach (Renderer renderer in renderers)
+					bounds.Encapsulate(renderer.bounds);
+				return bounds;
+			}
+		}
 
 		public void TurnToward(Vector3 point)
 		{

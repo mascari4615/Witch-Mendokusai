@@ -10,6 +10,10 @@ namespace WitchMendokusai.DialogueStage3D
 		Vector3 HeadPosition { get; }
 		Vector3 Facing { get; }
 		Transform Root { get; }
+		// 화면에 보이는 몸 전체. 샷 거리 계산과 인물끼리 가림 검사에 씀
+		Bounds VisualBounds { get; }
+		// 샷의 몸 비율에 곱하는 값. 머리가 큰 2등신 그림은 같은 미디엄에서 몸을 더 담아야 같은 크기로 보임
+		float FrameScale { get; }
 
 		void Speak(string lineText);
 		void StopSpeaking();

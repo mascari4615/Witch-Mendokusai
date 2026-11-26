@@ -39,6 +39,7 @@ namespace WitchMendokusai.DialogueStage3D
 		public Vector3 Feet => transform.position;
 		public Vector3 Facing => transform.forward;
 		public bool IsHumanoid => graph.IsValid();
+		public float FrameScale => IsHumanoid ? 1f : settings.SpriteFrameScale;
 
 		public Vector3 HeadPosition
 		{
@@ -46,7 +47,7 @@ namespace WitchMendokusai.DialogueStage3D
 			{
 				if (head != null)
 					return head.position;
-				Bounds bounds = VisualBounds();
+				Bounds bounds = VisualBounds;
 				return new Vector3(bounds.center.x, bounds.max.y - bounds.size.y * settings.SpriteHeadFromTop, bounds.center.z);
 			}
 		}
@@ -241,22 +242,25 @@ namespace WitchMendokusai.DialogueStage3D
 		}
 
 		// 스프라이트 인물은 서 있는 그림들로만 잼 (아래에 이름표, 아이콘 같은 다른 렌더러가 있음)
-		private Bounds VisualBounds()
+		public Bounds VisualBounds
 		{
-			if (spriteParts.Count > 0)
+			get
 			{
-				Bounds sprites = spriteParts[0].bounds;
-				foreach (SpriteRenderer part in spriteParts)
-					sprites.Encapsulate(part.bounds);
-				return sprites;
+				if (spriteParts.Count > 0)
+				{
+					Bounds sprites = spriteParts[0].bounds;
+					foreach (SpriteRenderer part in spriteParts)
+						sprites.Encapsulate(part.bounds);
+					return sprites;
+				}
+				Renderer[] renderers = GetComponentsInChildren<Renderer>();
+				if (renderers.Length == 0)
+					return new Bounds(transform.position + Vector3.up * settings.ActorHeight * 0.5f, Vector3.up * settings.ActorHeight);
+				Bounds bounds = renderers[0].bounds;
+				foreach (Renderer renderer in renderers)
+					bounds.Encapsulate(renderer.bounds);
+				return bounds;
 			}
-			Renderer[] renderers = GetComponentsInChildren<Renderer>();
-			if (renderers.Length == 0)
-				return new Bounds(transform.position + Vector3.up * settings.ActorHeight * 0.5f, Vector3.up * settings.ActorHeight);
-			Bounds bounds = renderers[0].bounds;
-			foreach (Renderer renderer in renderers)
-				bounds.Encapsulate(renderer.bounds);
-			return bounds;
 		}
 
 		private void OnDestroy()
