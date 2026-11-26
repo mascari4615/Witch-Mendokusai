@@ -31,6 +31,8 @@ namespace WitchMendokusai
 		}
 		// 화면 밖으로 나간 게임 시각. 화면 안이면 음수. MonsterSpawner 가 자동 소멸 판정에 씀
 		public float OffscreenSinceTime { get; set; } = -1f;
+		// 공격이 세운 물체 (부술 기둥). 멀거나 화면 밖이어도 몬스터 생성기가 반납하거나 옮기지 않음. 나올 때마다 풀림
+		public bool IsAnchored { get; set; }
 
 		// TASK-WM-107 Slice 4 — playerProvider 는 base UnitObject.playerProvider (protected) 재사용 (CS0108 hide 해소).
 		private SOManager soManager;
@@ -74,6 +76,7 @@ namespace WitchMendokusai
 		{
 			base.OnEnable();
 			OffscreenSinceTime = -1f;
+			IsAnchored = false;
 			if (UnitData.Type == MonsterType.Boss)
 				GroundGenerator.RegisterAnchor(UnitMovement);
 			SpriteRenderer.sharedMaterial = UnitData.Material;

@@ -45,6 +45,8 @@ namespace WitchMendokusai
 		private bool isDashing;
 		// 반격 창 표시의 중단 함수. 숨 고르기가 도중에 끊기면 같이 치움
 		private Action stopRecovery;
+		// 이번 돌진이 지형이나 맵 물체에 막혀 멈췄음 (벽에 박기)
+		private bool slammedTerrain;
 
 		public BT_Dash(UnitObject unitObject, PlayerProvider playerProvider, float attackRange, float dashSpeed, float dashDuration, Action onDashEnd = null, float dashPreDelay = 0.2f, float dashPostDelay = 0.5f, CombatFx telegraph = null, float telegraphWidth = 0f, CombatFx recoveryFx = null, float recoveryRadius = 0f, float blockedProgressRatio = 0f, float angleDegrees = 0f, DashMonsterAttack look = null) : base(unitObject)
 		{
@@ -205,6 +207,7 @@ namespace WitchMendokusai
 			// 예고는 준비가 끝나며 스스로 마무리 (번쩍임). 돌진부터는 끊을 대상이 아님
 			stopTelegraph = null;
 			dashStartTick = unitObject.UnitMovement.SimulationTicks;
+			slammedTerrain = false;
 			if (dashDirection == Vector3.zero)
 				return BTState.Success;
 
@@ -237,7 +240,11 @@ namespace WitchMendokusai
 			if (expected <= 0f)
 				return false;
 			float progress = Vector3.Dot(movement.LastMoveDelta, dashDirection);
-			return progress < expected * blockedProgressRatio;
+			if (progress >= expected * blockedProgressRatio)
+				return false;
+			// 무엇에 막혔는지 기억. 지형이면 벽에 박기 (켜졌을 때)
+			slammedTerrain = DashMonsterAttack.IsTerrain(movement.LastWallCollider);
+			return true;
 		}
 
 		private bool IsRecoveryOver() => Time.time >= recoveryEndTime;
@@ -251,21 +258,39 @@ namespace WitchMendokusai
 			if (Time.time < dashReadyTime + dashDuration)
 				stopTrail?.Invoke();
 			stopTrail = null;
-			recoveryEndTime = Time.time + dashPostDelay;
+			// 벽에 박기가 꺼졌으면 (기본, 보스 돌진) 지금과 같은 숨 고르기
+			// 미끄러지며 지형에 닿았어도 주인공이 돌진 앞에 붙어 있으면 주인공에게 막힌 것
+			bool isPlayerAhead = Vector3.Distance(playerProvider.Current.transform.position, unitObject.transform.position) <= telegraphWidth;
+			slammedTerrain = slammedTerrain && isPlayerAhead == false;
+			bool isSlam = look != null && look.WallSlamSeconds > 0f && slammedTerrain;
+			float rest = look != null ? look.RecoveryAfter(slammedTerrain) : dashPostDelay;
+			CombatFx restFx = isSlam && look.WallSlamFx != null ? look.WallSlamFx : recoveryFx;
+			recoveryEndTime = Time.time + rest;
 			unitObject.UnitMovement.CancelImpulse();
 			unitObject.UnitMovement.SetMoveDirection(Vector3.zero);
 			if (unitObject.TryGetComponent(out MonsterPoseDriver pose))
 				pose.Rest();
-			if (recoveryFx != null && dashPostDelay > 0f)
+			Action stopImpact = null;
+			if (isSlam && look.WallImpactFx != null)
+				stopImpact = look.WallImpactFx.Play(new CombatFxContext
+				{
+					Position = unitObject.transform.position + dashDirection * 0.5f * telegraphWidth,
+					Origin = unitObject.transform.position,
+					Direction = dashDirection,
+					Radius = telegraphWidth,
+					Seconds = rest,
+				});
+			if (restFx != null && rest > 0f)
 			{
-				stopRecovery = recoveryFx.Play(new CombatFxContext
+				stopRecovery = restFx.Play(new CombatFxContext
 				{
 					Position = unitObject.transform.position,
 					Follow = unitObject.transform,
 					Radius = recoveryRadius,
-					Seconds = dashPostDelay,
+					Seconds = rest,
 				});
 			}
+			stopRecovery += stopImpact;
 			return BTState.Success;
 		}
 

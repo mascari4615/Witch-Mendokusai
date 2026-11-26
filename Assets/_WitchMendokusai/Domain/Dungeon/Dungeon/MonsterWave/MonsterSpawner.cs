@@ -211,7 +211,7 @@ namespace WitchMendokusai
 				GameObject obj = monsters[i];
 				if (obj == null || obj.TryGetComponent(out MonsterObject monster) == false || monster.UnitData == null)
 					continue;
-				if (monster.UnitData.Type == MonsterType.Boss || monster.IsElite)
+				if (monster.UnitData.Type == MonsterType.Boss || monster.IsElite || monster.IsAnchored)
 				{
 					monster.UnitMovement.SetSimulationInterval(0f);
 					continue;

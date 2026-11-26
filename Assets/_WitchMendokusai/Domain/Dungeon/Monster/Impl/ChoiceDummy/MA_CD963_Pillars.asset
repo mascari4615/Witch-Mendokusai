@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2daa0051f0444d168252b737278e9595, type: 3}
+  m_Name: MA_CD963_Pillars
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 5
+  <WindupSeconds>k__BackingField: 3.5
+  <RecoverySeconds>k__BackingField: 4
+  <Cooldown>k__BackingField: 6
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 7d0f0ab6735b4a2ab8fb739bbb4cd564, type: 2}
+  <RecoveryFx>k__BackingField: {fileID: 11400000, guid: e653203c5fcd4dbd9743fbc7093afa91, type: 2}
+  <RecoveryFxRadius>k__BackingField: 1.8
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 0}
+    <Strike>k__BackingField: {fileID: 0}
+    <Rest>k__BackingField: {fileID: 0}
+    <Crouch>k__BackingField: 0.2
+    <Stretch>k__BackingField: 0.15
+    <StrikeSeconds>k__BackingField: 0.3
+    <StrikeLeadSeconds>k__BackingField: 0
+    <Tremble>k__BackingField: 0.03
+    <Breath>k__BackingField: 0.08
+  <WindupFx>k__BackingField: {fileID: 11400000, guid: 6d4afb8d6723487c9ae7079189462aab, type: 2}
+  <StrikeFx>k__BackingField: {fileID: 0}
+  <Ward>k__BackingField: {fileID: 11400000, guid: 064fef4ff1614f659f32c47176dc9e29, type: 2}
+  <Count>k__BackingField: 3
+  <Distance>k__BackingField: 2.5
+  <Payoff>k__BackingField: {fileID: 11400000, guid: 7e8ba6cb1be2478683a3b51e58308ec2, type: 2}
+  <TelegraphRadius>k__BackingField: 8
+  <WardFxRadius>k__BackingField: 0.8
+  <BreakFx>k__BackingField: {fileID: 11400000, guid: aeee90da6ba3483d9c76edd663824a15, type: 2}

@@ -52,8 +52,8 @@ namespace WitchMendokusai
 
 		private void Spawn(Vector3 position) => SpawnMonster(Summoned, position);
 
-		// 몬스터 하나를 이 자리에 세움. 소환과 분열 (SplitAffix) 이 같이 씀
-		public static void SpawnMonster(Monster monster, Vector3 position)
+		// 몬스터 하나를 이 자리에 세우고 돌려줌. 소환, 분열 (SplitAffix), 부술 물체 (WardMonsterAttack) 가 같이 씀
+		public static MonsterObject SpawnMonster(Monster monster, Vector3 position)
 		{
 			GameObject spawnedObject = ObjectPoolManager.Instance.Spawn(monster.Prefab);
 			MonsterObject spawnedMonster = spawnedObject.GetComponent<MonsterObject>();
@@ -66,6 +66,7 @@ namespace WitchMendokusai
 			spawnedObject.transform.position = position;
 			spawnedMonster.Init(monster);
 			spawnedObject.SetActive(true);
+			return spawnedMonster;
 		}
 
 		public override void Validate(Monster owner, List<string> errors)
