@@ -20,6 +20,8 @@ namespace WitchMendokusai
 		public float Side = 1f;
 		// 유닛마다 다른 0~1 값. 같은 성격끼리 박자가 겹치지 않게
 		public float Seed;
+		// 이미 알아챈 사건의 시각 (복수가 같은 처치에 두 번 화나지 않게). 없으면 음의 무한대
+		public float NoticedTime = float.NegativeInfinity;
 
 		public void Reset(Vector3 anchor, float seed)
 		{
@@ -29,6 +31,7 @@ namespace WitchMendokusai
 			IsOn = false;
 			UntilTime = 0f;
 			Seed = seed;
+			NoticedTime = float.NegativeInfinity;
 			Side = seed < 0.5f ? -1f : 1f;
 		}
 	}

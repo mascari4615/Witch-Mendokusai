@@ -17,7 +17,7 @@ MonoBehaviour:
   <SenseRadius>k__BackingField: 6
   <SenseSeconds>k__BackingField: 0.25
   calmSpeed: 0.45
-  noticeSeconds: 0.5
+  noticeSeconds: 2
   rageSeconds: 5
   lungeInterval: 0.9
   lungeSpeed: 8

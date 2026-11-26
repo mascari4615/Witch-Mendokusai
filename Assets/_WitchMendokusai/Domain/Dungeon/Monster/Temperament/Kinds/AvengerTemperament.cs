@@ -8,7 +8,7 @@ namespace WitchMendokusai
 	public sealed class AvengerTemperament : MonsterTemperament
 	{
 		[SerializeField, Tooltip("평소 걷는 세기 (1 이 제 속도)"), Range(0f, 1f)] private float calmSpeed = 0.45f;
-		[SerializeField, Tooltip("쓰러진 뒤 이 초 안에 알아채면 화남"), Min(0f)] private float noticeSeconds = 0.5f;
+		[SerializeField, Tooltip("쓰러진 뒤 이 초 안이면 알아챔. 공격 중이라 못 본 것도 끝난 뒤 알아챔 (같은 처치는 한 번)"), Min(0f)] private float noticeSeconds = 2f;
 		[SerializeField, Tooltip("화나 있는 초"), Min(0f)] private float rageSeconds = 5f;
 		[SerializeField, Tooltip("화났을 때 덤비는 사이 초"), Min(0.05f)] private float lungeInterval = 0.9f;
 		[SerializeField, Tooltip("덤비는 속도 (m/s)"), Min(0f)] private float lungeSpeed = 8f;
@@ -20,12 +20,21 @@ namespace WitchMendokusai
 
 		public static bool IsRaging(TemperamentMemory memory, float now) => memory.IsOn && now < memory.UntilTime;
 
-		// 기억의 IsOn, UntilTime 은 화남과 풀리는 시각, NextTime 은 다음 덤빔 시각
+		// 기억의 IsOn, UntilTime 은 화남과 풀리는 시각, NextTime 은 다음 덤빔 시각, NoticedTime 은 알아챈 처치의 시각
 		public override TemperamentStep Steer(in TemperamentContext context, TemperamentMemory memory)
 		{
 			Vector3 toPlayer = TemperamentContext.Toward(context.Self, context.Player);
-			if (context.SinceFallen <= noticeSeconds && IsRaging(memory, context.Now) == false)
+			float fallenTime = context.Now - context.SinceFallen;
+			bool isNewFall = context.SinceFallen <= noticeSeconds && fallenTime > memory.NoticedTime;
+			if (isNewFall && IsRaging(memory, context.Now))
 			{
+				// 화난 중에 또 쓰러지면 화를 늘림
+				memory.NoticedTime = fallenTime;
+				memory.UntilTime = context.Now + rageSeconds;
+			}
+			else if (isNewFall)
+			{
+				memory.NoticedTime = fallenTime;
 				memory.IsOn = true;
 				memory.UntilTime = context.Now + rageSeconds;
 				memory.NextTime = context.Now + lungeInterval;

@@ -22,6 +22,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("주인공 등 뒤 이만큼에 나타남 (m)"), Min(0f)] private float behindDistance = 2.5f;
 		[SerializeField, Tooltip("나타난 뒤 굳어 있는 초 (빈틈)"), Min(0f)] private float arriveSeconds = 0.5f;
 		[SerializeField, Tooltip("나타날 때 몸 부풀림 배율"), Min(1f)] private float arrivePunch = 1.2f;
+		[SerializeField, Tooltip("예고 중 이 초보다 오래 성격이 멈췄으면 (기절, 공포) 예고를 처음부터 다시 함"), Min(0f)] private float staleSeconds = 0.3f;
 		[SerializeField, Tooltip("떠난 자리와 닿은 자리의 먼지 고리 (등장 연출 자산)")] private MonsterSpawnStyle teleportPuff;
 
 		public override string KindName => "점멸";
@@ -35,6 +36,12 @@ namespace WitchMendokusai
 			switch (memory.Phase)
 			{
 				case WINDUP:
+					// 성격은 매 프레임 불림. 끝 시각을 한참 넘겼으면 그동안 멈춰 있던 것이라 예고를 다시 보임
+					if (context.Now > memory.NextTime + staleSeconds)
+					{
+						memory.NextTime = context.Now + windupSeconds;
+						return Frozen(windupPunch);
+					}
 					if (context.Now < memory.NextTime)
 						return Frozen(0f);
 					memory.Phase = ARRIVED;

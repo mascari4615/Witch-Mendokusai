@@ -10,6 +10,7 @@ namespace WitchMendokusai
 	{
 		[SerializeField, Tooltip("지키는 몬스터에서 주인공 쪽으로 이만큼 나와 섬 (m)"), Min(0f)] private float guardDistance = 1.8f;
 		[SerializeField, Tooltip("주인공이 지키는 몬스터에 이만큼 다가오면 막아섬 (m)"), Min(0f)] private float interceptRadius = 4f;
+		[SerializeField, Tooltip("막아선 뒤엔 주인공이 지키는 몬스터에서 interceptRadius 보다 이만큼 더 멀어져야 제자리로 (m). 경계에서 오락가락 안 하게"), Min(0f)] private float releaseMargin = 1f;
 		[SerializeField, Tooltip("지킬 자리에서 이 거리 안이면 멈춤 (m)"), Min(0f)] private float arriveDistance = 0.4f;
 		[SerializeField, Tooltip("막아서는 순간 몸 부풀림 배율"), Min(1f)] private float interceptPunch = 1.25f;
 
@@ -26,7 +27,7 @@ namespace WitchMendokusai
 				return TemperamentStep.Walk(toPlayer);
 			}
 			float playerToAlly = TemperamentContext.Flat(context.Ally - context.Player).magnitude;
-			if (playerToAlly <= interceptRadius)
+			if (playerToAlly <= interceptRadius + (memory.IsOn ? releaseMargin : 0f))
 			{
 				TemperamentStep intercept = TemperamentStep.Walk(toPlayer);
 				intercept.Punch = memory.IsOn ? 0f : interceptPunch;

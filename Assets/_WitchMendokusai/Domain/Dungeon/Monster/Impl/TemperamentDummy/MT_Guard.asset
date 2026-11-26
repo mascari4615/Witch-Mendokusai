@@ -18,5 +18,6 @@ MonoBehaviour:
   <SenseSeconds>k__BackingField: 0.25
   guardDistance: 1.8
   interceptRadius: 4
+  releaseMargin: 1
   arriveDistance: 0.4
   interceptPunch: 1.25

@@ -24,4 +24,5 @@ MonoBehaviour:
   behindDistance: 2.5
   arriveSeconds: 0.5
   arrivePunch: 1.2
+  staleSeconds: 0.3
   teleportPuff: {fileID: 11400000, guid: b832db029b7047c2aac2750d04cba40c, type: 2}

@@ -74,8 +74,15 @@ namespace WitchMendokusai
 			holdsAttack = false;
 			lastHitTime = float.NegativeInfinity;
 			lastFallenTime = float.NegativeInfinity;
-			nextSenseTime = 0f;
 			sensed = default;
+		}
+
+		// 재배치, 다시 꺼내짐, 성격 바뀜. 옛 자리의 이웃과 처치를 버리고, 첫 감지 시각을 유닛마다 흩어 같은 프레임에 몰리지 않게
+		private void ForgetSenses(MonsterTemperament temperament)
+		{
+			sensed = default;
+			lastFallenTime = float.NegativeInfinity;
+			nextSenseTime = Time.time + temperament.SenseSeconds * Random.value;
 		}
 
 		private void OnDisable() => WatchFalls(false);
@@ -130,6 +137,7 @@ namespace WitchMendokusai
 				memory.Reset(unit.transform.position, Random.value);
 				current = temperament;
 				needsReset = false;
+				ForgetSenses(temperament);
 			}
 			if (UnitStatus.IsFleeing(unit))
 			{
@@ -139,7 +147,7 @@ namespace WitchMendokusai
 				Face(temperament, movement.MoveDirectionWorld, keepWhenStill: true);
 				return;
 			}
-			playerHeight = player.transform.position.y;
+			playerHeight = player.UnitMovement.IsGrounded() ? player.transform.position.y : unit.transform.position.y;
 			WatchFalls((temperament.Senses & TemperamentSense.Fallen) != 0);
 			TemperamentContext context = Gather(temperament, player);
 			TemperamentStep step = temperament.Steer(context, memory);
@@ -215,7 +223,8 @@ namespace WitchMendokusai
 				float lootSquared = radiusSquared;
 				foreach (GameObject loot in ObjectBufferManager.GetObjects(ObjectType.Drop))
 				{
-					if (loot == null || loot.activeInHierarchy == false)
+					// 주인공에게 끌려가는 중인 것 (자석, 줍기 범위) 은 곧 사라지므로 안 셈
+					if (loot == null || loot.activeInHierarchy == false || (loot.TryGetComponent(out LootObject lootObject) && lootObject.IsBeingPulled))
 						continue;
 					Vector3 position = TemperamentContext.Flat(loot.transform.position);
 					float distanceSquared = (position - self).sqrMagnitude;
@@ -252,11 +261,12 @@ namespace WitchMendokusai
 				Face(temperament, isStill ? Vector3.zero : direction, keepWhenStill: true);
 		}
 
-		// 넉백, 끌림, 걷기 입력은 Teleport 가 비움. 높이는 주인공 높이 (평평하게 계산한 자리라서)
+		// 넉백, 끌림, 걷기 입력은 Teleport 가 비움. 높이는 땅에 선 주인공 높이 (떠 있으면 내 높이)
+		// 경기장 밖이나 장애물 속이면 안쪽으로 밀어냄 (숨는 공격 MonsterHideaway 와 같은 자르기)
 		private void Blink(Vector3 flatTarget, MonsterTemperament temperament)
 		{
 			Vector3 from = unit.transform.position;
-			Vector3 to = new(flatTarget.x, playerHeight, flatTarget.z);
+			Vector3 to = MonsterHideaway.Clamp(unit, new Vector3(flatTarget.x, playerHeight, flatTarget.z));
 			unit.UnitMovement.Teleport(to);
 			MonsterSpawnStyle puff = temperament.TeleportPuff;
 			if (puff == null)

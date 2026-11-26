@@ -22,6 +22,9 @@ namespace WitchMendokusai
 		[Inject] internal PlayerProvider playerProvider;
 		[Inject] internal ResourceManager resourceManager;
 
+		/// <summary>주인공에게 끌려가는 중 (자석, 줍기 범위). 곧 사라짐</summary>
+		public bool IsBeingPulled => _moveLoop != null;
+
 		private void Awake()
 		{
 			pickupCollider = GetComponent<Collider>();

@@ -16,6 +16,7 @@ namespace WitchMendokusai
 		[SerializeField, Tooltip("순찰 걷는 세기 (1 이 제 속도)"), Range(0f, 1f)] private float patrolSpeed = 0.5f;
 		[SerializeField, Tooltip("끝에서 이 거리 안이면 닿음 (m)"), Min(0f)] private float arriveDistance = 0.4f;
 		[SerializeField, Tooltip("끝에서 자는 초"), Min(0f)] private float napSeconds = 2f;
+		[SerializeField, Tooltip("한 끝으로 가는 데 이 초를 넘기면 닿은 것으로 침 (벽이나 경기장 끝에 막힘)"), Min(0.1f)] private float legSeconds = 8f;
 		[SerializeField, Tooltip("걷는 중 이 거리 안이면 알아챔 (m)"), Min(0f)] private float noticeRadius = 4f;
 		[SerializeField, Tooltip("쫓다가 이보다 멀어지면 순찰로 돌아감 (m)"), Min(0f)] private float loseRadius = 9f;
 		[SerializeField, Tooltip("맞은 뒤 이 초 안이면 쫓음"), Min(0f)] private float chaseOnHitSeconds = 0.3f;
@@ -35,7 +36,7 @@ namespace WitchMendokusai
 			return memory.Anchor + axis * (halfLength * side);
 		}
 
-		// 기억의 Phase 는 걸음, 낮잠, 쫓음. Side 는 지금 향하는 끝, NextTime 은 낮잠이 끝나는 시각
+		// 기억의 Phase 는 걸음, 낮잠, 쫓음. Side 는 지금 향하는 끝, NextTime 은 낮잠이 끝나는 시각, UntilTime 은 이번 걸음의 시간 상한 (0 이면 아직 안 정함)
 		public override TemperamentStep Steer(in TemperamentContext context, TemperamentMemory memory)
 		{
 			Vector3 toPlayer = TemperamentContext.Toward(context.Self, context.Player);
@@ -47,6 +48,7 @@ namespace WitchMendokusai
 						return TemperamentStep.Walk(toPlayer);
 					memory.Phase = WALK;
 					memory.Side = NearerSide(context, memory);
+					memory.UntilTime = context.Now + legSeconds;
 					break;
 				case NAP:
 					if (isHit)
@@ -55,12 +57,15 @@ namespace WitchMendokusai
 						return TemperamentStep.Idle;
 					memory.Phase = WALK;
 					memory.Side = -memory.Side;
+					memory.UntilTime = context.Now + legSeconds;
 					break;
 			}
 			if (isHit || context.Distance <= noticeRadius)
 				return Notice(memory, toPlayer);
+			if (memory.UntilTime <= 0f)
+				memory.UntilTime = context.Now + legSeconds;
 			Vector3 toEnd = TemperamentContext.Flat(End(memory, memory.Side) - context.Self);
-			if (toEnd.magnitude <= arriveDistance)
+			if (toEnd.magnitude <= arriveDistance || context.Now >= memory.UntilTime)
 			{
 				memory.Phase = NAP;
 				memory.NextTime = context.Now + napSeconds;

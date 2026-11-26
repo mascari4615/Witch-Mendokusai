@@ -17,8 +17,10 @@ MonoBehaviour:
   <SenseRadius>k__BackingField: 6
   <SenseSeconds>k__BackingField: 0.25
   braveCount: 2
+  staysBraveCount: 1
   cohesionRadius: 2
   cohesionWeight: 0.8
   aloneKeepDistance: 5
+  aloneBand: 1.5
   aloneSpeed: 0.6
   bravePunch: 1.15
