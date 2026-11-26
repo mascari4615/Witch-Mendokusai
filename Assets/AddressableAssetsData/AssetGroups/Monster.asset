@@ -15,6 +15,48 @@ MonoBehaviour:
   m_GroupName: Monster
   m_GUID: 8441897c411af7449b7a8235e8879cb2
   m_SerializeEntries:
+  - m_GUID: 1cf1c48c119e476b9c320379fee909b7
+    m_Address: Monster/921
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1d645a30aed0400589bd8bc0c7c2e487
+    m_Address: Monster/922
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fb49074d539142df963f0d6d662d211b
+    m_Address: Monster/923
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4f80b51f6cd24b80826844e6bd6712a1
+    m_Address: Monster/924
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d23e41135bae4c45b88119a25b3314e6
+    m_Address: Monster/925
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 35c2e650f58a45b69214b71538e7c82b
+    m_Address: Monster/926
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 313b6497942a487e8cde0c1f188da699
+    m_Address: Monster/927
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: dcc670737f42426081d14dcd4e0f2305
     m_Address: Monster/901
     m_ReadOnly: 0
