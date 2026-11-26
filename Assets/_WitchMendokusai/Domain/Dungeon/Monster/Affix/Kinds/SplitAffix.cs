@@ -31,6 +31,8 @@ namespace WitchMendokusai
 
 		public override void Validate(Monster owner, List<string> errors)
 		{
+			if (owner.Type == MonsterType.Boss)
+				errors.Add($"{name}: 보스는 분열하지 않음 (처치 사건과 같은 순간 새 몬스터가 생김)");
 			if (child == null)
 				errors.Add($"{name}: 갈라져 나올 몬스터 ({nameof(child)}) 비어 있음");
 			else if (child == owner)

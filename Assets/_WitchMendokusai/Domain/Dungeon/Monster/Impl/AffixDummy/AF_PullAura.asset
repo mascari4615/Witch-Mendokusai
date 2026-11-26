@@ -15,7 +15,7 @@ MonoBehaviour:
   <Tint>k__BackingField: {r: 0.75, g: 0.7, b: 1, a: 1}
   pulseFx: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}
   radius: 4.5
-  pullSpeed: 1.8
+  pullSpeedRatio: 0.4
   innerRadius: 1
   holdSeconds: 0.15
   pulseInterval: 1.2

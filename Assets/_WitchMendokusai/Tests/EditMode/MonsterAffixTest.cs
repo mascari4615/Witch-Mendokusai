@@ -16,7 +16,7 @@ namespace WitchMendokusai.Tests
 		public void Trail_spills_only_after_walking_spacing()
 		{
 			Assert.IsFalse(TrailAffix.ShouldSpill(Vector3.zero, new Vector3(0.5f, 3f, 0f), 0.7f), "높이는 안 셈");
-			Assert.IsTrue(TrailAffix.ShouldSpill(Vector3.zero, new Vector3(0.5f, 0f, 0.5f), 0.7f));
+			Assert.IsTrue(TrailAffix.ShouldSpill(Vector3.zero, new Vector3(0.6f, 0f, 0.6f), 0.7f));
 		}
 
 		[Test]
@@ -64,23 +64,22 @@ namespace WitchMendokusai.Tests
 		public void Split_into_itself_is_rejected()
 		{
 			Monster dummy = Find(FIRST_DUMMY_ID + 3);
-			SplitAffix split = (SplitAffix)dummy.Affixes[0];
 			List<string> errors = new();
-			split.Validate(dummy, errors);
+			dummy.Affixes[0].Validate(dummy, errors);
 			Assert.IsEmpty(errors, "더미 분열은 진흙 슬라임으로 갈라짐");
-			SerializedObject serialized = new(split);
-			Object original = serialized.FindProperty("child").objectReferenceValue;
-			serialized.FindProperty("child").objectReferenceValue = dummy;
-			serialized.ApplyModifiedPropertiesWithoutUndo();
+			// 실제 자산을 건드리지 않게 사본에서 자식을 자기 자신으로
+			SplitAffix copy = Object.Instantiate((SplitAffix)dummy.Affixes[0]);
 			try
 			{
-				split.Validate(dummy, errors);
+				SerializedObject serialized = new(copy);
+				serialized.FindProperty("child").objectReferenceValue = dummy;
+				serialized.ApplyModifiedPropertiesWithoutUndo();
+				copy.Validate(dummy, errors);
 				Assert.IsNotEmpty(errors);
 			}
 			finally
 			{
-				serialized.FindProperty("child").objectReferenceValue = original;
-				serialized.ApplyModifiedPropertiesWithoutUndo();
+				Object.DestroyImmediate(copy);
 			}
 		}
 

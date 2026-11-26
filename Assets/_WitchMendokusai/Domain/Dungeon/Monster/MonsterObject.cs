@@ -222,6 +222,7 @@ namespace WitchMendokusai
 			Health.SetScaleMultiplier(profile.ScaleMultiplier);
 			// 변종 색 위에 정예 색을 곱함. 정예 돌진, 정예 장판도 종류가 보이게
 			SpriteRenderer.color = UnitData.KeepsTintAsElite ? UnitData.Tint : UnitData.Tint * profile.Tint;
+			MonsterAffixDriver.ReapplyTint(this);
 			// 바 판은 지면에 눕혀져 있어 z가 두께
 			hpBar.localScale = new Vector3(profile.HpBarScale, 1f, profile.HpBarThickness);
 			HpBarView.SetRatio(1f);
@@ -275,6 +276,13 @@ namespace WitchMendokusai
 			hpBar.rotation = Quaternion.Euler(0, hpBar.rotation.eulerAngles.y, 0);
 		}
 
+		// 치유 (치유 파동 특징) 도 체력 바에 보이게. 바가 꺼져 있으면 켜지 않음
+		public override void ReceiveHeal(int healAmount)
+		{
+			base.ReceiveHeal(healAmount);
+			HpBarView.SetRatio((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX]);
+		}
+
 		private void HandleDamageEffects(DamageInfo damageInfo)
 		{
 			// 던전 UI 추적(LastHitMonsterObject)은 던전에서만 — 아레나 피격이 던전 "마지막 피격 몬스터" 패널을 오염 X.
@@ -295,6 +303,8 @@ namespace WitchMendokusai
 
 		protected virtual void HandleDeathEffects()
 		{
+			// 특징의 쓰러질 때 일 (터짐, 분열) 은 몸을 끄기 전에. 구독 순서에 기대지 않음
+			MonsterAffixDriver.NotifyDeath(this);
 			// 던전 전용 side-effect(loot 드랍·킬 카운트) 는 던전에서만 — 아레나(비-던전)서 사망 시
 			// 전리품/경험치 오브가 바닥에 흩뿌려지거나 DungeonStat 이 오염되지 않게 격리(PlayerObject 선례).
 			if (DungeonManagerBridge.IsDungeon)

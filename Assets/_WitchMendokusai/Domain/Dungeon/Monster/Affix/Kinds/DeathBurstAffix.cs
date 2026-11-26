@@ -30,18 +30,21 @@ namespace WitchMendokusai
 			CombatFxContext context = new() { Position = position, Radius = radius, Seconds = delaySeconds };
 			if (telegraph != null)
 				telegraph.Play(context);
-			// 피해는 쓰러진 순간의 몬스터 수치로 미리 셈 (몸은 곧 풀로 돌아가 다른 몬스터가 됨)
+			// 피해는 쓰러진 순간의 몬스터 수치로 미리 셈 (몸은 곧 풀로 돌아가 다른 몬스터가 됨). 패배 화면의 가해 몬스터는 그 몸
 			DamageInfo burst = MonsterAttack.MakeDamage(monster, damage);
-			burst.damageSource = null;
-			DOVirtual.DelayedCall(delaySeconds, () => Explode(position, burst), ignoreTimeScale: false);
+			PlayerObject target = CurrentPlayer;
+			DOVirtual.DelayedCall(delaySeconds, () => Explode(position, burst, target), ignoreTimeScale: false);
 		}
 
-		private void Explode(Vector3 position, DamageInfo burst)
+		// 그사이 던전을 나갔거나 (승리, 패배, 마을) 주인공이 바뀌었으면 그림도 피해도 없음
+		private void Explode(Vector3 position, DamageInfo burst, PlayerObject target)
 		{
+			PlayerObject player = CurrentPlayer;
+			if (DungeonManagerBridge.IsDungeon == false || player == null || player != target)
+				return;
 			if (strikeFx != null)
 				strikeFx.Play(new CombatFxContext { Position = position, Origin = position, Radius = radius, Seconds = 0f });
-			PlayerObject player = CurrentPlayer;
-			if (player == null || player.IsAlive == false)
+			if (player.IsAlive == false)
 				return;
 			if (IsInside(position, player.transform.position, radius, player.UnitMovement.BodyRadius))
 				player.ReceiveDamage(burst);
