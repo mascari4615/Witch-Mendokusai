@@ -16,10 +16,13 @@ MonoBehaviour:
   - <Name>k__BackingField: 욘
     <Prefab>k__BackingField: {fileID: 919132149155446097, guid: 8403658c3298ac34db76445e300408d8, type: 3}
     <Materials>k__BackingField: []
+    <HeightScale>k__BackingField: 1
   - <Name>k__BackingField: 링
     <Prefab>k__BackingField: {fileID: 919132149155446097, guid: bcf214c0056d4a9a9ea709c029d74a42, type: 3}
     <Materials>k__BackingField: []
+    <HeightScale>k__BackingField: 1
   <FallbackPrefab>k__BackingField: {fileID: 919132149155446097, guid: bc6bb9f63573eff468de7d395b5e9126, type: 3}
+  <ActorHeight>k__BackingField: 1.45
   <SlotSpacing>k__BackingField: 1.1
   <FacingTowardCamera>k__BackingField: 0.35
   <MoveSeconds>k__BackingField: 0.45
@@ -56,14 +59,14 @@ MonoBehaviour:
     <LookHeight>k__BackingField: -0.35
     <FieldOfView>k__BackingField: 32
   <Medium>k__BackingField:
-    <Distance>k__BackingField: 1.7
+    <Distance>k__BackingField: 2
     <Height>k__BackingField: 0
     <LookHeight>k__BackingField: -0.12
     <FieldOfView>k__BackingField: 28
   <Close>k__BackingField:
-    <Distance>k__BackingField: 1
+    <Distance>k__BackingField: 1.3
     <Height>k__BackingField: 0
-    <LookHeight>k__BackingField: -0.05
+    <LookHeight>k__BackingField: -0.1
     <FieldOfView>k__BackingField: 24
   <ShoulderSide>k__BackingField: 0.45
   <EmptyStageHeadHeight>k__BackingField: 1.4

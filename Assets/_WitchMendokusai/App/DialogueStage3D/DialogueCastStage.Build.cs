@@ -133,6 +133,7 @@ namespace WitchMendokusai.DialogueStage3D
 			GameObject instance = Instantiate(prefab, stageRoot.transform);
 			instance.name = "Cast " + actorName;
 			SetLayer(instance, Settings.ContentLayer);
+			FitHeight(instance, Settings.ActorHeight * (entry != null ? entry.HeightScale : 1f));
 			if (entry != null && entry.Materials != null && entry.Materials.Length > 0)
 			{
 				foreach (Renderer renderer in instance.GetComponentsInChildren<Renderer>(true))
@@ -141,6 +142,20 @@ namespace WitchMendokusai.DialogueStage3D
 			DialogueCastActor actor = instance.AddComponent<DialogueCastActor>();
 			actor.Initialize(actorName, Settings);
 			return actor;
+		}
+
+		// 모델마다 원래 크기가 달라서 (작은 인형, 성인 비율) 그린 높이를 재어 같은 키로 맞춤
+		private static void FitHeight(GameObject instance, float targetHeight)
+		{
+			Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
+			if (renderers.Length == 0)
+				return;
+			Bounds bounds = renderers[0].bounds;
+			foreach (Renderer renderer in renderers)
+				bounds.Encapsulate(renderer.bounds);
+			if (bounds.size.y <= 0.0001f)
+				return;
+			instance.transform.localScale *= targetHeight / bounds.size.y;
 		}
 
 		private DialogueShotPose WideShot()

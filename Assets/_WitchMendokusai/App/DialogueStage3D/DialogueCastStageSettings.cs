@@ -15,6 +15,7 @@ namespace WitchMendokusai.DialogueStage3D
 			[field: SerializeField] public string Name { get; private set; }
 			[field: SerializeField] public GameObject Prefab { get; private set; }
 			[field: SerializeField] public Material[] Materials { get; private set; }
+			[field: SerializeField, Tooltip("공통 키에 곱하는 비율. 1 이면 ActorHeight")] public float HeightScale { get; private set; } = 1f;
 		}
 
 		[Serializable]
@@ -36,6 +37,7 @@ namespace WitchMendokusai.DialogueStage3D
 		[field: Header("배우")]
 		[field: SerializeField] public CastEntry[] Cast { get; private set; } = new CastEntry[0];
 		[field: SerializeField, Tooltip("Cast 에 없는 인물")] public GameObject FallbackPrefab { get; private set; }
+		[field: SerializeField, Tooltip("모델 원래 크기와 상관없이 맞추는 키 (m)")] public float ActorHeight { get; private set; } = 1.45f;
 		[field: SerializeField, Tooltip("자리 사이 거리 (m). 왼쪽끝부터 오른쪽끝까지 다섯 자리")] public float SlotSpacing { get; private set; } = 1.1f;
 		[field: SerializeField, Tooltip("상대를 보는 몸을 카메라 쪽으로 돌리는 비율 0~1")] public float FacingTowardCamera { get; private set; } = 0.35f;
 		[field: SerializeField] public float MoveSeconds { get; private set; } = 0.45f;
