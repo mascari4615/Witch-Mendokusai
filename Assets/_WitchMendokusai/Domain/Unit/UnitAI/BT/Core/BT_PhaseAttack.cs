@@ -61,6 +61,7 @@ namespace WitchMendokusai
 				{
 					hasRetried = true;
 					LingerField.Abandon(unitObject);
+					VolleyField.Abandon(unitObject);
 					Begin(attack.Phases[phaseIndex].Entrance);
 				}
 			}
