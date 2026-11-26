@@ -18,6 +18,8 @@ namespace WitchMendokusai.Tests
 
 		private static readonly int[] bossIds = { 961, 962, 963, 964 };
 		private const int PILLAR_ID = 969;
+		// 더미 밖에서 벽에 박기를 켠 돌진 (수정게 2단계 긴 돌진)
+		private static readonly string[] wallSlamUsers = { "MA_Dash_GreatCrabRam" };
 
 		private static List<Monster> LoadDummies() =>
 			AssetDatabase.FindAssets("t:Monster", new[] { MONSTER_FOLDER })
@@ -170,6 +172,12 @@ namespace WitchMendokusai.Tests
 				if (path.StartsWith(MONSTER_FOLDER))
 					continue;
 				DashMonsterAttack dash = AssetDatabase.LoadAssetAtPath<DashMonsterAttack>(path);
+				// 실제 보스가 일부러 쓰는 자산은 박기 경직이 숨 고르기보다 긴지만 봄
+				if (wallSlamUsers.Contains(dash.name))
+				{
+					Assert.GreaterOrEqual(dash.WallSlamSeconds, dash.RecoverySeconds, path);
+					continue;
+				}
 				Assert.AreEqual(0f, dash.WallSlamSeconds, path);
 				Assert.AreEqual(dash.RecoverySeconds, dash.RecoveryAfter(true), path);
 			}

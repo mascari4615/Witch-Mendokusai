@@ -12,6 +12,8 @@ namespace WitchMendokusai.Tests
 	public class BossZoneTest
 	{
 		private const string DUMMY_FOLDER = "Assets/_WitchMendokusai/Domain/Dungeon/Monster/Impl/ZoneDummy";
+		// 더미 밖에서 안전 섬을 켠 띠 (시계지기 2단계 울림)
+		private static readonly string[] safeIslandUsers = { "MA_Band_MidnightClockToll" };
 		private const string ADDRESS_GROUP = "Assets/AddressableAssetsData/AssetGroups/Monster.asset";
 		private static readonly int[] dummyIds = { 971, 972, 973, 974, 975 };
 
@@ -87,6 +89,12 @@ namespace WitchMendokusai.Tests
 			Assert.IsNotEmpty(lines);
 			foreach (BandMonsterAttack band in bands)
 			{
+				// 실제 보스가 일부러 쓰는 안전 섬 (시계지기 2단계 울림)
+				if (safeIslandUsers.Contains(band.name))
+				{
+					Assert.IsNotNull(band.SafeFx, band.name);
+					continue;
+				}
 				Assert.AreEqual(0f, band.CenterOffset, band.name);
 				Assert.AreEqual(0, band.CoverMask.value, band.name);
 				Assert.IsNull(band.SafeFx, band.name);
