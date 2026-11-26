@@ -14,5 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <PunchSeconds>k__BackingField: 0.25
   <FaceDeadZone>k__BackingField: 0.05
+  <SenseRadius>k__BackingField: 8
+  <SenseSeconds>k__BackingField: 0.25
   swingDegrees: 60
   periodSeconds: 1.4

@@ -18,6 +18,9 @@ namespace WitchMendokusai
 		public bool FacesPlayer;
 		// 공격 준비를 시작하지 않음 (잠듦, 모른 척, 겁먹음, 얼어붙음). 공격 (BT_WindupAttack) 이 읽음
 		public bool HoldsAttack;
+		// 이번 틱에 TeleportTo 로 순간이동 (점멸). 높이는 드라이버가 맞춤
+		public bool Teleport;
+		public Vector3 TeleportTo;
 
 		public static TemperamentStep Walk(Vector3 direction, float speed = 1f) => new() { Direction = direction, Speed = Mathf.Clamp01(speed) };
 

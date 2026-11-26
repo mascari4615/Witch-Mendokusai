@@ -21,6 +21,20 @@ namespace WitchMendokusai
 		// 마지막으로 맞은 뒤 흐른 초. 안 맞았으면 무한대
 		public float SinceHit;
 
+		// 아래는 감각 (MonsterTemperament.Senses) 을 켠 성격에만 채움. 모두 SenseRadius 안의 것
+		// 같은 성격 자산을 쓰는 다른 몬스터 수와 그들의 무게중심 (Kin)
+		public int KinCount;
+		public Vector3 KinCenter;
+		// 가장 가까운 다른 성격 (또는 성격 없는) 몬스터 (Ally)
+		public bool HasAlly;
+		public Vector3 Ally;
+		// 가장 가까운 바닥 전리품 (Loot)
+		public bool HasLoot;
+		public Vector3 Loot;
+		// 근처에서 몬스터가 쓰러진 뒤 흐른 초와 그 자리 (Fallen). 없었으면 무한대
+		public float SinceFallen;
+		public Vector3 FallenAt;
+
 		public Vector3 ToPlayer => Flat(Player - Self);
 		public float Distance => ToPlayer.magnitude;
 

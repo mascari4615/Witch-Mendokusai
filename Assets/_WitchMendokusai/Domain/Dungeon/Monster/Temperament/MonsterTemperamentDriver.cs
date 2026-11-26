@@ -5,6 +5,7 @@ namespace WitchMendokusai
 	// 몬스터 몸 하나에서 성격 (MonsterTemperament) 을 돌림. 사실을 모아 성격에 묻고, 답을 이동과 몸에 입힘
 	// 첫 걸음 때 붙고 (MonsterPoseDriver 와 같은 꼴), 풀에서 다시 켜지거나 재배치되면 기억을 비움. 태어난 자리는 비운 뒤 첫 걸음의 자리
 	// 기절, 빙결 중에는 성격을 묻지 않음 (시계가 흐르지 않게). 공포 중에는 성격 대신 공포가 걸음을 정함
+	// 감각 (Senses) 을 켠 성격만 SenseSeconds 마다 주변 목록을 훑음. 처치 소식은 그 동안만 구독
 	public sealed class MonsterTemperamentDriver : MonoBehaviour
 	{
 		private readonly TemperamentMemory memory = new();
@@ -14,6 +15,12 @@ namespace WitchMendokusai
 		private bool isListening;
 		private bool holdsAttack;
 		private float lastHitTime = float.NegativeInfinity;
+		private float playerHeight;
+		private float nextSenseTime;
+		private bool isWatchingFalls;
+		private float lastFallenTime = float.NegativeInfinity;
+		private Vector3 lastFallenAt;
+		private TemperamentContext sensed;
 
 		public TemperamentMemory Memory => memory;
 
@@ -66,12 +73,40 @@ namespace WitchMendokusai
 			needsReset = true;
 			holdsAttack = false;
 			lastHitTime = float.NegativeInfinity;
+			lastFallenTime = float.NegativeInfinity;
+			nextSenseTime = 0f;
+			sensed = default;
 		}
+
+		private void OnDisable() => WatchFalls(false);
 
 		private void OnDestroy()
 		{
+			WatchFalls(false);
 			if (isListening && unit != null && unit.Health != null)
 				unit.Health.OnTakeDamage -= RememberHit;
+		}
+
+		private void WatchFalls(bool on)
+		{
+			if (on == isWatchingFalls)
+				return;
+			if (on)
+				EventBusBridge.Subscribe<MonsterKilledEvent>(RememberFall);
+			else
+				EventBusBridge.Unsubscribe<MonsterKilledEvent>(RememberFall);
+			isWatchingFalls = on;
+		}
+
+		private void RememberFall(MonsterKilledEvent killed)
+		{
+			if (current == null || unit == null)
+				return;
+			Vector3 offset = TemperamentContext.Flat(killed.Position - unit.transform.position);
+			if (offset.sqrMagnitude > current.SenseRadius * current.SenseRadius)
+				return;
+			lastFallenTime = Time.time;
+			lastFallenAt = TemperamentContext.Flat(killed.Position);
 		}
 
 		// 독, 화상 같은 상태이상 틱은 맞은 것으로 안 침 (순둥이가 계속 화나고 잠꾸러기가 틱에 깨지 않게)
@@ -104,15 +139,22 @@ namespace WitchMendokusai
 				Face(temperament, movement.MoveDirectionWorld, keepWhenStill: true);
 				return;
 			}
-			TemperamentContext context = Gather(player);
+			playerHeight = player.transform.position.y;
+			WatchFalls((temperament.Senses & TemperamentSense.Fallen) != 0);
+			TemperamentContext context = Gather(temperament, player);
 			TemperamentStep step = temperament.Steer(context, memory);
 			holdsAttack = step.HoldsAttack;
 			Apply(step, temperament, context);
 		}
 
-		private TemperamentContext Gather(PlayerObject player)
+		private TemperamentContext Gather(MonsterTemperament temperament, PlayerObject player)
 		{
 			int maxHealth = unit.UnitStat[UnitStatType.HP_MAX];
+			if (temperament.Senses != TemperamentSense.None && Time.time >= nextSenseTime)
+			{
+				Sense(temperament);
+				nextSenseTime = Time.time + temperament.SenseSeconds;
+			}
 			return new TemperamentContext
 			{
 				Self = TemperamentContext.Flat(unit.transform.position),
@@ -122,7 +164,68 @@ namespace WitchMendokusai
 				Now = Time.time,
 				HealthRatio = maxHealth > 0 ? (float)unit.UnitStat[UnitStatType.HP_CUR] / maxHealth : 1f,
 				SinceHit = Time.time - lastHitTime,
+				KinCount = sensed.KinCount,
+				KinCenter = sensed.KinCenter,
+				HasAlly = sensed.HasAlly,
+				Ally = sensed.Ally,
+				HasLoot = sensed.HasLoot,
+				Loot = sensed.Loot,
+				SinceFallen = Time.time - lastFallenTime,
+				FallenAt = lastFallenAt,
 			};
+		}
+
+		// 몬스터와 전리품 목록을 한 번씩 훑어 반지름 안만 셈. 같은 성격 자산이면 Kin, 아니면 가장 가까운 것이 Ally
+		private void Sense(MonsterTemperament temperament)
+		{
+			TemperamentSense senses = temperament.Senses;
+			Vector3 self = TemperamentContext.Flat(unit.transform.position);
+			float radiusSquared = temperament.SenseRadius * temperament.SenseRadius;
+			sensed = default;
+			if ((senses & (TemperamentSense.Kin | TemperamentSense.Ally)) != 0)
+			{
+				Vector3 kinSum = Vector3.zero;
+				float allySquared = float.PositiveInfinity;
+				foreach (GameObject other in ObjectBufferManager.GetObjects(ObjectType.Monster))
+				{
+					if (other == null || other == gameObject || other.activeInHierarchy == false)
+						continue;
+					Vector3 position = TemperamentContext.Flat(other.transform.position);
+					float distanceSquared = (position - self).sqrMagnitude;
+					if (distanceSquared > radiusSquared || other.TryGetComponent(out UnitObject otherUnit) == false || otherUnit.UnitStat[UnitStatType.DEAD] > 0)
+						continue;
+					bool isKin = otherUnit.UnitData is Monster monster && monster.Temperament == temperament;
+					if (isKin)
+					{
+						kinSum += position;
+						sensed.KinCount++;
+					}
+					else if (distanceSquared < allySquared)
+					{
+						allySquared = distanceSquared;
+						sensed.Ally = position;
+						sensed.HasAlly = true;
+					}
+				}
+				if (sensed.KinCount > 0)
+					sensed.KinCenter = kinSum / sensed.KinCount;
+			}
+			if ((senses & TemperamentSense.Loot) != 0)
+			{
+				float lootSquared = radiusSquared;
+				foreach (GameObject loot in ObjectBufferManager.GetObjects(ObjectType.Drop))
+				{
+					if (loot == null || loot.activeInHierarchy == false)
+						continue;
+					Vector3 position = TemperamentContext.Flat(loot.transform.position);
+					float distanceSquared = (position - self).sqrMagnitude;
+					if (distanceSquared > lootSquared)
+						continue;
+					lootSquared = distanceSquared;
+					sensed.Loot = position;
+					sensed.HasLoot = true;
+				}
+			}
 		}
 
 		private void Apply(TemperamentStep step, MonsterTemperament temperament, in TemperamentContext context)
@@ -131,6 +234,8 @@ namespace WitchMendokusai
 			// 넉백 중이면 튀어 나감을 버림 (넉백이 이김). 성격의 단계는 이미 넘어가 그 한 번은 걷기로 이어짐
 			if (step.BurstSeconds > 0f && movement.IsExternallyDriven == false)
 				movement.ApplyImpulse(TemperamentContext.Flat(step.BurstVelocity), step.BurstSeconds);
+			if (step.Teleport)
+				Blink(step.TeleportTo, temperament);
 			Vector3 direction = TemperamentContext.Flat(step.Direction);
 			bool isStill = direction.sqrMagnitude <= 0f || step.Speed <= 0f;
 			if (isStill)
@@ -145,6 +250,19 @@ namespace WitchMendokusai
 				Face(temperament, context.ToPlayer, keepWhenStill: false);
 			else
 				Face(temperament, isStill ? Vector3.zero : direction, keepWhenStill: true);
+		}
+
+		// 넉백, 끌림, 걷기 입력은 Teleport 가 비움. 높이는 주인공 높이 (평평하게 계산한 자리라서)
+		private void Blink(Vector3 flatTarget, MonsterTemperament temperament)
+		{
+			Vector3 from = unit.transform.position;
+			Vector3 to = new(flatTarget.x, playerHeight, flatTarget.z);
+			unit.UnitMovement.Teleport(to);
+			MonsterSpawnStyle puff = temperament.TeleportPuff;
+			if (puff == null)
+				return;
+			puff.PlayPuff(from, 1f);
+			puff.PlayPuff(to, 1f);
 		}
 
 		// 그림은 오른쪽을 봄. 카메라 기준 왼쪽으로 가면 뒤집음. 거의 위아래로 가거나 멈췄으면 그대로 둠
