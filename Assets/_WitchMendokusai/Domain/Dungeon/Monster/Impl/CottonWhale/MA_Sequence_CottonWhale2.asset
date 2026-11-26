@@ -21,10 +21,12 @@ MonoBehaviour:
   <RecoveryFxRadius>k__BackingField: 2
   <Steps>k__BackingField:
   - {fileID: 11400000, guid: 70ce99aeb6094b8cb5990d555d100a41, type: 2}
+  - {fileID: 11400000, guid: 9da4735f92b34742a5e2a810a1057b54, type: 2}
   - {fileID: 11400000, guid: 969f7aad97f34f40bc56b699543eacc3, type: 2}
   - {fileID: 11400000, guid: a37bd627b82c4902afd796f3c964e7e9, type: 2}
   - {fileID: 11400000, guid: a86f0185a9b647cc9ba3d99d221810d3, type: 2}
   - {fileID: 11400000, guid: 4b5365289ee44e5083e8c48e6787c61f, type: 2}
+  - {fileID: 11400000, guid: 9da4735f92b34742a5e2a810a1057b54, type: 2}
   - {fileID: 11400000, guid: 7d3629e42da84de48007fccd5b4c381b, type: 2}
   - {fileID: 11400000, guid: ed436a446a364b59bb1d9db69fc76add, type: 2}
   <SkipSeconds>k__BackingField: 4

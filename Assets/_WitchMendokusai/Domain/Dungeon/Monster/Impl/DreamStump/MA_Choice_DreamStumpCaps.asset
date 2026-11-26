@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fc94cac8baf4e98a37a6749b755be42, type: 3}
+  m_Name: MA_Choice_DreamStumpCaps
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 5
+  <WindupSeconds>k__BackingField: 0
+  <RecoverySeconds>k__BackingField: 0
+  <Cooldown>k__BackingField: 0
+  <WindupTelegraph>k__BackingField: {fileID: 0}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 2
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 21300000, guid: ac56407cf51b4981854e5b262d2fa956, type: 3}
+    <Strike>k__BackingField: {fileID: 0}
+    <Rest>k__BackingField: {fileID: 0}
+    <Crouch>k__BackingField: 0.2
+    <Stretch>k__BackingField: 0
+    <StrikeSeconds>k__BackingField: 0.3
+    <StrikeLeadSeconds>k__BackingField: 0
+    <Tremble>k__BackingField: 0.04
+    <Breath>k__BackingField: 0.06
+  <WindupFx>k__BackingField: {fileID: 0}
+  <StrikeFx>k__BackingField: {fileID: 0}
+  <Branches>k__BackingField:
+  - <Attack>k__BackingField: {fileID: 11400000, guid: 80a964371fa44c098436bf9c75a50a33, type: 2}
+    <Weight>k__BackingField: 1
+    <CueFx>k__BackingField: {fileID: 11400000, guid: ab8a031eb4a64f95997f8e65012e7876, type: 2}
+    <CueCount>k__BackingField: 1
+    <BodyTint>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+  - <Attack>k__BackingField: {fileID: 11400000, guid: 5c4bb925c4314dccb255e9630fa927f2, type: 2}
+    <Weight>k__BackingField: 1
+    <CueFx>k__BackingField: {fileID: 11400000, guid: ab8a031eb4a64f95997f8e65012e7876, type: 2}
+    <CueCount>k__BackingField: 2
+    <BodyTint>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
+  <CueSeconds>k__BackingField: 0.9
+  <CueDistance>k__BackingField: 1.5
+  <CueSpreadDegrees>k__BackingField: 70
+  <CueRadius>k__BackingField: 0.7
