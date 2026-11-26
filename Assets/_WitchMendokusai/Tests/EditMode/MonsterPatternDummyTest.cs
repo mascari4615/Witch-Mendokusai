@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace WitchMendokusai.Tests
 {
-	// 일반 몬스터 공격 패턴 더미 (931~938). 정본 memo wm/design/monster-pattern-20261126
+	// 일반 몬스터 공격 패턴 더미 (1묶음 931~938, 2묶음 939~946). 정본 memo wm/design/monster-pattern-20261126
 	// 더미마다 공격의 짜임 (종류와 배치) 과 시키는 행동이 서로 다르고, 공격 검사에 오류가 없는지
 	public class MonsterPatternDummyTest
 	{
@@ -25,6 +25,14 @@ namespace WitchMendokusai.Tests
 			{ 936, "들어갔다 다시 나가기" },
 			{ 937, "세 번 세고 반격" },
 			{ 938, "가운데 가만히 서기" },
+			{ 939, "바늘 앞에서 같은 쪽으로 돌기" },
+			{ 940, "거슬러 걷기" },
+			{ 941, "갈래 사이 틈으로" },
+			{ 942, "새끼와 어미 중 고르기" },
+			{ 943, "웅크린 동안 다른 적부터" },
+			{ 944, "물러나지 말고 앞으로 나서기" },
+			{ 945, "멈추지 않고 계속 걷기" },
+			{ 946, "지나간 바늘이 되돌아올 때 다시 비키기" },
 		};
 
 		private static List<Monster> LoadDummies() =>
@@ -66,6 +74,9 @@ namespace WitchMendokusai.Tests
 			{
 				foreach (MonsterAttack attack in Leaves(monster.Attack))
 				{
+					// 웅크림 (방어) 은 때리지 않음. 몸 표시는 GuardFx
+					if (attack is GuardMonsterAttack)
+						continue;
 					Assert.IsFalse(attack.Pose.IsEmpty, $"{attack.name} 몸동작 없음");
 					Assert.IsNotNull(attack.StrikeFx, $"{attack.name} 타격 이펙트 없음");
 					Assert.IsNotNull(attack.WindupTelegraph, $"{attack.name} 예고 없음");
@@ -128,6 +139,7 @@ namespace WitchMendokusai.Tests
 			BandMonsterAttack band => $"{band.KindName}/{(band.ArcDegrees >= 360f ? "고리" : "부채")}{band.Bands.Count}",
 			HideMonsterAttack hide => $"{hide.KindName}/{(hide.ChaseSeconds > 0f ? "쫓음" : "자리" + hide.Count)}",
 			ScatterZoneMonsterAttack scatter => $"{scatter.KindName}/{scatter.Arrangement}",
+			SpinMonsterAttack spin => $"{spin.KindName}/{(spin.Arms.Exists(arm => arm.ReverseAtSeconds > 0f) ? "왕복" : "한쪽")}",
 			DashMonsterAttack dash => $"{dash.KindName}/{(dash.AngleDegrees == 0f ? "곧장" : "옆")}",
 			_ => attack.KindName,
 		};
