@@ -138,6 +138,7 @@ namespace WitchMendokusai
 					return player.UnitStat[UnitStatType.HP_CUR] >= player.UnitStat[UnitStatType.HP_MAX] ? settings.HealthFullText : null;
 				case MapObjectEffectType.SpawnChest:
 				case MapObjectEffectType.RevealMapObjects:
+				case MapObjectEffectType.Rescue:
 					return null;
 				default:
 					throw new System.InvalidOperationException($"맵 오브젝트 효과 {effect.Type} 처리 없음");
@@ -183,6 +184,9 @@ namespace WitchMendokusai
 					return;
 				case MapObjectEffectType.RevealMapObjects:
 					RevealMapObjects(site, effect.Value);
+					return;
+				case MapObjectEffectType.Rescue:
+					RescueCaptive(site);
 					return;
 				default:
 					throw new System.InvalidOperationException($"맵 오브젝트 효과 {effect.Type} 처리 없음");

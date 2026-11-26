@@ -77,6 +77,8 @@ namespace WitchMendokusai
 		private QuestView questView;
 		private AchievementView achievementView;
 		private DollView dollView;
+		// 인형 창. 키 말고 마을 인형 공방에서도 엶
+		public DollView Dolls => dollView;
 		private StatusView statusView;
 		private PopupView popupView;
 		private StagePopupView stagePopupView;

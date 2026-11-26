@@ -9,12 +9,10 @@ namespace WitchMendokusai
 {
 	// 생활 규칙 (HomesteadSim) 과 게임을 잇는 자리
 	// - 벽시계가 흐른 만큼 규칙의 시간을 밂. 던전에 있는 동안에도 흐름
-	// - 던전 귀환과 보스 처치를 규칙에 알림
+	// - 던전 귀환, 보스 처치, 구출을 규칙에 알림. 기다리는 구출 열쇠를 던전에 적어 둠
 	// - 화면 묶음 (UIHomestead) 과 알림 (HomesteadHud) 을 처음 쓸 때 만듦
 	public sealed class HomesteadManager : MonoBehaviour
 	{
-		public const string BOSS_EVENT = "boss";
-
 		[Tooltip("한 번에 흐른 것으로 볼 최대 분. 넘으면 시각을 새로 맞춘 것")]
 		[SerializeField] private int maxStepMinutes = 240;
 		private const string RESOURCE_FOLDER = "Homestead";
@@ -39,6 +37,8 @@ namespace WitchMendokusai
 		public HomesteadCostumeDresser Dresser { get; private set; }
 
 		private long lastClockMinutes = -1;
+		// 다음 판에 둘 갇힌 사람. 주민이 오면 다시 셈
+		private string rescueWanted = string.Empty;
 
 		[Inject]
 		public void Construct(DataManager dataManager, SOManager soManager, GameEventManager gameEventManager, IObjectResolver container)
@@ -69,6 +69,7 @@ namespace WitchMendokusai
 			BuildSim();
 			gameEventManager.RegisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
 			EventBusBridge.Subscribe<BossKilledEvent>(OnBossKilled);
+			EventBusBridge.Subscribe<CaptiveRescuedEvent>(OnCaptiveRescued);
 			StageManager.OnStageChanged += OnStageChanged;
 		}
 
@@ -82,6 +83,8 @@ namespace WitchMendokusai
 			Sim = new HomesteadSim(catalog, state, new HomesteadPurse(soManager.ItemInventory, dataManager.GameStat), new System.Random());
 			Sim.RefreshRequests();
 			Dresser = new HomesteadCostumeDresser(Sim);
+			Sim.Arrived += _ => RecountRescue();
+			RecountRescue();
 			lastClockMinutes = -1;
 		}
 
@@ -90,6 +93,7 @@ namespace WitchMendokusai
 			if (gameEventManager != null)
 				gameEventManager.UnregisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
 			EventBusBridge.Unsubscribe<BossKilledEvent>(OnBossKilled);
+			EventBusBridge.Unsubscribe<CaptiveRescuedEvent>(OnCaptiveRescued);
 			StageManager.OnStageChanged -= OnStageChanged;
 			Dresser?.Dispose();
 			DisposeScreens();
@@ -132,6 +136,9 @@ namespace WitchMendokusai
 				BuildSim();
 				Rebuilt();
 			}
+			// 던전 관리자는 던전 씬에만 있어 있을 때마다 적음. 판 시작의 배치가 읽음
+			if (DungeonManager.TryGetExistingInstance(out DungeonManager dungeonManager))
+				dungeonManager.RescueWanted = rescueWanted;
 			if (WorldClock.TryGetExistingInstance(out WorldClock clock) == false)
 				return;
 			long now = ClockMinutes(clock);
@@ -184,7 +191,22 @@ namespace WitchMendokusai
 			Save();
 		}
 
-		private void OnBossKilled(BossKilledEvent killed) => Sim.NotifyEvent(BOSS_EVENT);
+		private void OnBossKilled(BossKilledEvent killed) => Sim.NotifyEvent(HomesteadSim.BOSS_EVENT);
+
+		// 쓰러져 돌아와도 구출은 그대로 (벌 없음). 새로 온 사람은 귀환 소식에 뜸
+		private void OnCaptiveRescued(CaptiveRescuedEvent rescued)
+		{
+			HomesteadResult result = Sim.NotifyRescue(rescued.Key);
+			if (result.Ok == false)
+				Debug.LogWarning($"[{nameof(HomesteadManager)}] 기다리지 않는 구출 {rescued.Key}: {result.Failure}");
+		}
+
+		// 기다리는 구출 중 첫째 하나만. 한 판에 갇힌 사람은 하나
+		private void RecountRescue()
+		{
+			List<string> wanted = Sim.WantedRescues();
+			rescueWanted = wanted.Count > 0 ? wanted[0] : string.Empty;
+		}
 
 		// 화면은 마을에 처음 들어설 때. 로비와 던전만 오가는 판에는 만들지 않음
 		public void EnsureScreens(UIManager uiManager, UIRoot uiRoot)

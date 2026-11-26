@@ -18,7 +18,7 @@ namespace WitchMendokusai
 	/// 최후). **시각 폴리시(USS 레이아웃·anchored 위치 미세)는 S3-E/F Play 시각검증
 	/// (사용자 영역, WM-113 로드맵 명시) — 본 클래스는 구조·데이터흐름·compile.**
 	/// </summary>
-	public class UIDungeonEntranceToolkit : UIToolkitPanel, IUIPanelInputOwner
+	public partial class UIDungeonEntranceToolkit : UIToolkitPanel, IUIPanelInputOwner
 	{
 		public override string Name => "던전 입장";
 		public override bool IsFullscreen => true;
@@ -319,33 +319,6 @@ namespace WitchMendokusai
 			label.AddToClassList(USS_ROOT + suffix);
 			parent.Add(label);
 			return label;
-		}
-
-		public override void SetNPC(NPCObject npc)
-		{
-			dungeons = NPCUtil.GetDungeons(npc.Data);
-			// 데모 릴리스 빌드는 개발용 던전 미노출 (사용자 2026-11-12)
-			if (Debug.isDebugBuild == false)
-				dungeons = dungeons.FindAll(dungeon => dungeon.DevBuildOnly == false);
-
-			if (dungeons == null || dungeons.Count == 0)
-				Debug.LogError("No Dungeon Data");
-
-			EnsureButtonCount(dungeons.Count);
-
-			for (int i = 0; i < dungeonSelectButtons.Count; i++)
-			{
-				if (i < dungeons.Count)
-				{
-					dungeonRowNames[i].text = GetRowName(dungeons[i].Name);
-					dungeonRowIcons[i].style.backgroundImage = new StyleBackground(dungeons[i].Sprite);
-					dungeonSelectButtons[i].style.display = DisplayStyle.Flex;
-				}
-				else
-				{
-					dungeonSelectButtons[i].style.display = DisplayStyle.None;
-				}
-			}
 		}
 
 		private void OnNavigationMove(NavigationMoveEvent evt)

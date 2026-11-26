@@ -12,6 +12,8 @@ namespace WitchMendokusai
 		private const int GUILD_PEOPLE = 1;
 		private const int GUILD_JOBS = 2;
 		private const int VILLAGE_TOOLS = 1;
+		// 시련소가 여는 던전 입장 창의 주인 (NPC_1 던전지기)
+		private const int DUNGEON_KEEPER_NPC_ID = 1;
 
 		[Header("Unveil")]
 		[SerializeField] private float riseSeconds = 0.7f;
@@ -199,7 +201,9 @@ namespace WitchMendokusai
 				case "shop":
 					return "사고팔기";
 				case "atelier":
-					return "인형에게 맡기기";
+					return "인형 보기";
+				case "trial":
+					return "위협 고르기";
 				case "museum":
 					return "들어가기";
 				default:
@@ -249,7 +253,7 @@ namespace WitchMendokusai
 		public void PlaceAtDoor(string buildingId, float step) =>
 			playerProvider.CurrentObject.UnitMovement.Teleport(transform.TransformPoint(DoorPoint(buildingId, step) + Vector3.up * 0.1f));
 
-		// 정한 다섯 건물은 기존 창으로. 나머지는 생활 화면
+		// 정한 다섯 건물은 기존 창으로 (훈련소 강화, 대장간 도구, 상점, 공방 인형 창, 시련소 던전 입장의 위협 단계). 나머지는 생활 화면
 		private void OpenFacility(string id)
 		{
 			switch (id)
@@ -285,7 +289,10 @@ namespace WitchMendokusai
 					manager.Panels.Show(HomesteadPanelType.Store);
 					break;
 				case "atelier":
-					manager.Panels.Show(HomesteadPanelType.Guild, GUILD_JOBS);
+					uiManager.Dolls.Open();
+					break;
+				case "trial":
+					uiManager.NPC.OpenDungeonEntrance(SOHelper.Get<NPC>(DUNGEON_KEEPER_NPC_ID));
 					break;
 				default:
 					Say("아직 준비하는 중입니다.");

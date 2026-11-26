@@ -31,6 +31,8 @@ namespace WitchMendokusai
 		private void InitMapObjects(Dungeon dungeon)
 		{
 			StopMapObjects();
+			// 지난 판 열쇠가 남지 않게. 예산 있는 판만 PlanRescue 가 다시 적음
+			rescueKey = string.Empty;
 			// 예산 없는 던전 (진열장) 도 틱과 굴림은 돌림. 개발자 창 mapobj 로 놓은 오브젝트가 움직이게
 			MapObjectBudget budget = dungeon.MapObjectBudget;
 			int seedSalt = budget != null ? budget.SeedSalt : MapObjectSettings.Load().DefaultBudget.SeedSalt;
@@ -40,6 +42,7 @@ namespace WitchMendokusai
 			{
 				mapObjectPlans.AddRange(MapObjectPlanner.Plan(budget, RunSeed.Derive(budget.SeedSalt), MapObjectSettings.Load().Pacing, out int remaining));
 				Debug.Log($"[MapObject] 예산 {budget.Credits}, 남음 {remaining}, 계획 {mapObjectPlans.Count}개");
+				PlanRescue(budget.SeedSalt);
 			}
 			pendingMapObjectStart = StartCoroutine(StartMapObjectsAfterPhysics(mapObjectGeneration));
 		}

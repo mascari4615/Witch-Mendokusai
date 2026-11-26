@@ -53,5 +53,12 @@ namespace WitchMendokusai
 			Panels[NPCPanelType.Lab] = FindAnyObjectByType<UILab>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.Hub] = UIManager.CreateToolkitPanel<UIMinigameHubToolkit>(); // TASK-WM-195 — 미니게임 허브(DungeonEntrance 동형 코드-스폰)
 		}
+
+		// NPC 몸 없이 그 NPC 의 던전 입장 창을 엶 (마을 시련소)
+		public void OpenDungeonEntrance(NPC source)
+		{
+			((UIDungeonEntranceToolkit)Panels[NPCPanelType.DungeonEntrance]).UseDungeonsOf(source);
+			SetPanel(NPCPanelType.DungeonEntrance);
+		}
 	}
 }
