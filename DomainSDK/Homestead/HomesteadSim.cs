@@ -53,7 +53,11 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			Changed();
 		}
 
-		private void NotifyChanged() => Changed();
+		private void NotifyChanged()
+		{
+			LowerShownDigest();
+			Changed();
+		}
 
 		// ---- 창고
 
