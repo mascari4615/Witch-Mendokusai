@@ -25,6 +25,9 @@ namespace WitchMendokusai.DialogueStage3D
 			worldCamera = Camera.main;
 			if (worldCamera == null)
 				throw new System.InvalidOperationException("월드 대화에 쓸 메인 카메라가 없다");
+			// CameraManager 가 Cinemachine 을 손으로 매 프레임 돌리므로 그쪽 임대를 먼저 잡음. 없는 씬이면 Cinemachine 만 끔
+			if (CameraManager.TryGetExistingInstance(out CameraManager cameraManager) && cameraManager.TryBeginExternalControl(this) == false)
+				throw new System.InvalidOperationException("다른 연출이 게임 카메라를 쓰는 중이다");
 			worldBrain = worldCamera.GetComponent<CinemachineBrain>();
 			wasBrainEnabled = worldBrain != null && worldBrain.enabled;
 			if (worldBrain != null)
@@ -56,6 +59,8 @@ namespace WitchMendokusai.DialogueStage3D
 			}
 			if (worldBrain != null)
 				worldBrain.enabled = wasBrainEnabled;
+			if (CameraManager.TryGetExistingInstance(out CameraManager cameraManager))
+				cameraManager.EndExternalControl(this);
 			if (worldCameraHost != null)
 				Destroy(worldCameraHost);
 			worldCameraHost = null;

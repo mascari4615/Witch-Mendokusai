@@ -210,8 +210,11 @@ namespace WitchMendokusai.DialogueStage3D
 				sprite.localPosition = spriteRest + spriteOffset;
 		}
 
+		// 스프라이트 인물은 그 그림 하나로 잼 (아래에 이름표, 아이콘 같은 다른 렌더러가 있음)
 		private Bounds VisualBounds()
 		{
+			if (sprite != null && sprite.TryGetComponent(out SpriteRenderer spriteRenderer))
+				return spriteRenderer.bounds;
 			Renderer[] renderers = GetComponentsInChildren<Renderer>();
 			if (renderers.Length == 0)
 				return new Bounds(transform.position + Vector3.up * settings.ActorHeight * 0.5f, Vector3.up * settings.ActorHeight);
