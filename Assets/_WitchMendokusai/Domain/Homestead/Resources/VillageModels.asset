@@ -1590,50 +1590,102 @@ MonoBehaviour:
   - Key: Museum_plants
     Mesh: {fileID: 4300000, guid: b11d35bd374a305ff9f8a375d1099ad9, type: 2}
     Materials:
-    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
-    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
-    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
-    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
     - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
     - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
-    - {fileID: 2100000, guid: c86a6287c691fa2bffb93b5259890e03, type: 2}
+    - {fileID: 2100000, guid: a5bc24171cee0a7445d3dcc4790375d9, type: 2}
+    - {fileID: 2100000, guid: 77b0b2e20154ec7d0cfcd9f3a119b2a0, type: 2}
+    - {fileID: 2100000, guid: 9c522ded2e2bb8c5e3fcf8c02be11a27, type: 2}
+    - {fileID: 2100000, guid: 1a6f09cf0f854d76cf32aee40aae208e, type: 2}
     CastShadow: 1
     Cells: {x: 1, y: 1}
-    Solids: []
+    Solids:
+    - m_Center: {x: 0, y: 0.5, z: 3.57}
+      m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: -4.08, y: 0.75, z: 0.85}
+      m_Extent: {x: 0.53, y: 0.75, z: 0.38}
+    - m_Center: {x: 4.08, y: 0.75, z: 0.85}
+      m_Extent: {x: 0.53, y: 0.75, z: 0.38}
+    - m_Center: {x: 10.304, y: 1.05, z: -4.4}
+      m_Extent: {x: 0.21, y: 1.05, z: 0.5}
   - Key: Museum_waters
     Mesh: {fileID: 4300000, guid: 58fec1f05934fc95d9b46fc0aee1c26b, type: 2}
     Materials:
-    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
-    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
-    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
+    - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
+    - {fileID: 2100000, guid: e5e3cb20a70d0fa0b83be809b28a51cc, type: 2}
     - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    - {fileID: 2100000, guid: a5bc24171cee0a7445d3dcc4790375d9, type: 2}
+    - {fileID: 2100000, guid: 77b0b2e20154ec7d0cfcd9f3a119b2a0, type: 2}
+    - {fileID: 2100000, guid: 9c522ded2e2bb8c5e3fcf8c02be11a27, type: 2}
+    - {fileID: 2100000, guid: 1a6f09cf0f854d76cf32aee40aae208e, type: 2}
     CastShadow: 1
     Cells: {x: 1, y: 1}
-    Solids: []
+    Solids:
+    - m_Center: {x: 0, y: 0.5, z: 3.57}
+      m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: -4.08, y: 0.75, z: 0.85}
+      m_Extent: {x: 0.53, y: 0.75, z: 0.38}
+    - m_Center: {x: 4.08, y: 0.75, z: 0.85}
+      m_Extent: {x: 0.53, y: 0.75, z: 0.38}
+    - m_Center: {x: 10.304, y: 1.05, z: -5.2}
+      m_Extent: {x: 0.21, y: 1.05, z: 0.5}
   - Key: Museum_stones
     Mesh: {fileID: 4300000, guid: 7ba707cc053cd1d34ce96aa94a1babab, type: 2}
     Materials:
-    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
-    - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
-    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
-    - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
     - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
     - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    - {fileID: 2100000, guid: a5bc24171cee0a7445d3dcc4790375d9, type: 2}
+    - {fileID: 2100000, guid: 77b0b2e20154ec7d0cfcd9f3a119b2a0, type: 2}
+    - {fileID: 2100000, guid: 9c522ded2e2bb8c5e3fcf8c02be11a27, type: 2}
+    - {fileID: 2100000, guid: 1a6f09cf0f854d76cf32aee40aae208e, type: 2}
     CastShadow: 1
     Cells: {x: 1, y: 1}
-    Solids: []
+    Solids:
+    - m_Center: {x: 0, y: 0.5, z: 3.57}
+      m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: -4.08, y: 0.75, z: 0.85}
+      m_Extent: {x: 0.53, y: 0.75, z: 0.38}
+    - m_Center: {x: 4.08, y: 0.75, z: 0.85}
+      m_Extent: {x: 0.53, y: 0.75, z: 0.38}
+    - m_Center: {x: 5.2, y: 1.05, z: 7.754}
+      m_Extent: {x: 0.5, y: 1.05, z: 0.21}
+    - m_Center: {x: 7.8, y: 1.05, z: 7.754}
+      m_Extent: {x: 0.5, y: 1.05, z: 0.21}
+    - m_Center: {x: 10.304, y: 1.05, z: 5.2}
+      m_Extent: {x: 0.21, y: 1.05, z: 0.5}
+    - m_Center: {x: 10.304, y: 1.05, z: 2.6}
+      m_Extent: {x: 0.21, y: 1.05, z: 0.5}
+    - m_Center: {x: 10.304, y: 1.05, z: 0}
+      m_Extent: {x: 0.21, y: 1.05, z: 0.5}
+    - m_Center: {x: 10.304, y: 1.05, z: -2.6}
+      m_Extent: {x: 0.21, y: 1.05, z: 0.5}
+    - m_Center: {x: 10.304, y: 1.05, z: -5.2}
+      m_Extent: {x: 0.21, y: 1.05, z: 0.5}
   - Key: Museum_relics
     Mesh: {fileID: 4300000, guid: 3911b33e5ace4c86d3f653b2bac50829, type: 2}
     Materials:
-    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
     - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
-    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
     - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
     - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
     - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    - {fileID: 2100000, guid: a5bc24171cee0a7445d3dcc4790375d9, type: 2}
+    - {fileID: 2100000, guid: 77b0b2e20154ec7d0cfcd9f3a119b2a0, type: 2}
+    - {fileID: 2100000, guid: 9c522ded2e2bb8c5e3fcf8c02be11a27, type: 2}
+    - {fileID: 2100000, guid: 1a6f09cf0f854d76cf32aee40aae208e, type: 2}
     CastShadow: 1
     Cells: {x: 1, y: 1}
-    Solids: []
+    Solids:
+    - m_Center: {x: 0, y: 0.5, z: 3.57}
+      m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: -4.08, y: 0.75, z: 0.85}
+      m_Extent: {x: 0.53, y: 0.75, z: 0.38}
+    - m_Center: {x: 4.08, y: 0.75, z: 0.85}
+      m_Extent: {x: 0.53, y: 0.75, z: 0.38}
+    - m_Center: {x: 10.304, y: 1.05, z: 0}
+      m_Extent: {x: 0.21, y: 1.05, z: 0.5}
+    - m_Center: {x: 10.304, y: 1.05, z: -2.4}
+      m_Extent: {x: 0.21, y: 1.05, z: 0.5}
+    - m_Center: {x: 10.304, y: 1.05, z: -4.8}
+      m_Extent: {x: 0.21, y: 1.05, z: 0.5}
   - Key: Stand_plants
     Mesh: {fileID: 4300000, guid: 3f8ef100e16e85804ff771c8e9c535b1, type: 2}
     Materials:
