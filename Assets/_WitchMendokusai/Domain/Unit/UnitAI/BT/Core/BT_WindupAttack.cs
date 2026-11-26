@@ -195,7 +195,7 @@ namespace WitchMendokusai
 				return;
 			}
 			trackEndTime = float.PositiveInfinity;
-			if (attack.LockFx == null)
+			if (attack.TrackingLockFx == null)
 				return;
 			for (int i = 0; i < targets.Count; i++)
 			{
@@ -204,7 +204,7 @@ namespace WitchMendokusai
 					continue;
 				CombatFxContext context = StrikeContext(i);
 				context.Seconds = Mathf.Max(0.05f, strikeTimes[i] - Time.time);
-				stopTelegraphs.Add(attack.LockFx.Play(context));
+				stopTelegraphs.Add(attack.TrackingLockFx.Play(context));
 			}
 		}
 

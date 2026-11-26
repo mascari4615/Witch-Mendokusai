@@ -63,7 +63,7 @@ namespace WitchMendokusai
 		public virtual Vector3 Track(UnitObject unitObject, Vector3 playerPosition, Vector3 target, int index, float deltaTime) => target;
 
 		// 따라 돌기가 끝나 고정되는 순간 자리마다 띄우는 표시 (색이 바뀐 예고)
-		public virtual CombatFx LockFx => null;
+		public virtual CombatFx TrackingLockFx => null;
 
 		// 예고 위치. target 은 준비를 시작한 순간 고정한 자리, index 는 그 차례
 		public abstract CombatFxContext WindupContext(UnitObject unitObject, Vector3 target, int index);

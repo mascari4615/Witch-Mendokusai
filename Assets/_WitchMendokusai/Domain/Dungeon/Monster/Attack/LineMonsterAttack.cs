@@ -5,7 +5,7 @@ namespace WitchMendokusai
 {
 	// 직선 띠. 준비를 시작한 순간 방향을 고정, 예고가 차면 띠 안 주인공에게 피해 한 번. 각도 여럿이면 부채처럼, 간격 (StaggerSeconds) 이 있으면 차례로 쓸기
 	// 고정하는 것 (target) 은 자리가 아니라 방향. 예고 중 밀려도 예고와 판정이 시전자를 같이 따라감
-	// 따라 도는 초가 있으면 예고 시작부터 그 초까지 주인공 쪽으로 돌다가 고정 (고정 순간 LockFx). 0 이면 준비 시작에 고정
+	// 따라 도는 초가 있으면 예고 시작부터 그 초까지 주인공 쪽으로 돌다가 고정 (고정 순간 TrackingLockFx). 0 이면 준비 시작에 고정
 	[CreateAssetMenu(fileName = "MA_Line", menuName = "WM/Variable/MonsterAttack/" + nameof(LineMonsterAttack))]
 	public class LineMonsterAttack : WindupMonsterAttack
 	{
@@ -25,7 +25,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("고정 순간 같은 띠에 띄우는 다른 색 예고. 따라 돌면 반드시")] public CombatFx TrackLockFx { get; private set; }
 
 		public override float TrackingSeconds => TrackSeconds;
-		public override CombatFx LockFx => TrackLockFx;
+		public override CombatFx TrackingLockFx => TrackLockFx;
 
 		// 각도를 지킨 채 주인공 쪽으로 빠르기 상한만큼 돎
 		public override Vector3 Track(UnitObject unitObject, Vector3 playerPosition, Vector3 target, int index, float deltaTime)

@@ -101,7 +101,7 @@ namespace WitchMendokusai.Tests
 			foreach (LineMonsterAttack line in lines)
 			{
 				Assert.AreEqual(0f, line.TrackingSeconds, line.name);
-				Assert.IsNull(line.LockFx, line.name);
+				Assert.IsNull(line.TrackingLockFx, line.name);
 			}
 		}
 
@@ -127,7 +127,7 @@ namespace WitchMendokusai.Tests
 				Assert.AreEqual(1, scatter.Rows);
 				// 직선: 따라 돌지 않음
 				Assert.AreEqual(0f, line.TrackingSeconds);
-				Assert.IsNull(line.LockFx);
+				Assert.IsNull(line.TrackingLockFx);
 				// 안전 자리 표시는 비어 있음 (박자가 아무것도 더 띄우지 않음)
 				foreach (WindupMonsterAttack attack in new WindupMonsterAttack[] { band, scatter, line })
 					Assert.IsNull(attack.SafeFx);
@@ -221,8 +221,8 @@ namespace WitchMendokusai.Tests
 			// 고정 뒤 피할 틈이 남고, 고정 순간 다른 판으로 색이 바뀜
 			float lockedSeconds = aim.WindupSeconds - aim.TrackSeconds;
 			Assert.Greater(lockedSeconds, 0f);
-			Assert.IsNotNull(aim.LockFx, "고정 순간 단서");
-			Assert.AreNotSame(aim.WindupTelegraph, aim.LockFx, "고정 순간에 색이 바뀌어야 함");
+			Assert.IsNotNull(aim.TrackingLockFx, "고정 순간 단서");
+			Assert.AreNotSame(aim.WindupTelegraph, aim.TrackingLockFx, "고정 순간에 색이 바뀌어야 함");
 		}
 
 		// ---- 4. 엄폐
