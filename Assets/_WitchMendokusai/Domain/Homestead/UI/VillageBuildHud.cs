@@ -6,7 +6,29 @@ using WitchMendokusai.DomainSDK.Homestead;
 
 namespace WitchMendokusai
 {
+	// 하는 일 버튼이 부를 것. 키 (R F 우클릭 U F6) 와 같은 일
+	public readonly struct VillageBuildActions
+	{
+		public readonly Action<PlaceableDef> Take;
+		public readonly Action Turn;
+		public readonly Action Remove;
+		public readonly Action Drop;
+		public readonly Action Undo;
+		public readonly Action Leave;
+
+		public VillageBuildActions(Action<PlaceableDef> take, Action turn, Action remove, Action drop, Action undo, Action leave)
+		{
+			Take = take;
+			Turn = turn;
+			Remove = remove;
+			Drop = drop;
+			Undo = undo;
+			Leave = leave;
+		}
+	}
+
 	// 건설 중 아래 막대. 놓을 것과 하는 일 안내
+	// 하는 일 버튼은 손가락 몫이지만 마우스로도 누름. 키 글자는 KeyHint 로 따로 두어 손가락 모드에서 숨김
 	public sealed class VillageBuildHud
 	{
 		private const string BLOCK = "wm-hs-build";
@@ -14,32 +36,50 @@ namespace WitchMendokusai
 
 		private readonly VisualElement root;
 		private readonly Label hint;
+		private readonly Label touchHint;
 		private readonly List<(PlaceableDef Def, VisualElement Slot, Label Cost)> slots = new();
 		private readonly VisualElement undoButton;
+		private readonly VisualElement dropButton;
 		private IVisualElementScheduledItem reasonTimer;
 		private string idleHint = string.Empty;
+		private string idleTouchHint = string.Empty;
 
-		public VillageBuildHud(VisualElement parent, IReadOnlyList<PlaceableDef> palette, int keyCount, Action<PlaceableDef> onTake, Action onUndo, Action onLeave)
+		public VillageBuildHud(VisualElement parent, IReadOnlyList<PlaceableDef> palette, int keyCount, VillageBuildActions actions)
 		{
 			root = Make("root", parent);
-			hint = new Label { pickingMode = PickingMode.Ignore };
+			hint = KeyHint.KeyOnly(new Label { pickingMode = PickingMode.Ignore });
 			hint.AddToClassList(BLOCK + "__hint");
 			root.Add(hint);
+			touchHint = KeyHint.TouchOnly(new Label { pickingMode = PickingMode.Ignore });
+			touchHint.AddToClassList(BLOCK + "__hint");
+			root.Add(touchHint);
+			VisualElement tools = Make("tools", root);
+			AddTool(tools, "돌리기", "R", actions.Turn);
+			AddTool(tools, "거두기", "F", actions.Remove);
+			dropButton = AddTool(tools, "그만두기", "우클릭", actions.Drop);
+			undoButton = AddTool(tools, "되돌리기", "U", actions.Undo);
+			AddTool(tools, "마치기", "F6", actions.Leave);
 			VisualElement bar = Make("bar", root);
 			for (int i = 0; i < palette.Count; i++)
 			{
 				PlaceableDef placeable = palette[i];
-				Button slot = AddButton(bar, "slot", () => onTake(placeable));
+				Button slot = AddButton(bar, "slot", () => actions.Take(placeable));
 				VisualElement icon = Make("icon", slot);
 				icon.style.backgroundImage = new StyleBackground(HomesteadArt.Instance.Icon(placeable.Id));
-				MakeLabel("number", slot, i < keyCount ? (i + 1).ToString() : string.Empty);
+				KeyHint.KeyOnly(MakeLabel("number", slot, i < keyCount ? (i + 1).ToString() : string.Empty));
 				MakeLabel("name", slot, placeable.Name);
 				Label cost = MakeLabel("cost", slot, string.Empty);
 				slots.Add((placeable, slot, cost));
 			}
-			undoButton = AddButton(bar, "tool", onUndo);
-			undoButton.Add(new Label("되돌리기 U"));
-			AddButton(bar, "tool", onLeave).Add(new Label("마치기 F6"));
+		}
+
+		private static Button AddTool(VisualElement parent, string text, string key, Action onClick)
+		{
+			Button button = AddButton(parent, "tool", onClick);
+			button.Add(new Label(text) { pickingMode = PickingMode.Ignore });
+			Label keyLabel = KeyHint.KeyOnly(MakeLabel("key", button, key));
+			keyLabel.pickingMode = PickingMode.Ignore;
+			return button;
 		}
 
 		public void Remove() => root.RemoveFromHierarchy();
@@ -78,8 +118,10 @@ namespace WitchMendokusai
 				cost.text = CostText(sim, placeable);
 			}
 			undoButton.SetEnabled(canUndo);
+			dropButton.SetEnabled(held != null);
 			idleHint = held == null ? "집기 좌클릭, Z   거두기 F   움직이기 WASD   돌아보기 Q E" : $"{held.Name}   놓기 좌클릭, Z   돌리기 R   그만두기 우클릭";
-			ShowHint(idleHint, false);
+			idleTouchHint = held == null ? "칸을 톡 하면 집기   두 손가락으로 밀기, 비틀기, 오므리기" : $"{held.Name}   톡 하면 자리 보기, 같은 칸 한 번 더 톡 하면 놓기";
+			ShowHint(idleHint, idleTouchHint, false);
 		}
 
 		private static string CostText(HomesteadSim sim, PlaceableDef placeable)
@@ -92,16 +134,18 @@ namespace WitchMendokusai
 
 		public void ShowReason(string reason)
 		{
-			ShowHint(reason, true);
+			ShowHint(reason, reason, true);
 			reasonTimer?.Pause();
-			reasonTimer = root.schedule.Execute(() => ShowHint(idleHint, false));
+			reasonTimer = root.schedule.Execute(() => ShowHint(idleHint, idleTouchHint, false));
 			reasonTimer.ExecuteLater(REASON_MILLISECONDS);
 		}
 
-		private void ShowHint(string text, bool isRefusal)
+		private void ShowHint(string text, string touchText, bool isRefusal)
 		{
 			hint.text = text;
 			hint.EnableInClassList(BLOCK + "__hint--no", isRefusal);
+			touchHint.text = touchText;
+			touchHint.EnableInClassList(BLOCK + "__hint--no", isRefusal);
 		}
 	}
 }

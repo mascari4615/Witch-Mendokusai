@@ -10,6 +10,10 @@ namespace WitchMendokusai
 		[SerializeField, Min(44f)] private float actionButtonSize = 96f;
 		[Tooltip("말걸기 버튼과 동작 버튼 묶음 사이 간격(픽셀). 말걸기는 묶음 바깥 왼쪽에 뜸")]
 		[SerializeField, Min(0f)] private float interactButtonGap = 16f;
+		[Tooltip("상호작용 버튼에 동사 (갈기, 낚시) 를 띄울 때 글자 크기")]
+		[SerializeField, Min(8f)] private float interactVerbFontSize = 22f;
+		[Tooltip("동사 글자 양옆 여백 (픽셀). 버튼은 글자만큼 넓어짐")]
+		[SerializeField, Min(0f)] private float interactVerbPadding = 14f;
 		[Tooltip("부감 시점(개척·도시)에서 뜨는 한 줄 — 두 손가락 조작은 화면에 안 보여서 말해 줘야 한다.")]
 		[SerializeField] private string overheadHintText = "두 손가락으로 밀면 시점 이동 · 비틀면 회전 · 오므리면 확대";
 		private Label overheadHint;
@@ -30,17 +34,41 @@ namespace WitchMendokusai
 			if (interactButton == null)
 				return;
 
-			bool hasTarget = controlsVisible
-				&& playerProvider != null
-				&& playerProvider.HasPlayer
-				&& InteractiveObject.GetNearest(
-					playerProvider.Current.transform.position,
-					PlayerInteraction.InteractionDistance) != null;
+			InteractiveObject nearest = controlsVisible && playerProvider != null && playerProvider.HasPlayer
+				? InteractiveObject.GetNearest(playerProvider.Current.transform.position, PlayerInteraction.InteractionDistance)
+				: null;
+			bool hasTarget = nearest != null;
 
 			DisplayStyle display = hasTarget ? DisplayStyle.Flex : DisplayStyle.None;
 			if (interactButton.style.display != display)
 				interactButton.style.display = display;
+			if (hasTarget)
+				ShowInteractVerb(nearest.TryGetComponent(out IInteractVerbSource verbSource) ? verbSource.ActionVerb : string.Empty);
 		}
+
+		/// <summary>
+		/// 상대가 할 일을 동사로 말하면 (갈기, 낚시, 깨기) 그림 대신 그 글자. 없으면 원래 말걸기 그림
+		/// ★ 버튼 자리는 그대로, 넓이만 글자에 맞춤 (2026-11-17 실기 "기존 버튼이 움직이는 경우는 본 적이 없어").
+		///   오른쪽 끝을 묶음에 붙여 두어서 넓어지면 왼쪽으로만 자람
+		/// </summary>
+		private void ShowInteractVerb(string verb)
+		{
+			if (verb == shownInteractVerb)
+				return;
+			shownInteractVerb = verb;
+			bool hasVerb = string.IsNullOrEmpty(verb) == false;
+			interactVerb.text = verb;
+			interactVerb.style.display = hasVerb ? DisplayStyle.Flex : DisplayStyle.None;
+			interactIcon.style.display = hasVerb ? DisplayStyle.None : DisplayStyle.Flex;
+			interactButton.style.width = hasVerb ? StyleKeyword.Auto : interactButtonSize;
+			interactButton.style.paddingLeft = hasVerb ? interactVerbPadding : 0f;
+			interactButton.style.paddingRight = hasVerb ? interactVerbPadding : 0f;
+		}
+
+		private Label interactVerb;
+		private VisualElement interactIcon;
+		private float interactButtonSize;
+		private string shownInteractVerb = string.Empty;
 
 		/// <summary>
 		/// 부감(개척·도시) 시점에서 「두 손가락」을 알려 주는 한 줄 (TASK-WM-200).
@@ -168,6 +196,18 @@ namespace WitchMendokusai
 			interactButton.style.bottom = 0;
 			interactButton.style.marginRight = interactButtonGap;
 			interactButton.style.display = DisplayStyle.None;
+			// MakeTapButton 이 StyleRoundButton 으로 정한 한 변과 같은 계산
+			interactButtonSize = TouchFriendly(actionButtonSize * 0.7f);
+			interactButton.style.minWidth = interactButtonSize;
+			interactIcon = interactButton.Q("Icon");
+			interactVerb = new Label { name = "Verb", pickingMode = PickingMode.Ignore };
+			interactVerb.style.fontSize = interactVerbFontSize;
+			interactVerb.style.unityFontStyleAndWeight = FontStyle.Bold;
+			interactVerb.style.color = iconTint;
+			interactVerb.style.whiteSpace = WhiteSpace.NoWrap;
+			interactVerb.style.display = DisplayStyle.None;
+			interactButton.Add(interactVerb);
+			shownInteractVerb = string.Empty;
 			column.Add(interactButton);
 
 			VisualElement bottomRow = new VisualElement { style = { flexDirection = FlexDirection.Row } };

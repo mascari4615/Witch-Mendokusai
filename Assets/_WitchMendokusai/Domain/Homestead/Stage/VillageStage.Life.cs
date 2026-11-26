@@ -43,7 +43,7 @@ namespace WitchMendokusai
 				{
 					Sim.Greet(captured.Id);
 					manager.Panels.Show(HomesteadPanelType.Guild, GUILD_PEOPLE);
-				});
+				}, () => "말걸기");
 				people.Add(resident.Id, made);
 			}
 		}
@@ -65,7 +65,7 @@ namespace WitchMendokusai
 				{
 					JobDef captured = job;
 					walker = VillageWalker.Create(outdoor, WorkPlace(job), HeadOf(doll), BodyOf(doll), personHeight, 2.2f);
-					HomesteadSpot.Attach(walker.gameObject, () => SOHelper.GetDoll(Sim.State.Jobs[captured.Id].DollId).Name, () => JobRole(captured), () => UseWorker(captured));
+					HomesteadSpot.Attach(walker.gameObject, () => SOHelper.GetDoll(Sim.State.Jobs[captured.Id].DollId).Name, () => JobRole(captured), () => UseWorker(captured), () => Sim.JobReady(captured.Id) > 0 ? "거두기" : "맡기기");
 					workers[job.Id] = walker;
 				}
 				walker.gameObject.SetActive(true);
@@ -103,7 +103,7 @@ namespace WitchMendokusai
 				AnimalState captured = animal;
 				Vector3 home = DoorPoint(HomesteadSim.RANCH, 0.8f + animals.Count / 3 * 1.1f, -1.4f + animals.Count % 3 * 1.1f);
 				VillageWalker walker = VillageWalker.CreateAnimal(outdoor, home, Art.FramesOf(animal.Id, animal.Uid), animalRange);
-				HomesteadSpot.Attach(walker.gameObject, () => Catalog.Get<AnimalDef>(captured.Id).Name, () => AnimalRole(captured), () => CareAnimal(captured, walker));
+				HomesteadSpot.Attach(walker.gameObject, () => Catalog.Get<AnimalDef>(captured.Id).Name, () => AnimalRole(captured), () => CareAnimal(captured, walker), () => Sim.IsProductReady(captured) ? "거두기" : "쓰다듬기");
 				animals.Add(animal.Uid, walker);
 			}
 		}

@@ -120,7 +120,7 @@ namespace WitchMendokusai
 				view.CropRoot = new GameObject("Crop").transform;
 				view.CropRoot.SetParent(outdoor, false);
 				view.CropRoot.SetLocalPositionAndRotation(position, Quaternion.Euler(0f, index % 2 * 180f, 0f));
-				view.Spot = HomesteadSpot.Create(outdoor, position, "PlotSpot", () => PlotName(index), () => PlotRole(index), () => UsePlot(index)).gameObject;
+				view.Spot = HomesteadSpot.Create(outdoor, position, "PlotSpot", () => PlotName(index), () => PlotRole(index), () => UsePlot(index), () => PlotVerb(index)).gameObject;
 				plots.Add(view);
 			}
 			BuildFieldEdge();
@@ -337,7 +337,7 @@ namespace WitchMendokusai
 				view.Body = GatherBody(site, i);
 				view.Stump = Models.Build(StumpModel(site), outdoor, site.Position, i * 53f);
 				GatherView captured = view;
-				view.Spot = HomesteadSpot.Create(outdoor, site.Position + new Vector3(0f, 0f, -0.5f), "GatherSpot", () => captured.Def.Name, () => GatherRole(captured), () => UseGather(captured)).gameObject;
+				view.Spot = HomesteadSpot.Create(outdoor, site.Position + new Vector3(0f, 0f, -0.5f), "GatherSpot", () => captured.Def.Name, () => GatherRole(captured), () => UseGather(captured), () => GatherVerb(captured)).gameObject;
 				gathers.Add(view);
 			}
 		}
@@ -373,6 +373,37 @@ namespace WitchMendokusai
 					return "Rubble";
 				default:
 					return "Cut";
+			}
+		}
+
+		// 손가락 버튼 글자. 표시 글자 (PlotRole) 와 같은 갈래, 짧은 동사만
+		private string PlotVerb(int index)
+		{
+			PlotState plot = Sim.State.Plots[index];
+			if (plot.Tilled == false)
+				return "갈기";
+			switch (Sim.PhaseOf(plot))
+			{
+				case PlotPhase.Empty:
+					return CanSowHeld ? "심기" : "씨앗";
+				case PlotPhase.Ripe:
+					return "거두기";
+				default:
+					return Sim.IsWet(plot) ? "살피기" : "물 주기";
+			}
+		}
+
+		private static string GatherVerb(GatherView view)
+		{
+			switch (view.Def.Tool)
+			{
+				case ToolKind.Axe:
+				case ToolKind.Sickle:
+					return "베기";
+				case ToolKind.Pickaxe:
+					return "캐기";
+				default:
+					return "줍기";
 			}
 		}
 

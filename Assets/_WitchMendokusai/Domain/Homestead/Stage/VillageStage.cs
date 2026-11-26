@@ -70,7 +70,10 @@ namespace WitchMendokusai
 			if (manager.Panels != null)
 				manager.Panels.ClosePanel();
 			if (manager.Hud != null)
+			{
 				manager.Hud.ShowGoal(false);
+				manager.Hud.SetDecorate(null);
+			}
 		}
 
 		private void Rebind()
@@ -91,6 +94,7 @@ namespace WitchMendokusai
 			Sim.Unveiled += OnUnveiled;
 			RefreshAll();
 			manager.Hud.ShowGoal(true);
+			manager.Hud.SetDecorate(EnterBuildView);
 			manager.Hud.ShowDigest(Sim.MakeDigest());
 		}
 

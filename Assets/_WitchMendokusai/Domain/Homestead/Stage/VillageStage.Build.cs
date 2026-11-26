@@ -8,6 +8,7 @@ namespace WitchMendokusai
 {
 	// 건설. 위 시점 (CityView) 에 들어가면 켜짐. 집기, 돌리기, 놓기, 거두기, 되돌리기
 	// 커서는 마우스가 가리킨 칸. 키만 쓸 때는 화면 가운데 칸이라 카메라를 움직여 고름
+	// 손가락은 톡한 칸. 손가락을 따라다니면 두 손가락으로 시점을 미는 동안 미리보기가 튐
 	public sealed partial class VillageStage
 	{
 		// 번호 키가 있는 칸. 그 뒤 칸은 눌러서 고름
@@ -39,6 +40,8 @@ namespace WitchMendokusai
 		private bool usesPointer;
 		private Vector2 lastPointer;
 		private Vector2Int cursor;
+		private readonly BuildTapRule tapRule = new();
+		private bool hasTouchCursor;
 
 		private void StepBuilding()
 		{
@@ -75,7 +78,9 @@ namespace WitchMendokusai
 				overhead.ConfigureZoom(buildZoom.x, buildZoom.y, buildZoomStep);
 				overhead.ResetView(player, cameraManager.OrbitAngles.x, buildHeight);
 			}
-			buildHud = manager.Hud.ShowBuild(palette, SLOT_COUNT, TakeNew, Undo, LeaveBuildView);
+			buildHud = manager.Hud.ShowBuild(palette, SLOT_COUNT, new VillageBuildActions(TakeNew, TurnHeld, RemoveAtCursor, DropHeld, Undo, LeaveBuildView));
+			hasTouchCursor = false;
+			tapRule.Forget();
 			inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
 			inputManager.RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, UseCell);
 			inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Started, DropHeld);
@@ -89,6 +94,9 @@ namespace WitchMendokusai
 		}
 
 		private void LeaveBuildView() => cameraManager.SetContentCameraMode(ContentCameraMode.Normal);
+
+		// 손가락 꾸미기 버튼. F6 순환의 첫 칸과 같은 곳
+		private void EnterBuildView() => cameraManager.SetContentCameraMode(ContentCameraMode.CityView);
 
 		private void StopBuilding()
 		{
@@ -136,7 +144,15 @@ namespace WitchMendokusai
 
 		private void MoveCursor()
 		{
+			if (inputManager.IsTouchMode)
+			{
+				MoveCursorByTap();
+				return;
+			}
 			Vector2 pointer = inputManager.MouseScreenPosition;
+			// 막대 버튼 위의 마우스는 칸을 고르지 않음. 안 그러면 거두기, 돌리기 버튼이 버튼 뒤에 가려진 칸에 일함
+			if (UIPointer.IsOverInteractive(pointer))
+				return;
 			if ((pointer - lastPointer).magnitude > pointerWake)
 			{
 				usesPointer = true;
@@ -146,15 +162,52 @@ namespace WitchMendokusai
 			{
 				usesPointer = false;
 			}
+			if (TryCellAt(usesPointer ? pointer : ScreenCenter, out Vector2Int cell))
+				cursor = cell;
+		}
+
+		private static Vector2 ScreenCenter => new(Screen.width * 0.5f, Screen.height * 0.5f);
+
+		private bool TryCellAt(Vector2 screenPosition, out Vector2Int cell)
+		{
+			cell = cursor;
 			Camera view = Camera.main;
 			if (view == null)
-				return;
-			Ray ray = view.ScreenPointToRay(usesPointer ? pointer : new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
+				return false;
+			Ray ray = view.ScreenPointToRay(screenPosition);
 			Plane plane = new(Vector3.up, transform.position);
 			if (plane.Raycast(ray, out float distance) == false)
-				return;
+				return false;
 			Vector3 local = transform.InverseTransformPoint(ray.GetPoint(distance));
-			cursor = new Vector2Int(Mathf.FloorToInt(local.x), Mathf.FloorToInt(local.z));
+			cell = new Vector2Int(Mathf.FloorToInt(local.x), Mathf.FloorToInt(local.z));
+			return true;
+		}
+
+		// 손가락. 톡 전에는 화면 가운데 칸, 톡하면 그 칸에 머묾. 끌거나 두 손가락으로 민 것은 톡이 아님 (TouchGesture)
+		// 판정 (집기, 미리보기, 놓기) 은 BuildTapRule. 던전 타워 배치와 같은 두 번 톡
+		private void MoveCursorByTap()
+		{
+			if (hasTouchCursor == false && TryCellAt(ScreenCenter, out Vector2Int center))
+				cursor = center;
+			if (inputManager.PointerTappedThisFrame == false)
+				return;
+			Vector2 tap = inputManager.PointerTapPosition;
+			if (UIPointer.IsOverInteractive(tap) || TryCellAt(tap, out Vector2Int cell) == false)
+				return;
+			hasTouchCursor = true;
+			cursor = cell;
+			switch (tapRule.Tap(cell.x, cell.y, held != null))
+			{
+				case BuildTap.Take:
+					TakeAtCursor();
+					break;
+				case BuildTap.Preview:
+					UiSfx.Play(UiSfxEvent.FocusMove);
+					break;
+				case BuildTap.Put:
+					PutHeld();
+					break;
+			}
 		}
 
 		// 커서 칸이 가운데인 자리
@@ -172,6 +225,9 @@ namespace WitchMendokusai
 
 		private void ClickCell()
 		{
+			// 손가락 모드는 톡 (MoveCursorByTap) 이 맡음. PC 에서 손가락 모드를 강제로 켜면 마우스 누름과 뗌이 둘 다 와서 한 번 클릭이 두 번 일함
+			if (inputManager.IsTouchMode)
+				return;
 			if (inputManager.IsPointerOverUI() == false)
 				UseCell();
 		}
@@ -210,6 +266,7 @@ namespace WitchMendokusai
 			held = placeable;
 			heldUid = uid;
 			heldTurn = turn;
+			tapRule.Forget();
 			UiSfx.Play(UiSfxEvent.FocusMove);
 			RefreshBuildHud();
 		}
@@ -268,6 +325,7 @@ namespace WitchMendokusai
 				SetBodyVisible(Sim.State.Village.Find(candidate => candidate.Uid == heldUid), true);
 			held = null;
 			heldUid = 0;
+			tapRule.Forget();
 			if (heldBody != null)
 				Destroy(heldBody);
 			heldBody = null;
