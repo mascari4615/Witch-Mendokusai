@@ -18,6 +18,8 @@ namespace WitchMendokusai
 		private const string TAB_KEY_GENERAL = "general";
 		private const string TAB_KEY_EFFECTS = "effects";
 		private const string TAB_KEY_SHADERPACKS = "shaderpacks";
+		private const string CLEAR_DATA_TEXT = "세이브 데이터 초기화";
+		private const string CLEAR_DATA_BLOCKED_TEXT = "세이브 데이터 초기화 (시작 화면에서만)";
 		private const string TOGGLE_ON_CLASS = "wm-setting-toggle-state--on";
 
 		[SerializeField] private float sliderStep = 0.05f;
@@ -43,6 +45,7 @@ namespace WitchMendokusai
 		private Slider masterVolume;
 		private Slider bgmVolume;
 		private Slider sfxVolume;
+		private Button clearDataButton;
 
 		// Display
 		private Toggle fpsDisplayToggle;
@@ -275,11 +278,11 @@ namespace WitchMendokusai
 			buttonGroup.AddToClassList("wm-setting-buttons");
 
 			// 끼임 탈출, 던전 포기, 로비로, 게임 종료는 전체 메뉴에 (설정이 아니라 게임을 다루는 동작). 시작 화면에는 자기 종료 버튼이 있음
-			Button btnSaveInit = new Button(() => AskConfirmWithSound("세이브 데이터를 초기화할까요?", "되돌릴 수 없습니다.", "초기화", OnClearData)) { text = "세이브 데이터 초기화" };
-			btnSaveInit.AddToClassList("wm-setting-btn");
-			btnSaveInit.AddToClassList("wm-setting-btn--danger");
-			btnSaveInit.AddToClassList(NAV_CLASS);
-			buttonGroup.Add(btnSaveInit);
+			clearDataButton = new Button(() => AskConfirmWithSound("세이브 데이터를 초기화할까요?", "되돌릴 수 없습니다.", "초기화", OnClearData)) { text = CLEAR_DATA_TEXT };
+			clearDataButton.AddToClassList("wm-setting-btn");
+			clearDataButton.AddToClassList("wm-setting-btn--danger");
+			clearDataButton.AddToClassList(NAV_CLASS);
+			buttonGroup.Add(clearDataButton);
 
 			content.Add(buttonGroup);
 
@@ -401,7 +404,26 @@ namespace WitchMendokusai
 			return slider;
 		}
 
-		private void OnClearData() => dataManager.CreateNewGameData();
+		// 확인 창이 뜬 사이 씬이 바뀔 수 있어 실행할 때 다시 봄
+		private void OnClearData()
+		{
+			SyncClearData();
+			if (CanClearData == false)
+			{
+				Debug.LogWarning($"[{nameof(SettingView)}] 시작 화면이 아니라 세이브 초기화 생략");
+				return;
+			}
+			dataManager.CreateNewGameData();
+		}
+
+		// 로비에서, 데이터를 다 읽은 뒤에만. 월드의 화면과 판은 옛 데이터를 들고 있어 거기서 지우면 던전 퀘스트가 빠짐
+		private bool CanClearData => LobbyManager.Instance != null && dataManager.IsDataLoaded;
+
+		private void SyncClearData()
+		{
+			clearDataButton.SetEnabled(CanClearData);
+			clearDataButton.text = CanClearData ? CLEAR_DATA_TEXT : CLEAR_DATA_BLOCKED_TEXT;
+		}
 
 		public void Open()
 		{
@@ -417,6 +439,7 @@ namespace WitchMendokusai
 			// 개발자 창 표시 탭에서 바뀌었을 수 있음
 			SyncToggle(fpsDisplayToggle, UIFPS.IsVisible, DescribeOnOff);
 			SyncDisplayRows();
+			SyncClearData();
 
 			masterVolume.schedule.Execute(() =>
 			{

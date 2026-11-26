@@ -20,6 +20,7 @@ namespace WitchMendokusai
 			UnitStatusType.Mark,
 			UnitStatusType.Fear,
 			UnitStatusType.Silence,
+			UnitStatusType.Brand,
 		};
 
 		public static int Count => ALL.Count;
@@ -36,6 +37,7 @@ namespace WitchMendokusai
 			UnitStatusType.Mark => UnitStatType.MARK,
 			UnitStatusType.Fear => UnitStatType.FEAR,
 			UnitStatusType.Silence => UnitStatType.SILENCE,
+			UnitStatusType.Brand => UnitStatType.BRAND,
 			_ => throw new ArgumentOutOfRangeException(nameof(type), type, "상태이상 칸 없음"),
 		};
 

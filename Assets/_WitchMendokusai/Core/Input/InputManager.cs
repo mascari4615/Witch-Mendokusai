@@ -98,6 +98,8 @@ namespace WitchMendokusai
 		// 맨 끝에 붙임. 중간에 넣으면 숫자로 저장된 자산 (MobileControlIcons 등) 이 밀림
 		[InputEvent("창", "업적", "<Keyboard>/h")]
 		AchievementToggle,
+		[InputEvent("전투", "큰 포화", "<Keyboard>/r")]
+		Barrage,
 		[InputEvent("건설", "돌리기", "<Keyboard>/r", EnabledInRelease = false)]
 		VillageTurn,
 		[InputEvent("건설", "거두기", "<Keyboard>/f", EnabledInRelease = false)]

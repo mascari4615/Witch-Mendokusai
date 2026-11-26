@@ -34,8 +34,18 @@ namespace WitchMendokusai
 
 		public void Dispose() => questWorkStartedSub?.Dispose();
 
-		public void Init(Dictionary<WorkListType, List<Work>> works)
+		/// <summary>저장된 작업으로 바꿈. questGuids 는 함께 불러오는 퀘스트. 거기 없는 퀘스트의 작업은 끝낼 곳이 없어 버림</summary>
+		public void Init(Dictionary<WorkListType, List<Work>> works, ICollection<Guid?> questGuids)
 		{
+			foreach (List<Work> list in works.Values)
+			{
+				int removedCount = list.RemoveAll(work => work.WorkType == WorkType.QuestWork && questGuids.Contains(work.Value) == false);
+				if (removedCount > 0)
+				{
+					Debug.LogWarning($"[{nameof(WorkManager)}] 세이브에 퀘스트가 없는 작업 {removedCount}개를 버림");
+				}
+			}
+
 			Works = works;
 		}
 
@@ -59,13 +69,14 @@ namespace WitchMendokusai
 				work.Tick();
 				if (work.IsCompleted())
 				{
+					// 끝내기 전에 뺌. 끝내다 터져도 같은 작업이 남아 다음 실행에서 되풀이되지 않게
+					works.RemoveAt(i);
 					switch (work.WorkType)
 					{
 						case WorkType.QuestWork:
 							questManager.EndQuestWork(work.Value);
 							break;
 					}
-					works.RemoveAt(i);
 				}
 			}
 		}

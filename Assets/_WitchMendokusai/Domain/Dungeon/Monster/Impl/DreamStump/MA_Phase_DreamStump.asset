@@ -11,17 +11,21 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 855e7211bdbe46cc9480abaaec05d6ba, type: 3}
   m_Name: MA_Phase_DreamStump
-  m_EditorClassIdentifier: 
-  <TriggerRange>k__BackingField: 10
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 11
   <WindupSeconds>k__BackingField: 0
   <RecoverySeconds>k__BackingField: 0
   <Cooldown>k__BackingField: 0
   <WindupTelegraph>k__BackingField: {fileID: 0}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
-  <OpeningSeconds>k__BackingField: 2.5
+  <OpeningSeconds>k__BackingField: 3.2
   <Phases>k__BackingField:
   - <HealthRatio>k__BackingField: 1
     <Attack>k__BackingField: {fileID: 11400000, guid: 22cbc3df59454d15ab4aaf4129242333, type: 2}
+    <Entrance>k__BackingField: {fileID: 0}
+    <BodySprite>k__BackingField: {fileID: 0}
   - <HealthRatio>k__BackingField: 0.5
     <Attack>k__BackingField: {fileID: 11400000, guid: 3e052ce401b242dd9a0532a7ca7b8ce5, type: 2}
+    <Entrance>k__BackingField: {fileID: 11400000, guid: e67af0f6a1e440c899d6db3f6c7030ef, type: 2}
+    <BodySprite>k__BackingField: {fileID: 21300000, guid: d1c5cb9cafb849ada272b271b7599315, type: 3}

@@ -29,7 +29,12 @@ namespace WitchMendokusai
 			if (delta.CinemaChanged)
 				root.EnableInClassList(USS_CINEMA, delta.Cinema);
 
-			if (delta.ShotChanged)
+			if (delta.SceneChanged)
+				ApplyScene(delta.SceneKey);
+			ApplyCastStage(delta);
+
+			// 3D 무대가 켜져 있으면 샷은 무대 카메라 몫
+			if (delta.ShotChanged && IsCastStageShowing == false)
 				cameraDirector.Apply(delta.ShotTarget, delta.Shot);
 
 			if (showOneShots)

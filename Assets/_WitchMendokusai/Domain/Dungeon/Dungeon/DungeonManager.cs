@@ -263,9 +263,11 @@ namespace WitchMendokusai
 				// Create Dungeon Quest
 				{
 					RuntimeQuest runtimeQuest = dungeonStrategy.CreateRuntimeQuest(dungeon, dataManager.QuestManager.CreateCriteriaContext());
-					dataManager.QuestManager.AddQuest(runtimeQuest);
 					dungeonQuest = runtimeQuest;
 					objectiveText = runtimeQuest.Name;
+					// RuntimeQuest 가 DungeonClear 수치를 1 올리면 던전 종료. 넣자마자 끝날 수 있어 먼저 셈
+					targetClearCount = dataManager.DungeonStat[DungeonStatType.DUNGEON_CLEAR] + 1;
+					dataManager.QuestManager.AddQuest(runtimeQuest);
 				}
 
 				monsterSpawner.transform.position = playerProvider.Current.transform.position;
@@ -274,9 +276,6 @@ namespace WitchMendokusai
 
 				// StartDungeonLoop();
 				{
-					// RuntimeQuest를 통해 DungeonClear 수치가 1 오르면 던전 종료
-					targetClearCount = dataManager.DungeonStat[DungeonStatType.DUNGEON_CLEAR] + 1;
-
 					dungeonLoopSubscription = Observable.Interval(TimeSpan.FromSeconds(0.1f))
 						.TakeWhile(_ => IsClearReached() == false)
 						.Subscribe(_ =>

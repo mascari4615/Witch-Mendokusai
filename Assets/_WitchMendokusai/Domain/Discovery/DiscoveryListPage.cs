@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		private readonly DiscoverySettings settings;
 		private readonly MenuFocus focus;
 		private readonly IReadOnlyList<IEntryProvider> providers;
+		private readonly MonsterStampBaker stampBaker;
 		private readonly Action<EntryDescriptor> openEntry;
 		private readonly VisualElement categoryList;
 		private readonly VisualElement completeBox;
@@ -34,11 +35,12 @@ namespace WitchMendokusai
 
 		public IEntryProvider CurrentProvider { get; private set; }
 
-		public DiscoveryListPage(DiscoverySettings settings, MenuFocus focus, IReadOnlyList<IEntryProvider> providers, Action<EntryDescriptor> openEntry)
+		public DiscoveryListPage(DiscoverySettings settings, MenuFocus focus, IReadOnlyList<IEntryProvider> providers, MonsterStampBaker stampBaker, Action<EntryDescriptor> openEntry)
 		{
 			this.settings = settings;
 			this.focus = focus;
 			this.providers = providers;
+			this.stampBaker = stampBaker;
 			this.openEntry = openEntry;
 			AddToClassList("wm-ach-album");
 			CurrentProvider = providers[0];
@@ -210,7 +212,12 @@ namespace WitchMendokusai
 			};
 			if (records != null)
 			{
-				card.Bind(records.RecordOf(entry));
+				DiscoveryRecordInfo record = records.RecordOf(entry);
+				card.Bind(record);
+				if (record.IsComplete && entry.Source is Monster monster)
+				{
+					card.AddStamp(stampBaker.StampOf(monster));
+				}
 			}
 			// 방향 키로 화면 밖 카드에 가면 따라 내려감
 			card.RegisterCallback<FocusInEvent>(_ => scroll.ScrollTo(card));

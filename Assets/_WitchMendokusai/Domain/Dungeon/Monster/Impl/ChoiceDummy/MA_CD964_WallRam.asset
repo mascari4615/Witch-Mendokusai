@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27b2b474745a45438a23603feff359fd, type: 3}
+  m_Name: MA_CD964_WallRam
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 7
+  <WindupSeconds>k__BackingField: 0.6
+  <RecoverySeconds>k__BackingField: 0.5
+  <Cooldown>k__BackingField: 3
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 97a8bc8dd0d64ca5910e045a1135f8b9, type: 2}
+  <RecoveryFx>k__BackingField: {fileID: 11400000, guid: e653203c5fcd4dbd9743fbc7093afa91, type: 2}
+  <RecoveryFxRadius>k__BackingField: 1.4
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 0}
+    <Strike>k__BackingField: {fileID: 0}
+    <Rest>k__BackingField: {fileID: 0}
+    <Crouch>k__BackingField: 0.25
+    <Stretch>k__BackingField: -0.2
+    <StrikeSeconds>k__BackingField: 0.25
+    <StrikeLeadSeconds>k__BackingField: 0
+    <Tremble>k__BackingField: 0.04
+    <Breath>k__BackingField: 0
+  <WindupFx>k__BackingField: {fileID: 0}
+  <StrikeFx>k__BackingField: {fileID: 11400000, guid: 01244973cd7c4403b458e2f3a99e7950, type: 2}
+  <DashSpeed>k__BackingField: 11
+  <DashDuration>k__BackingField: 0.8
+  <TelegraphWidth>k__BackingField: 1.2
+  <TelegraphExtraLength>k__BackingField: 0
+  <BlockedProgressRatio>k__BackingField: 0.3
+  <AngleDegrees>k__BackingField: 0
+  <CracksLinger>k__BackingField: 0
+  <WallSlamSeconds>k__BackingField: 3
+  <WallSlamFx>k__BackingField: {fileID: 11400000, guid: e653203c5fcd4dbd9743fbc7093afa91, type: 2}
+  <WallImpactFx>k__BackingField: {fileID: 11400000, guid: 161f263ad7b44674ba8fc3e6e8507945, type: 2}

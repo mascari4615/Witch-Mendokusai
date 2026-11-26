@@ -58,6 +58,8 @@ namespace WitchMendokusai
 		private void OnDestroy()
 		{
 			DialogueStageBridge.Clear(this);
+			HideScene();
+			HideCastStage();
 			cameraDirector?.Release();
 			SetHudHidden(false);
 			SetTimePaused(false);
@@ -127,6 +129,7 @@ namespace WitchMendokusai
 		public void ApplyLine(DialogueStageDelta delta, string speakerName, string text)
 		{
 			EnsureSessionVisible();
+			currentLineText = text;
 			ApplyDelta(delta);
 			if (presentation == DialogueStagePresentation.World)
 				return;
@@ -139,6 +142,7 @@ namespace WitchMendokusai
 		public void ApplyCues(DialogueStageDelta delta)
 		{
 			EnsureSessionVisible();
+			currentLineText = null;
 			ApplyDelta(delta);
 		}
 
@@ -152,6 +156,8 @@ namespace WitchMendokusai
 			isChoosing = false;
 			HideChoiceList();
 			CloseLog();
+			HideScene();
+			HideCastStage();
 			cameraDirector.Release();
 			SetHudHidden(false);
 			if (UIEffects.Enabled == false || root.style.display == DisplayStyle.None)

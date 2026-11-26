@@ -13,7 +13,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < monsters.Count; i++)
 			{
 				GameObject monster = monsters[i];
-				if (excluded != null && excluded.Contains(monster))
+				if (MonsterObject.IsHiddenMonster(monster) || (excluded != null && excluded.Contains(monster)))
 					continue;
 				float distance = (monster.transform.position - origin).sqrMagnitude;
 				if (distance > best)
@@ -33,7 +33,7 @@ namespace WitchMendokusai
 			for (int i = 0; i < monsters.Count; i++)
 			{
 				GameObject monster = monsters[i];
-				if ((monster.transform.position - origin).sqrMagnitude > rangeSquared)
+				if (MonsterObject.IsHiddenMonster(monster) || (monster.transform.position - origin).sqrMagnitude > rangeSquared)
 					continue;
 				seen++;
 				if (Random.Range(0, seen) == 0)

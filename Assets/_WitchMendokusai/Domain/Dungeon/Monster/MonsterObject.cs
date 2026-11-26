@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
 using VContainer;
@@ -15,6 +16,8 @@ namespace WitchMendokusai
 
 		public new Monster UnitData => base.UnitData as Monster;
 		public bool IsElite => eliteProfile != null;
+		// 숨어서 안 맞고 안 보이는 중 (MonsterHideaway)
+		public bool IsHidden { get; private set; }
 
 		public override float HitInvincibleSeconds
 		{
@@ -28,6 +31,8 @@ namespace WitchMendokusai
 		}
 		// 화면 밖으로 나간 게임 시각. 화면 안이면 음수. MonsterSpawner 가 자동 소멸 판정에 씀
 		public float OffscreenSinceTime { get; set; } = -1f;
+		// 공격이 세운 물체 (부술 기둥). 멀거나 화면 밖이어도 몬스터 생성기가 반납하거나 옮기지 않음. 나올 때마다 풀림
+		public bool IsAnchored { get; set; }
 
 		// TASK-WM-107 Slice 4 — playerProvider 는 base UnitObject.playerProvider (protected) 재사용 (CS0108 hide 해소).
 		private SOManager soManager;
@@ -39,6 +44,13 @@ namespace WitchMendokusai
 		private HpBarView hpBarView;
 		private Animator spriteAnimator;
 		private MonsterBodyFx bodyFx;
+		// 숨기 전에 체력 바가 켜져 있었음
+		private bool hidHpBar;
+		private readonly List<SpriteRenderer> hidShadows = new();
+		private static readonly HashSet<GameObject> hiddenMonsters = new();
+
+		// 자동 조준이 거를 것. 숨은 몸이 없으면 바로 끝
+		public static bool IsHiddenMonster(GameObject candidate) => hiddenMonsters.Count > 0 && hiddenMonsters.Contains(candidate);
 
 		private HpBarView HpBarView
 		{
@@ -64,12 +76,14 @@ namespace WitchMendokusai
 		{
 			base.OnEnable();
 			OffscreenSinceTime = -1f;
+			IsAnchored = false;
 			if (UnitData.Type == MonsterType.Boss)
 				GroundGenerator.RegisterAnchor(UnitMovement);
 			SpriteRenderer.sharedMaterial = UnitData.Material;
 			SpriteRenderer.color = UnitData.Tint;
 			ApplySpriteVariant();
 			ApplyBodyFx();
+			MonsterAffixDriver.Attach(this);
 			ObjectBufferManager.AddObject(ObjectType.Monster, gameObject);
 			hpBar.localScale = Vector3.one;
 			HpBarView.SetRatio(1f);
@@ -127,6 +141,9 @@ namespace WitchMendokusai
 		// 방어력. 상태이상 틱 (몸 안 피해) 과 강제 피해 (화면 청소의 즉사) 는 안 줄임
 		public override void ReceiveDamage(DamageInfo damageInfo)
 		{
+			// 강제 피해 (화면 청소) 만 들어감. 상태이상 틱은 강제여도 막음
+			if (IsHidden && (damageInfo.ignoreInvincible == false || damageInfo.type == DamageType.StatusTick))
+				return;
 			if (damageInfo.type != DamageType.StatusTick && damageInfo.ignoreInvincible == false)
 				damageInfo.damage = ArmorRules.Reduce(damageInfo.damage, UnitStat[UnitStatType.ARMOR]);
 			base.ReceiveDamage(damageInfo);
@@ -144,6 +161,50 @@ namespace WitchMendokusai
 			if (bodyFx == null)
 				bodyFx = gameObject.AddComponent<MonsterBodyFx>();
 			bodyFx.Show(UnitData.BodyFx);
+		}
+
+		// 몸 효과와 체력 바까지 감춤. 그림은 떠오르고 떨어지는 동안 보여야 해서 부르는 쪽이 정함
+		public void SetHidden(bool isHidden)
+		{
+			if (IsHidden == isHidden)
+				return;
+			IsHidden = isHidden;
+			if (isHidden)
+			{
+				hiddenMonsters.Add(gameObject);
+				hidHpBar = hpBar.gameObject.activeSelf;
+				hpBar.gameObject.SetActive(false);
+				if (bodyFx != null)
+					bodyFx.Hide();
+				HideShadows();
+				return;
+			}
+			hiddenMonsters.Remove(gameObject);
+			hpBar.gameObject.SetActive(hidHpBar);
+			ApplyBodyFx();
+			ShowShadows();
+		}
+
+		// 몸 그림 말고 따라다니는 그림 (바닥 그림자)
+		private void HideShadows()
+		{
+			foreach (SpriteRenderer part in GetComponentsInChildren<SpriteRenderer>())
+			{
+				if (part == SpriteRenderer || part.enabled == false)
+					continue;
+				part.enabled = false;
+				hidShadows.Add(part);
+			}
+		}
+
+		private void ShowShadows()
+		{
+			foreach (SpriteRenderer part in hidShadows)
+			{
+				if (part != null)
+					part.enabled = true;
+			}
+			hidShadows.Clear();
 		}
 
 		private void ApplyThreat()
@@ -164,6 +225,7 @@ namespace WitchMendokusai
 			Health.SetScaleMultiplier(profile.ScaleMultiplier);
 			// 변종 색 위에 정예 색을 곱함. 정예 돌진, 정예 장판도 종류가 보이게
 			SpriteRenderer.color = UnitData.KeepsTintAsElite ? UnitData.Tint : UnitData.Tint * profile.Tint;
+			MonsterAffixDriver.ReapplyTint(this);
 			// 바 판은 지면에 눕혀져 있어 z가 두께
 			hpBar.localScale = new Vector3(profile.HpBarScale, 1f, profile.HpBarThickness);
 			HpBarView.SetRatio(1f);
@@ -197,6 +259,9 @@ namespace WitchMendokusai
 			GroundGenerator.UnregisterAnchor(UnitMovement);
 			ObjectBufferManager.RemoveObject(ObjectType.Monster, gameObject);
 			StopAllCoroutines();
+			IsHidden = false;
+			hiddenMonsters.Remove(gameObject);
+			ShowShadows();
 			hpBar.gameObject.SetActive(false);
 			ClearElite();
 			threat = DungeonThreatEffect.Identity;
@@ -214,6 +279,13 @@ namespace WitchMendokusai
 			hpBar.rotation = Quaternion.Euler(0, hpBar.rotation.eulerAngles.y, 0);
 		}
 
+		// 치유 (치유 파동 특징) 도 체력 바에 보이게. 바가 꺼져 있으면 켜지 않음
+		public override void ReceiveHeal(int healAmount)
+		{
+			base.ReceiveHeal(healAmount);
+			HpBarView.SetRatio((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX]);
+		}
+
 		private void HandleDamageEffects(DamageInfo damageInfo)
 		{
 			// 던전 UI 추적(LastHitMonsterObject)은 던전에서만 — 아레나 피격이 던전 "마지막 피격 몬스터" 패널을 오염 X.
@@ -226,11 +298,16 @@ namespace WitchMendokusai
 
 			// hpBar 갱신은 컨텍스트 무관(아레나 관전서도 체력 표시 유용).
 			HpBarView.SetRatio((float)UnitStat[UnitStatType.HP_CUR] / UnitStat[UnitStatType.HP_MAX]);
-			hpBar.gameObject.SetActive(true);
+			if (IsHidden)
+				hidHpBar = true;
+			else
+				hpBar.gameObject.SetActive(true);
 		}
 
 		protected virtual void HandleDeathEffects()
 		{
+			// 특징의 쓰러질 때 일 (터짐, 분열) 은 몸을 끄기 전에. 구독 순서에 기대지 않음
+			MonsterAffixDriver.NotifyDeath(this);
 			// 던전 전용 side-effect(loot 드랍·킬 카운트) 는 던전에서만 — 아레나(비-던전)서 사망 시
 			// 전리품/경험치 오브가 바닥에 흩뿌려지거나 DungeonStat 이 오염되지 않게 격리(PlayerObject 선례).
 			if (DungeonManagerBridge.IsDungeon)

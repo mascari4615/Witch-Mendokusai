@@ -23,6 +23,7 @@ namespace WitchMendokusai
 		[SerializeField] private Shape shape = Shape.Wand;
 		[SerializeField, Tooltip("쏠 때 손이 밀리는 발사기 (베기, 빛탄). 요정은 빼 둠")] private Spawner[] kickSpawners = Array.Empty<Spawner>();
 		[SerializeField] private PaintedFxSet art;
+		[SerializeField, Tooltip("이 사격이 총을 몸에 붙인 동안 감춤. 없으면 늘 보임")] private VolleyArsenal arsenal;
 		[SerializeField, ColorUsage(false, true)] private Color hotTint = new(1.1f, 1.06f, 1.02f);
 		[SerializeField] private Color glowTint = new(1f, 0.82f, 0.28f, 1f);
 
@@ -91,7 +92,7 @@ namespace WitchMendokusai
 		{
 			viewCamera = Camera.main;
 			// 씬이 바뀌는 사이에는 카메라나 인물이 없음
-			bool visible = gameManager.IsFormMomentPlaying == false && viewCamera != null && playerProvider.Current != null;
+			bool visible = gameManager.IsFormMomentPlaying == false && (arsenal == null || arsenal.IsArmed == false) && viewCamera != null && playerProvider.Current != null;
 			if (visible && body == null)
 				Create();
 			if (body == null)

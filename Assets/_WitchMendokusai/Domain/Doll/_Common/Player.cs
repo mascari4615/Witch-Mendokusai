@@ -180,7 +180,8 @@ namespace WitchMendokusai
 			if (Object.UnitStat[UnitStatType.DEAD] > 0)
 				return;
 
-			if (Object.UnitStat[UnitStatType.CASTING_SKILL] > 0)
+			// 기절, 빙결 중에는 이동이 멈추니 점프도 안 함
+			if (Object.UnitStat[UnitStatType.CASTING_SKILL] > 0 || Object.IsActionSuspended)
 				return;
 
 			Object.UnitMovement.TryJump();

@@ -13,7 +13,7 @@ namespace WitchMendokusai
 		private float readyTime;
 
 		public int CompletedCount { get; private set; }
-		public bool IsAttacking => dash != null;
+		public bool IsAttacking => dash != null && dash.HasStarted;
 
 		public BT_DashCooldown(UnitObject unitObject, PlayerProvider playerProvider, DashMonsterAttack attack) : base(unitObject)
 		{

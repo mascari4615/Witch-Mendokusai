@@ -11,19 +11,20 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3188a2aa8084f8c82eff08d1919b1ad, type: 3}
   m_Name: MA_Sequence_MidnightClock2
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 11
   <WindupSeconds>k__BackingField: 0
   <RecoverySeconds>k__BackingField: 0
-  <Cooldown>k__BackingField: 0.5
+  <Cooldown>k__BackingField: 0.4
   <WindupTelegraph>k__BackingField: {fileID: 0}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
   <Steps>k__BackingField:
   - {fileID: 11400000, guid: 141dd94ecc9f4458a5400ecfb325fdc5, type: 2}
-  - {fileID: 11400000, guid: dc7c288bf2f840cd83003076aab807dc, type: 2}
-  - {fileID: 11400000, guid: 64595dc50b9d4c1481d4e2a42124e47b, type: 2}
-  - {fileID: 11400000, guid: 67ca53c43b0f48c1986868ffa99dbbd7, type: 2}
-  - {fileID: 11400000, guid: e607911bbef54138980efe526ee077b5, type: 2}
-  - {fileID: 11400000, guid: 12335b57c6da495189f52ff60264649b, type: 2}
-  - {fileID: 11400000, guid: 68f7da9965ef464f928542a290510a59, type: 2}
+  - {fileID: 11400000, guid: 7a3ecc7c598142cc8b8c346680bd854f, type: 2}
+  - {fileID: 11400000, guid: 9caf90658db84d68849a2622abac9bb0, type: 2}
+  - {fileID: 11400000, guid: 9caf90658db84d68849a2622abac9bb0, type: 2}
+  - {fileID: 11400000, guid: 678dea1d93f84c4ea7c52f856cc64abe, type: 2}
+  - {fileID: 11400000, guid: 9caf90658db84d68849a2622abac9bb0, type: 2}
+  - {fileID: 11400000, guid: 71536a0039b04b39a41a9ae7d4c90680, type: 2}
+  <SkipSeconds>k__BackingField: 4

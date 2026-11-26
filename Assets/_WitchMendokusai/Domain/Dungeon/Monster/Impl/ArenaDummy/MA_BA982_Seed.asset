@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73cfab2209094c568e0de9ef089c476d, type: 3}
+  m_Name: MA_BA982_Seed
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 9
+  <WindupSeconds>k__BackingField: 0.8
+  <RecoverySeconds>k__BackingField: 0.4
+  <Cooldown>k__BackingField: 0
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 6ce4d759c4cb4e129b9f3c0c46223761, type: 2}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 1.4
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 0}
+    <Strike>k__BackingField: {fileID: 0}
+    <Rest>k__BackingField: {fileID: 0}
+    <Crouch>k__BackingField: 0.2
+    <Stretch>k__BackingField: 0.2
+    <StrikeSeconds>k__BackingField: 0.3
+    <StrikeLeadSeconds>k__BackingField: 0
+    <Tremble>k__BackingField: 0
+    <Breath>k__BackingField: 0.04
+  <WindupFx>k__BackingField: {fileID: 11400000, guid: ad6aaaa260bf4b4ea20d0eec52669744, type: 2}
+  <StrikeFx>k__BackingField: {fileID: 11400000, guid: bf1af18ff0d94038ac426c86a0df9739, type: 2}
+  <WindupFxOnce>k__BackingField: 0
+  <TelegraphInTurn>k__BackingField: 0
+  <Linger>k__BackingField:
+    <Seconds>k__BackingField: 0
+    <CoolSeconds>k__BackingField: 0.4
+    <Radius>k__BackingField: 0.5
+    <Damage>k__BackingField: 0
+    <TouchInterval>k__BackingField: 0.6
+    <BurstRadius>k__BackingField: 0
+    <BurstDamage>k__BackingField: 0
+    <BurstTelegraph>k__BackingField: {fileID: 0}
+    <BurstFx>k__BackingField: {fileID: 0}
+  <Center>k__BackingField: 0
+  <Radius>k__BackingField: 1.1
+  <Damage>k__BackingField: 2
+  <LeadSeconds>k__BackingField: 0.4
+  <HitEffect>k__BackingField:
+    <AppliesStatus>k__BackingField: 0
+    <Status>k__BackingField: 3
+    <StatusSeconds>k__BackingField: 0
+    <SlowRatio>k__BackingField: 0
+    <PushSpeed>k__BackingField: 0
+    <PushSeconds>k__BackingField: 0
+    <HitFx>k__BackingField: {fileID: 0}
+    <HitFxRadius>k__BackingField: 1
+    <Pulls>k__BackingField: 0
+    <Brand>k__BackingField: 
+      <Enabled>k__BackingField: 0
+      <StunSeconds>k__BackingField: 0
+      <BurstFx>k__BackingField: {fileID: 0}
+      <BurstFxRadius>k__BackingField: 1.4

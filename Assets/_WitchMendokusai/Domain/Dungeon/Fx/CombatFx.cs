@@ -21,6 +21,14 @@ namespace WitchMendokusai
 		public float Radius;
 		public float Length;
 		public float Width;
+		/// <summary> 안쪽이 빈 고리의 안 반지름. 0 이면 꽉 찬 원 </summary>
+		public float InnerRadius;
+		/// <summary> Direction 을 가운데로 벌어진 각도. 0 이하나 360 이면 온 둘레 </summary>
+		public float ArcDegrees;
+		/// <summary> 때린 뒤 남는 물체의 수명. 비우면 부품의 기본값 </summary>
+		public FxHold Hold;
+		/// <summary> 도는 물체. 흐른 초를 넣으면 Direction 에서 돌아간 각도 (도) </summary>
+		public Func<float, float> Turn;
 		/// <summary> 걸리는 시간. 0 이하면 부품의 기본값 </summary>
 		public float Seconds;
 		/// <summary> 띠에 쓸 글 (이름, 경고 문구) </summary>

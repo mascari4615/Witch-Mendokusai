@@ -12,12 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3188a2aa8084f8c82eff08d1919b1ad, type: 3}
   m_Name: MA_Sequence_ElderFlower
   m_EditorClassIdentifier:
-  <TriggerRange>k__BackingField: 2.6
+  <TriggerRange>k__BackingField: 11
   <WindupSeconds>k__BackingField: 0
   <RecoverySeconds>k__BackingField: 0
-  <Cooldown>k__BackingField: 2.0
+  <Cooldown>k__BackingField: 2
   <WindupTelegraph>k__BackingField: {fileID: 0}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 2
   <Steps>k__BackingField:
-  - {fileID: 11400000, guid: cacd33540cb14eaabd021877ec37b2bf, type: 2}
-  - {fileID: 11400000, guid: 8e7d16f7b67b4bdb94ba2104e2f92d96, type: 2}
-  - {fileID: 11400000, guid: b656c284c9dc42d4b7aa0f41c7c7cb05, type: 2}
+  - {fileID: 11400000, guid: ffac62194826444f92f4b1f334a1838e, type: 2}
+  - {fileID: 11400000, guid: 3cb1a392c31848058aa0eea1b9a5ddbe, type: 2}
+  - {fileID: 11400000, guid: 3cb1a392c31848058aa0eea1b9a5ddbe, type: 2}
+  - {fileID: 11400000, guid: 4c74a94f939444d4b0e79856f7ec3bb7, type: 2}
+  <SkipSeconds>k__BackingField: 4

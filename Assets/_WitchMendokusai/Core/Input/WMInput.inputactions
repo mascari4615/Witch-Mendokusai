@@ -79,6 +79,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Barrage",
+                    "type": "Button",
+                    "id": "61715ed9-9c9e-5773-b5ce-5e41e406297c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Scroll",
                     "type": "Value",
                     "id": "b20bbc4b-1889-4ee8-9afa-dc81f97d29f0",
@@ -474,6 +483,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "ChangeMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9ff297f2-e8b3-5a8d-9e91-ea69e01f6f74",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Barrage",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

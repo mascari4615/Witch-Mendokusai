@@ -23,7 +23,7 @@ namespace WitchMendokusai
 		private readonly List<UISlot> options = new();
 
 		[SerializeField, Tooltip("릴리스 빌드에서 메뉴에 안 띄우는 개발 중 패널")]
-		private NPCPanelType[] devBuildOnlyPanels = { NPCPanelType.CauldronMap, NPCPanelType.Hub };
+		private NPCPanelType[] devBuildOnlyPanels = { NPCPanelType.CauldronMap, NPCPanelType.Hub, NPCPanelType.AspectPuzzle };
 
 		[SerializeField] private Image headerPortrait;
 		[SerializeField] private TMPro.TextMeshProUGUI headerName;

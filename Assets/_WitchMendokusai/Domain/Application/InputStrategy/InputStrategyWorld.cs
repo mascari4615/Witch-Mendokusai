@@ -88,6 +88,13 @@ namespace WitchMendokusai
 						),
 
 						new(
+							InputEventType.Barrage,
+							InputEventResponseType.Performed,
+							() => EventBusBridge.Publish(new PlayerBarrageRequestedEvent()),
+							() => CanExecute(InputEventType.Barrage)
+						),
+
+						new(
 							InputEventType.BuildModeToggle,
 							InputEventResponseType.Performed,
 							() => gameModeManager.ToggleBuildMode(),
@@ -106,20 +113,20 @@ namespace WitchMendokusai
 							InputEventType.CameraControlModeToggle,
 							InputEventResponseType.Performed,
 							() => cameraManager.ToggleControlMode(),
-							() => CanExecute(InputEventType.CameraControlModeToggle) && uiManager.IsTabInputOwnedByPanel == false
+							() => CanExecute(InputEventType.CameraControlModeToggle) && cameraManager.IsSweepView == false && uiManager.IsTabInputOwnedByPanel == false
 						),
 						new(
 							InputEventType.CameraPerspectiveToggle,
 							InputEventResponseType.Performed,
 							() => cameraManager.TogglePerspective(),
-							() => CanExecute(InputEventType.CameraPerspectiveToggle)
+							() => CanExecute(InputEventType.CameraPerspectiveToggle) && cameraManager.IsSweepView == false
 						),
 						// TASK-WM-193 — 마을 경영 시점 순환 (Normal/CityView/FreeFly).
 						new(
 							InputEventType.CameraViewCycle,
 							InputEventResponseType.Performed,
 							() => cameraManager.CycleContentView(),
-							() => CanExecute(InputEventType.CameraViewCycle)
+							() => CanExecute(InputEventType.CameraViewCycle) && cameraManager.IsSweepView == false
 						),
 						#endregion
 
@@ -192,6 +199,7 @@ namespace WitchMendokusai
 				}
 			},
 			{ InputEventType.ChangeMode, new[] { GameConditionType.IsTyping } },
+			{ InputEventType.Barrage, new[] { GameConditionType.IsTyping, GameConditionType.IsPaused, GameConditionType.IsDied, GameConditionType.IsViewingUI, GameConditionType.IsInTransition } },
 			{
 				InputEventType.BuildModeToggle,
 				new[]

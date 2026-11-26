@@ -174,8 +174,11 @@ namespace WitchMendokusai
 					yield break;
 				position = ClampToArena(position);
 			}
+			// 보스가 잠근 무대 칸 밖으로. 패턴 이동은 대형을 지키려고 그대로
+			if (moveOrder == null && ArenaShiftField.IsLocked(position, spawnBodyRadius))
+				position = ClampToArena(position);
 			// 경계 안 자리도 장애물 속이면 가장자리 밖으로
-			position = ClearOfObstacles(position);
+			position = ClearOfObstacles(position, spawnBodyRadius);
 			pendingSpawns++;
 			GameObject spawnCircle = objectPoolManager.Spawn(spawnCirclePrefab);
 			spawnCircle.transform.position = position;
@@ -211,7 +214,8 @@ namespace WitchMendokusai
 				GameObject obj = monsters[i];
 				if (obj == null || obj.TryGetComponent(out MonsterObject monster) == false || monster.UnitData == null)
 					continue;
-				if (monster.UnitData.Type == MonsterType.Boss || monster.IsElite)
+				// 보스 부위 (BossParts) 도 보스처럼. 거두면 부수지 않은 부위의 패턴이 꺼짐
+				if (monster.UnitData.Type == MonsterType.Boss || monster.IsElite || monster.IsAnchored || BossParts.IsPart(monster))
 				{
 					monster.UnitMovement.SetSimulationInterval(0f);
 					continue;

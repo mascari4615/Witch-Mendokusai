@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace WitchMendokusai
 {
@@ -25,6 +26,9 @@ namespace WitchMendokusai
 		public bool AutoWork { get; private set; }
 		public bool AutoComplete { get; private set; }
 
+		// 지금 듣는 이벤트. 시작을 두 번 불러도 한 번만 듣고, 그만둘 때 들은 것을 전부 풂
+		private readonly HashSet<GameEventType> listenedEvents = new();
+
 		public RuntimeQuest(RuntimeQuestSaveData saveData)
 		{
 			Load(saveData);
@@ -37,17 +41,43 @@ namespace WitchMendokusai
 				return;
 			}
 
-			if (AutoComplete)
+			Listen();
+			Evaluate();
+		}
+
+		/// <summary>목록에서 치울 때. 더는 게임 이벤트에 반응하지 않음</summary>
+		public void StopQuest() => StopListening();
+
+		private void Listen()
+		{
+			if (listenedEvents.Count > 0)
 			{
-				GameEvents.Add(GameEventType.OnTick);
+				return;
 			}
 
 			foreach (GameEventType gameEventType in GameEvents)
 			{
-				GameEventBridge.RegisterCallback(gameEventType, Evaluate);
+				listenedEvents.Add(gameEventType);
+			}
+			// 자동 완료는 매 틱 판정. GameEvents 에 더하면 세이브에 실려 불러올 때마다 늘어남
+			if (AutoComplete)
+			{
+				listenedEvents.Add(GameEventType.OnTick);
 			}
 
-			Evaluate();
+			foreach (GameEventType gameEventType in listenedEvents)
+			{
+				GameEventBridge.RegisterCallback(gameEventType, Evaluate);
+			}
+		}
+
+		private void StopListening()
+		{
+			foreach (GameEventType gameEventType in listenedEvents)
+			{
+				GameEventBridge.UnregisterCallback(gameEventType, Evaluate);
+			}
+			listenedEvents.Clear();
 		}
 
 		public void Evaluate()
@@ -98,10 +128,7 @@ namespace WitchMendokusai
 		{
 			State = RuntimeQuestState.Working;
 
-			foreach (GameEventType gameEventType in GameEvents)
-			{
-				GameEventBridge.UnregisterCallback(gameEventType, Evaluate);
-			}
+			StopListening();
 
 			EventBusBridge.Publish(new QuestWorkStartedEvent(Guid, workerID, WorkTime));
 		}
@@ -125,10 +152,7 @@ namespace WitchMendokusai
 				GameEventBridge.Raise(GameEventType.OnResearchComplete);
 			}
 
-			foreach (GameEventType gameEventType in GameEvents)
-			{
-				GameEventBridge.UnregisterCallback(gameEventType, Evaluate);
-			}
+			StopListening();
 
 			EventBusBridge.Publish(new QuestCompletedEvent(Guid, QuestSOID, Type));
 		}
@@ -145,7 +169,8 @@ namespace WitchMendokusai
 			Description = saveData.Description;
 
 			Type = saveData.Type;
-			GameEvents = new List<GameEventType>(saveData.GameEvents);
+			// 옛 세이브에는 자동 완료가 불러올 때마다 더한 OnTick 이 쌓여 있음
+			GameEvents = saveData.GameEvents.Distinct().ToList();
 			CompleteEffects = saveData.CompleteEffects;
 			RewardEffects = saveData.RewardEffects;
 			Rewards = saveData.Rewards;

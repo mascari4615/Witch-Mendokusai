@@ -8,5 +8,8 @@ namespace WitchMendokusai
 
 		// 예고부터 숨 고르기까지 도는 중
 		bool IsAttacking { get; }
+
+		// 마지막으로 끝난 한 번이 기절, 빙결로 끊겨 실행을 다 못 함
+		bool WasCut => false;
 	}
 }

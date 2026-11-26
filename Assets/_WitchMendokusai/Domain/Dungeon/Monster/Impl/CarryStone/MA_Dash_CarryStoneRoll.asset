@@ -11,16 +11,30 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 27b2b474745a45438a23603feff359fd, type: 3}
   m_Name: MA_Dash_CarryStoneRoll
-  m_EditorClassIdentifier: 
-  <TriggerRange>k__BackingField: 7
-  <WindupSeconds>k__BackingField: 0.7
-  <RecoverySeconds>k__BackingField: 1.8
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 8
+  <WindupSeconds>k__BackingField: 1.05
+  <RecoverySeconds>k__BackingField: 2.7
   <Cooldown>k__BackingField: 0
-  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 46b2e5f4c13145e29c3f172dad86148e, type: 2}
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: 97a8bc8dd0d64ca5910e045a1135f8b9, type: 2}
   <RecoveryFx>k__BackingField: {fileID: 11400000, guid: e653203c5fcd4dbd9743fbc7093afa91, type: 2}
   <RecoveryFxRadius>k__BackingField: 1.6
-  <DashSpeed>k__BackingField: 9
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 21300000, guid: 1091688cb9ed47ef8e474ed33c1c3fd4, type: 3}
+    <Strike>k__BackingField: {fileID: 21300000, guid: 1091688cb9ed47ef8e474ed33c1c3fd4, type: 3}
+    <Rest>k__BackingField: {fileID: 21300000, guid: 39994f2473bf4bcb82df0d8fc8d35b7a, type: 3}
+    <Crouch>k__BackingField: 0.12
+    <Stretch>k__BackingField: 0.1
+    <StrikeSeconds>k__BackingField: 0.8
+    <StrikeLeadSeconds>k__BackingField: 0
+    <Tremble>k__BackingField: 0.1
+    <Breath>k__BackingField: 0.04
+  <WindupFx>k__BackingField: {fileID: 0}
+  <StrikeFx>k__BackingField: {fileID: 11400000, guid: 01244973cd7c4403b458e2f3a99e7950, type: 2}
+  <DashSpeed>k__BackingField: 10.5
   <DashDuration>k__BackingField: 0.8
-  <TelegraphWidth>k__BackingField: 1.6
+  <TelegraphWidth>k__BackingField: 1.7
+  <TelegraphExtraLength>k__BackingField: 0.6
   <BlockedProgressRatio>k__BackingField: 0.3
   <AngleDegrees>k__BackingField: 0
+  <CracksLinger>k__BackingField: 1

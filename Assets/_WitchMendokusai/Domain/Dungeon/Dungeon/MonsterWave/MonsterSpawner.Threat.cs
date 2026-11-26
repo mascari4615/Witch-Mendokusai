@@ -141,12 +141,16 @@ namespace WitchMendokusai
 			HasArena == false || SurvivalThreatRules.Contains(arena.Shape, arenaCenter, arena.HalfSize, position, inset);
 
 		// 생성 자리를 경계 안쪽으로. 경계가 없으면 그대로. 벽 쪽으로 달리는 중이면 끌어온 자리가 화면 안일 수 있음 (경계 판의 한계)
-		public Vector3 ClampToArena(Vector3 position) =>
-			HasArena ? SurvivalThreatRules.Clamp(arena.Shape, arenaCenter, arena.HalfSize, ClearOfObstacles(position), arena.SpawnInset) : ClearOfObstacles(position);
+		// 생성 자리 (물결, 재배치, 소환) 는 보스가 잠근 무대 칸 (ArenaShiftField) 도 피함. 매복 착지 (몸 반지름 판) 는 주인공을 노려 안 밂
+		public Vector3 ClampToArena(Vector3 position) => ClampToArena(ArenaShiftField.PushOutOfLocked(position, spawnBodyRadius), spawnBodyRadius);
+
+		// 큰 몸은 제 반지름으로
+		public Vector3 ClampToArena(Vector3 position, float bodyRadius) =>
+			HasArena ? SurvivalThreatRules.Clamp(arena.Shape, arenaCenter, arena.HalfSize, ClearOfObstacles(position, bodyRadius), arena.SpawnInset) : ClearOfObstacles(position, bodyRadius);
 
 		// 막는 지형 장애물 속에 생성되지 않게 가장자리 밖으로. 장애물 없는 판은 그대로
-		private Vector3 ClearOfObstacles(Vector3 position) =>
-			GroundGenerator.ActiveObstacles != null ? GroundGenerator.ActiveObstacles.PushOut(position, spawnBodyRadius) : position;
+		private Vector3 ClearOfObstacles(Vector3 position, float bodyRadius) =>
+			GroundGenerator.ActiveObstacles != null ? GroundGenerator.ActiveObstacles.PushOut(position, bodyRadius) : position;
 
 		// 주기 웨이브 한 마리 자리. 정책에 따라 앞 부채꼴 또는 화면 밖 둘레
 		private Vector3 PickPeriodicSpawnPosition()

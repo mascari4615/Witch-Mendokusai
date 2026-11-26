@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -174,6 +175,182 @@ namespace WitchMendokusai.Tests
 			List<string> errors = new();
 			sequence.Validate(owner, errors);
 			Assert.AreEqual(1, errors.Count, string.Join(", ", errors));
+		}
+
+		private static T FromJson<T>(string json) where T : new()
+		{
+			T value = new();
+			JsonUtility.FromJsonOverwrite(json.Replace("<", "\"<").Replace(">", ">k__BackingField\""), value);
+			return value;
+		}
+
+		[Test]
+		public void Band_hits_the_ring_and_spares_the_hole()
+		{
+			AttackBand band = FromJson<AttackBand>("{<Inner>:2,<Outer>:4}");
+			Assert.IsFalse(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 360f, new Vector3(0f, 5f, 1.9f), 0.3f), "안쪽 빈 곳");
+			Assert.IsTrue(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 360f, new Vector3(0f, 5f, -3f), 0.3f), "높이는 무시, 온 둘레");
+			Assert.IsTrue(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 360f, new Vector3(4.2f, 0f, 0f), 0.3f), "바깥에 몸이 걸침");
+			Assert.IsFalse(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 360f, new Vector3(4.4f, 0f, 0f), 0.3f), "바깥");
+		}
+
+		[Test]
+		public void Arc_spares_the_back()
+		{
+			AttackBand band = FromJson<AttackBand>("{<Inner>:0,<Outer>:4}");
+			Assert.IsTrue(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 200f, new Vector3(3f, 0f, 0f), 0.3f), "옆");
+			Assert.IsFalse(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 200f, new Vector3(0f, 0f, -3f), 0.3f), "등 뒤");
+			Assert.IsTrue(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 90f, Quaternion.Euler(0f, 49f, 0f) * Vector3.forward * 3f, 0.3f), "변에 몸이 걸침");
+			Assert.IsFalse(BandMonsterAttack.IsInBand(Vector3.zero, band, Vector3.forward, 90f, Quaternion.Euler(0f, 60f, 0f) * Vector3.forward * 3f, 0.3f), "변 밖");
+		}
+
+		[Test]
+		public void Spin_arm_reverses_and_comes_back()
+		{
+			SpinArm arm = FromJson<SpinArm>("{<DegreesPerSecond>:40,<SpinUpSeconds>:0.5,<ReverseAtSeconds>:3,<ReversePauseSeconds>:0.5}");
+			Assert.AreEqual(0f, arm.AngleAt(-1f), 0.001f, "예고 동안은 안 돎");
+			Assert.AreEqual(arm.AngleAt(3f), arm.AngleAt(3.5f), 0.001f, "멈춤");
+			Assert.Less(arm.AngleAt(4.5f), arm.AngleAt(3.5f), "반대로");
+			Assert.AreEqual(0f, arm.AngleAt(6.5f), 0.001f, "같은 초만큼 돌면 제자리");
+		}
+
+		// 준비 때 주인공이 있던 쪽 (0도) 을 모든 바늘이 지나가야 서 있기만 해서는 못 피함
+		[Test]
+		public void Every_spin_arm_passes_the_player()
+		{
+			int checkedCount = 0;
+			foreach (string guid in AssetDatabase.FindAssets("t:SpinMonsterAttack", new[] { MONSTER_FOLDER }))
+			{
+				SpinMonsterAttack spin = AssetDatabase.LoadAssetAtPath<SpinMonsterAttack>(AssetDatabase.GUIDToAssetPath(guid));
+				foreach (SpinArm arm in spin.Arms)
+				{
+					bool passes = false;
+					for (float time = 0f; time < spin.SpinSeconds - spin.FoldSeconds; time += 0.05f)
+						passes |= Mathf.Abs(Mathf.DeltaAngle(0f, arm.StartAngle + arm.AngleAt(time))) < 4f;
+					Assert.IsTrue(passes, $"{spin.name} 길이 {arm.Length}");
+					checkedCount++;
+				}
+			}
+			Assert.Greater(checkedCount, 0);
+		}
+
+		[Test]
+		public void Lingering_object_is_hot_then_cools()
+		{
+			Assert.IsNull(new LingerSettings().Open(1f), "초가 0 이면 안 남음");
+			FxHold hold = FromJson<LingerSettings>("{<Seconds>:2,<CoolSeconds>:0.5,<Damage>:1}").Open(10f);
+			Assert.IsFalse(hold.IsHot(9.9f), "때리기 전");
+			Assert.IsTrue(hold.IsHot(11.4f));
+			Assert.IsFalse(hold.IsHot(11.6f), "식음");
+			Assert.AreEqual(12f, hold.EndTime, 0.001f);
+			hold.IsGone = true;
+			Assert.IsFalse(hold.IsHot(11f), "터짐");
+		}
+
+		[Test]
+		public void Only_the_real_spot_is_safe()
+		{
+			int checkedCount = 0;
+			foreach (string guid in AssetDatabase.FindAssets("t:HideMonsterAttack", new[] { MONSTER_FOLDER }))
+			{
+				HideMonsterAttack hide = AssetDatabase.LoadAssetAtPath<HideMonsterAttack>(AssetDatabase.GUIDToAssetPath(guid));
+				if (hide.HasSafeSpot == false)
+					continue;
+				List<Vector3> spots = new();
+				HideMonsterAttack.Arrange(Vector3.one, hide.Count, hide.Distance, 17f, spots);
+				Assert.AreEqual(hide.Count, spots.Count);
+				List<Vector3> strikes = spots.GetRange(1, spots.Count - 1);
+				Assert.IsTrue(HideMonsterAttack.Hits(strikes, hide.Radius, Vector3.one, 0.2f), hide.name + " 가운데");
+				Assert.IsFalse(HideMonsterAttack.Hits(strikes, hide.Radius, spots[0], 0.3f), hide.name + " 진짜 자리");
+				foreach (Vector3 strike in strikes)
+					Assert.IsTrue(HideMonsterAttack.Hits(strikes, hide.Radius, strike, 0f), hide.name + " 가짜 자리");
+				checkedCount++;
+			}
+			Assert.Greater(checkedCount, 0);
+		}
+
+		[Test]
+		public void Dive_strikes_where_the_shadow_stopped()
+		{
+			List<Vector3> spots = new() { Vector3.zero };
+			HideMonsterAttack.Arrange(new Vector3(3f, 0f, 0f), 1, 9f, 50f, spots);
+			Assert.AreEqual(1, spots.Count, "앞 자리를 비움");
+			Assert.AreEqual(new Vector3(3f, 0f, 0f), spots[0]);
+			Assert.IsTrue(HideMonsterAttack.Hits(spots, 2f, new Vector3(5.2f, 4f, 0f), 0.3f), "몸이 걸침, 높이는 무시");
+			Assert.IsFalse(HideMonsterAttack.Hits(spots, 2f, new Vector3(5.4f, 0f, 0f), 0.3f));
+		}
+
+		// 원에 갇힌 채 멈춰 있던 주인공이 걸어서 나갈 틈 (걷기 2.9 m/s, 몸 0.3m, 반응 0.2초, 행동 틱 0.1초)
+		[Test]
+		public void Dives_leave_time_to_walk_out()
+		{
+			foreach (string guid in AssetDatabase.FindAssets("t:HideMonsterAttack", new[] { MONSTER_FOLDER }))
+			{
+				HideMonsterAttack hide = AssetDatabase.LoadAssetAtPath<HideMonsterAttack>(AssetDatabase.GUIDToAssetPath(guid));
+				float distance = hide.HasSafeSpot ? hide.Distance : hide.Radius + 0.3f;
+				Assert.GreaterOrEqual(hide.LockSeconds, distance / 2.9f + 0.3f, hide.name);
+			}
+		}
+
+		// 주인공 자리 장판 (예측 없음) 은 멈춰 있던 주인공이 걸어서 나갈 틈. 정예와 보스 폴더만
+		[Test]
+		public void Elite_zones_leave_time_to_walk_out()
+		{
+			int checkedCount = 0;
+			for (int id = FIRST_ELITE; id <= LAST_BOSS; id++)
+			{
+				foreach (MonsterAttack step in StepsOf(Find(id).Attack))
+				{
+					if (step is not ZoneMonsterAttack zone || zone.Center != ZoneCenter.Target || zone.LeadSeconds > 0f)
+						continue;
+					Assert.GreaterOrEqual(zone.WindupSeconds, (zone.Radius + 0.3f) / 2.9f + 0.3f, zone.name);
+					checkedCount++;
+				}
+			}
+			Assert.Greater(checkedCount, 0);
+		}
+
+		private static IEnumerable<MonsterAttack> StepsOf(MonsterAttack attack) => attack switch
+		{
+			SequenceMonsterAttack sequence => sequence.Steps,
+			PhaseMonsterAttack phase => phase.Phases.SelectMany(each => StepsOf(each.Attack)),
+			PackMonsterAttack pack => StepsOf(pack.SoloAttack),
+			_ => new[] { attack },
+		};
+
+		[Test]
+		public void Wall_stands_behind_the_player_and_ring_leaves_the_middle()
+		{
+			List<Vector3> points = new();
+			ScatterZoneMonsterAttack.Arrange(ScatterArrangement.Wall, Vector3.zero, new Vector3(0f, 0f, 5f), 3, 1.2f, 0.4f, 0f, () => 0f, points);
+			Assert.AreEqual(3, points.Count);
+			foreach (Vector3 point in points)
+				Assert.AreEqual(6.6f, point.z, 0.001f, "주인공 너머 한 줄");
+			Assert.AreEqual(2.4f, Vector3.Distance(points[0], points[2]), 0.001f);
+			points.Clear();
+			ScatterZoneMonsterAttack.Arrange(ScatterArrangement.Around, Vector3.zero, Vector3.one, 5, 2.6f, 0f, 10f, () => 0f, points);
+			foreach (Vector3 point in points)
+				Assert.AreEqual(2.6f, Vector3.Distance(point, Vector3.one), 0.001f, "가운데는 비움");
+		}
+
+		[Test]
+		public void Links_go_around_without_crossing()
+		{
+			List<Vector3> points = new() { new Vector3(1f, 0f, 1f), new Vector3(-1f, 0f, -1f), new Vector3(1f, 0f, -1f), new Vector3(-1f, 0f, 1f) };
+			LinkMonsterAttack.SortAround(points);
+			for (int i = 0; i < points.Count; i++)
+				Assert.AreEqual(2f, Vector3.Distance(points[i], points[(i + 1) % points.Count]), 0.001f, "대각선 없이 변으로만 " + i);
+		}
+
+		[Test]
+		public void Remade_bosses_have_an_entrance()
+		{
+			foreach (int id in new[] { 36, 37, 38, 39 })
+			{
+				PhaseMonsterAttack phase = (PhaseMonsterAttack)Find(id).Attack;
+				Assert.IsNull(phase.Phases[0].Entrance, "첫 단계는 등장 멈춤: " + id);
+				Assert.IsNotNull(phase.Phases[1].Entrance, "2단계 전환 연출: " + id);
+			}
 		}
 	}
 }

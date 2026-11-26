@@ -175,6 +175,8 @@ namespace WitchMendokusai
 			float rangeSquared = pattern.TargetRange * pattern.TargetRange;
 			foreach (GameObject monster in ObjectBufferManager.GetObjects(ObjectType.Monster))
 			{
+				if (MonsterObject.IsHiddenMonster(monster))
+					continue;
 				Vector3 offset = monster.transform.position - origin;
 				offset.y = 0f;
 				float distanceSquared = offset.sqrMagnitude;

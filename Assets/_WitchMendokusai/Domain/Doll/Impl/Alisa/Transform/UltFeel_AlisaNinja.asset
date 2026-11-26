@@ -1,0 +1,572 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05a6d572f1e341448faa9ed229c35a61, type: 3}
+  m_Name: UltFeel_AlisaNinja
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.UltimateScreenFeel
+  comfort: {fileID: 11400000, guid: c0c2512a90f980549a6c29f16d2e048b, type: 2}
+  trauma:
+    MaxOffset: 0.022
+    MaxRoll: 1.1
+    Frequency: 20
+    DecayPerSecond: 2.4
+    VerticalBias: 0.7
+    Response:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  pullBack:
+    Amount: 0
+    InSeconds: 0.3
+    OutSeconds: 0.3
+    Curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  cameraPath:
+    Pitch:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.3
+        value: -9.6
+        inSlope: -15.8333
+        outSlope: -15.8333
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.72
+        value: -11.4
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.84
+        value: -5.4
+        inSlope: 17.5
+        outSlope: 17.5
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.2
+        value: -3
+        inSlope: 7.39726
+        outSlope: 7.39726
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.57
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Yaw:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.3
+        value: 7.8
+        inSlope: 15
+        outSlope: 15
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.72
+        value: 10.8
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.84
+        value: -6.6
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.2
+        value: -2.4
+        inSlope: 9.0411
+        outSlope: 9.0411
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.57
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Roll:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.3
+        value: -1.2
+        inSlope: -2.08333
+        outSlope: -2.08333
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.72
+        value: -1.5
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.84
+        value: 0.72
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.957692
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.57
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Zoom:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.18
+        value: 0.33
+        inSlope: 2.6
+        outSlope: 2.6
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.3
+        value: 0.78
+        inSlope: 1.16667
+        outSlope: 1.16667
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.72
+        value: 0.96
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.84
+        value: 0.252
+        inSlope: -1.97791
+        outSlope: -1.97791
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.09615
+        value: 0.216
+        inSlope: -0.345206
+        outSlope: -0.345206
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.57
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  swells:
+  - Label: "\uBAA8\uC784"
+    FxStart: 0
+    FxEnd: 0.715
+    ReleaseSeconds: 0.28
+    Shape:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 3
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0.4
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    TimeScale: 1
+    Exposure: -0.12
+    Saturation: -10
+    Contrast: 8
+    Vignette: 0.25
+    Zoom: 0
+    Dolly: 0
+    Rumble: 0.12
+  - Label: "\uBA38\uBB3E"
+    FxStart: 0
+    FxEnd: 1.15
+    ReleaseSeconds: 0.45
+    Shape:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 4
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.25
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    TimeScale: 1
+    Exposure: 0
+    Saturation: 0
+    Contrast: 0
+    Vignette: 0
+    Zoom: 0
+    Dolly: 0
+    Rumble: 0
+  beats:
+  - Label: "\uB36E\uC74C"
+    FxTime: 0.14
+    HoldSeconds: 0
+    HoldTimeScale: 0
+    SlowScale: 1
+    SlowSeconds: 0
+    SlowRecovery:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Trauma: 0.2
+    Zoom:
+      Amount: 0.05
+      Attack: 0.02
+      Hold: 0.02
+      HalfLife: 0.06
+    Dolly:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Exposure:
+      Amount: 0
+      Attack: 0
+      Hold: 0.03
+      HalfLife: 0.05
+    Bloom:
+      Amount: 0
+      Attack: 0
+      Hold: 0.03
+      HalfLife: 0.08
+    Saturation:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Contrast:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Chromatic:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    LensDistortion:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Vignette:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RadialBlur:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Ripple:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RippleSpeed: 0
+    ImpactFrame: 0
+    ImpactFrameSeconds: 0
+    ImpactFrameStrength: 0
+  - Label: "\uD130\uC9D0"
+    FxTime: 0.715
+    HoldSeconds: 0.1
+    HoldTimeScale: 0
+    SlowScale: 0.35
+    SlowSeconds: 0.3
+    SlowRecovery:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    Trauma: 0.6
+    Zoom:
+      Amount: 0.08
+      Attack: 0.02
+      Hold: 0.04
+      HalfLife: 0.15
+    Dolly:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Exposure:
+      Amount: 0.2
+      Attack: 0
+      Hold: 0.04
+      HalfLife: 0.08
+    Bloom:
+      Amount: 0
+      Attack: 0
+      Hold: 0.05
+      HalfLife: 0.12
+    Saturation:
+      Amount: 12
+      Attack: 0.02
+      Hold: 0.1
+      HalfLife: 0.3
+    Contrast:
+      Amount: 6
+      Attack: 0.02
+      Hold: 0.1
+      HalfLife: 0.3
+    Chromatic:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    LensDistortion:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Vignette:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RadialBlur:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    Ripple:
+      Amount: 0
+      Attack: 0
+      Hold: 0
+      HalfLife: 0
+    RippleSpeed: 0
+    ImpactFrame: 0
+    ImpactFrameSeconds: 0
+    ImpactFrameStrength: 0
+  radialBlurReach: 0.07
+  rippleWidth: 0.06
+  lensScaleCompensation: 0.18
+  targetForward: 0

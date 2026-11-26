@@ -53,6 +53,7 @@ namespace WitchMendokusai
 			{ InputEventType.DialogueLog, InputMapType.UI },
 			{ InputEventType.MinimapLargeView, InputMapType.UI },
 			{ InputEventType.AchievementToggle, InputMapType.UI },
+			{ InputEventType.Barrage, InputMapType.Player },
 			{ InputEventType.VillageTurn, InputMapType.UI },
 			{ InputEventType.VillageRemove, InputMapType.UI },
 			{ InputEventType.VillageUndo, InputMapType.UI },

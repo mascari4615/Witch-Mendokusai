@@ -50,6 +50,8 @@ namespace WitchMendokusai
 		public Vector3 Center { get; private set; }
 		/// <summary> 시전자 발 위치. 따라갈 대상이 없으면 중심 </summary>
 		public Vector3 Caster => context.Follow != null ? context.Follow.position : Center;
+		/// <summary> 따라가는 시전자. 없으면 null </summary>
+		public Transform Follow => context.Follow;
 		/// <summary> 화면 오른쪽을 바닥에 눕힌 방향 </summary>
 		public Vector3 ScreenRight { get; private set; }
 		/// <summary> 화면 위쪽 (카메라가 보는 쪽) 을 바닥에 눕힌 방향 </summary>

@@ -39,7 +39,8 @@ namespace WitchMendokusai
 				MonsterAttack attack = UnitObject.UnitData is Monster monster ? monster.Attack : null;
 				if (attack == null)
 				{
-					moveToPlayer.UpdateBT();
+					if (MonsterTemperamentDriver.TryMove(UnitObject, playerProvider) == false)
+						moveToPlayer.UpdateBT();
 					return;
 				}
 				if (attack != activeAttack)
@@ -60,6 +61,11 @@ namespace WitchMendokusai
 		{
 			if (activeAttack != null)
 				activeAttack.Interrupt(attackBehaviour);
+			LingerField.Abandon(UnitObject);
+			VolleyField.Abandon(UnitObject);
+			SafeCircleField.Abandon(UnitObject);
+			ArenaShiftField.Abandon(UnitObject);
+			MonsterTemperamentDriver.Forget(UnitObject);
 			activeAttack = null;
 			attackBehaviour = null;
 		}

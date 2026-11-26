@@ -11,16 +11,18 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3188a2aa8084f8c82eff08d1919b1ad, type: 3}
   m_Name: MA_Sequence_CottonWhale1
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   <TriggerRange>k__BackingField: 11
   <WindupSeconds>k__BackingField: 0
   <RecoverySeconds>k__BackingField: 0
-  <Cooldown>k__BackingField: 1.2
+  <Cooldown>k__BackingField: 1
   <WindupTelegraph>k__BackingField: {fileID: 0}
   <RecoveryFx>k__BackingField: {fileID: 0}
   <RecoveryFxRadius>k__BackingField: 2
   <Steps>k__BackingField:
-  - {fileID: 11400000, guid: 0bec7c3b1c874ab3a1cd4621695f5bfc, type: 2}
-  - {fileID: 11400000, guid: 0efcc40d32374aefb17ba7ccff375542, type: 2}
+  - {fileID: 11400000, guid: b79cccd7eea246af9b4b9c9e1fd69285, type: 2}
   - {fileID: 11400000, guid: e1e6f6b23e014111815f95c3c1662309, type: 2}
-  - {fileID: 11400000, guid: fdb6788b29a94dcdacb99a62c030d46e, type: 2}
+  - {fileID: 11400000, guid: 291c445b40824c00aef3db07de1c19f0, type: 2}
+  - {fileID: 11400000, guid: 0efcc40d32374aefb17ba7ccff375542, type: 2}
+  - {fileID: 11400000, guid: b0d64f59b2c84ab9a292bfa088428119, type: 2}
+  <SkipSeconds>k__BackingField: 4

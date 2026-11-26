@@ -100,7 +100,7 @@ namespace WitchMendokusai
 		}
 
 		/// <summary>폰 던전처럼 손가락 시점 회전을 받지 않는 상태</summary>
-		public bool IsTouchLookLocked => lockTouchLookInDungeon && inputManager != null && inputManager.IsTouchMode && CurrentContentMode == ContentCameraMode.Dungeon;
+		public bool IsTouchLookLocked => lockTouchLookInDungeon && IsSweepView == false && inputManager != null && inputManager.IsTouchMode && CurrentContentMode == ContentCameraMode.Dungeon;
 
 		/// <summary>PlayerRotation body 회전용 — 평면 yaw (pitch 무시).</summary>
 		public Quaternion FlatYawRotation => Quaternion.Euler(0f, yaw, 0f);
@@ -204,13 +204,13 @@ namespace WitchMendokusai
 			{
 				Vector2 look = suppressLookFrame || IsTouchLookLocked ? Vector2.zero : inputManager.LookDelta;
 				yaw += look.x * mouseYawSensitivity;
-				pitch += -look.y * mousePitchSensitivity;
+				pitch += IsSweepView ? 0f : -look.y * mousePitchSensitivity;
 				pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
 
 				// MouseLook = 마우스 델타 1:1 즉시 반영 (Lerp 지연 X — "딱딱 안 움직임" fix WM-163).
 				// 추적 기준점은 회전 금지. Constraint 평가 뒤 부모 회전에 의한 원점 공전 방지
 				if (pitchPivot != null)
-					pitchPivot.rotation = Quaternion.Euler(pitch, yaw, 0f);
+					pitchPivot.rotation = LookRotation();
 			}
 			else
 			{
@@ -419,8 +419,8 @@ namespace WitchMendokusai
 			UpdateCameraOrientation();
 			suppressLookFrame = false;
 			TickDialogueFocus(Time.unscaledDeltaTime);
-			// 입력, 리그 회전, 보간된 대상 위치 뒤에 최종 카메라 계산 한 번
-			cinemachineBrain.ManualUpdate();
+			// 입력, 리그 회전, 보간된 대상 위치 뒤에 최종 카메라 계산 한 번. 외부 임대 중에는 그쪽이 카메라 주인
+			if (IsExternallyControlled == false) cinemachineBrain.ManualUpdate();
 
 			if (target == null)
 				return;

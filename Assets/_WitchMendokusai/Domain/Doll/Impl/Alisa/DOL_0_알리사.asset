@@ -44,4 +44,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 1e77af4040ab4d6c805eaac0ace678e0, type: 2}
   - {fileID: 11400000, guid: 02feb286cc9c4eacaa561fc456a73442, type: 2}
   - {fileID: 11400000, guid: 1bb5321a5b9243fe90426dbb5c853106, type: 2}
+  - {fileID: 11400000, guid: ef3f97a00d7b46019fa8a217cc52b919, type: 2}
+  - {fileID: 11400000, guid: ec6592ff86714a00ac43372b6cba6414, type: 2}
+  - {fileID: 11400000, guid: 52df2555a1a8493a8a23748ef8b419a7, type: 2}
   <BodyTint>k__BackingField: {r: 0.8, g: 0.86, b: 1, a: 1}

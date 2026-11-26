@@ -12,6 +12,8 @@ namespace WitchMendokusai
 			Windup = 1,
 			Strike = 2,
 			Rest = 3,
+			// 떠 있음 (Hold). 크기는 그대로
+			Air = 4,
 		}
 
 		// 공격이 끝나고 이만큼 안에 다음 준비가 없으면 원래대로 (초). 행동 틱 (0.1초) 보다 김
@@ -28,6 +30,8 @@ namespace WitchMendokusai
 		private float seconds;
 		private float lastStretch = 1f;
 		private bool restsNext;
+		// 그림을 땅에서 이만큼 위로 (m)
+		private float lift;
 		private float releaseTime = float.PositiveInfinity;
 
 		public static MonsterPoseDriver Of(UnitObject unitObject)
@@ -50,10 +54,33 @@ namespace WitchMendokusai
 			SetSprite(pose.Windup);
 		}
 
+		// 공중에 뜬 몸. 그림과 높이를 매 프레임 밖에서 정함
+		public void Hold(AttackPose newPose, Sprite sprite, float newLift)
+		{
+			Capture();
+			pose = newPose;
+			restsNext = false;
+			releaseTime = float.PositiveInfinity;
+			lift = newLift;
+			if (stage != Stage.Air)
+				Enter(Stage.Air, 1f);
+			SetSprite(sprite);
+		}
+
+		// 단계가 바뀌어 원래 그림 자체가 바뀜
+		public void SetBase(Sprite sprite)
+		{
+			if (stage == Stage.None)
+				body.sprite = sprite;
+			else
+				baseSprite = sprite;
+		}
+
 		public void Strike()
 		{
 			if (stage == Stage.None)
 				return;
+			lift = 0f;
 			Enter(Stage.Strike, pose.StrikeSeconds);
 			SetSprite(pose.Strike);
 		}
@@ -63,14 +90,17 @@ namespace WitchMendokusai
 		{
 			if (stage == Stage.Strike)
 				restsNext = true;
-			else if (stage == Stage.Windup)
+			else if (stage is Stage.Windup or Stage.Air)
 				BeginRest();
 		}
 
 		// 공격 하나가 끝남. 곧 다음 준비가 오면 이어지고, 아니면 원래대로
 		public void Release()
 		{
-			if (stage != Stage.None && float.IsPositiveInfinity(releaseTime))
+			// 떠 있다 끊기면 바로 땅으로
+			if (stage == Stage.Air)
+				Clear();
+			else if (stage != Stage.None && float.IsPositiveInfinity(releaseTime))
 				releaseTime = Time.time + RELEASE_SECONDS;
 		}
 
@@ -133,23 +163,27 @@ namespace WitchMendokusai
 			switch (stage)
 			{
 				case Stage.Windup:
-					stretch = 1f - pose.Crouch * Mathf.SmoothStep(0f, 1f, progress * 1.6f);
-					shake = Mathf.Sin(Time.time * 60f) * pose.Tremble * progress * progress;
+					if (pose.StrikeLeadSeconds > 0f && time >= seconds - pose.StrikeLeadSeconds)
+						SetSprite(pose.Strike);
+					stretch = 1f - pose.Crouch * Mathf.SmoothStep(0f, 1f, progress * pose.CrouchEase);
+					shake = Mathf.Sin(Time.time * pose.TrembleSpeed) * pose.Tremble * progress * progress;
 					break;
 				case Stage.Strike:
 					stretch = StrikeStretch(time);
 					break;
 				case Stage.Rest:
-					stretch = 1f + pose.Breath * Mathf.Sin(time * 3.2f);
+					stretch = 1f + pose.Breath * Mathf.Sin(time * pose.BreathSpeed);
 					break;
 			}
 			// 단계가 바뀔 때 튀지 않게 따라감. 때리는 순간은 바로
-			lastStretch = stage == Stage.Strike ? stretch : Mathf.Lerp(lastStretch, stretch, 1f - Mathf.Exp(-Time.deltaTime * 18f));
+			lastStretch = stage == Stage.Strike ? stretch : Mathf.Lerp(lastStretch, stretch, 1f - Mathf.Exp(-Time.deltaTime * pose.FollowRate));
 			target.localScale = new Vector3(baseScale.x / Mathf.Sqrt(lastStretch), baseScale.y * lastStretch, baseScale.z);
 			// 떨림 폭은 월드 단위. 보스 몸은 배율이 커서 나눔
 			target.localPosition = basePosition + Vector3.right * (shake / target.parent.lossyScale.x);
+			if (stage == Stage.Air)
+				target.position += Vector3.up * lift;
 		}
 
-		private float StrikeStretch(float time) => 1f + pose.Stretch * Mathf.Exp(-time * 7f) * Mathf.Cos(time * 22f);
+		private float StrikeStretch(float time) => 1f + pose.Stretch * Mathf.Exp(-time * pose.WobbleDamping) * Mathf.Cos(time * pose.WobbleSpeed);
 	}
 }

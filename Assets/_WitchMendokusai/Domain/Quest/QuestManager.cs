@@ -10,6 +10,8 @@ namespace WitchMendokusai
 	{
 		// 마도서 첫 페이지의 퀘스트 번호. 다음 페이지는 앞 페이지의 완료 효과 (UnlockQuest, AddQuest) 가 엶
 		public const int FIRST_MAGIC_BOOK_PAGE_ID = 7000;
+		// 새 게임이 여는 첫 퀘스트. 정사 챕터 첫 노드만. 시제품 챕터 (6000 번대) 는 따로 엶
+		public const int FIRST_STORY_QUEST_ID = 5000;
 
 		public QuestBuffer Quests => soManager.QuestBuffer;
 
@@ -107,6 +109,11 @@ namespace WitchMendokusai
 
 		public void Init(List<RuntimeQuest> quests)
 		{
+			// 그냥 비우면 목록에 없는 퀘스트가 게임 이벤트를 계속 들음
+			foreach (RuntimeQuest oldQuest in Quests.Data)
+			{
+				oldQuest.StopQuest();
+			}
 			Quests.Clear();
 
 			foreach (RuntimeQuest quest in quests)
@@ -146,6 +153,9 @@ namespace WitchMendokusai
 		{
 			Quests.Add(quest);
 			questAddedPublisher.Publish(new QuestAddedEvent(quest));
+			quest.StartQuest();
+			// 목록 화면은 넣을 때 그려져 시작 전 상태라 다시
+			Quests.UpdateUI();
 		}
 
 		public RuntimeQuest GetQuest(QuestSO questData)
@@ -172,6 +182,16 @@ namespace WitchMendokusai
 			AddQuest(RuntimeQuestFactory.FromQuestSO(firstPage, CreateCriteriaContext()));
 		}
 
+		// 정사 챕터 첫 노드. 잠겨 있을 때만 (새 게임). 다른 여는 길이 없어 잠긴 채 남으면 이야기가 막힘
+		public void UnlockFirstStoryQuest()
+		{
+			if (GetQuestState(FIRST_STORY_QUEST_ID) != QuestState.Locked)
+			{
+				return;
+			}
+			UnlockQuest(SOHelper.GetQuestSO(FIRST_STORY_QUEST_ID));
+		}
+
 		public void UnlockQuest(QuestSO questData)
 		{
 			questStates[questData.ID] = QuestState.Unlocked;
@@ -196,6 +216,10 @@ namespace WitchMendokusai
 
 		public void RemoveQuests(QuestType questType)
 		{
+			foreach (RuntimeQuest quest in Quests.Data.FindAll(x => x.Type == questType))
+			{
+				quest.StopQuest();
+			}
 			Quests.Data.RemoveAll(x => x.Type == questType);
 		}
 

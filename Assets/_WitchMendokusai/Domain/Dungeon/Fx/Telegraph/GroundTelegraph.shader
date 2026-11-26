@@ -63,6 +63,8 @@ Shader "WM/Fx/GroundTelegraph"
 		_ArrowArmWidth ("Inward Arrow Arm Width (sector ratio)", Range(0, 0.5)) = 0.36
 		_ArrowInnerClear ("Inward Arrow Inner Clear Radius (world)", Float) = 1
 		_ArrowArmSoftness ("Inward Arrow Arm Edge Softness (sector ratio)", Range(0, 0.2)) = 0.05
+		_InnerRadius ("Circle Inner Radius (world)", Float) = 0
+		_HalfArc ("Circle Half Arc (radians)", Float) = 6.3
 		_LineEndEdge ("Line End Edge Ratio", Range(0, 1)) = 0.45
 		_CornerRadius ("Line Corner Radius (world)", Float) = 0.1
 		_SparkSpacing ("Spark Spacing (world)", Float) = 0.55
@@ -158,6 +160,8 @@ Shader "WM/Fx/GroundTelegraph"
 				float _ArrowArmWidth;
 				float _ArrowInnerClear;
 				float _ArrowArmSoftness;
+				float _InnerRadius;
+				float _HalfArc;
 				float _LineEndEdge;
 				float _CornerRadius;
 				float _SparkSpacing;
@@ -324,7 +328,14 @@ Shader "WM/Fx/GroundTelegraph"
 				if (isCircle)
 				{
 					shapeDistance = radial - halfSize.x;
-					fillDistance = radial - _Progress * halfSize.x;
+					fillDistance = radial - lerp(_InnerRadius, halfSize.x, _Progress);
+					if (_InnerRadius > 0.0)
+						shapeDistance = max(shapeDistance, _InnerRadius - radial);
+					if (_HalfArc < PI)
+					{
+						float beyond = abs(atan2(position.x, position.y + 1e-6)) - _HalfArc;
+						shapeDistance = max(shapeDistance, beyond > HALF_PI ? radial : radial * sin(beyond));
+					}
 					sweep = turn;
 					alongLength = TWO_PI * halfSize.x;
 					along = turn * alongLength;

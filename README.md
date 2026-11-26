@@ -2,6 +2,53 @@
 
 > **AI 와 함께 만듭니다.** 코드·문서 상당 부분을 AI 에이전트(Claude Code)와 함께 씁니다.
 
+마녀 욘이 숲속 연구소에서 출발해 던전에서 버티는 생존 액션 데모입니다. 기본 던전 한 판은 10분입니다. 무기는 자동으로 공격하고, 레벨업마다 카드 세 장 중 하나를 골라 한 판의 빌드를 만듭니다. Unity 로 만든 Windows PC 게임입니다.
+
+- 상태: 데모 개발 중. 스크린샷과 플레이 영상은 화면 정리가 끝나면 이 자리에 붙습니다
+- 받기: [GitHub Releases](https://github.com/mascari4615/Witch-Mendokusai/releases) 의 Windows zip. 압축을 풀고 `WitchMendokusai.exe` 실행
+- 이 README 의 조작과 코드 설명은 `dev` 가지 기준입니다. 최신 공개판 v0.0.9 (2026-11-12) 는 그 전 판이라 키 재설정, 화면 설정, 세이브 안전, 포커스 일시정지, 업적 창, 큰 포화가 없고 개발용 키가 일부 켜져 있습니다. 다음 공개판에 들어갑니다
+
+## 한 판
+
+1. 시작 화면에서 시작하면 연구소에 도착
+2. 던전 안내인 티메토에게 다가가 Z 로 말을 걸고, 던전과 위협 단계를 골라 입장
+3. 몰려오는 몬스터를 피하며 경험치를 모아 레벨업, 카드로 무기와 능력을 키움. 정예와 보스가 중간중간 등장
+4. 결과 화면에서 보상을 받고 연구소로 귀환. 보상으로 상점과 영구 강화를 이용
+
+## 조작 (키보드와 마우스, 기본값)
+
+| 행동 | 키 |
+| --- | --- |
+| 이동 | W A S D |
+| 스킬 | Left Shift |
+| 기본 공격, 보조 공격 | 마우스 왼쪽, 오른쪽 |
+| 큰 포화 | R |
+| 말 걸기, UI 확인 | Z (또는 Enter) |
+| UI 취소 | X |
+| 대화 건너뛰기, 자동 진행, 기록 | P, O, L |
+| 인벤토리, 스탯, 퀘스트, 인형, 마도서, 도감, 업적 | I, V, J, K, M, B, H |
+| 시점 조작 모드 | Tab |
+| 열린 창 닫기, 메뉴 (설정, 종료) | ESC |
+| 단축키 안내 | F1 |
+
+- 키는 설정창의 키 탭에서 바꿀 수 있습니다. 이미 쓰는 키를 고르면 맞바꿀지 묻습니다
+- 해상도, 전체 화면, 수직 동기, FPS 상한, 그래픽 품질 (낮음, 중간, 높음) 도 설정창에 있습니다
+- 게임패드는 일부만 묶여 있습니다 (이동, 시점, UI 탐색, 대화 조작)
+
+## 코드에서 볼 곳
+
+| 주제 | 무엇을 했나 | 입구 |
+| --- | --- | --- |
+| 엔진 없는 도메인 | 전투 규칙, 아이템, 퀘스트 같은 게임 규칙을 Unity 참조 없는 어셈블리 38개로 나눔 (`noEngineReferences`). 엔진 쪽은 `IXxxBridge` 를 구현해 등록하는 방식으로 연결. 이 어셈블리들은 CI 에서 Unity 없이 .NET 으로 경고를 오류로 빌드 | [`DomainSDK/`](DomainSDK), [`DomainSDK/Combat/WaveDensityRules.cs`](DomainSDK/Combat/WaveDensityRules.cs) |
+| 생존 던전 흐름 | 입장, 웨이브, 레벨업 카드, 보스, 결과, 귀환 | [`DungeonManager.cs`](Assets/_WitchMendokusai/Domain/Dungeon/Dungeon/DungeonManager.cs), [`CardManager.cs`](Assets/_WitchMendokusai/Domain/Dungeon/Card/Core/CardManager.cs) |
+| 세이브 안전 | 임시 파일에 쓰고 바꿔 끼우는 원자적 저장, 앞 판 `.bak` 복구, 깨진 파일 격리, 세이브 버전, 두 번 실행 시 저장 주인 잠금 (Windows) | [`SaveTool.cs`](Assets/_WitchMendokusai/Domain/Save/SaveTool.cs), [`SaveManager.cs`](Assets/_WitchMendokusai/Domain/Save/SaveManager.cs), [`SaveOwnerLock.cs`](Assets/_WitchMendokusai/Core/Utility/SaveOwnerLock.cs) |
+| 입력 | New Input System 한 곳 (`InputManager`) 에서 모든 입력을 등록. 릴리스에서 안 쓰는 입력은 표시 하나로 거름. 키 재설정과 충돌 맞바꿈 | [`InputManager.cs`](Assets/_WitchMendokusai/Core/Input/InputManager.cs), [`KeybindRegistry.cs`](Assets/_WitchMendokusai/Core/Input/Keybind/KeybindRegistry.cs) |
+| 설정 | 화면 설정 저장과 부팅 적용, URP 에셋 단계별 품질 | [`DisplaySettings.cs`](Assets/_WitchMendokusai/Core/Display/DisplaySettings.cs), [`QualityPreset.cs`](Assets/_WitchMendokusai/Core/Display/QualityPreset.cs) |
+| 포커스 일시정지 | 창이 포커스를 잃으면 시간과 소리를 멈춤. 무인 시험과 배치 실행은 면제 | [`FocusPause.cs`](Assets/_WitchMendokusai/Core/Time/FocusPause.cs) |
+| 품질 게이트 | push 마다 파일 길이, 초기화 순서 감사 (자체 시험 포함), 죽은 코드, 중복 멤버, asmdef 금지 참조. 수동 빌드 뒤 실행 파일 스모크 | [`.github/workflows/`](.github/workflows) |
+
+- `DomainSDK/` 와 `Assets/` 에는 생존 데모 밖의 실험 놀이 (농사, 타워 디펜스, 1대1 대결 등) 모듈도 있습니다. 데모에서 쓰는 것은 위 표의 경로입니다
+
 ## Release
 
 새 버전 박는 절차 — tag 만 push 하면 끝:

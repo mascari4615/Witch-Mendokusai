@@ -19,13 +19,15 @@ namespace WitchMendokusai
 		Lab = 8,
 		CauldronMap = 9, // TASK-WM-174 5b-5 — 솥 속의 지도(공존, 기존 Pot 과 별개)
 		Hub = 10,        // TASK-WM-195 — 티메토 「게임 속 게임」 진입 허브 (append-only, Count 앞)
+		AspectPuzzle = 11, // 성질 놀이 (육각 종이, 번갈아). 임시 화면
 
-		Count = 11,
+		Count = 12,
 	}
 
 	public class UINPC : UIPanelGroup<NPCPanelType>
 	{
 		[SerializeField] private ShopUISettings shopSettings;
+		[SerializeField] private AspectPuzzleSettings aspectPuzzleSettings;
 
 		[Inject]
 		public void Construct(UIManager uiManager) => SetUIManager(uiManager);
@@ -52,6 +54,10 @@ namespace WitchMendokusai
 			Panels[NPCPanelType.Upgrade] = FindAnyObjectByType<UIUpgrade>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.Lab] = FindAnyObjectByType<UILab>(FindObjectsInactive.Include);
 			Panels[NPCPanelType.Hub] = UIManager.CreateToolkitPanel<UIMinigameHubToolkit>(); // TASK-WM-195 — 미니게임 허브(DungeonEntrance 동형 코드-스폰)
+
+			UIAspectPuzzlePanel aspectPuzzle = UIManager.CreateToolkitPanel<UIAspectPuzzlePanel>();
+			aspectPuzzle.SetSettings(aspectPuzzleSettings);
+			Panels[NPCPanelType.AspectPuzzle] = aspectPuzzle;
 		}
 	}
 }

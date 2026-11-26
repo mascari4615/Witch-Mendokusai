@@ -41,6 +41,12 @@ namespace WitchMendokusai
 					return ReadEffect(args, out cue, out problem);
 				case DialogueStageVocabulary.CINEMA:
 					return ReadCinema(args, out cue, out problem);
+				case DialogueStageVocabulary.SCENE:
+					return ReadScene(args, out cue, out problem);
+				case DialogueStageVocabulary.STAGE:
+					return ReadStage(args, out cue, out problem);
+				case DialogueStageVocabulary.GESTURE:
+					return ReadGesture(args, out cue, out problem);
 			}
 
 			if (DialogueStageVocabulary.TryRead(DialogueStageVocabulary.Motions, command, out DialogueStageMotion motion))
@@ -88,6 +94,14 @@ namespace WitchMendokusai
 						: Line(DialogueStageVocabulary.EFFECT, cue.EffectName, cue.Actor);
 				case DialogueStageCueKind.Cinema:
 					return Line(DialogueStageVocabulary.CINEMA, cue.IsOn ? DialogueStageVocabulary.ON : DialogueStageVocabulary.OFF);
+				case DialogueStageCueKind.Scene:
+					return Line(DialogueStageVocabulary.SCENE, cue.SceneKey);
+				case DialogueStageCueKind.SceneEnd:
+					return Line(DialogueStageVocabulary.SCENE, DialogueStageVocabulary.END);
+				case DialogueStageCueKind.StageSpace:
+					return Line(DialogueStageVocabulary.STAGE, DialogueStageVocabulary.WordOf(DialogueStageVocabulary.Spaces, cue.Space));
+				case DialogueStageCueKind.Gesture:
+					return Line(DialogueStageVocabulary.GESTURE, cue.Actor, cue.GestureName);
 				default:
 					throw new ArgumentOutOfRangeException(nameof(cue), cue.Kind, "Unknown stage cue kind");
 			}
@@ -232,6 +246,52 @@ namespace WitchMendokusai
 				return false;
 			}
 			cue = DialogueStageCue.Cinema(args[0] == DialogueStageVocabulary.ON);
+			return true;
+		}
+
+		// 이름의 띄어쓰기 허용. 나머지 낱말 전부가 키. "끝" 한 낱말만 끄기
+		private static bool ReadScene(string[] args, out DialogueStageCue cue, out string problem)
+		{
+			cue = null;
+			problem = null;
+			if (args.Length == 0)
+			{
+				problem = $"@{DialogueStageVocabulary.SCENE} <연출 이름> 또는 @{DialogueStageVocabulary.SCENE} {DialogueStageVocabulary.END}";
+				return false;
+			}
+			if (args.Length == 1 && args[0] == DialogueStageVocabulary.END)
+			{
+				cue = DialogueStageCue.SceneEnd();
+				return true;
+			}
+			cue = DialogueStageCue.Scene(string.Join(" ", args));
+			return true;
+		}
+
+		private static bool ReadStage(string[] args, out DialogueStageCue cue, out string problem)
+		{
+			cue = null;
+			problem = null;
+			if (args.Length != 1 || DialogueStageVocabulary.TryRead(DialogueStageVocabulary.Spaces, args[0], out DialogueStageSpace space) == false)
+			{
+				problem = $"@{DialogueStageVocabulary.STAGE} <{DialogueStageVocabulary.STAGE_2D}|{DialogueStageVocabulary.STAGE_3D}|{DialogueStageVocabulary.STAGE_WORLD}>";
+				return false;
+			}
+			cue = DialogueStageCue.ForSpace(space);
+			return true;
+		}
+
+		// 동작 이름은 3D 무대 설정이 아는 것. 여기서는 모양만 검사
+		private static bool ReadGesture(string[] args, out DialogueStageCue cue, out string problem)
+		{
+			cue = null;
+			problem = null;
+			if (args.Length != 2)
+			{
+				problem = $"@{DialogueStageVocabulary.GESTURE} <인물> <동작 이름>";
+				return false;
+			}
+			cue = DialogueStageCue.Gesture(args[0], args[1]);
 			return true;
 		}
 

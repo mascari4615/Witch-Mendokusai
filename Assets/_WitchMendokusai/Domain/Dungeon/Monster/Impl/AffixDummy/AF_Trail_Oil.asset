@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ce8606ce53e485c936574d333d7d780, type: 3}
+  m_Name: AF_Trail_Oil
+  m_EditorClassIdentifier: 
+  <Tint>k__BackingField: {r: 0.75, g: 0.7, b: 0.55, a: 1}
+  goop: {fileID: 11400000, guid: 4c563a6c88ab91446aee3e90f0493237, type: 2}
+  spacing: 0.7
+  radius: 0.55
+  amount: 0.8

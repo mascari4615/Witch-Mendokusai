@@ -51,6 +51,13 @@ namespace WitchMendokusai
 
 			Row(Heading("판"), Command("레벨업 카드", "levelup"), Command("상자 열기", "chest"), Command("무적 켜기 끄기", "god"));
 
+			// 전용 무기를 든 알리사 판에서. 확정과 최종은 한 번씩만 (최종은 하나만 고름)
+			Row(Heading("알리사 화력"), Command("확정", "sigcard", "13008"), Command("일제 사격", "sigcard", "13030"), Command("큰 포화 채움", "barrage"));
+			Row(Heading("알리사 닌자"), Command("확정", "sigcard", "13050"),
+				Command("단계 카드", "sigcard", "13051", "13053", "13055", "13056", "13058", "13060", "13061", "13062", "13064", "13065", "13066"),
+				Command("표창 폭풍", "sigcard", "13070", "13071", "13072", "13074", "13075", "13078"),
+				Command("대형 십자", "sigcard", "13080", "13081", "13082", "13084", "13085", "13087", "13088"));
+
 			weaponField = new DropdownField("무기 하나만");
 			Row(weaponField, new Button(EquipSelected) { text = "장착" }, Command(data.BareHandsLabel, "weapon", "none"));
 

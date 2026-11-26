@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using WitchMendokusai.DomainSDK.Alchemy;
@@ -221,6 +222,18 @@ namespace WitchMendokusai
 			// 단, 그래픽 없는 임시 네모라 릴리스 빌드에서는 안 띄움 (2026-11-16 데모 플레이 피드백)
 			if (Debug.isDebugBuild && GetComponent<WorldGatherableBinder>() == null)
 				gameObject.AddComponent<WorldGatherableBinder>();
+		}
+
+		/// <summary>들어가 있을 때 지우면 나갈 때 지금 세계를 다시 적으므로 못 지운다.</summary>
+		public bool CanResetSolo => IsLocalWorld == false && remote == null && LocalWorldStore.IsOwned;
+
+		/// <summary>내 안의 세계를 지운다.</summary>
+		public void ResetSolo()
+		{
+			if (CanResetSolo == false)
+				throw new InvalidOperationException($"{nameof(ResetSolo)}: 세계에 들어가 있거나 다른 프로세스가 이 세계를 쓰는 중");
+
+			LocalWorldStore.Delete();
 		}
 
 		/// <summary>세계에서 나온다.</summary>

@@ -6,7 +6,7 @@ namespace WitchMendokusai
 {
 	// 알리사 일제 사격. 무기 탄의 적중 (GaugeOnHit) 이 게이지를 채우고, 다 차면 무기를 잔뜩 꺼내 바라보는 쪽에 부채꼴로 포화
 	// 판정 VolleyGaugeRules. 카드는 스탯으로 켬 (장전, 나눠 쏘기, 집중, 끝 폭발, 무기 수, 유도, 빛줄기, 판 안 누적)
-	public class VolleyGauge : SkillComponent
+	public partial class VolleyGauge : SkillComponent
 	{
 		public static VolleyGauge Current { get; private set; }
 
@@ -32,6 +32,9 @@ namespace WitchMendokusai
 		[SerializeField, Min(1f), Tooltip("1 이면 고른 간격. 클수록 또박또박 시작해 뒤로 몰아침 (전체 길이는 그대로)")] private float burstAcceleration = 1.7f;
 		[SerializeField, Min(0f), Tooltip("연속 포화의 두 번째까지 쉬는 시간")] private float splitGapSeconds = 0.4f;
 		[SerializeField, Min(0f), Tooltip("포화 탄이 나오는 자리의 옆 폭")] private float weaponSpread = 1.2f;
+		[SerializeField, Tooltip("조준점 (마우스, 자동 조준이면 가장 가까운 적) 한 자리로 모아 쏨. 끄면 부채꼴")] private bool focusOnAimPoint;
+		[SerializeField, Tooltip("모으는 자리까지의 거리 범위 (가까이, 멀리)")] private Vector2 focusDistance = new(2.5f, 9f);
+		[SerializeField, Range(0f, 1f), Tooltip("모아 쏠 때 부채 각도 배율")] private float focusFanScale = 0.2f;
 		[SerializeField, Range(0, 200)] private int splitPercent = 60;
 		[SerializeField, Range(0, 300)] private int focusPercent = 140;
 		[SerializeField] private string readyText = "일제 사격!";
@@ -75,10 +78,14 @@ namespace WitchMendokusai
 			gauge = 0f;
 			firing = false;
 			lastFireTime = Time.time;
+			barrageGauge = 0f;
+			EventBusBridge.Subscribe<PlayerBarrageRequestedEvent>(OnBarrageRequested);
 		}
 
 		private void OnDisable()
 		{
+			EventBusBridge.Unsubscribe<PlayerBarrageRequestedEvent>(OnBarrageRequested);
+			FinishBarrage();
 			if (Current == this)
 				Current = null;
 		}
@@ -86,7 +93,9 @@ namespace WitchMendokusai
 		public void OnWeaponHit(UnitObject victim)
 		{
 			bool isStrongFoe = victim is MonsterObject monster && (monster.IsElite || monster.UnitData.Type == MonsterType.Boss);
-			gauge = VolleyGaugeRules.Add(gauge, VolleyGaugeRules.Charge(isStrongFoe, normalCharge, strongCharge, PlayerStat[chargePercentStat]), gaugeSize);
+			float charge = VolleyGaugeRules.Charge(isStrongFoe, normalCharge, strongCharge, PlayerStat[chargePercentStat]);
+			gauge = VolleyGaugeRules.Add(gauge, charge, gaugeSize);
+			ChargeBarrage(charge);
 			if (firing == false && VolleyGaugeRules.CanFire(gauge, gaugeSize, Time.time - lastFireTime, minIntervalSeconds))
 				StartCoroutine(Fire());
 		}
@@ -95,8 +104,7 @@ namespace WitchMendokusai
 		{
 			firing = true;
 			gauge = 0f;
-			if (UIManager.TryGetExistingInstance(out UIManager uiManager))
-				uiManager.PopText(readyText, TextType.Normal, playerProvider.Current.transform.position);
+			PopText(readyText);
 
 			bool split = PlayerStat[splitStat] > 0;
 			bool focus = PlayerStat[focusStat] > 0;
@@ -111,7 +119,7 @@ namespace WitchMendokusai
 				raiseDelay += wait - gap;
 				int count = VolleyGaugeRules.ShotCount(baseWeapons, PlayerStat[bonusWeaponsStat], shotsPerWeapon);
 				if (count > 0)
-					arsenal.Raise(playerProvider.Current.transform, AimDirection, count, focus ? focusFanDegrees : fanDegrees);
+					arsenal.Raise(playerProvider.Current.transform, AimDirection, AimPoint, count, focus ? focusFanDegrees : fanDegrees);
 				yield return new WaitForSeconds(wait);
 				yield return Burst(count, focus ? focusFanDegrees : fanDegrees, percent);
 			}
@@ -138,9 +146,22 @@ namespace WitchMendokusai
 
 		private Vector3 AimDirection()
 		{
+			if (barraging)
+				return CameraManager.Instance.SweepForward;
 			Vector3 aim = playerProvider.Current.AimDirection;
 			aim.y = 0f;
 			return aim.sqrMagnitude < 0.0001f ? playerProvider.Current.transform.forward : aim.normalized;
+		}
+
+		// 모아 쏘는 자리. 너무 가깝거나 멀면 범위 안으로
+		private Vector3 AimPoint()
+		{
+			Vector3 player = playerProvider.Current.transform.position;
+			if (barraging)
+				return player + AimDirection() * barrageRange;
+			Vector3 offset = playerProvider.Current.AimPos - player;
+			offset.y = 0f;
+			return player + AimDirection() * Mathf.Clamp(offset.magnitude, focusDistance.x, focusDistance.y);
 		}
 
 		private GameObject SpawnShot(GameObject prefab, float angle, int percent)
@@ -149,6 +170,11 @@ namespace WitchMendokusai
 			Vector3 aim = AimDirection();
 			Vector3 direction = Quaternion.Euler(0f, angle, 0f) * aim;
 			Vector3 side = Vector3.Cross(Vector3.up, aim) * Random.Range(-weaponSpread, weaponSpread);
+			if (focusOnAimPoint)
+			{
+				Vector3 target = player.position + Quaternion.Euler(0f, angle * focusFanScale, 0f) * (AimPoint() - player.position);
+				direction = Vector3.ProjectOnPlane(target - (player.position + side), Vector3.up).normalized;
+			}
 			GameObject spawned = SkillSpawn.Spawn(objectPoolManager, prefab, player.position + side, Quaternion.LookRotation(direction, Vector3.up), context, PlayerStat[damageBonusStat]);
 			// 유도 탄은 판정 초기화 때 가까운 적을 향해 방향을 정함. 덮어쓰지 않음
 			if (prefab != homingShotPrefab && spawned.TryGetComponent(out BulletMovement bulletMovement))

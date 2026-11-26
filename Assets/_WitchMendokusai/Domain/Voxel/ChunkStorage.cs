@@ -17,9 +17,19 @@ namespace WitchMendokusai
 
 		private static string saveDirectory;
 
+		private static string DirectoryIn(string basePath) => Path.Combine(basePath, "Saves", "DefaultWorld", "Chunks");
+
+		/// <summary>파고 심은 지형을 전부 지움. 다음 월드는 다시 생성한 지형. 지형 계산 캐시 (TerrainRegionStorage) 는 그대로</summary>
+		public static void DeleteAll(string basePath)
+		{
+			string directory = DirectoryIn(basePath);
+			if (Directory.Exists(directory))
+				Directory.Delete(directory, true);
+		}
+
 		public static void Initialize(string basePath)
 		{
-			saveDirectory = Path.Combine(basePath, "Saves", "DefaultWorld", "Chunks");
+			saveDirectory = DirectoryIn(basePath);
 			if (Directory.Exists(saveDirectory) == false)
 			{
 				Directory.CreateDirectory(saveDirectory);

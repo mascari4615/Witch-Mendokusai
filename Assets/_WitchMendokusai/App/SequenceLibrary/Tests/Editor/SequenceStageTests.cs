@@ -22,10 +22,10 @@ namespace WitchMendokusai.SequenceLibrary.Tests
                 typeof(SkyDirector).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(sky, new object[0]);
                 Assert.That(SkyDirector.Instance, Is.SameAs(sky));
                 sky.enabled = enabled;
-                SequenceLibraryMenu menu = host.AddComponent<SequenceLibraryMenu>();
-                typeof(SequenceLibraryMenu).GetMethod("CaptureLobby", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(menu, new object[0]);
+                SequenceStage stage = host.AddComponent<SequenceStage>();
+                typeof(SequenceStage).GetMethod("CaptureScreen", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(stage, new object[0]);
                 Assert.That(sky.enabled, Is.False);
-                typeof(SequenceLibraryMenu).GetMethod("StopSequence", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(menu, new object[0]);
+                stage.Hide();
                 Assert.That(sky.enabled, Is.EqualTo(enabled));
             }
             finally
@@ -34,6 +34,45 @@ namespace WitchMendokusai.SequenceLibrary.Tests
                 if (sky != null) typeof(SkyDirector).GetMethod("OnDestroy", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(sky, new object[0]);
                 UnityEngine.Object.DestroyImmediate(skyHost);
             }
+        }
+
+        [Test]
+        public void OnlyOneStageHoldsTheScreenAndReleaseRestoresCameras()
+        {
+            GameObject cameraHost = new GameObject("sequence-stage-camera-test");
+            GameObject first = new GameObject("sequence-stage-first");
+            GameObject second = new GameObject("sequence-stage-second");
+            try
+            {
+                Camera camera = cameraHost.AddComponent<Camera>();
+                camera.cullingMask = 0b1011;
+                SequenceStage firstStage = first.AddComponent<SequenceStage>();
+                SequenceStage secondStage = second.AddComponent<SequenceStage>();
+                Capture(firstStage);
+                Assert.That(camera.enabled, Is.True, "Game code reads Camera.main every frame, so the camera must stay enabled");
+                Assert.That(camera.cullingMask, Is.EqualTo(0));
+                TargetInvocationException refused = Assert.Throws<TargetInvocationException>(() => Capture(secondStage));
+                Assert.That(refused.InnerException, Is.TypeOf<InvalidOperationException>());
+                secondStage.Hide();
+                Assert.That(camera.cullingMask, Is.EqualTo(0), "A refused stage must not restore what another stage holds");
+                firstStage.Hide();
+                Assert.That(camera.cullingMask, Is.EqualTo(0b1011));
+                Capture(secondStage);
+                Assert.That(camera.cullingMask, Is.EqualTo(0));
+                secondStage.Hide();
+                Assert.That(camera.cullingMask, Is.EqualTo(0b1011));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(first);
+                UnityEngine.Object.DestroyImmediate(second);
+                UnityEngine.Object.DestroyImmediate(cameraHost);
+            }
+        }
+
+        private static void Capture(SequenceStage stage)
+        {
+            typeof(SequenceStage).GetMethod("CaptureScreen", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(stage, new object[0]);
         }
 
         [TestCase(false, true)]
@@ -45,12 +84,12 @@ namespace WitchMendokusai.SequenceLibrary.Tests
             GameObject host = new GameObject("sequence-stage-test");
             try
             {
-                SequenceLibraryMenu menu = host.AddComponent<SequenceLibraryMenu>();
+                SequenceStage stage = host.AddComponent<SequenceStage>();
                 SceneDocument document = Document();
                 document.Lights = new[] { new SceneLight { Node = 0, Enabled = enabled, Intensity = .37f } };
                 if (authoredCamera) document.Cameras = new[] { new SceneCamera { Node = 0 } };
                 SceneInstance scene = SceneContentLoader.Load(document, new EmptySource(), Shader.Find("Universal Render Pipeline/Unlit"), host.transform);
-                Prepare(menu, host, scene);
+                Prepare(stage, host, scene);
                 Light[] lights = host.GetComponentsInChildren<Light>(true);
                 Assert.That(lights.Length, Is.EqualTo(1));
                 Assert.That(lights[0].enabled, Is.EqualTo(enabled));
@@ -68,25 +107,26 @@ namespace WitchMendokusai.SequenceLibrary.Tests
             GameObject host = new GameObject("sequence-stage-fallback-test");
             try
             {
-                SequenceLibraryMenu menu = host.AddComponent<SequenceLibraryMenu>();
+                SequenceStage stage = host.AddComponent<SequenceStage>();
                 SceneDocument document = Document();
                 if (authoredCamera) document.Cameras = new[] { new SceneCamera { Node = 0 } };
                 SceneInstance scene = SceneContentLoader.Load(document, new EmptySource(), Shader.Find("Universal Render Pipeline/Unlit"), host.transform);
-                Prepare(menu, host, scene);
+                Prepare(stage, host, scene);
                 Light[] lights = host.GetComponentsInChildren<Light>(true);
                 Assert.That(lights.Length, Is.EqualTo(1));
                 Assert.That(lights[0].cullingMask, Is.EqualTo(1 << 31));
                 Assert.That(lights[0].name, Is.EqualTo("Sequence light"));
                 Camera camera = host.GetComponentsInChildren<Camera>(true)[0];
+                Assert.That(camera.depth, Is.EqualTo(100f), "The content camera must draw over cameras outside the active scene");
                 Assert.That(Vector3.Dot(camera.transform.forward, lights[0].transform.forward), Is.GreaterThan(.5f),
                     "The fallback key must illuminate the viewer-facing side with authored or generated cameras");
             }
             finally { UnityEngine.Object.DestroyImmediate(host); }
         }
 
-        private static void Prepare(SequenceLibraryMenu menu, GameObject host, SceneInstance scene)
+        private static void Prepare(SequenceStage stage, GameObject host, SceneInstance scene)
         {
-            typeof(SequenceLibraryMenu).GetMethod("PrepareCamera", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(menu, new object[] { host, scene });
+            typeof(SequenceStage).GetMethod("PrepareCamera", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(stage, new object[] { host, scene });
         }
 
         private static SceneDocument Document()

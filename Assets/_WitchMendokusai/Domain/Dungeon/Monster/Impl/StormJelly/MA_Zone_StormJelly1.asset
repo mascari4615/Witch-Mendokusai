@@ -11,22 +11,52 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 73cfab2209094c568e0de9ef089c476d, type: 3}
   m_Name: MA_Zone_StormJelly1
-  m_EditorClassIdentifier: 
-  <TriggerRange>k__BackingField: 2.4
-  <WindupSeconds>k__BackingField: 0.7
-  <RecoverySeconds>k__BackingField: 0.25
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 40
+  <WindupSeconds>k__BackingField: 1.2
+  <RecoverySeconds>k__BackingField: 2.7
   <Cooldown>k__BackingField: 0
-  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: b2cf3055dd844fe0a41d025984b7dc1e, type: 2}
-  <RecoveryFx>k__BackingField: {fileID: 0}
-  <RecoveryFxRadius>k__BackingField: 2
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}
+  <RecoveryFx>k__BackingField: {fileID: 11400000, guid: e653203c5fcd4dbd9743fbc7093afa91, type: 2}
+  <RecoveryFxRadius>k__BackingField: 1.6
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 21300000, guid: 37c528daaef641a3981751c29146ca78, type: 3}
+    <Strike>k__BackingField: {fileID: 21300000, guid: e4bcd79595d144659ff1f81ed6509b89, type: 3}
+    <Rest>k__BackingField: {fileID: 21300000, guid: 5cf549a228ea41d8a435cf5a50b39eed, type: 3}
+    <Crouch>k__BackingField: 0.2
+    <Stretch>k__BackingField: 0.35
+    <StrikeSeconds>k__BackingField: 0.5
+    <StrikeLeadSeconds>k__BackingField: 0
+    <Tremble>k__BackingField: 0.07
+    <Breath>k__BackingField: 0.04
+  <WindupFx>k__BackingField: {fileID: 0}
+  <StrikeFx>k__BackingField: {fileID: 11400000, guid: af59e74503544660be756b938904c5b8, type: 2}
+  <WindupFxOnce>k__BackingField: 0
+  <TelegraphInTurn>k__BackingField: 0
+  <Linger>k__BackingField:
+    <Seconds>k__BackingField: 0
+    <CoolSeconds>k__BackingField: 0.4
+    <Radius>k__BackingField: 0.5
+    <Damage>k__BackingField: 0
+    <HitEffect>k__BackingField:
+      <AppliesStatus>k__BackingField: 0
+      <Status>k__BackingField: 3
+      <StatusSeconds>k__BackingField: 0
+      <SlowRatio>k__BackingField: 0
+      <PushSpeed>k__BackingField: 0
+      <PushSeconds>k__BackingField: 0
+    <BurstRadius>k__BackingField: 0
+    <BurstDamage>k__BackingField: 0
+    <BurstTelegraph>k__BackingField: {fileID: 0}
+    <BurstFx>k__BackingField: {fileID: 0}
   <Center>k__BackingField: 1
-  <Radius>k__BackingField: 2.0
-  <Damage>k__BackingField: 2
+  <Radius>k__BackingField: 2.8
+  <Damage>k__BackingField: 4
   <LeadSeconds>k__BackingField: 0
   <HitEffect>k__BackingField:
-    <AppliesStatus>k__BackingField: 1
-    <Status>k__BackingField: 6
-    <StatusSeconds>k__BackingField: 3
+    <AppliesStatus>k__BackingField: 0
+    <Status>k__BackingField: 3
+    <StatusSeconds>k__BackingField: 0
     <SlowRatio>k__BackingField: 0
-    <PushSpeed>k__BackingField: 0
-    <PushSeconds>k__BackingField: 0
+    <PushSpeed>k__BackingField: 5
+    <PushSeconds>k__BackingField: 0.2
