@@ -17,7 +17,7 @@ MonoBehaviour:
     <Prefab>k__BackingField: {fileID: 919132149155446097, guid: 8403658c3298ac34db76445e300408d8, type: 3}
     <Materials>k__BackingField: []
   - <Name>k__BackingField: 링
-    <Prefab>k__BackingField: {fileID: 919132149155446097, guid: bc6bb9f63573eff468de7d395b5e9126, type: 3}
+    <Prefab>k__BackingField: {fileID: 919132149155446097, guid: bcf214c0056d4a9a9ea709c029d74a42, type: 3}
     <Materials>k__BackingField: []
   <FallbackPrefab>k__BackingField: {fileID: 919132149155446097, guid: bc6bb9f63573eff468de7d395b5e9126, type: 3}
   <SlotSpacing>k__BackingField: 1.1
