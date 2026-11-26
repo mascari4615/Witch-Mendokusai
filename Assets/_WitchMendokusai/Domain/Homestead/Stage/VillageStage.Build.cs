@@ -75,6 +75,9 @@ namespace WitchMendokusai
 				overhead.ConfigureZoom(buildZoom.x, buildZoom.y, buildZoomStep);
 				overhead.ResetView(player, cameraManager.OrbitAngles.x, buildHeight);
 			}
+			// 들어온 순간의 마우스 자리를 기준으로. 안 그러면 첫 프레임에 (0,0) 과 비교돼 키만 쓰는데도 커서가 마우스로 감
+			lastPointer = inputManager.MouseScreenPosition;
+			usesPointer = false;
 			buildHud = manager.Hud.ShowBuild(palette, SLOT_COUNT, TakeNew, Undo, LeaveBuildView);
 			inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
 			inputManager.RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, UseCell);
