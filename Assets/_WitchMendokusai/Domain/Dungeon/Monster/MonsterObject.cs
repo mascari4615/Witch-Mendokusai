@@ -80,6 +80,7 @@ namespace WitchMendokusai
 			SpriteRenderer.color = UnitData.Tint;
 			ApplySpriteVariant();
 			ApplyBodyFx();
+			MonsterAffixDriver.Attach(this);
 			ObjectBufferManager.AddObject(ObjectType.Monster, gameObject);
 			hpBar.localScale = Vector3.one;
 			HpBarView.SetRatio(1f);

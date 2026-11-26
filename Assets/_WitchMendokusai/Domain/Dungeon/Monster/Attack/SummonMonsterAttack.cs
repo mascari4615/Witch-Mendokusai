@@ -50,9 +50,12 @@ namespace WitchMendokusai
 			return count;
 		}
 
-		private void Spawn(Vector3 position)
+		private void Spawn(Vector3 position) => SpawnMonster(Summoned, position);
+
+		// 몬스터 하나를 이 자리에 세움. 소환과 분열 (SplitAffix) 이 같이 씀
+		public static void SpawnMonster(Monster monster, Vector3 position)
 		{
-			GameObject spawnedObject = ObjectPoolManager.Instance.Spawn(Summoned.Prefab);
+			GameObject spawnedObject = ObjectPoolManager.Instance.Spawn(monster.Prefab);
 			MonsterObject spawnedMonster = spawnedObject.GetComponent<MonsterObject>();
 			// 던전이면 경계 안쪽, 장애물 밖, 물결 몬스터와 같은 위협 단계
 			if (DungeonManagerBridge.IsDungeon)
@@ -61,7 +64,7 @@ namespace WitchMendokusai
 				spawnedMonster.SetThreat(DungeonManager.Instance.CurThreat);
 			}
 			spawnedObject.transform.position = position;
-			spawnedMonster.Init(Summoned);
+			spawnedMonster.Init(monster);
 			spawnedObject.SetActive(true);
 		}
 

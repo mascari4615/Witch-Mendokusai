@@ -15,11 +15,29 @@ namespace WitchMendokusai
 			List<string> errors = new();
 			Arena.Validate(name, errors);
 			foreach (MonsterWave wave in MonsterWaves)
+			{
 				foreach (Monster monster in wave.Monsters)
+				{
 					if (monster.Attack != null)
 						monster.Attack.Validate(monster, errors);
+					ValidateAffixes(monster, errors);
+				}
+			}
 			if (errors.Count > 0)
 				throw new System.InvalidOperationException($"{name} 위협 설정 오류: {string.Join(", ", errors)}");
+		}
+
+		public static void ValidateAffixes(Monster monster, List<string> errors)
+		{
+			if (monster.Affixes == null)
+				return;
+			foreach (MonsterAffix affix in monster.Affixes)
+			{
+				if (affix == null)
+					errors.Add($"{monster.name}: 빈 특징 칸");
+				else
+					affix.Validate(monster, errors);
+			}
 		}
 	}
 }
