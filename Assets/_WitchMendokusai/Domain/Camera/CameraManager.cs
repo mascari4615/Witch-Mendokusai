@@ -420,9 +420,7 @@ namespace WitchMendokusai
 			suppressLookFrame = false;
 			TickDialogueFocus(Time.unscaledDeltaTime);
 			// 입력, 리그 회전, 보간된 대상 위치 뒤에 최종 카메라 계산 한 번. 외부 임대 중에는 그쪽이 카메라 주인
-			if (IsExternallyControlled)
-				return;
-			cinemachineBrain.ManualUpdate();
+			if (IsExternallyControlled == false) cinemachineBrain.ManualUpdate();
 
 			if (target == null)
 				return;
