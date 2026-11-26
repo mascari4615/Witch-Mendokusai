@@ -141,7 +141,8 @@ namespace WitchMendokusai
 			HasArena == false || SurvivalThreatRules.Contains(arena.Shape, arenaCenter, arena.HalfSize, position, inset);
 
 		// 생성 자리를 경계 안쪽으로. 경계가 없으면 그대로. 벽 쪽으로 달리는 중이면 끌어온 자리가 화면 안일 수 있음 (경계 판의 한계)
-		public Vector3 ClampToArena(Vector3 position) => ClampToArena(position, spawnBodyRadius);
+		// 생성 자리 (물결, 재배치, 소환) 는 보스가 잠근 무대 칸 (ArenaShiftField) 도 피함. 매복 착지 (몸 반지름 판) 는 주인공을 노려 안 밂
+		public Vector3 ClampToArena(Vector3 position) => ClampToArena(ArenaShiftField.PushOutOfLocked(position, spawnBodyRadius), spawnBodyRadius);
 
 		// 큰 몸은 제 반지름으로
 		public Vector3 ClampToArena(Vector3 position, float bodyRadius) =>

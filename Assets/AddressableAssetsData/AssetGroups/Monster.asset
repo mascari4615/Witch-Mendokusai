@@ -135,6 +135,48 @@ MonoBehaviour:
     m_SerializedLabels:
     - Monster
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e486ae65937941a792383fa09af8d10a
+    m_Address: Monster/984
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6b5cd7808f9b4ecf93b78deac5daea4c
+    m_Address: Monster/985
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 109c8a9795d54abaa79b303346bb664b
+    m_Address: Monster/987
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f0083640874a478fbddb90ab4ead84b0
+    m_Address: Monster/983
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1d270ec2ef5c4d44a15e5d15e604eeb2
+    m_Address: Monster/982
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ed412d1480a5421080c2e779ff4df523
+    m_Address: Monster/981
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 06d57d521ef9494aa8d39e9c40002726
+    m_Address: Monster/986
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 567ddd77cb9f4ae3bf314f23bfef779a
     m_Address: Monster/939
     m_ReadOnly: 0

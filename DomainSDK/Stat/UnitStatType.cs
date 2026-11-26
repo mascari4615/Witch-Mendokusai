@@ -312,6 +312,7 @@ namespace WitchMendokusai
 		MARK = 100_000_207,
 		FEAR = 100_000_208,
 		SILENCE = 100_000_209,
+		BRAND = 100_000_210,
 		#endregion
 	}
 }

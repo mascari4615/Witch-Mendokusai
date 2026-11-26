@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("맞은 주인공 자리의 이펙트. 긴 것의 중간에 맞아도 보이게. 비우면 없음")] public CombatFx HitFx { get; private set; }
 		[field: SerializeField, Min(0.1f)] public float HitFxRadius { get; private set; } = 1f;
 		[field: SerializeField, Tooltip("밀지 않고 중심 쪽으로 당김")] public bool Pulls { get; private set; }
+		[field: SerializeField, Tooltip("맞을 때마다 낙인 한 겹. 문턱이면 기절 (보스 표식 누적)")] public BrandSettings Brand { get; private set; } = new();
 
 		public bool Pushes => PushSpeed > 0f && PushSeconds > 0f;
 
@@ -38,6 +39,7 @@ namespace WitchMendokusai
 			else if (AppliesStatus)
 				UnitStatus.Apply(player, Status, source, StatusSeconds);
 
+			Brand.Stack(source, player);
 			if (HitFx != null)
 				HitFx.Play(new CombatFxContext { Position = player.transform.position, Origin = center, Radius = HitFxRadius });
 			if (Pushes == false)
@@ -70,6 +72,7 @@ namespace WitchMendokusai
 				errors.Add($"{ownerName}: 상태이상 {Status} 인데 초가 0");
 			if (AppliesStatus && Status == UnitStatusType.Slow && SlowRatio <= 0f)
 				errors.Add($"{ownerName}: 둔화인데 비율이 0");
+			Brand.Validate(ownerName, errors);
 			if (PushSpeed > 0f != PushSeconds > 0f)
 				errors.Add($"{ownerName}: 밀기는 속도와 초가 같이 있어야 함 ({PushSpeed}, {PushSeconds})");
 		}

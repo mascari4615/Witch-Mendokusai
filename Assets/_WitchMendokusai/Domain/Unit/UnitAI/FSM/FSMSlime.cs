@@ -63,6 +63,8 @@ namespace WitchMendokusai
 				activeAttack.Interrupt(attackBehaviour);
 			LingerField.Abandon(UnitObject);
 			VolleyField.Abandon(UnitObject);
+			SafeCircleField.Abandon(UnitObject);
+			ArenaShiftField.Abandon(UnitObject);
 			MonsterTemperamentDriver.Forget(UnitObject);
 			activeAttack = null;
 			attackBehaviour = null;

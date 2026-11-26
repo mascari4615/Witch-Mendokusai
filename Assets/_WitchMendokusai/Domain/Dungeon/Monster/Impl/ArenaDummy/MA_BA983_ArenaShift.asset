@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3188a2aa8084f8c82eff08d1919b1ad, type: 3}
+  m_Name: MA_BA983_ArenaShift
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 9
+  <WindupSeconds>k__BackingField: 0
+  <RecoverySeconds>k__BackingField: 0
+  <Cooldown>k__BackingField: 3
+  <WindupTelegraph>k__BackingField: {fileID: 0}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 1.4
+  <Steps>k__BackingField:
+  - {fileID: 11400000, guid: 8b36da8cc7d242079f3f07c6c518a145, type: 2}
+  - {fileID: 11400000, guid: a018c539e28a415c801195f486cc51ca, type: 2}
+  - {fileID: 11400000, guid: a018c539e28a415c801195f486cc51ca, type: 2}
+  - {fileID: 11400000, guid: 1769e08a3d3b43268237032aa42a1cff, type: 2}
+  - {fileID: 11400000, guid: aa80b2e417a84a78a09c530d4508ec96, type: 2}
+  - {fileID: 11400000, guid: a018c539e28a415c801195f486cc51ca, type: 2}
+  <SkipSeconds>k__BackingField: 2.5

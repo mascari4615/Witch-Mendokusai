@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3188a2aa8084f8c82eff08d1919b1ad, type: 3}
+  m_Name: MA_BA984_Parts
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 9
+  <WindupSeconds>k__BackingField: 0
+  <RecoverySeconds>k__BackingField: 0
+  <Cooldown>k__BackingField: 3
+  <WindupTelegraph>k__BackingField: {fileID: 0}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 1.4
+  <Steps>k__BackingField:
+  - {fileID: 11400000, guid: 90b72fcf0ae8446ebd26e93cac4edcc2, type: 2}
+  - {fileID: 11400000, guid: f33e06f0abdc44c18a7d62cc7f04e5da, type: 2}
+  - {fileID: 11400000, guid: 5d2874ca585d43088402bc4b47c5ecc8, type: 2}
+  - {fileID: 11400000, guid: 08a3a5dd1ad44170b3463195a1d00070, type: 2}
+  <SkipSeconds>k__BackingField: 2.5
