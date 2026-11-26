@@ -1579,11 +1579,11 @@ MonoBehaviour:
     CastShadow: 1
     Cells: {x: 1, y: 1}
     Solids:
-    - m_Center: {x: 0, y: 0.6, z: 2.6}
+    - m_Center: {x: 0, y: 0.6, z: 4.35}
       m_Extent: {x: 1.7, y: 0.6, z: 0.55}
-    - m_Center: {x: -3.4, y: 0.25, z: -2.1}
+    - m_Center: {x: -5.78, y: 0.25, z: -3.591}
       m_Extent: {x: 0.9, y: 0.25, z: 0.25}
-    - m_Center: {x: 3.4, y: 0.25, z: -2.1}
+    - m_Center: {x: 5.78, y: 0.25, z: -3.591}
       m_Extent: {x: 0.9, y: 0.25, z: 0.25}
   - Key: Museum_plants
     Mesh: {fileID: 4300000, guid: b11d35bd374a305ff9f8a375d1099ad9, type: 2}

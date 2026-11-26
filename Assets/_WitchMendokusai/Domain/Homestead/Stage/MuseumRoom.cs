@@ -32,19 +32,21 @@ namespace WitchMendokusai
 
 		[Header("Rooms")]
 		[SerializeField] private float roomGap = 90f;
-		[SerializeField] private Vector2 roomSize = new(13f, 10f);
-		[SerializeField] private float wallHeight = 4f;
+		[Tooltip("방 바닥 (m). 모델 museum.py 의 W, D 에 배율 S 1.7 을 곱한 값. 자유 카메라가 벽에 막히지 않게 실제보다 크게")]
+		[SerializeField] private Vector2 roomSize = new(22.1f, 17f);
+		[SerializeField] private float wallHeight = 7.2f;
 		[SerializeField] private float wallThickness = 1f;
-		[SerializeField] private float ceilingHeight = 4.2f;
+		[SerializeField] private float ceilingHeight = 7.14f;
 		[SerializeField] private float domeRadius = 34f;
 		[SerializeField] private float domeRoof = 9f;
 		[SerializeField] private Color shadeColor = new(0.1f, 0.09f, 0.13f);
-		[SerializeField] private Vector3 door = new(0f, 0f, -4.3f);
+		[SerializeField] private Vector3 door = new(0f, 0f, -7.8f);
 		[Tooltip("문으로 들어와 서는 자리 (문 기준)")]
-		[SerializeField] private Vector3 arrival = new(0f, 0.1f, 3.4f);
-		[SerializeField] private Vector3 desk = new(0f, 0f, 1.7f);
-		[SerializeField] private Vector2 roomLight = new(13f, 4.2f);
-		[SerializeField] private float roomLightHeight = 3.2f;
+		[SerializeField] private Vector3 arrival = new(0f, 0.1f, 5.5f);
+		[Tooltip("안내대 앞. 안내대는 키우지 않은 사람 크기라 기준점만 옮겨짐")]
+		[SerializeField] private Vector3 desk = new(0f, 0f, 3.45f);
+		[SerializeField] private Vector2 roomLight = new(22f, 7.1f);
+		[SerializeField] private float roomLightHeight = 5.4f;
 		[Tooltip("방 가운데에서 양옆 등까지 (방 폭에 대한 비율)")]
 		[SerializeField] private float roomLightSpread = 0.27f;
 		[SerializeField] private Color hallLight = new(1f, 0.88f, 0.7f);
@@ -52,7 +54,7 @@ namespace WitchMendokusai
 		[Header("Stands")]
 		[SerializeField] private float standInset = 0.95f;
 		[Tooltip("벽을 따라 놓을 때 모서리에서 비우는 길이 (좌우 벽, 북쪽 벽)")]
-		[SerializeField] private Vector2 standCorner = new(1.9f, 1.3f);
+		[SerializeField] private Vector2 standCorner = new(3.2f, 2.2f);
 		[SerializeField] private float islandDepth = 0.5f;
 		[SerializeField] private float standFront = 0.5f;
 		[SerializeField] private float cropScale = 0.8f;
@@ -66,10 +68,10 @@ namespace WitchMendokusai
 
 		[SerializeField] private Wing[] wings =
 		{
-			new() { Id = "plants", Door = new Vector3(-5.5f, 0f, 0.4f), Spacing = 1.6f, ItemHeight = 0.36f, ItemSize = 0.55f, Light = new Color(1f, 0.95f, 0.76f) },
-			new() { Id = "waters", Door = new Vector3(5.5f, 0f, 0.4f), Spacing = 2f, ItemHeight = 0.92f, ItemSize = 0.5f, Light = new Color(0.62f, 0.86f, 1f) },
-			new() { Id = "stones", Door = new Vector3(-3.4f, 0f, 4f), Spacing = 2f, ItemHeight = 0.62f, ItemSize = 0.6f, Light = new Color(1f, 0.84f, 0.62f) },
-			new() { Id = "relics", Door = new Vector3(3.4f, 0f, 4f), Spacing = 1.75f, ItemHeight = 0.88f, ItemSize = 0.6f, Light = new Color(1f, 0.8f, 0.72f) },
+			new() { Id = "plants", Door = new Vector3(-10.05f, 0f, 0.68f), Spacing = 2.2f, ItemHeight = 0.36f, ItemSize = 0.55f, Light = new Color(1f, 0.95f, 0.76f) },
+			new() { Id = "waters", Door = new Vector3(10.05f, 0f, 0.68f), Spacing = 2.6f, ItemHeight = 0.92f, ItemSize = 0.5f, Light = new Color(0.62f, 0.86f, 1f) },
+			new() { Id = "stones", Door = new Vector3(-5.78f, 0f, 7.5f), Spacing = 2.6f, ItemHeight = 0.62f, ItemSize = 0.6f, Light = new Color(1f, 0.84f, 0.62f) },
+			new() { Id = "relics", Door = new Vector3(5.78f, 0f, 7.5f), Spacing = 2.4f, ItemHeight = 0.88f, ItemSize = 0.6f, Light = new Color(1f, 0.8f, 0.72f) },
 		};
 
 		private sealed class Exhibit
