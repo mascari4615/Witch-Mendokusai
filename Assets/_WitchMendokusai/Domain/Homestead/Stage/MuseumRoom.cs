@@ -165,16 +165,16 @@ namespace WitchMendokusai
 			exhibits.Clear();
 			builtFor = Sim;
 			Transform hall = BuildRoom(HALL_ROOM, 0, hallLight);
-			HomesteadSpot.Create(hall, door, "MuseumExit", () => "박물관", () => "나가기", Leave);
-			HomesteadSpot.Create(hall, desk, "MuseumDesk", () => "안내대", DeskRole, () => manager.Panels.Show(HomesteadPanelType.Museum));
+			HomesteadSpot.Create(hall, door, "MuseumExit", () => "박물관", () => "나가기", Leave, () => "나가기");
+			HomesteadSpot.Create(hall, desk, "MuseumDesk", () => "안내대", DeskRole, () => manager.Panels.Show(HomesteadPanelType.Museum), () => "안내대");
 			for (int i = 0; i < wings.Length; i++)
 			{
 				int room = i + 1;
 				Wing setting = wings[i];
 				WingDef wing = Catalog.Get<WingDef>(setting.Id);
 				Transform root = BuildRoom(setting.Id, room, setting.Light);
-				HomesteadSpot.Create(hall, setting.Door, "WingDoor", () => $"{wing.Name} 전시실", () => $"{Sim.DonatedCount(wing)} / {Sim.ExhibitsOf(wing).Count}", () => GoToRoom(room));
-				HomesteadSpot.Create(root, door, "WingExit", () => "안내 홀", () => "돌아가기", () => GoToRoom(0));
+				HomesteadSpot.Create(hall, setting.Door, "WingDoor", () => $"{wing.Name} 전시실", () => $"{Sim.DonatedCount(wing)} / {Sim.ExhibitsOf(wing).Count}", () => GoToRoom(room), () => "들어가기");
+				HomesteadSpot.Create(root, door, "WingExit", () => "안내 홀", () => "돌아가기", () => GoToRoom(0), () => "돌아가기");
 				BuildExhibits(root, setting, Sim.ExhibitsOf(wing));
 			}
 		}
@@ -258,7 +258,7 @@ namespace WitchMendokusai
 				Exhibit exhibit = new() { Goods = goods[i], Item = MakeItem(stand.transform, setting, goods[i]) };
 				exhibits.Add(exhibit);
 				Vector3 front = position + Quaternion.Euler(0f, yaw, 0f) * Vector3.back * standFront;
-				HomesteadSpot.Create(root, front, "Exhibit", () => NameOf(exhibit.Goods), () => RoleOf(exhibit.Goods), () => Use(exhibit));
+				HomesteadSpot.Create(root, front, "Exhibit", () => NameOf(exhibit.Goods), () => RoleOf(exhibit.Goods), () => Use(exhibit), () => CanDonate(exhibit.Goods) ? "기증" : "보기");
 			}
 		}
 

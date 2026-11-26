@@ -1019,3 +1019,86 @@
 .wm-hs-build__tool:disabled {
     opacity: 0.4;
 }
+
+/* 건설 하는 일 버튼 줄. 손가락이 누르는 자리라 높이를 손끝에 맞춤. 키 글자는 KeyHint 가 손가락 모드에서 숨김 */
+.wm-hs-build__tools {
+    flex-direction: row;
+    margin-bottom: 6px;
+    padding: 4px;
+    background-color: rgba(15, 12, 20, 0.86);
+}
+
+.wm-hs-build__tools .wm-hs-build__tool {
+    height: 64px;
+    min-width: 88px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.wm-hs-build__key {
+    margin-left: 6px;
+    font-size: 13px;
+    color: rgb(242, 226, 122);
+}
+
+/* 꾸미기. 손가락 전용 건설 입구. 왼쪽 스틱 위 빈자리 */
+.wm-hs-hud__decorate {
+    position: absolute;
+    left: 36px;
+    top: 38%;
+    min-width: 96px;
+    height: 64px;
+    padding: 0 18px;
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(245, 240, 250);
+    background-color: rgba(15, 12, 20, 0.78);
+    border-width: 2px;
+    border-color: rgb(242, 226, 122);
+    border-radius: 18px;
+}
+
+/* 낚시 손가락 버튼. 누르는 동안 감김. 오른손 엄지 자리 */
+.wm-hs-fish__touch {
+    position: absolute;
+    right: 48px;
+    bottom: 48px;
+    align-items: flex-end;
+}
+
+.wm-hs-fish__reel {
+    width: 168px;
+    height: 168px;
+    border-radius: 84px;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    -unity-font-style: bold;
+    color: rgb(245, 240, 250);
+    background-color: rgba(15, 12, 20, 0.8);
+    border-width: 3px;
+    border-color: rgb(242, 226, 122);
+}
+
+.wm-hs-fish__reel--held {
+    background-color: rgba(242, 226, 122, 0.42);
+}
+
+.wm-hs-fish__reel--bite {
+    border-color: rgb(255, 141, 130);
+    color: rgb(242, 226, 122);
+}
+
+.wm-hs-fish__stop {
+    margin-bottom: 14px;
+    min-width: 112px;
+    height: 56px;
+    padding: 0 16px;
+    font-size: 18px;
+    color: rgb(245, 240, 250);
+    background-color: rgba(15, 12, 20, 0.72);
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+}

@@ -24,6 +24,8 @@ namespace WitchMendokusai
 		private VisualElement digest;
 		private VisualElement goal;
 		private bool goalShown;
+		private Button decorate;
+		private System.Action onDecorate;
 		private VisualElement duel;
 		private VisualElement duelIcon;
 		private VisualElement tensionFill;
@@ -52,6 +54,7 @@ namespace WitchMendokusai
 			notices = Make("notices", root);
 			digest = Make("digest", root);
 			goal = Make("goal", root);
+			BuildDecorate();
 			ShowGoal(false);
 			BuildDuel();
 			BuildMine();
@@ -102,10 +105,10 @@ namespace WitchMendokusai
 		private UIRoot baseRoot;
 		private readonly BaseHudHider baseHud = new();
 
-		public VillageBuildHud ShowBuild(IReadOnlyList<PlaceableDef> palette, int keyCount, System.Action<PlaceableDef> onTake, System.Action onUndo, System.Action onLeave)
+		public VillageBuildHud ShowBuild(IReadOnlyList<PlaceableDef> palette, int keyCount, VillageBuildActions actions)
 		{
 			HideBuild();
-			build = new VillageBuildHud(root, palette, keyCount, onTake, onUndo, onLeave);
+			build = new VillageBuildHud(root, palette, keyCount, actions);
 			ShowGoal(false);
 			baseHud.Hide(baseRoot);
 			return build;
@@ -242,6 +245,7 @@ namespace WitchMendokusai
 		{
 			goalShown = visible;
 			goal.EnableInClassList($"{BLOCK}--none", visible == false);
+			RefreshDecorate();
 			goal.userData = null;
 			RefreshGoal();
 		}
@@ -283,6 +287,28 @@ namespace WitchMendokusai
 			Label value = MakeLabel("goal-value", row, $"{Mathf.Min(have, need)} / {need}");
 			value.EnableInClassList($"{BLOCK}__goal-value--done", have >= need);
 		}
+
+		// ---- 꾸미기. 손가락 전용 건설 입구. 키보드는 F6 (시점 순환) 이 같은 곳으로 감
+		// 폰에는 F6 이 없어 건설에 들어갈 길이 0 이었음. 마을 목표가 보이는 동안 (마을에 서 있고 건설 밖) 만 뜸
+
+		private void BuildDecorate()
+		{
+			decorate = new Button(() => onDecorate?.Invoke()) { focusable = false, text = "꾸미기" };
+			decorate.ClearClassList();
+			decorate.AddToClassList($"{BLOCK}__decorate");
+			KeyHint.TouchOnly(decorate);
+			root.Add(decorate);
+		}
+
+		// 마을이 붙을 때 건설로 가는 일을 넘김. 떨어질 때 null
+		public void SetDecorate(System.Action enter)
+		{
+			onDecorate = enter;
+			RefreshDecorate();
+		}
+
+		// 클래스 (--none) 로 끄면 손가락 표시 규칙 (.wm-input-touch .wm-touch-hint) 이 더 세서 안 꺼짐. 끌 때만 인라인, 켤 때는 USS 에 맡김 (PC 에선 숨음)
+		private void RefreshDecorate() => decorate.style.display = goalShown == false || onDecorate == null ? DisplayStyle.None : StyleKeyword.Null;
 
 		// ---- 낚시
 

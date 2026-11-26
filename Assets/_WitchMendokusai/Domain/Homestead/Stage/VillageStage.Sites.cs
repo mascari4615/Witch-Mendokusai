@@ -76,12 +76,12 @@ namespace WitchMendokusai
 
 		private void BuildSites()
 		{
-			AddSpot("board", "길드 게시판", () => $"의뢰 {Sim.State.Requests.Count}", () => manager.Panels.Show(HomesteadPanelType.Guild));
-			AddSpot(HomesteadSim.HALL, null, () => "마을 돌보기", () => manager.Panels.Show(HomesteadPanelType.Village));
+			AddSpot("board", "길드 게시판", () => $"의뢰 {Sim.State.Requests.Count}", () => manager.Panels.Show(HomesteadPanelType.Guild), () => "의뢰");
+			AddSpot(HomesteadSim.HALL, null, () => "마을 돌보기", () => manager.Panels.Show(HomesteadPanelType.Village), () => "돌보기");
 			foreach (BuildingDef building in Catalog.Buildings)
 			{
 				string id = building.Id;
-				AddSpot(id, building.Name, () => SiteRole(id), () => UseSite(id));
+				AddSpot(id, building.Name, () => SiteRole(id), () => UseSite(id), () => SiteVerb(id));
 			}
 			RefreshLayout();
 		}
@@ -89,10 +89,10 @@ namespace WitchMendokusai
 		// 다 지은 나루는 끝에 서서 낚음
 		private Vector3 SpotPoint(string id) => id == "dock" && Sim.IsBuilt(id) ? DoorPoint(id, dockLength - 2.4f) : DoorPoint(id);
 
-		private void AddSpot(string id, string spotName, System.Func<string> role, System.Action use)
+		private void AddSpot(string id, string spotName, System.Func<string> role, System.Action use, System.Func<string> verb)
 		{
 			System.Func<string> nameSource = spotName != null ? () => spotName : () => Sim.TownHallDef(Sim.State.TownHall).Name;
-			spotObjects[id] = HomesteadSpot.Create(outdoor, SpotPoint(id), id + "Spot", nameSource, role, use).gameObject;
+			spotObjects[id] = HomesteadSpot.Create(outdoor, SpotPoint(id), id + "Spot", nameSource, role, use, verb).gameObject;
 		}
 
 		private void OnLayoutChanged() => RefreshLayout();
@@ -174,6 +174,31 @@ namespace WitchMendokusai
 			if (Sim.IsBuilt(id) == false)
 				return "무너진 자리";
 			return Sim.IsOpen(id) ? VerbOf(id) : "맡을 사람을 기다림";
+		}
+
+		// 손가락 버튼 글자. SiteRole 과 같은 갈래, 짧은 동사만
+		private string SiteVerb(string id)
+		{
+			WorkState work = Sim.WorkOn(id);
+			if (work != null)
+				return Sim.IsWorkDone(work) ? "걷기" : "보기";
+			if (Sim.IsBuilt(id) == false || Sim.IsOpen(id) == false)
+				return "보기";
+			switch (id)
+			{
+				case "farm":
+					return "씨앗";
+				case "dock":
+					return "낚시";
+				case "quarry":
+					return "내려가기";
+				case "ranch":
+					return "돌보기";
+				case "smithy":
+					return "벼리기";
+				default:
+					return "열기";
+			}
 		}
 
 		private static string VerbOf(string id)

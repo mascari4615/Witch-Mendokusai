@@ -56,7 +56,7 @@ namespace WitchMendokusai
 			}
 			BuildPondWalls();
 			rig = VillageFishingRig.Create(outdoor);
-			streamSpotObject = HomesteadSpot.Create(outdoor, streamSpot, "StreamSpot", () => "개울", () => "낚시", () => StartFishing(STREAM)).gameObject;
+			streamSpotObject = HomesteadSpot.Create(outdoor, streamSpot, "StreamSpot", () => "개울", () => "낚시", () => StartFishing(STREAM), () => "낚시").gameObject;
 		}
 
 		// 물가를 따라 선 보이지 않는 벽. 나루가 놓인 쪽은 열고 나루 양옆과 끝을 막음
@@ -135,7 +135,7 @@ namespace WitchMendokusai
 			Vector3 target = water == POND ? pondCenter + pondCast : streamSpot + streamCast;
 			rig.Cast(playerProvider.CurrentObject.transform, transform.TransformPoint(target));
 			manager.Hud.ShowDuel(true);
-			manager.Panels.Fishing.Bind(PressReel, ReleaseReel, EndFishing);
+			manager.Panels.Fishing.Bind(PressReel, ReleaseReel, EndFishing, StopFishing);
 			manager.Panels.Show(HomesteadPanelType.Fishing);
 		}
 
@@ -186,6 +186,7 @@ namespace WitchMendokusai
 			FishingPhase before = duel.Phase;
 			duel.Step(Time.deltaTime, reelHeld);
 			manager.Hud.SetDuel(duel);
+			manager.Panels.Fishing.SetPhase(duel.Phase);
 			if (duel.Phase == FishingPhase.Bite && before == FishingPhase.Waiting)
 			{
 				CombatSfx.Play(CombatSfxEvent.FishingBite, rig.FloatPosition);

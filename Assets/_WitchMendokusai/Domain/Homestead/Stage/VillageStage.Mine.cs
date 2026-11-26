@@ -105,10 +105,10 @@ namespace WitchMendokusai
 			box.size = new Vector3(mineRadius * 3f, 1f, mineRadius * 3f);
 			mineFloor = new GameObject("Nodes").transform;
 			mineFloor.SetParent(mineRoot, false);
-			HomesteadSpot.Create(mineRoot, liftPosition + liftSpot, "LiftSpot", () => "승강기", () => "올라가기", LeaveMineByLift);
+			HomesteadSpot.Create(mineRoot, liftPosition + liftSpot, "LiftSpot", () => "승강기", () => "올라가기", LeaveMineByLift, () => "올라가기");
 			minePassage = Models.Build("MineHole", mineRoot, holePosition, 0f);
 			AddGlow(minePassage.transform, holeGlow, holeGlowRange, holeGlowIntensity);
-			HomesteadSpot.Attach(minePassage, () => "내리막", () => run != null && run.Depth >= Sim.MineMaxDepth ? "더는 없음" : run != null && run.Lantern <= 0 ? "등불이 다함" : "내려가기", Descend);
+			HomesteadSpot.Attach(minePassage, () => "내리막", () => run != null && run.Depth >= Sim.MineMaxDepth ? "더는 없음" : run != null && run.Lantern <= 0 ? "등불이 다함" : "내려가기", Descend, () => "내려가기");
 			minePassage.SetActive(false);
 		}
 
@@ -196,7 +196,7 @@ namespace WitchMendokusai
 			view.Body = Models.Build(MINE_KEY + node.Def.Id, view.Root.transform, Vector3.zero, yaw);
 			view.Glint = Models.Build("MineGlint", view.Root.transform, Vector3.up * glintHeight, 0f).transform;
 			int captured = index;
-			HomesteadSpot.Attach(view.Root, () => run.Nodes[captured].Def.Name, () => NodeRole(captured), () => StrikeNode(captured));
+			HomesteadSpot.Attach(view.Root, () => run.Nodes[captured].Def.Name, () => NodeRole(captured), () => StrikeNode(captured), () => "깨기");
 			return view;
 		}
 

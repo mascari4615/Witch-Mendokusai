@@ -204,6 +204,10 @@ namespace WitchMendokusai
 		{
 			if (edgePanBand <= 0f)
 				return Vector2.zero;
+			// 손가락은 화면 끝 버튼 (건설 막대, 개척 핫바) 을 누르러 가장자리에 닿음. 그때 시점이 미끄러짐
+			// 손가락 시점 이동은 두 손가락 밀기가 맡음
+			if (InputManager.IsTouchMode)
+				return Vector2.zero;
 
 			Vector2 pointer = InputManager.MouseScreenPosition;
 			if (pointer.x < 0f || pointer.y < 0f || pointer.x > Screen.width || pointer.y > Screen.height)

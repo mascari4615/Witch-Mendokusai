@@ -122,14 +122,14 @@ namespace WitchMendokusai
 			VillageLights.BuildDome(room, domeRadius, 8f, shadeColor);
 			furnitureRoot = new GameObject("Furniture").transform;
 			furnitureRoot.SetParent(room, false);
-			deskSpot = AddSpot("DeskSpot", "꾸밈 상자", () => "방 꾸미기", () => manager.Panels.Show(HomesteadPanelType.Room));
-			restSpot = AddSpot("RestSpot", "쉬는 자리", () => manager.CanRest ? $"아침까지, 아늑함 {Sim.ComfortRank}단" : "오늘은 이미 쉼", Rest);
-			benchSpot = AddSpot("BenchSpot", "제작대", () => "만들기", () => manager.Panels.Show(HomesteadPanelType.Bench));
-			wardrobeSpot = AddSpot("WardrobeSpot", "옷장", () => "갈아입기", () => manager.Panels.Show(HomesteadPanelType.Wardrobe));
+			deskSpot = AddSpot("DeskSpot", "꾸밈 상자", () => "방 꾸미기", () => manager.Panels.Show(HomesteadPanelType.Room), () => "꾸미기");
+			restSpot = AddSpot("RestSpot", "쉬는 자리", () => manager.CanRest ? $"아침까지, 아늑함 {Sim.ComfortRank}단" : "오늘은 이미 쉼", Rest, () => manager.CanRest ? "쉬기" : string.Empty);
+			benchSpot = AddSpot("BenchSpot", "제작대", () => "만들기", () => manager.Panels.Show(HomesteadPanelType.Bench), () => "만들기");
+			wardrobeSpot = AddSpot("WardrobeSpot", "옷장", () => "갈아입기", () => manager.Panels.Show(HomesteadPanelType.Wardrobe), () => "옷장");
 		}
 
-		private Transform AddSpot(string objectName, string spotName, System.Func<string> role, System.Action use) =>
-			HomesteadSpot.Create(room, Vector3.zero, objectName, () => spotName, role, use).transform;
+		private Transform AddSpot(string objectName, string spotName, System.Func<string> role, System.Action use, System.Func<string> verb) =>
+			HomesteadSpot.Create(room, Vector3.zero, objectName, () => spotName, role, use, verb).transform;
 
 		private void Refresh()
 		{
