@@ -42,6 +42,8 @@ namespace WitchMendokusai
 		private GameObject currentVisualInstance;
 		private ParticleSystem currentParticleSystem;
 		private ParticleSystemRenderer currentParticleRenderer;
+		// 실내라 입자를 멈춘 상태. 새 입자는 켜진 채 태어나므로 띄울 때 false
+		private bool particleHiddenIndoor;
 
 		// E3: wetness 0~1 lerp 상태. SO의 FadeMinutes 기반 실시간 속도.
 		[SerializeField] private float wetnessLerpSpeed = 0.033f; // 1 / ~30s ≈ 기본 FadeMinutes 체감
@@ -86,7 +88,23 @@ namespace WitchMendokusai
 		private void Update()
 		{
 			ApplyCurrentSOToParticle();
+			ApplyIndoor();
 			ApplyWetnessGlobal();
+		}
+
+		// 실내 (IndoorScope) 에서는 비, 눈 입자를 지우고 멈춤. 나오면 다시 내림. 소리와 젖음은 그대로
+		private void ApplyIndoor()
+		{
+			if (currentParticleSystem == null)
+				return;
+			bool isIndoor = IndoorScope.IsIndoor;
+			if (isIndoor == particleHiddenIndoor)
+				return;
+			particleHiddenIndoor = isIndoor;
+			if (isIndoor)
+				currentParticleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+			else
+				currentParticleSystem.Play(true);
 		}
 
 		private void HandleWeatherChanged(WeatherType type)
@@ -125,6 +143,7 @@ namespace WitchMendokusai
 
 			currentParticleSystem = currentVisualInstance.GetComponent<ParticleSystem>();
 			currentParticleRenderer = currentVisualInstance.GetComponent<ParticleSystemRenderer>();
+			particleHiddenIndoor = false;
 
 			ApplyCurrentSOToParticle();
 		}
@@ -215,7 +234,8 @@ namespace WitchMendokusai
 
 				yield return new WaitForSeconds(interval);
 
-				if (lightningLight != null)
+				// 실내에서는 번쩍임 없이 천둥 소리만
+				if (lightningLight != null && IndoorScope.IsIndoor == false)
 					lightningLight.enabled = true;
 
 				float flashDuration = CurrentWeatherSO != null ? CurrentWeatherSO.LightningFlashDuration : 0.08f;

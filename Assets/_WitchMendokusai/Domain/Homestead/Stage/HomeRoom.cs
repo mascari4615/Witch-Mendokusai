@@ -74,6 +74,7 @@ namespace WitchMendokusai
 			manager.EnsureScreens(uiManager, uiRoot);
 			if (room == null)
 				Build();
+			IndoorScope.Enter(this);
 			shownSim = Sim;
 			shownTier = 0;
 			shownFurniture = string.Empty;
@@ -82,7 +83,11 @@ namespace WitchMendokusai
 			Refresh();
 		}
 
-		private void OnDisable() => Unbind();
+		private void OnDisable()
+		{
+			IndoorScope.Leave(this);
+			Unbind();
+		}
 
 		private void Unbind()
 		{

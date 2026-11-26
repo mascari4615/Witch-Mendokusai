@@ -122,13 +122,18 @@ namespace WitchMendokusai
 				Build();
 			// 마을과 같은 화면 색과 번짐 (bloom). 없으면 실내만 밋밋하게 보임
 			VillageLook.Ensure(transform);
+			IndoorScope.Enter(this);
 			Sim.Changed += OnChanged;
 			manager.Rebuilt += OnRebuilt;
 			Refresh();
 			playerProvider.CurrentObject.UnitMovement.Teleport(transform.TransformPoint(door + arrival));
 		}
 
-		private void OnDisable() => Unbind();
+		private void OnDisable()
+		{
+			IndoorScope.Leave(this);
+			Unbind();
+		}
 
 		private void Unbind()
 		{
