@@ -11,6 +11,10 @@ namespace WitchMendokusai
 	{
 		private readonly WindupMonsterAttack attack;
 		private readonly List<Vector3> targets = new();
+		// 때리지 않고 밝게 표시만 하는 자리 (안전 섬, 빈칸)
+		private readonly List<Vector3> safeSpots = new();
+		// 따라 도는 조준의 첫 방향. 예고 판이 여기서 돌아간 각도를 그림
+		private readonly List<Vector3> firstTargets = new();
 		private readonly List<Action> stopTelegraphs = new();
 		// 때가 된 자리의 차례
 		private readonly List<int> dueIndices = new();
@@ -20,6 +24,12 @@ namespace WitchMendokusai
 		// 아직 안 띄운 자리의 예고 시각 (TelegraphInTurn). 띄웠으면 무한대
 		private readonly List<float> telegraphTimes = new();
 		private float recoveryEndTime;
+		// 따라 도는 조준이 끝나는 시각. 지났거나 안 따라 돌면 무한대
+		private float trackEndTime = float.PositiveInfinity;
+		// 지난 갱신 시각. 행동 트리는 0.1초마다 돌아 프레임 시간이 아니라 이 차이만큼 돎
+		private float lastTrackTime;
+		// 준비를 시작할 때마다 하나씩. 끝난 예고 판이 다음 준비의 목표로 튀지 않게
+		private int windupCount;
 		private float readyTime;
 		private Action stopRecovery;
 
@@ -89,7 +99,13 @@ namespace WitchMendokusai
 			WasCut = false;
 			PlayerObject player = playerProvider.CurrentObject;
 			targets.Clear();
-			attack.ResolveTargets(unitObject, player.transform.position, SurvivalThreatRules.MoveVelocity(player.UnitMovement), targets);
+			safeSpots.Clear();
+			attack.ResolveTargets(unitObject, player.transform.position, SurvivalThreatRules.MoveVelocity(player.UnitMovement), targets, safeSpots);
+			firstTargets.Clear();
+			firstTargets.AddRange(targets);
+			windupCount++;
+			lastTrackTime = Time.time;
+			trackEndTime = attack.TrackingSeconds > 0f ? Time.time + attack.TrackingSeconds : float.PositiveInfinity;
 			strikeTimes.Clear();
 			holds.Clear();
 			telegraphTimes.Clear();
@@ -103,7 +119,7 @@ namespace WitchMendokusai
 				float delay = attack.StrikeDelay(i);
 				strikeTimes.Add(windupEndTime + delay);
 				holds.Add(attack.Linger.Open(strikeTimes[i]));
-				CombatFxContext context = StrikeContext(i);
+				CombatFxContext context = TelegraphContext(i);
 				context.Seconds += delay;
 				bool isLater = attack.TelegraphInTurn && i > 0;
 				telegraphTimes.Add(isLater ? strikeTimes[i - 1] : float.PositiveInfinity);
@@ -123,6 +139,11 @@ namespace WitchMendokusai
 				hasObject = true;
 				stopTelegraphs.Add(attack.WindupFx.Play(context));
 			}
+			if (attack.SafeFx != null)
+			{
+				foreach (Vector3 spot in safeSpots)
+					stopTelegraphs.Add(attack.SafeFx.Play(attack.SafeContext(unitObject, spot)));
+			}
 			return BTState.Success;
 		}
 
@@ -135,6 +156,7 @@ namespace WitchMendokusai
 				ClearTelegraphs();
 				return true;
 			}
+			TrackTargets();
 			PlayLaterTelegraphs();
 			dueIndices.Clear();
 			bool isWaiting = false;
@@ -158,6 +180,34 @@ namespace WitchMendokusai
 			return isWaiting == false;
 		}
 
+		// 따라 도는 동안 목표를 주인공 쪽으로 갱신, 끝나는 순간 고정 표시
+		private void TrackTargets()
+		{
+			if (float.IsPositiveInfinity(trackEndTime))
+				return;
+			if (Time.time < trackEndTime)
+			{
+				Vector3 playerPosition = playerProvider.Current.transform.position;
+				float elapsed = Time.time - lastTrackTime;
+				lastTrackTime = Time.time;
+				for (int i = 0; i < targets.Count; i++)
+					targets[i] = attack.Track(unitObject, playerPosition, targets[i], i, elapsed);
+				return;
+			}
+			trackEndTime = float.PositiveInfinity;
+			if (attack.LockFx == null)
+				return;
+			for (int i = 0; i < targets.Count; i++)
+			{
+				// 이미 때렸거나 예고가 아직 안 뜬 자리 (TelegraphInTurn) 는 건너뜀
+				if (float.IsPositiveInfinity(strikeTimes[i]) || float.IsPositiveInfinity(telegraphTimes[i]) == false)
+					continue;
+				CombatFxContext context = StrikeContext(i);
+				context.Seconds = Mathf.Max(0.05f, strikeTimes[i] - Time.time);
+				stopTelegraphs.Add(attack.LockFx.Play(context));
+			}
+		}
+
 		private void PlayLaterTelegraphs()
 		{
 			for (int i = 0; i < telegraphTimes.Count; i++)
@@ -165,7 +215,7 @@ namespace WitchMendokusai
 				if (Time.time < telegraphTimes[i] || attack.WindupTelegraph == null)
 					continue;
 				telegraphTimes[i] = float.PositiveInfinity;
-				CombatFxContext context = StrikeContext(i);
+				CombatFxContext context = TelegraphContext(i);
 				context.Seconds = Mathf.Max(0.05f, strikeTimes[i] - Time.time);
 				Action stop = attack.WindupTelegraph.Play(context);
 				stopTelegraphs.Add(stop);
@@ -210,6 +260,25 @@ namespace WitchMendokusai
 			return context;
 		}
 
+		// 예고 판과 물체. 따라 도는 조준이면 첫 방향에서 지금 목표까지 돈 각도를 매 프레임 읽음 (타격과 고정 표시는 고정된 목표 그대로)
+		private CombatFxContext TelegraphContext(int index)
+		{
+			CombatFxContext context = StrikeContext(index);
+			if (attack.TrackingSeconds <= 0f)
+				return context;
+			context.Direction = firstTargets[index];
+			// 이 준비가 끝난 뒤 (번쩍이며 사라지는 동안) 는 마지막 각도에 멈춤
+			int windup = windupCount;
+			float lastAngle = 0f;
+			context.Turn = _ =>
+			{
+				if (windup == windupCount)
+					lastAngle = Vector3.SignedAngle(firstTargets[index], targets[index], Vector3.up);
+				return lastAngle;
+			};
+			return context;
+		}
+
 		private BTState BeginRecovery()
 		{
 			// 예고는 차오름이 끝나며 스스로 번쩍이고 사라짐. 여기서부터 끊을 대상 아님
@@ -238,6 +307,7 @@ namespace WitchMendokusai
 		// 예고 중 끊김 (사망, 풀 반납, 패턴 이동). 남은 예고를 치움, 끝난 뒤 불러도 무해
 		public void Interrupt()
 		{
+			trackEndTime = float.PositiveInfinity;
 			ClearTelegraphs();
 			stopRecovery?.Invoke();
 			stopRecovery = null;

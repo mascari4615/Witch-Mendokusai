@@ -225,6 +225,36 @@ MonoBehaviour:
     m_SerializedLabels:
     - Monster
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16bc3bad58fa4345a92eed1ebbdfb5ba
+    m_Address: Monster/971
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 36c81f4c77b04167b1732639cd8772af
+    m_Address: Monster/972
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f20336033b53496dabd1ef9a5909bb52
+    m_Address: Monster/973
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 092f8e6813b64bf1b54999e8ad432335
+    m_Address: Monster/974
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5cc89fb71b924a3d9d685b25770aa85d
+    m_Address: Monster/975
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Monster
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e0040105af7c4ecba2d3c936fd71ea76
     m_Address: Monster/961
     m_ReadOnly: 0
