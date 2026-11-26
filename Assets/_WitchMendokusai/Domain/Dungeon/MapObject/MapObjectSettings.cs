@@ -66,6 +66,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public string LuckWinText { get; private set; } = "당첨";
 		[field: SerializeField] public string HoldStartText { get; private set; } = "원 안에 머물기";
 		[field: SerializeField] public string HoldCompleteText { get; private set; } = "완료";
+		[field: SerializeField, Tooltip("갇힌 사람을 구했을 때")] public string RescueText { get; private set; } = "마을로 보냈습니다";
 		[field: SerializeField] public string HoldFailText { get; private set; } = "시간 초과";
 		[field: SerializeField, Tooltip("{0} = 드러난 수")] public string RevealFormat { get; private set; } = "맵 오브젝트 {0}개 표시";
 

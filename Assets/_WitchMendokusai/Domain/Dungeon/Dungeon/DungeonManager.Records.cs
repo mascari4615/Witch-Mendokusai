@@ -6,6 +6,9 @@ namespace WitchMendokusai
 	/// </summary>
 	public partial class DungeonManager
 	{
+		// 다음 판에 둘 갇힌 사람의 열쇠. 비면 안 둠. 마을이 적고 던전은 그대로 돌려줌 (생활을 모름)
+		public string RescueWanted { get; set; } = string.Empty;
+
 		// 위험도 보상 (GrantRiskRewards, BestRisk 갱신) 뒤에 부름
 		private void RecordRunResult(DungeonRecord result)
 		{

@@ -77,5 +77,8 @@ namespace WitchMendokusai
 		private void OnDollSelected(Doll doll) => dollDetail?.Bind(doll);
 
 		private void OnToggle() => window?.Toggle();
+
+		// 키 말고 다른 입구 (마을 인형 공방) 에서 엶
+		public void Open() => window.Open();
 	}
 }

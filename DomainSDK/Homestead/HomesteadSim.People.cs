@@ -6,6 +6,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 	// 주민 (건물을 맡는 사람) 과 인형 (일을 맡는 시민)
 	public sealed partial class HomesteadSim
 	{
+		// 마을 밖 사건 열쇠. 보스는 하나, 구출은 주민마다 접두 뒤에 이름
+		public const string BOSS_EVENT = "boss";
+		public const string RESCUE_PREFIX = "rescue_";
+
 		public event Action<string> Arrived = delegate { };
 		public event Action<string, int> AffinityStepped = delegate { };
 
@@ -48,6 +52,40 @@ namespace WitchMendokusai.DomainSDK.Homestead
 					// 부탁은 직접 건네야 이뤄짐
 					return false;
 			}
+		}
+
+		public static bool IsRescueKey(string key) => key.StartsWith(RESCUE_PREFIX, StringComparison.Ordinal) && key.Length > RESCUE_PREFIX.Length;
+
+		// 아직 안 온 주민의 구출 열쇠. 던전은 판마다 이 중 하나만 '갇힌 사람' 으로 둠
+		public List<string> WantedRescues()
+		{
+			List<string> keys = new List<string>();
+			foreach (ResidentDef resident in Catalog.Residents)
+			{
+				if (HasArrived(resident.Id))
+				{
+					continue;
+				}
+				foreach (RecruitDef recruit in resident.Recruits)
+				{
+					if (recruit.Kind == RecruitKind.Rescue && IsMet(recruit) == false)
+					{
+						keys.Add(recruit.Key);
+					}
+				}
+			}
+			return keys;
+		}
+
+		// 던전에서 구출을 마침. 기다리는 열쇠만 받음 (이미 온 사람, 모르는 열쇠는 거절)
+		public HomesteadResult NotifyRescue(string key)
+		{
+			if (WantedRescues().Contains(key) == false)
+			{
+				return HomesteadResult.Fail(HomesteadFailure.AlreadyDone, key);
+			}
+			NotifyEvent(key);
+			return HomesteadResult.Success;
 		}
 
 		private void CheckRecruits()

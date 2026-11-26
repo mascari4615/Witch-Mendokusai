@@ -44,6 +44,12 @@ namespace WitchMendokusai
 		public Monster Monster;
 	}
 
+	// 갇힌 사람을 구함. 던전은 누구인지 모르고 열쇠만 전함. 마을 (HomesteadManager) 이 받음
+	public struct CaptiveRescuedEvent
+	{
+		public string Key;
+	}
+
 	public struct BossKilledEvent
 	{
 		public Monster Monster;

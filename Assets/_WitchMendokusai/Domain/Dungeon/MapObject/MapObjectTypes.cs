@@ -16,6 +16,8 @@ namespace WitchMendokusai
 		Breakable = 7,
 		Merchant = 8,
 		Travel = 9,
+		// 갇힌 사람. 예산 밖, 마을이 기다리는 사람이 있을 때만 판에 하나 (MonsterSpawner.Rescue)
+		Rescue = 10,
 	}
 
 	// 상호작용 비용 종류. 지원 여부는 MapObjectRules.IsCostSupported
@@ -40,6 +42,8 @@ namespace WitchMendokusai
 		Heal = 2,
 		// Value: 반경 (m). 0 이면 판 전체. 다른 맵 오브젝트를 작은 지도와 화면 밖 화살표에 드러냄
 		RevealMapObjects = 3,
+		// 갇힌 사람을 구함. 열쇠는 DungeonManager.RescueWanted, 알림은 CaptiveRescuedEvent
+		Rescue = 4,
 	}
 
 	// 효과가 나가는 때. 머무름 (HoldSeconds > 0) 이 없는 오브젝트는 OnActivate 만
@@ -137,6 +141,7 @@ namespace WitchMendokusai
 			MapObjectEffectType.SpawnChest => true,
 			MapObjectEffectType.Heal => true,
 			MapObjectEffectType.RevealMapObjects => true,
+			MapObjectEffectType.Rescue => true,
 			_ => false,
 		};
 

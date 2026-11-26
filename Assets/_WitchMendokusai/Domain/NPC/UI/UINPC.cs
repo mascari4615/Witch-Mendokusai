@@ -59,5 +59,12 @@ namespace WitchMendokusai
 			aspectPuzzle.SetSettings(aspectPuzzleSettings);
 			Panels[NPCPanelType.AspectPuzzle] = aspectPuzzle;
 		}
+
+		// NPC 몸 없이 그 NPC 의 던전 입장 창을 엶 (마을 시련소)
+		public void OpenDungeonEntrance(NPC source)
+		{
+			((UIDungeonEntranceToolkit)Panels[NPCPanelType.DungeonEntrance]).UseDungeonsOf(source);
+			SetPanel(NPCPanelType.DungeonEntrance);
+		}
 	}
 }

@@ -59,6 +59,33 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 		}
 
+		// 오는 길의 열쇠가 실제로 일어날 수 있는 일을 가리키는지. 구출 열쇠는 던전의 '갇힌 사람' 이 그대로 돌려줌
+		private static void NeedRecruitKey(HomesteadCatalog catalog, RecruitDef recruit, string owner, HashSet<string> rescueKeys, List<string> problems)
+		{
+			switch (recruit.Kind)
+			{
+				case RecruitKind.Rescue:
+					if (HomesteadSim.IsRescueKey(recruit.Key) == false)
+					{
+						problems.Add($"{owner}: 구출 열쇠 '{recruit.Key}' 는 {HomesteadSim.RESCUE_PREFIX} 로 시작해야 함");
+					}
+					else if (rescueKeys.Add(recruit.Key) == false)
+					{
+						problems.Add($"{owner}: 구출 열쇠 '{recruit.Key}' 가 다른 주민과 겹침");
+					}
+					break;
+				case RecruitKind.Event:
+					if (recruit.Key != HomesteadSim.BOSS_EVENT)
+					{
+						problems.Add($"{owner}: 사건 열쇠 '{recruit.Key}' 를 알리는 곳이 없음");
+					}
+					break;
+				case RecruitKind.Build:
+					Need<BuildingDef>(catalog, recruit.Key, owner, problems);
+					break;
+			}
+		}
+
 		private static void CheckReferences(HomesteadCatalog catalog, List<string> problems)
 		{
 			foreach (CropDef crop in catalog.Crops)
@@ -119,12 +146,14 @@ namespace WitchMendokusai.DomainSDK.Homestead
 					NeedCost(catalog, level.Cost, building.Id, problems);
 				}
 			}
+			HashSet<string> rescueKeys = new HashSet<string>();
 			foreach (ResidentDef resident in catalog.Residents)
 			{
 				Need<BuildingDef>(catalog, resident.Building, resident.Id, problems);
 				foreach (RecruitDef recruit in resident.Recruits)
 				{
 					NeedCost(catalog, recruit.Cost, resident.Id, problems);
+					NeedRecruitKey(catalog, recruit, resident.Id, rescueKeys, problems);
 				}
 				foreach (RewardDef reward in resident.AffinityRewards)
 				{
