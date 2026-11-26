@@ -10,7 +10,7 @@ namespace WitchMendokusai
 {
 	// 박물관 안 (WS_7_Museum). 마을과 다른 스테이지. 안내 홀에서 네 전시실로, 빈 받침 앞에서 바로 기증하면 그 자리에 놓임
 	// 방은 스테이지에 들어설 때 HomesteadManager 가 붙임. 방 다섯은 같은 스테이지 안 떨어진 자리, 문은 화면 전환 뒤 순간 이동
-	// 벽은 안쪽 면만 있어 어느 쪽에서 봐도 앞벽이 가리지 않음
+	// 벽 넷과 천장을 닫은 방. 벽이 시야를 막으면 카메라가 방 안으로 당겨짐 (자유 카메라)
 	public sealed class MuseumRoom : MonoBehaviour
 	{
 		public const int STAGE_ID = 7;
@@ -35,12 +35,13 @@ namespace WitchMendokusai
 		[SerializeField] private Vector2 roomSize = new(13f, 10f);
 		[SerializeField] private float wallHeight = 4f;
 		[SerializeField] private float wallThickness = 1f;
+		[SerializeField] private float ceilingHeight = 4.2f;
 		[SerializeField] private float domeRadius = 34f;
 		[SerializeField] private float domeRoof = 9f;
 		[SerializeField] private Color shadeColor = new(0.1f, 0.09f, 0.13f);
 		[SerializeField] private Vector3 door = new(0f, 0f, -4.3f);
 		[Tooltip("문으로 들어와 서는 자리 (문 기준)")]
-		[SerializeField] private Vector3 arrival = new(0f, 0.1f, 0.9f);
+		[SerializeField] private Vector3 arrival = new(0f, 0.1f, 3.4f);
 		[SerializeField] private Vector3 desk = new(0f, 0f, 1.7f);
 		[SerializeField] private Vector2 roomLight = new(13f, 4.2f);
 		[SerializeField] private float roomLightHeight = 3.2f;
@@ -185,7 +186,7 @@ namespace WitchMendokusai
 			root.transform.SetParent(transform, false);
 			root.transform.localPosition = RoomOffset(index);
 			VillageLights.BuildDome(root.transform, domeRadius, domeRoof, shadeColor);
-			Models.Build(ROOM_KEY + key, root.transform, Vector3.zero, 0f);
+			VillageInterior.Solidify(Models.Build(ROOM_KEY + key, root.transform, Vector3.zero, 0f));
 			for (int side = -1; side <= 1; side += 2)
 			{
 				VillageLights.AddGlow(root.transform, new Vector3(side * roomSize.x * roomLightSpread, roomLightHeight, 0f), roomLight.x, roomLight.y, light);
@@ -193,6 +194,9 @@ namespace WitchMendokusai
 				AddWall(root, new Vector3(0f, wallHeight * 0.5f, side * (roomSize.y + wallThickness) * 0.5f), new Vector3(roomSize.x + wallThickness * 2f, wallHeight, wallThickness));
 			}
 			AddWall(root, new Vector3(0f, -wallThickness * 0.5f, 0f), new Vector3(roomSize.x + wallThickness * 2f, wallThickness, roomSize.y + wallThickness * 2f));
+			AddWall(root, new Vector3(0f, ceilingHeight + wallThickness * 0.5f, 0f), new Vector3(roomSize.x + wallThickness * 2f, wallThickness, roomSize.y + wallThickness * 2f));
+			// 벽과 천장이 시야를 막으면 카메라를 방 안으로 당김 (CinemachineComponentDeoccluder)
+			root.AddComponent<GroundSurface>();
 			return root.transform;
 		}
 

@@ -5,7 +5,7 @@ using Random = System.Random;
 
 namespace WitchMendokusai
 {
-	// 갱도. 층마다 바위를 다시 놓고, 바위에 도는 빛에 맞춰 침
+	// 갱도. 층마다 바위를 다시 놓고, 바위에 도는 빛에 맞춰 침. 벽과 둥근 천장을 닫은 동굴
 	public sealed partial class VillageStage
 	{
 		private const string MINE_KEY = "Mine_";
@@ -30,6 +30,10 @@ namespace WitchMendokusai
 		[Tooltip("빛이 가장 밝을 때, 그 밖의 가장 작을 때와 커지는 폭")]
 		[SerializeField] private Vector3 glintScale = new(1.6f, 0.35f, 0.6f);
 		[SerializeField] private Vector3 mineWallSize = new(3f, 4f, 1f);
+		[Tooltip("천장 콜라이더 높이. 모델의 둥근 지붕 아래")]
+		[SerializeField] private float mineRoofHeight = 6.6f;
+		[Tooltip("내려와 서는 자리. 승강기 앞, 동굴 가운데 쪽")]
+		[SerializeField] private Vector3 mineArrival = new(0f, 0.1f, -4f);
 		[SerializeField] private Vector3 liftGlow = new(1f, 2f, 0f);
 		[SerializeField] private Vector3 liftSpot = new(0f, 0f, 0.4f);
 		[SerializeField] private Vector3 holeGlow = new(0.7f, 1.2f, 0.4f);
@@ -69,7 +73,9 @@ namespace WitchMendokusai
 			mineRoot.SetParent(transform, false);
 			mineRoot.localPosition = mineOffset;
 			VillageLights.BuildDome(mineRoot, mineDomeRadius, MINE_ROOF, shadeColor * mineShade);
-			mineShell = Models.Build("MineShell", mineRoot, Vector3.zero, 0f).GetComponent<MeshRenderer>();
+			GameObject shell = Models.Build("MineShell", mineRoot, Vector3.zero, 0f);
+			VillageInterior.Solidify(shell);
+			mineShell = shell.GetComponent<MeshRenderer>();
 			for (int i = 0; i < MINE_LAMPS; i++)
 			{
 				float angle = mineLampAngle + i / (float)MINE_LAMPS * Mathf.PI * 2f;
@@ -86,6 +92,12 @@ namespace WitchMendokusai
 			Models.Build("MineLift", mineRoot, liftPosition, 0f);
 			AddGlow(mineRoot, liftPosition + liftGlow, mineLampRange, mineLampIntensity);
 			mineLantern = AddGlow(mineRoot, Vector3.zero, mineLampRange, mineLampIntensity);
+			GameObject roof = new("MineRoof");
+			roof.transform.SetParent(mineRoot, false);
+			roof.AddComponent<BoxCollider>().size = new Vector3(mineRadius * 3f, mineWallSize.z, mineRadius * 3f);
+			roof.transform.localPosition = Vector3.up * mineRoofHeight;
+			// 동굴 벽과 천장이 시야를 막으면 카메라를 안으로 당김
+			mineRoot.gameObject.AddComponent<GroundSurface>();
 			GameObject floor = new("MineFloor");
 			floor.transform.SetParent(mineRoot, false);
 			BoxCollider box = floor.AddComponent<BoxCollider>();
@@ -118,7 +130,7 @@ namespace WitchMendokusai
 		private void EnterMine(int depth)
 		{
 			manager.Panels.ClosePanel();
-			MovePlayer(mineOffset + new Vector3(0f, 0.1f, -4.6f), () =>
+			MovePlayer(mineOffset + mineArrival, () =>
 			{
 				run = Sim.EnterMine(depth);
 				manager.Hud.ShowMine(true);
@@ -220,7 +232,7 @@ namespace WitchMendokusai
 				Say("여기가 가장 깊은 곳입니다.");
 				return;
 			}
-			MovePlayer(mineOffset + new Vector3(0f, 0.1f, -4.6f), () =>
+			MovePlayer(mineOffset + mineArrival, () =>
 			{
 				run.Descend();
 				LayFloor();

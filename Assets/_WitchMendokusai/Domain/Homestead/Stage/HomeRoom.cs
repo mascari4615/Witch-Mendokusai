@@ -19,6 +19,8 @@ namespace WitchMendokusai
 		[SerializeField] private Vector3 doorstep = new(-0.5f, 0.14f, -11f);
 		[SerializeField] private int hallLength = 5;
 		[SerializeField] private float roomHeight = 2.8f;
+		[Tooltip("천장 조각의 높이 (모델 RoomCeiling)")]
+		[SerializeField] private float ceilingHeight = 2.7f;
 		[SerializeField] private Color lampColor = new(1f, 0.9f, 0.74f);
 		[SerializeField] private float lampIntensity = 3.2f;
 		[SerializeField] private Color glowColor = new(1f, 0.82f, 0.6f);
@@ -143,6 +145,7 @@ namespace WitchMendokusai
 			shell = new GameObject("RoomShell");
 			shell.transform.SetParent(room, false);
 			BuildShell(shell.transform, width, depth);
+			VillageInterior.Solidify(shell);
 			VillageLights.AddGlow(shell.transform, new Vector3(0f, roomHeight - 0.4f, 0f), Mathf.Max(width, depth) * 1.2f, lampIntensity, lampColor);
 			deskSpot.localPosition = new Vector3(width / 2f - 0.6f, 0f, -depth / 2f + 0.9f);
 			restSpot.localPosition = new Vector3(-width / 2f + 0.7f, 0f, depth / 2f - 0.9f);
@@ -150,7 +153,7 @@ namespace WitchMendokusai
 			wardrobeSpot.localPosition = new Vector3(1.9f, 0f, -depth / 2f - 2f);
 		}
 
-		// 바닥과 벽을 1m 조각으로. 뒤와 옆 벽만 높고 앞은 낮은 턱이라 내려다보는 카메라가 방을 봄
+		// 바닥, 벽, 천장을 1m 조각으로. 앞벽도 닫고 현관 문만 엶. 벽이 시야를 막으면 카메라가 방 안으로 당겨짐 (자유 카메라)
 		private void BuildShell(Transform shell, int width, int depth)
 		{
 			float halfWidth = width * 0.5f;
@@ -159,10 +162,13 @@ namespace WitchMendokusai
 			{
 				float along = x - halfWidth + 0.5f;
 				for (int z = 0; z < depth; z++)
+				{
 					Models.Build((x + z) % 2 == 0 ? "RoomFloor" : "RoomFloorB", shell, new Vector3(along, 0f, z - halfDepth + 0.5f), 0f);
+					Models.Build(z % 2 == 0 ? "RoomCeilingBeam" : "RoomCeiling", shell, new Vector3(along, 0f, z - halfDepth + 0.5f), 0f);
+				}
 				Models.Build(WallPiece(x), shell, new Vector3(along, 0f, halfDepth), 0f);
-				if (Mathf.Abs(along) > 1f)
-					Models.Build("RoomSill", shell, new Vector3(along, 0f, -halfDepth), 0f);
+				if (Mathf.Abs(along) > HALL_WIDTH * 0.5f)
+					Models.Build(WallPiece(x), shell, new Vector3(along, 0f, -halfDepth), 180f);
 			}
 			for (int z = 0; z < depth; z++)
 			{
@@ -174,9 +180,14 @@ namespace WitchMendokusai
 			{
 				Models.Build("RoomCorner", shell, new Vector3(side * halfWidth, 0f, halfDepth), 0f);
 				AddSolid(shell, new Vector3(side * (halfWidth + 0.15f), 1.4f, 0f), new Vector3(0.3f, 3f, depth));
-				AddSolid(shell, new Vector3(side * (halfWidth + 1f) * 0.5f, 1.4f, -halfDepth - 0.15f), new Vector3(halfWidth - 1f, 3f, 0.3f));
+				// 앞벽은 현관 폭만큼 열림. 방이 현관보다 넓을 때만 양옆이 막힘
+				float frontWall = halfWidth - HALL_WIDTH * 0.5f;
+				if (frontWall > 0f)
+					AddSolid(shell, new Vector3(side * (halfWidth + HALL_WIDTH * 0.5f) * 0.5f, 1.4f, -halfDepth - 0.15f), new Vector3(frontWall, 3f, 0.3f));
 			}
 			AddSolid(shell, new Vector3(0f, 1.4f, halfDepth + 0.15f), new Vector3(width, 3f, 0.3f));
+			AddSolid(shell, new Vector3(0f, ceilingHeight + 0.15f, -hallLength * 0.5f), new Vector3(width + 1f, 0.3f, depth + hallLength + 1f));
+			shell.gameObject.AddComponent<GroundSurface>();
 			BuildHall(shell, -halfDepth);
 			Models.Build("RoomChest", shell, new Vector3(halfWidth - 0.5f, 0f, -halfDepth + 0.4f), 0f);
 		}
@@ -196,13 +207,24 @@ namespace WitchMendokusai
 			for (int z = 0; z < hallLength; z++)
 			{
 				for (int x = 0; x < HALL_WIDTH; x++)
+				{
 					Models.Build((x + z) % 2 == 0 ? "RoomFloor" : "RoomFloorB", shell, new Vector3(x - HALL_WIDTH * 0.5f + 0.5f, 0f, front - 0.5f - z), 0f);
-				for (int side = -1; side <= 1; side += 2)
-					Models.Build("RoomSill", shell, new Vector3(side * HALL_WIDTH * 0.5f, 0f, front - 0.5f - z), 90f);
+					Models.Build(z % 2 == 0 ? "RoomCeilingBeam" : "RoomCeiling", shell, new Vector3(x - HALL_WIDTH * 0.5f + 0.5f, 0f, front - 0.5f - z), 0f);
+				}
+				Models.Build(WallPiece(z), shell, new Vector3(HALL_WIDTH * 0.5f, 0f, front - 0.5f - z), 90f);
+				Models.Build(WallPiece(z), shell, new Vector3(-HALL_WIDTH * 0.5f, 0f, front - 0.5f - z), -90f);
 			}
 			for (int side = -1; side <= 1; side += 2)
 				AddSolid(shell, new Vector3(side * (HALL_WIDTH * 0.5f + 0.15f), 1.4f, front - hallLength * 0.5f), new Vector3(0.3f, 3f, hallLength));
 			AddSolid(shell, new Vector3(0f, 1.4f, front - hallLength - 1.6f), new Vector3(HALL_WIDTH + 2f, 3f, 0.3f));
+			// 현관 끝. 가운데는 바깥으로 나가는 문
+			for (int x = 0; x < HALL_WIDTH; x++)
+			{
+				float along = x - HALL_WIDTH * 0.5f + 0.5f;
+				if (Mathf.Abs(along) > 1f)
+					Models.Build(WallPiece(x), shell, new Vector3(along, 0f, front - hallLength), 180f);
+			}
+			Models.Build("RoomDoor", shell, new Vector3(0f, 0f, front - hallLength), 0f);
 			AddSolid(shell, new Vector3(0f, -0.6f, 0f), new Vector3(30f, 1.2f, 40f));
 			Models.Build("Workbench", shell, new Vector3(-2.4f, 0f, front - 2f), -90f);
 			Models.Build("Wardrobe", shell, new Vector3(2.5f, 0f, front - 2f), 90f);
