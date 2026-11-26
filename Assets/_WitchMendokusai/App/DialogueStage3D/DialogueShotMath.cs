@@ -22,12 +22,10 @@ namespace WitchMendokusai.DialogueStage3D
 	// 대화 샷 규칙. 카메라는 늘 무대 앞쪽 (-Z) 에 두어 두 인물을 잇는 선을 넘지 않음 (180도 규칙)
 	public static class DialogueShotMath
 	{
-		private const float DEFAULT_HEAD_HEIGHT = 1.4f;
-
 		// 모두를 담는 성립 샷
-		public static DialogueShotPose Wide(IReadOnlyList<Vector3> heads, Vector3 stageOrigin, DialogueCastStageSettings.ShotEntry shot)
+		public static DialogueShotPose Wide(IReadOnlyList<Vector3> heads, Vector3 stageOrigin, DialogueCastStageSettings.ShotEntry shot, float emptyStageHeadHeight)
 		{
-			Vector3 center = stageOrigin + Vector3.up * DEFAULT_HEAD_HEIGHT;
+			Vector3 center = stageOrigin + Vector3.up * emptyStageHeadHeight;
 			float span = 0f;
 			if (heads.Count > 0)
 			{
@@ -48,7 +46,7 @@ namespace WitchMendokusai.DialogueStage3D
 		}
 
 		// 화자 샷. 듣는 사람이 있으면 그 어깨 너머, 없으면 화자 정면
-		public static DialogueShotPose OnSpeaker(Vector3 speakerHead, Vector3 speakerFacing, Vector3? listenerHead, DialogueCastStageSettings.ShotEntry shot, float shoulderSide)
+		public static DialogueShotPose OnSpeaker(Vector3 speakerHead, Vector3 speakerFacing, Vector3? listenerHead, DialogueCastStageSettings.ShotEntry shot, float shoulderSide, float minFront)
 		{
 			Vector3 look = speakerHead + Vector3.up * shot.LookHeight;
 			Vector3 away;
@@ -68,16 +66,15 @@ namespace WitchMendokusai.DialogueStage3D
 				away = facing.sqrMagnitude > 0.0001f ? facing.normalized : Vector3.back;
 			}
 			Vector3 position = speakerHead + away * shot.Distance + side + Vector3.up * shot.Height;
-			position = KeepInFront(position, speakerHead);
+			position = KeepInFront(position, speakerHead, minFront);
 			return new DialogueShotPose(position, look, shot.FieldOfView);
 		}
 
 		// 화자보다 무대 뒤로 넘어가면 앞쪽으로 되돌림
-		private static Vector3 KeepInFront(Vector3 position, Vector3 subject)
+		private static Vector3 KeepInFront(Vector3 position, Vector3 subject, float minFront)
 		{
-			const float MIN_FRONT = 0.4f;
-			if (position.z > subject.z - MIN_FRONT)
-				position.z = subject.z - MIN_FRONT;
+			if (position.z > subject.z - minFront)
+				position.z = subject.z - minFront;
 			return position;
 		}
 

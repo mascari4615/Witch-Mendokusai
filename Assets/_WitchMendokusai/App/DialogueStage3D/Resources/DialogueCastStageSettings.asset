@@ -66,6 +66,8 @@ MonoBehaviour:
     <LookHeight>k__BackingField: -0.05
     <FieldOfView>k__BackingField: 24
   <ShoulderSide>k__BackingField: 0.45
+  <EmptyStageHeadHeight>k__BackingField: 1.4
+  <MinCameraFront>k__BackingField: 0.4
   <BlendSeconds>k__BackingField: 0.35
   <PushSpeed>k__BackingField: 0.03
   <PushMax>k__BackingField: 0.25

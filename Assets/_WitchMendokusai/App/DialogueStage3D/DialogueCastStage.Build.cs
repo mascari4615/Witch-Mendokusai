@@ -148,7 +148,7 @@ namespace WitchMendokusai.DialogueStage3D
 			List<Vector3> heads = new List<Vector3>();
 			foreach (DialogueCastActor actor in actors.Values)
 				heads.Add(actor.HeadPosition);
-			return DialogueShotMath.Wide(heads, Settings.StageOrigin, Settings.Wide);
+			return DialogueShotMath.Wide(heads, Settings.StageOrigin, Settings.Wide, Settings.EmptyStageHeadHeight);
 		}
 
 		// 대상이 무대에 없으면 성립 샷
@@ -171,7 +171,7 @@ namespace WitchMendokusai.DialogueStage3D
 					listener = other.HeadPosition;
 				}
 			}
-			return DialogueShotMath.OnSpeaker(subject.HeadPosition, subject.Facing, listener, Settings.FindShot(shot), Settings.ShoulderSide);
+			return DialogueShotMath.OnSpeaker(subject.HeadPosition, subject.Facing, listener, Settings.FindShot(shot), Settings.ShoulderSide, Settings.MinCameraFront);
 		}
 
 		private static void SetLayer(GameObject target, int layer)
