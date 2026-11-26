@@ -120,6 +120,8 @@ namespace WitchMendokusai
 			// 세이브를 다시 읽으면 규칙 덩어리가 바뀜. 그때만 다시 지음
 			if (builtFor != Sim)
 				Build();
+			// 마을과 같은 화면 색과 번짐 (bloom). 없으면 실내만 밋밋하게 보임
+			VillageLook.Ensure(transform);
 			Sim.Changed += OnChanged;
 			manager.Rebuilt += OnRebuilt;
 			Refresh();

@@ -1570,12 +1570,12 @@ MonoBehaviour:
   - Key: Museum_hall
     Mesh: {fileID: 4300000, guid: 0a142cd2ca3c387e114c8c753aa269a2, type: 2}
     Materials:
-    - {fileID: 2100000, guid: 44e880ff078cbb9d8d20c792b04452a6, type: 2}
     - {fileID: 2100000, guid: 08736de305f2022cf7da134a83aedfc9, type: 2}
-    - {fileID: 2100000, guid: dea9a867a3e9a9df3cff91adc74e5497, type: 2}
     - {fileID: 2100000, guid: 1b60e9405641f6fc0147005266a1ca40, type: 2}
     - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
     - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
+    - {fileID: 2100000, guid: a5bc24171cee0a7445d3dcc4790375d9, type: 2}
+    - {fileID: 2100000, guid: 77b0b2e20154ec7d0cfcd9f3a119b2a0, type: 2}
     CastShadow: 1
     Cells: {x: 1, y: 1}
     Solids:
