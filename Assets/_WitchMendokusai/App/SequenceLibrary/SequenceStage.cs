@@ -25,7 +25,7 @@ namespace WitchMendokusai.SequenceLibrary
         [SerializeField] private Vector3 fallbackLightAngles = new Vector3(40, -30, 0);
         private GameObject stage;
         private ContentScenePlayer player;
-        private readonly Dictionary<Camera, bool> cameras = new Dictionary<Camera, bool>();
+        private readonly Dictionary<Camera, int> cameras = new Dictionary<Camera, int>();
         private readonly Dictionary<Canvas, bool> canvases = new Dictionary<Canvas, bool>();
         private SkyDirector capturedSky;
         private bool capturedSkyEnabled;
@@ -72,7 +72,7 @@ namespace WitchMendokusai.SequenceLibrary
             player = null;
             stage = null;
             Duration = 0;
-            foreach (KeyValuePair<Camera, bool> entry in cameras) if (entry.Key != null) entry.Key.enabled = entry.Value;
+            foreach (KeyValuePair<Camera, int> entry in cameras) if (entry.Key != null) entry.Key.cullingMask = entry.Value;
             foreach (KeyValuePair<Canvas, bool> entry in canvases) if (entry.Key != null) entry.Key.enabled = entry.Value;
             cameras.Clear();
             canvases.Clear();
@@ -139,7 +139,7 @@ namespace WitchMendokusai.SequenceLibrary
             return preview;
         }
 
-        // 지금 씬의 카메라, Canvas, 하늘 조절 끄기. UI Toolkit 대화창은 계속 보임
+        // 지금 씬의 카메라는 켠 채 그리는 층만 비움 (Camera.main 을 매 프레임 쓰는 게임 코드가 있음). Canvas, 하늘 조절은 끄기. UI Toolkit 대화창은 계속 보임
         private void CaptureScreen()
         {
             EnsureScreenFree();
@@ -151,7 +151,7 @@ namespace WitchMendokusai.SequenceLibrary
             }
             foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
             {
-                foreach (Camera camera in root.GetComponentsInChildren<Camera>(true)) { cameras.Add(camera, camera.enabled); camera.enabled = false; }
+                foreach (Camera camera in root.GetComponentsInChildren<Camera>(true)) { cameras.Add(camera, camera.cullingMask); camera.cullingMask = 0; }
                 foreach (Canvas canvas in root.GetComponentsInChildren<Canvas>(true)) { canvases.Add(canvas, canvas.enabled); canvas.enabled = false; }
             }
         }

@@ -45,20 +45,22 @@ namespace WitchMendokusai.SequenceLibrary.Tests
             try
             {
                 Camera camera = cameraHost.AddComponent<Camera>();
+                camera.cullingMask = 0b1011;
                 SequenceStage firstStage = first.AddComponent<SequenceStage>();
                 SequenceStage secondStage = second.AddComponent<SequenceStage>();
                 Capture(firstStage);
-                Assert.That(camera.enabled, Is.False);
+                Assert.That(camera.enabled, Is.True, "Game code reads Camera.main every frame, so the camera must stay enabled");
+                Assert.That(camera.cullingMask, Is.EqualTo(0));
                 TargetInvocationException refused = Assert.Throws<TargetInvocationException>(() => Capture(secondStage));
                 Assert.That(refused.InnerException, Is.TypeOf<InvalidOperationException>());
                 secondStage.Hide();
-                Assert.That(camera.enabled, Is.False, "A refused stage must not restore what another stage holds");
+                Assert.That(camera.cullingMask, Is.EqualTo(0), "A refused stage must not restore what another stage holds");
                 firstStage.Hide();
-                Assert.That(camera.enabled, Is.True);
+                Assert.That(camera.cullingMask, Is.EqualTo(0b1011));
                 Capture(secondStage);
-                Assert.That(camera.enabled, Is.False);
+                Assert.That(camera.cullingMask, Is.EqualTo(0));
                 secondStage.Hide();
-                Assert.That(camera.enabled, Is.True);
+                Assert.That(camera.cullingMask, Is.EqualTo(0b1011));
             }
             finally
             {
