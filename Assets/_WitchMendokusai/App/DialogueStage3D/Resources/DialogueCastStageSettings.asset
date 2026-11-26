@@ -54,22 +54,22 @@ MonoBehaviour:
   <BobHeight>k__BackingField: 0.06
   <BobSeconds>k__BackingField: 0.4
   <Wide>k__BackingField:
-    <Distance>k__BackingField: 3.2
+    <Distance>k__BackingField: 3.6
     <Height>k__BackingField: 0.1
-    <LookHeight>k__BackingField: -0.35
-    <FieldOfView>k__BackingField: 32
+    <LookHeight>k__BackingField: -0.5
+    <FieldOfView>k__BackingField: 38
   <Medium>k__BackingField:
     <Distance>k__BackingField: 2
     <Height>k__BackingField: 0
     <LookHeight>k__BackingField: -0.12
     <FieldOfView>k__BackingField: 28
   <Close>k__BackingField:
-    <Distance>k__BackingField: 1.3
+    <Distance>k__BackingField: 1.1
     <Height>k__BackingField: 0
     <LookHeight>k__BackingField: -0.1
     <FieldOfView>k__BackingField: 24
   <ShoulderSide>k__BackingField: 0.45
-  <EmptyStageHeadHeight>k__BackingField: 1.4
+  <ShoulderBack>k__BackingField: 0.8
   <MinCameraFront>k__BackingField: 0.4
   <BlendSeconds>k__BackingField: 0.35
   <PushSpeed>k__BackingField: 0.03

@@ -160,33 +160,34 @@ namespace WitchMendokusai.DialogueStage3D
 
 		private DialogueShotPose WideShot()
 		{
-			List<Vector3> heads = new List<Vector3>();
+			List<Vector3> feet = new List<Vector3>();
 			foreach (DialogueCastActor actor in actors.Values)
-				heads.Add(actor.HeadPosition);
-			return DialogueShotMath.Wide(heads, Settings.StageOrigin, Settings.Wide, Settings.EmptyStageHeadHeight);
+				feet.Add(actor.transform.position);
+			return DialogueShotMath.Wide(feet, Settings.ActorHeight, Settings.StageOrigin, Settings.Wide);
 		}
 
-		// 대상이 무대에 없으면 성립 샷
+		// 미디엄은 가장 가까운 상대의 어깨 너머, 클로즈는 정면, 상대가 없으면 정면. 대상이 무대에 없으면 성립 샷
 		private DialogueShotPose ShotOn(string actorName, DialogueStageShot shot)
 		{
-			if (actors.TryGetValue(actorName, out DialogueCastActor subject) == false)
+			if (actors.TryGetValue(actorName, out DialogueCastActor subject) == false || shot == DialogueStageShot.Wide)
 				return WideShot();
-			if (shot == DialogueStageShot.Wide)
-				return WideShot();
-			Vector3? listener = null;
+			DialogueCastStageSettings.ShotEntry entry = Settings.FindShot(shot);
+			DialogueCastActor listener = null;
 			float nearest = float.MaxValue;
 			foreach (DialogueCastActor other in actors.Values)
 			{
 				if (other == subject)
 					continue;
-				float distance = (other.HeadPosition - subject.HeadPosition).sqrMagnitude;
+				float distance = (other.transform.position - subject.transform.position).sqrMagnitude;
 				if (distance < nearest)
 				{
 					nearest = distance;
-					listener = other.HeadPosition;
+					listener = other;
 				}
 			}
-			return DialogueShotMath.OnSpeaker(subject.HeadPosition, subject.Facing, listener, Settings.FindShot(shot), Settings.ShoulderSide, Settings.MinCameraFront);
+			if (shot == DialogueStageShot.Medium && listener != null)
+				return DialogueShotMath.OverShoulder(subject.HeadPosition, listener.HeadPosition, entry, Settings.ShoulderSide, Settings.ShoulderBack, Settings.MinCameraFront);
+			return DialogueShotMath.Front(subject.HeadPosition, subject.Facing, entry, Settings.MinCameraFront);
 		}
 
 		private static void SetLayer(GameObject target, int layer)
