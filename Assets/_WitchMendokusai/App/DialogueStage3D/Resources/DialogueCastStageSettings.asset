@@ -79,6 +79,7 @@ MonoBehaviour:
   <WorldEnterSeconds>k__BackingField: 0.6
   <WorldReturnSeconds>k__BackingField: 0.6
   <OcclusionPadding>k__BackingField: 0.2
+  <OverShoulderDepthMargin>k__BackingField: 0.4
   <WorldWideRaise>k__BackingField: 1.3
   <SpriteHeadFromTop>k__BackingField: 0.15
   <SpriteMinStandingHeight>k__BackingField: 0.3

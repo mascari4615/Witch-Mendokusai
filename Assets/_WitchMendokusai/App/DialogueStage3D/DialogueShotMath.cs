@@ -91,9 +91,10 @@ namespace WitchMendokusai.DialogueStage3D
 			return FlatUnit(cameraPosition - center, Vector3.back);
 		}
 
-		// 듣는 사람이 화자보다 카메라 쪽에 있나. 아니면 어깨 너머 자리가 화자 뒤편이 되어 쓸 수 없음
-		public static bool IsInFront(Vector3 listener, Vector3 speaker, Vector3 front) =>
-			Vector3.Dot(listener - speaker, FlatUnit(front, Vector3.back)) > 0f;
+		// 듣는 사람이 화자보다 카메라 쪽에 있나. 아니면 어깨 너머 자리가 화자 뒤편이 되어 쓸 수 없음.
+		// 나란히 선 두 사람은 깊이 차가 0 근처라, margin 만큼 뒤까지는 앞으로 쳐서 둘 다 어깨 너머로
+		public static bool IsInFront(Vector3 listener, Vector3 speaker, Vector3 front, float margin) =>
+			Vector3.Dot(listener - speaker, FlatUnit(front, Vector3.back)) > -margin;
 
 		// 화자보다 카메라 반대쪽으로 넘어가면 앞쪽으로 되돌림
 		private static Vector3 KeepInFront(Vector3 position, Vector3 subject, Vector3 front, float minFront)

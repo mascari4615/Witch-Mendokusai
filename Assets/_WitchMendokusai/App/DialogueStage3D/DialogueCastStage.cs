@@ -239,10 +239,13 @@ namespace WitchMendokusai.DialogueStage3D
 				}
 			}
 			// 월드는 인물이 앞뒤로 서 있기도 해서, 듣는 사람이 카메라 쪽에 있을 때만 어깨 너머. 스프라이트는 몸 방향 대신 카메라 쪽에서 정면
-			bool canOverShoulder = listener != null && (space == DialogueStageSpace.Stage || DialogueShotMath.IsInFront(listener.Feet, subject.Feet, CameraSide()));
-			if (shot == DialogueStageShot.Medium && canOverShoulder)
+			bool isWorld = space == DialogueStageSpace.World;
+			bool canOverShoulder = listener != null && (isWorld == false || DialogueShotMath.IsInFront(listener.Feet, subject.Feet, CameraSide(), Settings.OverShoulderDepthMargin));
+			// 월드 클로즈도 듣는 사람이 앞에 있으면 어깨 너머. 카메라 쪽 정면에 두면 앞사람 몸 안이나 바로 뒤에 놓임
+			bool useOverShoulder = canOverShoulder && (shot == DialogueStageShot.Medium || isWorld);
+			if (useOverShoulder)
 				return DialogueShotMath.OverShoulder(subject.HeadPosition, listener.HeadPosition, CameraSide(), entry, Settings.ShoulderSide, Settings.ShoulderBack, Settings.MinCameraFront);
-			Vector3 facing = space == DialogueStageSpace.World ? CameraSide() : subject.Facing;
+			Vector3 facing = isWorld ? CameraSide() : subject.Facing;
 			return DialogueShotMath.Front(subject.HeadPosition, facing, CameraSide(), entry, Settings.MinCameraFront);
 		}
 

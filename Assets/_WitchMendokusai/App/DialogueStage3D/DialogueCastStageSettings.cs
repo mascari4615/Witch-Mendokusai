@@ -73,6 +73,7 @@ namespace WitchMendokusai.DialogueStage3D
 		[field: Header("월드 대화")]
 		[field: SerializeField, Tooltip("게임 카메라 자리에서 첫 대화 샷까지 블렌드 (초)")] public float WorldEnterSeconds { get; private set; } = 0.6f;
 		[field: SerializeField, Tooltip("대화가 끝나고 게임 카메라 자리로 돌아가는 블렌드 (초)")] public float WorldReturnSeconds { get; private set; } = 0.6f;
+		[field: SerializeField, Tooltip("월드 어깨 너머 판정. 듣는 사람이 화자보다 이만큼 뒤까지는 카메라 쪽으로 침 (나란히 선 두 사람) (m)")] public float OverShoulderDepthMargin { get; private set; } = 0.4f;
 		[field: SerializeField, Tooltip("월드 성립 샷을 이만큼 위에서 내려다봄. 카메라 쪽 앞뒤로 선 인물이 뒷사람을 가리지 않게 (m)")] public float WorldWideRaise { get; private set; } = 1.3f;
 		[field: SerializeField, Tooltip("벽에 가린 카메라를 막힌 곳보다 이만큼 앞으로 (m)")] public float OcclusionPadding { get; private set; } = 0.2f;
 		[field: SerializeField, Tooltip("스프라이트 인물의 머리 높이, 그림 위에서부터 키 비율")] public float SpriteHeadFromTop { get; private set; } = 0.15f;

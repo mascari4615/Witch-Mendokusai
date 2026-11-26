@@ -71,11 +71,17 @@ namespace WitchMendokusai.DialogueStage3D
 				graph.Play();
 				return;
 			}
+			SpriteRenderer tallest = null;
 			foreach (SpriteRenderer spriteRenderer in GetComponentsInChildren<SpriteRenderer>())
 			{
 				if (IsStandingSprite(spriteRenderer))
 					spriteParts.Add(spriteRenderer);
+				if (spriteRenderer.enabled && spriteRenderer.sprite != null && (tallest == null || spriteRenderer.bounds.size.y > tallest.bounds.size.y))
+					tallest = spriteRenderer;
 			}
+			// 기준보다 작은 인물 (슬라임 같은) 은 켜진 그림 중 가장 큰 것 하나로
+			if (spriteParts.Count == 0 && tallest != null)
+				spriteParts.Add(tallest);
 			sprite = CommonParent(spriteParts);
 			if (sprite != null)
 				spriteRest = sprite.localPosition;
@@ -90,13 +96,15 @@ namespace WitchMendokusai.DialogueStage3D
 		{
 			if (parts.Count == 0)
 				return null;
-			Transform common = parts.Count == 1 ? parts[0].transform : parts[0].transform.parent;
+			Transform common = parts[0].transform;
 			foreach (SpriteRenderer part in parts)
 			{
 				while (common != null && part.transform.IsChildOf(common) == false)
 					common = common.parent;
 			}
-			return common == transform ? null : common;
+			// 인물 뿌리이거나 그 밖 (뿌리에 그림이 붙은 경우) 이면 흔들지 않음
+			bool insideActor = common != null && common != transform && common.IsChildOf(transform);
+			return insideActor ? common : null;
 		}
 
 		public void Speak(string lineText)
