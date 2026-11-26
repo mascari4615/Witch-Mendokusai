@@ -8,7 +8,7 @@ namespace WitchMendokusai
 	public sealed class PullAuraAffix : MonsterAffix
 	{
 		[SerializeField, Tooltip("끄는 반지름 (m)"), Min(0.5f)] private float radius = 4.5f;
-		[SerializeField, Tooltip("끄는 속도 (m/s). 주인공 걸음보다 느리게"), Min(0f)] private float pullSpeed = 1.8f;
+		[SerializeField, Tooltip("끄는 속도 (주인공 걸음 속도 비율). 1 보다 작아야 거슬러 걸을 수 있음"), Range(0f, 0.9f)] private float pullSpeedRatio = 0.4f;
 		[SerializeField, Tooltip("이보다 가까우면 안 끎 (m). 몸에 붙어 떨지 않게"), Min(0f)] private float innerRadius = 1f;
 		[SerializeField, Tooltip("한 번 건 끌림이 남는 초. 매 프레임 다시 걺"), Min(0.02f)] private float holdSeconds = 0.15f;
 		[SerializeField, Tooltip("끌리는 동안 조이는 고리")] private CombatFx pulseFx;
@@ -33,8 +33,9 @@ namespace WitchMendokusai
 			PlayerObject player = CurrentPlayer;
 			if (player == null || player.IsAlive == false)
 				return;
-			Vector3 velocity = PullVelocity(monster.transform.position, player.transform.position, radius, innerRadius, pullSpeed);
-			if (velocity == Vector3.zero)
+			Vector3 velocity = PullVelocity(monster.transform.position, player.transform.position, radius, innerRadius, player.UnitMovement.WalkSpeed * pullSpeedRatio);
+			// 더 센 끌기 (보스 빨아들이기, 다른 끌어당김) 가 걸려 있으면 덮지 않음
+			if (velocity == Vector3.zero || player.UnitMovement.ExternalPullVelocity.sqrMagnitude > velocity.sqrMagnitude)
 				return;
 			player.UnitMovement.SetExternalPull(velocity, holdSeconds);
 			memory.Timer -= deltaTime;

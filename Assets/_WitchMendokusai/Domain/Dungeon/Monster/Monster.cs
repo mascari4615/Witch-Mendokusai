@@ -34,7 +34,7 @@ namespace WitchMendokusai
 		[PropertyOrder(25)][field: SerializeField, Tooltip("쓰러진 뒤 바닥에 남는 것 (조각, 얼룩, 웅덩이). 비우면 안 남김")] public RemainsProfile Remains { get; private set; }
 		[PropertyOrder(26)][field: SerializeField, Tooltip("몸에 늘 붙는 효과 (빛 번짐, 바닥, 조각). 비우면 없음")] public MonsterBodyFxStyle BodyFx { get; private set; }
 		[PropertyOrder(27)][field: SerializeField, Tooltip("특정 인형에게 더 사나움")] public MonsterGrudge Grudge { get; private set; } = new();
-		[PropertyOrder(30)][field: SerializeField, Tooltip("얹는 특징 (자국 남김, 죽으면 터짐, 분열, 치유 파동, 분노, 끌어당김). 여럿 가능, 비우면 없음")] public List<MonsterAffix> Affixes { get; private set; } = new();
 		[PropertyOrder(29)][field: SerializeField, Tooltip("걷는 성격 (앞질러 막기, 수줍음, 깡충 등). 비우면 곧장 쫓음. 공격이 없을 때와 예고형 공격 (WindupMonsterAttack) 을 기다리는 동안의 걸음. 돌진, 무리 같은 다른 공격의 추적은 아직 안 따름")] public MonsterTemperament Temperament { get; private set; }
+		[PropertyOrder(30)][field: SerializeField, Tooltip("얹는 특징 (자국 남김, 죽으면 터짐, 분열, 치유 파동, 분노, 끌어당김). 여럿 가능, 비우면 없음")] public List<MonsterAffix> Affixes { get; private set; } = new();
 	}
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WitchMendokusai
@@ -25,7 +26,8 @@ namespace WitchMendokusai
 		public override void Tick(MonsterObject monster, AffixMemory memory, float deltaTime)
 		{
 			RemainsWorld remains = RemainsWorld.Current;
-			if (goop == null || remains == null || remains.Enabled == false)
+			// 액체는 놀이라 흔적 표시 설정 (Enabled) 과 무관 (RemainsWorld 주석, BreakableField 와 같게)
+			if (goop == null || remains == null)
 				return;
 			Vector3 position = monster.transform.position;
 			if (ShouldSpill(memory.LastSpot, position, spacing) == false)
@@ -35,7 +37,7 @@ namespace WitchMendokusai
 			remains.Goop.Spill(goop, position, radius, amount);
 		}
 
-		public override void Validate(Monster owner, System.Collections.Generic.List<string> errors)
+		public override void Validate(Monster owner, List<string> errors)
 		{
 			if (goop == null)
 				errors.Add($"{name}: 흘릴 액체 ({nameof(goop)}) 비어 있음");
