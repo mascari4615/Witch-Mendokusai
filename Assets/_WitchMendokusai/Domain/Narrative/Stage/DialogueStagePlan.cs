@@ -93,9 +93,9 @@ namespace WitchMendokusai
 		// 켜져 있는 3D 연출 이름. null 이면 3D 연출 없음
 		public string SceneKey { get; internal set; }
 		public bool SceneChanged { get; internal set; }
-		// 3D 배우 무대가 켜져 있는지
-		public bool Stage3D { get; internal set; }
-		public bool Stage3DChanged { get; internal set; }
+		// 대사가 나오는 자리. Flat 이면 2D 입상
+		public DialogueStageSpace StageSpace { get; internal set; }
+		public bool StageSpaceChanged { get; internal set; }
 
 		public List<DialogueStageActorChange> Entered { get; } = new();
 		public List<DialogueStageActorChange> Exited { get; } = new();
@@ -129,7 +129,7 @@ namespace WitchMendokusai
 		private string shotTarget;
 		private DialogueStageShot shot;
 		private string sceneKey;
-		private bool stage3D;
+		private DialogueStageSpace stageSpace = DialogueStageSpace.Flat;
 		private bool isPresentationRaisedForScene;
 
 		public DialogueStagePresentation Presentation { get; private set; } = DialogueStagePresentation.World;
@@ -138,7 +138,7 @@ namespace WitchMendokusai
 		public string Speaker => speaker;
 		public string ShotTarget => shotTarget;
 		public string SceneKey => sceneKey;
-		public bool IsStage3D => stage3D;
+		public DialogueStageSpace StageSpace => stageSpace;
 
 		public void Queue(IReadOnlyList<DialogueStageCue> cues)
 		{
@@ -194,7 +194,7 @@ namespace WitchMendokusai
 			delta.ShotTarget = shotTarget;
 			delta.Shot = shot;
 			delta.SceneKey = sceneKey;
-			delta.Stage3D = stage3D;
+			delta.StageSpace = stageSpace;
 			delta.Actors.AddRange(actors);
 			return delta;
 		}
@@ -280,8 +280,8 @@ namespace WitchMendokusai
 					EndScene(delta);
 					break;
 
-				case DialogueStageCueKind.Stage3D:
-					SetStage3D(delta, cue.IsOn);
+				case DialogueStageCueKind.StageSpace:
+					SetStageSpace(delta, cue.Space);
 					break;
 
 				case DialogueStageCueKind.Gesture:
@@ -323,20 +323,20 @@ namespace WitchMendokusai
 			RefreshRaisedPresentation(delta);
 		}
 
-		private void SetStage3D(DialogueStageDelta delta, bool isOn)
+		private void SetStageSpace(DialogueStageDelta delta, DialogueStageSpace space)
 		{
-			if (stage3D != isOn)
+			if (stageSpace != space)
 			{
-				stage3D = isOn;
-				delta.Stage3DChanged = true;
+				stageSpace = space;
+				delta.StageSpaceChanged = true;
 			}
 			RefreshRaisedPresentation(delta);
 		}
 
-		// 말풍선은 월드 화면에 붙어 3D 화면에 가려짐. 3D 연출이나 3D 무대가 켜지면 자막으로 올리고 둘 다 꺼지면 복구
+		// 말풍선은 3D 화면에서 화자 위가 아니라 카메라 컷 사이에 떠 보임. 3D 연출이나 3D 무대, 월드 대화가 켜지면 자막으로 올리고 모두 꺼지면 복구
 		private void RefreshRaisedPresentation(DialogueStageDelta delta)
 		{
-			bool isAny3D = sceneKey != null || stage3D;
+			bool isAny3D = sceneKey != null || stageSpace != DialogueStageSpace.Flat;
 			if (isAny3D && Presentation == DialogueStagePresentation.World)
 			{
 				SetPresentation(delta, DialogueStagePresentation.Feature);

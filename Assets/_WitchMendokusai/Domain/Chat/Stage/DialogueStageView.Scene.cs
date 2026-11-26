@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 namespace WitchMendokusai
 {
 	// DialogueStageView 의 3D 화면 두 가지. `@연출` 은 저장된 연출 재생 (App/SequenceLibrary),
-	// `@무대 3D` 는 같은 변경분을 3D 배우로 표현 (App/DialogueStage3D). 둘 다 포트 뒤
+	// `@무대 3D|월드` 는 같은 변경분을 3D 인물과 카메라로 표현 (App/DialogueStage3D). 둘 다 포트 뒤
 	public partial class DialogueStageView
 	{
 		private static bool IsSceneShowing => DialogueSceneStageBridge.Current != null && DialogueSceneStageBridge.Current.IsShowing;
@@ -46,25 +46,23 @@ namespace WitchMendokusai
 			RefreshStageMood();
 		}
 
-		// 켜고 끄기는 변경분의 Stage3DChanged, 켜진 동안은 줄마다 같은 변경분을 그대로 넘김
+		// 켜고 끄기는 변경분의 StageSpaceChanged, 켜진 동안은 줄마다 같은 변경분을 그대로 넘김
 		private void ApplyCastStage(DialogueStageDelta delta)
 		{
 			IDialogueCastStage castStage = DialogueCastStageBridge.Current;
-			if (delta.Stage3DChanged)
+			if (delta.StageSpaceChanged)
 			{
-				if (delta.Stage3D == false)
-				{
-					HideCastStage();
+				HideCastStage();
+				if (delta.StageSpace == DialogueStageSpace.Flat)
 					return;
-				}
 				if (castStage == null)
 				{
-					Debug.LogError($"[{nameof(DialogueStageView)}] @무대 3D: 3D 무대 어댑터가 등록되지 않았다");
+					Debug.LogError($"[{nameof(DialogueStageView)}] @무대 {delta.StageSpace}: 3D 무대 어댑터가 등록되지 않았다");
 					return;
 				}
-				if (castStage.TryShow(out string problem) == false)
+				if (castStage.TryShow(delta.StageSpace, out string problem) == false)
 				{
-					Debug.LogError($"[{nameof(DialogueStageView)}] @무대 3D 를 열지 못했다: {problem}");
+					Debug.LogError($"[{nameof(DialogueStageView)}] @무대 {delta.StageSpace} 를 열지 못했다: {problem}");
 					return;
 				}
 				RefreshStageMood();

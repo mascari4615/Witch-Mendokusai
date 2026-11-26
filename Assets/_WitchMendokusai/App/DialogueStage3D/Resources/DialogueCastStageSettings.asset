@@ -76,6 +76,10 @@ MonoBehaviour:
   <CameraDepth>k__BackingField: 100
   <CameraNearClip>k__BackingField: 0.05
   <CameraFarClip>k__BackingField: 60
+  <WorldEnterSeconds>k__BackingField: 0.6
+  <WorldReturnSeconds>k__BackingField: 0.6
+  <OcclusionPadding>k__BackingField: 0.2
+  <SpriteHeadFromTop>k__BackingField: 0.15
   <StageOrigin>k__BackingField: {x: 0, y: -2000, z: 0}
   <ContentLayer>k__BackingField: 31
   <Background>k__BackingField: {r: 0.62, g: 0.7, b: 0.78, a: 1}

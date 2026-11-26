@@ -98,8 +98,8 @@ namespace WitchMendokusai
 					return Line(DialogueStageVocabulary.SCENE, cue.SceneKey);
 				case DialogueStageCueKind.SceneEnd:
 					return Line(DialogueStageVocabulary.SCENE, DialogueStageVocabulary.END);
-				case DialogueStageCueKind.Stage3D:
-					return Line(DialogueStageVocabulary.STAGE, cue.IsOn ? DialogueStageVocabulary.STAGE_3D : DialogueStageVocabulary.STAGE_2D);
+				case DialogueStageCueKind.StageSpace:
+					return Line(DialogueStageVocabulary.STAGE, DialogueStageVocabulary.WordOf(DialogueStageVocabulary.Spaces, cue.Space));
 				case DialogueStageCueKind.Gesture:
 					return Line(DialogueStageVocabulary.GESTURE, cue.Actor, cue.GestureName);
 				default:
@@ -272,12 +272,12 @@ namespace WitchMendokusai
 		{
 			cue = null;
 			problem = null;
-			if (args.Length != 1 || (args[0] != DialogueStageVocabulary.STAGE_3D && args[0] != DialogueStageVocabulary.STAGE_2D))
+			if (args.Length != 1 || DialogueStageVocabulary.TryRead(DialogueStageVocabulary.Spaces, args[0], out DialogueStageSpace space) == false)
 			{
-				problem = $"@{DialogueStageVocabulary.STAGE} <{DialogueStageVocabulary.STAGE_3D}|{DialogueStageVocabulary.STAGE_2D}>";
+				problem = $"@{DialogueStageVocabulary.STAGE} <{DialogueStageVocabulary.STAGE_2D}|{DialogueStageVocabulary.STAGE_3D}|{DialogueStageVocabulary.STAGE_WORLD}>";
 				return false;
 			}
-			cue = DialogueStageCue.Stage3D(args[0] == DialogueStageVocabulary.STAGE_3D);
+			cue = DialogueStageCue.ForSpace(space);
 			return true;
 		}
 

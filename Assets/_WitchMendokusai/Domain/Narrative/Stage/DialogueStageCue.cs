@@ -52,6 +52,14 @@ namespace WitchMendokusai
 		Close = 2,
 	}
 
+	// 대사가 나오는 자리. 2D 입상, 별도 3D 무대, 플레이하던 월드
+	public enum DialogueStageSpace
+	{
+		Flat = 0,
+		Stage = 1,
+		World = 2,
+	}
+
 	public enum DialogueStageCueKind
 	{
 		Presentation = 0,
@@ -67,7 +75,7 @@ namespace WitchMendokusai
 		Cinema = 10,
 		Scene = 11,
 		SceneEnd = 12,
-		Stage3D = 13,
+		StageSpace = 13,
 		Gesture = 14,
 	}
 
@@ -89,6 +97,7 @@ namespace WitchMendokusai
 		[field: SerializeField] public bool IsOn { get; private set; }
 		[field: SerializeField] public string SceneKey { get; private set; }
 		[field: SerializeField] public string GestureName { get; private set; }
+		[field: SerializeField] public DialogueStageSpace Space { get; private set; }
 
 		public bool TargetsAllActors => string.Equals(Actor, ALL_ACTORS, StringComparison.Ordinal);
 
@@ -132,9 +141,9 @@ namespace WitchMendokusai
 		public static DialogueStageCue SceneEnd() =>
 			new() { Kind = DialogueStageCueKind.SceneEnd };
 
-		// 3D 배우 무대 켜기와 끄기. 켜진 동안 등장, 이동, 화자, 몸짓, 샷이 3D 배우에 적용
-		public static DialogueStageCue Stage3D(bool isOn) =>
-			new() { Kind = DialogueStageCueKind.Stage3D, IsOn = isOn };
+		// 무대 바꾸기. 3D 무대와 월드에서는 등장, 이동, 화자, 몸짓, 샷이 3D 인물과 카메라에 적용
+		public static DialogueStageCue ForSpace(DialogueStageSpace space) =>
+			new() { Kind = DialogueStageCueKind.StageSpace, Space = space };
 
 		// 이름 붙은 한 번짜리 동작. 낱말과 클립의 짝은 3D 무대 설정 자산
 		public static DialogueStageCue Gesture(string actor, string gestureName) =>

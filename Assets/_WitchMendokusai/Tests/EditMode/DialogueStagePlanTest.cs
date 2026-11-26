@@ -206,14 +206,14 @@ namespace WitchMendokusai.Tests
 		{
 			DialogueStagePlan plan = PlanWith("무대 3D");
 			DialogueStageDelta on = plan.FlushForLine("욘");
-			Assert.That(on.Stage3DChanged, Is.True);
-			Assert.That(on.Stage3D, Is.True);
+			Assert.That(on.StageSpaceChanged, Is.True);
+			Assert.That(on.StageSpace, Is.EqualTo(DialogueStageSpace.Stage));
 			Assert.That(on.Presentation, Is.EqualTo(DialogueStagePresentation.Feature));
 
 			plan.Queue(new[] { Cue("무대 2D") });
 			DialogueStageDelta off = plan.Flush();
-			Assert.That(off.Stage3DChanged, Is.True);
-			Assert.That(off.Stage3D, Is.False);
+			Assert.That(off.StageSpaceChanged, Is.True);
+			Assert.That(off.StageSpace, Is.EqualTo(DialogueStageSpace.Flat));
 			Assert.That(off.Presentation, Is.EqualTo(DialogueStagePresentation.World));
 		}
 
@@ -226,6 +226,18 @@ namespace WitchMendokusai.Tests
 
 			plan.Queue(new[] { Cue("연출 끝") });
 			Assert.That(plan.Flush().Presentation, Is.EqualTo(DialogueStagePresentation.World));
+		}
+
+		[Test]
+		public void WorldSpace_IsItsOwnSpace_AndSwitchingFromStageReportsChange()
+		{
+			DialogueStagePlan plan = PlanWith("무대 3D");
+			plan.Flush();
+			plan.Queue(new[] { Cue("무대 월드") });
+			DialogueStageDelta delta = plan.Flush();
+			Assert.That(delta.StageSpaceChanged, Is.True);
+			Assert.That(delta.StageSpace, Is.EqualTo(DialogueStageSpace.World));
+			Assert.That(delta.Presentation, Is.EqualTo(DialogueStagePresentation.Feature));
 		}
 
 		[Test]

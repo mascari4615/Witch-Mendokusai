@@ -3,9 +3,33 @@ using UnityEngine;
 
 namespace WitchMendokusai.DialogueStage3D
 {
-	// DialogueCastStage 의 무대 짓기, 배우 자리, 샷 고르기
+	// DialogueCastStage 의 별도 무대 (`@무대 3D`). 게임 월드와 떨어진 자리에 바닥, 조명, 카메라, 배우를 세움
 	public sealed partial class DialogueCastStage
 	{
+		private static readonly DialogueStageSlot[] SLOT_ORDER =
+		{
+			DialogueStageSlot.FarLeft, DialogueStageSlot.Left, DialogueStageSlot.Center, DialogueStageSlot.Right, DialogueStageSlot.FarRight,
+		};
+
+		private readonly Dictionary<string, DialogueStageSlot> slots = new Dictionary<string, DialogueStageSlot>();
+		private GameObject stageRoot;
+
+		private void ShowStage()
+		{
+			takeover.EnsureFree();
+			BuildStage();
+			takeover.Take();
+		}
+
+		private void HideStage()
+		{
+			if (stageRoot != null)
+				Destroy(stageRoot);
+			stageRoot = null;
+			stageCamera = null;
+			takeover.Release();
+		}
+
 		private void BuildStage()
 		{
 			DialogueCastStageSettings stage = Settings;
@@ -22,8 +46,7 @@ namespace WitchMendokusai.DialogueStage3D
 			floor.transform.SetParent(stageRoot.transform, false);
 			floor.transform.localPosition = new Vector3(0f, -0.05f, 0f);
 			floor.transform.localScale = new Vector3(stage.FloorSize * 2f, 0.05f, stage.FloorSize * 2f);
-			Renderer floorRenderer = floor.GetComponent<Renderer>();
-			floorRenderer.material = new Material(Shader.Find("Universal Render Pipeline/Lit")) { color = stage.FloorColor };
+			floor.GetComponent<Renderer>().material = new Material(Shader.Find("Universal Render Pipeline/Lit")) { color = stage.FloorColor };
 			SetLayer(floor, stage.ContentLayer);
 
 			AddLight("Key light", Quaternion.Euler(stage.KeyLightAngles), stage.KeyLightIntensity, stage.KeyLightColor, LightShadows.Soft);
@@ -32,8 +55,8 @@ namespace WitchMendokusai.DialogueStage3D
 			GameObject cameraHost = new GameObject("Dialogue cast camera");
 			cameraHost.transform.SetParent(stageRoot.transform, false);
 			stageCamera = cameraHost.AddComponent<DialogueCastCamera>();
-			stageCamera.Initialize(stage);
-			stageCamera.Cut(WideShot());
+			stageCamera.CreateOwnCamera(stage);
+			stageCamera.Cut(DialogueShotMath.Wide(new List<Vector3>(), stage.ActorHeight, stage.StageOrigin, Vector3.back, stage.Wide));
 		}
 
 		private void AddLight(string lightName, Quaternion rotation, float intensity, Color color, LightShadows shadows)
@@ -49,7 +72,7 @@ namespace WitchMendokusai.DialogueStage3D
 		}
 
 		// 변경분의 현재 출연진에 맞춤. 바뀌었으면 true
-		private bool SyncActors(DialogueStageDelta delta)
+		private bool SyncStageActors(DialogueStageDelta delta)
 		{
 			bool changed = false;
 			HashSet<string> present = new HashSet<string>();
@@ -65,6 +88,14 @@ namespace WitchMendokusai.DialogueStage3D
 					changed = true;
 				slots[stageActor.Name] = stageActor.Slot;
 			}
+			changed |= RemoveAbsent(present);
+			if (changed)
+				PlaceActors(delta.Entered);
+			return changed;
+		}
+
+		private bool RemoveAbsent(HashSet<string> present)
+		{
 			List<string> gone = new List<string>();
 			foreach (string actorName in actors.Keys)
 			{
@@ -73,26 +104,24 @@ namespace WitchMendokusai.DialogueStage3D
 			}
 			foreach (string actorName in gone)
 			{
-				Destroy(actors[actorName].gameObject);
+				actors[actorName].Release();
 				actors.Remove(actorName);
 				slots.Remove(actorName);
-				changed = true;
 			}
-			if (changed)
-				PlaceActors(delta.Entered);
-			return changed;
+			return gone.Count > 0;
 		}
 
 		// 자리 위치에 세우고 상대를 보되 카메라 쪽으로 조금 돌림. 이번 줄에 들어온 배우는 바로, 나머지는 걸어감
 		private void PlaceActors(List<DialogueStageActorChange> entered)
 		{
-			foreach (KeyValuePair<string, DialogueCastActor> pair in actors)
+			foreach (KeyValuePair<string, IDialogueCastPerformer> pair in actors)
 			{
+				DialogueCastActor actor = (DialogueCastActor)pair.Value;
 				Vector3 position = SlotPosition(slots[pair.Key]);
 				Quaternion rotation = FacingFor(pair.Key, position);
 				bool justEntered = entered.Exists(change => change.Actor == pair.Key);
-				if (justEntered) pair.Value.Place(position, rotation);
-				else pair.Value.MoveTo(position, rotation);
+				if (justEntered) actor.Place(position, rotation);
+				else actor.MoveTo(position, rotation);
 			}
 		}
 
@@ -156,38 +185,6 @@ namespace WitchMendokusai.DialogueStage3D
 			if (bounds.size.y <= 0.0001f)
 				return;
 			instance.transform.localScale *= targetHeight / bounds.size.y;
-		}
-
-		private DialogueShotPose WideShot()
-		{
-			List<Vector3> feet = new List<Vector3>();
-			foreach (DialogueCastActor actor in actors.Values)
-				feet.Add(actor.transform.position);
-			return DialogueShotMath.Wide(feet, Settings.ActorHeight, Settings.StageOrigin, Settings.Wide);
-		}
-
-		// 미디엄은 가장 가까운 상대의 어깨 너머, 클로즈는 정면, 상대가 없으면 정면. 대상이 무대에 없으면 성립 샷
-		private DialogueShotPose ShotOn(string actorName, DialogueStageShot shot)
-		{
-			if (actors.TryGetValue(actorName, out DialogueCastActor subject) == false || shot == DialogueStageShot.Wide)
-				return WideShot();
-			DialogueCastStageSettings.ShotEntry entry = Settings.FindShot(shot);
-			DialogueCastActor listener = null;
-			float nearest = float.MaxValue;
-			foreach (DialogueCastActor other in actors.Values)
-			{
-				if (other == subject)
-					continue;
-				float distance = (other.transform.position - subject.transform.position).sqrMagnitude;
-				if (distance < nearest)
-				{
-					nearest = distance;
-					listener = other;
-				}
-			}
-			if (shot == DialogueStageShot.Medium && listener != null)
-				return DialogueShotMath.OverShoulder(subject.HeadPosition, listener.HeadPosition, entry, Settings.ShoulderSide, Settings.ShoulderBack, Settings.MinCameraFront);
-			return DialogueShotMath.Front(subject.HeadPosition, subject.Facing, entry, Settings.MinCameraFront);
 		}
 
 		private static void SetLayer(GameObject target, int layer)

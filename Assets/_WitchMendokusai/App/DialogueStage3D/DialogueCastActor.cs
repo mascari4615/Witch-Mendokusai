@@ -6,7 +6,7 @@ namespace WitchMendokusai.DialogueStage3D
 {
 	// 3D 무대의 배우 하나. 대기와 말하기를 섞고 한 번짜리 동작을 위에 얹음. 끄덕임과 들썩임은 뼈를 코드로 움직임.
 	// 대화 중 게임 시간이 멈춰도 돌도록 실시간 시계
-	public sealed class DialogueCastActor : MonoBehaviour
+	public sealed class DialogueCastActor : MonoBehaviour, IDialogueCastPerformer
 	{
 		private const int IDLE_INPUT = 0;
 		private const int TALK_INPUT = 1;
@@ -36,6 +36,18 @@ namespace WitchMendokusai.DialogueStage3D
 		public string ActorName { get; private set; }
 		public Vector3 HeadPosition => head != null ? head.position : transform.position + Vector3.up * 1.4f;
 		public Vector3 Facing => transform.forward;
+		public Vector3 Feet => transform.position;
+		public Transform Root => transform;
+
+		public void TurnToward(Vector3 point)
+		{
+			Vector3 toward = point - transform.position;
+			toward.y = 0f;
+			if (toward.sqrMagnitude > 0.0001f)
+				MoveTo(transform.position, Quaternion.LookRotation(toward, Vector3.up));
+		}
+
+		public void Release() => Destroy(gameObject);
 
 		public void Initialize(string actorName, DialogueCastStageSettings stageSettings)
 		{

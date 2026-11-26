@@ -1,6 +1,6 @@
 {
   "name": "WM.DialogueStage3D",
   "rootNamespace": "WitchMendokusai.DialogueStage3D",
-  "references": ["WM.Core", "WM.Domain", "WM.SequenceLibrary"],
+  "references": ["WM.Core", "WM.Domain", "WM.SequenceLibrary", "Unity.Cinemachine"],
   "defineConstraints": ["!WM_IDLE"]
 }
