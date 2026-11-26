@@ -123,7 +123,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			return new MineStrike(HomesteadResult.Success, glint, true, found);
 		}
 
-		public HomesteadResult Descend()
+		// 등불이 다하면 올라올 뿐. 마지막 한 번에 연 내리막이어도 더 내려가지 않음
+		public HomesteadResult CanDescend()
 		{
 			if (PassageOpen == false)
 			{
@@ -133,8 +134,21 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				return HomesteadResult.Fail(HomesteadFailure.AtMaxLevel);
 			}
-			Enter(Depth + 1);
+			if (Lantern <= 0)
+			{
+				return HomesteadResult.Fail(HomesteadFailure.LanternOut);
+			}
 			return HomesteadResult.Success;
+		}
+
+		public HomesteadResult Descend()
+		{
+			HomesteadResult result = CanDescend();
+			if (result.Ok)
+			{
+				Enter(Depth + 1);
+			}
+			return result;
 		}
 	}
 }
