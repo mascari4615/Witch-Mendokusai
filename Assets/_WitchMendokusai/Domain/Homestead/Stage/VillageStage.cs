@@ -91,7 +91,7 @@ namespace WitchMendokusai
 			Sim.Unveiled += OnUnveiled;
 			RefreshAll();
 			manager.Hud.ShowGoal(true);
-			manager.Hud.ShowDigest(Sim.MakeDigest());
+			manager.Hud.ShowDigest(Sim.TakeNewDigest());
 		}
 
 		private void Unbind()

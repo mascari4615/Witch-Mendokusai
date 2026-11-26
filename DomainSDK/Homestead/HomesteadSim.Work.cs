@@ -178,6 +178,19 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			return digest;
 		}
 
+		// 마지막으로 보인 소식. 저장하지 않음 (켤 때마다 한 번은 보임)
+		private HomesteadDigest shownDigest;
+
+		// 지난번 보인 뒤 늘거나 새로 생긴 것이 있을 때만 지금 소식 전부, 아니면 빈 채
+		// 마을과 실내를 오갈 때마다 같은 소식이 다시 뜨지 않게
+		public HomesteadDigest TakeNewDigest()
+		{
+			HomesteadDigest digest = MakeDigest();
+			bool hasNews = digest.HasNewsSince(shownDigest);
+			shownDigest = digest;
+			return hasNews ? digest : new HomesteadDigest();
+		}
+
 		public void Greet(string residentId)
 		{
 			ResidentOf(residentId).Greeted = true;
@@ -195,6 +208,22 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int DirtyRelics { get; set; }
 		public List<string> DoneWorks { get; } = new List<string>();
 		public List<string> NewResidents { get; } = new List<string>();
+
+		public bool HasNewsSince(HomesteadDigest before)
+		{
+			if (before == null)
+			{
+				return IsEmpty == false;
+			}
+			return RipePlots > before.RipePlots
+				|| DoneCrafts > before.DoneCrafts
+				|| JobYields > before.JobYields
+				|| AnimalProducts > before.AnimalProducts
+				|| DeliverableRequests > before.DeliverableRequests
+				|| DirtyRelics > before.DirtyRelics
+				|| DoneWorks.Exists(building => before.DoneWorks.Contains(building) == false)
+				|| NewResidents.Exists(resident => before.NewResidents.Contains(resident) == false);
+		}
 
 		public bool IsEmpty => RipePlots + DoneCrafts + JobYields + AnimalProducts + DeliverableRequests + DirtyRelics + DoneWorks.Count + NewResidents.Count == 0;
 	}

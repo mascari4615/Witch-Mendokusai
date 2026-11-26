@@ -266,7 +266,7 @@ namespace WitchMendokusai
 				{
 					manager.RestUntilMorning();
 					manager.Hud.Notice("잘 쉬었습니다", $"하루 동안 두 배로 얻을 확률 {Mathf.RoundToInt(Sim.State.RestedRank * Sim.Catalog.Tuning.RestDoubleChancePerRank * 100f)}%", HomesteadArt.Instance.Icon("house"));
-					manager.Hud.ShowDigest(Sim.MakeDigest());
+					manager.Hud.ShowDigest(Sim.TakeNewDigest());
 				}).Forget();
 		}
 	}
