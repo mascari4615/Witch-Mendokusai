@@ -259,8 +259,9 @@ namespace WitchMendokusai
 		{
 			if (run == null)
 				return;
-			// 옮긴 첫 프레임은 보간 때문에 아직 옛 자리. 안에 있는 것을 한 번 본 뒤에만 나간 것으로 침
-			bool isNear = (playerProvider.CurrentObject.transform.position - mineRoot.position).sqrMagnitude < mineLeaveDistance * mineLeaveDistance;
+			// 안에 있는 것을 한 번 본 뒤에만 나간 것으로 침. 자리는 Rigidbody 값으로 읽음
+			// transform 은 옮긴 뒤 보간이 한 프레임 옛 자리 쪽으로 되돌려, 안 (한 프레임) 뒤 밖 (다음 프레임) 으로 읽혀 들어가자마자 판이 닫혔음 (2026-11-27 실측)
+			bool isNear = (playerProvider.CurrentObject.UnitMovement.Position - mineRoot.position).sqrMagnitude < mineLeaveDistance * mineLeaveDistance;
 			isInsideMine |= isNear;
 			if (isInsideMine && isNear == false && isMoving == false)
 			{
