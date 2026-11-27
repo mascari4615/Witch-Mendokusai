@@ -55,7 +55,9 @@ namespace WitchMendokusai
 						detail.Lines.Add("박물관이나 사람에게서 얻습니다.");
 						return detail;
 					}
-					if (Sim.BuildingLevel(HomesteadSim.TAILOR) < costume.Level)
+					if (costume.Source == HomesteadSim.BENCH)
+						detail.Lines.Add("집 제작대에서 바로 만듭니다.");
+					else if (Sim.BuildingLevel(HomesteadSim.TAILOR) < costume.Level)
 						detail.Lines.Add($"의상실 {costume.Level}단부터");
 					AddCost(detail, costume.Cost);
 					AddAction(detail, "짓기", Sim.CanMakeCostume(costume.Id), () => Sim.MakeCostume(costume.Id), UiSfxEvent.Purchase);
@@ -189,13 +191,15 @@ namespace WitchMendokusai
 				Id = animal.Uid.ToString(),
 				Icon = Art.Icon(animal.Id),
 				Name = def.Name,
-				Sub = ready ? $"{Catalog.Get<GoodsDef>(def.Product).Name} 다 됨" : $"정 {animal.Affinity}",
+				Sub = ready ? $"{Catalog.Get<GoodsDef>(def.Product).Name} 다 됨" : $"하트 {Sim.AnimalHearts(animal)}",
 				IsMarked = ready || animal.CareDay != Sim.Day,
 				Detail = () =>
 				{
-					HomesteadDetail detail = new() { Icon = Art.Icon(animal.Id), Title = def.Name, Note = animal.Affinity >= def.FineAffinity ? $"{Catalog.Get<GoodsDef>(def.FineProduct).Name}을 냅니다" : $"{Catalog.Get<GoodsDef>(def.Product).Name}을 냅니다" };
+					HomesteadDetail detail = new() { Icon = Art.Icon(animal.Id), Title = def.Name, Note = animal.Affinity >= def.FineAffinity ? $"{Catalog.Get<GoodsDef>(def.Product).Name}과 {Catalog.Get<GoodsDef>(def.FineProduct).Name}을 냅니다" : $"{Catalog.Get<GoodsDef>(def.Product).Name}을 냅니다" };
 					detail.Bar = animal.Affinity / (float)Catalog.Tuning.AnimalMaxAffinity;
-					detail.BarText = $"정 {animal.Affinity}";
+					detail.BarText = $"하트 {Sim.AnimalHearts(animal)} / {Catalog.Tuning.AnimalHearts}";
+					if (animal.Affinity < def.FineAffinity)
+						detail.Lines.Add($"정이 {def.FineAffinity} 이면 {Catalog.Get<GoodsDef>(def.FineProduct).Name}도 함께");
 					detail.Lines.Add(ready ? "거둘 것이 있습니다." : $"다음까지 {HomesteadText.Minutes(animal.ProductSince + def.IntervalMinutes - Sim.State.Minutes)}");
 					HomesteadResult can = ready || animal.CareDay != Sim.Day ? HomesteadResult.Success : HomesteadResult.Fail(HomesteadFailure.DailyLimit);
 					AddAction(detail, "쓰다듬기", can, () => Sim.Care(animal.Uid, out bool _), UiSfxEvent.Purchase);
@@ -217,7 +221,7 @@ namespace WitchMendokusai
 				Detail = () =>
 				{
 					HomesteadDetail detail = new() { Icon = Art.Icon(animal.Id), Title = animal.Name, Note = $"{HomesteadText.Minutes(animal.IntervalMinutes)}마다 {Catalog.Get<GoodsDef>(animal.Product).Name}" };
-					detail.Lines.Add($"정이 {animal.FineAffinity} 이면 {Catalog.Get<GoodsDef>(animal.FineProduct).Name}");
+					detail.Lines.Add($"정이 {animal.FineAffinity} 이면 {Catalog.Get<GoodsDef>(animal.FineProduct).Name}도 함께");
 					AddCost(detail, animal.Cost);
 					AddAction(detail, "데려오기", Sim.CanBuyAnimal(animal.Id), () => Sim.BuyAnimal(animal.Id), UiSfxEvent.Purchase);
 					return detail;

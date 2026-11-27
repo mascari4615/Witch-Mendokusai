@@ -102,9 +102,23 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			return HomesteadResult.Success;
 		}
 
-		public bool IsProductReady(AnimalState animal) => State.Minutes - animal.ProductSince >= Catalog.Get<AnimalDef>(animal.Id).IntervalMinutes;
+		public bool IsProductReady(AnimalState animal) => ProductsReady(animal) > 0;
 
-		// 쓰다듬기와 거두기를 한 번에. 하루 한 번 정이 오르고, 다 됐으면 물건도
+		// 정을 하트 칸으로. 끝 정이면 칸이 다 참
+		public int AnimalHearts(AnimalState animal) => animal.Affinity * Tuning.AnimalHearts / Tuning.AnimalMaxAffinity;
+
+		// 비운 동안 하루치까지 쌓임. 던전에 다녀와도 놓친 몫이 하루를 넘지 않음
+		public int ProductCap(AnimalDef def) => Math.Max(1, Tuning.MinutesPerDay / def.IntervalMinutes);
+
+		public int ProductsReady(AnimalState animal)
+		{
+			AnimalDef def = Catalog.Get<AnimalDef>(animal.Id);
+			long made = (State.Minutes - animal.ProductSince) / def.IntervalMinutes;
+			return (int)Math.Min(ProductCap(def), made);
+		}
+
+		// 쓰다듬기와 거두기를 한 번에. 하루 한 번 정이 오르고, 다 된 것을 모두 거둠.
+		// 정이 차면 거둘 때마다 좋은 산물 하나가 덤 (공작소가 받는 보통 산물이 끊기지 않게, 쌓인 몫마다 붙이지 않음)
 		public HomesteadResult Care(int uid, out bool collected)
 		{
 			collected = false;
@@ -119,12 +133,18 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				animal.CareDay = Day;
 				animal.Affinity = Math.Min(Tuning.AnimalMaxAffinity, animal.Affinity + Tuning.AnimalCarePoints);
 			}
-			if (IsProductReady(animal))
+			int ready = ProductsReady(animal);
+			if (ready > 0)
 			{
 				AnimalDef def = Catalog.Get<AnimalDef>(animal.Id);
 				bool fine = def.FineProduct.Length > 0 && animal.Affinity >= def.FineAffinity;
-				Give(fine ? def.FineProduct : def.Product, 1);
-				animal.ProductSince = State.Minutes;
+				Give(def.Product, ready);
+				if (fine)
+				{
+					Give(def.FineProduct, 1);
+				}
+				bool overflowed = (State.Minutes - animal.ProductSince) / def.IntervalMinutes > ready;
+				animal.ProductSince = overflowed ? State.Minutes : animal.ProductSince + (long)ready * def.IntervalMinutes;
 				collected = true;
 			}
 			if (cared == false && collected == false)
@@ -152,7 +172,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				digest.JobYields += JobReady(job.Id);
 			}
-			digest.AnimalProducts = State.Animals.FindAll(IsProductReady).Count;
+			foreach (AnimalState animal in State.Animals)
+			{
+				digest.AnimalProducts += ProductsReady(animal);
+			}
 			foreach (WorkState work in State.Works)
 			{
 				if (IsWorkDone(work))

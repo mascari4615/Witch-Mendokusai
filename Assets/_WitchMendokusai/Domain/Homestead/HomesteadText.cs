@@ -32,12 +32,15 @@ namespace WitchMendokusai
 		};
 
 		private static readonly string[] GRIME_NAMES = { "마른 흙", "녹", "엉킨 실" };
+		// 처음 보는 유물에 보이는 모양과 색. 때 이름과 같은 순서
+		private static readonly string[] GRIME_CLUES = { "갈색 덩이", "주황 얼룩", "가는 선" };
 		private static readonly string[] BRUSH_NAMES = { "붓", "기름천", "바늘" };
 		private static readonly string[] SEASON_NAMES = { "봄", "여름", "가을", "겨울" };
 
 		public static string ToolName(ToolKind kind) => TOOL_NAMES[kind];
 		public static string KindName(GoodsKind kind) => KIND_NAMES[kind];
 		public static string Grime(int index) => GRIME_NAMES[index];
+		public static string GrimeClue(int index) => GRIME_CLUES[index];
 		public static string Brush(int index) => BRUSH_NAMES[index];
 		public static int BrushCount => BRUSH_NAMES.Length;
 		public static string Season(int index) => SEASON_NAMES[index % SEASON_NAMES.Length];
