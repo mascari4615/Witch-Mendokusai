@@ -36,6 +36,8 @@ namespace WitchMendokusai
 		[SerializeField] private Vector2 roomSize = new(22.1f, 17f);
 		[SerializeField] private float wallHeight = 7.2f;
 		[SerializeField] private float wallThickness = 1f;
+		[Tooltip("방 모델의 막는 상자 중 위가 이보다 낮은 것 (울, 물길, 단) 은 카메라를 당기지 않음")]
+		[SerializeField] private float cameraPassHeight = 1.6f;
 		[SerializeField] private float ceilingHeight = 7.14f;
 		[SerializeField] private float domeRadius = 34f;
 		[SerializeField] private float domeRoof = 9f;
@@ -66,9 +68,11 @@ namespace WitchMendokusai
 		[Tooltip("마을에 돌아와 서는 자리. 박물관 문 앞에서 더 나온 길이")]
 		[SerializeField] private float villageStep = 0.8f;
 
+		// 받침은 세 벽에만. 남으면 가운데 섬으로 가는데, 관마다 가운데 구조물 (밭과 울, 물길, 진열 단) 이 있어 섬이 그 위에 겹침
+		// 들과 밭은 목장 산물까지 24 개라 2.2m 로는 벽 19 칸, 다섯이 섬으로 가 울 앞을 막고 뒷줄 둘은 울에 끼였음 (2026-11-27). 1.75m 면 벽 25 칸
 		[SerializeField] private Wing[] wings =
 		{
-			new() { Id = "plants", Door = new Vector3(-10.05f, 0f, 0.68f), Spacing = 2.2f, ItemHeight = 0.36f, ItemSize = 0.55f, Light = new Color(1f, 0.95f, 0.76f) },
+			new() { Id = "plants", Door = new Vector3(-10.05f, 0f, 0.68f), Spacing = 1.75f, ItemHeight = 0.36f, ItemSize = 0.55f, Light = new Color(1f, 0.95f, 0.76f) },
 			new() { Id = "waters", Door = new Vector3(10.05f, 0f, 0.68f), Spacing = 2.6f, ItemHeight = 0.92f, ItemSize = 0.5f, Light = new Color(0.62f, 0.86f, 1f) },
 			new() { Id = "stones", Door = new Vector3(-5.78f, 0f, 7.5f), Spacing = 2.6f, ItemHeight = 0.62f, ItemSize = 0.6f, Light = new Color(1f, 0.84f, 0.62f) },
 			new() { Id = "relics", Door = new Vector3(5.78f, 0f, 7.5f), Spacing = 2.4f, ItemHeight = 0.88f, ItemSize = 0.6f, Light = new Color(1f, 0.8f, 0.72f) },
@@ -195,18 +199,44 @@ namespace WitchMendokusai
 			root.transform.SetParent(transform, false);
 			root.transform.localPosition = RoomOffset(index);
 			VillageLights.BuildDome(root.transform, domeRadius, domeRoof, shadeColor);
-			VillageInterior.Solidify(Models.Build(ROOM_KEY + key, root.transform, Vector3.zero, 0f));
+			GameObject model = Models.Build(ROOM_KEY + key, root.transform, Vector3.zero, 0f);
+			VillageInterior.Solidify(model);
+			GameObject shell = new("Shell");
+			shell.transform.SetParent(root.transform, false);
 			for (int side = -1; side <= 1; side += 2)
 			{
 				VillageLights.AddGlow(root.transform, new Vector3(side * roomSize.x * roomLightSpread, roomLightHeight, 0f), roomLight.x, roomLight.y, light);
-				AddWall(root, new Vector3(side * (roomSize.x + wallThickness) * 0.5f, wallHeight * 0.5f, 0f), new Vector3(wallThickness, wallHeight, roomSize.y + wallThickness * 2f));
-				AddWall(root, new Vector3(0f, wallHeight * 0.5f, side * (roomSize.y + wallThickness) * 0.5f), new Vector3(roomSize.x + wallThickness * 2f, wallHeight, wallThickness));
+				AddWall(shell, new Vector3(side * (roomSize.x + wallThickness) * 0.5f, wallHeight * 0.5f, 0f), new Vector3(wallThickness, wallHeight, roomSize.y + wallThickness * 2f));
+				AddWall(shell, new Vector3(0f, wallHeight * 0.5f, side * (roomSize.y + wallThickness) * 0.5f), new Vector3(roomSize.x + wallThickness * 2f, wallHeight, wallThickness));
 			}
-			AddWall(root, new Vector3(0f, -wallThickness * 0.5f, 0f), new Vector3(roomSize.x + wallThickness * 2f, wallThickness, roomSize.y + wallThickness * 2f));
-			AddWall(root, new Vector3(0f, ceilingHeight + wallThickness * 0.5f, 0f), new Vector3(roomSize.x + wallThickness * 2f, wallThickness, roomSize.y + wallThickness * 2f));
-			// 벽과 천장이 시야를 막으면 카메라를 방 안으로 당김 (CinemachineComponentDeoccluder)
-			root.AddComponent<GroundSurface>();
+			AddWall(shell, new Vector3(0f, -wallThickness * 0.5f, 0f), new Vector3(roomSize.x + wallThickness * 2f, wallThickness, roomSize.y + wallThickness * 2f));
+			AddWall(shell, new Vector3(0f, ceilingHeight + wallThickness * 0.5f, 0f), new Vector3(roomSize.x + wallThickness * 2f, wallThickness, roomSize.y + wallThickness * 2f));
+			// 벽, 천장, 높은 구조물 (기둥) 이 시야를 막으면 카메라를 방 안으로 당김 (CinemachineComponentDeoccluder). 바닥도 이것으로 땅
+			shell.AddComponent<GroundSurface>();
+			SplitLowBlockers(root, model);
+			model.AddComponent<GroundSurface>();
 			return root.transform;
+		}
+
+		// 낮은 막는 상자는 걸음만 막고 카메라는 당기지 않게 표면 없는 곳으로 옮김
+		// 전에는 방 전체가 표면이라 가운데 울 (높이 1m) 앞에서 문 쪽을 보면 카메라가 3.7m 로 붙었음 (2026-11-27 판 5)
+		private void SplitLowBlockers(GameObject root, GameObject model)
+		{
+			GameObject low = new("Low blockers");
+			low.transform.SetParent(root.transform, false);
+			low.transform.SetLocalPositionAndRotation(model.transform.localPosition, model.transform.localRotation);
+			low.transform.localScale = model.transform.localScale;
+			float top = root.transform.position.y + cameraPassHeight;
+			foreach (BoxCollider box in model.GetComponents<BoxCollider>())
+			{
+				// bounds 는 물리 동기 전이라 옛 자리일 수 있음. 모양에서 바로 잼
+				if (model.transform.TransformPoint(box.center + Vector3.up * (box.size.y * 0.5f)).y >= top)
+					continue;
+				BoxCollider moved = low.AddComponent<BoxCollider>();
+				moved.center = box.center;
+				moved.size = box.size;
+				Destroy(box);
+			}
 		}
 
 		private static void AddWall(GameObject root, Vector3 center, Vector3 size)
@@ -311,7 +341,7 @@ namespace WitchMendokusai
 		}
 
 		private string Record(GoodsDef goods) =>
-			goods.Kind == GoodsKind.Fish && Sim.IsDonated(goods.Id) ? $"받침 {Sim.ExhibitSize(goods.Id)}cm" : null;
+			goods.Kind == GoodsKind.Fish && Sim.IsDonated(goods.Id) && Sim.IsExhibitMeasured(goods.Id) ? $"받침 {Sim.ExhibitSize(goods.Id)}cm" : null;
 
 		private WingDef WingOf(GoodsDef goods) => Sim.WingOf(goods.Id);
 
