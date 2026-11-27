@@ -210,7 +210,10 @@ namespace WitchMendokusai
 			digest.Clear();
 			digest.EnableInClassList($"{BLOCK}--none", news.IsEmpty);
 			if (news.IsEmpty)
+			{
+				RefreshDecorate();
 				return;
+			}
 			VisualElement card = Make("digest-card", digest);
 			MakeLabel("digest-title", card, "그동안 마을에서는");
 			foreach (string residentId in news.NewResidents)
@@ -223,7 +226,9 @@ namespace WitchMendokusai
 			AddNews(card, HomesteadSim.RANCH, news.AnimalProducts, "동물이 낸 것 {0}개");
 			AddNews(card, "board", news.DeliverableRequests, "건넬 수 있는 의뢰 {0}건");
 			AddNews(card, "relic_dirty", news.DirtyRelics, "손질할 유물 {0}점");
-			Retire(card, digestMilliseconds);
+			// 소식 판이 떠 있는 동안 꾸미기는 숨고, 판이 걷히면 같은 자리에 다시 뜸
+			RefreshDecorate();
+			Retire(card, digestMilliseconds, RefreshDecorate);
 		}
 
 		private void AddNews(VisualElement card, string iconKey, int count, string format)
@@ -290,6 +295,7 @@ namespace WitchMendokusai
 
 		// ---- 꾸미기. 손가락 전용 건설 입구. 키보드는 F6 (시점 순환) 이 같은 곳으로 감
 		// 폰에는 F6 이 없어 건설에 들어갈 길이 0 이었음. 마을 목표가 보이는 동안 (마을에 서 있고 건설 밖) 만 뜸
+		// 귀환 소식 판 (왼쪽 위, 줄 수만큼 자람) 이 떠 있는 동안은 숨음. 버튼 자리는 옮기지 않음 (DecorateButton)
 
 		private void BuildDecorate()
 		{
@@ -308,7 +314,8 @@ namespace WitchMendokusai
 		}
 
 		// 클래스 (--none) 로 끄면 손가락 표시 규칙 (.wm-input-touch .wm-touch-hint) 이 더 세서 안 꺼짐. 끌 때만 인라인, 켤 때는 USS 에 맡김 (PC 에선 숨음)
-		private void RefreshDecorate() => decorate.style.display = goalShown == false || onDecorate == null ? DisplayStyle.None : StyleKeyword.Null;
+		private void RefreshDecorate() =>
+			decorate.style.display = DecorateButton.IsShown(goalShown, onDecorate != null, digest.childCount > 0) ? StyleKeyword.Null : DisplayStyle.None;
 
 		// ---- 낚시
 

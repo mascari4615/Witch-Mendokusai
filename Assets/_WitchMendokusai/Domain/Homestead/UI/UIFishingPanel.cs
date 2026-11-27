@@ -19,6 +19,7 @@ namespace WitchMendokusai
 		private Action onClosed = delegate { };
 		private Action onStop = delegate { };
 		private bool isListening;
+		private VisualElement touchColumn;
 		private Label reelButton;
 		private FishingPhase shownPhase = FishingPhase.Escaped;
 
@@ -46,6 +47,7 @@ namespace WitchMendokusai
 			VisualElement touch = KeyHint.TouchOnly(new VisualElement { pickingMode = PickingMode.Ignore });
 			touch.AddToClassList(BLOCK + "__touch");
 			content.Add(touch);
+			touchColumn = touch;
 
 			Button stop = new(() => onStop()) { focusable = false, text = "그만두기" };
 			stop.ClearClassList();
@@ -101,20 +103,29 @@ namespace WitchMendokusai
 			shownPhase = phase;
 			reelButton.text = FishingTouch.ButtonText(phase);
 			reelButton.EnableInClassList(BLOCK + "__reel--bite", phase == FishingPhase.Bite);
+			// 끌 때만 인라인. 켤 때는 USS 에 맡김 (TouchOnly 가 PC 에서 숨김)
+			touchColumn.style.display = FishingTouch.ShowsButtons(phase) ? StyleKeyword.Null : DisplayStyle.None;
 		}
 
-		protected override void OnOpen() => Listen(true);
+		// 열린 동안 평소 손가락 버튼 (공격, 점프, 엎드리기, 기술, 말걸기) 을 숨김. 이 화면이 전체를 덮어 어차피 안 눌리는데 보이기만 해서 감기와 그만두기 위에 겹쳤음
+		protected override void OnOpen()
+		{
+			Listen(true);
+			MobileControlsView.Hold(this, true);
+		}
 
 		protected override void OnClose()
 		{
 			// 감기 버튼을 쥔 채 닫히면 (다른 손가락으로 그만두기, 판이 끝남) 붙잡음과 눌림 표시가 다음 낚시까지 남음
 			ReleaseReelCapture();
 			Listen(false);
+			MobileControlsView.Hold(this, false);
 			onClosed();
 		}
 
 		private void OnDestroy()
 		{
+			MobileControlsView.Hold(this, false);
 			if (inputManager != null)
 				Listen(false);
 		}

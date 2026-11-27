@@ -966,6 +966,8 @@
 .wm-hs-build__icon {
     width: 48px;
     height: 48px;
+    min-height: 28px;
+    flex-shrink: 1;
     margin-bottom: 3px;
     -unity-background-scale-mode: scale-to-fit;
 }
@@ -991,14 +993,25 @@
     color: rgb(242, 226, 122);
 }
 
+/* 칸 글자. 재료는 한 줄에 하나 (BuildSlotText). 줄이 늘면 그림이 줄어 자리를 내줌. 글자는 줄지 않음 */
 .wm-hs-build__name {
     font-size: 15px;
     color: rgb(245, 240, 250);
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    white-space: normal;
+    -unity-text-align: middle-center;
 }
 
 .wm-hs-build__cost {
     font-size: 12px;
     color: rgb(200, 196, 214);
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    white-space: normal;
+    -unity-text-align: middle-center;
 }
 
 .wm-hs-build__tool {
@@ -1059,11 +1072,12 @@
     border-radius: 18px;
 }
 
-/* 낚시 손가락 버튼. 누르는 동안 감김. 오른손 엄지 자리 */
+/* 낚시 손가락 버튼. 누르는 동안 감김. 오른손 엄지 자리
+   bottom 은 오른쪽 아래 기본 HUD (13/13, 냥 칸, 아래에서 약 98 까지) 위로. 낚시 중엔 평소 버튼이 숨어 이 자리가 빔 */
 .wm-hs-fish__touch {
     position: absolute;
     right: 48px;
-    bottom: 48px;
+    bottom: 120px;
     align-items: flex-end;
 }
 

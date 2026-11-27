@@ -126,10 +126,10 @@ namespace WitchMendokusai
 
 		private static string CostText(HomesteadSim sim, PlaceableDef placeable)
 		{
-			List<string> parts = new();
+			List<(string Name, int Have, int Need)> parts = new();
 			foreach (KeyValuePair<string, int> pair in placeable.Cost.Goods)
-				parts.Add($"{sim.Catalog.Get<GoodsDef>(pair.Key).Name} {sim.Count(pair.Key)}/{pair.Value}");
-			return string.Join("  ", parts);
+				parts.Add((sim.Catalog.Get<GoodsDef>(pair.Key).Name, sim.Count(pair.Key), pair.Value));
+			return BuildSlotText.Cost(parts);
 		}
 
 		public void ShowReason(string reason)
