@@ -20,6 +20,27 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
+		// 지을 건물은 4x4. 확정 f12-3 으로 박물관 7x5, 갱도 6x5 는 예외
+		// 낚시터 2x2 는 판정에 없던 것이라 지금 값을 그대로 적어 둠
+		[Test]
+		public void Buildings_are_four_by_four_except_approved_ones()
+		{
+			Dictionary<string, (int Width, int Depth)> exceptions = new()
+			{
+				{ "museum", (7, 5) },
+				{ "quarry", (6, 5) },
+				{ "dock", (2, 2) },
+			};
+			HomesteadCatalog catalog = HomesteadTestKit.LoadCatalog();
+			foreach (BuildingDef building in catalog.Buildings)
+			{
+				PlaceableDef placeable = catalog.Placeables.Find(candidate => candidate.Id == building.Id);
+				Assert.That(placeable, Is.Not.Null, building.Id);
+				(int Width, int Depth) expected = exceptions.TryGetValue(building.Id, out (int Width, int Depth) size) ? size : (4, 4);
+				Assert.That((placeable.Width, placeable.Depth), Is.EqualTo(expected), building.Id);
+			}
+		}
+
 		[Test]
 		public void Buildings_do_not_all_face_one_way()
 		{
@@ -99,6 +120,36 @@ namespace WitchMendokusai.Tests
 			Assert.That(sim.PieceAt(-20, 20), Is.SameAs(fence));
 			sim.RemovePiece(fence.Uid);
 			Assert.That(sim.PieceAt(-20, 20), Is.SameAs(path));
+		}
+
+		[Test]
+		public void First_decor_of_a_kind_in_the_village_pays_guild_exp_once()
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
+			sim.Give("wood", 10);
+			Assert.That(sim.Put("fence", -20, 20, 0, out PlacedPiece first).Ok);
+			int exp = sim.State.GuildExp;
+			Assert.That(sim.RemovePiece(first.Uid).Ok);
+			Assert.That(sim.Put("fence", -20, 20, 0, out PlacedPiece _).Ok);
+			Assert.That(sim.Put("fence", -19, 20, 0, out PlacedPiece _).Ok);
+			Assert.That(exp, Is.EqualTo(sim.Catalog.Tuning.FirstPlaceGuildExp));
+			Assert.That(sim.State.GuildExp, Is.EqualTo(exp), "거뒀다 다시 놓아도 한 번");
+			sim.Put("path_dirt", -18, 20, 0, out PlacedPiece _);
+			Assert.That(sim.State.GuildExp, Is.EqualTo(exp * 2), "다른 종류는 따로");
+		}
+
+		[Test]
+		public void Locked_building_and_decor_name_the_town_hall_tier_they_need()
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
+			HomesteadResult ranch = sim.CanBuild("ranch");
+			Assert.That(ranch.Failure, Is.EqualTo(HomesteadFailure.TownHallTooLow));
+			Assert.That(ranch.Subject, Is.EqualTo("3"));
+			PlaceableDef fence = sim.Catalog.Get<PlaceableDef>("fence");
+			fence.TownHall = 4;
+			HomesteadResult decor = sim.CanMakeDecor("fence");
+			Assert.That(decor.Failure, Is.EqualTo(HomesteadFailure.TownHallTooLow));
+			Assert.That(decor.Subject, Is.EqualTo("4"));
 		}
 
 		[Test]

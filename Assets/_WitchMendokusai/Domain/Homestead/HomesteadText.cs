@@ -63,7 +63,7 @@ namespace WitchMendokusai
 				case HomesteadFailure.NotEnoughNyang:
 					return "냥이 부족합니다.";
 				case HomesteadFailure.TownHallTooLow:
-					return "회관을 더 키워야 합니다.";
+					return result.Subject.Length == 0 ? "회관을 더 키워야 합니다." : $"회관 {result.Subject}단 필요";
 				case HomesteadFailure.NotBuilt:
 					return catalog.TryGet(result.Subject, out BuildingDef building) ? $"{building.Name} 필요" : "아직 짓지 않았습니다.";
 				case HomesteadFailure.NobodyThere:
