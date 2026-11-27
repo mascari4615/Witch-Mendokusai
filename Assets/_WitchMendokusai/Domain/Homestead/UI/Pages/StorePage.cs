@@ -34,7 +34,7 @@ namespace WitchMendokusai
 		protected override string IconKey => place == StorePlace.Shop ? HomesteadSim.SHOP : HomesteadSim.WORKSHOP;
 		public override IReadOnlyList<string> Tabs => place == StorePlace.Bench ? BENCH_TABS : place == StorePlace.Shop ? SHOP_TABS : WORKSHOP_TABS;
 		public override bool IsGrid(int tab) => Tabs[tab] != TAB_CRAFT && Tabs[tab] != TAB_HOUSE;
-		public override string Status => place == StorePlace.Workshop ? (Sim.IsBuilt(HomesteadSim.WORKSHOP) ? $"가공 {Sim.State.Crafts.Count} / {Sim.CraftSlots}" : "공작소를 아직 짓지 않음") : string.Empty;
+		public override string Status => place == StorePlace.Workshop ? (Sim.IsBuilt(HomesteadSim.WORKSHOP) ? $"가공 {Sim.BusyCrafts} / {Sim.CraftSlots}" : "공작소를 아직 짓지 않음") : string.Empty;
 		public override string EmptyText(int tab) => Tabs[tab] == TAB_STORE ? "창고가 비었습니다." : string.Empty;
 
 		private string Source => place == StorePlace.Bench ? HomesteadSim.BENCH : place == StorePlace.Shop ? HomesteadSim.SHOP : HomesteadSim.WORKSHOP;

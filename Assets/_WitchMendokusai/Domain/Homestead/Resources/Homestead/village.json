@@ -75,7 +75,7 @@
 		{"Id": "c_glass", "Name": "유리 굽기", "Building": "workshop", "Level": 2, "Inputs": {"quartz": 2, "coal": 1}, "Output": "glass", "Amount": 2, "Minutes": 90},
 		{"Id": "c_cloth", "Name": "천 짜기", "Building": "bench", "Level": 1, "Inputs": {"thread": 2}, "Output": "cloth", "Amount": 1, "Minutes": 0},
 		{"Id": "c_cloth2", "Name": "양털 짜기", "Building": "workshop", "Level": 2, "Inputs": {"wool": 1}, "Output": "cloth", "Amount": 1, "Minutes": 60},
-		{"Id": "c_flour", "Name": "밀 빻기", "Building": "workshop", "Level": 1, "Inputs": {"wheat": 3}, "Output": "flour", "Amount": 1, "Minutes": 40},
+		{"Id": "c_flour", "Name": "밀 빻기", "Building": "workshop", "Level": 1, "Inputs": {"wheat": 2}, "Output": "flour", "Amount": 1, "Minutes": 40},
 		{"Id": "c_bread", "Name": "빵 굽기", "Building": "workshop", "Level": 1, "Inputs": {"flour": 1, "egg": 1}, "Output": "bread", "Amount": 1, "Minutes": 60},
 		{"Id": "c_bread2", "Name": "들빵 굽기", "Building": "workshop", "Level": 1, "Inputs": {"flour": 2}, "Output": "bread", "Amount": 1, "Minutes": 90},
 		{"Id": "c_soup", "Name": "수프 끓이기", "Building": "workshop", "Level": 1, "Inputs": {"potato": 1, "carrot": 1, "turnip": 1}, "Output": "soup", "Amount": 1, "Minutes": 90},
