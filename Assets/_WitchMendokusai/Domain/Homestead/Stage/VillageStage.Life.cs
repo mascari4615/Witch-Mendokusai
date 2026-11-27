@@ -9,13 +9,16 @@ namespace WitchMendokusai
 	{
 		[Header("Life")]
 		[SerializeField] private float personHeight = 1.15f;
+		// 밭 인형은 문이 아니라 밭을 거님
+		[SerializeField] private float farmWorkerWander = 2.2f;
 		[SerializeField] private RanchYard ranchYard = new();
+		[SerializeField] private DoorYard doorYard = new();
 
 		private readonly Dictionary<string, VillageWalker> people = new();
 		private readonly Dictionary<string, VillageWalker> workers = new();
 		private readonly Dictionary<int, VillageWalker> animals = new();
 
-		private Vector3 DoorOf(string id) => DoorPoint(id, 0.6f, 1.2f);
+		private Vector3 DoorStand(string id, (float Side, float Ahead) stand) => DoorPoint(id, stand.Ahead, stand.Side);
 
 		private void RefreshLife()
 		{
@@ -31,14 +34,14 @@ namespace WitchMendokusai
 			{
 				if (Sim.HasArrived(resident.Id) == false)
 					continue;
-				Vector3 home = Sim.IsBuilt(resident.Building) ? DoorOf(resident.Building) : DoorPoint(HomesteadSim.HALL, 1f, -2.4f + people.Count * 0.8f);
+				Vector3 home = Sim.IsBuilt(resident.Building) ? DoorStand(resident.Building, doorYard.Resident()) : DoorStand(HomesteadSim.HALL, doorYard.Queue(people.Count));
 				if (people.TryGetValue(resident.Id, out VillageWalker walker))
 				{
 					walker.SetHome(home);
 					continue;
 				}
 				ResidentDef captured = resident;
-				VillageWalker made = VillageWalker.Create(outdoor, home, Art.Icon(resident.Id), null, personHeight, 1.6f);
+				VillageWalker made = VillageWalker.Create(outdoor, home, Art.Icon(resident.Id), null, personHeight, doorYard.PersonWander);
 				HomesteadSpot.Attach(made.gameObject, () => captured.Name, () => Sim.CanGiftToday(captured.Id) ? "선물할 수 있음" : $"호감 {Sim.AffinityStep(captured.Id)}단", () =>
 				{
 					Sim.Greet(captured.Id);
@@ -64,7 +67,7 @@ namespace WitchMendokusai
 				if (walker == null)
 				{
 					JobDef captured = job;
-					walker = VillageWalker.Create(outdoor, WorkPlace(job), HeadOf(doll), BodyOf(doll), personHeight, 2.2f);
+					walker = VillageWalker.Create(outdoor, WorkPlace(job), HeadOf(doll), BodyOf(doll), personHeight, job.Building == HomesteadSim.FARM ? farmWorkerWander : doorYard.PersonWander);
 					HomesteadSpot.Attach(walker.gameObject, () => SOHelper.GetDoll(Sim.State.Jobs[captured.Id].DollId).Name, () => JobRole(captured), () => UseWorker(captured), () => Sim.JobReady(captured.Id) > 0 ? "거두기" : "맡기기");
 					workers[job.Id] = walker;
 				}
@@ -78,7 +81,13 @@ namespace WitchMendokusai
 
 		private static Sprite BodyOf(Doll doll) => doll.Sprites.Count > 1 ? doll.Sprites[1] : null;
 
-		private Vector3 WorkPlace(JobDef job) => job.Building == HomesteadSim.FARM ? farmOrigin + new Vector3(plotGap.x * 2.5f, 0f, 1.4f) : DoorOf(job.Building) + new Vector3(0.8f, 0f, -0.8f);
+		// 밭 인형은 밭 가운데. 나머지는 문 왼쪽, 목장은 동물 줄 바깥
+		private Vector3 WorkPlace(JobDef job)
+		{
+			if (job.Building == HomesteadSim.FARM)
+				return farmOrigin + new Vector3(plotGap.x * 2.5f, 0f, 1.4f);
+			return DoorStand(job.Building, job.Building == HomesteadSim.RANCH ? ranchYard.Beyond() : doorYard.Worker());
+		}
 
 		private string JobRole(JobDef job)
 		{
