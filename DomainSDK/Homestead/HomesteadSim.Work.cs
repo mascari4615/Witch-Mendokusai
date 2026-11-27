@@ -14,6 +14,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		public bool IsCraftDone(CraftState craft) => State.Minutes >= craft.ReadyAt;
 
+		// 다 된 것은 칸을 막지 않음. 새로 넣을 때 창고로 거둠
+		public int BusyCrafts => State.Crafts.FindAll(craft => IsCraftDone(craft) == false).Count;
+
 		public HomesteadResult CanCraft(string recipeId)
 		{
 			RecipeDef recipe = Catalog.Get<RecipeDef>(recipeId);
@@ -22,7 +25,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				return HomesteadResult.Fail(HomesteadFailure.NotBuilt, recipe.Building);
 			}
-			if (isBench == false && State.Crafts.Count >= CraftSlots)
+			if (isBench == false && BusyCrafts >= CraftSlots)
 			{
 				return HomesteadResult.Fail(HomesteadFailure.Busy);
 			}
@@ -54,6 +57,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				NotifyChanged();
 				return HomesteadResult.Success;
 			}
+			TakeDoneCrafts();
 			State.Crafts.Add(new CraftState { Recipe = recipeId, ReadyAt = State.Minutes + recipe.Minutes });
 			NotifyChanged();
 			return HomesteadResult.Success;
@@ -61,16 +65,22 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		public int CollectCrafts()
 		{
+			int done = TakeDoneCrafts();
+			if (done > 0)
+			{
+				NotifyChanged();
+			}
+			return done;
+		}
+
+		private int TakeDoneCrafts()
+		{
 			List<CraftState> done = State.Crafts.FindAll(IsCraftDone);
 			foreach (CraftState craft in done)
 			{
 				RecipeDef recipe = Catalog.Get<RecipeDef>(craft.Recipe);
 				Give(recipe.Output, recipe.Amount);
 				State.Crafts.Remove(craft);
-			}
-			if (done.Count > 0)
-			{
-				NotifyChanged();
 			}
 			return done.Count;
 		}
