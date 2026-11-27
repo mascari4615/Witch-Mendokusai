@@ -11,7 +11,6 @@ namespace WitchMendokusai.Tests
 	{
 		private const int RUNS = 120;
 		private const int NEVER = 999;
-		private const double RESCUE_CHANCE = 0.5;
 		private static readonly int[] SEEDS = { 11, 23, 37, 41, 53 };
 
 		[Test]
@@ -30,11 +29,12 @@ namespace WitchMendokusai.Tests
 		}
 
 		// 챙기는 손: 시설 하루 한 번과 가진 것 중 가장 반기는 선물 하루 한 번. 의뢰만: 둘 다 안 함
-		[Test]
-		public void Caring_reaches_the_last_step_in_weeks_and_requests_alone_still_get_there()
+		// 갇힌 사람은 판마다 이 확률로 구함
+		[TestCase(0.5)]
+		public void Caring_reaches_the_last_step_in_weeks_and_requests_alone_still_get_there(double rescueChance)
 		{
-			Dictionary<string, List<int>> caring = MaxStepDays(true);
-			Dictionary<string, List<int>> plain = MaxStepDays(false);
+			Dictionary<string, List<int>> caring = MaxStepDays(true, rescueChance);
+			Dictionary<string, List<int>> plain = MaxStepDays(false, rescueChance);
 			foreach (KeyValuePair<string, List<int>> pair in caring)
 			{
 				int caringDays = Median(pair.Value);
@@ -54,7 +54,7 @@ namespace WitchMendokusai.Tests
 		}
 
 		// 주민마다 도착한 날부터 마지막 단계까지 걸린 날. 못 닿으면 NEVER
-		private static Dictionary<string, List<int>> MaxStepDays(bool caring)
+		private static Dictionary<string, List<int>> MaxStepDays(bool caring, double rescueChance)
 		{
 			// 마을 봇은 판 수 시험의 것을 그대로 씀. 이름이 바뀌면 여기서 바로 깨짐
 			MethodInfo playDungeon = typeof(HomesteadPlayTest).GetMethod("PlayDungeon", BindingFlags.NonPublic | BindingFlags.Static);
@@ -74,7 +74,7 @@ namespace WitchMendokusai.Tests
 				{
 					playDungeon.Invoke(null, new object[] { sim, purse, random, run });
 					List<string> wanted = sim.WantedRescues();
-					if (wanted.Count > 0 && random.NextDouble() < RESCUE_CHANCE)
+					if (wanted.Count > 0 && random.NextDouble() < rescueChance)
 					{
 						sim.NotifyRescue(wanted[0]);
 					}
