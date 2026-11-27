@@ -18,6 +18,7 @@ namespace WitchMendokusai
 		public event Action<int> EntryClicked = delegate { };
 		public event Action<int> TabClicked = delegate { };
 		public event Action<int> ActionClicked = delegate { };
+		public event Action CloseClicked = delegate { };
 
 		private readonly VisualElement stage;
 		private readonly VisualElement titleIcon;
@@ -66,6 +67,14 @@ namespace WitchMendokusai
 			walletRoot.Add(band);
 			Make(SHOP + "wallet-nyang", Make(SHOP + "wallet-cap", walletRoot));
 			wallet = MakeOutlined(SHOP + "wallet-value", walletRoot);
+
+			// 손가락에는 X 키가 없음. 냥 왼쪽에 닫기, 모양은 할 일 버튼과 같음
+			VisualElement close = KeyHint.TouchOnly(Make(BLOCK + "close", stage, picking: true));
+			ShopSlantFill closeFill = new();
+			closeFill.AddToClassList(BLOCK + "action-fill");
+			close.Add(closeFill);
+			MakeLabel(BLOCK + "action-name", close, "닫기");
+			close.RegisterCallback<ClickEvent>(_ => CloseClicked());
 
 			tabRow = Make(SHOP + "tabs", stage);
 
