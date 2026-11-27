@@ -1,10 +1,8 @@
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 namespace WitchMendokusai
 {
-	// 마을에 있는 동안의 빛. 하늘 상자, 눕힌 해와 부드러운 그림자, 안개, 화면 색
+	// 마을에 있는 동안의 빛. 하늘 상자, 눕힌 해와 부드러운 그림자, 안개
 	// 하늘 시계 (SkyDirector) 가 쓴 값 위에 얹고 나갈 때 되돌림. 스테이지의 자식이라 마을을 나가면 같이 꺼짐
 	[DefaultExecutionOrder(200)]
 	public sealed class VillageLook : MonoBehaviour
@@ -35,19 +33,8 @@ namespace WitchMendokusai
 		[SerializeField] private Vector2 wind = new(0.1f, 0.06f);
 		[SerializeField] private float windSpeed = 1.3f;
 
-		[Header("Screen")]
-		[SerializeField] private float priority = 10f;
-		[SerializeField] private float exposure = 0.02f;
-		[SerializeField] private float contrast = 16f;
-		[SerializeField] private float saturation = 14f;
-		[SerializeField] private float temperature = 5f;
-		[SerializeField] private float bloomThreshold = 0.92f;
-		[SerializeField] private float bloomIntensity = 0.55f;
-		[SerializeField] private float bloomScatter = 0.72f;
-		[SerializeField] private Color bloomTint = new(1f, 0.95f, 0.85f);
-		[SerializeField] private float vignette = 0.16f;
+		// 화면 색 (노출, 대비, 채도, 빛 번짐, 비네트) 은 덮지 않음. 숲과 같은 카메라 공통 프로필 (Camera.prefab 의 Gaussian) 을 그대로 씀
 
-		private VolumeProfile profile;
 		private Light sun;
 		private LightShadows sunShadows;
 		private float sunStrength;
@@ -61,27 +48,6 @@ namespace WitchMendokusai
 			GameObject look = new(nameof(VillageLook));
 			look.transform.SetParent(parent, false);
 			look.AddComponent<VillageLook>();
-		}
-
-		private void Awake()
-		{
-			profile = ScriptableObject.CreateInstance<VolumeProfile>();
-			profile.hideFlags = HideFlags.DontSave;
-			ColorAdjustments color = profile.Add<ColorAdjustments>();
-			color.postExposure.Override(exposure);
-			color.contrast.Override(contrast);
-			color.saturation.Override(saturation);
-			profile.Add<WhiteBalance>().temperature.Override(temperature);
-			profile.Add<Vignette>().intensity.Override(vignette);
-			Bloom bloom = profile.Add<Bloom>();
-			bloom.threshold.Override(bloomThreshold);
-			bloom.intensity.Override(bloomIntensity);
-			bloom.scatter.Override(bloomScatter);
-			bloom.tint.Override(bloomTint);
-			Volume volume = gameObject.AddComponent<Volume>();
-			volume.isGlobal = true;
-			volume.priority = priority;
-			volume.sharedProfile = profile;
 		}
 
 		private void OnEnable()
@@ -148,12 +114,6 @@ namespace WitchMendokusai
 			Color zenith = isIndoor ? sky.Indoor.Blend(preset.ZenithColor, time) : preset.ZenithColor.Evaluate(time);
 			RenderSettings.fogColor = Color.Lerp(fog, zenith, fogBlue);
 			RenderSettings.fogDensity = preset.FogDensity.Evaluate(time) * fogDensity;
-		}
-
-		private void OnDestroy()
-		{
-			if (profile != null)
-				Destroy(profile);
 		}
 	}
 }

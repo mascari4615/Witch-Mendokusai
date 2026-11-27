@@ -34,6 +34,9 @@ namespace WitchMendokusai
 		[Header("Animals")]
 		[SerializeField] private AnimalFrames[] animals;
 
+		// 걷는 이 발밑 원판. 플레이어 프리팹 Shadow 와 같은 그림
+		[field: SerializeField] public Sprite GroundDisc { get; private set; }
+
 		// 같은 종의 생김새가 여럿이면 번호로 고름
 		public Sprite[] FramesOf(string animalId, int number)
 		{
