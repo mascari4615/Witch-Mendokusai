@@ -52,10 +52,14 @@ namespace WitchMendokusai
 			context.LogSuccess($"{matches[0].Name} 하나만 장착");
 		}
 
-		// 새 동작 부품 시험 무기. 이름 조각이 하나만 맞아야 함
+		// 새 동작 부품 시험 무기. 이름이 정확히 같은 것이 있으면 그것, 아니면 이름 조각이 하나만 맞아야 함
+		// (스킬 재료는 Skill_X 와 Skill_X_Slow 처럼 서로를 품는 이름이 흔함)
 		private static void ExecuteTrial(DevCommandContext context, string name)
 		{
-			List<GameObject> matches = DevCombatTools.TrialWeapons().Where(weapon => weapon.name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+			GameObject[] trials = DevCombatTools.TrialWeapons();
+			List<GameObject> matches = trials.Where(weapon => string.Equals(weapon.name, name, StringComparison.OrdinalIgnoreCase)).ToList();
+			if (matches.Count == 0)
+				matches = trials.Where(weapon => weapon.name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
 			if (matches.Count != 1)
 			{
 				context.LogError(matches.Count == 0 ? $"맞는 시험 무기 없음: '{name}'" : $"후보 {matches.Count}개, 더 정확히: {string.Join(", ", matches.Select(weapon => weapon.name))}");

@@ -104,7 +104,7 @@ namespace WitchMendokusai
 			ObjectPoolManager objectPoolManager = ObjectPoolManager.Instance;
 			GameObject weapon = objectPoolManager.Spawn(weaponObject);
 			if (weapon.TryGetComponent(out SkillObject skillObject))
-				skillObject.InitContext(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager, null));
+				skillObject.InitContext(new SkillContext(playerProvider.CurrentObject, playerProvider, objectPoolManager, DevTrialEquipment.Instance));
 			weapon.SetActive(true);
 		}
 
