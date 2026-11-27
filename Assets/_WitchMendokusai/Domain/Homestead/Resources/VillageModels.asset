@@ -1601,6 +1601,20 @@ MonoBehaviour:
     Solids:
     - m_Center: {x: 0, y: 0.5, z: 3.57}
       m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: 0, y: 0.51, z: 3.57}
+      m_Extent: {x: 2.295, y: 0.51, z: 2.125}
+    - m_Center: {x: -2.89, y: 2.1, z: -6.63}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
+    - m_Center: {x: -2.89, y: 2.1, z: -4.08}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
+    - m_Center: {x: -2.89, y: 2.1, z: -1.53}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
+    - m_Center: {x: 2.89, y: 2.1, z: -6.63}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
+    - m_Center: {x: 2.89, y: 2.1, z: -4.08}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
+    - m_Center: {x: 2.89, y: 2.1, z: -1.53}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
     - m_Center: {x: -4.08, y: 0.75, z: 0.85}
       m_Extent: {x: 0.53, y: 0.75, z: 0.38}
     - m_Center: {x: 4.08, y: 0.75, z: 0.85}
@@ -1622,6 +1636,8 @@ MonoBehaviour:
     Solids:
     - m_Center: {x: 0, y: 0.5, z: 3.57}
       m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: 0, y: 0.5, z: 3.57}
+      m_Extent: {x: 1.955, y: 0.5, z: 1.955}
     - m_Center: {x: -4.08, y: 0.75, z: 0.85}
       m_Extent: {x: 0.53, y: 0.75, z: 0.38}
     - m_Center: {x: 4.08, y: 0.75, z: 0.85}
@@ -1642,6 +1658,14 @@ MonoBehaviour:
     Solids:
     - m_Center: {x: 0, y: 0.5, z: 3.57}
       m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: -6.46, y: 3.57, z: -2.72}
+      m_Extent: {x: 0.765, y: 3.57, z: 0.765}
+    - m_Center: {x: 6.46, y: 3.57, z: -2.72}
+      m_Extent: {x: 0.765, y: 3.57, z: 0.765}
+    - m_Center: {x: -6.46, y: 3.57, z: 4.59}
+      m_Extent: {x: 0.765, y: 3.57, z: 0.765}
+    - m_Center: {x: 6.46, y: 3.57, z: 4.59}
+      m_Extent: {x: 0.765, y: 3.57, z: 0.765}
     - m_Center: {x: -4.08, y: 0.75, z: 0.85}
       m_Extent: {x: 0.53, y: 0.75, z: 0.38}
     - m_Center: {x: 4.08, y: 0.75, z: 0.85}
@@ -1674,8 +1698,26 @@ MonoBehaviour:
     CastShadow: 1
     Cells: {x: 1, y: 1}
     Solids:
-    - m_Center: {x: 0, y: 0.5, z: 3.57}
+    - m_Center: {x: 0, y: 0.908, z: 3.57}
       m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: -7.14, y: 2.2, z: -5.61}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: -7.14, y: 2.2, z: -1.87}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: -7.14, y: 2.2, z: 1.87}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: -7.14, y: 2.2, z: 5.61}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: 7.14, y: 2.2, z: -5.61}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: 7.14, y: 2.2, z: -1.87}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: 7.14, y: 2.2, z: 1.87}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: 7.14, y: 2.2, z: 5.61}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: 0, y: 0.204, z: 3.57}
+      m_Extent: {x: 2.55, y: 0.204, z: 2.21}
     - m_Center: {x: -4.08, y: 0.75, z: 0.85}
       m_Extent: {x: 0.53, y: 0.75, z: 0.38}
     - m_Center: {x: 4.08, y: 0.75, z: 0.85}
