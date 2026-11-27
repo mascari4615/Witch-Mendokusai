@@ -24,3 +24,4 @@ MonoBehaviour:
   <SurvivalAnnounce>k__BackingField: {fileID: 11400000, guid: c00d66c252d045018428e613e10d66e4, type: 2}
   <UnitBaseStats>k__BackingField: {fileID: 11400000, guid: 97eace437d984fa0b70d30d19ae09939, type: 2}
   <MonsterLog>k__BackingField: {fileID: 11400000, guid: b0108d20706741e98a3a04d20132f2d3, type: 2}
+  <Scrolls>k__BackingField: {fileID: 11400000, guid: f71c4c79c2b54f7d97ccc78a580536f1, type: 2}

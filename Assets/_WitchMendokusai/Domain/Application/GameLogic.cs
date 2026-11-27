@@ -113,6 +113,12 @@ namespace WitchMendokusai
 				return;
 			}
 
+			SpawnItem(dropItem, position);
+		}
+
+		/// <summary>바닥에 아이템 하나. 처치 드롭 표 밖에서 따로 굴린 것 (봉인된 두루마리) 도 같은 모습으로 떨어짐</summary>
+		public void SpawnItem(ItemData dropItem, Vector3 position)
+		{
 			GameObject lootItem = objectPoolManager.Spawn(
 				resourceManager.LootItemPrefab,
 				GetRandomSpawnPosOffset(position)

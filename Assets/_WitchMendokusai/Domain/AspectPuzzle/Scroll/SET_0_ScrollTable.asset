@@ -14,6 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: WM.Domain::WitchMendokusai.ScrollTableSO
   <PaperScroll>k__BackingField: {fileID: 11400000, guid: 62b9b9789c44409e9357ad668843b8f3, type: 2}
   <TurnScroll>k__BackingField: {fileID: 11400000, guid: c180625c116d45a4b7c43b14949319dc, type: 2}
+  <EliteDropPercent>k__BackingField: 10
+  <BossDropPercent>k__BackingField: 50
+  <PaperShare>k__BackingField: 0.5
   <Rows>k__BackingField:
   - <Id>k__BackingField: 1
     <Kind>k__BackingField: 0

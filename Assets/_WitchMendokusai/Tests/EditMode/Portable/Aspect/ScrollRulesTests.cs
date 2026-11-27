@@ -97,5 +97,33 @@ namespace WitchMendokusai.Tests
 			Assert.That(ScrollRules.CanInterpret(none, new ScrollKnowledge()), Is.False);
 			Assert.That(ScrollRules.TryDraw(none, new ScrollKnowledge(), First, out _), Is.False);
 		}
+
+		private static readonly ScrollDropChances CHANCES = new ScrollDropChances(10f, 50f, 0.5f);
+
+		[Test]
+		public void 보통_몬스터는_안_떨군다()
+		{
+			Assert.That(ScrollDropRules.TryDrop(false, false, CHANCES, 0.0, 0.0, out _), Is.False);
+		}
+
+		[Test]
+		public void 정예와_보스는_자기_확률로_떨군다()
+		{
+			Assert.That(ScrollDropRules.TryDrop(false, true, CHANCES, 0.09, 0.0, out _), Is.True);
+			Assert.That(ScrollDropRules.TryDrop(false, true, CHANCES, 0.11, 0.0, out _), Is.False);
+			Assert.That(ScrollDropRules.TryDrop(true, false, CHANCES, 0.49, 0.0, out _), Is.True);
+			Assert.That(ScrollDropRules.TryDrop(true, true, CHANCES, 0.49, 0.0, out _), Is.True, "보스이면서 정예면 보스 확률");
+			Assert.That(ScrollDropRules.TryDrop(true, false, CHANCES, 0.51, 0.0, out _), Is.False);
+		}
+
+		[Test]
+		public void 종류는_몫으로_가른다()
+		{
+			ScrollDropRules.TryDrop(true, false, CHANCES, 0.0, 0.49, out bool paper);
+			ScrollDropRules.TryDrop(true, false, CHANCES, 0.0, 0.5, out bool turn);
+
+			Assert.That(paper, Is.True);
+			Assert.That(turn, Is.False);
+		}
 	}
 }

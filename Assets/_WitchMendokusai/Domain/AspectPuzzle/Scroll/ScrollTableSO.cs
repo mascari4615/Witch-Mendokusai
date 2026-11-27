@@ -17,6 +17,11 @@ namespace WitchMendokusai
 		[field: SerializeField, Tooltip("풀면 육각 종이 문제 하나")] public ItemData PaperScroll { get; private set; }
 		[field: SerializeField, Tooltip("풀면 번갈아 문제 하나")] public ItemData TurnScroll { get; private set; }
 
+		[field: Header("떨어지는 곳 (처치 드롭 표와 따로 굴림)")]
+		[field: SerializeField, Range(0f, 100f), Tooltip("정예 처치 때 백분율")] public float EliteDropPercent { get; private set; } = 10f;
+		[field: SerializeField, Range(0f, 100f), Tooltip("보스 처치 때 백분율")] public float BossDropPercent { get; private set; } = 50f;
+		[field: SerializeField, Range(0f, 1f), Tooltip("떨어질 때 종이 두루마리일 몫. 나머지는 번갈아")] public float PaperShare { get; private set; } = 0.5f;
+
 		[field: Header("든 것")]
 		[field: SerializeField] public List<ScrollTableRow> Rows { get; private set; } = new();
 
