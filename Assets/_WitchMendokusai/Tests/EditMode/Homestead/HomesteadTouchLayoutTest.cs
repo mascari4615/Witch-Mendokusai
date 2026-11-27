@@ -12,11 +12,11 @@ namespace WitchMendokusai.Tests
 	// 기본 HUD (uGUI, 씬 프리팹) 사각형은 USS 에 없어 C8 촬영 (2400x1080, 2026-11-27) 에서 잰 값. 모서리에 붙어 있다고 봄
 	public class HomesteadTouchLayoutTest
 	{
-		private const float PANEL_HEIGHT = 800f;
+		private const float PANEL_VERTICAL_UNITS = 800f;
 		// 한글 한 자는 글자 크기만큼, 나머지 (숫자, 빗금, 칸) 는 0.6 배로 어림. 줄 높이는 1.45 배
 		private const float HANGUL_WIDTH = 1f;
 		private const float OTHER_WIDTH = 0.6f;
-		private const float LINE_HEIGHT = 1.45f;
+		private const float LINE_SPACING_FACTOR = 1.45f;
 		// 가진 수는 끝이 없어서 세 자리로 어림
 		private const int WIDE_HAVE = 999;
 
@@ -50,14 +50,14 @@ namespace WitchMendokusai.Tests
 		[SetUp]
 		public void ReadStyleSheet() => currentUss = HomesteadTestKit.StyleSheetText();
 
-		private static float PanelWidth(int[] screen) => screen[0] * PANEL_HEIGHT / screen[1];
+		private static float PanelWidth(int[] screen) => screen[0] * PANEL_VERTICAL_UNITS / screen[1];
 
 		// 기본 HUD. C8 촬영 1200x540 축소본에서 잰 픽셀을 패널 단위로 (x2 / 1.35)
 		private static List<Box> BaseHud(float width)
 		{
 			return new List<Box>
 			{
-				new("13/13 과 냥", width - 252f, PANEL_HEIGHT - 98f, width - 77f, PANEL_HEIGHT - 30f),
+				new("13/13 과 냥", width - 252f, PANEL_VERTICAL_UNITS - 98f, width - 77f, PANEL_VERTICAL_UNITS - 30f),
 				new("왼쪽 아래 체력", 74f, 696f, 363f, 770f),
 				new("가운데 아래 기술 셋", width / 2f - 30f, 711f, width / 2f + 178f, 778f),
 				new("오른쪽 위 메뉴", width - 104f, 44f, width - 41f, 107f),
@@ -69,7 +69,7 @@ namespace WitchMendokusai.Tests
 		{
 			float bottom = Px(".wm-hs-hud__duel", "bottom");
 			float half = Px(".wm-hs-hud__duel", "width") / 2f;
-			return new Box("낚시 눈금", width / 2f - half, PANEL_HEIGHT - bottom - 160f, width / 2f + half, PANEL_HEIGHT - bottom);
+			return new Box("낚시 눈금", width / 2f - half, PANEL_VERTICAL_UNITS - bottom - 160f, width / 2f + half, PANEL_VERTICAL_UNITS - bottom);
 		}
 
 		private static (Box Reel, Box Stop) FishingButtons(float width, float columnBottom)
@@ -80,7 +80,7 @@ namespace WitchMendokusai.Tests
 			float stopHeight = Px(".wm-hs-fish__stop", "height");
 			float stopWidth = Px(".wm-hs-fish__stop", "min-width");
 			float stopGap = Px(".wm-hs-fish__stop", "margin-bottom");
-			float reelBottom = PANEL_HEIGHT - columnBottom;
+			float reelBottom = PANEL_VERTICAL_UNITS - columnBottom;
 			float stopBottom = reelBottom - reel - stopGap;
 			return (new Box("채기 버튼", width - right - reelWidth, reelBottom - reel, width - right, reelBottom),
 				new Box("그만두기", width - right - stopWidth, stopBottom - stopHeight, width - right, stopBottom));
@@ -140,7 +140,7 @@ namespace WitchMendokusai.Tests
 		private static Box DecorateBox()
 		{
 			float left = Px(".wm-hs-hud__decorate", "left");
-			float top = Percent(".wm-hs-hud__decorate", "top") * PANEL_HEIGHT;
+			float top = Percent(".wm-hs-hud__decorate", "top") * PANEL_VERTICAL_UNITS;
 			return new Box("꾸미기", left, top, left + Px(".wm-hs-hud__decorate", "min-width"), top + Px(".wm-hs-hud__decorate", "height"));
 		}
 
@@ -150,7 +150,7 @@ namespace WitchMendokusai.Tests
 			float top = Px(".wm-hs-hud__digest", "top");
 			float[] padding = Sides(".wm-hs-hud__digest-card", "padding");
 			float border = Px(".wm-hs-hud__digest-card", "border-width");
-			float title = Px(".wm-hs-hud__digest-title", "font-size") * LINE_HEIGHT + Px(".wm-hs-hud__digest-title", "margin-bottom");
+			float title = Px(".wm-hs-hud__digest-title", "font-size") * LINE_SPACING_FACTOR + Px(".wm-hs-hud__digest-title", "margin-bottom");
 			float height = border * 2f + padding[0] + padding[2] + title + rows * Px(".wm-hs-hud__digest-row", "height");
 			return new Box("귀환 소식", left, top, left + Px(".wm-hs-hud__digest-card", "min-width"), top + height);
 		}
@@ -178,11 +178,11 @@ namespace WitchMendokusai.Tests
 				foreach (KeyValuePair<string, int> pair in placeable.Cost.Goods)
 					parts.Add((catalog.Get<GoodsDef>(pair.Key).Name, WIDE_HAVE, pair.Value));
 				string[] lines = BuildSlotText.Cost(parts).Split('\n');
-				float used = icon + Lines(placeable.Name, nameSize, innerWidth) * nameSize * LINE_HEIGHT;
+				float used = icon + Lines(placeable.Name, nameSize, innerWidth) * nameSize * LINE_SPACING_FACTOR;
 				foreach (string line in lines)
 				{
 					Assert.LessOrEqual(TextWidth(line, costSize), innerWidth, $"{placeable.Name}: '{line}'");
-					used += costSize * LINE_HEIGHT;
+					used += costSize * LINE_SPACING_FACTOR;
 				}
 				Assert.LessOrEqual(used, innerHeight, $"{placeable.Name}: 글자 {lines.Length}줄");
 				checkedCount++;
