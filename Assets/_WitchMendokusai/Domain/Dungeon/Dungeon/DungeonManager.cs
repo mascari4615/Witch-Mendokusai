@@ -187,16 +187,22 @@ namespace WitchMendokusai
 			dungeon.ValidateWaves();
 			dungeon.ValidateMapObjects();
 			// 해금 다시 판정 (다시 하기는 입장 창을 안 거침). 제약 데이터가 잘못이면 여기서 실패, 전환 표시 전이라 다음 입장이 막히지 않음
-			dungeon.RefreshConstraintUnlocks(dataManager.QuestManager.CreateCriteriaContext());
+			using (CostLog.Measure("StartDungeon.Unlocks"))
+			{
+				dungeon.RefreshConstraintUnlocks(dataManager.QuestManager.CreateCriteriaContext());
+			}
 			DungeonConstraintRunEffect constraintEffect = DungeonConstraintRules.RunEffect(dungeon.SelectedConstraints());
 			isTransitioning = true;
 			Debug.Log($"{nameof(StartDungeon)} ({dungeon.Name})");
 
-			EnsureDungeonUI();
-			CurDungeon = dungeon;
-			ConstraintEffect = constraintEffect;
-			CurThreat = ConstraintEffect.ApplyTo(ResolveThreat(dungeon, threatLevel));
-			dungeonStrategy = DungeonObjectiveStrategyFactory.Create(dungeon);
+			using (CostLog.Measure("StartDungeon.Prepare"))
+			{
+				EnsureDungeonUI();
+				CurDungeon = dungeon;
+				ConstraintEffect = constraintEffect;
+				CurThreat = ConstraintEffect.ApplyTo(ResolveThreat(dungeon, threatLevel));
+				dungeonStrategy = DungeonObjectiveStrategyFactory.Create(dungeon);
+			}
 
 			Stage stage = dungeon.Stages[0];
 
@@ -210,34 +216,46 @@ namespace WitchMendokusai
 				{
 					if (restart == false)
 					{
-						stageManager.LoadStage(stage);
+						using (CostLog.Measure("StartDungeon.LoadStage"))
+						{
+							stageManager.LoadStage(stage);
+						}
 						dungeonSpawnPosition = playerProvider.CurrentObject.transform.position;
 					}
 					else
 					{
 						playerProvider.CurrentObject.UnitMovement.Teleport(dungeonSpawnPosition);
 					}
-					InitDungeonAndPlayer();
+					using (CostLog.Measure("StartDungeon.Init"))
+					{
+						InitDungeonAndPlayer();
+					}
 				},
 				aWhenEnd: () =>
 				{
 					isTransitioning = false;
 					// 도입 연출이 있으면 그 띠가 던전 이름을 보이므로 스테이지 팝업은 생략
-					if (feel.DungeonIntroFx != null)
-						PlayFlowFx(feel.DungeonIntroFx, dungeon.Name, objectiveText);
-					else
-						uiManager.StagePopup(stage);
+					using (CostLog.Measure("StartDungeon.IntroFx"))
+					{
+						if (feel.DungeonIntroFx != null)
+							PlayFlowFx(feel.DungeonIntroFx, dungeon.Name, objectiveText);
+						else
+							uiManager.StagePopup(stage);
+					}
 				},
 				overrideWipe: feel.DungeonEnterWipe).Forget();
 
 			void InitDungeonAndPlayer()
 			{
 				RunSeed.Begin();
-				gameManager.Init();
-				dataManager.RunLoadout.Begin(runMode, resourceManager.SurvivalRunRules);
-				gameManager.InitEquipment();
-				gameManager.ApplyUpgradeEffects(); // [VamsurLike-Upgrade] - KarmoDDrine 2026-01-12
-				ApplyStartHealth();
+				using (CostLog.Measure("StartDungeon.Init.Player"))
+				{
+					gameManager.Init();
+					dataManager.RunLoadout.Begin(runMode, resourceManager.SurvivalRunRules);
+					gameManager.InitEquipment();
+					gameManager.ApplyUpgradeEffects(); // [VamsurLike-Upgrade] - KarmoDDrine 2026-01-12
+					ApplyStartHealth();
+				}
 
 				expChecker.SetRequirementMultiplier(dungeon.WaveOptions.ExpRequirementMultiplier(CurThreat.WaveRate));
 				expChecker.Init();
@@ -271,8 +289,11 @@ namespace WitchMendokusai
 				}
 
 				monsterSpawner.transform.position = playerProvider.Current.transform.position;
-				monsterSpawner.InitWaves(dungeon);
-				resourceNodeSpawner.InitWaves(dungeon);
+				using (CostLog.Measure("StartDungeon.Init.Waves"))
+				{
+					monsterSpawner.InitWaves(dungeon);
+					resourceNodeSpawner.InitWaves(dungeon);
+				}
 
 				// StartDungeonLoop();
 				{
@@ -289,10 +310,16 @@ namespace WitchMendokusai
 
 				// Context 생성 이후 UI 설정
 				// UIDungeonRuntime.UpdateUI(); 에서 Context를 사용합니다.
-				dungeonUI.SetPanel(DungeonPanelType.DungeonRuntime);
+				using (CostLog.Measure("StartDungeon.Init.RuntimePanel"))
+				{
+					dungeonUI.SetPanel(DungeonPanelType.DungeonRuntime);
+				}
 				cameraManager.SetContentCameraMode(ContentCameraMode.Dungeon);
 
-				gameEventManager.Raise(GameEventType.OnDungeonStart);
+				using (CostLog.Measure("StartDungeon.Init.StartEvent"))
+				{
+					gameEventManager.Raise(GameEventType.OnDungeonStart);
+				}
 				AudioManager.RequestMusic(MusicState.Dungeon);
 			}
 		}
@@ -352,116 +379,6 @@ namespace WitchMendokusai
 			return curClearCount >= targetClearCount;
 		}
 
-		// 사망 연출을 보인 뒤 결과창으로, 같은 판에서 클리어가 뒤따르면 클리어 우선
-		private void EndDungeonByDefeat()
-		{
-			if (IsDungeon == false || clearDelayRoutine != null)
-				return;
-			SurvivalFeelConfig feel = resourceManager.SurvivalFeel;
-			cardManager.CancelSelection();
-			CombatSfx.Play(CombatSfxEvent.Defeat);
-			AudioManager.RequestMusic(MusicState.Defeat);
-			PlayFlowFx(feel.DefeatFx, feel.DefeatTitle, CurDungeon.Name);
-			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(feel.DefeatResultDelay, false));
-		}
-
-		// 클리어는 승리 연출을 보인 뒤 결과창으로. 보스가 아닌 목표 (시간 생존 등) 도 같음
-		private void HandleClear()
-		{
-			if (clearDelayRoutine != null)
-			{
-				StopCoroutine(clearDelayRoutine);
-				clearDelayRoutine = null;
-			}
-			cardManager.CancelSelection();
-			SurvivalFeelConfig feel = resourceManager.SurvivalFeel;
-			float delay = feel.BossClearResultDelay;
-			AudioManager.RequestMusic(MusicState.Victory);
-			if (delay <= 0f)
-			{
-				EndDungeon(isCleared: true);
-				return;
-			}
-			// 패배 연출 중에 클리어가 뒤따르면 여기서 승리 연출로 바뀜
-			CombatSfx.Play(CombatSfxEvent.Victory);
-			PlayFlowFx(feel.VictoryFx, feel.VictoryTitle, CurDungeon.Name);
-			playerProvider.CurrentObject.GrantInvincibility(delay);
-			clearDelayRoutine = StartCoroutine(EndDungeonAfterDelay(delay, true));
-			if (feel.VacuumDropsOnClear)
-				StartCoroutine(VacuumDropsAfter(feel.ClearVacuumDelay));
-		}
-
-		// 남은 보상을 잃지 않고 한꺼번에. 보석, 냥, 재료 아이템. 보물 상자는 여는 효과 (카드 고르기) 가 있어서 뺌. 보스가 떨군 마도서 재료를 판이 끝나며 잃지 않게 아이템도 포함
-		private IEnumerator VacuumDropsAfter(float delay)
-		{
-			yield return new WaitForSecondsRealtime(delay);
-			bool pulled = false;
-			foreach (GameObject drop in ObjectBufferManager.GetObjects(ObjectType.Drop).ToArray())
-			{
-				if (drop == null || drop.activeInHierarchy == false || drop.TryGetComponent(out LootObject loot) == false)
-					continue;
-				if (loot is ExpObject || loot is NyangObject || loot is ItemObject)
-				{
-					loot.Equip();
-					pulled = true;
-				}
-			}
-			if (pulled)
-				CombatSfx.Play(CombatSfxEvent.MagnetPull);
-		}
-
-		private IEnumerator EndDungeonAfterDelay(float delay, bool isCleared)
-		{
-			yield return new WaitForSecondsRealtime(delay);
-			clearDelayRoutine = null;
-			EndDungeon(isCleared);
-		}
-
-		public void EndDungeon(bool isCleared = true)
-		{
-			if (IsDungeon == false)
-				return;
-			IsDungeon = false;
-			// 폴링이 보기 전에 죽어도 클리어 보상을 이미 받았으면 클리어
-			if (IsClearReached())
-				isCleared = true;
-			if (clearDelayRoutine != null)
-			{
-				StopCoroutine(clearDelayRoutine);
-				clearDelayRoutine = null;
-			}
-			cardManager.CancelSelection();
-			Debug.Log($"{nameof(EndDungeon)}");
-
-			// Stop DungeonLoop
-			dungeonLoopSubscription?.Dispose();
-			dungeonLoopSubscription = null;
-			monsterSpawner.StopWave();
-			resourceNodeSpawner.StopWave();
-			SideRules.End();
-
-			if (isCleared == false)
-				dataManager.GameStat[GameStatType.NYANG] += CurDungeon.CalculateDefeatNyang(dungeonRecorder.KillCountSinceStart);
-			else if (CurDungeon.HasThreatLevels)
-				CurDungeon.RecordThreatClear(CurThreat.Level);
-			// 위협 배율과 냥 보너스, 클리어 보상과 패배 보상과 레벨업 전환을 포함한 이번 판 획득분 기준
-			dataManager.GameStat[GameStatType.NYANG] += DungeonThreatRules.BonusNyang(dungeonRecorder.NyangSinceStart, CurThreat.RewardMultiplier);
-			dataManager.GameStat[GameStatType.NYANG] += dungeonRecorder.NyangSinceStart * playerProvider.Current.UnitStat[UnitStatType.GOLD_BONUS] / UnitStat.PERCENT;
-			// 위험도 단계 첫 클리어 보상. 위협 배율과 냥 보너스에 안 섞이게 그 뒤, 결과창 합계에는 들어가게 기록 전
-			if (isCleared)
-				GrantRiskRewards();
-			DungeonRecord result = dungeonRecorder.CaptureResultRecord((int)playerProvider.Current.UnitStat[UnitStatType.LEVEL_CUR], isCleared);
-			RecordRunResult(result);
-			// 판이 끝난 자리에서 저장. 결과창에서 꺼지거나 죽어도 이번 판 냥과 기록이 남음
-			dataManager.SaveManager.SaveData();
-
-			// 결과창을 가리지 않게 남은 승패 연출 (물들임, 띠, 카메라 당김) 을 걷음
-			StopFlowFx();
-			dungeonUI.SetPanel(DungeonPanelType.DungeonResult);
-			// 결과창부터는 실험실 음악. 승패 상태는 조용히 두는 자리라 여기서 넘김
-			AudioManager.RequestMusic(MusicState.World);
-		}
-
 		// 시작 체력 제약. 영구 강화로 정한 최대 체력 기준
 		private void ApplyStartHealth()
 		{
@@ -482,4 +399,5 @@ namespace WitchMendokusai
 		}
 	}
 }
+
 
