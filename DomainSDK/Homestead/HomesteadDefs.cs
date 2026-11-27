@@ -106,6 +106,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 	public sealed class RelicDef : HomesteadDef
 	{
+		// 손질 도구 수. Grime 값은 0 부터 이 수 아래
+		public const int TOOLS = 3;
+
 		public string Goods { get; set; } = string.Empty;
 		public string Set { get; set; } = string.Empty;
 		public float Weight { get; set; } = 1f;
