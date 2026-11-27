@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22e4a06ccdbe419c9a884f3990bc8008, type: 3}
+  m_Name: MA_Golem_Slam
+  m_EditorClassIdentifier:
+  <TriggerRange>k__BackingField: 3
+  <WindupSeconds>k__BackingField: 0.85
+  <RecoverySeconds>k__BackingField: 0.9
+  <Cooldown>k__BackingField: 3.2
+  <WindupTelegraph>k__BackingField: {fileID: 11400000, guid: e6e2a0126db24cf4bef4b72a8a599a55, type: 2}
+  <RecoveryFx>k__BackingField: {fileID: 0}
+  <RecoveryFxRadius>k__BackingField: 1.4
+  <Pose>k__BackingField:
+    <Windup>k__BackingField: {fileID: 0}
+    <Strike>k__BackingField: {fileID: 0}
+    <Rest>k__BackingField: {fileID: 0}
+    <Crouch>k__BackingField: -0.2
+    <Stretch>k__BackingField: -0.4
+    <StrikeSeconds>k__BackingField: 0.35
+    <StrikeLeadSeconds>k__BackingField: 0
+    <Tremble>k__BackingField: 0.04
+    <Breath>k__BackingField: 0
+  <WindupFx>k__BackingField: {fileID: 0}
+  <StrikeFx>k__BackingField: {fileID: 11400000, guid: 4e98738942424ce3b2d5a6281d7bdb9d, type: 2}
+  <WindupFxOnce>k__BackingField: 0
+  <TelegraphInTurn>k__BackingField: 0
+  <Linger>k__BackingField:
+    <Seconds>k__BackingField: 0
+    <CoolSeconds>k__BackingField: 0.4
+    <Radius>k__BackingField: 0.5
+    <Damage>k__BackingField: 0
+    <TouchInterval>k__BackingField: 0.6
+    <BurstRadius>k__BackingField: 0
+    <BurstDamage>k__BackingField: 0
+    <BurstTelegraph>k__BackingField: {fileID: 0}
+    <BurstFx>k__BackingField: {fileID: 0}
+  <Center>k__BackingField: 1
+  <ArcDegrees>k__BackingField: 360
+  <Bands>k__BackingField:
+  - <Inner>k__BackingField: 1.8
+    <Outer>k__BackingField: 3.6
+    <Delay>k__BackingField: 0
+  - <Inner>k__BackingField: 0
+    <Outer>k__BackingField: 1.8
+    <Delay>k__BackingField: 0.8
+  <Damage>k__BackingField: 3
+  <HitEffect>k__BackingField:
+    <AppliesStatus>k__BackingField: 0
+    <Status>k__BackingField: 3
+    <StatusSeconds>k__BackingField: 0
+    <SlowRatio>k__BackingField: 0
+    <PushSpeed>k__BackingField: 0
+    <PushSeconds>k__BackingField: 0

@@ -41,3 +41,4 @@ MonoBehaviour:
   <Attack>k__BackingField: {fileID: 11400000, guid: d826e4129a754940a56ce575bc42aa83, type: 2}
   <BodyFx>k__BackingField: {fileID: 11400000, guid: 82b34fd26d564f778fda05df0426a590, type: 2}
   <Remains>k__BackingField: {fileID: 11400000, guid: e9009759b03fea140b38dce86c34a3a0, type: 2}
+  <Temperament>k__BackingField: {fileID: 11400000, guid: fa9b302263bb41e7a0fa97a84a043986, type: 2}
