@@ -85,7 +85,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 		}
 
-		// phase 는 균열 빛이 도는 0..1. 빛나는 구간에 치면 세게
+		// phase 는 균열 빛이 도는 0..1. 빛나는 구간에 치면 곡괭이 힘의 몇 배 (설계: 세 배쯤)
 		public bool IsGlint(float phase) => phase >= 1f - sim.Catalog.Tuning.GlintWindow;
 
 		public MineStrike Strike(int index, float phase)
@@ -107,7 +107,11 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 			Lantern--;
 			bool glint = IsGlint(phase);
-			int power = sim.ToolPower(ToolKind.Pickaxe) + (glint ? sim.Catalog.Tuning.GlintPower : 0);
+			int power = sim.ToolPower(ToolKind.Pickaxe);
+			if (glint)
+			{
+				power = (int)Math.Round(power * sim.Catalog.Tuning.GlintMultiplier);
+			}
 			node.HitsLeft = Math.Max(0, node.HitsLeft - power);
 			if (node.IsBroken == false)
 			{
