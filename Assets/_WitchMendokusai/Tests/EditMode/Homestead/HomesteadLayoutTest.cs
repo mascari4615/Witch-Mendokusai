@@ -102,6 +102,36 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void First_decor_of_a_kind_in_the_village_pays_guild_exp_once()
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
+			sim.Give("wood", 10);
+			Assert.That(sim.Put("fence", -20, 20, 0, out PlacedPiece first).Ok);
+			int exp = sim.State.GuildExp;
+			Assert.That(sim.RemovePiece(first.Uid).Ok);
+			Assert.That(sim.Put("fence", -20, 20, 0, out PlacedPiece _).Ok);
+			Assert.That(sim.Put("fence", -19, 20, 0, out PlacedPiece _).Ok);
+			Assert.That(exp, Is.EqualTo(sim.Catalog.Tuning.FirstPlaceGuildExp));
+			Assert.That(sim.State.GuildExp, Is.EqualTo(exp), "거뒀다 다시 놓아도 한 번");
+			sim.Put("path_dirt", -18, 20, 0, out PlacedPiece _);
+			Assert.That(sim.State.GuildExp, Is.EqualTo(exp * 2), "다른 종류는 따로");
+		}
+
+		[Test]
+		public void Locked_building_and_decor_name_the_town_hall_tier_they_need()
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
+			HomesteadResult ranch = sim.CanBuild("ranch");
+			Assert.That(ranch.Failure, Is.EqualTo(HomesteadFailure.TownHallTooLow));
+			Assert.That(ranch.Subject, Is.EqualTo("3"));
+			PlaceableDef fence = sim.Catalog.Get<PlaceableDef>("fence");
+			fence.TownHall = 4;
+			HomesteadResult decor = sim.CanMakeDecor("fence");
+			Assert.That(decor.Failure, Is.EqualTo(HomesteadFailure.TownHallTooLow));
+			Assert.That(decor.Subject, Is.EqualTo("4"));
+		}
+
+		[Test]
 		public void Blocked_cells_refuse_everything()
 		{
 			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
