@@ -1,5 +1,5 @@
 {
-	"Tuning": {"GuildSteps": [0, 60, 150, 280, 450, 680, 980, 1360, 1840, 2440], "ComfortSteps": [0, 20, 50, 90, 140, 210]},
+	"Tuning": {"GuildSteps": [0, 60, 150, 280, 450, 680, 980, 1360, 1840, 2440], "ComfortSteps": [0, 20, 50, 90, 140, 210], "CraftQueue": [5, 6, 8]},
 	"Tools": [
 		{"Id": "hoe", "Name": "괭이", "Kind": "Hoe", "Tiers": [{"Name": "낡은 괭이", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "구리 괭이", "Power": 2, "Cost": {"Nyang": 300, "Goods": {"copper_bar": 3, "wood": 10}}, "TownHall": 2}, {"Name": "철 괭이", "Power": 4, "Cost": {"Nyang": 900, "Goods": {"iron_bar": 4}}, "TownHall": 3}]},
 		{"Id": "can", "Name": "물뿌리개", "Kind": "WateringCan", "Tiers": [{"Name": "낡은 물뿌리개", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "구리 물뿌리개", "Power": 2, "Cost": {"Nyang": 300, "Goods": {"copper_bar": 3}}, "TownHall": 2}, {"Name": "철 물뿌리개", "Power": 4, "Cost": {"Nyang": 900, "Goods": {"iron_bar": 4}}, "TownHall": 3}]},
@@ -62,7 +62,10 @@
 		{"Id": "q_jam", "Name": "달콤한 것", "GuildLevel": 6, "Goods": ["jam", "honey", "strawberry"], "Min": 2, "Max": 4, "Pay": 1.7, "Exp": 36},
 		{"Id": "q_iron", "Name": "대장간 일손", "GuildLevel": 6, "Goods": ["iron_bar"], "Min": 3, "Max": 4, "Pay": 1.6, "Exp": 36},
 		{"Id": "q_pie", "Name": "파이 하나", "GuildLevel": 7, "Goods": ["pie", "cheese"], "Min": 2, "Max": 2, "Pay": 1.7, "Exp": 42},
-		{"Id": "q_gold", "Name": "회관 장식", "GuildLevel": 8, "Goods": ["gold_bar", "emerald"], "Min": 2, "Max": 2, "Pay": 1.6, "Exp": 50}
+		{"Id": "q_gold", "Name": "회관 장식", "GuildLevel": 8, "Goods": ["gold_bar", "emerald"], "Min": 2, "Max": 2, "Pay": 1.6, "Exp": 50},
+		{"Id": "q_garden", "Name": "여름 밭 맛보기", "GuildLevel": 4, "Goods": ["tomato", "chili"], "Min": 3, "Max": 5, "Pay": 1.8, "Exp": 24},
+		{"Id": "q_pantry", "Name": "겨울 찬장", "GuildLevel": 5, "Goods": ["pickle", "cheese", "bread"], "Min": 2, "Max": 3, "Pay": 1.8, "Exp": 32},
+		{"Id": "q_winter", "Name": "겨울 밭 맛보기", "GuildLevel": 5, "Goods": ["snowcress", "moonbean"], "Min": 2, "Max": 4, "Pay": 1.8, "Exp": 30}
 	],
 	"Recipes": [
 		{"Id": "c_plank", "Name": "판자 켜기", "Building": "bench", "Level": 1, "Inputs": {"wood": 3}, "Output": "plank", "Amount": 2, "Minutes": 0},
@@ -86,7 +89,10 @@
 		{"Id": "c_pickle", "Name": "절임", "Building": "workshop", "Level": 1, "Inputs": {"turnip": 2}, "Output": "pickle", "Amount": 1, "Minutes": 180},
 		{"Id": "c_cheese", "Name": "치즈", "Building": "workshop", "Level": 2, "Inputs": {"milk": 2}, "Output": "cheese", "Amount": 1, "Minutes": 180},
 		{"Id": "c_tea", "Name": "쑥차", "Building": "workshop", "Level": 1, "Inputs": {"mugwort": 3}, "Output": "tea", "Amount": 1, "Minutes": 60},
-		{"Id": "c_candle", "Name": "초 굳히기", "Building": "workshop", "Level": 2, "Inputs": {"honey": 2, "thread": 1}, "Output": "candle", "Amount": 1, "Minutes": 90}
+		{"Id": "c_candle", "Name": "초 굳히기", "Building": "workshop", "Level": 2, "Inputs": {"honey": 2, "thread": 1}, "Output": "candle", "Amount": 1, "Minutes": 90},
+		{"Id": "c_soup2", "Name": "토마토 수프", "Building": "workshop", "Level": 1, "Inputs": {"tomato": 2, "chili": 1}, "Output": "soup", "Amount": 1, "Minutes": 90},
+		{"Id": "c_pickle2", "Name": "눈냉이 절임", "Building": "workshop", "Level": 1, "Inputs": {"snowcress": 1, "chili": 1}, "Output": "pickle", "Amount": 2, "Minutes": 180},
+		{"Id": "c_stew2", "Name": "치즈 스튜", "Building": "workshop", "Level": 2, "Inputs": {"mushroom": 2, "cheese": 1}, "Output": "stew", "Amount": 1, "Minutes": 90}
 	],
 	"Animals": [
 		{"Id": "hen", "Name": "닭", "Cost": {"Nyang": 300, "Goods": {}}, "Product": "egg", "FineProduct": "fine_egg", "IntervalMinutes": 480, "RanchLevel": 1, "FineAffinity": 40},

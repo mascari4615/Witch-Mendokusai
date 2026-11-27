@@ -108,7 +108,7 @@ namespace WitchMendokusai.Tests
 			Assert.That(purse.CountItem(stone.ItemId), Is.EqualTo(10 - (brick.Inputs["stone"] - 1)));
 		}
 
-		// 봇: 떠나기 전에 칸을 다 채우고 돌아와 거둠. 칸 하나에 한 묶음뿐이라 긴 던전일수록 칸이 놂
+		// 봇: 떠나기 전에 칸마다 한 묶음씩 채우고 돌아와 거둠 (대기열 전 기준). 대기열은 HomesteadCraftQueueTest
 		[Test]
 		public void Measure_workshop_output_during_one_dungeon()
 		{

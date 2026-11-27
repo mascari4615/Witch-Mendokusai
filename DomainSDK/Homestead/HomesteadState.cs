@@ -131,7 +131,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 	public sealed class CraftState
 	{
 		public string Recipe { get; set; } = string.Empty;
+		// 남은 첫 묶음의 끝 시각. 다음 묶음은 레시피 시간 간격
 		public long ReadyAt { get; set; }
+		// 남은 묶음 수. 대기열 전의 세이브에는 없어서 1
+		public int Batches { get; set; } = 1;
 	}
 
 	public sealed class JobState

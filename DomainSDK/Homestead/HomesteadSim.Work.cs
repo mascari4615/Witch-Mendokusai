@@ -3,87 +3,10 @@ using System.Collections.Generic;
 
 namespace WitchMendokusai.DomainSDK.Homestead
 {
-	// 공작소 가공과 목장, 그리고 귀환 소식
+	// 목장과 귀환 소식. 공작소 가공은 HomesteadSim.Craft.cs
 	public sealed partial class HomesteadSim
 	{
 		public const string RANCH = "ranch";
-
-		// ---- 가공
-
-		public int CraftSlots => IsBuilt(WORKSHOP) ? Tuning.CraftSlots + BuildingLevel(WORKSHOP) - 1 : 0;
-
-		public bool IsCraftDone(CraftState craft) => State.Minutes >= craft.ReadyAt;
-
-		// 다 된 것은 칸을 막지 않음. 새로 넣을 때 창고로 거둠
-		public int BusyCrafts => State.Crafts.FindAll(craft => IsCraftDone(craft) == false).Count;
-
-		public HomesteadResult CanCraft(string recipeId)
-		{
-			RecipeDef recipe = Catalog.Get<RecipeDef>(recipeId);
-			bool isBench = recipe.Building == BENCH;
-			if (isBench == false && BuildingLevel(recipe.Building) < recipe.Level)
-			{
-				return HomesteadResult.Fail(HomesteadFailure.NotBuilt, recipe.Building);
-			}
-			if (isBench == false && BusyCrafts >= CraftSlots)
-			{
-				return HomesteadResult.Fail(HomesteadFailure.Busy);
-			}
-			foreach (KeyValuePair<string, int> pair in recipe.Inputs)
-			{
-				if (Count(pair.Key) < pair.Value)
-				{
-					return HomesteadResult.Fail(HomesteadFailure.NotEnoughGoods, pair.Key);
-				}
-			}
-			return HomesteadResult.Success;
-		}
-
-		public HomesteadResult StartCraft(string recipeId)
-		{
-			HomesteadResult result = CanCraft(recipeId);
-			if (result.Ok == false)
-			{
-				return result;
-			}
-			RecipeDef recipe = Catalog.Get<RecipeDef>(recipeId);
-			foreach (KeyValuePair<string, int> pair in recipe.Inputs)
-			{
-				Take(pair.Key, pair.Value);
-			}
-			if (recipe.Building == BENCH)
-			{
-				Give(recipe.Output, recipe.Amount);
-				NotifyChanged();
-				return HomesteadResult.Success;
-			}
-			TakeDoneCrafts();
-			State.Crafts.Add(new CraftState { Recipe = recipeId, ReadyAt = State.Minutes + recipe.Minutes });
-			NotifyChanged();
-			return HomesteadResult.Success;
-		}
-
-		public int CollectCrafts()
-		{
-			int done = TakeDoneCrafts();
-			if (done > 0)
-			{
-				NotifyChanged();
-			}
-			return done;
-		}
-
-		private int TakeDoneCrafts()
-		{
-			List<CraftState> done = State.Crafts.FindAll(IsCraftDone);
-			foreach (CraftState craft in done)
-			{
-				RecipeDef recipe = Catalog.Get<RecipeDef>(craft.Recipe);
-				Give(recipe.Output, recipe.Amount);
-				State.Crafts.Remove(craft);
-			}
-			return done.Count;
-		}
 
 		// ---- 목장. 안 돌봐도 줄지 않음
 
@@ -157,7 +80,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 					digest.RipePlots++;
 				}
 			}
-			digest.DoneCrafts = State.Crafts.FindAll(IsCraftDone).Count;
+			digest.DoneCrafts = ReadyBatches;
 			foreach (JobDef job in Catalog.Jobs)
 			{
 				digest.JobYields += JobReady(job.Id);

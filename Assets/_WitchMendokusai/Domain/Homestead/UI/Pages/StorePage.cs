@@ -128,21 +128,28 @@ namespace WitchMendokusai
 
 		private HomesteadEntry CollectEntry()
 		{
-			int done = Sim.State.Crafts.FindAll(Sim.IsCraftDone).Count;
+			int done = Sim.ReadyBatches;
 			return new HomesteadEntry
 			{
 				Id = COLLECT_ID,
 				Icon = Art.Icon(HomesteadSim.WORKSHOP),
 				Name = "작업대",
-				Sub = Sim.State.Crafts.Count == 0 ? "비어 있음" : $"만드는 중 {Sim.State.Crafts.Count - done}, 다 됨 {done}",
+				Sub = Sim.State.Crafts.Count == 0 ? "비어 있음" : $"만드는 칸 {Sim.BusyCrafts}, 다 된 묶음 {done}",
 				IsMarked = done > 0,
 				Detail = () =>
 				{
-					HomesteadDetail detail = new() { Icon = Art.Icon(HomesteadSim.WORKSHOP), Title = "작업대", Note = "던전에 있는 동안에도 만듭니다." };
-					foreach (CraftState craft in Sim.State.Crafts)
+					HomesteadDetail detail = new() { Icon = Art.Icon(HomesteadSim.WORKSHOP), Title = "작업대", Note = "던전에 있는 동안에도 만듭니다. 칸마다 같은 것을 여러 묶음 줄 세웁니다." };
+					for (int i = 0; i < Sim.State.Crafts.Count; i++)
 					{
+						CraftState craft = Sim.State.Crafts[i];
 						RecipeDef recipe = Catalog.Get<RecipeDef>(craft.Recipe);
-						detail.Lines.Add(Sim.IsCraftDone(craft) ? $"{recipe.Name}  다 됨" : $"{recipe.Name}  {HomesteadText.Minutes(craft.ReadyAt - Sim.State.Minutes)}");
+						int ready = Sim.DoneBatches(craft);
+						string left = Sim.IsCraftDone(craft) ? "다 됨" : $"모두 끝까지 {HomesteadText.Minutes(Sim.CraftFinishAt(craft) - Sim.State.Minutes)}";
+						detail.Lines.Add($"{recipe.Name}  {craft.Batches}묶음 중 {ready} 다 됨, {left}");
+						int queued = Sim.QueuedBatches(craft);
+						int slot = i;
+						if (queued > 0)
+							AddAction(detail, $"{recipe.Name} 기다리는 {queued}묶음 빼기", HomesteadResult.Success, () => Done(() => Sim.CancelQueuedCraft(slot)));
 					}
 					HomesteadResult can = done > 0 ? HomesteadResult.Success : HomesteadResult.Fail(HomesteadFailure.NotReady);
 					AddAction(detail, "다 된 것 거두기", can, () => Done(() => Sim.CollectCrafts()), UiSfxEvent.Purchase);
@@ -172,7 +179,10 @@ namespace WitchMendokusai
 					foreach (KeyValuePair<string, int> pair in recipe.Inputs)
 						AddGoods(detail, pair.Key, pair.Value);
 					AddAction(detail, "만들기", Sim.CanCraft(recipe.Id), () => Sim.StartCraft(recipe.Id));
-					int finished = Sim.State.Crafts.FindAll(Sim.IsCraftDone).Count;
+					int most = Sim.MaxCraftBatches(recipe.Id);
+					if (isBench == false && most > 1)
+						AddAction(detail, $"{most}묶음 줄 세우기", Sim.CanCraft(recipe.Id, most), () => Sim.StartCraft(recipe.Id, most));
+					int finished = Sim.ReadyBatches;
 					if (isBench == false && finished > 0)
 						AddAction(detail, $"다 된 것 {finished}개 거두기", HomesteadResult.Success, () => Done(() => Sim.CollectCrafts()), UiSfxEvent.Purchase);
 					return detail;

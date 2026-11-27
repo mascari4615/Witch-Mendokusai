@@ -83,5 +83,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		// 공작소
 		public int CraftSlots { get; set; } = 2;
+		// 칸 하나의 묶음 상한 (공작소 단계별)
+		public List<int> CraftQueue { get; set; } = new List<int>();
 	}
 }
