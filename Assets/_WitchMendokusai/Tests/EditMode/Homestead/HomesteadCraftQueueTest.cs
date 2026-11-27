@@ -11,6 +11,8 @@ namespace WitchMendokusai.Tests
 	{
 		private const int DUNGEON_MINUTES = 600;
 		private const int SHORT_DUNGEON_MINUTES = 180;
+		// 설계 목표 (08-manage): 10분 던전 동안 칸이 일한 몫
+		private const double BUSY_TARGET = 0.75;
 
 		private static HomesteadSim MakeWorkshop(int level)
 		{
@@ -40,8 +42,8 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Queue_cap_follows_workshop_level()
 		{
-			Assert.That(MakeWorkshop(1).CraftQueueMax, Is.EqualTo(5));
-			Assert.That(MakeWorkshop(2).CraftQueueMax, Is.EqualTo(6));
+			Assert.That(MakeWorkshop(1).CraftQueueMax, Is.EqualTo(7));
+			Assert.That(MakeWorkshop(2).CraftQueueMax, Is.EqualTo(7));
 			Assert.That(MakeWorkshop(3).CraftQueueMax, Is.EqualTo(8));
 		}
 
@@ -164,9 +166,10 @@ namespace WitchMendokusai.Tests
 						recipes++;
 					}
 					TestContext.WriteLine($"{level} {slots} {queue} {dungeon} | {before / recipes:P0} -> {after / recipes:P0} | {beforeBatches} -> {afterBatches} ({recipes}가지)");
-					// 설계 목표 75% 는 상한 5 (1단계) 로는 67% 에 그침. 확정 상한을 지키고 네 배 이상 좋아짐을 고정
+					// 설계 목표: 10분 던전 동안 칸이 75% 이상 일함. 상한 5 는 1단계 65%, 6 은 74.5% 라 균형 판에서 7, 7, 8 로 올림
 					if (dungeon == DUNGEON_MINUTES)
 					{
+						Assert.That(after / recipes, Is.GreaterThanOrEqualTo(BUSY_TARGET), $"{level}단계: 10분 던전 동안 칸이 일한 몫이 목표 아래");
 						Assert.That(after / recipes, Is.GreaterThanOrEqualTo(before / recipes * 4), $"{level}단계: 10분 던전 동안 칸이 일한 몫");
 					}
 				}

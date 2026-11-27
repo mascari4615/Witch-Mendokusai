@@ -262,6 +262,7 @@ namespace WitchMendokusai.Tests
 					sim.Deliver(request.Uid);
 				}
 			}
+			DismissStaleRequests(sim);
 			Produce(sim);
 			foreach (ToolDef tool in sim.Catalog.Tools)
 			{
@@ -280,6 +281,23 @@ namespace WitchMendokusai.Tests
 			foreach (GoodsDef goods in sim.Catalog.Goods)
 			{
 				sim.Donate(goods.Id);
+			}
+		}
+
+		// 칸이 다 찼는데 못 채운 의뢰가 남으면 모두 뗌 (길드 창의 떼기). 빈 칸은 다음 날 채워짐
+		// 의뢰는 기한이 없어서 떼지 않는 봇은 못 구하는 물건 의뢰에 칸이 다 막혀 의뢰 길이 멈춤
+		private static void DismissStaleRequests(HomesteadSim sim)
+		{
+			if (sim.State.Requests.Count < sim.RequestSlotCount)
+			{
+				return;
+			}
+			foreach (RequestState request in sim.State.Requests.ToArray())
+			{
+				if (sim.Count(request.Goods) < request.Amount)
+				{
+					sim.Dismiss(request.Uid);
+				}
 			}
 		}
 
@@ -329,11 +347,32 @@ namespace WitchMendokusai.Tests
 					wanted[pair.Key] = pair.Value + SPARE_STOCK;
 				}
 			}
+			// 열린 건물인데 아직 안 지은 것의 재료. 승급 재료만 보면 회관 4단 뒤 벽돌이 멈춰 시련소가 안 섬
+			// 이쪽은 승급 재료를 남기고 만듦
+			Dictionary<string, int> forBuildings = new();
+			foreach (BuildingDef building in sim.Catalog.Buildings)
+			{
+				if (sim.IsBuilt(building.Id) || building.TownHall > sim.State.TownHall || sim.TryGetNextLevel(building.Id, out BuildingLevelDef level) == false)
+				{
+					continue;
+				}
+				foreach (KeyValuePair<string, int> pair in level.Cost.Goods)
+				{
+					forBuildings[pair.Key] = Math.Max(forBuildings.TryGetValue(pair.Key, out int need) ? need : 0, pair.Value);
+				}
+			}
 			for (int round = 0; round < 6; round++)
 			{
 				foreach (RecipeDef recipe in sim.Catalog.Recipes)
 				{
 					if (wanted.TryGetValue(recipe.Output, out int need) && sim.Count(recipe.Output) < need)
+					{
+						sim.StartCraft(recipe.Id);
+					}
+				}
+				foreach (RecipeDef recipe in sim.Catalog.Recipes)
+				{
+					if (forBuildings.TryGetValue(recipe.Output, out int need) && sim.Count(recipe.Output) < need && KeepsTownHall(sim, new CostDef { Goods = recipe.Inputs }))
 					{
 						sim.StartCraft(recipe.Id);
 					}

@@ -1,5 +1,5 @@
 {
-	"Tuning": {"GuildSteps": [0, 60, 150, 280, 450, 680, 980, 1360, 1840, 2440], "ComfortSteps": [0, 20, 50, 90, 140, 210], "CraftQueue": [5, 6, 8]},
+	"Tuning": {"GuildSteps": [0, 60, 150, 280, 450, 680, 980, 1360, 1840, 2440], "ComfortSteps": [0, 20, 50, 90, 140, 210], "CraftQueue": [7, 7, 8]},
 	"Tools": [
 		{"Id": "hoe", "Name": "괭이", "Kind": "Hoe", "Tiers": [{"Name": "낡은 괭이", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "구리 괭이", "Power": 2, "Cost": {"Nyang": 300, "Goods": {"copper_bar": 3, "wood": 10}}, "TownHall": 2}, {"Name": "철 괭이", "Power": 4, "Cost": {"Nyang": 900, "Goods": {"iron_bar": 4}}, "TownHall": 3}]},
 		{"Id": "can", "Name": "물뿌리개", "Kind": "WateringCan", "Tiers": [{"Name": "낡은 물뿌리개", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "구리 물뿌리개", "Power": 2, "Cost": {"Nyang": 300, "Goods": {"copper_bar": 3}}, "TownHall": 2}, {"Name": "철 물뿌리개", "Power": 4, "Cost": {"Nyang": 900, "Goods": {"iron_bar": 4}}, "TownHall": 3}]},
@@ -11,7 +11,7 @@
 	"TownHalls": [
 		{"Tier": 1, "Name": "천막 회관", "Note": "무너진 길드 옆의 천막", "Cost": {"Nyang": 0, "Goods": {}}, "PlotCount": 4, "WorkSlots": 1, "Reward": {"Nyang": 0, "GuildExp": 0, "Goods": {}, "Furniture": [], "Costumes": []}},
 		{"Tier": 2, "Name": "나무 회관", "Note": "대장간, 인형 공방, 박물관이 열림", "Cost": {"Nyang": 0, "Goods": {"tulip": 8, "dandelion": 8, "wood": 40, "stone": 30}}, "PlotCount": 6, "WorkSlots": 2, "Reward": {"Nyang": 0, "GuildExp": 20, "Goods": {"seed_tomato": 3}, "Furniture": [], "Costumes": []}},
-		{"Tier": 3, "Name": "돌 회관", "Note": "의상실, 목장, 시련소가 열림", "Cost": {"Nyang": 0, "Goods": {"cotton": 14, "sundew": 14, "plank": 30, "brick": 30, "copper_bar": 6}}, "PlotCount": 8, "WorkSlots": 2, "Reward": {"Nyang": 0, "GuildExp": 40, "Goods": {}, "Furniture": [], "Costumes": []}},
+		{"Tier": 3, "Name": "돌 회관", "Note": "의상실, 목장, 시련소가 열림", "Cost": {"Nyang": 0, "Goods": {"cotton": 10, "sundew": 14, "plank": 30, "brick": 30, "copper_bar": 6}}, "PlotCount": 8, "WorkSlots": 2, "Reward": {"Nyang": 0, "GuildExp": 40, "Goods": {}, "Furniture": [], "Costumes": []}},
 		{"Tier": 4, "Name": "흰 회관", "Note": "마을다운 마을", "Cost": {"Nyang": 0, "Goods": {"hide": 12, "bone": 12, "plank": 60, "brick": 60, "iron_bar": 12}}, "PlotCount": 10, "WorkSlots": 3, "Reward": {"Nyang": 0, "GuildExp": 80, "Goods": {}, "Furniture": [], "Costumes": []}},
 		{"Tier": 5, "Name": "모험가의 회관", "Note": "되살아난 마을", "Cost": {"Nyang": 0, "Goods": {"hide": 30, "bone": 30, "glass": 30, "gold_bar": 15, "rainbow": 1}}, "PlotCount": 12, "WorkSlots": 3, "Reward": {"Nyang": 0, "GuildExp": 150, "Goods": {}, "Furniture": ["guild_statue"], "Costumes": []}}
 	],

@@ -14,8 +14,10 @@ namespace WitchMendokusai.Tests
 		private const int RUNS = 120;
 		private const int CASTS_PER_RUN = 6;
 		private const int SEEDS = 5;
-		// 2026-11-27 실측 마지막 옷 37판에 여유. 꿀 물들임이 꿀 2개일 때 73판까지 늘어져 잡힘
-		private const int LAST_COSTUME_RUN = 45;
+		// 마지막 옷은 회관 5단 (곡선 시험 중앙 62판) 안. 처음 45 는 확정 반영 전 실측 37판에 여유를 둔 값.
+		// 확정 f04 (바위 +25%, 등불 40 + 등급 x 6) 로 깊은 돌 (등불 모자, 밤 물들임) 이, f14-1 (호감 2.5배) 로
+		// 공방 사람 850점 보상 (앞치마) 이 늦어져 최대 60판 (2026-11-27 next2). 꿀 2개 때의 73판은 여전히 잡힘
+		private const int LAST_COSTUME_RUN = 62;
 		// 의상실 1단 옷이 짓는 판에 몰리지 않게 (f10-2). 같은 판에 처음 갖는 1단 옷의 최대 수
 		private const int TAILOR_SAME_RUN_MAX = 2;
 		// 의상실을 늦게 지은 씨앗은 재료가 이미 쌓여 있어 자료 값으로는 못 나눔 (2026-11-27 씨앗 0, 18판). 그런 씨앗 하나까지
