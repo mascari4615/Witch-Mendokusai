@@ -23,7 +23,7 @@ namespace WitchMendokusai.Tests
 		[TestCase("-1", 10f)]
 		[TestCase("abc", 10f)]
 		public void ThresholdFromEnvironmentText(string text, float expected)
-			=> Assert.AreEqual(expected, CostLog.ParseThreshold(text));
+			=> Assert.AreEqual(expected, CostLog.ParseThreshold(text, 10f));
 
 		// 분석은 이 모양을 읽음 (memo wm/reference/demo-audit-20261123/README.md 의 구간 비용 기록 절). 칸을 바꾸면 같이
 		[Test]
@@ -46,7 +46,7 @@ namespace WitchMendokusai.Tests
 			{
 				Thread.CurrentThread.CurrentCulture = new CultureInfo("de-DE");
 				StringAssert.Contains("34.3ms", CostLog.Format("X", 34.26, 1f, 1));
-				Assert.AreEqual(0.5f, CostLog.ParseThreshold("0.5"));
+				Assert.AreEqual(0.5f, CostLog.ParseThreshold("0.5", 10f));
 			}
 			finally
 			{

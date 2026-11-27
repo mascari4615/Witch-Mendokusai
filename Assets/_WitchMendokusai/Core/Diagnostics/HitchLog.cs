@@ -20,9 +20,12 @@ namespace WitchMendokusai
 		// 다른 스크립트보다 먼저 돌아 프레임 맨 앞에서 재고 기준점을 다시 잡음
 		private const int EXECUTION_ORDER = -32000;
 		private const string THRESHOLD_ENVIRONMENT_VARIABLE = "WM_HITCH_MS";
+		private const string COST_THRESHOLD_ENVIRONMENT_VARIABLE = "WM_COST_MS";
 
 		// 기본 문턱. 실행 때 환경 변수 WM_HITCH_MS 로 바꿈 (코드로 붙는 컴포넌트라 인스펙터가 없음)
 		[SerializeField] private float thresholdMilliseconds = 100f;
+		// 구간 비용 기록기 (CostLog) 문턱. 144FPS 한 프레임 (약 7ms) 을 넘는 단계만 보려는 값. 환경 변수 WM_COST_MS 로 바꿈
+		[SerializeField] private float costThresholdMilliseconds = 10f;
 
 		private int lastCollectionCount;
 		private long lastHeapBytes;
@@ -62,6 +65,7 @@ namespace WitchMendokusai
 			{
 				thresholdMilliseconds = overrideMilliseconds;
 			}
+			CostLog.Enable(CostLog.ParseThreshold(Environment.GetEnvironmentVariable(COST_THRESHOLD_ENVIRONMENT_VARIABLE), costThresholdMilliseconds));
 			SceneManager.sceneLoaded += OnSceneLoaded;
 			Sample();
 		}

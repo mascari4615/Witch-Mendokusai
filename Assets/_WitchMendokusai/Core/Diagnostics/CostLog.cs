@@ -15,15 +15,12 @@ namespace WitchMendokusai
 	//   frame 칸은 비용이 생긴 프레임. HitchLog 는 그 프레임의 길이를 다음 프레임에 찍고 frame 칸이 없음. 같은 멈춤의 두 줄은 시각 t 로 이음
 	//   스크립트 구간만 잼. 렌더, 셰이더 첫 사용, UI Toolkit 레이아웃처럼 스크립트 밖 비용은 안 잡힘. [Hitch] 는 있는데 [Cost] 가 없으면 그쪽
 	// 메인 스레드 전용 (Time 을 읽음). 스레드풀 안에서 쓰지 않음
-	// 면제 조건은 HitchLog 와 같음 (에디터, batchmode, 결정 부팅, 무음 실행). 판정은 HitchLog 처럼 첫 씬 적재 뒤 한 번. 그 전 구간은 안 잼
+	// HitchLog 가 켜는 실행에서만 잼 (면제: 에디터, batchmode, 결정 부팅, 무음 실행). HitchLog 설치 (첫 씬 적재 뒤) 전 구간은 안 잼
 	public readonly struct CostLog : IDisposable
 	{
-		private const string THRESHOLD_ENVIRONMENT_VARIABLE = "WM_COST_MS";
-		// 기본 문턱. 144FPS 한 프레임 (약 7ms) 을 넘는 단계만 보려는 값. 구조체라 인스펙터가 없어 실행 때 환경 변수 WM_COST_MS 로 바꿈
-		private const float DEFAULT_THRESHOLD_MILLISECONDS = 10f;
-
+		// HitchLog 가 켜질 때 (면제가 아닌 실행) 문턱과 함께 켬. 문턱 값은 HitchLog 의 직렬화 칸
 		private static bool isEnabled;
-		private static float thresholdMilliseconds = DEFAULT_THRESHOLD_MILLISECONDS;
+		private static float thresholdMilliseconds;
 
 		private readonly string label;
 		private readonly long startTimestamp;
@@ -47,23 +44,22 @@ namespace WitchMendokusai
 			=> milliseconds > thresholdMilliseconds;
 
 		// 숫자가 아니거나 음수인 값은 버리고 기본 문턱. NaN 은 모든 구간을 찍음
-		public static float ParseThreshold(string text)
+		public static float ParseThreshold(string text, float fallbackMilliseconds)
 			=> float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out float parsed) && float.IsNaN(parsed) == false && parsed >= 0f
 				? parsed
-				: DEFAULT_THRESHOLD_MILLISECONDS;
+				: fallbackMilliseconds;
+
+		public static void Enable(float thresholdMilliseconds)
+		{
+			CostLog.thresholdMilliseconds = thresholdMilliseconds;
+			isEnabled = true;
+		}
 
 		public static string Format(string label, double milliseconds, float realtimeSeconds, int frameCount)
 			=> string.Format(CultureInfo.InvariantCulture, "[Cost] {0} {1:F1}ms t={2:F1}s frame={3}", label, milliseconds, realtimeSeconds, frameCount);
 
 		public static double ElapsedMilliseconds(long startTimestamp, long endTimestamp)
 			=> (endTimestamp - startTimestamp) * 1000.0 / Stopwatch.Frequency;
-
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-		private static void Install()
-		{
-			isEnabled = HitchLog.IsExempt(Application.isEditor, Application.isBatchMode, BootMode.IsDeterministic, HeadlessAudioMute.IsSilentRun) == false;
-			thresholdMilliseconds = ParseThreshold(Environment.GetEnvironmentVariable(THRESHOLD_ENVIRONMENT_VARIABLE));
-		}
 
 		public void Dispose()
 		{
