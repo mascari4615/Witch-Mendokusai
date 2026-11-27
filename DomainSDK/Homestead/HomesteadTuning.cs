@@ -59,7 +59,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int LiftStep { get; set; } = 5;
 		public float GlintSeconds { get; set; } = 0.9f;
 		public float GlintWindow { get; set; } = 0.22f;
-		public int GlintPower { get; set; } = 3;
+		// 더하기가 아니라 곱. 더하면 낡은 곡괭이 4배, 흑요 1.5배로 등급마다 빛의 값이 달라짐
+		public float GlintMultiplier { get; set; } = 3f;
 		public float PassageShare { get; set; } = 0.4f;
 
 		// 유물
