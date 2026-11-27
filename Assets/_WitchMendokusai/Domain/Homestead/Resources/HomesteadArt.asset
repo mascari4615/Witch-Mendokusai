@@ -33,6 +33,7 @@ MonoBehaviour:
   <GlowPurple>k__BackingField: {fileID: 2100000, guid: d0ebfa64e60c1874598a68116ae0d79f, type: 2}
   <Cloth>k__BackingField: {fileID: 2100000, guid: b53dee4773af2317de37bdc754328df1, type: 2}
   <Water>k__BackingField: {fileID: 2100000, guid: 8562b1d94492a1aa3eed5ae791f47dd0, type: 2}
+  <GroundDisc>k__BackingField: {fileID: 21300000, guid: 582b14c49a9d0604ca8bc263fc0b6400, type: 3}
   <SpriteMaterial>k__BackingField: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
   <Sky>k__BackingField: {fileID: 2100000, guid: 55da0a3d7dd599da6e09e5edc67a779b, type: 2}
   <Shaft>k__BackingField: {fileID: 2100000, guid: e9df3cb527d0a10b73219eae44f34454, type: 2}

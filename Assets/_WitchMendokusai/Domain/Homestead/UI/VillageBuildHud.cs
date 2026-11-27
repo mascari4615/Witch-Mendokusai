@@ -33,6 +33,7 @@ namespace WitchMendokusai
 	{
 		private const string BLOCK = "wm-hs-build";
 		private const int REASON_MILLISECONDS = 1800;
+		private const string SHOP_CLASS = "wm-shop";
 
 		private readonly VisualElement root;
 		private readonly Label hint;
@@ -47,6 +48,8 @@ namespace WitchMendokusai
 		public VillageBuildHud(VisualElement parent, IReadOnlyList<PlaceableDef> palette, int keyCount, VillageBuildActions actions)
 		{
 			root = Make("root", parent);
+			// 상점 판의 색 이름 (--wm-shop-*) 이 이 클래스에 정의됨
+			root.AddToClassList(SHOP_CLASS);
 			hint = KeyHint.KeyOnly(new Label { pickingMode = PickingMode.Ignore });
 			hint.AddToClassList(BLOCK + "__hint");
 			root.Add(hint);

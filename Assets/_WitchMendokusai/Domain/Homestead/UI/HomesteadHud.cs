@@ -47,6 +47,8 @@ namespace WitchMendokusai
 			baseRoot = uiRoot;
 			root = new VisualElement { name = "HomesteadHud", pickingMode = PickingMode.Ignore };
 			root.AddToClassList(BLOCK);
+			// 상점 값 (--wm-shop-*) 을 건설 막대가 씀. 생활 USS 가 뒤에 와서 같은 칸을 덮음
+			root.styleSheets.Add(Art.ShopStyleSheet);
 			root.styleSheets.Add(Art.StyleSheet);
 			uiRoot.ModeHudLayer.Add(root);
 

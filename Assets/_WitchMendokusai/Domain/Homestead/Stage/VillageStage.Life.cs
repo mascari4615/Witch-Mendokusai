@@ -134,6 +134,10 @@ namespace WitchMendokusai
 		[SerializeField] private float stepsPerSecond = 3f;
 		[SerializeField] private float hopHeight = 0.35f;
 		[SerializeField] private float hopSeconds = 0.35f;
+		// 발밑 원판. 플레이어 프리팹의 Shadow (UI_FadeCircle, 흰색 알파 0.39, 키만 한 지름) 와 같은 값
+		[SerializeField] private float discPerSize = 1f;
+		[SerializeField] private float discAlpha = 0.39f;
+		[SerializeField] private int discSortingOrder = -10;
 
 		private HomesteadSprite head;
 		private HomesteadSprite body;
@@ -158,6 +162,7 @@ namespace WitchMendokusai
 			walker.target = home;
 			walker.rest = Random.Range(0f, walker.restSeconds.y);
 			walker.SetSprites(headSprite, bodySprite, height);
+			walker.AddGroundDisc(height);
 			return walker;
 		}
 
@@ -166,8 +171,28 @@ namespace WitchMendokusai
 		{
 			VillageWalker walker = Create(parent, home, frames[0], null, frames[0].bounds.size.y, range);
 			walker.frames = frames;
+			walker.SetGroundDiscSize(Mathf.Max(frames[0].bounds.size.x, frames[0].bounds.size.y));
 			return walker;
 		}
+
+		private Transform disc;
+
+		private void AddGroundDisc(float size)
+		{
+			Sprite discSprite = HomesteadArt.Instance.GroundDisc;
+			GameObject discObject = new("Disc");
+			discObject.transform.SetParent(transform, false);
+			discObject.transform.localPosition = Vector3.up * 0.001f;
+			discObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+			SpriteRenderer discRenderer = discObject.AddComponent<SpriteRenderer>();
+			discRenderer.sprite = discSprite;
+			discRenderer.color = new Color(1f, 1f, 1f, discAlpha);
+			discRenderer.sortingOrder = discSortingOrder;
+			disc = discObject.transform;
+			SetGroundDiscSize(size);
+		}
+
+		private void SetGroundDiscSize(float size) => disc.localScale = Vector3.one * (size * discPerSize / disc.GetComponent<SpriteRenderer>().sprite.bounds.size.x);
 
 		public void SetHome(Vector3 newHome)
 		{
