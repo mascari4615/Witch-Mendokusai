@@ -94,7 +94,7 @@ namespace WitchMendokusai
 			{
 				int slotIndex = i;
 				hotbarSlotActions[i] = () => SelectSlot(slotIndex);
-				inputManager.RegisterInputEvent(InputEventType.HotbarSlot1 + i, InputEventResponseType.Performed, hotbarSlotActions[i]);
+				inputManager.RegisterInputEvent(InputEventType.HotbarSlot1 + i, InputEventResponseType.Performed, hotbarSlotActions[i], IsNormalInputMode);
 			}
 		}
 
@@ -105,8 +105,11 @@ namespace WitchMendokusai
 
 			inputManager.UnregisterInputEvent(InputEventType.Scroll, InputEventResponseType.Performed, OnScroll);
 			for (int i = 0; i < SLOT_COUNT; i++)
-				inputManager.UnregisterInputEvent(InputEventType.HotbarSlot1 + i, InputEventResponseType.Performed, hotbarSlotActions[i]);
+				inputManager.UnregisterInputEvent(InputEventType.HotbarSlot1 + i, InputEventResponseType.Performed, hotbarSlotActions[i], IsNormalInputMode);
 		}
+
+		// 건설 중 1~9 는 건설 칸 몫. 같이 받으면 칸을 고를 때 손의 물건도 바뀜
+		private bool IsNormalInputMode() => inputManager.CurrentInputMode == InputMode.Normal;
 
 		private void OnScroll(InputAction.CallbackContext ctx)
 		{

@@ -87,6 +87,8 @@ namespace WitchMendokusai
 			buildHud = manager.Hud.ShowBuild(palette, SLOT_COUNT, new VillageBuildActions(TakeNew, TurnHeld, RemoveAtCursor, DropHeld, Undo, LeaveBuildView));
 			hasTouchCursor = false;
 			tapRule.Forget();
+			// 건설 키 모드. 전투와 이동 입력 (큰 포화 R 이 돌리기 R 과 같이 나가던 것) 을 끔
+			inputManager.SetInputMode(InputMode.Build);
 			inputManager.RegisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
 			inputManager.RegisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, UseCell);
 			inputManager.RegisterInputEvent(InputEventType.Click1, InputEventResponseType.Started, DropHeld);
@@ -111,6 +113,7 @@ namespace WitchMendokusai
 			isBuilding = false;
 			Release();
 			undo.Clear();
+			inputManager.SetInputMode(InputMode.Normal);
 			inputManager.UnregisterInputEvent(InputEventType.Click0, InputEventResponseType.Started, ClickCell);
 			inputManager.UnregisterInputEvent(InputEventType.Submit, InputEventResponseType.Performed, UseCell);
 			inputManager.UnregisterInputEvent(InputEventType.Click1, InputEventResponseType.Started, DropHeld);
