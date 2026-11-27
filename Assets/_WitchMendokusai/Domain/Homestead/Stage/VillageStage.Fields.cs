@@ -158,7 +158,9 @@ namespace WitchMendokusai
 				case PlotPhase.Ripe:
 					return "거두기";
 				default:
-					return Sim.IsWet(plot) ? HomesteadText.Minutes(Sim.MinutesLeft(plot)) : "물 주기";
+					if (Sim.CanWater(plot))
+						return Sim.IsWet(plot) ? $"{HomesteadText.Minutes(Sim.MinutesLeft(plot))}, 물 더 주기" : "물 주기";
+					return HomesteadText.Minutes(Sim.MinutesLeft(plot));
 			}
 		}
 
@@ -204,7 +206,7 @@ namespace WitchMendokusai
 					}
 					break;
 				default:
-					if (Sim.IsWet(plot))
+					if (Sim.CanWater(plot) == false)
 						Say($"{HomesteadText.Minutes(Sim.MinutesLeft(plot))} 뒤에 익습니다.");
 					else
 						ForArea(index, ToolKind.WateringCan, Sim.Water, HomesteadFailure.AlreadyDone);

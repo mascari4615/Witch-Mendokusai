@@ -11,6 +11,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int PlotsPerFarmLevel { get; set; } = 2;
 		public int WetMinutes { get; set; } = 720;
 		public float WetGrowthRate { get; set; } = 1.5f;
+		// 남은 물기가 이보다 적으면 다시 줄 수 있음. 던전 한 판 뒤 남는 물기를 덮는 값
+		public int WetRefreshMinutes { get; set; } = 360;
 		public int SeasonBonusYield { get; set; } = 1;
 		public float TillRelicChance { get; set; } = 0.04f;
 

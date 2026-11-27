@@ -38,6 +38,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		public bool IsWet(PlotState plot) => plot.WetUntil > State.Minutes || HasPerk(PERK_WATER);
 
+		// 마른 칸, 또는 물기가 조금만 남은 칸. 방금 준 칸과 인형이 맡은 밭은 거절
+		public bool CanWater(PlotState plot) => plot.Tilled && HasPerk(PERK_WATER) == false && plot.WetUntil - State.Minutes < Tuning.WetRefreshMinutes;
+
 		// 물 준 값으로 남은 게임 분
 		public int MinutesLeft(PlotState plot)
 		{
@@ -104,7 +107,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				return HomesteadResult.Fail(HomesteadFailure.NotReady);
 			}
-			if (plot.WetUntil > State.Minutes)
+			if (CanWater(plot) == false)
 			{
 				return HomesteadResult.Fail(HomesteadFailure.AlreadyDone);
 			}
