@@ -213,6 +213,58 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
+		// ---- 문 길. 문으로 걸어가는 사람 (길 가운데에서 옆 LANE_HALF 안, 문에서 REACH 안) 에게는 문이 가장 가까워야 Z 가 문을 잡음
+		// 2026-11-27 화면 확인: 목장 문 길 1.1m 에서 닭, 시련소 문 앞에서 시련소 사람을 잡았음
+
+		private const float LANE_HALF = 0.25f;
+		private const float REACH = 1.5f;
+		private const float LANE_STEP = 0.05f;
+
+		// 길 위 모든 점에서 (그 자리에 선 것이 가장 가까이 거닐어 온 거리) 빼기 (문까지 거리) 의 가장 작은 값. 0 보다 커야 문이 이김
+		private static float LaneMargin((float Side, float Ahead) home, float wander)
+		{
+			float worst = float.MaxValue;
+			for (float side = -LANE_HALF; side <= LANE_HALF + 0.001f; side += LANE_STEP)
+			{
+				for (float ahead = 0f; ahead <= REACH + 0.001f; ahead += LANE_STEP)
+				{
+					float toDoor = Gap((side, ahead), (0f, 0f));
+					if (toDoor > REACH)
+						continue;
+					worst = System.Math.Min(worst, Gap((side, ahead), home) - wander - toDoor);
+				}
+			}
+			return worst;
+		}
+
+		[Test]
+		public void Ranch_door_wins_on_the_lane()
+		{
+			RanchYard yard = new();
+			for (int i = 0; i < MAX_ANIMALS; i++)
+				Assert.That(LaneMargin(yard.Home(i), yard.Wander), Is.GreaterThan(0f), $"{i} 번째 동물이 문 길에서 문보다 가까움");
+			Assert.That(LaneMargin(yard.Beyond(), new DoorYard().PersonWander), Is.GreaterThan(0f), "목장 인형이 문 길에서 문보다 가까움");
+		}
+
+		[Test]
+		public void People_stand_off_the_door_lane()
+		{
+			DoorYard yard = new();
+			Assert.That(LaneMargin(yard.Resident(), yard.PersonWander), Is.GreaterThan(0f), "주민");
+			Assert.That(LaneMargin(yard.Worker(), yard.PersonWander), Is.GreaterThan(0f), "일하는 인형");
+			for (int i = 0; i < 4; i++)
+				Assert.That(LaneMargin(yard.Queue(i), yard.PersonWander), Is.GreaterThan(0f), $"회관 앞 줄 {i}");
+		}
+
+		[Test]
+		public void Ranch_worker_keeps_clear_of_animals()
+		{
+			RanchYard yard = new();
+			float wander = new DoorYard().PersonWander;
+			for (int i = 0; i < MAX_ANIMALS; i++)
+				Assert.That(Gap(yard.Beyond(), yard.Home(i)) - wander - yard.Wander, Is.GreaterThanOrEqualTo(ANIMAL_GAP), $"{i} 번째 동물");
+		}
+
 		[Test]
 		public void Ranch_animals_spread_to_both_sides()
 		{

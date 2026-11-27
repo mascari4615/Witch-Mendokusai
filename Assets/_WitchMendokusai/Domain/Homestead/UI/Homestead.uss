@@ -39,6 +39,22 @@
     margin-top: 8px;
 }
 
+/* 손가락 닫기. 냥 띠 왼쪽 */
+.wm-hs__close {
+    position: absolute;
+    left: 1330px;
+    top: 28px;
+    width: 196px;
+    height: 56px;
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 26px 2px 26px;
+}
+
+.wm-hs__close .wm-hs__action-name {
+    -unity-text-align: middle-center;
+}
+
 /* 목록 */
 .wm-hs__list {
     left: 40px;

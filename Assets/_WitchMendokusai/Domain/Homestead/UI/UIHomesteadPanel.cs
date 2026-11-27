@@ -57,6 +57,7 @@ namespace WitchMendokusai
 			view.EntryClicked += OnEntryClicked;
 			view.TabClicked += SetTab;
 			view.ActionClicked += OnActionClicked;
+			view.CloseClicked += OnCloseClicked;
 		}
 
 		protected override void OnOpen()
@@ -316,6 +317,13 @@ namespace WitchMendokusai
 			inActions = false;
 			UiSfx.Play(UiSfxEvent.Tab);
 			Refresh(keepScroll: false);
+		}
+
+		// 손가락 닫기 버튼. 할 일 안에 있어도 창을 닫음
+		private void OnCloseClicked()
+		{
+			UiSfx.Play(UiSfxEvent.WindowClose);
+			PanelGroup.ClosePanel();
 		}
 
 		// X 와 Esc. 할 일에서는 목록으로, 목록에서는 닫기
