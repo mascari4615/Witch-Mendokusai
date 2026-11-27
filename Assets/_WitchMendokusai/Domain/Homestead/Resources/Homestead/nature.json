@@ -4,7 +4,7 @@
 		{"Id": "potato", "Name": "감자", "Seed": "seed_potato", "Harvest": "potato", "GrowMinutes": 360, "Stages": 4, "YieldMin": 1, "YieldMax": 3, "RegrowMinutes": 0, "Seasons": [0, 1], "SeedPrice": 14, "TownHall": 1},
 		{"Id": "wheat", "Name": "밀", "Seed": "seed_wheat", "Harvest": "wheat", "GrowMinutes": 300, "Stages": 4, "YieldMin": 2, "YieldMax": 4, "RegrowMinutes": 0, "Seasons": [1, 2], "SeedPrice": 8, "TownHall": 1},
 		{"Id": "carrot", "Name": "당근", "Seed": "seed_carrot", "Harvest": "carrot", "GrowMinutes": 320, "Stages": 4, "YieldMin": 1, "YieldMax": 2, "RegrowMinutes": 0, "Seasons": [0, 2], "SeedPrice": 13, "TownHall": 1},
-		{"Id": "tomato", "Name": "토마토", "Seed": "seed_tomato", "Harvest": "tomato", "GrowMinutes": 540, "Stages": 5, "YieldMin": 1, "YieldMax": 2, "RegrowMinutes": 240, "Seasons": [1], "SeedPrice": 40, "TownHall": 2},
+		{"Id": "tomato", "Name": "토마토", "Seed": "seed_tomato", "Harvest": "tomato", "GrowMinutes": 540, "Stages": 5, "YieldMin": 2, "YieldMax": 3, "RegrowMinutes": 240, "Seasons": [1], "SeedPrice": 40, "TownHall": 2},
 		{"Id": "chili", "Name": "고추", "Seed": "seed_chili", "Harvest": "chili", "GrowMinutes": 480, "Stages": 4, "YieldMin": 1, "YieldMax": 3, "RegrowMinutes": 240, "Seasons": [1], "SeedPrice": 36, "TownHall": 2},
 		{"Id": "pumpkin", "Name": "호박", "Seed": "seed_pumpkin", "Harvest": "pumpkin", "GrowMinutes": 900, "Stages": 5, "YieldMin": 1, "YieldMax": 1, "RegrowMinutes": 0, "Seasons": [2], "SeedPrice": 45, "TownHall": 2},
 		{"Id": "strawberry", "Name": "딸기", "Seed": "seed_strawberry", "Harvest": "strawberry", "GrowMinutes": 600, "Stages": 5, "YieldMin": 2, "YieldMax": 3, "RegrowMinutes": 300, "Seasons": [0], "SeedPrice": 60, "TownHall": 3},
