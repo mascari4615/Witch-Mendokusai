@@ -13,6 +13,7 @@ namespace WitchMendokusai
 		[field: Header("자료")]
 		[field: SerializeField, Tooltip("조합, 인형, 종이, 번갈아. 시험도 같은 파일을 읽음")] public TextAsset Book { get; private set; }
 		[field: SerializeField] public string PanelName { get; private set; } = "성질 놀이 (임시)";
+		[field: SerializeField, Tooltip("봉인된 두루마리 두 종류와 든 것")] public ScrollTableSO Scrolls { get; private set; }
 
 		[field: Header("모양")]
 		[field: SerializeField] public StyleSheet Style { get; private set; }

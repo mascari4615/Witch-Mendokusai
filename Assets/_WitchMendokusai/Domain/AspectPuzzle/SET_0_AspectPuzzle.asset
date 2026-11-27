@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   <Book>k__BackingField: {fileID: 4900000, guid: 1eaee201ffac48efab477a48ce49da5c, type: 3}
   <PanelName>k__BackingField: "\uC131\uC9C8 \uB180\uC774 (\uC784\uC2DC)"
+  <Scrolls>k__BackingField: {fileID: 11400000, guid: f71c4c79c2b54f7d97ccc78a580536f1, type: 2}
   <Style>k__BackingField: {fileID: 7433441132597879392, guid: 5210a009d53d4e2c895262c5575e6049, type: 3}
   <SkillTreeStyle>k__BackingField: {fileID: 7433441132597879392, guid: 3dc0ca3d18d5b0854e9bcc8e0465d2a9, type: 3}
   <MagicBook>k__BackingField: {fileID: 11400000, guid: 4114aa4f7ae04f9eb6879d7f410f9da1, type: 2}

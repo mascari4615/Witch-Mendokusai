@@ -37,6 +37,12 @@ namespace WitchMendokusai
 
 		private HexPaperGame Game => games[gameIndex];
 
+		public override void StartFresh(int index)
+		{
+			SelectPaper(index);
+			OnClear();
+		}
+
 		public override void Refresh()
 		{
 			Dictionary<HexCoord, int> board = Game.Board;

@@ -40,6 +40,7 @@
     <Compile Include="$(TestsRoot)Aspect/BoardArrowsTests.cs" />
     <Compile Include="$(TestsRoot)Aspect/HexPaperTests.cs" />
     <Compile Include="$(TestsRoot)Aspect/TurnBoardTests.cs" />
+    <Compile Include="$(TestsRoot)Aspect/ScrollRulesTests.cs" />
     <Compile Include="$(TestsRoot)DiscoveryUnlocksTest.cs" />
     <Compile Include="$(TestsRoot)DiscoveryTiersTest.cs" />
     <Compile Include="$(TestsRoot)DiscoveryStagesTest.cs" />

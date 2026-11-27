@@ -21,6 +21,7 @@ namespace WitchMendokusai
 			new AlchemyMapFeature(),
 			new AchievementFeature(),
 			new MonsterLogFeature(),
+			new AspectScrollFeature(),
 		};
 
 		public static IReadOnlyList<IFeatureInstaller> Installers => installers;

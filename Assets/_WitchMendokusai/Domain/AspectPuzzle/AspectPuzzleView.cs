@@ -21,6 +21,8 @@ namespace WitchMendokusai
 		private const string PARTNERS_FORMAT = "{0} 옆에 붙는 것: {1}";
 
 		private readonly List<Button> puzzleButtons = new();
+		private readonly HashSet<int> solvedShown = new();
+		private readonly HashSet<int> practiceIndices = new();
 		private readonly VisualElement board;
 		private readonly VisualElement puzzleList;
 		private readonly AspectLinkLines lines;
@@ -74,11 +76,18 @@ namespace WitchMendokusai
 			Side.Add(Actions);
 		}
 
+		/// <summary>연습 문제. 두루마리는 연습을 내지 않음</summary>
+		public bool IsPractice(int index) => practiceIndices.Contains(index);
+
 		protected void BuildPuzzleList(IReadOnlyList<string> ids, Action<int> selected)
 		{
 			for (int i = 0; i < ids.Count; i++)
 			{
 				int index = i;
+				if (ids[i] == PRACTICE_ID)
+				{
+					practiceIndices.Add(i);
+				}
 				// 문제 이름은 미정이라 번호로만 (사용자 몫)
 				Button button = new(() => selected(index)) { text = ids[i] == PRACTICE_ID ? PRACTICE_NAME : i.ToString() };
 				button.AddToClassList("wm-mb-tab");
@@ -89,7 +98,26 @@ namespace WitchMendokusai
 			}
 		}
 
-		protected void ShowSolved(int index, bool isSolved) => puzzleButtons[index].EnableInClassList(TAB_SOLVED, isSolved);
+		/// <summary>문제 하나가 안 풀린 상태에서 풀린 상태로 바뀐 순간. 두루마리 풀기가 듣는다</summary>
+		public event Action<int> Solved = delegate { };
+
+		public int PuzzleCount => puzzleButtons.Count;
+
+		/// <summary>문제를 고르고 처음 상태로 비움. 두루마리 하나가 문제 하나를 새로 풀게 함</summary>
+		public abstract void StartFresh(int index);
+
+		protected void ShowSolved(int index, bool isSolved)
+		{
+			puzzleButtons[index].EnableInClassList(TAB_SOLVED, isSolved);
+			if (isSolved == false)
+			{
+				solvedShown.Remove(index);
+			}
+			else if (solvedShown.Add(index))
+			{
+				Solved(index);
+			}
+		}
 
 		protected void ShowCurrentPuzzle(int index)
 		{

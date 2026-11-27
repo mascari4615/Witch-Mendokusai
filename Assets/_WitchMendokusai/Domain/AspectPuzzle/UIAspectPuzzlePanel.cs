@@ -7,10 +7,10 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 성질 놀이 (육각 종이, 번갈아) 창. 솥 NPC 메뉴에서 열고 릴리스에서는 안 보임 (UINPCMenu.devBuildOnlyPanels).
-	/// 모습은 임시. 밤하늘과 위 줄은 마도서, 마름모는 스킬 트리. 푼 것은 저장하지 않음 (자리 나눔이 미정)
+	/// 모습은 임시. 밤하늘과 위 줄은 마도서, 마름모는 스킬 트리. 그냥 푼 것은 저장하지 않음. 봉인된 두루마리로 푼 것만 남김 (.Scroll.cs)
 	/// 자료와 규칙의 출처: memo wm/design/aspect-notes-20261125
 	/// </summary>
-	public sealed class UIAspectPuzzlePanel : UIToolkitPanel
+	public sealed partial class UIAspectPuzzlePanel : UIToolkitPanel
 	{
 		private const string NAV_CLASS = "wm-aspect-nav";
 		private const string TAB_CURRENT = "wm-aspect-tab--current";
@@ -72,6 +72,7 @@ namespace WitchMendokusai
 			EnsureViews();
 			isOpen = true;
 			current.Refresh();
+			RefreshScrolls();
 			// 손가락이면 고른 칸 강조가 남으니 포커스를 주지 않음
 			if (inputManager.IsTouchMode == false)
 			{
@@ -82,10 +83,15 @@ namespace WitchMendokusai
 		protected override void OnClose()
 		{
 			isOpen = false;
+			CancelScroll();
 			Root?.panel?.focusController?.focusedElement?.Blur();
 		}
 
-		public override void UpdateUI() => current.Refresh();
+		public override void UpdateUI()
+		{
+			current.Refresh();
+			RefreshScrolls();
+		}
 
 		private void BuildTop()
 		{
@@ -97,6 +103,7 @@ namespace WitchMendokusai
 			top.Add(tabs);
 			paperTab = AddTab(tabs, PAPER_TAB, () => Select(paperView));
 			turnTab = AddTab(tabs, TURN_TAB, () => Select(turnView));
+			BuildScrollButtons(top);
 
 			VisualElement spacer = new();
 			spacer.AddToClassList("wm-fullmenu__spacer");
@@ -120,6 +127,7 @@ namespace WitchMendokusai
 			turnView = new TurnBoardView(settings, book, links, focus);
 			stage.Add(paperView);
 			stage.Add(turnView);
+			ListenScrolls();
 			Select(paperView);
 		}
 

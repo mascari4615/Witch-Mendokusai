@@ -74,6 +74,16 @@ namespace WitchMendokusai
 
 		private TurnGame Game => games[(boardIndex, doll.Habit)];
 
+		// 인형마다 판이 따로라 한 인형으로 푼 것이 남으면 문제가 풀린 채로 보임. 전부 비움
+		public override void StartFresh(int index)
+		{
+			foreach (TurnRun run in book.Boards[index].Runs)
+			{
+				games[(index, run.Habit)].Clear();
+			}
+			SelectBoard(index);
+		}
+
 		private IReadOnlyList<TurnMove> Preview => selectedCell.HasValue && piece.HasValue ? Game.Preview(selectedCell.Value, piece.Value) : System.Array.Empty<TurnMove>();
 
 		public override void Refresh()

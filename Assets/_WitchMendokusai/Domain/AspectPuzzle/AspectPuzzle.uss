@@ -239,6 +239,21 @@
     color: var(--wm-mb-violet);
 }
 
+/* 위 줄의 봉인된 두루마리 버튼과 그 결과 한 줄. 모습은 임시 */
+.wm-aspect-scroll {
+    margin-left: 24px;
+}
+
+.wm-aspect-scroll-notice {
+    flex-shrink: 1;
+    margin: 0 0 0 16px;
+    padding: 0;
+    font-size: 20px;
+    -unity-text-align: middle-left;
+    white-space: normal;
+    color: var(--wm-mb-violet);
+}
+
 .wm-aspect-palette {
     flex-direction: row;
     flex-wrap: wrap;
