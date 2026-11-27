@@ -5,6 +5,49 @@ namespace WitchMendokusai.DomainSDK.Homestead
 	// 세이브 경계. 자료에서 사라진 이름을 여기서만 버림. 안쪽 규칙은 모르는 이름에서 그대로 던짐
 	public static class HomesteadRepair
 	{
+		// 자료가 바뀐 뒤 옛 세이브를 맞춤. 이미 받은 이정표의 옷 (보상 자리가 앞으로 옮겨진 것) 과
+		// 크기 기록 전에 놓인 물고기 받침 크기. 돌려줌은 새로 준 옷
+		public static List<string> CatchUp(HomesteadState state, HomesteadCatalog catalog)
+		{
+			List<string> granted = new List<string>();
+			foreach (WingDef wing in catalog.Wings)
+			{
+				int claimed = state.WingClaims.TryGetValue(wing.Id, out int count) ? count : 0;
+				for (int i = 0; i < claimed && i < wing.Milestones.Count; i++)
+				{
+					foreach (string costume in wing.Milestones[i].Reward.Costumes)
+					{
+						if (state.OwnedCostumes.Contains(costume) == false)
+						{
+							state.OwnedCostumes.Add(costume);
+							granted.Add(costume);
+						}
+					}
+				}
+			}
+			foreach (string goodsId in state.Donated)
+			{
+				if (catalog.Get<GoodsDef>(goodsId).Kind == GoodsKind.Fish && state.ExhibitSizes.ContainsKey(goodsId) == false)
+				{
+					state.ExhibitSizes[goodsId] = state.FishRecords.TryGetValue(FishOf(catalog, goodsId), out FishRecord record) ? record.BestSize : 0f;
+				}
+			}
+			return granted;
+		}
+
+		// 물고기 물건의 물고기 id. 물고기가 아니거나 짝이 없으면 던짐
+		public static string FishOf(HomesteadCatalog catalog, string goodsId)
+		{
+			foreach (FishDef fish in catalog.Fishes)
+			{
+				if (fish.Goods == goodsId)
+				{
+					return fish.Id;
+				}
+			}
+			throw new System.ArgumentException($"물고기가 아닌 물건 {goodsId}");
+		}
+
 		public static List<string> DropUnknown(HomesteadState state, HomesteadCatalog catalog)
 		{
 			List<string> dropped = new List<string>();
@@ -17,6 +60,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			DropItems<CostumeDef>(state.OwnedCostumes, catalog, dropped);
 			DropKeys<JobDef>(state.Jobs, catalog, dropped);
 			DropKeys<FishDef>(state.FishRecords, catalog, dropped);
+			DropKeys<GoodsDef>(state.ExhibitSizes, catalog, dropped);
 			Drop<BuildingDef, WorkState>(state.Works, work => work.Building, catalog, dropped);
 			Drop<FurnitureDef, PlacedFurniture>(state.Placed, piece => piece.Id, catalog, dropped);
 			Drop<PlaceableDef, PlacedPiece>(state.Village, piece => piece.Id, catalog, dropped);

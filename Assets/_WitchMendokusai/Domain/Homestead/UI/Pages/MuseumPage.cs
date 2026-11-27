@@ -51,7 +51,7 @@ namespace WitchMendokusai
 		{
 			bool donated = Sim.IsDonated(goods.Id);
 			bool known = donated || Sim.IsKnown(goods.Id) || Sim.Count(goods.Id) > 0;
-			bool canDonate = donated == false && Sim.Count(goods.Id) > 0;
+			bool canDonate = Sim.Count(goods.Id) > 0 && (donated == false || Sim.HasLargerFish(goods.Id));
 			return new HomesteadEntry
 			{
 				Id = goods.Id,
@@ -63,8 +63,7 @@ namespace WitchMendokusai
 				Detail = () =>
 				{
 					HomesteadDetail detail = new() { Icon = known ? Art.IconOf(goods) : null, Title = known ? goods.Name : "???", Note = wing.Note };
-					if (donated)
-						detail.Lines.Add("받침대에 놓여 있습니다.");
+					detail.Lines.Add(StateLine(goods));
 					AddRecord(detail, goods);
 					AddWingProgress(detail, wing);
 					if (donated == false)
@@ -72,11 +71,24 @@ namespace WitchMendokusai
 						HomesteadResult can = canDonate ? HomesteadResult.Success : HomesteadResult.Fail(HomesteadFailure.NotEnoughGoods);
 						AddAction(detail, "기증하기", can, () => Sim.Donate(goods.Id), UiSfxEvent.Chest);
 					}
+					else if (Sim.HasLargerFish(goods.Id))
+					{
+						HomesteadResult can = Sim.Count(goods.Id) > 0 ? HomesteadResult.Success : HomesteadResult.Fail(HomesteadFailure.NotEnoughGoods);
+						AddAction(detail, $"더 큰 것으로 바꾸기 (+{Sim.LargerFishNyang(goods.Id)}냥)", can, () => Sim.Donate(goods.Id), UiSfxEvent.Chest);
+					}
 					AddClaim(detail, wing);
 					return detail;
 				},
 			};
 		}
+
+		private string StateLine(GoodsDef goods) => Sim.ExhibitStateOf(goods.Id) switch
+		{
+			ExhibitState.Donated => goods.Kind == GoodsKind.Fish ? $"받침대에 놓여 있습니다. {Sim.ExhibitSize(goods.Id)}cm" : "받침대에 놓여 있습니다.",
+			ExhibitState.Held => "가지고 있습니다. 기증할 수 있습니다.",
+			ExhibitState.Seen => "본 적은 있지만 지금 가진 것이 없습니다.",
+			_ => "아직 모르는 것입니다.",
+		};
 
 		private void AddRecord(HomesteadDetail detail, GoodsDef goods)
 		{
@@ -140,7 +152,8 @@ namespace WitchMendokusai
 			RelicDef relic = Catalog.Get<RelicDef>(restoring.Relic);
 			detail.Bar = restoring.Cleaned / (float)relic.Grime.Count;
 			detail.BarText = $"{restoring.Cleaned} / {relic.Grime.Count}";
-			detail.Lines.Add($"지금 자리: {HomesteadText.Grime(relic.Grime[restoring.Cleaned])}");
+			int grime = relic.Grime[restoring.Cleaned];
+			detail.Lines.Add(Sim.IsGrimeNamed() ? $"지금 자리: {HomesteadText.Grime(grime)}" : $"지금 자리: {HomesteadText.GrimeClue(grime)} (처음 보는 유물)");
 			detail.Lines.Add(restoring.Mistakes == 0 ? $"한 번도 안 틀리면 {Catalog.Tuning.RelicPerfectNyang}냥 덤" : "덤은 다음 유물에서");
 			for (int i = 0; i < HomesteadText.BrushCount; i++)
 			{

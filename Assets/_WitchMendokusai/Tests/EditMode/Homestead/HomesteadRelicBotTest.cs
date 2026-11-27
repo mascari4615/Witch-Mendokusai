@@ -107,6 +107,28 @@ namespace WitchMendokusai.Tests
 			Assert.That(Percentile(allSeen, 0.9f), Is.LessThan(70), "다 보기 90% 값");
 		}
 
+		// 처음 보는 유물은 때 이름이 안 보이고 단서만. 한 번 손질해 얻으면 이름까지
+		[Test]
+		public void Unseen_relic_hides_grime_names_until_restored_once()
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse purse);
+			HomesteadTestKit.BuildNow(sim, purse, HomesteadSim.MUSEUM);
+			Assert.That(sim.IsGrimeNamed(), Is.False, "손질 중이 아님");
+			sim.State.DirtyRelics = 2;
+			Assert.That(sim.BeginRestore().Ok);
+			string relicId = sim.State.Restoring.Relic;
+			Assert.That(sim.IsGrimeNamed(), Is.False, "처음 보는 유물");
+			bool finished = false;
+			while (finished == false)
+			{
+				RelicDef relic = sim.Catalog.Get<RelicDef>(sim.State.Restoring.Relic);
+				sim.Clean(relic.Grime[sim.State.Restoring.Cleaned], out bool _, out finished);
+			}
+			Assert.That(sim.BeginRestore().Ok);
+			sim.State.Restoring.Relic = relicId;
+			Assert.That(sim.IsGrimeNamed(), "손질해 본 유물");
+		}
+
 		[Test]
 		public void Catalog_check_reports_a_grime_without_a_tool()
 		{

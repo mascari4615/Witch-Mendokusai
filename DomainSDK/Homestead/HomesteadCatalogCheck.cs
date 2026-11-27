@@ -118,6 +118,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 			foreach (WingDef wing in catalog.Wings)
 			{
+				foreach (string goods in wing.Exhibits)
+				{
+					Need<GoodsDef>(catalog, goods, wing.Id, problems);
+				}
 				foreach (MilestoneDef milestone in wing.Milestones)
 				{
 					NeedReward(catalog, milestone.Reward, wing.Id, problems);

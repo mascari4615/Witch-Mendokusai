@@ -120,6 +120,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 	public sealed class WingDef : HomesteadDef
 	{
 		public List<GoodsKind> Kinds { get; set; } = new List<GoodsKind>();
+		// 갈래 밖인데 이 관이 받는 물건. 목장 산물처럼 갈래가 가공품과 섞인 것
+		public List<string> Exhibits { get; set; } = new List<string>();
 		public List<MilestoneDef> Milestones { get; set; } = new List<MilestoneDef>();
 	}
 

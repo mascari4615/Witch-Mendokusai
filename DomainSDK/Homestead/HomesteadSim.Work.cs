@@ -104,6 +104,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		public bool IsProductReady(AnimalState animal) => ProductsReady(animal) > 0;
 
+		// 정을 하트 칸으로. 끝 정이면 칸이 다 참
+		public int AnimalHearts(AnimalState animal) => animal.Affinity * Tuning.AnimalHearts / Tuning.AnimalMaxAffinity;
+
 		// 비운 동안 하루치까지 쌓임. 던전에 다녀와도 놓친 몫이 하루를 넘지 않음
 		public int ProductCap(AnimalDef def) => Math.Max(1, Tuning.MinutesPerDay / def.IntervalMinutes);
 

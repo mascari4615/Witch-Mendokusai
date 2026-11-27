@@ -40,6 +40,60 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
+		// 정 단계는 하트 칸. 0 에서 비고 끝 정에서 다 참, 줄지 않음
+		[Test]
+		public void Hearts_follow_affinity()
+		{
+			HomesteadSim sim = MakeRanch(out HomesteadTestKit.FakePurse _);
+			AnimalState hen = Buy(sim, "hen");
+			int hearts = sim.Catalog.Tuning.AnimalHearts;
+			Assert.That(hearts, Is.EqualTo(5));
+			Assert.That(sim.AnimalHearts(hen), Is.EqualTo(0));
+			int previous = 0;
+			for (int day = 0; day < 20; day++)
+			{
+				sim.Care(hen.Uid, out bool _);
+				sim.AdvanceMinutes(sim.Catalog.Tuning.MinutesPerDay);
+				int now = sim.AnimalHearts(hen);
+				Assert.That(now, Is.GreaterThanOrEqualTo(previous));
+				Assert.That(now, Is.LessThanOrEqualTo(hearts));
+				previous = now;
+			}
+			Assert.That(hen.Affinity, Is.EqualTo(sim.Catalog.Tuning.AnimalMaxAffinity));
+			Assert.That(sim.AnimalHearts(hen), Is.EqualTo(hearts));
+		}
+
+		// 좋은 산물은 팔기 말고도 쓰임이 있음: 공작소 조합과 박물관 받침.
+		// 의뢰는 넣지 않음. 의뢰는 기한도 버리기도 없어 목장이 없는 사람의 칸을 영영 막음
+		[Test]
+		public void Fine_products_go_into_a_recipe_and_a_museum_stand()
+		{
+			HomesteadSim sim = MakeRanch(out HomesteadTestKit.FakePurse _);
+			foreach (AnimalDef animal in sim.Catalog.Animals)
+			{
+				Assert.That(sim.Catalog.Recipes.Exists(recipe => recipe.Inputs.ContainsKey(animal.FineProduct)), animal.FineProduct + " 조합");
+				Assert.That(sim.CanExhibit(animal.FineProduct), animal.FineProduct + " 받침");
+			}
+		}
+
+		// 좋은 산물 조합은 보통 산물로 같은 것을 만들 때보다 하나당 많이 냄 (좋은 것을 넣을 이유)
+		[Test]
+		public void Fine_recipes_yield_more_than_plain_ones()
+		{
+			HomesteadSim sim = MakeRanch(out HomesteadTestKit.FakePurse _);
+			foreach (AnimalDef animal in sim.Catalog.Animals)
+			{
+				foreach (RecipeDef fine in sim.Catalog.Recipes.FindAll(recipe => recipe.Inputs.ContainsKey(animal.FineProduct)))
+				{
+					RecipeDef plain = sim.Catalog.Recipes.Find(recipe => recipe.Output == fine.Output && recipe.Inputs.ContainsKey(animal.Product));
+					Assert.That(plain, Is.Not.Null, fine.Id + " 와 짝인 보통 조합");
+					float finePer = fine.Amount / (float)fine.Inputs[animal.FineProduct];
+					float plainPer = plain.Amount / (float)plain.Inputs[animal.Product];
+					Assert.That(finePer, Is.GreaterThan(plainPer), fine.Id);
+				}
+			}
+		}
+
 		[Test]
 		public void Low_affinity_gives_plain_only()
 		{

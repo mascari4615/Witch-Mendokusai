@@ -10,7 +10,7 @@ namespace WitchMendokusai.Tests
 	{
 		private const int FIRST_REWARD_MAX = 3;
 		private const int GAP_MAX = 6;
-		private const int MILESTONE_TOTAL = 15;
+		private const int MILESTONE_TOTAL = 16;
 		private const int CASTS_PER_RUN = 6;
 		private const int HOURS_PER_DAY = 24;
 		private const int SEASONS = 4;
@@ -39,6 +39,126 @@ namespace WitchMendokusai.Tests
 				total += wing.Milestones.Count;
 			}
 			Assert.That(total, Is.EqualTo(MILESTONE_TOTAL));
+		}
+
+		private static HomesteadSim OpenMuseum(out HomesteadTestKit.FakePurse purse)
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out purse);
+			HomesteadTestKit.BuildNow(sim, purse, HomesteadSim.MUSEUM);
+			return sim;
+		}
+
+		// 빈 받침 넷: 모름, 본 적 있는데 지금 없음, 가짐, 놓임
+		[Test]
+		public void Exhibit_state_has_four_steps()
+		{
+			HomesteadSim sim = OpenMuseum(out HomesteadTestKit.FakePurse _);
+			string goods = sim.Catalog.Fishes[0].Goods;
+			Assert.That(sim.ExhibitStateOf(goods), Is.EqualTo(ExhibitState.Unknown));
+			sim.Give(goods, 1);
+			Assert.That(sim.ExhibitStateOf(goods), Is.EqualTo(ExhibitState.Held));
+			Assert.That(sim.Sell(goods, 1).Ok);
+			Assert.That(sim.ExhibitStateOf(goods), Is.EqualTo(ExhibitState.Seen), "팔았거나 쓴 것");
+			sim.Give(goods, 2);
+			Assert.That(sim.Donate(goods).Ok);
+			Assert.That(sim.ExhibitStateOf(goods), Is.EqualTo(ExhibitState.Donated), "가진 것이 남아도 놓임이 앞");
+		}
+
+		// 받침에 놓인 크기보다 큰 것을 가져오면 바꾸고 값의 반을 냥으로. 작거나 같으면 그대로
+		[Test]
+		public void Larger_fish_replaces_the_stand_and_pays_part_of_its_price()
+		{
+			HomesteadSim sim = OpenMuseum(out HomesteadTestKit.FakePurse purse);
+			FishDef fish = sim.Catalog.Fishes[0];
+			sim.State.FishRecords[fish.Id] = new FishRecord { Count = 1, BestSize = 10f };
+			sim.Give(fish.Goods, 3);
+			Assert.That(sim.Donate(fish.Goods).Ok);
+			Assert.That(sim.ExhibitSize(fish.Goods), Is.EqualTo(10f));
+			Assert.That(sim.Donate(fish.Goods).Failure, Is.EqualTo(HomesteadFailure.AlreadyDone), "같은 크기는 거절");
+
+			sim.State.FishRecords[fish.Id].BestSize = 12.5f;
+			int nyang = purse.Nyang;
+			int count = sim.Count(fish.Goods);
+			Assert.That(sim.HasLargerFish(fish.Goods));
+			Assert.That(sim.Donate(fish.Goods).Ok);
+			Assert.That(sim.ExhibitSize(fish.Goods), Is.EqualTo(12.5f));
+			Assert.That(sim.Count(fish.Goods), Is.EqualTo(count - 1));
+			Assert.That(fish.Goods, Is.EqualTo("minnow"));
+			Assert.That(sim.Catalog.Get<GoodsDef>(fish.Goods).Price, Is.EqualTo(10));
+			Assert.That(purse.Nyang - nyang, Is.EqualTo(5), "송사리 10냥의 반");
+			Assert.That(sim.State.Donated.FindAll(id => id == fish.Goods).Count, Is.EqualTo(1), "기증 수는 그대로");
+			Assert.That(sim.HasLargerFish(fish.Goods), Is.False);
+		}
+
+		[Test]
+		public void Larger_fish_needs_one_in_the_bag()
+		{
+			HomesteadSim sim = OpenMuseum(out HomesteadTestKit.FakePurse _);
+			FishDef fish = sim.Catalog.Fishes[0];
+			sim.State.FishRecords[fish.Id] = new FishRecord { Count = 1, BestSize = 10f };
+			sim.Give(fish.Goods, 1);
+			Assert.That(sim.Donate(fish.Goods).Ok);
+			sim.State.FishRecords[fish.Id].BestSize = 20f;
+			Assert.That(sim.Donate(fish.Goods).Failure, Is.EqualTo(HomesteadFailure.NotEnoughGoods));
+		}
+
+		// 목장 산물 (보통, 좋은 것) 은 갈래가 가공품과 섞여 있어 관이 이름으로 받음. 한 관에만
+		[Test]
+		public void Ranch_products_have_a_stand_in_one_wing()
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
+			foreach (AnimalDef animal in sim.Catalog.Animals)
+			{
+				Assert.That(sim.CanExhibit(animal.Product), animal.Product);
+				Assert.That(sim.CanExhibit(animal.FineProduct), animal.FineProduct);
+			}
+			foreach (WingDef wing in sim.Catalog.Wings)
+			{
+				foreach (string goodsId in wing.Exhibits)
+				{
+					GoodsDef goods = sim.Catalog.Get<GoodsDef>(goodsId);
+					Assert.That(wing.Kinds.Contains(goods.Kind), Is.False, $"{wing.Id} {goodsId} 는 갈래로 이미 받음");
+					Assert.That(sim.Catalog.Wings.FindAll(other => other.Kinds.Contains(goods.Kind) || other.Exhibits.Contains(goodsId)).Count, Is.EqualTo(1), goodsId);
+					Assert.That(sim.WingOf(goodsId), Is.SameAs(wing));
+				}
+			}
+			Assert.That(sim.CanExhibit("flour"), Is.False, "가공품은 안 받음");
+		}
+
+		// 옛 세이브: 물 관 이정표 셋을 받았는데 낚시 모자가 넷째에 있던 때라 모자가 없음. 크기 없이 놓인 물고기
+		[Test]
+		public void Old_save_catches_up_moved_costume_and_stand_sizes()
+		{
+			HomesteadCatalog catalog = HomesteadTestKit.LoadCatalog();
+			HomesteadState state = new HomesteadState();
+			state.WingClaims["waters"] = 3;
+			state.Donated.Add("minnow");
+			state.FishRecords["minnow"] = new FishRecord { Count = 2, BestSize = 7.5f };
+			List<string> granted = HomesteadRepair.CatchUp(state, catalog);
+			Assert.That(granted, Does.Contain("hat_fisher"));
+			Assert.That(state.OwnedCostumes, Does.Contain("hat_fisher"));
+			Assert.That(state.ExhibitSizes["minnow"], Is.EqualTo(7.5f), "옛 받침은 가장 큰 기록으로");
+			Assert.That(HomesteadRepair.CatchUp(state, catalog), Is.Empty, "두 번째는 할 것 없음");
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _, state: state);
+			Assert.That(sim.HasLargerFish("minnow"), Is.False, "따라잡은 뒤 공짜 바꾸기 없음");
+		}
+
+		[Test]
+		public void Catalog_check_reports_a_missing_wing_exhibit()
+		{
+			HomesteadCatalog catalog = HomesteadTestKit.LoadCatalog();
+			catalog.Wings[0].Exhibits.Add("no_such_goods");
+			Assert.That(HomesteadCatalogCheck.Run(catalog), Has.Some.Contains("no_such_goods"));
+		}
+
+		// 기증함 없음 (f06-3): 박물관을 짓기 전에는 기증이 안 됨
+		[Test]
+		public void No_donation_before_the_museum_opens()
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
+			string goods = sim.Catalog.Fishes[0].Goods;
+			sim.Give(goods, 1);
+			Assert.That(sim.Donate(goods).Failure, Is.EqualTo(HomesteadFailure.NotBuilt));
 		}
 
 		// 봇: 던전과 마을 한 바퀴, 낚시, 유물 손질, 가진 전시물 전부 기증, 받을 이정표 전부 받기.

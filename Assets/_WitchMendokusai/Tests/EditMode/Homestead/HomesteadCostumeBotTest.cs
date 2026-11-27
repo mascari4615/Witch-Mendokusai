@@ -16,8 +16,12 @@ namespace WitchMendokusai.Tests
 		private const int SEEDS = 5;
 		// 2026-11-27 실측 마지막 옷 37판에 여유. 꿀 물들임이 꿀 2개일 때 73판까지 늘어져 잡힘
 		private const int LAST_COSTUME_RUN = 45;
-		// 물 날개 마지막 이정표는 16종 전부. 안개메기가 달빛 낚싯대 (고운 양털, 목장 정) 를 요구하는데 이 봇은 목장을 안 돌림
-		private const string NEEDS_RANCH = "hat_fisher";
+		// 의상실 1단 옷이 짓는 판에 몰리지 않게 (f10-2). 같은 판에 처음 갖는 1단 옷의 최대 수
+		private const int TAILOR_SAME_RUN_MAX = 2;
+		// 의상실을 늦게 지은 씨앗은 재료가 이미 쌓여 있어 자료 값으로는 못 나눔 (2026-11-27 씨앗 0, 18판). 그런 씨앗 하나까지
+		private const int CROWDED_SEEDS_MAX = 1;
+		private const string RIBBON = "hat_ribbon";
+		private const string SHEEP = "sheep";
 
 		private static readonly MethodInfo PlayDungeonMethod = PlayTestMethod("PlayDungeon");
 		private static readonly MethodInfo PlayTownMethod = PlayTestMethod("PlayTown");
@@ -31,7 +35,7 @@ namespace WitchMendokusai.Tests
 		private static bool Keeps(HomesteadSim sim, CostDef cost) => (bool)KeepsMethod.Invoke(null, new object[] { sim, cost });
 
 		// 옷장 id 마다 처음 가진 판. 끝까지 못 얻으면 빠짐
-		internal static Dictionary<string, int> CostumeRuns(int seed, out int tailorRun)
+		internal static Dictionary<string, int> CostumeRuns(int seed, out int tailorRun, out bool ranchBuilt)
 		{
 			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse purse, seed);
 			purse.Nyang = 300;
@@ -50,6 +54,7 @@ namespace WitchMendokusai.Tests
 				Fish(sim, random);
 				Restore(sim);
 				Sew(sim);
+				Ranch(sim);
 				foreach (GoodsDef goods in sim.Catalog.Goods)
 				{
 					sim.Donate(goods.Id);
@@ -80,8 +85,9 @@ namespace WitchMendokusai.Tests
 					}
 				}
 			}
+			ranchBuilt = sim.IsBuilt(HomesteadSim.RANCH);
 			string wings = string.Join(", ", sim.Catalog.Wings.Select(wing => $"{wing.Id} {sim.DonatedCount(wing)}/{wing.Milestones[wing.Milestones.Count - 1].Count}"));
-			TestContext.WriteLine($"씨앗 {seed}: 타운홀 {sim.State.TownHall}, 의상실 {sim.BuildingLevel(HomesteadSim.TAILOR)}, 낚싯대 {sim.ToolTier(ToolKind.Rod)}, 기증 {wings}, 천 {sim.Count("cloth")}, 유리 {sim.Count("glass")}");
+			TestContext.WriteLine($"씨앗 {seed}: 타운홀 {sim.State.TownHall}, 의상실 {sim.BuildingLevel(HomesteadSim.TAILOR)}, 낚싯대 {sim.ToolTier(ToolKind.Rod)}, 기증 {wings}, 천 {sim.Count("cloth")}, 유리 {sim.Count("glass")}, 양털 {sim.Count("wool")}, 동물 {sim.State.Animals.Count}, 목장 {sim.BuildingLevel(HomesteadSim.RANCH)}, 옷 {string.Join(" ", got.Keys)}");
 			return got;
 		}
 
@@ -143,6 +149,29 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
+		private static bool NeedsRanch(CostumeDef costume)
+		{
+			List<AnimalDef> animals = HomesteadTestKit.LoadCatalog().Animals;
+			return costume.Cost.Goods.Keys.Any(goods => animals.Exists(animal => animal.Product == goods || animal.FineProduct == goods));
+		}
+
+		// 목장을 짓고 양 한 마리를 들여 매판 쓰다듬음. 고양이 귀의 양털이 던전 떨굼에만 기대지 않게
+		private static void Ranch(HomesteadSim sim)
+		{
+			if (sim.IsBuilt(HomesteadSim.RANCH) == false && sim.TryGetNextLevel(HomesteadSim.RANCH, out BuildingLevelDef level) && Keeps(sim, level.Cost))
+			{
+				sim.StartBuild(HomesteadSim.RANCH);
+			}
+			if (sim.State.Animals.Count == 0 && sim.CanBuyAnimal(SHEEP).Ok && Keeps(sim, sim.Catalog.Get<AnimalDef>(SHEEP).Cost))
+			{
+				sim.BuyAnimal(SHEEP);
+			}
+			foreach (AnimalState animal in sim.State.Animals)
+			{
+				sim.Care(animal.Uid, out bool _);
+			}
+		}
+
 		// 낚싯대에 맞는 것만 문다고 보고 다 낚음 (손이 좋은 사람)
 		private static void Fish(HomesteadSim sim, Random random)
 		{
@@ -200,20 +229,72 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
+		// 리본은 집 제작대 (f10-3). 의상실 없이 데모 첫 마을에서 바로
+		[Test]
+		public void Ribbon_is_made_at_the_home_bench_without_a_tailor()
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse purse);
+			CostumeDef ribbon = sim.Catalog.Get<CostumeDef>(RIBBON);
+			Assert.That(ribbon.Source, Is.EqualTo(HomesteadSim.BENCH));
+			Assert.That(sim.IsBuilt(HomesteadSim.TAILOR), Is.False);
+			HomesteadTestKit.Afford(sim, purse, ribbon.Cost);
+			Assert.That(sim.MakeCostume(RIBBON).Ok);
+			Assert.That(sim.OwnsCostume(RIBBON));
+			foreach (CostumeDef costume in sim.Catalog.Costumes.Where(costume => costume.Source == HomesteadSim.TAILOR))
+			{
+				HomesteadTestKit.Afford(sim, purse, costume.Cost);
+				Assert.That(sim.CanMakeCostume(costume.Id).Failure, Is.EqualTo(HomesteadFailure.NotBuilt), costume.Id + " 는 의상실");
+			}
+		}
+
+		// 얻는 길은 셋뿐: 보상, 집 제작대, 의상실
+		[Test]
+		public void Costume_sources_are_reward_bench_or_tailor()
+		{
+			foreach (CostumeDef costume in HomesteadTestKit.LoadCatalog().Costumes)
+			{
+				Assert.That(new[] { HomesteadSim.REWARD_ONLY, HomesteadSim.BENCH, HomesteadSim.TAILOR }, Does.Contain(costume.Source), costume.Id);
+			}
+		}
+
+		// 낚시 모자는 물 관 셋째 이정표 (10종) 에서 (f10-1). 마지막 16종은 목장 정과 사슬로 묶여 있음
+		[Test]
+		public void Fisher_hat_comes_from_the_third_water_milestone()
+		{
+			WingDef waters = HomesteadTestKit.LoadCatalog().Get<WingDef>("waters");
+			MilestoneDef third = waters.Milestones[2];
+			Assert.That(third.Count, Is.EqualTo(10));
+			Assert.That(third.Reward.Costumes, Does.Contain("hat_fisher"));
+			Assert.That(waters.Milestones[waters.Milestones.Count - 1].Reward.Costumes, Does.Not.Contain("hat_fisher"));
+		}
+
 		[Test]
 		public void Every_costume_is_reachable_within_the_demo_length()
 		{
 			List<CostumeDef> costumes = HomesteadTestKit.LoadCatalog().Costumes;
 			Dictionary<string, List<int>> all = costumes.ToDictionary(costume => costume.Id, _ => new List<int>());
 			List<int> tailors = new();
+			List<string> crowded = new();
+			int noRanchSeeds = 0;
 			for (int seed = 0; seed < SEEDS; seed++)
 			{
-				Dictionary<string, int> got = CostumeRuns(seed, out int tailorRun);
+				Dictionary<string, int> got = CostumeRuns(seed, out int tailorRun, out bool ranchBuilt);
+				if (ranchBuilt == false)
+				{
+					noRanchSeeds++;
+				}
 				foreach (KeyValuePair<string, int> pair in got)
 				{
 					all[pair.Key].Add(pair.Value);
 				}
 				tailors.Add(tailorRun);
+				foreach (IGrouping<int, CostumeDef> sameRun in costumes.Where(costume => costume.Source == HomesteadSim.TAILOR && costume.Level == 1 && got.ContainsKey(costume.Id)).GroupBy(costume => got[costume.Id]))
+				{
+					if (sameRun.Count() > TAILOR_SAME_RUN_MAX)
+					{
+						crowded.Add($"씨앗 {seed} {sameRun.Key}판에 의상실 1단 옷 {string.Join(", ", sameRun.Select(costume => costume.Name))}");
+					}
+				}
 			}
 			TestContext.WriteLine($"의상실 지은 판: {string.Join(", ", tailors)}");
 			foreach (CostumeDef costume in costumes.OrderBy(costume => all[costume.Id].DefaultIfEmpty(999).Max()))
@@ -222,13 +303,15 @@ namespace WitchMendokusai.Tests
 				string text = runs.Count == 0 ? "못 얻음" : $"{runs.Min()}~{runs.Max()}판 ({runs.Count}/{SEEDS})";
 				TestContext.WriteLine($"{costume.Name,-8} {costume.Source,-8} {text}");
 			}
+			TestContext.WriteLine($"목장을 못 지은 씨앗 {noRanchSeeds}");
+			Assert.That(noRanchSeeds, Is.LessThanOrEqualTo(1), "목장을 못 짓는 씨앗이 늘어남");
+			TestContext.WriteLine($"1단 옷이 몰린 곳: {string.Join("; ", crowded)}");
+			Assert.That(crowded.Count, Is.LessThanOrEqualTo(CROWDED_SEEDS_MAX), "의상실 1단 옷이 한 판에 몰림");
 			foreach (CostumeDef costume in costumes)
 			{
-				if (costume.Id == NEEDS_RANCH)
-				{
-					continue;
-				}
-				Assert.That(all[costume.Id].Count, Is.EqualTo(SEEDS), $"{costume.Name} 을 {RUNS}판 안에 못 얻는 씨앗이 있음");
+				// 목장 산물 옷은 목장을 지은 씨앗에서만 셈. 마을 봇이 섬유를 실로 다 써서 목장을 못 짓는 씨앗이 있음
+				int expected = NeedsRanch(costume) ? SEEDS - noRanchSeeds : SEEDS;
+				Assert.That(all[costume.Id].Count, Is.GreaterThanOrEqualTo(expected), $"{costume.Name} 을 {RUNS}판 안에 못 얻는 씨앗이 있음");
 				Assert.That(all[costume.Id].Max(), Is.LessThanOrEqualTo(LAST_COSTUME_RUN), $"{costume.Name} 이 너무 늦음");
 			}		}
 	}

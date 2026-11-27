@@ -33,6 +33,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public List<string> Donated { get; set; } = new List<string>();
 		// 관 id -> 받은 이정표 수
 		public Dictionary<string, int> WingClaims { get; set; } = new Dictionary<string, int>();
+		// 물건 id -> 받침에 놓인 물고기 크기. 더 큰 것을 가져오면 바뀜
+		public Dictionary<string, float> ExhibitSizes { get; set; } = new Dictionary<string, float>();
 
 		public int HouseTier { get; set; } = 1;
 		public Dictionary<string, int> OwnedFurniture { get; set; } = new Dictionary<string, int>();
