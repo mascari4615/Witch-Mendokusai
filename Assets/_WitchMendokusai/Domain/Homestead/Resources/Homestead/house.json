@@ -60,7 +60,7 @@
 		{"Id": "outfit_rose", "Name": "장미 물들임", "Slot": "Outfit", "Cost": {"Nyang": 0, "Goods": {"cloth": 2, "tulip": 6}}, "Source": "bench", "Level": 1, "Look": "#f2a0ae"},
 		{"Id": "outfit_violet", "Name": "보라 물들임", "Slot": "Outfit", "Cost": {"Nyang": 0, "Goods": {"cloth": 2, "lavender": 5}}, "Source": "bench", "Level": 1, "Look": "#b9a2e8"},
 		{"Id": "outfit_sky", "Name": "하늘 물들임", "Slot": "Outfit", "Cost": {"Nyang": 0, "Goods": {"cloth": 2, "sapphire": 1}}, "Source": "workshop", "Level": 2, "Look": "#9cc4f0"},
-		{"Id": "outfit_honey", "Name": "꿀 물들임", "Slot": "Outfit", "Cost": {"Nyang": 0, "Goods": {"cloth": 2, "honey": 2}}, "Source": "workshop", "Level": 2, "Look": "#f3d488"},
+		{"Id": "outfit_honey", "Name": "꿀 물들임", "Slot": "Outfit", "Cost": {"Nyang": 0, "Goods": {"cloth": 2, "honey": 1}}, "Source": "workshop", "Level": 2, "Look": "#f3d488"},
 		{"Id": "outfit_night", "Name": "밤 물들임", "Slot": "Outfit", "Cost": {"Nyang": 0, "Goods": {"cloth": 3, "obsidian": 2}}, "Source": "workshop", "Level": 2, "Look": "#7480b0"},
 		{"Id": "outfit_apron", "Name": "공방 앞치마", "Slot": "Outfit", "Cost": {"Nyang": 0, "Goods": {}}, "Source": "reward", "Level": 1, "Look": "#e8dcc4"},
 		{"Id": "outfit_curator", "Name": "관장 코트", "Slot": "Outfit", "Cost": {"Nyang": 0, "Goods": {}}, "Source": "reward", "Level": 1, "Look": "#8f86c9"}
