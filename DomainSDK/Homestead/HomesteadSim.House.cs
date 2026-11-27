@@ -43,6 +43,15 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			TryGetNextHouseTier(out HouseTierDef next);
 			Pay(next.Cost);
 			State.HouseTier = next.Tier;
+			// 바닥과 깔개는 그 자리, 벽 가구만 새 벽으로
+			foreach (PlacedFurniture piece in State.Placed)
+			{
+				FurnitureDef furniture = Catalog.Get<FurnitureDef>(piece.Id);
+				if (furniture.Layer == FurnitureLayer.Wall)
+				{
+					RoomRules.KeepOnWall(furniture, next, piece);
+				}
+			}
 			NotifyChanged();
 			return HomesteadResult.Success;
 		}
