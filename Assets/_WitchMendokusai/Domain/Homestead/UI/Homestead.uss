@@ -922,7 +922,6 @@
     color: rgb(154, 209, 98);
 }
 
-/* 건설 막대 */
 /* 건설 막대. 상점 판 문법: 판은 짙은 결 + 밝은 테두리 2px, 칸은 상점 칸 (검정 0.36) + 그림 상자 (slot-lit, 테두리 1px).
    루트에 wm-shop 클래스가 붙어 상점 색 이름을 씀 (VillageBuildHud). 그 클래스의 화면 가득 자리는 아래에서 되돌림 */
 .wm-hs-build__root {
@@ -992,7 +991,6 @@
 }
 
 .wm-hs-build__slot--held .wm-hs-build__icon {
-    border-width: 2px;
     border-color: var(--wm-shop-value);
 }
 

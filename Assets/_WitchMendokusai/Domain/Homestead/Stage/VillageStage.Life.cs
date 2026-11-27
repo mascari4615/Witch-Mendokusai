@@ -175,7 +175,7 @@ namespace WitchMendokusai
 			return walker;
 		}
 
-		private Transform disc;
+		private SpriteRenderer disc;
 
 		private void AddGroundDisc(float size)
 		{
@@ -188,11 +188,11 @@ namespace WitchMendokusai
 			discRenderer.sprite = discSprite;
 			discRenderer.color = new Color(1f, 1f, 1f, discAlpha);
 			discRenderer.sortingOrder = discSortingOrder;
-			disc = discObject.transform;
+			disc = discRenderer;
 			SetGroundDiscSize(size);
 		}
 
-		private void SetGroundDiscSize(float size) => disc.localScale = Vector3.one * (size * discPerSize / disc.GetComponent<SpriteRenderer>().sprite.bounds.size.x);
+		private void SetGroundDiscSize(float size) => disc.transform.localScale = Vector3.one * (size * discPerSize / disc.sprite.bounds.size.x);
 
 		public void SetHome(Vector3 newHome)
 		{
@@ -218,6 +218,8 @@ namespace WitchMendokusai
 				head.SetSprite(headSprite, height);
 				headBase = 0f;
 			}
+			if (disc != null)
+				SetGroundDiscSize(height);
 			Place(0f);
 		}
 
