@@ -191,6 +191,16 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			return hasNews ? digest : new HomesteadDigest();
 		}
 
+		// 거두기, 납품, 인사처럼 소식거리가 줄면 기준도 같이 내림
+		// 안 내리면 거둔 뒤 다시 찬 칸이 지난번과 같은 수라 새 소식으로 안 잡힘
+		private void LowerShownDigest()
+		{
+			if (shownDigest != null)
+			{
+				shownDigest = HomesteadDigest.Lower(shownDigest, MakeDigest());
+			}
+		}
+
 		public void Greet(string residentId)
 		{
 			ResidentOf(residentId).Greeted = true;
@@ -223,6 +233,23 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				|| DirtyRelics > before.DirtyRelics
 				|| DoneWorks.Exists(building => before.DoneWorks.Contains(building) == false)
 				|| NewResidents.Exists(resident => before.NewResidents.Contains(resident) == false);
+		}
+
+		// 칸마다 둘 중 작은 쪽, 목록은 둘 다에 있는 것만
+		public static HomesteadDigest Lower(HomesteadDigest a, HomesteadDigest b)
+		{
+			HomesteadDigest lower = new HomesteadDigest
+			{
+				RipePlots = Math.Min(a.RipePlots, b.RipePlots),
+				DoneCrafts = Math.Min(a.DoneCrafts, b.DoneCrafts),
+				JobYields = Math.Min(a.JobYields, b.JobYields),
+				AnimalProducts = Math.Min(a.AnimalProducts, b.AnimalProducts),
+				DeliverableRequests = Math.Min(a.DeliverableRequests, b.DeliverableRequests),
+				DirtyRelics = Math.Min(a.DirtyRelics, b.DirtyRelics),
+			};
+			lower.DoneWorks.AddRange(a.DoneWorks.FindAll(b.DoneWorks.Contains));
+			lower.NewResidents.AddRange(a.NewResidents.FindAll(b.NewResidents.Contains));
+			return lower;
 		}
 
 		public bool IsEmpty => RipePlots + DoneCrafts + JobYields + AnimalProducts + DeliverableRequests + DirtyRelics + DoneWorks.Count + NewResidents.Count == 0;

@@ -122,5 +122,61 @@ namespace WitchMendokusai.Tests
 			Assert.That(shop, Is.Not.Null);
 			Assert.That(again.CanPut("shop", shop.X, shop.Z, shop.Turn, shop.Uid).Ok);
 		}
+
+		// ---- 목장 마당. 여섯 마리 (목장 3단 x 2) 가 거닐어도 서로, 그리고 문과 떨어져 있음
+
+		private const int MAX_ANIMALS = 6;
+		private const float ANIMAL_GAP = 0.8f;
+		private const float DOOR_GAP = 1f;
+
+		private static float Gap((float Side, float Ahead) a, (float Side, float Ahead) b)
+		{
+			float side = a.Side - b.Side;
+			float ahead = a.Ahead - b.Ahead;
+			return (float)System.Math.Sqrt(side * side + ahead * ahead);
+		}
+
+		[Test]
+		public void Ranch_animals_keep_apart_while_wandering()
+		{
+			RanchYard yard = new();
+			for (int i = 0; i < MAX_ANIMALS; i++)
+			{
+				for (int j = i + 1; j < MAX_ANIMALS; j++)
+				{
+					float nearest = Gap(yard.Home(i), yard.Home(j)) - yard.Wander * 2f;
+					Assert.That(nearest, Is.GreaterThanOrEqualTo(ANIMAL_GAP), $"{i} 와 {j} 가 거닐다 가장 가까워질 때");
+				}
+			}
+		}
+
+		[Test]
+		public void Ranch_animals_stay_off_the_door()
+		{
+			RanchYard yard = new();
+			for (int i = 0; i < MAX_ANIMALS; i++)
+			{
+				(float Side, float Ahead) home = yard.Home(i);
+				Assert.That(Gap(home, (0f, 0f)) - yard.Wander, Is.GreaterThanOrEqualTo(DOOR_GAP), $"{i} 가 문 (목장 자리) 에 가장 가까워질 때");
+				Assert.That(System.Math.Abs(home.Side) - yard.Wander, Is.GreaterThan(0.5f), $"{i} 가 문으로 가는 길을 막음");
+			}
+		}
+
+		[Test]
+		public void Ranch_animals_spread_to_both_sides()
+		{
+			RanchYard yard = new();
+			int left = 0;
+			int right = 0;
+			for (int i = 0; i < MAX_ANIMALS; i++)
+			{
+				if (yard.Home(i).Side < 0f)
+					left++;
+				else
+					right++;
+			}
+			Assert.That(left, Is.EqualTo(right), "길 양쪽에 고르게");
+			Assert.That(yard.Home(1).Ahead, Is.EqualTo(yard.Home(0).Ahead), "첫 두 마리는 같은 줄, 문 가까이");
+		}
 	}
 }
