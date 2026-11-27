@@ -1592,7 +1592,6 @@ MonoBehaviour:
     Materials:
     - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
     - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
-    - {fileID: 2100000, guid: a5bc24171cee0a7445d3dcc4790375d9, type: 2}
     - {fileID: 2100000, guid: 77b0b2e20154ec7d0cfcd9f3a119b2a0, type: 2}
     - {fileID: 2100000, guid: 9c522ded2e2bb8c5e3fcf8c02be11a27, type: 2}
     - {fileID: 2100000, guid: 1a6f09cf0f854d76cf32aee40aae208e, type: 2}
@@ -1601,6 +1600,20 @@ MonoBehaviour:
     Solids:
     - m_Center: {x: 0, y: 0.5, z: 3.57}
       m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: 0, y: 0.51, z: 3.57}
+      m_Extent: {x: 2.295, y: 0.51, z: 2.125}
+    - m_Center: {x: -2.89, y: 2.1, z: -6.63}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
+    - m_Center: {x: -2.89, y: 2.1, z: -4.08}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
+    - m_Center: {x: -2.89, y: 2.1, z: -1.53}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
+    - m_Center: {x: 2.89, y: 2.1, z: -6.63}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
+    - m_Center: {x: 2.89, y: 2.1, z: -4.08}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
+    - m_Center: {x: 2.89, y: 2.1, z: -1.53}
+      m_Extent: {x: 0.15, y: 2.1, z: 0.15}
     - m_Center: {x: -4.08, y: 0.75, z: 0.85}
       m_Extent: {x: 0.53, y: 0.75, z: 0.38}
     - m_Center: {x: 4.08, y: 0.75, z: 0.85}
@@ -1622,6 +1635,8 @@ MonoBehaviour:
     Solids:
     - m_Center: {x: 0, y: 0.5, z: 3.57}
       m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: 0, y: 0.5, z: 3.57}
+      m_Extent: {x: 1.955, y: 0.5, z: 1.955}
     - m_Center: {x: -4.08, y: 0.75, z: 0.85}
       m_Extent: {x: 0.53, y: 0.75, z: 0.38}
     - m_Center: {x: 4.08, y: 0.75, z: 0.85}
@@ -1633,7 +1648,6 @@ MonoBehaviour:
     Materials:
     - {fileID: 2100000, guid: 04b1b7468d74c3c74ba1e13f6ab6b41e, type: 2}
     - {fileID: 2100000, guid: 05b66c8b00fd4af555d9ca477fd2d51e, type: 2}
-    - {fileID: 2100000, guid: a5bc24171cee0a7445d3dcc4790375d9, type: 2}
     - {fileID: 2100000, guid: 77b0b2e20154ec7d0cfcd9f3a119b2a0, type: 2}
     - {fileID: 2100000, guid: 9c522ded2e2bb8c5e3fcf8c02be11a27, type: 2}
     - {fileID: 2100000, guid: 1a6f09cf0f854d76cf32aee40aae208e, type: 2}
@@ -1642,6 +1656,14 @@ MonoBehaviour:
     Solids:
     - m_Center: {x: 0, y: 0.5, z: 3.57}
       m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: -6.46, y: 3.57, z: -2.72}
+      m_Extent: {x: 0.765, y: 3.57, z: 0.765}
+    - m_Center: {x: 6.46, y: 3.57, z: -2.72}
+      m_Extent: {x: 0.765, y: 3.57, z: 0.765}
+    - m_Center: {x: -6.46, y: 3.57, z: 4.59}
+      m_Extent: {x: 0.765, y: 3.57, z: 0.765}
+    - m_Center: {x: 6.46, y: 3.57, z: 4.59}
+      m_Extent: {x: 0.765, y: 3.57, z: 0.765}
     - m_Center: {x: -4.08, y: 0.75, z: 0.85}
       m_Extent: {x: 0.53, y: 0.75, z: 0.38}
     - m_Center: {x: 4.08, y: 0.75, z: 0.85}
@@ -1674,8 +1696,26 @@ MonoBehaviour:
     CastShadow: 1
     Cells: {x: 1, y: 1}
     Solids:
-    - m_Center: {x: 0, y: 0.5, z: 3.57}
+    - m_Center: {x: 0, y: 0.908, z: 3.57}
       m_Extent: {x: 1, y: 0.5, z: 1}
+    - m_Center: {x: -7.14, y: 2.2, z: -5.61}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: -7.14, y: 2.2, z: -1.87}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: -7.14, y: 2.2, z: 1.87}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: -7.14, y: 2.2, z: 5.61}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: 7.14, y: 2.2, z: -5.61}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: 7.14, y: 2.2, z: -1.87}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: 7.14, y: 2.2, z: 1.87}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: 7.14, y: 2.2, z: 5.61}
+      m_Extent: {x: 0.51, y: 2.2, z: 0.51}
+    - m_Center: {x: 0, y: 0.204, z: 3.57}
+      m_Extent: {x: 2.55, y: 0.204, z: 2.21}
     - m_Center: {x: -4.08, y: 0.75, z: 0.85}
       m_Extent: {x: 0.53, y: 0.75, z: 0.38}
     - m_Center: {x: 4.08, y: 0.75, z: 0.85}
