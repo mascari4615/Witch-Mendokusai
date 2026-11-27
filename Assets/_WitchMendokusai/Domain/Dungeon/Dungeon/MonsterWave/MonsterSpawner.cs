@@ -82,6 +82,7 @@ namespace WitchMendokusai
 			InitThreat(curDungeon);
 			InitMapObjects(curDungeon);
 			InitMasteryShards();
+			ResetSpawnSites();
 		}
 
 		// 위협 단계를 입힌 이번 판 사건표. 단계 0은 원본 그대로
@@ -165,7 +166,7 @@ namespace WitchMendokusai
 			EventBusBridge.Publish(new SurvivalEventStartedEvent { Type = entry.Type, Monster = entry.Monster, Count = count });
 		}
 
-		private IEnumerator SpawnMonsterAt(Monster monster, Vector3 position, EliteProfile eliteProfile, bool guaranteedChest, WaveMoveOrder moveOrder = null)
+		private IEnumerator SpawnMonsterAt(Monster monster, Vector3 position, EliteProfile eliteProfile, bool guaranteedChest, WaveMoveOrder moveOrder = null, bool positionIsGrounded = false)
 		{
 			// 경계 밖 자리. 패턴 이동 (벽, 포위) 은 끌어오면 대형이 벽에 뭉쳐서 생략, 나머지는 경계 안쪽으로
 			if (IsInsideArena(position, 0f) == false)
@@ -179,9 +180,15 @@ namespace WitchMendokusai
 				position = ClampToArena(position);
 			// 경계 안 자리도 장애물 속이면 가장자리 밖으로
 			position = ClearOfObstacles(position, spawnBodyRadius);
+			// 높이와 층은 공급자가. 이미 바닥 위인 자리는 그 높이를 기준으로 (그 층), 아니면 플레이어 발밑 바닥
+			// 설 곳이 없으면 대체 자리. 사건, 정예, 패턴은 버리지 않음 (알림과 상자 보장이 이미 나감). 대형을 지키려고 다시 고르지 않음
+			float referenceHeight = positionIsGrounded ? position.y : AnchorFloorHeight();
+			if (TryResolveSpawnSite(position, referenceHeight, out SpawnSite site) == false)
+				site = FallbackSite(position, referenceHeight, monster.name);
+			position = site.Position;
 			pendingSpawns++;
 			GameObject spawnCircle = objectPoolManager.Spawn(spawnCirclePrefab);
-			spawnCircle.transform.position = position;
+			spawnCircle.transform.position = site.Ground;
 			spawnCircle.SetActive(true);
 			ObjectBufferManager.AddObject(ObjectType.SpawnCircle, spawnCircle);
 
@@ -306,7 +313,7 @@ namespace WitchMendokusai
 			Monster first = wave.Monsters[Random.Range(0, wave.Monsters.Length)];
 			if (wave.Once || first.Type == MonsterType.Boss)
 			{
-				StartCoroutine(SpawnMonster(first, spawnDelay, difficulty));
+				StartCoroutine(SpawnMonster(first, spawnDelay, difficulty, true));
 				return;
 			}
 
@@ -314,18 +321,26 @@ namespace WitchMendokusai
 			for (int i = 0; i < count; i++)
 			{
 				Monster monster = i == 0 ? first : wave.Monsters[Random.Range(0, wave.Monsters.Length)];
-				StartCoroutine(SpawnMonster(monster, spawnDelay, difficulty));
+				StartCoroutine(SpawnMonster(monster, spawnDelay, difficulty, false));
 			}
 		}
 
-		private IEnumerator SpawnMonster(Monster monster, float spawnDelay, DungeonDifficulty difficulty)
+		// mustSpawn: 보스와 1회 웨이브. 설 곳이 없어도 대체 자리에 냄 (웨이브가 지워지고 보스 처치를 기다리는 판이 있음)
+		private IEnumerator SpawnMonster(Monster monster, float spawnDelay, DungeonDifficulty difficulty, bool mustSpawn)
 		{
-			pendingSpawns++;
 			// 자리는 생성 정책 (DungeonThreatPolicy). 기존 기본은 이동 중 앞 ±30도, 멈추면 둘레. 도망가지마 맞서싸워 - KarmoDDrine 2025-12-27
-			Vector3 spawnPos = PickPeriodicSpawnPosition();
+			// 높이와 층은 공급자가. 몇 번 골라도 설 곳이 없으면 주기 생성은 이번 한 마리를 건너뜀 (다음 틱에 보충)
+			if (TryPickPeriodicSite(out SpawnSite site) == false)
+			{
+				if (mustSpawn == false)
+					yield break;
+				site = FallbackSite(PickPeriodicSpawnPosition(), AnchorFloorHeight(), monster.name);
+			}
+			pendingSpawns++;
+			Vector3 spawnPos = site.Position;
 
 			GameObject spawnCircle = objectPoolManager.Spawn(spawnCirclePrefab);
-			spawnCircle.transform.position = spawnPos;
+			spawnCircle.transform.position = site.Ground;
 			spawnCircle.SetActive(true);
 			ObjectBufferManager.AddObject(ObjectType.SpawnCircle, spawnCircle);
 

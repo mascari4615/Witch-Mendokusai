@@ -205,7 +205,7 @@ namespace WitchMendokusai
 			if (TryMapObjectGround(EliteSpawnPosition(position), settings, out Vector3 ground) == false)
 				throw new System.InvalidOperationException("정예 자리 지면 없음. BlockedReason 검사 뒤라 생기면 안 됨");
 			for (int i = 0; i < effect.Count; i++)
-				StartCoroutine(SpawnMonsterAt(monster, ground, profile, effect.GuaranteedChest));
+				StartCoroutine(SpawnMonsterAt(monster, ground, profile, effect.GuaranteedChest, positionIsGrounded: true));
 		}
 
 		private Vector3 EliteSpawnPosition(Vector3 position)

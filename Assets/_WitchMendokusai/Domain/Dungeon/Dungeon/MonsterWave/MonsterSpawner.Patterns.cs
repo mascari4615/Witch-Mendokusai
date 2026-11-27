@@ -116,7 +116,7 @@ namespace WitchMendokusai
 			return WaveDensityRules.AllowedCount(spawnClass, CurrentMonsterCount, requested, rules.EnemySoftCap, rules.EnemyHardCap);
 		}
 
-		public void SpawnAroundPlayer(Monster monster) => StartCoroutine(SpawnMonster(monster, spawnDelay, dungeonManager.Context.CurDifficulty));
+		public void SpawnAroundPlayer(Monster monster) => StartCoroutine(SpawnMonster(monster, spawnDelay, dungeonManager.Context.CurDifficulty, true));
 
 		public void SpawnAt(Monster monster, Vector3 position, WaveMoveOrder moveOrder) => StartCoroutine(SpawnMonsterAt(monster, position, null, false, moveOrder));
 

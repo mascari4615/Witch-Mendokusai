@@ -155,7 +155,8 @@ namespace WitchMendokusai
 		// 주기 웨이브 한 마리 자리. 정책에 따라 앞 부채꼴 또는 화면 밖 둘레
 		private Vector3 PickPeriodicSpawnPosition()
 		{
-			Vector3 playerPosition = playerProvider.Current.transform.position;
+			// 원점은 발밑 바닥 높이. 점프 중 몸 높이로 화면 밖을 재면 바닥 자리가 화면 안일 수 있음
+			Vector3 playerPosition = AnchorPosition();
 			// 입력값 (MoveDirectionLocal) 은 카메라 기준 축. 생성 방향은 월드 이동 방향
 			Vector3 forward = playerProvider.CurrentObject.UnitMovement.MoveDirectionWorld;
 			forward.y = 0f;
@@ -171,7 +172,7 @@ namespace WitchMendokusai
 		// 화면 밖에 오래 있던 적을 진행 방향 앞 화면 밖으로. 멈춰 있으면 둘레 아무 데나 화면 밖
 		private Vector3 PickRelocation()
 		{
-			Vector3 playerPosition = playerProvider.Current.transform.position;
+			Vector3 playerPosition = AnchorPosition();
 			Vector3 forward = playerProvider.CurrentObject.UnitMovement.MoveDirectionWorld;
 			forward.y = 0f;
 			bool moving = forward.sqrMagnitude > SurvivalThreatRules.STILL_SQUARED;
@@ -230,11 +231,12 @@ namespace WitchMendokusai
 		private void RetireOrRelocate(GameObject obj, MonsterObject monster)
 		{
 			bool patterned = obj.TryGetComponent(out WaveMoveOverride moveOverride) && moveOverride.enabled;
-			if (threatPolicy.RetirePolicy == OffscreenRetirePolicy.Relocate && patterned == false)
+			// 옮길 자리에 설 곳이 없으면 끔
+			if (threatPolicy.RetirePolicy == OffscreenRetirePolicy.Relocate && patterned == false && TryPickRelocationSite(out SpawnSite site))
 			{
 				if (obj.TryGetComponent(out FSMSlime brain))
 					brain.InterruptAttack();
-				monster.UnitMovement.Teleport(PickRelocation());
+				monster.UnitMovement.Teleport(site.Position);
 				monster.OffscreenSinceTime = -1f;
 				return;
 			}
