@@ -92,6 +92,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public float Growth { get; set; }
 		public long WetUntil { get; set; }
 		public int Harvests { get; set; }
+		// 재수확 작물이 익은 채 쌓아 둔 열매 수. 옛 세이브에는 없어 0 으로 읽힘
+		public int Stock { get; set; }
 	}
 
 	public sealed class FishRecord

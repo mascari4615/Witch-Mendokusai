@@ -130,5 +130,52 @@ namespace WitchMendokusai.Tests
 			}
 			Assert.Pass();
 		}
+
+		// ---- 확정 반영 2026-11-27 (f02-2 확정 몫과 덤)
+
+		// 나무를 베면 나무가 나옴. 굴림이 모두 잔가지나 도토리여도 확정 몫이 있음
+		[Test]
+		public void Every_tree_gives_wood_and_every_rock_gives_stone()
+		{
+			foreach ((string gatherId, string goodsId) in new[] { ("tree", "wood"), ("rock", "stone") })
+			{
+				HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
+				GatherDef gather = sim.Catalog.Get<GatherDef>(gatherId);
+				Assert.That(gather.Fixed.Any(drop => drop.Goods == goodsId), $"{gatherId} 확정 몫에 {goodsId}");
+				const int GATHERS = 1000;
+				int empty = 0;
+				for (int i = 0; i < GATHERS; i++)
+				{
+					int before = sim.StoredCount(goodsId);
+					Assert.That(sim.Gather(gatherId + ":0", gatherId).Ok);
+					if (sim.StoredCount(goodsId) == before)
+					{
+						empty++;
+					}
+					sim.AdvanceMinutes(gather.RespawnMinutes);
+				}
+				Assert.That(empty, Is.EqualTo(0), $"{gatherId} 에서 {goodsId} 0 인 판");
+			}
+		}
+
+		// 확정 몫을 넣어도 한 번에 얻는 평균은 크게 안 바뀜 (나무 3.6 이 3.8, 돌 4.2 가 4.1)
+		[Test]
+		public void Fixed_share_keeps_the_average_close()
+		{
+			foreach ((string gatherId, string goodsId, double before) in new[] { ("tree", "wood", 3.6), ("rock", "stone", 4.2) })
+			{
+				HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
+				GatherDef gather = sim.Catalog.Get<GatherDef>(gatherId);
+				const int GATHERS = 4000;
+				for (int i = 0; i < GATHERS; i++)
+				{
+					sim.Gather(gatherId + ":0", gatherId);
+					sim.AdvanceMinutes(gather.RespawnMinutes);
+				}
+				double average = sim.StoredCount(goodsId) / (double)GATHERS;
+				TestContext.WriteLine($"{gatherId} {goodsId} 평균 {average:F2} (전 {before:F1})");
+				Assert.That(average, Is.InRange(before * 0.9, before * 1.1), gatherId);
+			}
+		}
 	}
 }

@@ -58,6 +58,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int Hits { get; set; } = 1;
 		public int RespawnMinutes { get; set; }
 		public int Rolls { get; set; } = 1;
+		// 굴림 전에 늘 주는 몫. 나무를 베면 늘 나무가 나옴. 굴림은 덤
+		public List<DropDef> Fixed { get; set; } = new List<DropDef>();
 		public List<DropDef> Drops { get; set; } = new List<DropDef>();
 		public float RelicChance { get; set; }
 	}

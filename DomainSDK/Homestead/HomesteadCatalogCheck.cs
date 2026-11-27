@@ -95,6 +95,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 			foreach (GatherDef gather in catalog.Gathers)
 			{
+				NeedDrops(catalog, gather.Fixed, gather.Id, problems);
 				NeedDrops(catalog, gather.Drops, gather.Id, problems);
 			}
 			foreach (FishDef fish in catalog.Fishes)
@@ -289,6 +290,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 			foreach (GatherDef gather in catalog.Gathers)
 			{
+				gather.Fixed.ForEach(drop => sourced.Add(drop.Goods));
 				gather.Drops.ForEach(drop => sourced.Add(drop.Goods));
 			}
 			catalog.Fishes.ForEach(fish => sourced.Add(fish.Goods));
