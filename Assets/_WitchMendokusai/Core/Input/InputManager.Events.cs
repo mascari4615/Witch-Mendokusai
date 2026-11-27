@@ -123,6 +123,11 @@ namespace WitchMendokusai
 			}
 		}
 
+		/// <summary>지금 키 모드. 부감 건설에 들어가면 Build, 나오면 Normal. 전략과 따로라 전략이 바뀌어도 남음</summary>
+		public InputMode CurrentInputMode { get; private set; } = InputMode.Normal;
+
+		public void SetInputMode(InputMode inputMode) => CurrentInputMode = inputMode;
+
 		public void SetInputStrategy(IInputStrategy inputStrategy)
 		{
 			inputActionAsset.Enable();
@@ -218,6 +223,10 @@ namespace WitchMendokusai
 
 			// 릴리스에 없는 기능의 입력은 여기 한 곳에서 버림. 키, 게임패드, 화면 버튼이 모두 이 길을 지남
 			if (KeybindRegistry.IsEnabledInThisBuild(inputEventType) == false)
+				return;
+
+			// 건설 중에는 전투와 이동 입력을 버림. 전략과 컴포넌트 등록이 같이 걸리게 여기 한 곳에서 (InputModeRule)
+			if (InputModeRule.Allows(CurrentInputMode, inputEventType, inputEventBindings[inputEventType], responseType) == false)
 				return;
 
 			(InputEventType, InputEventResponseType) key = (inputEventType, responseType);

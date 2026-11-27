@@ -22,4 +22,5 @@ MonoBehaviour:
   <ShareWorldPosition>k__BackingField: 0
   <DevOnly>k__BackingField: 1
   <DisplayName>k__BackingField: "숲길"
+  <AmbientParticles>k__BackingField: {fileID: 8769372543539429349, guid: e5a551dcad7c47aabb0586f24ecacccb, type: 3}
   <RealSecondsPerGrowthMinute>k__BackingField: 60

@@ -21,3 +21,4 @@ MonoBehaviour:
   <Prefab>k__BackingField: {fileID: 7477263321026071975, guid: f0e545262a5673b4d876a53a0b95e8ec, type: 3}
   <DevOnly>k__BackingField: 1
   <DisplayName>k__BackingField: "흰색 마을"
+  <AmbientParticles>k__BackingField: {fileID: 8769372543539429349, guid: e5a551dcad7c47aabb0586f24ecacccb, type: 3}
