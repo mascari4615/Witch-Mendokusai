@@ -38,7 +38,7 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void Anything_started_before_the_shortest_dungeon_is_done_on_return()
+		public void Every_workshop_recipe_fits_in_the_shortest_dungeon()
 		{
 			foreach (RecipeDef recipe in HomesteadTestKit.LoadCatalog().Recipes)
 			{

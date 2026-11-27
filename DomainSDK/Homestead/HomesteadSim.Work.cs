@@ -57,7 +57,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				NotifyChanged();
 				return HomesteadResult.Success;
 			}
-			CollectCrafts();
+			TakeDoneCrafts();
 			State.Crafts.Add(new CraftState { Recipe = recipeId, ReadyAt = State.Minutes + recipe.Minutes });
 			NotifyChanged();
 			return HomesteadResult.Success;
@@ -65,16 +65,22 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		public int CollectCrafts()
 		{
+			int done = TakeDoneCrafts();
+			if (done > 0)
+			{
+				NotifyChanged();
+			}
+			return done;
+		}
+
+		private int TakeDoneCrafts()
+		{
 			List<CraftState> done = State.Crafts.FindAll(IsCraftDone);
 			foreach (CraftState craft in done)
 			{
 				RecipeDef recipe = Catalog.Get<RecipeDef>(craft.Recipe);
 				Give(recipe.Output, recipe.Amount);
 				State.Crafts.Remove(craft);
-			}
-			if (done.Count > 0)
-			{
-				NotifyChanged();
 			}
 			return done.Count;
 		}
