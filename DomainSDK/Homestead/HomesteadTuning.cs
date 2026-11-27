@@ -54,6 +54,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public float RodPull { get; set; } = 0.05f;
 		public float CalmSeconds { get; set; } = 2.2f;
 		public float SurgeSeconds { get; set; } = 0.9f;
+		// 실 감기가 이만큼 길어지면 고기가 바늘을 뱉고 떠남. 끝없는 줄다리기를 막음
+		public float DuelGiveUpSeconds { get; set; } = 30f;
 
 		// 갱도
 		public int LanternSwings { get; set; } = 40;
