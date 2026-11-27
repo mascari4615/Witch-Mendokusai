@@ -118,7 +118,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				int pedestals = 0;
 				foreach (GoodsDef goods in catalog.Goods)
 				{
-					if (wing.Kinds.Contains(goods.Kind) == false)
+					if (HomesteadSim.Accepts(wing, goods) == false)
 					{
 						continue;
 					}

@@ -34,7 +34,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		}
 
 		// 갈래로 받거나, 갈래 밖인데 따로 적힌 물건 (목장 산물)
-		private static bool Accepts(WingDef wing, GoodsDef goods) => wing.Kinds.Contains(goods.Kind) || wing.Exhibits.Contains(goods.Id);
+		internal static bool Accepts(WingDef wing, GoodsDef goods) => wing.Kinds.Contains(goods.Kind) || wing.Exhibits.Contains(goods.Id);
 
 		private WingDef FindWing(GoodsDef goods)
 		{
