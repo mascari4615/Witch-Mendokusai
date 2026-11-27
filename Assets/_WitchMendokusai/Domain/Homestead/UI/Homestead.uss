@@ -1070,6 +1070,7 @@
     border-width: 2px;
     border-color: rgb(242, 226, 122);
     border-radius: 18px;
+    -unity-text-align: middle-center;
 }
 
 /* 낚시 손가락 버튼. 누르는 동안 감김. 오른손 엄지 자리
@@ -1089,6 +1090,7 @@
     justify-content: center;
     font-size: 30px;
     -unity-font-style: bold;
+    -unity-text-align: middle-center;
     color: rgb(245, 240, 250);
     background-color: rgba(15, 12, 20, 0.8);
     border-width: 3px;
@@ -1110,6 +1112,7 @@
     height: 56px;
     padding: 0 16px;
     font-size: 18px;
+    -unity-text-align: middle-center;
     color: rgb(245, 240, 250);
     background-color: rgba(15, 12, 20, 0.72);
     border-width: 2px;
