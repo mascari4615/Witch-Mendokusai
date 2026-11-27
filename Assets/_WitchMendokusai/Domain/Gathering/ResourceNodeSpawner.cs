@@ -115,7 +115,9 @@ namespace WitchMendokusai
 			Vector3 playerPos = playerProvider.Current.transform.position;
 			Vector2 randomCircle = Random.insideUnitCircle.normalized;
 			float randomDist = Random.Range(spawnDistanceRange.x, spawnDistanceRange.y);
-			return playerPos + new Vector3(randomCircle.x, 0, randomCircle.y) * randomDist;
+			Vector3 candidate = playerPos + new Vector3(randomCircle.x, 0, randomCircle.y) * randomDist;
+			// 높이는 플레이어 몸이 아니라 같은 층의 바닥 (점프 중 공중에 생기던 것). 설 곳이 없으면 그 자리 그대로
+			return SpawnSites.TryNearBody(candidate, playerPos, out SpawnSite site) ? site.Position : candidate;
 		}
 
 		public void StopWave()

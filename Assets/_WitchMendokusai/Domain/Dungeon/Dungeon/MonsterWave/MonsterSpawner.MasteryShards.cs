@@ -56,7 +56,7 @@ namespace WitchMendokusai
 			DollMasteryData mastery = DollMasteryRun.Data;
 			MapObjectSettings settings = MapObjectSettings.Load();
 			Vector3 origin = playerProvider.Current.transform.position;
-			if (TryMapObjectGround(origin, settings, out Vector3 playerGround) == false)
+			if (TryPlayerMapObjectGround(settings, out Vector3 playerGround) == false)
 				return false;
 			double angle = shardRandom.NextDouble() * Mathf.PI * 2f;
 			float distance = Mathf.Lerp(mastery.ShardDistance.x, mastery.ShardDistance.y, (float)shardRandom.NextDouble());

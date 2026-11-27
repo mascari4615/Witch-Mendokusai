@@ -10,9 +10,7 @@ namespace WitchMendokusai
 		public const string RESOURCE_FOLDER = "MapObjects";
 
 		[field: Header("지면과 장애물")]
-		[field: SerializeField] public LayerMask GroundMask { get; private set; } = 1;
 		[field: SerializeField] public LayerMask ObstacleMask { get; private set; } = 1;
-		[field: SerializeField, Tooltip("지면 탐색 광선 시작 높이 (m)"), Min(0.01f)] public float GroundProbeHeight { get; private set; } = 15f;
 		[field: SerializeField, Tooltip("표식을 지면 위로 띄우는 높이 (m)"), Min(0f)] public float GroundLift { get; private set; } = 0.02f;
 		[field: SerializeField, Tooltip("자리 하나에 시도할 후보 수"), Min(1)] public int PlacementAttempts { get; private set; } = 8;
 		[field: SerializeField, Tooltip("배치 실패 시 다시 시도할 판 틱 수 (0.1초 간격). 다 쓰면 그 오브젝트 포기"), Min(1)] public int PlacementRounds { get; private set; } = 50;
@@ -111,8 +109,6 @@ namespace WitchMendokusai
 				errors.Add($"{name}: {nameof(MarkerMaterial)} 미연결");
 			if (StoneMaterial == null)
 				errors.Add($"{name}: {nameof(StoneMaterial)} 미연결");
-			if (GroundMask.value == 0)
-				errors.Add($"{name}: {nameof(GroundMask)} 비어 있음");
 			if (ObstacleMask.value == 0)
 				errors.Add($"{name}: {nameof(ObstacleMask)} 비어 있음");
 			if (FallbackEliteMonster == null)

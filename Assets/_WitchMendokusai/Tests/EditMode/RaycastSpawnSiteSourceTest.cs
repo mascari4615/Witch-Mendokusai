@@ -121,6 +121,66 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(Project(0f, out SpawnSite _));
 		}
 
+		// 바닥에 선 기둥 (벽, 나무). offsetX 만큼 옆에, 반 굵기 halfWidth
+		private GameObject Pillar(float offsetX, float halfWidth, int layer = 0)
+		{
+			GameObject pillar = new("Pillar");
+			objects.Add(pillar);
+			pillar.layer = layer;
+			pillar.transform.position = ORIGIN + new Vector3(offsetX, 2f, 0f);
+			pillar.AddComponent<BoxCollider>().size = new Vector3(halfWidth * 2f, 4f, halfWidth * 2f);
+			Physics.SyncTransforms();
+			return pillar;
+		}
+
+		[Test]
+		public void Obstacle_on_ignore_raycast_layer_is_not_ground()
+		{
+			// 장애물은 일부러 Ignore Raycast 층 (GroundObstacleField). 꼭대기를 바닥으로 잡지 않고 밑 바닥
+			const int IGNORE_RAYCAST_LAYER = 2;
+			Slab(0f);
+			Pillar(0f, 0.5f, IGNORE_RAYCAST_LAYER);
+			Assert.IsTrue(Project(0f, out SpawnSite site));
+			Assert.AreEqual(0f, site.Ground.y, 0.001f);
+		}
+
+		[Test]
+		public void Floor_next_to_a_wall_is_standable()
+		{
+			Slab(0f);
+			// 벽 면이 후보에서 0.2m. 몸 굵기 (0.4) 로 보면 버려지던 자리
+			Pillar(0.7f, 0.5f);
+			Assert.IsTrue(Project(0f, out SpawnSite site));
+			Assert.AreEqual(0f, site.Ground.y, 0.001f);
+		}
+
+		[Test]
+		public void Floor_below_a_body_touching_a_wall_is_found()
+		{
+			Slab(0f);
+			Pillar(0.25f, 0.2f);
+			Assert.IsTrue(Project(1f, out SpawnSite floor, SpawnSiteBand.AtOrBelowReference));
+			Assert.AreEqual(0f, floor.Ground.y, 0.001f);
+		}
+
+		[Test]
+		public void Shared_query_near_body_uses_the_anchor_floor_not_the_jumping_body()
+		{
+			SpawnSites.Register(source);
+			try
+			{
+				Slab(0f);
+				Slab(5f, 4f, 0.5f);
+				// 다리 밑에서 3m 뛰어오른 몸 (소환자, 플레이어). 같은 자리 후보도 다리가 아니라 발밑 바닥
+				Assert.IsTrue(SpawnSites.TryNearBody(ORIGIN, ORIGIN + Vector3.up * 3f, out SpawnSite site));
+				Assert.AreEqual(0f, site.Ground.y, 0.001f);
+			}
+			finally
+			{
+				SpawnSites.Unregister(source);
+			}
+		}
+
 		[Test]
 		public void Air_layer_floats_above_ground()
 		{

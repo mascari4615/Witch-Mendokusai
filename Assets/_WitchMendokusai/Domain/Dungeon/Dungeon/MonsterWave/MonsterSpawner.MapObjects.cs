@@ -149,7 +149,7 @@ namespace WitchMendokusai
 			site = null;
 			MapObjectSettings settings = MapObjectSettings.Load();
 			Vector3 origin = playerProvider.Current.transform.position;
-			if (TryMapObjectGround(origin, settings, out Vector3 playerGround) == false)
+			if (TryPlayerMapObjectGround(settings, out Vector3 playerGround) == false)
 			{
 				failure = "주인공 발밑 지면 없음";
 				return false;
@@ -179,7 +179,7 @@ namespace WitchMendokusai
 				ground = candidate;
 				return MapObjectProbeResult.Blocked;
 			}
-			if (TryMapObjectGround(candidate, settings, out ground) == false)
+			if (TryMapObjectGround(candidate, playerGround.y - settings.GroundLift, settings, out ground) == false)
 				return MapObjectProbeResult.NoGround;
 			// 지면 위로 띄운 구. 지면 자체는 안 닿음
 			if (Physics.CheckSphere(ground + Vector3.up * (radius + settings.GroundLift), radius, settings.ObstacleMask, QueryTriggerInteraction.Ignore))
@@ -214,14 +214,31 @@ namespace WitchMendokusai
 			return site;
 		}
 
-		private bool TryMapObjectGround(Vector3 position, MapObjectSettings settings, out Vector3 ground)
+		// 바닥 질의는 스폰 자리 공급자 (SpawnSites) 한 곳. 이 자리 높이에 가까운 층의 바닥 위로 GroundLift
+		private bool TryMapObjectGround(Vector3 position, MapObjectSettings settings, out Vector3 ground) => TryMapObjectGround(position, position.y, settings, out ground);
+
+		// referenceHeight: 고를 층의 바닥 높이. 후보 y 가 플레이어 몸 높이일 때는 플레이어 발밑 바닥을 줌
+		private bool TryMapObjectGround(Vector3 position, float referenceHeight, MapObjectSettings settings, out Vector3 ground)
 		{
-			if (Physics.Raycast(position + Vector3.up * settings.GroundProbeHeight, Vector3.down, out RaycastHit hit, settings.GroundProbeHeight * 2f, settings.GroundMask, QueryTriggerInteraction.Ignore))
+			if (SpawnSites.TryNearHeight(position, referenceHeight, out SpawnSite site))
 			{
-				ground = hit.point + Vector3.up * settings.GroundLift;
+				ground = site.Ground + Vector3.up * settings.GroundLift;
 				return true;
 			}
 			ground = position;
+			return false;
+		}
+
+		// 플레이어 발밑 바닥 위로 GroundLift. 점프 중이어도 발밑
+		private bool TryPlayerMapObjectGround(MapObjectSettings settings, out Vector3 ground)
+		{
+			Vector3 body = playerProvider.Current.transform.position;
+			if (SpawnSites.TryFloorBelow(body, out SpawnSite floor))
+			{
+				ground = floor.Ground + Vector3.up * settings.GroundLift;
+				return true;
+			}
+			ground = body;
 			return false;
 		}
 

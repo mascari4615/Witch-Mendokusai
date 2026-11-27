@@ -143,7 +143,10 @@ namespace WitchMendokusai
 			if (player == null)
 				return transform.position;
 			Vector3 position = player.transform.position;
-			if (player.UnitMovement.IsGrounded() == false)
+			// 플레이어 발밑 바닥 (점프 중에도, 언덕에서도). 바닥이 없으면 예전처럼 공중이면 제 높이
+			if (SpawnSites.TryFloorBelow(position, out SpawnSite floor))
+				position = floor.Ground;
+			else if (player.UnitMovement.IsGrounded() == false)
 				position.y = transform.position.y;
 			return Clamp(monster, position);
 		}

@@ -12,13 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e3be8452db2450b8f1478138508ef81, type: 3}
   m_Name: MapObjectSettings
   m_EditorClassIdentifier: 
-  <GroundMask>k__BackingField:
-    serializedVersion: 2
-    m_Bits: 1
   <ObstacleMask>k__BackingField:
     serializedVersion: 2
     m_Bits: 5
-  <GroundProbeHeight>k__BackingField: 15
   <GroundLift>k__BackingField: 0.02
   <PlacementAttempts>k__BackingField: 8
   <PlacementRounds>k__BackingField: 50

@@ -159,13 +159,9 @@ namespace WitchMendokusai
 			particles.Emit(emitParams, 1);
 		}
 
-		/// <summary> 위에서 아래로 쏴서 바닥 높이를 찾음. 못 찾으면 기본 높이 </summary>
-		public static float GroundHeight(Vector3 position)
-		{
-			if (Physics.Raycast(position + Vector3.up * 6f, Vector3.down, out RaycastHit hit, 30f, ~0, QueryTriggerInteraction.Ignore))
-				return hit.point.y;
-			return position.y;
-		}
+		/// <summary> 이 자리 높이에 가까운 층의 바닥 높이. 바닥 질의는 스폰 자리 공급자 한 곳 (유닛 몸, 트리거 제외). 못 찾으면 기본 높이 </summary>
+		public static float GroundHeight(Vector3 position) =>
+			SpawnSites.TryNearHeight(position, position.y, out SpawnSite site) ? site.Ground.y : position.y;
 
 		public static Vector3 RandomRingPoint(float minRadius, float maxRadius)
 		{

@@ -17,19 +17,27 @@ namespace WitchMendokusai
 		// 한 프레임에 여러 마리를 고르니 플레이어 발밑은 프레임마다 한 번만 쏨
 		private int anchorFloorFrame = -1;
 
-		// 판이 자기 공급자를 끼우는 자리 (노드 그래프 판 등). null 이면 기본 레이 공급자
+		// 판이 자기 공급자를 끼우는 자리 (노드 그래프 판 등). null 이면 기본 레이 공급자. 끼운 공급자는 SpawnSites 로 다른 스폰도 같이 씀
 		public ISpawnSiteSource SiteSource
 		{
 			get => siteSource ??= new RaycastSpawnSiteSource(spawnSiteSettings);
-			set => siteSource = value;
+			set
+			{
+				SpawnSites.Unregister(siteSource);
+				siteSource = value;
+				SpawnSites.Register(SiteSource);
+			}
 		}
 
-		// 판마다 앞 판의 발밑 높이를 버림
+		// 판마다 앞 판의 발밑 높이를 버리고, 이 스포너의 공급자를 지금 판의 공급자로
 		private void ResetSpawnSites()
 		{
 			hasAnchorFloorHeight = false;
 			anchorFloorFrame = -1;
+			SpawnSites.Register(SiteSource);
 		}
+
+		private void OnDestroy() => SpawnSites.Unregister(siteSource);
 
 		// 기준은 플레이어 발밑 바닥. 이미 바닥 위인 자리 (맵 오브젝트 정예) 는 그 높이를 기준으로 줘서 그 층을 고르게
 		private bool TryResolveSpawnSite(Vector3 candidate, out SpawnSite site) => TryResolveSpawnSite(candidate, AnchorFloorHeight(), out site);

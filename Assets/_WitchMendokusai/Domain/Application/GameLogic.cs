@@ -86,7 +86,11 @@ namespace WitchMendokusai
 				EventBusBridge.Publish(new ChestPickedUpEvent { Position = position });
 				return;
 			}
-			objectPoolManager.Spawn(rules.ChestPrefab.gameObject, GetRandomSpawnPosOffset(position)).SetActive(true);
+			// 부른 자리 (플레이어 몸, 쓰러진 몸) 와 같은 층의 바닥에서 전리품 들림만큼. 점프 중 공중에 안 뜸. 설 곳이 없으면 그 자리 그대로
+			Vector3 chestPosition = GetRandomSpawnPosOffset(position);
+			if (SpawnSites.TryNearBody(chestPosition, position, out SpawnSite site))
+				chestPosition = site.Position + Vector3.up * LOOT_ITEM_SPAWN_POS_OFFSET_Y;
+			objectPoolManager.Spawn(rules.ChestPrefab.gameObject, chestPosition).SetActive(true);
 		}
 
 		public void SpawnLootItem(List<DataSOWithPercentage> lootTable, Vector3 position)

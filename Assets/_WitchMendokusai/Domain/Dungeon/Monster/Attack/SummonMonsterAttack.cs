@@ -63,6 +63,9 @@ namespace WitchMendokusai
 				position = DungeonManager.Instance.MonsterSpawner.ClampToArena(position);
 				spawnedMonster.SetThreat(DungeonManager.Instance.CurThreat);
 			}
+			// 높이는 그 자리 높이 이하의 바닥 높이에 맞춘 같은 층. 자리는 부른 몸이나 쓰러진 몸 둘레라 그 몸의 층. 공중에서 쓰러져도 바닥에. 설 곳이 없으면 그 자리 그대로
+			if (SpawnSites.TryNearBody(position, position, out SpawnSite site))
+				position = site.Position;
 			spawnedObject.transform.position = position;
 			spawnedMonster.Init(monster);
 			spawnedObject.SetActive(true);
