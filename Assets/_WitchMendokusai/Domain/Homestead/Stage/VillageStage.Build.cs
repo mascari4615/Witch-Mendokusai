@@ -48,6 +48,9 @@ namespace WitchMendokusai
 			// 시점 순환이 자유비행으로 넘어가지 않고 바로 평소 시점으로
 			if (isBuilding && cameraManager.CurrentContentMode == ContentCameraMode.FreeFly)
 				LeaveBuildView();
+			// 갱도는 같은 무대 안이라 꾸미기 버튼과 F6 이 그대로 닿음. 갱도에서는 부감으로 넘어가지 않게
+			if (run != null && cameraManager.CurrentContentMode == ContentCameraMode.CityView)
+				LeaveBuildView();
 			bool wanted = cameraManager != null && cameraManager.CurrentContentMode == ContentCameraMode.CityView;
 			if (wanted != isBuilding)
 			{

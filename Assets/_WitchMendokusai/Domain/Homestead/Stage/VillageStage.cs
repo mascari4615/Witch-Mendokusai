@@ -78,6 +78,8 @@ namespace WitchMendokusai
 
 		private void Rebind()
 		{
+			// 옛 세이브의 되돌리기와 든 조각이 새 세이브에 닿지 않게 건설부터 닫음 (부감이면 다음 프레임에 새로 엶)
+			StopBuilding();
 			StopFishing();
 			LeaveMine();
 			Unbind();
