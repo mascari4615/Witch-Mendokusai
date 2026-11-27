@@ -172,7 +172,7 @@ namespace WitchMendokusai.Tests
 			Assert.That(tierRuns[1], Is.InRange(tierRuns[0] + 1, 16), "데모 끝 단계");
 		}
 
-		private static void PlayDungeon(HomesteadSim sim, HomesteadTestKit.FakePurse purse, Random random, int run)
+		internal static void PlayDungeon(HomesteadSim sim, HomesteadTestKit.FakePurse purse, Random random, int run)
 		{
 			sim.AdvanceMinutes(600);
 			sim.NotifyExpedition();
@@ -192,7 +192,7 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
-		private static void PlayTown(HomesteadSim sim, Random random)
+		internal static void PlayTown(HomesteadSim sim, Random random)
 		{
 			foreach (BuildingDef building in sim.Catalog.Buildings)
 			{
