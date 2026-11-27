@@ -43,6 +43,6 @@ MonoBehaviour:
     <CueCount>k__BackingField: 2
     <BodyTint>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
   <CueSeconds>k__BackingField: 0.9
-  <CueDistance>k__BackingField: 1.5
-  <CueSpreadDegrees>k__BackingField: 70
-  <CueRadius>k__BackingField: 0.7
+  <CueDistance>k__BackingField: 4
+  <CueSpreadDegrees>k__BackingField: 50
+  <CueRadius>k__BackingField: 1

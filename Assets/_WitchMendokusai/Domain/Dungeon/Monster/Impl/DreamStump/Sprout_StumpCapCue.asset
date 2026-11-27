@@ -20,9 +20,9 @@ MonoBehaviour:
   sprites:
   - {fileID: 21300000, guid: cdbe2565aca04ac2971f010ef528227f, type: 3}
   material: {fileID: 2100000, guid: 498f73d56bb87ab4cb040563514df458, type: 2}
-  scaleRange: {x: 0.9, y: 0.9}
+  scaleRange: {x: 1.7, y: 1.7}
   jitter: 0
-  budRatio: 0.6
+  budRatio: 0.9
   budTremble: 0.05
   fallHeight: 0
   fallSeconds: 0.3
