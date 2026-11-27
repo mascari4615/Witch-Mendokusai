@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace WitchMendokusai.DomainSDK.Homestead
 {
 	// 자료 점검. 끊긴 id, 얻을 길 없는 물건, 어긋난 길이를 한 번에 모아 돌려줌
-	public static class HomesteadCatalogCheck
+	public static partial class HomesteadCatalogCheck
 	{
 		public static List<string> Run(HomesteadCatalog catalog)
 		{
@@ -12,6 +12,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			CheckShapes(catalog, problems);
 			CheckSources(catalog, problems);
 			CheckLayout(catalog, problems);
+			CheckCollection(catalog, problems);
 			return problems;
 		}
 
