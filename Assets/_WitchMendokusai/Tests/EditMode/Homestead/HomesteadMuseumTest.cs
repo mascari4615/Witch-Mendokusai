@@ -90,6 +90,23 @@ namespace WitchMendokusai.Tests
 			Assert.That(sim.HasLargerFish(fish.Goods), Is.False);
 		}
 
+		// 낚지 않고 얻은 물고기 (기록 없음) 를 놓으면 크기를 모름. 화면은 '0cm' 대신 크기를 안 씀 (2026-11-27 화면 확인)
+		[Test]
+		public void Unfished_exhibit_has_no_size_until_a_larger_one_is_caught()
+		{
+			HomesteadSim sim = OpenMuseum(out HomesteadTestKit.FakePurse _);
+			FishDef fish = sim.Catalog.Fishes[0];
+			sim.State.FishRecords.Remove(fish.Id);
+			sim.Give(fish.Goods, 2);
+			Assert.That(sim.Donate(fish.Goods).Ok);
+			Assert.That(sim.IsExhibitMeasured(fish.Goods), Is.False, "기록 없이 놓인 받침");
+
+			sim.State.FishRecords[fish.Id] = new FishRecord { Count = 1, BestSize = 8f };
+			Assert.That(sim.Donate(fish.Goods).Ok, "낚은 기록이 생기면 바꿀 수 있음");
+			Assert.That(sim.IsExhibitMeasured(fish.Goods));
+			Assert.That(sim.ExhibitSize(fish.Goods), Is.EqualTo(8f));
+		}
+
 		[Test]
 		public void Larger_fish_needs_one_in_the_bag()
 		{

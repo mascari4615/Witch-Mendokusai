@@ -84,7 +84,7 @@ namespace WitchMendokusai
 
 		private string StateLine(GoodsDef goods) => Sim.ExhibitStateOf(goods.Id) switch
 		{
-			ExhibitState.Donated => goods.Kind == GoodsKind.Fish ? $"받침대에 놓여 있습니다. {Sim.ExhibitSize(goods.Id)}cm" : "받침대에 놓여 있습니다.",
+			ExhibitState.Donated => goods.Kind == GoodsKind.Fish && Sim.IsExhibitMeasured(goods.Id) ? $"받침대에 놓여 있습니다. {Sim.ExhibitSize(goods.Id)}cm" : "받침대에 놓여 있습니다.",
 			ExhibitState.Held => "가지고 있습니다. 기증할 수 있습니다.",
 			ExhibitState.Seen => "본 적은 있지만 지금 가진 것이 없습니다.",
 			_ => "아직 모르는 것입니다.",

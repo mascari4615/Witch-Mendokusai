@@ -79,6 +79,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		// 물고기 받침에 놓인 크기. 기록 전에 놓인 것은 0
 		public float ExhibitSize(string goodsId) => State.ExhibitSizes.TryGetValue(goodsId, out float size) ? size : 0f;
 
+		// 받침 물고기의 크기를 아는지. 낚지 않고 얻은 것 (상점, 의뢰) 이나 기록 전에 놓인 것은 모름. 화면은 이때 크기를 안 씀
+		public bool IsExhibitMeasured(string goodsId) => ExhibitSize(goodsId) > 0f;
+
 		// 놓인 것보다 큰 것을 낚은 적이 있음. 크기는 가방에 안 남아서 가장 큰 기록을 가져온다고 봄
 		public bool HasLargerFish(string goodsId) =>
 			IsDonated(goodsId) && IsFish(goodsId) && State.FishRecords.TryGetValue(FishOf(goodsId), out FishRecord record) && record.BestSize > ExhibitSize(goodsId);
