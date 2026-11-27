@@ -7,18 +7,18 @@ namespace WitchMendokusai
 	// 지금은 레이 공급자 하나 (평지, 언덕). 여러 층과 도달성이 필요한 판은 노드 그래프 공급자로 교체
 	public enum SpawnLayer
 	{
-		Ground,
+		Ground = 0,
 		// 바닥 위로 띄움. 공중 이동이 아직 없어서 부르는 곳은 없음
-		Air,
+		Air = 1,
 	}
 
 	// 여러 면이 맞을 때 어느 면을 고르나
 	public enum SpawnSiteBand
 	{
 		// 기준 높이에 가장 가까운 면. 스폰 후보 (다리 위와 아래 중 플레이어 층)
-		NearReference,
+		NearReference = 0,
 		// 기준 높이 이하에서 가장 높은 면. 플레이어 발밑 바닥 (점프 중이어도 위 다리를 안 잡음)
-		AtOrBelowReference,
+		AtOrBelowReference = 1,
 	}
 
 	public struct SpawnSiteQuery
