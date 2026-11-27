@@ -29,7 +29,7 @@ namespace WitchMendokusai.Tests
 			List<string> late = new();
 			foreach (WingDef wing in catalog.Wings)
 			{
-				foreach (GoodsDef goods in catalog.Goods.Where(candidate => wing.Kinds.Contains(candidate.Kind)))
+				foreach (GoodsDef goods in catalog.Goods.Where(candidate => HomesteadSim.Accepts(wing, candidate)))
 				{
 					int townHall = HomesteadCatalogCheck.FirstTownHall(catalog, goods.Id);
 					Assert.That(townHall, Is.LessThanOrEqualTo(catalog.TownHalls.Count), goods.Id);
@@ -49,9 +49,9 @@ namespace WitchMendokusai.Tests
 		{
 			HomesteadCatalog catalog = HomesteadTestKit.LoadCatalog();
 			WingDef wing = catalog.Wings[0];
-			int pedestals = catalog.Goods.Count(candidate => wing.Kinds.Contains(candidate.Kind));
+			int pedestals = catalog.Goods.Count(candidate => HomesteadSim.Accepts(wing, candidate));
 			wing.Milestones.Add(new MilestoneDef { Count = pedestals + 1, Reward = new RewardDef() });
-			Assert.That(HomesteadCatalogCheck.Run(catalog), Has.Some.Contains(wing.Id).And.Contains("이정표"));
+			Assert.That(HomesteadCatalogCheck.Run(catalog), Has.Some.Contains(wing.Id).And.Contains("받침대"));
 		}
 
 		[Test]

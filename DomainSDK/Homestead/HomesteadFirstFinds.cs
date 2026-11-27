@@ -33,10 +33,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		public static WingDef WingOf(HomesteadSim sim, string goodsId)
 		{
-			GoodsKind kind = sim.Catalog.Get<GoodsDef>(goodsId).Kind;
+			GoodsDef goods = sim.Catalog.Get<GoodsDef>(goodsId);
 			foreach (WingDef wing in sim.Catalog.Wings)
 			{
-				if (wing.Kinds.Contains(kind))
+				if (HomesteadSim.Accepts(wing, goods))
 				{
 					return wing;
 				}

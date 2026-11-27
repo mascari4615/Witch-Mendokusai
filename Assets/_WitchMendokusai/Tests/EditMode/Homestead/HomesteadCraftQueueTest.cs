@@ -43,8 +43,8 @@ namespace WitchMendokusai.Tests
 		public void Queue_cap_follows_workshop_level()
 		{
 			Assert.That(MakeWorkshop(1).CraftQueueMax, Is.EqualTo(7));
-			Assert.That(MakeWorkshop(2).CraftQueueMax, Is.EqualTo(7));
-			Assert.That(MakeWorkshop(3).CraftQueueMax, Is.EqualTo(8));
+			Assert.That(MakeWorkshop(2).CraftQueueMax, Is.EqualTo(8));
+			Assert.That(MakeWorkshop(3).CraftQueueMax, Is.EqualTo(9));
 		}
 
 		[Test]
@@ -166,7 +166,7 @@ namespace WitchMendokusai.Tests
 						recipes++;
 					}
 					TestContext.WriteLine($"{level} {slots} {queue} {dungeon} | {before / recipes:P0} -> {after / recipes:P0} | {beforeBatches} -> {afterBatches} ({recipes}가지)");
-					// 설계 목표: 10분 던전 동안 칸이 75% 이상 일함. 상한 5 는 1단계 65%, 6 은 74.5% 라 균형 판에서 7, 7, 8 로 올림
+					// 설계 목표: 10분 던전 동안 칸이 75% 이상 일함. 상한 5 는 1단계 65%, 6 은 74.5% 라 균형 판에서 7, 8, 9 로 올림 (단계마다 상한도 늘어 승급 이득이 있게)
 					if (dungeon == DUNGEON_MINUTES)
 					{
 						Assert.That(after / recipes, Is.GreaterThanOrEqualTo(BUSY_TARGET), $"{level}단계: 10분 던전 동안 칸이 일한 몫이 목표 아래");

@@ -1,5 +1,5 @@
 {
-	"Tuning": {"GuildSteps": [0, 60, 150, 280, 450, 680, 980, 1360, 1840, 2440], "ComfortSteps": [0, 20, 50, 90, 140, 210], "CraftQueue": [7, 7, 8]},
+	"Tuning": {"GuildSteps": [0, 60, 150, 280, 450, 680, 980, 1360, 1840, 2440], "ComfortSteps": [0, 20, 50, 90, 140, 210], "CraftQueue": [7, 8, 9]},
 	"Tools": [
 		{"Id": "hoe", "Name": "괭이", "Kind": "Hoe", "Tiers": [{"Name": "낡은 괭이", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "구리 괭이", "Power": 2, "Cost": {"Nyang": 300, "Goods": {"copper_bar": 3, "wood": 10}}, "TownHall": 2}, {"Name": "철 괭이", "Power": 4, "Cost": {"Nyang": 900, "Goods": {"iron_bar": 4}}, "TownHall": 3}]},
 		{"Id": "can", "Name": "물뿌리개", "Kind": "WateringCan", "Tiers": [{"Name": "낡은 물뿌리개", "Power": 1, "Cost": {"Nyang": 0, "Goods": {}}, "TownHall": 1}, {"Name": "구리 물뿌리개", "Power": 2, "Cost": {"Nyang": 300, "Goods": {"copper_bar": 3}}, "TownHall": 2}, {"Name": "철 물뿌리개", "Power": 4, "Cost": {"Nyang": 900, "Goods": {"iron_bar": 4}}, "TownHall": 3}]},

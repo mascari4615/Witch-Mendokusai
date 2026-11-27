@@ -199,10 +199,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		public int RequestSlotCount => Math.Min(Tuning.RequestSlotMax, Tuning.RequestSlots + (GuildLevel - 1) / Tuning.RequestSlotPerLevels);
 
-		// 하루에 한 번 빈 칸만 채움. 못 끝낸 의뢰는 남음 (기한 없음)
+		// 하루에 한 번 빈 칸만 채움. 못 끝낸 의뢰는 남음 (기한 없음). 다 떼거나 다 끝내도 같은 날 다시 차지 않음
 		public void RefreshRequests()
 		{
-			if (State.RequestDay == Day && State.Requests.Count > 0)
+			if (State.RequestDay == Day)
 			{
 				return;
 			}

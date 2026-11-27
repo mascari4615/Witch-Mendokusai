@@ -73,7 +73,7 @@ namespace WitchMendokusai.Tests
 			foreach (WingDef wing in catalog.Wings)
 			{
 				TestContext.WriteLine($"[{wing.Name}] 첫 이정표 판 {string.Join(", ", records.Select(record => record.FirstMilestoneRun.TryGetValue(wing.Id, out int run) ? run.ToString() : "-"))}");
-				foreach (GoodsDef goods in catalog.Goods.Where(candidate => wing.Kinds.Contains(candidate.Kind)))
+				foreach (GoodsDef goods in catalog.Goods.Where(candidate => HomesteadSim.Accepts(wing, candidate)))
 				{
 					List<int> firsts = records.Select(record => record.FirstRun.TryGetValue(goods.Id, out int run) ? run : -1).ToList();
 					string cells = string.Join(" ", firsts.Select(run => run < 0 ? "-" : run.ToString()));

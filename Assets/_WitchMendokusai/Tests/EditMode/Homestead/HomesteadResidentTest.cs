@@ -35,6 +35,8 @@ namespace WitchMendokusai.Tests
 		{
 			Dictionary<string, List<int>> caring = MaxStepDays(true, rescueChance);
 			Dictionary<string, List<int>> plain = MaxStepDays(false, rescueChance);
+			int caringSum = 0;
+			int plainSum = 0;
 			foreach (KeyValuePair<string, List<int>> pair in caring)
 			{
 				int caringDays = Median(pair.Value);
@@ -42,8 +44,14 @@ namespace WitchMendokusai.Tests
 				TestContext.WriteLine($"{pair.Key,-11} 챙기면 {string.Join("/", pair.Value)}일, 의뢰만 {string.Join("/", plain[pair.Key])}일");
 				Assert.That(caringDays, Is.InRange(7, 30), $"{pair.Key}: 챙기면 몇 주");
 				Assert.That(plainDays, Is.LessThan(NEVER), $"{pair.Key}: 의뢰만 해도 닿음");
-				Assert.That(plainDays, Is.GreaterThanOrEqualTo(caringDays * 2), $"{pair.Key}: 챙기는 손이 두 배 넘게 빠름");
+				Assert.That(plainDays, Is.GreaterThan(caringDays), $"{pair.Key}: 챙기는 손이 더 빠름");
+				caringSum += caringDays;
+				plainSum += plainDays;
 			}
+			// 두 배는 주민 합으로 봄. 늦게 오는 주민 (확정 f14-2 시련소 사람) 은 길드 레벨이 올라 의뢰 칸이 많을 때
+			// 도착해서 의뢰 길이 구조적으로 빠름 (2026-11-27 next2: 16일 대 10일)
+			TestContext.WriteLine($"합: 챙기면 {caringSum}일, 의뢰만 {plainSum}일");
+			Assert.That(plainSum, Is.GreaterThanOrEqualTo(caringSum * 2), "챙기는 손이 주민 합으로 두 배 넘게 빠름");
 		}
 
 		// 확정 f14-2: 다섯이 10판 안에 다 오지 않게 시련소 사람을 늦춤

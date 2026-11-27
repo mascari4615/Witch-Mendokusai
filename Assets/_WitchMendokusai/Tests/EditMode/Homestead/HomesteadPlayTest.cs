@@ -262,8 +262,8 @@ namespace WitchMendokusai.Tests
 					sim.Deliver(request.Uid);
 				}
 			}
-			DismissStaleRequests(sim);
 			Produce(sim);
+			DismissStaleRequests(sim);
 			foreach (ToolDef tool in sim.Catalog.Tools)
 			{
 				if (sim.TryGetNextToolTier(tool.Kind, out ToolTierDef nextTool) && KeepsTownHall(sim, nextTool.Cost))
@@ -284,7 +284,7 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
-		// 칸이 다 찼는데 못 채운 의뢰가 남으면 모두 뗌 (길드 창의 떼기). 빈 칸은 다음 날 채워짐
+		// 공작소를 돌린 뒤에도 칸이 다 찼는데 못 채운 의뢰가 남으면 모두 뗌 (길드 창의 떼기). 빈 칸은 다음 날 채워짐
 		// 의뢰는 기한이 없어서 떼지 않는 봇은 못 구하는 물건 의뢰에 칸이 다 막혀 의뢰 길이 멈춤
 		private static void DismissStaleRequests(HomesteadSim sim)
 		{
@@ -352,7 +352,7 @@ namespace WitchMendokusai.Tests
 			Dictionary<string, int> forBuildings = new();
 			foreach (BuildingDef building in sim.Catalog.Buildings)
 			{
-				if (sim.IsBuilt(building.Id) || building.TownHall > sim.State.TownHall || sim.TryGetNextLevel(building.Id, out BuildingLevelDef level) == false)
+				if (sim.IsBuilt(building.Id) || sim.TryGetNextLevel(building.Id, out BuildingLevelDef level) == false || Math.Max(building.TownHall, level.TownHall) > sim.State.TownHall)
 				{
 					continue;
 				}
