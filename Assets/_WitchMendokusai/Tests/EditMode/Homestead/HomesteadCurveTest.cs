@@ -60,7 +60,10 @@ namespace WitchMendokusai.Tests
 			int level = int.Parse(key.Substring(prefix.Length));
 			for (int i = 1; i <= level; i++)
 			{
-				curve.FirstRun.TryAdd(prefix + i, run);
+				if (curve.FirstRun.ContainsKey(prefix + i) == false)
+				{
+					curve.FirstRun[prefix + i] = run;
+				}
 			}
 		}
 
