@@ -21,7 +21,7 @@ MonoBehaviour:
   minRange: 3
   windupSeconds: 0.6
   windupPunch: 1.3
-  behindDistance: 2.5
+  behindDistance: 1.8
   arriveSeconds: 0.5
   arrivePunch: 1.2
   staleSeconds: 0.3

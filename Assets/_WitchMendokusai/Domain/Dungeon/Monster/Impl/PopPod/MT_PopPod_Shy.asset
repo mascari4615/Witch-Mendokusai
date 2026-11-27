@@ -17,5 +17,5 @@ MonoBehaviour:
   <SenseRadius>k__BackingField: 8
   <SenseSeconds>k__BackingField: 0.25
   shyRadius: 4
-  returnRadius: 7
+  returnRadius: 6
   retreatSpeed: 0.8

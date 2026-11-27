@@ -13,12 +13,11 @@ namespace WitchMendokusai.Tests
 		private const string MONSTER_ROOT = "Assets/_WitchMendokusai/Domain/Dungeon/Monster/Impl";
 		private const string DUMMY_MARK = "Dummy/";
 
-		// 짝짓기 표 (memo README) 의 성격. 27 마나 위스프는 무리 공격이 걸음을 쥐어 빠짐
+		// 짝짓기 표 (memo README) 의 성격. 27 마나 위스프는 무리 공격이 걸음을 쥐어, 18 가시 선인장은 이동 속도 0 이라 빠짐
 		private static readonly Dictionary<int, Type> temperaments = new()
 		{
 			{ 16, typeof(CowardTemperament) },
 			{ 17, typeof(GreedyTemperament) },
-			{ 18, typeof(PassiveTemperament) },
 			{ 19, typeof(FlankTemperament) },
 			{ 20, typeof(ZigzagTemperament) },
 			{ 21, typeof(TideTemperament) },
@@ -41,8 +40,10 @@ namespace WitchMendokusai.Tests
 		private static Dictionary<int, Monster> LoadTargets() =>
 			AssetDatabase.FindAssets("t:Monster", new[] { MONSTER_ROOT })
 				.Select(guid => AssetDatabase.LoadAssetAtPath<Monster>(AssetDatabase.GUIDToAssetPath(guid)))
-				.Where(monster => temperaments.ContainsKey(monster.ID))
+				.Where(monster => temperaments.ContainsKey(monster.ID) || newAttacks.Contains(monster.ID))
 				.ToDictionary(monster => monster.ID);
+
+		private static IEnumerable<Monster> LoadTempered() => LoadTargets().Values.Where(monster => temperaments.ContainsKey(monster.ID));
 
 		private static string PathOf(UnityEngine.Object asset) => AssetDatabase.GetAssetPath(asset);
 
@@ -50,7 +51,7 @@ namespace WitchMendokusai.Tests
 		public void Each_target_walks_with_its_own_temperament()
 		{
 			Dictionary<int, Monster> targets = LoadTargets();
-			CollectionAssert.AreEquivalent(temperaments.Keys, targets.Keys);
+			CollectionAssert.IsSubsetOf(temperaments.Keys, targets.Keys);
 			foreach ((int id, Type expected) in temperaments)
 			{
 				Monster monster = targets[id];
@@ -80,25 +81,52 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
-		// 물러나는 성격 (거리 두기, 수줍음) 은 지키는 거리가 공격 사거리 안이어야 쏨
+		// 기다리는 걸음에서 성격을 묻는 공격만. 숨기, 무리 같은 공격은 성격을 붙여도 안 따름
 		[Test]
-		public void Keeping_distance_still_reaches_the_attack()
+		public void Attack_waits_by_the_temperament()
 		{
-			foreach (Monster monster in LoadTargets().Values)
+			foreach (Monster monster in LoadTempered())
 			{
-				if (monster.Attack == null)
-					continue;
-				float keep = monster.Temperament switch
-				{
-					KiteTemperament kite => FloatOf(kite, "farDistance"),
-					ShyTemperament shy => FloatOf(shy, "shyRadius"),
-					_ => 0f,
-				};
-				Assert.Less(keep, monster.Attack.TriggerRange, $"{monster.name} 성격이 지키는 거리 {keep} m 가 사거리 {monster.Attack.TriggerRange} m 밖");
+				bool asksTemperament = monster.Attack == null
+					|| monster.Attack is WindupMonsterAttack
+					|| monster.Attack is DashMonsterAttack
+					|| monster.Attack is SequenceMonsterAttack;
+				Assert.IsTrue(asksTemperament, $"{monster.name} 의 공격 {monster.Attack?.GetType().Name} 은 기다릴 때 성격을 안 물음");
 			}
 		}
 
-		private static float FloatOf(UnityEngine.Object asset, string field) =>
-			new SerializedObject(asset).FindProperty(field).floatValue;
+		// 물러나는 성격은 지키는 거리가 사거리 안이어야 쏘고, 나타나는 성격은 나타난 자리에서 닿아야 함. 맴돌기는 사거리 밖에서 돌기 시작해야 원이 보임
+		[Test]
+		public void Temperament_distances_mesh_with_attack_range()
+		{
+			foreach (Monster monster in LoadTempered())
+			{
+				if (monster.Attack == null)
+					continue;
+				float range = monster.Attack.TriggerRange;
+				switch (monster.Temperament)
+				{
+					case KiteTemperament kite:
+						Assert.Less(FloatOf(kite, "farDistance"), range, $"{monster.name} 거리 두기 바깥 경계가 사거리 밖");
+						break;
+					case ShyTemperament shy:
+						Assert.Less(FloatOf(shy, "returnRadius"), range, $"{monster.name} 수줍음 돌아오는 경계가 사거리 밖");
+						break;
+					case BlinkTemperament blink:
+						Assert.Less(FloatOf(blink, "behindDistance"), range, $"{monster.name} 점멸로 나타난 자리가 사거리 밖");
+						break;
+					case OrbitTemperament orbit:
+						Assert.Greater(FloatOf(orbit, "startRadius"), range, $"{monster.name} 맴돌기가 사거리 안에서 시작해 곧장 공격");
+						break;
+				}
+			}
+		}
+
+		private static float FloatOf(UnityEngine.Object asset, string field)
+		{
+			SerializedProperty property = new SerializedObject(asset).FindProperty(field);
+			Assert.IsNotNull(property, $"{asset.name} 에 {field} 칸 없음 (이름이 바뀜)");
+			return property.floatValue;
+		}
 	}
 }

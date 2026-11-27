@@ -28,7 +28,7 @@ namespace WitchMendokusai
 		private BTState Tick()
 		{
 			if (step == null && Time.time < readyTime)
-				return chase.UpdateBT();
+				return Walk();
 			if (step == null)
 			{
 				step = attack.Steps[stepIndex].CreateBehaviour(unitObject, playerProvider);
@@ -39,7 +39,7 @@ namespace WitchMendokusai
 			{
 				attack.Steps[stepIndex].Interrupt(step);
 				Advance();
-				return chase.UpdateBT();
+				return Walk();
 			}
 			// 공격 도중 반격으로 죽으면 Interrupt 가 step 을 비움
 			BTRunner running = step;
@@ -47,6 +47,14 @@ namespace WitchMendokusai
 			if (step == running && ((IAttackCycle)running).CompletedCount > 0)
 				Advance();
 			return state;
+		}
+
+		// 대기와 건너뛴 차례의 걸음. 성격이 있으면 성격대로 (낮잠 순찰 등), 없으면 곧장
+		private BTState Walk()
+		{
+			if (MonsterTemperamentDriver.TryMove(unitObject, playerProvider))
+				return BTState.Success;
+			return chase.UpdateBT();
 		}
 
 		private void Advance()

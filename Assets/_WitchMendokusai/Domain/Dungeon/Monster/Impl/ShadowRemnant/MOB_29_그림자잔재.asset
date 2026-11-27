@@ -44,5 +44,5 @@ MonoBehaviour:
     <SpeedPercent>k__BackingField: 30
     <DamagePercent>k__BackingField: 50
   <Remains>k__BackingField: {fileID: 11400000, guid: e9009759b03fea140b38dce86c34a3a0, type: 2}
+  <Attack>k__BackingField: {fileID: 11400000, guid: 48a6b92cb583484bb4a109f701a613f8, type: 2}
   <Temperament>k__BackingField: {fileID: 11400000, guid: f38428ac73514659823aa9a1ab1e8b47, type: 2}
-  <Attack>k__BackingField: {fileID: 11400000, guid: 6b9855829b054d67baa6d64a2f9aa3b9, type: 2}

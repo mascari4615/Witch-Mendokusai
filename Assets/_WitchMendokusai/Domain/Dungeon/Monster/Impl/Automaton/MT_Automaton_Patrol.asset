@@ -21,7 +21,7 @@ MonoBehaviour:
   arriveDistance: 0.4
   napSeconds: 2
   legSeconds: 8
-  noticeRadius: 4
+  noticeRadius: 7.5
   loseRadius: 9
   chaseOnHitSeconds: 0.3
   noticePunch: 1.3

@@ -59,6 +59,9 @@ namespace WitchMendokusai
 
 		private static MonsterTemperament TemperamentOf(UnitObject unitObject) => unitObject.UnitData is Monster monster ? monster.Temperament : null;
 
+		// 성격이 있는 몬스터인지. 공격 행동 트리가 성격 유무로 박자를 가를 때
+		public static bool Has(UnitObject unitObject) => TemperamentOf(unitObject) != null;
+
 		private void Bind(UnitObject unitObject)
 		{
 			unit = unitObject;

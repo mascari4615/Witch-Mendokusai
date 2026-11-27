@@ -16,7 +16,7 @@ MonoBehaviour:
   <FaceDeadZone>k__BackingField: 0.05
   <SenseRadius>k__BackingField: 8
   <SenseSeconds>k__BackingField: 0.25
-  startRadius: 6
+  startRadius: 12
   endRadius: 1.5
   closeSeconds: 6
   radialPull: 1.2
