@@ -317,12 +317,22 @@ namespace WitchMendokusai
 					uiManager.Dolls.Open();
 					break;
 				case "trial":
-					uiManager.NPC.OpenDungeonEntrance(SOHelper.Get<NPC>(DUNGEON_KEEPER_NPC_ID));
+					OpenTrialNextFrame().Forget();
 					break;
 				default:
 					Say("아직 준비하는 중입니다.");
 					break;
 			}
+		}
+
+		// 상호작용과 창의 들어가기 버튼이 같은 Z (UI Submit) 를 씀. 같은 프레임에 열면 열리며 초점을 받은 들어가기 버튼이 그 누름까지 받아
+		// Z 한 번에 창이 안 보이고 바로 던전으로 갔음 (2026-11-27 실측). 누름이 지난 다음 프레임에 엶
+		private async UniTaskVoid OpenTrialNextFrame()
+		{
+			await UniTask.NextFrame();
+			if (this == null || isActiveAndEnabled == false)
+				return;
+			uiManager.NPC.OpenDungeonEntrance(SOHelper.Get<NPC>(DUNGEON_KEEPER_NPC_ID));
 		}
 
 		private void RefreshSites()
