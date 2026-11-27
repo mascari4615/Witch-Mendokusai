@@ -227,6 +227,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 					problems.Add($"{resident.Id}: 호감도 단계와 보상 수가 다름");
 				}
 			}
+			foreach (RelicDef relic in catalog.Relics)
+			{
+				CheckRelic(catalog, relic, problems);
+			}
 			int depth = 1;
 			foreach (MineBandDef band in catalog.MineBands)
 			{
@@ -239,6 +243,30 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			if (catalog.Tuning.GuildSteps.Count < 2 || catalog.Tuning.ComfortSteps.Count < 2)
 			{
 				problems.Add("길드나 아늑함 단계표가 비었음");
+			}
+		}
+
+		// 손질할 자리가 있고, 자리마다 맞는 도구가 있고, 뽑힐 수 있음
+		private static void CheckRelic(HomesteadCatalog catalog, RelicDef relic, List<string> problems)
+		{
+			if (relic.Grime.Count == 0)
+			{
+				problems.Add($"{relic.Id}: 손질할 자리가 없음");
+			}
+			foreach (int grime in relic.Grime)
+			{
+				if (grime < 0 || grime >= RelicDef.TOOLS)
+				{
+					problems.Add($"{relic.Id}: 맞는 도구가 없는 때 {grime}");
+				}
+			}
+			if (relic.Weight <= 0f)
+			{
+				problems.Add($"{relic.Id}: 무게 {relic.Weight} 라 나오지 않음");
+			}
+			if (catalog.TryGet(relic.Goods, out GoodsDef goods) && goods.Kind != GoodsKind.Relic)
+			{
+				problems.Add($"{relic.Id}: 물건 {relic.Goods} 가 유물 갈래가 아님");
 			}
 		}
 
