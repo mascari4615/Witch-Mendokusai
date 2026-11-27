@@ -66,9 +66,14 @@ namespace WitchMendokusai.Tests
 			sim.Unveil(buildingId);
 		}
 
-		private static string DataFolder()
+		private static string DataFolder() => FindUp(Path.Combine("Assets", "_WitchMendokusai", "Domain", "Homestead", "Resources", "Homestead"));
+
+		// 생활 화면 스타일시트 원문. 배치 시험이 사본 없이 실제 수치를 읽음
+		internal static string StyleSheetText() =>
+			File.ReadAllText(Path.Combine(FindUp(Path.Combine("Assets", "_WitchMendokusai", "Domain", "Homestead", "UI")), "Homestead.uss"));
+
+		private static string FindUp(string relative)
 		{
-			string relative = Path.Combine("Assets", "_WitchMendokusai", "Domain", "Homestead", "Resources", "Homestead");
 			DirectoryInfo folder = new(Directory.GetCurrentDirectory());
 			while (folder != null)
 			{

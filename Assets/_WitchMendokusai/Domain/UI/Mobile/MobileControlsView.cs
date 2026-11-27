@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -94,6 +95,8 @@ namespace WitchMendokusai
 			//   거기 떠 있으면 거짓말이다(그 모드엔 캐릭터가 없다).
 			show = show && (GameModeManager.TryGetExistingInstance(out GameModeManager gameModeManager) == false
 				|| gameModeManager.CurrentMode == GameMode.Default);
+			// 화면이 손가락 조작을 통째로 맡은 동안 (낚시 화면) 도 숨김
+			show = show && holders.Count == 0;
 			DisplayStyle display = show ? DisplayStyle.Flex : DisplayStyle.None;
 			if (lookBackdrop.style.display != display)
 			{
@@ -191,5 +194,21 @@ namespace WitchMendokusai
 
 		/// <summary>패널이 기준으로 삼는 세로 크기 — 화면 픽셀을 이 화면의 좌표로 바꿀 때 쓴다.</summary>
 		private const float PANEL_REFERENCE_HEIGHT = 800f;
+
+		// 평소 버튼을 잠시 걷어 달라고 한 화면들. 자기 버튼을 화면 안에 따로 두는 전체 화면 (낚시) 이 열 때 넣고 닫을 때 뺌
+		// 판단을 화면마다 여기로 끌어오지 않으려고 맡긴 쪽이 직접 말함. 하나라도 남아 있으면 숨김
+		private static readonly HashSet<object> holders = new();
+
+		public static void Hold(object owner, bool hold)
+		{
+			if (hold)
+				holders.Add(owner);
+			else
+				holders.Remove(owner);
+		}
+
+		// 도메인 재시작 없이 Play 를 다시 켜도 지난 판의 맡김이 남지 않게
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetHolders() => holders.Clear();
 	}
 }

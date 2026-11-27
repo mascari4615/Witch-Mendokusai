@@ -55,5 +55,32 @@ namespace WitchMendokusai.DomainSDK.Homestead
 					return string.Empty;
 			}
 		}
+
+		// 손가락 버튼 (감기, 그만두기) 을 띄울 단계. 판이 끝나 결과를 보이는 동안은 누를 것이 없고, 오른쪽 아래 얻은 것 줄을 가림
+		public static bool ShowsButtons(FishingPhase phase) =>
+			phase == FishingPhase.Waiting || phase == FishingPhase.Bite || phase == FishingPhase.Duel;
+	}
+
+	// 꾸미기 버튼 (손가락 전용 건설 입구) 을 띄울지. 귀환 소식 판은 줄 수만큼 아래로 자라 버튼 자리를 덮으므로 판이 떠 있는 동안 숨김
+	public static class DecorateButton
+	{
+		public static bool IsShown(bool goalShown, bool hasEntry, bool digestShown) =>
+			goalShown && hasEntry && digestShown == false;
+	}
+
+	// 건설 막대 칸의 재료 글자. 재료 하나에 한 줄. 한 줄로 이으면 좁은 칸 (92) 밖으로 넘침
+	public static class BuildSlotText
+	{
+		public static string Cost(System.Collections.Generic.IReadOnlyList<(string Name, int Have, int Need)> parts)
+		{
+			System.Text.StringBuilder text = new();
+			for (int i = 0; i < parts.Count; i++)
+			{
+				if (i > 0)
+					text.Append('\n');
+				text.Append(parts[i].Name).Append(' ').Append(parts[i].Have).Append('/').Append(parts[i].Need);
+			}
+			return text.ToString();
+		}
 	}
 }
