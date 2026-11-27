@@ -26,6 +26,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				return HomesteadResult.Fail(HomesteadFailure.ToolTooWeak, gather.Tool.ToString());
 			}
+			foreach (DropDef drop in gather.Fixed)
+			{
+				Give(drop.Goods, WithRest(RollAmount(drop)));
+			}
 			for (int i = 0; i < gather.Rolls; i++)
 			{
 				DropDef drop = Roll(gather.Drops);

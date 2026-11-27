@@ -120,6 +120,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				work.ReadyAt = Math.Min(work.ReadyAt, State.Minutes);
 			}
+			MaybeBringExpeditionSeed();
 			NotifyChanged();
 		}
 

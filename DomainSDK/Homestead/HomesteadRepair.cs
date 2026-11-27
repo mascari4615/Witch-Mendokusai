@@ -76,6 +76,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 					plot.Crop = string.Empty;
 					plot.Growth = 0f;
 					plot.Harvests = 0;
+					plot.Stock = 0;
 				}
 			}
 			foreach (CostumeSlot slot in new List<CostumeSlot>(state.Worn.Keys))

@@ -11,8 +11,17 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int PlotsPerFarmLevel { get; set; } = 2;
 		public int WetMinutes { get; set; } = 720;
 		public float WetGrowthRate { get; set; } = 1.5f;
+		// 남은 물기가 이보다 적으면 다시 줄 수 있음. 던전 한 판 뒤 남는 물기를 덮는 값
+		public int WetRefreshMinutes { get; set; } = 360;
 		public int SeasonBonusYield { get; set; } = 1;
 		public float TillRelicChance { get; set; } = 0.04f;
+		// 재수확 작물이 쌓는 열매 상한. 던전 한 판 (600분) 에 두 번 익는 값
+		public int RegrowStockCap { get; set; } = 2;
+		// 거둘 때 그 작물 씨앗 하나가 덤일 확률
+		public float HarvestSeedChance { get; set; } = 0.05f;
+		// 던전에서 돌아올 때 씨앗 하나를 들고 올 확률. 지금 타운홀보다 한 단계 위까지
+		public float ExpeditionSeedChance { get; set; } = 0.35f;
+		public int ExpeditionSeedTownHallAhead { get; set; } = 1;
 
 		// 호감도
 		public int GiftLikedPoints { get; set; } = 30;
