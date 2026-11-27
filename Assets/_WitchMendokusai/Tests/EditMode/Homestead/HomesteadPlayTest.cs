@@ -75,6 +75,34 @@ namespace WitchMendokusai.Tests
 			Assert.That(WinRate("mistking", 3, 0.3f, out float _), Is.GreaterThan(WinRate("mistking", 1, 0.3f, out float _)), "낚싯대가 도움");
 		}
 
+		// 낚싯대가 오를 때마다 새 손맛. 느린 손 성공률이 단마다 내려가고, 빠른 손은 늘 낚음
+		// 목표는 생활 판정 확정 f03-2 (낚싯대 0 은 100%, 1 은 90~97%, 2 는 75~90%, 별송어 50~60%, 안개메기 40~60%, 빠른 손 95% 이상)
+		[Test]
+		public void Fishing_difficulty_rises_with_each_rod()
+		{
+			foreach (FishDef fish in HomesteadTestKit.LoadCatalog().Fishes)
+			{
+				float slow = WinRate(fish.Id, fish.RodTier, 0.45f, out float _);
+				float quick = WinRate(fish.Id, fish.RodTier, 0.18f, out float _);
+				TestContext.WriteLine($"{fish.Id,-10} 낚싯대 {fish.RodTier} 느린 손 {slow:P0} 빠른 손 {quick:P0}");
+				Assert.That(quick, Is.GreaterThanOrEqualTo(0.95f), $"{fish.Id} 빠른 손은 낚음");
+				(float from, float to) = SlowTarget(fish);
+				Assert.That(slow, Is.InRange(from, to), $"{fish.Id} 낚싯대 {fish.RodTier} 느린 손");
+			}
+		}
+
+		private static (float, float) SlowTarget(FishDef fish) => fish.Id switch
+		{
+			"startrout" => (0.5f, 0.6f),
+			"mistking" => (0.4f, 0.6f),
+			_ => fish.RodTier switch
+			{
+				0 => (0.98f, 1f),
+				1 => (0.9f, 0.97f),
+				_ => (0.75f, 0.9f),
+			},
+		};
+
 		[Test]
 		public void Fishing_duel_never_drags_on()
 		{

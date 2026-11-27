@@ -92,6 +92,55 @@ namespace WitchMendokusai.Tests
 
 		// ---- 봇 한 바퀴
 
+		// 확정 f05-1, f05-2. 데모의 낚싯대로 안개메기 시각에 개울에서 던지면 낚임. 못 본 물고기 가중이 꼬리를 줄임
+		[Test]
+		public void Mist_catfish_is_caught_with_the_demo_rod_at_its_hour()
+		{
+			List<int> biased = new();
+			List<int> plain = new();
+			foreach (int seed in Enumerable.Range(1, MIST_SEEDS))
+			{
+				biased.Add(CastsUntilCaught("mistking", seed, null));
+				plain.Add(CastsUntilCaught("mistking", seed, 1f));
+			}
+			TestContext.WriteLine($"안개메기 처음 낚기까지 던진 수 (가중): 가운데 {Middle(biased)}, 가장 긺 {biased.Max()}  [{string.Join(", ", biased)}]");
+			TestContext.WriteLine($"안개메기 처음 낚기까지 던진 수 (가중 없음): 가운데 {Middle(plain)}, 가장 긺 {plain.Max()}  [{string.Join(", ", plain)}]");
+			Assert.That(biased, Has.All.LessThanOrEqualTo(MIST_CAST_LIMIT), "시각을 맞추면 낚임");
+			Assert.That(biased.Sum(), Is.LessThan(plain.Sum()), "못 본 물고기 가중이 도움");
+		}
+
+		private const int MIST_SEEDS = 30;
+		private const int MIST_CAST_LIMIT = 250;
+
+		private static int Middle(List<int> values) => values.OrderBy(value => value).ElementAt(values.Count / 2);
+
+		private static int CastsUntilCaught(string fishId, int seed, float? unownedBias)
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _, seed);
+			if (unownedBias.HasValue)
+			{
+				sim.Catalog.Tuning.UnownedFishBias = unownedBias.Value;
+			}
+			FishDef target = sim.Catalog.Get<FishDef>(fishId);
+			sim.State.Tools[ToolKind.Rod] = target.RodTier;
+			Random random = new(seed);
+			int span = (target.HourTo - target.HourFrom + 24) % 24;
+			for (int cast = 1; cast <= MIST_CAST_LIMIT * 4; cast++)
+			{
+				int hour = (target.HourFrom + random.Next(span)) % 24;
+				FishDef fish = sim.PickFish(target.Waters[0], hour, 0);
+				if (PlayDuel(sim.StartDuel(fish), random) == FishingPhase.Caught)
+				{
+					sim.Land(fish, false, out bool _);
+					if (fish.Id == fishId)
+					{
+						return cast;
+					}
+				}
+			}
+			return int.MaxValue;
+		}
+
 		private static void PlayDungeon(HomesteadSim sim, HomesteadTestKit.FakePurse purse, Random random, int run)
 		{
 			sim.AdvanceMinutes(600);

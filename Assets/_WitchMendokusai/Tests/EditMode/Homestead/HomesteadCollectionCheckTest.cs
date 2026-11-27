@@ -18,7 +18,7 @@ namespace WitchMendokusai.Tests
 			Assert.That(HomesteadCatalogCheck.FirstTownHall(catalog, "strawberry"), Is.EqualTo(3), "작물의 타운홀");
 			Assert.That(HomesteadCatalogCheck.FirstTownHall(catalog, "copper"), Is.EqualTo(1), "바위 채집과 갱도 중 쉬운 쪽");
 			Assert.That(HomesteadCatalogCheck.FirstTownHall(catalog, "rainbow"), Is.EqualTo(3), "곡괭이 등급의 타운홀");
-			Assert.That(HomesteadCatalogCheck.FirstTownHall(catalog, "mistking"), Is.EqualTo(4), "낚싯대 등급의 타운홀");
+			Assert.That(HomesteadCatalogCheck.FirstTownHall(catalog, "mistking"), Is.EqualTo(3), "낚싯대 등급의 타운홀");
 			Assert.That(HomesteadCatalogCheck.FirstTownHall(catalog, "thimble"), Is.EqualTo(catalog.Get<BuildingDef>(HomesteadSim.MUSEUM).TownHall), "유물은 박물관이 서야 손질");
 		}
 
@@ -40,6 +40,8 @@ namespace WitchMendokusai.Tests
 				}
 			}
 			TestContext.WriteLine($"데모 끝 (타운홀 {DEMO_TOWN_HALL}) 에 못 얻는 전시품: {(late.Count == 0 ? "없음" : string.Join(", ", late))}");
+			// 확정 f05-1. 데모 안에서 관마다 끝까지 모을 수 있음
+			Assert.That(late, Is.Empty, "데모 끝에 못 얻는 전시품");
 		}
 
 		[Test]
