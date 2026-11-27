@@ -63,6 +63,27 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 		}
 
+		// 방이 넓어지면 벽 가구는 제 벽을 따라 나감. 어느 벽인지는 보는 각으로, 벽을 따른 자리는 그대로
+		public static void KeepOnWall(FurnitureDef furniture, HouseTierDef room, PlacedFurniture piece)
+		{
+			float halfDepth = furniture.Depth / 2f;
+			switch ((int)Math.Round(piece.Yaw) % 360)
+			{
+				case 180:
+					piece.Z = room.Depth / 2f - halfDepth;
+					break;
+				case 0:
+					piece.Z = -room.Depth / 2f + halfDepth;
+					break;
+				case 270:
+					piece.X = room.Width / 2f - halfDepth;
+					break;
+				case 90:
+					piece.X = -room.Width / 2f + halfDepth;
+					break;
+			}
+		}
+
 		private static float Clamp(float value, float min, float max) => Math.Max(min, Math.Min(max, value));
 
 		// 분리축. 축 넷 중 하나라도 떨어져 있으면 안 겹침
