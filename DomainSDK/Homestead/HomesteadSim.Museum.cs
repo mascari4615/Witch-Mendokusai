@@ -3,6 +3,16 @@ using System.Collections.Generic;
 
 namespace WitchMendokusai.DomainSDK.Homestead
 {
+	// 빈 받침 상태. 화면이 받침 모습을 고름
+	public enum ExhibitState
+	{
+		Unknown = 0,
+		// 본 적은 있는데 지금 없음 (팔았거나 씀)
+		Seen = 1,
+		Held = 2,
+		Donated = 3,
+	}
+
 	// 박물관. 기증, 이정표 보상, 유물 손질
 	public sealed partial class HomesteadSim
 	{
@@ -10,17 +20,32 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		public bool IsDonated(string goodsId) => State.Donated.Contains(goodsId);
 
-		public bool CanExhibit(string goodsId)
+		public bool CanExhibit(string goodsId) => FindWing(Catalog.Get<GoodsDef>(goodsId)) != null;
+
+		// 이 물건을 받는 관. 받는 관이 없으면 던짐
+		public WingDef WingOf(string goodsId)
 		{
-			GoodsKind kind = Catalog.Get<GoodsDef>(goodsId).Kind;
+			WingDef wing = FindWing(Catalog.Get<GoodsDef>(goodsId));
+			if (wing == null)
+			{
+				throw new ArgumentException($"관이 받지 않는 물건 {goodsId}");
+			}
+			return wing;
+		}
+
+		// 갈래로 받거나, 갈래 밖인데 따로 적힌 물건 (목장 산물)
+		private static bool Accepts(WingDef wing, GoodsDef goods) => wing.Kinds.Contains(goods.Kind) || wing.Exhibits.Contains(goods.Id);
+
+		private WingDef FindWing(GoodsDef goods)
+		{
 			foreach (WingDef wing in Catalog.Wings)
 			{
-				if (wing.Kinds.Contains(kind))
+				if (Accepts(wing, goods))
 				{
-					return true;
+					return wing;
 				}
 			}
-			return false;
+			return null;
 		}
 
 		// 관에 걸릴 물건 전부. 정의 순서
@@ -29,13 +54,41 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			List<GoodsDef> exhibits = new List<GoodsDef>();
 			foreach (GoodsDef goods in Catalog.Goods)
 			{
-				if (wing.Kinds.Contains(goods.Kind))
+				if (Accepts(wing, goods))
 				{
 					exhibits.Add(goods);
 				}
 			}
 			return exhibits;
 		}
+
+		// 빈 받침이 보일 상태. 놓임이 가장 앞, 그다음 지금 가짐, 본 적 있음, 모름
+		public ExhibitState ExhibitStateOf(string goodsId)
+		{
+			if (IsDonated(goodsId))
+			{
+				return ExhibitState.Donated;
+			}
+			if (Count(goodsId) > 0)
+			{
+				return ExhibitState.Held;
+			}
+			return IsKnown(goodsId) ? ExhibitState.Seen : ExhibitState.Unknown;
+		}
+
+		// 물고기 받침에 놓인 크기. 기록 전에 놓인 것은 0
+		public float ExhibitSize(string goodsId) => State.ExhibitSizes.TryGetValue(goodsId, out float size) ? size : 0f;
+
+		// 놓인 것보다 큰 것을 낚은 적이 있음. 크기는 가방에 안 남아서 가장 큰 기록을 가져온다고 봄
+		public bool HasLargerFish(string goodsId) =>
+			IsDonated(goodsId) && IsFish(goodsId) && State.FishRecords.TryGetValue(FishOf(goodsId), out FishRecord record) && record.BestSize > ExhibitSize(goodsId);
+
+		private bool IsFish(string goodsId) => Catalog.Get<GoodsDef>(goodsId).Kind == GoodsKind.Fish;
+
+		// 물고기 물건의 물고기 id. 물고기가 아니면 던짐
+		private string FishOf(string goodsId) => HomesteadRepair.FishOf(Catalog, goodsId);
+
+		public int LargerFishNyang(string goodsId) => (int)Math.Round(Catalog.Get<GoodsDef>(goodsId).Price * Tuning.LargerFishNyangRate);
 
 		public int DonatedCount(WingDef wing)
 		{
@@ -62,6 +115,32 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 			if (IsDonated(goodsId))
 			{
+				return SwapLargerFish(goodsId);
+			}
+			if (Count(goodsId) < 1)
+			{
+				return HomesteadResult.Fail(HomesteadFailure.NotEnoughGoods, goodsId);
+			}
+			Take(goodsId, 1);
+			if (IsFish(goodsId))
+			{
+				State.ExhibitSizes[goodsId] = State.FishRecords.TryGetValue(FishOf(goodsId), out FishRecord record) ? record.BestSize : 0f;
+			}
+			if (IsKnown(goodsId) == false)
+			{
+				State.Known.Add(goodsId);
+			}
+			State.Donated.Add(goodsId);
+			AddGuildExp(Tuning.DonateGuildExp);
+			NotifyChanged();
+			return HomesteadResult.Success;
+		}
+
+		// 놓인 물고기보다 큰 것을 가져오면 바꾸고 값의 일부를 냥으로. 작거나 같으면 이미 놓임
+		private HomesteadResult SwapLargerFish(string goodsId)
+		{
+			if (HasLargerFish(goodsId) == false)
+			{
 				return HomesteadResult.Fail(HomesteadFailure.AlreadyDone, goodsId);
 			}
 			if (Count(goodsId) < 1)
@@ -69,12 +148,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				return HomesteadResult.Fail(HomesteadFailure.NotEnoughGoods, goodsId);
 			}
 			Take(goodsId, 1);
-			if (IsKnown(goodsId) == false)
-			{
-				State.Known.Add(goodsId);
-			}
-			State.Donated.Add(goodsId);
-			AddGuildExp(Tuning.DonateGuildExp);
+			State.ExhibitSizes[goodsId] = State.FishRecords[FishOf(goodsId)].BestSize;
+			Purse.Nyang += LargerFishNyang(goodsId);
 			NotifyChanged();
 			return HomesteadResult.Success;
 		}
@@ -125,6 +200,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			NotifyChanged();
 			return HomesteadResult.Success;
 		}
+
+		// 손질해 본 유물만 때 이름이 보임. 처음 보는 것은 모양과 색 단서로 골라야 함
+		public bool IsGrimeNamed() => State.Restoring != null && IsKnown(Catalog.Get<RelicDef>(State.Restoring.Relic).Goods);
 
 		// 못 본 유물이 더 잘 나옴. 겹침이 길어지지 않게
 		private RelicDef RollRelic()

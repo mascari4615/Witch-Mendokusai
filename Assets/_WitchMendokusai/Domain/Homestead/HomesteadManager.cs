@@ -80,6 +80,9 @@ namespace WitchMendokusai
 			List<string> dropped = HomesteadRepair.DropUnknown(state, catalog);
 			if (dropped.Count > 0)
 				Debug.LogWarning($"[{nameof(HomesteadManager)}] 자료에 없는 이름을 세이브에서 뺌: {string.Join(", ", dropped)}");
+			List<string> granted = HomesteadRepair.CatchUp(state, catalog);
+			if (granted.Count > 0)
+				Debug.Log($"[{nameof(HomesteadManager)}] 이미 받은 이정표의 옷을 세이브에 더함: {string.Join(", ", granted)}");
 			Sim = new HomesteadSim(catalog, state, new HomesteadPurse(soManager.ItemInventory, dataManager.GameStat), new System.Random());
 			Sim.RefreshRequests();
 			Dresser = new HomesteadCostumeDresser(Sim);

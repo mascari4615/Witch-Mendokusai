@@ -264,7 +264,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				return HomesteadResult.Fail(HomesteadFailure.Locked, costumeId);
 			}
-			if (BuildingLevel(TAILOR) < costume.Level)
+			// 집 제작대 옷은 의상실 없이 바로
+			if (costume.Source != BENCH && BuildingLevel(TAILOR) < costume.Level)
 			{
 				return HomesteadResult.Fail(HomesteadFailure.NotBuilt, TAILOR);
 			}

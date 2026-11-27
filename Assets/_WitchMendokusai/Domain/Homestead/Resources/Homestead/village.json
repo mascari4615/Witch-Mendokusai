@@ -86,7 +86,10 @@
 		{"Id": "c_pickle", "Name": "절임", "Building": "workshop", "Level": 1, "Inputs": {"turnip": 2}, "Output": "pickle", "Amount": 1, "Minutes": 180},
 		{"Id": "c_cheese", "Name": "치즈", "Building": "workshop", "Level": 2, "Inputs": {"milk": 2}, "Output": "cheese", "Amount": 1, "Minutes": 180},
 		{"Id": "c_tea", "Name": "쑥차", "Building": "workshop", "Level": 1, "Inputs": {"mugwort": 3}, "Output": "tea", "Amount": 1, "Minutes": 60},
-		{"Id": "c_candle", "Name": "초 굳히기", "Building": "workshop", "Level": 2, "Inputs": {"honey": 2, "thread": 1}, "Output": "candle", "Amount": 1, "Minutes": 90}
+		{"Id": "c_candle", "Name": "초 굳히기", "Building": "workshop", "Level": 2, "Inputs": {"honey": 2, "thread": 1}, "Output": "candle", "Amount": 1, "Minutes": 90},
+		{"Id": "c_bread_fine", "Name": "빵 넉넉히 굽기", "Building": "workshop", "Level": 2, "Inputs": {"flour": 1, "fine_egg": 1}, "Output": "bread", "Amount": 2, "Minutes": 60},
+		{"Id": "c_cheese_fine", "Name": "진한 치즈", "Building": "workshop", "Level": 2, "Inputs": {"fine_milk": 1}, "Output": "cheese", "Amount": 1, "Minutes": 180},
+		{"Id": "c_cloth_fine", "Name": "고운 천 짜기", "Building": "workshop", "Level": 2, "Inputs": {"fine_wool": 1}, "Output": "cloth", "Amount": 3, "Minutes": 60}
 	],
 	"Animals": [
 		{"Id": "hen", "Name": "닭", "Cost": {"Nyang": 300, "Goods": {}}, "Product": "egg", "FineProduct": "fine_egg", "IntervalMinutes": 480, "RanchLevel": 1, "FineAffinity": 40},

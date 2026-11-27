@@ -258,7 +258,7 @@ namespace WitchMendokusai
 				Exhibit exhibit = new() { Goods = goods[i], Item = MakeItem(stand.transform, setting, goods[i]) };
 				exhibits.Add(exhibit);
 				Vector3 front = position + Quaternion.Euler(0f, yaw, 0f) * Vector3.back * standFront;
-				HomesteadSpot.Create(root, front, "Exhibit", () => NameOf(exhibit.Goods), () => RoleOf(exhibit.Goods), () => Use(exhibit), () => CanDonate(exhibit.Goods) ? "기증" : "보기");
+				HomesteadSpot.Create(root, front, "Exhibit", () => NameOf(exhibit.Goods), () => RoleOf(exhibit.Goods), () => Use(exhibit), () => CanDonate(exhibit.Goods) ? Sim.IsDonated(exhibit.Goods.Id) ? "바꾸기" : "기증" : "보기");
 			}
 		}
 
@@ -299,27 +299,27 @@ namespace WitchMendokusai
 			return HomesteadSprite.Create(stand, place, Art.IconOf(goods), setting.ItemSize, itemBob).gameObject;
 		}
 
-		private bool CanDonate(GoodsDef goods) => Sim.IsDonated(goods.Id) == false && Sim.Count(goods.Id) > 0;
+		private bool CanDonate(GoodsDef goods) => Sim.Count(goods.Id) > 0 && (Sim.IsDonated(goods.Id) == false || Sim.HasLargerFish(goods.Id));
 
 		private string NameOf(GoodsDef goods) => Sim.IsDonated(goods.Id) || Sim.IsKnown(goods.Id) || Sim.Count(goods.Id) > 0 ? goods.Name : "빈 자리";
 
 		private string RoleOf(GoodsDef goods)
 		{
 			if (Sim.IsDonated(goods.Id))
-				return Record(goods) ?? "살펴보기";
+				return CanDonate(goods) ? "더 큰 것으로 바꾸기" : Record(goods) ?? "살펴보기";
 			return CanDonate(goods) ? "기증하기" : "아직 비어 있음";
 		}
 
 		private string Record(GoodsDef goods) =>
-			goods.Kind == GoodsKind.Fish && Sim.State.FishRecords.TryGetValue(goods.Id, out FishRecord record) ? $"가장 큰 것 {record.BestSize}cm" : null;
+			goods.Kind == GoodsKind.Fish && Sim.IsDonated(goods.Id) ? $"받침 {Sim.ExhibitSize(goods.Id)}cm" : null;
 
-		private WingDef WingOf(GoodsDef goods) => Catalog.Wings.Find(wing => wing.Kinds.Contains(goods.Kind));
+		private WingDef WingOf(GoodsDef goods) => Sim.WingOf(goods.Id);
 
 		private void Use(Exhibit exhibit)
 		{
 			GoodsDef goods = exhibit.Goods;
 			WingDef wing = WingOf(goods);
-			if (Sim.IsDonated(goods.Id))
+			if (Sim.IsDonated(goods.Id) && CanDonate(goods) == false)
 			{
 				manager.Hud.Notice(goods.Name, Record(goods) ?? wing.Note, Art.IconOf(goods));
 				return;

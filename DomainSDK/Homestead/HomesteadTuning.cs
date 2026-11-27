@@ -71,6 +71,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int RelicPerfectNyang { get; set; } = 40;
 		// 이미 건 유물을 또 손질하면 냥도 조금. 끝없는 꼬리를 자름
 		public int DuplicateRelicNyang { get; set; } = 30;
+		// 받침의 물고기를 더 큰 것으로 바꿀 때 그 값의 몫
+		public float LargerFishNyangRate { get; set; } = 0.5f;
 
 		// 집
 		public int ThemePieces { get; set; } = 3;
@@ -84,6 +86,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int AnimalCarePoints { get; set; } = 8;
 		public int AnimalMaxAffinity { get; set; } = 100;
 		public int RanchSlotsPerLevel { get; set; } = 2;
+		// 정을 나눠 보이는 하트 칸 수
+		public int AnimalHearts { get; set; } = 5;
 
 		// 공작소
 		public int CraftSlots { get; set; } = 2;
