@@ -136,7 +136,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			return done;
 		}
 
-		// 손대지 않은 묶음을 빼고 재료를 전부 돌려줌. 끝난 묶음은 먼저 창고로. 돌려준 묶음 수
+		// 손대지 않은 묶음을 빼고 재료를 전부 창고로 돌려줌. 끝난 묶음과 다른 칸은 그대로. 돌려준 묶음 수
 		public int CancelQueuedCraft(int slot)
 		{
 			if (slot < 0 || slot >= State.Crafts.Count)
@@ -155,7 +155,6 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				Give(pair.Key, pair.Value * queued);
 			}
-			TakeDoneCrafts();
 			NotifyChanged();
 			return queued;
 		}
@@ -165,6 +164,12 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			int taken = 0;
 			foreach (CraftState craft in State.Crafts.ToArray())
 			{
+				if (craft.Batches <= 0)
+				{
+					// 손댄 세이브의 빈 칸. 남기면 지워지지 않음
+					State.Crafts.Remove(craft);
+					continue;
+				}
 				int done = DoneBatches(craft);
 				if (done == 0)
 				{

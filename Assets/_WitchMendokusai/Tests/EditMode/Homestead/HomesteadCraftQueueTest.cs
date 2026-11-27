@@ -95,8 +95,8 @@ namespace WitchMendokusai.Tests
 			Assert.That(sim.CancelQueuedCraft(0), Is.EqualTo(3));
 			Assert.That(sim.StoredCount("stone"), Is.EqualTo(brick.Inputs["stone"] * 3), "기다리던 묶음 재료 전부");
 			Assert.That(sim.StoredCount("coal"), Is.EqualTo(brick.Inputs["coal"] * 3));
-			Assert.That(sim.StoredCount(brick.Output), Is.EqualTo(brick.Amount), "끝난 묶음은 먼저 거둠");
-			Assert.That(sim.State.Crafts[0].Batches, Is.EqualTo(1), "만드는 중인 묶음은 계속");
+			Assert.That(sim.State.Crafts[0].Batches, Is.EqualTo(2), "끝난 1 과 만드는 중 1 은 남음");
+			Assert.That(sim.CollectCrafts(), Is.EqualTo(1), "끝난 묶음은 거두기로");
 			Assert.That(sim.CancelQueuedCraft(0), Is.EqualTo(0));
 		}
 
@@ -185,7 +185,8 @@ namespace WitchMendokusai.Tests
 			}
 			sim.AdvanceMinutes(dungeon);
 			int collected = sim.CollectCrafts();
-			busyShare = Math.Min(1.0, recipe.Minutes * (double)batches / dungeon);
+			// 실제로 거둔 묶음으로 계산. 칸마다 던전 시간 중 일한 몫
+			busyShare = Math.Min(1.0, recipe.Minutes * (double)collected / (slots * (double)dungeon));
 			return collected;
 		}
 
