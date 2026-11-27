@@ -108,9 +108,9 @@ namespace WitchMendokusai.Tests
 			sim.Give("wood", 10);
 			Assert.That(sim.Put("fence", -20, 20, 0, out PlacedPiece first).Ok);
 			int exp = sim.State.GuildExp;
-			sim.RemovePiece(first.Uid);
-			sim.Put("fence", -20, 20, 0, out PlacedPiece _);
-			sim.Put("fence", -19, 20, 0, out PlacedPiece _);
+			Assert.That(sim.RemovePiece(first.Uid).Ok);
+			Assert.That(sim.Put("fence", -20, 20, 0, out PlacedPiece _).Ok);
+			Assert.That(sim.Put("fence", -19, 20, 0, out PlacedPiece _).Ok);
 			Assert.That(exp, Is.EqualTo(sim.Catalog.Tuning.FirstPlaceGuildExp));
 			Assert.That(sim.State.GuildExp, Is.EqualTo(exp), "거뒀다 다시 놓아도 한 번");
 			sim.Put("path_dirt", -18, 20, 0, out PlacedPiece _);
