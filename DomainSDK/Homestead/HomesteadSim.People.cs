@@ -54,7 +54,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 		}
 
-		public static bool IsRescueKey(string key) => key.StartsWith(RESCUE_PREFIX, StringComparison.Ordinal) && key.Length > RESCUE_PREFIX.Length;
+		public static bool IsRescueKey(string key) => key != null && key.StartsWith(RESCUE_PREFIX, StringComparison.Ordinal) && key.Length > RESCUE_PREFIX.Length;
 
 		// 아직 안 온 주민의 구출 열쇠. 던전은 판마다 이 중 하나만 '갇힌 사람' 으로 둠
 		public List<string> WantedRescues()

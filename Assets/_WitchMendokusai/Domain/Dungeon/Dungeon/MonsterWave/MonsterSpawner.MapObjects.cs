@@ -134,7 +134,9 @@ namespace WitchMendokusai
 			while (nextMapObjectPlan < mapObjectPlans.Count && mapObjectPlans[nextMapObjectPlan].SpawnTime <= elapsed)
 			{
 				MapObjectData data = mapObjectPlans[nextMapObjectPlan].Data;
-				if (TryPlaceMapObject(data, mapObjectRandom, out _, out string failure) == false)
+				// 갇힌 사람은 제 굴림으로. 구출을 기다리는 판에서도 다른 오브젝트 자리가 그대로
+				System.Random placeRandom = data.Category == MapObjectCategory.Rescue ? rescueRandom : mapObjectRandom;
+				if (TryPlaceMapObject(data, placeRandom, out _, out string failure) == false)
 				{
 					mapObjectFailedRounds++;
 					if (mapObjectFailedRounds < MapObjectSettings.Load().PlacementRounds)
