@@ -7,6 +7,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 	public sealed partial class HomesteadSim
 	{
 		public const string HALL = "townhall";
+		// 마을에 처음 놓은 꾸밈과 길 종류. 가구의 첫 놓기와 같은 길드 경험치
+		private const string FIRST_VILLAGE_PLACE = "village:";
 
 		private readonly HashSet<(int X, int Z)> villageBlocked = new HashSet<(int X, int Z)>();
 
@@ -110,7 +112,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				return HomesteadResult.Fail(HomesteadFailure.AlreadyDone);
 			}
-			return State.TownHall < placeable.TownHall ? HomesteadResult.Fail(HomesteadFailure.TownHallTooLow) : CanPay(placeable.Cost);
+			return State.TownHall < placeable.TownHall ? TownHallTooLow(placeable.TownHall) : CanPay(placeable.Cost);
 		}
 
 		public HomesteadResult Put(string id, int x, int z, int turn, out PlacedPiece placed)
@@ -128,6 +130,12 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			Pay(Catalog.Get<PlaceableDef>(id).Cost);
 			placed = new PlacedPiece { Uid = State.NextVillageUid++, Id = id, X = x, Z = z, Turn = turn };
 			State.Village.Add(placed);
+			string firstKey = FIRST_VILLAGE_PLACE + id;
+			if (State.Seen.Contains(firstKey) == false)
+			{
+				State.Seen.Add(firstKey);
+				AddGuildExp(Tuning.FirstPlaceGuildExp);
+			}
 			NotifyLayout();
 			return HomesteadResult.Success;
 		}

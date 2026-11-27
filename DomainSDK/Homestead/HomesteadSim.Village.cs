@@ -88,9 +88,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				return HomesteadResult.Fail(HomesteadFailure.AlreadyDone);
 			}
-			if (State.TownHall < Math.Max(next.TownHall, Catalog.Get<BuildingDef>(buildingId).TownHall))
+			int neededTier = Math.Max(next.TownHall, Catalog.Get<BuildingDef>(buildingId).TownHall);
+			if (State.TownHall < neededTier)
 			{
-				return HomesteadResult.Fail(HomesteadFailure.TownHallTooLow);
+				return TownHallTooLow(neededTier);
 			}
 			if (BusyWorks >= WorkSlots)
 			{
@@ -98,6 +99,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 			return CanPay(next.Cost);
 		}
+
+		// 잠긴 이유에 필요한 회관 단을 실음. 화면이 "회관 3단 필요" 로 보임
+		private static HomesteadResult TownHallTooLow(int neededTier) => HomesteadResult.Fail(HomesteadFailure.TownHallTooLow, neededTier.ToString());
 
 		public HomesteadResult StartBuild(string buildingId)
 		{
