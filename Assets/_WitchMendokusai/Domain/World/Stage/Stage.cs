@@ -18,5 +18,8 @@ namespace WitchMendokusai
 
 		[field: SerializeField, Tooltip("화면 이름 (입장 팝업, ESC 장소 칸). Name 은 에디터가 씬 Stage_{Name} 을 찾는 키라 화면에 쓰지 않는다")]
 		public string DisplayName { get; private set; } = string.Empty;
+
+		[field: SerializeField, Tooltip("이 스테이지의 떠도는 입자 (바깥 먼지 등). 비면 없음. 플레이어 자리를 따라다니고 실내 (IndoorScope) 에서는 꺼짐. StageAmbience 가 띄움")]
+		public GameObject AmbientParticles { get; private set; }
 	}
 }

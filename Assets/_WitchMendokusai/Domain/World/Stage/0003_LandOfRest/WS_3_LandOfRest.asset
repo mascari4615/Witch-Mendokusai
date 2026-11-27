@@ -21,3 +21,4 @@ MonoBehaviour:
   <Prefab>k__BackingField: {fileID: 6217246691778898903, guid: 0ee9aab9c011c4b45be4a7d8caf8fecf, type: 3}
   <DevOnly>k__BackingField: 1
   <DisplayName>k__BackingField: "고요한 언덕"
+  <AmbientParticles>k__BackingField: {fileID: 8769372543539429349, guid: e5a551dcad7c47aabb0586f24ecacccb, type: 3}

@@ -35,6 +35,8 @@ namespace WitchMendokusai
 		[SerializeField] private float fallRecoverDepth = 30f;
 
 		private PlayerProvider playerProvider;
+		// 스테이지가 정한 떠도는 입자 (바깥 먼지). 플레이어 자리를 따라감
+		private readonly StageAmbience ambience = new();
 		private ObjectPoolManager objectPoolManager;
 
 		[Inject]
@@ -58,6 +60,7 @@ namespace WitchMendokusai
 		{
 			if (Instance == this)
 				Instance = null;
+			ambience.Clear();
 			// 스테이지 물체는 풀 (씬 밖, DontDestroyOnLoad) 소속. 월드가 내려갈 때 끄지 않으면 로비에 남고 다시 들어오면 둘이 됨
 			if (CurStageObject != null)
 				CurStageObject.gameObject.SetActive(false);
@@ -77,6 +80,11 @@ namespace WitchMendokusai
 				Debug.Log($"[{nameof(StageManager)}] {CurStage.name} 아래로 떨어져 진입 자리로 되돌림");
 				ReturnToEntry();
 			}
+		}
+
+		private void LateUpdate()
+		{
+			ambience.Follow(playerProvider.HasObject ? playerProvider.CurrentObject.transform : null);
 		}
 
 		public Vector3 EntryPosition => CurStageObject.transform.position + entryOffset;
@@ -153,6 +161,7 @@ namespace WitchMendokusai
 			CurStageStrategy.Init(stage);
 			playerProvider.CurrentObject.UnitMovement.Teleport(playerPosition);
 			entryOffset = playerPosition - newStagePos;
+			ambience.Apply(CurStage);
 
 			OnStageChanged(CurStage, CurStageObject);
 
