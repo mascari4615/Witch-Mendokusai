@@ -30,6 +30,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		private readonly float ease;
 		private readonly float pullRate;
 		private float timer;
+		private float elapsed;
 		private bool strained;
 
 		public FishDef Fish { get; }
@@ -105,6 +106,13 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		private void StepDuel(float seconds, bool reeling)
 		{
+			elapsed += seconds;
+			if (elapsed >= tuning.DuelGiveUpSeconds)
+			{
+				// 벌 없이 떠남. 다시 던지면 됨
+				Phase = FishingPhase.Escaped;
+				return;
+			}
 			timer -= seconds;
 			if (timer <= 0f)
 			{
@@ -119,7 +127,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				strain += tuning.SurgeTension * Fish.Strength * ease * (reeling ? 1f : SURGE_SLACK_SHARE);
 			}
 			strain += reeling ? tuning.ReelTension : -tuning.SlackTension;
-			Tension = Math.Max(0f, Tension + strain * seconds);
+			// 몸부림 중에 손을 떼면 고기가 줄을 당겨 알맞은 구간 아래로는 안 풀림. 몸부림이 끝나면 바로 빠르게 감을 수 있음
+			float floor = IsSurging && reeling == false ? Math.Min(Tension, tuning.SweetFrom) : 0f;
+			Tension = Math.Max(floor, Tension + strain * seconds);
 			if (Tension > PERFECT_LIMIT)
 			{
 				strained = true;
