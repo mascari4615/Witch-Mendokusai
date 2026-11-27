@@ -26,7 +26,7 @@ namespace WitchMendokusai
 		private static void Register()
 		{
 #if !UNITY_EDITOR
-			if (Debug.isDebugBuild == false)
+			if (DevContent.IsShown == false)
 				return;
 #endif
 			if (isRegistered)

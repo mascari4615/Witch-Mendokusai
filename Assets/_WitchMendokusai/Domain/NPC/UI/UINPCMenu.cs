@@ -137,7 +137,7 @@ namespace WitchMendokusai
 
 			NPC curNPCData = curNPC.UnitData as NPC;
 			List<NPCPanelType> panelTypes = curNPCData.GetPanelTypeList();
-			bool isReleaseBuild = Debug.isDebugBuild == false;
+			bool isReleaseBuild = DevContent.IsShown == false;
 			for (int i = 0; i < options.Count; i++)
 			{
 				NPCPanelType panelType = (NPCPanelType)options[i].Index; // Index는 PanelType의 인덱스와 동일

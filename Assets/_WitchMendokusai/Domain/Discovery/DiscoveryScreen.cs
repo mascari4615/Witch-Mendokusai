@@ -127,7 +127,7 @@ namespace WitchMendokusai
 
 			Providers.Register(new MonsterDiscoveryCategory(monsterLog, settings));
 			// 잠금 기록이 없거나 데모에서 안 쓰는 분류는 개발 빌드에만
-			if (Debug.isDebugBuild)
+			if (DevContent.IsShown)
 			{
 				Providers.Register(new PlantDiscoveryCategory());
 				Providers.Register(new ItemDiscoveryCategory());

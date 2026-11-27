@@ -44,7 +44,7 @@ namespace WitchMendokusai
 
 			List<Dungeon> dungeons = new();
 			SOHelper.ForEach<Dungeon>(dungeon => dungeons.Add(dungeon));
-			habitats = MonsterHabitats.Collect(dungeons, Debug.isDebugBuild);
+			habitats = MonsterHabitats.Collect(dungeons, DevContent.IsShown);
 			catalog.Clear();
 			catalog.AddRange(habitats.Keys);
 			catalog.Sort(Compare);

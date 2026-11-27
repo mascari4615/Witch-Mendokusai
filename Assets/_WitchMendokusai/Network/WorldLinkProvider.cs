@@ -220,7 +220,7 @@ namespace WitchMendokusai
 
 			// 주울 것도 같이 — 안 보이면 게임 창에서는 아무것도 못 줍는다(웹 창만 노는 세계가 된다).
 			// 단, 그래픽 없는 임시 네모라 릴리스 빌드에서는 안 띄움 (2026-11-16 데모 플레이 피드백)
-			if (Debug.isDebugBuild && GetComponent<WorldGatherableBinder>() == null)
+			if (DevContent.IsShown && GetComponent<WorldGatherableBinder>() == null)
 				gameObject.AddComponent<WorldGatherableBinder>();
 		}
 

@@ -87,7 +87,7 @@ namespace WitchMendokusai
 		public void LoadStage(Stage stage, int spawnPortalIndex = -1, bool isBackToLastStage = false)
 		{
 			// 릴리스에서는 개발 전용 스테이지로 가지 않음. 포털은 스스로 꺼지고 (Portal.OnEnable), 여기는 포털 밖 경로의 그물
-			if (stage.DevOnly && Debug.isDebugBuild == false)
+			if (stage.DevOnly && DevContent.IsShown == false)
 			{
 				Debug.LogWarning($"[{nameof(StageManager)}] 개발 전용 스테이지 {stage.name} 는 릴리스에서 열지 않음");
 				return;

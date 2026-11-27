@@ -33,7 +33,7 @@ namespace WitchMendokusai
 
 		// 이 빌드에서 받는 입력인지. 입력 거름과 안내 (F1 창, 폰 창 메뉴) 가 같은 값을 읽음. 개발 빌드는 전부, 릴리스는 EnabledInRelease 만
 		public static bool IsEnabledInThisBuild(InputEventType eventType)
-			=> Debug.isDebugBuild || IsEnabledInRelease(eventType);
+			=> DevContent.IsShown || IsEnabledInRelease(eventType);
 
 		public static bool IsEnabledInRelease(InputEventType eventType)
 			=> attributes.TryGetValue(eventType, out InputEventAttribute attribute) == false || attribute.EnabledInRelease;

@@ -127,7 +127,7 @@ namespace WitchMendokusai
 		private void BuildMultiplayerButton()
 		{
 			// 데모 릴리스 빌드는 멀티 미노출 (사용자 2026-11-12)
-			if (Debug.isDebugBuild == false)
+			if (DevContent.IsShown == false)
 				return;
 			Button multiplayerButton = Instantiate(startButton, startButton.transform.parent);
 			multiplayerButton.name = "[Button] Multiplayer";

@@ -24,7 +24,7 @@ namespace WitchMendokusai
 
 		private void OnEnable()
 		{
-			if (TargetStage != null && TargetStage.DevOnly && Debug.isDebugBuild == false)
+			if (TargetStage != null && TargetStage.DevOnly && DevContent.IsShown == false)
 				gameObject.SetActive(false);
 		}
 
