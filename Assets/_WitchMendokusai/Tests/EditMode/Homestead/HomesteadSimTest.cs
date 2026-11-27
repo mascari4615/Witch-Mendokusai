@@ -237,23 +237,6 @@ namespace WitchMendokusai.Tests
 			Assert.That(sim.State.Requests.Exists(request => request.Uid == uid), "기한 없음");
 		}
 
-		// 떼기 주석 "빈 칸은 다음 날". 다 떼어도 같은 날에는 다시 안 참
-		[Test]
-		public void Dismissing_every_request_waits_for_the_next_day()
-		{
-			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
-			sim.RefreshRequests();
-			foreach (RequestState request in sim.State.Requests.ToArray())
-			{
-				sim.Dismiss(request.Uid);
-			}
-			sim.RefreshRequests();
-			Assert.That(sim.State.Requests, Is.Empty, "같은 날");
-			sim.AdvanceMinutes(sim.Catalog.Tuning.MinutesPerDay);
-			sim.RefreshRequests();
-			Assert.That(sim.State.Requests.Count, Is.EqualTo(sim.RequestSlotCount), "다음 날");
-		}
-
 		[Test]
 		public void Gift_is_once_a_day_per_resident()
 		{

@@ -171,5 +171,22 @@ namespace WitchMendokusai.Tests
 			TestContext.WriteLine($"벽돌 {need}개 = {batches}묶음, 가공 {batches * brick.Minutes}분. 칸 2개로 던전 10분 판마다 2묶음이면 {Math.Ceiling(batches / 2.0)}판");
 			Assert.That(need, Is.GreaterThan(0));
 		}
+
+		// 떼기 주석 "빈 칸은 다음 날". 다 떼어도 같은 날에는 다시 안 참
+		[Test]
+		public void Dismissing_every_request_waits_for_the_next_day()
+		{
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
+			sim.RefreshRequests();
+			foreach (RequestState request in sim.State.Requests.ToArray())
+			{
+				sim.Dismiss(request.Uid);
+			}
+			sim.RefreshRequests();
+			Assert.That(sim.State.Requests, Is.Empty, "같은 날");
+			sim.AdvanceMinutes(sim.Catalog.Tuning.MinutesPerDay);
+			sim.RefreshRequests();
+			Assert.That(sim.State.Requests.Count, Is.EqualTo(sim.RequestSlotCount), "다음 날");
+		}
 	}
 }
