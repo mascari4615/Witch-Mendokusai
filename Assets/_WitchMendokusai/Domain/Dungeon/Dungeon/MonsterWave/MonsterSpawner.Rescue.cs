@@ -11,6 +11,8 @@ namespace WitchMendokusai
 		private int rescueSeedOffset = 3;
 
 		private string rescueKey = string.Empty;
+		// 등장 시각과 자리 굴림. 예산 오브젝트의 굴림 (mapObjectRandom) 과 따로
+		private System.Random rescueRandom;
 
 		private void PlanRescue(int seedSalt)
 		{
@@ -18,8 +20,8 @@ namespace WitchMendokusai
 			if (rescueKey.Length == 0)
 				return;
 			MapObjectData captive = MapObjectSettings.LoadAllData().First(data => data.Category == MapObjectCategory.Rescue);
-			System.Random random = new(RunSeed.Derive(seedSalt + rescueSeedOffset));
-			float spawnTime = Mathf.Lerp(captive.SpawnTime.x, captive.SpawnTime.y, (float)random.NextDouble());
+			rescueRandom = new System.Random(RunSeed.Derive(seedSalt + rescueSeedOffset));
+			float spawnTime = Mathf.Lerp(captive.SpawnTime.x, captive.SpawnTime.y, (float)rescueRandom.NextDouble());
 			// 계획은 등장 시각 순. 같은 자리를 지켜 끼움
 			int index = mapObjectPlans.FindIndex(plan => plan.SpawnTime > spawnTime);
 			MapObjectPlan rescuePlan = new(captive, spawnTime, mapObjectPlans.Count);
