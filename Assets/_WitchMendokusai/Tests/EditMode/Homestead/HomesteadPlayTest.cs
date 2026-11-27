@@ -75,6 +75,68 @@ namespace WitchMendokusai.Tests
 			Assert.That(WinRate("mistking", 3, 0.3f, out float _), Is.GreaterThan(WinRate("mistking", 1, 0.3f, out float _)), "낚싯대가 도움");
 		}
 
+		// 낚싯대가 오를 때마다 새 손맛. 느린 손 성공률이 단마다 내려가고, 빠른 손은 늘 낚음
+		// 목표는 생활 판정 확정 f03-2 (낚싯대 0 은 100%, 1 은 90~97%, 2 는 75~90%, 별송어 50~60%, 안개메기 40~60%, 빠른 손 95% 이상)
+		[Test]
+		public void Fishing_difficulty_rises_with_each_rod()
+		{
+			foreach (FishDef fish in HomesteadTestKit.LoadCatalog().Fishes)
+			{
+				float slow = WinRate(fish.Id, fish.RodTier, 0.45f, out float _);
+				float quick = WinRate(fish.Id, fish.RodTier, 0.18f, out float _);
+				TestContext.WriteLine($"{fish.Id,-10} 낚싯대 {fish.RodTier} 느린 손 {slow:P0} 빠른 손 {quick:P0}");
+				Assert.That(quick, Is.GreaterThanOrEqualTo(0.95f), $"{fish.Id} 빠른 손은 낚음");
+				(float from, float to) = SlowTarget(fish);
+				Assert.That(slow, Is.InRange(from, to), $"{fish.Id} 낚싯대 {fish.RodTier} 느린 손");
+			}
+		}
+
+		private static (float, float) SlowTarget(FishDef fish) => fish.Id switch
+		{
+			"startrout" => (0.5f, 0.6f),
+			"mistking" => (0.4f, 0.6f),
+			_ => fish.RodTier switch
+			{
+				0 => (0.98f, 1f),
+				1 => (0.9f, 0.97f),
+				_ => (0.75f, 0.9f),
+			},
+		};
+
+		[Test]
+		public void Fishing_duel_never_drags_on()
+		{
+			foreach (FishDef fish in HomesteadTestKit.LoadCatalog().Fishes)
+			{
+				foreach (float reaction in new[] { 0.18f, 0.45f })
+				{
+					for (int seed = 0; seed < 60; seed++)
+					{
+						HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _, seed);
+						sim.State.Tools[ToolKind.Rod] = fish.RodTier;
+						FishingDuel duel = sim.StartDuel(fish);
+						PlayDuel(duel, reaction, new Random(seed), out float seconds);
+						Assert.That(duel.IsOver, Is.True, $"{fish.Name} 반응 {reaction} 씨앗 {seed} 끝나지 않는 줄다리기");
+						Assert.That(seconds, Is.LessThanOrEqualTo(sim.Catalog.Tuning.DuelGiveUpSeconds + FRAME * 2), $"{fish.Name} 반응 {reaction}");
+					}
+				}
+			}
+		}
+
+		[Test]
+		public void Hard_fish_reward_quick_hands()
+		{
+			foreach (string id in new[] { "startrout", "mistking" })
+			{
+				int rod = HomesteadTestKit.LoadCatalog().Get<FishDef>(id).RodTier;
+				float quick = WinRate(id, rod, 0.18f, out float _);
+				float slow = WinRate(id, rod, 0.45f, out float _);
+				TestContext.WriteLine($"{id} 빠른 손 {quick:P0} 느린 손 {slow:P0}");
+				Assert.That(quick, Is.GreaterThan(0.85f), $"{id} 빠른 손은 낚음");
+				Assert.That(quick - slow, Is.GreaterThan(0.25f), $"{id} 손 빠르기가 결과를 가름");
+			}
+		}
+
 		[Test]
 		public void Holding_the_button_snaps_and_never_pressing_loses_a_strong_fish()
 		{

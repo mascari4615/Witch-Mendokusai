@@ -45,6 +45,7 @@ namespace WitchMendokusai
 		{
 			manager = owner;
 			baseRoot = uiRoot;
+			firstFinds = new HomesteadFirstFinds(Sim);
 			root = new VisualElement { name = "HomesteadHud", pickingMode = PickingMode.Ignore };
 			root.AddToClassList(BLOCK);
 			root.styleSheets.Add(Art.StyleSheet);
@@ -133,6 +134,8 @@ namespace WitchMendokusai
 			GoodsDef goods = Sim.Catalog.Get<GoodsDef>(gain.GoodsId);
 			if (gain.IsNew)
 				UiSfx.Play(UiSfxEvent.CardSelect);
+			if (firstFinds.Add(gain))
+				QueueFirstFind();
 			// 같은 물건이 이어서 들어오면 줄을 늘리지 않고 수만
 			if (shownRows.TryGetValue(gain.GoodsId, out (Label Count, int Amount, VisualElement Row) shown) && shown.Row.panel != null)
 			{
@@ -163,6 +166,30 @@ namespace WitchMendokusai
 				element.RemoveFromHierarchy();
 				onGone?.Invoke();
 			}).ExecuteLater(milliseconds + fadeMilliseconds);
+		}
+
+		// ---- 처음 얻은 전시품. 같은 순간 여럿이면 다음 틱에 한 장, 낚시와 갱도 중이면 끝난 뒤
+
+		private HomesteadFirstFinds firstFinds;
+		private bool firstFindQueued;
+
+		private bool IsBusy => duel.ClassListContains($"{BLOCK}--none") == false || mine.ClassListContains($"{BLOCK}--none") == false;
+
+		private void QueueFirstFind()
+		{
+			if (firstFindQueued || firstFinds.HasPending == false)
+				return;
+			firstFindQueued = true;
+			root.schedule.Execute(FlushFirstFinds);
+		}
+
+		private void FlushFirstFinds()
+		{
+			firstFindQueued = false;
+			if (IsBusy || firstFinds.HasPending == false)
+				return;
+			FirstFindCard card = firstFinds.Take();
+			Notice(card.Title, card.Text, Art.IconOf(card.Goods[0]));
 		}
 
 		// ---- 큰 알림
@@ -331,7 +358,12 @@ namespace WitchMendokusai
 			tensionFill = Make("duel-tension-fill", tension);
 		}
 
-		public void ShowDuel(bool visible) => duel.EnableInClassList($"{BLOCK}--none", visible == false);
+		public void ShowDuel(bool visible)
+		{
+			duel.EnableInClassList($"{BLOCK}--none", visible == false);
+			if (visible == false)
+				QueueFirstFind();
+		}
 
 		public void SetDuel(FishingDuel state)
 		{
@@ -379,7 +411,12 @@ namespace WitchMendokusai
 			mineHint = MakeLabel("mine-hint", mine);
 		}
 
-		public void ShowMine(bool visible) => mine.EnableInClassList($"{BLOCK}--none", visible == false);
+		public void ShowMine(bool visible)
+		{
+			mine.EnableInClassList($"{BLOCK}--none", visible == false);
+			if (visible == false)
+				QueueFirstFind();
+		}
 
 		public void SetMine(MineRun run)
 		{

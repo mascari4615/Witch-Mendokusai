@@ -64,7 +64,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				if (CanBite(fish, water, hour, season))
 				{
 					open.Add(fish);
-					total += fish.Weight;
+					total += FishWeight(fish);
 				}
 			}
 			if (open.Count == 0)
@@ -74,7 +74,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			float pick = (float)random.NextDouble() * total;
 			foreach (FishDef fish in open)
 			{
-				pick -= fish.Weight;
+				pick -= FishWeight(fish);
 				if (pick < 0f)
 				{
 					return fish;
@@ -82,6 +82,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 			return open[open.Count - 1];
 		}
+
+		// 아직 모르는 종은 더 자주 묾. 마지막 칸이 순수 확률로 남지 않게 (유물과 같은 꼴)
+		private float FishWeight(FishDef fish) => IsKnown(fish.Goods) ? fish.Weight : fish.Weight * Tuning.UnownedFishBias;
 
 		public FishingDuel StartDuel(FishDef fish) => new FishingDuel(fish, Tuning, ToolTier(ToolKind.Rod), random);
 
