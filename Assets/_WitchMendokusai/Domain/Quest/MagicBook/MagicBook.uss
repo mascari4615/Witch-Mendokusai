@@ -517,3 +517,80 @@
     border-color: var(--wm-mb-gold);
     background-color: rgb(52, 42, 84);
 }
+
+/* ===== 마법: 배운 하찮은 마법 목록 (개발 빌드 전용, 모습 임시) ===== */
+.wm-mb .wm-mb-spell-button {
+    width: 120px;
+}
+
+.wm-mb-spells {
+    position: absolute;
+    top: 110px;
+    bottom: 120px;
+    left: 18%;
+    right: 18%;
+    padding: 26px 30px 26px 30px;
+    background-color: var(--wm-mb-card);
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.6);
+    display: none;
+}
+
+.wm-mb-spells--shown {
+    display: flex;
+}
+
+.wm-mb-spells__list {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.wm-mb-spell {
+    flex-direction: row;
+    align-items: center;
+    padding: 14px 0 14px 0;
+    border-bottom-width: 1px;
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.wm-mb-spell__text {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.wm-mb-spell__name {
+    margin: 0;
+    padding: 0;
+    font-size: 28px;
+    color: var(--wm-mb-ink);
+}
+
+.wm-mb-spell__description {
+    margin: 4px 0 0 0;
+    padding: 0;
+    font-size: 20px;
+    white-space: normal;
+    color: var(--wm-mb-ink-soft);
+}
+
+.wm-mb-spell__forms {
+    margin: 0 20px 0 20px;
+    padding: 0;
+    font-size: 20px;
+    color: var(--wm-mb-gold);
+}
+
+.wm-mb .wm-mb-spell__cast {
+    width: 120px;
+    margin: 0;
+}
+
+.wm-mb-spells__empty,
+.wm-mb-spells__notice {
+    margin: 12px 0 0 0;
+    padding: 0;
+    font-size: 22px;
+    white-space: normal;
+    color: var(--wm-mb-violet);
+}

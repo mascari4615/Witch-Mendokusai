@@ -6,24 +6,25 @@ using UnityEditor;
 namespace WitchMendokusai.Tests
 {
 	/// <summary>
-	/// 봉인된 두루마리 자산의 이음새. 성질 놀이 설정이 표를 가리키고, 표가 두루마리 두 아이템과 든 것을 가리키는지.
+	/// 봉인된 두루마리 자산의 이음새. ResourceManager 가 표를 가리키고, 표가 두루마리 두 아이템, 마법 목록, 든 것을 가리키는지.
 	/// 든 것의 이름과 수는 기획이 고치는 임시값이라 잠그지 않음
 	/// </summary>
 	public sealed class ScrollTableAssetTest
 	{
-		private const string SETTINGS_PATH = "Assets/_WitchMendokusai/Domain/AspectPuzzle/SET_0_AspectPuzzle.asset";
+		private const string RESOURCE_MANAGER_PATH = "Assets/_WitchMendokusai/Core/Resources/ResourceManager.asset";
 		private const string ITEM_GROUP_PATH = "Assets/AddressableAssetsData/AssetGroups/ItemData.asset";
 
 		private static ScrollTableSO Table()
 		{
-			AspectPuzzleSettings settings = AssetDatabase.LoadAssetAtPath<AspectPuzzleSettings>(SETTINGS_PATH);
-			Assert.That(settings, Is.Not.Null, "성질 놀이 설정 자산이 없음");
-			Assert.That(settings.Scrolls, Is.Not.Null, "성질 놀이 설정이 두루마리 표를 안 가리킴. 창을 열면 두루마리 버튼에서 멈춤");
-			return settings.Scrolls;
+			ResourceManager resources = AssetDatabase.LoadAssetAtPath<ResourceManager>(RESOURCE_MANAGER_PATH);
+			Assert.That(resources, Is.Not.Null, "ResourceManager 자산이 없음");
+			Assert.That(resources.Scrolls, Is.Not.Null, "ResourceManager 가 두루마리 표를 안 가리킴. 성질 놀이 창의 두루마리 버튼과 처치 떨구기에서 멈춤");
+			Assert.That(resources.Scrolls.Spells, Is.Not.Null, "두루마리 표가 하찮은 마법 목록을 안 가리킴");
+			return resources.Scrolls;
 		}
 
 		[Test]
-		public void Settings_PointToTable_WithBothScrollItems()
+		public void Resources_PointToTable_WithBothScrollItems()
 		{
 			ScrollTableSO table = Table();
 			Assert.That(table.PaperScroll, Is.Not.Null);
@@ -34,14 +35,15 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Rows_HaveDistinctIds_AndRecipeRowsPointToItem()
 		{
-			List<ScrollTableRow> rows = Table().Rows;
+			ScrollTableSO table = Table();
+			List<ScrollTableRow> rows = table.Rows;
 			Assert.That(rows.Count, Is.GreaterThan(0));
 			Assert.That(rows.Select(row => row.Id).Distinct().Count(), Is.EqualTo(rows.Count), "항목 번호가 겹치면 세이브에서 둘이 한 칸을 씀");
 			foreach (ScrollTableRow row in rows)
 			{
 				Assert.That(row.Forms, Is.GreaterThanOrEqualTo(1), $"항목 {row.Id}");
-				// 만드는 법이면 아이템 이름, 마법이면 적은 이름. 만드는 법의 아이템이 비면 여기서 멈춤
-				Assert.That(string.IsNullOrEmpty(row.DisplayName), Is.False, $"항목 {row.Id} 의 이름이나 아이템이 비었음");
+				// 만드는 법이면 아이템 이름, 마법이면 목록의 이름. 아이템이 비거나 목록에 번호가 없으면 여기서 멈춤
+				Assert.That(string.IsNullOrEmpty(table.DisplayName(row)), Is.False, $"항목 {row.Id} 의 이름이나 아이템이 비었음");
 			}
 		}
 

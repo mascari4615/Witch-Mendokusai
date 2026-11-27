@@ -55,12 +55,14 @@ namespace WitchMendokusai
 		// 이유: UIRoot(DontDestroyOnLoad)가 AddComponent 뒤 뿌리 컨테이너로 Inject
 		//       GameModeManager 는 씬 스코프 -> 뿌리에 등록 없음 -> UIRoot.Construct 폭발 -> 부팅 정지 (2026-09-05 실측)
 		[Inject]
-		public void Construct(InputManager inputManager, SOManager soManager, TimeManager timeManager, QuestManager questManager)
+		public void Construct(InputManager inputManager, SOManager soManager, TimeManager timeManager, QuestManager questManager, ResourceManager resourceManager, DataManager dataManager)
 		{
 			this.inputManager = inputManager;
 			this.soManager = soManager;
 			this.timeManager = timeManager;
 			this.questManager = questManager;
+			this.resourceManager = resourceManager;
+			this.dataManager = dataManager;
 		}
 
 		private void Awake()
@@ -135,6 +137,7 @@ namespace WitchMendokusai
 			top.AddToClassList("wm-mb__top");
 			tabRow = Part(top, "wm-mb-tabs");
 			Part(top, "wm-fullmenu__spacer");
+			BuildSpellButton(top);
 			Button arenaButton = new(EnterArena) { text = "투기장" };
 			arenaButton.AddToClassList("wm-mb-arena");
 			focus.Register(arenaButton);
@@ -159,6 +162,7 @@ namespace WitchMendokusai
 			bottom.Add(progressLabel);
 
 			BuildPopup();
+			BuildSpellPanel();
 		}
 
 		private static void AddHint(VisualElement hints, string key, string text)
@@ -345,6 +349,7 @@ namespace WitchMendokusai
 				focused.Blur();
 			}
 			HidePopup();
+			HideSpellPanel();
 			UiSfx.Play(UiSfxEvent.WindowClose);
 			UIMotion.Hide(container, USS_ACTIVE);
 			timeManager.Resume(pauseKey);
@@ -361,6 +366,12 @@ namespace WitchMendokusai
 			{
 				UiSfx.Play(UiSfxEvent.WindowClose);
 				HidePopup();
+				return;
+			}
+			if (IsSpellPanelShown)
+			{
+				UiSfx.Play(UiSfxEvent.WindowClose);
+				HideSpellPanel();
 				return;
 			}
 			Close();

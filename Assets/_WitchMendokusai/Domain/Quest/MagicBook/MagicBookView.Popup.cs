@@ -58,6 +58,8 @@ namespace WitchMendokusai
 
 		private void ShowPopup(MagicBookStar star)
 		{
+			// 마법 판 밑의 별을 방향키로 골라 열 수 있음. 둘이 겹치지 않게 판을 닫음
+			HideSpellPanel();
 			popupStar = star;
 			questDetail.Bind(star.Quest, questManager.GetQuest(star.Quest));
 			popup.AddToClassList(USS_POPUP_SHOWN);

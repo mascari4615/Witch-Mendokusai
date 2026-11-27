@@ -14,7 +14,7 @@ namespace WitchMendokusai
 	/// <summary>
 	/// 봉인된 두루마리 하나를 퍼즐로 풀고 결과를 남기는 자리. 규칙은 DomainSDK 의 ScrollRules, 여기는 가방과 세이브를 잇기만.
 	/// 퍼즐을 다 푼 뒤에만 부름. 풀다 닫으면 두루마리는 그대로.
-	/// 마법은 받을 곳 (하찮은 마법 목록과 마법 창) 이 아직 없어 이 갈래 세이브에만 남음. 다음 단계에서 그 목록으로 옮김
+	/// 배운 마법은 이 갈래 세이브에 남고, 마도서 창의 "마법" (MagicBookView.Spells) 이 읽어 보임
 	/// </summary>
 	public sealed class ScrollInterpreter
 	{

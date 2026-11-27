@@ -7,7 +7,7 @@ namespace WitchMendokusai
 {
 	/// <summary>
 	/// 봉인된 두루마리 두 종류 (종이, 번갈아) 와 그 안에 들 수 있는 것 목록.
-	/// 마도서와 두루마리가 같은 하찮은 마법 목록을 쓰기로 했으나 (기획 정본 11-25 23:01) 그 목록이 코드에 아직 없어 마법은 여기 임시 이름으로.
+	/// 마법은 하찮은 마법 목록 (SpellListSO) 의 번호를 가리킴.
 	/// 이름, 마법, 모습 수는 전부 임시값 (사용자 몫)
 	/// </summary>
 	[CreateAssetMenu(fileName = "SET_0_ScrollTable", menuName = "WM/Aspect/" + nameof(ScrollTableSO))]
@@ -23,7 +23,11 @@ namespace WitchMendokusai
 		[field: SerializeField, Range(0f, 1f), Tooltip("떨어질 때 종이 두루마리일 몫. 나머지는 번갈아")] public float PaperShare { get; private set; } = 0.5f;
 
 		[field: Header("든 것")]
+		[field: SerializeField, Tooltip("마법 칸이 가리키는 하찮은 마법 목록")] public SpellListSO Spells { get; private set; }
 		[field: SerializeField] public List<ScrollTableRow> Rows { get; private set; } = new();
+
+		/// <summary>만드는 법이면 아이템 이름, 마법이면 목록의 이름</summary>
+		public string DisplayName(ScrollTableRow row) => row.Kind == ScrollResultKind.Recipe ? row.RecipeItem.Name : Spells.Get(row.SpellId).Name;
 
 		public List<ScrollEntry> ToEntries()
 		{
@@ -53,17 +57,15 @@ namespace WitchMendokusai
 	{
 		[field: SerializeField, Tooltip("세이브 열쇠. 바꾸면 이미 연 것을 잃음")] public int Id { get; private set; }
 		[field: SerializeField] public ScrollResultKind Kind { get; private set; }
-		[field: SerializeField, Tooltip("마법일 때 보일 이름 (임시)")] public string SpellName { get; private set; }
+		[field: SerializeField, Tooltip("마법일 때 하찮은 마법 목록의 번호")] public int SpellId { get; private set; }
 		[field: SerializeField, Tooltip("만드는 법일 때 레시피를 가진 아이템")] public ItemData RecipeItem { get; private set; }
 		[field: SerializeField, Min(1), Tooltip("배운 것까지 합친 모습 수")] public int Forms { get; private set; } = 1;
-
-		public string DisplayName => Kind == ScrollResultKind.Recipe ? RecipeItem.Name : SpellName;
 
 		public ScrollEntry ToEntry() => new()
 		{
 			Id = Id,
 			Kind = Kind,
-			Target = Kind == ScrollResultKind.Recipe ? RecipeItem.ID : Id,
+			Target = Kind == ScrollResultKind.Recipe ? RecipeItem.ID : SpellId,
 			Forms = Forms,
 		};
 	}

@@ -17,6 +17,7 @@ namespace WitchMendokusai
 		private const string SCROLL_NEW_FORM = "{0} 의 다른 모습 ({1}/{2})";
 
 		[Inject] internal SOManager soManager;
+		[Inject] internal ResourceManager resourceManager;
 		[Inject] internal DataManager dataManager;
 
 		private ScrollInterpreter interpreter;
@@ -26,7 +27,7 @@ namespace WitchMendokusai
 		private ScrollPuzzleKind? pendingKind;
 		private int pendingIndex;
 
-		private ScrollInterpreter Interpreter => interpreter ??= new ScrollInterpreter(settings.Scrolls, () => soManager.ItemInventory, dataManager, count => UnityEngine.Random.Range(0, count));
+		private ScrollInterpreter Interpreter => interpreter ??= new ScrollInterpreter(resourceManager.Scrolls, () => soManager.ItemInventory, dataManager, count => UnityEngine.Random.Range(0, count));
 
 		private void BuildScrollButtons(VisualElement top)
 		{
@@ -92,8 +93,8 @@ namespace WitchMendokusai
 			pendingKind = null;
 			ScrollOutcome outcome = Interpreter.Complete(kind);
 			scrollNotice.text = outcome.Draw.IsNew
-				? string.Format(SCROLL_LEARNED, outcome.Row.DisplayName)
-				: string.Format(SCROLL_NEW_FORM, outcome.Row.DisplayName, outcome.Draw.Form, outcome.Draw.Entry.Forms);
+				? string.Format(SCROLL_LEARNED, resourceManager.Scrolls.DisplayName(outcome.Row))
+				: string.Format(SCROLL_NEW_FORM, resourceManager.Scrolls.DisplayName(outcome.Row), outcome.Draw.Form, outcome.Draw.Entry.Forms);
 			RefreshScrolls();
 		}
 

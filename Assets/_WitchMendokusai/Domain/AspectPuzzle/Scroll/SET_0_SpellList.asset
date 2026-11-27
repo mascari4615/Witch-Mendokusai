@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e2cffd1e5c4470f883b2b7b0df19c2a, type: 3}
+  m_Name: SET_0_SpellList
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SpellListSO
+  <Spells>k__BackingField:
+  - <Id>k__BackingField: 1
+    <Name>k__BackingField: "\uCC28 \uB053\uC774\uAE30"
+    <Description>k__BackingField: "\uCC3B\uC78E \uD558\uB098\uB85C \uC8FC\uC804\uC790 \uD558\uB098\uB97C \uB370\uC6C1\uB2C8\uB2E4."
+    <CastText>k__BackingField: "\uAE40\uC774 \uC624\uB985\uB2C8\uB2E4. (\uBAA8\uC2B5 {0})"
+  - <Id>k__BackingField: 2
+    <Name>k__BackingField: "\uBA3C\uC9C0 \uD138\uAE30"
+    <Description>k__BackingField: "\uBC29 \uD55C \uCE78\uC758 \uBA3C\uC9C0\uB97C \uBC14\uB78C\uC73C\uB85C \uBAB0\uC544\uB0C5\uB2C8\uB2E4."
+    <CastText>k__BackingField: "\uBA3C\uC9C0\uAC00 \uCC3D\uBC16\uC73C\uB85C \uB098\uAC11\uB2C8\uB2E4. (\uBAA8\uC2B5 {0})"
+  - <Id>k__BackingField: 3
+    <Name>k__BackingField: "\uC778\uD615\uC758 \uCCB4\uC628"
+    <Description>k__BackingField: "\uC548\uC740 \uC778\uD615\uC774 \uC7A0\uAE50 \uB530\uB73B\uD574\uC9D1\uB2C8\uB2E4."
+    <CastText>k__BackingField: "\uC778\uD615\uC774 \uB530\uB73B\uD574\uC84C\uC2B5\uB2C8\uB2E4. (\uBAA8\uC2B5 {0})"
