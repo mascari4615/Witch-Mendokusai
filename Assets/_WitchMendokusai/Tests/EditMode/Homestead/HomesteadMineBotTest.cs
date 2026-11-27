@@ -281,6 +281,8 @@ namespace WitchMendokusai.Tests
 		{
 			HomesteadSim probe = MakeSim(0, 1, 0);
 			TestContext.WriteLine("곡괭이 | 등불 | 1층 한 판 (빛 30%) 중앙/90% | 1층 한 판 (빛 매번) 중앙 | 30층까지 판 수 중앙/90% | 층당 휘두름");
+			int lastDepth = 0;
+			List<int> runsMedian = new List<int>();
 			for (int tier = 0; tier < PickTiers(probe); tier++)
 			{
 				List<int> deepRandom = new List<int>();
@@ -302,7 +304,14 @@ namespace WitchMendokusai.Tests
 				}
 				TestContext.WriteLine($"{tier} | {lantern} | {Percentile(deepRandom, 0.5f)}/{Percentile(deepRandom, 0.9f)} | {Percentile(deepPerfect, 0.5f)} | {Percentile(runs, 0.5f)}/{Percentile(runs, 0.9f)} | {(float)swings / floors:0.0}");
 				Assert.That(Percentile(runs, 0.9f), Is.LessThanOrEqualTo(RUN_CAP), $"곡괭이 {tier}: 30층에 못 닿음");
+				// 확정 f04-1, f04-2: 구간 단단함과 등불 40 + 등급 x 6 으로 곡괭이가 깊이를 가름
+				int depthMedian = Percentile(deepRandom, 0.5f);
+				Assert.That(depthMedian, Is.GreaterThan(lastDepth), $"곡괭이 {tier}: 한 판 깊이가 아랫등급보다 깊어야 함");
+				lastDepth = depthMedian;
+				runsMedian.Add(Percentile(runs, 0.5f));
 			}
+			Assert.That(runsMedian[0], Is.InRange(5, 8), "낡은 곡괭이 30층까지 판 수");
+			Assert.That(runsMedian[runsMedian.Count - 1], Is.InRange(1, 2), "흑요 곡괭이 30층까지 판 수");
 		}
 
 		[Test]

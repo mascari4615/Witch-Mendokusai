@@ -87,6 +87,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int Nodes { get; set; }
 		public List<MineWeightDef> Weights { get; set; } = new List<MineWeightDef>();
 		public float RelicChance { get; set; }
+		// 바위 타수 배율. 깊을수록 단단해져 좋은 곡괭이가 더 깊이 감 (확정 f04-1, 구간마다 +25%)
+		public float Hardness { get; set; } = 1f;
 		// 화면 색 이름. 표현 층이 해석
 		public string Mood { get; set; } = string.Empty;
 	}

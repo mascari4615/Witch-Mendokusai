@@ -107,6 +107,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 			foreach (MineBandDef band in catalog.MineBands)
 			{
+				if (band.Hardness < 1f)
+				{
+					problems.Add($"{band.Id}: Hardness {band.Hardness} 는 1 아래 (바위가 원래보다 무름)");
+				}
 				foreach (MineWeightDef weight in band.Weights)
 				{
 					Need<MineNodeDef>(catalog, weight.Node, band.Id, problems);

@@ -178,6 +178,11 @@ namespace WitchMendokusai.Tests
 					result.HallRuns.Add(run + 1);
 				}
 				bool Keeps(CostDef cost) => thrifty == false || (bool)KEEPS.Invoke(null, new object[] { sim, cost });
+				// 넓히기 재료 (판자, 실, 천) 도 제작대에서 바로 만듦. 확정 f11-2 로 실과 천이 들어감
+				if (sim.TryGetNextHouseTier(out HouseTierDef wanted) && sim.Purse.Nyang >= wanted.Cost.Nyang)
+				{
+					BenchCraftFor(sim, wanted.Cost, Keeps);
+				}
 				if (sim.TryGetNextHouseTier(out HouseTierDef next) && sim.CanExpandHouse().Ok && Keeps(next.Cost))
 				{
 					sim.ExpandHouse();
@@ -276,6 +281,9 @@ namespace WitchMendokusai.Tests
 			HousingRun eager = PlayHousing(11, false);
 			Assert.That(eager.RankRuns[0], Is.LessThanOrEqualTo(3), "첫 단계");
 			Assert.That(eager.RankRuns.Count, Is.EqualTo(HomesteadTestKit.LoadCatalog().Tuning.ComfortSteps.Count - 1), "끝 단계");
+			// 확정 f11-2: 넓히기 재료를 실과 천으로 나눠, 타운홀 재료를 아끼는 사람도 집을 한 번은 넓힘
+			HousingRun thrift = PlayHousing(11, true);
+			Assert.That(thrift.TierRuns.Count, Is.GreaterThanOrEqualTo(1), "아끼는 손도 넓힘");
 		}
 	}
 }

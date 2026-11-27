@@ -55,7 +55,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		// 갱도
 		public int LanternSwings { get; set; } = 40;
-		public int LanternPerPickTier { get; set; } = 12;
+		// 확정 f04-2: 40 + 등급 x 6. 12 면 등불이 남아 곡괭이가 깊이를 못 가름
+		public int LanternPerPickTier { get; set; } = 6;
 		public int LiftStep { get; set; } = 5;
 		public float GlintSeconds { get; set; } = 0.9f;
 		public float GlintWindow { get; set; } = 0.22f;
@@ -71,7 +72,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		// 집
 		public int ThemePieces { get; set; } = 3;
-		public int ThemeBonus { get; set; } = 8;
+		// 확정 f11-1: 8 이면 아끼는 손이 3단에서 멈춤. 16 이면 4단과 5단이 같은 판에 옴
+		public int ThemeBonus { get; set; } = 12;
 		public float DuplicateFalloff { get; set; } = 0.5f;
 		public List<int> ComfortSteps { get; set; } = new List<int>();
 		public float RestDoubleChancePerRank { get; set; } = 0.06f;

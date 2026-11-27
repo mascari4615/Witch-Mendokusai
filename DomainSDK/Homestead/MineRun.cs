@@ -7,6 +7,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 	{
 		public MineNodeDef Def { get; internal set; }
 		public int HitsLeft { get; internal set; }
+		// 구간 단단함을 곱한 처음 타수. 화면의 "남은 / 전체"
+		public int MaxHits { get; internal set; }
 		public bool HidesPassage { get; internal set; }
 		public bool IsBroken => HitsLeft <= 0;
 	}
@@ -56,7 +58,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			for (int i = 0; i < Band.Nodes; i++)
 			{
 				MineNodeDef def = sim.RollMineNode(Band);
-				nodes.Add(new MineNode { Def = def, HitsLeft = def.Hits });
+				int hits = Math.Max(1, (int)Math.Ceiling(def.Hits * Band.Hardness));
+				nodes.Add(new MineNode { Def = def, HitsLeft = hits, MaxHits = hits });
 			}
 			PickPassage();
 			sim.ReachDepth(depth);

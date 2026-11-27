@@ -46,6 +46,85 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
+		// 확정 f14-2: 다섯이 10판 안에 다 오지 않게 시련소 사람을 늦춤
+		// 봇의 보스는 4, 9 번째 판 고정이라 보스 주기를 따로 더해 잼. every 0 은 봇 그대로
+		[Test]
+		public void Last_resident_does_not_arrive_within_ten_runs()
+		{
+			foreach (int every in new[] { 0, 5, 3 })
+			{
+				List<int> lastRuns = new();
+				foreach (int seed in SEEDS)
+				{
+					Dictionary<string, int> arrived = ArrivalRuns(seed, every);
+					int last = 0;
+					foreach (int run in arrived.Values)
+					{
+						last = Math.Max(last, run);
+					}
+					lastRuns.Add(last);
+					TestContext.WriteLine($"보스 주기 {every}, 씨앗 {seed}: {string.Join(", ", ArrivalText(arrived))}");
+				}
+				TestContext.WriteLine($"보스 주기 {every}: 마지막 도착 판 {string.Join("/", lastRuns)}, 중앙 {Median(lastRuns)}");
+				if (every != 3)
+				{
+					Assert.That(Median(lastRuns), Is.GreaterThan(10), $"보스 주기 {every}: 다섯이 10판 안에 다 옴");
+					Assert.That(Median(lastRuns), Is.LessThan(NEVER), $"보스 주기 {every}: 끝내 안 오는 주민");
+				}
+			}
+		}
+
+		private static IEnumerable<string> ArrivalText(Dictionary<string, int> arrived)
+		{
+			foreach (KeyValuePair<string, int> pair in arrived)
+			{
+				yield return $"{pair.Key} {(pair.Value == NEVER ? "-" : pair.Value.ToString())}";
+			}
+		}
+
+		// 주민마다 처음 와 있던 판 (1부터). 120판 안에 안 오면 NEVER
+		private static Dictionary<string, int> ArrivalRuns(int seed, int bossEvery)
+		{
+			MethodInfo playDungeon = typeof(HomesteadPlayTest).GetMethod("PlayDungeon", BindingFlags.NonPublic | BindingFlags.Static);
+			MethodInfo playTown = typeof(HomesteadPlayTest).GetMethod("PlayTown", BindingFlags.NonPublic | BindingFlags.Static);
+			HomesteadSim sim = HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse purse, seed);
+			purse.Nyang = 300;
+			Random random = new(seed + 5);
+			Dictionary<string, int> arrived = new();
+			foreach (ResidentDef resident in sim.Catalog.Residents)
+			{
+				arrived[resident.Id] = NEVER;
+			}
+			for (int run = 0; run < RUNS; run++)
+			{
+				playDungeon.Invoke(null, new object[] { sim, purse, random, run });
+				bool botBoss = run == 4 || run == 9;
+				if (bossEvery > 0 && run % bossEvery == bossEvery - 1 && botBoss == false)
+				{
+					sim.NotifyEvent(HomesteadSim.BOSS_EVENT);
+				}
+				List<string> wanted = sim.WantedRescues();
+				if (wanted.Count > 0 && random.NextDouble() < 0.5)
+				{
+					sim.NotifyRescue(wanted[0]);
+				}
+				playTown.Invoke(null, new object[] { sim, random });
+				while (sim.CanUpgradeTownHall().Ok)
+				{
+					sim.UpgradeTownHall();
+				}
+				foreach (ResidentDef resident in sim.Catalog.Residents)
+				{
+					Visit(sim, resident, false);
+					if (sim.HasArrived(resident.Id) && arrived[resident.Id] == NEVER)
+					{
+						arrived[resident.Id] = run + 1;
+					}
+				}
+			}
+			return arrived;
+		}
+
 		private static int Median(List<int> days)
 		{
 			List<int> sorted = new(days);

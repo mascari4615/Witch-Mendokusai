@@ -20,6 +20,27 @@ namespace WitchMendokusai.Tests
 			}
 		}
 
+		// 지을 건물은 4x4. 확정 f12-3 으로 박물관 7x5, 갱도 6x5 는 예외
+		// 낚시터 2x2 는 판정에 없던 것이라 지금 값을 그대로 적어 둠
+		[Test]
+		public void Buildings_are_four_by_four_except_approved_ones()
+		{
+			Dictionary<string, (int Width, int Depth)> exceptions = new()
+			{
+				{ "museum", (7, 5) },
+				{ "quarry", (6, 5) },
+				{ "dock", (2, 2) },
+			};
+			HomesteadCatalog catalog = HomesteadTestKit.LoadCatalog();
+			foreach (BuildingDef building in catalog.Buildings)
+			{
+				PlaceableDef placeable = catalog.Placeables.Find(candidate => candidate.Id == building.Id);
+				Assert.That(placeable, Is.Not.Null, building.Id);
+				(int Width, int Depth) expected = exceptions.TryGetValue(building.Id, out (int Width, int Depth) size) ? size : (4, 4);
+				Assert.That((placeable.Width, placeable.Depth), Is.EqualTo(expected), building.Id);
+			}
+		}
+
 		[Test]
 		public void Buildings_do_not_all_face_one_way()
 		{

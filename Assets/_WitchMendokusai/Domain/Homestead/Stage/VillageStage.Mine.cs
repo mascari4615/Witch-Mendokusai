@@ -203,7 +203,7 @@ namespace WitchMendokusai
 		private string NodeRole(int index)
 		{
 			MineNode node = run.Nodes[index];
-			return node.Def.Tier > Sim.ToolTier(ToolKind.Pickaxe) ? "곡괭이가 약함" : $"{node.HitsLeft} / {node.Def.Hits}";
+			return node.Def.Tier > Sim.ToolTier(ToolKind.Pickaxe) ? "곡괭이가 약함" : $"{node.HitsLeft} / {node.MaxHits}";
 		}
 
 		private void StrikeNode(int index)
