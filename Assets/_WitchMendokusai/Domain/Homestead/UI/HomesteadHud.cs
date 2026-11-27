@@ -24,6 +24,9 @@ namespace WitchMendokusai
 		private VisualElement digest;
 		private VisualElement goal;
 		private bool goalShown;
+		// 낚시와 갱도 화면은 뒤가 비쳐 꾸미기가 그 위에 남았음 (갱도 판과 겹침). 둘 중 하나가 떠 있으면 꾸미기를 숨김
+		private bool duelShown;
+		private bool mineShown;
 		private Button decorate;
 		private System.Action onDecorate;
 		private VisualElement duel;
@@ -315,7 +318,7 @@ namespace WitchMendokusai
 
 		// 클래스 (--none) 로 끄면 손가락 표시 규칙 (.wm-input-touch .wm-touch-hint) 이 더 세서 안 꺼짐. 끌 때만 인라인, 켤 때는 USS 에 맡김 (PC 에선 숨음)
 		private void RefreshDecorate() =>
-			decorate.style.display = DecorateButton.IsShown(goalShown, onDecorate != null, digest.childCount > 0) ? StyleKeyword.Null : DisplayStyle.None;
+			decorate.style.display = DecorateButton.IsShown(goalShown && duelShown == false && mineShown == false, onDecorate != null, digest.childCount > 0) ? StyleKeyword.Null : DisplayStyle.None;
 
 		// ---- 낚시
 
@@ -331,7 +334,12 @@ namespace WitchMendokusai
 			tensionFill = Make("duel-tension-fill", tension);
 		}
 
-		public void ShowDuel(bool visible) => duel.EnableInClassList($"{BLOCK}--none", visible == false);
+		public void ShowDuel(bool visible)
+		{
+			duelShown = visible;
+			duel.EnableInClassList($"{BLOCK}--none", visible == false);
+			RefreshDecorate();
+		}
 
 		public void SetDuel(FishingDuel state)
 		{
@@ -379,7 +387,12 @@ namespace WitchMendokusai
 			mineHint = MakeLabel("mine-hint", mine);
 		}
 
-		public void ShowMine(bool visible) => mine.EnableInClassList($"{BLOCK}--none", visible == false);
+		public void ShowMine(bool visible)
+		{
+			mineShown = visible;
+			mine.EnableInClassList($"{BLOCK}--none", visible == false);
+			RefreshDecorate();
+		}
 
 		public void SetMine(MineRun run)
 		{
