@@ -24,6 +24,8 @@ namespace WitchMendokusai
 		}
 
 		[SerializeField] private Model[] models;
+		[Tooltip("욘의 집 건물 한 채. 조각으로 짓지 않고 프리팹 하나로 세움")]
+		[SerializeField] private HomeHouse homeHouse;
 
 		private static VillageModels instance;
 
@@ -41,6 +43,7 @@ namespace WitchMendokusai
 		private static void ResetState() => instance = null;
 
 		public IReadOnlyList<Model> Models => models;
+		public HomeHouse HomeHouse => homeHouse;
 
 		public GameObject Build(string key, Transform parent, Vector3 localPosition, float yaw, float scale = 1f)
 		{

@@ -1932,3 +1932,4 @@ MonoBehaviour:
       m_Extent: {x: 0.165, y: 0.726, z: 1.386}
     - m_Center: {x: 1.716, y: 0.726, z: 0.2}
       m_Extent: {x: 0.165, y: 0.726, z: 1.386}
+  homeHouse: {fileID: 2411738540453255901, guid: 7cbcc565ef9a49140a72264bf52eaff4, type: 3}
