@@ -81,6 +81,26 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void CombatFx_layer_needs_asset_and_follows_form_radius()
+		{
+			SkillMaterialSpec spec = Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""NovaSelf"", ""Element"": ""ice"", ""Layers"": [ { ""Kind"": ""CombatFx"", ""Asset"": ""Assets/x.asset"", ""Seconds"": 3, ""Follow"": true, ""TurnsPerSecond"": 2 } ] }")[0];
+			SkillMaterialLayer layer = spec.Layers[0];
+			Assert.AreEqual("Assets/x.asset", layer.Asset);
+			Assert.AreEqual(3f, layer.Radius, "반지름을 빼면 모양 반지름");
+			Assert.AreEqual(3f, layer.Length, "길이를 빼면 반지름");
+			Assert.IsTrue(layer.Follow);
+			Assert.AreEqual(2f, layer.TurnsPerSecond);
+			Assert.IsFalse(layer.OnBlast);
+			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""NovaSelf"", ""Element"": ""ice"", ""Layers"": [ { ""Kind"": ""CombatFx"", ""Seconds"": 3 } ] }"));
+		}
+
+		[Test]
+		public void Blast_layer_only_on_strike_forms()
+		{
+			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""NovaSelf"", ""Element"": ""ice"", ""Layers"": [ { ""Kind"": ""Burst"", ""Seconds"": 1, ""RingSeconds"": 1, ""OnBlast"": true } ] }"));
+		}
+
+		[Test]
 		public void Element_without_art_fails()
 		{
 			Assert.Throws<InvalidOperationException>(() => SkillMaterialCatalog.Parse(BASE.Replace(@", ""Art"": ""Assets/x.asset""", "").Replace("RECIPE", @"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""ice"" }")));

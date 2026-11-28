@@ -20,6 +20,8 @@ namespace WitchMendokusai
 
 		// 마지막으로 피해가 들어간 게임 시각. 피격 무적 판정용
 		private float lastHitTime = float.NegativeInfinity;
+		// 안 맞은 동안만 도는 효과 (스킬 재료 지속 재생) 가 읽음. 상태이상 틱은 안 셈
+		public float LastHitTime => lastHitTime;
 
 		// 피격 무적 중. 같은 유닛이 맞은 직후라 다음 타격이 안 들어감. 값은 UnitObject.HitInvincibleSeconds
 		public bool IsHitInvincible => Unit != null && HitInvincibilityRules.IsActive(lastHitTime, Time.time, Unit.HitInvincibleSeconds);

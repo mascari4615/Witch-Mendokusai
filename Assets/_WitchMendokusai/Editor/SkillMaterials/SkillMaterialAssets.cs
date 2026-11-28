@@ -43,10 +43,14 @@ namespace WitchMendokusai
 		}
 
 		// 이펙트 겹. Burst 는 켜지는 순간 그린 터짐 (플립북, 바닥 고리, 바닥 어둠). 플립북과 고리 모두 속성색
-		public static void AddLayers(GameObject shot, SkillMaterialSpec spec)
+		// CombatFx 는 기존 전투 연출 에셋을 켜질 때 재생 (SkillMaterialCombatFx). 색은 에셋의 것
+		// onBlast 면 OnBlast 겹만 (일격 프리팹), 아니면 나머지만 (탄)
+		public static void AddLayers(GameObject shot, SkillMaterialSpec spec, bool onBlast = false)
 		{
 			foreach (SkillMaterialLayer layer in spec.Layers)
 			{
+				if (layer.OnBlast != onBlast)
+					continue;
 				switch (layer.Kind)
 				{
 					case "Burst":
@@ -59,6 +63,14 @@ namespace WitchMendokusai
 						// 그림 벌은 흰색으로 구운 PFX_White 라 플립북도 속성색으로 물듦. 심은 흰색 쪽으로 BodyWhiten 만큼
 						SetColor(burst, "tint", Color.Lerp(spec.Color, Color.white, spec.BodyWhiten));
 						SetColor(burst, "ringTint", spec.Color);
+						break;
+					case "CombatFx":
+						CombatFx fx = AssetDatabase.LoadAssetAtPath<CombatFx>(layer.Asset);
+						if (fx == null)
+							throw new InvalidOperationException($"{spec.Id}: CombatFx 에셋 없음 {layer.Asset}");
+						SetFields(shot.AddComponent<SkillMaterialCombatFx>(),
+							("fx", fx), ("seconds", layer.Seconds), ("radius", layer.Radius), ("length", layer.Length),
+							("width", layer.Width), ("follow", layer.Follow), ("turnsPerSecond", layer.TurnsPerSecond));
 						break;
 					default:
 						throw new InvalidOperationException($"{spec.Id}: 굽는 법 없는 겹 {layer.Kind}");

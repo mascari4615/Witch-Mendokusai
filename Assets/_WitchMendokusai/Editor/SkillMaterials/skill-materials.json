@@ -215,7 +215,10 @@
 					"Seconds": 0.45,
 					"RingSeconds": 0.32
 				}
-			]
+			],
+			"ShieldSeconds": 0,
+			"BuffStat": "NONE",
+			"BuffAmount": 0
 		},
 		"SelfHeal": {
 			"SelfKind": "Heal",
@@ -232,7 +235,10 @@
 					"Seconds": 0.45,
 					"RingSeconds": 0.32
 				}
-			]
+			],
+			"HealEvery": 0,
+			"CalmSeconds": 0,
+			"HealFx": ""
 		},
 		"SelfTransform": {
 			"SelfKind": "Buff",
@@ -249,6 +255,61 @@
 					"Kind": "Burst",
 					"Seconds": 0.6,
 					"RingSeconds": 0.4
+				}
+			]
+		},
+		"EmpoweredStrike": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Flask/FlaskField.prefab",
+			"Radius": 1.4,
+			"Lifetime": 0.25,
+			"RehitInterval": 5.0,
+			"Knockback": 8,
+			"Hitstop": 0.08,
+			"Shake": 0.2,
+			"WaitSeconds": 3.0,
+			"StrikeRange": 3.0,
+			"BuffStat": "MOVEMENT_SPEED_BONUS",
+			"BuffAmount": 10,
+			"MissingHealthPercent": 0,
+			"Interval": 6.0,
+			"SpawnPosition": "Player",
+			"SpawnAim": "None",
+			"SpawnDelay": 0,
+			"Layers": [
+				{
+					"Kind": "Burst",
+					"Radius": 1.2,
+					"Seconds": 0.4,
+					"RingSeconds": 0.3
+				},
+				{
+					"Kind": "Burst",
+					"Seconds": 0.4,
+					"RingSeconds": 0.3,
+					"OnBlast": true
+				}
+			]
+		},
+		"DelayedStrike": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Flask/FlaskField.prefab",
+			"Radius": 2.2,
+			"Lifetime": 0.25,
+			"RehitInterval": 5.0,
+			"Knockback": 14,
+			"Hitstop": 0.1,
+			"Shake": 0.3,
+			"StrikeDelay": 0.6,
+			"MissingHealthPercent": 0,
+			"Interval": 8.0,
+			"SpawnPosition": "NearestEnemy",
+			"SpawnAim": "None",
+			"SpawnDelay": 0,
+			"Layers": [
+				{
+					"Kind": "Burst",
+					"Seconds": 0.45,
+					"RingSeconds": 0.32,
+					"OnBlast": true
 				}
 			]
 		}

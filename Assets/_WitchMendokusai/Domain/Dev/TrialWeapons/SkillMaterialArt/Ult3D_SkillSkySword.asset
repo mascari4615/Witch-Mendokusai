@@ -1,0 +1,172 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6690681e4294e5743bd282298580074c, type: 3}
+  m_Name: Ult3D_SkillSkySword
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SkySwordWorldUltimateFx
+  previewRadius: 3
+  previewLength: 8
+  previewWidth: 2
+  previewTitle: "\uBBF8\uB9AC\uBCF4\uAE30"
+  previewSubtitle: 
+  devKey: ult3d_skill
+  spriteShader: {fileID: 4800000, guid: ef1a2b90cf6fc7e43a4c9f110d888598, type: 3}
+  shockwaveShader: {fileID: 4800000, guid: dcba1d1064178d5468f671a79017b4a7, type: 3}
+  gradeShader: {fileID: 4800000, guid: 1ebe1525f751440ea76b9cca2137b714, type: 3}
+  overlayFlashCap: 0.32
+  backgroundFlashCap: 0.85
+  spawnTemporaryFoliage: 0
+  foliageAreaRadius: 14
+  foliage:
+  - Prefab: {fileID: 6107932506994862601, guid: a26a53e463177194db6585765f564431, type: 3}
+    Count: 220
+    Flexibility: 1
+    ScaleRange: {x: 1.2, y: 2}
+    MinDistance: 1.2
+  - Prefab: {fileID: 5350839332914572334, guid: 3540440509c30ba49b2125f242729c46, type: 3}
+    Count: 18
+    Flexibility: 0.75
+    ScaleRange: {x: 0.9, y: 1.4}
+    MinDistance: 3
+  - Prefab: {fileID: 2871132453943284833, guid: c0c27574d0d91ea44894908f417f36d4, type: 3}
+    Count: 6
+    Flexibility: 0.3
+    ScaleRange: {x: 0.45, y: 0.7}
+    MinDistance: 6.5
+  foliageResponse:
+    Bend: 78
+    DecaySeconds: 1.2
+    Hertz: 1.7
+    BladeCount: 70
+    BladeSpeed: 11
+    BladeColor: {r: 0.45, g: 0.7, b: 0.3, a: 1}
+  tailSeconds: 0.6
+  screenSortingOrder: 2400
+  heavyLayers: 0
+  beamShader: {fileID: 4800000, guid: 094650be7f3c4c4b98208e741fa6fc5f, type: 3}
+  beamColor: {r: 3, g: 2.1, b: 0.7, a: 1}
+  beamCoreColor: {r: 4, g: 3.6, b: 2.6, a: 1}
+  beamHeight: 40
+  beamTelegraphRadius: 0.18
+  beamTelegraphIntensity: 0.45
+  beamFullRadius: 1.3
+  beamThinRadius: 0.14
+  beamThickSeconds: 0.25
+  beamShrinkSeconds: 0.2
+  beamLingerSeconds: 0.45
+  beamFadeSeconds: 0.35
+  beamImpactBoost: 1.6
+  beamStreakCount: 70
+  crownSpikeCount: 46
+  crownSpikeSpeed: {x: 10, y: 24}
+  crownSpikeRadius: {x: 0.3, y: 1.8}
+  crownSpikeColor: {r: 3, g: 2.2, b: 0.8, a: 1}
+  goldRingRadius: 8
+  goldRingSeconds: 0.55
+  goldRingSecondDelay: 0.12
+  goldRingColor: {r: 1, g: 0.78, b: 0.3, a: 1}
+  shockRadius: 11
+  shockSeconds: 0.5
+  shockDistortion: 0.035
+  shockBandWidth: 0.12
+  projectorDecal: 0
+  decalShader: {fileID: -6465566751694194690, guid: 9b4e681081e2b4c469111bb649e2f7ee, type: 3}
+  decalDepth: 4
+  swordModel: {fileID: 919132149155446097, guid: ef44a17fa4d3b1140a0424c7a378151f, type: 3}
+  rockMesh: {fileID: -5495902117074765545, guid: acf6cbde4c8f7ab4a84c51961f79134d, type: 3}
+  meshGlowShader: {fileID: 4800000, guid: 4d07b8e2c11b28449a3f241e98f42971, type: 3}
+  litParticleShader: {fileID: 4800000, guid: ebe2a5585f6714b4a807c9a0a60454ed, type: 3}
+  bladeColor: {r: 0.55, g: 0.58, b: 0.66, a: 1}
+  bladeGlow: {r: 0.18, g: 0.16, b: 0.12, a: 1}
+  bladeRim: {r: 0.3, g: 0.28, b: 0.22, a: 1}
+  bladeSpecular: 0.55
+  bladeSmoothness: 48
+  hiltColor: {r: 0.32, g: 0.3, b: 0.26, a: 1}
+  gripColor: {r: 0.08, g: 0.06, b: 0.05, a: 1}
+  swordLightColor: {r: 1, g: 0.93, b: 0.75, a: 1}
+  impactLightColor: {r: 1, g: 0.72, b: 0.42, a: 1}
+  rockColor: {r: 0.4, g: 0.33, b: 0.24, a: 1}
+  rockHeat: {r: 2.2, g: 0.9, b: 0.3, a: 1}
+  dustColor: {r: 0.62, g: 0.56, b: 0.48, a: 0.75}
+  smokeColor: {r: 0.5, g: 0.48, b: 0.46, a: 0.55}
+  emberColor: {r: 2.5, g: 1.6, b: 0.7, a: 1}
+  scorchColor: {r: 0.06, g: 0.05, b: 0.04, a: 0.92}
+  dimSeconds: 0.2
+  summonStart: 0
+  descendSeconds: 0.25
+  materializeSeconds: 0.12
+  hangSeconds: 0.1
+  fallSeconds: 0.12
+  telegraphSeconds: 0.3
+  flashDelay: 0.12
+  remainSeconds: 0.7
+  vanishSeconds: 0.3
+  restoreSeconds: 0.4
+  swordLength: 4
+  swordWidthScale: 1.7
+  swordThicknessScale: 1.3
+  targetDistance: 0
+  spawnHeight: 14
+  hangHeight: 2.4
+  sinkRatio: 0.16
+  spinDegrees: 240
+  hangTilt: 16
+  sunDim: 0.85
+  ambientDim: 0.85
+  casterLightIntensity: 6
+  casterLightRange: 4.5
+  casterLightOverlap: 0.2
+  swordLightIntensity: 14
+  swordLightRange: 11
+  spotIntensity: 36
+  spotAngle: 38
+  spotIdleRatio: 0.25
+  impactLightIntensity: 34
+  impactLightRange: 13
+  impactLightHeight: 2
+  contactRatio: 0.4
+  impactHalfLife: 0.7
+  spriteLightGain: 0.12
+  spriteTintCap: 2.2
+  spriteRefreshSeconds: 0.3
+  upheavalCount: 7
+  upheavalRadius: {x: 1.3, y: 3.1}
+  upheavalScale: {x: 1.6, y: 3}
+  upheavalTilt: {x: 20, y: 50}
+  upheavalRiseSeconds: 0.12
+  debrisCount: 14
+  debrisSpeed: 9
+  debrisHotChance: 0.35
+  rayCount: 30
+  dustCount: 46
+  dustRadius: 6
+  smokeCount: 18
+  emberCount: 46
+  trailCount: 26
+  gatherCount: 12
+  decalSize: 5
+  crackSeed: 41
+  scorchLingerSeconds: 1
+  windSpeed: 16
+  windReach: 13
+  faceYawOffset: 35
+  pullBack: 1
+  shakeStrength: 0.9
+  shakeCount: 5
+  shakeInterval: 0.07
+  shakeDecay: 0.74
+  exposureFlash: 0.5
+  exposureHalfLife: 0.1
+  bloomSummon: 0.9
+  bloomImpact: 1.4
+  bloomThreshold: 1.2
+  chromaticImpact: 0.12
+  vignetteSummon: 0.28

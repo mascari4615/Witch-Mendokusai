@@ -42,7 +42,10 @@ namespace WitchMendokusai
 			new SelfForm("SelfBuff"),
 			new SelfForm("SelfShield"),
 			new SelfForm("SelfHeal"),
-			new SelfForm("SelfTransform"));
+			new SelfForm("SelfTransform"),
+			// 일격을 내는 모양. 강화 일격: 몸에서 기다리다 가까운 적 하나를 벰. 지연 일격: 대상 자리에서 잠시 뒤 터짐 (하늘 검)
+			new EmpoweredStrikeForm("EmpoweredStrike"),
+			new DelayedStrikeForm("DelayedStrike"));
 
 		public static bool Has(string name) => forms.ContainsKey(name);
 
@@ -105,7 +108,10 @@ namespace WitchMendokusai
 		public string Name { get; }
 		public bool AcceptsLayers => true;
 
-		public GameObject BuildShot(SkillMaterialSpec spec)
+		public GameObject BuildShot(SkillMaterialSpec spec) => Build(spec, "_Shot", followUser, onBlast: false, extra: null);
+
+		// 원형 판정 하나를 바탕 (FlaskField) 에서 구움. 일격을 내는 모양 (SkillMaterialStrikeForms) 의 터짐도 이것 (onBlast 겹, 파일 이름 _Shot_Blast)
+		public static GameObject Build(SkillMaterialSpec spec, string suffix, bool followUser, bool onBlast, Action<GameObject> extra)
 		{
 			GameObject root = SkillMaterialAssets.OpenTemplate(spec.Text("Template"));
 			try
@@ -121,9 +127,10 @@ namespace WitchMendokusai
 				if (followUser)
 					root.AddComponent<FollowUser>();
 				SkillMaterialAssets.AddEffects(root, spec);
-				SkillMaterialAssets.AddLayers(root, spec);
+				SkillMaterialAssets.AddLayers(root, spec, onBlast);
+				extra?.Invoke(root);
 				SkillMaterialAssets.ApplyLook(root, spec);
-				return SkillMaterialAssets.SaveShot(root, spec.Id + "_Shot");
+				return SkillMaterialAssets.SaveShot(root, spec.Id + suffix);
 			}
 			finally
 			{

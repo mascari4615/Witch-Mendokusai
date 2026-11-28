@@ -1,10 +1,5 @@
 {
 	"Recipes": [
-		{"Id": "Skill_001_SelfHeal_light", "Form": "SelfHeal", "Element": "light", "Damage": 3},
-		{"Id": "Skill_002_Slash_metal", "Form": "Slash", "Element": "metal", "Damage": 6, "Interval": 1.2, "Effects": [{"Status": "Silence", "Seconds": 1.5}]},
-		{"Id": "Skill_003_SelfShield_light", "Form": "SelfShield", "Element": "light", "Damage": 5},
-		{"Id": "Skill_004_Aura_metal", "Form": "Aura", "Element": "metal", "Damage": 5, "Interval": 1.8, "Radius": 2.2},
-		{"Id": "Skill_005_Strike_light", "Form": "Strike", "Element": "light", "Damage": 12, "Interval": 4.0, "Effects": [{"Status": "Mark", "Seconds": 3.0}]},
 		{"Id": "Skill_006_Strike_arcane", "Form": "Strike", "Element": "arcane", "Damage": 3, "Interval": 2.0},
 		{"Id": "Skill_007_Zone_wind", "Form": "Zone", "Element": "wind", "Damage": 6, "Interval": 1.2, "Radius": 2.2, "Effects": [{"Status": "Burn", "Seconds": 2.5}]},
 		{"Id": "Skill_008_NovaSelf_earth", "Form": "NovaSelf", "Element": "earth", "Damage": 5, "Interval": 1.8, "Radius": 2.4, "Layers": [{"Kind": "Burst", "Seconds": 0.45, "RingSeconds": 0.32}], "Effects": [{"Status": "Fear", "Seconds": 1.2}]},

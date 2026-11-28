@@ -1,0 +1,9 @@
+{
+	"Recipes": [
+		{"Id": "Skill_001_SelfHeal_light", "Form": "SelfHeal", "Element": "light", "HealAmount": 2, "HealEvery": 1.0, "CalmSeconds": 4.0, "HealFx": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/Puffs_SkillHeal.asset", "Radius": 1.0, "Lifetime": 3.95, "Interval": 4.0, "Layers": []},
+		{"Id": "Skill_002_EmpoweredStrike_metal", "Form": "EmpoweredStrike", "Element": "metal", "Damage": 14, "Radius": 0.8, "StrikeRange": 2.0, "Effects": [{"Status": "Silence", "Seconds": 1.5}]},
+		{"Id": "Skill_003_SelfShield_light", "Form": "SelfShield", "Element": "light", "ShieldCharges": 1, "ShieldSeconds": 0.75, "BuffStat": "DODGE", "BuffAmount": 30, "Lifetime": 4.0, "Interval": 12.0, "Layers": [{"Kind": "Burst", "Seconds": 0.45, "RingSeconds": 0.32}, {"Kind": "CombatFx", "Asset": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/Telegraph_SkillGuard.asset", "Radius": 1.3, "Seconds": 4.0, "Follow": true}]},
+		{"Id": "Skill_004_Aura_metal", "Form": "Aura", "Element": "metal", "Damage": 4, "Radius": 2.2, "Lifetime": 3.0, "RehitInterval": 0.43, "Interval": 7.0, "Layers": [{"Kind": "CombatFx", "Asset": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/SpinArm_SkillBlade.asset", "Length": 2.1, "Width": 0.9, "Seconds": 3.0, "Follow": true, "TurnsPerSecond": 2.0}]},
+		{"Id": "Skill_005_DelayedStrike_light", "Form": "DelayedStrike", "Element": "light", "Damage": 20, "MissingHealthPercent": 30, "StrikeDelay": 0.47, "Radius": 2.0, "Interval": 8.0, "Layers": [{"Kind": "CombatFx", "Asset": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/Ult3D_SkillSkySword.asset", "Seconds": 3.0}, {"Kind": "Burst", "Seconds": 0.45, "RingSeconds": 0.32, "OnBlast": true}]}
+	]
+}
