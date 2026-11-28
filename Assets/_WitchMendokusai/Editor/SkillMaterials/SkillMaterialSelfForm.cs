@@ -14,9 +14,9 @@ namespace WitchMendokusai
 	{
 		private enum SelfKind
 		{
-			Buff,
-			Heal,
-			Shield,
+			Buff = 0,
+			Heal = 1,
+			Shield = 2,
 		}
 
 		public SelfForm(string name) => Name = name;
