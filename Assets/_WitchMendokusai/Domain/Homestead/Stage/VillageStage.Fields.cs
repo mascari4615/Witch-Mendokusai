@@ -158,7 +158,7 @@ namespace WitchMendokusai
 				case PlotPhase.Ripe:
 					return "거두기";
 				default:
-					return Sim.IsWet(plot) ? HomesteadText.Minutes(Sim.MinutesLeft(plot)) : "물 주기";
+					return Sim.IsWet(plot) ? WaitRole(index) : "물 주기";
 			}
 		}
 
@@ -204,6 +204,8 @@ namespace WitchMendokusai
 					}
 					break;
 				default:
+					if (Sim.IsWet(plot) && TryRipen(index))
+						break;
 					if (Sim.IsWet(plot))
 						Say($"{HomesteadText.Minutes(Sim.MinutesLeft(plot))} 뒤에 익습니다.");
 					else
@@ -389,7 +391,7 @@ namespace WitchMendokusai
 				case PlotPhase.Ripe:
 					return "거두기";
 				default:
-					return Sim.IsWet(plot) ? "살피기" : "물 주기";
+					return Sim.IsWet(plot) ? WaitVerb(index) : "물 주기";
 			}
 		}
 

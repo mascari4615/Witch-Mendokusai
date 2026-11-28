@@ -1,0 +1,5 @@
+{
+	"Spells": [
+		{"Id": "s_ripen", "Name": "북돋기", "Note": "자라는 밭 한 칸이 바로 익음. 물 준 밭의 살피기 자리에서 씀", "Research": {"sundew": 3, "bone": 2}, "Cast": {"moonmoss": 1}}
+	]
+}

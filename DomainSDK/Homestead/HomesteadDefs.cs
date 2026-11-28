@@ -239,6 +239,13 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int Value { get; set; }
 	}
 
+	// 생활 주문 하나 (HomesteadSim.Spell). 연구대에서 Research 를 한 번 내고 배움, 쓸 때마다 Cast 를 냄
+	public sealed class SpellDef : HomesteadDef
+	{
+		public Dictionary<string, int> Research { get; set; } = new Dictionary<string, int>();
+		public Dictionary<string, int> Cast { get; set; } = new Dictionary<string, int>();
+	}
+
 	public sealed class RequestDef : HomesteadDef
 	{
 		public int GuildLevel { get; set; } = 1;

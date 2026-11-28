@@ -97,6 +97,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				dropped.Add(state.Meal);
 				state.Meal = string.Empty;
 			}
+			// 자료에서 빠진 주문은 잊음
+			dropped.AddRange(state.Spells.FindAll(spell => catalog.TryGet<SpellDef>(spell, out SpellDef _) == false));
+			state.Spells.RemoveAll(spell => catalog.TryGet<SpellDef>(spell, out SpellDef _) == false);
 			return dropped;
 		}
 

@@ -206,6 +206,22 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				Need<GoodsDef>(catalog, animal.FineProduct, animal.Id, problems);
 			}
 			CheckCooks(catalog, problems);
+			// 생활 주문: 연구와 쓰는 값의 물건이 있고, 쓰는 값은 비지 않음 (공짜 주문은 기다림을 없앰)
+			foreach (SpellDef spell in catalog.Spells)
+			{
+				foreach (string goods in spell.Research.Keys)
+				{
+					Need<GoodsDef>(catalog, goods, spell.Id, problems);
+				}
+				foreach (string goods in spell.Cast.Keys)
+				{
+					Need<GoodsDef>(catalog, goods, spell.Id, problems);
+				}
+				if (spell.Cast.Count == 0)
+				{
+					problems.Add($"{spell.Id}: 쓰는 값이 없음");
+				}
+			}
 		}
 
 		// 요리법은 음식 하나에 하나 (식탁 버프를 음식으로 찾음). 나는 것은 Dish, 열림 물건은 있는 것

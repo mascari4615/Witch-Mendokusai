@@ -20,6 +20,8 @@ namespace WitchMendokusai
 		Workshop = 10,
 		Bench = 11,
 		Cook = 12,
+		// 다른 생활 세션과 번호가 겹치지 않게 띄움
+		Spell = 21,
 	}
 
 	// 생활 화면 묶음. 마을에 처음 들어설 때 HomesteadManager 가 만듦
@@ -51,6 +53,7 @@ namespace WitchMendokusai
 			Add(HomesteadPanelType.Workshop, new StorePage(manager, StorePlace.Workshop));
 			Add(HomesteadPanelType.Bench, new StorePage(manager, StorePlace.Bench));
 			Add(HomesteadPanelType.Cook, new CookPage(manager));
+			Add(HomesteadPanelType.Spell, new SpellPage(manager));
 			Add(HomesteadPanelType.Museum, new MuseumPage(manager));
 			Add(HomesteadPanelType.Wardrobe, new WardrobePage(manager));
 			Add(HomesteadPanelType.Seeds, Seeds);
