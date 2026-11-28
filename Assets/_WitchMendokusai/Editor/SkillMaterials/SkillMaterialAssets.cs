@@ -77,7 +77,8 @@ namespace WitchMendokusai
 		}
 
 		// 속성 색. 스프라이트는 흰색 쪽으로 BodyWhiten 만큼, 트레일은 속성 머티리얼 사본
-		public static void ApplyLook(GameObject shot, SkillMaterialSpec spec)
+		// strict 면 트레일과 메시에 _Color 가 꼭 있어야 함. 복제 모양 (CloneForm) 은 바탕 무기 고유 그림이 있어 strict 를 끔
+		public static void ApplyLook(GameObject shot, SkillMaterialSpec spec, bool strict = true)
 		{
 			foreach (SpriteRenderer sprite in shot.GetComponentsInChildren<SpriteRenderer>(true))
 				sprite.color = Color.Lerp(spec.Color, Color.white, spec.BodyWhiten);
@@ -88,7 +89,11 @@ namespace WitchMendokusai
 				if (renderer is SpriteRenderer || renderer is ParticleSystemRenderer)
 					continue;
 				if (renderer.sharedMaterial == null || renderer.sharedMaterial.HasProperty("_Color") == false)
-					throw new InvalidOperationException($"{spec.Id}: {renderer.name} 머티리얼에 _Color 없음, 속성색을 못 넣음");
+				{
+					if (strict)
+						throw new InvalidOperationException($"{spec.Id}: {renderer.name} 머티리얼에 _Color 없음, 속성색을 못 넣음");
+					continue;
+				}
 				renderer.sharedMaterial = ElementMaterial(renderer.sharedMaterial, spec.Element, spec.Color);
 			}
 			// 입자는 시작 색. 알파는 바탕 값 그대로

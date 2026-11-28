@@ -25,7 +25,9 @@ namespace WitchMendokusai
 			EnsureFolder(SkillMaterialAssets.WEAPON_DIR);
 			EnsureFolder(SkillMaterialAssets.SHOT_DIR);
 			int removed = RemoveStale(specs);
-			BuildSpecs(specs);
+			List<string> failures = BuildSpecs(specs);
+			if (failures.Count > 0)
+				throw new InvalidOperationException($"[SkillMaterials] 실패 {failures.Count}개: {string.Join(" | ", failures)}");
 			Debug.Log($"[SkillMaterials] {specs.Count}개 구움, 지난 결과물 {removed}개 지움 -> {SkillMaterialAssets.WEAPON_DIR}");
 		}
 
@@ -39,20 +41,34 @@ namespace WitchMendokusai
 			EnsureFolder(SkillMaterialAssets.WEAPON_DIR);
 			EnsureFolder(SkillMaterialAssets.SHOT_DIR);
 			List<SkillMaterialSpec> range = specs.Skip(from).Take(count).ToList();
-			BuildSpecs(range);
-			return $"{from}+{range.Count}/{specs.Count}";
+			List<string> failures = BuildSpecs(range);
+			return $"{from}+{range.Count}/{specs.Count} fails={failures.Count} {string.Join(" | ", failures)}";
 		}
 
 		public static int Clean() => RemoveStale(SkillMaterialCatalog.Load());
 
-		private static void BuildSpecs(List<SkillMaterialSpec> specs)
+		// 재료 하나가 실패해도 나머지는 굽고 실패를 모아 돌려줌 (바탕 프리팹 문제 하나로 수백 개가 멈추지 않게). 실패는 숨기지 않고 호출자가 보고
+		private static List<string> BuildSpecs(List<SkillMaterialSpec> specs)
 		{
+			List<string> failures = new();
 			foreach (SkillMaterialSpec spec in specs)
 			{
-				GameObject shot = SkillMaterialForms.Get(spec.Form).BuildShot(spec);
-				BuildWeapon(spec, shot);
+				try
+				{
+					ISkillMaterialForm form = SkillMaterialForms.Get(spec.Form);
+					if (form is ISkillMaterialWeaponForm weaponForm)
+						weaponForm.BuildWeapon(spec);
+					else
+						BuildWeapon(spec, form.BuildShot(spec));
+				}
+				catch (Exception exception)
+				{
+					failures.Add($"{spec.Id}: {exception.Message}");
+					Debug.LogError($"[SkillMaterials] {spec.Id} 굽기 실패: {exception}");
+				}
 			}
 			AssetDatabase.SaveAssets();
+			return failures;
 		}
 
 		// 무기는 모양과 무관하게 Spawner 하나. 투사체 수 카드는 SpawnerInitializer 가 받음 (기존 시험 무기와 같은 꼴)
@@ -70,6 +86,7 @@ namespace WitchMendokusai
 					("spawnAimStrategy", (int)Enum.Parse(typeof(SpawnAimStrategy), spec.Text("SpawnAim"))),
 					("baseInterval", spec.Float("Interval")),
 					("targetRange", spec.Float("Range")),
+					("spreadDegrees", spec.Float("Spread")),
 					("attackSpeedBonusStatType", (int)UnitStatType.NONE),
 					("scaleBonusStatType", (int)UnitStatType.NONE),
 					("damageBonusStatType", (int)UnitStatType.NONE));
@@ -97,7 +114,9 @@ namespace WitchMendokusai
 			{
 				string path = AssetDatabase.GUIDToAssetPath(guid);
 				string name = System.IO.Path.GetFileNameWithoutExtension(path);
-				string id = name.EndsWith("_Shot", StringComparison.Ordinal) ? name.Substring(0, name.Length - "_Shot".Length) : name;
+				// 탄은 <재료>_Shot, 터짐 복제는 <재료>_Shot_Blast0 꼴. 재료 이름은 _Shot 앞까지
+				int shotMark = name.IndexOf("_Shot", StringComparison.Ordinal);
+				string id = shotMark >= 0 ? name.Substring(0, shotMark) : name;
 				if (keep.Contains(id))
 					continue;
 				AssetDatabase.DeleteAsset(path);

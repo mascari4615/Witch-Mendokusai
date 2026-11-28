@@ -21,9 +21,28 @@ namespace WitchMendokusai
 		private static readonly Dictionary<string, ISkillMaterialForm> forms = Register(
 			new LineShotForm("LineShot"),
 			new LineShotForm("PierceShot"),
+			// 갈고리: 음수 넉백으로 쏜 쪽에 끌어옴. 부채꼴: 여러 발을 퍼짐 각도로 동시에
+			new LineShotForm("Hook"),
+			new LineShotForm("Fan"),
 			new AreaForm("Zone"),
 			new AreaForm("NovaSelf"),
-			new AreaForm("GroundCircle"));
+			new AreaForm("GroundCircle"),
+			// 오라: 나를 따라다니는 장판 (오라, 정신 집중, 전역 근사)
+			new AreaForm("Aura", followUser: true),
+			new DashForm("Dash"),
+			new ChainForm("Chain"),
+			new CloneForm("Lob"),
+			new CloneForm("Slash"),
+			new CloneForm("Orbit"),
+			new CloneForm("Trail"),
+			new CloneForm("Strike"),
+			new SummonForm("Summon"),
+			new ReturnForm("Return"),
+			new BeamForm("Beam"),
+			new SelfForm("SelfBuff"),
+			new SelfForm("SelfShield"),
+			new SelfForm("SelfHeal"),
+			new SelfForm("SelfTransform"));
 
 		public static bool Has(string name) => forms.ContainsKey(name);
 
@@ -58,7 +77,7 @@ namespace WitchMendokusai
 				foreach (ChainOnHit chain in root.GetComponentsInChildren<ChainOnHit>(true))
 					UnityEngine.Object.DestroyImmediate(chain);
 				SkillMaterialAssets.SetFields(root.GetComponent<BulletMovement>(), ("moveSpeed", spec.Float("ShotSpeed")), ("useAutoAim", true));
-				SkillMaterialAssets.SetFields(root.GetComponent<DamagingObject>(), ("damage", spec.Int("Damage")), ("useHitCount", true), ("hitCount", spec.Int("HitCount")), ("disableWhenInvalid", true), ("hitOncePerTarget", true));
+				SkillMaterialAssets.SetFields(root.GetComponent<DamagingObject>(), ("damage", spec.Int("Damage")), ("useHitCount", true), ("hitCount", spec.Int("HitCount")), ("disableWhenInvalid", true), ("hitOncePerTarget", true), ("knockbackForce", spec.Float("Knockback")));
 				SkillMaterialAssets.SetFields(root.GetComponent<ObjectWithTime>(), ("duration", spec.Float("Lifetime")));
 				SkillMaterialAssets.AddEffects(root, spec);
 				SkillMaterialAssets.ApplyLook(root, spec);
@@ -75,7 +94,13 @@ namespace WitchMendokusai
 	// 놓이는 자리 (내 발밑, 가까운 적) 는 무기의 SpawnPosition 이 정함
 	internal sealed class AreaForm : ISkillMaterialForm
 	{
-		public AreaForm(string name) => Name = name;
+		private readonly bool followUser;
+
+		public AreaForm(string name, bool followUser = false)
+		{
+			Name = name;
+			this.followUser = followUser;
+		}
 
 		public string Name { get; }
 		public bool AcceptsLayers => true;
@@ -93,6 +118,8 @@ namespace WitchMendokusai
 				SkillMaterialAssets.SetFields(feel, ("moment.Shake", spec.Float("Shake")));
 				SkillMaterialAssets.SetColor(feel, "moment.Color", spec.Color);
 				SkillMaterialAssets.SetFields(root.GetComponent<ObjectWithTime>(), ("duration", spec.Float("Lifetime")));
+				if (followUser)
+					root.AddComponent<FollowUser>();
 				SkillMaterialAssets.AddEffects(root, spec);
 				SkillMaterialAssets.AddLayers(root, spec);
 				SkillMaterialAssets.ApplyLook(root, spec);

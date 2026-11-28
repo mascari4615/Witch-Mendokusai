@@ -9,20 +9,23 @@
 		"Count": 1,
 		"SpawnDelay": 0.08,
 		"SpawnPosition": "Player",
-		"SpawnAim": "NearestEnemy"
+		"SpawnAim": "NearestEnemy",
+		"Spread": 0
 	},
 	"Forms": {
 		"LineShot": {
 			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
 			"ShotSpeed": 18,
 			"HitCount": 1,
-			"Lifetime": 1.2
+			"Lifetime": 1.2,
+			"Knockback": 12
 		},
 		"PierceShot": {
 			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
 			"ShotSpeed": 22,
 			"HitCount": 99,
-			"Lifetime": 1.0
+			"Lifetime": 1.0,
+			"Knockback": 8
 		},
 		"Zone": {
 			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Flask/FlaskField.prefab",
@@ -73,6 +76,176 @@
 			"Knockback": 6,
 			"Hitstop": 0.04,
 			"Shake": 0.1
+		},
+		"Dash": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
+			"SpreadSpeed": 10,
+			"SpreadSeconds": 0.3,
+			"AimSeconds": 0.2,
+			"DashSpeed": 26,
+			"HitCount": 99,
+			"Lifetime": 1.6,
+			"Knockback": 10,
+			"Count": 3,
+			"SpawnDelay": 0
+		},
+		"Chain": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
+			"ShotSpeed": 14,
+			"RetargetRange": 5,
+			"HitPause": 0.15,
+			"ChainHits": 4,
+			"Lifetime": 3.0,
+			"Knockback": 4
+		},
+		"Lob": {
+			"Template": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/Resources/DevTrialWeapons/TrialFirePillar.prefab"
+		},
+		"Slash": {
+			"Template": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/Resources/DevTrialWeapons/TrialMoveSlash.prefab"
+		},
+		"Orbit": {
+			"Template": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/Resources/DevTrialWeapons/TrialRotatingShots.prefab"
+		},
+		"Trail": {
+			"Template": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/Resources/DevTrialWeapons/TrialTrail.prefab"
+		},
+		"Strike": {
+			"Template": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/Resources/DevTrialWeapons/TrialDenseStrike.prefab"
+		},
+		"Hook": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
+			"ShotSpeed": 20,
+			"HitCount": 1,
+			"Lifetime": 1.0,
+			"Knockback": -28
+		},
+		"Fan": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
+			"ShotSpeed": 18,
+			"HitCount": 1,
+			"Lifetime": 0.9,
+			"Knockback": 6,
+			"Count": 5,
+			"Spread": 40,
+			"SpawnDelay": 0
+		},
+		"Aura": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Flask/FlaskField.prefab",
+			"Radius": 2.6,
+			"Lifetime": 3.0,
+			"RehitInterval": 0.5,
+			"Interval": 3.2,
+			"SpawnPosition": "Player",
+			"SpawnAim": "None",
+			"Knockback": 0,
+			"Hitstop": 0,
+			"Shake": 0
+		},
+		"Summon": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Companion/StrawDollSummonObject.prefab",
+			"ShotTemplate": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
+			"Interval": 10.0,
+			"SummonLifetime": 8.0,
+			"MaxActive": 1,
+			"FireInterval": 0.9,
+			"Range": 6,
+			"ShotSpeed": 18,
+			"HitCount": 1,
+			"Lifetime": 0.8,
+			"Knockback": 6
+		},
+		"Return": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
+			"OutboundSpeed": 16,
+			"OutboundSeconds": 0.6,
+			"ReturnSpeed": 18,
+			"CatchDistance": 0.8,
+			"SpinDegrees": 720,
+			"HitCount": 99,
+			"Lifetime": 3.0,
+			"Knockback": 6,
+			"Interval": 1.4
+		},
+		"Beam": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Beam/BeamShot.prefab",
+			"BeamLength": 12,
+			"BeamWidth": 0.9,
+			"Lifetime": 0.25,
+			"Knockback": 2,
+			"Hitstop": 0.02,
+			"Interval": 1.6
+		},
+		"SelfBuff": {
+			"SelfKind": "Buff",
+			"BuffStat": "DAMAGE_BONUS",
+			"BuffAmount": 20,
+			"Radius": 1.6,
+			"Lifetime": 4.0,
+			"Interval": 8.0,
+			"SpawnPosition": "Player",
+			"SpawnAim": "None",
+			"SpawnDelay": 0,
+			"Layers": [
+				{
+					"Kind": "Burst",
+					"Seconds": 0.5,
+					"RingSeconds": 0.35
+				}
+			]
+		},
+		"SelfShield": {
+			"SelfKind": "Shield",
+			"ShieldCharges": 1,
+			"InvincibleSeconds": 0.5,
+			"Radius": 1.4,
+			"Lifetime": 5.0,
+			"Interval": 10.0,
+			"SpawnPosition": "Player",
+			"SpawnAim": "None",
+			"SpawnDelay": 0,
+			"Layers": [
+				{
+					"Kind": "Burst",
+					"Seconds": 0.45,
+					"RingSeconds": 0.32
+				}
+			]
+		},
+		"SelfHeal": {
+			"SelfKind": "Heal",
+			"HealAmount": 5,
+			"Radius": 1.4,
+			"Lifetime": 0.5,
+			"Interval": 6.0,
+			"SpawnPosition": "Player",
+			"SpawnAim": "None",
+			"SpawnDelay": 0,
+			"Layers": [
+				{
+					"Kind": "Burst",
+					"Seconds": 0.45,
+					"RingSeconds": 0.32
+				}
+			]
+		},
+		"SelfTransform": {
+			"SelfKind": "Buff",
+			"BuffStat": "DAMAGE_BONUS",
+			"BuffAmount": 40,
+			"Radius": 2.2,
+			"Lifetime": 6.0,
+			"Interval": 14.0,
+			"SpawnPosition": "Player",
+			"SpawnAim": "None",
+			"SpawnDelay": 0,
+			"Layers": [
+				{
+					"Kind": "Burst",
+					"Seconds": 0.6,
+					"RingSeconds": 0.4
+				}
+			]
 		}
 	},
 	"Recipes": [
