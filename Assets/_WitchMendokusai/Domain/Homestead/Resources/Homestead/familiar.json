@@ -1,0 +1,7 @@
+{
+	"Familiars": [
+		{"Id": "fm_moss", "Name": "이끼 방울", "Note": "임시 이름과 모습. 던전에서 처음 돌아온 날 문 앞에 알", "Event": "expedition", "EventCount": 1, "Pickup": 20},
+		{"Id": "fm_ember", "Name": "불씨 방울", "Note": "임시 이름과 모습. 첫 보스를 쓰러뜨리면 알", "Event": "boss", "EventCount": 1, "Pickup": 30},
+		{"Id": "fm_star", "Name": "별 방울", "Note": "임시 이름과 모습. 길드 레벨 4 나 보스 세 번", "Event": "boss", "EventCount": 3, "GuildLevel": 4, "Pickup": 40}
+	]
+}

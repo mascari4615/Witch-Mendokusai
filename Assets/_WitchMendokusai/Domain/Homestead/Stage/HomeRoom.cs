@@ -152,12 +152,17 @@ namespace WitchMendokusai
 			cookSpot = AddSpot("CookSpot", "화덕", CookRole, () => manager.Panels.Show(HomesteadPanelType.Cook), () => "요리");
 			cookSpot.position = house.CookSpot.position;
 			restSpot.position = house.RestSpot.position;
+			BuildFamiliars();
 		}
 
 		private Transform AddSpot(string objectName, string spotName, System.Func<string> role, System.Action use, System.Func<string> verb) =>
 			HomesteadSpot.Create(room, Vector3.zero, objectName, () => spotName, role, use, verb).transform;
 
-		private void Refresh() => RefreshFurniture();
+		private void Refresh()
+		{
+			RefreshFurniture();
+			RefreshFamiliars();
+		}
 
 		private void RefreshFurniture()
 		{

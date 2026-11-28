@@ -206,6 +206,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				Need<GoodsDef>(catalog, animal.FineProduct, animal.Id, problems);
 			}
 			CheckCooks(catalog, problems);
+			CheckFamiliars(catalog, problems);
 		}
 
 		// 요리법은 음식 하나에 하나 (식탁 버프를 음식으로 찾음). 나는 것은 Dish, 열림 물건은 있는 것
@@ -243,6 +244,26 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				if (cook.Value <= 0)
 				{
 					problems.Add($"{cook.Id}: 버프 값 {cook.Value}");
+				}
+			}
+		}
+
+		// 사역마마다 길드 레벨 아닌 길 (사건) 이 있음. 주민이 오는 길과 같은 원칙. 줍기 반경은 1~100%
+		private static void CheckFamiliars(HomesteadCatalog catalog, List<string> problems)
+		{
+			foreach (FamiliarDef familiar in catalog.Familiars)
+			{
+				if (familiar.Event.Length == 0 || familiar.EventCount < 1)
+				{
+					problems.Add($"{familiar.Id}: 길드 레벨 아닌 알 길 (Event) 이 없음");
+				}
+				if (familiar.GuildLevel > catalog.Tuning.GuildSteps.Count)
+				{
+					problems.Add($"{familiar.Id}: 길드 레벨 {familiar.GuildLevel} 은 끝 {catalog.Tuning.GuildSteps.Count} 너머");
+				}
+				if (familiar.Pickup < 1 || familiar.Pickup > 100)
+				{
+					problems.Add($"{familiar.Id}: 줍기 반경 {familiar.Pickup}%");
 				}
 			}
 		}

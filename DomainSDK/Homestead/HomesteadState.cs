@@ -68,6 +68,10 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		// 식탁에 올린 음식 (물건 id). 다음 던전이 시작될 때 먹고 비움. 빈 글자면 빈 식탁
 		public string Meal { get; set; } = string.Empty;
 
+		// 깨운 사역마, 깨운 순서. 데려갈 하나 (빈 글자면 없음)
+		public List<FamiliarState> Familiars { get; set; } = new List<FamiliarState>();
+		public string FamiliarWith { get; set; } = string.Empty;
+
 		// 이미 알린 일. 귀환 소식과 첫 안내가 되풀이되지 않게
 		public List<string> Seen { get; set; } = new List<string>();
 	}
@@ -131,6 +135,12 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int Affinity { get; set; }
 		public long CareDay { get; set; } = -1;
 		public long ProductSince { get; set; }
+	}
+
+	public sealed class FamiliarState
+	{
+		public string Id { get; set; } = string.Empty;
+		public long PetDay { get; set; } = -1;
 	}
 
 	public sealed class CraftState

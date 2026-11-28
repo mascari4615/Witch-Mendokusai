@@ -209,6 +209,7 @@ namespace WitchMendokusai
 		// 결과창에서 바로 다시 하는 판도 이 신호가 오지만 식탁이 이미 비어 아무것도 안 함
 		private void OnDungeonStart()
 		{
+			ApplyFamiliar();
 			CookDef meal = Sim.EatMeal();
 			if (meal == null)
 				return;
@@ -221,6 +222,24 @@ namespace WitchMendokusai
 			});
 			Save();
 			Debug.Log($"[{nameof(HomesteadManager)}] 식탁 음식 {meal.Output}: {meal.Buff} +{meal.Value}");
+		}
+
+		// 데려간 사역마. 식탁처럼 판 시작 Init 뒤에 걸어 이 판에만, 비우지 않아 다음 판에도 다시 걸림
+		private void ApplyFamiliar()
+		{
+			FamiliarDef familiar = Sim.FamiliarForRun();
+			if (familiar == null)
+				return;
+			effectRunner.ApplyEffect(new EffectInfo
+			{
+				Type = EffectType.UnitStat,
+				Data = SOHelper.GetUnitStatData(UnitStatType.PICKUP_RADIUS_BONUS),
+				ArithmeticOperator = ArithmeticOperator.Add,
+				Value = familiar.Pickup,
+			});
+			// 줍기 반경은 스탯이 바뀌어도 알림이 없어 직접 다시 잼 (강화 뒤 GameManager 와 같은 호출)
+			container.Resolve<PlayerProvider>().Current.UpdatePickupRange();
+			Debug.Log($"[{nameof(HomesteadManager)}] 사역마 {familiar.Id}: 줍기 반경 +{familiar.Pickup}%");
 		}
 
 		public static UnitStatType MealStat(MealBuff buff)

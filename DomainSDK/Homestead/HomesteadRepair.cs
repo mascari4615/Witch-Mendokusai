@@ -91,6 +91,12 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				dropped.Add(state.Restoring.Relic);
 				state.Restoring = null;
 			}
+			Drop<FamiliarDef, FamiliarState>(state.Familiars, familiar => familiar.Id, catalog, dropped);
+			if (state.FamiliarWith.Length > 0 && state.Familiars.Exists(familiar => familiar.Id == state.FamiliarWith) == false)
+			{
+				dropped.Add(state.FamiliarWith);
+				state.FamiliarWith = string.Empty;
+			}
 			// 식탁 음식은 요리법이 있는 음식만. 자료에서 빠졌으면 먹지 않고 비움
 			if (state.Meal.Length > 0 && catalog.Cooks.Exists(cook => cook.Output == state.Meal) == false)
 			{

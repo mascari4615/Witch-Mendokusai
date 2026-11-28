@@ -239,6 +239,18 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int Value { get; set; }
 	}
 
+	// 사역마 하나. 알이 집에 오면 깨우고, 데려갈 하나를 고르면 던전 한 판마다 줍기 반경을 늘림
+	// - 알이 오는 길: Event 사건이 EventCount 번 있었거나, GuildLevel (1 보다 클 때) 에 닿음. 둘 중 하나
+	// - 일하지 않고 산물도 없음 (일은 인형, 산물은 목장). 배고픔과 떠남 없음
+	public sealed class FamiliarDef : HomesteadDef
+	{
+		public string Event { get; set; } = string.Empty;
+		public int EventCount { get; set; } = 1;
+		public int GuildLevel { get; set; }
+		// 데려가면 판 시작에 더하는 줍기 반경 (%)
+		public int Pickup { get; set; }
+	}
+
 	public sealed class RequestDef : HomesteadDef
 	{
 		public int GuildLevel { get; set; } = 1;
