@@ -49,6 +49,16 @@ namespace WitchMendokusai
 		public static string KindName(GoodsKind kind) => KIND_NAMES[kind];
 		public static string MealBuffName(MealBuff buff) => MEAL_BUFF_NAMES[buff];
 
+		// 오늘의 점. 줍는 범위와 냥은 퍼센트, 치명타는 확률 퍼센트 포인트
+		private static readonly Dictionary<OmenBuff, string> OMEN_NAMES = new()
+		{
+			{ OmenBuff.Pickup, "줍는 범위" },
+			{ OmenBuff.Gold, "냥" },
+			{ OmenBuff.Crit, "치명타 확률" },
+		};
+
+		public static string OmenText(OmenBuff buff, int value) => $"{OMEN_NAMES[buff]} +{value}%";
+
 		// 단위까지. 이동은 능력치를 초당 칸으로 (InputContributor.STAT_PER_UNIT_PER_SECOND), 회복은 던전 재생 주기 (SurvivalFeel)
 		public static string MealBuffText(MealBuff buff, int value)
 		{

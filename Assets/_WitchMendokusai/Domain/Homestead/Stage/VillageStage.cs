@@ -125,6 +125,7 @@ namespace WitchMendokusai
 			VillageLook.Ensure(transform);
 			Sim.SetVillageBlocked(BlockedCells());
 			BuildSites();
+			BuildStars();
 			BuildFarm();
 			BuildWild();
 			BuildWater();

@@ -206,6 +206,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				Need<GoodsDef>(catalog, animal.FineProduct, animal.Id, problems);
 			}
 			CheckCooks(catalog, problems);
+			StarSkyCheck.Check(catalog, problems);
 		}
 
 		// 요리법은 음식 하나에 하나 (식탁 버프를 음식으로 찾음). 나는 것은 Dish, 열림 물건은 있는 것

@@ -1135,3 +1135,118 @@
     border-color: rgba(255, 255, 255, 0.3);
     border-radius: 16px;
 }
+
+/* ---- 별 보는 언덕 (UIStarPanel, StarBoard) */
+.wm-hs-star__shade {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(8, 10, 28, 0.78);
+}
+
+.wm-hs-star {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.wm-hs-star__title {
+    font-size: 26px;
+    color: rgb(250, 240, 200);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.wm-hs-star__message {
+    margin: 6px 0 12px 0;
+    max-width: 760px;
+    font-size: 17px;
+    white-space: normal;
+    color: rgb(220, 222, 245);
+    -unity-text-align: middle-center;
+}
+
+.wm-hs-star__row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.wm-hs-star__board {
+    width: 420px;
+    height: 420px;
+    margin: 0 12px 12px 12px;
+    border-width: 2px;
+    border-color: rgba(190, 200, 255, 0.25);
+    border-radius: 20px;
+    background-color: rgba(20, 24, 60, 0.6);
+    --wm-hs-star-guide: rgba(200, 210, 255, 0.22);
+    --wm-hs-star-line: rgb(255, 230, 150);
+    --wm-hs-star-guide-width: 2;
+    --wm-hs-star-line-width: 5;
+}
+
+.wm-hs-star__board--done {
+    border-color: rgba(255, 220, 140, 0.8);
+}
+
+.wm-hs-star__dot {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    margin-left: -20px;
+    margin-top: -20px;
+    border-radius: 20px;
+    background-color: rgba(255, 250, 220, 0.12);
+    border-width: 6px;
+    border-color: rgba(255, 250, 220, 0.0);
+}
+
+.wm-hs-star__dot--selected {
+    background-color: rgba(255, 230, 150, 0.5);
+    border-color: rgba(255, 230, 150, 0.35);
+}
+
+.wm-hs-star__atlas {
+    width: 220px;
+    padding: 10px 14px;
+    border-radius: 16px;
+    background-color: rgba(15, 12, 30, 0.6);
+}
+
+.wm-hs-star__atlas-head {
+    font-size: 16px;
+    margin-bottom: 6px;
+    color: rgb(250, 240, 200);
+}
+
+.wm-hs-star__atlas-entry {
+    font-size: 15px;
+    color: rgb(230, 232, 250);
+}
+
+.wm-hs-star__atlas-entry--unknown {
+    color: rgba(200, 205, 235, 0.4);
+}
+
+.wm-hs-star__atlas-entry--tonight {
+    color: rgb(255, 230, 150);
+}
+
+.wm-hs-star__close {
+    margin-top: 10px;
+    min-width: 112px;
+    height: 52px;
+    padding: 0 16px;
+    font-size: 18px;
+    -unity-text-align: middle-center;
+    color: rgb(245, 240, 250);
+    background-color: rgba(15, 12, 20, 0.72);
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+}

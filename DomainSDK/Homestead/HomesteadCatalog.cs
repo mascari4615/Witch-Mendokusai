@@ -23,6 +23,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public List<JobDef> Jobs { get; set; } = new List<JobDef>();
 		public List<RecipeDef> Recipes { get; set; } = new List<RecipeDef>();
 		public List<CookDef> Cooks { get; set; } = new List<CookDef>();
+		public StarTuning StarTuning { get; set; } = new StarTuning();
+		public List<ConstellationDef> Constellations { get; set; } = new List<ConstellationDef>();
 		public List<RequestDef> Requests { get; set; } = new List<RequestDef>();
 		public List<HouseTierDef> HouseTiers { get; set; } = new List<HouseTierDef>();
 		public List<FurnitureDef> Furniture { get; set; } = new List<FurnitureDef>();
@@ -90,6 +92,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			if (type == typeof(JobDef)) return Jobs;
 			if (type == typeof(RecipeDef)) return Recipes;
 			if (type == typeof(CookDef)) return Cooks;
+			if (type == typeof(ConstellationDef)) return Constellations;
 			if (type == typeof(RequestDef)) return Requests;
 			if (type == typeof(FurnitureDef)) return Furniture;
 			if (type == typeof(CostumeDef)) return Costumes;

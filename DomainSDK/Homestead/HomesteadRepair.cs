@@ -54,6 +54,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			DropKeys<GoodsDef>(state.Store, catalog, dropped);
 			DropItems<GoodsDef>(state.Known, catalog, dropped);
 			DropItems<GoodsDef>(state.Donated, catalog, dropped);
+			DropItems<ConstellationDef>(state.Constellations, catalog, dropped);
 			DropKeys<BuildingDef>(state.Buildings, catalog, dropped);
 			DropKeys<ResidentDef>(state.Residents, catalog, dropped);
 			DropKeys<FurnitureDef>(state.OwnedFurniture, catalog, dropped);
@@ -96,6 +97,11 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				dropped.Add(state.Meal);
 				state.Meal = string.Empty;
+			}
+			if (state.Omen.Length > 0 && catalog.TryGet<ConstellationDef>(state.Omen, out ConstellationDef _) == false)
+			{
+				dropped.Add(state.Omen);
+				state.Omen = string.Empty;
 			}
 			return dropped;
 		}

@@ -20,6 +20,7 @@ namespace WitchMendokusai
 		Workshop = 10,
 		Bench = 11,
 		Cook = 12,
+		Stars = 16,
 	}
 
 	// 생활 화면 묶음. 마을에 처음 들어설 때 HomesteadManager 가 만듦
@@ -59,6 +60,10 @@ namespace WitchMendokusai
 			UIRoomPanel room = UIManager.CreateToolkitPanel<UIRoomPanel>();
 			Panels[HomesteadPanelType.Room] = room;
 			created.Add(room);
+			UIStarPanel stars = UIManager.CreateToolkitPanel<UIStarPanel>();
+			stars.Open(manager);
+			Panels[HomesteadPanelType.Stars] = stars;
+			created.Add(stars);
 			Fishing = UIManager.CreateToolkitPanel<UIFishingPanel>();
 			Panels[HomesteadPanelType.Fishing] = Fishing;
 			created.Add(Fishing);

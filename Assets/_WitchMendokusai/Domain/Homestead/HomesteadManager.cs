@@ -172,7 +172,7 @@ namespace WitchMendokusai
 		public int Hour => WorldClock.TryGetExistingInstance(out WorldClock clock) ? clock.Hour : 0;
 		public int Minute => WorldClock.TryGetExistingInstance(out WorldClock clock) ? clock.Minute : 0;
 
-		private long CalendarDay => WorldClock.TryGetExistingInstance(out WorldClock clock) ? ClockMinutes(clock) / Sim.Catalog.Tuning.MinutesPerDay : Sim.Day;
+		public long CalendarDay => WorldClock.TryGetExistingInstance(out WorldClock clock) ? ClockMinutes(clock) / Sim.Catalog.Tuning.MinutesPerDay : Sim.Day;
 
 		public bool CanRest => Sim.CanRest(CalendarDay);
 
@@ -210,17 +210,43 @@ namespace WitchMendokusai
 		private void OnDungeonStart()
 		{
 			CookDef meal = Sim.EatMeal();
-			if (meal == null)
-				return;
-			effectRunner.ApplyEffect(new EffectInfo
+			ConstellationDef omen = Sim.TakeOmen();
+			if (meal != null)
 			{
-				Type = EffectType.UnitStat,
-				Data = SOHelper.GetUnitStatData(MealStat(meal.Buff)),
-				ArithmeticOperator = ArithmeticOperator.Add,
-				Value = meal.Value,
-			});
-			Save();
-			Debug.Log($"[{nameof(HomesteadManager)}] 식탁 음식 {meal.Output}: {meal.Buff} +{meal.Value}");
+				ApplyStat(MealStat(meal.Buff), meal.Value);
+				Debug.Log($"[{nameof(HomesteadManager)}] 식탁 음식 {meal.Output}: {meal.Buff} +{meal.Value}");
+			}
+			// 오늘의 점 (별 보는 언덕). 음식과 따로 한 판만
+			if (omen != null)
+			{
+				ApplyStat(OmenStat(omen.Omen), omen.Value);
+				Debug.Log($"[{nameof(HomesteadManager)}] 오늘의 점 {omen.Id}: {omen.Omen} +{omen.Value}");
+			}
+			if (meal != null || omen != null)
+				Save();
+		}
+
+		private void ApplyStat(UnitStatType stat, int value) => effectRunner.ApplyEffect(new EffectInfo
+		{
+			Type = EffectType.UnitStat,
+			Data = SOHelper.GetUnitStatData(stat),
+			ArithmeticOperator = ArithmeticOperator.Add,
+			Value = value,
+		});
+
+		public static UnitStatType OmenStat(OmenBuff buff)
+		{
+			switch (buff)
+			{
+				case OmenBuff.Pickup:
+					return UnitStatType.PICKUP_RADIUS_BONUS;
+				case OmenBuff.Gold:
+					return UnitStatType.GOLD_BONUS;
+				case OmenBuff.Crit:
+					return UnitStatType.CRITICAL_CHANCE;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(buff), buff, null);
+			}
 		}
 
 		public static UnitStatType MealStat(MealBuff buff)
