@@ -10,7 +10,7 @@ namespace WitchMendokusai.Tests
 		private const string BASE = @"{
 			""Look"": { ""BodyWhiten"": 0.3 },
 			""Defaults"": { ""Damage"": 5, ""Interval"": 1.0 },
-			""Forms"": { ""LineShot"": { ""ShotSpeed"": 18 } },
+			""Forms"": { ""LineShot"": { ""ShotSpeed"": 18 }, ""NovaSelf"": { ""Radius"": 3, ""Layers"": [ { ""Kind"": ""Burst"", ""Seconds"": 0.4, ""RingSeconds"": 0.3 } ] } },
 			""Elements"": { ""ice"": { ""r"": 0.4, ""g"": 0.8, ""b"": 1.0, ""Art"": ""Assets/x.asset"" } },
 			""Recipes"": [ RECIPE ]
 		}";
@@ -57,15 +57,33 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
-		public void Layers_come_from_recipe_or_form_and_unknown_fail()
+		public void Layers_come_from_form_or_recipe_and_follow_form_radius()
 		{
-			string burst = @"{ ""Kind"": ""Burst"", ""Radius"": 2, ""Seconds"": 0.4, ""RingSeconds"": 0.3 }";
-			SkillMaterialSpec withLayer = Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""ice"", ""Layers"": [" + burst + "] }")[0];
-			Assert.AreEqual(1, withLayer.Layers.Count);
-			Assert.AreEqual("Burst", withLayer.Layers[0].Kind);
+			SkillMaterialSpec fromForm = Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""NovaSelf"", ""Element"": ""ice"" }")[0];
+			Assert.AreEqual(1, fromForm.Layers.Count);
+			Assert.AreEqual(3f, fromForm.Layers[0].Radius, "겹 반지름을 빼면 모양 반지름");
+			SkillMaterialSpec bigger = Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""NovaSelf"", ""Element"": ""ice"", ""Radius"": 5 }")[0];
+			Assert.AreEqual(5f, bigger.Layers[0].Radius, "레시피가 반지름을 바꾸면 그림도 따라감");
+			SkillMaterialSpec own = Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""NovaSelf"", ""Element"": ""ice"", ""Layers"": [ { ""Kind"": ""Burst"", ""Radius"": 2, ""Seconds"": 1, ""RingSeconds"": 1 } ] }")[0];
+			Assert.AreEqual(2f, own.Layers[0].Radius);
 			Assert.AreEqual(0, Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""ice"" }")[0].Layers.Count);
-			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""ice"", ""Layers"": [ { ""Kind"": ""Nope"" } ] }"));
-			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""ice"", ""Layers"": [ { ""Kind"": ""Burst"", ""Radius"": 2, ""Seconds"": 1, ""RingSeconds"": 1, ""Colour"": 1 } ] }"));
+		}
+
+		[Test]
+		public void Bad_layers_fail_while_parsing()
+		{
+			// 탄 모양은 아직 겹을 받지 않음. 굽기 전에 목록 단계에서 실패
+			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""ice"", ""Layers"": [ { ""Kind"": ""Burst"", ""Seconds"": 1, ""RingSeconds"": 1 } ] }"));
+			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""NovaSelf"", ""Element"": ""ice"", ""Layers"": [ { ""Kind"": ""Nope"" } ] }"));
+			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""NovaSelf"", ""Element"": ""ice"", ""Layers"": [ { ""Kind"": ""Burst"", ""Seconds"": 1, ""RingSeconds"": 1, ""Colour"": 1 } ] }"));
+			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""NovaSelf"", ""Element"": ""ice"", ""Layers"": 3 }"));
+			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""NovaSelf"", ""Element"": ""ice"", ""Effects"": ""Slow"" }"));
+		}
+
+		[Test]
+		public void Element_without_art_fails()
+		{
+			Assert.Throws<InvalidOperationException>(() => SkillMaterialCatalog.Parse(BASE.Replace(@", ""Art"": ""Assets/x.asset""", "").Replace("RECIPE", @"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""ice"" }")));
 		}
 
 		[Test]

@@ -1,0 +1,6 @@
+# 스킬 재료 굽기 결과물 (메뉴 WM/SkillMaterials/Build). 재료 수백 개라 커밋하지 않고 각자 구움
+# 정본은 Editor/SkillMaterials 의 목록과 굽는 법. 실행 파일에 Resources 로 수백 개가 들어가는 것도 막음
+/Resources/DevTrialWeapons/SkillMaterials/
+/Resources/DevTrialWeapons/SkillMaterials.meta
+/SkillMaterialShots/
+/SkillMaterialShots.meta

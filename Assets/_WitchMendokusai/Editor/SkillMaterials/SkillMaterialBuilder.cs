@@ -25,13 +25,34 @@ namespace WitchMendokusai
 			EnsureFolder(SkillMaterialAssets.WEAPON_DIR);
 			EnsureFolder(SkillMaterialAssets.SHOT_DIR);
 			int removed = RemoveStale(specs);
+			BuildSpecs(specs);
+			Debug.Log($"[SkillMaterials] {specs.Count}개 구움, 지난 결과물 {removed}개 지움 -> {SkillMaterialAssets.WEAPON_DIR}");
+		}
+
+		// 나눠 굽기. 재료가 수백 개면 한 번에 구우면 원격 명령 시간 한도를 넘음. 목록 전체를 검증한 뒤 [from, from+count) 만
+		// 지난 결과물 정리는 하지 않음 (다 구운 뒤 Clean 한 번)
+		public static string BuildRange(int from, int count)
+		{
+			if (EditorApplication.isPlayingOrWillChangePlaymode)
+				throw new InvalidOperationException("Play 중에는 굽지 않음");
+			List<SkillMaterialSpec> specs = SkillMaterialCatalog.Load();
+			EnsureFolder(SkillMaterialAssets.WEAPON_DIR);
+			EnsureFolder(SkillMaterialAssets.SHOT_DIR);
+			List<SkillMaterialSpec> range = specs.Skip(from).Take(count).ToList();
+			BuildSpecs(range);
+			return $"{from}+{range.Count}/{specs.Count}";
+		}
+
+		public static int Clean() => RemoveStale(SkillMaterialCatalog.Load());
+
+		private static void BuildSpecs(List<SkillMaterialSpec> specs)
+		{
 			foreach (SkillMaterialSpec spec in specs)
 			{
 				GameObject shot = SkillMaterialForms.Get(spec.Form).BuildShot(spec);
 				BuildWeapon(spec, shot);
 			}
 			AssetDatabase.SaveAssets();
-			Debug.Log($"[SkillMaterials] {specs.Count}개 구움, 지난 결과물 {removed}개 지움 -> {SkillMaterialAssets.WEAPON_DIR}");
 		}
 
 		// 무기는 모양과 무관하게 Spawner 하나. 투사체 수 카드는 SpawnerInitializer 가 받음 (기존 시험 무기와 같은 꼴)

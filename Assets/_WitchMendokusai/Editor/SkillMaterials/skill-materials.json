@@ -31,7 +31,10 @@
 			"RehitInterval": 0.5,
 			"Interval": 3.5,
 			"SpawnPosition": "NearestEnemy",
-			"SpawnAim": "None"
+			"SpawnAim": "None",
+			"Knockback": 0,
+			"Hitstop": 0,
+			"Shake": 0
 		},
 		"NovaSelf": {
 			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Flask/FlaskField.prefab",
@@ -44,11 +47,13 @@
 			"Layers": [
 				{
 					"Kind": "Burst",
-					"Radius": 3.0,
 					"Seconds": 0.45,
 					"RingSeconds": 0.32
 				}
-			]
+			],
+			"Knockback": 10,
+			"Hitstop": 0.05,
+			"Shake": 0.15
 		},
 		"GroundCircle": {
 			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Flask/FlaskField.prefab",
@@ -61,11 +66,13 @@
 			"Layers": [
 				{
 					"Kind": "Burst",
-					"Radius": 2.0,
 					"Seconds": 0.4,
 					"RingSeconds": 0.28
 				}
-			]
+			],
+			"Knockback": 6,
+			"Hitstop": 0.04,
+			"Shake": 0.1
 		}
 	},
 	"Recipes": [
@@ -133,103 +140,103 @@
 			"r": 1.0,
 			"g": 0.45,
 			"b": 0.18,
-			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"ice": {
 			"r": 0.45,
 			"g": 0.82,
 			"b": 1.0,
-			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Electric.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"lightning": {
 			"r": 1.0,
 			"g": 0.92,
 			"b": 0.35,
-			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Electric.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"water": {
 			"r": 0.25,
 			"g": 0.55,
 			"b": 0.95,
-			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Electric.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"wind": {
 			"r": 0.62,
 			"g": 0.95,
 			"b": 0.78,
-			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"earth": {
 			"r": 0.72,
 			"g": 0.55,
 			"b": 0.35,
-			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"nature": {
 			"r": 0.45,
 			"g": 0.85,
 			"b": 0.35,
-			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"poison": {
 			"r": 0.6,
 			"g": 0.9,
 			"b": 0.2,
-			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Shadow.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"shadow": {
 			"r": 0.5,
 			"g": 0.3,
 			"b": 0.75,
-			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Shadow.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"light": {
 			"r": 1.0,
 			"g": 0.82,
 			"b": 0.3,
-			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"arcane": {
 			"r": 0.75,
 			"g": 0.45,
 			"b": 1.0,
-			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Shadow.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"blood": {
 			"r": 0.85,
 			"g": 0.12,
 			"b": 0.2,
-			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Shadow.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"metal": {
 			"r": 0.8,
 			"g": 0.82,
 			"b": 0.88,
-			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"void": {
 			"r": 0.55,
 			"g": 0.2,
 			"b": 0.85,
-			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Shadow.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"spirit": {
 			"r": 0.6,
 			"g": 1.0,
 			"b": 0.9,
-			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"time": {
 			"r": 0.95,
 			"g": 0.8,
 			"b": 0.45,
-			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		},
 		"sound": {
 			"r": 0.95,
 			"g": 0.6,
 			"b": 0.85,
-			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+			"Art": "Assets/_WitchMendokusai/Domain/Dev/TrialWeapons/SkillMaterialArt/PFX_White.asset"
 		}
 	}
 }

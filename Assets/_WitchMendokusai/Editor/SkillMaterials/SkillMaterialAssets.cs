@@ -42,7 +42,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		// 이펙트 겹. Burst 는 켜지는 순간 그린 터짐 (플립북, 바닥 고리, 바닥 어둠). 고리는 속성색, 플립북은 그림 벌의 구운 색
+		// 이펙트 겹. Burst 는 켜지는 순간 그린 터짐 (플립북, 바닥 고리, 바닥 어둠). 플립북과 고리 모두 속성색
 		public static void AddLayers(GameObject shot, SkillMaterialSpec spec)
 		{
 			foreach (SkillMaterialLayer layer in spec.Layers)
@@ -56,6 +56,8 @@ namespace WitchMendokusai
 						PaintedBurst burst = shot.AddComponent<PaintedBurst>();
 						// PaintedBurst 는 반지름에 오브젝트 배율을 곱함. 장판처럼 배율로 크기를 맞춘 탄에서도 세계 반지름이 겹 값이 되게 나눔
 						SetFields(burst, ("art", art), ("radius", layer.Radius / shot.transform.localScale.x), ("seconds", layer.Seconds), ("ringSeconds", layer.RingSeconds));
+						// 그림 벌은 흰색으로 구운 PFX_White 라 플립북도 속성색으로 물듦. 심은 흰색 쪽으로 BodyWhiten 만큼
+						SetColor(burst, "tint", Color.Lerp(spec.Color, Color.white, spec.BodyWhiten));
 						SetColor(burst, "ringTint", spec.Color);
 						break;
 					default:
@@ -64,7 +66,7 @@ namespace WitchMendokusai
 			}
 		}
 
-		private static void SetColor(UnityEngine.Object target, string name, Color color)
+		public static void SetColor(UnityEngine.Object target, string name, Color color)
 		{
 			SerializedObject serialized = new(target);
 			SerializedProperty property = serialized.FindProperty(name);
@@ -82,8 +84,11 @@ namespace WitchMendokusai
 			// 셰이더 (SurvivalWeaponFx) 의 칼날, 바닥 모양은 정점 색을 안 받아 머티리얼 _Color 로. _Color 없는 머티리얼은 그대로
 			foreach (Renderer renderer in shot.GetComponentsInChildren<Renderer>(true))
 			{
-				if (renderer is SpriteRenderer || renderer is ParticleSystemRenderer || renderer.sharedMaterial == null || renderer.sharedMaterial.HasProperty("_Color") == false)
+				// 스프라이트는 위에서 색, 입자는 아래에서 시작색. 나머지 (트레일, 메시) 는 _Color 가 있어야 함 (없으면 속성색 없이 구워지니 바로 실패)
+				if (renderer is SpriteRenderer || renderer is ParticleSystemRenderer)
 					continue;
+				if (renderer.sharedMaterial == null || renderer.sharedMaterial.HasProperty("_Color") == false)
+					throw new InvalidOperationException($"{spec.Id}: {renderer.name} 머티리얼에 _Color 없음, 속성색을 못 넣음");
 				renderer.sharedMaterial = ElementMaterial(renderer.sharedMaterial, spec.Element, spec.Color);
 			}
 			// 입자는 시작 색. 알파는 바탕 값 그대로

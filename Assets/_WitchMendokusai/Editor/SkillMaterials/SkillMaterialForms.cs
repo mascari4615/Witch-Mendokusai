@@ -9,6 +9,8 @@ namespace WitchMendokusai
 	internal interface ISkillMaterialForm
 	{
 		string Name { get; }
+		// 이펙트 겹을 받는지. 탄은 맞은 자리에 겹이 나야 해서 적중 겹이 생기기 전까지 안 받음 (목록 검증에서 거름)
+		bool AcceptsLayers { get; }
 		GameObject BuildShot(SkillMaterialSpec spec);
 	}
 
@@ -46,6 +48,7 @@ namespace WitchMendokusai
 		public LineShotForm(string name) => Name = name;
 
 		public string Name { get; }
+		public bool AcceptsLayers => false;
 
 		public GameObject BuildShot(SkillMaterialSpec spec)
 		{
@@ -57,9 +60,6 @@ namespace WitchMendokusai
 				SkillMaterialAssets.SetFields(root.GetComponent<BulletMovement>(), ("moveSpeed", spec.Float("ShotSpeed")), ("useAutoAim", true));
 				SkillMaterialAssets.SetFields(root.GetComponent<DamagingObject>(), ("damage", spec.Int("Damage")), ("useHitCount", true), ("hitCount", spec.Int("HitCount")), ("disableWhenInvalid", true), ("hitOncePerTarget", true));
 				SkillMaterialAssets.SetFields(root.GetComponent<ObjectWithTime>(), ("duration", spec.Float("Lifetime")));
-				// 탄의 겹은 맞은 자리에 나야 함 (탄에 바로 붙이면 쏜 자리에서 터짐). 적중 겹은 아직 없어 겹을 받지 않음
-				if (spec.Layers.Count > 0)
-					throw new InvalidOperationException($"{spec.Id}: {Name} 은 아직 겹을 받지 않음");
 				SkillMaterialAssets.AddEffects(root, spec);
 				SkillMaterialAssets.ApplyLook(root, spec);
 				return SkillMaterialAssets.SaveShot(root, spec.Id + "_Shot");
@@ -78,6 +78,7 @@ namespace WitchMendokusai
 		public AreaForm(string name) => Name = name;
 
 		public string Name { get; }
+		public bool AcceptsLayers => true;
 
 		public GameObject BuildShot(SkillMaterialSpec spec)
 		{
@@ -86,7 +87,11 @@ namespace WitchMendokusai
 			{
 				SphereCollider area = root.GetComponent<SphereCollider>();
 				root.transform.localScale = Vector3.one * (spec.Float("Radius") / area.radius);
-				SkillMaterialAssets.SetFields(root.GetComponent<RepeatingDamagingObject>(), ("damage", spec.Int("Damage")), ("rehitInterval", spec.Float("RehitInterval")));
+				SkillMaterialAssets.SetFields(root.GetComponent<RepeatingDamagingObject>(), ("damage", spec.Int("Damage")), ("rehitInterval", spec.Float("RehitInterval")), ("knockbackForce", spec.Float("Knockback")), ("hitstopDuration", spec.Float("Hitstop")));
+				// 바탕 (독 장판) 의 착탄 조각은 초록에 흔들림 0. 속성색과 모양별 흔들림으로
+				SurvivalFeelBurst feel = root.GetComponent<SurvivalFeelBurst>();
+				SkillMaterialAssets.SetFields(feel, ("moment.Shake", spec.Float("Shake")));
+				SkillMaterialAssets.SetColor(feel, "moment.Color", spec.Color);
 				SkillMaterialAssets.SetFields(root.GetComponent<ObjectWithTime>(), ("duration", spec.Float("Lifetime")));
 				SkillMaterialAssets.AddEffects(root, spec);
 				SkillMaterialAssets.AddLayers(root, spec);

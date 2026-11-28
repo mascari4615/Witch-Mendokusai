@@ -32,7 +32,7 @@ namespace WitchMendokusai
 		public string Form;
 		public string Element;
 		public Color Color;
-		// 속성의 그린 텍스처 벌 (PaintedFxSet 경로). 그림 색이 구워져 있어 금, 파랑, 어둠 셋 중 가까운 것
+		// 속성의 그린 텍스처 벌 (PaintedFxSet 경로). 지금은 전부 흰색으로 구운 PFX_White, 색은 정점색 (속성색)
 		public string ElementArt;
 		public float BodyWhiten;
 		public List<SkillMaterialEffect> Effects = new();
@@ -60,6 +60,10 @@ namespace WitchMendokusai
 			["Burst"] = new HashSet<string> { "Kind", "Radius", "Seconds", "RingSeconds" },
 		};
 
+		// 레시피 묶음 파일 (skill-materials-set*.json, 같은 폴더) 의 Recipes 를 정본 파일 뒤에 이어 붙임. 묶음은 생성기가 씀
+		private const string SET_FOLDER = "Assets/_WitchMendokusai/Editor/SkillMaterials";
+		private const string SET_PATTERN = "skill-materials-set*.json";
+
 		public static List<SkillMaterialSpec> Load() => Parse(LoadText());
 
 		public static string LoadText()
@@ -67,7 +71,17 @@ namespace WitchMendokusai
 			TextAsset text = AssetDatabase.LoadAssetAtPath<TextAsset>(DATA_PATH);
 			if (text == null)
 				throw new InvalidOperationException($"재료 목록 없음: {DATA_PATH}");
-			return text.text;
+			JObject root = JObject.Parse(text.text);
+			JArray recipes = Required<JArray>(root, "Recipes", "파일");
+			string[] sets = System.IO.Directory.GetFiles(SET_FOLDER, SET_PATTERN);
+			Array.Sort(sets, StringComparer.Ordinal);
+			foreach (string setPath in sets)
+			{
+				JObject set = JObject.Parse(System.IO.File.ReadAllText(setPath));
+				foreach (JToken recipe in Required<JArray>(set, "Recipes", setPath))
+					recipes.Add(recipe);
+			}
+			return root.ToString();
 		}
 
 		public static List<SkillMaterialSpec> Parse(string json)
@@ -109,6 +123,8 @@ namespace WitchMendokusai
 				// 겹은 레시피에 있으면 그것, 없으면 모양 기본값 (통째로 바꿈, 섞지 않음)
 				JToken layers = recipe.TryGetValue("Layers", out JToken recipeLayers) ? recipeLayers : formDefaults.GetValue("Layers");
 				values.Remove("Layers");
+				if (layers != null && layers.HasValues && SkillMaterialForms.Get(form).AcceptsLayers == false)
+					throw new InvalidOperationException($"{id}: {form} 은 이펙트 겹을 받지 않음");
 				specs.Add(new SkillMaterialSpec
 				{
 					Id = id,
@@ -118,7 +134,7 @@ namespace WitchMendokusai
 					ElementArt = Required<JValue>(color, "Art", $"Elements.{element}").Value<string>(),
 					BodyWhiten = bodyWhiten,
 					Effects = ParseEffects(recipe, id),
-					Layers = ParseLayers(layers, id),
+					Layers = ParseLayers(layers, id, values),
 					Values = values,
 				});
 			}
@@ -130,6 +146,8 @@ namespace WitchMendokusai
 			List<SkillMaterialEffect> effects = new();
 			if (recipe.TryGetValue("Effects", out JToken token) == false)
 				return effects;
+			if (token is JArray == false || token.Any(item => item is JObject == false))
+				throw new InvalidOperationException($"{id}: Effects 는 객체 배열이어야 함");
 			foreach (JObject effect in token.Cast<JObject>())
 			{
 				foreach (JProperty property in effect.Properties())
@@ -151,11 +169,14 @@ namespace WitchMendokusai
 			return effects;
 		}
 
-		private static List<SkillMaterialLayer> ParseLayers(JToken token, string id)
+		// 겹 반지름을 빼면 모양 반지름 (Radius) 을 따름. 판정 범위와 그림 범위가 따로 놀지 않게
+		private static List<SkillMaterialLayer> ParseLayers(JToken token, string id, JObject values)
 		{
 			List<SkillMaterialLayer> layers = new();
 			if (token == null)
 				return layers;
+			if (token is JArray == false || token.Any(item => item is JObject == false))
+				throw new InvalidOperationException($"{id}: Layers 는 객체 배열이어야 함");
 			foreach (JObject layer in token.Cast<JObject>())
 			{
 				string kind = Required<JValue>(layer, "Kind", id).Value<string>();
@@ -169,7 +190,7 @@ namespace WitchMendokusai
 				layers.Add(new SkillMaterialLayer
 				{
 					Kind = kind,
-					Radius = Required<JValue>(layer, "Radius", id).Value<float>(),
+					Radius = layer.TryGetValue("Radius", out JToken radius) ? radius.Value<float>() : Required<JValue>(values, "Radius", $"{id} 겹 반지름 (모양에 Radius 없음)").Value<float>(),
 					Seconds = Required<JValue>(layer, "Seconds", id).Value<float>(),
 					RingSeconds = Required<JValue>(layer, "RingSeconds", id).Value<float>(),
 				});
