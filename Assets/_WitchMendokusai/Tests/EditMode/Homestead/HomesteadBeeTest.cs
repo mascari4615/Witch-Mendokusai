@@ -130,6 +130,16 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void Removing_a_hive_forgets_its_fill()
+		{
+			HomesteadSim sim = MakeSim(out HomesteadTestKit.FakePurse purse);
+			PlacedPiece hive = PutHive(sim, purse, FREE_X, FREE_Z);
+			Assert.That(sim.RemovePiece(hive.Uid).Ok);
+			Assert.That(sim.State.Hives.ContainsKey(hive.Uid), Is.False);
+			Assert.That(sim.Count("wood"), Is.EqualTo(sim.Catalog.Get<PlaceableDef>(HomesteadSim.HIVE).Cost.Goods["wood"]));
+		}
+
+		[Test]
 		public void Wax_makes_the_candle_and_honey_stays_for_food()
 		{
 			HomesteadCatalog catalog = HomesteadTestKit.LoadCatalog();
@@ -137,11 +147,8 @@ namespace WitchMendokusai.Tests
 			Assert.That(candle.Inputs.ContainsKey(HomesteadSim.BEESWAX));
 			Assert.That(candle.Inputs.ContainsKey("honey"), Is.False);
 			Assert.That(catalog.Get<CookDef>("k_pancake").Inputs.ContainsKey("honey"));
-			RequestDef sweet = catalog.Get<RequestDef>("q_jam");
-			foreach (HoneyDef honey in catalog.Honeys)
-			{
-				Assert.That(sweet.Goods, Does.Contain(honey.Goods));
-			}
+			// 의뢰는 목록에서 무작위로 고름. 타운홀 1 부터 얻는 꽃밭 꿀만 (호박꽃, 달콩꽃은 늦게 열림)
+			Assert.That(catalog.Get<RequestDef>("q_jam").Goods, Does.Contain("honey_bloom"));
 		}
 
 		// 수치 확인. 벌통 둘이 한 판에 내는 값이 밭 몇 칸 몫인지 (밭 감자 한 칸 한 판 43.0, HomesteadFarmBotTest)

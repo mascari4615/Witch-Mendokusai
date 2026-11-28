@@ -175,6 +175,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				return HomesteadResult.Fail(HomesteadFailure.Locked, piece.Id);
 			}
 			State.Village.Remove(piece);
+			State.Hives.Remove(uid);
 			Purse.Nyang += placeable.Cost.Nyang;
 			foreach (KeyValuePair<string, int> pair in placeable.Cost.Goods)
 			{

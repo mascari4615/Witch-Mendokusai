@@ -38,9 +38,6 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		public bool IsHiveFull(PlacedPiece hive) => HiveMinutesLeft(hive) == 0;
 
-		// 0..1. 화면의 찬 정도
-		public float HiveFill(PlacedPiece hive) => 1f - HiveMinutesLeft(hive) / (float)Math.Max(1, Tuning.HiveFillMinutes);
-
 		// 둘레의 꽃 수가 제일 많은 꿀. 같으면 자료에서 뒤의 것 (드문 꽃). 꽃이 없으면 기본 꿀
 		public HoneyDef HoneyOf(PlacedPiece hive)
 		{

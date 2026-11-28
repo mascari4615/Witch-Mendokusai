@@ -7,7 +7,7 @@ namespace WitchMendokusai
 	// 벌통. 몸은 꾸밈 (RefreshDecor) 이 짓고, 여기는 누르는 자리와 꿀 거두기
 	public sealed partial class VillageStage
 	{
-		// 마을을 새로 지으면 (ClearBodies) 자리 물체가 같이 사라짐. 사라진 것은 다시 만듦
+		// 마을을 새로 지으면 ClearBodies 가 비움. 몸 (outdoor) 이 같이 사라지기 때문
 		private readonly Dictionary<int, HomesteadSpot> hiveSpots = new();
 
 		// 밭 칸이 놓인 마을 칸. 벌통이 둘레의 작물 꽃을 셀 때 씀
@@ -27,7 +27,7 @@ namespace WitchMendokusai
 			{
 				int uid = hive.Uid;
 				seen.Add(uid);
-				if (hiveSpots.TryGetValue(uid, out HomesteadSpot spot) == false || spot == null)
+				if (hiveSpots.TryGetValue(uid, out HomesteadSpot spot) == false)
 				{
 					spot = HomesteadSpot.Create(outdoor, CenterOf(hive), "HiveSpot", () => HiveName(uid), () => HiveRole(uid), () => UseHive(uid), () => HiveVerb(uid));
 					hiveSpots[uid] = spot;
@@ -38,8 +38,7 @@ namespace WitchMendokusai
 			{
 				if (seen.Contains(uid))
 					continue;
-				if (hiveSpots[uid] != null)
-					Destroy(hiveSpots[uid].gameObject);
+				Destroy(hiveSpots[uid].gameObject);
 				hiveSpots.Remove(uid);
 			}
 		}

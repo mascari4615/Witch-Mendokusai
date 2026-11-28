@@ -141,6 +141,7 @@ namespace WitchMendokusai
 			Destroy(mineRoot.gameObject);
 			siteBodies.Clear();
 			decorBodies.Clear();
+			hiveSpots.Clear();
 			spotObjects.Clear();
 			plots.Clear();
 			gathers.Clear();
