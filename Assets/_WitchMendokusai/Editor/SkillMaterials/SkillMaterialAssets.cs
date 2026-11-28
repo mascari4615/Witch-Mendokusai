@@ -80,6 +80,7 @@ namespace WitchMendokusai
 		// strict 면 트레일과 메시에 _Color 가 꼭 있어야 함. 복제 모양 (CloneForm) 은 바탕 무기 고유 그림이 있어 strict 를 끔
 		public static void ApplyLook(GameObject shot, SkillMaterialSpec spec, bool strict = true)
 		{
+			ScaleBody(shot, spec.Float("BodyScale"));
 			foreach (SpriteRenderer sprite in shot.GetComponentsInChildren<SpriteRenderer>(true))
 				sprite.color = Color.Lerp(spec.Color, Color.white, spec.BodyWhiten);
 			// 셰이더 (SurvivalWeaponFx) 의 칼날, 바닥 모양은 정점 색을 안 받아 머티리얼 _Color 로. _Color 없는 머티리얼은 그대로
@@ -102,6 +103,23 @@ namespace WitchMendokusai
 				ParticleSystem.MainModule main = particles.main;
 				Color start = main.startColor.color;
 				main.startColor = new Color(spec.Color.r, spec.Color.g, spec.Color.b, start.a);
+			}
+		}
+
+		// 그림만 키움. 판정 (루트 충돌체) 은 그대로라 맞는 범위는 안 바뀜. 바늘 탄이 화면에서 안 보이던 문제
+		private static void ScaleBody(GameObject shot, float scale)
+		{
+			if (scale <= 0f)
+				throw new InvalidOperationException($"{shot.name}: BodyScale {scale} 는 0 보다 커야 함");
+			if (Mathf.Approximately(scale, 1f))
+				return;
+			foreach (Renderer renderer in shot.GetComponentsInChildren<Renderer>(true))
+			{
+				if (renderer.transform == shot.transform)
+					continue;
+				renderer.transform.localScale *= scale;
+				if (renderer is TrailRenderer trail)
+					trail.widthMultiplier *= scale;
 			}
 		}
 

@@ -10,11 +10,13 @@
 		"SpawnDelay": 0.08,
 		"SpawnPosition": "Player",
 		"SpawnAim": "NearestEnemy",
-		"Spread": 0
+		"Spread": 0,
+		"BodyScale": 1
 	},
 	"Forms": {
 		"LineShot": {
 			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
+			"BodyScale": 2.5,
 			"ShotSpeed": 18,
 			"HitCount": 1,
 			"Lifetime": 1.2,
@@ -22,6 +24,7 @@
 		},
 		"PierceShot": {
 			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
+			"BodyScale": 2.5,
 			"ShotSpeed": 22,
 			"HitCount": 99,
 			"Lifetime": 1.0,
@@ -79,6 +82,7 @@
 		},
 		"Dash": {
 			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
+			"BodyScale": 2.5,
 			"SpreadSpeed": 10,
 			"SpreadSeconds": 0.3,
 			"AimSeconds": 0.2,
@@ -91,6 +95,7 @@
 		},
 		"Chain": {
 			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
+			"BodyScale": 2.5,
 			"ShotSpeed": 14,
 			"RetargetRange": 5,
 			"HitPause": 0.15,
