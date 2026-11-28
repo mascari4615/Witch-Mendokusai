@@ -1,0 +1,30 @@
+{
+	"Festivals": [
+		{
+			"Id": "fest_harvest", "Name": "수확 잔치", "Note": "밭과 들에서 거둔 것을 회관 앞에 모아 나눔",
+			"TownHall": 2, "Residents": 2, "Decor": 54, "RepeatDays": 7,
+			"Slots": [
+				{"Name": "작물", "Kind": "Crop", "Amount": 10},
+				{"Name": "채집물", "Kind": "Forage", "Amount": 6},
+				{"Name": "가공품", "Kind": "Product", "Amount": 4},
+				{"Name": "음식", "Kind": "Dish", "Amount": 3, "Optional": true}
+			],
+			"CheerPoints": 20, "FeastPoints": 30,
+			"FirstReward": {"Nyang": 300, "GuildExp": 60, "Goods": {}, "Furniture": ["herb_rack"], "Costumes": []},
+			"Reward": {"Nyang": 150, "GuildExp": 30, "Goods": {}, "Furniture": [], "Costumes": []}
+		},
+		{
+			"Id": "fest_stars", "Name": "별의 밤", "Note": "물가와 갱도에서 얻은 것으로 밤하늘을 기림",
+			"TownHall": 3, "Residents": 3, "Decor": 60, "RepeatDays": 7,
+			"Slots": [
+				{"Name": "물고기", "Kind": "Fish", "Amount": 6},
+				{"Name": "광석", "Kind": "Ore", "Amount": 4},
+				{"Name": "가공품", "Kind": "Product", "Amount": 4},
+				{"Name": "음식", "Kind": "Dish", "Amount": 3, "Optional": true}
+			],
+			"CheerPoints": 20, "FeastPoints": 30,
+			"FirstReward": {"Nyang": 600, "GuildExp": 100, "Goods": {}, "Furniture": ["star_globe"], "Costumes": []},
+			"Reward": {"Nyang": 300, "GuildExp": 50, "Goods": {}, "Furniture": [], "Costumes": []}
+		}
+	]
+}

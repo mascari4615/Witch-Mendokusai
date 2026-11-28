@@ -4,14 +4,15 @@ using WitchMendokusai.DomainSDK.Homestead;
 
 namespace WitchMendokusai
 {
-	// 길드 게시판. 의뢰, 사람, 인형에게 맡길 일
-	public sealed class GuildPage : HomesteadPage
+	// 길드 게시판. 의뢰, 사람, 인형에게 맡길 일, 축제 (GuildPage.Festival)
+	public sealed partial class GuildPage : HomesteadPage
 	{
 		private const int TAB_REQUESTS = 0;
 		private const int TAB_PEOPLE = 1;
+		private const int TAB_JOBS = 2;
 		private const int GIFT_CHOICES = 5;
 
-		private static readonly string[] TABS = { "의뢰", "사람", "맡길 일" };
+		private static readonly string[] TABS = { "의뢰", "사람", "맡길 일", "축제" };
 
 		public GuildPage(HomesteadManager manager) : base(manager)
 		{
@@ -45,9 +46,13 @@ namespace WitchMendokusai
 					foreach (ResidentDef resident in Catalog.Residents)
 						entries.Add(ResidentEntry(resident));
 					break;
-				default:
+				case TAB_JOBS:
 					foreach (JobDef job in Catalog.Jobs)
 						entries.Add(JobEntry(job));
+					break;
+				default:
+					foreach (FestivalDef festival in Catalog.Festivals)
+						entries.Add(FestivalEntry(festival));
 					break;
 			}
 			return entries;

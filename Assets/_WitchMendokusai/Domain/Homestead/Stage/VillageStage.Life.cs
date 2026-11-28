@@ -27,14 +27,16 @@ namespace WitchMendokusai
 			RefreshAnimals();
 		}
 
-		// 건물이 아직이면 길드 (회관) 앞에서 기다림
+		// 건물이 아직이면 길드 (회관) 앞에서 기다림. 축제 날은 모두 회관 앞에 모임
 		private void RefreshPeople()
 		{
+			bool isFestival = Sim.TryGetFestivalToday(out FestivalDef _);
+			int gathered = 0;
 			foreach (ResidentDef resident in Catalog.Residents)
 			{
 				if (Sim.HasArrived(resident.Id) == false)
 					continue;
-				Vector3 home = Sim.IsBuilt(resident.Building) ? DoorStand(resident.Building, doorYard.Resident()) : DoorStand(HomesteadSim.HALL, doorYard.Queue(people.Count));
+				Vector3 home = isFestival ? DoorStand(HomesteadSim.HALL, doorYard.Queue(gathered++)) : Sim.IsBuilt(resident.Building) ? DoorStand(resident.Building, doorYard.Resident()) : DoorStand(HomesteadSim.HALL, doorYard.Queue(people.Count));
 				if (people.TryGetValue(resident.Id, out VillageWalker walker))
 				{
 					walker.SetHome(home);
@@ -42,8 +44,10 @@ namespace WitchMendokusai
 				}
 				ResidentDef captured = resident;
 				VillageWalker made = VillageWalker.Create(outdoor, home, Art.Icon(resident.Id), null, personHeight, doorYard.PersonWander);
-				HomesteadSpot.Attach(made.gameObject, () => captured.Name, () => Sim.CanGiftToday(captured.Id) ? "선물할 수 있음" : $"호감 {Sim.AffinityStep(captured.Id)}단", () =>
+				HomesteadSpot.Attach(made.gameObject, () => captured.Name, () => Sim.CanCheer(captured.Id) ? "축제 인사" : Sim.CanGiftToday(captured.Id) ? "선물할 수 있음" : $"호감 {Sim.AffinityStep(captured.Id)}단", () =>
 				{
+					if (Sim.Cheer(captured.Id).Ok)
+						Say($"{captured.Name}에게 축하 인사");
 					Sim.Greet(captured.Id);
 					manager.Panels.Show(HomesteadPanelType.Guild, GUILD_PEOPLE);
 				}, () => "말걸기");
