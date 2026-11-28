@@ -23,6 +23,8 @@ namespace WitchMendokusai
 		[SerializeField] private float familiarHeight = 0.45f;
 		[Tooltip("알 그림 높이 (m)")]
 		[SerializeField] private float eggHeight = 0.35f;
+		[Tooltip("알이 들썩이는 높이 (m)")]
+		[SerializeField] private float eggBob = 0.03f;
 		[Tooltip("제자리에서 거니는 반경 (m)")]
 		[SerializeField] private float familiarWander = 0.25f;
 		[Tooltip("임시 색. 사역마 자료 순서대로")]
@@ -42,6 +44,14 @@ namespace WitchMendokusai
 
 		private void RefreshFamiliars()
 		{
+			// 세이브를 다시 읽으면 깬 목록이 줄 수 있음. 없어진 것은 치움
+			foreach (string shown in new List<string>(familiars.Keys))
+			{
+				if (Sim.IsHatched(shown))
+					continue;
+				Destroy(familiars[shown].gameObject);
+				familiars.Remove(shown);
+			}
 			foreach (FamiliarState state in Sim.State.Familiars)
 			{
 				if (familiars.ContainsKey(state.Id))
@@ -69,13 +79,14 @@ namespace WitchMendokusai
 			if (egg == null)
 				return;
 			GoodsDef eggLook = Sim.Catalog.Get<GoodsDef>(TEMP_EGG_ICON);
-			HomesteadSprite sprite = HomesteadSprite.Create(familiarRoot, SlotOf(egg), HomesteadArt.Instance.IconOf(eggLook), eggHeight, 0.03f);
+			HomesteadSprite sprite = HomesteadSprite.Create(familiarRoot, SlotOf(egg), HomesteadArt.Instance.IconOf(eggLook), eggHeight, eggBob);
 			eggObject = sprite.gameObject;
 			Tint(eggObject, egg);
 			HomesteadSpot.Attach(eggObject, () => "알", () => "무엇이 나올까", () => HatchEgg(egg), () => "깨우기");
 			if (Sim.State.Seen.Contains(EGG_SEEN + egg.Id))
 				return;
 			Sim.State.Seen.Add(EGG_SEEN + egg.Id);
+			manager.Save();
 			manager.Hud.Notice("집에 알이 왔습니다", "사역마 자리에서 깨울 수 있습니다", HomesteadArt.Instance.IconOf(eggLook));
 		}
 
@@ -113,7 +124,11 @@ namespace WitchMendokusai
 		{
 			if (Sim.IsTakenAlong(familiar.Id) == false)
 			{
-				Sim.TakeAlong(familiar.Id);
+				if (Sim.TakeAlong(familiar.Id).Ok == false)
+				{
+					UiSfx.Play(UiSfxEvent.Blocked);
+					return;
+				}
 				manager.Save();
 				UiSfx.Play(UiSfxEvent.Confirm);
 				uiManager.SpeechBubble.Show(walker.transform, $"다음 던전에 {familiar.Name} 이 따라옵니다.");

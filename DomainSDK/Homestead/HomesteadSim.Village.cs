@@ -120,9 +120,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				work.ReadyAt = Math.Min(work.ReadyAt, State.Minutes);
 			}
-			// 다녀온 횟수. 사역마 알이 읽음
-			State.Events[EXPEDITION_EVENT] = EventCount(EXPEDITION_EVENT) + 1;
-			NotifyChanged();
+			// 다녀온 횟수. 사역마 알이 읽음. 영입 조건도 같은 길로 보게 사건으로 알림
+			NotifyEvent(EXPEDITION_EVENT);
 		}
 
 		public event Action<string> Unveiled = delegate { };
