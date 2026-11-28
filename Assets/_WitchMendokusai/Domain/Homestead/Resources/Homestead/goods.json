@@ -104,6 +104,13 @@
 		{"Id": "soup", "Name": "채소 수프", "Kind": "Dish", "ItemId": -1, "Price": 120, "Grade": 0},
 		{"Id": "grill", "Name": "생선구이", "Kind": "Dish", "ItemId": -1, "Price": 90, "Grade": 0},
 		{"Id": "pie", "Name": "호박 파이", "Kind": "Dish", "ItemId": -1, "Price": 260, "Grade": 0},
-		{"Id": "stew", "Name": "버섯 스튜", "Kind": "Dish", "ItemId": -1, "Price": 130, "Grade": 0}
+		{"Id": "stew", "Name": "버섯 스튜", "Kind": "Dish", "ItemId": -1, "Price": 130, "Grade": 0},
+		{"Id": "potato_bake", "Name": "감자구이", "Kind": "Dish", "ItemId": -1, "Price": 70, "Grade": 0},
+		{"Id": "tart", "Name": "딸기 타르트", "Kind": "Dish", "ItemId": -1, "Price": 150, "Grade": 0},
+		{"Id": "bean_porridge", "Name": "달콩죽", "Kind": "Dish", "ItemId": -1, "Price": 200, "Grade": 0},
+		{"Id": "eel_skewer", "Name": "장어 꼬치", "Kind": "Dish", "ItemId": -1, "Price": 160, "Grade": 0},
+		{"Id": "pancake", "Name": "꿀 팬케이크", "Kind": "Dish", "ItemId": -1, "Price": 120, "Grade": 0},
+		{"Id": "acorn_jelly", "Name": "도토리묵", "Kind": "Dish", "ItemId": -1, "Price": 50, "Grade": 0},
+		{"Id": "cress_salad", "Name": "눈냉이 샐러드", "Kind": "Dish", "ItemId": -1, "Price": 160, "Grade": 0}
 	]
 }

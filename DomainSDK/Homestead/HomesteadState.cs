@@ -65,6 +65,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public long RequestDay { get; set; } = -1;
 		public int RequestsDone { get; set; }
 
+		// 식탁에 올린 음식 (물건 id). 다음 던전이 시작될 때 먹고 비움. 빈 글자면 빈 식탁
+		public string Meal { get; set; } = string.Empty;
+
 		// 이미 알린 일. 귀환 소식과 첫 안내가 되풀이되지 않게
 		public List<string> Seen { get; set; } = new List<string>();
 	}

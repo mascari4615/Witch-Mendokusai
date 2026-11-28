@@ -31,6 +31,14 @@ namespace WitchMendokusai
 			{ GoodsKind.Seed, "씨앗" },
 		};
 
+		// 식탁 음식의 버프. 이동 속도는 능력치 10 이 초당 1 칸, 회복은 주기마다, 경험치는 퍼센트
+		private static readonly Dictionary<MealBuff, string> MEAL_BUFF_NAMES = new()
+		{
+			{ MealBuff.Move, "이동 속도" },
+			{ MealBuff.Regen, "체력 재생" },
+			{ MealBuff.Exp, "경험치" },
+		};
+
 		private static readonly string[] GRIME_NAMES = { "마른 흙", "녹", "엉킨 실" };
 		// 처음 보는 유물에 보이는 모양과 색. 때 이름과 같은 순서
 		private static readonly string[] GRIME_CLUES = { "갈색 덩이", "주황 얼룩", "가는 선" };
@@ -39,6 +47,21 @@ namespace WitchMendokusai
 
 		public static string ToolName(ToolKind kind) => TOOL_NAMES[kind];
 		public static string KindName(GoodsKind kind) => KIND_NAMES[kind];
+		public static string MealBuffName(MealBuff buff) => MEAL_BUFF_NAMES[buff];
+
+		// 단위까지. 이동은 능력치를 초당 칸으로 (InputContributor.STAT_PER_UNIT_PER_SECOND), 회복은 던전 재생 주기 (SurvivalFeel)
+		public static string MealBuffText(MealBuff buff, int value)
+		{
+			switch (buff)
+			{
+				case MealBuff.Move:
+					return $"{MealBuffName(buff)} +{value / InputContributor.STAT_PER_UNIT_PER_SECOND:0.#}칸/초";
+				case MealBuff.Regen:
+					return $"{MealBuffName(buff)} {ResourceManager.Instance.SurvivalFeel.Upgrade.HpRegenInterval:0}초마다 +{value}";
+				default:
+					return $"{MealBuffName(buff)} +{value}%";
+			}
+		}
 		public static string Grime(int index) => GRIME_NAMES[index];
 		public static string GrimeClue(int index) => GRIME_CLUES[index];
 		public static string Brush(int index) => BRUSH_NAMES[index];

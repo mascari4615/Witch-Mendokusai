@@ -362,6 +362,31 @@ namespace WitchMendokusai
 			duel.EnableInClassList($"{BLOCK}__duel--surge", state.IsSurging || state.IsSurgeNear);
 		}
 
+		// 집 부엌 굽기. 낚시 막대를 그대로: 팽팽함 칸이 바늘, 알맞은 칸이 잘 구움 칸. 거리 막대는 숨김
+		// result: 다 된 뒤의 결과 (재료가 그새 줄면 실패). 끝나기 전엔 무시
+		public void SetCook(CookTiming state, string dishName, bool finished, HomesteadResult result)
+		{
+			progressFill.parent.EnableInClassList($"{BLOCK}--none", true);
+			tensionFill.parent.EnableInClassList($"{BLOCK}--none", false);
+			duel.EnableInClassList($"{BLOCK}__duel--surge", false);
+			duelHint.EnableInClassList($"{BLOCK}__duel-hint--bite", finished == false && state.IsSweet);
+			duelHint.text = CookHint(state, dishName, finished, result);
+			sweetZone.style.left = Length.Percent(state.SweetFrom * 100f);
+			sweetZone.style.width = Length.Percent((state.SweetTo - state.SweetFrom) * 100f);
+			tensionFill.style.width = Length.Percent(state.Needle * 100f);
+			tensionFill.EnableInClassList($"{BLOCK}__duel-tension-fill--sweet", state.IsSweet && (finished == false || state.IsWellDone));
+			tensionFill.EnableInClassList($"{BLOCK}__duel-tension-fill--danger", false);
+		}
+
+		private static string CookHint(CookTiming state, string dishName, bool finished, HomesteadResult result)
+		{
+			if (finished == false)
+				return $"{dishName}: 바늘이 초록 칸일 때 누르면 하나 더";
+			if (result.Ok == false)
+				return $"{dishName}: 재료가 모자라 못 만들었습니다";
+			return state.IsWellDone ? $"{dishName}: 잘 됐습니다! 하나 더" : $"{dishName}: 다 됐습니다";
+		}
+
 		private static string DuelHint(FishingDuel state)
 		{
 			switch (state.Phase)

@@ -7,9 +7,9 @@ using WitchMendokusai.DomainSDK.Homestead;
 namespace WitchMendokusai
 {
 	// 욘의 집 안 (WS_1_HomeInside). 큰 나무 아래라 마을, 길드와 별개
-	// 건물 한 채 (프리팹 HomeHouse), 놓은 가구, 제작대, 옷장, 쉬는 자리. 스테이지에 들어설 때 HomesteadManager 가 붙임
+	// 건물 한 채 (프리팹 HomeHouse), 놓은 가구, 제작대, 옷장, 쉬는 자리, 부엌 (HomeRoom.Cook). 스테이지에 들어설 때 HomesteadManager 가 붙임
 	// 방 크기 단계는 가구 칸과 개수만 늘리고 건물은 그대로
-	public sealed class HomeRoom : MonoBehaviour
+	public sealed partial class HomeRoom : MonoBehaviour
 	{
 		public const int STAGE_ID = 1;
 		private const string FURNITURE_KEY = "F_";
@@ -36,6 +36,7 @@ namespace WitchMendokusai
 		private Transform restSpot;
 		private Transform benchSpot;
 		private Transform wardrobeSpot;
+		private Transform cookSpot;
 		private string shownFurniture = string.Empty;
 		private bool refreshQueued;
 
@@ -72,6 +73,7 @@ namespace WitchMendokusai
 			shownFurniture = string.Empty;
 			Sim.Changed += OnChanged;
 			manager.Rebuilt += OnRebuilt;
+			manager.CookRequested += BeginCook;
 			Refresh();
 		}
 
@@ -105,7 +107,11 @@ namespace WitchMendokusai
 				shownSim.Changed -= OnChanged;
 			shownSim = null;
 			if (manager != null)
+			{
 				manager.Rebuilt -= OnRebuilt;
+				manager.CookRequested -= BeginCook;
+			}
+			StopCook();
 		}
 
 		private void OnRebuilt() => Open(manager);
@@ -143,6 +149,8 @@ namespace WitchMendokusai
 			deskSpot.position = house.DeskSpot.position;
 			benchSpot.position = house.BenchSpot.position;
 			wardrobeSpot.position = house.WardrobeSpot.position;
+			cookSpot = AddSpot("CookSpot", "화덕", CookRole, () => manager.Panels.Show(HomesteadPanelType.Cook), () => "요리");
+			cookSpot.position = house.CookSpot.position;
 			restSpot.position = house.RestSpot.position;
 		}
 

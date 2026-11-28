@@ -30,6 +30,7 @@ namespace WitchMendokusai
 		private SOManager soManager;
 		private GameEventManager gameEventManager;
 		private IObjectResolver container;
+		private IEffectRunner effectRunner;
 
 		public HomesteadSim Sim { get; private set; }
 		public UIHomestead Panels { get; private set; }
@@ -41,13 +42,19 @@ namespace WitchMendokusai
 		private string rescueWanted = string.Empty;
 
 		[Inject]
-		public void Construct(DataManager dataManager, SOManager soManager, GameEventManager gameEventManager, IObjectResolver container)
+		public void Construct(DataManager dataManager, SOManager soManager, GameEventManager gameEventManager, IObjectResolver container, IEffectRunner effectRunner)
 		{
 			this.dataManager = dataManager;
 			this.soManager = soManager;
 			this.gameEventManager = gameEventManager;
 			this.container = container;
+			this.effectRunner = effectRunner;
 		}
+
+		// 집 부엌에서 굽기를 부탁함. 욘의 집 방 (HomeRoom) 이 붙어 있는 동안 받아 바늘을 띄움
+		public event Action<string> CookRequested = delegate { };
+
+		public void RequestCook(string cookId) => CookRequested(cookId);
 
 		// 세이브가 통째로 바뀌어 (처음부터 다시) 규칙을 새로 세움. 마을이 떠 있으면 몸을 다시 지음
 		public event Action Rebuilt = delegate { };
@@ -68,6 +75,7 @@ namespace WitchMendokusai
 		{
 			BuildSim();
 			gameEventManager.RegisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
+			gameEventManager.RegisterCallback(GameEventType.OnDungeonStart, OnDungeonStart);
 			EventBusBridge.Subscribe<BossKilledEvent>(OnBossKilled);
 			EventBusBridge.Subscribe<CaptiveRescuedEvent>(OnCaptiveRescued);
 			StageManager.OnStageChanged += OnStageChanged;
@@ -94,7 +102,10 @@ namespace WitchMendokusai
 		private void OnDestroy()
 		{
 			if (gameEventManager != null)
+			{
 				gameEventManager.UnregisterCallback(GameEventType.OnDungeonReturn, OnDungeonReturn);
+				gameEventManager.UnregisterCallback(GameEventType.OnDungeonStart, OnDungeonStart);
+			}
 			EventBusBridge.Unsubscribe<BossKilledEvent>(OnBossKilled);
 			EventBusBridge.Unsubscribe<CaptiveRescuedEvent>(OnCaptiveRescued);
 			StageManager.OnStageChanged -= OnStageChanged;
@@ -192,6 +203,39 @@ namespace WitchMendokusai
 			Sim.NotifyExpedition();
 			Sim.RefreshRequests();
 			Save();
+		}
+
+		// 식탁 음식을 먹음. 판 시작의 Init 과 강화 뒤라 이 판에만 걸리고, 다음 판의 Init 이 걷음
+		// 결과창에서 바로 다시 하는 판도 이 신호가 오지만 식탁이 이미 비어 아무것도 안 함
+		private void OnDungeonStart()
+		{
+			CookDef meal = Sim.EatMeal();
+			if (meal == null)
+				return;
+			effectRunner.ApplyEffect(new EffectInfo
+			{
+				Type = EffectType.UnitStat,
+				Data = SOHelper.GetUnitStatData(MealStat(meal.Buff)),
+				ArithmeticOperator = ArithmeticOperator.Add,
+				Value = meal.Value,
+			});
+			Save();
+			Debug.Log($"[{nameof(HomesteadManager)}] 식탁 음식 {meal.Output}: {meal.Buff} +{meal.Value}");
+		}
+
+		public static UnitStatType MealStat(MealBuff buff)
+		{
+			switch (buff)
+			{
+				case MealBuff.Move:
+					return UnitStatType.MOVEMENT_SPEED_BONUS;
+				case MealBuff.Regen:
+					return UnitStatType.HP_REGENERATION;
+				case MealBuff.Exp:
+					return UnitStatType.EXP_BONUS;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(buff), buff, null);
+			}
 		}
 
 		private void OnBossKilled(BossKilledEvent killed) => Sim.NotifyEvent(HomesteadSim.BOSS_EVENT);

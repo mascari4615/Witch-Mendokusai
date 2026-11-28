@@ -205,6 +205,46 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				Need<GoodsDef>(catalog, animal.Product, animal.Id, problems);
 				Need<GoodsDef>(catalog, animal.FineProduct, animal.Id, problems);
 			}
+			CheckCooks(catalog, problems);
+		}
+
+		// 요리법은 음식 하나에 하나 (식탁 버프를 음식으로 찾음). 나는 것은 Dish, 열림 물건은 있는 것
+		private static void CheckCooks(HomesteadCatalog catalog, List<string> problems)
+		{
+			HomesteadTuning tuning = catalog.Tuning;
+			if (tuning.CookSweetFrom < 0f || tuning.CookSweetFrom >= tuning.CookSweetTo || tuning.CookSweetTo > 1f)
+			{
+				problems.Add($"굽기 알맞은 칸 {tuning.CookSweetFrom}~{tuning.CookSweetTo} 이 0~1 안의 구간이 아님");
+			}
+			if (tuning.CookSwingSeconds <= 0f || tuning.CookMaxSeconds <= tuning.CookSwingSeconds)
+			{
+				problems.Add($"굽기 바늘 {tuning.CookSwingSeconds}초, 끝 {tuning.CookMaxSeconds}초. 바늘이 한 번은 오가야 함");
+			}
+			HashSet<string> outputs = new HashSet<string>();
+			foreach (CookDef cook in catalog.Cooks)
+			{
+				Need<GoodsDef>(catalog, cook.Output, cook.Id, problems);
+				foreach (string input in cook.Inputs.Keys)
+				{
+					Need<GoodsDef>(catalog, input, cook.Id, problems);
+				}
+				if (cook.Start == false)
+				{
+					Need<GoodsDef>(catalog, cook.UnlockBy, cook.Id, problems);
+				}
+				if (outputs.Add(cook.Output) == false)
+				{
+					problems.Add($"{cook.Id}: 음식 '{cook.Output}' 의 요리법이 둘");
+				}
+				if (catalog.TryGet(cook.Output, out GoodsDef output) && output.Kind != GoodsKind.Dish)
+				{
+					problems.Add($"{cook.Id}: '{cook.Output}' 은 Dish 가 아님");
+				}
+				if (cook.Value <= 0)
+				{
+					problems.Add($"{cook.Id}: 버프 값 {cook.Value}");
+				}
+			}
 		}
 
 		private static void CheckShapes(HomesteadCatalog catalog, List<string> problems)
@@ -335,6 +375,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				sourced.Add(animal.FineProduct);
 			}
 			catalog.Recipes.ForEach(recipe => sourced.Add(recipe.Output));
+			catalog.Cooks.ForEach(cook => sourced.Add(cook.Output));
 			foreach (GoodsDef goods in catalog.Goods)
 			{
 				if (sourced.Contains(goods.Id) == false)

@@ -1,0 +1,17 @@
+{
+	"Tuning": {"CookSweetFrom": 0.62, "CookSweetTo": 0.8, "CookSwingSeconds": 1.4, "CookMaxSeconds": 6, "CookWellDoneBonus": 1},
+	"Cooks": [
+		{"Id": "k_bread", "Name": "빵", "Inputs": {"flour": 1, "egg": 1}, "Output": "bread", "Start": true, "Buff": "Exp", "Value": 5},
+		{"Id": "k_soup", "Name": "채소 수프", "Inputs": {"potato": 1, "carrot": 1, "turnip": 1}, "Output": "soup", "Start": true, "Buff": "Regen", "Value": 1},
+		{"Id": "k_grill", "Name": "생선구이", "Inputs": {"crucian": 1, "twig": 2}, "Output": "grill", "Start": true, "Buff": "Move", "Value": 3},
+		{"Id": "k_stew", "Name": "버섯 스튜", "Inputs": {"mushroom": 3, "milk": 1}, "Output": "stew", "Start": true, "Buff": "Regen", "Value": 2},
+		{"Id": "k_pie", "Name": "호박 파이", "Inputs": {"pumpkin": 1, "flour": 1, "egg": 1}, "Output": "pie", "Start": true, "Buff": "Exp", "Value": 15},
+		{"Id": "k_potato", "Name": "감자구이", "Inputs": {"potato": 2}, "Output": "potato_bake", "Start": true, "Buff": "Move", "Value": 2},
+		{"Id": "k_tart", "Name": "딸기 타르트", "Inputs": {"strawberry": 2, "flour": 1}, "Output": "tart", "UnlockBy": "strawberry", "Buff": "Exp", "Value": 10},
+		{"Id": "k_porridge", "Name": "달콩죽", "Inputs": {"moonbean": 2, "milk": 1}, "Output": "bean_porridge", "UnlockBy": "moonbean", "Buff": "Regen", "Value": 3},
+		{"Id": "k_eel", "Name": "장어 꼬치", "Inputs": {"eel": 1, "chili": 1}, "Output": "eel_skewer", "UnlockBy": "eel", "Buff": "Move", "Value": 5},
+		{"Id": "k_pancake", "Name": "꿀 팬케이크", "Inputs": {"flour": 1, "egg": 1, "honey": 1}, "Output": "pancake", "UnlockBy": "honey", "Buff": "Exp", "Value": 10},
+		{"Id": "k_acorn", "Name": "도토리묵", "Inputs": {"acorn": 4}, "Output": "acorn_jelly", "UnlockBy": "acorn", "Buff": "Move", "Value": 3},
+		{"Id": "k_salad", "Name": "눈냉이 샐러드", "Inputs": {"snowcress": 2, "tomato": 1}, "Output": "cress_salad", "UnlockBy": "snowcress", "Buff": "Regen", "Value": 2}
+	]
+}

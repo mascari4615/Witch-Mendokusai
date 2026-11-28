@@ -14,6 +14,14 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		Seed = 8,
 	}
 
+	// 식탁 음식이 다음 던전 한 판에 거는 것. 게임 쪽이 능력치 하나로 옮김
+	public enum MealBuff
+	{
+		Move = 0,
+		Regen = 1,
+		Exp = 2,
+	}
+
 	public enum ToolKind
 	{
 		Hoe = 0,

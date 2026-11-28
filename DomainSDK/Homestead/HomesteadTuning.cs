@@ -87,5 +87,14 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 		// 공작소
 		public int CraftSlots { get; set; } = 2;
+
+		// 집 부엌. 바늘이 0 과 1 사이를 오가고 알맞은 칸에서 누르면 잘 구움
+		public float CookSweetFrom { get; set; } = 0.62f;
+		public float CookSweetTo { get; set; } = 0.8f;
+		// 바늘이 한 번 오가는 데 걸리는 초
+		public float CookSwingSeconds { get; set; } = 1.4f;
+		// 누르지 않고 이만큼 지나면 그냥 다 구워짐 (실패 없음)
+		public float CookMaxSeconds { get; set; } = 6f;
+		public int CookWellDoneBonus { get; set; } = 1;
 	}
 }

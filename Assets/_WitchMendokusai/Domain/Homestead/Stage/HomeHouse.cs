@@ -14,6 +14,8 @@ namespace WitchMendokusai
 		[SerializeField] private Transform restSpot;
 		[SerializeField] private Transform benchSpot;
 		[SerializeField] private Transform wardrobeSpot;
+		[Tooltip("서쪽 부엌 조리대 앞. 요리 자리")]
+		[SerializeField] private Transform cookSpot;
 		[Tooltip("집 안에서 쓰는 카메라. 바깥보다 가깝게")]
 		[SerializeField] private OrbitCameraProfile indoorView = new();
 
@@ -23,6 +25,7 @@ namespace WitchMendokusai
 		public Transform RestSpot => restSpot;
 		public Transform BenchSpot => benchSpot;
 		public Transform WardrobeSpot => wardrobeSpot;
+		public Transform CookSpot => cookSpot;
 		public OrbitCameraProfile IndoorView => indoorView;
 	}
 }

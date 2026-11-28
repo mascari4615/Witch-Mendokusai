@@ -271,6 +271,7 @@ Transform:
   - {fileID: 6798150609994139898}
   - {fileID: 285159096034826163}
   - {fileID: 5358238580585681518}
+  - {fileID: 6568264893404116659}
   - {fileID: 1827162188256725555}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -292,6 +293,7 @@ MonoBehaviour:
   restSpot: {fileID: 285159096034826163}
   benchSpot: {fileID: 5358238580585681518}
   wardrobeSpot: {fileID: 1827162188256725555}
+  cookSpot: {fileID: 6568264893404116659}
   indoorView:
     <Distance>k__BackingField: 7.5
     <Pitch>k__BackingField: 16
@@ -787,6 +789,37 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: 93e61c598231cea0867448ef4eb30304, type: 2}
+--- !u!1 &6947617211941270135
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6568264893404116659}
+  m_Layer: 0
+  m_Name: CookSpot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6568264893404116659
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6947617211941270135}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -7.2, y: 0, z: 3.9999995}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8817107834348469295}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7161614872562068350
 GameObject:
   m_ObjectHideFlags: 0

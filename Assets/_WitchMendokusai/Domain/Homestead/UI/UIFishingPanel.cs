@@ -5,7 +5,7 @@ using WitchMendokusai.DomainSDK.Homestead;
 
 namespace WitchMendokusai
 {
-	// 낚시하는 동안 열리는 빈 화면. 입력만 받음
+	// 낚시하는 동안 열리는 빈 화면. 입력만 받음. 집 부엌의 굽기도 같은 화면 (ShowButton)
 	// 열린 동안 이동, 상호작용, 전체 메뉴는 화면 규칙이 막음. X 와 Esc 는 이 화면을 닫음 (낚시 그만)
 	// 손가락: 이 화면이 전체를 덮어 아래 조작 장치가 안 눌림. 그래서 화면 안에 감기 버튼과 그만두기 버튼 (폰엔 X 키가 없음)
 	public sealed class UIFishingPanel : UIToolkitPanel
@@ -105,6 +105,17 @@ namespace WitchMendokusai
 			reelButton.EnableInClassList(BLOCK + "__reel--bite", phase == FishingPhase.Bite);
 			// 끌 때만 인라인. 켤 때는 USS 에 맡김 (TouchOnly 가 PC 에서 숨김)
 			touchColumn.style.display = FishingTouch.ShowsButtons(phase) ? StyleKeyword.Null : DisplayStyle.None;
+		}
+
+		// 낚시 단계 없이 버튼 하나만 (집 부엌 굽기). 다음 SetPhase 가 다시 칠하게 보인 단계를 비움
+		public void ShowButton(string text)
+		{
+			if (reelButton == null)
+				return;
+			shownPhase = (FishingPhase)(-1);
+			reelButton.text = text;
+			reelButton.RemoveFromClassList(BLOCK + "__reel--bite");
+			touchColumn.style.display = StyleKeyword.Null;
 		}
 
 		// 열린 동안 평소 손가락 버튼 (공격, 점프, 엎드리기, 기술, 말걸기) 을 숨김. 이 화면이 전체를 덮어 어차피 안 눌리는데 보이기만 해서 감기와 그만두기 위에 겹쳤음

@@ -226,6 +226,19 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int Minutes { get; set; } = 60;
 	}
 
+	// 집 부엌 요리법 하나. 나는 음식 (Output) 은 요리법마다 하나뿐이라 음식의 버프도 여기서 찾음
+	// - Start 면 처음부터, 아니면 UnlockBy 물건을 처음 얻을 때 열림 (State.Known 으로 셈, 따로 저장 없음)
+	// - Buff 와 Value 는 식탁에 올려 다음 던전 한 판에 먹을 때. 공작소에서 만든 같은 음식도 같음
+	public sealed class CookDef : HomesteadDef
+	{
+		public Dictionary<string, int> Inputs { get; set; } = new Dictionary<string, int>();
+		public string Output { get; set; } = string.Empty;
+		public bool Start { get; set; }
+		public string UnlockBy { get; set; } = string.Empty;
+		public MealBuff Buff { get; set; }
+		public int Value { get; set; }
+	}
+
 	public sealed class RequestDef : HomesteadDef
 	{
 		public int GuildLevel { get; set; } = 1;
