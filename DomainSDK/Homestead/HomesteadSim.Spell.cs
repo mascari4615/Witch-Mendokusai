@@ -47,9 +47,11 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			return CanTakeAll(spell.Cast);
 		}
 
+		// 물 준 자라는 밭만. 마른 밭은 물 주기 (도구 몫) 가 먼저
 		public HomesteadResult CanRipen(int index)
 		{
-			if (PhaseOf(State.Plots[index]) != PlotPhase.Growing)
+			PlotState plot = State.Plots[index];
+			if (PhaseOf(plot) != PlotPhase.Growing || IsWet(plot) == false)
 			{
 				return HomesteadResult.Fail(HomesteadFailure.NotReady);
 			}

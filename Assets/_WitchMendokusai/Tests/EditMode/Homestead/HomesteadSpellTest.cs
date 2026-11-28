@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using WitchMendokusai.DomainSDK.Homestead;
 
@@ -10,9 +11,9 @@ namespace WitchMendokusai.Tests
 
 		private static HomesteadSim MakeSim() => HomesteadTestKit.MakeSim(out HomesteadTestKit.FakePurse _);
 
-		private static void GiveAll(HomesteadSim sim, System.Collections.Generic.Dictionary<string, int> goods)
+		private static void GiveAll(HomesteadSim sim, Dictionary<string, int> goods)
 		{
-			foreach (System.Collections.Generic.KeyValuePair<string, int> pair in goods)
+			foreach (KeyValuePair<string, int> pair in goods)
 			{
 				sim.Give(pair.Key, pair.Value);
 			}
@@ -31,6 +32,7 @@ namespace WitchMendokusai.Tests
 			sim.Give("seed_pumpkin", 1);
 			sim.Till(index);
 			Assert.That(sim.Plant(index, "pumpkin").Ok);
+			Assert.That(sim.Water(index).Ok);
 		}
 
 		[Test]
@@ -89,6 +91,27 @@ namespace WitchMendokusai.Tests
 			sim.Ripen(0);
 			Assert.That(sim.PhaseOf(sim.State.Plots[1]), Is.EqualTo(PlotPhase.Growing), "옆 칸은 그대로 (물뿌리개 등급의 범위와 다름)");
 			Assert.That(sim.State.Plots[0].WetUntil, Is.EqualTo(wetBefore), "젖음은 물 주기 몫");
+		}
+
+		[Test]
+		public void Ripen_needs_a_watered_plot()
+		{
+			HomesteadSim sim = LearnedSim();
+			sim.Give("seed_pumpkin", 1);
+			sim.Till(0);
+			sim.Plant(0, "pumpkin");
+			GiveAll(sim, sim.Catalog.Get<SpellDef>(RIPEN).Cast);
+			Assert.That(sim.Ripen(0).Failure, Is.EqualTo(HomesteadFailure.NotReady), "마른 밭은 물 주기가 먼저");
+			sim.Water(0);
+			Assert.That(sim.Ripen(0).Ok);
+		}
+
+		[Test]
+		public void Catalog_check_refuses_a_zero_cast_amount()
+		{
+			HomesteadCatalog catalog = HomesteadTestKit.LoadCatalog();
+			catalog.Spells[0].Cast["moonmoss"] = 0;
+			Assert.That(HomesteadCatalogCheck.Run(catalog), Has.Some.Contains("쓰는 값이 없음"));
 		}
 
 		[Test]

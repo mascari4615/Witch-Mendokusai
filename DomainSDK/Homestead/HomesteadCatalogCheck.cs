@@ -217,7 +217,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				{
 					Need<GoodsDef>(catalog, goods, spell.Id, problems);
 				}
-				if (spell.Cast.Count == 0)
+				if (spell.Cast.Count == 0 || new List<int>(spell.Cast.Values).Exists(amount => amount <= 0))
 				{
 					problems.Add($"{spell.Id}: 쓰는 값이 없음");
 				}
