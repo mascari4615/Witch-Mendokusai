@@ -59,7 +59,7 @@
 		{"Id": "q_cloth", "Name": "새 커튼", "GuildLevel": 4, "Goods": ["cloth"], "Min": 3, "Max": 5, "Pay": 1.7, "Exp": 26},
 		{"Id": "q_dish", "Name": "잔치 준비", "GuildLevel": 5, "Goods": ["soup", "grill", "stew"], "Min": 2, "Max": 3, "Pay": 1.7, "Exp": 32},
 		{"Id": "q_hide", "Name": "튼튼한 주머니", "GuildLevel": 5, "Goods": ["hide", "bone"], "Min": 4, "Max": 6, "Pay": 2.0, "Exp": 32},
-		{"Id": "q_jam", "Name": "달콤한 것", "GuildLevel": 6, "Goods": ["jam", "honey", "strawberry"], "Min": 2, "Max": 4, "Pay": 1.7, "Exp": 36},
+		{"Id": "q_jam", "Name": "달콤한 것", "GuildLevel": 6, "Goods": ["jam", "honey", "strawberry", "honey_bloom", "honey_pumpkin", "honey_moon"], "Min": 2, "Max": 4, "Pay": 1.7, "Exp": 36},
 		{"Id": "q_iron", "Name": "대장간 일손", "GuildLevel": 6, "Goods": ["iron_bar"], "Min": 3, "Max": 4, "Pay": 1.6, "Exp": 36},
 		{"Id": "q_pie", "Name": "파이 하나", "GuildLevel": 7, "Goods": ["pie", "cheese"], "Min": 2, "Max": 2, "Pay": 1.7, "Exp": 42},
 		{"Id": "q_gold", "Name": "회관 장식", "GuildLevel": 8, "Goods": ["gold_bar", "emerald"], "Min": 2, "Max": 2, "Pay": 1.6, "Exp": 50}
@@ -86,7 +86,7 @@
 		{"Id": "c_pickle", "Name": "절임", "Building": "workshop", "Level": 1, "Inputs": {"turnip": 2}, "Output": "pickle", "Amount": 1, "Minutes": 180},
 		{"Id": "c_cheese", "Name": "치즈", "Building": "workshop", "Level": 2, "Inputs": {"milk": 2}, "Output": "cheese", "Amount": 1, "Minutes": 180},
 		{"Id": "c_tea", "Name": "쑥차", "Building": "workshop", "Level": 1, "Inputs": {"mugwort": 3}, "Output": "tea", "Amount": 1, "Minutes": 60},
-		{"Id": "c_candle", "Name": "초 굳히기", "Building": "workshop", "Level": 2, "Inputs": {"honey": 2, "thread": 1}, "Output": "candle", "Amount": 1, "Minutes": 90},
+		{"Id": "c_candle", "Name": "초 굳히기", "Building": "workshop", "Level": 2, "Inputs": {"beeswax": 2, "thread": 1}, "Output": "candle", "Amount": 1, "Minutes": 90},
 		{"Id": "c_bread_fine", "Name": "빵 넉넉히 굽기", "Building": "workshop", "Level": 2, "Inputs": {"flour": 1, "fine_egg": 1}, "Output": "bread", "Amount": 2, "Minutes": 60},
 		{"Id": "c_cheese_fine", "Name": "진한 치즈", "Building": "workshop", "Level": 2, "Inputs": {"fine_milk": 1}, "Output": "cheese", "Amount": 1, "Minutes": 180},
 		{"Id": "c_cloth_fine", "Name": "고운 천 짜기", "Building": "workshop", "Level": 2, "Inputs": {"fine_wool": 1}, "Output": "cloth", "Amount": 3, "Minutes": 60}

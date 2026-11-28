@@ -49,6 +49,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		// 마을에 놓인 것. 좌표는 차지한 네모의 작은 쪽 칸
 		public List<PlacedPiece> Village { get; set; } = new List<PlacedPiece>();
 		public int NextVillageUid { get; set; } = 1;
+		// 벌통 (마을 조각 Uid) 이 차기 시작한 분
+		public Dictionary<int, long> Hives { get; set; } = new Dictionary<int, long>();
 
 		public List<string> OwnedCostumes { get; set; } = new List<string>();
 		public Dictionary<CostumeSlot, string> Worn { get; set; } = new Dictionary<CostumeSlot, string>();

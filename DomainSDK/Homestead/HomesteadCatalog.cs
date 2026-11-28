@@ -31,6 +31,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public List<PlaceableDef> Placeables { get; set; } = new List<PlaceableDef>();
 		public VillageAreaDef VillageArea { get; set; } = new VillageAreaDef();
 		public List<LayoutDef> Layout { get; set; } = new List<LayoutDef>();
+		public List<HoneyDef> Honeys { get; set; } = new List<HoneyDef>();
 
 		private readonly Dictionary<Type, Dictionary<string, HomesteadDef>> indexes = new Dictionary<Type, Dictionary<string, HomesteadDef>>();
 
@@ -95,6 +96,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			if (type == typeof(CostumeDef)) return Costumes;
 			if (type == typeof(AnimalDef)) return Animals;
 			if (type == typeof(PlaceableDef)) return Placeables;
+			if (type == typeof(HoneyDef)) return Honeys;
 			throw new ArgumentException($"목록 없는 정의 {type.Name}");
 		}
 	}

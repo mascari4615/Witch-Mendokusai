@@ -104,6 +104,7 @@ namespace WitchMendokusai
 			foreach (KeyValuePair<string, GameObject> pair in spotObjects)
 				pair.Value.transform.localPosition = SpotPoint(pair.Key);
 			RefreshDecor();
+			RefreshHives();
 			RefreshGroundCells();
 			RefreshSites();
 		}

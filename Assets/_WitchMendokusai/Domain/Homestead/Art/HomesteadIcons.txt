@@ -180,3 +180,8 @@ eel_skewer
 pancake
 acorn_jelly
 cress_salad
+honey_bloom
+honey_pumpkin
+honey_moon
+beeswax
+beehive

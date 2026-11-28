@@ -96,5 +96,12 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		// 누르지 않고 이만큼 지나면 그냥 다 구워짐 (실패 없음)
 		public float CookMaxSeconds { get; set; } = 6f;
 		public int CookWellDoneBonus { get; set; } = 1;
+
+		// 벌통. 한 판 (600분) 에 한 번 차고, 꽃은 둘레 몇 칸까지
+		public int HiveLimit { get; set; } = 2;
+		public int HiveFillMinutes { get; set; } = 600;
+		public int HiveHoney { get; set; } = 2;
+		public int HiveWax { get; set; } = 1;
+		public int HiveReach { get; set; } = 3;
 	}
 }

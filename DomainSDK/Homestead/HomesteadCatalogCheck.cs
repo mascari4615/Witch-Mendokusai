@@ -12,6 +12,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			CheckShapes(catalog, problems);
 			CheckSources(catalog, problems);
 			CheckLayout(catalog, problems);
+			HoneyCheck.Run(catalog, problems);
 			return problems;
 		}
 
@@ -376,6 +377,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 			catalog.Recipes.ForEach(recipe => sourced.Add(recipe.Output));
 			catalog.Cooks.ForEach(cook => sourced.Add(cook.Output));
+			sourced.UnionWith(HoneyCheck.Outputs(catalog));
 			foreach (GoodsDef goods in catalog.Goods)
 			{
 				if (sourced.Contains(goods.Id) == false)

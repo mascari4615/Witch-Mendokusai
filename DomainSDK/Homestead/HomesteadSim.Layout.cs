@@ -110,7 +110,12 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			{
 				return HomesteadResult.Fail(HomesteadFailure.AlreadyDone);
 			}
-			return State.TownHall < placeable.TownHall ? HomesteadResult.Fail(HomesteadFailure.TownHallTooLow) : CanPay(placeable.Cost);
+			if (State.TownHall < placeable.TownHall)
+			{
+				return HomesteadResult.Fail(HomesteadFailure.TownHallTooLow);
+			}
+			HomesteadResult hive = CanMakeHive(id);
+			return hive.Ok ? CanPay(placeable.Cost) : hive;
 		}
 
 		public HomesteadResult Put(string id, int x, int z, int turn, out PlacedPiece placed)
@@ -128,6 +133,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			Pay(Catalog.Get<PlaceableDef>(id).Cost);
 			placed = new PlacedPiece { Uid = State.NextVillageUid++, Id = id, X = x, Z = z, Turn = turn };
 			State.Village.Add(placed);
+			OnPiecePut(placed);
 			NotifyLayout();
 			return HomesteadResult.Success;
 		}

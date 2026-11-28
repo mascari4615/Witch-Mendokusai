@@ -124,6 +124,7 @@ namespace WitchMendokusai
 			}
 			VillageLook.Ensure(transform);
 			Sim.SetVillageBlocked(BlockedCells());
+			Sim.SetPlotCells(PlotCells());
 			BuildSites();
 			BuildFarm();
 			BuildWild();

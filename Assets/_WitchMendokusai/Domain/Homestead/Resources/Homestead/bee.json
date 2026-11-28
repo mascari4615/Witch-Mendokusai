@@ -1,0 +1,18 @@
+{
+	"Tuning": {"HiveLimit": 2, "HiveFillMinutes": 600, "HiveHoney": 2, "HiveWax": 1, "HiveReach": 3},
+	"Honeys": [
+		{"Id": "h_wild", "Name": "들꽃 꿀", "Note": "둘레에 꽃이 없을 때", "Goods": "honey", "Flowers": []},
+		{"Id": "h_bloom", "Name": "꽃밭 꿀", "Note": "꽃밭 꾸밈", "Goods": "honey_bloom", "Flowers": ["flowerbed"]},
+		{"Id": "h_pumpkin", "Name": "호박꽃 꿀", "Note": "밭의 호박", "Goods": "honey_pumpkin", "Flowers": ["pumpkin"]},
+		{"Id": "h_moon", "Name": "달콩꽃 꿀", "Note": "밭의 달콩", "Goods": "honey_moon", "Flowers": ["moonbean"]}
+	],
+	"Goods": [
+		{"Id": "honey_bloom", "Name": "꽃밭 꿀", "Kind": "Product", "ItemId": -1, "Price": 36, "Grade": 0},
+		{"Id": "honey_pumpkin", "Name": "호박꽃 꿀", "Kind": "Product", "ItemId": -1, "Price": 48, "Grade": 0},
+		{"Id": "honey_moon", "Name": "달콩꽃 꿀", "Kind": "Product", "ItemId": -1, "Price": 64, "Grade": 0},
+		{"Id": "beeswax", "Name": "밀랍", "Kind": "Product", "ItemId": -1, "Price": 20, "Grade": 0}
+	],
+	"Placeables": [
+		{"Id": "beehive", "Name": "벌통", "Kind": "Decor", "Width": 1, "Depth": 1, "TownHall": 1, "Cost": {"Nyang": 0, "Goods": {"wood": 6, "fiber": 4}}, "Models": ["RoomChest"]}
+	]
+}
