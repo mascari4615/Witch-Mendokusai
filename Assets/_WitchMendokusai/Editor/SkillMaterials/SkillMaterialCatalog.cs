@@ -16,6 +16,15 @@ namespace WitchMendokusai
 		public float SlowFactor;
 	}
 
+	// 이펙트 겹 하나. 종류마다 쓰는 칸이 다름 (Burst: Radius, Seconds, RingSeconds)
+	internal sealed class SkillMaterialLayer
+	{
+		public string Kind;
+		public float Radius;
+		public float Seconds;
+		public float RingSeconds;
+	}
+
 	// 레시피 하나를 공통 기본값, 모양 기본값과 합친 결과. 수치는 이름으로 꺼내고 없으면 바로 실패
 	internal sealed class SkillMaterialSpec
 	{
@@ -23,8 +32,11 @@ namespace WitchMendokusai
 		public string Form;
 		public string Element;
 		public Color Color;
+		// 속성의 그린 텍스처 벌 (PaintedFxSet 경로). 그림 색이 구워져 있어 금, 파랑, 어둠 셋 중 가까운 것
+		public string ElementArt;
 		public float BodyWhiten;
 		public List<SkillMaterialEffect> Effects = new();
+		public List<SkillMaterialLayer> Layers = new();
 		public JObject Values;
 
 		public float Float(string key) => Value(key).Value<float>();
@@ -41,8 +53,12 @@ namespace WitchMendokusai
 	{
 		private const string DATA_PATH = "Assets/_WitchMendokusai/Editor/SkillMaterials/skill-materials.json";
 		private static readonly Regex ID_PATTERN = new("^[A-Za-z][A-Za-z0-9_]*$");
-		private static readonly HashSet<string> RECIPE_ONLY_KEYS = new() { "Id", "Form", "Element", "Effects" };
+		private static readonly HashSet<string> RECIPE_ONLY_KEYS = new() { "Id", "Form", "Element", "Effects", "Layers" };
 		private static readonly HashSet<string> EFFECT_KEYS = new() { "Status", "Seconds", "SlowFactor" };
+		private static readonly Dictionary<string, HashSet<string>> LAYER_KEYS = new()
+		{
+			["Burst"] = new HashSet<string> { "Kind", "Radius", "Seconds", "RingSeconds" },
+		};
 
 		public static List<SkillMaterialSpec> Load() => Parse(LoadText());
 
@@ -90,14 +106,19 @@ namespace WitchMendokusai
 
 				string element = Required<JValue>(recipe, "Element", id).Value<string>();
 				JObject color = Required<JObject>(elements, element, $"Elements ({id})");
+				// 겹은 레시피에 있으면 그것, 없으면 모양 기본값 (통째로 바꿈, 섞지 않음)
+				JToken layers = recipe.TryGetValue("Layers", out JToken recipeLayers) ? recipeLayers : formDefaults.GetValue("Layers");
+				values.Remove("Layers");
 				specs.Add(new SkillMaterialSpec
 				{
 					Id = id,
 					Form = form,
 					Element = element,
 					Color = new Color(color.Value<float>("r"), color.Value<float>("g"), color.Value<float>("b"), 1f),
+					ElementArt = Required<JValue>(color, "Art", $"Elements.{element}").Value<string>(),
 					BodyWhiten = bodyWhiten,
 					Effects = ParseEffects(recipe, id),
+					Layers = ParseLayers(layers, id),
 					Values = values,
 				});
 			}
@@ -128,6 +149,32 @@ namespace WitchMendokusai
 				});
 			}
 			return effects;
+		}
+
+		private static List<SkillMaterialLayer> ParseLayers(JToken token, string id)
+		{
+			List<SkillMaterialLayer> layers = new();
+			if (token == null)
+				return layers;
+			foreach (JObject layer in token.Cast<JObject>())
+			{
+				string kind = Required<JValue>(layer, "Kind", id).Value<string>();
+				if (LAYER_KEYS.TryGetValue(kind, out HashSet<string> keys) == false)
+					throw new InvalidOperationException($"{id}: 모르는 겹 {kind}");
+				foreach (JProperty property in layer.Properties())
+				{
+					if (keys.Contains(property.Name) == false)
+						throw new InvalidOperationException($"{id}: 겹 {kind} 의 모르는 키 {property.Name}");
+				}
+				layers.Add(new SkillMaterialLayer
+				{
+					Kind = kind,
+					Radius = Required<JValue>(layer, "Radius", id).Value<float>(),
+					Seconds = Required<JValue>(layer, "Seconds", id).Value<float>(),
+					RingSeconds = Required<JValue>(layer, "RingSeconds", id).Value<float>(),
+				});
+			}
+			return layers;
 		}
 
 		private static T Required<T>(JObject parent, string key, string where) where T : JToken

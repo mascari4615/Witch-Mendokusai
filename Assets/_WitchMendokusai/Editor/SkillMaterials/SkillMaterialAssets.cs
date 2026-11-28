@@ -42,21 +42,62 @@ namespace WitchMendokusai
 			}
 		}
 
+		// 이펙트 겹. Burst 는 켜지는 순간 그린 터짐 (플립북, 바닥 고리, 바닥 어둠). 고리는 속성색, 플립북은 그림 벌의 구운 색
+		public static void AddLayers(GameObject shot, SkillMaterialSpec spec)
+		{
+			foreach (SkillMaterialLayer layer in spec.Layers)
+			{
+				switch (layer.Kind)
+				{
+					case "Burst":
+						PaintedFxSet art = AssetDatabase.LoadAssetAtPath<PaintedFxSet>(spec.ElementArt);
+						if (art == null)
+							throw new InvalidOperationException($"{spec.Id}: 그림 벌 없음 {spec.ElementArt}");
+						PaintedBurst burst = shot.AddComponent<PaintedBurst>();
+						// PaintedBurst 는 반지름에 오브젝트 배율을 곱함. 장판처럼 배율로 크기를 맞춘 탄에서도 세계 반지름이 겹 값이 되게 나눔
+						SetFields(burst, ("art", art), ("radius", layer.Radius / shot.transform.localScale.x), ("seconds", layer.Seconds), ("ringSeconds", layer.RingSeconds));
+						SetColor(burst, "ringTint", spec.Color);
+						break;
+					default:
+						throw new InvalidOperationException($"{spec.Id}: 굽는 법 없는 겹 {layer.Kind}");
+				}
+			}
+		}
+
+		private static void SetColor(UnityEngine.Object target, string name, Color color)
+		{
+			SerializedObject serialized = new(target);
+			SerializedProperty property = serialized.FindProperty(name);
+			if (property == null)
+				throw new InvalidOperationException($"{target.GetType().Name} 에 칸 없음: {name}");
+			property.colorValue = color;
+			serialized.ApplyModifiedPropertiesWithoutUndo();
+		}
+
 		// 속성 색. 스프라이트는 흰색 쪽으로 BodyWhiten 만큼, 트레일은 속성 머티리얼 사본
 		public static void ApplyLook(GameObject shot, SkillMaterialSpec spec)
 		{
 			foreach (SpriteRenderer sprite in shot.GetComponentsInChildren<SpriteRenderer>(true))
 				sprite.color = Color.Lerp(spec.Color, Color.white, spec.BodyWhiten);
-			// 꼬리 셰이더 (SurvivalWeaponFx) 의 칼날 모양은 정점 색을 안 받아 머티리얼 _Color 로
-			foreach (TrailRenderer trail in shot.GetComponentsInChildren<TrailRenderer>(true))
-				trail.sharedMaterial = ElementMaterial(trail.sharedMaterial, spec.Element, spec.Color);
+			// 셰이더 (SurvivalWeaponFx) 의 칼날, 바닥 모양은 정점 색을 안 받아 머티리얼 _Color 로. _Color 없는 머티리얼은 그대로
+			foreach (Renderer renderer in shot.GetComponentsInChildren<Renderer>(true))
+			{
+				if (renderer is SpriteRenderer || renderer is ParticleSystemRenderer || renderer.sharedMaterial == null || renderer.sharedMaterial.HasProperty("_Color") == false)
+					continue;
+				renderer.sharedMaterial = ElementMaterial(renderer.sharedMaterial, spec.Element, spec.Color);
+			}
+			// 입자는 시작 색. 알파는 바탕 값 그대로
+			foreach (ParticleSystem particles in shot.GetComponentsInChildren<ParticleSystem>(true))
+			{
+				ParticleSystem.MainModule main = particles.main;
+				Color start = main.startColor.color;
+				main.startColor = new Color(spec.Color.r, spec.Color.g, spec.Color.b, start.a);
+			}
 		}
 
 		// 바탕 머티리얼을 매번 새로 베껴 속성 색만 바꿈. 바탕이 바뀌면 다시 구울 때 따라감
 		private static Material ElementMaterial(Material source, string element, Color color)
 		{
-			if (source.HasProperty("_Color") == false)
-				throw new InvalidOperationException($"{source.name} 셰이더에 _Color 없음, 속성 색을 못 넣음");
 			string path = $"{SHOT_DIR}/{source.name}_{element}.mat";
 			Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
 			if (material == null)

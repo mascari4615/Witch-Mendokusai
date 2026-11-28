@@ -11,7 +11,7 @@ namespace WitchMendokusai.Tests
 			""Look"": { ""BodyWhiten"": 0.3 },
 			""Defaults"": { ""Damage"": 5, ""Interval"": 1.0 },
 			""Forms"": { ""LineShot"": { ""ShotSpeed"": 18 } },
-			""Elements"": { ""ice"": { ""r"": 0.4, ""g"": 0.8, ""b"": 1.0 } },
+			""Elements"": { ""ice"": { ""r"": 0.4, ""g"": 0.8, ""b"": 1.0, ""Art"": ""Assets/x.asset"" } },
 			""Recipes"": [ RECIPE ]
 		}";
 
@@ -54,6 +54,18 @@ namespace WitchMendokusai.Tests
 			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""Nope"", ""Element"": ""ice"" }"));
 			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""mud"" }"));
 			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""a/b"", ""Form"": ""LineShot"", ""Element"": ""ice"" }"));
+		}
+
+		[Test]
+		public void Layers_come_from_recipe_or_form_and_unknown_fail()
+		{
+			string burst = @"{ ""Kind"": ""Burst"", ""Radius"": 2, ""Seconds"": 0.4, ""RingSeconds"": 0.3 }";
+			SkillMaterialSpec withLayer = Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""ice"", ""Layers"": [" + burst + "] }")[0];
+			Assert.AreEqual(1, withLayer.Layers.Count);
+			Assert.AreEqual("Burst", withLayer.Layers[0].Kind);
+			Assert.AreEqual(0, Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""ice"" }")[0].Layers.Count);
+			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""ice"", ""Layers"": [ { ""Kind"": ""Nope"" } ] }"));
+			Assert.Throws<InvalidOperationException>(() => Parse(@"{ ""Id"": ""Skill_A"", ""Form"": ""LineShot"", ""Element"": ""ice"", ""Layers"": [ { ""Kind"": ""Burst"", ""Radius"": 2, ""Seconds"": 1, ""RingSeconds"": 1, ""Colour"": 1 } ] }"));
 		}
 
 		[Test]

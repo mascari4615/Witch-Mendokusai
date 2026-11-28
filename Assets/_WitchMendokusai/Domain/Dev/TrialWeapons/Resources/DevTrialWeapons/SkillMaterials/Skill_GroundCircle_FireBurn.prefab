@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7632784519113081884
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8202538396992280578}
+  - component: {fileID: 1161531266180093555}
+  - component: {fileID: 1084124193646212830}
+  - component: {fileID: 3061906059344058212}
+  - component: {fileID: 5305270279867175514}
+  m_Layer: 0
+  m_Name: Skill_GroundCircle_FireBurn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8202538396992280578
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7632784519113081884}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1161531266180093555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7632784519113081884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dd1ebcf87f5d1c4ca5292ddda1175df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SkillObject
+--- !u!114 &1084124193646212830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7632784519113081884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 040dd685ef626fa4bb47dbffe8e0f113, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.PoolingObject
+--- !u!114 &3061906059344058212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7632784519113081884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d492e87d06f23b14e8f7f9a3ad7ddb04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.Spawner
+  moveAimFollowRate: 15
+  reverseAim: 0
+  behindDistance: 1
+  clusterRadius: 2.5
+  clusterMinCount: 1
+  shotStepDegrees: 0
+  volleyStepDegrees: 0
+  silhouettePrefab: {fileID: 0}
+  nextSpotTelegraph: {fileID: 0}
+  telegraphRadius: 1.5
+  telegraphLeadSeconds: 1
+  prefabToSpawn: {fileID: 6969661516295401731, guid: 1acff70e366c4dd43ba271435e8ff5b0, type: 3}
+  playThrowSfx: 1
+  spawnPositionStrategy: 1
+  spawnAimStrategy: 0
+  <RandomRange>k__BackingField: 3
+  <SpawnCount>k__BackingField: 1
+  <SpawnDelay>k__BackingField: 0.08
+  baseInterval: 1.6
+  attackSpeedBonusStatType: -1
+  attackSpeedReductionPerStack: 0.15
+  minIntervalRatio: 0.25
+  targetRange: 14
+  clockStepDegrees: 30
+  spreadDegrees: 0
+  spawnOpposite: 0
+  scaleBonusStatType: -1
+  scalePerStack: 0.1
+  damageBonusStatType: -1
+  pierceBonusStatType: -1
+  fanStatType: -1
+  fanDegrees: 15
+--- !u!114 &5305270279867175514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7632784519113081884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e1957e134e7d446b23c68776da60ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: WM.Domain::WitchMendokusai.SpawnerInitializer
+  spawner: {fileID: 3061906059344058212}
+  spawnCountStat: 450
+  baseCount: 1
+  minCount: 0
+  gateStat: -1

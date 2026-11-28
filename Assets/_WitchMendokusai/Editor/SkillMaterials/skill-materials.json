@@ -1,5 +1,7 @@
 {
-	"Look": { "BodyWhiten": 0.35 },
+	"Look": {
+		"BodyWhiten": 0.35
+	},
 	"Defaults": {
 		"Damage": 5,
 		"Interval": 1.0,
@@ -13,29 +15,221 @@
 		"LineShot": {
 			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
 			"ShotSpeed": 18,
-			"HitCount": 1
+			"HitCount": 1,
+			"Lifetime": 1.2
+		},
+		"PierceShot": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Needle/NeedleBullet.prefab",
+			"ShotSpeed": 22,
+			"HitCount": 99,
+			"Lifetime": 1.0
+		},
+		"Zone": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Flask/FlaskField.prefab",
+			"Radius": 2.5,
+			"Lifetime": 3.0,
+			"RehitInterval": 0.5,
+			"Interval": 3.5,
+			"SpawnPosition": "NearestEnemy",
+			"SpawnAim": "None"
+		},
+		"NovaSelf": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Flask/FlaskField.prefab",
+			"Radius": 3.0,
+			"Lifetime": 0.35,
+			"RehitInterval": 5.0,
+			"Interval": 2.0,
+			"SpawnPosition": "Player",
+			"SpawnAim": "None",
+			"Layers": [
+				{
+					"Kind": "Burst",
+					"Radius": 3.0,
+					"Seconds": 0.45,
+					"RingSeconds": 0.32
+				}
+			]
+		},
+		"GroundCircle": {
+			"Template": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Flask/FlaskField.prefab",
+			"Radius": 2.0,
+			"Lifetime": 0.4,
+			"RehitInterval": 5.0,
+			"Interval": 1.6,
+			"SpawnPosition": "NearestEnemy",
+			"SpawnAim": "None",
+			"Layers": [
+				{
+					"Kind": "Burst",
+					"Radius": 2.0,
+					"Seconds": 0.4,
+					"RingSeconds": 0.28
+				}
+			]
 		}
 	},
 	"Recipes": [
-		{ "Id": "Skill_LineShot_FrostSlow", "Form": "LineShot", "Element": "ice", "Damage": 6, "Interval": 1.1, "ShotSpeed": 16, "Effects": [ { "Status": "Slow", "Seconds": 1.5, "SlowFactor": 0.4 } ] }
+		{
+			"Id": "Skill_LineShot_FrostSlow",
+			"Form": "LineShot",
+			"Element": "ice",
+			"Damage": 6,
+			"Interval": 1.1,
+			"ShotSpeed": 16,
+			"Effects": [
+				{
+					"Status": "Slow",
+					"Seconds": 1.5,
+					"SlowFactor": 0.4
+				}
+			]
+		},
+		{
+			"Id": "Skill_PierceShot_Light",
+			"Form": "PierceShot",
+			"Element": "light",
+			"Damage": 5,
+			"Interval": 1.3
+		},
+		{
+			"Id": "Skill_Zone_PoisonDot",
+			"Form": "Zone",
+			"Element": "poison",
+			"Damage": 2,
+			"Effects": [
+				{
+					"Status": "Poison",
+					"Seconds": 2.0
+				}
+			]
+		},
+		{
+			"Id": "Skill_NovaSelf_EarthStun",
+			"Form": "NovaSelf",
+			"Element": "earth",
+			"Damage": 7,
+			"Effects": [
+				{
+					"Status": "Stun",
+					"Seconds": 0.8
+				}
+			]
+		},
+		{
+			"Id": "Skill_GroundCircle_FireBurn",
+			"Form": "GroundCircle",
+			"Element": "fire",
+			"Damage": 6,
+			"Effects": [
+				{
+					"Status": "Burn",
+					"Seconds": 2.0
+				}
+			]
+		}
 	],
 	"Elements": {
-		"fire": { "r": 1.0, "g": 0.45, "b": 0.18 },
-		"ice": { "r": 0.45, "g": 0.82, "b": 1.0 },
-		"lightning": { "r": 1.0, "g": 0.92, "b": 0.35 },
-		"water": { "r": 0.25, "g": 0.55, "b": 0.95 },
-		"wind": { "r": 0.62, "g": 0.95, "b": 0.78 },
-		"earth": { "r": 0.72, "g": 0.55, "b": 0.35 },
-		"nature": { "r": 0.45, "g": 0.85, "b": 0.35 },
-		"poison": { "r": 0.6, "g": 0.9, "b": 0.2 },
-		"shadow": { "r": 0.5, "g": 0.3, "b": 0.75 },
-		"light": { "r": 1.0, "g": 0.95, "b": 0.75 },
-		"arcane": { "r": 0.75, "g": 0.45, "b": 1.0 },
-		"blood": { "r": 0.85, "g": 0.12, "b": 0.2 },
-		"metal": { "r": 0.8, "g": 0.82, "b": 0.88 },
-		"void": { "r": 0.55, "g": 0.2, "b": 0.85 },
-		"spirit": { "r": 0.6, "g": 1.0, "b": 0.9 },
-		"time": { "r": 0.95, "g": 0.8, "b": 0.45 },
-		"sound": { "r": 0.95, "g": 0.6, "b": 0.85 }
+		"fire": {
+			"r": 1.0,
+			"g": 0.45,
+			"b": 0.18,
+			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+		},
+		"ice": {
+			"r": 0.45,
+			"g": 0.82,
+			"b": 1.0,
+			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Electric.asset"
+		},
+		"lightning": {
+			"r": 1.0,
+			"g": 0.92,
+			"b": 0.35,
+			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Electric.asset"
+		},
+		"water": {
+			"r": 0.25,
+			"g": 0.55,
+			"b": 0.95,
+			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Electric.asset"
+		},
+		"wind": {
+			"r": 0.62,
+			"g": 0.95,
+			"b": 0.78,
+			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+		},
+		"earth": {
+			"r": 0.72,
+			"g": 0.55,
+			"b": 0.35,
+			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+		},
+		"nature": {
+			"r": 0.45,
+			"g": 0.85,
+			"b": 0.35,
+			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+		},
+		"poison": {
+			"r": 0.6,
+			"g": 0.9,
+			"b": 0.2,
+			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Shadow.asset"
+		},
+		"shadow": {
+			"r": 0.5,
+			"g": 0.3,
+			"b": 0.75,
+			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Shadow.asset"
+		},
+		"light": {
+			"r": 1.0,
+			"g": 0.82,
+			"b": 0.3,
+			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+		},
+		"arcane": {
+			"r": 0.75,
+			"g": 0.45,
+			"b": 1.0,
+			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Shadow.asset"
+		},
+		"blood": {
+			"r": 0.85,
+			"g": 0.12,
+			"b": 0.2,
+			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Shadow.asset"
+		},
+		"metal": {
+			"r": 0.8,
+			"g": 0.82,
+			"b": 0.88,
+			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+		},
+		"void": {
+			"r": 0.55,
+			"g": 0.2,
+			"b": 0.85,
+			"Art": "Assets/_WitchMendokusai/Domain/Crafting/Equipment/Weapon/Ninja/PFX_Shadow.asset"
+		},
+		"spirit": {
+			"r": 0.6,
+			"g": 1.0,
+			"b": 0.9,
+			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+		},
+		"time": {
+			"r": 0.95,
+			"g": 0.8,
+			"b": 0.45,
+			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+		},
+		"sound": {
+			"r": 0.95,
+			"g": 0.6,
+			"b": 0.85,
+			"Art": "Assets/_WitchMendokusai/Domain/Dungeon/Fx/Painted/PFX_Light.asset"
+		}
 	}
 }
