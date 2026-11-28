@@ -272,6 +272,7 @@ Transform:
   - {fileID: 285159096034826163}
   - {fileID: 5358238580585681518}
   - {fileID: 6568264893404116659}
+  - {fileID: 4482019736651205290}
   - {fileID: 1827162188256725555}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -294,6 +295,7 @@ MonoBehaviour:
   benchSpot: {fileID: 5358238580585681518}
   wardrobeSpot: {fileID: 1827162188256725555}
   cookSpot: {fileID: 6568264893404116659}
+  brewSpot: {fileID: 4482019736651205290}
   indoorView:
     <Distance>k__BackingField: 7.5
     <Pitch>k__BackingField: 16
@@ -789,6 +791,37 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: 93e61c598231cea0867448ef4eb30304, type: 2}
+--- !u!1 &7318264015529903117
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4482019736651205290}
+  m_Layer: 0
+  m_Name: BrewSpot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4482019736651205290
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7318264015529903117}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 7.5, y: 0, z: 3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8817107834348469295}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6947617211941270135
 GameObject:
   m_ObjectHideFlags: 0

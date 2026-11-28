@@ -123,8 +123,8 @@ namespace WitchMendokusai
             ingredientRow.Clear();
             for (int i = 0; i < ingredients.Count; i++)
             {
-                Ingredient ingredient = ingredients[i];
-                Button button = new Button(() => AddIngredient(ingredient)) { text = ingredient.Label };
+                int index = i;
+                Button button = new Button(() => TryAddIngredient(index)) { text = ingredients[i].Label };
                 button.style.marginRight = 4f;
                 button.style.marginTop = 4f;
                 ingredientRow.Add(button);

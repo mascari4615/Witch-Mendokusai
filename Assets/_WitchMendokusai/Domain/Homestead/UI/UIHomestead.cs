@@ -20,6 +20,7 @@ namespace WitchMendokusai
 		Workshop = 10,
 		Bench = 11,
 		Cook = 12,
+		Brew = 13,
 	}
 
 	// 생활 화면 묶음. 마을에 처음 들어설 때 HomesteadManager 가 만듦
@@ -51,6 +52,7 @@ namespace WitchMendokusai
 			Add(HomesteadPanelType.Workshop, new StorePage(manager, StorePlace.Workshop));
 			Add(HomesteadPanelType.Bench, new StorePage(manager, StorePlace.Bench));
 			Add(HomesteadPanelType.Cook, new CookPage(manager));
+			Add(HomesteadPanelType.Brew, new BrewPage(manager));
 			Add(HomesteadPanelType.Museum, new MuseumPage(manager));
 			Add(HomesteadPanelType.Wardrobe, new WardrobePage(manager));
 			Add(HomesteadPanelType.Seeds, Seeds);

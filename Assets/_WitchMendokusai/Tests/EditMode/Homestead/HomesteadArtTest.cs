@@ -26,7 +26,7 @@ namespace WitchMendokusai.Tests
 				Need(mark);
 			foreach (GoodsDef goods in catalog.Goods)
 			{
-				if (goods.ItemId < 0)
+				if (goods.ItemId < 0 && goods.IconItem < 0)
 					Need(goods.Id);
 			}
 			catalog.Buildings.ForEach(building => Need(building.Id));

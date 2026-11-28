@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace WitchMendokusai.DomainSDK.Homestead
 {
 	// 자료 점검. 끊긴 id, 얻을 길 없는 물건, 어긋난 길이를 한 번에 모아 돌려줌
-	public static class HomesteadCatalogCheck
+	public static partial class HomesteadCatalogCheck
 	{
 		public static List<string> Run(HomesteadCatalog catalog)
 		{
@@ -206,6 +206,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				Need<GoodsDef>(catalog, animal.FineProduct, animal.Id, problems);
 			}
 			CheckCooks(catalog, problems);
+			CheckBrews(catalog, problems);
 		}
 
 		// 요리법은 음식 하나에 하나 (식탁 버프를 음식으로 찾음). 나는 것은 Dish, 열림 물건은 있는 것
@@ -376,6 +377,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			}
 			catalog.Recipes.ForEach(recipe => sourced.Add(recipe.Output));
 			catalog.Cooks.ForEach(cook => sourced.Add(cook.Output));
+			catalog.Brews.ForEach(brew => sourced.Add(brew.Output));
 			foreach (GoodsDef goods in catalog.Goods)
 			{
 				if (sourced.Contains(goods.Id) == false)

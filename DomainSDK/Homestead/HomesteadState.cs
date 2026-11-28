@@ -68,6 +68,11 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		// 식탁에 올린 음식 (물건 id). 다음 던전이 시작될 때 먹고 비움. 빈 글자면 빈 식탁
 		public string Meal { get; set; } = string.Empty;
 
+		// 물약 선반에 올린 물약 (물건 id). 다음 던전이 시작될 때 마시고 비움. 빈 글자면 빈 선반
+		public string Potion { get; set; } = string.Empty;
+		// 처방 노트. 솥 물약 id -> 처음 닿은 길 (HomesteadSim.Brew)
+		public Dictionary<string, BrewNote> BrewNotes { get; set; } = new Dictionary<string, BrewNote>();
+
 		// 이미 알린 일. 귀환 소식과 첫 안내가 되풀이되지 않게
 		public List<string> Seen { get; set; } = new List<string>();
 	}

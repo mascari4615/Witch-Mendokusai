@@ -40,6 +40,18 @@ namespace WitchMendokusai
         /// </summary>
         public System.Action<BrewCompletion> WorldGranted;
 
+        /// <summary>재료를 넣기 전에 묻는다 (팔레트 번호). false 면 안 넣음. 비우면 언제나 넣음. 집 솥이 창고 수를 셈</summary>
+        public System.Func<int, bool> IngredientGate;
+
+        /// <summary>재료 하나가 솥에 들어감 (팔레트 번호). 솔로 솥만</summary>
+        public System.Action<int> IngredientAdded;
+
+        /// <summary>솥이 비워짐 (다시 젓기, 완성 뒤). 솔로 솥만</summary>
+        public System.Action SessionRestarted;
+
+        /// <summary>false 면 지도 끌기 (재료 없이 움직이기) 를 막음. 재료 수로 셈하는 집 솥이 끔</summary>
+        public bool AllowDrag { get; set; } = true;
+
         private VisualElement mapCanvas;
         private VisualElement ingredientRow;
         private Label spellLabel;
@@ -219,7 +231,29 @@ namespace WitchMendokusai
             else
             {
                 session.Start(session.Recipe, hazards);
+                SessionRestarted?.Invoke();
                 Refresh();
+            }
+        }
+
+        /// <summary>재료 이름 (남은 수 등) 만 바꿈. 솥은 그대로</summary>
+        public void SetPalette(IReadOnlyList<Ingredient> palette)
+        {
+            ingredients.Clear();
+            ingredients.AddRange(palette);
+            RebuildIngredientButtons();
+        }
+
+        private void TryAddIngredient(int index)
+        {
+            if (IngredientGate != null && IngredientGate(index) == false)
+            {
+                return;
+            }
+            AddIngredient(ingredients[index]);
+            if (IsNetworked == false)
+            {
+                IngredientAdded?.Invoke(index);
             }
         }
 

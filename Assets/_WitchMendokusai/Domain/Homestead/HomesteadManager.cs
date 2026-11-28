@@ -56,6 +56,13 @@ namespace WitchMendokusai
 
 		public void RequestCook(string cookId) => CookRequested(cookId);
 
+		// 집 솥에서 지도를 부탁함. 욘의 집 방이 받아 솥 지도를 빌림. 결과 한 줄은 솥 화면이 보임
+		public event Action<string> BrewRequested = delegate { };
+
+		public void RequestBrew(string brewId) => BrewRequested(brewId);
+
+		public string BrewNews { get; set; } = string.Empty;
+
 		// 세이브가 통째로 바뀌어 (처음부터 다시) 규칙을 새로 세움. 마을이 떠 있으면 몸을 다시 지음
 		public event Action Rebuilt = delegate { };
 
@@ -209,6 +216,7 @@ namespace WitchMendokusai
 		// 결과창에서 바로 다시 하는 판도 이 신호가 오지만 식탁이 이미 비어 아무것도 안 함
 		private void OnDungeonStart()
 		{
+			DrinkPotion();
 			CookDef meal = Sim.EatMeal();
 			if (meal == null)
 				return;
@@ -223,6 +231,23 @@ namespace WitchMendokusai
 			Debug.Log($"[{nameof(HomesteadManager)}] 식탁 음식 {meal.Output}: {meal.Buff} +{meal.Value}");
 		}
 
+		// 선반 물약도 식탁과 같은 때 같은 길로. 둘 다 걸림
+		private void DrinkPotion()
+		{
+			BrewDef potion = Sim.DrinkPotion();
+			if (potion == null)
+				return;
+			effectRunner.ApplyEffect(new EffectInfo
+			{
+				Type = EffectType.UnitStat,
+				Data = SOHelper.GetUnitStatData(PotionStat(potion.Effect)),
+				ArithmeticOperator = ArithmeticOperator.Add,
+				Value = potion.Value,
+			});
+			Save();
+			Debug.Log($"[{nameof(HomesteadManager)}] 선반 물약 {potion.Output}: {potion.Effect} +{potion.Value}");
+		}
+
 		public static UnitStatType MealStat(MealBuff buff)
 		{
 			switch (buff)
@@ -235,6 +260,28 @@ namespace WitchMendokusai
 					return UnitStatType.EXP_BONUS;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(buff), buff, null);
+			}
+		}
+
+		// 퍼센트 능력치는 그대로 퍼센트 (줍기 범위, 쿨타임 감소, 피해, 회피, 냥), 되살림은 횟수
+		public static UnitStatType PotionStat(PotionEffect effect)
+		{
+			switch (effect)
+			{
+				case PotionEffect.Pickup:
+					return UnitStatType.PICKUP_RADIUS_BONUS;
+				case PotionEffect.Cooldown:
+					return UnitStatType.COOLTIME_BONUS;
+				case PotionEffect.Damage:
+					return UnitStatType.DAMAGE_BONUS;
+				case PotionEffect.Dodge:
+					return UnitStatType.DODGE;
+				case PotionEffect.Gold:
+					return UnitStatType.GOLD_BONUS;
+				case PotionEffect.Revive:
+					return UnitStatType.REVIVE_COUNT;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(effect), effect, null);
 			}
 		}
 

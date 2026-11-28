@@ -26,6 +26,11 @@ namespace WitchMendokusai
         private CauldronMapElement map;
         private bool isOpen;
 
+        // 다른 갈래 (집 솥) 에 빌려 준 지도. B 키 솥 (map) 은 숨겨 둘 뿐 상태를 안 건드림
+        private VisualElement mapFrame;
+        private CauldronMapElement borrowed;
+        private System.Action borrowClosed;
+
         // 디제틱 트리거(솥 오브젝트 상호작용)가 외부에서 Open 호출하는 진입점 (DiscoveryScreen 패턴).
         public static CauldronMapController Instance { get; private set; }
 
@@ -82,6 +87,7 @@ namespace WitchMendokusai
 
             map = new CauldronMapElement();
             frame.Add(map);
+            mapFrame = frame;
 
             Button closeButton = new Button(Close) { name = "close-button", text = "닫기" };
             closeButton.style.position = Position.Absolute;
@@ -241,8 +247,41 @@ namespace WitchMendokusai
             return false;
         }
 
+        /// <summary>
+        /// 다른 갈래 (집 솥) 에 새 지도 하나를 빌려 줌. 받은 쪽이 Setup 과 갈고리, BrewCompleted 를 검.
+        /// B 키 솥은 숨겨 둘 뿐이라 넣던 재료와 표식이 그대로 남음.
+        /// 닫히면 (완성 뒤 받은 쪽의 Close, Esc, 닫기 버튼, B 키) 빌린 지도를 버리고 closed 를 한 번 부름.
+        /// 세계 솥 (공유 채널) 은 받은 쪽 재료를 모르니 이어진 동안은 빌려 주지 않음. 부르는 쪽이 IsActive 를 먼저 봄
+        /// </summary>
+        public CauldronMapElement Borrow(System.Action closed)
+        {
+            if (SharedBrewChannelBridge.IsActive)
+            {
+                throw new System.InvalidOperationException("세계 솥에 이어진 동안은 지도를 빌려 줄 수 없음");
+            }
+            if (borrowed != null)
+            {
+                throw new System.InvalidOperationException("이미 빌려 준 지도가 있음");
+            }
+            borrowed = new CauldronMapElement();
+            mapFrame.Insert(mapFrame.IndexOf(map) + 1, borrowed);
+            map.style.display = DisplayStyle.None;
+            borrowClosed = closed;
+            Open();
+            return borrowed;
+        }
+
         public void Close()
         {
+            if (borrowed != null)
+            {
+                mapFrame.Remove(borrowed);
+                borrowed = null;
+                map.style.display = DisplayStyle.Flex;
+                System.Action closed = borrowClosed;
+                borrowClosed = null;
+                closed();
+            }
             isOpen = false;
             if (container != null)
             {

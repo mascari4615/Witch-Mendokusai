@@ -87,7 +87,7 @@ namespace WitchMendokusai
 		{
 			if (Icons.TryGetValue(goods.Id, out Sprite own))
 				return own;
-			return SOHelper.GetItemData(goods.ItemId).Sprite;
+			return SOHelper.GetItemData(goods.ItemId >= 0 ? goods.ItemId : goods.IconItem).Sprite;
 		}
 
 		private Dictionary<string, Sprite> Icons

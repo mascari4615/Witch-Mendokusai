@@ -96,5 +96,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		// 누르지 않고 이만큼 지나면 그냥 다 구워짐 (실패 없음)
 		public float CookMaxSeconds { get; set; } = 6f;
 		public int CookWellDoneBonus { get; set; } = 1;
+		// 솥 지도에서 물약 칸 가운데에 깨끗이 닿으면 (명품) 더 받는 수
+		public int BrewMasterworkBonus { get; set; } = 1;
+		// 솥이 어느 칸에도 못 닿았을 때 이만큼 이상 넣었으면 마지막 재료 하나를 돌려받음
+		public int BrewMissReturnFrom { get; set; } = 2;
 	}
 }

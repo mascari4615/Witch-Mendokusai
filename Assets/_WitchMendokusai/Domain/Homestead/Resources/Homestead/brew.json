@@ -1,0 +1,29 @@
+{
+	"Tuning": {"BrewMasterworkBonus": 1, "BrewMissReturnFrom": 2},
+	"Brews": [
+		{"Id": "b_cloudy", "Name": "흐린 물약", "Output": "p_cloudy", "Fallback": true, "Effect": "Pickup", "Value": 10},
+		{"Id": "b_magnet", "Name": "끌림 물약", "Output": "p_magnet", "X": 2, "Y": 1, "Radius": 0.5, "Effect": "Pickup", "Value": 40},
+		{"Id": "b_haste", "Name": "서두름 물약", "Output": "p_haste", "X": -2, "Y": 1, "Radius": 0.5, "Effect": "Cooldown", "Value": 10},
+		{"Id": "b_nimble", "Name": "날쌤 물약", "Output": "p_nimble", "X": -1.2, "Y": -2.2, "Radius": 0.5, "Effect": "Dodge", "Value": 10},
+		{"Id": "b_might", "Name": "힘 물약", "Output": "p_might", "X": 2.8, "Y": -1, "Radius": 0.5, "Effect": "Damage", "Value": 15},
+		{"Id": "b_fortune", "Name": "복 물약", "Output": "p_fortune", "X": 0, "Y": 2.6, "Radius": 0.5, "Effect": "Gold", "Value": 25},
+		{"Id": "b_revive", "Name": "되살림 물약", "Output": "p_revive", "X": -3, "Y": 2, "Radius": 0.5, "Effect": "Revive", "Value": 1}
+	],
+	"BrewIngredients": [
+		{"Id": "mugwort", "Name": "쑥", "X": 1, "Y": 0},
+		{"Id": "lavender", "Name": "라벤더", "X": 0, "Y": 1},
+		{"Id": "clover", "Name": "토끼풀", "X": -1, "Y": 0},
+		{"Id": "mushroom", "Name": "양송이버섯", "X": 0, "Y": -1},
+		{"Id": "honey", "Name": "꿀", "X": 0.7, "Y": 0.7},
+		{"Id": "moonmoss", "Name": "달빛이끼잎", "X": -0.7, "Y": 0.7},
+		{"Id": "sundew", "Name": "끈끈이주걱", "X": 1.4, "Y": -0.5},
+		{"Id": "bone", "Name": "마수 뼈", "X": -1.2, "Y": -1.2},
+		{"Id": "quartz", "Name": "수정", "X": 0, "Y": 1.3},
+		{"Id": "star_shard", "Name": "별 조각", "X": -1.5, "Y": 1}
+	],
+	"BrewHazards": [
+		{"Id": "h_east", "Name": "끓어 넘침", "X": 1.6, "Y": -2.4, "Radius": 0.6, "Severity": 4},
+		{"Id": "h_west", "Name": "눌어붙음", "X": -2.6, "Y": -0.7, "Radius": 0.6, "Severity": 4},
+		{"Id": "h_north", "Name": "김 빠짐", "X": 1.3, "Y": 2.4, "Radius": 0.6, "Severity": 4}
+	]
+}

@@ -111,6 +111,13 @@
 		{"Id": "eel_skewer", "Name": "장어 꼬치", "Kind": "Dish", "ItemId": -1, "Price": 160, "Grade": 0},
 		{"Id": "pancake", "Name": "꿀 팬케이크", "Kind": "Dish", "ItemId": -1, "Price": 120, "Grade": 0},
 		{"Id": "acorn_jelly", "Name": "도토리묵", "Kind": "Dish", "ItemId": -1, "Price": 50, "Grade": 0},
-		{"Id": "cress_salad", "Name": "눈냉이 샐러드", "Kind": "Dish", "ItemId": -1, "Price": 160, "Grade": 0}
+		{"Id": "cress_salad", "Name": "눈냉이 샐러드", "Kind": "Dish", "ItemId": -1, "Price": 160, "Grade": 0},
+		{"Id": "p_cloudy", "Name": "흐린 물약", "Kind": "Potion", "ItemId": -1, "IconItem": 10100001, "Price": 6, "Grade": 0},
+		{"Id": "p_magnet", "Name": "끌림 물약", "Kind": "Potion", "ItemId": -1, "IconItem": 10002000, "Price": 60, "Grade": 0},
+		{"Id": "p_haste", "Name": "서두름 물약", "Kind": "Potion", "ItemId": -1, "IconItem": 10004000, "Price": 70, "Grade": 0},
+		{"Id": "p_nimble", "Name": "날쌤 물약", "Kind": "Potion", "ItemId": -1, "IconItem": 10003000, "Price": 90, "Grade": 0},
+		{"Id": "p_might", "Name": "힘 물약", "Kind": "Potion", "ItemId": -1, "IconItem": 10001000, "Price": 110, "Grade": 0},
+		{"Id": "p_fortune", "Name": "복 물약", "Kind": "Potion", "ItemId": -1, "IconItem": 10100002, "Price": 120, "Grade": 0},
+		{"Id": "p_revive", "Name": "되살림 물약", "Kind": "Potion", "ItemId": -1, "IconItem": 10100000, "Price": 200, "Grade": 0}
 	]
 }

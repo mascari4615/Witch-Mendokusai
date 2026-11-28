@@ -97,6 +97,26 @@ namespace WitchMendokusai.DomainSDK.Homestead
 				dropped.Add(state.Meal);
 				state.Meal = string.Empty;
 			}
+			// 선반 물약과 처방 노트도 자료에 있는 솥 물약만
+			if (state.Potion.Length > 0 && catalog.Brews.Exists(brew => brew.Output == state.Potion) == false)
+			{
+				dropped.Add(state.Potion);
+				state.Potion = string.Empty;
+			}
+			DropKeys<BrewDef>(state.BrewNotes, catalog, dropped);
+			// 노트 재료가 솥 재료에서 빠졌으면 그 노트는 버림 (다시 솥에서 찾으면 새로 적힘)
+			foreach (string brewId in new List<string>(state.BrewNotes.Keys))
+			{
+				foreach (string goodsId in state.BrewNotes[brewId].Inputs.Keys)
+				{
+					if (catalog.TryGet(goodsId, out BrewIngredientDef _) == false)
+					{
+						state.BrewNotes.Remove(brewId);
+						dropped.Add(brewId);
+						break;
+					}
+				}
+			}
 			return dropped;
 		}
 

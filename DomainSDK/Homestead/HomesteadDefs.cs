@@ -30,6 +30,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 	{
 		public GoodsKind Kind { get; set; }
 		public int ItemId { get; set; } = -1;
+		// 그림만 빌려 오는 던전 아이템 번호. ItemId 와 달리 가방과 셈하지 않음 (솥 물약이 기존 포션 그림을 씀)
+		public int IconItem { get; set; } = -1;
 		public int Price { get; set; }
 		public int Grade { get; set; }
 	}

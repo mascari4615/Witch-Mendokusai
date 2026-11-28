@@ -28,6 +28,7 @@ namespace WitchMendokusai
 			{ GoodsKind.Relic, "유물" },
 			{ GoodsKind.Product, "가공" },
 			{ GoodsKind.Dish, "음식" },
+			{ GoodsKind.Potion, "물약" },
 			{ GoodsKind.Seed, "씨앗" },
 		};
 
@@ -48,6 +49,20 @@ namespace WitchMendokusai
 		public static string ToolName(ToolKind kind) => TOOL_NAMES[kind];
 		public static string KindName(GoodsKind kind) => KIND_NAMES[kind];
 		public static string MealBuffName(MealBuff buff) => MEAL_BUFF_NAMES[buff];
+
+		// 선반 물약의 효과. 되살림만 횟수, 나머지는 퍼센트
+		private static readonly Dictionary<PotionEffect, string> POTION_EFFECT_NAMES = new()
+		{
+			{ PotionEffect.Pickup, "줍기 범위" },
+			{ PotionEffect.Cooldown, "쿨타임 감소" },
+			{ PotionEffect.Damage, "피해" },
+			{ PotionEffect.Dodge, "회피" },
+			{ PotionEffect.Gold, "냥" },
+			{ PotionEffect.Revive, "쓰러지면 되살아남" },
+		};
+
+		public static string PotionEffectText(PotionEffect effect, int value) =>
+			effect == PotionEffect.Revive ? $"{POTION_EFFECT_NAMES[effect]} {value}번" : $"{POTION_EFFECT_NAMES[effect]} +{value}%";
 
 		// 단위까지. 이동은 능력치를 초당 칸으로 (InputContributor.STAT_PER_UNIT_PER_SECOND), 회복은 던전 재생 주기 (SurvivalFeel)
 		public static string MealBuffText(MealBuff buff, int value)

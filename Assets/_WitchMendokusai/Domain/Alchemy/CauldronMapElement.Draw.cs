@@ -109,6 +109,10 @@ namespace WitchMendokusai
         // ── 드래그(갈기) 입력 ────────────────────────────────────────────
         private void OnPointerDown(PointerDownEvent evt)
         {
+            if (AllowDrag == false)
+            {
+                return;
+            }
             dragging = true;
             dragStartLocal = evt.localPosition;
             dragCurrentLocal = dragStartLocal;

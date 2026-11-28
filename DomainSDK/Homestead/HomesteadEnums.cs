@@ -12,6 +12,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		Product = 6,
 		Dish = 7,
 		Seed = 8,
+		Potion = 9,
 	}
 
 	// 식탁 음식이 다음 던전 한 판에 거는 것. 게임 쪽이 능력치 하나로 옮김
