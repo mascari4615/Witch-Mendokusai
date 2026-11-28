@@ -20,6 +20,7 @@ namespace WitchMendokusai
 		Workshop = 10,
 		Bench = 11,
 		Cook = 12,
+		// 13~15 는 같이 만드는 다른 생활 갈래 몫으로 비워 둠
 		Stars = 16,
 	}
 

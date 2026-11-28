@@ -1171,7 +1171,6 @@
 
 .wm-hs-star__row {
     flex-direction: row;
-    flex-wrap: wrap;
     justify-content: center;
     align-items: flex-start;
 }
@@ -1194,15 +1193,16 @@
     border-color: rgba(255, 220, 140, 0.8);
 }
 
+/* 판의 10%. 판이 정사각형이라 margin 퍼센트 (너비 기준) 로 가운데. 별 간격 하한 StarTuning.MinStarGap 과 짝 */
 .wm-hs-star__dot {
     position: absolute;
-    width: 40px;
-    height: 40px;
-    margin-left: -20px;
-    margin-top: -20px;
-    border-radius: 20px;
+    width: 10%;
+    height: 10%;
+    margin-left: -5%;
+    margin-top: -5%;
+    border-radius: 50%;
     background-color: rgba(255, 250, 220, 0.12);
-    border-width: 6px;
+    border-width: 4px;
     border-color: rgba(255, 250, 220, 0.0);
 }
 
@@ -1213,6 +1213,7 @@
 
 .wm-hs-star__atlas {
     width: 220px;
+    flex-shrink: 0;
     padding: 10px 14px;
     border-radius: 16px;
     background-color: rgba(15, 12, 30, 0.6);

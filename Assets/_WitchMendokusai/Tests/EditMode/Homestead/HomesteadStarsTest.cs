@@ -79,9 +79,35 @@ namespace WitchMendokusai.Tests
 		}
 
 		[Test]
+		public void After_midnight_is_still_the_same_night()
+		{
+			HomesteadSim sim = MakeSim();
+			const int LATE = 23;
+			const int SMALL_HOURS = 1;
+			Assert.That(sim.NightOf(DAY + 1, SMALL_HOURS), Is.EqualTo(sim.NightOf(DAY, LATE)));
+			StarLink evening = sim.StartStarLink(0, LATE, DAY);
+			Assert.That(sim.StartStarLink(0, SMALL_HOURS, DAY + 1).Constellation, Is.SameAs(evening.Constellation));
+			DrawAll(evening);
+			Assert.That(sim.FinishStargaze(evening, LATE, DAY).Ok);
+			Assert.That(sim.CanStargaze(SMALL_HOURS, DAY + 1).Failure, Is.EqualTo(HomesteadFailure.AlreadyDone));
+			// 다음 저녁은 새 밤
+			Assert.That(sim.CanStargaze(LATE, DAY + 1).Ok);
+		}
+
+		[Test]
+		public void Linking_across_midnight_finishes_on_the_same_night()
+		{
+			HomesteadSim sim = MakeSim();
+			StarLink link = sim.StartStarLink(0, 23, DAY);
+			DrawAll(link);
+			Assert.That(sim.FinishStargaze(link, 0, DAY + 1).Ok);
+			Assert.That(sim.CanStargaze(22, DAY).Failure, Is.EqualTo(HomesteadFailure.AlreadyDone));
+		}
+
+		[Test]
 		public void Wrong_star_only_moves_the_selection()
 		{
-			StarLink link = MakeSim().StartStarLink(0, DAY);
+			StarLink link = MakeSim().StartStarLink(0, NIGHT, DAY);
 			int[] first = link.Constellation.Lines[0];
 			link.Press(first[0]);
 			int stranger = FindStarNotLinkedTo(link.Constellation, first[0]);
@@ -93,7 +119,7 @@ namespace WitchMendokusai.Tests
 		[Test]
 		public void Same_line_twice_counts_once()
 		{
-			StarLink link = MakeSim().StartStarLink(0, DAY);
+			StarLink link = MakeSim().StartStarLink(0, NIGHT, DAY);
 			int[] first = link.Constellation.Lines[0];
 			link.Press(first[0]);
 			Assert.That(link.Press(first[1]), Is.EqualTo(0));
@@ -117,7 +143,7 @@ namespace WitchMendokusai.Tests
 		public void Unfinished_sky_gives_nothing()
 		{
 			HomesteadSim sim = MakeSim();
-			StarLink link = sim.StartStarLink(0, DAY);
+			StarLink link = sim.StartStarLink(0, NIGHT, DAY);
 			Assert.That(sim.FinishStargaze(link, NIGHT, DAY).Failure, Is.EqualTo(HomesteadFailure.NotReady));
 			Assert.That(sim.Count(sim.Catalog.StarTuning.Shard), Is.EqualTo(0));
 			Assert.That(sim.HasOmen, Is.False);
@@ -128,7 +154,7 @@ namespace WitchMendokusai.Tests
 		{
 			HomesteadSim sim = MakeSim();
 			StarTuning tuning = sim.Catalog.StarTuning;
-			StarLink link = sim.StartStarLink(0, DAY);
+			StarLink link = sim.StartStarLink(0, NIGHT, DAY);
 			DrawAll(link);
 			Assert.That(sim.FinishStargaze(link, NIGHT, DAY).Ok);
 			Assert.That(sim.Count(tuning.Shard), Is.EqualTo(tuning.FirstShards));
@@ -149,7 +175,7 @@ namespace WitchMendokusai.Tests
 
 			// 같은 별자리를 다른 날 다시 (계절의 별자리 수만큼 뒤)
 			long again = DAY + sim.Catalog.Constellations.FindAll(constellation => constellation.Season == 0).Count;
-			StarLink second = sim.StartStarLink(0, again);
+			StarLink second = sim.StartStarLink(0, NIGHT, again);
 			Assert.That(second.Constellation.Id, Is.EqualTo(tonight.Id));
 			DrawAll(second);
 			Assert.That(sim.FinishStargaze(second, NIGHT, again).Ok);
@@ -160,17 +186,17 @@ namespace WitchMendokusai.Tests
 		public void Morning_while_linking_keeps_it_for_tomorrow()
 		{
 			HomesteadSim sim = MakeSim();
-			StarLink link = sim.StartStarLink(0, DAY);
+			StarLink link = sim.StartStarLink(0, NIGHT, DAY);
 			DrawAll(link);
 			Assert.That(sim.FinishStargaze(link, NOON, DAY).Failure, Is.EqualTo(HomesteadFailure.NotReady));
-			Assert.That(sim.HasStargazed(DAY), Is.False);
+			Assert.That(sim.HasStargazed(NIGHT, DAY), Is.False);
 		}
 
 		[Test]
 		public void Omen_is_taken_once_at_dungeon_start()
 		{
 			HomesteadSim sim = MakeSim();
-			StarLink link = sim.StartStarLink(1, DAY);
+			StarLink link = sim.StartStarLink(1, NIGHT, DAY);
 			DrawAll(link);
 			sim.FinishStargaze(link, NIGHT, DAY);
 			ConstellationDef omen = sim.TakeOmen();
@@ -186,7 +212,7 @@ namespace WitchMendokusai.Tests
 			sim.Give("potato", 2);
 			sim.Cook("k_potato", false);
 			sim.SetMeal("potato_bake");
-			StarLink link = sim.StartStarLink(3, DAY);
+			StarLink link = sim.StartStarLink(3, NIGHT, DAY);
 			DrawAll(link);
 			sim.FinishStargaze(link, NIGHT, DAY);
 			Assert.That(sim.EatMeal(), Is.Not.Null);

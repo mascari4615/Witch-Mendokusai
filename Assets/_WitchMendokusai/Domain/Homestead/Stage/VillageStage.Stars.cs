@@ -27,7 +27,7 @@ namespace WitchMendokusai
 
 		private string StarRole()
 		{
-			if (Sim.HasStargazed(manager.CalendarDay))
+			if (Sim.HasStargazed(manager.Hour, manager.CalendarDay))
 				return Sim.HasOmen ? "오늘의 점을 받음" : "오늘 밤은 봤음";
 			return Sim.IsStarHour(manager.Hour) ? "별이 떴음" : $"밤 {Catalog.StarTuning.FromHour}시부터";
 		}

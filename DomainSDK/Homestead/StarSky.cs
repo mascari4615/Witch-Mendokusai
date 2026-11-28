@@ -20,7 +20,8 @@ namespace WitchMendokusai.DomainSDK.Homestead
 		public int FirstShards { get; set; } = 2;
 		public int RepeatShards { get; set; } = 1;
 		// 판 좌표 (0~1) 에서 별끼리 가장 가까운 거리. 손가락으로 눌러 갈라야 함
-		public float MinStarGap { get; set; } = 0.08f;
+		// 별 동그라미는 판의 10% (Homestead.uss 의 wm-hs-star__dot) 라 그보다 커야 안 겹침
+		public float MinStarGap { get; set; } = 0.11f;
 		// 마을 칸 좌표. 별 보는 언덕 자리
 		public float SpotX { get; set; }
 		public float SpotZ { get; set; }
