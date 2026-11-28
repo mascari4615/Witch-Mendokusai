@@ -35,7 +35,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			};
 		}
 
-		public int Given(string festivalId, int slot) => FestivalOf(festivalId).Given.TryGetValue(slot, out int amount) ? amount : 0;
+		public int Given(string festivalId, int slot) => FestivalOf(festivalId).Given.TryGetValue(Catalog.Get<FestivalDef>(festivalId).Slots[slot].Kind, out int amount) ? amount : 0;
 
 		public bool IsSlotFull(string festivalId, int slot) => Given(festivalId, slot) >= Catalog.Get<FestivalDef>(festivalId).Slots[slot].Amount;
 
@@ -77,7 +77,7 @@ namespace WitchMendokusai.DomainSDK.Homestead
 					break;
 				}
 			}
-			FestivalOf(festivalId).Given[slot] = def.Amount - missing;
+			FestivalOf(festivalId).Given[def.Kind] = def.Amount - missing;
 			NotifyChanged();
 			return HomesteadResult.Success;
 		}
@@ -132,7 +132,13 @@ namespace WitchMendokusai.DomainSDK.Homestead
 			FestivalDef festival = Catalog.Get<FestivalDef>(festivalId);
 			FestivalState state = FestivalOf(festivalId);
 			bool feast = IsFeastReady(festival);
-			state.Given.Clear();
+			for (int slot = 0; slot < festival.Slots.Count; slot++)
+			{
+				if (festival.Slots[slot].Optional == false || IsSlotFull(festivalId, slot))
+				{
+					state.Given.Remove(festival.Slots[slot].Kind);
+				}
+			}
 			state.Cheered.Clear();
 			state.HeldDay = Day;
 			Grant(state.Times == 0 ? festival.FirstReward : festival.Reward);

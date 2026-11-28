@@ -10,24 +10,42 @@ namespace WitchMendokusai
 		{
 			bool isToday = Sim.TryGetFestivalToday(out FestivalDef today) && today.Id == festival.Id;
 			bool canOpen = Sim.CanOpenFestival(festival.Id).Ok;
-			int full = 0;
-			for (int slot = 0; slot < festival.Slots.Count; slot++)
-			{
-				if (festival.Slots[slot].Optional == false && Sim.IsSlotFull(festival.Id, slot))
-					full++;
-			}
-			int needed = festival.Slots.FindAll(slot => slot.Optional == false).Count;
 			bool isLocked = Sim.State.TownHall < festival.TownHall;
 			return new HomesteadEntry
 			{
 				Id = festival.Id,
 				Icon = Art.Icon(HomesteadSim.HALL),
 				Name = festival.Name,
-				Sub = isToday ? "오늘 축제" : isLocked ? $"회관 {festival.TownHall}단 필요" : canOpen ? "열 수 있음" : $"준비 {full} / {needed}",
+				Sub = isToday ? "오늘 축제" : canOpen ? "열 수 있음" : BlockText(festival),
 				IsDim = isLocked,
 				IsMarked = canOpen || (isToday && CheerableCount() > 0),
 				Detail = () => FestivalDetail(festival),
 			};
+		}
+
+		// 목록 한 줄. 열기를 막는 첫 이유 (조건, 기다림, 오늘 다른 축제, 준비물 순)
+		private string BlockText(FestivalDef festival)
+		{
+			foreach (FestivalNeed need in Sim.FestivalNeeds(festival))
+			{
+				if (need.IsMet == false)
+					return NeedText(need);
+			}
+			if (Sim.Day < Sim.FestivalReadyDay(festival.Id))
+				return $"{Sim.FestivalReadyDay(festival.Id) - Sim.Day}일 뒤 다시 열림";
+			if (Sim.TryGetFestivalToday(out FestivalDef _))
+				return "오늘은 다른 축제";
+			int full = 0;
+			int needed = 0;
+			for (int slot = 0; slot < festival.Slots.Count; slot++)
+			{
+				if (festival.Slots[slot].Optional)
+					continue;
+				needed++;
+				if (Sim.IsSlotFull(festival.Id, slot))
+					full++;
+			}
+			return $"준비 {full} / {needed}";
 		}
 
 		private int CheerableCount() => Catalog.Residents.FindAll(resident => Sim.CanCheer(resident.Id)).Count;
@@ -62,11 +80,11 @@ namespace WitchMendokusai
 			return detail;
 		}
 
-		// 꾸밈 부족은 Locked 로 오지만 그 글 ("다른 길로 얻습니다") 은 맞지 않아 아직으로
+		// 주민 부족 (NobodyThere) 과 꾸밈 부족 (Locked) 의 공용 글은 축제에 맞지 않아 아직으로. 자세한 것은 조건 줄이 보임
 		private HomesteadResult OpenCheck(FestivalDef festival)
 		{
 			HomesteadResult result = Sim.CanOpenFestival(festival.Id);
-			return result.Failure == HomesteadFailure.Locked ? HomesteadResult.Fail(HomesteadFailure.NotReady) : result;
+			return result.Failure == HomesteadFailure.Locked || result.Failure == HomesteadFailure.NobodyThere ? HomesteadResult.Fail(HomesteadFailure.NotReady) : result;
 		}
 
 		private static string NeedText(FestivalNeed need)

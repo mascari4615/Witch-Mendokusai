@@ -33,8 +33,9 @@ namespace WitchMendokusai.DomainSDK.Homestead
 
 	public sealed class FestivalState
 	{
-		// 칸 번호 -> 바친 수. 열 때 비움
-		public Dictionary<int, int> Given { get; set; } = new Dictionary<int, int>();
+		// 칸 갈래 -> 바친 수. 자료에서 칸 순서가 바뀌어도 맞게 갈래로 (한 축제 안 갈래는 겹치지 않음)
+		// 열 때 다 찬 칸과 필수 칸만 비움. 덜 찬 선택 칸은 다음 축제로 남음
+		public Dictionary<GoodsKind, int> Given { get; set; } = new Dictionary<GoodsKind, int>();
 		public long HeldDay { get; set; } = -1;
 		public int Times { get; set; }
 		// 이번 축제 날 인사를 받은 주민

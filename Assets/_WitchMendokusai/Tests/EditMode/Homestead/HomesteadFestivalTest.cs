@@ -162,6 +162,19 @@ namespace WitchMendokusai.Tests
 			Assert.IsFalse(sim.HasArrived("r_smithy"));
 		}
 
+		[Test]
+		public void A_half_filled_dish_slot_stays_for_the_next_festival()
+		{
+			HomesteadSim sim = ReadySim(out HomesteadTestKit.FakePurse _);
+			FillHarvest(sim);
+			sim.Give("bread", 2);
+			Assert.IsTrue(sim.Offer(HARVEST, SLOT_DISH).Ok);
+			Assert.IsTrue(sim.OpenFestival(HARVEST).Ok);
+			Assert.That(sim.ResidentOf("r_training").Affinity, Is.EqualTo(0), "덜 차면 잔치 호감 없음");
+			Assert.That(sim.Given(HARVEST, SLOT_DISH), Is.EqualTo(2), "바친 음식은 남음");
+			Assert.That(sim.Given(HARVEST, SLOT_CROP), Is.EqualTo(0), "필수 칸은 씀");
+		}
+
 		// 판 수 시험의 봇 (던전 한 판, 마을 한 바퀴) 에 꾸밈 놓기와 바치기를 더해 처음 여는 판을 잼
 		[Test]
 		public void Bot_opens_both_festivals_within_the_demo_range()
